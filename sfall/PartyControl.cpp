@@ -101,8 +101,8 @@ static void SaveRealDudeState() {
 	SkillGetTags(real_tag_skill, 4);
 
 	if (skipCounterAnim) {
-		SafeWrite8(0x4229EC, 0); // no animate
-		SafeWrite8(0x422BDE, 0);
+		const DWORD counterAnimAddr[] = {0x422BDE, 0x4229EC};
+		SafeWriteBatch<BYTE>(0, counterAnimAddr); // no animate
 	}
 
 	if (isDebug) DebugPrintf("\n[SFALL] Save dude state.");
@@ -191,8 +191,8 @@ static void RestoreRealDudeState(bool redraw = true) {
 	}
 
 	if (skipCounterAnim) {
-		SafeWrite8(0x4229EC, 1); // restore
-		SafeWrite8(0x422BDE, 1);
+		const DWORD counterAnimAddr[] = {0x422BDE, 0x4229EC};
+		SafeWriteBatch<BYTE>(1, counterAnimAddr); // restore
 	}
 
 	if (redraw) IntfaceRedraw();

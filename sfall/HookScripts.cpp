@@ -1671,12 +1671,8 @@ static void HookScriptInit2() {
 	LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
 	LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
 	SafeWrite32(0x413979, (DWORD)&HexSightBlockingHook);
-	SafeWrite32(0x4C1A88, (DWORD)&HexShootBlockingHook);
-	SafeWrite32(0x423178, (DWORD)&HexShootBlockingHook);
-	SafeWrite32(0x4232D4, (DWORD)&HexShootBlockingHook);
-	SafeWrite32(0x423B4D, (DWORD)&HexShootBlockingHook);
-	SafeWrite32(0x426CF8, (DWORD)&HexShootBlockingHook);
-	SafeWrite32(0x42A570, (DWORD)&HexShootBlockingHook);
+	const DWORD shootBlockingAddr[] = {0x4C1A88, 0x423178, 0x4232D4, 0x423B4D, 0x426CF8, 0x42A570};
+	SafeWriteBatch<DWORD>((DWORD)&HexShootBlockingHook, shootBlockingAddr);
 	SafeWrite32(0x42A0A4, (DWORD)&HexABlockingHook);
 	MakeJump(0x48B848, HexMBlockingHook);
 

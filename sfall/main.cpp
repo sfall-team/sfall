@@ -532,8 +532,8 @@ static void DllMain2() {
 
 	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
 		dlog("Applying config file patch.", DL_INIT);
-		SafeWrite32(0x444BA5, (DWORD)&configName);
-		SafeWrite32(0x444BCA, (DWORD)&configName);
+		const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
+		SafeWriteBatch<DWORD>((DWORD)&configName, configFileAddr);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -615,8 +615,8 @@ static void DllMain2() {
 	dlogr(" Done", DL_INIT);
 
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
-		SafeWrite8(0x4D6EDD, 0xEB);
-		SafeWrite8(0x4D6F12, 0xEB);
+		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
+		SafeWriteBatch<BYTE>(0xEB, windowRoundingAddr);
 		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
 	}
 
@@ -640,11 +640,11 @@ static void DllMain2() {
 	BlockCall(0x4425E6);
 
 	if (tmp = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
-		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
-		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
+		const DWORD musicOverride1Addr[] = {0x4449C2, 0x4449DB};
+		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, musicOverride1Addr);
 		if (tmp == 2) {
-			SafeWrite32(0x518E78, (DWORD)musicOverridePath);
-			SafeWrite32(0x518E7C, (DWORD)musicOverridePath);
+			const DWORD musicOverride2Addr[] = {0x518E78, 0x518E7C};
+			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, musicOverride2Addr);
 		}
 	}
 
@@ -659,9 +659,7 @@ static void DllMain2() {
 		SafeWrite32(0x4A50E3, scriptDialogCount); // scr_init
 		SafeWrite32(0x4A519F, scriptDialogCount); // scr_game_init
 		SafeWrite32(0x4A534F, scriptDialogCount * 8); // scr_message_free
-		for (int i = 0; i < sizeof(script_dialog_msgs) / 4; i++) {
-			SafeWrite32(script_dialog_msgs[i], (DWORD)scriptDialog); // scr_get_dialog_msg_file
-		}
+		SafeWriteBatch<DWORD>((DWORD)scriptDialog, script_dialog_msgs); // scr_get_dialog_msg_file
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -688,9 +686,7 @@ static void DllMain2() {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
 		SafeWrite8(0x4BDB17, (BYTE)tmp);
 		DWORD nsize = (tmp + 1) * 180 + 0x50;
-		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
-			SafeWrite32(EncounterTableSize[i], nsize);
-		}
+		SafeWriteBatch<DWORD>(nsize, EncounterTableSize);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -741,9 +737,7 @@ static void DllMain2() {
 	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
-		for (int i = 0; i < sizeof(PutAwayWeapon) / 4; i++) {
-			SafeWrite8(PutAwayWeapon[i], 0xEB); // jmps
-		}
+		SafeWriteBatch<BYTE>(0xEB, PutAwayWeapon); // jmps
 		BlockCall(0x472AD5); //
 		BlockCall(0x472AE0); // invenUnwieldFunc_
 		BlockCall(0x472AF0); //
@@ -781,12 +775,8 @@ static void DllMain2() {
 	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
-		const DWORD WalkDistanceAddr[] = {
-			0x411FF0, 0x4121C4, 0x412475, 0x412906,
-		};
-		for (int i = 0; i < sizeof(WalkDistanceAddr) / 4; i++) {
-			SafeWrite8(WalkDistanceAddr[i], static_cast<BYTE>(distance)); // default is 5
-		}
+		const DWORD walkDistanceAddr[] = {0x411FF0, 0x4121C4, 0x412475, 0x412906};
+		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -808,8 +798,8 @@ static void DllMain2() {
 	// Remove hardcoding for maps with IDs 19 and 37
 	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
 		dlog("Applying disable special map IDs patch.", DL_INIT);
-		SafeWrite8(0x4836D6, 0);
-		SafeWrite8(0x4836DB, 0);
+		const DWORD specialMapIdsAddr[] = {0x4836D6, 0x4836DB};
+		SafeWriteBatch<BYTE>(0, specialMapIdsAddr);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -818,8 +808,8 @@ static void DllMain2() {
 	HookCall(0x4354BE, ListDrvdStats_hook);
 
 	// Increase the max text width of the information card in the character screen
-	SafeWrite8(0x43ACD5, 145); // 136
-	SafeWrite8(0x43DD37, 145); // 133
+	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133
+	SafeWriteBatch<BYTE>(145, drawCardAddr);
 
 	dlogr("Running TalkingHeadsInit().", DL_INIT);
 	TalkingHeadsInit();

@@ -705,11 +705,8 @@ static void PerkEngineInit() {
 static void PerkSetup() {
 	if (!perksReInit) {
 		// _perk_data
-		SafeWrite32(0x496669, (DWORD)Perks);
-		SafeWrite32(0x496837, (DWORD)Perks);
-		SafeWrite32(0x496BAD, (DWORD)Perks);
-		SafeWrite32(0x496C41, (DWORD)Perks);
-		SafeWrite32(0x496D25, (DWORD)Perks);
+		const DWORD perkDataAddr[] = {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25};
+		SafeWriteBatch<DWORD>((DWORD)Perks, perkDataAddr);
 		SafeWrite32(0x496696, (DWORD)&Perks[0].Desc);
 		SafeWrite32(0x496BD1, (DWORD)&Perks[0].Desc);
 		SafeWrite32(0x496BF5, (DWORD)&Perks[0].Image);

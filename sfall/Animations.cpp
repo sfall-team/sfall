@@ -224,8 +224,6 @@ skip:
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
 
-	int i;
-
 	//allocate memory to store larger animation struct arrays
 	anim_set = new BYTE[animRecordSize * (aniMax + 1)];
 	sad = new BYTE[sadSize * (aniMax + 1)];
@@ -237,19 +235,13 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWrite8(0x413C07, aniMax - 12);
 
 	//PC movement animation limit checks (old 24) aniMax-8 -- +8 reserved for other critical animations?.
-	for (i = 0; i < sizeof(animPCMove) / 4; i++) {
-		SafeWrite8(animPCMove[i], aniMax - 8);
-	}
+	SafeWriteBatch<BYTE>(aniMax - 8, animPCMove);
 
 	//Max animation limit checks (old 32) aniMax
-	for (i = 0; i < sizeof(animMaxCheck) / 4; i++) {
-		SafeWrite8(animMaxCheck[i], aniMax);
-	}
+	SafeWriteBatch<BYTE>(aniMax, animMaxCheck);
 
 	//Max animations checks - animation struct size * max num of animations (old 2656*32=84992)
-	for (i = 0; i < sizeof(animMaxSizeCheck) / 4; i++) {
-		SafeWrite32(animMaxSizeCheck[i], animRecordSize * aniMax);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize * aniMax, animMaxSizeCheck);
 
 	//divert old animation structure list pointers to newly allocated memory
 
@@ -259,47 +251,31 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWrite32(0x413A9E, animSetAddr);
 
 	//old addr 0x54C1C0
-	for (i = 0; i < sizeof(fake_anim_set_C) / 4; i++) {
-		SafeWrite32(fake_anim_set_C[i], 12 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(12 + animSetAddr, fake_anim_set_C);
 
 	//old addr 0x54CC14
-	for (i = 0; i < sizeof(anim_set_0) / 4; i++) {
-		SafeWrite32(anim_set_0[i], animRecordSize + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + animSetAddr, anim_set_0);
 
 	//old addr 0x54CC18
-	for (i = 0; i < sizeof(anim_set_4) / 4; i++) {
-		SafeWrite32(anim_set_4[i], animRecordSize + 4 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + 4 + animSetAddr, anim_set_4);
 
 	//old addr 0x54CC1C
-	for (i = 0; i < sizeof(anim_set_8) / 4; i++) {
-		SafeWrite32(anim_set_8[i], animRecordSize + 8 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + 8 + animSetAddr, anim_set_8);
 
 	//old addr 0x54CC20
-	for (i = 0; i < sizeof(anim_set_C) / 4; i++) {
-		SafeWrite32(anim_set_C[i], animRecordSize + 12 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + 12 + animSetAddr, anim_set_C);
 
 	//old addr 0x54CC24
-	for (i = 0; i < sizeof(anim_set_10) / 4; i++) {
-		SafeWrite32(anim_set_10[i], animRecordSize + 16 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + 16 + animSetAddr, anim_set_10);
 
 	//old addr 0x54CC28
-	for (i = 0; i < sizeof(anim_set_14) / 4; i++) {
-		SafeWrite32(anim_set_14[i], animRecordSize + 20 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + 20 + animSetAddr, anim_set_14);
 
 	//old addr 0x54CC38
 	SafeWrite32(0x413F29, animRecordSize + 36 + animSetAddr);
 
 	//old addr 0x54CC3C
-	for (i = 0; i < sizeof(anim_set_28) / 4; i++) {
-		SafeWrite32(anim_set_28[i], animRecordSize + 40 + animSetAddr);
-	}
+	SafeWriteBatch<DWORD>(animRecordSize + 40 + animSetAddr, anim_set_28);
 
 	//old addr 0x54CC48
 	SafeWrite32(0x415C35, animRecordSize + 52 + animSetAddr);
@@ -307,67 +283,43 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//struct array 2///////////////////
 
 	//old addr 0x530014
-	for (i = 0; i < sizeof(sad_0) / 4; i++) {
-		SafeWrite32(sad_0[i], sadAddr);
-	}
+	SafeWriteBatch<DWORD>(sadAddr, sad_0);
 
 	//old addr 0x530018
-	for (i = 0; i < sizeof(sad_4) / 4; i++) {
-		SafeWrite32(sad_4[i], 4 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(4 + sadAddr, sad_4);
 
 	//old addr 0x53001C
-	for (i = 0; i < sizeof(sad_8) / 4; i++) {
-		SafeWrite32(sad_8[i], 8 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(8 + sadAddr, sad_8);
 
 	//old addr 0x530020
-	for (i = 0; i < sizeof(sad_C) / 4; i++) {
-		SafeWrite32(sad_C[i], 12 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(12 + sadAddr, sad_C);
 
 	//old addr 0x530024
-	for (i = 0; i < sizeof(sad_10) / 4; i++) {
-		SafeWrite32(sad_10[i], 16 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(16 + sadAddr, sad_10);
 
 	//old addr 0x530028
-	for (i = 0; i < sizeof(sad_14) / 4; i++) {
-		SafeWrite32(sad_14[i], 20 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(20 + sadAddr, sad_14);
 
 	//old addr 0x53002C
-	for (i = 0; i < sizeof(sad_18) / 4; i++) {
-		SafeWrite32(sad_18[i], 24 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(24 + sadAddr, sad_18);
 
 	//old addr 0x530030
-	for (i = 0; i < sizeof(sad_1C) / 4; i++) {
-		SafeWrite32(sad_1C[i], 28 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(28 + sadAddr, sad_1C);
 
 	//old addr 0x530034
-	for (i = 0; i < sizeof(sad_20) / 4; i++) {
-		SafeWrite32(sad_20[i], 32 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(32 + sadAddr, sad_20);
 
 	//old addr 0x530038
-	for (i = 0; i < sizeof(sad_24) / 4; i++) {
-		SafeWrite32(sad_24[i], 36 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(36 + sadAddr, sad_24);
 
 	//old addr 0x53003A
 	SafeWrite32(0x416903, 38 + sadAddr);
 
 	//old addr 0x53003B
-	for (i = 0; i < sizeof(sad_27) / 4; i++) {
-		SafeWrite32(sad_27[i], 39 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(39 + sadAddr, sad_27);
 
 	//old addr 0x53003C
-	for (i = 0; i < sizeof(sad_28) / 4; i++) {
-		SafeWrite32(sad_28[i], 40 + sadAddr);
-	}
+	SafeWriteBatch<DWORD>(40 + sadAddr, sad_28);
 }
 
 void AnimationsInit() {

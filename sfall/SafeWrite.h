@@ -8,6 +8,18 @@ void _stdcall SafeWrite(DWORD addr, T data) {
 	VirtualProtect((void*)addr, sizeof(T), oldProtect, &oldProtect);
 }
 
+template <typename T, class ForwardIteratorType>
+void _stdcall SafeWriteBatch(T data, ForwardIteratorType begin, ForwardIteratorType end) {
+	for (ForwardIteratorType it = begin; it != end; ++it) {
+		SafeWrite<T>(*it, data);
+	}
+}
+
+template <class T, size_t N>
+void _stdcall SafeWriteBatch(T data, const DWORD (&addrs)[N]) {
+	SafeWriteBatch<T>(data, std::begin(addrs), std::end(addrs));
+}
+
 void _stdcall SafeWrite8(DWORD addr, BYTE data);
 void _stdcall SafeWrite16(DWORD addr, WORD data);
 void _stdcall SafeWrite32(DWORD addr, DWORD data);

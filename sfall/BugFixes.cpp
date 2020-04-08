@@ -3062,8 +3062,8 @@ void BugFixesInit()
 		HookCall(0x42954B, ai_best_weapon_hook);
 		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
 		if (bestWeaponPerkFix > 1) {
-			SafeWrite8(0x42955E, 0x55);
-			SafeWrite8(0x4296E7, 0x55);
+			const DWORD aiBestWeaponAddr[] = {0x42955E, 0x4296E7};
+			SafeWriteBatch<BYTE>(0x55, aiBestWeaponAddr);
 		}
 		dlogr(" Done", DL_INIT);
 	}
@@ -3115,8 +3115,8 @@ void BugFixesInit()
 	// Display messages about radiation for the active geiger counter
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_INIT);
-		SafeWrite8(0x42D424, 0x74); // jnz > jz
-		SafeWrite8(0x42D444, 0x74);
+		const DWORD activeGeigerAddr[] = {0x42D424, 0x42D444};
+		SafeWriteBatch<BYTE>(0x74, activeGeigerAddr); // jnz > jz
 		dlogr(" Done", DL_INIT);
 	}
 	// Display a pop-up message box about death from radiation
@@ -3171,15 +3171,13 @@ void BugFixesInit()
 	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
 	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
 	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_INIT);
-	const DWORD ScriptTargetAddr[] = {
+	const DWORD scriptTargetAddr[] = {
 		0x456554, // op_pickup_obj_
 		0x456600, // op_drop_obj_
 		0x456A6D, // op_use_obj_
 		0x456AA4  // op_use_obj_
 	};
-	for (int i = 0; i < sizeof(ScriptTargetAddr) / 4; i++) {
-		SafeWrite8(ScriptTargetAddr[i], 0x34); // script.target > script.self
-	}
+	SafeWriteBatch<BYTE>(0x34, scriptTargetAddr); // script.target > script.self
 	dlogr(" Done", DL_INIT);
 
 	// Fix for critters not attacking the player in combat when loading a game saved in combat mode

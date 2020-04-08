@@ -59,9 +59,7 @@ void KillCounterInit() {
 	};
 
 	// Edit the functions to accept kill types over 19
-	for (int i = 0; i < sizeof(extraKillTypesCountAddr) / 4; i++) {
-		SafeWrite8(extraKillTypesCountAddr[i], 38);
-	}
+	SafeWriteBatch<BYTE>(38, extraKillTypesCountAddr);
 	SafeWrite32(0x42D9DD, 1488); // critter_kill_info_
 }
 

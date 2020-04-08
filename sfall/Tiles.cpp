@@ -263,18 +263,10 @@ void TilesInit() {
 		dlog("Applying tile FRM limit patch.", DL_INIT);
 		MakeCall(0x419D46, art_id_hack);
 		MakeCall(0x419479, art_get_name_hack);
-		for (int i = 0; i < sizeof(Tiles_0E) / 4; i++) {
-			SafeWrite8(Tiles_0E[i], 0x0E);
-		}
-		for (int i = 0; i < sizeof(Tiles_3F) / 4; i++) {
-			SafeWrite8(Tiles_3F[i], 0x3F);
-		}
-		for (int i = 0; i < sizeof(Tiles_40) / 4; i++) {
-			SafeWrite8(Tiles_40[i], 0x40);
-		}
-		for (int i = 0; i < sizeof(Tiles_C0) / 4; i++) {
-			SafeWrite8(Tiles_C0[i], 0xC0);
-		}
+		SafeWriteBatch<BYTE>(0x0E, Tiles_0E);
+		SafeWriteBatch<BYTE>(0x3F, Tiles_3F);
+		SafeWriteBatch<BYTE>(0x40, Tiles_40);
+		SafeWriteBatch<BYTE>(0xC0, Tiles_C0);
 		if (hrpVersionValid) { // Check HRP 4.1.8
 			SafeWrite8(HRPAddress(0x1000E1C0), 0x40);
 			SafeWrite8(HRPAddress(0x1000E1DA), 0x3F);

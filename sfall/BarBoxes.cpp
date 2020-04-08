@@ -201,9 +201,7 @@ void __stdcall BarBoxes_SetText(int box, const char* text, DWORD color) {
 }
 
 static void SetEngine(int count) {
-	for (int i = 0; i < sizeof(bboxMemAddr) / 4; i++) {
-		SafeWrite32(bboxMemAddr[i], (DWORD)boxes + 8);    //.mem
-	}
+	SafeWriteBatch<DWORD>((DWORD)boxes + 8, bboxMemAddr); //.mem
 	SafeWrite32(0x4612FE, (DWORD)boxes + 4);              //.colour
 	SafeWrite32(0x46133C, (DWORD)boxes);                  //.msg
 
@@ -297,9 +295,7 @@ void BarBoxesInit() {
 	totalBoxCount = boxCount = initCount;
 
 	MakeCall(0x4615FA, refresh_box_bar_win_hack);
-	for (int i = 0; i < sizeof(bboxSlotAddr) / 4; i++) {
-		SafeWrite32(bboxSlotAddr[i], (DWORD)newBoxSlot);    // _bboxslot
-	}
+	SafeWriteBatch<DWORD>((DWORD)newBoxSlot, bboxSlotAddr); // _bboxslot
 
 	ifaceWidth = iniGetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
 	if (ifaceWidth < 640) ifaceWidth = 640;
