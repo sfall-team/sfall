@@ -1313,20 +1313,13 @@ void LoadGlobalScripts() {
 	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";
-	DWORD count, *filenames;
-	__asm {
-		xor  ecx, ecx
-		xor  ebx, ebx
-		lea  edx, filenames
-		mov  eax, name
-		call db_get_file_list_
-		mov  count, eax
-	}
+	char** filenames;
+	int count = DbGetFileList(name, &filenames);
 
 	// TODO: refactor script programs
 	sScriptProgram prog;
-	for (DWORD i = 0; i < count; i++) {
-		name = _strlwr((char*)filenames[i]);
+	for (int i = 0; i < count; i++) {
+		name = _strlwr(filenames[i]); // name of the script in lower case
 		if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
 		std::string baseName(name);
@@ -1353,12 +1346,7 @@ void LoadGlobalScripts() {
 			isGlobalScriptLoading = 0;
 		}
 	}
-
-	__asm {
-		xor  edx, edx
-		lea  eax, filenames
-		call db_free_file_list_
-	}
+	DbFreeFileList(&filenames, 0);
 
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
@@ -1521,7 +1509,7 @@ void RunGlobalScripts3() {
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
-		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
+		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
 			DWORD progPtr = it->prog.ptr;
 			__asm {
 				mov  eax, progPtr;
@@ -1541,8 +1529,8 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 static DWORD HandleTimedEventScripts() {
 	DWORD currentTime = *ptr_fallout_game_time;
 	bool wasRunning = false;
-	auto timerIt = timerEventScripts.cbegin();
-	for (; timerIt != timerEventScripts.cend(); timerIt++) {
+	std::list<TimedEvent>::const_iterator timerIt = timerEventScripts.cbegin();
+	for (; timerIt != timerEventScripts.cend(); ++timerIt) {
 		if (currentTime >= timerIt->time) {
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
 			DevPrintf("\n[TimedEventScripts] run event: %d", timerIt->time);
@@ -1553,7 +1541,7 @@ static DWORD HandleTimedEventScripts() {
 		}
 	}
 	if (wasRunning) {
-		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
+		for (std::list<TimedEvent>::const_iterator _it = timerEventScripts.cbegin(); _it != timerIt; ++_it) {
 			DevPrintf("\n[TimedEventScripts] delete event: %d", _it->time);
 		}
 		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
@@ -1637,7 +1625,7 @@ void SaveGlobals(HANDLE h) {
 		var.id = itr->first;
 		var.val = itr->second;
 		WriteFile(h, &var, sizeof(sGlobalVar), &unused, 0);
-		itr++;
+		++itr;
 	}
 }
 
@@ -1660,7 +1648,7 @@ void GetGlobals(sGlobalVar* globals) {
 	while (itr != globalVars.end()) {
 		globals[i].id = itr->first;
 		globals[i++].val = itr->second;
-		itr++;
+		++itr;
 	}
 }
 
@@ -1669,7 +1657,7 @@ void SetGlobals(sGlobalVar* globals) {
 	int i = 0;
 	while (itr != globalVars.end()) {
 		itr->second = globals[i++].val;
-		itr++;
+		++itr;
 	}
 }
 
@@ -1739,20 +1727,21 @@ void ScriptExtenderInit() {
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
-	const DWORD qNextTimeAddr[] = {
+	const DWORD queueNextTimeAddr[] = {
 		0x4C1C67, // wmGameTimeIncrement_
 		0x4A3E1C, // script_chk_timed_events_
 		0x499AFA, 0x499CD7, 0x499E2B // TimedRest_
 	};
-	for (int i = 0; i < sizeof(qNextTimeAddr) / 4; i++) {
-		MakeCall(qNextTimeAddr[i], TimedEventNextTime);
-	}
+	MakeCalls(TimedEventNextTime, queueNextTimeAddr);
 	HookCall(0x4A3E08, script_chk_timed_events_hook);
 
 	// this patch makes it possible to export variables from sfall global scripts
 	HookCall(0x4414C8, Export_Export_FindVar_Hook);
-	HookCall(0x441285, Export_FetchOrStore_FindVar_Hook); // store
-	HookCall(0x4413D9, Export_FetchOrStore_FindVar_Hook); // fetch
+	const DWORD exportFindVarAddr[] = {
+		0x441285, // store
+		0x4413D9  // fetch
+	};
+	HookCalls(Export_FetchOrStore_FindVar_Hook, exportFindVarAddr);
 
 	HookCall(0x46E141, FreeProgramHook);
 

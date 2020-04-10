@@ -198,7 +198,7 @@ end:
 }
 
 // should be called before savegame is loaded
-static bool _stdcall LoadGame2_Before() {
+static bool _stdcall LoadGame_Before() {
 	ResetState(1);
 
 	char buf[MAX_PATH];
@@ -232,7 +232,7 @@ errorLoad:
 	return (true & !isDebug);
 }
 
-static void _stdcall LoadGame2_After() {
+static void _stdcall LoadGame_After() {
 	CritLoad();
 	LoadGlobalScripts();
 	gameLoaded = true;
@@ -241,7 +241,7 @@ static void _stdcall LoadGame2_After() {
 static void __declspec(naked) LoadSlot() {
 	__asm {
 		pushad;
-		call LoadGame2_Before;
+		call LoadGame_Before;
 		test al, al;
 		popad;
 		jnz  errorLoad;
@@ -254,18 +254,19 @@ errorLoad:
 
 static void __declspec(naked) LoadGame_hook() {
 	__asm {
-		push ecx;
-		push edx;
 		or inLoop, LOADGAME;
 		call LoadGame_;
 		and inLoop, (-1 ^ LOADGAME);
 		cmp  eax, 1;
 		jne  end;
-		call LoadGame2_After;
+		// Invoked
+		push ecx;
+		push edx;
+		call LoadGame_After;
 		mov  eax, 1;
-end:
 		pop  edx;
 		pop  ecx;
+end:
 		retn;
 	}
 }
@@ -642,16 +643,13 @@ void LoadGameHookInit() {
 	HookCall(0x4426A6, game_init_hook);
 
 	HookCall(0x480AB3, NewGame);
-	HookCall(0x47C72C, LoadSlot);
-	HookCall(0x47D1C9, LoadSlot);
-	HookCall(0x443AE4, LoadGame_hook);
-	HookCall(0x443B89, LoadGame_hook);
-	HookCall(0x480B77, LoadGame_hook);
-	HookCall(0x48FD35, LoadGame_hook);
+	const DWORD loadSlotAddr[] = {0x47C72C, 0x47D1C9};
+	HookCalls(LoadSlot, loadSlotAddr);
+	const DWORD loadGameAddr[] = {0x443AE4, 0x443B89, 0x480B77, 0x48FD35};
+	HookCalls(LoadGame_hook, loadGameAddr);
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
-	HookCall(0x443AAC, SaveGame_hook);
-	HookCall(0x443B1C, SaveGame_hook);
-	HookCall(0x48FCFF, SaveGame_hook);
+	const DWORD saveGameAddr[] = {0x443AAC, 0x443B1C, 0x48FCFF};
+	HookCalls(SaveGame_hook, saveGameAddr);
 
 	HookCall(0x480A28, MainMenuHook);
 	// 4.x backport
@@ -662,34 +660,26 @@ void LoadGameHookInit() {
 	HookCall(0x4BFE33, WorldMapHook_Start); // wmTownMap_ (old 0x483668, 0x4A4073)
 	HookCall(0x4C2E4F, WorldMapHook_End);   // wmInterfaceExit_ (old 0x4C4855)
 
-	HookCall(0x426A29, CombatHook);
-	HookCall(0x4432BE, CombatHook);
-	HookCall(0x45F6D2, CombatHook);
-	HookCall(0x4A4020, CombatHook);
-	HookCall(0x4A403D, CombatHook);
+	const DWORD combatHkAddr[] = {0x426A29, 0x4432BE, 0x45F6D2, 0x4A4020, 0x4A403D};
+	HookCalls(CombatHook, combatHkAddr);
 	HookCall(0x422B09, PlayerCombatHook);
 
 	HookCall(0x480C16, EscMenuHook);   // gnw_main_
 	HookCall(0x4433BE, EscMenuHook2);  // game_handle_input_
-	HookCall(0x48FCE4, OptionsMenuHook);
-	HookCall(0x48FD17, OptionsMenuHook);
-	HookCall(0x48FD4D, OptionsMenuHook);
-	HookCall(0x48FD6A, OptionsMenuHook);
-	HookCall(0x48FD87, OptionsMenuHook);
-	HookCall(0x48FDB3, OptionsMenuHook);
+	const DWORD optionsMenuHkAddr[] = {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3};
+	HookCalls(OptionsMenuHook, optionsMenuHkAddr);
 	HookCall(0x443A50, HelpMenuHook);  // game_handle_input_
 	HookCall(0x443320, CharacterHook); // 0x4A73EB, 0x4A740A for character creation
 
 	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_
 	HookCall(0x4452CD, DialogHook_End);   // gdialogExitFromScript_ (old 0x445748)
 
-	HookCall(0x49767F, PipboyHook_Start); // StartPipboy_ (old 0x443463, 0x443605)
-	HookCall(0x4977EF, PipboyHook_Start);
-	HookCall(0x49780D, PipboyHook_Start);
+	const DWORD pipboyHkStartAddr[] = {0x49767F, 0x4977EF, 0x49780D}; // StartPipboy_ (old 0x443463, 0x443605)
+	HookCalls(PipboyHook_Start, pipboyHkStartAddr);
 	HookCall(0x497868, PipboyHook_End); // EndPipboy_
 
-	HookCall(0x4434AC, SkilldexHook);
-	HookCall(0x44C7BD, SkilldexHook);
+	const DWORD skilldexHkAddr[] = {0x4434AC, 0x44C7BD};
+	HookCalls(SkilldexHook, skilldexHkAddr);
 
 	HookCall(0x46E8F3, HandleInventoryHook_Start); // handle_inventory_ (old 0x443357)
 	HookCall(0x46EC2D, HandleInventoryHook_End);
@@ -702,8 +692,8 @@ void LoadGameHookInit() {
 
 	HookCall(0x4466C7, BarterInventoryHook); // gdProcess_
 
-	HookCall(0x44396D, AutomapHook);
-	HookCall(0x479519, AutomapHook);
+	const DWORD automapHkAddr[] = {0x44396D, 0x479519};
+	HookCalls(AutomapHook, automapHkAddr);
 
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);

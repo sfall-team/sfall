@@ -33,7 +33,7 @@ void DrugsSaveFix(HANDLE file) {
 	DWORD sizeWrite, count = drugsPid.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	if (!count) return;
-	for (std::list<int>::iterator it = drugsPid.begin(); it != drugsPid.end(); it++) {
+	for (std::list<int>::iterator it = drugsPid.begin(); it != drugsPid.end(); ++it) {
 		int pid = *it;
 		WriteFile(file, &pid, 4, &sizeWrite, 0);
 	}
@@ -2688,8 +2688,8 @@ void BugFixesInit()
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
 	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
-		HookCall(0x4A596A, scr_write_ScriptNode_hook);
-		HookCall(0x4A59C1, scr_write_ScriptNode_hook);
+		const DWORD writeScriptNodeAddr[] = {0x4A596A, 0x4A59C1};
+		HookCalls(scr_write_ScriptNode_hook, writeScriptNodeAddr);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2862,8 +2862,8 @@ void BugFixesInit()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, MultiHexFix);
-		MakeCall(0x429170, MultiHexFix);
+		const DWORD multiHexFixAddr[] = {0x42901F, 0x429170};
+		MakeCalls(MultiHexFix, multiHexFixAddr);
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
@@ -3074,8 +3074,8 @@ void BugFixesInit()
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
 	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
-	HookCall(0x474C73, barter_attempt_transaction_hook_weight);
-	HookCall(0x474CCA, barter_attempt_transaction_hook_weight);
+	const DWORD barterAttTransAddr[] = {0x474C73, 0x474CCA};
+	HookCalls(barter_attempt_transaction_hook_weight, barterAttTransAddr);
 
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
 	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
@@ -3187,8 +3187,8 @@ void BugFixesInit()
 	MakeCall(0x422E25, combat_hack_load);
 
 	// Fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
-	HookCall(0x473AC9, JesseContainerFid);
-	HookCall(0x475895, JesseContainerFid);
+	const DWORD jesseContFidAddr[] = {0x473AC9, 0x475895};
+	HookCalls(JesseContainerFid, jesseContFidAddr);
 
 	// Fix the return value of has_skill function for incorrect skill numbers
 	SafeWrite32(0x4AA56B, 0);
@@ -3214,8 +3214,11 @@ void BugFixesInit()
 
 	// Fix for the overflow of the automap tables when the number of maps in maps.txt is more than 160
 	HookCall(0x41C0FC, automap_pip_save_hook);
-	HookCall(0x499212, PrintAutoMapList); // PrintAMList_
-	HookCall(0x499013, PrintAutoMapList); // PrintAMelevList_
+	const DWORD printAutoMapAddr[] = {
+		0x499212, // PrintAMList_
+		0x499013  // PrintAMelevList_
+	};
+	HookCalls(PrintAutoMapList, printAutoMapAddr);
 
 	// Fix "out of bounds" bug when printing the automap list
 	HookCall(0x499240, PrintAMList_hook);

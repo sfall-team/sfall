@@ -152,8 +152,8 @@ morelines:
 }
 
 void CreditsInit() {
-	HookCall(0x480C49, ShowCreditsHook);
-	HookCall(0x43F881, ShowCreditsHook);
+	const DWORD showCreditsAddr[] = {0x480C49, 0x43F881};
+	HookCalls(ShowCreditsHook, showCreditsAddr);
 	if (GetConfigInt("Misc", "CreditsAtBottom", 0)) {
 		HookCall(0x42CB49, CreditsNextLineHook_Bottom);
 	} else {

@@ -107,7 +107,7 @@ std::string GetIniString(const char* section, const char* setting, const char* d
 }
 
 std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	auto list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
+	std::vector<std::string> list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
 	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
 	return list;
 }
@@ -575,13 +575,11 @@ static void DllMain2() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
-		const DWORD artGetCodeAddr[] = {
+		const DWORD weaponAnimAddr[] = {
 			0x451648, 0x451671, // gsnd_build_character_sfx_name_
 			0x4194CC            // art_get_name_
 		};
-		for (int i = 0; i < sizeof(artGetCodeAddr) / 4; i++) {
-			HookCall(artGetCodeAddr[i], WeaponAnimHook);
-		};
+		HookCalls(WeaponAnimHook, weaponAnimAddr);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -804,8 +802,8 @@ static void DllMain2() {
 	}
 
 	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
-	HookCall(0x43549C, ListDrvdStats_hook);
-	HookCall(0x4354BE, ListDrvdStats_hook);
+	const DWORD listDrvdStatsAddr[] = {0x43549C, 0x4354BE};
+	HookCalls(ListDrvdStats_hook, listDrvdStatsAddr);
 
 	// Increase the max text width of the information card in the character screen
 	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133

@@ -576,8 +576,8 @@ void SoundInit() {
 
 	if (int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0) > 0) {
 		MakeJump(0x4AD499, soundLoad_hack);
-		HookCall(0x44E80A, gmovie_play_hook_stop); // only play looping music
-		HookCall(0x445280, gmovie_play_hook_stop);
+		const DWORD gmoviePlayStopAddr[] = {0x44E80A, 0x445280};
+		HookCalls(gmovie_play_hook_stop, gmoviePlayStopAddr); // only play looping music
 		if (allowDShowSound > 1) {
 			HookCall(0x450851, gsound_background_play_hook);
 		}

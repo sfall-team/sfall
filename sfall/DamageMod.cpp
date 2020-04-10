@@ -409,8 +409,8 @@ static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 	}
 }
 
-static const DWORD DisplayBonusHtHDmg2Exit = 0x472569;
 static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
+	static const DWORD DisplayBonusHtHDmg2Exit = 0x472569;
 	__asm {
 		mov  ecx, eax;
 		call stat_level_;
@@ -451,10 +451,16 @@ void DamageModInit() {
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		if (!DisplayBonusDmg) {                               // Subtract damage from perk bonus (vanilla displaying)
-			HookCall(0x435C0C, MeleeDmgDisplayPrintFix_hook); // DisplayFix (ListDrvdStats_)
-			HookCall(0x439921, MeleeDmgDisplayPrintFix_hook); // PrintFix   (Save_as_ASCII_)
-			HookCall(0x472266, CommonDmgRngDispFix_hook);     // MeleeWeap  (display_stats_)
-			HookCall(0x472546, CommonDmgRngDispFix_hook);     // Unarmed    (display_stats_)
+			const DWORD meleeDmgDispPrtAddr[] = {
+				0x435C0C,                                     // DisplayFix (ListDrvdStats_)
+				0x439921                                      // PrintFix   (Save_as_ASCII_)
+			};
+			HookCalls(MeleeDmgDisplayPrintFix_hook, meleeDmgDispPrtAddr);
+			const DWORD commonDmgRngDispAddr[] = {
+				0x472266,                                     // MeleeWeap  (display_stats_)
+				0x472546                                      // Unarmed    (display_stats_)
+			};
+			HookCalls(CommonDmgRngDispFix_hook, commonDmgRngDispAddr);
 		}
 		MakeCall(0x478492, HtHDamageFix1a_hack);              // Unarmed    (item_w_damage_)
 		HookCall(0x47854C, HtHDamageFix1b_hook);              // MeleeWeap  (item_w_damage_)

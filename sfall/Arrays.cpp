@@ -319,7 +319,7 @@ void GetArrays(int* _arrays) {
 		_arrays[pos++] = itr->second.isAssoc() ? 1 : 0;
 		_arrays[pos++] = itr->second.val.size();
 		_arrays[pos++] = itr->second.flags;
-		itr++;
+		++itr;
 	}
 }
 

@@ -249,8 +249,11 @@ static void __declspec(naked) combat_attack_hook() {
 }
 
 void AIInit() {
-	HookCall(0x426A95, combat_attack_hook);  // combat_attack_this_
-	HookCall(0x42A796, combat_attack_hook);  // ai_attack_
+	const DWORD combatAttackAddr[] = {
+		0x426A95, // combat_attack_this_
+		0x42A796  // ai_attack_
+	};
+	HookCalls(combat_attack_hook, combatAttackAddr);
 
 	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
@@ -264,9 +267,7 @@ void AIInit() {
 		0x42AF15,           // cai_attempt_w_reload_
 		0x42A970, 0x42AA56, // ai_try_attack_
 	};
-	for (int i = 0; i < sizeof(itemWReloadAddr) / 4; i++) {
-		HookCall(itemWReloadAddr[i], item_w_reload_hook);
-	}
+	HookCalls(item_w_reload_hook, itemWReloadAddr);
 
 	/////////////////////// Combat AI behavior fixes ///////////////////////
 
@@ -277,8 +278,8 @@ void AIInit() {
 
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
-	HookCall(0x42ABA8, ai_try_attack_hook_FleeFix);
-	HookCall(0x42ACE5, ai_try_attack_hook_FleeFix);
+	const DWORD aiTryAttackFleeAddr[] = {0x42ABA8, 0x42ACE5};
+	HookCalls(ai_try_attack_hook_FleeFix, aiTryAttackFleeAddr);
 	// Disable fleeing when NPC cannot move closer to target
 	BlockCall(0x42ADF6); // ai_try_attack_
 

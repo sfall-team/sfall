@@ -464,9 +464,9 @@ end:
 }
 
 // Search all available perks for the player to display them in the character screen
-static const DWORD EndPerkLoopExit = 0x434446;
-static const DWORD EndPerkLoopCont = 0x4343A5;
 static void __declspec(naked) EndPerkLoopHack() {
+	static const DWORD EndPerkLoopExit = 0x434446;
+	static const DWORD EndPerkLoopCont = 0x4343A5;
 	__asm {
 		jl   cLoop;           // if ebx < 119
 		call HaveFakePerks;   // return perks count
@@ -661,36 +661,35 @@ static void PerkEngineInit() {
 	HookCall(0x434256, PlayerHasTraitHook); // jz func
 	MakeJump(0x43436B, PlayerHasPerkHack);
 	HookCall(0x4343AC, GetPerkLevelHook);
-	HookCall(0x4343C1, GetPerkNameHook);
-	HookCall(0x4343DF, GetPerkNameHook);
 	HookCall(0x43440D, GetPerkImageHook);
-	HookCall(0x43441B, GetPerkNameHook);
 	HookCall(0x434432, GetPerkDescHook);
 	MakeJump(0x434440, EndPerkLoopHack, 1);
+	const DWORD getPerkNameAddr[] = {0x4343C1, 0x4343DF, 0x43441B};
+	HookCalls(GetPerkNameHook, getPerkNameAddr);
 
 	// GetPlayerAvailablePerks (ListDPerks_)
 	HookCall(0x43D127, GetAvailablePerksHook);
 	HookCall(0x43D17D, GetPerkSNameHook);
-	HookCall(0x43D25E, GetPerkSLevelHook);
-	HookCall(0x43D275, GetPerkSLevelHook);
+	const DWORD getPerkSLevelAddr1[] = {0x43D25E, 0x43D275};
+	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr1);
 
 	// ShowPerkBox (perks_dialog_)
-	HookCall(0x43C82E, GetPerkSLevelHook);
-	HookCall(0x43C85B, GetPerkSLevelHook);
-	HookCall(0x43C888, GetPerkSDescHook);
-	HookCall(0x43C8A6, GetPerkSNameHook);
-	HookCall(0x43C8D1, GetPerkSDescHook);
-	HookCall(0x43C8EF, GetPerkSNameHook);
+	const DWORD getPerkSLevelAddr2[] = {0x43C82E, 0x43C85B};
+	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr2);
+	const DWORD getPerkSDescAddr2[] = {0x43C888, 0x43C8D1};
+	HookCalls(GetPerkSDescHook, getPerkSDescAddr2);
+	const DWORD getPerkSNameAddr2[] = {0x43C8A6, 0x43C8EF};
+	HookCalls(GetPerkSNameHook, getPerkSNameAddr2);
 	HookCall(0x43C90F, GetPerkSImageHook);
 	HookCall(0x43C952, AddPerkHook);
 
 	// PerkboxSwitchPerk (RedrwDPrks_)
-	HookCall(0x43C3F1, GetPerkSLevelHook);
-	HookCall(0x43C41E, GetPerkSLevelHook);
-	HookCall(0x43C44B, GetPerkSDescHook);
-	HookCall(0x43C469, GetPerkSNameHook);
-	HookCall(0x43C494, GetPerkSDescHook);
-	HookCall(0x43C4B2, GetPerkSNameHook);
+	const DWORD getPerkSLevelAddr3[] = {0x43C3F1, 0x43C41E};
+	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr3);
+	const DWORD getPerkSDescAddr3[] = {0x43C44B, 0x43C494};
+	HookCalls(GetPerkSDescHook, getPerkSDescAddr3);
+	const DWORD getPerkSNameAddr3[] = {0x43C469, 0x43C4B2};
+	HookCalls(GetPerkSNameHook, getPerkSNameAddr3);
 	HookCall(0x43C4D2, GetPerkSImageHook);
 
 	// perk_owed hooks
@@ -1012,9 +1011,9 @@ static __declspec(naked) void TraitInitWrapper() {
 	}
 }
 
-static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
-static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 static void __declspec(naked) item_w_called_shot_hack() {
+	static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
+	static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 	__asm {
 		test eax, eax;                    // does player have Fast Shot trait?
 		je ajmp;                          // skip ahead if no
@@ -1032,10 +1031,6 @@ bjmp:
 	}
 }
 
-static const DWORD FastShotFixF1[] = {
-	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
-};
-
 static void FastShotTraitFix() {
 	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
 	case 1:
@@ -1045,9 +1040,8 @@ static void FastShotTraitFix() {
 	case 2:
 		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
 		SafeWrite16(0x478C9F, 0x9090);
-		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
-			HookCall(FastShotFixF1[i], (void*)0x478C7D);
-		}
+		const DWORD fastShotFixF1[] = {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F};
+		HookCalls((void*)0x478C7D, fastShotFixF1);
 	done:
 		dlogr(" Done", DL_INIT);
 		break;

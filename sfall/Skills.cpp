@@ -160,8 +160,8 @@ notNeg:
 	}
 }
 
-static const DWORD skill_dec_point_limit_Ret = 0x4AAA91;
 static void __declspec(naked) skill_dec_point_hack_limit() {
+	static const DWORD skill_dec_point_limit_Ret = 0x4AAA91;
 	__asm {
 		cmp edi, SKILL_MIN_LIMIT;
 		jle skip; // if raw skill point <= -128
@@ -213,8 +213,8 @@ static int __fastcall GetStatBonus(TGameObj* critter, const SkillInfo* info, int
 
 //On input, ebx/edx contains the skill id, ecx contains the critter, edi contains a SkillInfo*, ebp contains the number of skill points
 //On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints * multiplier
-static const DWORD StatBonusHookRet = 0x4AA5D6;
 static void __declspec(naked) skill_level_hack_bonus() {
+	static const DWORD StatBonusHookRet = 0x4AA5D6;
 	__asm {
 		push ecx;
 		push ebp;          // points
@@ -227,8 +227,8 @@ static void __declspec(naked) skill_level_hack_bonus() {
 	}
 }
 
-static const DWORD SkillIncCostRet = 0x4AA7C1;
 static void __declspec(naked) skill_inc_point_hack_cost() {
+	static const DWORD SkillIncCostRet = 0x4AA7C1;
 	__asm { // eax - current skill level, ebx - current skill, ecx - num free skill points
 		mov  edx, basedOnPoints;
 		test edx, edx;
@@ -248,8 +248,8 @@ skip:
 	}
 }
 
-static const DWORD SkillDecCostRet = 0x4AA98D;
 static void __declspec(naked) skill_dec_point_hack_cost() {
+	static const DWORD SkillDecCostRet = 0x4AA98D;
 	__asm { // ecx - current skill level, ebx - current skill, esi - num free skill points
 		mov  edx, basedOnPoints;
 		test edx, edx;
@@ -427,8 +427,8 @@ void SkillsInit() {
 		MakeJump(0x4AA59D, skill_level_hack_bonus, 1);
 		MakeJump(0x4AA738, skill_inc_point_hack_cost);
 		MakeJump(0x4AA940, skill_dec_point_hack_cost, 1);
-		HookCall(0x4AA9E1, skill_dec_point_hook_cost);
-		HookCall(0x4AA9F1, skill_dec_point_hook_cost);
+		const DWORD skillDecPointAddr[] = {0x4AA9E1, 0x4AA9F1};
+		HookCalls(skill_dec_point_hook_cost, skillDecPointAddr);
 
 		basedOnPoints = iniGetInt("Skills", "BasedOnPoints", 0, file);
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)skill_points_); // skill_dec_point_

@@ -59,7 +59,7 @@ static const DWORD* list_com = ptr_list_com;
 
 static bool _stdcall IsInPidList(TGameObj* obj) {
 	int pid = obj->pid & 0xFFFFFF;
-	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); it++) {
+	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); ++it) {
 		if (*it == pid) {
 			return true;
 		}
@@ -483,12 +483,12 @@ void PartyControlInit() {
 		HookCall(0x46EBEE, FidChangeHook);
 
 		MakeJump(0x422354, CombatHack_add_noncoms_);
-		HookCall(0x422D87, CombatWrapper_v2);
-		HookCall(0x422E20, CombatWrapper_v2);
+		const DWORD combatWrapperAddr[] = {0x422D87, 0x422E20};
+		HookCalls(CombatWrapper_v2, combatWrapperAddr);
 
 		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
-		HookCall(0x4124F1, pc_flag_toggle_hook);
-		HookCall(0x41279A, pc_flag_toggle_hook);
+		const DWORD pcFlagToggleAddr[] = {0x4124F1, 0x41279A};
+		HookCalls(pc_flag_toggle_hook, pcFlagToggleAddr);
 		HookCall(0x49EB09, proto_name_hook);
 
 		// Gets dude perks and traits from script while controlling another NPC

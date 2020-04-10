@@ -505,7 +505,7 @@ end:
 	}
 }
 
-static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
+static void __declspec(naked) Drug_UseObjOnHook() {
 	__asm {
 		HookBeginArgs(3);
 		mov args[0], eax; // target
@@ -1545,7 +1545,7 @@ void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) 
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
 
-		auto c_it = hooks[id].cend();
+		std::vector<sHookScript>::const_iterator c_it = hooks[id].cend();
 		if (specReg) {
 			c_it = hooks[id].cbegin();
 			hooksInfo[id].hsPosition++;
@@ -1582,57 +1582,63 @@ static void HookScriptInit2() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	char* mask = "scripts\\hs_*.int";
-	DWORD *filenames;
-	__asm {
-		xor  ecx, ecx
-		xor  ebx, ebx
-		lea  edx, filenames
-		mov  eax, mask
-		call db_get_file_list_
-	}
+	char** filenames;
+	DbGetFileList(mask, &filenames);
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
-	HookCall(0x421686, ToHitHook); // combat_safety_invalidate_weapon_func_
-	HookCall(0x4231D9, ToHitHook); // check_ranged_miss_
-	HookCall(0x42331F, ToHitHook); // shoot_along_path_
-	HookCall(0x4237FC, ToHitHook); // compute_attack_
-	HookCall(0x424379, ToHitHook); // determine_to_hit_
-	HookCall(0x42438D, ToHitHook); // determine_to_hit_no_range_
-	HookCall(0x42439C, ToHitHook); // determine_to_hit_from_tile_
-	HookCall(0x42679A, ToHitHook); // combat_to_hit_
+	const DWORD toHitHkAddr[] = {
+		0x421686, // combat_safety_invalidate_weapon_func_
+		0x4231D9, // check_ranged_miss_
+		0x42331F, // shoot_along_path_
+		0x4237FC, // compute_attack_
+		0x424379, // determine_to_hit_
+		0x42438D, // determine_to_hit_no_range_
+		0x42439C, // determine_to_hit_from_tile_
+		0x42679A  // combat_to_hit_
+	};
+	HookCalls(ToHitHook, toHitHkAddr);
 
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
 	MakeCall(0x423893, AfterHitRollHook);
 
 	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
-	HookCall(0x42307A, &CalcApCostHook);
-	HookCall(0x42669F, &CalcApCostHook);
-	HookCall(0x42687B, &CalcApCostHook);
-	HookCall(0x42A625, &CalcApCostHook);
-	HookCall(0x42A655, &CalcApCostHook);
-	HookCall(0x42A686, &CalcApCostHook);
-	HookCall(0x42AE32, &CalcApCostHook);
-	HookCall(0x42AE71, &CalcApCostHook);
-	HookCall(0x460048, &CalcApCostHook);
-	HookCall(0x47807B, &CalcApCostHook);
+	const DWORD calcApCostHkAddr[] = {
+		0x42307A,
+		0x42669F,
+		0x42687B,
+		0x42A625,
+		0x42A655,
+		0x42A686,
+		0x42AE32,
+		0x42AE71,
+		0x460048,
+		0x47807B
+	};
+	HookCalls(CalcApCostHook, calcApCostHkAddr);
 	MakeCall(0x478083, CalcApCostHook2);
 
 	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
 	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
 	HookCall(0x4109DE, CalcDeathAnimHook);  // show_damage_to_object_
-	HookCall(0x410981, CalcDeathAnim2Hook); // show_damage_to_object_
-	HookCall(0x4109A1, CalcDeathAnim2Hook); // show_damage_to_object_
-	HookCall(0x4109BF, CalcDeathAnim2Hook); // show_damage_to_object_
+	const DWORD calcDeathAnim2HkAddr[] = {
+		0x410981, // show_damage_to_object_
+		0x4109A1, // show_damage_to_object_
+		0x4109BF  // show_damage_to_object_
+	};
+	HookCalls(CalcDeathAnim2Hook, calcDeathAnim2HkAddr);
 
 	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
-	HookCall(0x42326C, ComputeDamageHook); // check_ranged_miss()
-	HookCall(0x4233E3, ComputeDamageHook); // shoot_along_path() - for extra burst targets
-	HookCall(0x423AB7, ComputeDamageHook); // compute_attack()
-	HookCall(0x423BBF, ComputeDamageHook); // compute_attack()
-//	HookCall(0x423DE7, ComputeDamageHook); // compute_explosion_on_extras()
-	HookCall(0x423E69, ComputeDamageHook); // compute_explosion_on_extras()
-	HookCall(0x424220, ComputeDamageHook); // attack_crit_failure()
-	HookCall(0x4242FB, ComputeDamageHook); // attack_crit_failure()
+	const DWORD computeDamageHkAddr[] = {
+		0x42326C, // check_ranged_miss()
+		0x4233E3, // shoot_along_path() - for extra burst targets
+		0x423AB7, // compute_attack()
+		0x423BBF, // compute_attack()
+//		0x423DE7, // compute_explosion_on_extras()
+		0x423E69, // compute_explosion_on_extras()
+		0x424220, // attack_crit_failure()
+		0x4242FB  // attack_crit_failure()
+	};
+	HookCalls(ComputeDamageHook, computeDamageHkAddr);
 	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
 
 	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
@@ -1643,28 +1649,34 @@ static void HookScriptInit2() {
 	HookCall(0x429143, FindTargetHook);
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
-	HookCall(0x49C606, &UseObjOnHook);
-	HookCall(0x473619, &UseObjOnHook);
+	const DWORD useObjOnHkAddr[] = {0x49C606, 0x473619};
+	HookCalls(UseObjOnHook, useObjOnHkAddr);
 	// the following hooks allows to catch drug use of AI and from action cursor
-	HookCall(0x4285DF, &UseObjOnHook_item_d_take_drug); // ai_check_drugs
-	HookCall(0x4286F8, &UseObjOnHook_item_d_take_drug); // ai_check_drugs
-	HookCall(0x4287F8, &UseObjOnHook_item_d_take_drug); // ai_check_drugs
-	HookCall(0x473573, &UseObjOnHook_item_d_take_drug); // inven_action_cursor
+	const DWORD drugUseObjOnHkAddr[] = {
+		0x4285DF, // ai_check_drugs
+		0x4286F8, // ai_check_drugs
+		0x4287F8, // ai_check_drugs
+		0x473573  // inven_action_cursor
+	};
+	HookCalls(Drug_UseObjOnHook, drugUseObjOnHkAddr);
 
 	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
 	MakeJump(0x477492, RemoveObjHook); // old 0x477490
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
-	HookCall(0x474D4C, BarterPriceHook); // barter_attempt_transaction_ (offers button)
-	HookCall(0x475735, BarterPriceHook); // display_table_inventories_ (for party members)
-	HookCall(0x475762, BarterPriceHook); // display_table_inventories_
-	HookCall(0x4754F4, PC_BarterPriceHook); // display_table_inventories_
-	HookCall(0X47551A, PC_BarterPriceHook); // display_table_inventories_
+	const DWORD barterPriceHkAddr[] = {
+		0x474D4C, // barter_attempt_transaction_ (offers button)
+		0x475735, // display_table_inventories_ (for party members)
+		0x475762  // display_table_inventories_
+	};
+	HookCalls(BarterPriceHook, barterPriceHkAddr);
+	const DWORD pcBarterPriceHkAddr[] = {0x4754F4, 0X47551A}; // display_table_inventories_
+	HookCalls(PC_BarterPriceHook, pcBarterPriceHkAddr);
 	HookCall(0x474D3F, OverrideCost_BarterPriceHook); // barter_attempt_transaction_ (just overrides cost of offered goods)
 
 	LoadHookScript("hs_movecost", HOOK_MOVECOST);
-	HookCall(0x417665, &MoveCostHook);
-	HookCall(0x44B88A, &MoveCostHook);
+	const DWORD moveCostHkAddr[] = {0x417665, 0x44B88A};
+	HookCalls(MoveCostHook, moveCostHkAddr);
 
 	LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
 	LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
@@ -1683,42 +1695,49 @@ static void HookScriptInit2() {
 	HookCall(0x423A7C, AmmoCostHook);
 
 	LoadHookScript("hs_useobj", HOOK_USEOBJ);
-	HookCall(0x42AEBF, &UseObjHook);
-	HookCall(0x473607, &UseObjHook);
-	HookCall(0x49C12E, &UseObjHook);
+	const DWORD useObjHkAddr[] = {0x42AEBF, 0x473607, 0x49C12E};
+	HookCalls(UseObjHook, useObjHkAddr);
 
 	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
 	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
 
 	LoadHookScript("hs_useskill", HOOK_USESKILL);
-	HookCall(0x49C48F, &UseSkillHook);
-	HookCall(0x49D12E, &UseSkillHook);
+	const DWORD useSkillHkAddr[] = {0x49C48F, 0x49D12E};
+	HookCalls(UseSkillHook, useSkillHkAddr);
 
 	LoadHookScript("hs_steal", HOOK_STEAL);
-	HookCall(0x4749A2, &StealCheckHook);
-	HookCall(0x474A69, &StealCheckHook);
+	const DWORD stealCheckHkAddr[] = {0x4749A2, 0x474A69};
+	HookCalls(StealCheckHook, stealCheckHkAddr);
 
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
-	HookCall(0x429157, PerceptionRangeHook);
-	HookCall(0x42B4ED, PerceptionRangeHook);
-	HookCall(0x42BC87, PerceptionRangeHook);
-	HookCall(0x42BC9F, PerceptionRangeHook);
-	HookCall(0x42BD04, PerceptionRangeHook);
+	const DWORD perceptionRngHkAddr[] = {
+		0x429157,
+		0x42B4ED,
+		0x42BC87,
+		0x42BC9F,
+		0x42BD04
+	};
+	HookCalls(PerceptionRangeHook, perceptionRngHkAddr);
 	HookCall(0x456BA2, PerceptionRangeSeeHook);
 	HookCall(0x458403, PerceptionRangeHearHook);
 
 	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
-	HookCall(0x4712E3, SwitchHandHook); // left slot
-	HookCall(0x47136D, SwitchHandHook); // right slot
+	const DWORD switchHandHkAddr[] = {
+		0x4712E3, // left slot
+		0x47136D  // right slot
+	};
+	HookCalls(SwitchHandHook, switchHandHkAddr);
 	MakeJump(0x4713A9, UseArmorHack); // old 0x4713A3
 	MakeJump(0x476491, DropIntoContainerHack);
 	MakeJump(0x471338, DropIntoContainerHandSlotHack);
 	MakeJump(0x4712AB, DropIntoContainerHandSlotHack);
 	HookCall(0x471200, MoveInventoryHook);
 	HookCall(0x476549, DropAmmoIntoWeaponHook); // old 0x476588
-	HookCall(0x473851, InvenActionCursorObjDropHook);
-	HookCall(0x47386F, InvenActionCursorObjDropHook);
-	HookCall(0x47379A, InvenActionCursorObjDropHook); // caps multi drop
+	const DWORD cursorObjDropHkAddr[] = {
+		0x473851, 0x47386F,
+		0x47379A  // caps multi drop
+	};
+	HookCalls(InvenActionCursorObjDropHook, cursorObjDropHkAddr);
 	MakeCall(0x473807, InvenActionExplosiveDropHack, 1); // drop active explosives
 	MakeCall(0x49B660, PickupObjectHack);
 	SafeWrite32(0x49B665, 0x850FD285); // test edx, edx
@@ -1727,21 +1746,26 @@ static void HookScriptInit2() {
 	HookCall(0x471457, InvenPickupHook);
 
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
-	HookCall(0x47275E, InvenWieldFuncHook); // inven_wield_
-	HookCall(0x495FDF, InvenWieldFuncHook); // partyMemberCopyLevelInfo_
-	HookCall(0x45967D, InvenUnwieldFuncHook); // op_metarule_
-	HookCall(0x472A5A, InvenUnwieldFuncHook); // inven_unwield_
-	HookCall(0x495F0B, InvenUnwieldFuncHook); // partyMemberCopyLevelInfo_
-	HookCall(0x45680C, CorrectFidForRemovedItemHook); // op_rm_obj_from_inven_
-	HookCall(0x45C4EA, CorrectFidForRemovedItemHook); // op_move_obj_inven_to_obj_
+	const DWORD invWieldFuncHkAddr[] = {
+		0x47275E, // inven_wield_
+		0x495FDF  // partyMemberCopyLevelInfo_
+	};
+	HookCalls(InvenWieldFuncHook, invWieldFuncHkAddr);
+	const DWORD invUnwieldFuncHkAddr[] = {
+		0x45967D, // op_metarule_
+		0x472A5A, // inven_unwield_
+		0x495F0B  // partyMemberCopyLevelInfo_
+	};
+	HookCalls(InvenUnwieldFuncHook, invUnwieldFuncHkAddr);
+	const DWORD fidRemovedItemHkAddr[] = {
+		0x45680C, // op_rm_obj_from_inven_
+		0x45C4EA  // op_move_obj_inven_to_obj_
+	};
+	HookCalls(CorrectFidForRemovedItemHook, fidRemovedItemHkAddr);
 	HookCall(0x45C4F6, op_move_obj_inven_to_obj_hook);
 	MakeCall(0x4778AF, item_drop_all_hack, 3);
 
-	__asm {
-		xor  edx, edx
-		lea  eax, filenames
-		call db_free_file_list_
-	}
+	DbFreeFileList(&filenames, 0);
 
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }

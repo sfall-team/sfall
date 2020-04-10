@@ -34,3 +34,29 @@ void MakeCall(DWORD addr, void* func, int len);
 void MakeJump(DWORD addr, void* func);
 void MakeJump(DWORD addr, void* func, int len);
 void BlockCall(DWORD addr);
+
+// emulation of 4.x HookCalls/MakeCalls
+
+template <class ForwardIteratorType>
+void HookCalls(void* func, ForwardIteratorType begin, ForwardIteratorType end) {
+	for (ForwardIteratorType it = begin; it != end; ++it) {
+		HookCall(*it, func);
+	}
+}
+
+template <size_t N>
+void HookCalls(void* func, const DWORD (&addrs)[N]) {
+	HookCalls(func, std::begin(addrs), std::end(addrs));
+}
+
+template <class ForwardIteratorType>
+void MakeCalls(void* func, ForwardIteratorType begin, ForwardIteratorType end) {
+	for (ForwardIteratorType it = begin; it != end; ++it) {
+		MakeCall(*it, func);
+	}
+}
+
+template <size_t N>
+void MakeCalls(void* func, const DWORD (&addrs)[N]) {
+	MakeCalls(func, std::begin(addrs), std::end(addrs));
+}

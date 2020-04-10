@@ -85,7 +85,7 @@ static void sf_test() {
 static void sf_get_metarule_table() {
 	DWORD arrId = TempArray(metaruleTable.size(), 0);
 	int i = 0;
-	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
 		arrays[arrId].val[i].set(it->first.c_str());
 		i++;
 	}
@@ -96,7 +96,7 @@ static void sf_metarule_exist() {
 	bool result = false;
 	const char* funcXName = opHandler.arg(0).asString();
 	if (funcXName[0] != '\0') {
-		const auto &it = metaruleTable.find(funcXName);
+		const MetaruleTableType::iterator &it = metaruleTable.find(funcXName);
 		if (it != metaruleTable.cend()) result = true;
 	}
 	opHandler.setReturn(result);

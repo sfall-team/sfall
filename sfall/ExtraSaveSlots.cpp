@@ -31,14 +31,6 @@ BYTE* SaveLoadSurface = nullptr;
 
 static const char* filename = "%s\\savegame\\slotdat.ini";
 
-static const DWORD AddPageOffset01Addrs[] = {
-	0x47B929, 0x47D8DB, 0x47D9B0, 0x47DA34, 0x47DABF, 0x47DB58, 0x47DBE9,
-	0x47DC9C, 0x47EC77, 0x47F5AB, 0x47F694, 0x47F6EB, 0x47F7FB, 0x47F892,
-	0x47FB86, 0x47FC3A, 0x47FCF2, 0x480117, 0x4801CF, 0x480234, 0x480310,
-	0x4803F3, 0x48049F, 0x480512, 0x4805F2, 0x480767, 0x4807E6, 0x480839,
-	0x4808D3,
-};
-
 //--------------------------------------
 void SavePageOffsets() {
 	char SavePath[MAX_PATH], buffer[6];
@@ -261,7 +253,7 @@ static void __declspec(naked) check_page_buttons(void) {
 		popad;
 		jnz  CheckUp;
 		add  dword ptr ds:[esp], 26;        // set return to button pressed code
-		jmp  GetSlotList_;    // reset page save list func
+		jmp  GetSlotList_;                  // reset page save list func
 CheckUp:
 		// restore original code
 		cmp  eax, 0x148;                    // up button
@@ -396,11 +388,9 @@ void EnableSuperSaving() {
 	// Draw button text
 	MakeCall(0x47E6E8, draw_page_text);
 
-	// check save buttons
-	MakeCall(0x47BD49, check_page_buttons);
-
-	// check load buttons
-	MakeCall(0x47CB1C, check_page_buttons);
+	// check save/load buttons
+	const DWORD checkPageBtnsAddr[] = {0x47BD49, 0x47CB1C};
+	MakeCalls(check_page_buttons, checkPageBtnsAddr);
 
 	// save current page and list positions to file on load/save scrn exit
 	MakeCall(0x47D828, save_page_offsets);
@@ -409,9 +399,14 @@ void EnableSuperSaving() {
 	MakeCall(0x47B82B, load_page_offsets);
 
 	// Add Load/Save page offset to Load/Save folder number
-	for (int i = 0; i < sizeof(AddPageOffset01Addrs) / 4; i++) {
-		MakeCall(AddPageOffset01Addrs[i], AddPageOffset01);
-	}
+	const DWORD AddPageOffset01Addr[] = {
+		0x47B929, 0x47D8DB, 0x47D9B0, 0x47DA34, 0x47DABF, 0x47DB58, 0x47DBE9,
+		0x47DC9C, 0x47EC77, 0x47F5AB, 0x47F694, 0x47F6EB, 0x47F7FB, 0x47F892,
+		0x47FB86, 0x47FC3A, 0x47FCF2, 0x480117, 0x4801CF, 0x480234, 0x480310,
+		0x4803F3, 0x48049F, 0x480512, 0x4805F2, 0x480767, 0x4807E6, 0x480839,
+		0x4808D3
+	};
+	MakeCalls(AddPageOffset01, AddPageOffset01Addr);
 
 	MakeJump(0x47E5E1, AddPageOffset02);
 

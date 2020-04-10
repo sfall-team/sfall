@@ -171,8 +171,8 @@ loadFail:
 	Gfx_SetDefaultTechnique();
 }
 
-static const DWORD gdDisplayFrameRet = 0x44AD06;
 static void __declspec(naked) gdDisplayFrame_hack() {
+	static const DWORD gdDisplayFrameRet = 0x44AD06;
 	__asm {
 		push edx;
 		push eax;
@@ -229,8 +229,8 @@ noScroll:
 void TalkingHeadsSetup() {
 	if (!GPUBlt) return;
 
-	HookCall(0x44AFB4, TransTalkHook);
-	HookCall(0x44B00B, TransTalkHook);
+	const DWORD transTalkAddr[] = {0x44AFB4, 0x44B00B};
+	HookCalls(TransTalkHook, transTalkAddr);
 	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm
 	MakeJump(0x4472F8, gdDestroyHeadWindow_hack);
 	HookCall(0x44768B, gdPlayTransition_hook);

@@ -1112,18 +1112,26 @@ long __stdcall DbFReadInt(DbFile* file, DWORD* rout);
 
 long __stdcall DbFReadIntCount(DbFile* file, DWORD* dest, long count);
 
+// destroys filelist array created by DbGetFileList
+void __stdcall DbFreeFileList(char* * *fileList, DWORD arg2);
+
 long __stdcall DbFWriteByte(DbFile* file, long value);
 
 long __stdcall DbFWriteByteCount(DbFile* file, const BYTE* cptr, long count);
 
 long __stdcall DbFWriteInt(DbFile* file, long value);
 
-void* __stdcall DbaseOpen(const char* fileName);
-
-void __stdcall DbaseClose(void* dbPtr);
+// searches files in DB by given path/filename mask and stores result in fileList
+// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
+// returns number of elements in *fileList
+long __stdcall DbGetFileList(const char* searchMask, char* * *fileList);
 
 // Check fallout file and get file size (result 0 - file exists)
 long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut);
+
+void* __stdcall DbaseOpen(const char* fileName);
+
+void __stdcall DbaseClose(void* dbPtr);
 
 DbFile* __stdcall XFOpen(const char* fileName, const char* flags);
 

@@ -326,8 +326,11 @@ void TimeLimitPatch() {
 		if (limit == -1) {
 			MakeCall(0x4A3DF5, script_chk_timed_events_hack, 1);
 			MakeCall(0x4A3488, set_game_time_hack);
-			MakeCall(0x4A34EF, TimerReset); // inc_game_time_
-			MakeCall(0x4A3547, TimerReset); // inc_game_time_in_seconds_
+			const DWORD timerResetAddr[] = {
+				0x4A34EF, // inc_game_time_
+				0x4A3547  // inc_game_time_in_seconds_
+			};
+			MakeCalls(TimerReset, timerResetAddr);
 			SafeMemSet(0x4A34F4, 0x90, 16);
 			SafeMemSet(0x4A354C, 0x90, 16);
 		} else {

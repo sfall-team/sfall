@@ -73,10 +73,6 @@ static void DrawActionPointsNumber() {
 static int mapSlotsScrollMax = 27 * (17 - 7);
 static int mapSlotsScrollLimit = 0;
 
-static const DWORD ScrollCityListAddr[] = {
-	0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D,
-};
-
 static __declspec(naked) void ScrollCityListFix() {
 	__asm {
 		push ebx;
@@ -377,9 +373,8 @@ static void WorldMapInterfacePatch() {
 
 	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
-		for (int i = 0; i < sizeof(ScrollCityListAddr) / 4; i++) {
-			HookCall(ScrollCityListAddr[i], ScrollCityListFix);
-		}
+		const DWORD scrollCityListAddr[] = {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D};
+		HookCalls(ScrollCityListFix, scrollCityListAddr);
 		dlogr(" Done", DL_INIT);
 	//}
 

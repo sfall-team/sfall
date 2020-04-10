@@ -950,6 +950,10 @@ long __stdcall DbFReadIntCount(DbFile* file, DWORD* dest, long count) {
 	WRAP_WATCOM_CALL3(db_freadIntCount_, file, dest, count)
 }
 
+void __stdcall DbFreeFileList(char* * *fileList, DWORD arg2) {
+	WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
+}
+
 long __stdcall DbFWriteByte(DbFile* file, long value) {
 	WRAP_WATCOM_CALL2(db_fwriteByte_, file, value)
 }
@@ -962,17 +966,21 @@ long __stdcall DbFWriteInt(DbFile* file, long value) {
 	WRAP_WATCOM_CALL2(db_fwriteInt_, file, value)
 }
 
+long __stdcall DbGetFileList(const char* searchMask, char* * *fileList) {
+	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
+}
+
+// Check fallout file and get file size (result 0 - file exists)
+long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
+	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
+}
+
 void* __stdcall DbaseOpen(const char* fileName) {
 	WRAP_WATCOM_CALL1(dbase_open_, fileName)
 }
 
 void __stdcall DbaseClose(void* dbPtr) {
 	WRAP_WATCOM_CALL1(dbase_close_, dbPtr)
-}
-
-// Check fallout file and get file size (result 0 - file exists)
-long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
-	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
 }
 
 DbFile* __stdcall XFOpen(const char* fileName, const char* flags) {
