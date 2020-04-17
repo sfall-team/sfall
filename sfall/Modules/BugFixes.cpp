@@ -1584,7 +1584,7 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 		}
 		tempBuffer[len++] = ' ';
 		tempBuffer[len] = 0;
-		currDescLen  = len;
+		currDescLen = len;
 	} else if (currDescLen == 0) {
 		tempBuffer[0] = 0;
 	}
@@ -2393,10 +2393,12 @@ end:
 static void __declspec(naked) combat_should_end_hack() {
 	static const DWORD combat_should_end_break = 0x422D00;
 	__asm { // ecx = dude.team_num
-		cmp  ecx, [ebp + 0x50]; // npc who_hit_me.team_num
-		je   break;
-		test byte ptr [edx], 1; // npc combat_data.combat_state
-		jnz  break;
+		cmp  ecx, [ebp + teamNum];          // npc->combat_data.who_hit_me.team_num (engine code)
+		je   break;                         // attacker is in the player's team
+		test [ebp + damageFlags], DAM_DEAD; // npc->combat_data.who_hit_me.damageFlags
+		jz   break;                         // target is still alive
+		test byte ptr [edx], 1;             // npc->combat_data.combat_state
+		jnz  break;                         // npc is in combat
 		retn; // check next critter
 break:
 		add  esp, 4;
@@ -3040,9 +3042,8 @@ void BugFixes::init()
 
 	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
-	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
-	SafeWrite16(0x49B4B2, 0x9090);
-	SafeWrite16(0x49B509, 0x9090);
+	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0, 2);
+	MakeCall(0x49B504, obj_examine_func_hack_ammo0, 2);
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
