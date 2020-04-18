@@ -706,8 +706,8 @@ static void PerkSetup() {
 		// _perk_data
 		const DWORD perkDataAddr[] = {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25};
 		SafeWriteBatch<DWORD>((DWORD)Perks, perkDataAddr);
-		SafeWrite32(0x496696, (DWORD)&Perks[0].Desc);
-		SafeWrite32(0x496BD1, (DWORD)&Perks[0].Desc);
+		const DWORD perkDataDescAddr[] = {0x496696, 0x496BD1};
+		SafeWriteBatch<DWORD>((DWORD)&Perks[0].Desc, perkDataDescAddr);
 		SafeWrite32(0x496BF5, (DWORD)&Perks[0].Image);
 		SafeWrite32(0x496AD4, (DWORD)&Perks[0].Ranks);
 	}
@@ -916,10 +916,10 @@ static void TraitSetup() {
 	memcpy(Traits, (void*)_trait_data, sizeof(TraitStruct) * TRAIT_count);
 
 	// _trait_data
-	SafeWrite32(0x4B3A81, (DWORD)Traits);
-	SafeWrite32(0x4B3B80, (DWORD)Traits);
-	SafeWrite32(0x4B3AAE, (DWORD)&Traits[0].Desc);
-	SafeWrite32(0x4B3BA0, (DWORD)&Traits[0].Desc);
+	const DWORD traitDataAddr[] = {0x4B3A81, 0x4B3B80};
+	SafeWriteBatch<DWORD>((DWORD)Traits, traitDataAddr);
+	const DWORD traitDataDescAddr[] = {0x4B3AAE, 0x4B3BA0};
+	SafeWriteBatch<DWORD>((DWORD)&Traits[0].Desc, traitDataDescAddr);
 	SafeWrite32(0x4B3BC0, (DWORD)&Traits[0].Image);
 
 	char buf[512], num[5] = {'t'};

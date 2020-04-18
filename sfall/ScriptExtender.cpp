@@ -1732,7 +1732,7 @@ void ScriptExtenderInit() {
 		0x4A3E1C, // script_chk_timed_events_
 		0x499AFA, 0x499CD7, 0x499E2B // TimedRest_
 	};
-	MakeCalls(TimedEventNextTime, queueNextTimeAddr);
+	HookCalls(TimedEventNextTime, queueNextTimeAddr);
 	HookCall(0x4A3E08, script_chk_timed_events_hook);
 
 	// this patch makes it possible to export variables from sfall global scripts

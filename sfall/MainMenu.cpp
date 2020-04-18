@@ -32,8 +32,8 @@ static DWORD MainMenuTextOffset;
 
 static long OverrideColour, OverrideColour2;
 
-static const DWORD MainMenuButtonYHookRet = 0x48184A;
 static void __declspec(naked) MainMenuButtonYHook() {
+	static const DWORD MainMenuButtonYHookRet = 0x48184A;
 	__asm {
 		xor edi, edi;
 		xor esi, esi;
@@ -62,8 +62,8 @@ override:
 	}
 }
 
-static const DWORD MainMenuTextRet = 0x4817B0;
 static void __declspec(naked) MainMenuTextHook() {
+	static const DWORD MainMenuTextRet = 0x4817B0;
 	__asm {
 		mov  esi, eax;                // winptr
 		mov  ebp, ecx;                // keep xpos

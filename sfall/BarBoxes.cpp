@@ -55,9 +55,9 @@ static const DWORD bboxSlotAddr[] = {
 	0x4616F7, 0x46170F, 0x461736, 0x4616B1, 0x46151D, 0x4615B3
 };
 
-static const DWORD DisplayBoxesRet1 = 0x4615A8;
-static const DWORD DisplayBoxesRet2 = 0x4615BE;
 static void __declspec(naked) DisplayBoxesHack() {
+	static const DWORD DisplayBoxesRet1 = 0x4615A8;
+	static const DWORD DisplayBoxesRet2 = 0x4615BE;
 	__asm {
 		mov  edx, [boxText];
 		xor  ebx, ebx;
@@ -109,8 +109,8 @@ skip:
 	}
 }
 
-static const DWORD SetIndexBoxRet   = 0x4612E8;
 static void __declspec(naked) BarBoxesIndexHack() {
+	static const DWORD SetIndexBoxRet = 0x4612E8;
 	__asm {
 		mov eax, ds:[0x4612E2]; // fontnum
 		mov ecx, setBoxIndex;   // start index
@@ -119,9 +119,9 @@ static void __declspec(naked) BarBoxesIndexHack() {
 	}
 }
 
-static const DWORD SizeLoopBoxRet = 0x461477;
-static const DWORD ExitLoopBoxRet = 0x461498;
 static void __declspec(naked) BarBoxesSizeHack() {
+	static const DWORD SizeLoopBoxRet = 0x461477;
+	static const DWORD ExitLoopBoxRet = 0x461498;
 	__asm {
 		cmp edx, sizeBox;
 		jz  exitLoop;

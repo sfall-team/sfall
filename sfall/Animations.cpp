@@ -188,9 +188,9 @@ static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
 	return result;
 }
 
-static const DWORD object_move_back0 = 0x417611;
-static const DWORD object_move_back1 = 0x417616;
 static void __declspec(naked) object_move_hack() {
+	static const DWORD object_move_back0 = 0x417611;
+	static const DWORD object_move_back1 = 0x417616;
 	__asm {
 		mov  ecx, ds:[ecx + 0x3C];         // openFlag
 		mov  edx, [esp + 0x4C - 0x20];     // valueMul

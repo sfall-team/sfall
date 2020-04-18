@@ -164,19 +164,18 @@ void ElevatorsInit() {
 	//HookCall(0x43F2D2, UnknownHook2); // unused
 
 	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
-	SafeWrite32(0x43EFA4, (DWORD)elevators);
-	SafeWrite32(0x43EFB9, (DWORD)elevators);
-	SafeWrite32(0x43F2FC, (DWORD)elevators);
-	SafeWrite32(0x43EFEA, (DWORD)&elevators[0].Tile1);
-	SafeWrite32(0x43F315, (DWORD)&elevators[0].Tile1);
+	const DWORD elevatorsAddr[] = {0x43EFA4, 0x43EFB9, 0x43F2FC};
+	SafeWriteBatch<DWORD>((DWORD)elevators, elevatorsAddr);
+	const DWORD elevatorsTileAddr[] = {0x43EFEA, 0x43F315};
+	SafeWriteBatch<DWORD>((DWORD)&elevators[0].Tile1, elevatorsTileAddr);
 	SafeWrite32(0x43F309, (DWORD)&elevators[0].Elevation1);
 
 	SafeWrite32(0x43F438, (DWORD)&elevatorsFrms[0].main);
 	SafeWrite32(0x43F475, (DWORD)&elevatorsFrms[0].buttons);
 
 	// _btncnt
-	SafeWrite32(0x43F65E, (DWORD)elevatorsBtnCount);
-	SafeWrite32(0x43F6BB, (DWORD)elevatorsBtnCount);
+	const DWORD elevsBtnCountAddr[] = {0x43F65E, 0x43F6BB};
+	SafeWriteBatch<DWORD>((DWORD)elevatorsBtnCount, elevsBtnCountAddr);
 	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);

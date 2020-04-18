@@ -342,8 +342,8 @@ void SkillsInit() {
 	HookCall(0x4AA574, skill_level_hook);
 	// change the lower limit for negative skill points
 	MakeCall(0x4AAA84, skill_dec_point_hack_limit);
-	SafeWrite8(0x4AA91B,  SKILL_MIN_LIMIT);
-	SafeWrite8(0x4AAA1A,  SKILL_MIN_LIMIT);
+	const DWORD skillMinLimitAddr[] = {0x4AA91B, 0x4AAA1A};
+	SafeWriteBatch<BYTE>(SKILL_MIN_LIMIT, skillMinLimitAddr);
 	SafeWrite32(0x4AAA23, SKILL_MIN_LIMIT);
 
 	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod

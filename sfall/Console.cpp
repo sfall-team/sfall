@@ -28,8 +28,8 @@ static void __stdcall ConsoleFilePrint(const char* msg) {
 	consoleFile << msg << std::endl;
 }
 
-static const DWORD ConsoleHookRet = 0x431871;
 static void __declspec(naked) ConsoleHook() {
+	static const DWORD ConsoleHookRet = 0x431871;
 	__asm {
 		pushadc;
 		push eax;

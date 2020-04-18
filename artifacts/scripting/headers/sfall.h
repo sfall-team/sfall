@@ -238,6 +238,12 @@
 #define ADD_PERK_MODE_PERK      (2)  // add to the player's perks
 #define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks (after added to the player)
 
+// instantly apply the item to dude_obj (w/o animation)
+#define use_item_on_dude(item)                          set_self(dude_obj);             \
+                                                        set_self(dude_obj);             \
+                                                        use_obj_on_obj(item, dude_obj); \
+                                                        set_self(0)
+
 // sfall_funcX macros
 #define add_global_timer_event(time, fixedParam)        sfall_func2("add_g_timer_event", time, fixedParam)
 #define add_iface_tag                                   sfall_func0("add_iface_tag")
