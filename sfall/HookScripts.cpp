@@ -867,7 +867,7 @@ DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	args[2] = vKey;
 	RunHookScript(HOOK_KEYPRESS);
 	if (cRet != 0) dxKey = result = rets[0];
-	InventoryKeyPressedHook(dxKey, pressed, vKey);
+	InventoryKeyPressedHook(dxKey, pressed);
 	EndHook();
 	return result;
 }

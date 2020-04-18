@@ -31,42 +31,36 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
-DWORD& GetActiveItemMode() {
-	return ptr_itemButtonItems[(*ptr_itemCurrentItem * 6) + 4];
+long& GetActiveItemMode() {
+	return (long&)ptr_itemButtonItems[(*ptr_itemCurrentItem * 6) + 4];
 }
 
 TGameObj* GetActiveItem() {
 	return (TGameObj*)ptr_itemButtonItems[*ptr_itemCurrentItem * 6];
 }
 
-void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
+void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
-		DWORD maxAmmo, curAmmo;
 		TGameObj* item = GetActiveItem();
-		__asm {
-			mov eax, item;
-			call item_w_max_ammo_;
-			mov maxAmmo, eax;
-			mov eax, item;
-			call item_w_curr_ammo_;
-			mov curAmmo, eax;
-		}
-		if (maxAmmo != curAmmo) {
-			DWORD &currentMode = GetActiveItemMode();
-			DWORD previusMode = currentMode;
-			currentMode = 5; // reload mode
-			__asm {
-				call intface_use_item_;
-			}
-			if (previusMode != 5) {
-				// return to previous active item mode (if it wasn't "reload")
-				currentMode = previusMode - 1;
-				if (currentMode < 0)
-					currentMode = 4;
-				__asm {
-					call intface_toggle_item_state_;
+		if (!item) return;
+
+		if (ItemGetType(item) == item_type_weapon) {
+			long maxAmmo = ItemWMaxAmmo(item);
+			long curAmmo = ItemWCurrAmmo(item);
+			if (maxAmmo != curAmmo) {
+				long &currentMode = GetActiveItemMode();
+				long previusMode = currentMode;
+				currentMode = 5; // reload mode
+				IntfaceUseItem();
+				if (previusMode != 5) {
+					// return to previous active item mode (if it wasn't "reload")
+					currentMode = previusMode - 1;
+					if (currentMode < 0) currentMode = 4;
+					IntfaceToggleItemState();
 				}
 			}
+		} else {
+			IntfaceUseItem();
 		}
 	}
 }
@@ -74,12 +68,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 /////////////////////////////////////////////////////////////////
 
 DWORD __stdcall sf_item_total_size(TGameObj* critter) {
-	int totalSize;
-	__asm {
-		mov  eax, critter;
-		call item_c_curr_size_;
-		mov  totalSize, eax;
-	}
+	int totalSize = ItemCCurrSize(critter);
 
 	if (((critter->artFid >> 24) & 0x0F) == OBJ_TYPE_CRITTER) {
 		TGameObj* item = InvenRightHand(critter);

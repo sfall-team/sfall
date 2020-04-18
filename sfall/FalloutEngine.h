@@ -1061,8 +1061,6 @@ void DevPrintf(...);
 #endif
 
 long __stdcall ItemGetType(TGameObj* item);
-long __stdcall ItemSize(TGameObj* item);
-long __stdcall ItemWeight(TGameObj* item);
 
 long __stdcall IsPartyMember(TGameObj* obj);
 long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
@@ -1318,24 +1316,30 @@ long __stdcall TileDist(long scrTile, long dstTile);
 
 long __stdcall TileDir(long scrTile, long dstTile);
 
-// for the backported AmmoCostHook from 4.x
+long __stdcall ItemCCurrSize(TGameObj* critter);
+long __stdcall ItemCapsTotal(TGameObj* object);
+long __stdcall ItemSize(TGameObj* item);
+long __stdcall ItemTotalCost(TGameObj* object);
+long __stdcall ItemTotalWeight(TGameObj* object);
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
 long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);
 long __stdcall ItemWCurrAmmo(TGameObj* item);
+long __stdcall ItemWMaxAmmo(TGameObj* item);
 long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo);
 long __stdcall ItemWRounds(TGameObj* item);
+long __stdcall ItemWeight(TGameObj* item);
 
-// for the backported BarterPriceHook from 4.x
 long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target);
-long __stdcall ItemCapsTotal(TGameObj* object);
-long __stdcall ItemTotalCost(TGameObj* object);
-long __stdcall ItemTotalWeight(TGameObj* object);
 
 void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag);
+
+void __stdcall IntfaceToggleItemState();
 
 void __stdcall IntfaceUpdateAc(long animate);
 
 void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP);
+
+void __stdcall IntfaceUseItem();
 
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight);
 

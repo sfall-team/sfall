@@ -851,14 +851,6 @@ long __stdcall ItemGetType(TGameObj* item) {
 	WRAP_WATCOM_CALL1(item_get_type_, item)
 }
 
-long __stdcall ItemSize(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_size_, item)
-}
-
-long __stdcall ItemWeight(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_weight_, item)
-}
-
 long __stdcall IsPartyMember(TGameObj* obj) {
 	WRAP_WATCOM_CALL1(isPartyMember_, obj)
 }
@@ -1484,6 +1476,26 @@ long __stdcall TileDir(long scrTile, long dstTile) {
 	WRAP_WATCOM_CALL2(tile_dir_, scrTile, dstTile)
 }
 
+long __stdcall ItemCCurrSize(TGameObj* critter) {
+	WRAP_WATCOM_CALL1(item_c_curr_size_, critter)
+}
+
+long __stdcall ItemCapsTotal(TGameObj* object) {
+	WRAP_WATCOM_CALL1(item_caps_total_, object)
+}
+
+long __stdcall ItemSize(TGameObj* item) {
+	WRAP_WATCOM_CALL1(item_size_, item)
+}
+
+long __stdcall ItemTotalCost(TGameObj* object) {
+	WRAP_WATCOM_CALL1(item_total_cost_, object)
+}
+
+long __stdcall ItemTotalWeight(TGameObj* object) {
+	WRAP_WATCOM_CALL1(item_total_weight_, object)
+}
+
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
 	WRAP_WATCOM_CALL2(item_w_anim_weap_, item, hitMode)
 }
@@ -1496,6 +1508,10 @@ long __stdcall ItemWCurrAmmo(TGameObj* item) {
 	WRAP_WATCOM_CALL1(item_w_curr_ammo_, item)
 }
 
+long __stdcall ItemWMaxAmmo(TGameObj* item) {
+	WRAP_WATCOM_CALL1(item_w_max_ammo_, item)
+}
+
 long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo) {
 	WRAP_WATCOM_CALL2(item_w_reload_, weapon, ammo)
 }
@@ -1504,24 +1520,20 @@ long __stdcall ItemWRounds(TGameObj* item) {
 	WRAP_WATCOM_CALL1(item_w_rounds_, item)
 }
 
+long __stdcall ItemWeight(TGameObj* item) {
+	WRAP_WATCOM_CALL1(item_weight_, item)
+}
+
 long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target) {
 	WRAP_WATCOM_CALL2(barter_compute_value_, source, target)
 }
 
-long __stdcall ItemCapsTotal(TGameObj* object) {
-	WRAP_WATCOM_CALL1(item_caps_total_, object)
-}
-
-long __stdcall ItemTotalCost(TGameObj* object) {
-	WRAP_WATCOM_CALL1(item_total_cost_, object)
-}
-
-long __stdcall ItemTotalWeight(TGameObj* object) {
-	WRAP_WATCOM_CALL1(item_total_weight_, object)
-}
-
 void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag) {
 	WRAP_WATCOM_FCALL3(correctFidForRemovedItem_, critter, item, slotFlag)
+}
+
+void __stdcall IntfaceToggleItemState() {
+	WRAP_WATCOM_CALL0(intface_toggle_item_state_)
 }
 
 void __stdcall IntfaceUpdateAc(long animate) {
@@ -1530,6 +1542,10 @@ void __stdcall IntfaceUpdateAc(long animate) {
 
 void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP) {
 	WRAP_WATCOM_CALL2(intface_update_move_points_, ap, freeAP)
+}
+
+void __stdcall IntfaceUseItem() {
+	WRAP_WATCOM_CALL0(intface_use_item_)
 }
 
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight) {
