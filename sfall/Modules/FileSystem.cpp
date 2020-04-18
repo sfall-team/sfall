@@ -37,11 +37,11 @@ struct fsFile {
 	BYTE isSave;
 };
 
-struct openFile {
+struct OpenFile {
 	DWORD pos;  // current xread/xwrite position
 	fsFile* file;
 
-	openFile(fsFile* pFile) {
+	OpenFile(fsFile* pFile) {
 		pos = 0;
 		file = pFile;
 	}
@@ -49,7 +49,7 @@ struct openFile {
 
 struct sFile {
 	DWORD type;
-	openFile* opnFile;
+	OpenFile* openFile;
 };
 
 std::vector<fsFile> files;
@@ -58,7 +58,7 @@ static DWORD loadedFiles = 0; // used for internal sfall data
 bool FileSystem::UsingFileSystem = false;
 
 static long _stdcall xfclose(sFile* file) {
-	delete file->opnFile;
+	delete file->openFile;
 	delete file;
 	return 0;
 }
@@ -84,7 +84,7 @@ static sFile* _stdcall xfopen(const char* path, const char* mode) {
 		if (!_stricmp(path, files[i].name)) {
 			sFile* file = new sFile();
 			file->type = 3;
-			file->opnFile = new openFile(&files[i]);
+			file->openFile = new OpenFile(&files[i]);
 			return file;
 		}
 	}
@@ -128,8 +128,8 @@ end:
 }
 
 static DWORD _stdcall xfgetc(sFile* file) {
-	if (file->opnFile->pos >= file->opnFile->file->length) return -1;
-	return static_cast<DWORD>(file->opnFile->file->data[file->opnFile->pos++]);
+	if (file->openFile->pos >= file->openFile->file->length) return -1;
+	return static_cast<DWORD>(file->openFile->file->data[file->openFile->pos++]);
 }
 
 static __declspec(naked) int asm_xfgetc(sFile* file) {
@@ -149,7 +149,7 @@ end:
 }
 
 static char* _stdcall xfgets(char* buf, int max_count, sFile* file) {
-	if (file->opnFile->pos >= file->opnFile->file->length) return 0;
+	if (file->openFile->pos >= file->openFile->file->length) return 0;
 	for (int i = 0; i < max_count; i++) {
 		int c = xfgetc(file);
 		if (c == -1) {
@@ -218,9 +218,9 @@ end:
 }
 
 static int _stdcall xfungetc(int c, sFile* file) {
-	if (file->opnFile->pos == 0) return -1;
-	if (file->opnFile->file->data[file->opnFile->pos - 1] != static_cast<BYTE>(c)) return -1;
-	file->opnFile->pos--;
+	if (file->openFile->pos == 0) return -1;
+	if (file->openFile->file->data[file->openFile->pos - 1] != static_cast<BYTE>(c)) return -1;
+	file->openFile->pos--;
 	return c;
 }
 
@@ -241,10 +241,10 @@ end:
 
 static int __fastcall xfread(sFile* file, int elsize, void* buf, int count) {
 	for (int i = 0; i < count; i++) {
-		if (file->opnFile->pos + elsize > file->opnFile->file->length) return i;
+		if (file->openFile->pos + elsize > file->openFile->file->length) return i;
 
-		memcpy(buf, &file->opnFile->file->data[file->opnFile->pos], elsize);
-		file->opnFile->pos += elsize;
+		memcpy(buf, &file->openFile->file->data[file->openFile->pos], elsize);
+		file->openFile->pos += elsize;
 	}
 	return count;
 }
@@ -301,13 +301,13 @@ end:
 static int _stdcall xfseek(sFile* file, long pos, int origin) {
 	switch(origin) {
 		case 0:
-			file->opnFile->pos = pos;
+			file->openFile->pos = pos;
 			break;
 		case 1:
-			file->opnFile->pos += pos;
+			file->openFile->pos += pos;
 			break;
 		case 2:
-			file->opnFile->pos = file->opnFile->file->length + pos;
+			file->openFile->pos = file->openFile->file->length + pos;
 			break;
 	}
 	return 0;
@@ -330,7 +330,7 @@ end:
 }
 
 static long _stdcall xftell(sFile* file) {
-	return file->opnFile->pos;
+	return file->openFile->pos;
 }
 
 static __declspec(naked) long asm_xftell(sFile* file) {
@@ -350,7 +350,7 @@ end:
 }
 
 static void _stdcall xfrewind(sFile* file) {
-	file->opnFile->pos = 0;
+	file->openFile->pos = 0;
 }
 
 static __declspec(naked) void asm_xfrewind(sFile* file) {
@@ -368,7 +368,7 @@ end:
 }
 
 static int _stdcall xfeof(sFile* file) {
-	if (file->opnFile->pos >= file->opnFile->file->length) {
+	if (file->openFile->pos >= file->openFile->file->length) {
 		return 1;
 	}
 	return 0;
@@ -391,7 +391,7 @@ end:
 }
 
 static int _stdcall xfilelength(sFile* file) {
-	return file->opnFile->file->length;
+	return file->openFile->file->length;
 }
 
 static __declspec(naked) int asm_xfilelength(sFile* file) {
@@ -458,8 +458,8 @@ static void FileSystemLoad() {
 	}
 }
 
-static const DWORD LoadHookRetAddr = 0x47CCEE;
 static void __declspec(naked) FSLoadHook() {
+	static const DWORD LoadHookRetAddr = 0x47CCEE;
 	__asm {
 		pushadc;
 		call FileSystemLoad;

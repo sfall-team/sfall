@@ -154,7 +154,7 @@ end:
 }
 
 static void InitExtraPatches() {
-	for (auto it = patchFiles.begin(); it != patchFiles.end(); it++) {
+	for (auto it = patchFiles.begin(); it != patchFiles.end(); ++it) {
 		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
 	}
 	// free memory

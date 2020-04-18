@@ -454,9 +454,9 @@ fake:
 }
 
 // Search all available perks for the player to display them in the character screen
-static const DWORD EndPerkLoopExit = 0x434446;
-static const DWORD EndPerkLoopCont = 0x4343A5;
 static void __declspec(naked) EndPerkLoopHack() {
+	static const DWORD EndPerkLoopExit = 0x434446;
+	static const DWORD EndPerkLoopCont = 0x4343A5;
 	__asm {
 		jl   cLoop;           // if ebx < 119
 		push ecx;
@@ -718,9 +718,9 @@ static PerkInfo* __fastcall CanAddPerk(DWORD perkID) {
 	return 0;
 }
 
-static const DWORD perk_can_add_exit = 0x496A03;
-static const DWORD perk_can_add_check = 0x496872;
 static void __declspec(naked) perk_can_add_hack() {
+	static const DWORD perk_can_add_exit = 0x496A03;
+	static const DWORD perk_can_add_check = 0x496872;
 	__asm {
 		test edx, edx;
 		jz   end;
@@ -746,9 +746,9 @@ static PerkInfo* __fastcall PerkData(DWORD perkID, fo::GameObject* critter, long
 	return 0;
 }
 
-static const DWORD perk_add_effect_exit = 0x496CD9;
-static const DWORD perk_add_effect_continue = 0x496C4A;
 static void __declspec(naked) perk_add_effect_hook() {
+	static const DWORD perk_add_effect_exit = 0x496CD9;
+	static const DWORD perk_add_effect_continue = 0x496C4A;
 	__asm {
 		cmp  edx, startFakeID;
 		jge  end;
@@ -766,9 +766,9 @@ end:
 	}
 }
 
-static const DWORD perk_remove_effect_exit = 0x496D99;
-static const DWORD perk_remove_effect_continue = 0x496D2E;
 static void __declspec(naked) perk_remove_effect_hook() {
+	static const DWORD perk_remove_effect_exit = 0x496D99;
+	static const DWORD perk_remove_effect_continue = 0x496D2E;
 	__asm {
 		cmp  edx, startFakeID;
 		jge  end;
@@ -858,8 +858,7 @@ static void PerkSetup() {
 	if (!perksReInit) {
 		// _perk_data
 		SafeWriteBatch<DWORD>((DWORD)perks, {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25});
-		SafeWrite32(0x496696, (DWORD)&perks[0].description);
-		SafeWrite32(0x496BD1, (DWORD)&perks[0].description);
+		SafeWriteBatch<DWORD>((DWORD)&perks[0].description, {0x496696, 0x496BD1});
 		SafeWrite32(0x496BF5, (DWORD)&perks[0].image);
 		SafeWrite32(0x496AD4, (DWORD)&perks[0].ranks);
 	}
@@ -1119,10 +1118,8 @@ static void TraitSetup() {
 	memcpy(traits, var::trait_data, sizeof(TraitInfo) * TRAIT_count);
 
 	// _trait_data
-	SafeWrite32(0x4B3A81, (DWORD)traits);
-	SafeWrite32(0x4B3B80, (DWORD)traits);
-	SafeWrite32(0x4B3AAE, (DWORD)&traits[0].description);
-	SafeWrite32(0x4B3BA0, (DWORD)&traits[0].description);
+	SafeWriteBatch<DWORD>((DWORD)traits, {0x4B3A81, 0x4B3B80});
+	SafeWriteBatch<DWORD>((DWORD)&traits[0].description, {0x4B3AAE, 0x4B3BA0});
 	SafeWrite32(0x4B3BC0, (DWORD)&traits[0].image);
 
 	char buf[512], num[5] = {'t'};
@@ -1214,9 +1211,9 @@ static __declspec(naked) void TraitInitWrapper() {
 	}
 }
 
-static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
-static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 static void __declspec(naked) item_w_called_shot_hack() {
+	static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
+	static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 	__asm {
 		test eax, eax;                    // does player have Fast Shot trait?
 		je ajmp;                          // skip ahead if no
@@ -1234,10 +1231,6 @@ bjmp:
 	}
 }
 
-static const DWORD FastShotFixF1[] = {
-	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
-};
-
 static void FastShotTraitFix() {
 	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
 	case 1:
@@ -1247,9 +1240,7 @@ static void FastShotTraitFix() {
 	case 2:
 		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
 		SafeWrite16(0x478C9F, 0x9090);
-		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
-			HookCall(FastShotFixF1[i], (void*)0x478C7D);
-		}
+		HookCalls((void*)0x478C7D, {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F});
 	done:
 		dlogr(" Done", DL_INIT);
 		break;

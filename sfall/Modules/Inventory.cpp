@@ -181,9 +181,9 @@ static int __fastcall BarterAttemptTransaction(fo::GameObject* critter, fo::Game
 	return (sizeTable <= size) ? 1 : 0;
 }
 
-static const DWORD BarterAttemptTransactionPCFail = 0x474C81;
-static const DWORD BarterAttemptTransactionPCRet  = 0x474CA8;
 static __declspec(naked) void barter_attempt_transaction_hack_pc() {
+	static const DWORD BarterAttemptTransactionPCFail = 0x474C81;
+	static const DWORD BarterAttemptTransactionPCRet  = 0x474CA8;
 	__asm {
 		/* cmp  eax, edx */
 		jg   fail;    // if there's no available weight
@@ -200,9 +200,9 @@ fail:
 	}
 }
 
-static const DWORD BarterAttemptTransactionPMFail = 0x474CD8;
-static const DWORD BarterAttemptTransactionPMRet  = 0x474D01;
 static __declspec(naked) void barter_attempt_transaction_hack_pm() {
+	static const DWORD BarterAttemptTransactionPMFail = 0x474CD8;
+	static const DWORD BarterAttemptTransactionPMRet  = 0x474D01;
 	__asm {
 		/* cmp  eax, edx */
 		jg   fail;    // if there's no available weight
@@ -260,8 +260,8 @@ static void __cdecl DisplaySizeStats(fo::GameObject* critter, const char* &messa
 	strcpy(InvenFmt, InvenFmt1);
 }
 
-static const DWORD DisplayStatsRet = 0x4725E5;
 static __declspec(naked) void display_stats_hack() {
+	static const DWORD DisplayStatsRet = 0x4725E5;
 	using namespace fo;
 	__asm {
 		mov  ecx, esp;
@@ -311,8 +311,8 @@ static __declspec(naked) void inven_obj_examine_func_hook() {
 	}
 }
 
-static const DWORD ControlUpdateInfoRet = 0x44912A;
 static void __declspec(naked) gdControlUpdateInfo_hack() {
+	static const DWORD ControlUpdateInfoRet = 0x44912A;
 	using namespace fo;
 	__asm {
 		mov  ebx, eax;
@@ -342,8 +342,8 @@ static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target)
 	return -1;
 }
 
-static const DWORD protinst_use_item_on_Ret = 0x49C5F4;
 static void __declspec(naked) protinst_use_item_on_hack() {
+	static const DWORD protinst_use_item_on_Ret = 0x49C5F4;
 	__asm {
 		push ecx;
 		mov  ecx, ebx;     // ecx - item
@@ -634,8 +634,8 @@ static void __declspec(naked) adjust_fid_hack_replacement() {
 	}
 }
 
-static const DWORD DoMoveTimer_Ret = 0x476920;
 static void __declspec(naked) do_move_timer_hook() {
+	static const DWORD DoMoveTimer_Ret = 0x476920;
 	__asm {
 		cmp eax, 4;
 		jnz end;
@@ -674,8 +674,9 @@ static void __declspec(naked) do_move_timer_hack() {
 
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
-static const DWORD inven_ap_cost_Ret = 0x46E812;
+
 static void __declspec(naked) inven_ap_cost_hack() {
+	static const DWORD inven_ap_cost_Ret = 0x46E812;
 	_asm {
 		mul byte ptr invenApQPReduction;
 		mov edx, invenApCost;

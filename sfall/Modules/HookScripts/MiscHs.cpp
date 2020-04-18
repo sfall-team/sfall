@@ -358,8 +358,8 @@ static void CarTravelHook_Script() {
 	EndHook();
 }
 
-static const DWORD CarTravelHack_back = 0x4BFF43;
 static void __declspec(naked) CarTravelHack() {
+	static const DWORD CarTravelHack_back = 0x4BFF43;
 	__asm {
 		pushad;
 		call CarTravelHook_Script;

@@ -41,7 +41,7 @@ void BugFixes::DrugsSaveFix(HANDLE file) {
 	DWORD sizeWrite, count = drugsPid.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	if (!count) return;
-	for (auto it = drugsPid.begin(); it != drugsPid.end(); it++) {
+	for (auto it = drugsPid.begin(); it != drugsPid.end(); ++it) {
 		int pid = *it;
 		WriteFile(file, &pid, 4, &sizeWrite, 0);
 	}

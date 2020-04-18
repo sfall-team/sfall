@@ -151,8 +151,8 @@ static long __fastcall PrintAddictionList(long isSeparator) {
 	return isSelect;
 }
 
-static const DWORD list_karma_Ret = 0x43C1A3;
 static void __declspec(naked) list_karma_hack() {
+	static const DWORD list_karma_Ret = 0x43C1A3;
 	__asm {
 		mov  ecx, [esp + 0x168 - 0x1C + 4];
 		call PrintAddictionList;

@@ -1296,8 +1296,8 @@ endFunc:
 	}
 }
 
-static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 static void __declspec(naked) op_obj_art_fid_hack() {
+	static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 	using namespace Fields;
 	__asm {
 		mov  esi, [edi + artFid];

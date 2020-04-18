@@ -507,7 +507,7 @@ void Worldmap::SaveData(HANDLE file) {
 	DWORD sizeWrite, count = mapRestInfo.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	std::unordered_map<int, levelRest>::iterator it;
-	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); it++) {
+	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); ++it) {
 		WriteFile(file, &it->first, 4, &sizeWrite, 0);
 		WriteFile(file, &it->second, sizeof(levelRest), &sizeWrite, 0);
 	}

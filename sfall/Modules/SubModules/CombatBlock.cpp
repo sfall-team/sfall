@@ -31,9 +31,9 @@ static void __stdcall CombatBlocked() {
 	fo::func::display_print(combatBlockedMessage.c_str());
 }
 
-static const DWORD BlockCombatHook1Ret1 = 0x45F6AF;
-static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
 static void __declspec(naked) intface_use_item_hook() {
+	static const DWORD BlockCombatHook1Ret1 = 0x45F6AF;
+	static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
 	__asm {
 		cmp  combatDisabled, 0;
 		jne  block;

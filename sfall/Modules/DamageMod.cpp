@@ -366,8 +366,8 @@ static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 	}
 }
 
-static const DWORD DisplayBonusHtHDmg2Exit = 0x472569;
 static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
+	static const DWORD DisplayBonusHtHDmg2Exit = 0x472569;
 	__asm {
 		mov  ecx, eax;
 		call fo::funcoffs::stat_level_;

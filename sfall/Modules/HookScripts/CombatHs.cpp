@@ -419,8 +419,8 @@ skip:
 	}
 }
 
-static const DWORD combat_hook_end_combat = 0x422E91;
 static void __declspec(naked) combat_hook_fix_load() {
+	static const DWORD combat_hook_end_combat = 0x422E91;
 	__asm {
 		call fo::funcoffs::combat_sequence_;
 		mov  eax, countCombat;
