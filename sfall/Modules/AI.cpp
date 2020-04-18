@@ -189,7 +189,7 @@ static long __fastcall sf_ai_weapon_reload(fo::GameObject* weapon, fo::GameObjec
 
 	while (ammo) {
 		result = fo::func::item_w_reload(weapon, ammo);
-		if (result != 0) break; // 1 - reload done, -1 - can't reload
+		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
 			proto = fo::GetProto(weapon->protoId);
@@ -209,7 +209,7 @@ static long __fastcall sf_ai_weapon_reload(fo::GameObject* weapon, fo::GameObjec
 			}
 		}
 	}
-	if (!result && _ammo != ammo) {
+	if (_ammo != ammo) {
 		fo::func::obj_destroy(ammo);
 		return 1; // notifies the engine that the ammo has already been destroyed
 	}
@@ -228,6 +228,19 @@ static void __declspec(naked) item_w_reload_hook() {
 		retn;
 skip:
 		jmp fo::funcoffs::item_w_reload_;
+	}
+}
+
+static void __declspec(naked) ai_danger_source_hook() {
+	__asm {
+		call fo::funcoffs::combat_check_bad_shot_;
+		cmp  dword ptr [esp + 56], 0x42B235 + 5; // called from combat_ai_
+		je   fix;
+		retn;
+fix:	// check result
+		cmp  eax, 2; // exception: 2 - out of range, 1 - no ammo
+		setg al;     // set 0 for result OK
+		retn;
 	}
 }
 
@@ -288,6 +301,9 @@ void AI::init() {
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
 	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
 	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
+
+	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo or out_of_range result
+	HookCall(0x42918A, ai_danger_source_hook);
 }
 
 fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
