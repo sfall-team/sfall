@@ -563,7 +563,7 @@ static void sf_obj_under_cursor() {
 }
 
 static void sf_get_loot_object() {
-	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook_LootTarget : 0);
+	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? ptr_target_stack[*ptr_target_curr_stack] : 0);
 }
 
 static const char* failedLoad = "%s() - failed to load a prototype ID: %d";

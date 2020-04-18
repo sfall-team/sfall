@@ -51,8 +51,6 @@
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
-DWORD LoadGameHook_LootTarget = 0;
-
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool gameLoaded = false;
@@ -546,7 +544,6 @@ static void __declspec(naked) UseInventoryOnHook_End() {
 
 static void __declspec(naked) LootContainerHook_Start() {
 	__asm {
-		mov LoadGameHook_LootTarget, ebp; // _target_stack
 		or inLoop, INTFACELOOT;
 		xor eax, eax;
 		jmp inven_set_mouse_;

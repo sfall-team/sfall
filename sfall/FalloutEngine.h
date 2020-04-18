@@ -482,8 +482,8 @@ extern DWORD* ptr_Tag_;
 extern DWORD* ptr_tag_skill;
 extern DWORD* ptr_target_curr_stack;
 extern DWORD** ptr_target_pud;
-extern DWORD* ptr_target_stack;
-extern DWORD* ptr_target_stack_offset;
+extern DWORD* ptr_target_stack; // array of 10 DWORD
+extern DWORD* ptr_target_stack_offset; // array of 10 DWORD
 extern DWORD* ptr_target_str;
 extern DWORD* ptr_target_xpos;
 extern DWORD* ptr_target_ypos;

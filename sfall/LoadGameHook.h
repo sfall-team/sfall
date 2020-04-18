@@ -18,8 +18,6 @@
 
 #pragma once
 
-extern DWORD LoadGameHook_LootTarget;
-
 void LoadGameHookInit();
 
 // True if game was started, false when on the main menu
