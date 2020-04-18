@@ -40,23 +40,26 @@ static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
-		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = fo::GetActiveItem();
-		maxAmmo = fo::func::item_w_max_ammo(item);
-		curAmmo = fo::func::item_w_curr_ammo(item);
-		if (maxAmmo != curAmmo) {
-			long &currentMode = fo::GetActiveItemMode();
-			long previusMode = currentMode;
-			currentMode = 5; // reload mode
-			fo::func::intface_use_item();
-			if (previusMode != 5) {
-				// return to previous active item mode (if it wasn't "reload")
-				currentMode = previusMode - 1;
-				if (currentMode < 0) {
-					currentMode = 4;
+		if (!item) return;
+
+		if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
+			long maxAmmo = fo::func::item_w_max_ammo(item);
+			long curAmmo = fo::func::item_w_curr_ammo(item);
+			if (maxAmmo != curAmmo) {
+				long &currentMode = fo::GetActiveItemMode();
+				long previusMode = currentMode;
+				currentMode = 5; // reload mode
+				fo::func::intface_use_item();
+				if (previusMode != 5) {
+					// return to previous active item mode (if it wasn't "reload")
+					currentMode = previusMode - 1;
+					if (currentMode < 0) currentMode = 4;
+					fo::func::intface_toggle_item_state();
 				}
-				fo::func::intface_toggle_item_state();
 			}
+		} else {
+			fo::func::intface_use_item();
 		}
 	}
 }
