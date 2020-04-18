@@ -24,11 +24,11 @@
 
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 8
-#define VERSION_BUILD 24
+#define VERSION_BUILD 25
 #define VERSION_REV 0
 
 #ifdef WIN2K
-#define VERSION_STRING "3.8.24 win2k"
+#define VERSION_STRING "3.8.25 win2k"
 #else
-#define VERSION_STRING "3.8.24"
+#define VERSION_STRING "3.8.25"
 #endif
