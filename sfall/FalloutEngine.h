@@ -556,6 +556,7 @@ extern const DWORD combat_;
 extern const DWORD combat_ai_;
 extern const DWORD combat_anim_finished_;
 extern const DWORD combat_attack_;
+extern const DWORD combat_check_bad_shot_;
 extern const DWORD combat_delete_critter_;
 extern const DWORD combat_input_;
 extern const DWORD combat_should_end_;
