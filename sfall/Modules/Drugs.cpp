@@ -121,10 +121,29 @@ static void __declspec(naked) perform_withdrawal_start_hack() {
 	}
 }
 
+static bool IsEngineAddictGvar(long gNum) {
+	for (size_t i = 0; i < 9; i++) {
+		if (fo::var::drugInfoList[i].addictGvar == gNum) return true;
+	}
+	return false;
+}
+
 static long __fastcall PrintAddictionList(long isSeparator) {
+	std::vector<int> gVars; // gvar list of already displayed addictions
 	long isSelect = 0;
+
 	for (int i = 0; i < drugsCount; i++) {
-		if (drugs[i].gvarID > 0 && fo::var::game_global_vars[drugs[i].gvarID]) {
+		if (drugs[i].skip) continue;
+		long gvarID = drugs[i].gvarID;
+		if (gvarID > 0 && fo::var::game_global_vars[gvarID]) {
+
+			if (IsEngineAddictGvar(gvarID)) {
+				drugs[i].skip = 1; // skip this element next time
+				continue;
+			}
+			if (std::find(gVars.cbegin(), gVars.cend(), gvarID) != gVars.cend()) continue;
+			gVars.push_back(gvarID);
+
 			if (!isSeparator) { // print separator line
 				isSeparator = 1;
 				const char* message = fo::GetMessageStr(&fo::var::editor_message_file, 4001);

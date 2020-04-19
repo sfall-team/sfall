@@ -49,10 +49,9 @@ static bool explosionsMetaruleReset = false;
 static bool explosionsDamageReset = false;
 static bool explosionMaxTargetReset = false;
 
-static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
-
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
 static void __declspec(naked) ranged_attack_lighting_fix() {
+	static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 	__asm {
 		mov  eax, [esp + 40];             // source projectile ptr - 1st arg
 		mov  ecx, [eax + lightIntensity]; // check existing light intensity
@@ -68,9 +67,9 @@ skip:
 	}
 }
 
-static const DWORD explosion_effect_hook_back = 0x411AB9;
 static DWORD explosion_effect_starting_dir = 0;
 static void __declspec(naked) explosion_effect_hook() {
+	static const DWORD explosion_effect_hook_back = 0x411AB9;
 	__asm {
 		mov  bl, lightingEnabled;
 		test bl, bl;
@@ -95,9 +94,9 @@ skiplight:
 	}
 }
 
-static const DWORD explosion_lighting_fix2_back = 0x412FC7;
 // enable lighting for central explosion object (action_explode)
 static void __declspec(naked) explosion_lighting_fix2() {
+	static const DWORD explosion_lighting_fix2_back = 0x412FC7;
 	__asm {
 		mov  eax, [esp + 24];
 		mov  edx, 1; // turn on
@@ -122,8 +121,8 @@ static void __declspec(naked) explosion_lighting_fix2() {
 //	return value1;
 //}
 
-static const DWORD anim_set_check_light_back = 0x415A4C;
 static void __declspec(naked) anim_set_check_light_fix() {
+	static const DWORD anim_set_check_light_back = 0x415A4C;
 	__asm {
 		mov  eax, [esi + 4];   // object
 		lea  ecx, [esp + 16];  // unknown.. something related to next "tile_refresh_rect" call?
@@ -143,9 +142,9 @@ end:
 	}
 }
 
-static const DWORD fire_dance_lighting_back = 0x410A4F;
 // enable lighting for burning poor guy
 static void __declspec(naked) fire_dance_lighting_fix1() {
+	static const DWORD fire_dance_lighting_back = 0x410A4F;
 	__asm {
 		push edx;
 		push ebx;
@@ -340,19 +339,6 @@ static DWORD set_expl_radius_grenade = 2;
 static DWORD set_expl_radius_rocket  = 3;
 
 static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_art_adr[0]);
-static const size_t numDmgChecks = sizeof(explosion_dmg_check_adr) / sizeof(explosion_dmg_check_adr[0]);
-
-enum MetaruleExplosionsMode {
-	EXPL_FORCE_EXPLOSION_PATTERN       = 1,
-	EXPL_FORCE_EXPLOSION_ART           = 2,
-	EXPL_FORCE_EXPLOSION_RADIUS        = 3,
-	EXPL_FORCE_EXPLOSION_DMGTYPE       = 4,
-	EXPL_STATIC_EXPLOSION_RADIUS       = 5,
-	EXPL_GET_EXPLOSION_DAMAGE          = 6,
-	EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE = 7,
-	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE  = 8,
-	EXPL_SET_EXPLOSION_MAX_TARGET      = 9,
-};
 
 static void SetExplosionRadius(int arg1, int arg2) {
 	SafeWrite32(explosion_radius_grenade, arg1);
@@ -395,6 +381,18 @@ static int GetExplosionDamage(int pid) {
 	return arrayId;
 }
 
+enum MetaruleExplosionsMode {
+	EXPL_FORCE_EXPLOSION_PATTERN       = 1,
+	EXPL_FORCE_EXPLOSION_ART           = 2,
+	EXPL_FORCE_EXPLOSION_RADIUS        = 3,
+	EXPL_FORCE_EXPLOSION_DMGTYPE       = 4,
+	EXPL_STATIC_EXPLOSION_RADIUS       = 5,
+	EXPL_GET_EXPLOSION_DAMAGE          = 6,
+	EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE = 7,
+	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE  = 8,
+	EXPL_SET_EXPLOSION_MAX_TARGET      = 9,
+};
+
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
 		case EXPL_FORCE_EXPLOSION_PATTERN:
@@ -407,17 +405,13 @@ int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 			}
 			break;
 		case EXPL_FORCE_EXPLOSION_ART:
-			for (int i = 0; i < numArtChecks; i++) {
-				SafeWrite32(explosion_art_adr[i], (BYTE)arg1);
-			}
+			SafeWriteBatch<DWORD>((BYTE)arg1, explosion_art_adr);
 			break;
 		case EXPL_FORCE_EXPLOSION_RADIUS:
 			SetExplosionRadius(arg1, arg1);
 			break;
 		case EXPL_FORCE_EXPLOSION_DMGTYPE:
-			for (int i = 0; i < numDmgChecks; i++) {
-				SafeWrite8(explosion_dmg_check_adr[i], (BYTE)arg1);
-			}
+			SafeWriteBatch<BYTE>((BYTE)arg1, explosion_dmg_check_adr);
 			break;
 		case EXPL_STATIC_EXPLOSION_RADIUS:
 			if (arg1 > 0) set_expl_radius_grenade = arg1;
@@ -459,9 +453,7 @@ void ResetExplosionSettings() {
 	// explosion radiuses
 	SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 	// explosion dmgtype
-	for (int i = 0; i < numDmgChecks; i++) {
-		SafeWrite8(explosion_dmg_check_adr[i], fo::DamageType::DMG_explosion);
-	}
+	SafeWriteBatch<BYTE>(fo::DamageType::DMG_explosion, explosion_dmg_check_adr);
 	// explosion max target count
 	if (explosionMaxTargetReset) {
 		SafeWrite8(0x423C93, 6);

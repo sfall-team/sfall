@@ -829,21 +829,31 @@ static void PerkEngineInit() {
 
 	// GetPlayerAvailablePerks (ListDPerks_)
 	HookCall(0x43D127, GetAvailablePerksHook);
-	HookCall(0x43D17D, GetPerkSNameHook);
-	HookCalls(GetPerkSLevelHook, {0x43D25E, 0x43D275});
 
 	// ShowPerkBox (perks_dialog_)
-	HookCalls(GetPerkSLevelHook, {0x43C82E, 0x43C85B});
-	HookCalls(GetPerkSDescHook, {0x43C888, 0x43C8D1});
-	HookCalls(GetPerkSNameHook, {0x43C8A6, 0x43C8EF});
-	HookCall(0x43C90F, GetPerkSImageHook);
 	HookCall(0x43C952, AddPerkHook);
 
 	// PerkboxSwitchPerk (RedrwDPrks_)
-	HookCalls(GetPerkSLevelHook, {0x43C3F1, 0x43C41E});
-	HookCalls(GetPerkSDescHook, {0x43C44B, 0x43C494});
-	HookCalls(GetPerkSNameHook, {0x43C469, 0x43C4B2});
-	HookCall(0x43C4D2, GetPerkSImageHook);
+
+	// GetPerkS hooks
+	HookCalls(GetPerkSLevelHook, {
+		0x43D25E, 0x43D275, // ListDPerks_
+		0x43C82E, 0x43C85B, // perks_dialog_
+		0x43C3F1, 0x43C41E  // RedrwDPrks_
+	});
+	HookCalls(GetPerkSNameHook, {
+		0x43D17D,           // ListDPerks_
+		0x43C8A6, 0x43C8EF, // perks_dialog_
+		0x43C469, 0x43C4B2  // RedrwDPrks_
+	});
+	HookCalls(GetPerkSDescHook, {
+		0x43C888, 0x43C8D1, // perks_dialog_
+		0x43C44B, 0x43C494  // RedrwDPrks_
+	});
+	HookCalls(GetPerkSImageHook, {
+		0x43C90F,           // perks_dialog_
+		0x43C4D2            // RedrwDPrks_
+	});
 
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
