@@ -669,28 +669,35 @@ static void PerkEngineInit() {
 
 	// GetPlayerAvailablePerks (ListDPerks_)
 	HookCall(0x43D127, GetAvailablePerksHook);
-	HookCall(0x43D17D, GetPerkSNameHook);
-	const DWORD getPerkSLevelAddr1[] = {0x43D25E, 0x43D275};
-	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr1);
 
 	// ShowPerkBox (perks_dialog_)
-	const DWORD getPerkSLevelAddr2[] = {0x43C82E, 0x43C85B};
-	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr2);
-	const DWORD getPerkSDescAddr2[] = {0x43C888, 0x43C8D1};
-	HookCalls(GetPerkSDescHook, getPerkSDescAddr2);
-	const DWORD getPerkSNameAddr2[] = {0x43C8A6, 0x43C8EF};
-	HookCalls(GetPerkSNameHook, getPerkSNameAddr2);
-	HookCall(0x43C90F, GetPerkSImageHook);
 	HookCall(0x43C952, AddPerkHook);
 
 	// PerkboxSwitchPerk (RedrwDPrks_)
-	const DWORD getPerkSLevelAddr3[] = {0x43C3F1, 0x43C41E};
-	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr3);
-	const DWORD getPerkSDescAddr3[] = {0x43C44B, 0x43C494};
-	HookCalls(GetPerkSDescHook, getPerkSDescAddr3);
-	const DWORD getPerkSNameAddr3[] = {0x43C469, 0x43C4B2};
-	HookCalls(GetPerkSNameHook, getPerkSNameAddr3);
-	HookCall(0x43C4D2, GetPerkSImageHook);
+
+	// GetPerkS hooks
+	const DWORD getPerkSLevelAddr[] = {
+		0x43D25E, 0x43D275, // ListDPerks_
+		0x43C82E, 0x43C85B, // perks_dialog_
+		0x43C3F1, 0x43C41E  // RedrwDPrks_
+	};
+	HookCalls(GetPerkSLevelHook, getPerkSLevelAddr);
+	const DWORD getPerkSNameAddr[] = {
+		0x43D17D,           // ListDPerks_
+		0x43C8A6, 0x43C8EF, // perks_dialog_
+		0x43C469, 0x43C4B2  // RedrwDPrks_
+	};
+	HookCalls(GetPerkSNameHook, getPerkSNameAddr);
+	const DWORD getPerkSDescAddr[] = {
+		0x43C888, 0x43C8D1, // perks_dialog_
+		0x43C44B, 0x43C494  // RedrwDPrks_
+	};
+	HookCalls(GetPerkSDescHook, getPerkSDescAddr);
+	const DWORD getPerkSImageAddr[] = {
+		0x43C90F,           // perks_dialog_
+		0x43C4D2            // RedrwDPrks_
+	};
+	HookCalls(GetPerkSImageHook, getPerkSImageAddr);
 
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'

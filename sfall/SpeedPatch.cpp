@@ -166,7 +166,9 @@ void SpeedPatchInit() {
 		int size = sizeof(offsets) / 4;
 		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) size -= 4;
 
-		SafeWriteBatch<DWORD>((DWORD)&sf_GetTickCount, offsets);
+		for (int i = 0; i < size; i++) {
+			SafeWrite32(offsets[i], (DWORD)&sf_GetTickCount);
+		}
 		SafeWrite32(0x4FDF58, (DWORD)&sf_GetLocalTime);
 		HookCall(0x4A433E, scripts_check_state_hook);
 
