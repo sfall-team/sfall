@@ -383,7 +383,7 @@ extern DWORD* ptr_inven_pid;
 extern DWORD* ptr_inven_scroll_dn_bid;
 extern DWORD* ptr_inven_scroll_up_bid;
 extern MSGList* ptr_inventry_message_file;
-extern DWORD* ptr_itemButtonItems;
+extern ItemButtonItem* ptr_itemButtonItems; // array of 2 ItemButtonItem
 extern long*  ptr_itemCurrentItem; // 0 - left, 1 - right
 extern DWORD* ptr_kb_lock_flags;
 extern DWORD* ptr_last_buttons;
@@ -1148,6 +1148,8 @@ long __stdcall ScrRemove(long scriptID);
 
 void __stdcall SetFocusFunc(void* func);
 
+long __stdcall SkillIsTagged(long skill);
+
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
@@ -1402,7 +1404,11 @@ void SkillGetTags(long* result, long num);
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(long* tags, long num);
 
-__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot);
+__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot);
+
+long& GetActiveItemMode();
+
+TGameObj* GetActiveItem();
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();

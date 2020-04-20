@@ -676,7 +676,7 @@ static void sf_draw_image_scaled() {
 }
 
 static void sf_unwield_slot() {
-	long slot = static_cast<long>(opHandler.arg(1).rawValue());
+	InvenType slot = static_cast<InvenType>(opHandler.arg(1).rawValue());
 	if (slot < INVEN_TYPE_WORN || slot > INVEN_TYPE_LEFT_HAND) {
 		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
 		opHandler.setReturn(-1);

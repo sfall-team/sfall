@@ -44,37 +44,9 @@ static DWORD addPerkMode = 2;
 static bool perksReInit = false;
 static int perksEnable = 0;
 
-struct TraitStruct {
-	const char* Name;
-	const char* Desc;
-	long Image;
-};
-
-struct PerkStruct {
-	const char* Name;
-	const char* Desc;
-	long Image;
-	long Ranks;
-	long Level;
-	long Stat;
-	long StatMag;
-	long Skill1;
-	long Skill1Mag;
-	long Type;
-	long Skill2;
-	long Skill2Mag;
-	long Str;
-	long Per;
-	long End;
-	long Chr;
-	long Int;
-	long Agl;
-	long Lck;
-};
-
-//static const PerkStruct BlankPerk={ &Name[PERK_count*64], &Desc[PERK_count*1024], 0x48, 1, 1, -1, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0 };
-static PerkStruct Perks[PERK_count];
-static TraitStruct Traits[TRAIT_count];
+//static const PerkInfo BlankPerk={ &Name[PERK_count*64], &Desc[PERK_count*1024], 0x48, 1, 1, -1, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0 };
+static PerkInfo Perks[PERK_count];
+static TraitInfo Traits[TRAIT_count];
 
 struct FakePerk {
 	int Level; // current level (max 100)
@@ -718,7 +690,7 @@ static void PerkSetup() {
 		SafeWrite32(0x496BF5, (DWORD)&Perks[0].Image);
 		SafeWrite32(0x496AD4, (DWORD)&Perks[0].Ranks);
 	}
-	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct) * PERK_count); // copy vanilla data
+	memcpy(Perks, (void*)_perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
 
 	if (perksEnable) {
 		char num[4];
@@ -920,7 +892,7 @@ static void TraitSetup() {
 	MakeJump(0x4B3C7C, TraitAdjustStatHack);  // trait_adjust_stat_
 	MakeJump(0x4B40FC, TraitAdjustSkillHack); // trait_adjust_skill_
 
-	memcpy(Traits, (void*)_trait_data, sizeof(TraitStruct) * TRAIT_count);
+	memcpy(Traits, (void*)_trait_data, sizeof(TraitInfo) * TRAIT_count);
 
 	// _trait_data
 	const DWORD traitDataAddr[] = {0x4B3A81, 0x4B3B80};

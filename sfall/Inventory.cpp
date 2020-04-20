@@ -31,14 +31,6 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
-long& GetActiveItemMode() {
-	return (long&)ptr_itemButtonItems[(*ptr_itemCurrentItem * 6) + 4];
-}
-
-TGameObj* GetActiveItem() {
-	return (TGameObj*)ptr_itemButtonItems[*ptr_itemCurrentItem * 6];
-}
-
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		TGameObj* item = GetActiveItem();

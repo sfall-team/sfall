@@ -28,6 +28,26 @@ struct TGameObj;
 struct TProgram;
 struct TScript;
 
+#pragma pack(push, 1)
+struct sArt {
+	long flags;
+	char path[16];
+	char* names;
+	long d18;
+	long total;
+};
+#pragma pack(pop)
+
+// Bounding rectangle, used by tile_refresh_rect and related functions.
+#pragma pack(push, 1)
+struct BoundRect {
+	long x;
+	long y;
+	long offx;
+	long offy;
+};
+#pragma pack(pop)
+
 /*   26 */
 #pragma pack(push, 1)
 struct TInvenRec {
@@ -36,7 +56,7 @@ struct TInvenRec {
 };
 #pragma pack(pop)
 
-/*   15 */
+// Game objects (items, critters, etc.), including those stored in inventories.
 #pragma pack(push, 1)
 struct TGameObj {
 	long ID;
@@ -67,12 +87,10 @@ struct TGameObj {
 	long scriptID;
 	TGameObj* owner;
 	long script_index;
-	char gap_84[7];
-	char field_0;
 };
 #pragma pack(pop)
 
-/*    9 */
+// Results of compute_attack_() function.
 #pragma pack(push, 1)
 struct TComputeAttack {
 	TGameObj* attacker;
@@ -99,7 +117,7 @@ struct TComputeAttack {
 };
 #pragma pack(pop)
 
-/*   22 */
+// Script instance attached to an object or tile (spatial script).
 #pragma pack(push, 1)
 struct TScript {
 	long script_id;
@@ -128,7 +146,7 @@ struct TScript {
 };
 #pragma pack(pop)
 
-/*   25 */
+// Script run-time data
 #pragma pack(push, 1)
 struct TProgram {
 	const char* fileName;
@@ -150,22 +168,43 @@ struct TProgram {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct sArt {
-	long flags;
-	char path[16];
-	char* names;
-	long d18;
-	long total;
+struct ItemButtonItem {
+	TGameObj* item;
+	char cantUse;
+	char itsWeapon;
+	short unkFlag;
+	long primaryAttack;
+	long secondaryAttack;
+	long mode;
+	long fid;
 };
 #pragma pack(pop)
 
-// Bounding rectangle, used by tile_refresh_rect and related functions
+// When gained, the perk increases Stat by StatMag, which may be negative. All other perk effects come from being
+// specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
+// below the value specified (e.g., -7 indicates a stat must be less than 7). Type is only non-zero when there
+// are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
 #pragma pack(push, 1)
-struct BoundRect {
-	long x;
-	long y;
-	long offx;
-	long offy;
+struct PerkInfo {
+	const char* Name;
+	const char* Desc;
+	long Image;
+	long Ranks;
+	long Level;
+	long Stat;
+	long StatMag;
+	long Skill1;
+	long Skill1Mag;
+	long Type;
+	long Skill2;
+	long Skill2Mag;
+	long Str;
+	long Per;
+	long End;
+	long Chr;
+	long Int;
+	long Agl;
+	long Lck;
 };
 #pragma pack(pop)
 
@@ -195,7 +234,7 @@ struct FrmFile {
 };
 #pragma pack(pop)
 
-// structures for holding frms loaded with fallout2 functions
+//structures for holding frms loaded with fallout2 functions
 #pragma pack(push, 1)
 typedef class FrmFrameData { // sizeof 12 + 1 byte
 public:
@@ -252,6 +291,56 @@ typedef struct MSGList {
 } MSGList;
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct CritInfo {
+	union {
+		struct {
+			// This is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage.
+			long damageMult;
+			// This is a flag bit field (DAM_*) controlling what effects the critical causes.
+			long effectFlags;
+			// This makes a check against a (SPECIAL) stat. Values of 2 (endurance), 5 (agility), and 6 (luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made.
+			long statCheck;
+			// Affects the outcome of the stat check, if one is made. Positive values make it easier to pass the check, and negative ones make it harder.
+			long statMod;
+			// Another bit field, using the same values as EffectFlags. If the stat check is failed, these are applied in addition to the earlier ones.
+			long failureEffect;
+			// The message to show when this critical occurs, taken from combat.msg .
+			long message;
+			// Shown instead of Message if the stat check is failed.
+			long failMessage;
+		};
+		long values[7];
+	};
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct SkillInfo {
+	const char* name;
+	const char* description;
+	long attr;
+	long image;
+	long base;
+	long statMulti;
+	long statA;
+	long statB;
+	long skillPointMulti;
+	// Default experience for using the skill: 25 for Lockpick, Steal, Traps, and First Aid, 50 for Doctor, and 100 for Outdoorsman.
+	long experience;
+	// 1 for Lockpick, Steal, Traps; 0 otherwise
+	long f;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct TraitInfo {
+	const char* Name;
+	const char* Desc;
+	long Image;
+};
+#pragma pack(pop)
+
 //fallout2 path node structure
 #pragma pack(push, 1)
 struct PathNode {
@@ -259,6 +348,14 @@ struct PathNode {
 	void* pDat;
 	long isDat;
 	PathNode* next;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct PremadeChar {
+	char path[20];
+	DWORD fid;
+	char unknown[20];
 };
 #pragma pack(pop)
 

@@ -17,12 +17,7 @@
  */
 
 #include "main.h"
-
-struct PremadeChar {
-	char path[20];
-	DWORD fid;
-	char unknown[20];
-};
+#include "FalloutEngine.h"
 
 PremadeChar* premade;
 

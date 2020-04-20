@@ -27,22 +27,6 @@
 
 #define SKILL_MIN_LIMIT    (-128)
 
-struct SkillInfo {
-	const char* name;
-	const char* description;
-	long attr;
-	long image;
-	long base;
-	long statMulti;
-	long statA;
-	long statB;
-	long skillPointMulti;
-	// Default experience for using the skill: 25 for Lockpick, Steal, Traps, and First Aid, 50 for Doctor, and 100 for Outdoorsman.
-	long experience;
-	// 1 for Lockpick, Steal, Traps; 0 otherwise
-	long f;
-};
-
 struct SkillModifier {
 	long id;
 	int maximum;
@@ -124,13 +108,7 @@ static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
 		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
 		SkillInfo *skills = (SkillInfo*)_skill_data;
 		rawPoints *= skills[skill].skillPointMulti;
-		long tagged;
-		__asm {
-			mov  eax, skill;
-			call skill_is_tagged_;
-			mov  tagged, eax;
-		}
-		if (tagged) rawPoints *= 2;
+		if (SkillIsTagged(skill)) rawPoints *= 2;
 		base += rawPoints; // add the negative skill points after calculating the skill level
 		if (base < 0) return max(-999, base);
 	}

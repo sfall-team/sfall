@@ -1336,7 +1336,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		args[2] = INVEN_TYPE_LEFT_HAND;
 	}
 	// get item
-	args[1] = (DWORD)GetItemPtrSlot((TGameObj*)args[0], args[2]);
+	args[1] = (DWORD)GetItemPtrSlot((TGameObj*)args[0], (InvenType)args[2]);
 
 	InvenWieldHook_ScriptPart(0); // unwield event
 

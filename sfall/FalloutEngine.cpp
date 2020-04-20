@@ -105,7 +105,7 @@ DWORD* ptr_inven_pid                  = reinterpret_cast<DWORD*>(_inven_pid);
 DWORD* ptr_inven_scroll_dn_bid        = reinterpret_cast<DWORD*>(_inven_scroll_dn_bid);
 DWORD* ptr_inven_scroll_up_bid        = reinterpret_cast<DWORD*>(_inven_scroll_up_bid);
 MSGList* ptr_inventry_message_file    = reinterpret_cast<MSGList*>(_inventry_message_file);
-DWORD* ptr_itemButtonItems            = reinterpret_cast<DWORD*>(_itemButtonItems);
+ItemButtonItem* ptr_itemButtonItems   = reinterpret_cast<ItemButtonItem*>(_itemButtonItems); // array of 2 ItemButtonItem
 long*  ptr_itemCurrentItem            = reinterpret_cast<long*>(_itemCurrentItem); // 0 - left, 1 - right
 DWORD* ptr_kb_lock_flags              = reinterpret_cast<DWORD*>(_kb_lock_flags);
 DWORD* ptr_last_buttons               = reinterpret_cast<DWORD*>(_last_buttons);
@@ -1006,6 +1006,10 @@ void __stdcall SetFocusFunc(void* func) {
 	WRAP_WATCOM_CALL1(set_focus_func_, func)
 }
 
+long __stdcall SkillIsTagged(long skill) {
+	WRAP_WATCOM_CALL1(skill_is_tagged_, skill)
+}
+
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
 	WRAP_WATCOM_FCALL4(register_object_call_, target, source, func, delay)
 }
@@ -1691,7 +1695,7 @@ void SkillSetTags(long* tags, long num) {
 	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
 
-__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot) {
+__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot) {
 	TGameObj* itemPtr = nullptr;
 	switch (slot) {
 		case INVEN_TYPE_LEFT_HAND:
@@ -1705,6 +1709,14 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long 
 			break;
 	}
 	return itemPtr;
+}
+
+long& GetActiveItemMode() {
+	return ptr_itemButtonItems[*ptr_itemCurrentItem].mode;
+}
+
+TGameObj* GetActiveItem() {
+	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
 }
 
 // Checks whether the player is under the influence of negative effects of radiation

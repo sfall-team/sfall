@@ -41,31 +41,9 @@ static const char* CritNames[] = {
 	"FailMessage",
 };
 
-struct CritStruct {
-	union {
-		struct {
-			// This is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage.
-			long damageMult;
-			// This is a flag bit field (DAM_*) controlling what effects the critical causes.
-			long effectFlags;
-			// This makes a check against a (SPECIAL) stat. Values of 2 (endurance), 5 (agility), and 6 (luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made.
-			long statCheck;
-			// Affects the outcome of the stat check, if one is made. Positive values make it easier to pass the check, and negative ones make it harder.
-			long statMod;
-			// Another bit field, using the same values as EffectFlags. If the stat check is failed, these are applied in addition to the earlier ones.
-			long failureEffect;
-			// The message to show when this critical occurs, taken from combat.msg .
-			long message;
-			// Shown instead of Message if the stat check is failed.
-			long failMessage;
-		};
-		long values[7];
-	};
-};
-
-static CritStruct* baseCritTable; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
-static CritStruct* critTable;
-static CritStruct* playerCrit;
+static CritInfo* baseCritTable; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
+static CritInfo* critTable;
+static CritInfo* playerCrit;
 
 static bool Inited = false;
 
@@ -96,7 +74,7 @@ void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element
 }
 
 static int CritTableLoad() {
-	CritStruct* defaultTable = (CritStruct*)_crit_succ_eff;
+	CritInfo* defaultTable = (CritInfo*)_crit_succ_eff;
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
 		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
@@ -122,9 +100,9 @@ static int CritTableLoad() {
 		}
 	} else {
 		dlog("Setting up critical hit table using RP fixes", DL_CRITICALS);
-		memcpy(baseCritTable, defaultTable, 19 * 6 * 9 * sizeof(CritStruct));
-		//memset(&baseCritTable[6 * 9 * 19], 0, 19 * 6 * 9 * sizeof(CritStruct));
-		memcpy(&baseCritTable[6 * 9 * 38], (CritStruct*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct)); // PC crit table
+		memcpy(baseCritTable, defaultTable, 19 * 6 * 9 * sizeof(CritInfo));
+		//memset(&baseCritTable[6 * 9 * 19], 0, 19 * 6 * 9 * sizeof(CritInfo));
+		memcpy(&baseCritTable[6 * 9 * 38], (CritInfo*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritInfo)); // PC crit table
 
 		if (mode == 3) {
 			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
@@ -161,14 +139,14 @@ static int CritTableLoad() {
 
 static void CriticalTableOverride() {
 	dlogr("Initializing critical table override...", DL_INIT);
-	baseCritTable = new CritStruct[CritTableSize]();
-	critTable = new CritStruct[CritTableSize];
+	baseCritTable = new CritInfo[CritTableSize]();
+	critTable = new CritInfo[CritTableSize];
 	playerCrit = &critTable[6 * 9 * 38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
 	if (mode == 2 || mode == 3) { // bug fixes
-		CritStruct* defaultTable = (CritStruct*)_crit_succ_eff;
+		CritInfo* defaultTable = (CritInfo*)_crit_succ_eff;
 
 		SetEntry(2, 4, 1, 4, 0);
 		SetEntry(2, 4, 1, 5, 5216);
@@ -298,5 +276,5 @@ void CriticalsInit() {
 
 void CritLoad() {
 	if (!Inited) return;
-	memcpy(critTable, baseCritTable, CritTableSize * sizeof(CritStruct)); // Apply loaded critical table
+	memcpy(critTable, baseCritTable, CritTableSize * sizeof(CritInfo)); // Apply loaded critical table
 }

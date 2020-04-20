@@ -37,7 +37,7 @@ static std::vector<WORD> Chars;
 static int delayedExperience;
 
 static TGameObj* real_dude = nullptr;
-static DWORD real_traits[2];
+static long real_traits[2];
 static char real_pc_name[32];
 static DWORD real_last_level;
 static DWORD real_Level;
@@ -48,7 +48,7 @@ static DWORD real_unspent_skill_points;
 static DWORD real_sneak_working;
 //static DWORD real_sneak_queue_time;
 static DWORD real_hand;
-static DWORD real_itemButtonItems[6 * 2];
+static ItemButtonItem real_itemButtonItems[2];
 static DWORD real_perkLevelDataList[PERK_count];
 //static DWORD real_drug_gvar[6];
 //static DWORD real_jet_gvar;
@@ -88,8 +88,8 @@ static void __stdcall StatPcAddExperience(int amount) {
 static void SaveRealDudeState() {
 	real_dude = *ptr_obj_dude;
 	real_hand = *ptr_itemCurrentItem;
-	memcpy(real_itemButtonItems, ptr_itemButtonItems, sizeof(DWORD) * 6 * 2);
-	memcpy(real_traits, ptr_pc_traits, sizeof(DWORD) * 2);
+	memcpy(real_itemButtonItems, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
+	memcpy(real_traits, ptr_pc_traits, sizeof(long) * 2);
 	memcpy(real_perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(real_pc_name, 32, ptr_pc_name);
 	real_Level = *ptr_Level_;
@@ -174,8 +174,8 @@ static void RestoreRealDudeState(bool redraw = true) {
 	*ptr_inven_pid = real_dude->pid;
 
 	*ptr_itemCurrentItem = real_hand;
-	memcpy(ptr_itemButtonItems, real_itemButtonItems, sizeof(DWORD) * 6 * 2);
-	memcpy(ptr_pc_traits, real_traits, sizeof(DWORD) * 2);
+	memcpy(ptr_itemButtonItems, real_itemButtonItems, sizeof(ItemButtonItem) * 2);
+	memcpy(ptr_pc_traits, real_traits, sizeof(long) * 2);
 	memcpy(*ptr_perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(ptr_pc_name, 32, real_pc_name);
 	*ptr_Level_ = real_Level;
