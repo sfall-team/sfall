@@ -194,18 +194,34 @@ void LoadProtoAutoMaxLimit() {
 	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 
+// Places the PID_CORPSE_BLOOD object on the lower layer of objects on the tile
 static void __declspec(naked) obj_insert_hack() {
 	__asm {
-		mov  edi, [ebx];
+		// engine code
+		mov  edi, [ebx]; // tableNodes.objectPtr
 		mov  [esp + 0x38 - 0x1C + 4], esi; // 0
-		test edi, edi;
+		test edi, edi;   // objectPtr
 		jnz  insert;
 		retn;
-insert:
+insert: //----------
 		mov  esi, [ecx]; // esi - inserted object
+		mov  edi, [edi]; // object placed on the tile
+		xor  edx, edx;
 		cmp  dword ptr [esi + 0x64], PID_CORPSE_BLOOD;
-		jnz  skip;
+		je   fix;
+		cmp  dword ptr [edi + 0x64], PID_CORPSE_BLOOD;
+		jne  skip;
+		sete dl; // set to 1 if PID_CORPSE_BLOOD is already located on the map
+fix:
+		mov  esi, [esi + 0x28]; // elevation
+		cmp  [edi + 0x28], esi;
+		jne  skip;
 		xor  edi, edi;
+		test dl, dl;
+		jz   skip;
+		mov  ebx, [ebx]; // tableNodes.objectPtr
+		add  ebx, 4;     // tableNodes.nextObjectPtr
+		mov  edi, [ebx]; // tableNodes.objectPtr
 skip:
 		retn;
 	}
@@ -223,6 +239,6 @@ void ObjectsInit() {
 	// Additionally fix object IDs for queued events
 	MakeCall(0x4A25BA, queue_add_hack);
 
-	// Place some objects on the tile to the lower z-layer
+	// Place some objects on the lower z-layer of the tile
 	MakeCall(0x48D918, obj_insert_hack, 1);
 }

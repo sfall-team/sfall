@@ -778,7 +778,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (int time = GetConfigInt("Misc", "CorpseDeleteTime", 6) != 6) { // time in days
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
 		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
 			time = 12; // hours
