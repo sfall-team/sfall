@@ -373,6 +373,7 @@ struct UnlistedFrm {
 	}
 };
 
+//for holding a message
 #pragma pack(1)
 struct MessageNode {
 	long number;
@@ -424,8 +425,7 @@ struct CritInfo {
 };
 
 #pragma pack(1)
-struct SkillInfo
-{
+struct SkillInfo {
 	const char* name;
 	const char* description;
 	long attr;
