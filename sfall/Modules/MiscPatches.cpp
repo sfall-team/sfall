@@ -284,7 +284,7 @@ skip:
 	}
 }
 
-void AdditionalWeaponAnimsPatch() {
+static void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
@@ -296,7 +296,7 @@ void AdditionalWeaponAnimsPatch() {
 	}
 }
 
-void SkilldexImagesPatch() {
+static void SkilldexImagesPatch() {
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	long tmp = GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) {
@@ -329,7 +329,7 @@ void SkilldexImagesPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void ScienceOnCrittersPatch() {
+static void ScienceOnCrittersPatch() {
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
 		HookCall(0x41276E, action_use_skill_on_hook_science);
@@ -340,7 +340,7 @@ void ScienceOnCrittersPatch() {
 	}
 }
 
-void BoostScriptDialogLimitPatch() {
+static void BoostScriptDialogLimitPatch() {
 	const DWORD script_dialog_msgs[] = {
 		0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 	};
@@ -357,7 +357,7 @@ void BoostScriptDialogLimitPatch() {
 	}
 }
 
-void NumbersInDialoguePatch() {
+static void NumbersInDialoguePatch() {
 	if (GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlog("Applying numbers in dialogue patch.", DL_INIT);
 		SafeWrite32(0x502C32, 0x2000202E);
@@ -372,7 +372,7 @@ void NumbersInDialoguePatch() {
 	}
 }
 
-void InstantWeaponEquipPatch() {
+static void InstantWeaponEquipPatch() {
 	const DWORD PutAwayWeapon[] = {
 		0x411EA2, // action_climb_ladder_
 		0x412046, // action_use_an_item_on_object_
@@ -393,7 +393,7 @@ void InstantWeaponEquipPatch() {
 	}
 }
 
-void DontTurnOffSneakIfYouRunPatch() {
+static void DontTurnOffSneakIfYouRunPatch() {
 	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
 		SafeWrite8(0x418135, 0xEB);
@@ -401,7 +401,7 @@ void DontTurnOffSneakIfYouRunPatch() {
 	}
 }
 
-void PlayIdleAnimOnReloadPatch() {
+static void PlayIdleAnimOnReloadPatch() {
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, intface_item_reload_hook);
@@ -409,7 +409,7 @@ void PlayIdleAnimOnReloadPatch() {
 	}
 }
 
-void MotionScannerFlagsPatch() {
+static void MotionScannerFlagsPatch() {
 	if (long flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (flags & 1) MakeJump(0x41BBE9, automap_hack);
@@ -424,7 +424,7 @@ void MotionScannerFlagsPatch() {
 	}
 }
 
-void EncounterTableSizePatch() {
+static void EncounterTableSizePatch() {
 	const DWORD EncounterTableSize[] = {
 		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
@@ -440,7 +440,7 @@ void EncounterTableSizePatch() {
 	}
 }
 
-void DisablePipboyAlarmPatch() {
+static void DisablePipboyAlarmPatch() {
 	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, 0xC3);
@@ -449,7 +449,7 @@ void DisablePipboyAlarmPatch() {
 	}
 }
 
-void ObjCanSeeShootThroughPatch() {
+static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
@@ -458,7 +458,7 @@ void ObjCanSeeShootThroughPatch() {
 }
 
 static const char* musicOverridePath = "data\\sound\\music\\";
-void OverrideMusicDirPatch() {
+static void OverrideMusicDirPatch() {
 	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB});
 		if (overrideMode == 2) {
@@ -467,7 +467,7 @@ void OverrideMusicDirPatch() {
 	}
 }
 
-void DialogueFix() {
+static void DialogueFix() {
 	if (GetConfigInt("Misc", "DialogueFix", 1)) {
 		dlog("Applying dialogue patch.", DL_INIT);
 		SafeWrite8(0x446848, 0x31);
@@ -475,7 +475,7 @@ void DialogueFix() {
 	}
 }
 
-void AlwaysReloadMsgs() {
+static void AlwaysReloadMsgs() {
 	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8D, 0x0);
@@ -483,14 +483,14 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void RemoveWindowRoundingPatch() {
+static void RemoveWindowRoundingPatch() {
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		SafeWriteBatch<BYTE>(0xEB, {0x4D6EDD, 0x4D6F12});
 		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
 	}
 }
 
-void InventoryCharacterRotationSpeedPatch() {
+static void InventoryCharacterRotationSpeedPatch() {
 	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
@@ -499,7 +499,7 @@ void InventoryCharacterRotationSpeedPatch() {
 	}
 }
 
-void UIAnimationSpeedPatch() {
+static void UIAnimationSpeedPatch() {
 	DWORD addrs[] = {
 		0x45F9DE, 0x45FB33,
 		0x447DF4, 0x447EB6,
@@ -510,7 +510,7 @@ void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-void MusicInDialoguePatch() {
+static void MusicInDialoguePatch() {
 	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0);
@@ -519,7 +519,7 @@ void MusicInDialoguePatch() {
 	}
 }
 
-void PipboyAvailableAtStartPatch() {
+static void PipboyAvailableAtStartPatch() {
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		LoadGameHook::OnBeforeGameStart() += []() {
@@ -532,7 +532,7 @@ void PipboyAvailableAtStartPatch() {
 	}
 }
 
-void DisableHorriganPatch() {
+static void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		LoadGameHook::OnAfterNewGame() += []() {
 			fo::var::Meet_Frank_Horrigan = true;
@@ -541,7 +541,7 @@ void DisableHorriganPatch() {
 	}
 }
 
-void DisplaySecondWeaponRangePatch() {
+static void DisplaySecondWeaponRangePatch() {
 	// Display the range of the second attack mode in the inventory when you switch weapon modes in active item slots
 	//if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
@@ -550,7 +550,7 @@ void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
-void KeepWeaponSelectModePatch() {
+static void KeepWeaponSelectModePatch() {
 	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
@@ -558,7 +558,7 @@ void KeepWeaponSelectModePatch() {
 	}
 }
 
-void PartyMemberSkillPatch() {
+static void PartyMemberSkillPatch() {
 	// Fixed getting distance from source to target when using skills
 	// Note: this will cause the party member to apply his/her skill when you use First Aid/Doctor skill on the player, but only if
 	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
@@ -573,7 +573,7 @@ void PartyMemberSkillPatch() {
 	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
 }
 
-void SkipLoadingGameSettingsPatch() {
+static void SkipLoadingGameSettingsPatch() {
 	int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0);
 	if (skipLoading) {
 		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
@@ -588,7 +588,7 @@ void SkipLoadingGameSettingsPatch() {
 	}
 }
 
-void InterfaceDontMoveOnTopPatch() {
+static void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
@@ -597,7 +597,7 @@ void InterfaceDontMoveOnTopPatch() {
 	}
 }
 
-void UseWalkDistancePatch() {
+static void UseWalkDistancePatch() {
 	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
@@ -606,7 +606,7 @@ void UseWalkDistancePatch() {
 	}
 }
 
-void F1EngineBehaviorPatch() {
+static void F1EngineBehaviorPatch() {
 	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
@@ -626,7 +626,7 @@ debug:
 	}
 }
 
-void EngineOptimizationPatches() {
+static void EngineOptimizationPatches() {
 	// Speed up display_msg script function
 	HookCall(0x455404, op_display_msg_hook);
 

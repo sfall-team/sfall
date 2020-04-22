@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
@@ -60,7 +61,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	fo::func::process_bk();
+	if (Graphics::mode != 0) fo::func::process_bk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
