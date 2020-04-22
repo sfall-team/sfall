@@ -213,15 +213,15 @@ static void __declspec(naked) automap_hack() {
 	static const DWORD ScannerHookRet  = 0x41BC1D;
 	static const DWORD ScannerHookFail = 0x41BC65;
 	__asm {
-		mov eax, ds:[_obj_dude];
-		mov edx, PID_MOTION_SENSOR;
+		mov  eax, ds:[_obj_dude];
+		mov  edx, PID_MOTION_SENSOR;
 		call inven_pid_is_carried_ptr_;
 		test eax, eax;
-		jz fail;
-		mov edx, eax;
-		jmp ScannerHookRet;
+		jz   fail;
+		mov  edx, eax;
+		jmp  ScannerHookRet;
 fail:
-		jmp ScannerHookFail;
+		jmp  ScannerHookFail;
 	}
 }
 
@@ -345,7 +345,6 @@ debug:
 }
 
 static void DllMain2() {
-	long tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
 	dlogr("Running BugFixesInit().", DL_INIT);
@@ -558,6 +557,38 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
+		dlog("Applying corpse deletion time patch.", DL_INIT);
+		if (time <= 0) {
+			time = 12; // hours
+		} else if (time > 13) {
+			time = 13 * 24;
+		} else {
+			time *= 24;
+		}
+		SafeWrite32(0x483348, time);
+		dlogr(" Done", DL_INIT);
+	}
+
+	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", 491); // GVAR_MODOC_SHITTY_DEATH
+
+	// Remove hardcoding for maps with IDs 19 and 37
+	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
+		dlog("Applying disable special map IDs patch.", DL_INIT);
+		const DWORD specialMapIdsAddr[] = {0x4836D6, 0x4836DB};
+		SafeWriteBatch<BYTE>(0, specialMapIdsAddr);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	const DWORD listDrvdStatsAddr[] = {0x43549C, 0x4354BE};
+	HookCalls(ListDrvdStats_hook, listDrvdStatsAddr);
+
+	// Increase the max text width of the information card in the character screen
+	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133
+	SafeWriteBatch<BYTE>(145, drawCardAddr);
+
 	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
@@ -596,7 +627,7 @@ static void DllMain2() {
 	}
 
 	dlog("Checking for changed skilldex images.", DL_INIT);
-	tmp = GetConfigInt("Misc", "Lockpick", 293);
+	long tmp = GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) SafeWrite32(0x518D54, tmp);
 	tmp = GetConfigInt("Misc", "Steal", 293);
 	if (tmp != 293) SafeWrite32(0x518D58, tmp);
@@ -627,20 +658,20 @@ static void DllMain2() {
 		break;
 	}
 
-	tmp = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
-	if (tmp != 166 && tmp <= 1000) {
+	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
+	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
-		SafeWrite32(0x47066B, tmp);
+		SafeWrite32(0x47066B, setting);
 		dlogr(" Done", DL_INIT);
 	}
 
 	dlogr("Patching out ereg call.", DL_INIT);
 	BlockCall(0x4425E6);
 
-	if (tmp = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
+	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		const DWORD musicOverride1Addr[] = {0x4449C2, 0x4449DB};
 		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, musicOverride1Addr);
-		if (tmp == 2) {
+		if (overrideMode == 2) {
 			const DWORD musicOverride2Addr[] = {0x518E78, 0x518E7C};
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, musicOverride2Addr);
 		}
@@ -661,10 +692,10 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (tmp = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
+	if (long flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if (tmp & 1) MakeJump(0x41BBE9, automap_hack);
-		if (tmp & 2) {
+		if (flags & 1) MakeJump(0x41BBE9, automap_hack);
+		if (flags & 2) {
 			// automap_
 			SafeWrite16(0x41BC24, 0x9090);
 			BlockCall(0x41BC3C);
@@ -679,11 +710,11 @@ static void DllMain2() {
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
 	};
 
-	tmp = GetConfigInt("Misc", "EncounterTableSize", 0);
-	if (tmp > 40 && tmp <= 127) {
+	DWORD tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
+	if (tableSize > 40 && tableSize <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
-		SafeWrite8(0x4BDB17, (BYTE)tmp);
-		DWORD nsize = (tmp + 1) * 180 + 0x50;
+		SafeWrite8(0x4BDB17, (BYTE)tableSize);
+		DWORD nsize = (tableSize + 1) * 180 + 0x50;
 		SafeWriteBatch<DWORD>(nsize, EncounterTableSize);
 		dlogr(" Done", DL_INIT);
 	}
@@ -777,38 +808,6 @@ static void DllMain2() {
 		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
 		dlogr(" Done", DL_INIT);
 	}
-
-	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
-	if (time != 6) {
-		dlog("Applying corpse deletion time patch.", DL_INIT);
-		if (time <= 0) {
-			time = 12; // hours
-		} else if (time > 13) {
-			time = 13 * 24;
-		} else {
-			time *= 24;
-		}
-		SafeWrite32(0x483348, time);
-		dlogr(" Done", DL_INIT);
-	}
-
-	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", 491); // GVAR_MODOC_SHITTY_DEATH
-
-	// Remove hardcoding for maps with IDs 19 and 37
-	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
-		dlog("Applying disable special map IDs patch.", DL_INIT);
-		const DWORD specialMapIdsAddr[] = {0x4836D6, 0x4836DB};
-		SafeWriteBatch<BYTE>(0, specialMapIdsAddr);
-		dlogr(" Done", DL_INIT);
-	}
-
-	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
-	const DWORD listDrvdStatsAddr[] = {0x43549C, 0x4354BE};
-	HookCalls(ListDrvdStats_hook, listDrvdStatsAddr);
-
-	// Increase the max text width of the information card in the character screen
-	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133
-	SafeWriteBatch<BYTE>(145, drawCardAddr);
 
 	dlogr("Running TalkingHeadsInit().", DL_INIT);
 	TalkingHeadsInit();

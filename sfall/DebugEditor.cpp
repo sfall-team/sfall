@@ -22,6 +22,7 @@
 #include "FalloutEngine.h"
 #include "Arrays.h"
 #include "DebugEditor.h"
+#include "Graphics.h"
 #include "ScriptExtender.h"
 
 enum DECode {
@@ -52,7 +53,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	ProcessBk();
+	if (GraphicsMode != 0) ProcessBk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
