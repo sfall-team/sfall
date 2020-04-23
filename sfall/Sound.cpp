@@ -574,7 +574,8 @@ void SoundInit() {
 	// Pause and resume sound playback when the game loses focus
 	SetFocusFunc(SoundLostFocus);
 
-	if (int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0) > 0) {
+	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
+	if (allowDShowSound > 0) {
 		MakeJump(0x4AD499, soundLoad_hack);
 		const DWORD gmoviePlayStopAddr[] = {0x44E80A, 0x445280};
 		HookCalls(gmovie_play_hook_stop, gmoviePlayStopAddr); // only play looping music
@@ -584,7 +585,8 @@ void SoundInit() {
 		CreateSndWnd();
 	}
 
-	if (int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
+	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
+	if (sBuff > 0 && sBuff <= 32) {
 		SafeWrite8(0x451129, (BYTE)sBuff);
 	}
 

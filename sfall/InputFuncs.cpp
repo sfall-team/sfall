@@ -407,6 +407,8 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 	HRESULT hr = proc(a, b, c, d);
 	if (FAILED(hr)) return hr;
 
+	*c = (IDirectInputA*)new FakeDirectInput(*c);
+
 	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 
 	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
@@ -426,8 +428,6 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
 
 	if (isDebug) debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
-
-	*c = (IDirectInputA*)new FakeDirectInput(*c);
 
 	keyboardLayout = GetKeyboardLayout(0);
 
