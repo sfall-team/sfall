@@ -565,7 +565,8 @@ void Sound::init() {
 	// Pause and resume sound playback when the game loses focus
 	fo::func::set_focus_func(SoundLostFocus);
 
-	if (int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0) > 0) {
+	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
+	if (allowDShowSound > 0) {
 		MakeJump(0x4AD499, soundLoad_hack);
 		HookCalls(gmovie_play_hook_stop, {0x44E80A, 0x445280}); // only play looping music
 		if (allowDShowSound > 1) {
@@ -574,7 +575,8 @@ void Sound::init() {
 		CreateSndWnd();
 	}
 
-	if (int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
+	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
+	if (sBuff > 0 && sBuff <= 32) {
 		SafeWrite8(0x451129, (BYTE)sBuff);
 	}
 
