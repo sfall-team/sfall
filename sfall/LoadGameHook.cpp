@@ -53,6 +53,8 @@
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
+static bool disableHorrigan = false;
+static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
 
 // True if game was started, false when on the main menu
@@ -320,12 +322,11 @@ static void NewGame2() {
 	gameLoaded = true;
 }
 
-static bool DisableHorrigan = false;
 static void __declspec(naked) NewGame() {
 	__asm {
 		pushad;
 		call NewGame2;
-		mov  al, DisableHorrigan;
+		mov  al, disableHorrigan;
 		mov  byte ptr ds:[_Meet_Frank_Horrigan], al;
 		popad;
 		jmp  main_game_loop_;
@@ -337,13 +338,12 @@ static void ReadExtraGameMsgFilesIfNeeded() {
 		ReadExtraGameMsgFiles();
 }
 
-static bool PipBoyAvailableAtGameStart = false;
 static void __declspec(naked) MainMenuHook() {
 	__asm {
 		pushad;
 		push 0;
 		call ResetState;
-		mov  al, PipBoyAvailableAtGameStart;
+		mov  al, pipBoyAvailableAtGameStart;
 		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		popad;
@@ -623,7 +623,7 @@ void LoadGameHookInit() {
 
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
-		PipBoyAvailableAtGameStart = true;
+		pipBoyAvailableAtGameStart = true;
 		break;
 	case 2:
 		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
@@ -631,7 +631,7 @@ void LoadGameHookInit() {
 	}
 
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
-		DisableHorrigan = true;
+		disableHorrigan = true;
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 

@@ -148,7 +148,7 @@ skip:
 	}
 }
 
-static DWORD RetryCombatMinAP;
+static long RetryCombatMinAP;
 
 static void __declspec(naked) RetryCombatHook() {
 	static DWORD RetryCombatLastAP = 0;
@@ -234,7 +234,7 @@ static void __declspec(naked) ai_danger_source_hook() {
 		je   fix;
 		retn;
 fix:	// check result
-		cmp  eax, 2; // exception: 2 - out of range, 1 - no ammo
+		cmp  eax, 1; // exception: 1 - no ammo
 		setg al;     // set 0 for result OK
 		retn;
 	}
@@ -262,11 +262,11 @@ static void __declspec(naked) combat_attack_hook() {
 }
 
 void AIInit() {
-	const DWORD combatAttackAddr[] = {
+	const DWORD combatAttackHkAddr[] = {
 		0x426A95, // combat_attack_this_
 		0x42A796  // ai_attack_
 	};
-	HookCalls(combat_attack_hook, combatAttackAddr);
+	HookCalls(combat_attack_hook, combatAttackHkAddr);
 
 	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
@@ -284,6 +284,15 @@ void AIInit() {
 
 	/////////////////////// Combat AI behavior fixes ///////////////////////
 
+	// Fix for duplicate critters being added to the list of potential targets for AI
+	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
+	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
+	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
+
+	#ifndef NDEBUG
+	if (iniGetInt("Debugging", "AIBugFixes", 1, ddrawIniDef) == 0) return;
+	#endif
+
 	// Fix to allow fleeing NPC to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
 	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
@@ -296,13 +305,9 @@ void AIInit() {
 	// Disable fleeing when NPC cannot move closer to target
 	BlockCall(0x42ADF6); // ai_try_attack_
 
-	// Fix for duplicate critters being added to the list of potential targets for AI
-	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
-	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
-	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
-
-	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo or out_of_range result
-	HookCall(0x42918A, ai_danger_source_hook);
+	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo result
+	const DWORD aiDangerBadShotAddr[] = {0x42903A, 0x42918A};
+	HookCalls(ai_danger_source_hook, aiDangerBadShotAddr);
 }
 
 TGameObj* __stdcall AIGetLastAttacker(TGameObj* target) {

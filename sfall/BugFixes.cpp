@@ -2643,7 +2643,7 @@ checkTiles:
 void BugFixesInit()
 {
 	#ifndef NDEBUG
-		if (iniGetInt("Debugging", "BugFixes", 1, ddrawIniDef) == 0) return;
+	if (iniGetInt("Debugging", "BugFixes", 1, ddrawIniDef) == 0) return;
 	#endif
 
 	// Fix vanilla negate operator for float values

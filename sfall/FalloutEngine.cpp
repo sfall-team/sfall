@@ -289,6 +289,7 @@ const DWORD barter_inventory_ = 0x4757F0;
 const DWORD block_for_tocks_ = 0x4C93B8;
 const DWORD buf_to_buf_ = 0x4D36D4;
 const DWORD cai_attempt_w_reload_ = 0x42AECC;
+const DWORD caiHasWeapPrefType_ = 0x42938C;
 const DWORD check_death_ = 0x410814;
 const DWORD Check4Keys_ = 0x43F73C;
 const DWORD combat_ = 0x422D2C;
@@ -1345,6 +1346,10 @@ long __stdcall BlockForTocks(long ticks) {
 	WRAP_WATCOM_CALL1(block_for_tocks_, ticks)
 }
 
+long __fastcall DetermineToHit(TGameObj* source, TGameObj* target, long bodyPart, long hitMode) {
+	WRAP_WATCOM_FCALL4(determine_to_hit_, source, target, bodyPart, hitMode)
+}
+
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
 	WRAP_WATCOM_FCALL3(display_inventory_, inventoryOffset, visibleOffset, mode)
 }
@@ -1383,6 +1388,10 @@ TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD el
 
 long __stdcall ObjDestroy(TGameObj* object) {
 	WRAP_WATCOM_CALL1(obj_destroy_, object)
+}
+
+long __stdcall ObjDist(TGameObj* source, TGameObj* target) {
+	WRAP_WATCOM_CALL2(obj_dist_, source, target)
 }
 
 long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect) {
@@ -1517,6 +1526,10 @@ long __stdcall ItemWCurrAmmo(TGameObj* item) {
 
 long __stdcall ItemWMaxAmmo(TGameObj* item) {
 	WRAP_WATCOM_CALL1(item_w_max_ammo_, item)
+}
+
+long __stdcall ItemWRange(TGameObj* critter, long hitMode) {
+	WRAP_WATCOM_CALL2(item_w_range_, critter, hitMode)
 }
 
 long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo) {

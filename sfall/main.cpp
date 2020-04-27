@@ -369,9 +369,8 @@ static void DllMain2() {
 	dlogr("Running MoviesInit().", DL_INIT);
 	MoviesInit();
 
-	dlog("Applying main menu patches.", DL_INIT);
+	dlogr("Running MainMenuInit().", DL_INIT);
 	MainMenuInit();
-	dlogr(" Done", DL_INIT);
 
 	dlogr("Running InterfaceInit().", DL_INIT);
 	InterfaceInit();
@@ -455,7 +454,7 @@ static void DllMain2() {
 	dlogr("Running InventoryInit().", DL_INIT);
 	InventoryInit();
 
-	dlogr("Initializing party control...", DL_INIT);
+	dlogr("Running PartyControlInit().", DL_INIT);
 	PartyControlInit();
 
 	dlogr("Running BurstModsInit().", DL_INIT);
@@ -467,19 +466,11 @@ static void DllMain2() {
 	dlogr("Running ExplosionInit().", DL_INIT);
 	ExplosionInit();
 
-	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
-	if (!elevPath.empty()) {
-		dlog("Applying elevator patch.", DL_INIT);
-		ElevatorsInit();
-		LoadElevators(elevPath.insert(0, ".\\").c_str());
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running ElevatorsInit().", DL_INIT);
+	ElevatorsInit();
 
-	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
-		dlog("Applying extra kill types patch.", DL_INIT);
-		KillCounterInit();
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running KillCounterInit().", DL_INIT);
+	KillCounterInit();
 
 	dlogr("Running AIInit().", DL_INIT);
 	AIInit();

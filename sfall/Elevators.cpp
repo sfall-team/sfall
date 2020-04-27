@@ -114,13 +114,13 @@ static void __declspec(naked) GetNumButtonsHook3() {
 	}
 }
 
-void ResetElevators() {
+static void ResetElevators() {
 	//memset(&elevators[vanillaElevatorCount], 0, sizeof(sElevator) * (elevatorCount - vanillaElevatorCount));
 	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(sElevatorFrms) * (elevatorCount - vanillaElevatorCount));
 	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
 }
 
-void LoadElevators(const char* elevFile) {
+static void LoadElevators(const char* elevFile) {
 	//ResetElevators();
 
 	memcpy(elevators, (void*)_retvals, sizeof(sElevator) * vanillaElevatorCount);
@@ -158,7 +158,7 @@ void LoadElevators(const char* elevFile) {
 	}
 }
 
-void ElevatorsInit() {
+static void ElevatorsInit2() {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, CheckHotKeysHook);
 	//HookCall(0x43F2D2, UnknownHook2); // unused
@@ -179,4 +179,14 @@ void ElevatorsInit() {
 	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
+}
+
+void ElevatorsInit() {
+	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
+	if (!elevPath.empty()) {
+		dlog("Applying elevator patch.", DL_INIT);
+		ElevatorsInit2();
+		LoadElevators(elevPath.insert(0, ".\\").c_str());
+		dlogr(" Done", DL_INIT);
+	}
 }

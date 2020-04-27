@@ -19,4 +19,3 @@
 #pragma once
 
 void ElevatorsInit();
-void LoadElevators(const char* elevFile);

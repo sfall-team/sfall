@@ -550,6 +550,7 @@ extern const DWORD barter_inventory_;
 extern const DWORD block_for_tocks_;
 extern const DWORD buf_to_buf_;
 extern const DWORD cai_attempt_w_reload_;
+extern const DWORD caiHasWeapPrefType_;
 extern const DWORD check_death_;
 extern const DWORD Check4Keys_;
 extern const DWORD combat_;
@@ -1253,6 +1254,8 @@ long __stdcall WindowWidth();
 
 long __stdcall BlockForTocks(long ticks);
 
+long __fastcall DetermineToHit(TGameObj* source, TGameObj* target, long bodyPart, long hitMode);
+
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
 
 void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);
@@ -1270,6 +1273,8 @@ void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFro
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
 
 long __stdcall ObjDestroy(TGameObj* object);
+
+long __stdcall ObjDist(TGameObj* source, TGameObj* target);
 
 long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect);
 
@@ -1330,6 +1335,7 @@ long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
 long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);
 long __stdcall ItemWCurrAmmo(TGameObj* item);
 long __stdcall ItemWMaxAmmo(TGameObj* item);
+long __stdcall ItemWRange(TGameObj* critter, long hitMode);
 long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo);
 long __stdcall ItemWRounds(TGameObj* item);
 long __stdcall ItemWeight(TGameObj* item);

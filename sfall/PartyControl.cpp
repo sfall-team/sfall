@@ -458,9 +458,9 @@ void PartyControl_OnGameLoad() {
 
 void PartyControlInit() {
 	Mode = GetConfigInt("Misc", "ControlCombat", 0);
-	if (Mode > 2)
-		Mode = 0;
+	if (Mode > 2) Mode = 0;
 	if (Mode > 0) {
+		dlogr("Initializing party control...", DL_INIT);
 		char pidbuf[512];
 		pidbuf[511] = 0;
 		if (GetConfigString("Misc", "ControlCombatPIDList", "", pidbuf, 511)) {
@@ -468,8 +468,7 @@ void PartyControlInit() {
 			char* comma;
 			while (true) {
 				comma = strchr(ptr, ',');
-				if (!comma)
-					break;
+				if (!comma) break;
 				*comma = 0;
 				if (strlen(ptr) > 0)
 					Chars.push_back((WORD)strtoul(ptr, 0, 0));
@@ -495,8 +494,7 @@ void PartyControlInit() {
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
 		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
 		HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
-	} else
-		dlogr("  Disabled.", DL_INIT);
+	}
 
 	MakeCall(0x45F47C, intface_toggle_items_hack);
 

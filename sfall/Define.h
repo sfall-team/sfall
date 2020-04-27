@@ -246,7 +246,7 @@ enum Stat : long
 };
 
 #define STAT_max_derived   STAT_poison_resist
-#define STAT_max_stat  STAT_current_hp
+#define STAT_max_stat      STAT_current_hp
 
 // Script data types
 #define VAR_TYPE_INT    (0xC001)
@@ -286,6 +286,15 @@ enum Skill : long
 	SKILL_GAMBLING = 16,
 	SKILL_OUTDOORSMAN = 17,
 	SKILL_count = 18
+};
+
+enum AnimCommand : long
+{
+	RB_UNRESERVED = 0x1,
+	RB_RESERVED   = 0x2,
+	RB_DONTSTAND  = 0x4,
+	RB_UNKNOWN    = 0x100,
+	RB_END_ANIM   = 0x200
 };
 
 enum CritterFlags : long
