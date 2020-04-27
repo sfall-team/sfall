@@ -97,7 +97,7 @@ static void __declspec(naked) GetNumButtonsHook3() {
 	}
 }
 
-void ResetElevators() {
+static void ResetElevators() {
 	//memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
 	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(fo::ElevatorFrms) * (elevatorCount - vanillaElevatorCount));
 	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
@@ -138,7 +138,7 @@ static void LoadElevators(const char* elevFile) {
 	}
 }
 
-void ElevatorsInit() {
+static void ElevatorsInit() {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, CheckHotKeysHook);
 	//HookCall(0x43F2D2, UnknownHook2); // unused

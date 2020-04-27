@@ -2664,8 +2664,8 @@ checkTiles:
 void BugFixes::init()
 {
 	#ifndef NDEBUG
-		LoadGameHook::OnBeforeGameClose() += PrintAddrList;
-		if (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0) return;
+	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
+	if (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0) return;
 	#endif
 
 	// Missing game initialization
