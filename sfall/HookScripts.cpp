@@ -1689,7 +1689,7 @@ static void HookScriptInit2() {
 	MakeJump(0x48B848, HexMBlockingHook);
 
 	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
-	HookCall(0x478560, &ItemDamageHook);
+	HookCall(0x478560, ItemDamageHook);
 
 	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
 	HookCall(0x423A7C, AmmoCostHook);
@@ -1733,11 +1733,11 @@ static void HookScriptInit2() {
 	MakeJump(0x4712AB, DropIntoContainerHandSlotHack);
 	HookCall(0x471200, MoveInventoryHook);
 	HookCall(0x476549, DropAmmoIntoWeaponHook); // old 0x476588
-	const DWORD cursorObjDropHkAddr[] = {
+	const DWORD actionCurObjDropHkAddr[] = {
 		0x473851, 0x47386F,
 		0x47379A  // caps multi drop
 	};
-	HookCalls(InvenActionCursorObjDropHook, cursorObjDropHkAddr);
+	HookCalls(InvenActionCursorObjDropHook, actionCurObjDropHkAddr);
 	MakeCall(0x473807, InvenActionExplosiveDropHack, 1); // drop active explosives
 	MakeCall(0x49B660, PickupObjectHack);
 	SafeWrite32(0x49B665, 0x850FD285); // test edx, edx

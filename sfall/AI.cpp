@@ -227,6 +227,25 @@ skip:
 	}
 }
 
+static long __fastcall CheckWeaponRangeAndDistToTarget(TGameObj* source, TGameObj* target) {
+	long weaponRange = ItemWRange(source, ATKTYPE_RWEAPON_SECONDARY);
+	long targetDist  = ObjDist(source, target);
+	return (weaponRange >= targetDist); // 0 - don't use secondary mode
+}
+
+static void __declspec(naked) ai_pick_hit_mode_hook() {
+	__asm {
+		call caiHasWeapPrefType_;
+		test eax, eax;
+		jnz  evaluation;
+		retn;
+evaluation:
+		mov  edx, edi;
+		mov  ecx, esi;
+		jmp  CheckWeaponRangeAndDistToTarget;
+	}
+}
+
 static void __declspec(naked) ai_danger_source_hook() {
 	__asm {
 		call combat_check_bad_shot_;
@@ -236,6 +255,29 @@ static void __declspec(naked) ai_danger_source_hook() {
 fix:	// check result
 		cmp  eax, 1; // exception: 1 - no ammo
 		setg al;     // set 0 for result OK
+		retn;
+	}
+}
+
+static void __declspec(naked) cai_perform_distance_prefs_hack() {
+	__asm {
+		push eax;      // current distance to target
+		mov  eax, esi;
+		xor  ebx, ebx; // no called shot
+		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
+		call item_w_mp_cost_;
+		mov  edx, [esi + 0x40];
+		sub  edx, eax; // ap - cost = free AP's
+		pop  eax;
+		jle  moveAway; // <= 0
+		lea  edx, [edx + eax - 1];
+		cmp  edx, 5;   // minimum threshold distance
+		jge  skipMove; // distance >= 5?
+moveAway:
+		mov  ebx, 10;  // move away max distance
+		retn;
+skipMove:
+		xor  ebx, ebx; // skip moving away at the beginning of the turn
 		retn;
 	}
 }
@@ -262,11 +304,11 @@ static void __declspec(naked) combat_attack_hook() {
 }
 
 void AIInit() {
-	const DWORD combatAttackHkAddr[] = {
+	const DWORD combatAttackAddr[] = {
 		0x426A95, // combat_attack_this_
 		0x42A796  // ai_attack_
 	};
-	HookCalls(combat_attack_hook, combatAttackHkAddr);
+	HookCalls(combat_attack_hook, combatAttackAddr);
 
 	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
@@ -281,6 +323,9 @@ void AIInit() {
 		0x42A970, 0x42AA56, // ai_try_attack_
 	};
 	HookCalls(item_w_reload_hook, itemWReloadAddr);
+
+	// Adds a check for the weapon range and the distance to the target when AI is choosing weapon attack modes
+	HookCall(0x429F6D, ai_pick_hit_mode_hook);
 
 	/////////////////////// Combat AI behavior fixes ///////////////////////
 
@@ -306,8 +351,12 @@ void AIInit() {
 	BlockCall(0x42ADF6); // ai_try_attack_
 
 	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo result
-	const DWORD aiDangerBadShotAddr[] = {0x42903A, 0x42918A};
-	HookCalls(ai_danger_source_hook, aiDangerBadShotAddr);
+	const DWORD aiDangerSrcBadShotAddr[] = {0x42903A, 0x42918A};
+	HookCalls(ai_danger_source_hook, aiDangerSrcBadShotAddr);
+
+	// Fix AI behavior for "Snipe" distance preference
+	// The attacker will try to shoot the target instead of always running away from it at the beginning of the turn
+	MakeCall(0x42B086, cai_perform_distance_prefs_hack);
 }
 
 TGameObj* __stdcall AIGetLastAttacker(TGameObj* target) {
