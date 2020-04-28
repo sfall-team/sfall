@@ -231,6 +231,25 @@ skip:
 	}
 }
 
+static long __fastcall CheckWeaponRangeAndDistToTarget(fo::GameObject* source, fo::GameObject* target) {
+	long weaponRange = fo::func::item_w_range(source, fo::ATKTYPE_RWEAPON_SECONDARY);
+	long targetDist  = fo::func::obj_dist(source, target);
+	return (weaponRange >= targetDist); // 0 - don't use secondary mode
+}
+
+static void __declspec(naked) ai_pick_hit_mode_hook() {
+	__asm {
+		call fo::funcoffs::caiHasWeapPrefType_;
+		test eax, eax;
+		jnz  evaluation;
+		retn;
+evaluation:
+		mov  edx, edi;
+		mov  ecx, esi;
+		jmp  CheckWeaponRangeAndDistToTarget;
+	}
+}
+
 static void __declspec(naked) ai_danger_source_hook() {
 	__asm {
 		call fo::funcoffs::combat_check_bad_shot_;
@@ -240,6 +259,29 @@ static void __declspec(naked) ai_danger_source_hook() {
 fix:	// check result
 		cmp  eax, 1; // exception: 1 - no ammo
 		setg al;     // set 0 for result OK
+		retn;
+	}
+}
+
+static void __declspec(naked) cai_perform_distance_prefs_hack() {
+	__asm {
+		push eax;      // current distance to target
+		mov  eax, esi;
+		xor  ebx, ebx; // no called shot
+		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
+		call fo::funcoffs::item_w_mp_cost_;
+		mov  edx, [esi + movePoints];
+		sub  edx, eax; // ap - cost = free AP's
+		pop  eax;
+		jle  moveAway; // <= 0
+		lea  edx, [edx + eax - 1];
+		cmp  edx, 5;   // minimum threshold distance
+		jge  skipMove; // distance >= 5?
+moveAway:
+		mov  ebx, 10;  // move away max distance
+		retn;
+skipMove:
+		xor  ebx, ebx; // skip moving away at the beginning of the turn
 		retn;
 	}
 }
@@ -284,6 +326,9 @@ void AI::init() {
 		0x42A970, 0x42AA56, // ai_try_attack_
 	});
 
+	// Adds a check for the weapon range and the distance to the target when AI is choosing weapon attack modes
+	HookCall(0x429F6D, ai_pick_hit_mode_hook);
+
 	/////////////////////// Combat AI behavior fixes ///////////////////////
 
 	// Fix for duplicate critters being added to the list of potential targets for AI
@@ -308,6 +353,10 @@ void AI::init() {
 
 	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo result
 	HookCalls(ai_danger_source_hook, {0x42903A, 0x42918A});
+
+	// Fix AI behavior for "Snipe" distance preference
+	// The attacker will try to shoot the target instead of always running away from it at the beginning of the turn
+	MakeCall(0x42B086, cai_perform_distance_prefs_hack);
 }
 
 fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
