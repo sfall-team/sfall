@@ -217,6 +217,12 @@
     <ClInclude Include="ScriptOps\MathOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerModel.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscPatches.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -371,6 +377,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Interface.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerModel.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscPatches.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

@@ -28,6 +28,7 @@
 #include "KillCounter.h"
 #include "Movies.h"
 #include "PartyControl.h"
+#include "PlayerModel.h"
 #include "ScriptExtender.h"
 #include "Sound.h"
 #include "Stats.h"

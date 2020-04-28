@@ -297,6 +297,8 @@
     <ClInclude Include="Interface.h" />
     <ClInclude Include="Karma.h" />
     <ClInclude Include="LoadOrder.h" />
+    <ClInclude Include="MiscPatches.h" />
+    <ClInclude Include="PlayerModel.h" />
     <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />
@@ -369,6 +371,8 @@
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="Karma.cpp" />
     <ClCompile Include="LoadOrder.cpp" />
+    <ClCompile Include="MiscPatches.cpp" />
+    <ClCompile Include="PlayerModel.cpp" />
     <ClCompile Include="TalkingHeads.cpp" />
     <ClCompile Include="HeroAppearance.cpp" />
     <ClCompile Include="HookScripts.cpp" />

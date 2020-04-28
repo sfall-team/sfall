@@ -113,9 +113,6 @@ extern DWORD modifiedIni;
 extern bool hrpIsEnabled;
 extern bool hrpVersionValid;
 
-extern char defaultMaleModelName[65];
-extern char defaultFemaleModelName[65];
-
 template<typename T> 
 T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
 {
