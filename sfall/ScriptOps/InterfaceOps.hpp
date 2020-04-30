@@ -737,7 +737,7 @@ static void sf_unwield_slot() {
 	if (update) IntfaceUpdateItems(0, -1, -1);
 }
 
-void sf_get_window_attribute() {
+static void sf_get_window_attribute() {
 	long attr = 0;
 	if (opHandler.numArgs() > 1) attr = opHandler.arg(1).rawValue();
 

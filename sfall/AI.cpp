@@ -28,6 +28,23 @@ typedef std::tr1::unordered_map<TGameObj*, TGameObj*>::const_iterator iter;
 static std::tr1::unordered_map<TGameObj*, TGameObj*> targets;
 static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
+TGameObj* __stdcall sf_check_critters_in_lof(TGameObj* object, DWORD checkTile, DWORD team) {
+	if (object && object->pid >> 24 == OBJ_TYPE_CRITTER && object->teamNum != team) { // not friendly fire
+		if (object->tile == checkTile) return nullptr;
+		TGameObj* obj = nullptr; // continue checking the line of fire from object to checkTile
+		MakeStraightPathFunc(object, object->tile, checkTile, 0, (DWORD*)&obj, 32, (void*)obj_shoot_blocking_at_);
+		if (!sf_check_critters_in_lof(obj, checkTile, team)) return nullptr;
+	}
+	return object;
+}
+
+// Returns the friendly critter that is in the line of fire
+TGameObj* __stdcall CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
+	TGameObj* object = nullptr;
+	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
+	return sf_check_critters_in_lof(object, target->tile, attacker->teamNum); // 0 if there are no friendly critters
+}
+
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
 		or   byte ptr [esi + 0x3C], 8; // set new 'ReTarget' flag
@@ -272,12 +289,46 @@ static void __declspec(naked) cai_perform_distance_prefs_hack() {
 		lea  edx, [edx + ecx - 1];
 		cmp  edx, 5;   // minimum threshold distance
 		jge  skipMove; // distance >= 5?
+		// check combat rating
+		mov  eax, esi;
+		call combatai_rating_;
+		mov  edx, eax; // source rating
+		mov  eax, edi;
+		call combatai_rating_;
+		cmp  eax, edx; // target vs source rating
+		jl   skipMove; // target rating is low
 moveAway:
 		mov  ebx, 10;  // move away max distance
 		retn;
 skipMove:
 		xor  ebx, ebx; // skip moving away at the beginning of the turn
 		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+static long __fastcall RollFriendlyFire(TGameObj* target, TGameObj* attacker) {
+	if (CheckFriendlyFire(target, attacker)) {
+		long dice = RollRandom(1, 10);
+		return (StatLevel(attacker, STAT_iq) >= dice); // 1 - is friendly
+	}
+	return 0;
+}
+
+static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() {
+	static DWORD safety_invalidate_weapon_burst_friendly = 0x4216C9;
+	__asm {
+		pushadc;
+		mov  ecx, esi; // target
+		call RollFriendlyFire;
+		test eax, eax;
+		jnz  friendly;
+		popadc;
+		jmp  combat_ctd_init_;
+friendly:
+		lea  esp, [esp + 8 + 3 * 4];
+		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
 	}
 }
 
@@ -327,6 +378,10 @@ void AIInit() {
 	HookCall(0x429F6D, ai_pick_hit_mode_hook);
 
 	/////////////////////// Combat AI behavior fixes ///////////////////////
+
+	// Fix to reduce friendly fire in burst attacks
+	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
+	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
 
 	// Fix for duplicate critters being added to the list of potential targets for AI
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);

@@ -564,6 +564,7 @@ extern const DWORD combat_input_;
 extern const DWORD combat_should_end_;
 extern const DWORD combat_turn_;
 extern const DWORD combat_turn_run_;
+extern const DWORD combatai_rating_;
 extern const DWORD compute_damage_;
 extern const DWORD compute_spray_;
 extern const DWORD config_get_string_;
@@ -1143,6 +1144,8 @@ DbFile* __stdcall XFOpen(const char* fileName, const char* flags);
 long __stdcall XFSeek(DbFile* file, long fOffset, long origin);
 
 TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
+
+long __stdcall RollRandom(long minValue, long maxValue);
 
 // Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.

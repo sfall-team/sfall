@@ -21,6 +21,10 @@
 #include "FalloutEngine.h"
 
 void AIInit();
+
+TGameObj* __stdcall sf_check_critters_in_lof(TGameObj* object, DWORD checkTile, DWORD team);
+TGameObj* __stdcall CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
+
 void __stdcall AICombatStart();
 void __stdcall AICombatEnd();
 

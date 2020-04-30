@@ -303,6 +303,7 @@ const DWORD combat_input_ = 0x4227F4;
 const DWORD combat_should_end_ = 0x422C60;
 const DWORD combat_turn_ = 0x42299C;
 const DWORD combat_turn_run_ = 0x4227DC;
+const DWORD combatai_rating_ = 0x42B90C;
 const DWORD compute_damage_ = 0x4247B8;
 const DWORD compute_spray_ = 0x423488;
 const DWORD config_get_string_ = 0x42BF48;
@@ -992,6 +993,10 @@ long __stdcall XFSeek(DbFile* file, long fOffset, long origin) {
 
 TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
 	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
+}
+
+long __stdcall RollRandom(long minValue, long maxValue) {
+	WRAP_WATCOM_CALL2(roll_random_, minValue, maxValue)
 }
 
 // Saves pointer to script object into scriptPtr using scriptID.

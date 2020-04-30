@@ -76,9 +76,14 @@ struct TGameObj {
 	char gap_38[4];
 	long itemCharges;
 	long critterAP_weaponAmmoPid;
-	char gap_44[16];
-	TGameObj* whoHitMe;
-	char gap_58[12];
+	long damageFlags;    // critter
+	long damageLastTurn; // critter
+	long aiPacket;       // critter
+	long teamNum;        // critter
+	TGameObj* whoHitMe;  // critter
+	long health;         // critter
+	long rads;           // critter
+	long poison;         // critter
 	DWORD pid;
 	long cid;
 	long lightDistance;
