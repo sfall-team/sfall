@@ -109,7 +109,7 @@ static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	while (paths) {
 		if (_stricmp(paths->path, pathPatches) == 0) { // found path
 			fo::PathNode* nextPaths = paths->next;     // pointer to the node of the next path
-// TODO: need to check if this condition is used correctly
+// TODO: need to check if this condition is used correctly (everything seems to be in order here)
 			if (paths != _paths)
 				_paths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
 			else                                       // if the current node is equal to the previous node
@@ -204,7 +204,15 @@ static bool NormalizePath(std::string &path) {
 	return true;
 }
 
+// Patches placed at the back of the vector will have priority in the chain over the front (previous) patches
 static void GetExtraPatches() {
+	char patchFile[12] = "PatchFile";
+	for (int i = 0; i < 100; i++) {
+		_itoa(i, &patchFile[9], 10);
+		auto patch = GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
+		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+		patchFiles.push_back(patch);
+	}
 	std::string searchPath = GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
 	if (!searchPath.empty() && NormalizePath(searchPath)) {
 		if (searchPath.back() != '\\') searchPath += "\\";
@@ -222,13 +230,6 @@ static void GetExtraPatches() {
 			} while (FindNextFile(hFind, &findData));
 			FindClose(hFind);
 		}
-	}
-	char patchFile[12] = "PatchFile";
-	for (int i = 0; i < 100; i++) {
-		_itoa(i, &patchFile[9], 10);
-		auto patch = GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
-		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
-		patchFiles.push_back(patch);
 	}
 	// Remove first duplicates
 	size_t size = patchFiles.size();
@@ -381,7 +382,7 @@ end:
 	}
 }
 
-#define _F_SAV (const char*)0x50A480
+#define _F_SAV            (const char*)0x50A480
 #define _F_PROTO_CRITTERS (const char*)0x50A490
 
 static void RemoveSavFiles() {

@@ -504,16 +504,17 @@ void Graphics::ShowMovieFrame() {
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backbuffer);
 
-	if (Graphics::GPUBlt /*&& !ScriptShaders::Count()*/) {
-		UINT unused;
-		gpuBltEffect->Begin(&unused, 0);
-		gpuBltEffect->BeginPass(0);
-	}
+	// TODO: The commented code sometimes for some unknown reason crashes the game when playing videos
+	//if (Graphics::GPUBlt /*&& !ScriptShaders::Count()*/) {
+	//	UINT unused;
+	//	gpuBltEffect->Begin(&unused, 0);
+	//	gpuBltEffect->BeginPass(0);
+	//}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (Graphics::GPUBlt /*&& !ScriptShaders::Count()*/) {
-		gpuBltEffect->EndPass();
-		gpuBltEffect->End();
-	}
+	//if (Graphics::GPUBlt /*&& !ScriptShaders::Count()*/) {
+	//	gpuBltEffect->EndPass();
+	//	gpuBltEffect->End();
+	//}
 
 	// for movie
 	d3d9Device->SetTexture(0, movieTex);
@@ -956,6 +957,7 @@ public:
 	ULONG _stdcall Release() { // called from game on exit
 		if (!--Refs) {
 			ScriptShaders::Release();
+
 			SAFERELEASE(backbuffer);
 			SAFERELEASE(sSurf1);
 			SAFERELEASE(sSurf2);
@@ -969,6 +971,7 @@ public:
 			SAFERELEASE(gpuPalette);
 			SAFERELEASE(gpuBltEffect);
 			SAFERELEASE(movieBuffer);
+
 			delete this;
 			return 0;
 		} else return Refs;

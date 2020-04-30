@@ -265,16 +265,15 @@ fix:	// check result
 
 static void __declspec(naked) cai_perform_distance_prefs_hack() {
 	__asm {
-		push eax;      // current distance to target
+		mov  ecx, eax; // current distance to target
 		mov  eax, esi;
 		xor  ebx, ebx; // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
 		call fo::funcoffs::item_w_mp_cost_;
 		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
-		pop  eax;
 		jle  moveAway; // <= 0
-		lea  edx, [edx + eax - 1];
+		lea  edx, [edx + ecx - 1];
 		cmp  edx, 5;   // minimum threshold distance
 		jge  skipMove; // distance >= 5?
 moveAway:

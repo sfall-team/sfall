@@ -299,33 +299,19 @@ static void AdditionalWeaponAnimsPatch() {
 static void SkilldexImagesPatch() {
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	long tmp = GetConfigInt("Misc", "Lockpick", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D54, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D54, tmp);
 	tmp = GetConfigInt("Misc", "Steal", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D58, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D58, tmp);
 	tmp = GetConfigInt("Misc", "Traps", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D5C, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D5C, tmp);
 	tmp = GetConfigInt("Misc", "FirstAid", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D4C, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D4C, tmp);
 	tmp = GetConfigInt("Misc", "Doctor", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D50, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D50, tmp);
 	tmp = GetConfigInt("Misc", "Science", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D60, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D60, tmp);
 	tmp = GetConfigInt("Misc", "Repair", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D64, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 }
 
