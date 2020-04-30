@@ -38,7 +38,7 @@ static const DWORD bodypartAddr[] = {
 	0x421656, 0x421675,           // combat_safety_invalidate_weapon_func_
 	0x421CC0,                     // combat_begin_extra_
 	0x4229A9,                     // combat_turn_
-	0x42330E, 0x4233AB,           // shoot_along_path_
+	0x42330E, 0x4233A6, 0x4233AB, // shoot_along_path_
 	0x423E25, 0x423E2A,           // compute_explosion_on_extras_
 	0x425F83,                     // combat_anim_finished_
 	0x42946D,                     // ai_best_weapon_

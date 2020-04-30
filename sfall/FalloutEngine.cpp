@@ -297,12 +297,14 @@ const DWORD combat_ai_ = 0x42B130;
 const DWORD combat_anim_finished_ = 0x425E80;
 const DWORD combat_attack_ = 0x422F3C;
 const DWORD combat_check_bad_shot_ = 0x426614;
+const DWORD combat_ctd_init_ = 0x422EC4;
 const DWORD combat_delete_critter_ = 0x426DDC;
 const DWORD combat_input_ = 0x4227F4;
 const DWORD combat_should_end_ = 0x422C60;
 const DWORD combat_turn_ = 0x42299C;
 const DWORD combat_turn_run_ = 0x4227DC;
 const DWORD compute_damage_ = 0x4247B8;
+const DWORD compute_spray_ = 0x423488;
 const DWORD config_get_string_ = 0x42BF48;
 const DWORD config_get_value_ = 0x42C05C;
 const DWORD config_set_value_ = 0x42C160;
@@ -1374,7 +1376,7 @@ long __stdcall TraitLevel(long traitID) {
 	WRAP_WATCOM_CALL1(trait_level_, traitID)
 }
 
-void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
+void __fastcall MakeStraightPathFunc(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
 	WRAP_WATCOM_FCALL7(make_straight_path_func_, objFrom, tileFrom, tileTo, rotationPtr, result, flags, func)
 }
 

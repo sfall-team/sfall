@@ -558,12 +558,14 @@ extern const DWORD combat_ai_;
 extern const DWORD combat_anim_finished_;
 extern const DWORD combat_attack_;
 extern const DWORD combat_check_bad_shot_;
+extern const DWORD combat_ctd_init_;
 extern const DWORD combat_delete_critter_;
 extern const DWORD combat_input_;
 extern const DWORD combat_should_end_;
 extern const DWORD combat_turn_;
 extern const DWORD combat_turn_run_;
 extern const DWORD compute_damage_;
+extern const DWORD compute_spray_;
 extern const DWORD config_get_string_;
 extern const DWORD config_get_value_;
 extern const DWORD config_set_value_;
@@ -1268,7 +1270,7 @@ long __stdcall PerkLevel(TGameObj* critter, long perkId);
 
 long __stdcall TraitLevel(long traitID);
 
-void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
+void __fastcall MakeStraightPathFunc(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
 

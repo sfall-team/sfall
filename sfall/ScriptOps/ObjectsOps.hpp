@@ -255,7 +255,7 @@ static void _stdcall op_make_straight_path2() {
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 		DWORD resultObj = 0;
-		make_straight_path_func_wrapper(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
+		MakeStraightPathFunc(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
 		opHandler.setReturn(resultObj);
 	} else {
 		OpcodeInvalidArgs("obj_blocking_line");

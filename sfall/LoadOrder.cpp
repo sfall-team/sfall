@@ -28,7 +28,7 @@ static PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	while (paths) {
 		if (_stricmp(paths->path, pathPatches) == 0) { // found path
 			PathNode* nextPaths = paths->next;         // pointer to the node of the next path
-// TODO: need to check if this condition is used correctly
+// TODO: need to check if this condition is used correctly (everything seems to be in order here)
 			if (paths != pPaths)
 				pPaths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
 			else                                       // if the current node is equal to the previous node
@@ -235,7 +235,7 @@ end:
 	}
 }
 
-#define _F_SAV (const char*)0x50A480
+#define _F_SAV            (const char*)0x50A480
 #define _F_PROTO_CRITTERS (const char*)0x50A490
 
 void RemoveSavFiles() {
