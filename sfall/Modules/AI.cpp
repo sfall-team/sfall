@@ -42,18 +42,11 @@ fo::GameObject* AI::sf_check_critters_in_lof(fo::GameObject* object, DWORD check
 	return object;
 }
 
-fo::GameObject* __fastcall AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+// Returns the friendly critter that is in the line of fire
+fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
 	fo::GameObject* object = nullptr;
 	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 	return sf_check_critters_in_lof(object, target->tile, attacker->critter.teamNum); // 0 if there are no friendly critters
-}
-
-static long __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
-	if (AI::CheckFriendlyFire(target, attacker)) {
-		long dice = fo::func::roll_random(1, 10);
-		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // 1 - is friendly
-	}
-	return 0;
 }
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
@@ -300,6 +293,14 @@ static void __declspec(naked) cai_perform_distance_prefs_hack() {
 		lea  edx, [edx + ecx - 1];
 		cmp  edx, 5;   // minimum threshold distance
 		jge  skipMove; // distance >= 5?
+		// check combat rating
+		mov  eax, esi;
+		call fo::funcoffs::combatai_rating_;
+		mov  edx, eax; // source rating
+		mov  eax, edi;
+		call fo::funcoffs::combatai_rating_;
+		cmp  eax, edx; // target vs source rating
+		jl   skipMove; // target rating is low
 moveAway:
 		mov  ebx, 10;  // move away max distance
 		retn;
@@ -310,6 +311,14 @@ skipMove:
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+static long __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+	if (AI::CheckFriendlyFire(target, attacker)) {
+		long dice = fo::func::roll_random(1, 10);
+		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // 1 - is friendly
+	}
+	return 0;
+}
 
 static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() {
 	static const DWORD safety_invalidate_weapon_burst_friendly = 0x4216C9;
@@ -322,7 +331,7 @@ static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() 
 		popadc;
 		jmp  fo::funcoffs::combat_ctd_init_;
 friendly:
-		lea  esp, [esp + 8 + 3*4];
+		lea  esp, [esp + 8 + 3 * 4];
 		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
 	}
 }
