@@ -30,6 +30,9 @@ public:
 	const char* name() { return "AI"; }
 	void init();
 
+	static fo::GameObject* sf_check_critters_in_lof(fo::GameObject* object, DWORD checkTile, DWORD team);
+	static fo::GameObject* __fastcall CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
+
 	// TODO: use subscription instead
 	static void __stdcall AICombatStart();
 	static void __stdcall AICombatEnd();

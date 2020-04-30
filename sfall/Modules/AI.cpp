@@ -32,6 +32,30 @@ using namespace Fields;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 
+fo::GameObject* AI::sf_check_critters_in_lof(fo::GameObject* object, DWORD checkTile, DWORD team) {
+	if (object && object->Type() == ObjType::OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // not friendly fire
+		if (object->tile == checkTile) return nullptr;
+		fo::GameObject* obj = nullptr; // continue checking the line of fire from object to checkTile
+		fo::func::make_straight_path_func(object, object->tile, checkTile, 0, (DWORD*)&obj, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+		if (!sf_check_critters_in_lof(obj, checkTile, team)) return nullptr;
+	}
+	return object;
+}
+
+fo::GameObject* __fastcall AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+	fo::GameObject* object = nullptr;
+	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+	return sf_check_critters_in_lof(object, target->tile, attacker->critter.teamNum); // 0 if there are no friendly critters
+}
+
+static long __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+	if (AI::CheckFriendlyFire(target, attacker)) {
+		long dice = fo::func::roll_random(1, 10);
+		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // 1 - is friendly
+	}
+	return 0;
+}
+
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
 		or   byte ptr [esi + combatState], 8; // set new 'ReTarget' flag
@@ -287,6 +311,24 @@ skipMove:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() {
+	static const DWORD safety_invalidate_weapon_burst_friendly = 0x4216C9;
+	__asm {
+		pushadc;
+		mov  ecx, esi; // target
+		call RollFriendlyFire;
+		test eax, eax;
+		jnz  friendly;
+		popadc;
+		jmp  fo::funcoffs::combat_ctd_init_;
+friendly:
+		lea  esp, [esp + 8 + 3*4];
+		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 static void __fastcall CombatAttackHook(fo::GameObject* source, fo::GameObject* target) {
 	sources[target] = source; // who attacked the 'target' from the last time
 	targets[source] = target; // who was attacked by the 'source' from the last time
@@ -329,6 +371,10 @@ void AI::init() {
 	HookCall(0x429F6D, ai_pick_hit_mode_hook);
 
 	/////////////////////// Combat AI behavior fixes ///////////////////////
+
+	// Fix to reduce friendly fire in burst attacks
+	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
+	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
 
 	// Fix for duplicate critters being added to the list of potential targets for AI
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
