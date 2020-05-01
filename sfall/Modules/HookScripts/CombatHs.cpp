@@ -81,6 +81,27 @@ static void __declspec(naked) AfterHitRollHook() {
 	}
 }
 
+// Implementation of item_w_mp_cost_ engine function with the hook
+long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
+	long cost = fo::func::item_w_mp_cost(source, hitMode, isCalled);
+	if (!HookScripts::HookHasScript(HOOK_CALCAPCOST)) return cost;
+
+	BeginHook();
+
+	args[0] = (DWORD)source;
+	args[1] = hitMode;
+	args[2] = isCalled;
+	args[3] = cost;
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+
+	if (cRet > 0) cost = rets[0];
+	EndHook();
+
+	return cost;
+}
+
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;

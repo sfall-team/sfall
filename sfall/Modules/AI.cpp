@@ -21,6 +21,8 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "HookScripts\CombatHS.h"
+
 #include "AI.h"
 
 namespace sfall
@@ -282,15 +284,15 @@ fix:	// check result
 
 static void __declspec(naked) cai_perform_distance_prefs_hack() {
 	__asm {
-		mov  ecx, eax; // current distance to target
-		mov  eax, esi;
-		xor  ebx, ebx; // no called shot
+		mov  ebx, eax; // current distance to target
+		mov  ecx, esi;
+		push 0;        // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
-		call fo::funcoffs::item_w_mp_cost_;
+		call sf_item_w_mp_cost;
 		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
 		jle  moveAway; // <= 0
-		lea  edx, [edx + ecx - 1];
+		lea  edx, [edx + ebx - 1];
 		cmp  edx, 5;   // minimum threshold distance
 		jge  skipMove; // distance >= 5?
 		// check combat rating
