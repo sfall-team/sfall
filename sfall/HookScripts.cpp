@@ -238,6 +238,26 @@ static void __declspec(naked) AfterHitRollHook() {
 	}
 }
 
+// Implementation of item_w_mp_cost_ engine function with the hook
+long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
+	long cost = ItemWMpCost(source, hitMode, isCalled);
+
+	BeginHook();
+
+	args[0] = (DWORD)source;
+	args[1] = hitMode;
+	args[2] = isCalled;
+	args[3] = cost;
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+
+	if (cRet > 0) cost = rets[0];
+	EndHook();
+
+	return cost;
+}
+
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBeginArgs(4);
@@ -932,6 +952,26 @@ end:
 		HookEnd;
 		retn;
 	}
+}
+
+// Implementation of is_within_perception_ engine function with the hook
+long __fastcall sf_is_within_perception(TGameObj* watcher, TGameObj* target) {
+	long result = IsWithinPerception(watcher, target);
+
+	BeginHook();
+
+	args[0] = (DWORD)watcher;
+	args[1] = (DWORD)target;
+	args[2] = result;
+	args[3] = 0; // type
+
+	argCount = 4;
+	RunHookScript(HOOK_WITHINPERCEPTION);
+
+	if (cRet > 0) result = rets[0];
+	EndHook();
+
+	return result;
 }
 
 // 4.x backport

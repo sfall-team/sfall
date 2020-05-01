@@ -1499,6 +1499,10 @@ long __stdcall TileDir(long scrTile, long dstTile) {
 	WRAP_WATCOM_CALL2(tile_dir_, scrTile, dstTile)
 }
 
+long __stdcall IsWithinPerception(TGameObj* source, TGameObj* target) {
+	WRAP_WATCOM_CALL2(is_within_perception_, source, target)
+}
+
 long __stdcall ItemCCurrSize(TGameObj* critter) {
 	WRAP_WATCOM_CALL1(item_c_curr_size_, critter)
 }
@@ -1589,6 +1593,10 @@ long __stdcall InvenUnwield(TGameObj* critter, long slot) {
 
 long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count) {
 	WRAP_WATCOM_FCALL3(item_add_force_, critter, item, count)
+}
+
+long __fastcall ItemWMpCost(TGameObj* source, long hitMode, long isCalled) {
+	WRAP_WATCOM_FCALL3(item_w_mp_cost_, source, hitMode, isCalled)
 }
 
 long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf) {

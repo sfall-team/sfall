@@ -1331,6 +1331,8 @@ long __stdcall TileDist(long scrTile, long dstTile);
 
 long __stdcall TileDir(long scrTile, long dstTile);
 
+long __stdcall IsWithinPerception(TGameObj* source, TGameObj* target);
+
 long __stdcall ItemCCurrSize(TGameObj* critter);
 long __stdcall ItemCapsTotal(TGameObj* object);
 long __stdcall ItemSize(TGameObj* item);
@@ -1364,6 +1366,8 @@ TGameObj* __fastcall InvenFindType(TGameObj* critter, long itemType, DWORD* buf)
 long __stdcall InvenUnwield(TGameObj* critter, long slot);
 
 long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count);
+
+long __fastcall ItemWMpCost(TGameObj* source, long hitMode, long isCalled);
 
 long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf);
 

@@ -63,7 +63,7 @@ void HookScriptInit();
 void HookScriptClear();
 
 extern DWORD InitingHookScripts;
-extern int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
+int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 void _stdcall RunHookScriptsAtProc(DWORD procId);
 
 DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
@@ -72,3 +72,9 @@ void _stdcall MouseClickHook(DWORD button, bool pressed);
 long _stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
+
+// Implementation of item_w_mp_cost_ engine function with the hook
+long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
+
+// Implementation of is_within_perception_ engine function with the hook
+long __fastcall sf_is_within_perception(TGameObj* watcher, TGameObj* target);
