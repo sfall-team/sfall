@@ -935,36 +935,38 @@ end:
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   checkObj;
+		retn;                         // tilenums are not equal, always move to tile
+checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
-		jz   moveTile;
+		jnz  multiHex;
+		retn;                         // move to tile
 multiHex:
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		jnz  moveTile;
 		add  esp, 4;
-		jmp  ai_move_steps_closer_move_object_ret;
-moveTile:
-		retn;
+		jmp  ai_move_steps_closer_move_object_ret; // move to object
 	}
 }
 
 static void __declspec(naked) MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   checkObj;
+		retn;                         // tilenums are not equal, always run to tile
+checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
-		jz   runTile;
+		jnz  multiHex;
+		retn;                         // run to tile
 multiHex:
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		jnz  runTile;
 		add  esp, 4;
-		jmp  ai_move_steps_closer_run_object_ret;
-runTile:
-		retn;
+		jmp  ai_move_steps_closer_run_object_ret; // run to object
 	}
 }
 
@@ -3092,7 +3094,7 @@ void BugFixes::init()
 		HookCall(0x42954B, ai_best_weapon_hook);
 		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
 		if (bestWeaponPerkFix > 1) {
-			SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7});
+			SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7}); // lea eax, [edx * 2];
 		}
 		dlogr(" Done", DL_INIT);
 	}

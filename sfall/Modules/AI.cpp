@@ -171,6 +171,22 @@ skip:
 	}
 }
 
+static void __declspec(naked) ai_danger_source_hack_pm_newfind() {
+	__asm {
+		mov  ecx, [ebp + 0x18]; // source combat_data.who_hit_me
+		test ecx, ecx;
+		jnz  hasTarget;
+		retn;
+hasTarget:
+		test [ecx + damageFlags], DAM_DEAD;
+		jz   isNotDead;
+		xor  ecx, ecx;
+isNotDead:
+		mov  dword ptr [ebp + 0x18], 0; // combat_data.who_hit_me (engine code)
+		retn;
+	}
+}
+
 static long RetryCombatMinAP;
 
 static void __declspec(naked) RetryCombatHook() {
@@ -395,6 +411,11 @@ void AI::init() {
 	#ifndef NDEBUG
 	if (iniGetInt("Debugging", "AIBugFixes", 1, ::sfall::ddrawIni) == 0) return;
 	#endif
+
+	// Tweak for finding new targets for party members
+	// Save the current target in the "target1" variable and find other potential targets
+	MakeCall(0x429074, ai_danger_source_hack_pm_newfind);
+	SafeWrite16(0x429074 + 5, 0x47EB); // jmp 0x4290C2
 
 	// Fix to allow fleeing NPC to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
