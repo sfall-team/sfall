@@ -1828,7 +1828,7 @@ WINinfo* GetUIWindow(long winType) {
 }
 
 // Returns an array of objects within the specified radius from the source tile
-void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type) {
 	for (long tile = 0; tile < 40000; tile++) {
 		TGameObj* obj = ObjFindFirstAtTile(elev, tile);
 		while (obj) {

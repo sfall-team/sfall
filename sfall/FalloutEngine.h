@@ -1438,7 +1438,7 @@ long __fastcall GetTopWindowID(long xPos, long yPos);
 
 WINinfo* GetUIWindow(long winType);
 
-void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type);
+void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1);
 
 long wmGetCurrentTerrainType();
 
