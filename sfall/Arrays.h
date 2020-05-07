@@ -153,17 +153,17 @@ void GetArrays(int* arrays);
 void DEGetArray(int id, DWORD* types, char* data);
 void DESetArray(int id, const DWORD* types, const char* data);
 
-const char* _stdcall GetSfallTypeName(DWORD dataType);
-DWORD _stdcall getSfallTypeByScriptType(DWORD varType);
-DWORD _stdcall getScriptTypeBySfallType(DWORD dataType);
+const char* __stdcall GetSfallTypeName(DWORD dataType);
+DWORD __stdcall getSfallTypeByScriptType(DWORD varType);
+DWORD __stdcall getScriptTypeBySfallType(DWORD dataType);
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
-DWORD _stdcall CreateArray(int len, DWORD flags);
+DWORD __stdcall CreateArray(int len, DWORD flags);
 
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
-DWORD _stdcall TempArray(DWORD len, DWORD flags);
+DWORD __stdcall TempArray(DWORD len, DWORD flags);
 
 // destroys array
-void _stdcall FreeArray(DWORD id);
+void __stdcall FreeArray(DWORD id);
 
 // destroy all temp arrays
 void DeleteAllTempArrays();
@@ -171,31 +171,31 @@ void DeleteAllTempArrays();
 /*
 	op_get_array_key can be used to iterate over all keys in associative array
 */
-DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType);
+DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType);
 
 // get array element by index (list) or key (map)
-DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType);
+DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType);
 
 // set array element by index or key
-void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
+void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
 
 // number of elements in list or pairs in map
-int _stdcall LenArray(DWORD id);
+int __stdcall LenArray(DWORD id);
 
 // change array size (only works with list)
-void _stdcall ResizeArray(DWORD id, int newlen);
+void __stdcall ResizeArray(DWORD id, int newlen);
 
 // make temporary array persistent
-void _stdcall FixArray(DWORD id);
+void __stdcall FixArray(DWORD id);
 
 // searches for a given element in array and returns it's index (for list) or key (for map) or int(-1) if not found
-int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType);
+int __stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType);
 
 // get saved array by it's key
-DWORD _stdcall LoadArray(DWORD key, DWORD keyType);
+DWORD __stdcall LoadArray(DWORD key, DWORD keyType);
 
 // make array saved into the savegame with associated key
-void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
+void __stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
 
 // special function that powers array expressions
-long _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);
+long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);

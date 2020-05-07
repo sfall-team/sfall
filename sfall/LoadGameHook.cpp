@@ -86,7 +86,7 @@ void ClearLoopFlag(LoopFlag flag) {
 	inLoop &= ~flag;
 }
 
-static void _stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameStart
+static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameStart
 	if (GraphicsMode > 3) Graphics_OnGameLoad();
 	ForceGraphicsRefresh(0); // disable refresh
 	LoadOrder_OnGameLoad();
@@ -116,7 +116,7 @@ void GetSavePath(char* buf, char* ftype) {
 }
 
 static char SaveSfallDataFailMsg[128];
-static void _stdcall SaveGame2() {
+static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
@@ -156,7 +156,7 @@ errorSave:
 }
 
 static char SaveFailMsg[128];
-static DWORD _stdcall CombatSaveTest() {
+static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
@@ -198,7 +198,7 @@ end:
 }
 
 // should be called before savegame is loaded
-static bool _stdcall LoadGame_Before() {
+static bool __stdcall LoadGame_Before() {
 	ResetState(1);
 
 	char buf[MAX_PATH];
@@ -232,7 +232,7 @@ errorLoad:
 	return (true & !isDebug);
 }
 
-static void _stdcall LoadGame_After() {
+static void __stdcall LoadGame_After() {
 	CritLoad();
 	LoadGlobalScripts();
 	gameLoaded = true;

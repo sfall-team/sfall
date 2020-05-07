@@ -23,7 +23,7 @@
 #include "FalloutEngine.h"
 #include "FileSystem.h"
 
-typedef int (_stdcall *functype)();
+typedef int (__stdcall *functype)();
 static const functype art_init = (functype)art_init_;
 
 static const DWORD Tiles_0E[] = {
@@ -141,7 +141,7 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	return xsize * ysize;
 }
 
-static int _stdcall ArtInitHook() {
+static int __stdcall ArtInitHook() {
 	if (art_init()) return -1;
 
 	CreateMask();

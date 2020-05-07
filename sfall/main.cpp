@@ -290,7 +290,7 @@ static void DllMain2() {
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
-static void _stdcall OnExit() {
+static void __stdcall OnExit() {
 	GraphicsExit();
 	InterfaceExit();
 	SpeedPatchExit();
@@ -389,7 +389,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 	return false;
 }
 
-bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
+bool __stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
 		// enabling debugging features
 		isDebug = (iniGetInt("Debugging", "Enable", 0, ddrawIniDef) != 0);
@@ -407,7 +407,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 
 		if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ddrawIniDef)) {
 			int is64bit;
-			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
+			typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 			HMODULE h = LoadLibrary("Kernel32.dll");
 			chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
 			if (proc)

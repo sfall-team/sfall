@@ -39,7 +39,7 @@
 
 const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
-static void _stdcall SetDMModel2() {
+static void __stdcall SetDMModel2() {
 	const ScriptValue &modelArg = opHandler.arg(0);
 
 	if (modelArg.isString()) {
@@ -58,7 +58,7 @@ static void __declspec(naked) SetDMModel() {
 	_WRAP_OPCODE(SetDMModel2, 1, 0)
 }
 
-static void _stdcall SetDFModel2() {
+static void __stdcall SetDFModel2() {
 	const ScriptValue &modelArg = opHandler.arg(0);
 
 	if (modelArg.isString()) {
@@ -77,7 +77,7 @@ static void __declspec(naked) SetDFModel() {
 	_WRAP_OPCODE(SetDFModel2, 1, 0)
 }
 
-static void _stdcall SetMoviePath2() {
+static void __stdcall SetMoviePath2() {
 	const ScriptValue &fileNameArg = opHandler.arg(0),
 					  &movieIdArg = opHandler.arg(1);
 
@@ -374,7 +374,7 @@ static void __cdecl IncNPCLevelFunc(const char* fmt, const char* name) {
 	__asm pop edx;
 }
 
-static void _stdcall IncNPCLevel2() {
+static void __stdcall IncNPCLevel2() {
 	nameNPCToInc = opHandler.arg(0).asString();
 	pidNPCToInc = opHandler.arg(0).asInt(); // set to 0 if passing npc name
 	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
@@ -400,7 +400,7 @@ static void __declspec(naked) IncNPCLevel() {
 	_WRAP_OPCODE(IncNPCLevel2, 1, 0)
 }
 
-static void _stdcall get_npc_level2() {
+static void __stdcall get_npc_level2() {
 	int level = -1;
 	const ScriptValue &npcArg = opHandler.arg(0);
 
@@ -478,7 +478,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	return 1;
 }
 
-static DWORD _stdcall GetIniSetting2(const char* str, DWORD isString) {
+static DWORD __stdcall GetIniSetting2(const char* str, DWORD isString) {
 	const char* key;
 	char section[33], file[67];
 
@@ -579,7 +579,7 @@ result:
 	}
 }
 
-static DWORD _stdcall GetTickCount2() {
+static DWORD __stdcall GetTickCount2() {
 	return GetTickCount(); //timeGetTime
 }
 
@@ -852,7 +852,7 @@ static void __declspec(naked) refresh_pc_art() {
 	}
 }
 
-static void _stdcall intface_attack_type() {
+static void __stdcall intface_attack_type() {
 	__asm {
 		sub esp, 8;
 		lea edx, [esp];
@@ -895,7 +895,7 @@ skip:
 	}
 }
 
-static void _stdcall play_sfall_sound2() {
+static void __stdcall play_sfall_sound2() {
 	const ScriptValue &fileArg = opHandler.arg(0),
 					  &modeArg = opHandler.arg(1);
 
@@ -1100,7 +1100,7 @@ static void __declspec(naked) op_sneak_success() {
 	}
 }
 
-static void _stdcall op_tile_light2() {
+static void __stdcall op_tile_light2() {
 	const ScriptValue &elevArg = opHandler.arg(0),
 					  &tileArg = opHandler.arg(1);
 

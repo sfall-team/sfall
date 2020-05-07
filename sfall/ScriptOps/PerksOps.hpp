@@ -54,7 +54,7 @@ end:
 	}
 }
 
-static void _stdcall GetPerkAvailable2() {
+static void __stdcall GetPerkAvailable2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0);
 
 	int result = 0;
@@ -73,7 +73,7 @@ static void __declspec(naked) GetPerkAvailable() {
 	_WRAP_OPCODE(GetPerkAvailable2, 1, 1)
 }
 
-static void _stdcall funcSetPerkName2() {
+static void __stdcall funcSetPerkName2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0),
 					  &stringArg = opHandler.arg(1);
 
@@ -88,7 +88,7 @@ static void __declspec(naked) funcSetPerkName() {
 	_WRAP_OPCODE(funcSetPerkName2, 2, 0)
 }
 
-static void _stdcall funcSetPerkDesc2() {
+static void __stdcall funcSetPerkDesc2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0),
 					  &stringArg = opHandler.arg(1);
 
@@ -125,7 +125,7 @@ end:
 	}
 }
 
-static void _stdcall fSetSelectablePerk2() {
+static void __stdcall fSetSelectablePerk2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
 					  &activeArg = opHandler.arg(1),
 					  &imageArg = opHandler.arg(2),
@@ -142,7 +142,7 @@ static void __declspec(naked) fSetSelectablePerk() {
 	_WRAP_OPCODE(fSetSelectablePerk2, 4, 0)
 }
 
-static void _stdcall fSetFakePerk2() {
+static void __stdcall fSetFakePerk2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
 					  &levelArg = opHandler.arg(1),
 					  &imageArg = opHandler.arg(2),
@@ -159,7 +159,7 @@ static void __declspec(naked) fSetFakePerk() {
 	_WRAP_OPCODE(fSetFakePerk2, 4, 0)
 }
 
-static void _stdcall fSetFakeTrait2() {
+static void __stdcall fSetFakeTrait2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
 					  &activeArg = opHandler.arg(1),
 					  &imageArg = opHandler.arg(2),

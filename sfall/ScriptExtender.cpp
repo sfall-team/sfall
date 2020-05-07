@@ -538,7 +538,7 @@ long SetGlobalVar(const char* var, int val) {
 	return 0;
 }
 
-static void _stdcall funcSetGlobalVar2() {
+static void __stdcall funcSetGlobalVar2() {
 	const ScriptValue &varArg = opHandler.arg(0),
 					  &valArg = opHandler.arg(1);
 
@@ -572,7 +572,7 @@ long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(static_cast<__int64>(var));
 }
 
-static void _stdcall funcGetGlobalVarInt2() {
+static void __stdcall funcGetGlobalVarInt2() {
 	const ScriptValue &varArg = opHandler.arg(0);
 	long result = 0;
 
@@ -598,7 +598,7 @@ static void __declspec(naked) funcGetGlobalVarInt() {
 	_WRAP_OPCODE(funcGetGlobalVarInt2, 1, 1)
 }
 
-static void _stdcall funcGetGlobalVarFloat2() {
+static void __stdcall funcGetGlobalVarFloat2() {
 	const ScriptValue &varArg = opHandler.arg(0);
 	long result = 0;
 
@@ -653,7 +653,7 @@ static void sf_get_sfall_arg_at() {
 	opHandler.setReturn(argVal);
 }
 
-static DWORD _stdcall GetSfallArgs2() {
+static DWORD __stdcall GetSfallArgs2() {
 	DWORD argCount = GetHSArgCount();
 	DWORD id = TempArray(argCount, 0);
 	DWORD* args = GetHSArgs();
@@ -675,7 +675,7 @@ static void __declspec(naked) GetSfallArgs() {
 	}
 }
 
-static void _stdcall SetSfallArg2() {
+static void __stdcall SetSfallArg2() {
 	const ScriptValue &argNumArg = opHandler.arg(0),
 					  &valArg = opHandler.arg(1);
 
@@ -745,7 +745,7 @@ end:
 	}
 }
 
-static void _stdcall register_hook2() {
+static void __stdcall register_hook2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -759,7 +759,7 @@ static void __declspec(naked) register_hook() {
 	_WRAP_OPCODE(register_hook2, 1, 0)
 }
 
-static void _stdcall register_hook_proc2() {
+static void __stdcall register_hook_proc2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &procArg = opHandler.arg(1);
 
@@ -774,7 +774,7 @@ static void __declspec(naked) register_hook_proc() {
 	_WRAP_OPCODE(register_hook_proc2, 2, 0)
 }
 
-static void _stdcall register_hook_proc_spec2() {
+static void __stdcall register_hook_proc_spec2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &procArg = opHandler.arg(1);
 
@@ -1571,7 +1571,7 @@ static DWORD script_chk_timed_events_hook() {
 	return (!*ptr_queue && timerEventScripts.empty());
 }
 
-void _stdcall AddTimerEventScripts(DWORD script, long time, long param) {
+void __stdcall AddTimerEventScripts(DWORD script, long time, long param) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	TimedEvent timer;
 	timer.script = scriptProg;
@@ -1581,14 +1581,14 @@ void _stdcall AddTimerEventScripts(DWORD script, long time, long param) {
 	timerEventScripts.sort(TimedEvent());
 }
 
-void _stdcall RemoveTimerEventScripts(DWORD script, long param) {
+void __stdcall RemoveTimerEventScripts(DWORD script, long param) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
 		return timer.script == scriptProg && timer.fixed_param == param;
 	});
 }
 
-void _stdcall RemoveTimerEventScripts(DWORD script) {
+void __stdcall RemoveTimerEventScripts(DWORD script) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
 		return timer.script == scriptProg;

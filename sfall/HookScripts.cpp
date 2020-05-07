@@ -75,7 +75,7 @@ static struct HooksPositionInfo {
 
 #define HookBeginArgs(a) HookBegin __asm mov argCount, a
 
-static void _stdcall BeginHook() {
+static void __stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
 		// save all values of the current hook if another hook was called during the execution of the current hook
 		int cDepth = callDepth - 1;
@@ -99,7 +99,7 @@ static void _stdcall BeginHook() {
 	#endif
 }
 
-static void _stdcall EndHook() {
+static void __stdcall EndHook() {
 	#ifndef NDEBUG
 		dlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
 	#endif
@@ -127,7 +127,7 @@ static void _stdcall EndHook() {
 	}
 }
 
-static void _stdcall RunSpecificHookScript(sHookScript *hook) {
+static void __stdcall RunSpecificHookScript(sHookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
@@ -137,7 +137,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	}
 }
 
-static void _stdcall RunHookScript(DWORD hook) {
+static void __stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
 	if (!hooks[hook].empty()) {
 		if (callDepth > 8) {
@@ -875,7 +875,7 @@ skip:
 	}
 }
 
-DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
+DWORD __stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	if (!IsGameLoaded()) {
 		return 0;
 	}
@@ -892,7 +892,7 @@ DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	return result;
 }
 
-void _stdcall MouseClickHook(DWORD button, bool pressed) {
+void __stdcall MouseClickHook(DWORD button, bool pressed) {
 	if (!IsGameLoaded()) {
 		return;
 	}
@@ -1162,19 +1162,19 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 
 	if (dropResult == -1) {
 skipHook:
-		_asm call obj_drop_;
+		__asm call obj_drop_;
 	}
-	_asm retn;
+	__asm retn;
 
 /* for only caps multi drop */
 capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
-		_asm call item_remove_mult_;
-		_asm retn;
+		__asm call item_remove_mult_;
+		__asm retn;
 	}
-	_asm add esp, 4;
-	_asm jmp InvenActionObjDropRet;    // no caps drop
+	__asm add esp, 4;
+	__asm jmp InvenActionObjDropRet;    // no caps drop
 }
 
 static void __declspec(naked) InvenActionExplosiveDropHack() {
@@ -1523,7 +1523,7 @@ noArmor:
 }
 
 // internal function implementation with hook
-long _stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags) {
+long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags) {
 	long result = 1;
 	if (!hooks[HOOK_INVENWIELD].empty()) {
 		long slot = INVEN_TYPE_WORN;
@@ -1538,27 +1538,27 @@ long _stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, 
 	return result;
 }
 
-DWORD _stdcall GetHSArgCount() {
+DWORD __stdcall GetHSArgCount() {
 	return argCount;
 }
 
-DWORD _stdcall GetHSArg() {
+DWORD __stdcall GetHSArg() {
 	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
-void _stdcall SetHSArg(DWORD id, DWORD value) {
+void __stdcall SetHSArg(DWORD id, DWORD value) {
 	if (id < argCount) args[id] = value;
 }
 
-DWORD* _stdcall GetHSArgs() {
+DWORD* __stdcall GetHSArgs() {
 	return args;
 }
 
-DWORD _stdcall GetHSArgAt(DWORD id) {
+DWORD __stdcall GetHSArgAt(DWORD id) {
 	return args[id];
 }
 
-void _stdcall SetHSReturn(DWORD value) {
+void __stdcall SetHSReturn(DWORD value) {
 	if (cRetTmp < maxRets) {
 		rets[cRetTmp++] = value;
 	}
@@ -1567,7 +1567,7 @@ void _stdcall SetHSReturn(DWORD value) {
 	}
 }
 
-void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) {
+void __stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) {
 	if (id >= numHooks) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
@@ -1832,7 +1832,7 @@ void HookScriptInit() {
 }
 
 // run specific event procedure for all hook scripts
-void _stdcall RunHookScriptsAtProc(DWORD procId) {
+void __stdcall RunHookScriptsAtProc(DWORD procId) {
 	for (int i = 0; i < numHooks; i++) {
 		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
 			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int

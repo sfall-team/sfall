@@ -31,7 +31,7 @@
 	__asm call exec_script_proc_                \
 }
 
-static void _stdcall RemoveScript2() {
+static void __stdcall RemoveScript2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
 		if (object->scriptID != 0xFFFFFFFF) {
@@ -47,7 +47,7 @@ static void __declspec(naked) RemoveScript() {
 	_WRAP_OPCODE(RemoveScript2, 1, 0)
 }
 
-static void _stdcall SetScript2() {
+static void __stdcall SetScript2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	const ScriptValue &scriptIdxArg = opHandler.arg(1);
 
@@ -85,7 +85,7 @@ static void __declspec(naked) SetScript() {
 	_WRAP_OPCODE(SetScript2, 2, 0)
 }
 
-static void _stdcall op_create_spatial2() {
+static void __stdcall op_create_spatial2() {
 	const ScriptValue &scriptIdxArg = opHandler.arg(0),
 					  &tileArg = opHandler.arg(1),
 					  &elevArg = opHandler.arg(2),
@@ -133,7 +133,7 @@ static void sf_spatial_radius() {
 	}
 }
 
-static void _stdcall GetScript2() {
+static void __stdcall GetScript2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
 		long scriptIndex = object->script_index;
@@ -148,7 +148,7 @@ static void __declspec(naked) GetScript() {
 	_WRAP_OPCODE(GetScript2, 1, 1)
 }
 
-static void _stdcall set_critter_burst_disable2() {
+static void __stdcall set_critter_burst_disable2() {
 	TGameObj* critter = opHandler.arg(0).asObject();
 	const ScriptValue &disableArg = opHandler.arg(1);
 
@@ -163,7 +163,7 @@ static void __declspec(naked) set_critter_burst_disable() {
 	_WRAP_OPCODE(set_critter_burst_disable2, 2, 0)
 }
 
-static void _stdcall get_weapon_ammo_pid2() {
+static void __stdcall get_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->critterAP_itemAmmoPid);
@@ -177,7 +177,7 @@ static void __declspec(naked) get_weapon_ammo_pid() {
 	_WRAP_OPCODE(get_weapon_ammo_pid2, 1, 1)
 }
 
-static void _stdcall set_weapon_ammo_pid2() {
+static void __stdcall set_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &pidArg = opHandler.arg(1);
 
@@ -192,7 +192,7 @@ static void __declspec(naked) set_weapon_ammo_pid() {
 	_WRAP_OPCODE(set_weapon_ammo_pid2, 2, 0)
 }
 
-static void _stdcall get_weapon_ammo_count2() {
+static void __stdcall get_weapon_ammo_count2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->itemCharges);
@@ -206,7 +206,7 @@ static void __declspec(naked) get_weapon_ammo_count() {
 	_WRAP_OPCODE(get_weapon_ammo_count2, 1, 1)
 }
 
-static void _stdcall set_weapon_ammo_count2() {
+static void __stdcall set_weapon_ammo_count2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &countArg = opHandler.arg(1);
 
@@ -244,7 +244,7 @@ static DWORD getBlockingFunc(DWORD type) {
 	}
 }
 
-static void _stdcall op_make_straight_path2() {
+static void __stdcall op_make_straight_path2() {
 	TGameObj* objFrom = opHandler.arg(0).asObject();
 	const ScriptValue &tileToArg = opHandler.arg(1),
 					  &typeArg = opHandler.arg(2);
@@ -267,7 +267,7 @@ static void __declspec(naked) op_make_straight_path() {
 	_WRAP_OPCODE(op_make_straight_path2, 3, 1)
 }
 
-static void _stdcall op_make_path2() {
+static void __stdcall op_make_path2() {
 	TGameObj* objFrom = opHandler.arg(0).asObject();
 	const ScriptValue &tileToArg = opHandler.arg(1),
 					  &typeArg = opHandler.arg(2);
@@ -309,7 +309,7 @@ static void __declspec(naked) op_make_path() {
 	_WRAP_OPCODE(op_make_path2, 3, 1)
 }
 
-static void _stdcall op_obj_blocking_at2() {
+static void __stdcall op_obj_blocking_at2() {
 	const ScriptValue &tileArg = opHandler.arg(0),
 					  &elevArg = opHandler.arg(1),
 					  &typeArg = opHandler.arg(2);
@@ -335,7 +335,7 @@ static void __declspec(naked) op_obj_blocking_at() {
 	_WRAP_OPCODE(op_obj_blocking_at2, 3, 1)
 }
 
-static void _stdcall op_tile_get_objects2() {
+static void __stdcall op_tile_get_objects2() {
 	const ScriptValue &tileArg = opHandler.arg(0),
 					  &elevArg = opHandler.arg(1);
 
@@ -359,7 +359,7 @@ static void __declspec(naked) op_tile_get_objects() {
 	_WRAP_OPCODE(op_tile_get_objects2, 2, 1)
 }
 
-static void _stdcall op_get_party_members2() {
+static void __stdcall op_get_party_members2() {
 	const ScriptValue &modeArg = opHandler.arg(0);
 
 	if (modeArg.isInt()) {
@@ -409,7 +409,7 @@ fail:
 	}
 }
 
-static void _stdcall op_obj_is_carrying_obj2() {
+static void __stdcall op_obj_is_carrying_obj2() {
 	int num = 0;
 	const ScriptValue &invenObjArg = opHandler.arg(0),
 					  &itemObjArg = opHandler.arg(1);
@@ -569,7 +569,7 @@ static void sf_get_loot_object() {
 static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
-static void _stdcall get_proto_data2() {
+static void __stdcall get_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
 					  &offsetArg = opHandler.arg(1);
 
@@ -599,7 +599,7 @@ static void __declspec(naked) get_proto_data() {
 	_WRAP_OPCODE(get_proto_data2, 2, 1)
 }
 
-static void _stdcall set_proto_data2() {
+static void __stdcall set_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
 					  &offsetArg = opHandler.arg(1),
 					  &valueArg = opHandler.arg(2);

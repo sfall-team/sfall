@@ -21,10 +21,10 @@
 void HeroAppearanceModInit();
 void HeroAppearanceModExit();
 
-void _stdcall HeroSelectWindow(int raceStyleFlag);
-void _stdcall SetHeroStyle(int newStyleVal);
-void _stdcall SetHeroRace(int newRaceVal);
-void _stdcall LoadHeroAppearance(void);
-void _stdcall SetNewCharAppearanceGlobals(void);
+void __stdcall HeroSelectWindow(int raceStyleFlag);
+void __stdcall SetHeroStyle(int newStyleVal);
+void __stdcall SetHeroRace(int newRaceVal);
+void __stdcall LoadHeroAppearance(void);
+void __stdcall SetNewCharAppearanceGlobals(void);
 
-void _stdcall RefreshPCArt();
+void __stdcall RefreshPCArt();

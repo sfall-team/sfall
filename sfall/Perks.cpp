@@ -82,11 +82,11 @@ static const DWORD GainStatPerks[7][2] = {
 	{0x4AF24D, 0x90}, // Luck
 };
 
-void _stdcall SetPerkFreq(int i) {
+void __stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
-static bool _stdcall IsTraitDisabled(int id) {
+static bool __stdcall IsTraitDisabled(int id) {
 	return disableTraits[id];
 }
 
@@ -130,11 +130,11 @@ static void __declspec(naked) GetPerkBoxTitleHook() {
 	}
 }
 
-void _stdcall IgnoreDefaultPerks() {
+void __stdcall IgnoreDefaultPerks() {
 	IgnoringDefaultPerks = 1;
 }
 
-void _stdcall RestoreDefaultPerks() {
+void __stdcall RestoreDefaultPerks() {
 	IgnoringDefaultPerks = 0;
 }
 
@@ -148,7 +148,7 @@ void __fastcall SetPerkboxTitle(const char* name) {
 	}
 }
 
-void _stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc) {
+void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc) {
 	if (active < 0) return;
 	if (active > 1) active = 1;
 	size_t size = fakeSelectablePerks.size();
@@ -179,7 +179,7 @@ void _stdcall SetSelectablePerk(const char* name, int active, int image, const c
 	}
 }
 
-void _stdcall SetFakePerk(const char* name, int level, int image, const char* desc) {
+void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc) {
 	if (level < 0) return;
 	if (level > 100) level = 100;
 	size_t size = fakePerks.size();
@@ -210,7 +210,7 @@ void _stdcall SetFakePerk(const char* name, int level, int image, const char* de
 	}
 }
 
-void _stdcall SetFakeTrait(const char* name, int active, int image, const char* desc) {
+void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc) {
 	if (active < 0) return;
 	if (active > 1) active = 1;
 	size_t size = fakeTraits.size();
@@ -241,7 +241,7 @@ void _stdcall SetFakeTrait(const char* name, int active, int image, const char* 
 	}
 }
 
-static DWORD _stdcall HaveFakeTraits2() {
+static DWORD __stdcall HaveFakeTraits2() {
 	return fakeTraits.size();
 }
 
@@ -256,7 +256,7 @@ static void __declspec(naked) HaveFakeTraits() {
 	}
 }
 
-static DWORD _stdcall HaveFakePerks2() {
+static DWORD __stdcall HaveFakePerks2() {
 	return fakePerks.size();
 }
 
@@ -271,7 +271,7 @@ static void __declspec(naked) HaveFakePerks() {
 	}
 }
 
-static FakePerk* _stdcall GetFakePerk2(int id) {
+static FakePerk* __stdcall GetFakePerk2(int id) {
 	return &fakePerks[id - PERK_count];
 }
 
@@ -288,7 +288,7 @@ static void __declspec(naked) GetFakePerk() {
 	}
 }
 
-static FakePerk* _stdcall GetFakeSPerk2(int id) {
+static FakePerk* __stdcall GetFakeSPerk2(int id) {
 	return &fakeSelectablePerks[id - PERK_count];
 }
 
@@ -305,7 +305,7 @@ static void __declspec(naked) GetFakeSPerk() {
 	}
 }
 
-static DWORD _stdcall GetFakeSPerkLevel2(int id) {
+static DWORD __stdcall GetFakeSPerkLevel2(int id) {
 	char* name = fakeSelectablePerks[id - PERK_count].Name;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
 		if (!strcmp(name, fakePerks[i].Name)) return fakePerks[i].Level;
@@ -326,7 +326,7 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 	}
 }
 
-static DWORD _stdcall HandleFakeTraits(int isSelect) {
+static DWORD __stdcall HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		DWORD a = (DWORD)fakeTraits[i].Name;
 		__asm {
@@ -452,7 +452,7 @@ cLoop:
 }
 
 // Build a table of perks ID numbers available for selection, data buffer has limited size for 119 perks
-static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
+static DWORD __stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
 		if (available >= 119) break; // exit if the buffer is overfull
 		data[available++] = PERK_count + i;
@@ -530,7 +530,7 @@ end:
 }
 
 // Adds the selected perk to the player
-static long _stdcall AddFakePerk(DWORD perkID) {
+static long __stdcall AddFakePerk(DWORD perkID) {
 	size_t count;
 	bool matched = false;
 	// behavior for fake perk/trait
@@ -622,7 +622,7 @@ lower:
 }
 
 static bool perkHeaveHoModFix = false;
-void _stdcall ApplyHeaveHoFix() { // not really a fix
+void __stdcall ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	Perks[PERK_heave_ho].Str = 0;
 	perkHeaveHoModFix = true;
@@ -756,7 +756,7 @@ static __declspec(naked) void PerkInitWrapper() {
 
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
-static int _stdcall stat_get_base_direct(DWORD statID) {
+static int __stdcall stat_get_base_direct(DWORD statID) {
 	DWORD result;
 	__asm {
 		mov  edx, statID;
@@ -767,7 +767,7 @@ static int _stdcall stat_get_base_direct(DWORD statID) {
 	return result;
 }
 
-static int _stdcall trait_adjust_stat_override(DWORD statID) {
+static int __stdcall trait_adjust_stat_override(DWORD statID) {
 	if (statID > STAT_max_derived) return 0;
 
 	int result = 0;
@@ -847,7 +847,7 @@ static void __declspec(naked) TraitAdjustStatHack() {
 	}
 }
 
-static int _stdcall trait_adjust_skill_override(DWORD skillID) {
+static int __stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
 	if (ptr_pc_traits[0] != -1) {
 		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_traits[0]];
@@ -1122,11 +1122,11 @@ bool PerksLoad(HANDLE file) {
 	return true;
 }
 
-void _stdcall AddPerkMode(DWORD mode) {
+void __stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD _stdcall HasFakePerk(const char* name) {
+DWORD __stdcall HasFakePerk(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
 		if (!strcmp(name, fakePerks[i].Name)) {
@@ -1136,7 +1136,7 @@ DWORD _stdcall HasFakePerk(const char* name) {
 	return 0;
 }
 
-DWORD _stdcall HasFakeTrait(const char* name) {
+DWORD __stdcall HasFakeTrait(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		if (!strcmp(name, fakeTraits[i].Name)) {
@@ -1146,7 +1146,7 @@ DWORD _stdcall HasFakeTrait(const char* name) {
 	return 0;
 }
 
-void _stdcall ClearSelectablePerks() {
+void __stdcall ClearSelectablePerks() {
 	fakeSelectablePerks.clear();
 	addPerkMode = 2;
 	IgnoringDefaultPerks = 0;

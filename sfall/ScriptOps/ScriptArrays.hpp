@@ -120,7 +120,7 @@ end:
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
 	example: vartext[5]
 */
-static char* _stdcall GetArraySubstr(const char* str, size_t index) {
+static char* __stdcall GetArraySubstr(const char* str, size_t index) {
 	if (index < strlen(str)) {
 		wchar_t c = ((unsigned char*)str)[index];
 		((wchar_t*)gTextBuffer)[0] = c;
@@ -562,7 +562,7 @@ static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	}
 }
 
-static DWORD _stdcall ListAsArray(DWORD type) {
+static DWORD __stdcall ListAsArray(DWORD type) {
 	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
 	size_t sz = vec.size();
@@ -573,7 +573,7 @@ static DWORD _stdcall ListAsArray(DWORD type) {
 	return id;
 }
 
-static void _stdcall list_as_array2() {
+static void __stdcall list_as_array2() {
 	const ScriptValue &typeArg = opHandler.arg(0);
 
 	if (typeArg.isInt()) {
@@ -589,7 +589,7 @@ static void __declspec(naked) list_as_array() {
 	_WRAP_OPCODE(list_as_array2, 1, 1)
 }
 
-static DWORD _stdcall ListBegin(DWORD type) {
+static DWORD __stdcall ListBegin(DWORD type) {
 	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
 	sList* list = new sList(&vec);
@@ -597,7 +597,7 @@ static DWORD _stdcall ListBegin(DWORD type) {
 	return listID;
 }
 
-static void _stdcall list_begin2() {
+static void __stdcall list_begin2() {
 	const ScriptValue &typeArg = opHandler.arg(0);
 
 	if (typeArg.isInt()) {
@@ -612,11 +612,11 @@ static void __declspec(naked) list_begin() {
 	_WRAP_OPCODE(list_begin2, 1, 1)
 }
 
-static TGameObj* _stdcall ListNext(sList* list) {
+static TGameObj* __stdcall ListNext(sList* list) {
 	return (!list || list->pos == list->len) ? 0 : list->obj[list->pos++];
 }
 
-static void _stdcall list_next2() {
+static void __stdcall list_next2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -643,7 +643,7 @@ static void __declspec(naked) list_next() {
 	_WRAP_OPCODE(list_next2, 1, 1)
 }
 
-static void _stdcall ListEnd(DWORD id) {
+static void __stdcall ListEnd(DWORD id) {
 	if (id == 0) return;
 	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end = mList.cend(); it != it_end; ++it) {
 		if (it->id == id) {
@@ -655,7 +655,7 @@ static void _stdcall ListEnd(DWORD id) {
 	}
 }
 
-static void _stdcall list_end2() {
+static void __stdcall list_end2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {

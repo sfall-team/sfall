@@ -190,7 +190,7 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-static DWORD _stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
+static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 	double multi = mapMultiMod * scriptMapMulti;
 
 	switch (perkLevel) {
@@ -450,7 +450,7 @@ static void PipBoyAutomapsPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void _stdcall SetMapMulti(float value) {
+void __stdcall SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 

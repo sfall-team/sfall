@@ -26,12 +26,12 @@ extern bool middleMouseDown;
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
-DWORD _stdcall KeyDown(DWORD key);
-void _stdcall TapKey(DWORD key);
+DWORD __stdcall KeyDown(DWORD key);
+void __stdcall TapKey(DWORD key);
 
 void GetMouse(int* x, int* y);
 
-void _stdcall ForceGraphicsRefresh(DWORD);
+void __stdcall ForceGraphicsRefresh(DWORD);
 
 #define DIK_ESCAPE          0x01
 #define DIK_1               0x02

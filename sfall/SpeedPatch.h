@@ -20,6 +20,6 @@
 
 extern DWORD sf_GetTickCount;
 
-void _stdcall FakeGetLocalTime(LPSYSTEMTIME);
+void __stdcall FakeGetLocalTime(LPSYSTEMTIME);
 void SpeedPatchInit();
 void SpeedPatchExit();

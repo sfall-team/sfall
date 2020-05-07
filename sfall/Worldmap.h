@@ -34,4 +34,4 @@ void Wmap_SetCustomAreaTitle(long areaID, const char* msg);
 
 long Wmap_AreaMarkStateIsNoRadius();
 
-void _stdcall SetMapMulti(float value);
+void __stdcall SetMapMulti(float value);

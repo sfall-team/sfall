@@ -40,8 +40,8 @@
 #define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
-typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
-typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
+typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
+typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
 
 static IDirectDrawSurface* primaryDDSurface = nullptr;
 
@@ -196,11 +196,11 @@ long Gfx_GetGameHeightRes() {
 	return (ptr_scr_size->offy - ptr_scr_size->y) + 1;
 }
 
-int _stdcall GetShaderVersion() {
+int __stdcall GetShaderVersion() {
 	return ShaderVersion;
 }
 
-void _stdcall SetShaderMode(DWORD d, DWORD mode) {
+void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	if (mode & 0x80000000) {
 		shaders[d].mode2 = mode ^ 0x80000000;
@@ -209,7 +209,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 	}
 }
 
-int _stdcall LoadShader(const char* file) {
+int __stdcall LoadShader(const char* file) {
 	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
 	PathNode* masterPtr = *ptr_master_db_handle;
@@ -258,15 +258,15 @@ static void LoadGlobalShader() {
 	}
 }
 
-void _stdcall ActivateShader(DWORD d) {
+void __stdcall ActivateShader(DWORD d) {
 	if (d < shadersSize && shaders[d].Effect) shaders[d].Active = true;
 }
 
-void _stdcall DeactivateShader(DWORD d) {
+void __stdcall DeactivateShader(DWORD d) {
 	if (d < shadersSize) shaders[d].Active = false;
 }
 
-int _stdcall GetShaderTexture(DWORD d, DWORD id) {
+int __stdcall GetShaderTexture(DWORD d, DWORD id) {
 	if (id < 1 || id > 128 || d >= shadersSize || !shaders[d].Effect) return -1;
 	IDirect3DBaseTexture9* tex = 0;
 	char buf[8] = "tex";
@@ -279,29 +279,29 @@ int _stdcall GetShaderTexture(DWORD d, DWORD id) {
 	return -1;
 }
 
-void _stdcall FreeShader(DWORD d) {
+void __stdcall FreeShader(DWORD d) {
 	if (d < shadersSize) {
 		SAFERELEASE(shaders[d].Effect);
 		shaders[d].Active = false;
 	}
 }
 
-void _stdcall SetShaderInt(DWORD d, const char* param, int value) {
+void __stdcall SetShaderInt(DWORD d, const char* param, int value) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	shaders[d].Effect->SetInt(param, value);
 }
 
-void _stdcall SetShaderFloat(DWORD d, const char* param, float value) {
+void __stdcall SetShaderFloat(DWORD d, const char* param, float value) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	shaders[d].Effect->SetFloat(param, value);
 }
 
-void _stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, float f3, float f4) {
+void __stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, float f3, float f4) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	shaders[d].Effect->SetFloatArray(param, &f1, 4);
 }
 
-void _stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
+void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
 	if (d >= shadersSize || !shaders[d].Effect || value >= shaderTextures.size()) return;
 	shaders[d].Effect->SetTexture(param, shaderTextures[value]);
 }
@@ -689,15 +689,15 @@ public:
 	}
 
 	// IUnknown methods
-	HRESULT _stdcall QueryInterface(REFIID, LPVOID*) {
+	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) {
 		return E_NOINTERFACE;
 	}
 
-	ULONG _stdcall AddRef() {
+	ULONG __stdcall AddRef() {
 		return ++Refs;
 	}
 
-	ULONG _stdcall Release() {
+	ULONG __stdcall Release() {
 		if (!--Refs) {
 			delete this;
 			return 0;
@@ -705,15 +705,15 @@ public:
 	}
 
 	// IDirectDrawPalette methods
-	HRESULT _stdcall GetCaps(LPDWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
-	HRESULT _stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetCaps(LPDWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 
 	/* Called from:
 		0x4CB5C7 GNW95_SetPalette_
 		0x4CB36B GNW95_SetPaletteEntries_
 	*/
-	HRESULT _stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
+	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
 		CopyMemory(&palette[b], destPal, c * 4);
@@ -761,15 +761,15 @@ public:
 	}
 
 	// IUnknown methods
-	HRESULT _stdcall QueryInterface(REFIID, LPVOID *) {
+	HRESULT __stdcall QueryInterface(REFIID, LPVOID *) {
 		return E_NOINTERFACE;
 	}
 
-	ULONG _stdcall AddRef() {
+	ULONG __stdcall AddRef() {
 		return ++Refs;
 	}
 
-	ULONG _stdcall Release() {
+	ULONG __stdcall Release() {
 		if (!--Refs) {
 			delete[] lockTarget;
 			delete this;
@@ -778,13 +778,13 @@ public:
 	}
 
 	// IDirectDrawSurface methods
-	HRESULT _stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
-	HRESULT _stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
+	HRESULT __stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
+	HRESULT __stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
 
 	/*
 		0x4868DA movie_MVE_ShowFrame_
 	*/
-	HRESULT _stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // used for game movies (only for w/o HRP)
+	HRESULT __stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // used for game movies (only for w/o HRP)
 		movieDesc.dwHeight = (a->bottom - a->top);
 		yoffset = (ResHeight - movieDesc.dwHeight) / 2;
 		movieDesc.lPitch = (a->right - a->left);
@@ -873,25 +873,25 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall BltBatch(LPDDBLTBATCH, DWORD, DWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall BltFast(DWORD,DWORD,LPDIRECTDRAWSURFACE, LPRECT,DWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall DeleteAttachedSurface(DWORD,LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
-	HRESULT _stdcall EnumAttachedSurfaces(LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
-	HRESULT _stdcall EnumOverlayZOrders(DWORD,LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
-	HRESULT _stdcall Flip(LPDIRECTDRAWSURFACE, DWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetAttachedSurface(LPDDSCAPS, LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetBltStatus(DWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetCaps(LPDDSCAPS) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetClipper(LPDIRECTDRAWCLIPPER *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetDC(HDC *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetFlipStatus(DWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetOverlayPosition(LPLONG, LPLONG) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetPalette(LPDIRECTDRAWPALETTE *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetPixelFormat(LPDDPIXELFORMAT) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetSurfaceDesc(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
-	HRESULT _stdcall Initialize(LPDIRECTDRAW, LPDDSURFACEDESC) { UNUSEDFUNCTION; }
-	HRESULT _stdcall IsLost() { UNUSEDFUNCTION; }
+	HRESULT __stdcall BltBatch(LPDDBLTBATCH, DWORD, DWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall BltFast(DWORD,DWORD,LPDIRECTDRAWSURFACE, LPRECT,DWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall DeleteAttachedSurface(DWORD,LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
+	HRESULT __stdcall EnumAttachedSurfaces(LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
+	HRESULT __stdcall EnumOverlayZOrders(DWORD,LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Flip(LPDIRECTDRAWSURFACE, DWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetAttachedSurface(LPDDSCAPS, LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetBltStatus(DWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetCaps(LPDDSCAPS) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetClipper(LPDIRECTDRAWCLIPPER *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetDC(HDC *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetFlipStatus(DWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetOverlayPosition(LPLONG, LPLONG) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetPalette(LPDIRECTDRAWPALETTE *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetPixelFormat(LPDDPIXELFORMAT) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Initialize(LPDIRECTDRAW, LPDDSURFACEDESC) { UNUSEDFUNCTION; }
+	HRESULT __stdcall IsLost() { UNUSEDFUNCTION; }
 
 	/* Called from:
 		0x4CB887 GNW95_ShowRect_ (c=1)
@@ -899,7 +899,7 @@ public:
 		0x4CBBFA GNW95_zero_vid_mem_ (c=1)
 		0x4F5E91/0x4F5EBB sub_4F5E60 (c=0)
 	*/
-	HRESULT _stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
+	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
 		if (Primary) {
 			//dlog_f("\nLock(%d) use surfaceDesc.", DL_INIT, c);
 			*b = surfaceDesc;
@@ -913,13 +913,13 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall ReleaseDC(HDC) { UNUSEDFUNCTION; }
-	HRESULT _stdcall Restore() { UNUSEDFUNCTION; } // call from fallout2.exe - 0x4CB907
-	HRESULT _stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
-	HRESULT _stdcall SetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
-	HRESULT _stdcall SetOverlayPosition(LONG, LONG) { UNUSEDFUNCTION; }
+	HRESULT __stdcall ReleaseDC(HDC) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Restore() { UNUSEDFUNCTION; } // call from fallout2.exe - 0x4CB907
+	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
+	HRESULT __stdcall SetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
+	HRESULT __stdcall SetOverlayPosition(LONG, LONG) { UNUSEDFUNCTION; }
 
-	HRESULT _stdcall SetPalette(LPDIRECTDRAWPALETTE a) {
+	HRESULT __stdcall SetPalette(LPDIRECTDRAWPALETTE a) {
 		if (a) return DD_OK; // prevents executing the function when called from outside of sfall
 
 		D3DLOCKED_RECT dRect;
@@ -940,14 +940,14 @@ public:
 		return DD_OK;
 	}
 
-#define FASTCOPY(a) __asm {                    \
-	_asm movzx eax, byte ptr ds:[esi]          \
-	_asm mov eax, dword ptr ds:[ebx + eax * 4] \
-	_asm inc esi                               \
-	_asm mov dword ptr ds:[edi + a], eax       \
+#define FASTCOPY(a) __asm {                     \
+	__asm movzx eax, byte ptr ds:[esi]          \
+	__asm mov eax, dword ptr ds:[ebx + eax * 4] \
+	__asm inc esi                               \
+	__asm mov dword ptr ds:[edi + a], eax       \
 }
 
-	HRESULT _stdcall Unlock(LPVOID) { // common game (is primary)
+	HRESULT __stdcall Unlock(LPVOID) { // common game (is primary)
 		//dlog("\nUnlock()", DL_INIT);
 		if (Primary && d3d9Device) {
 			//dlog(" is primary.", DL_INIT);
@@ -1042,9 +1042,9 @@ start2:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall UpdateOverlay(LPRECT, LPDIRECTDRAWSURFACE,LPRECT,DWORD, LPDDOVERLAYFX) { UNUSEDFUNCTION; }
-	HRESULT _stdcall UpdateOverlayDisplay(DWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall UpdateOverlayZOrder(DWORD, LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
+	HRESULT __stdcall UpdateOverlay(LPRECT, LPDIRECTDRAWSURFACE,LPRECT,DWORD, LPDDOVERLAYFX) { UNUSEDFUNCTION; }
+	HRESULT __stdcall UpdateOverlayDisplay(DWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall UpdateOverlayZOrder(DWORD, LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 };
 
 bool FakeSurface2::IsPlayMovie;
@@ -1060,11 +1060,11 @@ public:
 	}
 
 	// IUnknown methods
-	HRESULT _stdcall QueryInterface(REFIID, LPVOID*) { return E_NOINTERFACE; }
+	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) { return E_NOINTERFACE; }
 
-	ULONG _stdcall AddRef()  { return ++Refs; }
+	ULONG __stdcall AddRef()  { return ++Refs; }
 
-	ULONG _stdcall Release() { // called from game on exit
+	ULONG __stdcall Release() { // called from game on exit
 		if (!--Refs) {
 			globalShaderActive = false;
 			Graphics_OnGameLoad();
@@ -1091,15 +1091,15 @@ public:
 	}
 
 	// IDirectDraw methods
-	HRESULT _stdcall Compact() { UNUSEDFUNCTION; }
-	HRESULT _stdcall CreateClipper(DWORD, LPDIRECTDRAWCLIPPER*, IUnknown*) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Compact() { UNUSEDFUNCTION; }
+	HRESULT __stdcall CreateClipper(DWORD, LPDIRECTDRAWCLIPPER*, IUnknown*) { UNUSEDFUNCTION; }
 
-	HRESULT _stdcall CreatePalette(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE* c, IUnknown*) {
+	HRESULT __stdcall CreatePalette(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE* c, IUnknown*) {
 		*c = (IDirectDrawPalette*)new FakePalette2();
 		return DD_OK;
 	}
 
-	HRESULT _stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
+	HRESULT __stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
 		//dlog("\nCreateSurface", DL_INIT);
 		if (a->dwFlags == 1 && a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE) {
 			//dlog(" primary.", DL_INIT);
@@ -1110,21 +1110,21 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall DuplicateSurface(LPDIRECTDRAWSURFACE, LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall EnumDisplayModes(DWORD, LPDDSURFACEDESC, LPVOID, LPDDENUMMODESCALLBACK) { UNUSEDFUNCTION; }
-	HRESULT _stdcall EnumSurfaces(DWORD, LPDDSURFACEDESC, LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
-	HRESULT _stdcall FlipToGDISurface() { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetCaps(LPDDCAPS, LPDDCAPS b) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetDisplayMode(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetFourCCCodes(LPDWORD,LPDWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetGDISurface(LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetMonitorFrequency(LPDWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetScanLine(LPDWORD) { UNUSEDFUNCTION; }
-	HRESULT _stdcall GetVerticalBlankStatus(LPBOOL) { UNUSEDFUNCTION; }
-	HRESULT _stdcall Initialize(GUID *) { UNUSEDFUNCTION; }
-	HRESULT _stdcall RestoreDisplayMode() { return DD_OK; }
+	HRESULT __stdcall DuplicateSurface(LPDIRECTDRAWSURFACE, LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall EnumDisplayModes(DWORD, LPDDSURFACEDESC, LPVOID, LPDDENUMMODESCALLBACK) { UNUSEDFUNCTION; }
+	HRESULT __stdcall EnumSurfaces(DWORD, LPDDSURFACEDESC, LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
+	HRESULT __stdcall FlipToGDISurface() { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetCaps(LPDDCAPS, LPDDCAPS b) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetDisplayMode(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetFourCCCodes(LPDWORD,LPDWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetGDISurface(LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetMonitorFrequency(LPDWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetScanLine(LPDWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetVerticalBlankStatus(LPBOOL) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Initialize(GUID *) { UNUSEDFUNCTION; }
+	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
-	HRESULT _stdcall SetCooperativeLevel(HWND a, DWORD b) {
+	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) {
 		window = a;
 
 		if (!d3d9Device) {
@@ -1150,11 +1150,11 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; }
-	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
+	HRESULT __stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; }
+	HRESULT __stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
-HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
+HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
 	ResWidth = *(DWORD*)0x4CAD6B;  // 640

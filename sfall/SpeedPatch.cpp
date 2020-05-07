@@ -57,7 +57,7 @@ static struct SpeedCfg {
 static int modKey;
 static int toggleKey;
 
-static DWORD _stdcall FakeGetTickCount() {
+static DWORD __stdcall FakeGetTickCount() {
 	// Keyboard control
 	if (modKey && ((modKey > 0 && KeyDown(modKey))
 		|| (modKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
@@ -107,17 +107,17 @@ static DWORD _stdcall FakeGetTickCount() {
 	return storedTickCount;
 }
 
-void _stdcall FakeGetLocalTime(LPSYSTEMTIME time) {
+void __stdcall FakeGetLocalTime(LPSYSTEMTIME time) {
 	__int64 currentTime = startTime + storedTickCount * 10000;
 	FileTimeToSystemTime((FILETIME*)&currentTime, time);
 }
 
 //Could divide 'uDelay' by 'Multi', but doesn't seem to have any effect.
-/*MMRESULT _stdcall fTimeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLBACK lpTimeProc, DWORD_PTR dwUser, UINT fuEvent ) {
+/*MMRESULT __stdcall fTimeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLBACK lpTimeProc, DWORD_PTR dwUser, UINT fuEvent ) {
 	return timeSetEvent(uDelay, uResolution, lpTimeProc, dwUser, fuEvent);
 }
 
-MMRESULT _stdcall fTimeKillEvent(UINT id) {
+MMRESULT __stdcall fTimeKillEvent(UINT id) {
 	return timeKillEvent(id);
 }*/
 

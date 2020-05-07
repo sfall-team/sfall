@@ -57,7 +57,7 @@ static long real_tag_skill[4];
 
 static const DWORD* list_com = ptr_list_com;
 
-static bool _stdcall IsInPidList(TGameObj* obj) {
+static bool __stdcall IsInPidList(TGameObj* obj) {
 	int pid = obj->pid & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); ++it) {
 		if (*it == pid) {
@@ -67,7 +67,7 @@ static bool _stdcall IsInPidList(TGameObj* obj) {
 	return false;
 }
 
-static void _stdcall SetInventoryCheck(bool skip) {
+static void __stdcall SetInventoryCheck(bool skip) {
 	if (skip) {
 		SafeWrite16(0x46E7CD, 0x9090); //Inventory check
 		SafeWrite32(0x46E7CF, 0x90909090);
@@ -212,7 +212,7 @@ static int __stdcall CombatTurn(TGameObj* obj) {
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static int _stdcall CombatWrapperInner(TGameObj* obj) {
+static int __stdcall CombatWrapperInner(TGameObj* obj) {
 	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
@@ -234,7 +234,7 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
 static void __declspec(naked) FidChangeHook() {
-	_asm {
+	__asm {
 		cmp isControllingNPC, 0;
 		je skip;
 		push eax;

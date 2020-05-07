@@ -214,7 +214,7 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 	return true;
 }
 
-static void _stdcall op_sfall_metarule_handler() {
+static void __stdcall op_sfall_metarule_handler() {
 	const ScriptValue &nameArg = opHandler.arg(0);
 	if (nameArg.isString()) {
 		const char* name = nameArg.strValue();

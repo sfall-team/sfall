@@ -1,7 +1,7 @@
 #pragma once
 
 template <typename T>
-void _stdcall SafeWrite(DWORD addr, T data) {
+void __stdcall SafeWrite(DWORD addr, T data) {
 	DWORD oldProtect;
 	VirtualProtect((void*)addr, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((T*)addr) = data;
@@ -9,21 +9,21 @@ void _stdcall SafeWrite(DWORD addr, T data) {
 }
 
 template <typename T, class ForwardIteratorType>
-void _stdcall SafeWriteBatch(T data, ForwardIteratorType begin, ForwardIteratorType end) {
+void __stdcall SafeWriteBatch(T data, ForwardIteratorType begin, ForwardIteratorType end) {
 	for (ForwardIteratorType it = begin; it != end; ++it) {
 		SafeWrite<T>(*it, data);
 	}
 }
 
 template <class T, size_t N>
-void _stdcall SafeWriteBatch(T data, const DWORD (&addrs)[N]) {
+void __stdcall SafeWriteBatch(T data, const DWORD (&addrs)[N]) {
 	SafeWriteBatch<T>(data, std::begin(addrs), std::end(addrs));
 }
 
-void _stdcall SafeWrite8(DWORD addr, BYTE data);
-void _stdcall SafeWrite16(DWORD addr, WORD data);
-void _stdcall SafeWrite32(DWORD addr, DWORD data);
-void _stdcall SafeWriteStr(DWORD addr, const char* data);
+void __stdcall SafeWrite8(DWORD addr, BYTE data);
+void __stdcall SafeWrite16(DWORD addr, WORD data);
+void __stdcall SafeWrite32(DWORD addr, DWORD data);
+void __stdcall SafeWriteStr(DWORD addr, const char* data);
 
 void SafeMemSet(DWORD addr, BYTE val, int len);
 void SafeWriteBytes(DWORD addr, BYTE* data, int count);

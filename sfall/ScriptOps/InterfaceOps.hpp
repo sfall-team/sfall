@@ -169,7 +169,7 @@ static void __declspec(naked) resume_game() {
 }
 
 // copy and split
-static void _stdcall SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
+static void __stdcall SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
 	size_t i = 0;
 	while (str[i]) {
 		if (str[i] == '\n' && lines < 4) {
@@ -182,7 +182,7 @@ static void _stdcall SplitToBuffer(const char* str, const char** str_ptr, long &
 	gTextBuffer[i] = '\0';
 }
 
-static void _stdcall create_message_window2() {
+static void __stdcall create_message_window2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 	if (strArg.isString()) {
 		static bool dialogShow = false;
@@ -272,7 +272,7 @@ static void sf_add_iface_tag() {
 	opHandler.setReturn(result);
 }
 
-static void _stdcall ShowIfaceTag2() {
+static void __stdcall ShowIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		int tag = tagArg.rawValue();
@@ -291,7 +291,7 @@ static void __declspec(naked) ShowIfaceTag() {
 	_WRAP_OPCODE(ShowIfaceTag2, 1, 0)
 }
 
-static void _stdcall HideIfaceTag2() {
+static void __stdcall HideIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		int tag = tagArg.rawValue();
@@ -310,7 +310,7 @@ static void __declspec(naked) HideIfaceTag() {
 	_WRAP_OPCODE(HideIfaceTag2, 1, 0)
 }
 
-static void _stdcall IsIfaceTagActive2() {
+static void __stdcall IsIfaceTagActive2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		bool result = false;

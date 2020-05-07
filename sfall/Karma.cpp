@@ -34,7 +34,7 @@ static std::vector<KarmaFrmSetting> karmaFrms;
 static char KarmaGainMsg[128];
 static char KarmaLossMsg[128];
 
-static DWORD _stdcall DrawCard() {
+static DWORD __stdcall DrawCard() {
 	int reputation = **(int**)_game_global_vars;
 	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
 		if (reputation < it->points) {
@@ -60,7 +60,7 @@ skip:
 	}
 }
 
-static void _stdcall SetKarma(int value) {
+static void __stdcall SetKarma(int value) {
 	int old;
 	__asm {
 		xor eax, eax;

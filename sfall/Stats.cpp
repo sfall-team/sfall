@@ -135,7 +135,7 @@ end:
 	}
 }
 
-static void __declspec(naked) _stdcall ProtoPtr(DWORD pid, int** proto) {
+static void __declspec(naked) __stdcall ProtoPtr(DWORD pid, int** proto) {
 	__asm {
 		mov eax, [esp + 4];
 		mov edx, [esp + 8];
@@ -144,7 +144,7 @@ static void __declspec(naked) _stdcall ProtoPtr(DWORD pid, int** proto) {
 	}
 }
 
-static void _stdcall StatRecalcDerived(TGameObj* critter) {
+static void __stdcall StatRecalcDerived(TGameObj* critter) {
 	int basestats[7];
 	for (int i = STAT_st; i <= STAT_lu; i++) basestats[i] = StatLevel(critter, i);
 
@@ -310,25 +310,25 @@ void StatsInit() {
 	}
 }
 
-void _stdcall SetPCStatMax(int stat, int i) {
+void __stdcall SetPCStatMax(int stat, int i) {
 	if (stat >= 0 && stat < STAT_max_stat) {
 		StatMaximumsPC[stat] = i;
 	}
 }
 
-void _stdcall SetPCStatMin(int stat, int i) {
+void __stdcall SetPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < STAT_max_stat) {
 		StatMinimumsPC[stat] = i;
 	}
 }
 
-void _stdcall SetNPCStatMax(int stat, int i) {
+void __stdcall SetNPCStatMax(int stat, int i) {
 	if (stat >= 0 && stat < STAT_max_stat) {
 		StatMaximumsNPC[stat] = i;
 	}
 }
 
-void _stdcall SetNPCStatMin(int stat, int i) {
+void __stdcall SetNPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < STAT_max_stat) {
 		StatMinimumsNPC[stat] = i;
 	}

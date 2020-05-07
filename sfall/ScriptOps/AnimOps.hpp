@@ -40,7 +40,7 @@ static bool checkCombatMode() {
 	return (regAnimCombatCheck & *ptr_combat_state) != 0;
 }
 
-static void _stdcall op_reg_anim_combat_check2() {
+static void __stdcall op_reg_anim_combat_check2() {
 	const ScriptValue &newValArg = opHandler.arg(0);
 
 	if (newValArg.isInt()) {
@@ -54,7 +54,7 @@ static void __declspec(naked) op_reg_anim_combat_check() {
 	_WRAP_OPCODE(op_reg_anim_combat_check2, 1, 0)
 }
 
-static void _stdcall op_reg_anim_destroy2() {
+static void __stdcall op_reg_anim_destroy2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		if (!checkCombatMode()) {
@@ -69,7 +69,7 @@ static void __declspec(naked) op_reg_anim_destroy() {
 	_WRAP_OPCODE(op_reg_anim_destroy2, 1, 0)
 }
 
-static void _stdcall op_reg_anim_animate_and_hide2() {
+static void __stdcall op_reg_anim_animate_and_hide2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &animIdArg = opHandler.arg(1),
 					  &delayArg = opHandler.arg(2);
@@ -90,7 +90,7 @@ static void __declspec(naked) op_reg_anim_animate_and_hide() {
 	_WRAP_OPCODE(op_reg_anim_animate_and_hide2, 3, 0)
 }
 
-static void _stdcall op_reg_anim_light2() {
+static void __stdcall op_reg_anim_light2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &radiusArg = opHandler.arg(1),
 					  &delayArg = opHandler.arg(2);
@@ -116,7 +116,7 @@ static void __declspec(naked) op_reg_anim_light() {
 	_WRAP_OPCODE(op_reg_anim_light2, 3, 0)
 }
 
-static void _stdcall op_reg_anim_change_fid2() {
+static void __stdcall op_reg_anim_change_fid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &fidArg = opHandler.arg(1),
 					  &delayArg = opHandler.arg(2);
@@ -137,7 +137,7 @@ static void __declspec(naked) op_reg_anim_change_fid() {
 	_WRAP_OPCODE(op_reg_anim_change_fid2, 3, 0)
 }
 
-static void _stdcall op_reg_anim_take_out2() {
+static void __stdcall op_reg_anim_take_out2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &holdFrameArg = opHandler.arg(1),
 					  &nothingArg = opHandler.arg(2);
@@ -158,7 +158,7 @@ static void __declspec(naked) op_reg_anim_take_out() {
 	_WRAP_OPCODE(op_reg_anim_take_out2, 3, 0)
 }
 
-static void _stdcall op_reg_anim_turn_towards2() {
+static void __stdcall op_reg_anim_turn_towards2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &tileArg = opHandler.arg(1),
 					  &nothingArg = opHandler.arg(2);
@@ -186,7 +186,7 @@ static void __declspec(naked) ExecuteCallback() {
 	}
 }
 
-static void _stdcall op_reg_anim_callback2() {
+static void __stdcall op_reg_anim_callback2() {
 	const ScriptValue &procArg = opHandler.arg(0);
 
 	if (procArg.isInt()) {
@@ -205,7 +205,7 @@ static void __declspec(naked) op_reg_anim_callback() {
 	_WRAP_OPCODE(op_reg_anim_callback2, 1, 0)
 }
 
-static void _stdcall op_explosions_metarule2() {
+static void __stdcall op_explosions_metarule2() {
 	const ScriptValue &modeArg = opHandler.arg(0),
 					  &arg1Arg = opHandler.arg(1),
 					  &arg2Arg = opHandler.arg(2);

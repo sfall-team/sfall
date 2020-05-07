@@ -286,7 +286,7 @@ static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
 
 /////////////////////////////////////////////////////////////////APP MOD FUNCTIONS///////////////////////////////////////////////////////////////////
 
-static char _stdcall GetSex() {
+static char __stdcall GetSex() {
 	char sex;
 	__asm {
 		mov  edx, STAT_gender;              // sex stat ref
@@ -314,7 +314,7 @@ static void GetAppearanceGlobals(int *race, int *style) {
 	*style = GetGlobalVar("HApStyle");
 }
 
-static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
+static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
 	if (flush) ArtFlush();
 
 	if (heroPathPtr[1]->pDat) { // unload previous Dats
@@ -442,7 +442,7 @@ endFunc:
 	}
 }
 
-static void _stdcall SetHeroArt(bool newArtFlag) {
+static void __stdcall SetHeroArt(bool newArtFlag) {
 	TGameObj* hero = *ptr_obj_dude;           // hero state struct
 	long heroFID = hero->artFid;              // get hero FrmID
 	DWORD fidBase = heroFID & 0xFFF;          // mask out current weapon flag
@@ -537,7 +537,7 @@ static void DrawPC() {
 }
 
 // scan inventory items for armor and weapons currently being worn or wielded and setup matching FrmID for PC
-void _stdcall RefreshPCArt() {
+void __stdcall RefreshPCArt() {
 	__asm {
 		call proto_dude_update_gender_;         // refresh PC base model art
 
@@ -616,7 +616,7 @@ LoopStart:
 	DrawPC();
 }
 
-void _stdcall LoadHeroAppearance() {
+void __stdcall LoadHeroAppearance() {
 	if (!appModEnabled) return;
 
 	GetAppearanceGlobals(&currentRaceVal, &currentStyleVal);
@@ -625,7 +625,7 @@ void _stdcall LoadHeroAppearance() {
 	DrawPC();
 }
 
-void _stdcall SetNewCharAppearanceGlobals() {
+void __stdcall SetNewCharAppearanceGlobals() {
 	if (!appModEnabled) return;
 
 	if (currentRaceVal > 0 || currentStyleVal > 0) {
@@ -634,7 +634,7 @@ void _stdcall SetNewCharAppearanceGlobals() {
 }
 
 // op_set_hero_style
-void _stdcall SetHeroStyle(int newStyleVal) {
+void __stdcall SetHeroStyle(int newStyleVal) {
 	if (!appModEnabled || newStyleVal == currentStyleVal) return;
 
 	if (LoadHeroDat(currentRaceVal, newStyleVal, true) != 0) { // if new style cannot be set
@@ -651,7 +651,7 @@ void _stdcall SetHeroStyle(int newStyleVal) {
 }
 
 // op_set_hero_race
-void _stdcall SetHeroRace(int newRaceVal) {
+void __stdcall SetHeroRace(int newRaceVal) {
 	if (!appModEnabled || newRaceVal == currentRaceVal) return;
 
 	if (LoadHeroDat(newRaceVal, 0, true) != 0) { // if new race fails with style at 0
@@ -856,12 +856,12 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	delete[] PadSurface;
 }
 
-static void _stdcall DrawCharNoteNewChar(bool type) {
+static void __stdcall DrawCharNoteNewChar(bool type) {
 	DrawCharNote(type, *ptr_edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
 }
 
 // op_hero_select_win
-void _stdcall HeroSelectWindow(int raceStyleFlag) {
+void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!appModEnabled) return;
 
 	UNLSTDfrm *frm = LoadUnlistedFrm("AppHeroWin.frm", OBJ_TYPE_INTRFACE);
@@ -1073,7 +1073,7 @@ static void FixTextHighLight() {
 	}
 }
 
-static int _stdcall CheckCharButtons() {
+static int __stdcall CheckCharButtons() {
 	int button = GetInputBtn();
 
 	int drawFlag = -1;

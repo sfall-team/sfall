@@ -27,24 +27,24 @@ void PerksEnterCharScreen();
 void PerksCancelCharScreen();
 void PerksAcceptCharScreen();
 
-void _stdcall ApplyHeaveHoFix();
+void __stdcall ApplyHeaveHoFix();
 
 void __fastcall SetPerkValue(int id, int param, int value);
 void __stdcall SetPerkName(int id, const char* value);
 void __stdcall SetPerkDesc(int id, const char* value);
 
 void __fastcall SetPerkboxTitle(const char* name);
-void _stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
-void _stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
-void _stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
-void _stdcall IgnoreDefaultPerks();
-void _stdcall RestoreDefaultPerks();
+void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
+void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
+void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
+void __stdcall IgnoreDefaultPerks();
+void __stdcall RestoreDefaultPerks();
 
-void _stdcall AddPerkMode(DWORD mode);
-DWORD _stdcall HasFakePerk(const char* name);
-DWORD _stdcall HasFakeTrait(const char* name);
-void _stdcall ClearSelectablePerks();
+void __stdcall AddPerkMode(DWORD mode);
+DWORD __stdcall HasFakePerk(const char* name);
+DWORD __stdcall HasFakeTrait(const char* name);
+void __stdcall ClearSelectablePerks();
 
-void _stdcall SetPerkFreq(int i);
+void __stdcall SetPerkFreq(int i);
 
 extern long PerkLevelMod;

@@ -89,9 +89,9 @@ long GetResetScriptReturnValue();
 void AddProgramToMap(sScriptProgram &prog);
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
 
-void _stdcall AddTimerEventScripts(DWORD script, long time, long param);
-void _stdcall RemoveTimerEventScripts(DWORD script, long param);
-void _stdcall RemoveTimerEventScripts(DWORD script);
+void __stdcall AddTimerEventScripts(DWORD script, long time, long param);
+void __stdcall RemoveTimerEventScripts(DWORD script, long param);
+void __stdcall RemoveTimerEventScripts(DWORD script);
 
 // variables
 extern DWORD isGlobalScriptLoading;

@@ -92,7 +92,7 @@ static void __declspec(naked) explosion_lighting_fix2() {
 	}
 }
 
-//DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
+//DWORD __stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
 //	dlog_f("anim_set_check_light_fix: object 0x%X, something 0x%X, radius 0x%X", DL_MAIN, value1, value2, value3);
 //	return value1;
 //}
@@ -164,7 +164,7 @@ enum MetaruleExplosionsMode {
 	EXPL_STATIC_EXPLOSION_RADIUS = 5,
 };
 
-int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
+int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
 		case EXPL_FORCE_EXPLOSION_PATTERN:
 			if (arg1) {

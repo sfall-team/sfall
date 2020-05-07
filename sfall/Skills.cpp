@@ -261,7 +261,7 @@ skip:
 	}
 }
 
-void _stdcall SetSkillMax(TGameObj* critter, int maximum) {
+void __stdcall SetSkillMax(TGameObj* critter, int maximum) {
 	if ((DWORD)critter == -1) {
 		baseSkillMax.maximum = maximum;
 		return;
@@ -281,7 +281,7 @@ void _stdcall SetSkillMax(TGameObj* critter, int maximum) {
 	skillMaxMods.push_back(sm);
 }
 
-void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
+void __stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	if ((DWORD)critter == -1) {
 		basePickpocket.maximum = maximum;
 		basePickpocket.mod = mod;

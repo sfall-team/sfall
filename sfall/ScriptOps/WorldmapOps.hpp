@@ -76,7 +76,7 @@ noCar:
 	}
 }
 
-static void _stdcall ForceEncounter2() {
+static void __stdcall ForceEncounter2() {
 	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
 	const ScriptValue &mapIDArg = opHandler.arg(0);

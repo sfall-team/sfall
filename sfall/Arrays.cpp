@@ -373,7 +373,7 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 	TODO: move somewhere else
 */
 
-const char* _stdcall GetSfallTypeName(DWORD dataType) {
+const char* __stdcall GetSfallTypeName(DWORD dataType) {
 	switch (dataType) {
 		case DATATYPE_NONE:
 			return "(none)";
@@ -388,7 +388,7 @@ const char* _stdcall GetSfallTypeName(DWORD dataType) {
 	}
 }
 
-DWORD _stdcall getSfallTypeByScriptType(DWORD varType) {
+DWORD __stdcall getSfallTypeByScriptType(DWORD varType) {
 	switch (varType & 0xFFFF) {
 		case VAR_TYPE_STR2:
 		case VAR_TYPE_STR:
@@ -401,7 +401,7 @@ DWORD _stdcall getSfallTypeByScriptType(DWORD varType) {
 	}
 }
 
-DWORD _stdcall getScriptTypeBySfallType(DWORD dataType) {
+DWORD __stdcall getScriptTypeBySfallType(DWORD dataType) {
 	switch (dataType) {
 		case DATATYPE_STR:
 			return VAR_TYPE_STR;
@@ -413,7 +413,7 @@ DWORD _stdcall getScriptTypeBySfallType(DWORD dataType) {
 	}
 }
 
-DWORD _stdcall CreateArray(int len, DWORD flags) {
+DWORD __stdcall CreateArray(int len, DWORD flags) {
 	sArrayVar var;
 	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit
 	if (len < 0) {
@@ -437,13 +437,13 @@ DWORD _stdcall CreateArray(int len, DWORD flags) {
 	return nextArrayID++;
 }
 
-DWORD _stdcall TempArray(DWORD len, DWORD flags) {
+DWORD __stdcall TempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
 	temporaryArrays.insert(id);
 	return id;
 }
 
-void _stdcall FreeArray(DWORD id) {
+void __stdcall FreeArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	if (it != arrays.end()) {
 		if (it->second.key.intVal) savedArrays.erase(it->second.key);
@@ -461,7 +461,7 @@ void DeleteAllTempArrays() {
 	}
 }
 
-DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
+DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
 		return 0;
@@ -491,7 +491,7 @@ DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 	}
 }
 
-DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
+DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	if (arrays.find(id) == arrays.end()) {
 		return 0;
@@ -526,7 +526,7 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	return 0;
 }
 
-void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
+void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
 	keyType = getSfallTypeByScriptType(keyType);
 	valType = getSfallTypeByScriptType(valType);
 	if (arrays.find(id) == arrays.end()) {
@@ -579,7 +579,7 @@ void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valT
 	}
 }
 
-int _stdcall LenArray(DWORD id) {
+int __stdcall LenArray(DWORD id) {
 	if (arrays.find(id) == arrays.end()) return -1;
 	return arrays[id].size();
 }
@@ -640,7 +640,7 @@ static void MapSort(sArrayVar& arr, int type) {
 	}
 }
 
-void _stdcall ResizeArray(DWORD id, int newlen) {
+void __stdcall ResizeArray(DWORD id, int newlen) {
 	if (newlen == -1 || arrays.find(id) == arrays.end()) return;
 
 	sArrayVar &arr = arrays[id];
@@ -686,11 +686,11 @@ errorResize:
 	DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
 }
 
-void _stdcall FixArray(DWORD id) {
+void __stdcall FixArray(DWORD id) {
 	temporaryArrays.erase(id);
 }
 
-int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
+int __stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	datatype = getSfallTypeByScriptType(datatype);
 	if (arrays.find(id) == arrays.end()) {
@@ -714,7 +714,7 @@ int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	return -1;
 }
 
-DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
+DWORD __stdcall LoadArray(DWORD key, DWORD keyType) {
 	int dataType = getSfallTypeByScriptType(keyType);
 	if (dataType != DATATYPE_INT || key != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key, dataType);
@@ -741,7 +741,7 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
 	return 0; // not found
 }
 
-void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
+void __stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 	array_itr it, itArray = arrays.find(id); // arrayId => arrayVar
 	int dataType = getSfallTypeByScriptType(keyType);
 	if (itArray != arrays.end()) {
@@ -779,7 +779,7 @@ void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 
 	Should always return 0!
 */
-long _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
+long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
 	DWORD id = stackArrayId;
 	if (id == 0 || arrays.find(id) == arrays.end()) {
 		return 0;

@@ -49,27 +49,27 @@ enum HookType
 	HOOK_COUNT
 };
 
-DWORD _stdcall GetHSArgCount();
-DWORD _stdcall GetHSArg();
-DWORD* _stdcall GetHSArgs();
-DWORD _stdcall GetHSArgAt(DWORD id);
-void _stdcall SetHSArg(DWORD id, DWORD value);
-void _stdcall SetHSReturn(DWORD d);
+DWORD __stdcall GetHSArgCount();
+DWORD __stdcall GetHSArg();
+DWORD* __stdcall GetHSArgs();
+DWORD __stdcall GetHSArgAt(DWORD id);
+void __stdcall SetHSArg(DWORD id, DWORD value);
+void __stdcall SetHSReturn(DWORD d);
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg);
+void __stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg);
 
 void HookScriptInit();
 void HookScriptClear();
 
 extern DWORD InitingHookScripts;
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
-void _stdcall RunHookScriptsAtProc(DWORD procId);
+void __stdcall RunHookScriptsAtProc(DWORD procId);
 
-DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
-void _stdcall MouseClickHook(DWORD button, bool pressed);
+DWORD __stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
+void __stdcall MouseClickHook(DWORD button, bool pressed);
 
-long _stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);
+long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
 

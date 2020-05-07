@@ -24,7 +24,7 @@
 
 #include "ScriptExtender.h"
 
-static void _stdcall funcDiv2() {
+static void __stdcall funcDiv2() {
 	const ScriptValue &dividend = opHandler.arg(0),
 					  &divisor = opHandler.arg(1);
 
@@ -49,7 +49,7 @@ static void __declspec(naked) funcDiv() {
 	_WRAP_OPCODE(funcDiv2, 2, 1)
 }
 
-static void _stdcall funcSqrt2() {
+static void __stdcall funcSqrt2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -64,7 +64,7 @@ static void __declspec(naked) funcSqrt() {
 	_WRAP_OPCODE(funcSqrt2, 1, 1)
 }
 
-static void _stdcall funcAbs2() {
+static void __stdcall funcAbs2() {
 	const ScriptValue &value = opHandler.arg(0);
 
 	if (!value.isString()) {
@@ -83,7 +83,7 @@ static void __declspec(naked) funcAbs() {
 	_WRAP_OPCODE(funcAbs2, 1, 1)
 }
 
-static void _stdcall funcSin2() {
+static void __stdcall funcSin2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -98,7 +98,7 @@ static void __declspec(naked) funcSin() {
 	_WRAP_OPCODE(funcSin2, 1, 1)
 }
 
-static void _stdcall funcCos2() {
+static void __stdcall funcCos2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -113,7 +113,7 @@ static void __declspec(naked) funcCos() {
 	_WRAP_OPCODE(funcCos2, 1, 1)
 }
 
-static void _stdcall funcTan2() {
+static void __stdcall funcTan2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -128,7 +128,7 @@ static void __declspec(naked) funcTan() {
 	_WRAP_OPCODE(funcTan2, 1, 1)
 }
 
-static void _stdcall funcATan2() {
+static void __stdcall funcATan2() {
 	const ScriptValue &xFltArg = opHandler.arg(0),
 					  &yFltArg = opHandler.arg(1);
 
@@ -144,7 +144,7 @@ static void __declspec(naked) funcATan() {
 	_WRAP_OPCODE(funcATan2, 2, 1)
 }
 
-static void _stdcall funcPow2() {
+static void __stdcall funcPow2() {
 	const ScriptValue &base = opHandler.arg(0),
 					  &power = opHandler.arg(1);
 
@@ -170,7 +170,7 @@ static void __declspec(naked) funcPow() {
 	_WRAP_OPCODE(funcPow2, 2, 1)
 }
 
-static void _stdcall funcLog2() {
+static void __stdcall funcLog2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -185,7 +185,7 @@ static void __declspec(naked) funcLog() {
 	_WRAP_OPCODE(funcLog2, 1, 1)
 }
 
-static void _stdcall funcExp2() {
+static void __stdcall funcExp2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -200,7 +200,7 @@ static void __declspec(naked) funcExp() {
 	_WRAP_OPCODE(funcExp2, 1, 1)
 }
 
-static void _stdcall funcCeil2() {
+static void __stdcall funcCeil2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {
@@ -215,7 +215,7 @@ static void __declspec(naked) funcCeil() {
 	_WRAP_OPCODE(funcCeil2, 1, 1)
 }
 
-static void _stdcall funcRound2() {
+static void __stdcall funcRound2() {
 	const ScriptValue &floatArg = opHandler.arg(0);
 
 	if (!floatArg.isString()) {

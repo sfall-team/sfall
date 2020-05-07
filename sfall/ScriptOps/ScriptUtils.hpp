@@ -25,7 +25,7 @@
 #include "Message.h"
 
 // compares strings case-insensitive with specifics for Fallout
-static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, long codePage) {
+static bool __stdcall FalloutStringCompare(const char* str1, const char* str2, long codePage) {
 	while (true) {
 		unsigned char c1 = *str1;
 		unsigned char c2 = *str2;
@@ -89,7 +89,7 @@ static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, lo
 	}
 }
 
-static void _stdcall op_strlen2() {
+static void __stdcall op_strlen2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 
 	if (strArg.isString()) {
@@ -106,7 +106,7 @@ static void __declspec(naked) op_strlen() {
 	_WRAP_OPCODE(op_strlen2, 1, 1)
 }
 
-static void _stdcall str_to_int2() {
+static void __stdcall str_to_int2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 
 	if (strArg.isString()) {
@@ -124,7 +124,7 @@ static void __declspec(naked) str_to_int() {
 	_WRAP_OPCODE(str_to_int2, 1, 1)
 }
 
-static void _stdcall str_to_flt2() {
+static void __stdcall str_to_flt2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 
 	if (strArg.isString()) {
@@ -142,7 +142,7 @@ static void __declspec(naked) str_to_flt() {
 	_WRAP_OPCODE(str_to_flt2, 1, 1)
 }
 
-static void _stdcall op_ord2() {
+static void __stdcall op_ord2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 
 	if (strArg.isString()) {
@@ -158,7 +158,7 @@ static void __declspec(naked) op_ord() {
 	_WRAP_OPCODE(op_ord2, 1, 1)
 }
 
-static void _stdcall op_typeof2() {
+static void __stdcall op_typeof2() {
 	opHandler.setReturn(static_cast<int>(opHandler.arg(0).type()));
 }
 
@@ -166,7 +166,7 @@ static void __declspec(naked) op_typeof() {
 	_WRAP_OPCODE(op_typeof2, 1, 1)
 }
 
-static int _stdcall StringSplit(const char* str, const char* split) {
+static int __stdcall StringSplit(const char* str, const char* split) {
 	int id;
 	size_t count, splitLen = strlen(split);
 	if (!splitLen) {
@@ -198,7 +198,7 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-static void _stdcall string_split2() {
+static void __stdcall string_split2() {
 	const ScriptValue &strArg = opHandler.arg(0),
 					  &splitArg = opHandler.arg(1);
 
@@ -214,7 +214,7 @@ static void __declspec(naked) string_split() {
 	_WRAP_OPCODE(string_split2, 2, 1)
 }
 
-static char* _stdcall SubString(const char* str, int startPos, int length) {
+static char* __stdcall SubString(const char* str, int startPos, int length) {
 	int len = strlen(str);
 
 	if (startPos < 0) {
@@ -240,7 +240,7 @@ static char* _stdcall SubString(const char* str, int startPos, int length) {
 	return gTextBuffer;
 }
 
-static void _stdcall op_substr2() {
+static void __stdcall op_substr2() {
 	const ScriptValue &strArg = opHandler.arg(0),
 					  &startArg = opHandler.arg(1),
 					  &lenArg = opHandler.arg(2);
@@ -281,7 +281,7 @@ invalidArgs:
 }
 
 // A safer version of sprintf for using in user scripts.
-static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType) {
+static char* __stdcall mysprintf(const char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
@@ -483,7 +483,7 @@ static void sf_string_format() {
 	}
 }
 
-static void _stdcall op_message_str_game2() {
+static void __stdcall op_message_str_game2() {
 	const char* msg = nullptr;
 	const ScriptValue &fileIdArg = opHandler.arg(0),
 					  &msgIdArg = opHandler.arg(1);
