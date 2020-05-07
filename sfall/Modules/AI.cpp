@@ -266,10 +266,12 @@ skip:
 	}
 }
 
-static long __fastcall CheckWeaponRangeAndDistToTarget(fo::GameObject* source, fo::GameObject* target) {
+static long __fastcall CheckWeaponRangeAndApCost(fo::GameObject* source, fo::GameObject* target) {
 	long weaponRange = fo::func::item_w_range(source, fo::ATKTYPE_RWEAPON_SECONDARY);
 	long targetDist  = fo::func::obj_dist(source, target);
-	return (weaponRange >= targetDist); // 0 - don't use secondary mode
+	if (targetDist > weaponRange) return 0; // don't use secondary mode
+
+	return (source->critter.movePoints >= sf_item_w_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
 static void __declspec(naked) ai_pick_hit_mode_hook() {
@@ -281,7 +283,7 @@ static void __declspec(naked) ai_pick_hit_mode_hook() {
 evaluation:
 		mov  edx, edi;
 		mov  ecx, esi;
-		jmp  CheckWeaponRangeAndDistToTarget;
+		jmp  CheckWeaponRangeAndApCost;
 	}
 }
 
@@ -394,7 +396,7 @@ void AI::init() {
 		0x42A970, 0x42AA56, // ai_try_attack_
 	});
 
-	// Adds a check for the weapon range and the distance to the target when AI is choosing weapon attack modes
+	// Adds a check for the weapon range and the AP cost when AI is choosing weapon attack modes
 	HookCall(0x429F6D, ai_pick_hit_mode_hook);
 
 	/////////////////////// Combat AI behavior fixes ///////////////////////
