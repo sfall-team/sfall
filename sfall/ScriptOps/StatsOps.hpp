@@ -385,7 +385,7 @@ static void _stdcall SetCritterAP2() {
 		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
 			long ap = apArg.rawValue();
 			if (ap < 0) ap = 0;
-			obj->critterAP_weaponAmmoPid = ap;
+			obj->critterAP_itemAmmoPid = ap;
 
 			if (obj == *ptr_obj_dude) IntfaceUpdateMovePoints(ap, *ptr_combat_free_move);
 		} else {

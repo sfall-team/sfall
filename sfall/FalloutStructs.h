@@ -75,7 +75,7 @@ struct TGameObj {
 	TInvenRec *invenTablePtr;
 	char gap_38[4];
 	long itemCharges;
-	long critterAP_weaponAmmoPid;
+	long critterAP_itemAmmoPid;
 	long damageFlags;    // critter
 	long damageLastTurn; // critter
 	long aiPacket;       // critter

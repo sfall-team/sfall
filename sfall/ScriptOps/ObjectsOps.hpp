@@ -166,7 +166,7 @@ static void __declspec(naked) set_critter_burst_disable() {
 static void _stdcall get_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(obj->critterAP_weaponAmmoPid);
+		opHandler.setReturn(obj->critterAP_itemAmmoPid);
 	} else {
 		OpcodeInvalidArgs("get_weapon_ammo_pid");
 		opHandler.setReturn(-1);
@@ -182,7 +182,7 @@ static void _stdcall set_weapon_ammo_pid2() {
 	const ScriptValue &pidArg = opHandler.arg(1);
 
 	if (obj && pidArg.isInt()) {
-		obj->critterAP_weaponAmmoPid = pidArg.rawValue();
+		obj->critterAP_itemAmmoPid = pidArg.rawValue();
 	} else {
 		OpcodeInvalidArgs("set_weapon_ammo_pid");
 	}
