@@ -27,6 +27,8 @@ class Combat : public Module {
 public:
 	const char* name() { return "Combat"; }
 	void init();
+
+	static DWORD __fastcall check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode);
 };
 
 struct ChanceModifier {
@@ -48,12 +50,12 @@ struct ChanceModifier {
 	}
 };
 
-void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode);
-void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode);
+void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode);
+void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode);
 
-void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
-void _stdcall DisableAimedShots(DWORD pid);
-void _stdcall ForceAimedShots(DWORD pid);
+void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
+void __stdcall DisableAimedShots(DWORD pid);
+void __stdcall ForceAimedShots(DWORD pid);
 
 }
