@@ -37,13 +37,16 @@ struct ChanceModifier {
 	}
 };
 
-void __stdcall SetBlockCombat(long toggle);
-
-void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode);
-void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);
 void CombatInit();
 void Combat_OnGameLoad();
-void _stdcall SetNoBurstMode(TGameObj* critter, bool on);
-void _stdcall DisableAimedShots(DWORD pid);
-void _stdcall ForceAimedShots(DWORD pid);
+
+void __stdcall SetBlockCombat(long toggle);
+DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode);
+
+void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
+void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode);
+void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);
+
+void __stdcall SetNoBurstMode(TGameObj* critter, bool on);
+void __stdcall DisableAimedShots(DWORD pid);
+void __stdcall ForceAimedShots(DWORD pid);

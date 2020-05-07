@@ -81,7 +81,7 @@ static std::vector<DWORD> forcedAS;
 static bool combatDisabled;
 static char combatBlockedMessage[128];
 
-static void _stdcall CombatBlocked() {
+static void __stdcall CombatBlocked() {
 	DisplayConsoleMessage(combatBlockedMessage);
 }
 
@@ -118,17 +118,17 @@ void __stdcall SetBlockCombat(long toggle) {
 	combatDisabled = toggle != 0;
 }
 
-static DWORD __fastcall add_check_for_item_ammo_cost(register TGameObj* weapon, DWORD hitMode) {
+DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
-	DWORD anim = ItemWAnimWeap(weapon, hitMode);
+	long anim = ItemWAnimWeap(weapon, hitMode);
 	if (anim == 46 || anim == 47) {   // ANIM_fire_burst or ANIM_fire_continuous
 		rounds = ItemWRounds(weapon); // ammo in burst
 	}
 	AmmoCostHook_Script(1, weapon, rounds); // get rounds cost from hook
-	DWORD currAmmo = ItemWCurrAmmo(weapon);
+	long currAmmo = ItemWCurrAmmo(weapon);
 
-	DWORD cost = 1; // default cost
+	long cost = 1; // default cost
 	if (currAmmo > 0) {
 		cost = rounds / currAmmo;
 		if (rounds % currAmmo) cost++; // round up
@@ -142,7 +142,7 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 		push edx;
 		push ecx;         // weapon
 		mov  edx, edi;    // hitMode
-		call add_check_for_item_ammo_cost;
+		call Combat_check_item_ammo_cost;
 		pop  ecx;
 		pop  edx;
 		retn;
@@ -154,8 +154,8 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;                      // weapon
-		mov  edx, 2;                        // hitMode - ATKTYPE_RWEAPON_PRIMARY
-		call add_check_for_item_ammo_cost;  // enough ammo?
+		mov  edx, ATKTYPE_RWEAPON_PRIMARY;  // hitMode
+		call Combat_check_item_ammo_cost;   // enough ammo?
 		pop  ecx;
 		retn;
 	}
@@ -167,7 +167,7 @@ static void __declspec(naked) ai_try_attack_hook() {
 	static const DWORD ai_try_attack_continue = 0x42A929;
 	__asm {
 		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
-		cmp  ebx, 3;                    // ATKTYPE_RWEAPON_SECONDARY
+		cmp  ebx, ATKTYPE_RWEAPON_SECONDARY;
 		jne  searchAmmo;
 		mov  edx, [esp + 0x364 - 0x3C]; // weapon
 		mov  eax, [edx + 0x3C];         // curr ammo
@@ -176,7 +176,7 @@ static void __declspec(naked) ai_try_attack_hook() {
 searchAmmo:
 		jmp  ai_try_attack_search_ammo;
 tryAttack:
-		mov  ebx, 2;                    // ATKTYPE_RWEAPON_PRIMARY
+		mov  ebx, ATKTYPE_RWEAPON_PRIMARY;
 		mov  [esp + 0x364 - 0x38], ebx; // change hit mode
 		jmp  ai_try_attack_continue;
 	}
@@ -209,7 +209,7 @@ static void __declspec(naked) compute_spray_hack() {
 }
 
 static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* object, double val) {
-	for (DWORD i = 0; i < mods->size(); i++) {
+	for (size_t i = 0; i < mods->size(); i++) {
 		KnockbackModifier* mod = &(*mods)[i];
 		if (mod->id == object->ID) {
 			switch (mod->type) {
@@ -264,7 +264,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 }
 
 static int __fastcall HitChanceMod(int base, TGameObj* critter) {
-	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
+	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (critter->ID == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
 		}
@@ -306,7 +306,7 @@ static void __declspec(naked) ai_pick_hit_mode_hack_noSecondary() {
 	}
 }
 
-void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode) {
+void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
 	switch (mode) {
 	case 0:
@@ -348,7 +348,7 @@ void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mod
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
+void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
 	switch (mode) {
 	case 0:
@@ -363,7 +363,7 @@ void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 	default:
 		return;
 	}
-	for (DWORD i = 0; i < mods->size(); i++) {
+	for (size_t i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->ID) {
 			mods->erase(mods->begin() + i);
 			if (mode == 0) SetNewEngineID(object); // revert to engine range id
@@ -372,7 +372,7 @@ void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 	}
 }
 
-void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
+void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	if ((DWORD)critter == -1) {
 		baseHitChance.maximum = maximum;
 		baseHitChance.mod = mod;
@@ -380,7 +380,7 @@ void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	}
 	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 	long id = SetObjectUniqueID(critter);
-	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
+	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
 			hitChanceMods[i].maximum = maximum;
 			hitChanceMods[i].mod = mod;
@@ -394,7 +394,7 @@ void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	hitChanceMods.push_back(cm);
 }
 
-void _stdcall SetNoBurstMode(TGameObj* critter, bool on) {
+void __stdcall SetNoBurstMode(TGameObj* critter, bool on) {
 	if (critter == *ptr_obj_dude || critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 
 	long id = SetObjectUniqueID(critter);
@@ -409,10 +409,10 @@ void _stdcall SetNoBurstMode(TGameObj* critter, bool on) {
 
 static int __fastcall AimedShotTest(DWORD pid) {
 	if (pid) pid = ((TGameObj*)pid)->pid;
-	for (DWORD i = 0; i < disabledAS.size(); i++) {
+	for (size_t i = 0; i < disabledAS.size(); i++) {
 		if (disabledAS[i] == pid) return -1;
 	}
-	for (DWORD i = 0; i < forcedAS.size(); i++) {
+	for (size_t i = 0; i < forcedAS.size(); i++) {
 		if (forcedAS[i] == pid) return 1;
 	}
 	return 0;
@@ -445,23 +445,23 @@ static void HookAimedShots() {
 	hookedAimedShot = true;
 }
 
-void _stdcall DisableAimedShots(DWORD pid) {
+void __stdcall DisableAimedShots(DWORD pid) {
 	if (!hookedAimedShot) HookAimedShots();
-	for (DWORD i = 0; i < forcedAS.size(); i++) {
+	for (size_t i = 0; i < forcedAS.size(); i++) {
 		if (forcedAS[i] == pid) forcedAS.erase(forcedAS.begin() + (i--));
 	}
-	for (DWORD i = 0; i < disabledAS.size(); i++) {
+	for (size_t i = 0; i < disabledAS.size(); i++) {
 		if (disabledAS[i] == pid) return;
 	}
 	disabledAS.push_back(pid);
 }
 
-void _stdcall ForceAimedShots(DWORD pid) {
+void __stdcall ForceAimedShots(DWORD pid) {
 	if (!hookedAimedShot) HookAimedShots();
-	for (DWORD i = 0; i < disabledAS.size(); i++) {
+	for (size_t i = 0; i < disabledAS.size(); i++) {
 		if (disabledAS[i] == pid) disabledAS.erase(disabledAS.begin() + (i--));
 	}
-	for (DWORD i = 0; i < forcedAS.size(); i++) {
+	for (size_t i = 0; i < forcedAS.size(); i++) {
 		if (forcedAS[i] == pid) return;
 	}
 	forcedAS.push_back(pid);
