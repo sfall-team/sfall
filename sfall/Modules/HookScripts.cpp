@@ -114,7 +114,7 @@ void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	EndHook();
 }
 
-void _stdcall MouseClickHook(DWORD button, bool pressed) {
+void __stdcall MouseClickHook(DWORD button, bool pressed) {
 	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
 		return;
 	}

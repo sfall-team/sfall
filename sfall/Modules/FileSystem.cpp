@@ -57,7 +57,7 @@ std::vector<fsFile> files;
 static DWORD loadedFiles = 0; // used for internal sfall data
 bool FileSystem::UsingFileSystem = false;
 
-static long _stdcall xfclose(sFile* file) {
+static long __stdcall xfclose(sFile* file) {
 	delete file->openFile;
 	delete file;
 	return 0;
@@ -79,7 +79,7 @@ end:
 	}
 }
 
-static sFile* _stdcall xfopen(const char* path, const char* mode) {
+static sFile* __stdcall xfopen(const char* path, const char* mode) {
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (!_stricmp(path, files[i].name)) {
 			sFile* file = new sFile();
@@ -110,7 +110,7 @@ end:
 }
 
 //db_fprintf calls xvfprintf, not xfprintf
-static int _stdcall xvfprintf() {
+static int __stdcall xvfprintf() {
 	return -1;
 }
 
@@ -127,7 +127,7 @@ end:
 	}
 }
 
-static DWORD _stdcall xfgetc(sFile* file) {
+static DWORD __stdcall xfgetc(sFile* file) {
 	if (file->openFile->pos >= file->openFile->file->length) return -1;
 	return static_cast<DWORD>(file->openFile->file->data[file->openFile->pos++]);
 }
@@ -148,7 +148,7 @@ end:
 	}
 }
 
-static char* _stdcall xfgets(char* buf, int max_count, sFile* file) {
+static char* __stdcall xfgets(char* buf, int max_count, sFile* file) {
 	if (file->openFile->pos >= file->openFile->file->length) return 0;
 	for (int i = 0; i < max_count; i++) {
 		int c = xfgetc(file);
@@ -179,7 +179,7 @@ end:
 	}
 }
 
-static int _stdcall xfputc(int c, sFile* file) {
+static int __stdcall xfputc(int c, sFile* file) {
 	return -1;
 }
 
@@ -198,7 +198,7 @@ end:
 	}
 }
 
-static int _stdcall xfputs(const char* str, sFile* file) {
+static int __stdcall xfputs(const char* str, sFile* file) {
 	return -1;
 }
 
@@ -217,7 +217,7 @@ end:
 	}
 }
 
-static int _stdcall xfungetc(int c, sFile* file) {
+static int __stdcall xfungetc(int c, sFile* file) {
 	if (file->openFile->pos == 0) return -1;
 	if (file->openFile->file->data[file->openFile->pos - 1] != static_cast<BYTE>(c)) return -1;
 	file->openFile->pos--;
@@ -298,7 +298,7 @@ end:
 	}
 }
 
-static int _stdcall xfseek(sFile* file, long pos, int origin) {
+static int __stdcall xfseek(sFile* file, long pos, int origin) {
 	switch(origin) {
 		case 0:
 			file->openFile->pos = pos;
@@ -329,7 +329,7 @@ end:
 	}
 }
 
-static long _stdcall xftell(sFile* file) {
+static long __stdcall xftell(sFile* file) {
 	return file->openFile->pos;
 }
 
@@ -349,7 +349,7 @@ end:
 	}
 }
 
-static void _stdcall xfrewind(sFile* file) {
+static void __stdcall xfrewind(sFile* file) {
 	file->openFile->pos = 0;
 }
 
@@ -367,7 +367,7 @@ end:
 	}
 }
 
-static int _stdcall xfeof(sFile* file) {
+static int __stdcall xfeof(sFile* file) {
 	if (file->openFile->pos >= file->openFile->file->length) {
 		return 1;
 	}
@@ -390,7 +390,7 @@ end:
 	}
 }
 
-static int _stdcall xfilelength(sFile* file) {
+static int __stdcall xfilelength(sFile* file) {
 	return file->openFile->file->length;
 }
 
@@ -503,7 +503,7 @@ static DWORD NewFile(fsFile &file, const char* path, int size) {
 	return files.size() - 1;
 }
 
-DWORD _stdcall FScreateFromData(const char* path, void* data, int size) {
+DWORD __stdcall FScreateFromData(const char* path, void* data, int size) {
 	loadedFiles++;
 	fsFile file;
 	file.data = new BYTE[size];
@@ -512,7 +512,7 @@ DWORD _stdcall FScreateFromData(const char* path, void* data, int size) {
 	return NewFile(file, path, size); // return file index in vector
 }
 
-DWORD _stdcall FScreate(const char* path, int size) {
+DWORD __stdcall FScreate(const char* path, int size) {
 	if (size > MAX_FILE_SIZE) return -1;  // size limit 10Mb
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (!files[i].data) {
@@ -529,7 +529,7 @@ DWORD _stdcall FScreate(const char* path, int size) {
 	return NewFile(file, path, size); // return file index in vector
 }
 
-DWORD _stdcall FScopy(const char* path, const char* source) {
+DWORD __stdcall FScopy(const char* path, const char* source) {
 	int result = FSfind(path);
 	if (result != -1) return result;
 
@@ -582,7 +582,7 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 	return result; // return file index in vector
 }
 
-DWORD _stdcall FSfind(const char* path) {
+DWORD __stdcall FSfind(const char* path) {
 	if (!*path) return -1;
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (!_stricmp(files[i].name, path)) return i;
@@ -590,13 +590,13 @@ DWORD _stdcall FSfind(const char* path) {
 	return -1;
 }
 
-void _stdcall FSwrite_byte(DWORD id, int data) {
+void __stdcall FSwrite_byte(DWORD id, int data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + 1 > files[id].length) return;
 	files[id].data[files[id].wpos++] = (char)data;
 }
 
-void _stdcall FSwrite_short(DWORD id, int data) {
+void __stdcall FSwrite_short(DWORD id, int data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + 2 > files[id].length) return;
 
@@ -606,7 +606,7 @@ void _stdcall FSwrite_short(DWORD id, int data) {
 	for (int i = 0; i < 2; i++) files[id].data[files[id].wpos++] = *(data2 - i);
 }
 
-void _stdcall FSwrite_int(DWORD id, int data) {
+void __stdcall FSwrite_int(DWORD id, int data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + 4 > files[id].length) return;
 
@@ -616,27 +616,27 @@ void _stdcall FSwrite_int(DWORD id, int data) {
 	for (int i = 0; i < 4; i++) files[id].data[files[id].wpos++] = *(data2 - i);
 }
 
-void _stdcall FSwrite_string(DWORD id, const char* data) {
+void __stdcall FSwrite_string(DWORD id, const char* data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + strlen(data) + 1 > files[id].length) return;
 	memcpy(&files[id].data[files[id].wpos], data, strlen(data) + 1);
 	files[id].wpos += strlen(data) + 1;
 }
 
-void _stdcall FSwrite_bstring(DWORD id, const char* data) {
+void __stdcall FSwrite_bstring(DWORD id, const char* data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + strlen(data) > files[id].length) return;
 	memcpy(&files[id].data[files[id].wpos], data, strlen(data));
 	files[id].wpos += strlen(data);
 }
 
-int _stdcall FSread_byte(DWORD id) {
+int __stdcall FSread_byte(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	if (files[id].wpos + 1 > files[id].length) return 0;
 	return files[id].data[files[id].wpos++];
 }
 
-int _stdcall FSread_short(DWORD id) {
+int __stdcall FSread_short(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	if (files[id].wpos + 2 > files[id].length) return 0;
 
@@ -647,7 +647,7 @@ int _stdcall FSread_short(DWORD id) {
 	return static_cast<int>(*(short*)data);
 }
 
-int _stdcall FSread_int(DWORD id) {
+int __stdcall FSread_int(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	if (files[id].wpos + 4 > files[id].length) return 0;
 
@@ -657,7 +657,7 @@ int _stdcall FSread_int(DWORD id) {
 	return *(int*)data;
 }
 
-void _stdcall FSdelete(DWORD id) {
+void __stdcall FSdelete(DWORD id) {
 	if (id >= files.size() || !files[id].data) return;
 	files[id].length = 0;
 	files[id].wpos = 0;
@@ -666,23 +666,23 @@ void _stdcall FSdelete(DWORD id) {
 	files[id].data = 0;
 }
 
-DWORD _stdcall FSsize(DWORD id) {
+DWORD __stdcall FSsize(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	return files[id].length;
 }
 
-DWORD _stdcall FSpos(DWORD id) {
+DWORD __stdcall FSpos(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	return files[id].wpos;
 }
 
-void _stdcall FSseek(DWORD id, DWORD pos) {
+void __stdcall FSseek(DWORD id, DWORD pos) {
 	if (id >= files.size() || !files[id].data) return;
 	if (pos > files[id].length) return;
 	files[id].wpos = pos;
 }
 
-void _stdcall FSresize(DWORD id, DWORD size) {
+void __stdcall FSresize(DWORD id, DWORD size) {
 	if (id >= files.size() || !files[id].data || (size != -1 && size > MAX_FILE_SIZE)) return; // size limit 10Mb
 	if (size == -1) {
 		files[id].isSave = 1;

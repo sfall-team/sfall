@@ -193,19 +193,19 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 
 	if (dropResult == -1) {
 skipHook:
-		_asm call fo::funcoffs::obj_drop_;
+		__asm call fo::funcoffs::obj_drop_;
 	}
-	_asm retn;
+	__asm retn;
 
 /* for only caps multi drop */
 capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
-		_asm call fo::funcoffs::item_remove_mult_;
-		_asm retn;
+		__asm call fo::funcoffs::item_remove_mult_;
+		__asm retn;
 	}
-	_asm add esp, 4;
-	_asm jmp InvenActionObjDropRet;    // no caps drop
+	__asm add esp, 4;
+	__asm jmp InvenActionObjDropRet;    // no caps drop
 }
 
 static void __declspec(naked) InvenActionExplosiveDropHack() {

@@ -30,7 +30,7 @@ public:
 	void exit() override;
 };
 
-void _stdcall SetSkillMax(fo::GameObject* critter, int maximum);
-void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+void __stdcall SetSkillMax(fo::GameObject* critter, int maximum);
+void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
 
 }

@@ -302,18 +302,18 @@ static void __declspec(naked) ItemDamageHook() {
 	argCount = 6;
 	RunHookScript(HOOK_ITEMDAMAGE);
 
-	_asm popad;
+	__asm popad;
 	if (cRet > 0) {
-		_asm mov eax, rets[0];     // set min
+		__asm mov eax, rets[0];     // set min
 		if (cRet > 1) {
-			_asm mov edx, rets[4]; // set max
+			__asm mov edx, rets[4]; // set max
 		} else {
 			HookEnd;
-			_asm retn;             // no calc random
+			__asm retn;             // no calc random
 		}
 	}
 	HookEnd;
-	_asm jmp fo::funcoffs::roll_random_;
+	__asm jmp fo::funcoffs::roll_random_;
 }
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds) {

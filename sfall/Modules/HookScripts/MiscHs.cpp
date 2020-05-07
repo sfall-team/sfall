@@ -427,7 +427,7 @@ static void __declspec(naked) SetGlobalVarHook() {
 }
 
 static int restTicks;
-static long _stdcall RestTimerHook_Script() {
+static long __stdcall RestTimerHook_Script() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;

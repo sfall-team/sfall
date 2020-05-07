@@ -10,7 +10,7 @@ enum CodeType : BYTE {
 	Nop  = 0x90
 };
 
-static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
+static void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	DWORD oldProtect, data = (DWORD)func - (addr + 5);
 
 	VirtualProtect((void *)addr, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -21,7 +21,7 @@ static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	CheckConflict(addr, 5);
 }
 
-static __declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
+static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
 	DWORD oldProtect,
 		protectLen = len + 5,
 		addrMem = addr + 5,
@@ -49,7 +49,7 @@ void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
 	AddrAddToList(addr, count);
 }
 
-void _stdcall SafeWrite8(DWORD addr, BYTE data) {
+void __stdcall SafeWrite8(DWORD addr, BYTE data) {
 	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -59,7 +59,7 @@ void _stdcall SafeWrite8(DWORD addr, BYTE data) {
 	AddrAddToList(addr, 1);
 }
 
-void _stdcall SafeWrite16(DWORD addr, WORD data) {
+void __stdcall SafeWrite16(DWORD addr, WORD data) {
 	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -69,7 +69,7 @@ void _stdcall SafeWrite16(DWORD addr, WORD data) {
 	AddrAddToList(addr, 2);
 }
 
-void _stdcall SafeWrite32(DWORD addr, DWORD data) {
+void __stdcall SafeWrite32(DWORD addr, DWORD data) {
 	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -79,7 +79,7 @@ void _stdcall SafeWrite32(DWORD addr, DWORD data) {
 	AddrAddToList(addr, 4);
 }
 
-void _stdcall SafeWriteStr(DWORD addr, const char* data) {
+void __stdcall SafeWriteStr(DWORD addr, const char* data) {
 	DWORD oldProtect;
 	long len = strlen(data) + 1;
 

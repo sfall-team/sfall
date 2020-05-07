@@ -34,22 +34,22 @@ public:
 	static bool IsEmpty();
 };
 
-DWORD _stdcall FScreate(const char* path, int size);
-DWORD _stdcall FScreateFromData(const char* path, void* data, int size);
-DWORD _stdcall FScopy(const char* path, const char* source);
-DWORD _stdcall FSfind(const char* path);
-void _stdcall FSwrite_byte(DWORD id, int data);
-void _stdcall FSwrite_short(DWORD id, int data);
-void _stdcall FSwrite_int(DWORD id, int data);
-void _stdcall FSwrite_string(DWORD id, const char* data);
-void _stdcall FSwrite_bstring(DWORD id, const char* data);
-int _stdcall FSread_byte(DWORD id);
-int _stdcall FSread_short(DWORD id);
-int _stdcall FSread_int(DWORD id);
-void _stdcall FSdelete(DWORD id);
-DWORD _stdcall FSsize(DWORD id);
-DWORD _stdcall FSpos(DWORD id);
-void _stdcall FSseek(DWORD id, DWORD pos);
-void _stdcall FSresize(DWORD id, DWORD size);
+DWORD __stdcall FScreate(const char* path, int size);
+DWORD __stdcall FScreateFromData(const char* path, void* data, int size);
+DWORD __stdcall FScopy(const char* path, const char* source);
+DWORD __stdcall FSfind(const char* path);
+void __stdcall FSwrite_byte(DWORD id, int data);
+void __stdcall FSwrite_short(DWORD id, int data);
+void __stdcall FSwrite_int(DWORD id, int data);
+void __stdcall FSwrite_string(DWORD id, const char* data);
+void __stdcall FSwrite_bstring(DWORD id, const char* data);
+int __stdcall FSread_byte(DWORD id);
+int __stdcall FSread_short(DWORD id);
+int __stdcall FSread_int(DWORD id);
+void __stdcall FSdelete(DWORD id);
+DWORD __stdcall FSsize(DWORD id);
+DWORD __stdcall FSpos(DWORD id);
+void __stdcall FSseek(DWORD id, DWORD pos);
+void __stdcall FSresize(DWORD id, DWORD size);
 
 }

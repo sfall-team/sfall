@@ -51,7 +51,7 @@ size_t ScriptShaders::Count() {
 	return shadersSize;
 }
 
-void _stdcall SetShaderMode(DWORD d, DWORD mode) {
+void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	if (mode & 0x80000000) {
 		shaders[d].mode2 = mode ^ 0x80000000;
@@ -60,7 +60,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 	}
 }
 
-int _stdcall LoadShader(const char* file) {
+int __stdcall LoadShader(const char* file) {
 	if (!Graphics::mode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
 	sprintf_s(buf, "%s\\shaders\\%s", fo::var::master_db_handle->path, file); // fo::var::patches
@@ -108,15 +108,15 @@ void ScriptShaders::LoadGlobalShader() {
 	}
 }
 
-void _stdcall ActivateShader(DWORD d) {
+void __stdcall ActivateShader(DWORD d) {
 	if (d < shadersSize && shaders[d].Effect) shaders[d].Active = true;
 }
 
-void _stdcall DeactivateShader(DWORD d) {
+void __stdcall DeactivateShader(DWORD d) {
 	if (d < shadersSize) shaders[d].Active = false;
 }
 
-int _stdcall GetShaderTexture(DWORD d, DWORD id) {
+int __stdcall GetShaderTexture(DWORD d, DWORD id) {
 	if (id < 1 || id > 128 || d >= shadersSize || !shaders[d].Effect) return -1;
 	IDirect3DBaseTexture9* tex = 0;
 	char buf[8] = "tex";
@@ -129,29 +129,29 @@ int _stdcall GetShaderTexture(DWORD d, DWORD id) {
 	return -1;
 }
 
-void _stdcall FreeShader(DWORD d) {
+void __stdcall FreeShader(DWORD d) {
 	if (d < shadersSize) {
 		SAFERELEASE(shaders[d].Effect);
 		shaders[d].Active = false;
 	}
 }
 
-void _stdcall SetShaderInt(DWORD d, const char* param, int value) {
+void __stdcall SetShaderInt(DWORD d, const char* param, int value) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	shaders[d].Effect->SetInt(param, value);
 }
 
-void _stdcall SetShaderFloat(DWORD d, const char* param, float value) {
+void __stdcall SetShaderFloat(DWORD d, const char* param, float value) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	shaders[d].Effect->SetFloat(param, value);
 }
 
-void _stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, float f3, float f4) {
+void __stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, float f3, float f4) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	shaders[d].Effect->SetFloatArray(param, &f1, 4);
 }
 
-void _stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
+void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
 	if (d >= shadersSize || !shaders[d].Effect || value >= shaderTextures.size()) return;
 	shaders[d].Effect->SetTexture(param, shaderTextures[value]);
 }

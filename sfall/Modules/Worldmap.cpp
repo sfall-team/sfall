@@ -213,7 +213,7 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-static DWORD _stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
+static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 	double multi = mapMultiMod * scriptMapMulti;
 
 	switch (perkLevel) {

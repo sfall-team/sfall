@@ -55,7 +55,7 @@ public:
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 
-int _stdcall GetShaderVersion();
+int __stdcall GetShaderVersion();
 
 void RefreshGraphics();
 HWND GetFalloutWindowInfo(RECT* rect);

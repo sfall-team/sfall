@@ -116,7 +116,7 @@ static void __declspec(naked) explosion_lighting_fix2() {
 	}
 }
 
-//DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
+//DWORD __stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
 //	dlog_f("anim_set_check_light_fix: object 0x%X, something 0x%X, radius 0x%X", DL_MAIN, value1, value2, value3);
 //	return value1;
 //}
@@ -198,8 +198,8 @@ static DWORD __fastcall SetQueueExplosionDamage(DWORD register pid) {
 	DWORD result = GetDamage(pid, min, max);
 
 	if (result) {
-		_asm mov edx, min;
-		_asm mov ecx, max;
+		__asm mov edx, min;
+		__asm mov ecx, max;
 	}
 	return result;
 }
@@ -393,7 +393,7 @@ enum MetaruleExplosionsMode {
 	EXPL_SET_EXPLOSION_MAX_TARGET      = 9,
 };
 
-int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
+int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
 		case EXPL_FORCE_EXPLOSION_PATTERN:
 			if (arg1) {

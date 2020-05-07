@@ -128,8 +128,8 @@ static void __declspec(naked) OnDeathHook2() {
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
-	_asm popad;
-	_asm retn;
+	__asm popad;
+	__asm retn;
 }
 
 void Inject_DeathAnim1Hook() {

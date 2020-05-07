@@ -280,7 +280,7 @@ static __declspec(naked) void display_stats_hack() {
 }
 
 static char SizeMsgBuf[32];
-static const char* _stdcall SizeInfoMessage(fo::GameObject* item) {
+static const char* __stdcall SizeInfoMessage(fo::GameObject* item) {
 	int size = fo::func::item_size(item);
 	if (size == 1) {
 		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
@@ -677,7 +677,7 @@ static char invenApQPReduction;
 
 static void __declspec(naked) inven_ap_cost_hack() {
 	static const DWORD inven_ap_cost_Ret = 0x46E812;
-	_asm {
+	__asm {
 		mul byte ptr invenApQPReduction;
 		mov edx, invenApCost;
 		jmp inven_ap_cost_Ret;

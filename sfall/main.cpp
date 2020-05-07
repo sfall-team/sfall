@@ -276,7 +276,7 @@ inline void SfallInit() {
 
 	if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
 		int is64bit;
-		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
+		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
 		chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
 		if (proc)
@@ -387,7 +387,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 	return false;
 }
 
-bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
+bool __stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
 		sfall::SfallInit();
 	}

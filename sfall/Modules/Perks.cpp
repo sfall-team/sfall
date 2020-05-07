@@ -138,7 +138,7 @@ int PerkSearchID(int id) {
 	return -1;
 }
 
-void _stdcall SetPerkFreq(int i) {
+void __stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
@@ -146,7 +146,7 @@ static bool IsTraitDisabled(int id) {
 	return disableTraits[id];
 }
 
-static long _stdcall LevelUp() {
+static long __stdcall LevelUp() {
 	int eachLevel = PerkFreqOverride;
 
 	if (!eachLevel) {
@@ -179,11 +179,11 @@ static void __declspec(naked) GetPerkBoxTitleHook() {
 	}
 }
 
-void _stdcall IgnoreDefaultPerks() {
+void __stdcall IgnoreDefaultPerks() {
 	IgnoringDefaultPerks = 1;
 }
 
-void _stdcall RestoreDefaultPerks() {
+void __stdcall RestoreDefaultPerks() {
 	IgnoringDefaultPerks = 0;
 }
 
@@ -289,7 +289,7 @@ void Perks::SetFakeTrait(const char* name, int active, int image, const char* de
 	}
 }
 
-static DWORD _stdcall HaveFakePerks() {
+static DWORD __stdcall HaveFakePerks() {
 	return fakePerks.size();
 }
 
@@ -472,7 +472,7 @@ cLoop:
 }
 
 // Build a table of perks ID numbers available for selection, data buffer has limited size for 119 perks
-static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
+static DWORD __stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	size_t count;
 	if (!PartyControl::IsNpcControlled()) { // extra perks are not available for controlled NPC
 		count = extPerks.size();
@@ -612,7 +612,7 @@ static void ApplyPerkEffect(long index, fo::GameObject* critter, long type) {
 }
 
 // Adds the selected perk to the player
-static long _stdcall AddFakePerk(DWORD perkID) {
+static long __stdcall AddFakePerk(DWORD perkID) {
 	size_t count;
 	bool matched = false;
 	if (perkID < startFakeID) { // extra perk can only be added to the player
@@ -811,7 +811,7 @@ lower:
 }
 
 static bool perkHeaveHoModFix = false;
-void _stdcall ApplyHeaveHoFix() { // not really a fix
+void __stdcall ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	perks[PERK_heave_ho].strengthMin = 0;
 	perkHeaveHoModFix = true;
@@ -1000,7 +1000,7 @@ static int stat_get_base_direct(DWORD statID) {
 	return fo::func::stat_get_base_direct(fo::var::obj_dude, statID);
 }
 
-static int _stdcall trait_adjust_stat_override(DWORD statID) {
+static int __stdcall trait_adjust_stat_override(DWORD statID) {
 	if (statID > STAT_max_derived) return 0;
 
 	int result = 0;
@@ -1080,7 +1080,7 @@ static void __declspec(naked) TraitAdjustStatHack() {
 	}
 }
 
-static int _stdcall trait_adjust_skill_override(DWORD skillID) {
+static int __stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
 	if (var::pc_trait[0] != -1) {
 		result += TraitSkillBonuses[skillID * TRAIT_count + var::pc_trait[0]];
@@ -1362,7 +1362,7 @@ bool Perks::load(HANDLE file) {
 	return true;
 }
 
-void _stdcall AddPerkMode(DWORD mode) {
+void __stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
@@ -1410,7 +1410,7 @@ DWORD Perks::HasFakeTraitOwner(const char* name, long objId) {
 	return 0;
 }
 
-void _stdcall ClearSelectablePerks() {
+void __stdcall ClearSelectablePerks() {
 	fakeSelectablePerks.clear();
 	addPerkMode = 2;
 	IgnoringDefaultPerks = 0;
