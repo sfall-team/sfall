@@ -287,6 +287,8 @@
 #define _DARK_GREY_Color            0x6A59D8
 #define _DarkGreenColor             0x6A3A90
 #define _DarkGreenGreyColor         0x6A3DF1
+#define _DarkRedColor               0x6AA8D0
+#define _DarkYellowColor            0x6AB472
 #define _DullPinkColor              0x6AB718
 #define _GoodColor                  0x6AB4EF
 #define _GreenColor                 0x6A3CB0
@@ -295,7 +297,7 @@
 #define _PeanutButter               0x6A82F3
 #define _RedColor                   0x6AB4D0
 #define _WhiteColor                 0x6AB8CF
-#define _YellowColor                0x6AB8BB
+#define _YellowColor                0x6AB8BB // Light
 
 // variables
 // TODO: move to separate namespace

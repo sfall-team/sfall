@@ -19,6 +19,8 @@
 #include "main.h"
 #include "FalloutEngine.h"
 
+#include "MiscPatches.h"
+
 static char mapName[65]       = {};
 static char configName[65]    = {};
 static char patchName[65]     = {};
@@ -433,6 +435,27 @@ static void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
+static void SkipLoadingGameSettingsPatch() {
+	if (int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
+		dlog("Applying skip loading game settings from saved games patch.", DL_INIT);
+		BlockCall(0x493421);
+		SafeWrite8(0x4935A8, 0x1F);
+		SafeWrite32(0x4935AB, 0x90901B75);
+		CodeData PatchData;
+		if (skipLoading == 2) {
+			const DWORD difficultyAddr[] = {0x49341C, 0x49343B};
+			SafeWriteBatch<CodeData>(PatchData, difficultyAddr);
+		}
+		const DWORD settingsAddr[] = {
+			0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE,
+			0x4934E3, 0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569,
+			0x49357A
+		};
+		SafeWriteBatch<CodeData>(PatchData, settingsAddr);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 static void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
@@ -598,6 +621,7 @@ void MiscPatchesInit() {
 
 	DisplaySecondWeaponRangePatch();
 
+	SkipLoadingGameSettingsPatch();
 	InterfaceDontMoveOnTopPatch();
 
 	UseWalkDistancePatch();
