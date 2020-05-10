@@ -1544,7 +1544,7 @@ end:
 	}
 }
 
-static void __declspec(naked) ai_move_steps_closer_hook() {
+static void __declspec(naked) ai_combat_turn_run_hook() {
 	__asm {
 		call  fo::funcoffs::combat_turn_run_;
 		movzx dx, word ptr [esi + damageFlags]; // combat_data.results
@@ -3040,7 +3040,11 @@ void BugFixes::init()
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
-	HookCall(0x42A1A8, ai_move_steps_closer_hook); // old 0x42B24D
+	HookCalls(ai_combat_turn_run_hook, {
+		0x42A1A8, // ai_move_steps_closer_ (old 0x42B24D)
+		0x42898D, // ai_run_away_  (potential fix)
+		0x428AB3  // ai_move_away_ (potential fix)
+	});
 
 	// Fix instant death critical
 	dlog("Applying instant death fix.", DL_INIT);

@@ -17,6 +17,7 @@
  */
 
 #define DIRECTINPUT_VERSION         0x0700
+
 #include <math.h>
 #include <dinput.h>
 #include <queue>
