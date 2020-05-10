@@ -236,14 +236,15 @@ DWORD* ptr_world_ypos                 = reinterpret_cast<DWORD*>(_world_ypos);
 DWORD* ptr_WorldMapCurrArea           = reinterpret_cast<DWORD*>(_WorldMapCurrArea);
 BYTE*  ptr_YellowColor                = reinterpret_cast<BYTE*>(_YellowColor);
 
+
 /**
 	ENGINE FUNCTIONS OFFSETS
 	const names should end with underscore
 */
 
-
 // AI FUNCTIONS
 const DWORD ai_can_use_weapon_ = 0x4298EC;  // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+const DWORD ai_cap_ = 0x4280B4;
 const DWORD ai_check_drugs_ = 0x428480;
 const DWORD ai_run_away_ = 0x428868;
 const DWORD ai_search_inven_armor_ = 0x429A6C;
@@ -258,7 +259,6 @@ const DWORD intface_item_reload_ = 0x460B20;
 const DWORD obj_new_ = 0x489A84;  // int aObj*<eax>, int aPid<ebx>
 const DWORD obj_turn_off_ = 0x48AE68;  // int aObj<eax>, int ???<edx>
 const DWORD obj_move_to_tile_ = 0x48A568;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
-
 
 // misc functions in alphabetical order
 const DWORD action_get_an_object_ = 0x412134;
@@ -386,8 +386,8 @@ const DWORD EndPipboy_ = 0x497828;
 const DWORD exec_script_proc_ = 0x4A4810;
 const DWORD executeProcedure_ = 0x46DD2C;
 const DWORD exit_inventory_ = 0x46FBD8;
-const DWORD findCurrentProc_ = 0x467160;
 const DWORD fadeSystemPalette_ = 0x4C7320;
+const DWORD findCurrentProc_ = 0x467160;
 const DWORD findVar_ = 0x4410AC;
 const DWORD FMtext_char_width_ = 0x4421DC;
 const DWORD FMtext_to_buf_ = 0x4422B4;

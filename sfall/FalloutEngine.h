@@ -526,7 +526,8 @@ extern const DWORD add_bar_box_;
 extern const DWORD AddHotLines_;
 extern const DWORD adjust_ac_;
 extern const DWORD adjust_fid_;
-extern const DWORD ai_can_use_weapon_; //  (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+extern const DWORD ai_can_use_weapon_; // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+extern const DWORD ai_cap_;
 extern const DWORD ai_check_drugs_;
 extern const DWORD ai_run_away_;
 extern const DWORD ai_search_inven_armor_;
@@ -650,6 +651,7 @@ extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcI
 extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD exit_inventory_;
 extern const DWORD fadeSystemPalette_;
+extern const DWORD findCurrentProc_;
 extern const DWORD findVar_;
 extern const DWORD FMtext_char_width_;
 extern const DWORD FMtext_to_buf_;
@@ -834,7 +836,7 @@ extern const DWORD obj_erase_object_;
 extern const DWORD obj_examine_;
 extern const DWORD obj_find_first_;
 extern const DWORD obj_find_first_at_;
-extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
+extern const DWORD obj_find_first_at_tile_; // <eax>(int elevation<eax>, int tile<edx>)
 extern const DWORD obj_find_next_;
 extern const DWORD obj_find_next_at_;
 extern const DWORD obj_find_next_at_tile_; // no args

@@ -326,6 +326,22 @@ skipMove:
 	}
 }
 
+static void __declspec(naked) ai_move_away_hook() {
+	static const DWORD ai_move_away_hook_Ret = 0x4289DA;
+	__asm {
+		test ebx, ebx;
+		jl   fix; // distance arg < 0
+		jmp  ai_cap_;
+fix:
+		neg  ebx;
+		mov  eax, [esi + 0x40]; // Current Action Points
+		cmp  ebx, eax;
+		cmovg ebx, eax; // if (distance > ap) dist = ap
+		add  esp, 4;
+		jmp  ai_move_away_hook_Ret;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static long __fastcall RollFriendlyFire(TGameObj* target, TGameObj* attacker) {
@@ -436,6 +452,13 @@ void AIInit() {
 	// Fix AI behavior for "Snipe" distance preference
 	// The attacker will try to shoot the target instead of always running away from it at the beginning of the turn
 	MakeCall(0x42B086, cai_perform_distance_prefs_hack);
+
+	// Fix for ai_move_away_ engine function not working correctly in cases when needing to move a distance away from the target
+	// now the function also takes the distance argument in a negative value for moving away at a distance
+	HookCall(0x4289A7, ai_move_away_hook);
+	// also patch combat_safety_invalidate_weapon_func_ for returning out_range argument in a negative value
+	SafeWrite8(0x421628, 0xD0);    // sub edx, eax > sub eax, edx
+	SafeWrite16(0x42162A, 0xFF40); // lea eax, [edx+1] > lea eax, [eax-1]
 }
 
 TGameObj* __stdcall AIGetLastAttacker(TGameObj* target) {
