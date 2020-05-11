@@ -120,7 +120,7 @@ void sf_ord(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<unsigned long>(firstChar));
 }
 
-static int _stdcall StringSplit(const char* str, const char* split) {
+static int __stdcall StringSplit(const char* str, const char* split) {
 	int id;
 	size_t count, splitLen = strlen(split);
 	if (!splitLen) {

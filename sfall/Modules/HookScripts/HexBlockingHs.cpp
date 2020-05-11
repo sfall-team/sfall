@@ -8,8 +8,8 @@
 namespace sfall
 {
 
-static const DWORD _obj_blocking_at = 0x48B84E;
 static void __declspec(naked) HexMBlockingHook() {
+	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
 		HookBegin;
 		mov args[0], eax;

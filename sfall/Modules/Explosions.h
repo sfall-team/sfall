@@ -31,6 +31,6 @@ public:
 	static void AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg);
 };
 
-int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
+int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
 
 }

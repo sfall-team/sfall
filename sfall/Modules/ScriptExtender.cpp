@@ -634,7 +634,7 @@ static void RunGlobalScriptsOnWorldMap() {
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == fo::Scripts::ScriptProc::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
-		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
+		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
 			fo::func::runProgram(it->prog.ptr);
 		}
 	} else if (procId == fo::Scripts::ScriptProc::map_exit_p_proc) onMapExit.invoke();
@@ -649,7 +649,7 @@ static DWORD HandleTimedEventScripts() {
 	DWORD currentTime = fo::var::fallout_game_time;
 	bool wasRunning = false;
 	auto timerIt = timerEventScripts.cbegin();
-	for (; timerIt != timerEventScripts.cend(); timerIt++) {
+	for (; timerIt != timerEventScripts.cend(); ++timerIt) {
 		if (currentTime >= timerIt->time) {
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
 			fo::func::dev_printf("\n[TimedEventScripts] run event: %d", timerIt->time);
@@ -660,7 +660,7 @@ static DWORD HandleTimedEventScripts() {
 		}
 	}
 	if (wasRunning) {
-		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
+		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; ++_it) {
 			fo::func::dev_printf("\n[TimedEventScripts] delete event: %d", _it->time);
 		}
 		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
@@ -744,7 +744,7 @@ void SaveGlobals(HANDLE h) {
 		var.id = itr->first;
 		var.val = itr->second;
 		WriteFile(h, &var, sizeof(GlobalVar), &unused, 0);
-		itr++;
+		++itr;
 	}
 }
 
@@ -767,7 +767,7 @@ void GetGlobals(GlobalVar* globals) {
 	while (itr != globalVars.end()) {
 		globals[i].id = itr->first;
 		globals[i++].val = itr->second;
-		itr++;
+		++itr;
 	}
 }
 
@@ -776,7 +776,7 @@ void SetGlobals(GlobalVar* globals) {
 	int i = 0;
 	while (itr != globalVars.end()) {
 		itr->second = globals[i++].val;
-		itr++;
+		++itr;
 	}
 }
 
@@ -858,7 +858,7 @@ void ScriptExtender::init() {
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
-	MakeCalls(TimedEventNextTime, {
+	HookCalls(TimedEventNextTime, {
 		0x4C1C67, // wmGameTimeIncrement_
 		0x4A3E1C, // script_chk_timed_events_
 		0x499AFA, 0x499CD7, 0x499E2B // TimedRest_

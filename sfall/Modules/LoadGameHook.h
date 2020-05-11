@@ -58,8 +58,6 @@ public:
 
 	// Invoked before the game exits to windows
 	static Delegate<>& OnBeforeGameClose();
-
-	static DWORD LootTarget;
 };
 
 // True if game was started, false when on the main menu

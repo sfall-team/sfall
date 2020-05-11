@@ -153,7 +153,7 @@ static const SfallMetarule metarules[] = {
 static void sf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arrId = TempArray(metaruleTable.size(), 0);
 	int i = 0;
-	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
 		arrays[arrId].val[i].set(it->first.c_str());
 		i++;
 	}

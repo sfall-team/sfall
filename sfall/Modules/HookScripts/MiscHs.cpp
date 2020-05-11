@@ -256,6 +256,27 @@ skip:
 	}
 }
 
+// Implementation of is_within_perception_ engine function with the hook
+long __fastcall sf_is_within_perception(fo::GameObject* watcher, fo::GameObject* target) {
+	long result = fo::func::is_within_perception(watcher, target);
+	if (!HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) return result;
+
+	BeginHook();
+
+	args[0] = (DWORD)watcher;
+	args[1] = (DWORD)target;
+	args[2] = result;
+	args[3] = 0; // type
+
+	argCount = 4;
+	RunHookScript(HOOK_WITHINPERCEPTION);
+
+	if (cRet > 0) result = rets[0];
+	EndHook();
+
+	return result;
+}
+
 static long __stdcall PerceptionRangeHook_Script(int type) {
 	long result;
 	__asm {
@@ -314,6 +335,7 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 }
 
 static constexpr long maxGasAmount = 80000;
+
 static void CarTravelHook_Script() {
 	BeginHook();
 	argCount = 2;
@@ -358,8 +380,8 @@ static void CarTravelHook_Script() {
 	EndHook();
 }
 
-static const DWORD CarTravelHack_back = 0x4BFF43;
 static void __declspec(naked) CarTravelHack() {
+	static const DWORD CarTravelHack_back = 0x4BFF43;
 	__asm {
 		pushad;
 		call CarTravelHook_Script;
@@ -405,7 +427,7 @@ static void __declspec(naked) SetGlobalVarHook() {
 }
 
 static int restTicks;
-static long _stdcall RestTimerHook_Script() {
+static long __stdcall RestTimerHook_Script() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;

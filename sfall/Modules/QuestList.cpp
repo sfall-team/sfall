@@ -217,10 +217,10 @@ static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE
 	return ExitCode::Normal;
 }
 
-static const DWORD PipStatus_NormalRet = 0x49818B;
-static const DWORD PipStatus_NextRet   = 0x498237;
-static const DWORD PipStatus_BreakRet  = 0x4982A4;
 static void __declspec(naked) PipStatus_hack_print() {
+	static const DWORD PipStatus_NormalRet = 0x49818B;
+	static const DWORD PipStatus_NextRet   = 0x498237;
+	static const DWORD PipStatus_BreakRet  = 0x4982A4;
 	__asm {
 		push ecx;
 		push ebx;

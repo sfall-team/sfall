@@ -145,7 +145,7 @@ end:
 	}
 }
 
-static void _stdcall StatRecalcDerived(fo::GameObject* critter) {
+static void __stdcall StatRecalcDerived(fo::GameObject* critter) {
 	int baseStats[7];
 	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) baseStats[stat] = fo::func::stat_level(critter, stat);
 
@@ -318,25 +318,25 @@ void Stats::init() {
 	}
 }
 
-void _stdcall SetPCStatMax(int stat, int i) {
+void __stdcall SetPCStatMax(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMaximumsPC[stat] = i;
 	}
 }
 
-void _stdcall SetPCStatMin(int stat, int i) {
+void __stdcall SetPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMinimumsPC[stat] = i;
 	}
 }
 
-void _stdcall SetNPCStatMax(int stat, int i) {
+void __stdcall SetNPCStatMax(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMaximumsNPC[stat] = i;
 	}
 }
 
-void _stdcall SetNPCStatMin(int stat, int i) {
+void __stdcall SetNPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMinimumsNPC[stat] = i;
 	}

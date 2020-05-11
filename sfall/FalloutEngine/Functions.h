@@ -99,12 +99,12 @@ void executeProcedure(Program* sptr, long procNum);
 
 long __stdcall get_input();
 
-long _stdcall isPartyMember(GameObject* obj);
+long __stdcall isPartyMember(GameObject* obj);
 
 long __stdcall item_get_type(GameObject* item);
 
 // searches for message ID in given message file and places result in @result
-const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId);
+const char* __stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId);
 
 // plays SFX sound with given name
 void __stdcall gsound_play_sfx_file(const char* name);
@@ -173,9 +173,9 @@ GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum);
 
 GameObject* __stdcall obj_find_next_at_tile();
 
-long _stdcall partyMemberGetCurLevel(GameObject* obj);
+long __stdcall partyMemberGetCurLevel(GameObject* obj);
 
-long _stdcall perk_level(GameObject* critter, long perkId);
+long __stdcall perk_level(GameObject* critter, long perkId);
 
 // places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
 long proto_ptr(long pid, Proto* *ptrPtr);

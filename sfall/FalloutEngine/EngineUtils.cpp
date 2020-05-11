@@ -251,7 +251,7 @@ fo::Window* GetWindow(long winType) {
 }
 
 // Returns an array of objects within the specified radius from the source tile
-void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type) {
 	for (long tile = 0; tile < 40000; tile++) {
 		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
 		while (obj) {

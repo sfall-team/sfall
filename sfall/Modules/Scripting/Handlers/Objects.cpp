@@ -377,7 +377,7 @@ void sf_obj_under_cursor(OpcodeContext& ctx) {
 }
 
 void sf_get_loot_object(OpcodeContext& ctx) {
-	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
+	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? fo::var::target_stack[fo::var::target_curr_stack] : 0);
 }
 
 static const char* failedLoad = "%s() - failed to load a prototype ID: %d";

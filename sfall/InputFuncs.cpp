@@ -17,6 +17,7 @@
  */
 
 #define DIRECTINPUT_VERSION         0x0700
+
 #include <math.h>
 #include <dinput.h>
 #include <queue>
@@ -56,7 +57,7 @@ static int mouseY;
 
 static DWORD forcingGraphicsRefresh = 0;
 
-void _stdcall ForceGraphicsRefresh(DWORD d) {
+void __stdcall ForceGraphicsRefresh(DWORD d) {
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
@@ -107,7 +108,7 @@ void FlushInputBuffer() {
 	__asm call fo::funcoffs::kb_clear_;
 }
 
-DWORD _stdcall KeyDown(DWORD key) {
+DWORD __stdcall KeyDown(DWORD key) {
 	if ((key & 0x80000000) > 0) { // special flag to check by VK code directly
 		return GetAsyncKeyState(key & 0xFFFF) & 0x8000;
 	}
@@ -125,7 +126,7 @@ DWORD _stdcall KeyDown(DWORD key) {
 	}
 }
 
-void _stdcall TapKey(DWORD key) {
+void __stdcall TapKey(DWORD key) {
 	DIDEVICEOBJECTDATA data;
 	data.dwTimeStamp = 0;
 	data.dwSequence = 0;
@@ -155,15 +156,15 @@ public:
 	}
 
 	/*** IUnknown methods ***/
-	HRESULT _stdcall QueryInterface(REFIID riid, LPVOID * ppvObj) {
+	HRESULT __stdcall QueryInterface(REFIID riid, LPVOID * ppvObj) {
 		return RealDevice->QueryInterface(riid, ppvObj);
 	}
 
-	ULONG _stdcall AddRef(void) {
+	ULONG __stdcall AddRef(void) {
 		return ++Refs;
 	}
 
-	ULONG _stdcall Release(void) {
+	ULONG __stdcall Release(void) {
 		if (--Refs == 0) {
 			RealDevice->Release();
 			delete this;
@@ -174,32 +175,32 @@ public:
 	}
 
 	/*** IDirectInputDevice8A methods ***/
-	HRESULT _stdcall GetCapabilities(LPDIDEVCAPS a) {
+	HRESULT __stdcall GetCapabilities(LPDIDEVCAPS a) {
 		return RealDevice->GetCapabilities(a);
 	}
 
-	HRESULT _stdcall EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA a, LPVOID b, DWORD c) {
+	HRESULT __stdcall EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA a, LPVOID b, DWORD c) {
 		return RealDevice->EnumObjects(a, b, c);
 	}
 
-	HRESULT _stdcall GetProperty(REFGUID a, DIPROPHEADER* b) {
+	HRESULT __stdcall GetProperty(REFGUID a, DIPROPHEADER* b) {
 		return RealDevice->GetProperty(a, b);
 	}
 
-	HRESULT _stdcall SetProperty(REFGUID a, const DIPROPHEADER* b) {
+	HRESULT __stdcall SetProperty(REFGUID a, const DIPROPHEADER* b) {
 		return RealDevice->SetProperty(a, b);
 	}
 
-	HRESULT _stdcall Acquire(void) {
+	HRESULT __stdcall Acquire(void) {
 		return RealDevice->Acquire();
 	}
 
-	HRESULT _stdcall Unacquire(void) {
+	HRESULT __stdcall Unacquire(void) {
 		return RealDevice->Unacquire();
 	}
 
 	// Only called for the mouse
-	HRESULT _stdcall GetDeviceState(DWORD a, LPVOID b) {
+	HRESULT __stdcall GetDeviceState(DWORD a, LPVOID b) {
 		if (forcingGraphicsRefresh) RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
@@ -269,7 +270,7 @@ public:
 	}
 
 	// Only called for the keyboard (dxinput_read_keyboard_buffer_ called at 0x4E06AB)
-	HRESULT _stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* buf, DWORD* count, DWORD d) { // buf - DirectInputKeyboardBuffer (0x6B2560)
+	HRESULT __stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* buf, DWORD* count, DWORD d) { // buf - DirectInputKeyboardBuffer (0x6B2560)
 		if (DeviceType != kDeviceType_KEYBOARD) {
 			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
@@ -304,35 +305,35 @@ public:
 		return DI_OK;
 	}
 
-	HRESULT _stdcall SetDataFormat(const DIDATAFORMAT* a) {
+	HRESULT __stdcall SetDataFormat(const DIDATAFORMAT* a) {
 		if (formatLock && oldFormat.dwSize) return RealDevice->SetDataFormat(&oldFormat);
 		memcpy(&oldFormat, a, sizeof(DIDATAFORMAT));
 		return RealDevice->SetDataFormat(a);
 	}
 
-	HRESULT _stdcall SetEventNotification(HANDLE a) {
+	HRESULT __stdcall SetEventNotification(HANDLE a) {
 		return RealDevice->SetEventNotification(a);
 	}
 
-	HRESULT _stdcall SetCooperativeLevel(HWND a, DWORD b) {
+	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) {
 		if (DeviceType == kDeviceType_KEYBOARD && backgroundKeyboard) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 		if (DeviceType == kDeviceType_MOUSE && backgroundMouse) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 		return RealDevice->SetCooperativeLevel(a, b);
 	}
 
-	HRESULT _stdcall GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA a, DWORD b, DWORD c) {
+	HRESULT __stdcall GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA a, DWORD b, DWORD c) {
 		return RealDevice->GetObjectInfo(a, b, c);
 	}
 
-	HRESULT _stdcall GetDeviceInfo(LPDIDEVICEINSTANCEA a) {
+	HRESULT __stdcall GetDeviceInfo(LPDIDEVICEINSTANCEA a) {
 		return RealDevice->GetDeviceInfo(a);
 	}
 
-	HRESULT _stdcall RunControlPanel(HWND a, DWORD b) {
+	HRESULT __stdcall RunControlPanel(HWND a, DWORD b) {
 		return RealDevice->RunControlPanel(a, b);
 	}
 
-	HRESULT _stdcall Initialize(HINSTANCE a, DWORD b, REFGUID c) {
+	HRESULT __stdcall Initialize(HINSTANCE a, DWORD b, REFGUID c) {
 		return RealDevice->Initialize(a, b, c);
 	}
 
@@ -352,15 +353,15 @@ public:
 	}
 
 	/*** IUnknown methods ***/
-	HRESULT _stdcall QueryInterface(REFIID riid, LPVOID* ppvObj) {
+	HRESULT __stdcall QueryInterface(REFIID riid, LPVOID* ppvObj) {
 		return RealInput->QueryInterface(riid, ppvObj);
 	}
 
-	ULONG _stdcall AddRef(void) {
+	ULONG __stdcall AddRef(void) {
 		return ++Refs;
 	}
 
-	ULONG _stdcall Release(void) {
+	ULONG __stdcall Release(void) {
 		if (--Refs == 0) {
 			RealInput->Release();
 			delete this;
@@ -371,7 +372,7 @@ public:
 	}
 
 	/*** IDirectInput8A methods ***/
-	HRESULT _stdcall CreateDevice(REFGUID r, IDirectInputDeviceA** device, IUnknown* unused) {
+	HRESULT __stdcall CreateDevice(REFGUID r, IDirectInputDeviceA** device, IUnknown* unused) {
 		GUID GUID_SysMouse    = { 0x6F1D2B60, 0xD5A0, 0x11CF, { 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00} };
 		GUID GUID_SysKeyboard = { 0x6F1D2B61, 0xD5A0, 0x11CF, { 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00} };
 
@@ -398,19 +399,19 @@ public:
 		}
 	}
 
-	HRESULT _stdcall EnumDevices(DWORD a, LPDIENUMDEVICESCALLBACKA b, void* c, DWORD d) {
+	HRESULT __stdcall EnumDevices(DWORD a, LPDIENUMDEVICESCALLBACKA b, void* c, DWORD d) {
 		return RealInput->EnumDevices(a, b, c, d);
 	}
 
-	HRESULT _stdcall GetDeviceStatus(REFGUID r) {
+	HRESULT __stdcall GetDeviceStatus(REFGUID r) {
 		return RealInput->GetDeviceStatus(r);
 	}
 
-	HRESULT _stdcall RunControlPanel(HWND a, DWORD b) {
+	HRESULT __stdcall RunControlPanel(HWND a, DWORD b) {
 		return RealInput->RunControlPanel(a, b);
 	}
 
-	HRESULT _stdcall Initialize(HINSTANCE a, DWORD b) {
+	HRESULT __stdcall Initialize(HINSTANCE a, DWORD b) {
 		return RealInput->Initialize(a, b);
 	}
 };
@@ -439,10 +440,10 @@ inline void InitInputFeatures() {
 
 }
 
-typedef HRESULT (_stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
+typedef HRESULT (__stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
 
 // This should be in global namespace
-HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
+HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
 	HMODULE dinput = LoadLibraryA("dinput.dll");
 	if (!dinput || dinput == INVALID_HANDLE_VALUE) return -1;
 	DInputCreateProc proc = (DInputCreateProc)GetProcAddress(dinput, "DirectInputCreateA");

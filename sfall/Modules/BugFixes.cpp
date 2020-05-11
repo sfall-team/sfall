@@ -41,7 +41,7 @@ void BugFixes::DrugsSaveFix(HANDLE file) {
 	DWORD sizeWrite, count = drugsPid.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	if (!count) return;
-	for (auto it = drugsPid.begin(); it != drugsPid.end(); it++) {
+	for (auto it = drugsPid.begin(); it != drugsPid.end(); ++it) {
 		int pid = *it;
 		WriteFile(file, &pid, 4, &sizeWrite, 0);
 	}
@@ -935,36 +935,38 @@ end:
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   checkObj;
+		retn;                         // tilenums are not equal, always move to tile
+checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
-		jz   moveTile;
+		jnz  multiHex;
+		retn;                         // move to tile
 multiHex:
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		jnz  moveTile;
 		add  esp, 4;
-		jmp  ai_move_steps_closer_move_object_ret;
-moveTile:
-		retn;
+		jmp  ai_move_steps_closer_move_object_ret; // move to object
 	}
 }
 
 static void __declspec(naked) MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   checkObj;
+		retn;                         // tilenums are not equal, always run to tile
+checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
-		jz   runTile;
+		jnz  multiHex;
+		retn;                         // run to tile
 multiHex:
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		jnz  runTile;
 		add  esp, 4;
-		jmp  ai_move_steps_closer_run_object_ret;
-runTile:
-		retn;
+		jmp  ai_move_steps_closer_run_object_ret; // run to object
 	}
 }
 
@@ -1455,13 +1457,17 @@ end:
 
 static void __declspec(naked) combat_display_hack() {
 	__asm {
-		mov  ebx, 0x42536B;
-		je   end;                                 // This is a critter
+		test [esi + flags], Flat;                 // ctd.mainTarget
+		jnz  end;                                 // Main target is flat (engine jump)
+		cmp  eax, OBJ_TYPE_CRITTER << 24;         // Is this a critter?
+		je   end;                                 // Yes (engine no jump)
 		cmp  dword ptr [ecx + scriptId], -1;      // Does the target have a script?
-		jne  end;                                 // Yes
-		mov  ebx, 0x425413;
+//		jne  hasScript;                           // Yes (engine no jump)
+		lahf;
+		xor  ah, 0x40; // invert ZF (01000000b)
+		sahf;          // if there is a script, do not jump (ZF is set)
 end:
-		jmp  ebx;
+		retn;
 	}
 }
 
@@ -1509,7 +1515,7 @@ static void __declspec(naked) ResetPlayer_hook() {
 static void __declspec(naked) obj_move_to_tile_hack() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
-		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after reloading a saved game if the player died
+		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after loading a saved game if the player died
 		jnz  skip;                       // on the world map from radiation (or in some cases on another map)
 		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jz   mapLeave;
@@ -1538,7 +1544,7 @@ end:
 	}
 }
 
-static void __declspec(naked) ai_move_steps_closer_hook() {
+static void __declspec(naked) ai_combat_turn_run_hook() {
 	__asm {
 		call  fo::funcoffs::combat_turn_run_;
 		movzx dx, word ptr [esi + damageFlags]; // combat_data.results
@@ -1584,7 +1590,7 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 		}
 		tempBuffer[len++] = ' ';
 		tempBuffer[len] = 0;
-		currDescLen  = len;
+		currDescLen = len;
 	} else if (currDescLen == 0) {
 		tempBuffer[0] = 0;
 	}
@@ -2393,10 +2399,12 @@ end:
 static void __declspec(naked) combat_should_end_hack() {
 	static const DWORD combat_should_end_break = 0x422D00;
 	__asm { // ecx = dude.team_num
-		cmp  ecx, [ebp + 0x50]; // npc who_hit_me.team_num
-		je   break;
-		test byte ptr [edx], 1; // npc combat_data.combat_state
-		jnz  break;
+		cmp  ecx, [ebp + teamNum];          // npc->combat_data.who_hit_me.team_num (engine code)
+		je   break;                         // attacker is in the player's team
+		test [ebp + damageFlags], DAM_DEAD; // npc->combat_data.who_hit_me.damageFlags
+		jz   break;                         // target is still alive
+		test byte ptr [edx], 1;             // npc->combat_data.combat_state
+		jnz  break;                         // npc is in combat
 		retn; // check next critter
 break:
 		add  esp, 4;
@@ -2658,8 +2666,8 @@ checkTiles:
 void BugFixes::init()
 {
 	#ifndef NDEBUG
-		LoadGameHook::OnBeforeGameClose() += PrintAddrList;
-		if (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0) return;
+	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
+	if (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0) return;
 	#endif
 
 	// Missing game initialization
@@ -3003,7 +3011,8 @@ void BugFixes::init()
 	//}
 
 	// Fix for the displayed message when the attack randomly hits a target that is not a critter and has a script attached
-	MakeJump(0x425365, combat_display_hack);
+	// Tweak: if the main target has Flat flag set, display the "You missed" message instead of the message of hitting another object
+	MakeCall(0x42535F, combat_display_hack, 1);
 
 	// Fix for damage_p_proc being called for misses if the target is not a critter
 	MakeCall(0x424CD2, apply_damage_hack);
@@ -3031,7 +3040,11 @@ void BugFixes::init()
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
-	HookCall(0x42A1A8, ai_move_steps_closer_hook); // old 0x42B24D
+	HookCalls(ai_combat_turn_run_hook, {
+		0x42A1A8, // ai_move_steps_closer_ (old 0x42B24D)
+		0x42898D, // ai_run_away_  (potential fix)
+		0x428AB3  // ai_move_away_ (potential fix)
+	});
 
 	// Fix instant death critical
 	dlog("Applying instant death fix.", DL_INIT);
@@ -3040,9 +3053,8 @@ void BugFixes::init()
 
 	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
-	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
-	SafeWrite16(0x49B4B2, 0x9090);
-	SafeWrite16(0x49B509, 0x9090);
+	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0, 2);
+	MakeCall(0x49B504, obj_examine_func_hack_ammo0, 2);
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
@@ -3086,7 +3098,7 @@ void BugFixes::init()
 		HookCall(0x42954B, ai_best_weapon_hook);
 		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
 		if (bestWeaponPerkFix > 1) {
-			SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7});
+			SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7}); // lea eax, [edx * 2];
 		}
 		dlogr(" Done", DL_INIT);
 	}

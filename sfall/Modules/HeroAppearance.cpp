@@ -162,7 +162,7 @@ static void GetAppearanceGlobals(int *race, int *style) {
 	*style = GetGlobalVar("HApStyle");
 }
 
-static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
+static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
 	if (flush) fo::func::art_flush();
 
 	if (heroPathPtr[1]->pDat) { // unload previous Dats
@@ -281,7 +281,7 @@ static void AdjustHeroArmorArt(DWORD fid) {
 	}
 }
 
-static void _stdcall SetHeroArt(bool newArtFlag) {
+static void __stdcall SetHeroArt(bool newArtFlag) {
 	fo::GameObject* hero = fo::var::obj_dude; // hero state struct
 	long heroFID = hero->artFid;              // get hero FrmID
 	DWORD fidBase = heroFID & 0xFFF;          // mask out current weapon flag
@@ -328,7 +328,7 @@ endFunc:
 }
 
 // create a duplicate list of critter names at the end with an additional '_' character at the beginning of its name
-static long _stdcall AddHeroCritNames() { // art_init_
+static long __stdcall AddHeroCritNames() { // art_init_
 	auto &critterArt = fo::var::art[fo::OBJ_TYPE_CRITTER];
 	critterListSize = critterArt.total / 2;
 	if (critterListSize > 2048) {
@@ -394,14 +394,14 @@ void UpdateHeroArt() {
 	fo::var::i_worn = iW;
 }
 
-void _stdcall RefreshPCArt() {
+void __stdcall RefreshPCArt() {
 	fo::func::proto_dude_update_gender(); // refresh PC base model art
 
 	UpdateHeroArt();
 	DrawPC();
 }
 
-void _stdcall LoadHeroAppearance() {
+void __stdcall LoadHeroAppearance() {
 	if (!HeroAppearance::appModEnabled) return;
 
 	GetAppearanceGlobals(&currentRaceVal, &currentStyleVal);
@@ -410,7 +410,7 @@ void _stdcall LoadHeroAppearance() {
 	DrawPC();
 }
 
-void _stdcall SetNewCharAppearanceGlobals() {
+void __stdcall SetNewCharAppearanceGlobals() {
 	if (!HeroAppearance::appModEnabled) return;
 
 	if (currentRaceVal > 0 || currentStyleVal > 0) {
@@ -419,7 +419,7 @@ void _stdcall SetNewCharAppearanceGlobals() {
 }
 
 // op_set_hero_style
-void _stdcall SetHeroStyle(int newStyleVal) {
+void __stdcall SetHeroStyle(int newStyleVal) {
 	if (!HeroAppearance::appModEnabled || newStyleVal == currentStyleVal) return;
 
 	if (LoadHeroDat(currentRaceVal, newStyleVal, true) != 0) { // if new style cannot be set
@@ -436,7 +436,7 @@ void _stdcall SetHeroStyle(int newStyleVal) {
 }
 
 // op_set_hero_race
-void _stdcall SetHeroRace(int newRaceVal) {
+void __stdcall SetHeroRace(int newRaceVal) {
 	if (!HeroAppearance::appModEnabled || newRaceVal == currentRaceVal) return;
 
 	if (LoadHeroDat(newRaceVal, 0, true) != 0) { // if new race fails with style at 0
@@ -641,12 +641,12 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	delete[] PadSurface;
 }
 
-static void _stdcall DrawCharNoteNewChar(bool type) {
+static void __stdcall DrawCharNoteNewChar(bool type) {
 	DrawCharNote(type, fo::var::edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
 }
 
 // op_hero_select_win
-void _stdcall HeroSelectWindow(int raceStyleFlag) {
+void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
 	UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
@@ -858,7 +858,7 @@ static void FixTextHighLight() {
 	}
 }
 
-static int _stdcall CheckCharButtons() {
+static int __stdcall CheckCharButtons() {
 	int button = fo::func::get_input();
 
 	int drawFlag = -1;
@@ -1296,8 +1296,8 @@ endFunc:
 	}
 }
 
-static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 static void __declspec(naked) op_obj_art_fid_hack() {
+	static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 	using namespace Fields;
 	__asm {
 		mov  esi, [edi + artFid];

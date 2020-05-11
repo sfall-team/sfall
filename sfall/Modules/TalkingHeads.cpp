@@ -179,8 +179,8 @@ loadFail:
 	Graphics::SetDefaultTechnique();
 }
 
-static const DWORD gdDisplayFrameRet = 0x44AD06;
 static void __declspec(naked) gdDisplayFrame_hack() {
+	static const DWORD gdDisplayFrameRet = 0x44AD06;
 	__asm {
 		push edx;
 		push eax;

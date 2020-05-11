@@ -52,13 +52,13 @@ void PerksEnterCharScreen();
 void PerksCancelCharScreen();
 void PerksAcceptCharScreen();
 
-void _stdcall ApplyHeaveHoFix();
+void __stdcall ApplyHeaveHoFix();
 
-void _stdcall IgnoreDefaultPerks();
-void _stdcall RestoreDefaultPerks();
-void _stdcall AddPerkMode(DWORD mode);
+void __stdcall IgnoreDefaultPerks();
+void __stdcall RestoreDefaultPerks();
+void __stdcall AddPerkMode(DWORD mode);
 
-void _stdcall ClearSelectablePerks();
-void _stdcall SetPerkFreq(int i);
+void __stdcall ClearSelectablePerks();
+void __stdcall SetPerkFreq(int i);
 
 }
