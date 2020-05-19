@@ -26,7 +26,7 @@
 bool checkValidMemAddr = true;
 
 // memory_reading_funcs
-static void __declspec(naked) ReadByte() {
+static void __declspec(naked) op_read_byte() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -42,7 +42,7 @@ error:
 	}
 }
 
-static void __declspec(naked) ReadShort() {
+static void __declspec(naked) op_read_short() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -58,7 +58,7 @@ error:
 	}
 }
 
-static void __declspec(naked) ReadInt() {
+static void __declspec(naked) op_read_int() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -74,7 +74,7 @@ error:
 	}
 }
 
-static void __declspec(naked) ReadString() {
+static void __declspec(naked) op_read_string() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -90,7 +90,7 @@ error:
 	}
 }
 
-static void __declspec(naked) WriteByte() {
+static void __declspec(naked) op_write_byte() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -116,7 +116,7 @@ end:
 	}
 }
 
-static void __declspec(naked) WriteShort() {
+static void __declspec(naked) op_write_short() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -142,7 +142,7 @@ end:
 	}
 }
 
-static void __declspec(naked) WriteInt() {
+static void __declspec(naked) op_write_int() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -176,7 +176,7 @@ static void __fastcall WriteStringInternal(char* addr, long type, long strID, TP
 	*addr = 0;
 }
 
-static void __declspec(naked) WriteString() {
+static void __declspec(naked) op_write_string() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // str value
@@ -240,7 +240,7 @@ static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
 	}
 }
 
-static void __declspec(naked) CallOffset() {
+static void __declspec(naked) op_call_offset() {
 	__asm {
 		mov  esi, ecx;
 		mov  ecx, eax;

@@ -18,7 +18,7 @@
 
 #pragma once
 
-static void __declspec(naked) create_array() {
+static void __declspec(naked) op_create_array() {
 	__asm {
 		pushaop;
 		mov edi, eax;
@@ -55,7 +55,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_array() {
+static void __declspec(naked) op_set_array() {
 	__asm {
 		pushaop;
 		mov ebp, eax;
@@ -130,7 +130,7 @@ static char* __stdcall GetArraySubstr(const char* str, size_t index) {
 	return gTextBuffer; // returns char of string
 }
 
-static void __declspec(naked) get_array() {
+static void __declspec(naked) op_get_array() {
 	__asm {
 		pushaop;
 		mov ebp, eax;
@@ -212,7 +212,7 @@ notstring:
 	}
 }
 
-static void __declspec(naked) free_array() {
+static void __declspec(naked) op_free_array() {
 	__asm {
 		pushaop;
 		mov edi, eax;
@@ -230,7 +230,7 @@ end:
 	}
 }
 
-static void __declspec(naked) len_array() {
+static void __declspec(naked) op_len_array() {
 	__asm {
 		pushaop;
 		mov edi, eax;
@@ -257,7 +257,7 @@ end:
 	}
 }
 
-static void __declspec(naked) resize_array() {
+static void __declspec(naked) op_resize_array() {
 	__asm {
 		pushaop;
 		mov ebp, eax;
@@ -288,7 +288,7 @@ end:
 	}
 }
 
-static void __declspec(naked) temp_array() {
+static void __declspec(naked) op_temp_array() {
 	__asm {
 		pushaop;
 		mov edi, eax;
@@ -325,7 +325,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fix_array() {
+static void __declspec(naked) op_fix_array() {
 	__asm {
 		pushaop;
 		mov edi, eax;
@@ -343,7 +343,7 @@ end:
 	}
 }
 
-static void __declspec(naked) scan_array() {
+static void __declspec(naked) op_scan_array() {
 		__asm {
 		pushaop;
 		mov ebp, eax;
@@ -513,7 +513,7 @@ struct ListId {
 };
 static std::vector<ListId> mList;
 
-static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
+static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	vec.reserve(100);
 	if (type == 6) {
 		TScript* scriptPtr;
@@ -573,7 +573,7 @@ static DWORD __stdcall ListAsArray(DWORD type) {
 	return id;
 }
 
-static void __stdcall list_as_array2() {
+static void __stdcall op_list_as_array2() {
 	const ScriptValue &typeArg = opHandler.arg(0);
 
 	if (typeArg.isInt()) {
@@ -585,8 +585,8 @@ static void __stdcall list_as_array2() {
 	}
 }
 
-static void __declspec(naked) list_as_array() {
-	_WRAP_OPCODE(list_as_array2, 1, 1)
+static void __declspec(naked) op_list_as_array() {
+	_WRAP_OPCODE(op_list_as_array2, 1, 1)
 }
 
 static DWORD __stdcall ListBegin(DWORD type) {
@@ -597,7 +597,7 @@ static DWORD __stdcall ListBegin(DWORD type) {
 	return listID;
 }
 
-static void __stdcall list_begin2() {
+static void __stdcall op_list_begin2() {
 	const ScriptValue &typeArg = opHandler.arg(0);
 
 	if (typeArg.isInt()) {
@@ -608,15 +608,15 @@ static void __stdcall list_begin2() {
 	}
 }
 
-static void __declspec(naked) list_begin() {
-	_WRAP_OPCODE(list_begin2, 1, 1)
+static void __declspec(naked) op_list_begin() {
+	_WRAP_OPCODE(op_list_begin2, 1, 1)
 }
 
 static TGameObj* __stdcall ListNext(sList* list) {
 	return (!list || list->pos == list->len) ? 0 : list->obj[list->pos++];
 }
 
-static void __stdcall list_next2() {
+static void __stdcall op_list_next2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -639,8 +639,8 @@ static void __stdcall list_next2() {
 	}
 }
 
-static void __declspec(naked) list_next() {
-	_WRAP_OPCODE(list_next2, 1, 1)
+static void __declspec(naked) op_list_next() {
+	_WRAP_OPCODE(op_list_next2, 1, 1)
 }
 
 static void __stdcall ListEnd(DWORD id) {
@@ -655,7 +655,7 @@ static void __stdcall ListEnd(DWORD id) {
 	}
 }
 
-static void __stdcall list_end2() {
+static void __stdcall op_list_end2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -665,6 +665,6 @@ static void __stdcall list_end2() {
 	}
 }
 
-static void __declspec(naked) list_end() {
-	_WRAP_OPCODE(list_end2, 1, 0)
+static void __declspec(naked) op_list_end() {
+	_WRAP_OPCODE(op_list_end2, 1, 0)
 }

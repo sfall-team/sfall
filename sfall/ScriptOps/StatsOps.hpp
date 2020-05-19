@@ -30,7 +30,7 @@ const char* invalidStat = "%s() - stat number out of range.";
 const char* objNotCritter = "%s() - the object is not a critter.";
 
 // stat_funcs
-static void __stdcall SetPCBaseStat2() {
+static void __stdcall op_set_pc_base_stat2() {
 	const ScriptValue &statArg = opHandler.arg(0),
 					  &valArg = opHandler.arg(1);
 
@@ -46,11 +46,11 @@ static void __stdcall SetPCBaseStat2() {
 	}
 }
 
-static void __declspec(naked) SetPCBaseStat() {
-	_WRAP_OPCODE(SetPCBaseStat2, 2, 0)
+static void __declspec(naked) op_set_pc_base_stat() {
+	_WRAP_OPCODE(op_set_pc_base_stat2, 2, 0)
 }
 
-static void __stdcall SetPCExtraStat2() {
+static void __stdcall op_set_pc_extra_stat2() {
 	const ScriptValue &statArg = opHandler.arg(0),
 					  &valArg = opHandler.arg(1);
 
@@ -66,11 +66,11 @@ static void __stdcall SetPCExtraStat2() {
 	}
 }
 
-static void __declspec(naked) SetPCExtraStat() {
-	_WRAP_OPCODE(SetPCExtraStat2, 2, 0)
+static void __declspec(naked) op_set_pc_extra_stat() {
+	_WRAP_OPCODE(op_set_pc_extra_stat2, 2, 0)
 }
 
-static void __stdcall GetPCBaseStat2() {
+static void __stdcall op_get_pc_base_stat2() {
 	int value = 0;
 	const ScriptValue &statArg = opHandler.arg(0);
 
@@ -88,11 +88,11 @@ static void __stdcall GetPCBaseStat2() {
 
 }
 
-static void __declspec(naked) GetPCBaseStat() {
-	_WRAP_OPCODE(GetPCBaseStat2, 1, 1)
+static void __declspec(naked) op_get_pc_base_stat() {
+	_WRAP_OPCODE(op_get_pc_base_stat2, 1, 1)
 }
 
-static void __stdcall GetPCExtraStat2() {
+static void __stdcall op_get_pc_extra_stat2() {
 	int value = 0;
 	const ScriptValue &statArg = opHandler.arg(0);
 
@@ -109,11 +109,11 @@ static void __stdcall GetPCExtraStat2() {
 	opHandler.setReturn(value, DATATYPE_INT);
 }
 
-static void __declspec(naked) GetPCExtraStat() {
-	_WRAP_OPCODE(GetPCExtraStat2, 1, 1)
+static void __declspec(naked) op_get_pc_extra_stat() {
+	_WRAP_OPCODE(op_get_pc_extra_stat2, 1, 1)
 }
 
-static void __stdcall SetCritterBaseStat2() {
+static void __stdcall op_set_critter_base_stat2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1),
 					  &valArg = opHandler.arg(2);
@@ -135,11 +135,11 @@ static void __stdcall SetCritterBaseStat2() {
 	}
 }
 
-static void __declspec(naked) SetCritterBaseStat() {
-	_WRAP_OPCODE(SetCritterBaseStat2, 3, 0)
+static void __declspec(naked) op_set_critter_base_stat() {
+	_WRAP_OPCODE(op_set_critter_base_stat2, 3, 0)
 }
 
-static void __stdcall SetCritterExtraStat2() {
+static void __stdcall op_set_critter_extra_stat2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1),
 					  &valArg = opHandler.arg(2);
@@ -161,11 +161,11 @@ static void __stdcall SetCritterExtraStat2() {
 	}
 }
 
-static void __declspec(naked) SetCritterExtraStat() {
-	_WRAP_OPCODE(SetCritterExtraStat2, 3, 0)
+static void __declspec(naked) op_set_critter_extra_stat() {
+	_WRAP_OPCODE(op_set_critter_extra_stat2, 3, 0)
 }
 
-static void __stdcall GetCritterBaseStat2() {
+static void __stdcall op_get_critter_base_stat2() {
 	int result = 0;
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1);
@@ -188,11 +188,11 @@ static void __stdcall GetCritterBaseStat2() {
 	opHandler.setReturn(result, DATATYPE_INT);
 }
 
-static void __declspec(naked) GetCritterBaseStat() {
-	_WRAP_OPCODE(GetCritterBaseStat2, 2, 1)
+static void __declspec(naked) op_get_critter_base_stat() {
+	_WRAP_OPCODE(op_get_critter_base_stat2, 2, 1)
 }
 
-static void __stdcall GetCritterExtraStat2() {
+static void __stdcall op_get_critter_extra_stat2() {
 	int result = 0;
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1);
@@ -215,11 +215,11 @@ static void __stdcall GetCritterExtraStat2() {
 	opHandler.setReturn(result, DATATYPE_INT);
 }
 
-static void __declspec(naked) GetCritterExtraStat() {
-	_WRAP_OPCODE(GetCritterExtraStat2, 2, 1)
+static void __declspec(naked) op_get_critter_extra_stat() {
+	_WRAP_OPCODE(op_get_critter_extra_stat2, 2, 1)
 }
 
-static void __declspec(naked) set_critter_skill_points() {
+static void __declspec(naked) op_set_critter_skill_points() {
 	__asm {
 		pushaop;
 		//Get function args
@@ -269,7 +269,7 @@ end:
 	}
 }
 
-static void __declspec(naked) get_critter_skill_points() {
+static void __declspec(naked) op_get_critter_skill_points() {
 	__asm {
 		pushaop;
 		//Get function args
@@ -318,7 +318,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_available_skill_points() {
+static void __declspec(naked) op_set_available_skill_points() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -331,14 +331,14 @@ end:
 	}
 }
 
-static void __declspec(naked) get_available_skill_points() {
+static void __declspec(naked) op_get_available_skill_points() {
 	__asm {
 		mov  edx, dword ptr ds:[_curr_pc_stat];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-static void __declspec(naked) mod_skill_points_per_level() {
+static void __declspec(naked) op_mod_skill_points_per_level() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -358,7 +358,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetCritterAP() {
+static void __declspec(naked) op_get_critter_current_ap() {
 	__asm {
 		_GET_ARG_INT(fail); // Get function arg and check if valid
 		test eax, eax;
@@ -377,7 +377,7 @@ fail:
 	}
 }
 
-static void __stdcall SetCritterAP2() {
+static void __stdcall op_set_critter_current_ap2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &apArg = opHandler.arg(1);
 
@@ -396,11 +396,11 @@ static void __stdcall SetCritterAP2() {
 	}
 }
 
-static void __declspec(naked) SetCritterAP() {
-	_WRAP_OPCODE(SetCritterAP2, 2, 0)
+static void __declspec(naked) op_set_critter_current_ap() {
+	_WRAP_OPCODE(op_set_critter_current_ap2, 2, 0)
 }
 
-static void __declspec(naked) fSetPickpocketMax() {
+static void __declspec(naked) op_set_pickpocket_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -417,7 +417,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetHitChanceMax() {
+static void __declspec(naked) op_set_hit_chance_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -434,7 +434,7 @@ end:
 	}
 }
 
-static void __stdcall SetCritterHitChance2() {
+static void __stdcall op_set_critter_hit_chance_mod2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1),
 					  &modArg = opHandler.arg(2);
@@ -450,11 +450,11 @@ static void __stdcall SetCritterHitChance2() {
 	}
 }
 
-static void __declspec(naked) SetCritterHitChance() {
-	_WRAP_OPCODE(SetCritterHitChance2, 3, 0)
+static void __declspec(naked) op_set_critter_hit_chance_mod() {
+	_WRAP_OPCODE(op_set_critter_hit_chance_mod2, 3, 0)
 }
 
-static void __declspec(naked) SetBaseHitChance() {
+static void __declspec(naked) op_set_base_hit_chance_mod() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -472,7 +472,7 @@ end:
 	}
 }
 
-static void __stdcall SetCritterPickpocket2() {
+static void __stdcall op_set_critter_pickpocket_mod2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1),
 					  &modArg = opHandler.arg(2);
@@ -488,11 +488,11 @@ static void __stdcall SetCritterPickpocket2() {
 	}
 }
 
-static void __declspec(naked) SetCritterPickpocket() {
-	_WRAP_OPCODE(SetCritterPickpocket2, 3, 0)
+static void __declspec(naked) op_set_critter_pickpocket_mod() {
+	_WRAP_OPCODE(op_set_critter_pickpocket_mod2, 3, 0)
 }
 
-static void __declspec(naked) SetBasePickpocket() {
+static void __declspec(naked) op_set_base_pickpocket_mod() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -510,7 +510,7 @@ end:
 	}
 }
 
-static void __stdcall SetCritterSkillMod2() {
+static void __stdcall op_set_critter_skill_mod2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1);
 
@@ -525,11 +525,11 @@ static void __stdcall SetCritterSkillMod2() {
 	}
 }
 
-static void __declspec(naked) SetCritterSkillMod() {
-	_WRAP_OPCODE(SetCritterSkillMod2, 2, 0)
+static void __declspec(naked) op_set_critter_skill_mod() {
+	_WRAP_OPCODE(op_set_critter_skill_mod2, 2, 0)
 }
 
-static void __declspec(naked) SetBaseSkillMod() { // same as set_skill_max
+static void __declspec(naked) op_set_base_skill_mod() { // same as set_skill_max
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -542,7 +542,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetSkillMax() {
+static void __declspec(naked) op_set_skill_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -558,7 +558,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetStatMax() {
+static void __declspec(naked) op_set_stat_max() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -578,7 +578,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetStatMin() {
+static void __declspec(naked) op_set_stat_min() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -598,7 +598,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetPCStatMax() {
+static void __declspec(naked) op_set_pc_stat_max() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -615,7 +615,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetPCStatMin() {
+static void __declspec(naked) op_set_pc_stat_min() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -632,7 +632,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetNPCStatMax() {
+static void __declspec(naked) op_set_npc_stat_max() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -649,7 +649,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetNPCStatMin() {
+static void __declspec(naked) op_set_npc_stat_min() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -681,7 +681,7 @@ static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	}
 }
 
-static void __stdcall SetXpMod2() {
+static void __stdcall op_set_xp_mod2() {
 	const ScriptValue &pctArg = opHandler.arg(0);
 
 	if (pctArg.isInt()) {
@@ -697,6 +697,6 @@ static void __stdcall SetXpMod2() {
 	}
 }
 
-static void __declspec(naked) SetXpMod() {
-	_WRAP_OPCODE(SetXpMod2, 1, 0)
+static void __declspec(naked) op_set_xp_mod() {
+	_WRAP_OPCODE(op_set_xp_mod2, 1, 0)
 }

@@ -62,7 +62,7 @@ void __stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg)
 void HookScriptInit();
 void HookScriptClear();
 
-extern DWORD InitingHookScripts;
+extern DWORD initingHookScripts;
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 void __stdcall RunHookScriptsAtProc(DWORD procId);
 

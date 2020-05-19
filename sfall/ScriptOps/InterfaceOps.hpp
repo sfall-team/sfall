@@ -25,7 +25,7 @@
 #include "ScriptExtender.h"
 
 // input_functions
-static void __declspec(naked) InputFuncsAvailable() {
+static void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		mov  edx, 1; // They're always available from 2.9 on
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -33,7 +33,7 @@ static void __declspec(naked) InputFuncsAvailable() {
 	}
 }
 
-static void __declspec(naked) KeyPressed() {
+static void __declspec(naked) op_key_pressed() {
 	__asm {
 		push ecx;
 		push edx;
@@ -64,7 +64,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcTapKey() {
+static void __declspec(naked) op_tap_key() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -81,7 +81,7 @@ end:
 }
 
 //// *** From helios *** ////
-static void __declspec(naked) get_mouse_x() {
+static void __declspec(naked) op_get_mouse_x() {
 	__asm {
 		mov  edx, ds:[_mouse_x_];
 		add  edx, ds:[_mouse_hotx];
@@ -91,7 +91,7 @@ static void __declspec(naked) get_mouse_x() {
 }
 
 //Return mouse y position
-static void __declspec(naked) get_mouse_y() {
+static void __declspec(naked) op_get_mouse_y() {
 	__asm {
 		mov  edx, ds:[_mouse_y_];
 		add  edx, ds:[_mouse_hoty];
@@ -101,7 +101,7 @@ static void __declspec(naked) get_mouse_y() {
 }
 
 //Return pressed mouse button (1=left, 2=right, 3=left+right, 4=middle)
-static void __declspec(naked) get_mouse_buttons() {
+static void __declspec(naked) op_get_mouse_buttons() {
 	__asm {
 		push ecx;
 		push edx;
@@ -124,7 +124,7 @@ skip:
 }
 
 //Return the window number under the mous
-static void __declspec(naked) get_window_under_mouse() {
+static void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
 		mov  edx, ds:[_last_button_winID];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -133,7 +133,7 @@ static void __declspec(naked) get_window_under_mouse() {
 }
 
 //Return screen width
-static void __declspec(naked) get_screen_width() {
+static void __declspec(naked) op_get_screen_width() {
 	__asm {
 		mov  edx, ds:[_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[_scr_size];     // _scr_size.x
@@ -144,7 +144,7 @@ static void __declspec(naked) get_screen_width() {
 }
 
 //Return screen height
-static void __declspec(naked) get_screen_height() {
+static void __declspec(naked) op_get_screen_height() {
 	__asm {
 		mov  edx, ds:[_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[_scr_size + 4];  // _scr_size.y
@@ -155,14 +155,14 @@ static void __declspec(naked) get_screen_height() {
 }
 
 //Stop game, the same effect as open charsscreen or inventory
-static void __declspec(naked) stop_game() {
+static void __declspec(naked) op_stop_game() {
 	__asm {
 		jmp map_disable_bk_processes_;
 	}
 }
 
 //Resume the game when it is stopped
-static void __declspec(naked) resume_game() {
+static void __declspec(naked) op_resume_game() {
 	__asm {
 		jmp map_enable_bk_processes_;
 	}
@@ -182,7 +182,7 @@ static void __stdcall SplitToBuffer(const char* str, const char** str_ptr, long 
 	gTextBuffer[i] = '\0';
 }
 
-static void __stdcall create_message_window2() {
+static void __stdcall op_create_message_window2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 	if (strArg.isString()) {
 		static bool dialogShow = false;
@@ -203,8 +203,8 @@ static void __stdcall create_message_window2() {
 	}
 }
 
-static void __declspec(naked) create_message_window() {
-	_WRAP_OPCODE(create_message_window2, 1, 0)
+static void __declspec(naked) op_create_message_window() {
+	_WRAP_OPCODE(op_create_message_window2, 1, 0)
 }
 
 static void sf_message_box() {
@@ -232,7 +232,7 @@ static void sf_message_box() {
 	opHandler.setReturn(result);
 }
 
-static void __declspec(naked) GetViewportX() {
+static void __declspec(naked) op_get_viewport_x() {
 	__asm {
 		mov  edx, ds:[_wmWorldOffsetX];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -240,7 +240,7 @@ static void __declspec(naked) GetViewportX() {
 	}
 }
 
-static void __declspec(naked) GetViewportY() {
+static void __declspec(naked) op_get_viewport_y() {
 	__asm {
 		mov  edx, ds:[_wmWorldOffsetY];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -248,7 +248,7 @@ static void __declspec(naked) GetViewportY() {
 	}
 }
 
-static void __declspec(naked) SetViewportX() {
+static void __declspec(naked) op_set_viewport_x() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ds:[_wmWorldOffsetX], eax;
@@ -257,7 +257,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetViewportY() {
+static void __declspec(naked) op_set_viewport_y() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ds:[_wmWorldOffsetY], eax;
@@ -272,7 +272,7 @@ static void sf_add_iface_tag() {
 	opHandler.setReturn(result);
 }
 
-static void __stdcall ShowIfaceTag2() {
+static void __stdcall op_show_iface_tag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		int tag = tagArg.rawValue();
@@ -287,11 +287,11 @@ static void __stdcall ShowIfaceTag2() {
 	}
 }
 
-static void __declspec(naked) ShowIfaceTag() {
-	_WRAP_OPCODE(ShowIfaceTag2, 1, 0)
+static void __declspec(naked) op_show_iface_tag() {
+	_WRAP_OPCODE(op_show_iface_tag2, 1, 0)
 }
 
-static void __stdcall HideIfaceTag2() {
+static void __stdcall op_hide_iface_tag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		int tag = tagArg.rawValue();
@@ -306,11 +306,11 @@ static void __stdcall HideIfaceTag2() {
 	}
 }
 
-static void __declspec(naked) HideIfaceTag() {
-	_WRAP_OPCODE(HideIfaceTag2, 1, 0)
+static void __declspec(naked) op_hide_iface_tag() {
+	_WRAP_OPCODE(op_hide_iface_tag2, 1, 0)
 }
 
-static void __stdcall IsIfaceTagActive2() {
+static void __stdcall op_is_iface_tag_active2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		bool result = false;
@@ -342,8 +342,8 @@ static void __stdcall IsIfaceTagActive2() {
 	}
 }
 
-static void __declspec(naked) IsIfaceTagActive() {
-	_WRAP_OPCODE(IsIfaceTagActive2, 1, 1)
+static void __declspec(naked) op_is_iface_tag_active() {
+	_WRAP_OPCODE(op_is_iface_tag_active2, 1, 1)
 }
 
 static void sf_intface_redraw() {

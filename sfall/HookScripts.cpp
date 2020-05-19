@@ -54,8 +54,6 @@ struct {
 static DWORD callDepth;
 static DWORD currentRunHook = -1;
 
-DWORD InitingHookScripts;
-
 static DWORD args[maxArgs]; // current hook arguments
 static DWORD rets[maxRets]; // current hook return values
 
@@ -69,6 +67,8 @@ static struct HooksPositionInfo {
 //	long positionShift; // offset to the last script registered by register_hook
 	bool hasHsScript;
 } hooksInfo[HOOK_COUNT];
+
+DWORD initingHookScripts;
 
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
@@ -1820,15 +1820,15 @@ void HookScriptClear() {
 void HookScriptInit() {
 	isGlobalScriptLoading = 1; // this should allow to register global exported variables
 	HookScriptInit2();
-	InitingHookScripts = 1;
+	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
 			hooksInfo[i].hasHsScript = true;
-			InitScriptProgram(hooks[i][0].prog);// zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
+			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
 	isGlobalScriptLoading = 0;
-	InitingHookScripts = 0;
+	initingHookScripts = 0;
 }
 
 // run specific event procedure for all hook scripts

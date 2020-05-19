@@ -22,7 +22,7 @@
 #include "Perks.h"
 #include "ScriptExtender.h"
 
-static void __declspec(naked) GetPerkOwed() {
+static void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		movzx edx, byte ptr ds:[_free_perk];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -30,7 +30,7 @@ static void __declspec(naked) GetPerkOwed() {
 	}
 }
 
-static void __declspec(naked) SetPerkOwed() {
+static void __declspec(naked) op_set_perk_owed() {
 	__asm {
 		_GET_ARG_INT(end);
 		and  eax, 0xFF;
@@ -42,7 +42,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_perk_freq() {
+static void __declspec(naked) op_set_perk_freq() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -54,7 +54,7 @@ end:
 	}
 }
 
-static void __stdcall GetPerkAvailable2() {
+static void __stdcall op_get_perk_available2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0);
 
 	int result = 0;
@@ -69,11 +69,11 @@ static void __stdcall GetPerkAvailable2() {
 	opHandler.setReturn(result);
 }
 
-static void __declspec(naked) GetPerkAvailable() {
-	_WRAP_OPCODE(GetPerkAvailable2, 1, 1)
+static void __declspec(naked) op_get_perk_available() {
+	_WRAP_OPCODE(op_get_perk_available2, 1, 1)
 }
 
-static void __stdcall funcSetPerkName2() {
+static void __stdcall op_set_perk_name2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0),
 					  &stringArg = opHandler.arg(1);
 
@@ -84,11 +84,11 @@ static void __stdcall funcSetPerkName2() {
 	}
 }
 
-static void __declspec(naked) funcSetPerkName() {
-	_WRAP_OPCODE(funcSetPerkName2, 2, 0)
+static void __declspec(naked) op_set_perk_name() {
+	_WRAP_OPCODE(op_set_perk_name2, 2, 0)
 }
 
-static void __stdcall funcSetPerkDesc2() {
+static void __stdcall op_set_perk_desc2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0),
 					  &stringArg = opHandler.arg(1);
 
@@ -99,11 +99,11 @@ static void __stdcall funcSetPerkDesc2() {
 	}
 }
 
-static void __declspec(naked) funcSetPerkDesc() {
-	_WRAP_OPCODE(funcSetPerkDesc2, 2, 0)
+static void __declspec(naked) op_set_perk_desc() {
+	_WRAP_OPCODE(op_set_perk_desc2, 2, 0)
 }
 
-static void __declspec(naked) funcSetPerkValue() {
+static void __declspec(naked) op_set_perk_value() {
 	__asm { // edx - opcode
 		push edi;
 		push ecx;
@@ -125,7 +125,7 @@ end:
 	}
 }
 
-static void __stdcall fSetSelectablePerk2() {
+static void __stdcall op_set_selectable_perk2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
 					  &activeArg = opHandler.arg(1),
 					  &imageArg = opHandler.arg(2),
@@ -138,11 +138,11 @@ static void __stdcall fSetSelectablePerk2() {
 	}
 }
 
-static void __declspec(naked) fSetSelectablePerk() {
-	_WRAP_OPCODE(fSetSelectablePerk2, 4, 0)
+static void __declspec(naked) op_set_selectable_perk() {
+	_WRAP_OPCODE(op_set_selectable_perk2, 4, 0)
 }
 
-static void __stdcall fSetFakePerk2() {
+static void __stdcall op_set_fake_perk2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
 					  &levelArg = opHandler.arg(1),
 					  &imageArg = opHandler.arg(2),
@@ -155,11 +155,11 @@ static void __stdcall fSetFakePerk2() {
 	}
 }
 
-static void __declspec(naked) fSetFakePerk() {
-	_WRAP_OPCODE(fSetFakePerk2, 4, 0)
+static void __declspec(naked) op_set_fake_perk() {
+	_WRAP_OPCODE(op_set_fake_perk2, 4, 0)
 }
 
-static void __stdcall fSetFakeTrait2() {
+static void __stdcall op_set_fake_trait2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
 					  &activeArg = opHandler.arg(1),
 					  &imageArg = opHandler.arg(2),
@@ -172,11 +172,11 @@ static void __stdcall fSetFakeTrait2() {
 	}
 }
 
-static void __declspec(naked) fSetFakeTrait() {
-	_WRAP_OPCODE(fSetFakeTrait2, 4, 0)
+static void __declspec(naked) op_set_fake_trait() {
+	_WRAP_OPCODE(op_set_fake_trait2, 4, 0)
 }
 
-static void __declspec(naked) fSetPerkboxTitle() {
+static void __declspec(naked) op_set_perkbox_title() {
 	__asm {
 		mov  esi, ecx;
 		push ebx;
@@ -198,7 +198,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fIgnoreDefaultPerks() {
+static void __declspec(naked) op_hide_real_perks() {
 	__asm {
 		mov  esi, ecx;
 		call IgnoreDefaultPerks;
@@ -207,7 +207,7 @@ static void __declspec(naked) fIgnoreDefaultPerks() {
 	}
 }
 
-static void __declspec(naked) fRestoreDefaultPerks() {
+static void __declspec(naked) op_show_real_perks() {
 	__asm {
 		mov  esi, ecx;
 		call RestoreDefaultPerks;
@@ -216,7 +216,7 @@ static void __declspec(naked) fRestoreDefaultPerks() {
 	}
 }
 
-static void __declspec(naked) fClearSelectablePerks() {
+static void __declspec(naked) op_clear_selectable_perks() {
 	__asm {
 		mov  esi, ecx;
 		call ClearSelectablePerks;
@@ -225,7 +225,7 @@ static void __declspec(naked) fClearSelectablePerks() {
 	}
 }
 
-static void __declspec(naked) fHasFakePerk() {
+static void __declspec(naked) op_has_fake_perk() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -261,7 +261,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fHasFakeTrait() {
+static void __declspec(naked) op_has_fake_trait() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -297,7 +297,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fAddPerkMode() {
+static void __declspec(naked) op_perk_add_mode() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -309,7 +309,7 @@ end:
 	}
 }
 
-static void __declspec(naked) remove_trait() {
+static void __declspec(naked) op_remove_trait() {
 	__asm {
 		_GET_ARG_INT(end);
 		test eax, eax;
@@ -330,7 +330,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetPyromaniacMod() {
+static void __declspec(naked) op_set_pyromaniac_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -343,7 +343,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fApplyHeaveHoFix() {
+static void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
 		mov  esi, ecx;
 		call ApplyHeaveHoFix;
@@ -352,7 +352,7 @@ static void __declspec(naked) fApplyHeaveHoFix() {
 	}
 }
 
-static void __declspec(naked) SetSwiftLearnerMod() {
+static void __declspec(naked) op_set_swiftlearner_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -377,7 +377,7 @@ jneg:
 	}
 }
 
-static void __fastcall SetPerkLevelMod2(long mod) {
+static void __fastcall SetPerkLevelMod(long mod) {
 	static bool perkLevelModPatch = false;
 	if (mod < -25 || mod > 25) return;
 	PerkLevelMod = mod;
@@ -387,12 +387,12 @@ static void __fastcall SetPerkLevelMod2(long mod) {
 	HookCall(0x49687F, perk_can_add_hook);
 }
 
-static void __declspec(naked) SetPerkLevelMod() {
+static void __declspec(naked) op_set_perk_level_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, eax;
-		call SetPerkLevelMod2;
+		call SetPerkLevelMod;
 end:
 		mov  ecx, esi;
 		retn;

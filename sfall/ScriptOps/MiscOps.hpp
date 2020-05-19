@@ -39,7 +39,7 @@
 
 const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
-static void __stdcall SetDMModel2() {
+static void __stdcall op_set_dm_model2() {
 	const ScriptValue &modelArg = opHandler.arg(0);
 
 	if (modelArg.isString()) {
@@ -54,11 +54,11 @@ static void __stdcall SetDMModel2() {
 	}
 }
 
-static void __declspec(naked) SetDMModel() {
-	_WRAP_OPCODE(SetDMModel2, 1, 0)
+static void __declspec(naked) op_set_dm_model() {
+	_WRAP_OPCODE(op_set_dm_model2, 1, 0)
 }
 
-static void __stdcall SetDFModel2() {
+static void __stdcall op_set_df_model2() {
 	const ScriptValue &modelArg = opHandler.arg(0);
 
 	if (modelArg.isString()) {
@@ -73,11 +73,11 @@ static void __stdcall SetDFModel2() {
 	}
 }
 
-static void __declspec(naked) SetDFModel() {
-	_WRAP_OPCODE(SetDFModel2, 1, 0)
+static void __declspec(naked) op_set_df_model() {
+	_WRAP_OPCODE(op_set_df_model2, 1, 0)
 }
 
-static void __stdcall SetMoviePath2() {
+static void __stdcall op_set_movie_path2() {
 	const ScriptValue &fileNameArg = opHandler.arg(0),
 					  &movieIdArg = opHandler.arg(1);
 
@@ -95,11 +95,11 @@ static void __stdcall SetMoviePath2() {
 	}
 }
 
-static void __declspec(naked) SetMoviePath() {
-	_WRAP_OPCODE(SetMoviePath2, 2, 0)
+static void __declspec(naked) op_set_movie_path() {
+	_WRAP_OPCODE(op_set_movie_path2, 2, 0)
 }
 
-static void __declspec(naked) GetYear() {
+static void __declspec(naked) op_get_year() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -126,7 +126,7 @@ static void __declspec(naked) GetYear() {
 	}
 }
 
-static void __declspec(naked) GameLoaded() {
+static void __declspec(naked) op_game_loaded() {
 	__asm {
 		mov  esi, ecx;
 		push eax; // script
@@ -139,7 +139,7 @@ static void __declspec(naked) GameLoaded() {
 	}
 }
 
-static void __declspec(naked) SetPipBoyAvailable() {
+static void __declspec(naked) op_set_pipboy_available() {
 	__asm {
 		_GET_ARG_INT(end);
 		cmp  eax, 0;
@@ -156,7 +156,7 @@ end:
 static bool extraKillCounter;
 static void SetExtraKillCounter(bool value) { extraKillCounter = value; }
 
-static void __declspec(naked) GetKillCounter() {
+static void __declspec(naked) op_get_kill_counter() {
 	__asm {
 		_GET_ARG_INT(fail); // get kill type value
 		cmp  extraKillCounter, 1;
@@ -179,7 +179,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) ModKillCounter() {
+static void __declspec(naked) op_mod_kill_counter() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get mod value
@@ -249,7 +249,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetWeaponKnockback() {
+static void __declspec(naked) op_set_weapon_knockback() {
 	__asm {
 		pushaop;
 		push 0;
@@ -257,7 +257,7 @@ static void __declspec(naked) SetWeaponKnockback() {
 	}
 }
 
-static void __declspec(naked) SetTargetKnockback() {
+static void __declspec(naked) op_set_target_knockback() {
 	__asm {
 		pushaop;
 		push 1;
@@ -265,7 +265,7 @@ static void __declspec(naked) SetTargetKnockback() {
 	}
 }
 
-static void __declspec(naked) SetAttackerKnockback() {
+static void __declspec(naked) op_set_attacker_knockback() {
 	__asm {
 		pushaop;
 		push 2;
@@ -293,7 +293,7 @@ end:
 	}
 }
 
-static void __declspec(naked) RemoveWeaponKnockback() {
+static void __declspec(naked) op_remove_weapon_knockback() {
 	__asm {
 		pushaop;
 		push 0;
@@ -301,7 +301,7 @@ static void __declspec(naked) RemoveWeaponKnockback() {
 	}
 }
 
-static void __declspec(naked) RemoveTargetKnockback() {
+static void __declspec(naked) op_remove_target_knockback() {
 	__asm {
 		pushaop;
 		push 1;
@@ -309,7 +309,7 @@ static void __declspec(naked) RemoveTargetKnockback() {
 	}
 }
 
-static void __declspec(naked) RemoveAttackerKnockback() {
+static void __declspec(naked) op_remove_attacker_knockback() {
 	__asm {
 		pushaop;
 		push 2;
@@ -317,7 +317,7 @@ static void __declspec(naked) RemoveAttackerKnockback() {
 	}
 }
 
-static void __declspec(naked) GetActiveHand() {
+static void __declspec(naked) op_active_hand() {
 	__asm {
 		mov  edx, dword ptr ds:[_itemCurrentItem];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -325,14 +325,14 @@ static void __declspec(naked) GetActiveHand() {
 	}
 }
 
-static void __declspec(naked) ToggleActiveHand() {
+static void __declspec(naked) op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
 		jmp intface_toggle_items_;
 	}
 }
 
-static void __declspec(naked) EaxAvailable() {
+static void __declspec(naked) op_eax_available() {
 	__asm {
 		xor  edx, edx
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -344,7 +344,7 @@ static const char* nameNPCToInc;
 static long pidNPCToInc;
 static bool onceNpcLoop;
 
-static void __cdecl IncNPCLevelFunc(const char* fmt, const char* name) {
+static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 	TGameObj* mObj;
 	__asm {
 		push edx;
@@ -374,12 +374,12 @@ static void __cdecl IncNPCLevelFunc(const char* fmt, const char* name) {
 	__asm pop edx;
 }
 
-static void __stdcall IncNPCLevel2() {
+static void __stdcall op_inc_npc_level2() {
 	nameNPCToInc = opHandler.arg(0).asString();
 	pidNPCToInc = opHandler.arg(0).asInt(); // set to 0 if passing npc name
 	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
 
-	MakeCall(0x495BF1, IncNPCLevelFunc);  // Replace the debug output
+	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
 	__asm call partyMemberIncLevels_;
 	onceNpcLoop = false;
 
@@ -396,11 +396,11 @@ static void __stdcall IncNPCLevel2() {
 	}
 }
 
-static void __declspec(naked) IncNPCLevel() {
-	_WRAP_OPCODE(IncNPCLevel2, 1, 0)
+static void __declspec(naked) op_inc_npc_level() {
+	_WRAP_OPCODE(op_inc_npc_level2, 1, 0)
 }
 
-static void __stdcall get_npc_level2() {
+static void __stdcall op_get_npc_level2() {
 	int level = -1;
 	const ScriptValue &npcArg = opHandler.arg(0);
 
@@ -449,8 +449,8 @@ static void __stdcall get_npc_level2() {
 	opHandler.setReturn(level);
 }
 
-static void __declspec(naked) get_npc_level() {
-	_WRAP_OPCODE(get_npc_level2, 1, 1)
+static void __declspec(naked) op_get_npc_level() {
+	_WRAP_OPCODE(op_get_npc_level2, 1, 1)
 }
 
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
@@ -478,7 +478,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	return 1;
 }
 
-static DWORD __stdcall GetIniSetting2(const char* str, DWORD isString) {
+static DWORD __stdcall GetIniSetting(const char* str, DWORD isString) {
 	const char* key;
 	char section[33], file[67];
 
@@ -494,7 +494,7 @@ static DWORD __stdcall GetIniSetting2(const char* str, DWORD isString) {
 	}
 }
 
-static void __declspec(naked) funcGetIniSetting() {
+static void __declspec(naked) op_get_ini_setting() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -515,7 +515,7 @@ next:
 		call interpretGetString_;
 		push 0;
 		push eax;
-		call GetIniSetting2;
+		call GetIniSetting;
 		mov edx, eax;
 		jmp result;
 error:
@@ -533,7 +533,8 @@ result:
 		retn;
 	}
 }
-static void __declspec(naked) funcGetIniString() {
+
+static void __declspec(naked) op_get_ini_string() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -554,7 +555,7 @@ next:
 		call interpretGetString_;
 		push 1;
 		push eax;
-		call GetIniSetting2;
+		call GetIniSetting;
 		mov edx, eax;
 		mov eax, edi;
 		call interpretAddString_;
@@ -583,7 +584,7 @@ static DWORD __stdcall GetTickCount2() {
 	return GetTickCount(); //timeGetTime
 }
 
-static void __declspec(naked) funcGetTickCount() {
+static void __declspec(naked) op_get_uptime() {
 	__asm {
 		mov  esi, ecx;
 		call GetTickCount2;
@@ -595,7 +596,7 @@ static void __declspec(naked) funcGetTickCount() {
 	}
 }
 
-static void __declspec(naked) SetCarTown() {
+static void __declspec(naked) op_set_car_current_town() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ds:[_CarCurrArea], eax;
@@ -604,7 +605,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetLevelHPMod() {
+static void __declspec(naked) op_set_hp_per_level_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -617,7 +618,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetBodypartHitModifier() {
+static void __declspec(naked) op_get_bodypart_hit_modifier() {
 	__asm {
 		_GET_ARG_INT(fail); // get body value
 		cmp  eax, 8; // Body_Head - Body_Uncalled
@@ -632,7 +633,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) SetBodypartHitModifier() {
+static void __declspec(naked) op_set_bodypart_hit_modifier() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get body value
@@ -651,7 +652,7 @@ end:
 
 static const char* valueOutRange = "%s() - argument values out of range.";
 
-static void funcSetCriticalTable2() {
+static void op_set_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
 					  &bodypartArg = opHandler.arg(1),
 					  &slotArg = opHandler.arg(2),
@@ -674,11 +675,11 @@ static void funcSetCriticalTable2() {
 	}
 }
 
-static void __declspec(naked) funcSetCriticalTable() {
-	_WRAP_OPCODE(funcSetCriticalTable2, 5, 0)
+static void __declspec(naked) op_set_critical_table() {
+	_WRAP_OPCODE(op_set_critical_table2, 5, 0)
 }
 
-static void funcGetCriticalTable2() {
+static void op_get_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
 					  &bodypartArg = opHandler.arg(1),
 					  &slotArg = opHandler.arg(2),
@@ -701,11 +702,11 @@ static void funcGetCriticalTable2() {
 	}
 }
 
-static void __declspec(naked) funcGetCriticalTable() {
-	_WRAP_OPCODE(funcGetCriticalTable2, 4, 1)
+static void __declspec(naked) op_get_critical_table() {
+	_WRAP_OPCODE(op_get_critical_table2, 4, 1)
 }
 
-static void funcResetCriticalTable2() {
+static void op_reset_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
 					  &bodypartArg = opHandler.arg(1),
 					  &slotArg = opHandler.arg(2),
@@ -727,11 +728,11 @@ static void funcResetCriticalTable2() {
 	}
 }
 
-static void __declspec(naked) funcResetCriticalTable() {
-	_WRAP_OPCODE(funcResetCriticalTable2, 4, 0)
+static void __declspec(naked) op_reset_critical_table() {
+	_WRAP_OPCODE(op_reset_critical_table2, 4, 0)
 }
 
-static void __declspec(naked) SetApAcBonus() {
+static void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  StandardApAcBonus, eax;
@@ -740,7 +741,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetApAcBonus() {
+static void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
 		mov  edx, StandardApAcBonus;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -748,7 +749,7 @@ static void __declspec(naked) GetApAcBonus() {
 	}
 }
 
-static void __declspec(naked) SetApAcEBonus() {
+static void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ExtraApAcBonus, eax;
@@ -757,7 +758,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetApAcEBonus() {
+static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
 		mov  edx, ExtraApAcBonus;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -765,7 +766,7 @@ static void __declspec(naked) GetApAcEBonus() {
 	}
 }
 
-static void __declspec(naked) SetPalette() {
+static void __declspec(naked) op_set_palette() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -795,11 +796,11 @@ end:
 }
 
 //numbers subgame functions
-static void __declspec(naked) NBCreateChar() {
+static void __declspec(naked) op_nb_create_char() {
 	__asm retn;
 }
 
-static void __declspec(naked) funcHeroSelectWin() { // for opening the appearance selection window
+static void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(fail);
@@ -811,7 +812,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) funcSetHeroStyle() { // for setting the hero style/appearance takes an 1 int
+static void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(fail);
@@ -823,7 +824,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) funcSetHeroRace() { // for setting the hero race takes an 1 int
+static void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(fail);
@@ -835,7 +836,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) get_light_level() {
+static void __declspec(naked) op_get_light_level() {
 	__asm {
 		mov  edx, ds:[_ambient_light];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -843,7 +844,7 @@ static void __declspec(naked) get_light_level() {
 	}
 }
 
-static void __declspec(naked) refresh_pc_art() {
+static void __declspec(naked) op_refresh_pc_art() {
 	__asm {
 		mov  esi, ecx;
 		call RefreshPCArt;
@@ -863,7 +864,7 @@ static void __stdcall intface_attack_type() {
 	}
 }
 
-static void __declspec(naked) get_attack_type() {
+static void __declspec(naked) op_get_attack_type() {
 	__asm {
 		push edx;
 		push ecx;
@@ -895,7 +896,7 @@ skip:
 	}
 }
 
-static void __stdcall play_sfall_sound2() {
+static void __stdcall op_play_sfall_sound2() {
 	const ScriptValue &fileArg = opHandler.arg(0),
 					  &modeArg = opHandler.arg(1);
 
@@ -910,11 +911,11 @@ static void __stdcall play_sfall_sound2() {
 	}
 }
 
-static void __declspec(naked) play_sfall_sound() {
-	_WRAP_OPCODE(play_sfall_sound2, 2, 1)
+static void __declspec(naked) op_play_sfall_sound() {
+	_WRAP_OPCODE(op_play_sfall_sound2, 2, 1)
 }
 
-static void __declspec(naked) stop_sfall_sound() {
+static void __declspec(naked) op_stop_sfall_sound() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -927,7 +928,7 @@ end:
 }
 
 // TODO: It seems that this function does not work...
-static void __declspec(naked) get_tile_fid() {
+static void __declspec(naked) op_get_tile_fid() {
 	__asm {
 		push ecx;
 		_GET_ARG_INT(fail); // get tile value
@@ -953,7 +954,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) modified_ini() {
+static void __declspec(naked) op_modified_ini() {
 	__asm {
 		mov  edx, modifiedIni;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -961,7 +962,7 @@ static void __declspec(naked) modified_ini() {
 	}
 }
 
-static void __declspec(naked) force_aimed_shots() {
+static void __declspec(naked) op_force_aimed_shots() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -973,7 +974,7 @@ end:
 	}
 }
 
-static void __declspec(naked) disable_aimed_shots() {
+static void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -985,7 +986,7 @@ end:
 	}
 }
 
-static void __declspec(naked) mark_movie_played() {
+static void __declspec(naked) op_mark_movie_played() {
 	__asm {
 		_GET_ARG_INT(end);
 		test eax, eax;
@@ -998,7 +999,7 @@ end:
 	}
 }
 
-static void __declspec(naked) get_last_attacker() {
+static void __declspec(naked) op_get_last_attacker() {
 	__asm {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
@@ -1015,7 +1016,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) get_last_target() {
+static void __declspec(naked) op_get_last_target() {
 	__asm {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
@@ -1032,7 +1033,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) block_combat() {
+static void __declspec(naked) op_block_combat() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -1044,7 +1045,7 @@ end:
 	}
 }
 
-static void __declspec(naked) tile_under_cursor() {
+static void __declspec(naked) op_tile_under_cursor() {
 	__asm {
 		mov  esi, ebx;
 		sub  esp, 8;
@@ -1062,7 +1063,7 @@ static void __declspec(naked) tile_under_cursor() {
 	}
 }
 
-static void __declspec(naked) gdialog_get_barter_mod() {
+static void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
 		mov  edx, dword ptr ds:[_gdBarterMod];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -1070,7 +1071,7 @@ static void __declspec(naked) gdialog_get_barter_mod() {
 	}
 }
 
-static void __declspec(naked) set_inven_ap_cost() {
+static void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);

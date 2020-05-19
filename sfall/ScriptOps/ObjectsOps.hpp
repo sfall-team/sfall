@@ -31,7 +31,7 @@
 	__asm call exec_script_proc_                \
 }
 
-static void __stdcall RemoveScript2() {
+static void __stdcall op_remove_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
 		if (object->scriptID != 0xFFFFFFFF) {
@@ -43,11 +43,11 @@ static void __stdcall RemoveScript2() {
 	}
 }
 
-static void __declspec(naked) RemoveScript() {
-	_WRAP_OPCODE(RemoveScript2, 1, 0)
+static void __declspec(naked) op_remove_script() {
+	_WRAP_OPCODE(op_remove_script2, 1, 0)
 }
 
-static void __stdcall SetScript2() {
+static void __stdcall op_set_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	const ScriptValue &scriptIdxArg = opHandler.arg(1);
 
@@ -81,8 +81,8 @@ static void __stdcall SetScript2() {
 	}
 }
 
-static void __declspec(naked) SetScript() {
-	_WRAP_OPCODE(SetScript2, 2, 0)
+static void __declspec(naked) op_set_script() {
+	_WRAP_OPCODE(op_set_script2, 2, 0)
 }
 
 static void __stdcall op_create_spatial2() {
@@ -133,7 +133,7 @@ static void sf_spatial_radius() {
 	}
 }
 
-static void __stdcall GetScript2() {
+static void __stdcall op_get_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
 		long scriptIndex = object->script_index;
@@ -144,11 +144,11 @@ static void __stdcall GetScript2() {
 	}
 }
 
-static void __declspec(naked) GetScript() {
-	_WRAP_OPCODE(GetScript2, 1, 1)
+static void __declspec(naked) op_get_script() {
+	_WRAP_OPCODE(op_get_script2, 1, 1)
 }
 
-static void __stdcall set_critter_burst_disable2() {
+static void __stdcall op_set_critter_burst_disable2() {
 	TGameObj* critter = opHandler.arg(0).asObject();
 	const ScriptValue &disableArg = opHandler.arg(1);
 
@@ -159,11 +159,11 @@ static void __stdcall set_critter_burst_disable2() {
 	}
 }
 
-static void __declspec(naked) set_critter_burst_disable() {
-	_WRAP_OPCODE(set_critter_burst_disable2, 2, 0)
+static void __declspec(naked) op_set_critter_burst_disable() {
+	_WRAP_OPCODE(op_set_critter_burst_disable2, 2, 0)
 }
 
-static void __stdcall get_weapon_ammo_pid2() {
+static void __stdcall op_get_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->critterAP_itemAmmoPid);
@@ -173,11 +173,11 @@ static void __stdcall get_weapon_ammo_pid2() {
 	}
 }
 
-static void __declspec(naked) get_weapon_ammo_pid() {
-	_WRAP_OPCODE(get_weapon_ammo_pid2, 1, 1)
+static void __declspec(naked) op_get_weapon_ammo_pid() {
+	_WRAP_OPCODE(op_get_weapon_ammo_pid2, 1, 1)
 }
 
-static void __stdcall set_weapon_ammo_pid2() {
+static void __stdcall op_set_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &pidArg = opHandler.arg(1);
 
@@ -188,11 +188,11 @@ static void __stdcall set_weapon_ammo_pid2() {
 	}
 }
 
-static void __declspec(naked) set_weapon_ammo_pid() {
-	_WRAP_OPCODE(set_weapon_ammo_pid2, 2, 0)
+static void __declspec(naked) op_set_weapon_ammo_pid() {
+	_WRAP_OPCODE(op_set_weapon_ammo_pid2, 2, 0)
 }
 
-static void __stdcall get_weapon_ammo_count2() {
+static void __stdcall op_get_weapon_ammo_count2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->itemCharges);
@@ -202,11 +202,11 @@ static void __stdcall get_weapon_ammo_count2() {
 	}
 }
 
-static void __declspec(naked) get_weapon_ammo_count() {
-	_WRAP_OPCODE(get_weapon_ammo_count2, 1, 1)
+static void __declspec(naked) op_get_weapon_ammo_count() {
+	_WRAP_OPCODE(op_get_weapon_ammo_count2, 1, 1)
 }
 
-static void __stdcall set_weapon_ammo_count2() {
+static void __stdcall op_set_weapon_ammo_count2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &countArg = opHandler.arg(1);
 
@@ -217,8 +217,8 @@ static void __stdcall set_weapon_ammo_count2() {
 	}
 }
 
-static void __declspec(naked) set_weapon_ammo_count() {
-	_WRAP_OPCODE(set_weapon_ammo_count2, 2, 0)
+static void __declspec(naked) op_set_weapon_ammo_count() {
+	_WRAP_OPCODE(op_set_weapon_ammo_count2, 2, 0)
 }
 
 enum {
@@ -569,7 +569,7 @@ static void sf_get_loot_object() {
 static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
-static void __stdcall get_proto_data2() {
+static void __stdcall op_get_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
 					  &offsetArg = opHandler.arg(1);
 
@@ -595,11 +595,11 @@ static void __stdcall get_proto_data2() {
 	}
 }
 
-static void __declspec(naked) get_proto_data() {
-	_WRAP_OPCODE(get_proto_data2, 2, 1)
+static void __declspec(naked) op_get_proto_data() {
+	_WRAP_OPCODE(op_get_proto_data2, 2, 1)
 }
 
-static void __stdcall set_proto_data2() {
+static void __stdcall op_set_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
 					  &offsetArg = opHandler.arg(1),
 					  &valueArg = opHandler.arg(2);
@@ -628,8 +628,8 @@ static void __stdcall set_proto_data2() {
 	}
 }
 
-static void __declspec(naked) set_proto_data() {
-	_WRAP_OPCODE(set_proto_data2, 3, 0)
+static void __declspec(naked) op_set_proto_data() {
+	_WRAP_OPCODE(op_set_proto_data2, 3, 0)
 }
 
 static void sf_get_object_data() {

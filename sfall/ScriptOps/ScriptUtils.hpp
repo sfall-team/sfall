@@ -106,7 +106,7 @@ static void __declspec(naked) op_strlen() {
 	_WRAP_OPCODE(op_strlen2, 1, 1)
 }
 
-static void __stdcall str_to_int2() {
+static void __stdcall op_atoi2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 
 	if (strArg.isString()) {
@@ -120,11 +120,11 @@ static void __stdcall str_to_int2() {
 	}
 }
 
-static void __declspec(naked) str_to_int() {
-	_WRAP_OPCODE(str_to_int2, 1, 1)
+static void __declspec(naked) op_atoi() {
+	_WRAP_OPCODE(op_atoi2, 1, 1)
 }
 
-static void __stdcall str_to_flt2() {
+static void __stdcall op_atof2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 
 	if (strArg.isString()) {
@@ -138,8 +138,8 @@ static void __stdcall str_to_flt2() {
 	}
 }
 
-static void __declspec(naked) str_to_flt() {
-	_WRAP_OPCODE(str_to_flt2, 1, 1)
+static void __declspec(naked) op_atof() {
+	_WRAP_OPCODE(op_atof2, 1, 1)
 }
 
 static void __stdcall op_ord2() {
@@ -198,7 +198,7 @@ static int __stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-static void __stdcall string_split2() {
+static void __stdcall op_string_split2() {
 	const ScriptValue &strArg = opHandler.arg(0),
 					  &splitArg = opHandler.arg(1);
 
@@ -210,8 +210,8 @@ static void __stdcall string_split2() {
 	}
 }
 
-static void __declspec(naked) string_split() {
-	_WRAP_OPCODE(string_split2, 2, 1)
+static void __declspec(naked) op_string_split() {
+	_WRAP_OPCODE(op_string_split2, 2, 1)
 }
 
 static char* __stdcall SubString(const char* str, int startPos, int length) {
@@ -281,7 +281,7 @@ invalidArgs:
 }
 
 // A safer version of sprintf for using in user scripts.
-static char* __stdcall mysprintf(const char* format, DWORD value, DWORD valueType) {
+static char* __stdcall sprintf_lite(const char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
@@ -397,7 +397,7 @@ notstring:
 		call interpretGetString_; // format string ptr
 		push esi; // arg 2 - value
 		push eax; // arg 1 - format str
-		call mysprintf;
+		call sprintf_lite;
 		mov edx, eax;
 		mov eax, edi;
 		call interpretAddString_;

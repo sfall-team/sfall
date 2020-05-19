@@ -76,7 +76,7 @@ noCar:
 	}
 }
 
-static void __stdcall ForceEncounter2() {
+static void __stdcall op_force_encounter2() {
 	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
 	const ScriptValue &mapIDArg = opHandler.arg(0);
@@ -107,16 +107,16 @@ invalidArgs:
 	}
 }
 
-static void __declspec(naked) ForceEncounter() {
-	_WRAP_OPCODE(ForceEncounter2, 1, 0)
+static void __declspec(naked) op_force_encounter() {
+	_WRAP_OPCODE(op_force_encounter2, 1, 0)
 }
 
-static void __declspec(naked) ForceEncounterWithFlags() {
-	_WRAP_OPCODE(ForceEncounter2, 2, 0)
+static void __declspec(naked) op_force_encounter_with_flags() {
+	_WRAP_OPCODE(op_force_encounter2, 2, 0)
 }
 
 // world_map_functions
-static void __declspec(naked) funcInWorldMap() {
+static void __declspec(naked) op_in_world_map() {
 	__asm {
 		mov  esi, ecx;
 		call InWorldMap;
@@ -128,7 +128,7 @@ static void __declspec(naked) funcInWorldMap() {
 	}
 }
 
-static void __declspec(naked) GetGameMode() {
+static void __declspec(naked) op_get_game_mode() {
 	__asm {
 		mov  esi, ecx;
 		call GetLoopFlags;
@@ -140,7 +140,7 @@ static void __declspec(naked) GetGameMode() {
 	}
 }
 
-static void __declspec(naked) GetWorldMapXPos() {
+static void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
 		mov  edx, ds:[_world_xpos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -148,7 +148,7 @@ static void __declspec(naked) GetWorldMapXPos() {
 	}
 }
 
-static void __declspec(naked) GetWorldMapYPos() {
+static void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
 		mov  edx, ds:[_world_ypos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -156,7 +156,7 @@ static void __declspec(naked) GetWorldMapYPos() {
 	}
 }
 
-static void __declspec(naked) SetWorldMapPos() {
+static void __declspec(naked) op_set_world_map_pos() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get y value
@@ -172,7 +172,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_map_time_multi() {
+static void __declspec(naked) op_set_map_time_multi() {
 	__asm {
 		push ebx;
 		push ecx;

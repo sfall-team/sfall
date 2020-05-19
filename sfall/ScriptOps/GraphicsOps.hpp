@@ -24,7 +24,7 @@
 #include "ScriptExtender.h"
 
 // graphics_functions
-static void __declspec(naked) GraphicsFuncsAvailable() {
+static void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
 		cmp  GraphicsMode, 3;
 		seta dl;
@@ -34,7 +34,7 @@ static void __declspec(naked) GraphicsFuncsAvailable() {
 	}
 }
 
-static void __declspec(naked) funcLoadShader() {
+static void __declspec(naked) op_load_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -73,7 +73,7 @@ result:
 	}
 }
 
-static void __declspec(naked) funcFreeShader() {
+static void __declspec(naked) op_free_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -85,7 +85,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcActivateShader() {
+static void __declspec(naked) op_activate_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -97,7 +97,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcDeactivateShader() {
+static void __declspec(naked) op_deactivate_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -109,7 +109,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcGetShaderTexture() {
+static void __declspec(naked) op_get_shader_texture() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -161,7 +161,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetShaderInt() {
+static void __declspec(naked) op_set_shader_int() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -218,7 +218,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetShaderTexture() {
+static void __declspec(naked) op_set_shader_texture() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -275,7 +275,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetShaderFloat() {
+static void __declspec(naked) op_set_shader_float() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -337,7 +337,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetShaderVector() {
+static void __declspec(naked) op_set_shader_vector() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -395,7 +395,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcGetShaderVersion() {
+static void __declspec(naked) op_get_shader_version() {
 	__asm {
 		mov  esi, ecx;
 		call GetShaderVersion;
@@ -407,7 +407,7 @@ static void __declspec(naked) funcGetShaderVersion() {
 	}
 }
 
-static void __declspec(naked) funcSetShaderMode() {
+static void __declspec(naked) op_set_shader_mode() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -442,7 +442,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcForceGraphicsRefresh() {
+static void __declspec(naked) op_force_graphics_refresh() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
