@@ -44,7 +44,8 @@ TGameObj* __stdcall sf_check_critters_in_lof(TGameObj* object, DWORD checkTile, 
 TGameObj* __stdcall CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
-	return sf_check_critters_in_lof(object, target->tile, attacker->teamNum); // 0 if there are no friendly critters
+	object = sf_check_critters_in_lof(object, target->tile, attacker->teamNum);
+	return (!object || ((object->artFid >> 24) & 0x0F) == OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
 }
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
@@ -55,7 +56,7 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 }
 
 static void __declspec(naked) combat_ai_hook_FleeFix() {
-	static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
+	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
 	__asm {
 		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
 		jnz  reTarget;

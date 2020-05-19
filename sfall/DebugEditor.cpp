@@ -313,6 +313,11 @@ artNotExist:
 		push edx;
 		push artDbgMsg;
 		call debug_printf_;
+		cmp  isDebug, 0;
+		jne  display;
+		add  esp, 8;
+		retn;
+display:
 		push edx; // filename
 		push artDbgMsg;
 		lea  eax, [esp + 0x124 - 0x124 + 20]; // buf
@@ -370,7 +375,7 @@ static void DebugModePatch() {
 		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ddrawIniDef)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
-		// prints a debug message about missing art file for critters to both debug.log and the message window
+		// prints a debug message about missing art file for critters to both debug.log and the message window in sfall debugging mode
 		HookCall(0x419B65, art_data_size_hook);
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
