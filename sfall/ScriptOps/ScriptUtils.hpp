@@ -259,7 +259,7 @@ static void __declspec(naked) op_substr() {
 	_WRAP_OPCODE(op_substr2, 3, 1)
 }
 
-static void sf_string_compare() {
+static void mf_string_compare() {
 	const ScriptValue &str1Arg = opHandler.arg(0),
 					  &str2Arg = opHandler.arg(1);
 
@@ -413,7 +413,7 @@ fail:
 	}
 }
 
-static void sf_string_format() {
+static void mf_string_format() {
 	const ScriptValue &fmtArg = opHandler.arg(0);
 
 	if (!fmtArg.isString()) {
@@ -515,7 +515,7 @@ static void __declspec(naked) op_message_str_game() {
 	_WRAP_OPCODE(op_message_str_game2, 2, 1)
 }
 
-static void sf_get_text_width() {
+static void mf_get_text_width() {
 	const ScriptValue &textArg = opHandler.arg(0);
 
 	if (textArg.isString()) {
@@ -528,7 +528,7 @@ static void sf_get_text_width() {
 
 static std::string strToCase;
 
-static void sf_string_to_case() {
+static void mf_string_to_case() {
 	strToCase = opHandler.arg(0).strValue();
 	std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), opHandler.arg(1).rawValue() ? ::toupper : ::tolower);
 

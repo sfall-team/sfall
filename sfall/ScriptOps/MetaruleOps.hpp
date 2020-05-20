@@ -26,7 +26,7 @@
 #include "ScriptExtender.h"
 
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
-// Prefix all function handlers with sf_ and add them to sfall_metarule_table.
+// Prefix all function handlers with mf_ and add them to sfall_metarule_table.
 // DO NOT add arguments and/or return values to function handlers!
 // Use opHandler.arg(i), inside handler function to access arguments.
 // Use opHandler.setReturn(x) to set return value.
@@ -52,8 +52,8 @@ static const SfallMetarule* currentMetarule;
 
 // Example handler. Feel free to add handlers in other files.
 #ifndef NDEBUG
-static std::string sf_test_stringBuf;
-static void sf_test() {
+static std::string mf_test_stringBuf;
+static void mf_test() {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
 	for (int i = 0; i < opHandler.numArgs(); i++) {
@@ -76,13 +76,13 @@ static void sf_test() {
 	}
 	sstream << ")";
 
-	sf_test_stringBuf = sstream.str();
-	opHandler.setReturn(sf_test_stringBuf.c_str());
+	mf_test_stringBuf = sstream.str();
+	opHandler.setReturn(mf_test_stringBuf.c_str());
 }
 #endif
 
 // returns current contents of metarule table
-static void sf_get_metarule_table() {
+static void mf_get_metarule_table() {
 	DWORD arrId = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
@@ -92,7 +92,7 @@ static void sf_get_metarule_table() {
 	opHandler.setReturn(arrId, DATATYPE_INT);
 }
 
-static void sf_metarule_exist() {
+static void mf_metarule_exist() {
 	bool result = false;
 	const char* funcXName = opHandler.arg(0).asString();
 	if (funcXName[0] != '\0') {
@@ -114,70 +114,70 @@ static void sf_metarule_exist() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
 */
 static const SfallMetarule metaruleArray[] = {
-	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
-	{"add_g_timer_event",       sf_add_g_timer_event,       2, 2},
-	{"add_trait",               sf_add_trait,               1, 1},
-	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
-	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
-	{"create_win",              sf_create_win,              5, 6},
-	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2},
-	{"dialog_obj",              sf_get_dialog_object,       0, 0},
-	{"display_stats",           sf_display_stats,           0, 0}, // refresh
-	{"draw_image",              sf_draw_image,              1, 5},
-	{"draw_image_scaled",       sf_draw_image_scaled,       1, 6},
-	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
-	{"floor2",                  sf_floor2,                  1, 1},
-	{"get_current_inven_size",  sf_get_current_inven_size,  1, 1},
-	{"get_cursor_mode",         sf_get_cursor_mode,         0, 0},
-	{"get_flags",               sf_get_flags,               1, 1},
-	{"get_inven_ap_cost",       sf_get_inven_ap_cost,       0, 0},
-	{"get_map_enter_position",  sf_get_map_enter_position,  0, 0},
-	{"get_metarule_table",      sf_get_metarule_table,      0, 0},
-	{"get_object_data",         sf_get_object_data,         2, 2},
-	{"get_outline",             sf_get_outline,             1, 1},
-	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1},
-	{"get_text_width",          sf_get_text_width,          1, 1},
-	{"get_window_attribute",    sf_get_window_attribute,    1, 2},
-	{"hide_window",             sf_hide_window,             0, 1},
-	{"intface_hide",            sf_intface_hide,            0, 0},
-	{"intface_is_hidden",       sf_intface_is_hidden,       0, 0},
-	{"intface_redraw",          sf_intface_redraw,          0, 0},
-	{"intface_show",            sf_intface_show,            0, 0},
-	{"inventory_redraw",        sf_inventory_redraw,        0, 1},
-	{"item_weight",             sf_item_weight,             1, 1},
-	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1},
-	{"loot_obj",                sf_get_loot_object,         0, 0},
-	{"message_box",             sf_message_box,             1, 4},
-	{"metarule_exist",          sf_metarule_exist,          1, 1},
-	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1},
-	{"obj_under_cursor",        sf_obj_under_cursor,        2, 2},
-	{"objects_in_radius",       sf_objects_in_radius,       3, 4},
-	{"outlined_object",         sf_outlined_object,         0, 0},
-	{"real_dude_obj",           sf_real_dude_obj,           0, 0},
-	{"remove_timer_event",      sf_remove_timer_event,      0, 1},
-	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1},
-	{"set_flags",               sf_set_flags,               2, 2},
-	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3},
-	{"set_ini_setting",         sf_set_ini_setting,         2, 2},
-	{"set_map_enter_position",  sf_set_map_enter_position,  3, 3},
-	{"set_object_data",         sf_set_object_data,         3, 3},
-	{"set_outline",             sf_set_outline,             2, 2},
-	{"set_terrain_name",        sf_set_terrain_name,        3, 3},
-	{"set_town_title",          sf_set_town_title,          2, 2},
-	{"set_unique_id",           sf_set_unique_id,           1, 2},
-	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1},
-	{"set_window_flag",         sf_set_window_flag,         3, 3},
-	{"show_window",             sf_show_window,             0, 1},
-	{"spatial_radius",          sf_spatial_radius,          1, 1},
-	{"string_compare",          sf_string_compare,          2, 3},
-	{"string_format",           sf_string_format,           2, 5},
-	{"string_to_case",          sf_string_to_case,          2, 2},
-	{"tile_by_position",        sf_tile_by_position,        2, 2},
-	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
-	{"unjam_lock",              sf_unjam_lock,              1, 1},
-	{"unwield_slot",            sf_unwield_slot,            2, 2},
+	{"add_iface_tag",           mf_add_iface_tag,           0, 0},
+	{"add_g_timer_event",       mf_add_g_timer_event,       2, 2},
+	{"add_trait",               mf_add_trait,               1, 1},
+	{"art_cache_clear",         mf_art_cache_flush,         0, 0},
+	{"attack_is_aimed",         mf_attack_is_aimed,         0, 0},
+	{"create_win",              mf_create_win,              5, 6},
+	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2},
+	{"dialog_obj",              mf_get_dialog_object,       0, 0},
+	{"display_stats",           mf_display_stats,           0, 0}, // refresh
+	{"draw_image",              mf_draw_image,              1, 5},
+	{"draw_image_scaled",       mf_draw_image_scaled,       1, 6},
+	{"exec_map_update_scripts", mf_exec_map_update_scripts, 0, 0},
+	{"floor2",                  mf_floor2,                  1, 1},
+	{"get_current_inven_size",  mf_get_current_inven_size,  1, 1},
+	{"get_cursor_mode",         mf_get_cursor_mode,         0, 0},
+	{"get_flags",               mf_get_flags,               1, 1},
+	{"get_inven_ap_cost",       mf_get_inven_ap_cost,       0, 0},
+	{"get_map_enter_position",  mf_get_map_enter_position,  0, 0},
+	{"get_metarule_table",      mf_get_metarule_table,      0, 0},
+	{"get_object_data",         mf_get_object_data,         2, 2},
+	{"get_outline",             mf_get_outline,             1, 1},
+	{"get_sfall_arg_at",        mf_get_sfall_arg_at,        1, 1},
+	{"get_text_width",          mf_get_text_width,          1, 1},
+	{"get_window_attribute",    mf_get_window_attribute,    1, 2},
+	{"hide_window",             mf_hide_window,             0, 1},
+	{"intface_hide",            mf_intface_hide,            0, 0},
+	{"intface_is_hidden",       mf_intface_is_hidden,       0, 0},
+	{"intface_redraw",          mf_intface_redraw,          0, 0},
+	{"intface_show",            mf_intface_show,            0, 0},
+	{"inventory_redraw",        mf_inventory_redraw,        0, 1},
+	{"item_weight",             mf_item_weight,             1, 1},
+	{"lock_is_jammed",          mf_lock_is_jammed,          1, 1},
+	{"loot_obj",                mf_get_loot_object,         0, 0},
+	{"message_box",             mf_message_box,             1, 4},
+	{"metarule_exist",          mf_metarule_exist,          1, 1},
+	{"npc_engine_level_up",     mf_npc_engine_level_up,     1, 1},
+	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2},
+	{"objects_in_radius",       mf_objects_in_radius,       3, 4},
+	{"outlined_object",         mf_outlined_object,         0, 0},
+	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
+	{"remove_timer_event",      mf_remove_timer_event,      0, 1},
+	{"set_cursor_mode",         mf_set_cursor_mode,         1, 1},
+	{"set_flags",               mf_set_flags,               2, 2},
+	{"set_iface_tag_text",      mf_set_iface_tag_text,      3, 3},
+	{"set_ini_setting",         mf_set_ini_setting,         2, 2},
+	{"set_map_enter_position",  mf_set_map_enter_position,  3, 3},
+	{"set_object_data",         mf_set_object_data,         3, 3},
+	{"set_outline",             mf_set_outline,             2, 2},
+	{"set_terrain_name",        mf_set_terrain_name,        3, 3},
+	{"set_town_title",          mf_set_town_title,          2, 2},
+	{"set_unique_id",           mf_set_unique_id,           1, 2},
+	{"set_unjam_locks_time",    mf_set_unjam_locks_time,    1, 1},
+	{"set_window_flag",         mf_set_window_flag,         3, 3},
+	{"show_window",             mf_show_window,             0, 1},
+	{"spatial_radius",          mf_spatial_radius,          1, 1},
+	{"string_compare",          mf_string_compare,          2, 3},
+	{"string_format",           mf_string_format,           2, 5},
+	{"string_to_case",          mf_string_to_case,          2, 2},
+	{"tile_by_position",        mf_tile_by_position,        2, 2},
+	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
+	{"unjam_lock",              mf_unjam_lock,              1, 1},
+	{"unwield_slot",            mf_unwield_slot,            2, 2},
 	#ifndef NDEBUG
-	{"validate_test",           sf_test,                    2, 5},
+	{"validate_test",           mf_test,                    2, 5},
 	#endif
 };
 

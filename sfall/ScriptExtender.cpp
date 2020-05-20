@@ -636,7 +636,7 @@ static void __declspec(naked) op_get_sfall_arg() {
 	}
 }
 
-static void sf_get_sfall_arg_at() {
+static void mf_get_sfall_arg_at() {
 	long argVal = 0;
 	const ScriptValue &idArg = opHandler.arg(0);
 
@@ -789,11 +789,11 @@ static void __declspec(naked) op_register_hook_proc_spec() {
 	_WRAP_OPCODE(op_register_hook_proc_spec2, 2, 0)
 }
 
-static void sf_add_g_timer_event() {
+static void mf_add_g_timer_event() {
 	AddTimerEventScripts((DWORD)opHandler.program(), opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
 }
 
-static void sf_remove_timer_event() {
+static void mf_remove_timer_event() {
 	if (opHandler.numArgs() > 0) {
 		RemoveTimerEventScripts((DWORD)opHandler.program(), opHandler.arg(0).rawValue());
 	} else {
@@ -848,35 +848,35 @@ static void __declspec(naked) op_sfall_ver_build() {
 	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
 */
 static const SfallOpcodeMetadata opcodeMetaArray[] = {
-	{sf_add_g_timer_event,      "add_g_timer_event",      {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
-	{sf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_get_window_attribute,   "get_window_attribute",   {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_hide_window,            "hide_window",            {DATATYPE_MASK_STR}},
-	{sf_inventory_redraw,       "inventory_redraw",       {DATATYPE_MASK_INT}},
-	{sf_message_box,            "message_box",            {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_remove_timer_event,     "remove_timer_event",     {DATATYPE_MASK_INT}},
-	{sf_set_cursor_mode,        "set_cursor_mode",        {DATATYPE_MASK_INT}},
-	{sf_set_flags,              "set_flags",              {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	{sf_set_iface_tag_text,     "set_iface_tag_text",     {DATATYPE_MASK_INT, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
-	{sf_set_ini_setting,        "set_ini_setting",        {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
-	{sf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_set_object_data,        "set_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_set_outline,            "set_outline",            {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	{sf_set_terrain_name,       "set_terrain_name",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_STR}},
-	{sf_set_town_title,         "set_town_title",         {DATATYPE_MASK_INT, DATATYPE_MASK_STR}},
-	{sf_set_unique_id,          "set_unique_id",          {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	{sf_set_unjam_locks_time,   "set_unjam_locks_time",   {DATATYPE_MASK_INT}},
-	{sf_set_window_flag,        "set_window_flag",        {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_show_window,            "show_window",            {DATATYPE_MASK_STR}},
-	{sf_string_to_case,         "string_to_case",         {DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
-	{sf_tile_by_position,       "tile_by_position",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
-	{sf_unwield_slot,           "unwield_slot",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{mf_add_g_timer_event,      "add_g_timer_event",      {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
+	{mf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_get_window_attribute,   "get_window_attribute",   {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_hide_window,            "hide_window",            {DATATYPE_MASK_STR}},
+	{mf_inventory_redraw,       "inventory_redraw",       {DATATYPE_MASK_INT}},
+	{mf_message_box,            "message_box",            {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_remove_timer_event,     "remove_timer_event",     {DATATYPE_MASK_INT}},
+	{mf_set_cursor_mode,        "set_cursor_mode",        {DATATYPE_MASK_INT}},
+	{mf_set_flags,              "set_flags",              {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{mf_set_iface_tag_text,     "set_iface_tag_text",     {DATATYPE_MASK_INT, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
+	{mf_set_ini_setting,        "set_ini_setting",        {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
+	{mf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_set_object_data,        "set_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_set_outline,            "set_outline",            {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{mf_set_terrain_name,       "set_terrain_name",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_STR}},
+	{mf_set_town_title,         "set_town_title",         {DATATYPE_MASK_INT, DATATYPE_MASK_STR}},
+	{mf_set_unique_id,          "set_unique_id",          {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{mf_set_unjam_locks_time,   "set_unjam_locks_time",   {DATATYPE_MASK_INT}},
+	{mf_set_window_flag,        "set_window_flag",        {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_show_window,            "show_window",            {DATATYPE_MASK_STR}},
+	{mf_string_to_case,         "string_to_case",         {DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
+	{mf_tile_by_position,       "tile_by_position",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
+	{mf_unwield_slot,           "unwield_slot",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	#ifndef NDEBUG
-	{sf_test,                   "validate_test",          {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
+	{mf_test,                   "validate_test",          {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
 	#endif
 	//{op_message_str_game, {}}
 };

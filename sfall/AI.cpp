@@ -41,7 +41,7 @@ TGameObj* __stdcall sf_check_critters_in_lof(TGameObj* object, DWORD checkTile, 
 }
 
 // Returns the friendly critter that is in the line of fire
-TGameObj* __stdcall CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
+TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
 	object = sf_check_critters_in_lof(object, target->tile, attacker->teamNum);
@@ -346,7 +346,7 @@ fix:
 ////////////////////////////////////////////////////////////////////////////////
 
 static long __fastcall RollFriendlyFire(TGameObj* target, TGameObj* attacker) {
-	if (CheckFriendlyFire(target, attacker)) {
+	if (AI_CheckFriendlyFire(target, attacker)) {
 		long dice = RollRandom(1, 10);
 		return (StatLevel(attacker, STAT_iq) >= dice); // 1 - is friendly
 	}

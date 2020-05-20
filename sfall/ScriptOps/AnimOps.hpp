@@ -228,6 +228,6 @@ static void __declspec(naked) op_explosions_metarule() {
 	_WRAP_OPCODE(op_explosions_metarule2, 3, 1)
 }
 
-static void sf_art_cache_flush() {
+static void mf_art_cache_flush() {
 	__asm call art_flush_;
 }

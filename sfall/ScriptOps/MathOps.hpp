@@ -235,7 +235,7 @@ static void __declspec(naked) op_round() {
 	_WRAP_OPCODE(op_round2, 1, 1)
 }
 
-static void sf_floor2() {
+static void mf_floor2() {
 	const ScriptValue &valArg = opHandler.arg(0);
 
 	if (!valArg.isString()) {

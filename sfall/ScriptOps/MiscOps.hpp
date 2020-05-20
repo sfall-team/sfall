@@ -1083,11 +1083,11 @@ end:
 	}
 }
 
-static void sf_get_inven_ap_cost() {
+static void mf_get_inven_ap_cost() {
 	opHandler.setReturn(GetInvenApCost());
 }
 
-static void sf_attack_is_aimed() {
+static void mf_attack_is_aimed() {
 	DWORD isAimed, unused;
 	opHandler.setReturn(!IntfaceGetAttack(&unused, &isAimed) ? isAimed : 0);
 }
@@ -1118,11 +1118,11 @@ static void __declspec(naked) op_tile_light() {
 	_WRAP_OPCODE(op_tile_light2, 2, 1)
 }
 
-static void sf_exec_map_update_scripts() {
+static void mf_exec_map_update_scripts() {
 	__asm call scr_exec_map_update_scripts_
 }
 
-static void sf_set_ini_setting() {
+static void mf_set_ini_setting() {
 	const ScriptValue &argVal = opHandler.arg(1);
 
 	const char* saveValue;
@@ -1152,7 +1152,7 @@ static void sf_set_ini_setting() {
 	opHandler.setReturn(-1);
 }
 
-static void sf_npc_engine_level_up() {
+static void mf_npc_engine_level_up() {
 	if (opHandler.arg(0).asBool()) {
 		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
 		npcEngineLevelUp = true;

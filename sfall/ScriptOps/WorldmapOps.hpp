@@ -202,7 +202,7 @@ fail:
 	}
 }
 
-static void sf_set_map_enter_position() {
+static void mf_set_map_enter_position() {
 	int tile = opHandler.arg(0).rawValue();
 	int elev = opHandler.arg(1).rawValue();
 	int rot = opHandler.arg(2).rawValue();
@@ -218,7 +218,7 @@ static void sf_set_map_enter_position() {
 	}
 }
 
-static void sf_get_map_enter_position() {
+static void mf_get_map_enter_position() {
 	DWORD id = TempArray(3, 0);
 	arrays[id].val[0].set((long)*ptr_tile);
 	arrays[id].val[1].set((long)*ptr_elevation);
@@ -226,14 +226,14 @@ static void sf_get_map_enter_position() {
 	opHandler.setReturn(id);
 }
 
-static void sf_tile_by_position() {
+static void mf_tile_by_position() {
 	opHandler.setReturn(TileNum(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
 }
 
-static void sf_set_terrain_name() {
+static void mf_set_terrain_name() {
 	Wmap_SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
 }
 
-static void sf_set_town_title() {
+static void mf_set_town_title() {
 	Wmap_SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
 }

@@ -120,7 +120,7 @@ static void __declspec(naked) op_create_spatial() {
 	_WRAP_OPCODE(op_create_spatial2, 4, 1)
 }
 
-static void sf_spatial_radius() {
+static void mf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	if (spatialObj) {
 		TScript* script;
@@ -433,7 +433,7 @@ static void __declspec(naked) op_obj_is_carrying_obj() {
 	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
 }
 
-static void sf_critter_inven_obj2() {
+static void mf_critter_inven_obj2() {
 	TGameObj* critter = opHandler.arg(0).asObject();
 	const ScriptValue &slotArg = opHandler.arg(1);
 
@@ -461,13 +461,13 @@ static void sf_critter_inven_obj2() {
 	}
 }
 
-static void sf_set_outline() {
+static void mf_set_outline() {
 	TGameObj* obj = opHandler.arg(0).object();
 	int color = opHandler.arg(1).rawValue();
 	obj->outline = color;
 }
 
-static void sf_get_outline() {
+static void mf_get_outline() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->outline);
@@ -477,13 +477,13 @@ static void sf_get_outline() {
 	}
 }
 
-static void sf_set_flags() {
+static void mf_set_flags() {
 	TGameObj* obj = opHandler.arg(0).object();
 	int flags = opHandler.arg(1).rawValue();
 	obj->flags = flags;
 }
 
-static void sf_get_flags() {
+static void mf_get_flags() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->flags);
@@ -493,11 +493,11 @@ static void sf_get_flags() {
 	}
 }
 
-static void sf_outlined_object() {
+static void mf_outlined_object() {
 	opHandler.setReturn(*ptr_outlined_object);
 }
 
-static void sf_item_weight() {
+static void mf_item_weight() {
 	TGameObj* item = opHandler.arg(0).asObject();
 	int weight = 0;
 	if (item) {
@@ -508,11 +508,11 @@ static void sf_item_weight() {
 	opHandler.setReturn(weight);
 }
 
-static void sf_real_dude_obj() {
+static void mf_real_dude_obj() {
 	opHandler.setReturn(RealDudeObject());
 }
 
-static void sf_lock_is_jammed() {
+static void mf_lock_is_jammed() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(ObjLockIsJammed(obj));
@@ -522,11 +522,11 @@ static void sf_lock_is_jammed() {
 	}
 }
 
-static void sf_unjam_lock() {
+static void mf_unjam_lock() {
 	ObjUnjamLock(opHandler.arg(0).object());
 }
 
-static void sf_set_unjam_locks_time() {
+static void mf_set_unjam_locks_time() {
 	int time = opHandler.arg(0).rawValue();
 	if (time < 0 || time > 127) {
 		opHandler.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
@@ -536,7 +536,7 @@ static void sf_set_unjam_locks_time() {
 	}
 }
 
-static void sf_get_current_inven_size() {
+static void mf_get_current_inven_size() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(sf_item_total_size(obj));
@@ -546,11 +546,11 @@ static void sf_get_current_inven_size() {
 	}
 }
 
-static void sf_get_dialog_object() {
+static void mf_get_dialog_object() {
 	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0);
 }
 
-static void sf_obj_under_cursor() {
+static void mf_obj_under_cursor() {
 	const ScriptValue &crSwitchArg = opHandler.arg(0),
 					  &inclDudeArg = opHandler.arg(1);
 
@@ -562,7 +562,7 @@ static void sf_obj_under_cursor() {
 	}
 }
 
-static void sf_get_loot_object() {
+static void mf_get_loot_object() {
 	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? ptr_target_stack[*ptr_target_curr_stack] : 0);
 }
 
@@ -632,7 +632,7 @@ static void __declspec(naked) op_set_proto_data() {
 	_WRAP_OPCODE(op_set_proto_data2, 3, 0)
 }
 
-static void sf_get_object_data() {
+static void mf_get_object_data() {
 	DWORD result = 0;
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &offsetArg = opHandler.arg(1);
@@ -650,7 +650,7 @@ static void sf_get_object_data() {
 	opHandler.setReturn(result);
 }
 
-static void sf_set_object_data() {
+static void mf_set_object_data() {
 	DWORD* object_ptr = (DWORD*)opHandler.arg(0).rawValue();
 	if (*(object_ptr - 1) != 0xFEEDFACE) {
 		opHandler.printOpcodeError("set_object_data() - invalid object pointer.");
@@ -660,7 +660,7 @@ static void sf_set_object_data() {
 	}
 }
 
-static void sf_set_unique_id() {
+static void mf_set_unique_id() {
 	TGameObj* obj = opHandler.arg(0).object();
 	long id;
 	if (opHandler.numArgs() > 1 && opHandler.arg(1).rawValue() == -1) {
@@ -672,7 +672,7 @@ static void sf_set_unique_id() {
 	opHandler.setReturn(id);
 }
 
-static void sf_objects_in_radius() {
+static void mf_objects_in_radius() {
 	const ScriptValue &tileArg = opHandler.arg(0),
 					  &radiusArg = opHandler.arg(1),
 					  &elevArg = opHandler.arg(2);

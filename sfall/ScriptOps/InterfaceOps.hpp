@@ -207,7 +207,7 @@ static void __declspec(naked) op_create_message_window() {
 	_WRAP_OPCODE(op_create_message_window2, 1, 0)
 }
 
-static void sf_message_box() {
+static void mf_message_box() {
 	static int dialogShowCount = 0;
 
 	long lines = 0;
@@ -266,7 +266,7 @@ end:
 	}
 }
 
-static void sf_add_iface_tag() {
+static void mf_add_iface_tag() {
 	int result = AddExtraBox();
 	if (result == -1) opHandler.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
 	opHandler.setReturn(result);
@@ -346,42 +346,42 @@ static void __declspec(naked) op_is_iface_tag_active() {
 	_WRAP_OPCODE(op_is_iface_tag_active2, 1, 1)
 }
 
-static void sf_intface_redraw() {
+static void mf_intface_redraw() {
 	IntfaceRedraw();
 }
 
-static void sf_intface_show() {
+static void mf_intface_show() {
 	__asm call intface_show_;
 }
 
-static void sf_intface_hide() {
+static void mf_intface_hide() {
 	__asm call intface_hide_;
 }
 
-static void sf_intface_is_hidden() {
+static void mf_intface_is_hidden() {
 	opHandler.setReturn(IntfaceIsHidden());
 }
 
-static void sf_tile_refresh_display() {
+static void mf_tile_refresh_display() {
 	__asm call tile_refresh_display_;
 }
 
-static void sf_get_cursor_mode() {
+static void mf_get_cursor_mode() {
 	opHandler.setReturn(Gmouse3dGetMode());
 }
 
-static void sf_set_cursor_mode() {
+static void mf_set_cursor_mode() {
 	Gmouse3dSetMode(opHandler.arg(0).rawValue());
 }
 
-static void sf_display_stats() {
+static void mf_display_stats() {
 // calling the function outside of inventory screen will crash the game
 	if (GetLoopFlags() & INVENTORY) {
 		__asm call display_stats_;
 	}
 }
 
-static void sf_set_iface_tag_text() {
+static void mf_set_iface_tag_text() {
 	int boxTag = opHandler.arg(0).rawValue();
 	int maxBox = BarBoxes_MaxBox();
 
@@ -393,7 +393,7 @@ static void sf_set_iface_tag_text() {
 	}
 }
 
-static void sf_inventory_redraw() {
+static void mf_inventory_redraw() {
 	int mode;
 	DWORD loopFlag = GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER);
 	switch (loopFlag) {
@@ -424,7 +424,7 @@ static void sf_inventory_redraw() {
 	}
 }
 
-static void sf_create_win() {
+static void mf_create_win() {
 	int flags = (opHandler.numArgs() > 5)
 		? opHandler.arg(5).rawValue()
 		: WIN_MoveOnTop;
@@ -439,7 +439,7 @@ static void sf_create_win() {
 	}
 }
 
-static void sf_show_window() {
+static void mf_show_window() {
 	if (opHandler.numArgs() > 0) {
 		const char* name = opHandler.arg(0).strValue();
 		sWindow sWin;
@@ -456,7 +456,7 @@ static void sf_show_window() {
 	}
 }
 
-static void sf_hide_window() {
+static void mf_hide_window() {
 	if (opHandler.numArgs() > 0) {
 		const char* name = opHandler.arg(0).strValue();
 		sWindow sWin;
@@ -473,7 +473,7 @@ static void sf_hide_window() {
 	}
 }
 
-static void sf_set_window_flag() {
+static void mf_set_window_flag() {
 	long bitFlag = opHandler.arg(1).rawValue();
 	switch (bitFlag) {
 		case WIN_MoveOnTop:
@@ -515,7 +515,7 @@ static void sf_set_window_flag() {
 	}
 }
 
-static void sf_draw_image() {
+static void mf_draw_image() {
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
 		opHandler.setReturn(0);
@@ -582,7 +582,7 @@ static void sf_draw_image() {
 	opHandler.setReturn(1);
 }
 
-static void sf_draw_image_scaled() {
+static void mf_draw_image_scaled() {
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image_scaled() - no created/selected window for the image.");
 		opHandler.setReturn(0);
@@ -675,7 +675,7 @@ static void sf_draw_image_scaled() {
 	opHandler.setReturn(1);
 }
 
-static void sf_unwield_slot() {
+static void mf_unwield_slot() {
 	InvenType slot = static_cast<InvenType>(opHandler.arg(1).rawValue());
 	if (slot < INVEN_TYPE_WORN || slot > INVEN_TYPE_LEFT_HAND) {
 		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
@@ -737,7 +737,7 @@ static void sf_unwield_slot() {
 	if (update) IntfaceUpdateItems(0, -1, -1);
 }
 
-static void sf_get_window_attribute() {
+static void mf_get_window_attribute() {
 	long attr = 0;
 	if (opHandler.numArgs() > 1) attr = opHandler.arg(1).rawValue();
 
