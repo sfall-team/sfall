@@ -25,31 +25,31 @@ namespace script
 
 class OpcodeContext;
 
-void sf_div(OpcodeContext&);
+void op_div(OpcodeContext&);
 
-void sf_sqrt(OpcodeContext&);
+void op_sqrt(OpcodeContext&);
 
-void sf_abs(OpcodeContext&);
+void op_abs(OpcodeContext&);
 
-void sf_sin(OpcodeContext&);
+void op_sin(OpcodeContext&);
 
-void sf_cos(OpcodeContext&);
+void op_cos(OpcodeContext&);
 
-void sf_tan(OpcodeContext&);
+void op_tan(OpcodeContext&);
 
-void sf_arctan(OpcodeContext&);
+void op_arctan(OpcodeContext&);
 
-void sf_power(OpcodeContext&);
+void op_power(OpcodeContext&);
 
-void sf_log(OpcodeContext&);
+void op_log(OpcodeContext&);
 
-void sf_exponent(OpcodeContext&);
+void op_exponent(OpcodeContext&);
 
-void sf_ceil(OpcodeContext&);
+void op_ceil(OpcodeContext&);
 
-void sf_round(OpcodeContext&);
+void op_round(OpcodeContext&);
 
-void sf_floor2(OpcodeContext&);
+void mf_floor2(OpcodeContext&);
 
 }
 }

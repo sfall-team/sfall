@@ -50,7 +50,7 @@ namespace script
 
 const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
-void sf_set_dm_model(OpcodeContext& ctx) {
+void op_set_dm_model(OpcodeContext& ctx) {
 	auto model = ctx.arg(0).strValue();
 	if (strlen(model) > 64) {
 		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
@@ -59,7 +59,7 @@ void sf_set_dm_model(OpcodeContext& ctx) {
 	strcpy(defaultMaleModelName, model);
 }
 
-void sf_set_df_model(OpcodeContext& ctx) {
+void op_set_df_model(OpcodeContext& ctx) {
 	auto model = ctx.arg(0).strValue();
 	if (strlen(model) > 64) {
 		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
@@ -68,7 +68,7 @@ void sf_set_df_model(OpcodeContext& ctx) {
 	strcpy(defaultFemaleModelName, model);
 }
 
-void sf_set_movie_path(OpcodeContext& ctx) {
+void op_set_movie_path(OpcodeContext& ctx) {
 	long movieID = ctx.arg(1).rawValue();
 	if (movieID < 0 || movieID >= MaxMovies) return;
 	auto fileName = ctx.arg(0).strValue();
@@ -79,7 +79,7 @@ void sf_set_movie_path(OpcodeContext& ctx) {
 	strcpy(&MoviePaths[movieID * 65], fileName);
 }
 
-void sf_get_year(OpcodeContext& ctx) {
+void op_get_year(OpcodeContext& ctx) {
 	int year = 0;
 	__asm {
 		xor eax, eax;
@@ -168,7 +168,7 @@ end:
 	}
 }
 
-void sf_set_object_knockback(OpcodeContext& ctx) {
+void op_set_object_knockback(OpcodeContext& ctx) {
 	int mode = 0;
 	switch (ctx.opcode()) {
 	case 0x196:
@@ -193,7 +193,7 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 	KnockbackSetMod(object, ctx.arg(1).rawValue(), ctx.arg(2).asFloat(), mode);
 }
 
-void sf_remove_object_knockback(OpcodeContext& ctx) {
+void op_remove_object_knockback(OpcodeContext& ctx) {
 	int mode = 0;
 	switch (ctx.opcode()) {
 	case 0x199:
@@ -263,7 +263,7 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 	__asm pop edx;
 }
 
-void sf_inc_npc_level(OpcodeContext& ctx) {
+void op_inc_npc_level(OpcodeContext& ctx) {
 	nameNPCToInc = ctx.arg(0).asString();
 	pidNPCToInc = ctx.arg(0).asInt(); // set to 0 if passing npc name
 	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
@@ -285,7 +285,7 @@ void sf_inc_npc_level(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_npc_level(OpcodeContext& ctx) {
+void op_get_npc_level(OpcodeContext& ctx) {
 	int level = -1;
 	DWORD findPid = ctx.arg(0).asInt(); // set to 0 if passing npc name
 	const char *critterName, *name = ctx.arg(0).asString();
@@ -386,11 +386,11 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 	}
 }
 
-void sf_get_ini_setting(OpcodeContext& ctx) {
+void op_get_ini_setting(OpcodeContext& ctx) {
 	ctx.setReturn(GetIniSetting(ctx.arg(0).strValue(), false));
 }
 
-void sf_get_ini_string(OpcodeContext& ctx) {
+void op_get_ini_string(OpcodeContext& ctx) {
 	DWORD result = GetIniSetting(ctx.arg(0).strValue(), true);
 	ctx.setReturn(result, (result != -1) ? DataType::STR : DataType::INT);
 }
@@ -463,7 +463,7 @@ end:
 
 static const char* valueOutRange = "%s() - argument values out of range.";
 
-void sf_set_critical_table(OpcodeContext& ctx) {
+void op_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).rawValue(),
 		bodypart  = ctx.arg(1).rawValue(),
 		slot      = ctx.arg(2).rawValue(),
@@ -476,7 +476,7 @@ void sf_set_critical_table(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_critical_table(OpcodeContext& ctx) {
+void op_get_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).rawValue(),
 		bodypart  = ctx.arg(1).rawValue(),
 		slot      = ctx.arg(2).rawValue(),
@@ -489,7 +489,7 @@ void sf_get_critical_table(OpcodeContext& ctx) {
 	}
 }
 
-void sf_reset_critical_table(OpcodeContext& ctx) {
+void op_reset_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).rawValue(),
 		bodypart  = ctx.arg(1).rawValue(),
 		slot      = ctx.arg(2).rawValue(),
@@ -536,7 +536,7 @@ void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	}
 }
 
-void sf_set_palette(OpcodeContext& ctx) {
+void op_set_palette(OpcodeContext& ctx) {
 	const char* palette = ctx.arg(0).strValue();
 	__asm {
 		mov  eax, palette;
@@ -604,11 +604,11 @@ void __declspec(naked) op_refresh_pc_art() {
 	}
 }
 
-void sf_get_attack_type(OpcodeContext& ctx) {
+void op_get_attack_type(OpcodeContext& ctx) {
 	ctx.setReturn(fo::GetCurrentAttackMode());
 }
 
-void sf_play_sfall_sound(OpcodeContext& ctx) {
+void op_play_sfall_sound(OpcodeContext& ctx) {
 	DWORD soundID = 0;
 	long mode = ctx.arg(1).rawValue();
 	if (mode >= 0) soundID = Sound::PlaySfallSound(ctx.arg(0).strValue(), mode);
@@ -783,29 +783,29 @@ end:
 	}
 }
 
-void sf_get_inven_ap_cost(OpcodeContext& ctx) {
+void mf_get_inven_ap_cost(OpcodeContext& ctx) {
 	ctx.setReturn(Inventory::GetInvenApCost());
 }
 
-void sf_attack_is_aimed(OpcodeContext& ctx) {
+void mf_attack_is_aimed(OpcodeContext& ctx) {
 	DWORD isAimed, unused;
 	ctx.setReturn(!fo::func::intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
-void sf_sneak_success(OpcodeContext& ctx) {
+void op_sneak_success(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::is_pc_sneak_working());
 }
 
-void sf_tile_light(OpcodeContext& ctx) {
+void op_tile_light(OpcodeContext& ctx) {
 	int lightLevel = fo::func::light_get_tile(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(lightLevel);
 }
 
-void sf_exec_map_update_scripts(OpcodeContext& ctx) {
+void mf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::scr_exec_map_update_scripts_
 }
 
-void sf_set_ini_setting(OpcodeContext& ctx) {
+void mf_set_ini_setting(OpcodeContext& ctx) {
 	const ScriptValue &argVal = ctx.arg(1);
 
 	const char* saveValue;
@@ -854,7 +854,7 @@ static std::string GetIniFilePath(const ScriptValue &arg) {
 	return fileName;
 }
 
-void sf_get_ini_sections(OpcodeContext& ctx) {
+void mf_get_ini_sections(OpcodeContext& ctx) {
 	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
 		ctx.setReturn(TempArray(0, 0));
 		return;
@@ -877,7 +877,7 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
-void sf_get_ini_section(OpcodeContext& ctx) {
+void mf_get_ini_section(OpcodeContext& ctx) {
 	auto section = ctx.arg(1).strValue();
 	int arrayId = TempArray(-1, 0); // associative
 
@@ -901,7 +901,7 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
-void sf_npc_engine_level_up(OpcodeContext& ctx) {
+void mf_npc_engine_level_up(OpcodeContext& ctx) {
 	if (ctx.arg(0).asBool()) {
 		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
 		npcEngineLevelUp = true;

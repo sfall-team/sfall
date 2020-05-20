@@ -27,7 +27,7 @@ namespace sfall
 namespace script
 {
 
-void sf_div(OpcodeContext& ctx) {
+void op_div(OpcodeContext& ctx) {
 	if (ctx.arg(1).rawValue() == 0) {
 		ctx.printOpcodeError("%s - division by zero.", ctx.getOpcodeName());
 		return;
@@ -39,11 +39,11 @@ void sf_div(OpcodeContext& ctx) {
 	}
 }
 
-void sf_sqrt(OpcodeContext& ctx) {
+void op_sqrt(OpcodeContext& ctx) {
 	ctx.setReturn(sqrt(ctx.arg(0).asFloat()));
 }
 
-void sf_abs(OpcodeContext& ctx) {
+void op_abs(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		ctx.setReturn(abs(static_cast<int>(ctx.arg(0).rawValue())));
 	} else {
@@ -51,23 +51,23 @@ void sf_abs(OpcodeContext& ctx) {
 	}
 }
 
-void sf_sin(OpcodeContext& ctx) {
+void op_sin(OpcodeContext& ctx) {
 	ctx.setReturn(sin(ctx.arg(0).asFloat()));
 }
 
-void sf_cos(OpcodeContext& ctx) {
+void op_cos(OpcodeContext& ctx) {
 	ctx.setReturn(cos(ctx.arg(0).asFloat()));
 }
 
-void sf_tan(OpcodeContext& ctx) {
+void op_tan(OpcodeContext& ctx) {
 	ctx.setReturn(tan(ctx.arg(0).asFloat()));
 }
 
-void sf_arctan(OpcodeContext& ctx) {
+void op_arctan(OpcodeContext& ctx) {
 	ctx.setReturn(atan2(ctx.arg(0).asFloat(), ctx.arg(1).asFloat()));
 }
 
-void sf_power(OpcodeContext& ctx) {
+void op_power(OpcodeContext& ctx) {
 	const ScriptValue &base = ctx.arg(0),
 					  &power = ctx.arg(1);
 	float result = 0.0;
@@ -83,19 +83,19 @@ void sf_power(OpcodeContext& ctx) {
 	}
 }
 
-void sf_log(OpcodeContext& ctx) {
+void op_log(OpcodeContext& ctx) {
 	ctx.setReturn(log(ctx.arg(0).asFloat()));
 }
 
-void sf_exponent(OpcodeContext& ctx) {
+void op_exponent(OpcodeContext& ctx) {
 	ctx.setReturn(exp(ctx.arg(0).asFloat()));
 }
 
-void sf_ceil(OpcodeContext& ctx) {
+void op_ceil(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<int>(ceil(ctx.arg(0).asFloat())));
 }
 
-void sf_round(OpcodeContext& ctx) {
+void op_round(OpcodeContext& ctx) {
 	float arg = ctx.arg(0).asFloat();
 
 	int argI = static_cast<int>(arg);
@@ -104,7 +104,7 @@ void sf_round(OpcodeContext& ctx) {
 	ctx.setReturn(argI);
 }
 
-void sf_floor2(OpcodeContext& ctx) {
+void mf_floor2(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<int>(floor(ctx.arg(0).asFloat())));
 }
 

@@ -38,7 +38,7 @@ namespace script
 {
 
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
-// Prefix all function handlers with sf_ and add them to sfall_metarule_table.
+// Prefix all function handlers with mf_ and add them to sfall_metarule_table.
 // DO NOT add arguments and/or return values to function handlers!
 // Use ctx.arg(i), inside handler function to access arguments.
 // Use ctx.setReturn(x) to set return value.
@@ -62,95 +62,95 @@ static MetaruleTableType metaruleTable;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
-	{"add_extra_msg_file",      sf_add_extra_msg_file,      1, 2, -1, {ARG_STRING, ARG_INT}},
-	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
-	{"add_g_timer_event",       sf_add_g_timer_event,       2, 2, -1, {ARG_INT, ARG_INT}},
-	{"add_trait",               sf_add_trait,               1, 1, -1, {ARG_INT}},
-	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
-	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
-	{"car_gas_amount",          sf_car_gas_amount,          0, 0},
-	{"create_win",              sf_create_win,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
-	{"dialog_message",          sf_dialog_message,          1, 1, -1, {ARG_STRING}},
-	{"dialog_obj",              sf_get_dialog_object,       0, 0},
-	{"display_stats",           sf_display_stats,           0, 0}, // refresh
-	{"draw_image",              sf_draw_image,              1, 5, -1, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{"draw_image_scaled",       sf_draw_image_scaled,       1, 6, -1, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
-	{"floor2",                  sf_floor2,                  1, 1,  0, {ARG_NUMBER}},
-	{"get_can_rest_on_map",     sf_get_rest_on_map,         2, 2, -1, {ARG_INT, ARG_INT}},
-	{"get_current_inven_size",  sf_get_current_inven_size,  1, 1,  0, {ARG_OBJECT}},
-	{"get_cursor_mode",         sf_get_cursor_mode,         0, 0},
-	{"get_flags",               sf_get_flags,               1, 1,  0, {ARG_OBJECT}},
-	{"get_ini_section",         sf_get_ini_section,         2, 2, -1, {ARG_STRING, ARG_STRING}},
-	{"get_ini_sections",        sf_get_ini_sections,        1, 1, -1, {ARG_STRING}},
-	{"get_inven_ap_cost",       sf_get_inven_ap_cost,       0, 0},
-	{"get_map_enter_position",  sf_get_map_enter_position,  0, 0},
-	{"get_metarule_table",      sf_get_metarule_table,      0, 0},
-	{"get_object_ai_data",      sf_get_object_ai_data,      2, 2, -1, {ARG_OBJECT, ARG_INT}},
-	{"get_object_data",         sf_get_object_data,         2, 2,  0, {ARG_OBJECT, ARG_INT}},
-	{"get_outline",             sf_get_outline,             1, 1,  0, {ARG_OBJECT}},
-	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},
-	{"get_string_pointer",      sf_get_string_pointer,      1, 1,  0, {ARG_STRING}},
-	{"get_text_width",          sf_get_text_width,          1, 1,  0, {ARG_STRING}},
-	{"get_window_attribute",    sf_get_window_attribute,    1, 2, -1, {ARG_INT, ARG_INT}},
-	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2,  0, {ARG_OBJECT, ARG_STRING}},
-	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2,  0, {ARG_OBJECT, ARG_STRING}},
-	{"hide_window",             sf_hide_window,             0, 1, -1, {ARG_STRING}},
-	{"intface_hide",            sf_intface_hide,            0, 0},
-	{"intface_is_hidden",       sf_intface_is_hidden,       0, 0},
-	{"intface_redraw",          sf_intface_redraw,          0, 0},
-	{"intface_show",            sf_intface_show,            0, 0},
-	{"inventory_redraw",        sf_inventory_redraw,        0, 1, -1, {ARG_INT}},
-	{"item_make_explosive",     sf_item_make_explosive,     3, 4, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{"item_weight",             sf_item_weight,             1, 1,  0, {ARG_OBJECT}},
-	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1,  0, {ARG_OBJECT}},
-	{"loot_obj",                sf_get_loot_object,         0, 0},
-	{"message_box",             sf_message_box,             1, 4, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT}},
-	{"metarule_exist",          sf_metarule_exist,          1, 1}, // no arg check
-	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1},
-	{"obj_under_cursor",        sf_obj_under_cursor,        2, 2,  0, {ARG_INT, ARG_INT}},
-	{"objects_in_radius",       sf_objects_in_radius,       3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{"outlined_object",         sf_outlined_object,         0, 0},
-	{"real_dude_obj",           sf_real_dude_obj,           0, 0},
-	{"remove_timer_event",      sf_remove_timer_event,      0, 1, -1, {ARG_INT}},
-	{"set_can_rest_on_map",     sf_set_rest_on_map,         3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
-	{"set_car_intface_art",     sf_set_car_intface_art,     1, 1, -1, {ARG_INT}},
-	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1, -1, {ARG_INT}},
-	{"set_drugs_data",          sf_set_drugs_data,          3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
-	{"set_dude_obj",            sf_set_dude_obj,            1, 1, -1, {ARG_INT}},
-	{"set_fake_perk_npc",       sf_set_fake_perk_npc,       5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
-	{"set_fake_trait_npc",      sf_set_fake_trait_npc,      5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
-	{"set_flags",               sf_set_flags,               2, 2, -1, {ARG_OBJECT, ARG_INT}},
-	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3, -1, {ARG_INT, ARG_STRING, ARG_INT}},
-	{"set_ini_setting",         sf_set_ini_setting,         2, 2, -1, {ARG_STRING, ARG_INTSTR}},
-	{"set_map_enter_position",  sf_set_map_enter_position,  3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
-	{"set_object_data",         sf_set_object_data,         3, 3, -1, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{"set_outline",             sf_set_outline,             2, 2, -1, {ARG_OBJECT, ARG_INT}},
-	{"set_rest_heal_time",      sf_set_rest_heal_time,      1, 1, -1, {ARG_INT}},
-	{"set_rest_mode",           sf_set_rest_mode,           1, 1, -1, {ARG_INT}},
-	{"set_selectable_perk_npc", sf_set_selectable_perk_npc, 5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
-	{"set_terrain_name",        sf_set_terrain_name,        3, 3, -1, {ARG_INT, ARG_INT, ARG_STRING}},
-	{"set_town_title",          sf_set_town_title,          2, 2, -1, {ARG_INT, ARG_STRING}},
-	{"set_unique_id",           sf_set_unique_id,           1, 2, -1, {ARG_OBJECT, ARG_INT}},
-	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1, -1, {ARG_INT}},
-	{"set_window_flag",         sf_set_window_flag,         3, 3, -1, {ARG_INTSTR, ARG_INT, ARG_INT}},
-	{"show_window",             sf_show_window,             0, 1, -1, {ARG_STRING}},
-	{"spatial_radius",          sf_spatial_radius,          1, 1,  0, {ARG_OBJECT}},
-	{"string_compare",          sf_string_compare,          2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
-	{"string_format",           sf_string_format,           2, 5,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
-	{"string_to_case",          sf_string_to_case,          2, 2, -1, {ARG_STRING, ARG_INT}},
-	{"tile_by_position",        sf_tile_by_position,        2, 2, -1, {ARG_INT, ARG_INT}},
-	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
-	{"unjam_lock",              sf_unjam_lock,              1, 1, -1, {ARG_OBJECT}},
-	{"unwield_slot",            sf_unwield_slot,            2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"add_extra_msg_file",      mf_add_extra_msg_file,      1, 2, -1, {ARG_STRING, ARG_INT}},
+	{"add_iface_tag",           mf_add_iface_tag,           0, 0},
+	{"add_g_timer_event",       mf_add_g_timer_event,       2, 2, -1, {ARG_INT, ARG_INT}},
+	{"add_trait",               mf_add_trait,               1, 1, -1, {ARG_INT}},
+	{"art_cache_clear",         mf_art_cache_flush,         0, 0},
+	{"attack_is_aimed",         mf_attack_is_aimed,         0, 0},
+	{"car_gas_amount",          mf_car_gas_amount,          0, 0},
+	{"create_win",              mf_create_win,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
+	{"dialog_message",          mf_dialog_message,          1, 1, -1, {ARG_STRING}},
+	{"dialog_obj",              mf_get_dialog_object,       0, 0},
+	{"display_stats",           mf_display_stats,           0, 0}, // refresh
+	{"draw_image",              mf_draw_image,              1, 5, -1, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"draw_image_scaled",       mf_draw_image_scaled,       1, 6, -1, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"exec_map_update_scripts", mf_exec_map_update_scripts, 0, 0},
+	{"floor2",                  mf_floor2,                  1, 1,  0, {ARG_NUMBER}},
+	{"get_can_rest_on_map",     mf_get_rest_on_map,         2, 2, -1, {ARG_INT, ARG_INT}},
+	{"get_current_inven_size",  mf_get_current_inven_size,  1, 1,  0, {ARG_OBJECT}},
+	{"get_cursor_mode",         mf_get_cursor_mode,         0, 0},
+	{"get_flags",               mf_get_flags,               1, 1,  0, {ARG_OBJECT}},
+	{"get_ini_section",         mf_get_ini_section,         2, 2, -1, {ARG_STRING, ARG_STRING}},
+	{"get_ini_sections",        mf_get_ini_sections,        1, 1, -1, {ARG_STRING}},
+	{"get_inven_ap_cost",       mf_get_inven_ap_cost,       0, 0},
+	{"get_map_enter_position",  mf_get_map_enter_position,  0, 0},
+	{"get_metarule_table",      mf_get_metarule_table,      0, 0},
+	{"get_object_ai_data",      mf_get_object_ai_data,      2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"get_object_data",         mf_get_object_data,         2, 2,  0, {ARG_OBJECT, ARG_INT}},
+	{"get_outline",             mf_get_outline,             1, 1,  0, {ARG_OBJECT}},
+	{"get_sfall_arg_at",        mf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},
+	{"get_string_pointer",      mf_get_string_pointer,      1, 1,  0, {ARG_STRING}},
+	{"get_text_width",          mf_get_text_width,          1, 1,  0, {ARG_STRING}},
+	{"get_window_attribute",    mf_get_window_attribute,    1, 2, -1, {ARG_INT, ARG_INT}},
+	{"has_fake_perk_npc",       mf_has_fake_perk_npc,       2, 2,  0, {ARG_OBJECT, ARG_STRING}},
+	{"has_fake_trait_npc",      mf_has_fake_trait_npc,      2, 2,  0, {ARG_OBJECT, ARG_STRING}},
+	{"hide_window",             mf_hide_window,             0, 1, -1, {ARG_STRING}},
+	{"intface_hide",            mf_intface_hide,            0, 0},
+	{"intface_is_hidden",       mf_intface_is_hidden,       0, 0},
+	{"intface_redraw",          mf_intface_redraw,          0, 0},
+	{"intface_show",            mf_intface_show,            0, 0},
+	{"inventory_redraw",        mf_inventory_redraw,        0, 1, -1, {ARG_INT}},
+	{"item_make_explosive",     mf_item_make_explosive,     3, 4, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"item_weight",             mf_item_weight,             1, 1,  0, {ARG_OBJECT}},
+	{"lock_is_jammed",          mf_lock_is_jammed,          1, 1,  0, {ARG_OBJECT}},
+	{"loot_obj",                mf_get_loot_object,         0, 0},
+	{"message_box",             mf_message_box,             1, 4, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT}},
+	{"metarule_exist",          mf_metarule_exist,          1, 1}, // no arg check
+	{"npc_engine_level_up",     mf_npc_engine_level_up,     1, 1},
+	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2,  0, {ARG_INT, ARG_INT}},
+	{"objects_in_radius",       mf_objects_in_radius,       3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"outlined_object",         mf_outlined_object,         0, 0},
+	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
+	{"remove_timer_event",      mf_remove_timer_event,      0, 1, -1, {ARG_INT}},
+	{"set_can_rest_on_map",     mf_set_rest_on_map,         3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
+	{"set_car_intface_art",     mf_set_car_intface_art,     1, 1, -1, {ARG_INT}},
+	{"set_cursor_mode",         mf_set_cursor_mode,         1, 1, -1, {ARG_INT}},
+	{"set_drugs_data",          mf_set_drugs_data,          3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
+	{"set_dude_obj",            mf_set_dude_obj,            1, 1, -1, {ARG_INT}},
+	{"set_fake_perk_npc",       mf_set_fake_perk_npc,       5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_fake_trait_npc",      mf_set_fake_trait_npc,      5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_flags",               mf_set_flags,               2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"set_iface_tag_text",      mf_set_iface_tag_text,      3, 3, -1, {ARG_INT, ARG_STRING, ARG_INT}},
+	{"set_ini_setting",         mf_set_ini_setting,         2, 2, -1, {ARG_STRING, ARG_INTSTR}},
+	{"set_map_enter_position",  mf_set_map_enter_position,  3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
+	{"set_object_data",         mf_set_object_data,         3, 3, -1, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{"set_outline",             mf_set_outline,             2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"set_rest_heal_time",      mf_set_rest_heal_time,      1, 1, -1, {ARG_INT}},
+	{"set_rest_mode",           mf_set_rest_mode,           1, 1, -1, {ARG_INT}},
+	{"set_selectable_perk_npc", mf_set_selectable_perk_npc, 5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_terrain_name",        mf_set_terrain_name,        3, 3, -1, {ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_town_title",          mf_set_town_title,          2, 2, -1, {ARG_INT, ARG_STRING}},
+	{"set_unique_id",           mf_set_unique_id,           1, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"set_unjam_locks_time",    mf_set_unjam_locks_time,    1, 1, -1, {ARG_INT}},
+	{"set_window_flag",         mf_set_window_flag,         3, 3, -1, {ARG_INTSTR, ARG_INT, ARG_INT}},
+	{"show_window",             mf_show_window,             0, 1, -1, {ARG_STRING}},
+	{"spatial_radius",          mf_spatial_radius,          1, 1,  0, {ARG_OBJECT}},
+	{"string_compare",          mf_string_compare,          2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
+	{"string_format",           mf_string_format,           2, 5,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
+	{"string_to_case",          mf_string_to_case,          2, 2, -1, {ARG_STRING, ARG_INT}},
+	{"tile_by_position",        mf_tile_by_position,        2, 2, -1, {ARG_INT, ARG_INT}},
+	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
+	{"unjam_lock",              mf_unjam_lock,              1, 1, -1, {ARG_OBJECT}},
+	{"unwield_slot",            mf_unwield_slot,            2, 2, -1, {ARG_OBJECT, ARG_INT}},
 	#ifndef NDEBUG
-	{"validate_test",           sf_test,                    2, 5, -1, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
+	{"validate_test",           mf_test,                    2, 5, -1, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif
 };
 
 // returns current contents of metarule table
-static void sf_get_metarule_table(OpcodeContext& ctx) {
+static void mf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arrId = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
@@ -160,7 +160,7 @@ static void sf_get_metarule_table(OpcodeContext& ctx) {
 	ctx.setReturn(arrId, DataType::INT);
 }
 
-static void sf_metarule_exist(OpcodeContext& ctx) {
+static void mf_metarule_exist(OpcodeContext& ctx) {
 	bool result = false;
 	auto funcXName = ctx.arg(0).asString();
 	if (funcXName[0] != '\0') {
@@ -220,8 +220,8 @@ void HandleMetarule(OpcodeContext& ctx) {
 }
 
 #ifndef NDEBUG
-static std::string sf_test_stringBuf;
-void sf_test(OpcodeContext& ctx) {
+static std::string mf_test_stringBuf;
+void mf_test(OpcodeContext& ctx) {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
 	for (int i = 0; i < ctx.numArgs(); i++) {
@@ -244,8 +244,8 @@ void sf_test(OpcodeContext& ctx) {
 	}
 	sstream << ")";
 
-	sf_test_stringBuf = sstream.str();
-	ctx.setReturn(sf_test_stringBuf.c_str());
+	mf_test_stringBuf = sstream.str();
+	ctx.setReturn(mf_test_stringBuf.c_str());
 }
 #endif
 

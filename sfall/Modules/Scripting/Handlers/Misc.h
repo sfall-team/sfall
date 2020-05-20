@@ -29,13 +29,13 @@ namespace script
 
 class OpcodeContext;
 
-void sf_set_dm_model(OpcodeContext&);
+void op_set_dm_model(OpcodeContext&);
 
-void sf_set_df_model(OpcodeContext&);
+void op_set_df_model(OpcodeContext&);
 
-void sf_set_movie_path(OpcodeContext&);
+void op_set_movie_path(OpcodeContext&);
 
-void sf_get_year(OpcodeContext&);
+void op_get_year(OpcodeContext&);
 
 void __declspec() op_game_loaded();
 
@@ -48,9 +48,9 @@ void __declspec() op_get_kill_counter();
 
 void __declspec() op_mod_kill_counter();
 
-void sf_set_object_knockback(OpcodeContext&);
+void op_set_object_knockback(OpcodeContext&);
 
-void sf_remove_object_knockback(OpcodeContext&);
+void op_remove_object_knockback(OpcodeContext&);
 
 void __declspec() op_active_hand();
 
@@ -58,13 +58,13 @@ void __declspec() op_toggle_active_hand();
 
 void __declspec() op_eax_available();
 
-void sf_inc_npc_level(OpcodeContext&);
+void op_inc_npc_level(OpcodeContext&);
 
-void sf_get_npc_level(OpcodeContext&);
+void op_get_npc_level(OpcodeContext&);
 
-void sf_get_ini_setting(OpcodeContext&);
+void op_get_ini_setting(OpcodeContext&);
 
-void sf_get_ini_string(OpcodeContext&);
+void op_get_ini_string(OpcodeContext&);
 
 void __declspec() op_get_uptime();
 
@@ -76,11 +76,11 @@ void __declspec() op_get_bodypart_hit_modifier();
 
 void __declspec() op_set_bodypart_hit_modifier();
 
-void sf_set_critical_table(OpcodeContext&);
+void op_set_critical_table(OpcodeContext&);
 
-void sf_get_critical_table(OpcodeContext&);
+void op_get_critical_table(OpcodeContext&);
 
-void sf_reset_critical_table(OpcodeContext&);
+void op_reset_critical_table(OpcodeContext&);
 
 void __declspec() op_set_unspent_ap_bonus();
 
@@ -90,7 +90,7 @@ void __declspec() op_set_unspent_ap_perk_bonus();
 
 void __declspec() op_get_unspent_ap_perk_bonus();
 
-void sf_set_palette(OpcodeContext&);
+void op_set_palette(OpcodeContext&);
 
 //numbers subgame functions
 void __declspec() op_nb_create_char();
@@ -105,9 +105,9 @@ void __declspec() op_get_light_level();
 
 void __declspec() op_refresh_pc_art();
 
-void sf_get_attack_type(OpcodeContext&);
+void op_get_attack_type(OpcodeContext&);
 
-void sf_play_sfall_sound(OpcodeContext&);
+void op_play_sfall_sound(OpcodeContext&);
 
 void __declspec() op_stop_sfall_sound();
 
@@ -133,23 +133,23 @@ void __declspec() op_gdialog_get_barter_mod();
 
 void __declspec() op_set_inven_ap_cost();
 
-void sf_get_inven_ap_cost(OpcodeContext&);
+void mf_get_inven_ap_cost(OpcodeContext&);
 
-void sf_attack_is_aimed(OpcodeContext&);
+void mf_attack_is_aimed(OpcodeContext&);
 
-void sf_sneak_success(OpcodeContext&);
+void op_sneak_success(OpcodeContext&);
 
-void sf_tile_light(OpcodeContext&);
+void op_tile_light(OpcodeContext&);
 
-void sf_exec_map_update_scripts(OpcodeContext&);
+void mf_exec_map_update_scripts(OpcodeContext&);
 
-void sf_set_ini_setting(OpcodeContext&);
+void mf_set_ini_setting(OpcodeContext&);
 
-void sf_get_ini_sections(OpcodeContext&);
+void mf_get_ini_sections(OpcodeContext&);
 
-void sf_get_ini_section(OpcodeContext&);
+void mf_get_ini_section(OpcodeContext&);
 
-void sf_npc_engine_level_up(OpcodeContext&);
+void mf_npc_engine_level_up(OpcodeContext&);
 
 }
 }
