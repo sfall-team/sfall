@@ -48,7 +48,8 @@ fo::GameObject* AI::sf_check_critters_in_lof(fo::GameObject* object, DWORD check
 fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
 	fo::GameObject* object = nullptr;
 	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-	return sf_check_critters_in_lof(object, target->tile, attacker->critter.teamNum); // 0 if there are no friendly critters
+	object = sf_check_critters_in_lof(object, target->tile, attacker->critter.teamNum);
+	return (!object || object->TypeFid() == fo::ObjType::OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
 }
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
@@ -59,7 +60,7 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 }
 
 static void __declspec(naked) combat_ai_hook_FleeFix() {
-	static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
+	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
 	__asm {
 		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
 		jnz  reTarget;

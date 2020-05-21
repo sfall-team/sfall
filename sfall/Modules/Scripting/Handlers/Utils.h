@@ -25,33 +25,33 @@ namespace script
 
 class OpcodeContext;
 
-void sf_string_split(OpcodeContext&);
+void op_string_split(OpcodeContext&);
 
-void sf_atoi(OpcodeContext&);
+void op_atoi(OpcodeContext&);
 
-void sf_atof(OpcodeContext&);
+void op_atof(OpcodeContext&);
 
-void sf_substr(OpcodeContext&);
+void op_substr(OpcodeContext&);
 
-void sf_strlen(OpcodeContext&);
+void op_strlen(OpcodeContext&);
 
-void sf_string_compare(OpcodeContext&);
+void mf_string_compare(OpcodeContext&);
 
-void sf_sprintf(OpcodeContext&);
+void op_sprintf(OpcodeContext&);
 
-void sf_string_format(OpcodeContext&);
+void mf_string_format(OpcodeContext&);
 
-void sf_ord(OpcodeContext&);
+void op_ord(OpcodeContext&);
 
-void sf_message_str_game(OpcodeContext&);
+void op_message_str_game(OpcodeContext&);
 
-void sf_add_extra_msg_file(OpcodeContext&);
+void mf_add_extra_msg_file(OpcodeContext&);
 
-void sf_get_string_pointer(OpcodeContext&);
+void mf_get_string_pointer(OpcodeContext&);
 
-void sf_get_text_width(OpcodeContext&);
+void mf_get_text_width(OpcodeContext&);
 
-void sf_string_to_case(OpcodeContext&);
+void mf_string_to_case(OpcodeContext&);
 
 }
 }

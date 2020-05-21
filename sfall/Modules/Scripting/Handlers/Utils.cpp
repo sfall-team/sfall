@@ -95,27 +95,27 @@ static bool FalloutStringCompare(const char* str1, const char* str2, long codePa
 	}
 }
 
-void sf_strlen(OpcodeContext& ctx) {
+void op_strlen(OpcodeContext& ctx) {
 	ctx.setReturn(
 		static_cast<int>(strlen(ctx.arg(0).strValue()))
 	);
 }
 
-void sf_atoi(OpcodeContext& ctx) {
+void op_atoi(OpcodeContext& ctx) {
 	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
 		static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
 	);
 }
 
-void sf_atof(OpcodeContext& ctx) {
+void op_atof(OpcodeContext& ctx) {
 	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
 		static_cast<float>(atof(str))
 	);
 }
 
-void sf_ord(OpcodeContext& ctx) {
+void op_ord(OpcodeContext& ctx) {
 	unsigned char firstChar = ctx.arg(0).strValue()[0];
 	ctx.setReturn(static_cast<unsigned long>(firstChar));
 }
@@ -152,7 +152,7 @@ static int __stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-void sf_string_split(OpcodeContext& ctx) {
+void op_string_split(OpcodeContext& ctx) {
 	ctx.setReturn(StringSplit(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
@@ -182,13 +182,13 @@ static char* SubString(const char* str, int startPos, int length) {
 	return ScriptExtender::gTextBuffer;
 }
 
-void sf_substr(OpcodeContext& ctx) {
+void op_substr(OpcodeContext& ctx) {
 	const char* str = ctx.arg(0).strValue();
 	if (*str != '\0') str = SubString(str, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
 	ctx.setReturn(str);
 }
 
-void sf_string_compare(OpcodeContext& ctx) {
+void mf_string_compare(OpcodeContext& ctx) {
 	if (ctx.numArgs() < 3) {
 		ctx.setReturn(
 			(_stricmp(ctx.arg(0).strValue(), ctx.arg(1).strValue()) ? 0 : 1)
@@ -275,13 +275,13 @@ static char* sprintf_lite(const char* format, ScriptValue value) {
 	return ScriptExtender::gTextBuffer;
 }
 
-void sf_sprintf(OpcodeContext& ctx) {
+void op_sprintf(OpcodeContext& ctx) {
 	ctx.setReturn(
 		sprintf_lite(ctx.arg(0).strValue(), ctx.arg(1))
 	);
 }
 
-void sf_string_format(OpcodeContext& ctx) {
+void mf_string_format(OpcodeContext& ctx) {
 	const char* format = ctx.arg(0).strValue();
 
 	int fmtLen = strlen(format);
@@ -343,7 +343,7 @@ void sf_string_format(OpcodeContext& ctx) {
 	}
 }
 
-void sf_message_str_game(OpcodeContext& ctx) {
+void op_message_str_game(OpcodeContext& ctx) {
 	const char* msg = nullptr;
 
 	int fileId = ctx.arg(0).rawValue();
@@ -364,7 +364,7 @@ void sf_message_str_game(OpcodeContext& ctx) {
 	ctx.setReturn(msg);
 }
 
-void sf_add_extra_msg_file(OpcodeContext& ctx) {
+void mf_add_extra_msg_file(OpcodeContext& ctx) {
 	long result = Message::AddExtraMsgFile(ctx.arg(0).strValue(), (ctx.numArgs() == 2) ? ctx.arg(1).rawValue() : 0);
 	switch (result) {
 	case -1 :
@@ -379,17 +379,17 @@ void sf_add_extra_msg_file(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_get_string_pointer(OpcodeContext& ctx) {
+void mf_get_string_pointer(OpcodeContext& ctx) {
 	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).strValue()), DataType::INT);
 }
 
-void sf_get_text_width(OpcodeContext& ctx) {
+void mf_get_text_width(OpcodeContext& ctx) {
 	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).strValue()));
 }
 
 static std::string strToCase;
 
-void sf_string_to_case(OpcodeContext& ctx) {
+void mf_string_to_case(OpcodeContext& ctx) {
 	strToCase = ctx.arg(0).strValue();
 	std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), ctx.arg(1).rawValue() ? ::toupper : ::tolower);
 

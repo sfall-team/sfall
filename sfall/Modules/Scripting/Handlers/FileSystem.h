@@ -27,39 +27,39 @@ namespace script
 
 class OpcodeContext;
 
-void sf_fs_create(OpcodeContext&);
+void op_fs_create(OpcodeContext&);
 
-void sf_fs_copy(OpcodeContext&);
+void op_fs_copy(OpcodeContext&);
 
-void sf_fs_find(OpcodeContext&);
+void op_fs_find(OpcodeContext&);
 
-void sf_fs_write_byte(OpcodeContext&);
+void op_fs_write_byte(OpcodeContext&);
 
-void sf_fs_write_short(OpcodeContext&);
+void op_fs_write_short(OpcodeContext&);
 
-void sf_fs_write_int(OpcodeContext&);
+void op_fs_write_int(OpcodeContext&);
 
-void sf_fs_write_string(OpcodeContext&);
+void op_fs_write_string(OpcodeContext&);
 
-void sf_fs_write_bstring(OpcodeContext&);
+void op_fs_write_bstring(OpcodeContext&);
 
-void sf_fs_read_byte(OpcodeContext&);
+void op_fs_read_byte(OpcodeContext&);
 
-void sf_fs_read_short(OpcodeContext&);
+void op_fs_read_short(OpcodeContext&);
 
-void sf_fs_read_int(OpcodeContext&);
+void op_fs_read_int(OpcodeContext&);
 
-void sf_fs_read_float(OpcodeContext&);
+void op_fs_read_float(OpcodeContext&);
 
-void sf_fs_delete(OpcodeContext&);
+void op_fs_delete(OpcodeContext&);
 
-void sf_fs_size(OpcodeContext&);
+void op_fs_size(OpcodeContext&);
 
-void sf_fs_pos(OpcodeContext&);
+void op_fs_pos(OpcodeContext&);
 
-void sf_fs_seek(OpcodeContext&);
+void op_fs_seek(OpcodeContext&);
 
-void sf_fs_resize(OpcodeContext&);
+void op_fs_resize(OpcodeContext&);
 
 }
 }

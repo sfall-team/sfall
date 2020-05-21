@@ -28,12 +28,12 @@ namespace sfall
 namespace script
 {
 
-void sf_create_array(OpcodeContext& ctx) {
+void op_create_array(OpcodeContext& ctx) {
 	auto arrayId = CreateArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(arrayId);
 }
 
-void sf_set_array(OpcodeContext& ctx) {
+void op_set_array(OpcodeContext& ctx) {
 	SetArray(
 		ctx.arg(0).rawValue(),
 		ctx.arg(1),
@@ -47,7 +47,7 @@ void sf_set_array(OpcodeContext& ctx) {
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
 	example: vartext[5]
 */
-void sf_get_array(OpcodeContext& ctx) {
+void op_get_array(OpcodeContext& ctx) {
 	if  (ctx.arg(0).isInt()) {
 		ctx.setReturn(
 			GetArray(ctx.arg(0).rawValue(), ctx.arg(1))
@@ -70,54 +70,54 @@ void sf_get_array(OpcodeContext& ctx) {
 	}
 }
 
-void sf_free_array(OpcodeContext& ctx) {
+void op_free_array(OpcodeContext& ctx) {
 	FreeArray(ctx.arg(0).rawValue());
 }
 
-void sf_len_array(OpcodeContext& ctx) {
+void op_len_array(OpcodeContext& ctx) {
 	ctx.setReturn(
 		LenArray(ctx.arg(0).rawValue())
 	);
 }
 
-void sf_resize_array(OpcodeContext& ctx) {
+void op_resize_array(OpcodeContext& ctx) {
 	if (ResizeArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue())) {
 		ctx.printOpcodeError("%s() - array sorting error.", ctx.getOpcodeName());
 	}
 }
 
-void sf_temp_array(OpcodeContext& ctx) {
+void op_temp_array(OpcodeContext& ctx) {
 	auto arrayId = TempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(arrayId);
 }
 
-void sf_fix_array(OpcodeContext& ctx) {
+void op_fix_array(OpcodeContext& ctx) {
 	FixArray(ctx.arg(0).rawValue());
 }
 
-void sf_scan_array(OpcodeContext& ctx) {
+void op_scan_array(OpcodeContext& ctx) {
 	ctx.setReturn(
 		ScanArray(ctx.arg(0).rawValue(), ctx.arg(1))
 	);
 }
 
-void sf_save_array(OpcodeContext& ctx) {
+void op_save_array(OpcodeContext& ctx) {
 	SaveArray(ctx.arg(0), ctx.arg(1).rawValue());
 }
 
-void sf_load_array(OpcodeContext& ctx) {
+void op_load_array(OpcodeContext& ctx) {
 	ctx.setReturn(
 		LoadArray(ctx.arg(0))
 	);
 }
 
-void sf_get_array_key(OpcodeContext& ctx) {
+void op_get_array_key(OpcodeContext& ctx) {
 	ctx.setReturn(
 		GetArrayKey(ctx.arg(0).rawValue(), ctx.arg(1).rawValue())
 	);
 }
 
-void sf_stack_array(OpcodeContext& ctx) {
+void op_stack_array(OpcodeContext& ctx) {
 	ctx.setReturn(
 		StackArray(ctx.arg(0), ctx.arg(1))
 	);
@@ -203,7 +203,7 @@ static DWORD ListAsArray(DWORD type) {
 	return id;
 }
 
-void sf_list_as_array(OpcodeContext& ctx) {
+void op_list_as_array(OpcodeContext& ctx) {
 	auto arrayId = ListAsArray(ctx.arg(0).rawValue());
 	ctx.setReturn(arrayId);
 }
@@ -216,7 +216,7 @@ static DWORD ListBegin(DWORD type) {
 	return listID;
 }
 
-void sf_list_begin(OpcodeContext& ctx) {
+void op_list_begin(OpcodeContext& ctx) {
 	ctx.setReturn(ListBegin(ctx.arg(0).rawValue()));
 }
 
@@ -224,7 +224,7 @@ static fo::GameObject* ListNext(sList* list) {
 	return (!list || list->pos == list->len) ? 0 : list->obj[list->pos++];
 }
 
-void sf_list_next(OpcodeContext& ctx) {
+void op_list_next(OpcodeContext& ctx) {
 	fo::GameObject* obj = nullptr;
 	auto id = ctx.arg(0).rawValue();
 	if (id != 0) {
@@ -252,7 +252,7 @@ static void ListEnd(DWORD id) {
 	}
 }
 
-void sf_list_end(OpcodeContext& ctx) {
+void op_list_end(OpcodeContext& ctx) {
 	ListEnd(ctx.arg(0).rawValue());
 }
 

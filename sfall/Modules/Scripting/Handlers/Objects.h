@@ -27,91 +27,91 @@ namespace sfall
 namespace script
 {
 
-void sf_remove_script(OpcodeContext&);
+void op_remove_script(OpcodeContext&);
 
-void sf_set_script(OpcodeContext&);
+void op_set_script(OpcodeContext&);
 
-void sf_create_spatial(OpcodeContext&);
+void op_create_spatial(OpcodeContext&);
 
-void sf_spatial_radius(OpcodeContext&);
+void mf_spatial_radius(OpcodeContext&);
 
-void sf_get_script(OpcodeContext&);
+void op_get_script(OpcodeContext&);
 
-void sf_set_critter_burst_disable(OpcodeContext&);
+void op_set_critter_burst_disable(OpcodeContext&);
 
-void sf_get_weapon_ammo_pid(OpcodeContext&);
+void op_get_weapon_ammo_pid(OpcodeContext&);
 
-void sf_set_weapon_ammo_pid(OpcodeContext&);
+void op_set_weapon_ammo_pid(OpcodeContext&);
 
-void sf_get_weapon_ammo_count(OpcodeContext&);
+void op_get_weapon_ammo_count(OpcodeContext&);
 
-void sf_set_weapon_ammo_count(OpcodeContext&);
+void op_set_weapon_ammo_count(OpcodeContext&);
 
-void sf_make_straight_path(OpcodeContext&);
+void op_make_straight_path(OpcodeContext&);
 
-void sf_make_path(OpcodeContext&);
+void op_make_path(OpcodeContext&);
 
-void sf_obj_blocking_at(OpcodeContext&);
+void op_obj_blocking_at(OpcodeContext&);
 
-void sf_tile_get_objects(OpcodeContext&);
+void op_tile_get_objects(OpcodeContext&);
 
-void sf_get_party_members(OpcodeContext&);
+void op_get_party_members(OpcodeContext&);
 
-void sf_art_exists(OpcodeContext&);
+void op_art_exists(OpcodeContext&);
 
-void sf_obj_is_carrying_obj(OpcodeContext&);
+void op_obj_is_carrying_obj(OpcodeContext&);
 
-void sf_critter_inven_obj2(OpcodeContext&);
+void mf_critter_inven_obj2(OpcodeContext&);
 
-void sf_set_outline(OpcodeContext&);
+void mf_set_outline(OpcodeContext&);
 
-void sf_get_outline(OpcodeContext&);
+void mf_get_outline(OpcodeContext&);
 
-void sf_set_flags(OpcodeContext&);
+void mf_set_flags(OpcodeContext&);
 
-void sf_get_flags(OpcodeContext&);
+void mf_get_flags(OpcodeContext&);
 
-void sf_outlined_object(OpcodeContext&);
+void mf_outlined_object(OpcodeContext&);
 
-void sf_item_weight(OpcodeContext&);
+void mf_item_weight(OpcodeContext&);
 
-void sf_set_dude_obj(OpcodeContext&);
+void mf_set_dude_obj(OpcodeContext&);
 
-void sf_real_dude_obj(OpcodeContext&);
+void mf_real_dude_obj(OpcodeContext&);
 
-void sf_car_gas_amount(OpcodeContext&);
+void mf_car_gas_amount(OpcodeContext&);
 
-void sf_lock_is_jammed(OpcodeContext&);
+void mf_lock_is_jammed(OpcodeContext&);
 
-void sf_unjam_lock(OpcodeContext&);
+void mf_unjam_lock(OpcodeContext&);
 
-void sf_set_unjam_locks_time(OpcodeContext&);
+void mf_set_unjam_locks_time(OpcodeContext&);
 
-void sf_item_make_explosive(OpcodeContext&);
+void mf_item_make_explosive(OpcodeContext&);
 
-void sf_get_current_inven_size(OpcodeContext&);
+void mf_get_current_inven_size(OpcodeContext&);
 
-void sf_get_dialog_object(OpcodeContext&);
+void mf_get_dialog_object(OpcodeContext&);
 
-void sf_obj_under_cursor(OpcodeContext&);
+void mf_obj_under_cursor(OpcodeContext&);
 
-void sf_get_loot_object(OpcodeContext&);
+void mf_get_loot_object(OpcodeContext&);
 
-void sf_get_proto_data(OpcodeContext&);
+void op_get_proto_data(OpcodeContext&);
 
-void sf_set_proto_data(OpcodeContext&);
+void op_set_proto_data(OpcodeContext&);
 
-void sf_get_object_data(OpcodeContext&);
+void mf_get_object_data(OpcodeContext&);
 
-void sf_set_object_data(OpcodeContext&);
+void mf_set_object_data(OpcodeContext&);
 
-void sf_get_object_ai_data(OpcodeContext&);
+void mf_get_object_ai_data(OpcodeContext&);
 
-void sf_set_drugs_data(OpcodeContext&);
+void mf_set_drugs_data(OpcodeContext&);
 
-void sf_set_unique_id(OpcodeContext&);
+void mf_set_unique_id(OpcodeContext&);
 
-void sf_objects_in_radius(OpcodeContext&);
+void mf_objects_in_radius(OpcodeContext&);
 
 }
 }

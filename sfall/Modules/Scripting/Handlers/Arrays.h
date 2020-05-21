@@ -23,43 +23,43 @@ namespace sfall
 namespace script
 {
 
-void sf_create_array(OpcodeContext&);
+void op_create_array(OpcodeContext&);
 
-void sf_set_array(OpcodeContext&);
+void op_set_array(OpcodeContext&);
 
 /*
 	used in place of [] operator when compiling in sslc
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
 */
-void sf_get_array(OpcodeContext&);
+void op_get_array(OpcodeContext&);
 
-void sf_free_array(OpcodeContext&);
+void op_free_array(OpcodeContext&);
 
-void sf_len_array(OpcodeContext&);
+void op_len_array(OpcodeContext&);
 
-void sf_resize_array(OpcodeContext&);
+void op_resize_array(OpcodeContext&);
 
-void sf_temp_array(OpcodeContext&);
+void op_temp_array(OpcodeContext&);
 
-void sf_fix_array(OpcodeContext&);
+void op_fix_array(OpcodeContext&);
 
-void sf_scan_array(OpcodeContext&);
+void op_scan_array(OpcodeContext&);
 
-void sf_save_array(OpcodeContext&);
+void op_save_array(OpcodeContext&);
 
-void sf_load_array(OpcodeContext&);
+void op_load_array(OpcodeContext&);
 
-void sf_get_array_key(OpcodeContext&);
+void op_get_array_key(OpcodeContext&);
 
-void sf_stack_array(OpcodeContext&);
+void op_stack_array(OpcodeContext&);
 
-void sf_list_begin(OpcodeContext&);
+void op_list_begin(OpcodeContext&);
 
-void sf_list_as_array(OpcodeContext&);
+void op_list_as_array(OpcodeContext&);
 
-void sf_list_next(OpcodeContext&);
+void op_list_next(OpcodeContext&);
 
-void sf_list_end(OpcodeContext&);
+void op_list_end(OpcodeContext&);
 
 }
 }

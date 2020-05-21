@@ -28,71 +28,71 @@ namespace sfall
 namespace script
 {
 
-void sf_fs_create(OpcodeContext& ctx) {
+void op_fs_create(OpcodeContext& ctx) {
 	ctx.setReturn(FScreate(ctx.arg(0).strValue(), ctx.arg(1).rawValue()));
 }
 
-void sf_fs_copy(OpcodeContext& ctx) {
+void op_fs_copy(OpcodeContext& ctx) {
 	ctx.setReturn(FScopy(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
-void sf_fs_find(OpcodeContext& ctx) {
+void op_fs_find(OpcodeContext& ctx) {
 	ctx.setReturn(FSfind(ctx.arg(0).strValue()));
 }
 
-void sf_fs_write_byte(OpcodeContext& ctx) {
+void op_fs_write_byte(OpcodeContext& ctx) {
 	FSwrite_byte(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
-void sf_fs_write_short(OpcodeContext& ctx) {
+void op_fs_write_short(OpcodeContext& ctx) {
 	FSwrite_short(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
-void sf_fs_write_int(OpcodeContext& ctx) {
+void op_fs_write_int(OpcodeContext& ctx) {
 	FSwrite_int(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
-void sf_fs_write_string(OpcodeContext& ctx) {
+void op_fs_write_string(OpcodeContext& ctx) {
 	FSwrite_string(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
-void sf_fs_write_bstring(OpcodeContext& ctx) {
+void op_fs_write_bstring(OpcodeContext& ctx) {
 	FSwrite_bstring(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
-void sf_fs_read_byte(OpcodeContext& ctx) {
+void op_fs_read_byte(OpcodeContext& ctx) {
 	ctx.setReturn(FSread_byte(ctx.arg(0).rawValue()));
 }
 
-void sf_fs_read_short(OpcodeContext& ctx) {
+void op_fs_read_short(OpcodeContext& ctx) {
 	ctx.setReturn(FSread_short(ctx.arg(0).rawValue()));
 }
 
-void sf_fs_read_int(OpcodeContext& ctx) {
+void op_fs_read_int(OpcodeContext& ctx) {
 	ctx.setReturn(FSread_int(ctx.arg(0).rawValue()));
 }
 
-void sf_fs_read_float(OpcodeContext& ctx) {
+void op_fs_read_float(OpcodeContext& ctx) {
 	ctx.setReturn(FSread_int(ctx.arg(0).rawValue()), DataType::FLOAT);
 }
 
-void sf_fs_delete(OpcodeContext& ctx) {
+void op_fs_delete(OpcodeContext& ctx) {
 	FSdelete(ctx.arg(0).rawValue());
 }
 
-void sf_fs_size(OpcodeContext& ctx) {
+void op_fs_size(OpcodeContext& ctx) {
 	ctx.setReturn(FSsize(ctx.arg(0).rawValue()));
 }
 
-void sf_fs_pos(OpcodeContext& ctx) {
+void op_fs_pos(OpcodeContext& ctx) {
 	ctx.setReturn(FSpos(ctx.arg(0).rawValue()));
 }
 
-void sf_fs_seek(OpcodeContext& ctx) {
+void op_fs_seek(OpcodeContext& ctx) {
 	FSseek(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
-void sf_fs_resize(OpcodeContext& ctx) {
+void op_fs_resize(OpcodeContext& ctx) {
 	FSresize(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 

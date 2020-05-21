@@ -72,9 +72,10 @@ long __fastcall IsRadInfluence();
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
 
-// Returns the number of party members in the existing table (begins from 1)
+// Returns the position of party member in the existing table (begins from 1)
 long IsPartyMemberByPid(long pid);
 
+// Returns True if the NPC belongs to the player's potential (set in party.txt) party members (analog of broken isPotentialPartyMember_)
 bool IsPartyMember(fo::GameObject* critter);
 
 // Returns the number of local variables of the object script

@@ -86,7 +86,7 @@ noCar:
 	}
 }
 
-void sf_force_encounter(OpcodeContext& cxt) {
+void op_force_encounter(OpcodeContext& cxt) {
 	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
 	DWORD mapID = cxt.arg(0).rawValue();
@@ -166,15 +166,15 @@ end:
 	}
 }
 
-void sf_set_map_time_multi(OpcodeContext& ctx) {
+void op_set_map_time_multi(OpcodeContext& ctx) {
 	Worldmap::SetMapMulti(ctx.arg(0).asFloat());
 }
 
-void sf_set_car_intface_art(OpcodeContext& ctx) {
+void mf_set_car_intface_art(OpcodeContext& ctx) {
 	Worldmap::SetCarInterfaceArt(ctx.arg(0).rawValue());
 }
 
-void sf_set_map_enter_position(OpcodeContext& ctx) {
+void mf_set_map_enter_position(OpcodeContext& ctx) {
 	int tile = ctx.arg(0).rawValue();
 	int elev = ctx.arg(1).rawValue();
 	int rot = ctx.arg(2).rawValue();
@@ -190,7 +190,7 @@ void sf_set_map_enter_position(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_map_enter_position(OpcodeContext& ctx) {
+void mf_get_map_enter_position(OpcodeContext& ctx) {
 	DWORD id = TempArray(3, 0);
 	arrays[id].val[0].set((long)fo::var::tile);
 	arrays[id].val[1].set((long)fo::var::elevation);
@@ -198,15 +198,15 @@ void sf_get_map_enter_position(OpcodeContext& ctx) {
 	ctx.setReturn(id);
 }
 
-void sf_set_rest_heal_time(OpcodeContext& ctx) {
+void mf_set_rest_heal_time(OpcodeContext& ctx) {
 	Worldmap::SetRestHealTime(ctx.arg(0).rawValue());
 }
 
-void sf_set_rest_mode(OpcodeContext& ctx) {
+void mf_set_rest_mode(OpcodeContext& ctx) {
 	Worldmap::SetRestMode(ctx.arg(0).rawValue());
 }
 
-void sf_set_rest_on_map(OpcodeContext& ctx) {
+void mf_set_rest_on_map(OpcodeContext& ctx) {
 	long mapId = ctx.arg(0).rawValue();
 	if (mapId < 0) {
 		ctx.printOpcodeError("%s() - invalid map number argument.", ctx.getMetaruleName());
@@ -222,7 +222,7 @@ void sf_set_rest_on_map(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_rest_on_map(OpcodeContext& ctx) {
+void mf_get_rest_on_map(OpcodeContext& ctx) {
 	long result = -1;
 	long elev = ctx.arg(1).rawValue();
 	if (elev < 0 || elev > 2) {
@@ -233,15 +233,15 @@ void sf_get_rest_on_map(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_tile_by_position(OpcodeContext& ctx) {
+void mf_tile_by_position(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
-void sf_set_terrain_name(OpcodeContext& ctx) {
+void mf_set_terrain_name(OpcodeContext& ctx) {
 	Worldmap::SetTerrainTypeName(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).strValue());
 }
 
-void sf_set_town_title(OpcodeContext& ctx) {
+void mf_set_town_title(OpcodeContext& ctx) {
 	Worldmap::SetCustomAreaTitle(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
