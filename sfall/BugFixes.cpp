@@ -3336,4 +3336,10 @@ void BugFixesInit()
 	MakeJump(0x4C372B, wmSubTileMarkRadiusVisited_hack);
 	SafeWrite16(0x4C3723, 0xC931); // mov ecx, esi > xor ecx, ecx
 	SafeWrite8(0x4C3727, 0x51);    // push esi > push ecx
+
+	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
+	// object or source tile
+	// Note: this bug does not cause an error in the function work
+	__int64 data = 0x840F04708B90; // remove jnz and modify jmp > jz
+	SafeWriteBytes(0x426D60, (BYTE*)&data, 6);
 }
