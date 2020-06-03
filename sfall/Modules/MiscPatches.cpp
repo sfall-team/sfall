@@ -701,7 +701,10 @@ void MiscPatches::init() {
 	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
 	HookCalls(ListDrvdStats_hook, {0x43549C, 0x4354BE});
 
-	// Increase the max text width of the information card in the character screen
+	// Increase the max text width of the player name on the character screen
+	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100
+
+	// Increase the max text width of the information card on the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
 
 	F1EngineBehaviorPatch();
