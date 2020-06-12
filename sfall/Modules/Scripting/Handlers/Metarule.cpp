@@ -220,7 +220,8 @@ void HandleMetarule(OpcodeContext& ctx) {
 }
 
 #ifndef NDEBUG
-static std::string mf_test_stringBuf;
+static std::string test_stringBuf;
+
 void mf_test(OpcodeContext& ctx) {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
@@ -244,8 +245,8 @@ void mf_test(OpcodeContext& ctx) {
 	}
 	sstream << ")";
 
-	mf_test_stringBuf = sstream.str();
-	ctx.setReturn(mf_test_stringBuf.c_str());
+	test_stringBuf = sstream.str();
+	ctx.setReturn(test_stringBuf.c_str());
 }
 #endif
 

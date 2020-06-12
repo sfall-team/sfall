@@ -452,8 +452,10 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 
 		FILETIME ftCurrSlot;
 		GetSaveFileTime(filename, &ftCurrSlot);
+
 		if (currSlot == 0 || ftCurrSlot.dwHighDateTime > ftPrevSlot.dwHighDateTime
-			|| (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime)) {
+			|| (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime))
+		{
 			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
 			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
 

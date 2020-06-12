@@ -72,8 +72,8 @@ static int __fastcall check_stat_level(register int value, DWORD stat) {
 	return value;
 }
 
-static const DWORD StatLevelHackCheck_Ret = 0x4AF3D7;
 static void __declspec(naked) stat_level_hack_check() {
+	static const DWORD StatLevelHackCheck_Ret = 0x4AF3D7;
 	__asm {
 		mov  edx, esi;         // stat
 		call check_stat_level; // ecx - value
@@ -81,10 +81,10 @@ static void __declspec(naked) stat_level_hack_check() {
 	}
 }
 
-static const DWORD StatSetBaseHack_RetMin = 0x4AF57E;
-static const DWORD StatSetBaseHack_RetMax = 0x4AF591;
-static const DWORD StatSetBaseHack_Ret    = 0x4AF59C;
 static void __declspec(naked) stat_set_base_hack_check() {
+	static const DWORD StatSetBaseHack_RetMin = 0x4AF57E;
+	static const DWORD StatSetBaseHack_RetMax = 0x4AF591;
+	static const DWORD StatSetBaseHack_Ret    = 0x4AF59C;
 	__asm {
 		cmp esi, dword ptr ds:[FO_VAR_obj_dude];
 		jz  pc;
@@ -177,8 +177,8 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 	}
 }
 
-static const DWORD StatSetBaseRet = 0x4AF559;
 static void __declspec(naked) stat_set_base_hack_allow() {
+	static const DWORD StatSetBaseRet = 0x4AF559;
 	using namespace fo;
 	__asm {
 		cmp  ecx, STAT_unused;
@@ -196,8 +196,8 @@ notAllow:
 	}
 }
 
-static const DWORD SetCritterStatRet = 0x455D8A;
 static void __declspec(naked) op_set_critter_stat_hack() {
+	static const DWORD SetCritterStatRet = 0x455D8A;
 	using namespace fo;
 	__asm {
 		cmp  dword ptr [esp + 0x2C - 0x28 + 4], STAT_unused;
