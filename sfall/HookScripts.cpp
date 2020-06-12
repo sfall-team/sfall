@@ -1174,7 +1174,7 @@ capsMultiDrop:
 		__asm retn;
 	}
 	__asm add esp, 4;
-	__asm jmp InvenActionObjDropRet;    // no caps drop
+	__asm jmp InvenActionObjDropRet; // no caps drop
 }
 
 static void __declspec(naked) InvenActionExplosiveDropHack() {

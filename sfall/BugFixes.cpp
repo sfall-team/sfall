@@ -1557,6 +1557,7 @@ static void __declspec(naked) compute_damage_hack() {
 
 static int currDescLen = 0;
 static bool showItemDescription = false;
+
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
 		strncpy_s(tempBuffer, desc, 161);
@@ -1630,6 +1631,7 @@ skip:
 }
 
 static DWORD expSwiftLearner; // experience points for print
+
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
 		mov  expSwiftLearner, edi;

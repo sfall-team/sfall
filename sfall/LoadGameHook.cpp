@@ -116,6 +116,7 @@ void GetSavePath(char* buf, char* ftype) {
 }
 
 static char SaveSfallDataFailMsg[128];
+
 static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -156,6 +157,7 @@ errorSave:
 }
 
 static char SaveFailMsg[128];
+
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {

@@ -52,7 +52,8 @@ static const SfallMetarule* currentMetarule;
 
 // Example handler. Feel free to add handlers in other files.
 #ifndef NDEBUG
-static std::string mf_test_stringBuf;
+static std::string test_stringBuf;
+
 static void mf_test() {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
@@ -76,8 +77,8 @@ static void mf_test() {
 	}
 	sstream << ")";
 
-	mf_test_stringBuf = sstream.str();
-	opHandler.setReturn(mf_test_stringBuf.c_str());
+	test_stringBuf = sstream.str();
+	opHandler.setReturn(test_stringBuf.c_str());
 }
 #endif
 
