@@ -35,6 +35,7 @@
 #define _aiInfoList                 0x510948
 #define _ambient_light              0x51923C
 #define _anim_set                   0x54CC14
+#define _anon_alias                 0x56CAEC
 #define _art                        0x510738
 #define _art_name                   0x56C9E4
 #define _art_vault_guy_num          0x5108A4
