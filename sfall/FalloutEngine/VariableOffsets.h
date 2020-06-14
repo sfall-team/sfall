@@ -9,6 +9,7 @@
 #define FO_VAR_aiInfoList                 0x510948
 #define FO_VAR_ambient_light              0x51923C
 #define FO_VAR_anim_set                   0x54CC14
+#define FO_VAR_anon_alias                 0x56CAEC
 #define FO_VAR_art                        0x510738
 #define FO_VAR_art_name                   0x56C9E4
 #define FO_VAR_art_vault_guy_num          0x5108A4
