@@ -286,21 +286,8 @@ static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
 
 /////////////////////////////////////////////////////////////////APP MOD FUNCTIONS///////////////////////////////////////////////////////////////////
 
-static char __stdcall GetSex() {
-	char sex;
-	__asm {
-		mov  edx, STAT_gender;              // sex stat ref
-		mov  eax, dword ptr ds:[_obj_dude]; // hero state structure
-		call stat_level_;                   // get Player stat val
-		test eax, eax;                      // male=0, female=1
-		jne  female;
-		mov  sex, 'M';
-		jmp  endFunc;
-female:
-		mov  sex, 'F';
-endFunc:
-	}
-	return sex;
+static char GetSex() {
+	return (HeroIsFemale()) ? 'F' : 'M';
 }
 
 // functions to load and save appearance globals
@@ -489,9 +476,9 @@ endFunc:
 }
 
 // create a duplicate list of critter names at the end with an additional '_' character at the beginning of its name
-static void FixCritList() {
-	//int size = (*(DWORD*)0x510774) / 2; // critter list size after resize by DoubleArt func
-	critterListSize = (*(DWORD*)0x510774) / 2;
+static long __stdcall AddHeroCritNames() { // art_init_
+	sArt &critterArt = ptr_art[OBJ_TYPE_CRITTER];
+	critterListSize = critterArt.total / 2;
 	if (critterListSize > 2048) {
 		MessageBoxA(0, "This mod cannot be used because the maximum limit of the FID count in the critters.lst is exceeded.\n"
 					   "Please disable the mod and restart the game.", "Hero Appearance mod", MB_TASKMODAL | MB_ICONERROR);
@@ -499,7 +486,7 @@ static void FixCritList() {
 	}
 	critterArraySize = critterListSize * 13;
 
-	char *CritList = (*(char**)0x51076C);         // critter list offset
+	char *CritList = critterArt.names;            // critter list offset
 	char *HeroList = CritList + critterArraySize; // set start of hero critter list after regular critter list
 
 	std::memset(HeroList, 0, critterArraySize);
@@ -510,14 +497,7 @@ static void FixCritList() {
 		HeroList += 13;
 		CritList += 13;
 	}
-}
-
-static void __declspec(naked) AddHeroCritNames() { // art_init_
-	__asm {
-		call FixCritList; // insert names for hero critters
-		mov  eax, dword ptr ds:[_art + 0x3C];
-		retn;
-	}
+	return critterArt.total;
 }
 
 static void DoubleArtAlias() {
@@ -528,23 +508,18 @@ static void DoubleArtAlias() {
 ///////////////////////////////////////////////////////////////GRAPHICS HERO FUNCTIONS///////////////////////////////////////////////////////////////
 
 static void DrawPC() {
-	RECT critRect;
-	__asm {
-		lea  edx, critRect;                 // out critter RECT*
-		mov  eax, dword ptr ds:[_obj_dude]; // dude critter struct
-		call obj_bound_;                    // get critter rect func
-
-		mov edx, dword ptr ds:[_obj_dude];  // dude critter struct
-		lea eax, critRect;                  // RECT*
-		mov edx, dword ptr ds:[edx + 0x28]; // map level the dude is on
-		call tile_refresh_rect_;            // draw rect area func
-	}
+	RedrawObject(*ptr_obj_dude);
 }
 
 // scan inventory items for armor and weapons currently being worn or wielded and setup matching FrmID for PC
 void __stdcall RefreshPCArt() {
 	__asm {
 		call proto_dude_update_gender_;         // refresh PC base model art
+
+		push dword ptr ds:[_inven_dude];
+		push dword ptr ds:[_i_rhand]; // item2
+		push dword ptr ds:[_i_lhand]; // item1
+		push dword ptr ds:[_i_worn];  // armor
 
 		mov  eax, dword ptr ds:[_obj_dude];     // PC state struct
 		mov  dword ptr ds:[_inven_dude], eax;   // inventory temp pointer to PC state struct
@@ -557,8 +532,8 @@ void __stdcall RefreshPCArt() {
 		xor  ebx, ebx; // itemNum
 
 		mov  dword ptr ds:[_i_rhand], eax; // item2
-		mov  dword ptr ds:[_i_worn], eax;  // armor
 		mov  dword ptr ds:[_i_lhand], eax; // item1
+		mov  dword ptr ds:[_i_worn], eax;  // armor
 		jmp  LoopStart;
 
 CheckNextItem:
@@ -600,24 +575,13 @@ LoopStart:
 		mov  edx, dword ptr ds:[_i_fid];
 		mov  eax, dword ptr ds:[_inven_dude];
 		mov  dword ptr ds:[eax + 0x20], edx;
-		//call obj_change_fid_
+		//call obj_change_fid_;
 
-		xor  eax, eax;
-		mov  dword ptr ds:[_i_rhand], eax; // item2
-		mov  dword ptr ds:[_i_worn], eax;  // armor
-		mov  dword ptr ds:[_i_lhand], eax; // item1
+		pop  dword ptr ds:[_i_worn];  // armor
+		pop  dword ptr ds:[_i_lhand]; // item1
+		pop  dword ptr ds:[_i_rhand]; // item2
+		pop  dword ptr ds:[_inven_dude];
 	}
-
-	if (!appModEnabled) return;
-
-	if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) {     // if load fails
-		currentStyleVal = 0;                                     // set style to default
-		if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) { // if race fails with style at default
-			currentRaceVal = 0;                                  // set race to default
-			LoadHeroDat(currentRaceVal, currentStyleVal);
-		}
-	}
-	ArtFlush();
 	DrawPC();
 }
 
@@ -1631,7 +1595,7 @@ static void EnableHeroAppearanceMod() {
 	// Double size of critter art index creating a new area for hero art (art_read_lst_)
 	HookCall(0x4196B0, DoubleArt);
 
-	// Copy inherited values of critter art into the extended part of the _anon_alias array
+	// Copy inherited values of critter art into the extended part of the _anon_alias array (art_init_)
 	HookCall(0x418CA2, DoubleArtAlias);
 
 	// Add new hero critter names at end of critter list (art_init_)

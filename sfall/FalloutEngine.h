@@ -1270,6 +1270,8 @@ void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long 
 
 void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);
 
+void __stdcall DisplayStats();
+
 long __stdcall StatLevel(TGameObj* critter, long statId);
 
 long __stdcall PerkCanAdd(TGameObj* critter, long perkId);
@@ -1281,6 +1283,9 @@ long __stdcall TraitLevel(long traitID);
 void __fastcall MakeStraightPathFunc(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
+
+// calculates bounding box (rectangle) for a given object
+void __stdcall ObjBound(TGameObj* object, BoundRect* boundRect);
 
 long __stdcall ObjDestroy(TGameObj* object);
 
@@ -1335,6 +1340,12 @@ long __fastcall TileNumInDirection(long tile, long rotation, long distance);
 long __stdcall TileDist(long scrTile, long dstTile);
 
 long __stdcall TileDir(long scrTile, long dstTile);
+
+// redraws the whole screen
+void __stdcall TileRefreshDisplay();
+
+// redraws the given rectangle on screen
+void __stdcall TileRefreshRect(BoundRect* boundRect, long elevation);
 
 long __stdcall IsWithinPerception(TGameObj* source, TGameObj* target);
 
@@ -1433,6 +1444,8 @@ long& GetActiveItemMode();
 
 TGameObj* GetActiveItem();
 
+bool HeroIsFemale();
+
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();
 
@@ -1478,3 +1491,6 @@ DWORD __stdcall GetCharGapWidth();
 
 // get maximum character width for current font
 DWORD __stdcall GetMaxCharWidth();
+
+// Redraw the given object on screen (does not always redraws the whole object)
+void __stdcall RedrawObject(TGameObj* obj);

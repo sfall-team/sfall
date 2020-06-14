@@ -363,7 +363,7 @@ static void mf_intface_is_hidden() {
 }
 
 static void mf_tile_refresh_display() {
-	__asm call tile_refresh_display_;
+	TileRefreshDisplay();
 }
 
 static void mf_get_cursor_mode() {
@@ -377,7 +377,7 @@ static void mf_set_cursor_mode() {
 static void mf_display_stats() {
 // calling the function outside of inventory screen will crash the game
 	if (GetLoopFlags() & INVENTORY) {
-		__asm call display_stats_;
+		DisplayStats();
 	}
 }
 

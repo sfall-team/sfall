@@ -26,7 +26,7 @@ long* ptr_pc_traits                   = reinterpret_cast<long*>(_pc_trait); // 2
 
 DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
 DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
-sArt*  ptr_art                        = reinterpret_cast<sArt*>(_art);
+sArt*  ptr_art                        = reinterpret_cast<sArt*>(_art); // array of 11 sArt
 DWORD* ptr_art_name                   = reinterpret_cast<DWORD*>(_art_name);
 DWORD* ptr_art_vault_guy_num          = reinterpret_cast<DWORD*>(_art_vault_guy_num);
 DWORD* ptr_art_vault_person_nums      = reinterpret_cast<DWORD*>(_art_vault_person_nums);
@@ -1365,6 +1365,10 @@ void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset,
 	WRAP_WATCOM_FCALL4(display_target_inventory_, inventoryOffset, visibleOffset, targetInventory, mode)
 }
 
+void __stdcall DisplayStats() {
+	WRAP_WATCOM_CALL0(display_stats_)
+}
+
 long __stdcall StatLevel(TGameObj* critter, long statId) {
 	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
@@ -1391,6 +1395,11 @@ TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD el
 		mov  ebx, elevation;
 		call func;
 	}
+}
+
+// calculates bounding box (rectangle) for a given object
+void __stdcall ObjBound(TGameObj* object, BoundRect* boundRect) {
+	WRAP_WATCOM_CALL2(obj_bound_, object, boundRect)
 }
 
 long __stdcall ObjDestroy(TGameObj* object) {
@@ -1497,6 +1506,16 @@ long __stdcall TileDist(long scrTile, long dstTile) {
 
 long __stdcall TileDir(long scrTile, long dstTile) {
 	WRAP_WATCOM_CALL2(tile_dir_, scrTile, dstTile)
+}
+
+// redraws the whole screen
+void __stdcall TileRefreshDisplay() {
+	WRAP_WATCOM_CALL0(tile_refresh_display_)
+}
+
+// redraws the given rectangle on screen
+void __stdcall TileRefreshRect(BoundRect* boundRect, long elevation) {
+	WRAP_WATCOM_CALL2(tile_refresh_rect_, boundRect, elevation)
 }
 
 long __stdcall IsWithinPerception(TGameObj* source, TGameObj* target) {
@@ -1748,6 +1767,10 @@ long& GetActiveItemMode() {
 
 TGameObj* GetActiveItem() {
 	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
+}
+
+bool HeroIsFemale() {
+	return (StatLevel(*ptr_obj_dude, STAT_gender) == 1); // GENDER_FEMALE
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
@@ -2024,4 +2047,10 @@ DWORD __stdcall GetMaxCharWidth() {
 //		mov  charWidth, eax;
 	}
 //	return charWidth;
+}
+
+void __stdcall RedrawObject(TGameObj* obj) {
+	BoundRect rect;
+	ObjBound(obj, &rect);
+	TileRefreshRect(&rect, obj->elevation);
 }
