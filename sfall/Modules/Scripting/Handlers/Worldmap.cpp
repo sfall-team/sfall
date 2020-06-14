@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\SafeWrite.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
@@ -84,7 +86,7 @@ noCar:
 	}
 }
 
-void sf_force_encounter(OpcodeContext& cxt) {
+void op_force_encounter(OpcodeContext& cxt) {
 	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
 	DWORD mapID = cxt.arg(0).rawValue();
@@ -150,73 +152,29 @@ void __declspec(naked) op_get_world_map_y_pos() {
 
 void __declspec(naked) op_set_world_map_pos() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[FO_VAR_world_xpos], eax;
-		mov ds:[FO_VAR_world_ypos], edi;
+		_GET_ARG(ecx, esi); // get y value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);  // get x value
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		mov  ds:[FO_VAR_world_xpos], eax;
+		mov  ds:[FO_VAR_world_ypos], ecx;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_map_time_multi() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		fild dword ptr [esp];
-		fstp dword ptr [esp];
-		jmp end;
-paramWasFloat:
-		push eax;
-end:
-		call SetMapMulti;
-fail:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+void op_set_map_time_multi(OpcodeContext& ctx) {
+	Worldmap::SetMapMulti(ctx.arg(0).asFloat());
 }
 
-void sf_set_car_intface_art(OpcodeContext& ctx) {
+void mf_set_car_intface_art(OpcodeContext& ctx) {
 	Worldmap::SetCarInterfaceArt(ctx.arg(0).rawValue());
 }
 
-void sf_set_map_enter_position(OpcodeContext& ctx) {
+void mf_set_map_enter_position(OpcodeContext& ctx) {
 	int tile = ctx.arg(0).rawValue();
 	int elev = ctx.arg(1).rawValue();
 	int rot = ctx.arg(2).rawValue();
@@ -232,7 +190,7 @@ void sf_set_map_enter_position(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_map_enter_position(OpcodeContext& ctx) {
+void mf_get_map_enter_position(OpcodeContext& ctx) {
 	DWORD id = TempArray(3, 0);
 	arrays[id].val[0].set((long)fo::var::tile);
 	arrays[id].val[1].set((long)fo::var::elevation);
@@ -240,15 +198,15 @@ void sf_get_map_enter_position(OpcodeContext& ctx) {
 	ctx.setReturn(id);
 }
 
-void sf_set_rest_heal_time(OpcodeContext& ctx) {
+void mf_set_rest_heal_time(OpcodeContext& ctx) {
 	Worldmap::SetRestHealTime(ctx.arg(0).rawValue());
 }
 
-void sf_set_rest_mode(OpcodeContext& ctx) {
+void mf_set_rest_mode(OpcodeContext& ctx) {
 	Worldmap::SetRestMode(ctx.arg(0).rawValue());
 }
 
-void sf_set_rest_on_map(OpcodeContext& ctx) {
+void mf_set_rest_on_map(OpcodeContext& ctx) {
 	long mapId = ctx.arg(0).rawValue();
 	if (mapId < 0) {
 		ctx.printOpcodeError("%s() - invalid map number argument.", ctx.getMetaruleName());
@@ -264,7 +222,7 @@ void sf_set_rest_on_map(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_rest_on_map(OpcodeContext& ctx) {
+void mf_get_rest_on_map(OpcodeContext& ctx) {
 	long result = -1;
 	long elev = ctx.arg(1).rawValue();
 	if (elev < 0 || elev > 2) {
@@ -275,15 +233,15 @@ void sf_get_rest_on_map(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_tile_by_position(OpcodeContext& ctx) {
+void mf_tile_by_position(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
-void sf_set_terrain_name(OpcodeContext& ctx) {
+void mf_set_terrain_name(OpcodeContext& ctx) {
 	Worldmap::SetTerrainTypeName(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).strValue());
 }
 
-void sf_set_town_title(OpcodeContext& ctx) {
+void mf_set_town_title(OpcodeContext& ctx) {
 	Worldmap::SetCustomAreaTitle(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 

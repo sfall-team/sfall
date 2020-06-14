@@ -39,7 +39,7 @@ public:
 	static long SetDrugAddictTimeOff(long pid, long time);
 };
 
-#define SIZE_S_DRUGS    (32)
+#define SIZE_S_DRUGS    (32 + 1)
 
 struct sDrugs {
 	DWORD drugPid;      // don't move
@@ -50,6 +50,8 @@ struct sDrugs {
 	long frmID;
 	long iniNumEffects;
 	long iniAddictTimeOff;
+
+	char skip;
 };
 
 extern sDrugs *drugs;

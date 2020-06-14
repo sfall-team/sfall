@@ -117,7 +117,7 @@ struct GameObject {
 			long damageLastTurn;
 			long aiPacket;
 			long teamNum;
-			long whoHitMe;
+			GameObject* whoHitMe;
 			long health;
 			long rads;
 			long poison;
@@ -373,6 +373,7 @@ struct UnlistedFrm {
 	}
 };
 
+//for holding a message
 #pragma pack(1)
 struct MessageNode {
 	long number;
@@ -424,8 +425,7 @@ struct CritInfo {
 };
 
 #pragma pack(1)
-struct SkillInfo
-{
+struct SkillInfo {
 	const char* name;
 	const char* description;
 	long attr;
@@ -791,8 +791,13 @@ struct Queue {
 	DWORD time;
 	long type;
 	GameObject* object;
-	long data;
+	DWORD* data;
 	Queue* next;
+};
+
+struct QueueRadiation {
+	long level;
+	long init; // 1 - for removing effect
 };
 
 struct QueueDrug {
@@ -806,7 +811,7 @@ struct QueueDrug {
 };
 
 struct QueueAddict {
-	long  init;      // 1 = perk is not active yet
+	long init;      // 1 - perk is not active yet
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };

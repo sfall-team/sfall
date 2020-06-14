@@ -101,7 +101,7 @@ DWORD initingHookScripts;
 
 // BEGIN HOOKS
 void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!IsMapLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
+	if (!IsGameLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}
 	BeginHook();
@@ -114,8 +114,8 @@ void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	EndHook();
 }
 
-void _stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsMapLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
+void __stdcall MouseClickHook(DWORD button, bool pressed) {
+	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
 		return;
 	}
 	BeginHook();

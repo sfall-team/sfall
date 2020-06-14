@@ -25,7 +25,7 @@ namespace script
 
 class OpcodeContext;
 
-void sf_force_encounter(OpcodeContext&);
+void op_force_encounter(OpcodeContext&);
 
 DWORD ForceEncounterRestore();
 
@@ -40,27 +40,27 @@ void __declspec() op_get_world_map_y_pos();
 
 void __declspec() op_set_world_map_pos();
 
-void __declspec() op_set_map_time_multi();
+void op_set_map_time_multi(OpcodeContext&);
 
-void sf_set_car_intface_art(OpcodeContext&);
+void mf_set_car_intface_art(OpcodeContext&);
 
-void sf_set_map_enter_position(OpcodeContext&);
+void mf_set_map_enter_position(OpcodeContext&);
 
-void sf_get_map_enter_position(OpcodeContext&);
+void mf_get_map_enter_position(OpcodeContext&);
 
-void sf_set_rest_heal_time(OpcodeContext&);
+void mf_set_rest_heal_time(OpcodeContext&);
 
-void sf_set_rest_mode(OpcodeContext&);
+void mf_set_rest_mode(OpcodeContext&);
 
-void sf_set_rest_on_map(OpcodeContext&);
+void mf_set_rest_on_map(OpcodeContext&);
 
-void sf_get_rest_on_map(OpcodeContext&);
+void mf_get_rest_on_map(OpcodeContext&);
 
-void sf_tile_by_position(OpcodeContext&);
+void mf_tile_by_position(OpcodeContext&);
 
-void sf_set_terrain_name(OpcodeContext&);
+void mf_set_terrain_name(OpcodeContext&);
 
-void sf_set_town_title(OpcodeContext&);
+void mf_set_town_title(OpcodeContext&);
 
 }
 }

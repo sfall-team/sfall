@@ -11,8 +11,8 @@
 namespace sfall
 {
 
-static const DWORD RemoveObjHookRet = 0x477497;
 static void __declspec(naked) RemoveObjHook() {
+	static const DWORD RemoveObjHookRet = 0x477497;
 	__asm {
 		mov ecx, [esp + 8]; // call addr
 		HookBegin;
@@ -126,10 +126,10 @@ static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, in
 	return result;
 }
 
-static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
-static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 // This hack is called when an armor is dropped into the armor slot at inventory screen
 static void __declspec(naked) UseArmorHack() {
+	static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
+	static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 	__asm {
 		mov  ecx, ds:[FO_VAR_i_worn];       // replacement item (override code)
 		mov  edx, [esp + 0x58 - 0x40];      // item
@@ -193,19 +193,19 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 
 	if (dropResult == -1) {
 skipHook:
-		_asm call fo::funcoffs::obj_drop_;
+		__asm call fo::funcoffs::obj_drop_;
 	}
-	_asm retn;
+	__asm retn;
 
 /* for only caps multi drop */
 capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
-		_asm call fo::funcoffs::item_remove_mult_;
-		_asm retn;
+		__asm call fo::funcoffs::item_remove_mult_;
+		__asm retn;
 	}
-	_asm add esp, 4;
-	_asm jmp InvenActionObjDropRet;    // no caps drop
+	__asm add esp, 4;
+	__asm jmp InvenActionObjDropRet; // no caps drop
 }
 
 static void __declspec(naked) InvenActionExplosiveDropHack() {
@@ -236,9 +236,9 @@ static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCal
 	return InventoryMoveHook_Script(ptrCont, item, type);
 }
 
-static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
-static const DWORD DropIntoContainer_skip = 0x476503;
 static void __declspec(naked) DropIntoContainerHack() {
+	static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
+	static const DWORD DropIntoContainer_skip = 0x476503;
 	__asm {
 		pushadc;
 		mov  ecx, ebp;                // contaner ptr
@@ -256,17 +256,17 @@ skipdrop:
 	}
 }
 
-static const DWORD DropIntoContainerRet = 0x471481;
 static void __declspec(naked) DropIntoContainerHandSlotHack() {
+	static const DWORD DropIntoContainerRet = 0x471481;
 	__asm {
 		call fo::funcoffs::drop_into_container_;
 		jmp  DropIntoContainerRet;
 	}
 }
 
-//static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
-static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
 static void __declspec(naked) DropAmmoIntoWeaponHook() {
+	//static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
+	static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
 	__asm {
 		pushadc;
 		mov  ecx, ebp;              // weapon ptr

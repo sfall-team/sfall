@@ -179,8 +179,8 @@ loadFail:
 	Graphics::SetDefaultTechnique();
 }
 
-static const DWORD gdDisplayFrameRet = 0x44AD06;
 static void __declspec(naked) gdDisplayFrame_hack() {
+	static const DWORD gdDisplayFrameRet = 0x44AD06;
 	__asm {
 		push edx;
 		push eax;
@@ -280,7 +280,7 @@ void TalkingHeads::exit() {
 			delete[] frm.second.textures;
 		}
 	}
-	if (texHighlight) texHighlight->Release();
+	//if (texHighlight) texHighlight->Release(); // it seems that it is released in Graphics.cpp at code line: SAFERELEASE(gpuBltEffect)
 }
 
 }

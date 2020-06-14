@@ -30,12 +30,15 @@ public:
 	const char* name() { return "AI"; }
 	void init();
 
-	// TODO: use subscription instead
-	static void _stdcall AICombatStart();
-	static void _stdcall AICombatEnd();
+	static fo::GameObject* CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
+	static fo::GameObject* CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
 
-	static fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target);
-	static fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source);
+	// TODO: use subscription instead
+	static void __stdcall AICombatStart();
+	static void __stdcall AICombatEnd();
+
+	static fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
+	static fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
 };
 
 }

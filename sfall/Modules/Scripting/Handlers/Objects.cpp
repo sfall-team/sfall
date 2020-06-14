@@ -42,7 +42,7 @@ namespace script
 	__asm call fo::funcoffs::exec_script_proc_  \
 }
 
-void sf_remove_script(OpcodeContext& ctx) {
+void op_remove_script(OpcodeContext& ctx) {
 	auto object = ctx.arg(0).object();
 	if (object->scriptId != 0xFFFFFFFF) {
 		fo::func::scr_remove(object->scriptId);
@@ -50,7 +50,7 @@ void sf_remove_script(OpcodeContext& ctx) {
 	}
 }
 
-void sf_set_script(OpcodeContext& ctx) {
+void op_set_script(OpcodeContext& ctx) {
 	using fo::Scripts::start;
 	using fo::Scripts::map_enter_p_proc;
 
@@ -81,7 +81,7 @@ void sf_set_script(OpcodeContext& ctx) {
 	if ((valArg & 0x80000000) == 0) exec_script_proc(scriptId, map_enter_p_proc);
 }
 
-void sf_create_spatial(OpcodeContext& ctx) {
+void op_create_spatial(OpcodeContext& ctx) {
 	using fo::Scripts::start;
 
 	DWORD scriptIndex = ctx.arg(0).rawValue(),
@@ -104,7 +104,7 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::scr_find_obj_from_program(scriptPtr->program));
 }
 
-void sf_spatial_radius(OpcodeContext& ctx) {
+void mf_spatial_radius(OpcodeContext& ctx) {
 	auto spatialObj = ctx.arg(0).object();
 	fo::ScriptInstance* script;
 	if (fo::func::scr_ptr(spatialObj->scriptId, &script) != -1) {
@@ -112,40 +112,42 @@ void sf_spatial_radius(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_script(OpcodeContext& ctx) {
+void op_get_script(OpcodeContext& ctx) {
 	auto scriptIndex = ctx.arg(0).object()->scriptIndex;
 	ctx.setReturn((scriptIndex >= 0) ? ++scriptIndex : 0);
 }
 
-void sf_set_critter_burst_disable(OpcodeContext& ctx) {
+void op_set_critter_burst_disable(OpcodeContext& ctx) {
 	SetNoBurstMode(ctx.arg(0).object(), ctx.arg(1).asBool());
 }
 
-void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
+void op_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->item.ammoPid);
 }
 
-void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
+void op_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	obj->item.ammoPid = ctx.arg(1).rawValue();
 }
 
-void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
+void op_get_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->item.charges);
 }
 
-void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
+void op_set_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	obj->item.charges = ctx.arg(1).rawValue();
 }
 
-#define BLOCKING_TYPE_BLOCK		(0)
-#define BLOCKING_TYPE_SHOOT		(1)
-#define BLOCKING_TYPE_AI		(2)
-#define BLOCKING_TYPE_SIGHT		(3)
-#define BLOCKING_TYPE_SCROLL	(4)
+enum {
+	BLOCKING_TYPE_BLOCK  = 0,
+	BLOCKING_TYPE_SHOOT  = 1,
+	BLOCKING_TYPE_AI     = 2,
+	BLOCKING_TYPE_SIGHT  = 3,
+	BLOCKING_TYPE_SCROLL = 4
+};
 
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
@@ -159,11 +161,10 @@ static DWORD getBlockingFunc(DWORD type) {
 		return fo::funcoffs::obj_sight_blocking_at_;
 	//case 4:
 	//	return obj_scroll_blocking_at_;
-
 	}
 }
 
-void sf_make_straight_path(OpcodeContext& ctx) {
+void op_make_straight_path(OpcodeContext& ctx) {
 	auto objFrom = ctx.arg(0).object();
 	DWORD tileTo = ctx.arg(1).rawValue(),
 		  type = ctx.arg(2).rawValue();
@@ -174,7 +175,7 @@ void sf_make_straight_path(OpcodeContext& ctx) {
 	ctx.setReturn(resultObj);
 }
 
-void sf_make_path(OpcodeContext& ctx) {
+void op_make_path(OpcodeContext& ctx) {
 	auto objFrom = ctx.arg(0).object();
 	auto tileTo = ctx.arg(1).rawValue(),
 		 type = ctx.arg(2).rawValue();
@@ -192,7 +193,7 @@ void sf_make_path(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
-void sf_obj_blocking_at(OpcodeContext& ctx) {
+void op_obj_blocking_at(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).rawValue(),
 		  elevation = ctx.arg(1).rawValue(),
 		  type = ctx.arg(2).rawValue();
@@ -205,7 +206,7 @@ void sf_obj_blocking_at(OpcodeContext& ctx) {
 	ctx.setReturn(resultObj);
 }
 
-void sf_tile_get_objects(OpcodeContext& ctx) {
+void op_tile_get_objects(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).rawValue(),
 		elevation = ctx.arg(1).rawValue();
 	DWORD arrayId = TempArray(0, 4);
@@ -217,7 +218,7 @@ void sf_tile_get_objects(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
-void sf_get_party_members(OpcodeContext& ctx) {
+void op_get_party_members(OpcodeContext& ctx) {
 	auto includeHidden = ctx.arg(0).rawValue();
 	int actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
@@ -231,11 +232,11 @@ void sf_get_party_members(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
-void sf_art_exists(OpcodeContext& ctx) {
+void op_art_exists(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::art_exists(ctx.arg(0).rawValue()));
 }
 
-void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
+void op_obj_is_carrying_obj(OpcodeContext& ctx) {
 	int num = 0;
 	const ScriptValue &invenObjArg = ctx.arg(0),
 		&itemObjArg = ctx.arg(1);
@@ -253,7 +254,7 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 	ctx.setReturn(num);
 }
 
-void sf_critter_inven_obj2(OpcodeContext& ctx) {
+void mf_critter_inven_obj2(OpcodeContext& ctx) {
 	fo::GameObject* critter = ctx.arg(0).object();
 	int slot = ctx.arg(1).rawValue();
 	switch (slot) {
@@ -274,37 +275,37 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 	}
 }
 
-void sf_set_outline(OpcodeContext& ctx) {
+void mf_set_outline(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	int color = ctx.arg(1).rawValue();
 	obj->outline = color;
 }
 
-void sf_get_outline(OpcodeContext& ctx) {
+void mf_get_outline(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->outline);
 }
 
-void sf_set_flags(OpcodeContext& ctx) {
+void mf_set_flags(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	int flags = ctx.arg(1).rawValue();
 	obj->flags = flags;
 }
 
-void sf_get_flags(OpcodeContext& ctx) {
+void mf_get_flags(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->flags);
 }
 
-void sf_outlined_object(OpcodeContext& ctx) {
+void mf_outlined_object(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::outlined_object);
 }
 
-void sf_item_weight(OpcodeContext& ctx) {
+void mf_item_weight(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::item_weight(ctx.arg(0).object()));
 }
 
-void sf_set_dude_obj(OpcodeContext& ctx) {
+void mf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	if (obj == nullptr || obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
 		//if (!InCombat && obj && obj != PartyControl::RealDudeObject()) {
@@ -318,23 +319,23 @@ void sf_set_dude_obj(OpcodeContext& ctx) {
 	}
 }
 
-void sf_real_dude_obj(OpcodeContext& ctx) {
+void mf_real_dude_obj(OpcodeContext& ctx) {
 	ctx.setReturn(PartyControl::RealDudeObject());
 }
 
-void sf_car_gas_amount(OpcodeContext& ctx) {
+void mf_car_gas_amount(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::carGasAmount);
 }
 
-void sf_lock_is_jammed(OpcodeContext& ctx) {
+void mf_lock_is_jammed(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::obj_lock_is_jammed(ctx.arg(0).object()));
 }
 
-void sf_unjam_lock(OpcodeContext& ctx) {
+void mf_unjam_lock(OpcodeContext& ctx) {
 	fo::func::obj_unjam_lock(ctx.arg(0).object());
 }
 
-void sf_set_unjam_locks_time(OpcodeContext& ctx) {
+void mf_set_unjam_locks_time(OpcodeContext& ctx) {
 	int time = ctx.arg(0).rawValue();
 	if (time < 0 || time > 127) {
 		ctx.printOpcodeError("%s() - time argument must be in the range of 0 to 127.", ctx.getMetaruleName());
@@ -344,7 +345,7 @@ void sf_set_unjam_locks_time(OpcodeContext& ctx) {
 	}
 }
 
-void sf_item_make_explosive(OpcodeContext& ctx) {
+void mf_item_make_explosive(OpcodeContext& ctx) {
 	DWORD pid = ctx.arg(0).rawValue();
 	DWORD pidActive = ctx.arg(1).rawValue();
 	DWORD min = ctx.arg(2).rawValue();
@@ -363,26 +364,26 @@ void sf_item_make_explosive(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_current_inven_size(OpcodeContext& ctx) {
+void mf_get_current_inven_size(OpcodeContext& ctx) {
 	ctx.setReturn(sf_item_total_size(ctx.arg(0).object()));
 }
 
-void sf_get_dialog_object(OpcodeContext& ctx) {
+void mf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
-void sf_obj_under_cursor(OpcodeContext& ctx) {
+void mf_obj_under_cursor(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
-void sf_get_loot_object(OpcodeContext& ctx) {
-	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
+void mf_get_loot_object(OpcodeContext& ctx) {
+	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? fo::var::target_stack[fo::var::target_curr_stack] : 0);
 }
 
 static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
-void sf_get_proto_data(OpcodeContext& ctx) {
+void op_get_proto_data(OpcodeContext& ctx) {
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
 	int result = fo::func::proto_ptr(pid, &protoPtr);
@@ -394,7 +395,7 @@ void sf_get_proto_data(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_set_proto_data(OpcodeContext& ctx) {
+void op_set_proto_data(OpcodeContext& ctx) {
 	int pid = ctx.arg(0).rawValue();
 	if (CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
@@ -406,7 +407,7 @@ void sf_set_proto_data(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_object_data(OpcodeContext& ctx) {
+void mf_get_object_data(OpcodeContext& ctx) {
 	DWORD result = 0;
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
 	if (*(object_ptr - 1) != 0xFEEDFACE) {
@@ -417,7 +418,7 @@ void sf_get_object_data(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_set_object_data(OpcodeContext& ctx) {
+void mf_set_object_data(OpcodeContext& ctx) {
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
 	if (*(object_ptr - 1) != 0xFEEDFACE) {
 		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
@@ -427,7 +428,7 @@ void sf_set_object_data(OpcodeContext& ctx) {
 	}
 }
 
-void sf_get_object_ai_data(OpcodeContext& ctx) {
+void mf_get_object_ai_data(OpcodeContext& ctx) {
 	fo::AIcap* cap = fo::func::ai_cap(ctx.arg(0).object());
 	DWORD arrayId, value = -1;
 	switch (ctx.arg(1).rawValue()) {
@@ -486,7 +487,7 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 	ctx.setReturn(value);
 }
 
-void sf_set_drugs_data(OpcodeContext& ctx) {
+void mf_set_drugs_data(OpcodeContext& ctx) {
 	int type = ctx.arg(0).rawValue();
 	int pid = ctx.arg(1).rawValue();
 	int val = ctx.arg(2).rawValue();
@@ -508,7 +509,7 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 	}
 }
 
-void sf_set_unique_id(OpcodeContext& ctx) {
+void mf_set_unique_id(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
 	long id;
 	if (ctx.arg(1).rawValue() == -1) {
@@ -520,7 +521,7 @@ void sf_set_unique_id(OpcodeContext& ctx) {
 	ctx.setReturn(id);
 }
 
-void sf_objects_in_radius(OpcodeContext& ctx) {
+void mf_objects_in_radius(OpcodeContext& ctx) {
 	long radius = ctx.arg(1).rawValue();
 	if (radius <= 0) radius = 1; else if (radius > 50) radius = 50;
 	long elev = ctx.arg(2).rawValue();

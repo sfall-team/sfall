@@ -72,7 +72,7 @@ static bool CheckRecursiveHooks(DWORD hook) {
 	return false;
 }
 
-void _stdcall BeginHook() {
+void __stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
 		// save all values of the current hook if another hook was called during the execution of the current hook
 		int cDepth = callDepth - 1;
@@ -96,7 +96,7 @@ void _stdcall BeginHook() {
 	#endif
 }
 
-static void _stdcall RunSpecificHookScript(HookScript *hook) {
+static void __stdcall RunSpecificHookScript(HookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
@@ -106,7 +106,7 @@ static void _stdcall RunSpecificHookScript(HookScript *hook) {
 	}
 }
 
-void _stdcall RunHookScript(DWORD hook) {
+void __stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
 	if (!hooks[hook].empty()) {
 		if (callDepth > 1) {
@@ -137,7 +137,7 @@ void _stdcall RunHookScript(DWORD hook) {
 	}
 }
 
-void _stdcall EndHook() {
+void __stdcall EndHook() {
 	#ifndef NDEBUG
 		dlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
 	#endif

@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2016  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -118,9 +118,9 @@ fail:
 	}
 }
 
-static const DWORD ScannerHookRet  = 0x41BC1D;
-static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) automap_hack() {
+	static const DWORD ScannerHookRet  = 0x41BC1D;
+	static const DWORD ScannerHookFail = 0x41BC65;
 	using fo::PID_MOTION_SENSOR;
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];
@@ -264,7 +264,27 @@ playWalkMovie:
 	}
 }
 
-void AdditionalWeaponAnimsPatch() {
+static void __declspec(naked) ListDrvdStats_hook() {
+	static const DWORD ListDrvdStats_Ret = 0x4354D9;
+	__asm {
+		call fo::IsRadInfluence;
+		test eax, eax;
+		jnz  influence;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		jmp  fo::funcoffs::critter_get_rads_;
+influence:
+		xor  ecx, ecx;
+		mov  cl, ds:[FO_VAR_RedColor];
+		cmp  dword ptr [esp], 0x4354BE + 5;
+		jne  skip;
+		mov  cl, 131; // color index for selected
+skip:
+		add  esp, 4;
+		jmp  ListDrvdStats_Ret;
+	}
+}
+
+static void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
@@ -276,40 +296,26 @@ void AdditionalWeaponAnimsPatch() {
 	}
 }
 
-void SkilldexImagesPatch() {
+static void SkilldexImagesPatch() {
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	long tmp = GetConfigInt("Misc", "Lockpick", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D54, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D54, tmp);
 	tmp = GetConfigInt("Misc", "Steal", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D58, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D58, tmp);
 	tmp = GetConfigInt("Misc", "Traps", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D5C, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D5C, tmp);
 	tmp = GetConfigInt("Misc", "FirstAid", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D4C, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D4C, tmp);
 	tmp = GetConfigInt("Misc", "Doctor", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D50, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D50, tmp);
 	tmp = GetConfigInt("Misc", "Science", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D60, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D60, tmp);
 	tmp = GetConfigInt("Misc", "Repair", 293);
-	if (tmp != 293) {
-		SafeWrite32(0x518D64, tmp);
-	}
+	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 }
 
-void ScienceOnCrittersPatch() {
+static void ScienceOnCrittersPatch() {
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
 		HookCall(0x41276E, action_use_skill_on_hook_science);
@@ -320,7 +326,7 @@ void ScienceOnCrittersPatch() {
 	}
 }
 
-void BoostScriptDialogLimitPatch() {
+static void BoostScriptDialogLimitPatch() {
 	const DWORD script_dialog_msgs[] = {
 		0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 	};
@@ -337,7 +343,7 @@ void BoostScriptDialogLimitPatch() {
 	}
 }
 
-void NumbersInDialoguePatch() {
+static void NumbersInDialoguePatch() {
 	if (GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlog("Applying numbers in dialogue patch.", DL_INIT);
 		SafeWrite32(0x502C32, 0x2000202E);
@@ -352,7 +358,7 @@ void NumbersInDialoguePatch() {
 	}
 }
 
-void InstantWeaponEquipPatch() {
+static void InstantWeaponEquipPatch() {
 	const DWORD PutAwayWeapon[] = {
 		0x411EA2, // action_climb_ladder_
 		0x412046, // action_use_an_item_on_object_
@@ -373,7 +379,7 @@ void InstantWeaponEquipPatch() {
 	}
 }
 
-void DontTurnOffSneakIfYouRunPatch() {
+static void DontTurnOffSneakIfYouRunPatch() {
 	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
 		SafeWrite8(0x418135, 0xEB);
@@ -381,7 +387,7 @@ void DontTurnOffSneakIfYouRunPatch() {
 	}
 }
 
-void PlayIdleAnimOnReloadPatch() {
+static void PlayIdleAnimOnReloadPatch() {
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, intface_item_reload_hook);
@@ -389,7 +395,7 @@ void PlayIdleAnimOnReloadPatch() {
 	}
 }
 
-void MotionScannerFlagsPatch() {
+static void MotionScannerFlagsPatch() {
 	if (long flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (flags & 1) MakeJump(0x41BBE9, automap_hack);
@@ -404,7 +410,7 @@ void MotionScannerFlagsPatch() {
 	}
 }
 
-void EncounterTableSizePatch() {
+static void EncounterTableSizePatch() {
 	const DWORD EncounterTableSize[] = {
 		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
@@ -420,7 +426,7 @@ void EncounterTableSizePatch() {
 	}
 }
 
-void DisablePipboyAlarmPatch() {
+static void DisablePipboyAlarmPatch() {
 	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, 0xC3);
@@ -429,7 +435,7 @@ void DisablePipboyAlarmPatch() {
 	}
 }
 
-void ObjCanSeeShootThroughPatch() {
+static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
@@ -438,7 +444,7 @@ void ObjCanSeeShootThroughPatch() {
 }
 
 static const char* musicOverridePath = "data\\sound\\music\\";
-void OverrideMusicDirPatch() {
+static void OverrideMusicDirPatch() {
 	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB});
 		if (overrideMode == 2) {
@@ -447,7 +453,7 @@ void OverrideMusicDirPatch() {
 	}
 }
 
-void DialogueFix() {
+static void DialogueFix() {
 	if (GetConfigInt("Misc", "DialogueFix", 1)) {
 		dlog("Applying dialogue patch.", DL_INIT);
 		SafeWrite8(0x446848, 0x31);
@@ -455,7 +461,7 @@ void DialogueFix() {
 	}
 }
 
-void AlwaysReloadMsgs() {
+static void AlwaysReloadMsgs() {
 	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8D, 0x0);
@@ -463,14 +469,14 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void RemoveWindowRoundingPatch() {
+static void RemoveWindowRoundingPatch() {
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		SafeWriteBatch<BYTE>(0xEB, {0x4D6EDD, 0x4D6F12});
 		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
 	}
 }
 
-void InventoryCharacterRotationSpeedPatch() {
+static void InventoryCharacterRotationSpeedPatch() {
 	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
@@ -479,7 +485,7 @@ void InventoryCharacterRotationSpeedPatch() {
 	}
 }
 
-void UIAnimationSpeedPatch() {
+static void UIAnimationSpeedPatch() {
 	DWORD addrs[] = {
 		0x45F9DE, 0x45FB33,
 		0x447DF4, 0x447EB6,
@@ -490,7 +496,7 @@ void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-void MusicInDialoguePatch() {
+static void MusicInDialoguePatch() {
 	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0);
@@ -499,7 +505,7 @@ void MusicInDialoguePatch() {
 	}
 }
 
-void PipboyAvailableAtStartPatch() {
+static void PipboyAvailableAtStartPatch() {
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		LoadGameHook::OnBeforeGameStart() += []() {
@@ -512,7 +518,7 @@ void PipboyAvailableAtStartPatch() {
 	}
 }
 
-void DisableHorriganPatch() {
+static void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		LoadGameHook::OnAfterNewGame() += []() {
 			fo::var::Meet_Frank_Horrigan = true;
@@ -521,7 +527,7 @@ void DisableHorriganPatch() {
 	}
 }
 
-void DisplaySecondWeaponRangePatch() {
+static void DisplaySecondWeaponRangePatch() {
 	// Display the range of the second attack mode in the inventory when you switch weapon modes in active item slots
 	//if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
@@ -530,7 +536,7 @@ void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
-void KeepWeaponSelectModePatch() {
+static void KeepWeaponSelectModePatch() {
 	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
@@ -538,7 +544,7 @@ void KeepWeaponSelectModePatch() {
 	}
 }
 
-void PartyMemberSkillPatch() {
+static void PartyMemberSkillPatch() {
 	// Fixed getting distance from source to target when using skills
 	// Note: this will cause the party member to apply his/her skill when you use First Aid/Doctor skill on the player, but only if
 	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
@@ -553,22 +559,24 @@ void PartyMemberSkillPatch() {
 	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
 }
 
-void SkipLoadingGameSettingsPatch() {
-	int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0);
-	if (skipLoading) {
-		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
+static void SkipLoadingGameSettingsPatch() {
+	if (int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
+		dlog("Applying skip loading game settings from saved games patch.", DL_INIT);
 		BlockCall(0x493421);
 		SafeWrite8(0x4935A8, 0x1F);
 		SafeWrite32(0x4935AB, 0x90901B75);
 		CodeData PatchData;
 		if (skipLoading == 2) SafeWriteBatch<CodeData>(PatchData, {0x49341C, 0x49343B});
-		SafeWriteBatch<CodeData>(PatchData, {0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE, 0x4934E3,
-		                                     0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569, 0x49357A});
+		SafeWriteBatch<CodeData>(PatchData, {
+			0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE,
+			0x4934E3, 0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569,
+			0x49357A
+		});
 		dlogr(" Done", DL_INIT);
 	}
 }
 
-void InterfaceDontMoveOnTopPatch() {
+static void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
@@ -577,7 +585,7 @@ void InterfaceDontMoveOnTopPatch() {
 	}
 }
 
-void UseWalkDistancePatch() {
+static void UseWalkDistancePatch() {
 	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
@@ -586,7 +594,7 @@ void UseWalkDistancePatch() {
 	}
 }
 
-void F1EngineBehaviorPatch() {
+static void F1EngineBehaviorPatch() {
 	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
@@ -596,7 +604,38 @@ void F1EngineBehaviorPatch() {
 	}
 }
 
+static void __declspec(naked) op_display_msg_hook() {
+	__asm {
+		cmp  dword ptr ds:FO_VAR_debug_func, 0;
+		jne  debug;
+		retn;
+debug:
+		jmp  fo::funcoffs::config_get_value_;
+	}
+}
+
+static void EngineOptimizationPatches() {
+	// Speed up display_msg script function
+	HookCall(0x455404, op_display_msg_hook);
+
+	// Remove duplicate code from intface_redraw_ engine function
+	BlockCall(0x45EBBF);
+
+	// Improve performance of the data conversion of script interpreter
+	// mov eax, [edx+eax]; bswap eax; ret;
+	SafeWrite32(0x4672A4, 0x0F02048B);
+	SafeWrite16(0x4672A8, 0xC3C8);
+	// mov eax, [edx+eax]; bswap eax;
+	SafeWrite32(0x4673E5, 0x0F02048B);
+	SafeWrite8(0x4673E9, 0xC8);
+	// mov ax, [eax]; rol ax, 8; ret;
+	SafeWrite32(0x467292, 0x66008B66);
+	SafeWrite32(0x467296, 0xC308C0C1);
+}
+
 void MiscPatches::init() {
+	EngineOptimizationPatches();
+
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
@@ -636,7 +675,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (int time = GetConfigInt("Misc", "CorpseDeleteTime", 6) != 6) { // time in days
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
 		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
 			time = 12; // hours
@@ -658,7 +698,13 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Increase the max text width of the information card in the character screen
+	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	HookCalls(ListDrvdStats_hook, {0x43549C, 0x4354BE});
+
+	// Increase the max text width of the player name on the character screen
+	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100
+
+	// Increase the max text width of the information card on the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
 
 	F1EngineBehaviorPatch();

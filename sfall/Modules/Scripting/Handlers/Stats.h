@@ -24,25 +24,25 @@ namespace script
 {
 
 // stat_funcs
-void sf_set_pc_base_stat(OpcodeContext&);
+void op_set_pc_base_stat(OpcodeContext&);
 
-void sf_set_pc_extra_stat(OpcodeContext&);
+void op_set_pc_extra_stat(OpcodeContext&);
 
-void sf_get_pc_base_stat(OpcodeContext&);
+void op_get_pc_base_stat(OpcodeContext&);
 
-void sf_get_pc_extra_stat(OpcodeContext&);
+void op_get_pc_extra_stat(OpcodeContext&);
 
-void sf_set_critter_base_stat(OpcodeContext&);
+void op_set_critter_base_stat(OpcodeContext&);
 
-void sf_set_critter_extra_stat(OpcodeContext&);
+void op_set_critter_extra_stat(OpcodeContext&);
 
-void sf_get_critter_base_stat(OpcodeContext&);
+void op_get_critter_base_stat(OpcodeContext&);
 
-void sf_get_critter_extra_stat(OpcodeContext&);
+void op_get_critter_extra_stat(OpcodeContext&);
 
-void __declspec() op_set_critter_skill_points();
+void op_set_critter_skill_points(OpcodeContext&);
 
-void __declspec() op_get_critter_skill_points();
+void op_get_critter_skill_points(OpcodeContext&);
 
 void __declspec() op_set_available_skill_points();
 
@@ -52,21 +52,21 @@ void __declspec() op_mod_skill_points_per_level();
 
 void __declspec() op_get_critter_current_ap();
 
-void __declspec() op_set_critter_current_ap();
+void op_set_critter_current_ap(OpcodeContext&);
 
 void __declspec() op_set_pickpocket_max();
 
 void __declspec() op_set_hit_chance_max();
 
-void __declspec() op_set_critter_hit_chance_mod();
+void op_set_critter_hit_chance_mod(OpcodeContext&);
 
 void __declspec() op_set_base_hit_chance_mod();
 
-void __declspec() op_set_critter_pickpocket_mod();
+void op_set_critter_pickpocket_mod(OpcodeContext&);
 
 void __declspec() op_set_base_pickpocket_mod();
 
-void __declspec() op_set_critter_skill_mod();
+void op_set_critter_skill_mod(OpcodeContext&);
 
 void __declspec() op_set_base_skill_mod();
 
@@ -84,7 +84,7 @@ void __declspec() op_set_npc_stat_max();
 
 void __declspec() op_set_npc_stat_min();
 
-void sf_set_xp_mod(OpcodeContext&);
+void op_set_xp_mod(OpcodeContext&);
 
 }
 }

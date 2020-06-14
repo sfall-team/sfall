@@ -66,8 +66,8 @@ static void __declspec(naked) intface_init_hack() {
 	}
 }
 
-static const DWORD intface_update_move_points_ret = 0x45EE3E;
 static void __declspec(naked) intface_update_move_points_hack() {
+	static const DWORD intface_update_move_points_ret = 0x45EE3E;
 	__asm {
 		mov  eax, 16 * 9
 		push eax;
@@ -237,8 +237,8 @@ static const DWORD wmViewportEndBottom[] = {
 	0x4C44BE,                                                   // wmCursorIsVisible_
 };
 
-static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
 static void __declspec(naked) wmInterfaceInit_hack() {
+	static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
 	__asm {
 		push eax;
 		mov  eax, 640 - WMAP_WIN_WIDTH;

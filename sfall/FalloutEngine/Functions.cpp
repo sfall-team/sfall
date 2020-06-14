@@ -202,7 +202,7 @@ const char* __stdcall findCurrentProc(Program* program) {
 	WRAP_WATCOM_CALL1(findCurrentProc_, program)
 }
 
-const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId) {
+const char* __stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId) {
 	WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
 }
 
@@ -273,7 +273,7 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_
 }
 
-long _stdcall isPartyMember(GameObject* obj) {
+long __stdcall isPartyMember(GameObject* obj) {
 	WRAP_WATCOM_CALL1(isPartyMember_, obj)
 }
 
@@ -358,11 +358,11 @@ GameObject* __stdcall obj_find_next_at_tile() {
 	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
 }
 
-long _stdcall partyMemberGetCurLevel(GameObject* obj) {
+long __stdcall partyMemberGetCurLevel(GameObject* obj) {
 	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }
 
-long _stdcall perk_level(GameObject* critter, long perkId) {
+long __stdcall perk_level(GameObject* critter, long perkId) {
 	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
 

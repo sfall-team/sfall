@@ -143,8 +143,8 @@ notNeg:
 	}
 }
 
-static const DWORD skill_dec_point_limit_Ret = 0x4AAA91;
 static void __declspec(naked) skill_dec_point_hack_limit() {
+	static const DWORD skill_dec_point_limit_Ret = 0x4AAA91;
 	__asm {
 		cmp edi, SKILL_MIN_LIMIT;
 		jle skip; // if raw skill point <= -128
@@ -196,8 +196,8 @@ static int __fastcall GetStatBonus(fo::GameObject* critter, const fo::SkillInfo*
 
 //On input, ebx/edx contains the skill id, ecx contains the critter, edi contains a SkillInfo*, ebp contains the number of skill points
 //On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints * multiplier
-static const DWORD StatBonusHookRet = 0x4AA5D6;
 static void __declspec(naked) skill_level_hack_bonus() {
+	static const DWORD StatBonusHookRet = 0x4AA5D6;
 	__asm {
 		push ecx;
 		push ebp;          // points
@@ -210,8 +210,8 @@ static void __declspec(naked) skill_level_hack_bonus() {
 	}
 }
 
-static const DWORD SkillIncCostRet = 0x4AA7C1;
 static void __declspec(naked) skill_inc_point_hack_cost() {
+	static const DWORD SkillIncCostRet = 0x4AA7C1;
 	__asm { // eax - current skill level, ebx - current skill, ecx - num free skill points
 		mov  edx, basedOnPoints;
 		test edx, edx;
@@ -231,8 +231,8 @@ skip:
 	}
 }
 
-static const DWORD SkillDecCostRet = 0x4AA98D;
 static void __declspec(naked) skill_dec_point_hack_cost() {
+	static const DWORD SkillDecCostRet = 0x4AA98D;
 	__asm { // ecx - current skill level, ebx - current skill, esi - num free skill points
 		mov  edx, basedOnPoints;
 		test edx, edx;
@@ -266,7 +266,7 @@ skip:
 	}
 }
 
-void _stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
+void __stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
 	if ((DWORD)critter == -1) {
 		baseSkillMax.maximum = maximum;
 		return;
@@ -282,7 +282,7 @@ void _stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
 	skillMaxMods.emplace_back(id, maximum);
 }
 
-void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
+void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
 	if ((DWORD)critter == -1) {
 		basePickpocket.maximum = maximum;
 		basePickpocket.mod = mod;
@@ -317,8 +317,7 @@ void Skills::init() {
 	HookCall(0x4AA574, skill_level_hook);
 	// change the lower limit for negative skill points
 	MakeCall(0x4AAA84, skill_dec_point_hack_limit);
-	SafeWrite8(0x4AA91B,  SKILL_MIN_LIMIT);
-	SafeWrite8(0x4AAA1A,  SKILL_MIN_LIMIT);
+	SafeWriteBatch<BYTE>(SKILL_MIN_LIMIT, {0x4AA91B, 0x4AAA1A});
 	SafeWrite32(0x4AAA23, SKILL_MIN_LIMIT);
 
 	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod

@@ -41,9 +41,9 @@ void SavePageOffsets() {
 	sprintf_s(SavePath, MAX_PATH, filename, fo::var::patches);
 
 	_itoa_s(fo::var::slot_cursor, buffer, 10);
-	WritePrivateProfileString("POSITION", "ListNum", buffer, SavePath);
+	WritePrivateProfileStringA("POSITION", "ListNum", buffer, SavePath);
 	_itoa_s(LSPageOffset, buffer, 10);
-	WritePrivateProfileString("POSITION", "PageOffset", buffer, SavePath);
+	WritePrivateProfileStringA("POSITION", "PageOffset", buffer, SavePath);
 }
 
 //------------------------------------------
@@ -452,8 +452,10 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 
 		FILETIME ftCurrSlot;
 		GetSaveFileTime(filename, &ftCurrSlot);
+
 		if (currSlot == 0 || ftCurrSlot.dwHighDateTime > ftPrevSlot.dwHighDateTime
-			|| (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime)) {
+			|| (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime))
+		{
 			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
 			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
 

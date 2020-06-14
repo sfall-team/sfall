@@ -23,6 +23,8 @@ namespace sfall
 namespace script
 {
 
+extern bool checkValidMemAddr;
+
  // memory_reading_funcs
 
 void __declspec() op_read_byte();

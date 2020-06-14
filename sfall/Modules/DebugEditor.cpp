@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
@@ -60,7 +61,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	fo::func::process_bk();
+	if (Graphics::mode != 0) fo::func::process_bk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
@@ -296,8 +297,8 @@ void RunDebugEditor() {
 	WSACleanup();
 }
 
-static const DWORD dbg_error_ret = 0x453FD8;
 static void __declspec(naked) dbg_error_hack() {
+	static const DWORD dbg_error_ret = 0x453FD8;
 	__asm {
 		cmp  ebx, 1;
 		je   hide;
@@ -321,6 +322,11 @@ artNotExist:
 		push edx;
 		push artDbgMsg;
 		call fo::funcoffs::debug_printf_;
+		cmp  isDebug, 0;
+		jne  display;
+		add  esp, 8;
+		retn;
+display:
 		push edx; // filename
 		push artDbgMsg;
 		lea  eax, [esp + 0x124 - 0x124 + 20]; // buf
@@ -352,16 +358,6 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
-static void __declspec(naked) op_display_msg_hook() {
-	__asm {
-		cmp  dword ptr ds:FO_VAR_debug_func, 0;
-		jne  debug;
-		retn;
-debug:
-		jmp  fo::funcoffs::config_get_value_;
-	}
-}
-
 static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode > 0) {
@@ -388,7 +384,7 @@ static void DebugModePatch() {
 		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
-		// prints a debug message about missing art file for critters to both debug.log and the message window
+		// prints a debug message about missing art file for critters to both debug.log and the message window in sfall debugging mode
 		HookCall(0x419B65, art_data_size_hook);
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
@@ -402,8 +398,6 @@ static void DebugModePatch() {
 
 		dlogr(" Done", DL_INIT);
 	}
-	// Just for speeding up display_msg function (optional)
-	HookCall(0x455404, op_display_msg_hook);
 }
 
 static void DontDeleteProtosPatch() {
@@ -423,7 +417,7 @@ void DebugEditor::init() {
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
-			if (scanCode == debugEditorKey && pressed && IsMapLoaded()) {
+			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 				RunDebugEditor();
 			}
 		};

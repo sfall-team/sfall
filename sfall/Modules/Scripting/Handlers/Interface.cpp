@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
 #include "..\..\LoadGameHook.h"
@@ -40,7 +42,7 @@ void __declspec(naked) op_input_funcs_available() {
 	}
 }
 
-void sf_key_pressed(OpcodeContext& ctx) {
+void op_key_pressed(OpcodeContext& ctx) {
 	ctx.setReturn(KeyDown(ctx.arg(0).rawValue()));
 }
 
@@ -78,8 +80,9 @@ void __declspec(naked) op_get_mouse_y() {
 	}
 }
 
-#define MOUSE_MIDDLE_BTN        (4)
-void sf_get_mouse_buttons(OpcodeContext& ctx) {
+enum { MOUSE_MIDDLE_BTN = 4 };
+
+void op_get_mouse_buttons(OpcodeContext& ctx) {
 	DWORD button = fo::var::last_buttons;
 	if (button == 0 && middleMouseDown) {
 		button = MOUSE_MIDDLE_BTN;
@@ -141,7 +144,7 @@ static void SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
 	ScriptExtender::gTextBuffer[i] = '\0';
 }
 
-void sf_create_message_window(OpcodeContext &ctx) {
+void op_create_message_window(OpcodeContext &ctx) {
 	static bool dialogShow = false;
 	if (dialogShow) return;
 
@@ -157,7 +160,7 @@ void sf_create_message_window(OpcodeContext &ctx) {
 	dialogShow = false;
 }
 
-void sf_message_box(OpcodeContext &ctx) {
+void mf_message_box(OpcodeContext &ctx) {
 	static int dialogShowCount = 0;
 
 	long lines = 0;
@@ -216,13 +219,13 @@ end:
 	}
 }
 
-void sf_add_iface_tag(OpcodeContext &ctx) {
+void mf_add_iface_tag(OpcodeContext &ctx) {
 	int result = BarBoxes::AddExtraBox();
 	if (result == -1) ctx.printOpcodeError("%s() - cannot add new tag as the maximum limit of 126 tags has been reached.", ctx.getMetaruleName());
 	ctx.setReturn(result);
 }
 
-void sf_show_iface_tag(OpcodeContext &ctx) {
+void op_show_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).rawValue();
 	if (tag == 3 || tag == 4) {
 		__asm mov  eax, tag;
@@ -232,7 +235,7 @@ void sf_show_iface_tag(OpcodeContext &ctx) {
 	}
 }
 
-void sf_hide_iface_tag(OpcodeContext &ctx) {
+void op_hide_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).rawValue();
 	if (tag == 3 || tag == 4) {
 		__asm mov  eax, tag;
@@ -242,7 +245,7 @@ void sf_hide_iface_tag(OpcodeContext &ctx) {
 	}
 }
 
-void sf_is_iface_tag_active(OpcodeContext &ctx) {
+void op_is_iface_tag_active(OpcodeContext &ctx) {
 	bool result = false;
 	int tag = ctx.arg(0).rawValue();
 	if (tag >= 0 && tag < 5) {
@@ -268,42 +271,42 @@ void sf_is_iface_tag_active(OpcodeContext &ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_intface_redraw(OpcodeContext& ctx) {
+void mf_intface_redraw(OpcodeContext& ctx) {
 	fo::func::intface_redraw();
 }
 
-void sf_intface_show(OpcodeContext& ctx) {
+void mf_intface_show(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::intface_show_;
 }
 
-void sf_intface_hide(OpcodeContext& ctx) {
+void mf_intface_hide(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::intface_hide_;
 }
 
-void sf_intface_is_hidden(OpcodeContext& ctx) {
+void mf_intface_is_hidden(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::intface_is_hidden());
 }
 
-void sf_tile_refresh_display(OpcodeContext& ctx) {
+void mf_tile_refresh_display(OpcodeContext& ctx) {
 	fo::func::tile_refresh_display();
 }
 
-void sf_get_cursor_mode(OpcodeContext& ctx) {
+void mf_get_cursor_mode(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::gmouse_3d_get_mode());
 }
 
-void sf_set_cursor_mode(OpcodeContext& ctx) {
+void mf_set_cursor_mode(OpcodeContext& ctx) {
 	fo::func::gmouse_3d_set_mode(ctx.arg(0).rawValue());
 }
 
-void sf_display_stats(OpcodeContext& ctx) {
+void mf_display_stats(OpcodeContext& ctx) {
 // calling the function outside of inventory screen will crash the game
 	if (GetLoopFlags() & INVENTORY) {
 		fo::func::display_stats();
 	}
 }
 
-void sf_set_iface_tag_text(OpcodeContext& ctx) {
+void mf_set_iface_tag_text(OpcodeContext& ctx) {
 	int boxTag = ctx.arg(0).rawValue();
 	int maxBox = BarBoxes::MaxBox();
 
@@ -315,7 +318,7 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	}
 }
 
-void sf_inventory_redraw(OpcodeContext& ctx) {
+void mf_inventory_redraw(OpcodeContext& ctx) {
 	int mode;
 	DWORD loopFlag = GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER);
 	switch (loopFlag) {
@@ -346,7 +349,7 @@ void sf_inventory_redraw(OpcodeContext& ctx) {
 	}
 }
 
-void sf_dialog_message(OpcodeContext& ctx) {
+void mf_dialog_message(OpcodeContext& ctx) {
 	DWORD loopFlag = GetLoopFlags();
 	if ((loopFlag & DIALOGVIEW) == 0 && (loopFlag & DIALOG)) {
 		const char* message = ctx.arg(0).strValue();
@@ -354,7 +357,7 @@ void sf_dialog_message(OpcodeContext& ctx) {
 	}
 }
 
-void sf_create_win(OpcodeContext& ctx) {
+void mf_create_win(OpcodeContext& ctx) {
 	int flags = (ctx.numArgs() > 5)
 		? ctx.arg(5).rawValue()
 		: fo::WinFlags::MoveOnTop;
@@ -369,7 +372,7 @@ void sf_create_win(OpcodeContext& ctx) {
 	}
 }
 
-void sf_show_window(OpcodeContext& ctx) {
+void mf_show_window(OpcodeContext& ctx) {
 	if (ctx.numArgs() > 0) {
 		const char* name = ctx.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
@@ -384,7 +387,7 @@ void sf_show_window(OpcodeContext& ctx) {
 	}
 }
 
-void sf_hide_window(OpcodeContext& ctx) {
+void mf_hide_window(OpcodeContext& ctx) {
 	if (ctx.numArgs() > 0) {
 		const char* name = ctx.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
@@ -399,7 +402,7 @@ void sf_hide_window(OpcodeContext& ctx) {
 	}
 }
 
-void sf_set_window_flag(OpcodeContext& ctx) {
+void mf_set_window_flag(OpcodeContext& ctx) {
 	long bitFlag = ctx.arg(1).rawValue();
 	switch (bitFlag) {
 		case fo::WinFlags::MoveOnTop:
@@ -516,15 +519,15 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	return 1;
 }
 
-void sf_draw_image(OpcodeContext& ctx) {
+void mf_draw_image(OpcodeContext& ctx) {
 	ctx.setReturn(DrawImage(ctx, false));
 }
 
-void sf_draw_image_scaled(OpcodeContext& ctx) {
+void mf_draw_image_scaled(OpcodeContext& ctx) {
 	ctx.setReturn(DrawImage(ctx, true));
 }
 
-void sf_unwield_slot(OpcodeContext& ctx) {
+void mf_unwield_slot(OpcodeContext& ctx) {
 	fo::InvenType slot = static_cast<fo::InvenType>(ctx.arg(1).rawValue());
 	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
 		ctx.printOpcodeError("%s() - incorrect slot number.", ctx.getMetaruleName());
@@ -586,7 +589,7 @@ void sf_unwield_slot(OpcodeContext& ctx) {
 	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
-void sf_get_window_attribute(OpcodeContext& ctx) {
+void mf_get_window_attribute(OpcodeContext& ctx) {
 	fo::Window* win = fo::GetWindow(ctx.arg(0).rawValue());
 	if (win == nullptr) {
 		if (ctx.arg(1).rawValue() != 0) {

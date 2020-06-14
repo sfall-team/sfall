@@ -24,7 +24,9 @@
 
 #include <cassert>
 #include <string>
+#include <list>
 #include <vector>
+#include <unordered_map>
 #include <cstdint>
 
 #include "SafeWrite.h"
@@ -103,6 +105,8 @@ std::string Translate(const char* section, const char* setting, const char* defa
 
 // Translates given string using Sfall translation INI file and puts the result into given buffer.
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+
+int SetConfigInt(const char* section, const char* setting, int value);
 
 DWORD HRPAddress(DWORD addr);
 

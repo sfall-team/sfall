@@ -115,7 +115,7 @@ static __declspec(naked) void set_game_time_hack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
 		mov  edx, eax;
-		call IsMapLoaded;
+		call IsGameLoaded;
 		test al, al;
 		jz   end;
 		cmp  edx, ONE_GAME_YEAR * 13;
@@ -213,7 +213,7 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-static DWORD _stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
+static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 	double multi = mapMultiMod * scriptMapMulti;
 
 	switch (perkLevel) {
@@ -345,7 +345,7 @@ static void RestRestore() {
 	SafeWrite16(0x499E93, 0x0574);
 }
 
-void WorldLimitsPatches() {
+static void WorldLimitsPatches() {
 	DWORD data = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data) {
 		dlog("Applying local map x limit patch.", DL_INIT);
@@ -368,7 +368,7 @@ void WorldLimitsPatches() {
 	//}
 }
 
-void TimeLimitPatch() {
+static void TimeLimitPatch() {
 	int limit = GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2 || limit == -3) {
 		addYear = true;
@@ -394,7 +394,7 @@ void TimeLimitPatch() {
 	}
 }
 
-void WorldmapFpsPatch() {
+static void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
@@ -429,7 +429,7 @@ void WorldmapFpsPatch() {
 	}
 }
 
-void PathfinderFixInit() {
+static void PathfinderFixInit() {
 	//if (GetConfigInt("Misc", "PathfinderFix", 0)) {
 		dlog("Applying Pathfinder patch.", DL_INIT);
 		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
@@ -439,7 +439,7 @@ void PathfinderFixInit() {
 	//}
 }
 
-void StartingStatePatches() {
+static void StartingStatePatches() {
 	int date = GetConfigInt("Misc", "StartYear", -1);
 	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
@@ -495,7 +495,7 @@ void StartingStatePatches() {
 	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
-void PipBoyAutomapsPatch() {
+static void PipBoyAutomapsPatch() {
 	dlog("Applying Pip-Boy automaps patch.", DL_INIT);
 	MakeCall(0x4BF931, wmMapInit_hack, 2);
 	SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
@@ -507,7 +507,7 @@ void Worldmap::SaveData(HANDLE file) {
 	DWORD sizeWrite, count = mapRestInfo.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	std::unordered_map<int, levelRest>::iterator it;
-	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); it++) {
+	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); ++it) {
 		WriteFile(file, &it->first, 4, &sizeWrite, 0);
 		WriteFile(file, &it->second, sizeof(levelRest), &sizeWrite, 0);
 	}
@@ -534,7 +534,7 @@ bool Worldmap::LoadData(HANDLE file) {
 	return false;
 }
 
-void _stdcall SetMapMulti(float value) {
+void Worldmap::SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 

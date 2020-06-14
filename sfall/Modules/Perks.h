@@ -41,25 +41,24 @@ public:
 	static DWORD HasFakeTraitOwner(const char* name, long objId);
 
 	static long PerkLevelMod;
+
+	static void __fastcall SetPerkboxTitle(const char* title);
+	static void __fastcall SetPerkValue(int id, int param, int value);
+	static void SetPerkName(int id, const char* value);
+	static void SetPerkDesc(int id, const char* value);
 };
 
 void PerksEnterCharScreen();
 void PerksCancelCharScreen();
 void PerksAcceptCharScreen();
 
-void _stdcall ApplyHeaveHoFix();
+void __stdcall ApplyHeaveHoFix();
 
-void _stdcall SetPerkValue(int id, int value, DWORD offset);
-void _stdcall SetPerkName(int id, char* value);
-void _stdcall SetPerkDesc(int id, char* value);
+void __stdcall IgnoreDefaultPerks();
+void __stdcall RestoreDefaultPerks();
+void __stdcall AddPerkMode(DWORD mode);
 
-void _stdcall SetPerkboxTitle(char* title);
-
-void _stdcall IgnoreDefaultPerks();
-void _stdcall RestoreDefaultPerks();
-void _stdcall AddPerkMode(DWORD mode);
-
-void _stdcall ClearSelectablePerks();
-void _stdcall SetPerkFreq(int i);
+void __stdcall ClearSelectablePerks();
+void __stdcall SetPerkFreq(int i);
 
 }

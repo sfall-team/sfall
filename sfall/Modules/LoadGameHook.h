@@ -58,12 +58,10 @@ public:
 
 	// Invoked before the game exits to windows
 	static Delegate<>& OnBeforeGameClose();
-
-	static DWORD LootTarget;
 };
 
-// True if some map was loaded, false when on the main menu
-bool IsMapLoaded();
+// True if game was started, false when on the main menu
+bool IsGameLoaded();
 
 DWORD InWorldMap();
 

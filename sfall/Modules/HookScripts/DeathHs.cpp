@@ -11,48 +11,47 @@ namespace sfall
 static bool registerHookDeathAnim1 = false;
 static bool registerHookDeathAnim2 = false;
 
-static DWORD __fastcall CalcDeathAnimHook_Script(register DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
-
+static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
 	BeginHook();
 	argCount = 5; // was 4
 
 	args[1] = (DWORD)attacker;
 	args[2] = (DWORD)target;
 	args[3] = damage;
-	args[4] = -1;
 
 	// weapon_ptr
 	args[0] = (weapon) ? weapon->protoId : -1; // attack is unarmed
 
 	bool createNewObj = false;
 	if (registerHookDeathAnim1) {
+		args[4] = -1; // set 'no anim' for combined hooks use
 		RunHookScript(HOOK_DEATHANIM1);
 		if (cRet > 0) {
-			register DWORD pid = rets[0];
-			args[0] = pid;
+			DWORD pid = rets[0];
+			args[0] = pid; // replace for HOOK_DEATHANIM2
 			fo::GameObject* object = nullptr;
 			if (fo::func::obj_pid_new((fo::GameObject*)&object, pid) != -1) { // create new object
 				createNewObj = true;
-				weapon = object;  // replace pointer to created object
+				weapon = object; // replace pointer with newly created weapon object
 			}
 			cRet = 0; // reset rets from HOOK_DEATHANIM1
 		}
 	}
 
-	long animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
+	DWORD animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
 	if (registerHookDeathAnim2) {
 		//argCount = 5;
 		args[4] = animDeath;
 		RunHookScript(HOOK_DEATHANIM2);
-	}
 
-	DWORD result = (cRet > 0) ? rets[0] : animDeath;
+		if (cRet > 0) animDeath = rets[0];
+	}
 	EndHook();
 
 	if (createNewObj) fo::func::obj_erase_object(weapon, 0); // delete created object
 
-	return result;
+	return animDeath;
 }
 
 static void __declspec(naked) CalcDeathAnimHook() {
@@ -74,7 +73,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		call fo::funcoffs::check_death_; // call original function
 		HookBegin;
-		mov	ebx, [esp + 60];
+		mov ebx, [esp + 60];
 		mov args[4], ebx;    // attacker
 		mov args[8], esi;    // target
 		mov ebx, [esp + 12];
@@ -97,19 +96,24 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 }
 
 static void __declspec(naked) OnDeathHook() {
+	using namespace fo::Fields;
 	__asm {
-		HookBegin;
-		mov  args[0], eax;
-		call fo::funcoffs::critter_kill_;
-		pushad;
+		push edx;
+		call BeginHook;
+		mov  args[0], esi;
 	}
 
 	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
-	_asm popad;
-	_asm retn;
+	__asm {
+		pop edx;
+		// engine code
+		mov eax, [esi + protoId];
+		mov ebp, ebx;
+		retn;
+	}
 }
 
 static void __declspec(naked) OnDeathHook2() {
@@ -124,8 +128,8 @@ static void __declspec(naked) OnDeathHook2() {
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
-	_asm popad;
-	_asm retn;
+	__asm popad;
+	__asm retn;
 }
 
 void Inject_DeathAnim1Hook() {
@@ -137,30 +141,19 @@ void Inject_DeathAnim1Hook() {
 
 void Inject_DeathAnim2Hook() {
 	HookCalls(CalcDeathAnim2Hook, {
-		0x410981,
-		0x4109A1,
-		0x4109BF
+		0x410981, // show_damage_to_object_
+		0x4109A1, // show_damage_to_object_
+		0x4109BF  // show_damage_to_object_
 	});
 	registerHookDeathAnim2 = true;
 	if (!registerHookDeathAnim1) {
-		HookCall(0x4109DE, CalcDeathAnimHook);
+		HookCall(0x4109DE, CalcDeathAnimHook); // show_damage_to_object_
 	}
 }
 
 void Inject_OnDeathHook() {
-	HookCalls(OnDeathHook, {
-		0x4130CC,
-		0x4130EF,
-		0x413603,
-		0x426EF0,
-		0x42D1EC,
-		0x42D6F9,
-		0x457BC5,
-		0x457E3A,
-		0x457E54,
-		0x4C14F9
-	});
-	HookCall(0x425161, OnDeathHook2);
+	MakeCall(0x42DA6D, OnDeathHook);  // critter_kill_
+	HookCall(0x425161, OnDeathHook2); // damage_object_
 }
 
 void InitDeathHookScripts() {

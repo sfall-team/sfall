@@ -28,7 +28,7 @@ class OpcodeContext;
 // input_functions
 void __declspec() op_input_funcs_available();
 
-void sf_key_pressed(OpcodeContext& ctx);
+void op_key_pressed(OpcodeContext& ctx);
 
 void __declspec() op_tap_key();
 
@@ -39,7 +39,7 @@ void __declspec() op_get_mouse_x();
 void __declspec() op_get_mouse_y();
 
 //Return pressed mouse button (1=left, 2=right, 3=left+right, 4=middle)
-void sf_get_mouse_buttons(OpcodeContext&);
+void op_get_mouse_buttons(OpcodeContext&);
 
 //Return the window number under the mous
 void __declspec() op_get_window_under_mouse();
@@ -57,9 +57,9 @@ void __declspec() op_stop_game();
 void __declspec() op_resume_game();
 
 //Create a message window with given string
-void sf_create_message_window(OpcodeContext&);
+void op_create_message_window(OpcodeContext&);
 
-void sf_message_box(OpcodeContext&);
+void mf_message_box(OpcodeContext&);
 
 void __declspec() op_get_viewport_x();
 
@@ -69,51 +69,51 @@ void __declspec() op_set_viewport_x();
 
 void __declspec() op_set_viewport_y();
 
-void sf_add_iface_tag(OpcodeContext&);
+void mf_add_iface_tag(OpcodeContext&);
 
-void sf_show_iface_tag(OpcodeContext&);
+void op_show_iface_tag(OpcodeContext&);
 
-void sf_hide_iface_tag(OpcodeContext&);
+void op_hide_iface_tag(OpcodeContext&);
 
-void sf_is_iface_tag_active(OpcodeContext&);
+void op_is_iface_tag_active(OpcodeContext&);
 
-void sf_intface_redraw(OpcodeContext&);
+void mf_intface_redraw(OpcodeContext&);
 
-void sf_intface_show(OpcodeContext&);
+void mf_intface_show(OpcodeContext&);
 
-void sf_intface_hide(OpcodeContext&);
+void mf_intface_hide(OpcodeContext&);
 
-void sf_intface_is_hidden(OpcodeContext&);
+void mf_intface_is_hidden(OpcodeContext&);
 
-void sf_tile_refresh_display(OpcodeContext&);
+void mf_tile_refresh_display(OpcodeContext&);
 
-void sf_get_cursor_mode(OpcodeContext&);
+void mf_get_cursor_mode(OpcodeContext&);
 
-void sf_set_cursor_mode(OpcodeContext&);
+void mf_set_cursor_mode(OpcodeContext&);
 
-void sf_display_stats(OpcodeContext&);
+void mf_display_stats(OpcodeContext&);
 
-void sf_set_iface_tag_text(OpcodeContext&);
+void mf_set_iface_tag_text(OpcodeContext&);
 
-void sf_inventory_redraw(OpcodeContext&);
+void mf_inventory_redraw(OpcodeContext&);
 
-void sf_dialog_message(OpcodeContext&);
+void mf_dialog_message(OpcodeContext&);
 
-void sf_create_win(OpcodeContext&);
+void mf_create_win(OpcodeContext&);
 
-void sf_show_window(OpcodeContext&);
+void mf_show_window(OpcodeContext&);
 
-void sf_hide_window(OpcodeContext&);
+void mf_hide_window(OpcodeContext&);
 
-void sf_set_window_flag(OpcodeContext&);
+void mf_set_window_flag(OpcodeContext&);
 
-void sf_draw_image(OpcodeContext&);
+void mf_draw_image(OpcodeContext&);
 
-void sf_draw_image_scaled(OpcodeContext&);
+void mf_draw_image_scaled(OpcodeContext&);
 
-void sf_unwield_slot(OpcodeContext&);
+void mf_unwield_slot(OpcodeContext&);
 
-void sf_get_window_attribute(OpcodeContext&);
+void mf_get_window_attribute(OpcodeContext&);
 
 }
 }

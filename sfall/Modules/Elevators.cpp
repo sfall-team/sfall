@@ -97,7 +97,7 @@ static void __declspec(naked) GetNumButtonsHook3() {
 	}
 }
 
-void ResetElevators() {
+static void ResetElevators() {
 	//memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
 	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(fo::ElevatorFrms) * (elevatorCount - vanillaElevatorCount));
 	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
@@ -138,25 +138,21 @@ static void LoadElevators(const char* elevFile) {
 	}
 }
 
-void ElevatorsInit() {
+static void ElevatorsInit() {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, CheckHotKeysHook);
 	//HookCall(0x43F2D2, UnknownHook2); // unused
 
 	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
-	SafeWrite32(0x43EFA4, (DWORD)elevatorExits);
-	SafeWrite32(0x43EFB9, (DWORD)elevatorExits);
-	SafeWrite32(0x43F2FC, (DWORD)elevatorExits);
-	SafeWrite32(0x43EFEA, (DWORD)&elevatorExits[0][0].tile);
-	SafeWrite32(0x43F315, (DWORD)&elevatorExits[0][0].tile);
+	SafeWriteBatch<DWORD>((DWORD)elevatorExits, {0x43EFA4, 0x43EFB9, 0x43F2FC});
+	SafeWriteBatch<DWORD>((DWORD)&elevatorExits[0][0].tile, {0x43EFEA, 0x43F315});
 	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
 
 	SafeWrite32(0x43F438, (DWORD)&elevatorsFrms[0].main);
 	SafeWrite32(0x43F475, (DWORD)&elevatorsFrms[0].buttons);
 
 	// _btncnt
-	SafeWrite32(0x43F65E, (DWORD)elevatorsBtnCount);
-	SafeWrite32(0x43F6BB, (DWORD)elevatorsBtnCount);
+	SafeWriteBatch<DWORD>((DWORD)elevatorsBtnCount, {0x43F65E, 0x43F6BB});
 	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);

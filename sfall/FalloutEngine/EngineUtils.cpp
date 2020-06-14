@@ -144,6 +144,16 @@ long CheckAddictByPid(fo::GameObject* critter, long pid) {
 	/* keyword 'return' is not needed, the compiler will do everything correctly */
 }
 
+// Checks whether the player is under the influence of negative effects of radiation
+long __fastcall IsRadInfluence() {
+	fo::QueueRadiation* queue = (fo::QueueRadiation*)fo::func::queue_find_first(fo::var::obj_dude, fo::radiation_event);
+	while (queue) {
+		if (queue->init && queue->level >= 2) return 1;
+		queue = (fo::QueueRadiation*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
+	}
+	return 0;
+}
+
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	Proto* protoPtr;
 	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
@@ -156,7 +166,7 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	}
 }
 
-// Returns the number of party members in the existing table (begins from 1)
+// Returns the position of party member in the existing table (begins from 1)
 long IsPartyMemberByPid(long pid) {
 	size_t patryCount = fo::var::partyMemberMaxCount;
 	if (patryCount) {
@@ -168,6 +178,7 @@ long IsPartyMemberByPid(long pid) {
 	return 0;
 }
 
+// Returns True if the NPC belongs to the player's potential (set in party.txt) party members (analog of broken isPotentialPartyMember_)
 bool IsPartyMember(fo::GameObject* critter) {
 	if (critter->id < PLAYER_ID) return false;
 	return (IsPartyMemberByPid(critter->protoId) > 0);
@@ -241,7 +252,7 @@ fo::Window* GetWindow(long winType) {
 }
 
 // Returns an array of objects within the specified radius from the source tile
-void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type) {
 	for (long tile = 0; tile < 40000; tile++) {
 		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
 		while (obj) {

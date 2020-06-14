@@ -21,6 +21,8 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "HookScripts\CombatHS.h"
+
 #include "AI.h"
 
 namespace sfall
@@ -32,6 +34,33 @@ using namespace Fields;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 
+// Returns the friendly critter or any blocking object in the line of fire
+fo::GameObject* AI::CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team) {
+	if (object && object->Type() == ObjType::OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // is not friendly fire
+		long objTile = object->tile;
+		if (objTile == targetTile) return nullptr;
+
+		if (object->flags & fo::ObjectFlag::MultiHex) {
+			long dir = fo::func::tile_dir(objTile, targetTile);
+			objTile = fo::func::tile_num_in_direction(objTile, dir, 1);
+			if (objTile == targetTile) return nullptr; // just in case
+		}
+		// continue checking the line of fire from object tile to targetTile
+		fo::GameObject* obj = object; // for ignoring the object (multihex) when building the path
+		fo::func::make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+		if (!CheckShootAndFriendlyInLineOfFire(obj, targetTile, team)) return nullptr;
+	}
+	return object;
+}
+
+// Returns the friendly critter in the line of fire
+fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+	fo::GameObject* object = nullptr;
+	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+	object = CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
+	return (!object || object->TypeFid() == fo::ObjType::OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
+}
+
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
 		or   byte ptr [esi + combatState], 8; // set new 'ReTarget' flag
@@ -39,8 +68,8 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	}
 }
 
-static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 static void __declspec(naked) combat_ai_hook_FleeFix() {
+	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
 	__asm {
 		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
 		jnz  reTarget;
@@ -54,8 +83,8 @@ reTarget:
 	}
 }
 
-static const DWORD combat_ai_hack_Ret = 0x42B204;
 static void __declspec(naked) combat_ai_hack() {
+	static const DWORD combat_ai_hack_Ret = 0x42B204;
 	__asm {
 		mov  edx, [ebx + 0x10]; // cap.min_hp
 		cmp  eax, edx;
@@ -152,9 +181,24 @@ skip:
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
+static void __declspec(naked) ai_danger_source_hack_pm_newfind() {
+	__asm {
+		mov  ecx, [ebp + 0x18]; // source combat_data.who_hit_me
+		test ecx, ecx;
+		jnz  hasTarget;
+		retn;
+hasTarget:
+		test [ecx + damageFlags], DAM_DEAD;
+		jz   isNotDead;
+		xor  ecx, ecx;
+isNotDead:
+		mov  dword ptr [ebp + 0x18], 0; // combat_data.who_hit_me (engine code)
+		retn;
+	}
+}
 
-static DWORD RetryCombatMinAP;
+static long RetryCombatMinAP;
+
 static void __declspec(naked) RetryCombatHook() {
 	static DWORD RetryCombatLastAP = 0;
 	__asm {
@@ -178,6 +222,163 @@ next:
 		jmp  retry;
 end:
 		retn;
+	}
+}
+
+static long __fastcall sf_ai_weapon_reload(fo::GameObject* weapon, fo::GameObject* ammo, fo::GameObject* critter) {
+	fo::Proto* proto = nullptr;
+	long result = -1;
+	long maxAmmo;
+
+	fo::GameObject* _ammo = ammo;
+
+	while (ammo) {
+		result = fo::func::item_w_reload(weapon, ammo);
+		if (result != 0) return result; // 1 - reload done, -1 - can't reload
+
+		if (!proto) {
+			proto = fo::GetProto(weapon->protoId);
+			maxAmmo = proto->item.weapon.maxAmmo;
+		}
+		if (weapon->item.charges >= maxAmmo) break; // magazine is full
+
+		long pidAmmo = ammo->protoId;
+		fo::func::obj_destroy(ammo);
+		ammo = nullptr;
+
+		DWORD currentSlot = -1; // begin find at first slot
+		while (fo::GameObject* ammoFind = fo::func::inven_find_type(critter, fo::item_type_ammo, &currentSlot)) {
+			if (ammoFind->protoId == pidAmmo) {
+				ammo = ammoFind;
+				break;
+			}
+		}
+	}
+	if (_ammo != ammo) {
+		fo::func::obj_destroy(ammo);
+		return 1; // notifies the engine that the ammo has already been destroyed
+	}
+	return result;
+}
+
+static void __declspec(naked) item_w_reload_hook() {
+	__asm {
+		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
+		je   skip;
+		push ecx;
+		push esi;      // source
+		mov  ecx, eax; // weapon
+		call sf_ai_weapon_reload; // edx - ammo
+		pop  ecx;
+		retn;
+skip:
+		jmp fo::funcoffs::item_w_reload_;
+	}
+}
+
+static long __fastcall CheckWeaponRangeAndApCost(fo::GameObject* source, fo::GameObject* target) {
+	long weaponRange = fo::func::item_w_range(source, fo::ATKTYPE_RWEAPON_SECONDARY);
+	long targetDist  = fo::func::obj_dist(source, target);
+	if (targetDist > weaponRange) return 0; // don't use secondary mode
+
+	return (source->critter.movePoints >= sf_item_w_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
+}
+
+static void __declspec(naked) ai_pick_hit_mode_hook() {
+	__asm {
+		call fo::funcoffs::caiHasWeapPrefType_;
+		test eax, eax;
+		jnz  evaluation;
+		retn;
+evaluation:
+		mov  edx, edi;
+		mov  ecx, esi;
+		jmp  CheckWeaponRangeAndApCost;
+	}
+}
+
+static void __declspec(naked) ai_danger_source_hook() {
+	__asm {
+		call fo::funcoffs::combat_check_bad_shot_;
+		cmp  dword ptr [esp + 56], 0x42B235 + 5; // called from combat_ai_
+		je   fix;
+		retn;
+fix:	// check result
+		cmp  eax, 1; // exception: 1 - no ammo
+		setg al;     // set 0 for result OK
+		retn;
+	}
+}
+
+static void __declspec(naked) cai_perform_distance_prefs_hack() {
+	__asm {
+		mov  ebx, eax; // current distance to target
+		mov  ecx, esi;
+		push 0;        // no called shot
+		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
+		call sf_item_w_mp_cost;
+		mov  edx, [esi + movePoints];
+		sub  edx, eax; // ap - cost = free AP's
+		jle  moveAway; // <= 0
+		lea  edx, [edx + ebx - 1];
+		cmp  edx, 5;   // minimum threshold distance
+		jge  skipMove; // distance >= 5?
+		// check combat rating
+		mov  eax, esi;
+		call fo::funcoffs::combatai_rating_;
+		mov  edx, eax; // source rating
+		mov  eax, edi;
+		call fo::funcoffs::combatai_rating_;
+		cmp  eax, edx; // target vs source rating
+		jl   skipMove; // target rating is low
+moveAway:
+		mov  ebx, 10;  // move away max distance
+		retn;
+skipMove:
+		xor  ebx, ebx; // skip moving away at the beginning of the turn
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_move_away_hook() {
+	static const DWORD ai_move_away_hook_Ret = 0x4289DA;
+	__asm {
+		test ebx, ebx;
+		jl   fix; // distance arg < 0
+		jmp  fo::funcoffs::ai_cap_;
+fix:
+		neg  ebx;
+		mov  eax, [esi + movePoints]; // Current Action Points
+		cmp  ebx, eax;
+		cmovg ebx, eax; // if (distance > ap) dist = ap
+		add  esp, 4;
+		jmp  ai_move_away_hook_Ret;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+static long __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+	if (AI::CheckFriendlyFire(target, attacker)) {
+		long dice = fo::func::roll_random(1, 10);
+		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // 1 - is friendly
+	}
+	return 0;
+}
+
+static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() {
+	static const DWORD safety_invalidate_weapon_burst_friendly = 0x4216C9;
+	__asm {
+		pushadc;
+		mov  ecx, esi; // target
+		call RollFriendlyFire;
+		test eax, eax;
+		jnz  friendly;
+		popadc;
+		jmp  fo::funcoffs::combat_ctd_init_;
+friendly:
+		lea  esp, [esp + 8 + 3 * 4];
+		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
 	}
 }
 
@@ -215,7 +416,34 @@ void AI::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Fix for NPCs not fully reloading a weapon if it has more ammo capacity than a box of ammo
+	HookCalls(item_w_reload_hook, {
+		0x42AF15,           // cai_attempt_w_reload_
+		0x42A970, 0x42AA56, // ai_try_attack_
+	});
+
+	// Adds a check for the weapon range and the AP cost when AI is choosing weapon attack modes
+	HookCall(0x429F6D, ai_pick_hit_mode_hook);
+
 	/////////////////////// Combat AI behavior fixes ///////////////////////
+
+	// Fix to reduce friendly fire in burst attacks
+	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
+	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
+
+	// Fix for duplicate critters being added to the list of potential targets for AI
+	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
+	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
+	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
+
+	#ifndef NDEBUG
+	if (iniGetInt("Debugging", "AIBugFixes", 1, ::sfall::ddrawIni) == 0) return;
+	#endif
+
+	// Tweak for finding new targets for party members
+	// Save the current target in the "target1" variable and find other potential targets
+	MakeCall(0x429074, ai_danger_source_hack_pm_newfind);
+	SafeWrite16(0x429074 + 5, 0x47EB); // jmp 0x4290C2
 
 	// Fix to allow fleeing NPC to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
@@ -228,28 +456,37 @@ void AI::init() {
 	// Disable fleeing when NPC cannot move closer to target
 	BlockCall(0x42ADF6); // ai_try_attack_
 
-	// Fix for duplicate critters being added to the list of potential targets for AI
-	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
-	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
-	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
+	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo result
+	HookCalls(ai_danger_source_hook, {0x42903A, 0x42918A});
+
+	// Fix AI behavior for "Snipe" distance preference
+	// The attacker will try to shoot the target instead of always running away from it at the beginning of the turn
+	MakeCall(0x42B086, cai_perform_distance_prefs_hack);
+
+	// Fix for ai_move_away_ engine function not working correctly in cases when needing to move a distance away from the target
+	// now the function also takes the distance argument in a negative value for moving away at a distance
+	HookCall(0x4289A7, ai_move_away_hook);
+	// also patch combat_safety_invalidate_weapon_func_ for returning out_range argument in a negative value
+	SafeWrite8(0x421628, 0xD0);    // sub edx, eax > sub eax, edx
+	SafeWrite16(0x42162A, 0xFF40); // lea eax, [edx+1] > lea eax, [eax-1]
 }
 
-fo::GameObject* _stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
+fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
 	const auto itr = sources.find(target);
 	return (itr != sources.end()) ? itr->second : 0;
 }
 
-fo::GameObject* _stdcall AI::AIGetLastTarget(fo::GameObject* source) {
+fo::GameObject* __stdcall AI::AIGetLastTarget(fo::GameObject* source) {
 	const auto itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
 }
 
-void _stdcall AI::AICombatStart() {
+void __stdcall AI::AICombatStart() {
 	targets.clear();
 	sources.clear();
 }
 
-void _stdcall AI::AICombatEnd() {
+void __stdcall AI::AICombatEnd() {
 	targets.clear();
 	sources.clear();
 }

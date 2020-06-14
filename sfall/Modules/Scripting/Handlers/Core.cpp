@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\Version.h"
 #include "..\..\HookScripts.h"
 #include "..\..\ScriptExtender.h"
@@ -30,7 +32,7 @@ namespace sfall
 namespace script
 {
 
-void sf_typeof(OpcodeContext& ctx) {
+void op_typeof(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
 }
 
@@ -68,7 +70,7 @@ void __declspec(naked) op_available_global_script_types() {
 	}
 }
 
-void sf_set_sfall_global(OpcodeContext& ctx) {
+void op_set_sfall_global(OpcodeContext& ctx) {
 	if (ctx.arg(0).isString()) {
 		if (SetGlobalVar(ctx.arg(0).strValue(), ctx.arg(1).rawValue())) {
 			ctx.printOpcodeError("%s() - the name of the global variable must consist of 8 characters.", ctx.getOpcodeName());
@@ -97,11 +99,11 @@ static void GetGlobalVar(OpcodeContext& ctx, DataType type) {
 	ctx.setReturn(result, type);
 }
 
-void sf_get_sfall_global_int(OpcodeContext& ctx) {
+void op_get_sfall_global_int(OpcodeContext& ctx) {
 	GetGlobalVar(ctx, DataType::INT);
 }
 
-void sf_get_sfall_global_float(OpcodeContext& ctx) {
+void op_get_sfall_global_float(OpcodeContext& ctx) {
 	GetGlobalVar(ctx, DataType::FLOAT);
 }
 
@@ -117,7 +119,7 @@ void __declspec(naked) op_get_sfall_arg() {
 	}
 }
 
-void sf_get_sfall_arg_at(OpcodeContext& ctx) {
+void mf_get_sfall_arg_at(OpcodeContext& ctx) {
 	long argVal = 0;
 	long id = ctx.arg(0).rawValue();
 	if (id >= static_cast<long>(HookScripts::GetHSArgCount()) || id < 0) {
@@ -128,7 +130,7 @@ void sf_get_sfall_arg_at(OpcodeContext& ctx) {
 	ctx.setReturn(argVal);
 }
 
-void sf_get_sfall_args(OpcodeContext& ctx) {
+void op_get_sfall_args(OpcodeContext& ctx) {
 	DWORD argCount = HookScripts::GetHSArgCount();
 	DWORD id = TempArray(argCount, 0);
 	DWORD* args = HookScripts::GetHSArgs();
@@ -138,7 +140,7 @@ void sf_get_sfall_args(OpcodeContext& ctx) {
 	ctx.setReturn(id);
 }
 
-void sf_set_sfall_arg(OpcodeContext& ctx) {
+void op_set_sfall_arg(OpcodeContext& ctx) {
 	HookScripts::SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
@@ -176,7 +178,7 @@ end:
 }
 
 // used for both register_hook and register_hook_proc
-void sf_register_hook(OpcodeContext& ctx) {
+void op_register_hook(OpcodeContext& ctx) {
 	bool specReg = false;
 	int proc;
 	switch (ctx.opcode()) {
@@ -192,11 +194,11 @@ void sf_register_hook(OpcodeContext& ctx) {
 	RegisterHook(ctx.program(), ctx.arg(0).rawValue(), proc, specReg);
 }
 
-void sf_add_g_timer_event(OpcodeContext& ctx) {
+void mf_add_g_timer_event(OpcodeContext& ctx) {
 	ScriptExtender::AddTimerEventScripts(ctx.program(), ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
-void sf_remove_timer_event(OpcodeContext& ctx) {
+void mf_remove_timer_event(OpcodeContext& ctx) {
 	if (ctx.numArgs() > 0) {
 		ScriptExtender::RemoveTimerEventScripts(ctx.program(), ctx.arg(0).rawValue());
 	} else {
@@ -204,15 +206,15 @@ void sf_remove_timer_event(OpcodeContext& ctx) {
 	}
 }
 
-void sf_sfall_ver_major(OpcodeContext& ctx) {
+void op_sfall_ver_major(OpcodeContext& ctx) {
 	ctx.setReturn(VERSION_MAJOR);
 }
 
-void sf_sfall_ver_minor(OpcodeContext& ctx) {
+void op_sfall_ver_minor(OpcodeContext& ctx) {
 	ctx.setReturn(VERSION_MINOR);
 }
 
-void sf_sfall_ver_build(OpcodeContext& ctx) {
+void op_sfall_ver_build(OpcodeContext& ctx) {
 	ctx.setReturn(VERSION_BUILD);
 }
 

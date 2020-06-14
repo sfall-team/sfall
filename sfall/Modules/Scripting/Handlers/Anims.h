@@ -29,18 +29,18 @@ void RegAnimCombatCheck(DWORD newValue);
 
 class OpcodeContext;
 
-void sf_reg_anim_combat_check(OpcodeContext&);
-void sf_reg_anim_destroy(OpcodeContext&);
-void sf_reg_anim_animate_and_hide(OpcodeContext&);
-void sf_reg_anim_light(OpcodeContext&);
-void sf_reg_anim_change_fid(OpcodeContext&);
-void sf_reg_anim_take_out(OpcodeContext&);
-void sf_reg_anim_turn_towards(OpcodeContext&);
-void sf_reg_anim_callback(OpcodeContext&);
+void op_reg_anim_combat_check(OpcodeContext&);
+void op_reg_anim_destroy(OpcodeContext&);
+void op_reg_anim_animate_and_hide(OpcodeContext&);
+void op_reg_anim_light(OpcodeContext&);
+void op_reg_anim_change_fid(OpcodeContext&);
+void op_reg_anim_take_out(OpcodeContext&);
+void op_reg_anim_turn_towards(OpcodeContext&);
+void op_reg_anim_callback(OpcodeContext&);
 
-void sf_explosions_metarule(OpcodeContext&);
+void op_explosions_metarule(OpcodeContext&);
 
-void sf_art_cache_flush(OpcodeContext&);
+void mf_art_cache_flush(OpcodeContext&);
 
 }
 }

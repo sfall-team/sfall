@@ -32,13 +32,13 @@ namespace script
 
 // Example handler. Feel free to add handlers in other files.
 #ifndef NDEBUG
-void sf_test(OpcodeContext&);
+void mf_test(OpcodeContext&);
 #endif
 
 // returns current contents of metarule table
-void sf_get_metarule_table(OpcodeContext&);
+void mf_get_metarule_table(OpcodeContext&);
 
-void sf_metarule_exist(OpcodeContext&);
+void mf_metarule_exist(OpcodeContext&);
 
 void InitMetaruleTable();
 

@@ -21,12 +21,12 @@
 /*
 * HOW TO USE ENGINE FUNCTIONS:
 *
-* in ASM code, call offsets directly, don't call wrappers as they might not be _stdcall
+* in ASM code, call offsets directly, don't call wrappers as they might not be __stdcall
 * in C++ code, use wrappers (add new ones if the don't exist yet, see Wrappers_def.h)
 *
 * Note: USE C++! 
 * 1) Place thin __declspec(naked) hooks, only use minimum ASM to pass values to/from C++
-* 2) Call _stdcall functions from (1), write those entirely in C++ (with little ASM blocks only to call engine functions, when you are too lazy to add wrapper)
+* 2) Call __stdcall functions from (1), write those entirely in C++ (with little ASM blocks only to call engine functions, when you are too lazy to add wrapper)
 */
 
 namespace fo

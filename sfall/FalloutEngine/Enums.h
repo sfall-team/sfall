@@ -90,6 +90,15 @@ enum Animation : long
 	ANIM_called_shot_pic = 64,
 };
 
+enum AnimCommand : long
+{
+	RB_UNRESERVED = 0x1,
+	RB_RESERVED   = 0x2,
+	RB_DONTSTAND  = 0x4,
+	RB_UNKNOWN    = 0x100,
+	RB_END_ANIM   = 0x200
+};
+
 enum CritterFlags : long
 {
 	Sneak        = 0x01,   // Can sneak ?
@@ -244,7 +253,7 @@ enum ArtType : char
 // Some FO2 PIDs possibly used by engine
 enum ProtoId : long
 {
-	PID_ROCK = 19,
+//	PID_ROCK = 19,
 	PID_SMALL_ENERGY_CELL = 38,
 	PID_MICRO_FUSION_CELL = 39,
 	PID_STIMPAK = 40,
@@ -256,8 +265,8 @@ enum ProtoId : long
 	PID_GEIGER_COUNTER = 52,
 	PID_MENTATS = 53,
 	PID_STEALTH_BOY = 54,
-	PID_WATER_CHIP = 55,
-	PID_HOLODISK = 58,
+//	PID_WATER_CHIP = 55,
+//	PID_HOLODISK = 58,
 	PID_MOTION_SENSOR = 59,
 	PID_MUTATED_FRUIT = 71,
 	PID_BIG_BOOK_OF_SCIENCE = 73,
@@ -268,7 +277,7 @@ enum ProtoId : long
 	PID_SCOUT_HANDBOOK = 86,
 	PID_BUFFOUT = 87,
 	PID_DOCTORS_BAG = 91,
-	PID_PUMP_PARTS = 98,
+//	PID_PUMP_PARTS = 98,
 	PID_GUNS_AND_BULLETS = 102,
 	PID_NUKA_COLA = 106,
 	PID_RAD_X = 109,
@@ -287,7 +296,8 @@ enum ProtoId : long
 	PID_JET = 259,
 	PID_JET_ANTIDOTE = 260,
 	PID_DECK_OF_TRAGIC_CARDS = 306,
-	PID_GECK = 366,
+//	PID_GECK = 366,
+	PID_SOLAR_SCORCHER = 390,
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,
 
@@ -559,7 +569,7 @@ namespace Scripts {
 }
 
 #define STAT_max_derived   STAT_poison_resist
-#define STAT_max_stat  STAT_current_hp
+#define STAT_max_stat      STAT_current_hp
 
 // Script data types
 #define VAR_TYPE_INT    (0xC001)
@@ -688,7 +698,9 @@ enum KillType : long
 	KILL_TYPE_count
 };
 
-#define PLAYER_ID             (18000)
+enum {
+	PLAYER_ID                 = 18000
+};
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
 

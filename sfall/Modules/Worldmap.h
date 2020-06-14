@@ -52,8 +52,7 @@ public:
 	static void SetCustomAreaTitle(long areaId, const char* msg);
 
 	static long AreaMarkStateIsNoRadius();
+	static void SetMapMulti(float value);
 };
-
-void _stdcall SetMapMulti(float value);
 
 }

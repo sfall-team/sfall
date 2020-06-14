@@ -81,6 +81,27 @@ static void __declspec(naked) AfterHitRollHook() {
 	}
 }
 
+// Implementation of item_w_mp_cost_ engine function with the hook
+long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
+	long cost = fo::func::item_w_mp_cost(source, hitMode, isCalled);
+	if (!HookScripts::HookHasScript(HOOK_CALCAPCOST)) return cost;
+
+	BeginHook();
+
+	args[0] = (DWORD)source;
+	args[1] = hitMode;
+	args[2] = isCalled;
+	args[3] = cost;
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+
+	if (cRet > 0) cost = rets[0];
+	EndHook();
+
+	return cost;
+}
+
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
@@ -281,18 +302,18 @@ static void __declspec(naked) ItemDamageHook() {
 	argCount = 6;
 	RunHookScript(HOOK_ITEMDAMAGE);
 
-	_asm popad;
+	__asm popad;
 	if (cRet > 0) {
-		_asm mov eax, rets[0];     // set min
+		__asm mov eax, rets[0];     // set min
 		if (cRet > 1) {
-			_asm mov edx, rets[4]; // set max
+			__asm mov edx, rets[4]; // set max
 		} else {
 			HookEnd;
-			_asm retn;             // no calc random
+			__asm retn;             // no calc random
 		}
 	}
 	HookEnd;
-	_asm jmp fo::funcoffs::roll_random_;
+	__asm jmp fo::funcoffs::roll_random_;
 }
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds) {
@@ -393,7 +414,7 @@ static void __declspec(naked) CombatTurnHook_End() {
 	__asm jmp  fo::funcoffs::combat_over_;
 }
 
-// hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
+// hack to exit from combat_add_noncoms function without crashing when you load game during PM/NPC turn
 static long countCombat = 0;
 static void __declspec(naked) CombatTurnHook_AddNoncoms() {
 	__asm {
@@ -414,13 +435,13 @@ endCombat:
 		jz   skip;
 		mov  countCombat, eax;
 skip:
-		mov  ds:[FO_VAR_list_com], edx;
+		mov  ds:[FO_VAR_list_com], edx; // edx = 0
 		retn;
 	}
 }
 
-static const DWORD combat_hook_end_combat = 0x422E91;
 static void __declspec(naked) combat_hook_fix_load() {
+	static const DWORD combat_hook_end_combat = 0x422E91;
 	__asm {
 		call fo::funcoffs::combat_sequence_;
 		mov  eax, countCombat;
@@ -589,7 +610,7 @@ void Inject_CombatDamageHook() {
 		0x424220, // attack_crit_failure()
 		0x4242FB, // attack_crit_failure()
 	});
-	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
+	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - fix for the attacker
 }
 
 void Inject_FindTargetHook() {
@@ -607,7 +628,10 @@ void Inject_AmmoCostHook() {
 void Inject_CombatTurnHook() {
 	HookCall(0x422354, CombatTurnHook_AddNoncoms);
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
-	HookCall(0x422E85, CombatTurnHook_End);
+	HookCalls(CombatTurnHook_End, {
+		0x422E85, // combat_
+		0x422196  // combat_over_from_load_
+	});
 
 	HookCall(0x422E4D, combat_hook_fix_load);
 }

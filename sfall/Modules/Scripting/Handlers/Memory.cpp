@@ -16,9 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\SafeWrite.h"
-//#include "..\..\ScriptExtender.h"
 
 #include "Memory.h"
 
@@ -29,6 +29,8 @@ namespace script
 
 #define START_VALID_ADDR    0x410000
 #define END_VALID_ADDR      0x6B403F
+
+bool checkValidMemAddr = true;
 
 void __declspec(naked) op_read_byte() {
 	__asm {
@@ -42,7 +44,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -58,7 +60,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -74,7 +76,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -97,20 +99,19 @@ error:
 void __declspec(naked) op_write_byte() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // write value
+		_GET_ARG(esi, ecx); // write value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
 		// check valid addr
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		and  esi, 0xFF;
 		push esi;
 		push eax;
@@ -124,20 +125,19 @@ end:
 void __declspec(naked) op_write_short() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // write value
+		_GET_ARG(esi, ecx); // write value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
 		// check valid addr
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		and  esi, 0xFFFF;
 		push esi;
 		push eax;
@@ -151,20 +151,19 @@ end:
 void __declspec(naked) op_write_int() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // write value
+		_GET_ARG(esi, ecx); // write value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
 		// check valid addr
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		push esi;
 		push eax;
 		call SafeWrite32;
@@ -186,11 +185,7 @@ static void __fastcall WriteStringInternal(char* addr, long type, long strID, fo
 void __declspec(naked) op_write_string() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // str value
+		_GET_ARG(esi, ecx); // str value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_STR2;
@@ -201,10 +196,13 @@ next:
 		// ecx - type, esi - value
 		// edx - type, eax - addr
 		// check valid address
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		push ebx; // script
 		push esi; // str value
 		mov  edx, ecx; // type
@@ -219,14 +217,14 @@ end:
 static void __fastcall CallOffsetInternal(fo::Program* script, DWORD func) {
 	func = (func >> 2) - 0x1d2;
 	DWORD args[5];
-	DWORD illegalArg = 0;
+	long illegalArg = 0;
 	int argCount = func % 5;
 
 	for (int i = argCount; i >= 0; i--) {
 		if ((short)fo::func::interpretPopShort(script) != (short)VAR_TYPE_INT) illegalArg++;
 		args[i] = fo::func::interpretPopLong(script);
 	}
-	if (illegalArg || args[0] < 0x410010 || args[0] > 0x4FCE34) {
+	if (illegalArg || (checkValidMemAddr && (args[0] < 0x410010 || args[0] > 0x4FCE34))) {
 		args[0] = 0;
 	} else {
 		__asm {

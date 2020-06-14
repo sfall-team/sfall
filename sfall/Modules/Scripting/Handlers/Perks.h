@@ -29,25 +29,25 @@ void __declspec() op_set_perk_owed();
 
 void __declspec() op_set_perk_freq();
 
-void sf_get_perk_available(OpcodeContext&);
+void op_get_perk_available(OpcodeContext&);
 
-void __declspec() op_set_perk_name();
+void op_set_perk_name(OpcodeContext&);
 
-void __declspec() op_set_perk_desc();
+void op_set_perk_desc(OpcodeContext&);
 
 void __declspec() op_set_perk_value();
 
-void sf_set_selectable_perk(OpcodeContext&);
+void op_set_selectable_perk(OpcodeContext&);
 
-void sf_set_fake_perk(OpcodeContext&);
+void op_set_fake_perk(OpcodeContext&);
 
-void sf_set_fake_trait(OpcodeContext&);
+void op_set_fake_trait(OpcodeContext&);
 
-void sf_set_selectable_perk_npc(OpcodeContext&);
+void mf_set_selectable_perk_npc(OpcodeContext&);
 
-void sf_set_fake_perk_npc(OpcodeContext&);
+void mf_set_fake_perk_npc(OpcodeContext&);
 
-void sf_set_fake_trait_npc(OpcodeContext&);
+void mf_set_fake_trait_npc(OpcodeContext&);
 
 void __declspec() op_set_perkbox_title();
 
@@ -57,13 +57,13 @@ void __declspec() op_show_real_perks();
 
 void __declspec() op_clear_selectable_perks();
 
-void sf_has_fake_perk(OpcodeContext&);
+void op_has_fake_perk(OpcodeContext&);
 
-void sf_has_fake_trait(OpcodeContext&);
+void op_has_fake_trait(OpcodeContext&);
 
-void sf_has_fake_perk_npc(OpcodeContext&);
+void mf_has_fake_perk_npc(OpcodeContext&);
 
-void sf_has_fake_trait_npc(OpcodeContext&);
+void mf_has_fake_trait_npc(OpcodeContext&);
 
 void __declspec() op_perk_add_mode();
 
@@ -77,7 +77,7 @@ void __declspec() op_set_swiftlearner_mod();
 
 void __declspec() op_set_perk_level_mod();
 
-void sf_add_trait(OpcodeContext&);
+void mf_add_trait(OpcodeContext&);
 
 }
 }

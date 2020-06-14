@@ -43,9 +43,9 @@ namespace sfall
 {
 
 #define _InLoop2(type, flag) __asm { \
-	_asm push flag                   \
-	_asm push type                   \
-	_asm call SetInLoop              \
+	__asm push flag                  \
+	__asm push type                  \
+	__asm call SetInLoop             \
 }
 #define _InLoop(type, flag) __asm {  \
 	pushadc                          \
@@ -64,16 +64,15 @@ static Delegate<> onAfterNewGame;
 static Delegate<DWORD> onGameModeChange;
 static Delegate<> onBeforeGameClose;
 
-DWORD LoadGameHook::LootTarget = 0;
-
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
-static bool mapLoaded = false;
+static bool gameLoaded = false;
 
-bool IsMapLoaded() {
-	return mapLoaded;
+// True if game was started, false when on the main menu
+bool IsGameLoaded() {
+	return gameLoaded;
 }
 
 DWORD InWorldMap() {
@@ -104,7 +103,7 @@ static void __stdcall GameModeChange(DWORD state) {
 	onGameModeChange.invoke(state);
 }
 
-void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
+void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 	unsigned long _inLoop = inLoop;
 	if (mode) {
 		SetLoopFlag(flag);
@@ -119,7 +118,8 @@ void GetSavePath(char* buf, char* ftype) {
 }
 
 static std::string saveSfallDataFailMsg;
-static void _stdcall SaveGame2() {
+
+static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
@@ -169,7 +169,8 @@ errorSave:
 }
 
 static std::string saveFailMsg;
-static DWORD _stdcall CombatSaveTest() {
+
+static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
@@ -259,24 +260,24 @@ errorLoad:
 }
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
-static bool _stdcall GameReset(DWORD isGameLoad) {
-	if (mapLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
+static bool __stdcall GameReset(DWORD isGameLoad) {
+	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		onGameReset.invoke();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo::func::debug_printf("\n[SFALL: State reset %s]\n", str);
+			fo::func::debug_printf("\n[SFALL: State reset %s]", str);
 		}
 	}
 	inLoop = 0;
-	mapLoaded = false;
+	gameLoaded = false;
 
 	return (isGameLoad) ? LoadGame_Before() : false;
 }
 
 // Called after game was loaded from a save
-static void _stdcall LoadGame_After() {
+static void __stdcall LoadGame_After() {
 	onAfterGameStarted.invoke();
-	mapLoaded = true;
+	gameLoaded = true;
 }
 
 static void __declspec(naked) LoadGame_hook() {
@@ -318,7 +319,7 @@ static void __stdcall NewGame_After() {
 
 	dlogr("New Game started.", DL_MAIN);
 
-	mapLoaded = true;
+	gameLoaded = true;
 }
 
 static void __declspec(naked) main_load_new_hook() {
@@ -599,7 +600,6 @@ static void __declspec(naked) UseInventoryOnHook_End() {
 
 static void __declspec(naked) LootContainerHook_Start() {
 	__asm {
-		mov LoadGameHook::LootTarget, ebp; // _target_stack
 		_InLoop2(1, INTFACELOOT);
 		xor eax, eax;
 		jmp fo::funcoffs::inven_set_mouse_;
@@ -718,8 +718,8 @@ void LoadGameHook::init() {
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
 	HookCalls(game_reset_hook, {
-				0x47DD6B, // LoadSlot_ (on error)
-				0x47DDF3, // LoadSlot_ (on error)
+				0x47DD6B, // LoadSlot_ (on load error)
+				0x47DDF3, // LoadSlot_ (on load error)
 				//0x480708, // RestoreLoad_ (never called)
 				0x480AD3, // gnw_main_ (game ended after playing via New Game)
 				0x480BCC, // gnw_main_ (game ended after playing via Load Game)

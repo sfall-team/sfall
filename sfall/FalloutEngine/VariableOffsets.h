@@ -9,6 +9,7 @@
 #define FO_VAR_aiInfoList                 0x510948
 #define FO_VAR_ambient_light              0x51923C
 #define FO_VAR_anim_set                   0x54CC14
+#define FO_VAR_anon_alias                 0x56CAEC
 #define FO_VAR_art                        0x510738
 #define FO_VAR_art_name                   0x56C9E4
 #define FO_VAR_art_vault_guy_num          0x5108A4
@@ -277,11 +278,14 @@
 #define FO_VAR_DARK_GREY_Color            0x6A59D8
 #define FO_VAR_DarkGreenColor             0x6A3A90
 #define FO_VAR_DarkGreenGreyColor         0x6A3DF1
+#define FO_VAR_DarkRedColor               0x6AA8D0
+#define FO_VAR_DarkYellowColor            0x6AB472
 #define FO_VAR_DullPinkColor              0x6AB718
 #define FO_VAR_GoodColor                  0x6AB4EF
 #define FO_VAR_GreenColor                 0x6A3CB0
 #define FO_VAR_LIGHT_GREY_Color           0x6A76BF
+#define FO_VAR_LIGHT_RED_Color            0x6AB61A
 #define FO_VAR_PeanutButter               0x6A82F3
 #define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_WhiteColor                 0x6AB8CF
-#define FO_VAR_YellowColor                0x6AB8BB
+#define FO_VAR_YellowColor                0x6AB8BB // Light

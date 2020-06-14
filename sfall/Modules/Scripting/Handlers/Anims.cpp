@@ -51,18 +51,18 @@ bool checkCombatMode() {
 	return (regAnimCombatCheck & fo::var::combat_state) != 0;
 }
 
-void sf_reg_anim_combat_check(OpcodeContext& ctx) {
+void op_reg_anim_combat_check(OpcodeContext& ctx) {
 	RegAnimCombatCheck(ctx.arg(0).rawValue());
 }
 
-void sf_reg_anim_destroy(OpcodeContext& ctx) {
+void op_reg_anim_destroy(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).object();
 		fo::func::register_object_must_erase(obj);
 	}
 }
 
-void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
+void op_reg_anim_animate_and_hide(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).object();
 		int animId = ctx.arg(1).rawValue(),
@@ -72,7 +72,7 @@ void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
 	}
 }
 
-void sf_reg_anim_light(OpcodeContext& ctx) {
+void op_reg_anim_light(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).object();
 		int radius = ctx.arg(1).rawValue(),
@@ -87,7 +87,7 @@ void sf_reg_anim_light(OpcodeContext& ctx) {
 	}
 }
 
-void sf_reg_anim_change_fid(OpcodeContext& ctx) {
+void op_reg_anim_change_fid(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).object();
 		int fid = ctx.arg(1).rawValue(),
@@ -97,7 +97,7 @@ void sf_reg_anim_change_fid(OpcodeContext& ctx) {
 	}
 }
 
-void sf_reg_anim_take_out(OpcodeContext& ctx) {
+void op_reg_anim_take_out(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).object();
 		int holdFrame = ctx.arg(1).rawValue(),
@@ -107,7 +107,7 @@ void sf_reg_anim_take_out(OpcodeContext& ctx) {
 	}
 }
 
-void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
+void op_reg_anim_turn_towards(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).object();
 		int tile = ctx.arg(1).rawValue(),
@@ -124,7 +124,7 @@ static void __declspec(naked) ExecuteCallback() {
 	}
 }
 
-void sf_reg_anim_callback(OpcodeContext& ctx) {
+void op_reg_anim_callback(OpcodeContext& ctx) {
 	fo::func::register_object_call(
 		reinterpret_cast<long*>(ctx.program()),
 		reinterpret_cast<long*>(ctx.arg(0).rawValue()), // callback procedure
@@ -133,7 +133,7 @@ void sf_reg_anim_callback(OpcodeContext& ctx) {
 	);
 }
 
-void sf_explosions_metarule(OpcodeContext& ctx) {
+void op_explosions_metarule(OpcodeContext& ctx) {
 	int mode = ctx.arg(0).rawValue(),
 		result = ExplosionsMetaruleFunc(mode, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
 
@@ -143,7 +143,7 @@ void sf_explosions_metarule(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_art_cache_flush(OpcodeContext& ctx) {
+void mf_art_cache_flush(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::art_flush_;
 }
 
