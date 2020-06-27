@@ -932,20 +932,33 @@ end:
 	}
 }
 
+static void __declspec(naked) MultiHexRetargetTileFix() {
+	__asm {
+		call fo::funcoffs::tile_dist_;
+		test [ebp + flags + 1], 0x08; // is source multihex?
+		jnz  isMultiHex;
+		retn;
+isMultiHex:
+		cmp   eax, 2;                 // distance from target to retargeted tile
+		cmovl eax, edi;
+		retn;
+	}
+}
+
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		je   checkObj;
-		retn;                         // tilenums are not equal, always move to tile
-checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // move to tile
 multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   moveToObject;
+		retn;                         // tilenums are not equal, always move to tile
+moveToObject:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret; // move to object
 	}
@@ -954,17 +967,17 @@ multiHex:
 static void __declspec(naked) MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		je   checkObj;
-		retn;                         // tilenums are not equal, always run to tile
-checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // run to tile
 multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   runToObject;
+		retn;                         // tilenums are not equal, always run to tile
+runToObject:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_run_object_ret; // run to object
 	}
@@ -2900,6 +2913,9 @@ void BugFixes::init()
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
+		// Prevent retargeting to a tile if the distance from the tile to the target is less than 2 hexes
+		HookCall(0x42A3C1, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
+		// TODO: need to add the correct implementation of retargeting tile for multihex critters to SubFunc_
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -3358,8 +3374,15 @@ void BugFixes::init()
 	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
 	// object or source tile
 	// Note: this bug does not cause an error in the function work
-	__int64 data = 0x840F04708B90; // remove jnz and modify jmp > jz
-	SafeWriteBytes(0x426D60, (BYTE*)&data, 6);
+	BYTE codeData[] = {
+		0x8B, 0x70, 0x04,       // mov  esi, [eax + 4]
+		0xF6, 0x40, 0x25, 0x08, // test [eax + flags2], MultiHex_
+		0x74, 0x1E,             // jz   0x426D83
+		0x39, 0xEE,             // cmp  esi, ebp
+		0x74, 0x1A,             // jz   0x426D83
+		0x90
+	};
+	SafeWriteBytes(0x426D5C, codeData, 14);
 }
 
 }

@@ -1419,7 +1419,7 @@ static void EnableHeroAppearanceMod() {
 	// Double size of critter art index creating a new area for hero art (art_read_lst_)
 	HookCall(0x4196B0, DoubleArt);
 
-	// Copy inherited values of critter art into the extended part of the _anon_alias array
+	// Copy inherited values of critter art into the extended part of the _anon_alias array (art_init_)
 	HookCall(0x418CA2, DoubleArtAlias);
 
 	// Add new hero critter names at end of critter list (art_init_)
