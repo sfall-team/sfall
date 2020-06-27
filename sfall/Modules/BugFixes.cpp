@@ -934,12 +934,17 @@ end:
 
 static void __declspec(naked) MultiHexRetargetTileFix() {
 	__asm {
+		push edx;                     // retargeted tile
 		call fo::funcoffs::tile_dist_;
+		pop  edx;
 		test [ebp + flags + 1], 0x08; // is source multihex?
 		jnz  isMultiHex;
 		retn;
 isMultiHex:
-		cmp   eax, 2;                 // distance from target to retargeted tile
+		mov  eax, [esp + 0x3DC - 0x3D8 + 4];
+		mov  eax, [eax + tile];       // target tile
+		call fo::funcoffs::tile_dist_;
+		cmp  eax, 2;                  // distance from target to retargeted tile
 		cmovl eax, edi;
 		retn;
 	}
