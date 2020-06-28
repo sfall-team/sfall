@@ -1459,8 +1459,10 @@ WINinfo* GetUIWindow(long winType);
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1);
 
-// Checks the blocking of adjacent arc of tiles and returns the first blocking object
-TGameObj* __fastcall BlockingArcNeighborTiles(TGameObj* source, long dstTile);
+// Checks the blocking tiles and returns the first blocking object
+TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile);
+
+TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile);
 
 long wmGetCurrentTerrainType();
 
