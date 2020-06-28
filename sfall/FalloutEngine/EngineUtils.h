@@ -85,7 +85,11 @@ long __fastcall GetTopWindowID(long xPos, long yPos);
 
 fo::Window* GetWindow(long winType);
 
+// Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1);
+
+// Checks the blocking of adjacent arc of tiles and returns the first blocking object
+fo::GameObject* __fastcall BlockingArcNeighborTiles(fo::GameObject* source, long dstTile);
 
 long wmGetCurrentTerrainType();
 
