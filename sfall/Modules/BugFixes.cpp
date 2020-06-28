@@ -947,7 +947,7 @@ isFreeTile:
 isMultiHex:
 		push ecx;
 		mov  ecx, ebp;
-		call fo::BlockingArcNeighborTiles;
+		call fo::MultiHexMoveIsBlocking;
 		pop  ecx;
 		retn;
 	}

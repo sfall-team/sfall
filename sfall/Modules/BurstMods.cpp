@@ -66,7 +66,6 @@ static void __declspec(naked) compute_spray_rounds_distribution() {
 	}
 }
 
-
 void BurstMods::init() {
 	if (GetConfigInt("Misc", "ComputeSprayMod", 0)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
