@@ -1866,6 +1866,29 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 	}
 }
 
+// Checks the blocking of adjacent arc of tiles and returns the first blocking object
+TGameObj* __fastcall BlockingArcNeighborTiles(TGameObj* source, long dstTile) {
+	long dir = TileDir(source->tile, dstTile);
+
+	long chkTile = TileNumInDirection(dstTile, dir, 1);
+	TGameObj* obj = ObjBlockingAt(source, chkTile, source->elevation);
+	if (obj) return obj;
+
+	// +1 direction
+	long rotation = (dir + 1) % 6;
+	chkTile = TileNumInDirection(dstTile, rotation, 1);
+	obj = ObjBlockingAt(source, chkTile, source->elevation);
+	if (obj) return obj;
+
+	// -1 direction
+	rotation = (dir + 5) % 6;
+	chkTile = TileNumInDirection(dstTile, rotation, 1);
+	obj = ObjBlockingAt(source, chkTile, source->elevation);
+	if (obj) return obj;
+
+	return nullptr;
+}
+
 // Returns the type of the terrain sub tile at the the player's position on the world map
 long wmGetCurrentTerrainType() {
 	long* terrainId = *(long**)_world_subtile;
