@@ -781,6 +781,7 @@ extern const DWORD item_w_try_reload_;
 extern const DWORD item_w_unload_;
 extern const DWORD item_weight_;
 extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
+extern const DWORD ListDPerks_;
 extern const DWORD ListDrvdStats_;
 extern const DWORD ListHoloDiskTitles_;
 extern const DWORD ListSkills_;
@@ -1165,6 +1166,8 @@ long __stdcall ScrRemove(long scriptID);
 void __stdcall SetFocusFunc(void* func);
 
 long __stdcall SkillIsTagged(long skill);
+
+long __stdcall StatGetBaseDirect(TGameObj* critter, long statID);
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
 

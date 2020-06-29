@@ -513,6 +513,7 @@ const DWORD item_w_try_reload_ = 0x478768;
 const DWORD item_w_unload_ = 0x478F80;
 const DWORD item_weight_ = 0x477B88;
 const DWORD light_get_tile_ = 0x47A980;
+const DWORD ListDPerks_ = 0x43D0BC;
 const DWORD ListDrvdStats_ = 0x43527C;
 const DWORD ListHoloDiskTitles_ = 0x498C40;
 const DWORD ListSkills_ = 0x436154;
@@ -1021,6 +1022,10 @@ void __stdcall SetFocusFunc(void* func) {
 
 long __stdcall SkillIsTagged(long skill) {
 	WRAP_WATCOM_CALL1(skill_is_tagged_, skill)
+}
+
+long __stdcall StatGetBaseDirect(TGameObj* critter, long statID) {
+	WRAP_WATCOM_CALL2(stat_get_base_direct_, critter, statID)
 }
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
