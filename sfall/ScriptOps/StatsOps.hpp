@@ -666,6 +666,46 @@ end:
 	}
 }
 
+static void mf_get_stat_max() {
+	const ScriptValue &statArg = opHandler.arg(0);
+
+	if (statArg.isInt()) {
+		int who = 0;
+		if (opHandler.numArgs() > 1) {
+			const ScriptValue &whoArg = opHandler.arg(1);
+			if (!whoArg.isInt()) goto invalidArgs;
+			who = whoArg.rawValue();
+		}
+		opHandler.setReturn(
+			GetStatMax(statArg.rawValue(), who)
+		);
+	} else {
+invalidArgs:
+		OpcodeInvalidArgs("get_stat_max");
+		opHandler.setReturn(0);
+	}
+}
+
+static void mf_get_stat_min() {
+	const ScriptValue &statArg = opHandler.arg(0);
+
+	if (statArg.isInt()) {
+		int who = 0;
+		if (opHandler.numArgs() > 1) {
+			const ScriptValue &whoArg = opHandler.arg(1);
+			if (!whoArg.isInt()) goto invalidArgs;
+			who = whoArg.rawValue();
+		}
+		opHandler.setReturn(
+			GetStatMin(statArg.rawValue(), who)
+		);
+	} else {
+invalidArgs:
+		OpcodeInvalidArgs("get_stat_min");
+		opHandler.setReturn(0);
+	}
+}
+
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	static DWORD xpTemp;
 	__asm {

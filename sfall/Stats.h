@@ -20,10 +20,14 @@
 
 void Stats_OnGameLoad();
 void StatsInit();
-void __stdcall SetPCStatMax(int stat, int i);
-void __stdcall SetPCStatMin(int stat, int i);
-void __stdcall SetNPCStatMax(int stat, int i);
-void __stdcall SetNPCStatMin(int stat, int i);
+
+long __stdcall GetStatMax(int stat, int isNPC);
+long __stdcall GetStatMin(int stat, int isNPC);
+
+void __stdcall SetPCStatMax(int stat, int value);
+void __stdcall SetPCStatMin(int stat, int value);
+void __stdcall SetNPCStatMax(int stat, int value);
+void __stdcall SetNPCStatMin(int stat, int value);
 
 extern float ExperienceMod;
 extern DWORD StandardApAcBonus;

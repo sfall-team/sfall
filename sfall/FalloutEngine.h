@@ -580,6 +580,7 @@ extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmo
 extern const DWORD createWindow_;
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
+extern const DWORD critter_adjust_hits_;
 extern const DWORD critter_body_type_;
 extern const DWORD critter_can_obj_dude_rest_;
 extern const DWORD critter_compute_ap_from_distance_;
@@ -971,6 +972,7 @@ extern const DWORD stat_level_;
 extern const DWORD stat_pc_add_experience_; // eax - amount to add
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
+extern const DWORD stat_recalc_derived_;
 extern const DWORD stat_set_bonus_;
 extern const DWORD stat_set_defaults_;
 extern const DWORD stricmp_;

@@ -29,7 +29,6 @@ static void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		mov  edx, 1; // They're always available from 2.9 on
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -86,7 +85,6 @@ static void __declspec(naked) op_get_mouse_x() {
 		mov  edx, ds:[_mouse_x_];
 		add  edx, ds:[_mouse_hotx];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -96,7 +94,6 @@ static void __declspec(naked) op_get_mouse_y() {
 		mov  edx, ds:[_mouse_y_];
 		add  edx, ds:[_mouse_hoty];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -128,7 +125,6 @@ static void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
 		mov  edx, ds:[_last_button_winID];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -139,7 +135,6 @@ static void __declspec(naked) op_get_screen_width() {
 		sub  edx, ds:[_scr_size];     // _scr_size.x
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -150,7 +145,6 @@ static void __declspec(naked) op_get_screen_height() {
 		sub  edx, ds:[_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -236,7 +230,6 @@ static void __declspec(naked) op_get_viewport_x() {
 	__asm {
 		mov  edx, ds:[_wmWorldOffsetX];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -244,7 +237,6 @@ static void __declspec(naked) op_get_viewport_y() {
 	__asm {
 		mov  edx, ds:[_wmWorldOffsetY];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -375,9 +367,27 @@ static void mf_set_cursor_mode() {
 }
 
 static void mf_display_stats() {
-// calling the function outside of inventory screen will crash the game
-	if (GetLoopFlags() & INVENTORY) {
-		DisplayStats();
+	unsigned long flags = GetLoopFlags();
+	if (flags & INVENTORY) {
+		DisplayStats(); // calling the function outside of inventory screen will crash the game
+	} else if (flags & CHARSCREEN) {
+		__asm {
+			mov  eax, ds:[_obj_dude];
+			call stat_recalc_derived_;
+			mov  eax, ds:[_obj_dude];
+			call critter_adjust_hits_;
+			push edx;
+			push ebx;
+			mov  eax, 7;
+			call PrintBasicStat_;
+			xor  eax, eax;
+			call ListSkills_;
+			call PrintLevelWin_;
+			call ListDrvdStats_;
+			pop  ebx;
+			pop  edx;
+		}
+		WinDraw(*ptr_edit_win);
 	}
 }
 

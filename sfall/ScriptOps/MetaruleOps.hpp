@@ -137,6 +137,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"get_object_data",         mf_get_object_data,         2, 2},
 	{"get_outline",             mf_get_outline,             1, 1},
 	{"get_sfall_arg_at",        mf_get_sfall_arg_at,        1, 1},
+	{"get_stat_max",            mf_get_stat_max,            1, 2},
+	{"get_stat_min",            mf_get_stat_min,            1, 2},
 	{"get_text_width",          mf_get_text_width,          1, 1},
 	{"get_window_attribute",    mf_get_window_attribute,    1, 2},
 	{"hide_window",             mf_hide_window,             0, 1},

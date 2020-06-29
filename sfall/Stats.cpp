@@ -38,8 +38,8 @@ static double StatMulti[33 * 7] = {0};
 
 static TGameObj* cCritter;
 
-static const DWORD StatLevelHack_Ret = 0x4AEF52;
 static void __declspec(naked) stat_level_hack() {
+	static const DWORD StatLevelHack_Ret = 0x4AEF52;
 	__asm {
 		mov cCritter, eax;
 		sub esp, 8;
@@ -48,7 +48,7 @@ static void __declspec(naked) stat_level_hack() {
 	}
 }
 
-static int __fastcall check_stat_level(register int value, DWORD stat) {
+static int __fastcall check_stat_level(int value, DWORD stat) {
 	int valLimit;
 	if (cCritter == *ptr_obj_dude) {
 		valLimit = StatMinimumsPC[stat];
@@ -65,11 +65,10 @@ static int __fastcall check_stat_level(register int value, DWORD stat) {
 }
 
 static void __declspec(naked) stat_level_hack_check() {
-	static const DWORD StatLevelHackCheck_Ret = 0x4AF3D7;
 	__asm {
 		mov  edx, esi;         // stat
-		call check_stat_level; // ecx - value
-		jmp  StatLevelHackCheck_Ret;
+		push 0x4AF3D7;         // return address
+		jmp  check_stat_level; // ecx - value
 	}
 }
 
@@ -310,26 +309,40 @@ void StatsInit() {
 	}
 }
 
-void __stdcall SetPCStatMax(int stat, int i) {
+long __stdcall GetStatMax(int stat, int isNPC) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMaximumsPC[stat] = i;
+		return (isNPC) ? StatMaximumsNPC[stat] : StatMaximumsPC[stat];
+	}
+	return 0;
+}
+
+long __stdcall GetStatMin(int stat, int isNPC) {
+	if (stat >= 0 && stat < STAT_max_stat) {
+		return (isNPC) ? StatMinimumsNPC[stat] : StatMinimumsPC[stat];
+	}
+	return 0;
+}
+
+void __stdcall SetPCStatMax(int stat, int value) {
+	if (stat >= 0 && stat < STAT_max_stat) {
+		StatMaximumsPC[stat] = value;
 	}
 }
 
-void __stdcall SetPCStatMin(int stat, int i) {
+void __stdcall SetPCStatMin(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMinimumsPC[stat] = i;
+		StatMinimumsPC[stat] = value;
 	}
 }
 
-void __stdcall SetNPCStatMax(int stat, int i) {
+void __stdcall SetNPCStatMax(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMaximumsNPC[stat] = i;
+		StatMaximumsNPC[stat] = value;
 	}
 }
 
-void __stdcall SetNPCStatMin(int stat, int i) {
+void __stdcall SetNPCStatMin(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMinimumsNPC[stat] = i;
+		StatMinimumsNPC[stat] = value;
 	}
 }
