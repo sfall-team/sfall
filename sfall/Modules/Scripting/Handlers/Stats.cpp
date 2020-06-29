@@ -477,6 +477,20 @@ end:
 	}
 }
 
+void mf_get_stat_max(OpcodeContext& ctx) {
+	int who = (ctx.numArgs() > 1) ? ctx.arg(1).rawValue() : 0;
+	ctx.setReturn(
+		Stats::GetStatMax(ctx.arg(0).rawValue(), who)
+	);
+}
+
+void mf_get_stat_min(OpcodeContext& ctx) {
+	int who = (ctx.numArgs() > 1) ? ctx.arg(1).rawValue() : 0;
+	ctx.setReturn(
+		Stats::GetStatMin(ctx.arg(0).rawValue(), who)
+	);
+}
+
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	static DWORD xpTemp;
 	__asm {

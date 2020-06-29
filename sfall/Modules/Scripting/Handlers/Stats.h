@@ -84,6 +84,10 @@ void __declspec() op_set_npc_stat_max();
 
 void __declspec() op_set_npc_stat_min();
 
+void mf_get_stat_max(OpcodeContext&);
+
+void mf_get_stat_min(OpcodeContext&);
+
 void op_set_xp_mod(OpcodeContext&);
 
 }

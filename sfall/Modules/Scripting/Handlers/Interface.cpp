@@ -38,7 +38,6 @@ void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		mov  edx, 1; // They're always available from 2.9 on
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -67,7 +66,6 @@ void __declspec(naked) op_get_mouse_x() {
 		mov  edx, ds:[FO_VAR_mouse_x_];
 		add  edx, ds:[FO_VAR_mouse_hotx];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -76,7 +74,6 @@ void __declspec(naked) op_get_mouse_y() {
 		mov  edx, ds:[FO_VAR_mouse_y_];
 		add  edx, ds:[FO_VAR_mouse_hoty];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -94,7 +91,6 @@ void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
 		mov  edx, ds:[FO_VAR_last_button_winID];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -104,7 +100,6 @@ void __declspec(naked) op_get_screen_width() {
 		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -114,7 +109,6 @@ void __declspec(naked) op_get_screen_height() {
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -189,7 +183,6 @@ void __declspec(naked) op_get_viewport_x() {
 	__asm {
 		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -197,7 +190,6 @@ void __declspec(naked) op_get_viewport_y() {
 	__asm {
 		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -300,9 +292,27 @@ void mf_set_cursor_mode(OpcodeContext& ctx) {
 }
 
 void mf_display_stats(OpcodeContext& ctx) {
-// calling the function outside of inventory screen will crash the game
-	if (GetLoopFlags() & INVENTORY) {
-		fo::func::display_stats();
+	unsigned long flags = GetLoopFlags();
+	if (flags & LoopFlag::INVENTORY) {
+		fo::func::display_stats(); // calling the function outside of inventory screen will crash the game
+	} else if (flags & LoopFlag::CHARSCREEN) {
+		__asm {
+			mov  eax, ds:[FO_VAR_obj_dude];
+			call fo::funcoffs::stat_recalc_derived_;
+			mov  eax, ds:[FO_VAR_obj_dude];
+			call fo::funcoffs::critter_adjust_hits_;
+			push edx;
+			push ebx;
+			mov  eax, 7;
+			call fo::funcoffs::PrintBasicStat_;
+			xor  eax, eax;
+			call fo::funcoffs::ListSkills_;
+			call fo::funcoffs::PrintLevelWin_;
+			call fo::funcoffs::ListDrvdStats_;
+			pop  ebx;
+			pop  edx;
+		}
+		fo::func::win_draw(fo::var::edit_win);
 	}
 }
 
