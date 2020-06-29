@@ -299,9 +299,9 @@ void mf_display_stats(OpcodeContext& ctx) {
 		__asm {
 			mov  eax, ds:[FO_VAR_obj_dude];
 			call fo::funcoffs::stat_recalc_derived_;
+			xor  edx, edx;
 			mov  eax, ds:[FO_VAR_obj_dude];
 			call fo::funcoffs::critter_adjust_hits_;
-			push edx;
 			push ebx;
 			mov  eax, 7;
 			call fo::funcoffs::PrintBasicStat_;
@@ -310,7 +310,6 @@ void mf_display_stats(OpcodeContext& ctx) {
 			call fo::funcoffs::PrintLevelWin_;
 			call fo::funcoffs::ListDrvdStats_;
 			pop  ebx;
-			pop  edx;
 		}
 		fo::func::win_draw(fo::var::edit_win);
 	}
