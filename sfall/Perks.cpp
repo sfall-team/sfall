@@ -674,11 +674,6 @@ static void PerkEngineInit() {
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
 	SafeWrite8(0x43C2EC, 0xEB); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
-
-	// Disable losing unused perks
-	SafeWrite16(0x43C369, 0x0DFE); // mov ds:[_free_perk], dh > dec ds:[_free_perk]
-	// If there are unused perks, then call the perk selection window
-	SafeWrite8(0x43C370, 0xB1);    // jmp 0x43C322
 }
 
 static void PerkSetup() {
@@ -1191,6 +1186,11 @@ void PerksAcceptCharScreen() {
 
 void PerksInit() {
 	FastShotTraitFix();
+
+	// Disable losing unused perks
+	SafeWrite16(0x43C369, 0x0DFE); // mov ds:[_free_perk], dh > dec ds:[_free_perk]
+	// If there are unused perks, then call the perk selection window
+	SafeWrite8(0x43C370, 0xB1);    // jmp 0x43C322
 
 	// Don't show an empty perk selection window
 	HookCall(0x43C80B, perks_dialog_hook);

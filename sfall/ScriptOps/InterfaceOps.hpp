@@ -374,9 +374,9 @@ static void mf_display_stats() {
 		__asm {
 			mov  eax, ds:[_obj_dude];
 			call stat_recalc_derived_;
+			xor  edx, edx;
 			mov  eax, ds:[_obj_dude];
 			call critter_adjust_hits_;
-			push edx;
 			push ebx;
 			mov  eax, 7;
 			call PrintBasicStat_;
@@ -385,7 +385,6 @@ static void mf_display_stats() {
 			call PrintLevelWin_;
 			call ListDrvdStats_;
 			pop  ebx;
-			pop  edx;
 		}
 		WinDraw(*ptr_edit_win);
 	}
