@@ -2408,7 +2408,7 @@ fixRadius:
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
 		cmp  dword ptr [ebx + 0x34], 1; // wmAreaInfoList.size
-		xor  ebx, ebx;
+		mov  ebx, 0;
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
