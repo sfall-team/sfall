@@ -1,15 +1,23 @@
 dist: bionic
 language: ruby
-cache: bundler
+os: linux
+cache:
+  - apt
+  - bundler
+  - pip
 rvm:
-  - 2.3
+  - 2.5
 
-sudo: false
+addons:
+  apt:
+    packages:
+      - python3
+      - python3-pip
 
 before_install:
   - gem update --system
   - gem install bundler
-  - pip install PyYAML
+  - pip3 install ruamel.yaml
 script: ./docs/generate.sh
 
 branches:
