@@ -88,7 +88,7 @@ with open(functions_yaml) as yf:
 
       for i in items:
         # header
-        text += "\n### **{}**\n".format(i['name'])
+        text += "\n---\n\n### **{}**\n".format(i['name'])
         # macro label
         if 'macro' in i:
           text += "{: .d-inline-block }\n" + format(i['macro']) + "\n{: .label .label-green }\n"
