@@ -137,8 +137,8 @@ static void LoadElevators(const char* elevFile) {
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
 				int cBtn = iniGetInt(section, "ButtonCount", 2, elevFile);
-				if (cBtn > exitsPerElevator) cBtn = exitsPerElevator;
-				elevatorsBtnCount[i] = max(2, cBtn);
+				if (cBtn < 2) cBtn = 2;
+				elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
 			}
 			elevatorsFrms[i].main = iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
 			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);

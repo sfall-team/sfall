@@ -1217,23 +1217,38 @@ end:
 }
 
 static void __declspec(naked) wmTeleportToArea_hack() {
+	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
 	__asm {
-		cmp  ebx, ds:[_WorldMapCurrArea]
-		je   end
-		mov  ds:[_WorldMapCurrArea], ebx
-		sub  eax, edx
-		add  eax, ds:[_wmAreaInfoList]
-		mov  edx, [eax+0x30]                      // wmAreaInfoList.world_posy
-		mov  ds:[_world_ypos], edx
-		mov  edx, [eax+0x2C]                      // wmAreaInfoList.world_posx
-		mov  ds:[_world_xpos], edx
+		xor  ecx, ecx;
+		cmp  ebx, ds:[_WorldMapCurrArea];
+		je   end;
+		mov  ds:[_WorldMapCurrArea], ebx;
+		sub  eax, edx;
+		add  eax, ds:[_wmAreaInfoList];
+		cmp  dword ptr [eax + 0x34], 1;           // wmAreaInfoList.size
+		mov  edx, [eax + 0x30];                   // wmAreaInfoList.world_posy
+		mov  eax, [eax + 0x2C];                   // wmAreaInfoList.world_posx
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub  eax, 5;
+		lea  edx, [edx - 5];
+mediumLoc:
+		sub  eax, 10
+		lea  edx, [edx - 10];
+		// check negative values
+		test  eax, eax;
+		cmovl eax, ecx;
+		test  edx, edx;
+		cmovl edx, ecx;
+largeLoc:
+		mov  ds:[_world_ypos], edx;
+		mov  ds:[_world_xpos], eax;
 end:
-		xor  eax, eax
-		mov  ds:[_target_xpos], eax
-		mov  ds:[_target_ypos], eax
-		mov  ds:[_In_WorldMap], eax
-		push 0x4C5A77
-		retn
+		mov  ds:[_target_xpos], ecx;
+		mov  ds:[_target_ypos], ecx;
+		mov  ds:[_In_WorldMap], ecx;
+		jmp  wmTeleportToArea_Ret;
 	}
 }
 
@@ -2323,6 +2338,14 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 mediumLoc:
 		sub  eax, 10;
 		lea  edx, [edx - 10];
+		// check negative values
+		push ecx;
+		xor  ecx, ecx;
+		test eax, eax;
+		cmovl eax, ecx;
+		test edx, edx;
+		cmovl edx, ecx;
+		pop  ecx;
 largeLoc:
 		lea  ebx, [esp]; // ppSubTile out
 		push edx;
@@ -2363,8 +2386,8 @@ fixRadius:
 
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
-		mov  ebx, [ebx + 0x34]; // wmAreaInfoList.size
-		cmp  ebx, 1;
+		cmp  dword ptr [ebx + 0x34], 1; // wmAreaInfoList.size
+		xor  ebx, ebx;
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
@@ -2373,8 +2396,12 @@ static void __declspec(naked) wmWorldMap_hack() {
 mediumLoc:
 		sub  eax, 10;
 		lea  edx, [edx - 10];
+		// check negative values
+		test eax, eax;
+		cmovl eax, ebx;
+		test edx, edx;
+		cmovl edx, ebx;
 largeLoc:
-		xor  ebx, ebx;
 		jmp  wmPartyInitWalking_;
 	}
 }
@@ -2960,9 +2987,9 @@ void BugFixesInit()
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
 
-	// Partial fix for incorrect positioning after exiting small locations (e.g. Ghost Farm)
+	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
 	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
-		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
+		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_INIT);
 		MakeJump(0x4C5A41, wmTeleportToArea_hack);
 		dlogr(" Done", DL_INIT);
 	//}
@@ -3295,7 +3322,7 @@ void BugFixesInit()
 	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
 	SafeWrite8(0x4C46AB, 0x58); // esi > ebx
 
-	// Fix the position of the target marker for small/medium location circles
+	// Fix the position of the destination marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
 	// Fix to prevent using number keys to enter unvisited areas on a town map

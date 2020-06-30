@@ -95,17 +95,13 @@ static void __declspec(naked) intface_item_reload_hook() {
 		push eax;
 		mov  eax, dword ptr ds:[_obj_dude];
 		call register_clear_;
-		test eax, eax;
-		jnz  fail;
-		inc  eax;
+		xor  edx, edx;       // ANIM_stand
+		xor  ebx, ebx;       // no delay
+		lea  eax, [edx + 1]; // RB_UNRESERVED
 		call register_begin_;
-		xor  edx, edx;
-		xor  ebx, ebx;
 		mov  eax, dword ptr ds:[_obj_dude];
-		dec  ebx;
 		call register_object_animate_;
 		call register_end_;
-fail:
 		pop  eax;
 		jmp  gsound_play_sfx_file_;
 	}
