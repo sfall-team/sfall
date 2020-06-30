@@ -28,8 +28,8 @@ plugins:
   - jekyll-analytics
 
 remote_theme: pmarsceill/just-the-docs
-
 search_enabled: true
+color_scheme: custom
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
@@ -46,7 +46,9 @@ exclude:
    - yaml_to_md.py
 
 aux_links:
-    "Sfall on GitHub":
+    "Forum":
+      - "https://nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/"
+    "GitHub":
       - "https://github.com/phobos2077/sfall/"
 
 jekyll_analytics:

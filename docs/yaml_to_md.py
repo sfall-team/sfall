@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-import sys, yaml, os
+import sys, os
+import ruamel.yaml
+yaml = ruamel.yaml.YAML(typ="rt")
+yaml.width = 4096
+yaml.indent(mapping=2, sequence=4, offset=2)
 
 functions_yaml = sys.argv[1]
 hooks_yaml = sys.argv[2]
@@ -12,28 +16,15 @@ function_header_template = '''---
 layout: page
 title: '{name}' # quote just in case
 nav_order: 6
-has_children: true
+{has_children}
 # parent - could be empty
 {parent}
+has_toc: false
 permalink: {permalink}
 ---
 
 # {name}
 {{: .no_toc}}
-'''
-
-function_header_template_noname = '''---
-layout: page
-title: '{name}' # quote just in case
-nav_order: 6
-has_children: true # setting for all pages, just in case
-# parent - could be empty
-{parent}
-permalink: {permalink}
----
-'''
-
-function_header_name = '''
 '''
 
 # template for hooks types page - hardcoded
@@ -53,31 +44,44 @@ permalink: /hook-types/
 ---
 '''
 
+def get_slug(string):
+  return string.lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-')
+
 # functions pages
 with open(functions_yaml) as yf:
   data = yaml.load(yf)
   for cat in data: # list categories
     text = ""
-    parent = ""
+
+    # check for childre
+    has_children = ""
+    children = [x for x in data if "parent" in x and x["parent"] == cat["name"]]
+    if len(children) > 0:
+      has_children = "has_children: true"
 
     # used in filename and permalink
-    slug = cat['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-')
+    slug = get_slug(cat['name'])
 
     # if parent is present, this is a subcategory
+    parent = ""
     if 'parent' in cat:
       parent = "parent: " + cat['parent']
-    if 'items' in cat: # parent pages with no immediate functions don't need name displayed
-      header = function_header_template.format(name=cat['name'], parent=parent, permalink="/{}/".format(slug))
-    else:
-      header = function_header_template_noname.format(name=cat['name'], parent=parent, permalink="/{}/".format(slug))
+    header = function_header_template.format(name=cat['name'], parent=parent, has_children=has_children, permalink="/{}/".format(slug))
     text += header
 
     # common doc for category
     if 'doc' in cat:
       text = text + '\n' + cat['doc'] + '\n'
-    text = text + "\n* TOC\n{:toc}\n\n---\n"
+
+    if len(children) > 0:
+      text += "\n## Subcategories\n{: .no_toc}\n\n"
+      for c in children:
+        text += "- [**{}**](/{}/)\n".format(c["name"], get_slug(c["name"]))
+      text += "\n"
 
     if 'items' in cat: # allow parent pages with no immediate items
+      text += "## Functions\n{: .no_toc}\n\n"
+      text += "* TOC\n{: toc}\n"
       # individual functions
       items = cat['items']
       items = sorted(items, key=lambda k: k['name'])
@@ -92,10 +96,7 @@ with open(functions_yaml) as yf:
         if 'unsafe' in i and i['unsafe'] is True:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
         # usage
-        text += '''```c++
-{}
-```
-'''.format(i['detail'])
+        text += "```c++\n{}\n```\n".format(i['detail'])
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
@@ -103,7 +104,7 @@ with open(functions_yaml) as yf:
         if 'macro' in i:
           text += "\nThis is a macro, you need to include `{}` to use it.\n".format(i['macro'])
         # end separator
-        text += '\n---\n'
+        # text += '\n---\n'
 
     md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
