@@ -204,7 +204,7 @@ static bool NormalizePath(std::string &path) {
 	return true;
 }
 
-// Patches placed at the back of the vector will have priority in the chain over the front (previous) patches
+// Patches placed at the back of the vector will have priority in the chain over the front(previous) patches
 static void GetExtraPatches() {
 	char patchFile[12] = "PatchFile";
 	for (int i = 0; i < 100; i++) {
@@ -213,14 +213,14 @@ static void GetExtraPatches() {
 		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
 		patchFiles.push_back(patch);
 	}
-	std::string searchPath = GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
-	if (!searchPath.empty() && NormalizePath(searchPath)) {
-		if (searchPath.back() != '\\') searchPath += "\\";
+	std::string searchPath = "mods\\"; //GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
+	//if (!searchPath.empty() && NormalizePath(searchPath)) {
+		//if (searchPath.back() != '\\') searchPath += "\\";
 
-		std::string path(".\\" + searchPath + "*.dat");
+		std::string pathMask(".\\mods\\*.dat");
 		dlogr("Loading custom patches:", DL_MAIN);
 		WIN32_FIND_DATA findData;
-		HANDLE hFind = FindFirstFile(path.c_str(), &findData);
+		HANDLE hFind = FindFirstFile(pathMask.c_str(), &findData);
 		if (hFind != INVALID_HANDLE_VALUE) {
 			do {
 				std::string name(searchPath + findData.cFileName);
@@ -230,7 +230,7 @@ static void GetExtraPatches() {
 			} while (FindNextFile(hFind, &findData));
 			FindClose(hFind);
 		}
-	}
+	//}
 	// Remove first duplicates
 	size_t size = patchFiles.size();
 	for (size_t i = 1; i < size; ++i) {
