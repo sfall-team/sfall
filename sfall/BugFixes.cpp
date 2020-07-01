@@ -1216,42 +1216,6 @@ end:
 	}
 }
 
-static void __declspec(naked) wmTeleportToArea_hack() {
-	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
-	__asm {
-		xor  ecx, ecx;
-		cmp  ebx, ds:[_WorldMapCurrArea];
-		je   end;
-		mov  ds:[_WorldMapCurrArea], ebx;
-		sub  eax, edx;
-		add  eax, ds:[_wmAreaInfoList];
-		cmp  dword ptr [eax + 0x34], 1;           // wmAreaInfoList.size
-		mov  edx, [eax + 0x30];                   // wmAreaInfoList.world_posy
-		mov  eax, [eax + 0x2C];                   // wmAreaInfoList.world_posx
-		jg   largeLoc;
-		je   mediumLoc;
-//smallLoc:
-		sub  eax, 5;
-		lea  edx, [edx - 5];
-mediumLoc:
-		sub  eax, 10
-		lea  edx, [edx - 10];
-		// check negative values
-		test  eax, eax;
-		cmovl eax, ecx;
-		test  edx, edx;
-		cmovl edx, ecx;
-largeLoc:
-		mov  ds:[_world_ypos], edx;
-		mov  ds:[_world_xpos], eax;
-end:
-		mov  ds:[_target_xpos], ecx;
-		mov  ds:[_target_ypos], ecx;
-		mov  ds:[_In_WorldMap], ecx;
-		jmp  wmTeleportToArea_Ret;
-	}
-}
-
 static void __declspec(naked) db_get_file_list_hack() {
 	__asm {
 		push edi
@@ -2316,6 +2280,42 @@ static void __declspec(naked) action_climb_ladder_hack() {
 	}
 }
 
+static void __declspec(naked) wmTeleportToArea_hack() {
+	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
+	__asm {
+		xor  ecx, ecx;
+		cmp  ebx, ds:[_WorldMapCurrArea];
+		je   end;
+		mov  ds:[_WorldMapCurrArea], ebx;
+		sub  eax, edx;
+		add  eax, ds:[_wmAreaInfoList];
+		cmp  dword ptr [eax + 0x34], 1;           // wmAreaInfoList.size
+		mov  edx, [eax + 0x30];                   // wmAreaInfoList.world_posy
+		mov  eax, [eax + 0x2C];                   // wmAreaInfoList.world_posx
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub  eax, 5;
+		lea  edx, [edx - 5];
+mediumLoc:
+		sub  eax, 10
+		lea  edx, [edx - 10];
+		// check negative values
+		test  eax, eax;
+		cmovl eax, ecx;
+		test  edx, edx;
+		cmovl edx, ecx;
+largeLoc:
+		mov  ds:[_world_ypos], edx;
+		mov  ds:[_world_xpos], eax;
+end:
+		mov  ds:[_target_xpos], ecx;
+		mov  ds:[_target_ypos], ecx;
+		mov  ds:[_In_WorldMap], ecx;
+		jmp  wmTeleportToArea_Ret;
+	}
+}
+
 static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 	static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
@@ -2987,13 +2987,6 @@ void BugFixesInit()
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
 
-	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
-	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
-		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_INIT);
-		MakeJump(0x4C5A41, wmTeleportToArea_hack);
-		dlogr(" Done", DL_INIT);
-	//}
-
 	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
 		dlog("Applying print to file fix.", DL_INIT);
 		MakeCall(0x4C67D4, db_get_file_list_hack);
@@ -3316,6 +3309,13 @@ void BugFixesInit()
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
 	MakeCall(0x411DF7, action_climb_ladder_hack); // bug caused by anim_move_to_tile_ fix
 
+	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
+	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
+		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_INIT);
+		MakeJump(0x4C5A41, wmTeleportToArea_hack);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
 	// also fix the incorrect coordinates for small/medium location circles that the engine uses to highlight their sub-tiles
 	// and fix visited tiles on the world map being darkened again when a location is added next to them
@@ -3401,5 +3401,17 @@ void BugFixesInit()
 		0x74, 0x1A,             // jz   0x426D83
 		0x90
 	};
-	SafeWriteBytes(0x426D5C, codeData, 14);
+	SafeWriteBytes(0x426D5C, codeData, 14); // combat_is_shot_blocked_
+
+	// Fix for NPC stuck in an animation loop in combat when trying to move close to a multihex critter
+	// this prevents moving to the multihex critter when the critters are close together
+	BYTE codeData1[] = {
+		0x89, 0xF0,                      // mov  eax, esi
+		0x89, 0xFA,                      // mov  edx, edi
+		0xE8, 0x00, 0x00, 0x0, 0x0,      // call obj_dist_
+		0x83, 0xF8, 0x01,                // cmp  eax, 1
+		0x0F, 0x8E, 0xAB, 0x0, 0x0, 0x0, // jle  0x42A1B1 (exit)
+	};
+	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
+	HookCall(0x42A0F8, (void*)obj_dist_);
 }

@@ -96,7 +96,7 @@ static void __declspec(naked) intface_item_reload_hook() {
 		mov  eax, dword ptr ds:[_obj_dude];
 		call register_clear_;
 		xor  edx, edx;       // ANIM_stand
-		xor  ebx, ebx;       // no delay
+		xor  ebx, ebx;       // delay (unused)
 		lea  eax, [edx + 1]; // RB_UNRESERVED
 		call register_begin_;
 		mov  eax, dword ptr ds:[_obj_dude];
