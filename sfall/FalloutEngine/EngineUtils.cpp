@@ -246,14 +246,25 @@ fo::Window* GetWindow(long winType) {
 		winID = fo::var::optnwin;
 		break;
 	default:
-		return (fo::Window*)-1;
+		return (fo::Window*)(-1);
 	}
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
 
+static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
+	long hexRadius = 200 * (radius + 1);
+
+	outEnd = sourceTile + hexRadius;
+	if (outEnd > 40000) outEnd = 40000;
+
+	long startTile = sourceTile - hexRadius;
+	return (startTile < 0) ? 0 : startTile;
+}
+
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type) {
-	for (long tile = 0; tile < 40000; tile++) {
+	long endTile;
+	for (long tile = GetRangeTileNumbers(sourceTile, radius, endTile); tile < endTile; tile++) {
 		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
 		while (obj) {
 			if (type == -1 || type == obj->Type()) {
@@ -265,6 +276,44 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 			obj = fo::func::obj_find_next_at_tile();
 		}
 	}
+}
+
+// Checks the blocking tiles and returns the first blocking object
+fo::GameObject* CheckAroundBlockingTiles(fo::GameObject* source, long dstTile) {
+	long rotation = 5;
+	do {
+		long chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
+		fo::GameObject* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
+		if (obj) return obj;
+	} while (--rotation >= 0);
+
+	return nullptr;
+}
+
+fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long dstTile) {
+	if (fo::func::tile_dist(source->tile, dstTile) > 1) {
+		return CheckAroundBlockingTiles(source, dstTile);
+	}
+	// Checks the blocking arc of adjacent tiles
+	long dir = fo::func::tile_dir(source->tile, dstTile);
+
+	long chkTile = fo::func::tile_num_in_direction(dstTile, dir, 1);
+	fo::GameObject* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
+	if (obj) return obj;
+
+	// +1 direction
+	long rotation = (dir + 1) % 6;
+	chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
+	obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
+	if (obj) return obj;
+
+	// -1 direction
+	rotation = (dir + 5) % 6;
+	chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
+	obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
+	if (obj) return obj;
+
+	return nullptr;
 }
 
 // Returns the type of the terrain sub tile at the the player's position on the world map

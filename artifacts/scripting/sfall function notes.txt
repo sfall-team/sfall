@@ -18,7 +18,7 @@ The read_xxx functions take a memory address as the parameter and can read arbit
 
 The get/set_pc_base/extra_stat functions are equivalent to calling get/set_critter_base/extra_stat with dude_obj as the critter pointer. None of these stat functions take perks into account, and neither do they do range clamping to make sure the stats are valid. Use the normal get_critter_stat function to get a correctly perk adjusted and range clamped value for a stat.
 
-The set_stat_max/min functions can be used to set the valid ranges on on stats. Values returned by get_current_stat will be clamped to this range. The set_pc_ function only effect the player, the set_npc_ functions only effect other critters, and the set_ functions effect both.
+The set_stat_max/min functions can be used to set the valid ranges on stats. Values returned by get_current_stat will be clamped to this range. The set_pc_ function only effect the player, the set_npc_ functions only effect other critters, and the set_ functions effect both.
 
 The input functions are only available if the user has the input hook turned on in ddraw.ini. Use input_funcs_available to check.
 
@@ -480,8 +480,8 @@ Some utility/math functions are available:
 - sets the current cursor mode
 
 > void sfall_func0("display_stats")
-- displays player stats in the inventory screen display window
-- works only in opened inventory
+- updates player's stats in the inventory display window or on the character screen
+- NOTE: works only when the interface window is opened
 
 > int sfall_func1("lock_is_jammed", object)
 - returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise
@@ -729,6 +729,13 @@ optional argument:
 optional arguments:
 - flags: mode flags (see MSGBOX_* constants in define_extra.h). Pass -1 to skip setting the flags (default flags are NORMAL and YESNO)
 - color1/2: the color index in Fallout palette. color1 sets the text color for the first line, and color2 for all subsequent lines of text (default color is 145)
+
+> int sfall_func1("get_stat_min", stat)
+> int sfall_func1("get_stat_max", stat)
+> int sfall_func2("get_stat_min", stat, bool who)
+> int sfall_func2("get_stat_max", stat, bool who)
+- returns the maximum or minimum set value of the specified stat (see set_stat_max/min functions)
+- who: 0 (false) or omitting the argument - returns the value of the player, 1 (true) - returns the value set for other critters
 
 ------------------------
 ------ MORE INFO -------

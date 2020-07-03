@@ -31,11 +31,14 @@ public:
 	static float experienceMod;
 	static DWORD standardApAcBonus;
 	static DWORD extraApAcBonus;
+
+	static long GetStatMax(int stat, int isNPC);
+	static long GetStatMin(int stat, int isNPC);
 };
 
-void __stdcall SetPCStatMax(int stat, int i);
-void __stdcall SetPCStatMin(int stat, int i);
-void __stdcall SetNPCStatMax(int stat, int i);
-void __stdcall SetNPCStatMin(int stat, int i);
+void __stdcall SetPCStatMax(int stat, int value);
+void __stdcall SetPCStatMin(int stat, int value);
+void __stdcall SetNPCStatMax(int stat, int value);
+void __stdcall SetNPCStatMin(int stat, int value);
 
 }

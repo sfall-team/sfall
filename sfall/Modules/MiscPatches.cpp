@@ -102,17 +102,13 @@ static void __declspec(naked) intface_item_reload_hook() {
 		push eax;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::register_clear_;
-		test eax, eax;
-		jnz  fail;
-		inc  eax;
+		xor  edx, edx;       // ANIM_stand
+		xor  ebx, ebx;       // delay (unused)
+		lea  eax, [edx + 1]; // RB_UNRESERVED
 		call fo::funcoffs::register_begin_;
-		xor  edx, edx;
-		xor  ebx, ebx;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
-		dec  ebx;
 		call fo::funcoffs::register_object_animate_;
 		call fo::funcoffs::register_end_;
-fail:
 		pop  eax;
 		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}
@@ -701,7 +697,10 @@ void MiscPatches::init() {
 	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
 	HookCalls(ListDrvdStats_hook, {0x43549C, 0x4354BE});
 
-	// Increase the max text width of the information card in the character screen
+	// Increase the max text width of the player name on the character screen
+	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100
+
+	// Increase the max text width of the information card on the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
 
 	F1EngineBehaviorPatch();

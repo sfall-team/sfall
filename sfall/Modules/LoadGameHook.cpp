@@ -118,6 +118,7 @@ void GetSavePath(char* buf, char* ftype) {
 }
 
 static std::string saveSfallDataFailMsg;
+
 static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -168,6 +169,7 @@ errorSave:
 }
 
 static std::string saveFailMsg;
+
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {

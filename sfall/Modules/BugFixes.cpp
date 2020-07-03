@@ -932,20 +932,41 @@ end:
 	}
 }
 
+static void __declspec(naked) MultiHexRetargetTileFix() {
+	__asm {
+		push edx;                     // retargeted tile
+		call fo::funcoffs::obj_blocking_at_;
+		pop  edx;
+		test eax, eax;
+		jz   isFreeTile;
+		retn;
+isFreeTile:
+		test [ebp + flags + 1], 0x08; // is source multihex?
+		jnz  isMultiHex;
+		retn;
+isMultiHex:
+		push ecx;
+		mov  ecx, ebp;
+		call fo::MultiHexMoveIsBlocking;
+		pop  ecx;
+		retn;
+	}
+}
+
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		je   checkObj;
-		retn;                         // tilenums are not equal, always move to tile
-checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // move to tile
 multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   moveToObject;
+		retn;                         // tilenums are not equal, always move to tile
+moveToObject:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret; // move to object
 	}
@@ -954,17 +975,17 @@ multiHex:
 static void __declspec(naked) MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		je   checkObj;
-		retn;                         // tilenums are not equal, always run to tile
-checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // run to tile
 multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   runToObject;
+		retn;                         // tilenums are not equal, always run to tile
+runToObject:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_run_object_ret; // run to object
 	}
@@ -1212,27 +1233,6 @@ skip:
 		pop  eax
 end:
 		mov  edx, edi                             // dude_turn
-		retn
-	}
-}
-
-static void __declspec(naked) wmTeleportToArea_hack() {
-	__asm {
-		cmp  ebx, ds:[FO_VAR_WorldMapCurrArea]
-		je   end
-		mov  ds:[FO_VAR_WorldMapCurrArea], ebx
-		sub  eax, edx
-		add  eax, ds:[FO_VAR_wmAreaInfoList]
-		mov  edx, [eax+0x30]                      // wmAreaInfoList.world_posy
-		mov  ds:[FO_VAR_world_ypos], edx
-		mov  edx, [eax+0x2C]                      // wmAreaInfoList.world_posx
-		mov  ds:[FO_VAR_world_xpos], edx
-end:
-		xor  eax, eax
-		mov  ds:[FO_VAR_target_xpos], eax
-		mov  ds:[FO_VAR_target_ypos], eax
-		mov  ds:[FO_VAR_In_WorldMap], eax
-		push 0x4C5A77
 		retn
 	}
 }
@@ -1578,6 +1578,7 @@ static void __declspec(naked) compute_damage_hack() {
 
 static int currDescLen = 0;
 static bool showItemDescription = false;
+
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
 		strncpy_s(tempBuffer, desc, 161);
@@ -1651,6 +1652,7 @@ skip:
 }
 
 static DWORD expSwiftLearner; // experience points for print
+
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
 		mov  expSwiftLearner, edi;
@@ -2299,6 +2301,42 @@ static void __declspec(naked) action_climb_ladder_hack() {
 	}
 }
 
+static void __declspec(naked) wmTeleportToArea_hack() {
+	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
+	__asm {
+		xor  ecx, ecx;
+		cmp  ebx, ds:[FO_VAR_WorldMapCurrArea];
+		je   end;
+		mov  ds:[FO_VAR_WorldMapCurrArea], ebx;
+		sub  eax, edx;
+		add  eax, ds:[FO_VAR_wmAreaInfoList];
+		cmp  dword ptr [eax + 0x34], 1;           // wmAreaInfoList.size
+		mov  edx, [eax + 0x30];                   // wmAreaInfoList.world_posy
+		mov  eax, [eax + 0x2C];                   // wmAreaInfoList.world_posx
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub  eax, 5;
+		lea  edx, [edx - 5];
+mediumLoc:
+		sub  eax, 10
+		lea  edx, [edx - 10];
+		// check negative values
+		test  eax, eax;
+		cmovl eax, ecx;
+		test  edx, edx;
+		cmovl edx, ecx;
+largeLoc:
+		mov  ds:[FO_VAR_world_ypos], edx;
+		mov  ds:[FO_VAR_world_xpos], eax;
+end:
+		mov  ds:[FO_VAR_target_xpos], ecx;
+		mov  ds:[FO_VAR_target_ypos], ecx;
+		mov  ds:[FO_VAR_In_WorldMap], ecx;
+		jmp  wmTeleportToArea_Ret;
+	}
+}
+
 static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 	static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
@@ -2321,6 +2359,14 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 mediumLoc:
 		sub  eax, 10;
 		lea  edx, [edx - 10];
+		// check negative values
+		push ecx;
+		xor  ecx, ecx;
+		test eax, eax;
+		cmovl eax, ecx;
+		test edx, edx;
+		cmovl edx, ecx;
+		pop  ecx;
 largeLoc:
 		lea  ebx, [esp]; // ppSubTile out
 		push edx;
@@ -2361,8 +2407,8 @@ fixRadius:
 
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
-		mov  ebx, [ebx + 0x34]; // wmAreaInfoList.size
-		cmp  ebx, 1;
+		cmp  dword ptr [ebx + 0x34], 1; // wmAreaInfoList.size
+		mov  ebx, 0;
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
@@ -2371,8 +2417,12 @@ static void __declspec(naked) wmWorldMap_hack() {
 mediumLoc:
 		sub  eax, 10;
 		lea  edx, [edx - 10];
+		// check negative values
+		test eax, eax;
+		cmovl eax, ebx;
+		test edx, edx;
+		cmovl edx, ebx;
 largeLoc:
-		xor  ebx, ebx;
 		jmp  fo::funcoffs::wmPartyInitWalking_;
 	}
 }
@@ -2898,6 +2948,9 @@ void BugFixes::init()
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
+		// Check neighboring tiles to prevent critters from overlapping other object tiles when moving to the retargeted tile
+		SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
+		HookCall(0x42A3A8, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2956,13 +3009,6 @@ void BugFixes::init()
 
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
-
-	// Partial fix for incorrect positioning after exiting small locations (e.g. Ghost Farm)
-	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
-		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
-		MakeJump(0x4C5A41, wmTeleportToArea_hack);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
 		dlog("Applying print to file fix.", DL_INIT);
@@ -3279,13 +3325,20 @@ void BugFixes::init()
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
 	MakeCall(0x411DF7, action_climb_ladder_hack); // bug caused by anim_move_to_tile_ fix
 
+	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
+	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
+		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_INIT);
+		MakeJump(0x4C5A41, wmTeleportToArea_hack);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
 	// also fix the incorrect coordinates for small/medium location circles that the engine uses to highlight their sub-tiles
 	// and fix visited tiles on the world map being darkened again when a location is added next to them
 	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
 	SafeWrite8(0x4C46AB, 0x58); // esi > ebx
 
-	// Fix the position of the target marker for small/medium location circles
+	// Fix the position of the destination marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
 	// Fix to prevent using number keys to enter unvisited areas on a town map
@@ -3352,6 +3405,31 @@ void BugFixes::init()
 	MakeJump(0x4C372B, wmSubTileMarkRadiusVisited_hack);
 	SafeWrite16(0x4C3723, 0xC931); // mov ecx, esi > xor ecx, ecx
 	SafeWrite8(0x4C3727, 0x51);    // push esi > push ecx
+
+	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
+	// object or source tile
+	// Note: this bug does not cause an error in the function work
+	BYTE codeData[] = {
+		0x8B, 0x70, 0x04,       // mov  esi, [eax + 4]
+		0xF6, 0x40, 0x25, 0x08, // test [eax + flags2], MultiHex_
+		0x74, 0x1E,             // jz   0x426D83
+		0x39, 0xEE,             // cmp  esi, ebp
+		0x74, 0x1A,             // jz   0x426D83
+		0x90
+	};
+	SafeWriteBytes(0x426D5C, codeData, 14); // combat_is_shot_blocked_
+
+	// Fix for NPC stuck in an animation loop in combat when trying to move close to a multihex critter
+	// this prevents moving to the multihex critter when the critters are close together
+	BYTE codeData1[] = {
+		0x89, 0xF0,                      // mov  eax, esi
+		0x89, 0xFA,                      // mov  edx, edi
+		0xE8, 0x00, 0x00, 0x0, 0x0,      // call obj_dist_
+		0x83, 0xF8, 0x01,                // cmp  eax, 1
+		0x0F, 0x8E, 0xAB, 0x0, 0x0, 0x0, // jle  0x42A1B1 (exit)
+	};
+	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
+	HookCall(0x42A0F8, (void*)fo::funcoffs::obj_dist_);
 }
 
 }
