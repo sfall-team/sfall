@@ -1,4 +1,218 @@
+/*
+* sfall
+* Copyright (C) 2008-2016 The sfall team
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
+
+enum Animation : long
+{
+	ANIM_stand = 0,
+	ANIM_walk = 1,
+	ANIM_jump_begin = 2,
+	ANIM_jump_end = 3,
+	ANIM_climb_ladder = 4,
+	ANIM_falling = 5,
+	ANIM_up_stairs_right = 6,
+	ANIM_up_stairs_left = 7,
+	ANIM_down_stairs_right = 8,
+	ANIM_down_stairs_left = 9,
+	ANIM_magic_hands_ground = 10,
+	ANIM_magic_hands_middle = 11,
+	ANIM_magic_hands_up = 12,
+	ANIM_dodge_anim = 13,
+	ANIM_hit_from_front = 14,
+	ANIM_hit_from_back = 15,
+	ANIM_throw_punch = 16,
+	ANIM_kick_leg = 17,
+	ANIM_throw_anim = 18,
+	ANIM_running = 19,
+	ANIM_fall_back = 20,
+	ANIM_fall_front = 21,
+	ANIM_bad_landing = 22,
+	ANIM_big_hole = 23,
+	ANIM_charred_body = 24,
+	ANIM_chunks_of_flesh = 25,
+	ANIM_dancing_autofire = 26,
+	ANIM_electrify = 27,
+	ANIM_sliced_in_half = 28,
+	ANIM_burned_to_nothing = 29,
+	ANIM_electrified_to_nothing = 30,
+	ANIM_exploded_to_nothing = 31,
+	ANIM_melted_to_nothing = 32,
+	ANIM_fire_dance = 33,
+	ANIM_fall_back_blood = 34,
+	ANIM_fall_front_blood = 35,
+	ANIM_prone_to_standing = 36,
+	ANIM_back_to_standing = 37,
+	ANIM_take_out = 38,
+	ANIM_put_away = 39,
+	ANIM_parry_anim = 40,
+	ANIM_thrust_anim = 41,
+	ANIM_swing_anim = 42,
+	ANIM_point = 43,
+	ANIM_unpoint = 44,
+	ANIM_fire_single = 45,
+	ANIM_fire_burst = 46,
+	ANIM_fire_continuous = 47,
+	ANIM_fall_back_sf = 48,
+	ANIM_fall_front_sf = 49,
+	ANIM_bad_landing_sf = 50,
+	ANIM_big_hole_sf = 51,
+	ANIM_charred_body_sf = 52,
+	ANIM_chunks_of_flesh_sf = 53,
+	ANIM_dancing_autofire_sf = 54,
+	ANIM_electrify_sf = 55,
+	ANIM_sliced_in_half_sf = 56,
+	ANIM_burned_to_nothing_sf = 57,
+	ANIM_electrified_to_nothing_sf = 58,
+	ANIM_exploded_to_nothing_sf = 59,
+	ANIM_melted_to_nothing_sf = 60,
+	ANIM_fire_dance_sf = 61,
+	ANIM_fall_back_blood_sf = 62,
+	ANIM_fall_front_blood_sf = 63,
+	ANIM_called_shot_pic = 64,
+};
+
+enum AnimCommand : long
+{
+	RB_UNRESERVED = 0x1,
+	RB_RESERVED   = 0x2,
+	RB_DONTSTAND  = 0x4,
+	RB_UNKNOWN    = 0x100,
+	RB_END_ANIM   = 0x200
+};
+
+enum CritterFlags : long
+{
+	CFLG_Sneak        = 0x01,   // Can sneak ?
+	CFLG_Barter       = 0x02,   // Can trade with
+	CFLG_Level        = 0x04,   // Level received ?
+	CFLG_Addict       = 0x08,   // Drug addiction ?
+	CFLG_NoSteal      = 0x20,   // Can't be stolen from
+	CFLG_NoDrop       = 0x40,   // Doesn't drop items
+	CFLG_NoLimbs      = 0x80,   // Can't lose limbs
+	CFLG_NoAges       = 0x100,  // Dead body does not disappear
+	CFLG_NoHeal       = 0x200,  // Damage is not healed with time
+	CFLG_Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
+	CFLG_NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
+	CFLG_SpecialDeath = 0x1000, // Has a special type of death
+	CFLG_RangeHtH     = 0x2000, // Has extra hand-to-hand range
+	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
+};
+
+enum DamageFlag : long
+{
+	DAM_KNOCKED_OUT = 0x1,
+	DAM_KNOCKED_DOWN = 0x2,
+	DAM_CRIP_LEG_LEFT = 0x4,
+	DAM_CRIP_LEG_RIGHT = 0x8,
+	DAM_CRIP_ARM_LEFT = 0x10,
+	DAM_CRIP_ARM_RIGHT = 0x20,
+	DAM_BLIND = 0x40,
+	DAM_DEAD = 0x80,
+	DAM_HIT = 0x100,
+	DAM_CRITICAL = 0x200,
+	DAM_ON_FIRE = 0x400,
+	DAM_BYPASS = 0x800,
+	DAM_EXPLODE = 0x1000,
+	DAM_DESTROY = 0x2000,
+	DAM_DROP = 0x4000,
+	DAM_LOSE_TURN = 0x8000,
+	DAM_HIT_SELF = 0x10000,
+	DAM_LOSE_AMMO = 0x20000,
+	DAM_DUD = 0x40000,
+	DAM_HURT_SELF = 0x80000,
+	DAM_RANDOM_HIT = 0x100000,
+	DAM_CRIP_RANDOM = 0x200000,
+	DAM_BACKWASH = 0x400000,
+	DAM_PERFORM_REVERSE = 0x800000,
+};
+
+enum DamageType
+{
+	DMG_normal = 0,
+	DMG_laser = 1,
+	DMG_fire = 2,
+	DMG_plasma = 3,
+	DMG_electrical = 4,
+	DMG_emp = 5,
+	DMG_explosion = 6,
+	DMG_BYPASS_ARMOR = 256,
+	DMG_NOANIMATE = 512,
+};
+
+enum Gender
+{
+	GENDER_MALE = 0,
+	GENDER_FEMALE = 1,
+};
+
+// Some global variables referenced by engine
+enum GlobalVar : long
+{
+	GVAR_PLAYER_REPUTATION = 0,
+	GVAR_ENEMY_ARROYO = 7,
+	GVAR_PLAYER_GOT_CAR = 18,
+	GVAR_NUKA_COLA_ADDICT = 21,
+	GVAR_BUFF_OUT_ADDICT = 22,
+	GVAR_MENTATS_ADDICT = 23,
+	GVAR_PSYCHO_ADDICT = 24,
+	GVAR_RADAWAY_ADDICT = 25,
+	GVAR_ALCOHOL_ADDICT = 26,
+	GVAR_LOAD_MAP_INDEX = 27,
+	GVAR_TOWN_REP_ARROYO = 47,
+	GVAR_ADDICT_TRAGIC = 295,
+	GVAR_ADDICT_JET = 296,
+	GVAR_CAR_BLOWER = 439,
+	GVAR_CAR_UPGRADE_FUEL_CELL_REGULATOR = 453,
+	GVAR_NEW_RENO_CAR_UPGRADE = 455,
+	GVAR_NEW_RENO_SUPER_CAR = 456,
+	GVAR_MODOC_SHITTY_DEATH = 491,
+	GVAR_FALLOUT_2 = 494,
+	GVAR_CAR_PLACED_TILE = 633,
+};
+
+namespace ObjectFlag {
+	enum ObjectFlag : DWORD {
+		Mouse_3d = 0x1,
+		WalkThru = 0x4,
+		Flat = 0x8,
+		NoBlock = 0x10,
+		Lighting = 0x20,
+		Temp = 0x400,
+		MultiHex = 0x800,
+		NoHighlight = 0x1000,
+		Used = 0x2000,
+		TransRed = 0x4000,
+		TransNone = 0x8000,
+		TransWall = 0x10000,
+		TransGlass = 0x20000,
+		TransSteam = 0x40000,
+		TransEnergy = 0x80000,
+		Left_Hand = 0x1000000,
+		Right_Hand = 0x2000000,
+		Worn = 0x4000000,
+		HiddenItem = 0x8000000,
+		WallTransEnd = 0x10000000,
+		LightThru = 0x20000000,
+		Seen = 0x40000000,
+		ShootThru = 0x80000000,
+	};
+}
 
 enum ObjType : char
 {
@@ -245,6 +459,50 @@ enum Stat : long
 	STAT_real_max_stat = 38
 };
 
+namespace Scripts {
+	enum ScriptProc : long
+	{
+		no_p_proc = 0,
+		start = 1,
+		spatial_p_proc = 2,
+		description_p_proc = 3,
+		pickup_p_proc = 4,
+		drop_p_proc = 5,
+		use_p_proc = 6,
+		use_obj_on_p_proc = 7,
+		use_skill_on_p_proc = 8,
+		none_x_bad = 9,
+		none_x_bad2 = 10,
+		talk_p_proc = 11,
+		critter_p_proc = 12,
+		combat_p_proc = 13,
+		damage_p_proc = 14,
+		map_enter_p_proc = 15,
+		map_exit_p_proc = 16,
+		create_p_proc = 17,
+		destroy_p_proc = 18,
+		none_x_bad3 = 19,
+		none_x_bad4 = 20,
+		look_at_p_proc = 21,
+		timed_event_p_proc = 22,
+		map_update_p_proc = 23,
+		push_p_proc = 24,
+		is_dropping_p_proc = 25,
+		combat_is_starting_p_proc = 26,
+		combat_is_over_p_proc = 27,
+		count = 28
+	};
+
+	enum ScriptTypes : long
+	{
+		SCRIPT_SYSTEM = 0,
+		SCRIPT_SPATIAL = 1,
+		SCRIPT_TIME = 2,
+		SCRIPT_ITEM = 3,
+		SCRIPT_CRITTER = 4,
+	};
+}
+
 #define STAT_max_derived   STAT_poison_resist
 #define STAT_max_stat      STAT_current_hp
 
@@ -286,65 +544,6 @@ enum Skill : long
 	SKILL_GAMBLING = 16,
 	SKILL_OUTDOORSMAN = 17,
 	SKILL_count = 18
-};
-
-enum AnimCommand : long
-{
-	RB_UNRESERVED = 0x1,
-	RB_RESERVED   = 0x2,
-	RB_DONTSTAND  = 0x4,
-	RB_UNKNOWN    = 0x100,
-	RB_END_ANIM   = 0x200
-};
-
-enum CritterFlags : long
-{
-	CFLG_Sneak        = 0x01,   // Can sneak ?
-	CFLG_Barter       = 0x02,   // Can trade with
-	CFLG_Level        = 0x04,   // Level received ?
-	CFLG_Addict       = 0x08,   // Drug addiction ?
-	CFLG_NoSteal      = 0x20,   // Can't be stolen from
-	CFLG_NoDrop       = 0x40,   // Doesn't drop items
-	CFLG_NoLimbs      = 0x80,   // Can't lose limbs
-	CFLG_NoAges       = 0x100,  // Dead body does not disappear
-	CFLG_NoHeal       = 0x200,  // Damage is not healed with time
-	CFLG_Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
-	CFLG_NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
-	CFLG_SpecialDeath = 0x1000, // Has a special type of death
-	CFLG_RangeHtH     = 0x2000, // Has extra hand-to-hand range
-	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
-};
-
-//XXXXXXXXXXXXXXXXXXXXXXXXXX
-//XX Combat Flags defines XX
-//XXXXXXXXXXXXXXXXXXXXXXXXXX
-
-enum DamageFlag : long
-{
-	DAM_KNOCKED_OUT = 0x1,
-	DAM_KNOCKED_DOWN = 0x2,
-	DAM_CRIP_LEG_LEFT = 0x4,
-	DAM_CRIP_LEG_RIGHT = 0x8,
-	DAM_CRIP_ARM_LEFT = 0x10,
-	DAM_CRIP_ARM_RIGHT = 0x20,
-	DAM_BLIND = 0x40,
-	DAM_DEAD = 0x80,
-	DAM_HIT = 0x100,
-	DAM_CRITICAL = 0x200,
-	DAM_ON_FIRE = 0x400,
-	DAM_BYPASS = 0x800,
-	DAM_EXPLODE = 0x1000,
-	DAM_DESTROY = 0x2000,
-	DAM_DROP = 0x4000,
-	DAM_LOSE_TURN = 0x8000,
-	DAM_HIT_SELF = 0x10000,
-	DAM_LOSE_AMMO = 0x20000,
-	DAM_DUD = 0x40000,
-	DAM_HURT_SELF = 0x80000,
-	DAM_RANDOM_HIT = 0x100000,
-	DAM_CRIP_RANDOM = 0x200000,
-	DAM_BACKWASH = 0x400000,
-	DAM_PERFORM_REVERSE = 0x800000,
 };
 
 //XXXXXXXXXXXXXXXXXXXX
@@ -449,19 +648,69 @@ enum RollResult
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
 
-enum WinButtonFlags : long
-{
-	WIN_OwnerFlag         = 0x1,
-	WIN_UnknownFlag2      = 0x2,
-	WIN_MoveOnTop         = 0x4,
-	WIN_Hidden            = 0x8,
-	WIN_Exclusive         = 0x10,
-	WIN_Transparent       = 0x20,
-	WIN_UnknownFlag40     = 0x40,
-	WIN_UnknownFlag80     = 0x80,
-	WIN_ScriptWindow      = 0x100,
-	WIN_itsButton         = 0x10000,
-};
+namespace Fields {
+	enum CommonObj : long
+	{
+		id                = 0x00,
+		tile              = 0x04,
+		x                 = 0x08,
+		y                 = 0x0C,
+		sx                = 0x10,
+		sy                = 0x14,
+		frm               = 0x18,
+		rotation          = 0x1C,
+		artFid            = 0x20,
+		flags             = 0x24,
+		elevation         = 0x28,
+		inventory         = 0x2C,
+		protoId           = 0x64,
+		cid               = 0x68,
+		lightDistance     = 0x6C,
+		lightIntensity    = 0x70,
+		outline           = 0x74,
+		scriptId          = 0x78,
+		owner             = 0x7C,
+		scriptIndex       = 0x80,
+	};
+
+	enum CritterObj : long
+	{
+		reaction          = 0x38,
+		combatState       = 0x3C,
+		movePoints        = 0x40,
+		damageFlags       = 0x44,
+		damageLastTurn    = 0x48,
+		aiPacket          = 0x4C,
+		teamNum           = 0x50,
+		whoHitMe          = 0x54,
+		health            = 0x58,
+		rads              = 0x5C,
+		poison            = 0x60,
+	};
+
+	enum ItemObj : long
+	{
+		updatedFlags      = 0x38,
+		charges           = 0x3C,
+		ammoPid           = 0x40,
+	};
+}
+
+namespace WinFlags {
+	enum WinButtonFlags : long
+	{
+		OwnerFlag             = 0x1,
+		UnknownFlag2          = 0x2,
+		MoveOnTop             = 0x4,
+		Hidden                = 0x8,
+		Exclusive             = 0x10,
+		Transparent           = 0x20,
+		UnknownFlag40         = 0x40,
+		UnknownFlag80         = 0x80,
+		ScriptWindow          = 0x100,
+		itsButton             = 0x10000,
+	};
+}
 
 enum QueueType : long
 {

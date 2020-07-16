@@ -481,8 +481,8 @@ static long gmouse_handle_event_hook() {
 
 	for (int n = 1; n < countWin; n++) {
 		win = (WINinfo*)ptr_window[n];
-		if ((win->wID == ifaceWin || (win->flags & WIN_ScriptWindow && !(win->flags & WIN_Transparent))) // also check scripted windows
-			&& !(win->flags & WIN_Hidden)) {
+		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check scripted windows
+			&& !(win->flags & WinFlags::Hidden)) {
 			RECT *rect = &win->wRect;
 			if (MouseClickIn(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
 		}

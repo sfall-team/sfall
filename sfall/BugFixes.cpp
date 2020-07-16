@@ -6,6 +6,9 @@
 #include "ScriptExtender.h"
 #include "Worldmap.h"
 
+using namespace Fields;
+using namespace ObjectFlag;
+
 static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
@@ -200,7 +203,7 @@ writeBlock:
 
 static void __declspec(naked) protinst_default_use_item_hack() {
 	__asm {
-		mov  eax, dword ptr [edx+0x64]            // eax = target pid
+		mov  eax, dword ptr [edx + protoId]       // eax = target pid
 		cmp  eax, PID_DRIVABLE_CAR
 		je   isCar
 		cmp  eax, PID_CAR_TRUNK
@@ -387,7 +390,7 @@ nextArmor:
 		call inven_worn_;
 		test eax, eax;
 		jz   noArmor;
-		and  byte ptr [eax + 0x27], 0xFB; // Unset flag of equipped armor (~Worn >> 24)
+		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
 		jmp  nextArmor;
 noArmor:
 		mov  eax, esi;
@@ -403,7 +406,7 @@ nextArmor:
 		call inven_worn_;
 		test eax, eax;
 		jz   end;
-		and  byte ptr [eax + 0x27], 0xFB; // Unset flag of equipped armor (~Worn >> 24)
+		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
 		jmp  nextArmor;
 end:
 		retn;
@@ -441,7 +444,7 @@ dudeFix:
 		test eax, eax;
 		jz   equipped;                 // no armor
 		// additionally check flag of equipped armor for dude
-		test byte ptr [eax + 0x27], 0x4; // Worn >> 24
+		test byte ptr [eax][flags + 3], Worn >> 24;
 		jnz  equipped;
 		xor  eax, eax;
 equipped:
@@ -452,11 +455,11 @@ equipped:
 
 static void __declspec(naked) obj_drop_hook() {
 	__asm {
-		test byte ptr [edx + 0x27], 0x7; // (Worn | Right_Hand | Left_Hand) >> 24
+		test byte ptr [edx][flags + 3], (Worn | Right_Hand | Left_Hand) >> 24;
 		jz   skipHook;
 		call InvenUnwield_HookDrop;    // run HOOK_INVENWIELD before dropping item
 skipHook:
-		test byte ptr [edx + 0x27], 0x4; // Worn >> 24
+		test byte ptr [edx][flags + 3], Worn >> 24;
 		jnz  fixArmorStat;
 		jmp  obj_remove_from_inven_;
 fixArmorStat:
@@ -533,7 +536,7 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		call item_remove_mult_
 		xchg ebx, eax
 		mov  eax, esi
-		test cl, 0x2                              // Right hand?
+		test cl, INVEN_TYPE_LEFT_HAND             // Right hand?
 		jz   leftHand                             // No
 		call inven_right_hand_
 		jmp  removeFlag
@@ -821,7 +824,7 @@ static void __declspec(naked) drop_ammo_into_weapon_hook() {
 		mov  edx, [esp+0x24+4]                    // from_slot
 		cmp  edx, 1006                            // Hands?
 		jge  skip                                 // Yes
-		lea  edx, [eax+0x2C]                      // Inventory
+		lea  edx, [eax + inventory]               // Inventory
 		mov  ecx, [edx]                           // itemsCount
 		test ecx, ecx
 		jz   skip                                 // inventory is empty (another excess check, but leave it)
@@ -903,8 +906,8 @@ static void __declspec(naked) NPCStage6Fix2() {
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
-		test [ebx + 0x25], 0x08;            // is target multihex?
-		mov  ebx, [ebx + 0x4];              // argument value for make_path_func: target's tilenum (end_tile)
+		test [ebx + flags + 1], 0x08;       // is target multihex?
+		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
 		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
@@ -921,7 +924,7 @@ static void __declspec(naked) MultiHexRetargetTileFix() {
 		jz   isFreeTile;
 		retn;
 isFreeTile:
-		test [ebp + 0x25], 0x08;      // is source multihex?
+		test [ebp + flags + 1], 0x08; // is source multihex?
 		jnz  isMultiHex;
 		retn;
 isMultiHex:
@@ -936,14 +939,14 @@ isMultiHex:
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
-		test [edi + 0x25], 0x08;      // is target multihex?
+		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
-		test [esi + 0x25], 0x08;      // is source multihex?
+		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // move to tile
 multiHex:
 		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + 0x4], edx;        // target's tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
 		je   moveToObject;
 		retn;                         // tilenums are not equal, always move to tile
 moveToObject:
@@ -955,14 +958,14 @@ moveToObject:
 static void __declspec(naked) MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
-		test [edi + 0x25], 0x08;      // is target multihex?
+		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
-		test [esi + 0x25], 0x08;      // is source multihex?
+		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // run to tile
 multiHex:
 		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + 0x4], edx;        // target's tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
 		je   runToObject;
 		retn;                         // tilenums are not equal, always run to tile
 runToObject:
@@ -975,12 +978,12 @@ runToObject:
 static void __declspec(naked) action_melee_hack() {
 	__asm {
 		mov  edx, 0x4113DC
-		mov  ebx, [eax + 0x20]                    // objStruct->FID
+		mov  ebx, [eax + artFid]                  // objStruct->FID
 		and  ebx, 0x0F000000
 		cmp  ebx, OBJ_TYPE_CRITTER << 24          // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -991,12 +994,12 @@ end:
 static void __declspec(naked) action_ranged_hack() {
 	__asm {
 		mov  edx, 0x411B6D
-		mov  ebx, [eax + 0x20]                    // objStruct->FID
+		mov  ebx, [eax + artFid]                  // objStruct->FID
 		and  ebx, 0x0F000000
 		cmp  ebx, OBJ_TYPE_CRITTER << 24          // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x411BD2
 end:
@@ -1020,12 +1023,12 @@ static void __declspec(naked) set_new_results_hack() {
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
 		jne  end;                                 // This is not a critter
-		mov  dl, [esi + 0x44];
+		mov  dl, [esi + damageFlags];
 		test dl, DAM_DEAD;                        // DAM_DEAD?
 		jnz  end;                                 // This is a corpse
 		and  dl, ~DAM_KNOCKED_OUT;                // Unset DAM_KNOCKED_OUT
 		or   dl, DAM_KNOCKED_DOWN;                // Set DAM_KNOCKED_DOWN
-		mov  [esi + 0x44], dl;
+		mov  [esi + damageFlags], dl;
 end:
 		xor  eax, eax;
 		inc  eax;
@@ -1039,19 +1042,19 @@ end:
 static void __declspec(naked) obj_load_func_hack() {
 	static const DWORD obj_load_func_Ret = 0x488F14;
 	__asm {
-		test word ptr [eax + 0x24], 0x400; // ObjectFlag Temp (engine code)
+		test word ptr [eax + flags], Temp; // engine code
 		jz   fix;
 		retn;
 fix:
-		mov  edi, [eax + 0x64];
+		mov  edi, [eax + protoId];
 		and  edi, 0x0F000000;
 		cmp  edi, OBJ_TYPE_CRITTER << 24;
 		jne  skip;
-		test byte ptr [eax + 0x44], DAM_DEAD;
+		test byte ptr [eax + damageFlags], DAM_DEAD;
 		jnz  skip;     // is dead
-		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT;
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
 		jnz  clear;    // Yes
-		test byte ptr [eax + 0x44], DAM_KNOCKED_DOWN;
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN;
 		jz   clear;    // No
 		push eax;
 		xor  ecx, ecx;
@@ -1062,7 +1065,7 @@ fix:
 		call queue_add_; // run stand up anim
 		pop  eax;
 clear:
-		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
+		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
 skip:
 		add  esp, 4;
 		jmp  obj_load_func_Ret;
@@ -1071,26 +1074,26 @@ skip:
 
 static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
-		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
+		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
 		jmp  dude_stand_;
 	}
 }
 
 static void __declspec(naked) combat_over_hack() {
 	__asm {
-		mov  [eax + 0x3C], edx;
-		and  word ptr [eax + 0x44], ~DAM_LOSE_TURN;
+		mov  [eax + combatState], edx;
+		and  word ptr [eax + damageFlags], ~DAM_LOSE_TURN;
 		retn;
 	}
 }
 
 static void __declspec(naked) combat_over_hook() {
 	__asm {
-		test byte ptr [eax + 0x44], DAM_DEAD;
+		test byte ptr [eax + damageFlags], DAM_DEAD;
 		jz   fix;
 		retn; // the dead cannot reload their weapons
 fix:
-		test byte ptr [eax + 0x44], DAM_KNOCKED_DOWN;
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN;
 		jz   skip;
 		push eax;
 		call dude_standup_;
@@ -1105,10 +1108,10 @@ static void __declspec(naked) combat_ctd_init_hack() {
 	static const DWORD combat_ctd_init_Ret = 0x422F11;
 	__asm {
 		mov  [esi + 0x24], eax;                   // ctd.targetTile
-		mov  eax, [ebx + 0x54];                   // pobj.who_hit_me
+		mov  eax, [ebx + whoHitMe];               // pobj.who_hit_me
 		inc  eax;
 		jnz  end;                                 // jump if whoHitMe != -1
-		mov  [ebx + 0x54], eax;                   // pobj.who_hit_me = 0
+		mov  [ebx + whoHitMe], eax;               // pobj.who_hit_me = 0
 end:
 		jmp  combat_ctd_init_Ret;
 	}
@@ -1116,7 +1119,7 @@ end:
 
 static void __declspec(naked) obj_save_hack() {
 	__asm { // edx - combat_data
-		mov  eax, [eax + 0x68];                    // pobj.who_hit_me.cid
+		mov  eax, [eax + cid];                     // pobj.who_hit_me.cid
 		test byte ptr ds:[_combat_state], 1;       // in combat?
 		jz   clear;                                // No
 		cmp  dword ptr [edx], 0;                   // in combat?
@@ -1131,9 +1134,10 @@ skip:
 }
 
 static void __declspec(naked) action_explode_hack() {
+	using namespace Scripts;
 	__asm {
 		mov  edx, destroy_p_proc
-		mov  eax, [esi+0x78]                      // pobj.sid
+		mov  eax, [esi + scriptId]                // pobj.sid
 		call exec_script_proc_
 		xor  edx, edx
 		dec  edx
@@ -1153,9 +1157,9 @@ static void __declspec(naked) action_explode_hack1() {
 
 static void __declspec(naked) barter_attempt_transaction_hack() {
 	__asm {
-		cmp  dword ptr [eax+0x64], PID_ACTIVE_GEIGER_COUNTER
+		cmp  dword ptr [eax + protoId], PID_ACTIVE_GEIGER_COUNTER
 		je   found
-		cmp  dword ptr [eax+0x64], PID_ACTIVE_STEALTH_BOY
+		cmp  dword ptr [eax + protoId], PID_ACTIVE_STEALTH_BOY
 		je   found
 		mov  eax, 0x474D34
 		jmp  eax
@@ -1199,10 +1203,10 @@ static void __declspec(naked) combat_hack() {
 skip:
 		pop  edx
 		xchg edx, eax                             // eax = source, edx = Max action points
-		mov  [eax+0x40], edx                      // pobj.curr_mp
+		mov  [eax + movePoints], edx              // pobj.curr_mp
 		test byte ptr ds:[_combat_state], 1       // in combat?
 		jz   end                                  // No
-		mov  edx, [eax+0x68]                      // pobj.cid
+		mov  edx, [eax + cid]                     // pobj.cid
 		cmp  edx, -1
 		je   end
 		push eax
@@ -1302,7 +1306,7 @@ skip:
 		call item_get_type_
 		cmp  eax, item_type_container
 		jne  end
-		mov  [ebp+0x7C], edx                      // iobj.owner = _inven_dude
+		mov  [ebp + owner], edx                   // iobj.owner = _inven_dude
 end:
 		pop  ebp
 		pop  edi
@@ -1315,7 +1319,7 @@ static void __declspec(naked) inven_item_wearing() {
 	__asm {
 		mov  esi, ds:[_inven_dude]
 		xchg ebx, eax                             // ebx = source
-		mov  eax, [esi+0x20]
+		mov  eax, [esi + artFid]
 		and  eax, 0xF000000
 		sar  eax, 0x18
 		test eax, eax                             // check if object FID type flag is set to item
@@ -1328,7 +1332,7 @@ static void __declspec(naked) inven_item_wearing() {
 		call obj_top_environment_
 		test eax, eax                             // has an owner?
 		jz   skip                                 // No
-		mov  ecx, [eax+0x20]
+		mov  ecx, [eax + artFid]
 		and  ecx, 0xF000000
 		sar  ecx, 0x18
 		cmp  ecx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
@@ -1369,8 +1373,8 @@ end:
 
 static int __stdcall ItemCountFix(TGameObj* who, TGameObj* item) {
 	int count = 0;
-	for (int i = 0; i < who->invenCount; i++) {
-		TInvenRec* tableItem = &who->invenTablePtr[i];
+	for (int i = 0; i < who->invenSize; i++) {
+		TInvenRec* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (ItemGetType(tableItem->object) == item_type_container) {
@@ -1436,11 +1440,11 @@ end:
 
 static void __declspec(naked) combat_display_hack() {
 	__asm {
-		test [esi + 0x24], 0x8;                   // ctd.mainTarget (ObjectFlag Flat)
+		test [esi + flags], Flat;                 // ctd.mainTarget
 		jnz  end;                                 // Main target is flat (engine jump)
 		cmp  eax, OBJ_TYPE_CRITTER << 24;         // Is this a critter?
 		je   end;                                 // Yes (engine no jump)
-		cmp  dword ptr [ecx + 0x78], -1;          // Does the target have a script?
+		cmp  dword ptr [ecx + scriptId], -1;      // Does the target have a script?
 //		jne  hasScript;                           // Yes (engine no jump)
 		lahf;
 		xor  ah, 0x40; // invert ZF (01000000b)
@@ -1526,10 +1530,10 @@ end:
 static void __declspec(naked) ai_combat_turn_run_hook() {
 	__asm {
 		call  combat_turn_run_;
-		movzx dx, word ptr [esi + 0x44]; // combat_data.results
+		movzx dx, word ptr [esi + damageFlags]; // combat_data.results
 		test  dx, DAM_DEAD or DAM_KNOCKED_OUT or DAM_LOSE_TURN;
 		jz    end;
-		mov   [esi + 0x40], 0;           // pobj.curr_mp (source reset ap)
+		mov   [esi + movePoints], 0;            // pobj.curr_mp (source reset ap)
 end:
 		retn;
 	}
@@ -1695,11 +1699,11 @@ skip:
 static void __declspec(naked) op_obj_can_see_obj_hack() {
 	__asm {
 		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
-		mov  ecx, [eax + 0x4];              // source.tile
+		mov  ecx, [eax + tile];             // source.tile
 		cmp  ecx, -1;
 		jz   end;
-		mov  eax, [eax + 0x28];         // source.elev
-		mov  edi, [edx + 0x28];         // target.elev
+		mov  eax, [eax + elevation];    // source.elev
+		mov  edi, [edx + elevation];    // target.elev
 		cmp  eax, edi;                  // check source.elev == target.elev
 		retn;
 end:
@@ -1858,7 +1862,7 @@ static void __declspec(naked) process_rads_hack() {
 	__asm {
 		test ebp, ebp;
 		jl   fix;
-		test byte ptr [ecx + 0x44], DAM_DEAD;
+		test byte ptr [ecx + damageFlags], DAM_DEAD;
 		jnz  fix;
 		retn;
 fix:
@@ -2008,7 +2012,7 @@ static void __declspec(naked) op_use_obj_on_obj_hack() {
 	__asm {
 		test eax, eax; // source
 		jz   fail;
-		mov  edx, [eax + 0x64];
+		mov  edx, [eax + protoId];
 		shr  edx, 24;
 		cmp  dword ptr [esp + 4], eax; // target != source
 		jne  skip;
@@ -2026,7 +2030,7 @@ static void __declspec(naked) op_use_obj_hack() {
 	__asm {
 		test eax, eax; // source
 		jz   fail;
-		mov  edx, [eax + 0x64];
+		mov  edx, [eax + protoId];
 		shr  edx, 24;
 		retn;
 fail:
@@ -2068,7 +2072,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		retn;
 fix:
 		xor  eax, eax;
-		mov  edx, [esi + 0x40];
+		mov  edx, [esi + ammoPid];
 		test edx, edx;
 		js   skip;
 		mov  eax, 4; // set GUNS if has ammo pid
@@ -2091,11 +2095,11 @@ static void __declspec(naked) partyFixMultipleMembers_hack() {
 	__asm {
 		cmp  esi, edx;
 		je   skip;
-		mov  eax, [esi + 0x64];
+		mov  eax, [esi + protoId];
 		sar  eax, 24;
 		cmp  eax, OBJ_TYPE_CRITTER;
 		jne  skip;
-		test [esi + 0x44], DAM_DEAD;
+		test [esi + damageFlags], DAM_DEAD;
 		cmovnz edx, esi;
 skip:
 		retn;
@@ -2128,7 +2132,7 @@ static DWORD dudeScriptID;
 static void __declspec(naked) obj_load_dude_hook0() {
 	__asm {
 		mov  eax, ds:[_obj_dude];
-		mov  eax, [eax + 0x78];
+		mov  eax, [eax + scriptId];
 		mov  dudeScriptID, eax;
 		retn;
 	}
@@ -2137,7 +2141,7 @@ static void __declspec(naked) obj_load_dude_hook0() {
 static void __declspec(naked) obj_load_dude_hook1() {
 	__asm {
 		mov  ebx, dudeScriptID;
-		mov  [eax + 0x78], ebx;
+		mov  [eax + scriptId], ebx;
 		retn;
 	}
 }
@@ -2243,7 +2247,7 @@ isDude:
 		test ebx, ebx;
 		jl   skip; // dist < 0
 		sub  ebx, ds:[_combat_free_move];
-		cmp  ebx, [edi + 0x40];
+		cmp  ebx, [edi + movePoints];
 		jge  skip; // dist >= source.curr_mp
 		test eax, eax;
 		jnz  skip;
@@ -2428,12 +2432,12 @@ end:
 static void __declspec(naked) combat_should_end_hack() {
 	static const DWORD combat_should_end_break = 0x422D00;
 	__asm { // ecx = dude.team_num
-		cmp  ecx, [ebp + 0x50];      // npc->combat_data.who_hit_me.team_num (engine code)
-		je   break;                  // attacker is in the player's team
-		test [ebp + 0x44], DAM_DEAD; // npc->combat_data.who_hit_me.damageFlags
-		jz   break;                  // target is still alive
-		test byte ptr [edx], 1;      // npc->combat_data.combat_state
-		jnz  break;                  // npc is in combat
+		cmp  ecx, [ebp + teamNum];          // npc->combat_data.who_hit_me.team_num (engine code)
+		je   break;                         // attacker is in the player's team
+		test [ebp + damageFlags], DAM_DEAD; // npc->combat_data.who_hit_me.damageFlags
+		jz   break;                         // target is still alive
+		test byte ptr [edx], 1;             // npc->combat_data.combat_state
+		jnz  break;                         // npc is in combat
 		retn; // check next critter
 break:
 		add  esp, 4;
@@ -2443,7 +2447,7 @@ break:
 
 static void __declspec(naked) wmInterfaceInit_hack() {
 	__asm {
-		mov  eax, 633; // GVAR_CAR_PLACED_TILE
+		mov  eax, GVAR_CAR_PLACED_TILE;
 		cmp  eax, dword ptr ds:[_num_game_global_vars];
 		jge  skip;
 		mov  edx, ds:[_game_global_vars];

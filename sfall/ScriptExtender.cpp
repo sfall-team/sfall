@@ -444,7 +444,7 @@ static void* opcodes[0x300];
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
-TScript OverrideScriptStruct = {0};
+TScript overrideScriptStruct = {0};
 
 //eax contains the script pointer, edx contains the opcode*4
 
@@ -891,39 +891,39 @@ static void InitOpcodeMetaTable() {
 //END OF SCRIPT FUNCTIONS
 
 long GetScriptReturnValue() {
-	return OverrideScriptStruct.return_value;
+	return overrideScriptStruct.returnValue;
 }
 
 long GetResetScriptReturnValue() {
 	long val = GetScriptReturnValue();
-	OverrideScriptStruct.return_value = 0;
+	overrideScriptStruct.returnValue = 0;
 	return val;
 }
 
 static DWORD __stdcall FindSid(DWORD script) {
 	std::tr1::unordered_map<DWORD, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
-		DWORD scriptId = overrideIt->second.object->scriptID; // script
-		OverrideScriptStruct.script_id = scriptId;
+		DWORD scriptId = overrideIt->second.object->scriptId; // script
+		overrideScriptStruct.id = scriptId;
 		if (scriptId != -1) {
 			if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		OverrideScriptStruct.self_obj = overrideIt->second.object;
-		OverrideScriptStruct.target_obj = overrideIt->second.object;
+		overrideScriptStruct.selfObject = overrideIt->second.object;
+		overrideScriptStruct.targetObject = overrideIt->second.object;
 		if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
 	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
 		if (timedEvent && timedEvent->script->ptr == script) {
-			OverrideScriptStruct.fixed_param = timedEvent->fixed_param;
+			overrideScriptStruct.fixedParam = timedEvent->fixed_param;
 		} else {
-			OverrideScriptStruct.fixed_param = 0;
+			overrideScriptStruct.fixedParam = 0;
 		}
-		OverrideScriptStruct.target_obj = 0;
-		OverrideScriptStruct.self_obj = 0;
-		OverrideScriptStruct.return_value = 0;
+		overrideScriptStruct.targetObject = 0;
+		overrideScriptStruct.selfObject = 0;
+		overrideScriptStruct.returnValue = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
@@ -952,7 +952,7 @@ override_script:
 		test edx, edx;
 		jz   skip;
 		add  esp, 4;
-		lea  eax, OverrideScriptStruct;
+		lea  eax, overrideScriptStruct;
 		mov  [edx], eax;
 		mov  eax, -2;
 		retn;
@@ -980,7 +980,7 @@ static void __declspec(naked) ScrPtrHack() {
 skip:
 		cmp  eax, -3;
 		jne  end;
-		lea  eax, OverrideScriptStruct;
+		lea  eax, overrideScriptStruct;
 		mov  [edx], eax;
 		mov  esi, [eax]; // script.id
 		xor  eax, eax;
@@ -1130,6 +1130,7 @@ static void __declspec(naked) FreeProgramHook() {
 }
 
 static void __declspec(naked) CombatBeginHook() {
+	using namespace Scripts;
 	__asm {
 		push eax;
 		call scr_set_ext_param_;
@@ -1140,6 +1141,7 @@ static void __declspec(naked) CombatBeginHook() {
 }
 
 static void __declspec(naked) CombatOverHook() {
+	using namespace Scripts;
 	__asm {
 		push eax;
 		call scr_set_ext_param_;
@@ -1263,10 +1265,10 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 		mov  scriptPtr, eax;
 	}
 	if (scriptPtr) {
-		const char** procTable = (const char **)_procTableStrs;
+		const char** procTable = ptr_procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
-		for (int i = 0; i <= SCRIPT_PROC_MAX; i++) {
+		for (int i = 0; i < Scripts::count; ++i) {
 			prog.procLookup[i] = GetScriptProcByName(prog.ptr, procTable[i]);
 		}
 		prog.initialized = 0;
@@ -1335,7 +1337,7 @@ void LoadGlobalScripts() {
 			if (prog.ptr) {
 				dlogr(" Done", DL_SCRIPT);
 				sGlobalScript gscript = sGlobalScript(prog);
-				gscript.startProc = prog.procLookup[start]; // get 'start' procedure position
+				gscript.startProc = prog.procLookup[Scripts::start]; // get 'start' procedure position
 				globalScripts.push_back(gscript);
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
@@ -1390,7 +1392,7 @@ void RunScriptProc(sScriptProgram* prog, const char* procName) {
 }
 
 void RunScriptProc(sScriptProgram* prog, DWORD procId) {
-	if (procId > 0 && procId <= SCRIPT_PROC_MAX) {
+	if (procId > 0 && procId < Scripts::count) {
 		DWORD procNum = prog->procLookup[procId];
 		if (procNum != -1) {
 			RunScriptProcByNum(prog->ptr, procNum);
@@ -1399,7 +1401,7 @@ void RunScriptProc(sScriptProgram* prog, DWORD procId) {
 }
 
 int RunScriptStartProc(sScriptProgram* prog) {
-	DWORD procNum = prog->procLookup[start];
+	DWORD procNum = prog->procLookup[Scripts::start];
 	if (procNum != -1) {
 		RunScriptProcByNum(prog->ptr, procNum);
 	}
@@ -1507,7 +1509,7 @@ void RunGlobalScripts3() {
 }
 
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
-	if (procId == map_enter_p_proc) {
+	if (procId == Scripts::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
 			DWORD progPtr = it->prog.ptr;
@@ -1516,7 +1518,7 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 				call runProgram_;
 			}
 		}
-	} else if (procId == map_exit_p_proc) {
+	} else if (procId == Scripts::map_exit_p_proc) {
 		ClearEventsOnMapExit(); // for reordering the execution of functions before exiting the map
 	}
 
@@ -1534,7 +1536,7 @@ static DWORD HandleTimedEventScripts() {
 		if (currentTime >= timerIt->time) {
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
 			DevPrintf("\n[TimedEventScripts] run event: %d", timerIt->time);
-			RunScriptProc(timerIt->script, timed_event_p_proc);
+			RunScriptProc(timerIt->script, Scripts::timed_event_p_proc);
 			wasRunning = true;
 		} else {
 			break;

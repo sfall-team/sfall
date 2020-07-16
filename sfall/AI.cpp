@@ -25,6 +25,8 @@
 
 #include "AI.h"
 
+using namespace Fields;
+
 typedef std::tr1::unordered_map<TGameObj*, TGameObj*>::const_iterator iter;
 
 static std::tr1::unordered_map<TGameObj*, TGameObj*> targets;
@@ -32,11 +34,11 @@ static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
 // Returns the friendly critter or any blocking object in the line of fire
 TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
-	if (object && object->pid >> 24 == OBJ_TYPE_CRITTER && object->teamNum != team) { // is not friendly fire
+	if (object && object->Type() == OBJ_TYPE_CRITTER && object->teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
 
-		if (object->flags & 0x800) { // ObjectFlag MultiHex
+		if (object->flags & ObjectFlag::MultiHex) {
 			long dir = TileDir(objTile, targetTile);
 			objTile = TileNumInDirection(objTile, dir, 1);
 			if (objTile == targetTile) return nullptr; // just in case
@@ -54,7 +56,7 @@ TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
 	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->teamNum);
-	return (!object || ((object->artFid >> 24) & 0x0F) == OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
+	return (!object || object->TypeFid() == OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
 }
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
@@ -73,7 +75,7 @@ static void __declspec(naked) combat_ai_hook_FleeFix() {
 reTarget:
 		and  byte ptr [ebp], ~(4 | 8); // unset Flee/ReTarget flags
 		xor  edi, edi;
-		mov  dword ptr [esi + 0x54], edi; // critter.who_hit_me
+		mov  dword ptr [esi + whoHitMe], edi;
 		add  esp, 4;
 		jmp  combat_ai_hook_flee_Ret;
 	}
@@ -91,7 +93,7 @@ end:
 tryHeal:
 		mov  eax, esi;
 		call ai_check_drugs_;
-		cmp  [esi + 0x58], edx; // edx - minimum hp, below which NPC will run away
+		cmp  [esi + health], edx; // edx - minimum hp, below which NPC will run away
 		jge  end;
 		retn; // flee
 	}
@@ -184,7 +186,7 @@ static void __declspec(naked) ai_danger_source_hack_pm_newfind() {
 		jnz  hasTarget;
 		retn;
 hasTarget:
-		test [ecx + 0x44], DAM_DEAD;
+		test [ecx + damageFlags], DAM_DEAD;
 		jz   isNotDead;
 		xor  ecx, ecx;
 isNotDead:
@@ -207,7 +209,7 @@ process:
 		call process_bk_;
 		jmp  process;
 next:
-		mov  eax, [esi + 0x40];
+		mov  eax, [esi + movePoints];
 		cmp  eax, RetryCombatMinAP;
 		jl   end;
 		cmp  eax, RetryCombatLastAP;
@@ -233,18 +235,18 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
-			proto = GetProtoPtr(weapon->pid);
+			proto = GetProtoPtr(weapon->protoId);
 			maxAmmo = *(long*)(proto + 96); // item.weapon.maxAmmo
 		}
 		if (weapon->itemCharges >= maxAmmo) break; // magazine is full
 
-		long pidAmmo = ammo->pid;
+		long pidAmmo = ammo->protoId;
 		ObjDestroy(ammo);
 		ammo = nullptr;
 
 		DWORD currentSlot = -1; // begin find at first slot
 		while (TGameObj* ammoFind = InvenFindType(critter, item_type_ammo, &currentSlot)) {
-			if (ammoFind->pid == pidAmmo) {
+			if (ammoFind->protoId == pidAmmo) {
 				ammo = ammoFind;
 				break;
 			}
@@ -259,7 +261,7 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 
 static void __declspec(naked) item_w_reload_hook() {
 	__asm {
-		cmp  dword ptr [eax + 0x64], PID_SOLAR_SCORCHER;
+		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
 		je   skip;
 		push ecx;
 		push esi;      // source
@@ -313,7 +315,7 @@ static void __declspec(naked) cai_perform_distance_prefs_hack() {
 		push 0;        // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
 		call sf_item_w_mp_cost;
-		mov  edx, [esi + 0x40];
+		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
 		jle  moveAway; // <= 0
 		lea  edx, [edx + ebx - 1];
@@ -344,7 +346,7 @@ static void __declspec(naked) ai_move_away_hook() {
 		jmp  ai_cap_;
 fix:
 		neg  ebx;
-		mov  eax, [esi + 0x40]; // Current Action Points
+		mov  eax, [esi + movePoints]; // Current Action Points
 		cmp  ebx, eax;
 		cmovg ebx, eax; // if (distance > ap) dist = ap
 		add  esp, 4;

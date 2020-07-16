@@ -353,7 +353,7 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 		mov  mObj, edx;
 	}
 
-	if ((pidNPCToInc && (mObj && mObj->pid == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
+	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
 		DebugPrintf(fmt, name);
 
 		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
@@ -420,11 +420,11 @@ static void __stdcall op_get_npc_level2() {
 						mov  critterName, eax;
 					}
 					if (!_stricmp(name, critterName)) { // found npc
-						pid = ((TGameObj*)*members)->pid;
+						pid = ((TGameObj*)*members)->protoId;
 						break;
 					}
 				} else {
-					DWORD _pid = ((TGameObj*)*members)->pid;
+					DWORD _pid = ((TGameObj*)*members)->protoId;
 					if (findPid == _pid) {
 						pid = _pid;
 						break;

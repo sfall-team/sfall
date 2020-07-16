@@ -62,19 +62,19 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 	int totalSize = ItemCCurrSize(critter);
 
-	if (((critter->artFid >> 24) & 0x0F) == OBJ_TYPE_CRITTER) {
+	if (critter->TypeFid() == OBJ_TYPE_CRITTER) {
 		TGameObj* item = InvenRightHand(critter);
-		if (item && !(item->flags & 0x2000000)) { // ObjectFlag Right_Hand
+		if (item && !(item->flags & ObjectFlag::Right_Hand)) {
 			totalSize += ItemSize(item);
 		}
 
 		TGameObj* itemL = InvenLeftHand(critter);
-		if (itemL && item != itemL && !(itemL->flags & 0x1000000)) { // ObjectFlag Left_Hand
+		if (itemL && item != itemL && !(itemL->flags & ObjectFlag::Left_Hand)) {
 			totalSize += ItemSize(itemL);
 		}
 
 		item = InvenWorn(critter);
-		if (item && !(item->flags & 0x4000000)) { // ObjectFlag Worn
+		if (item && !(item->flags & ObjectFlag::Worn)) {
 			totalSize += ItemSize(item);
 		}
 	}
@@ -89,7 +89,7 @@ static int __stdcall CritterGetMaxSize(TGameObj* critter) {
 	}
 
 	int statSize = 0;
-	char* proto = GetProtoPtr(critter->pid);
+	char* proto = GetProtoPtr(critter->protoId);
 	if (proto != nullptr) {
 		statSize = *(int*)(proto + 76) + *(int*)(proto + 216); // The unused stat in the base + extra block
 	}
@@ -322,7 +322,7 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 
 static char SuperStimMsg[128];
 static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
-	if (item->pid != PID_SUPER_STIMPAK || !target || (target->pid & 0xFF000000) != (OBJ_TYPE_CRITTER << 24)) { // 0x01000000
+	if (item->protoId != PID_SUPER_STIMPAK || !target || target->Type() != OBJ_TYPE_CRITTER) {
 		return 0;
 	}
 
@@ -352,6 +352,7 @@ end:
 }
 
 static void __declspec(naked) SetDefaultAmmo() {
+	using namespace Fields;
 	__asm {
 		push ecx;
 		mov  ecx, edx;                     // ecx = item
@@ -359,15 +360,15 @@ static void __declspec(naked) SetDefaultAmmo() {
 		call item_get_type_;
 		cmp  eax, item_type_weapon;        // is it item_type_weapon?
 		jne  end;                          // no
-		cmp  dword ptr [ecx + 0x3C], 0;    // is there any ammo in the weapon?
+		cmp  dword ptr [ecx + charges], 0; // is there any ammo in the weapon?
 		jne  end;                          // yes
 		sub  esp, 4;
 		mov  edx, esp;
-		mov  eax, [ecx + 0x64];            // eax = weapon pid
+		mov  eax, [ecx + protoId];         // eax = weapon pid
 		call proto_ptr_;
 		mov  edx, [esp];
 		mov  eax, [edx + 0x5C];            // eax = default ammo pid
-		mov  [ecx + 0x40], eax;            // set current ammo proto
+		mov  [ecx + ammoPid], eax;         // set current ammo proto
 		add  esp, 4;
 end:
 		pop  ecx;
@@ -524,12 +525,13 @@ skip:
 }
 
 static void __declspec(naked) op_inven_unwield_hook() {
+	using namespace Fields;
 	__asm {
-		mov  ecx, [eax + 0x64];
+		mov  ecx, [eax + protoId];
 		and  ecx, 0x0F000000;
 		cmp  ecx, OBJ_TYPE_CRITTER << 24;
 		jne  skip;
-		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT;
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
 		jz   skip;
 		push 0x505AFC; // "But is already Inactive (Dead/Stunned/Invisible)"
 		call debug_printf_;
@@ -550,8 +552,9 @@ skip:
 }
 
 static void __declspec(naked) op_wield_obj_critter_hook() {
+	using namespace Fields;
 	__asm {
-		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT;
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
 		jz   skip;
 		mov  eax, -1;
 		retn;

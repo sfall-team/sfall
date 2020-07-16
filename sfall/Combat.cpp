@@ -122,7 +122,7 @@ DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
 	long anim = ItemWAnimWeap(weapon, hitMode);
-	if (anim == 46 || anim == 47) {   // ANIM_fire_burst or ANIM_fire_continuous
+	if (anim == ANIM_fire_burst || anim == ANIM_fire_continuous) {
 		rounds = ItemWRounds(weapon); // ammo in burst
 	}
 	AmmoCostHook_Script(1, weapon, rounds); // get rounds cost from hook
@@ -165,12 +165,13 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 static void __declspec(naked) ai_try_attack_hook() {
 	static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
 	static const DWORD ai_try_attack_continue = 0x42A929;
+	using namespace Fields;
 	__asm {
 		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
 		cmp  ebx, ATKTYPE_RWEAPON_SECONDARY;
 		jne  searchAmmo;
 		mov  edx, [esp + 0x364 - 0x3C]; // weapon
-		mov  eax, [edx + 0x3C];         // curr ammo
+		mov  eax, [edx + charges];      // curr ammo
 		test eax, eax;
 		jnz  tryAttack;                 // have ammo
 searchAmmo:
@@ -211,7 +212,7 @@ static void __declspec(naked) compute_spray_hack() {
 static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* object, double val) {
 	for (size_t i = 0; i < mods->size(); i++) {
 		KnockbackModifier* mod = &(*mods)[i];
-		if (mod->id == object->ID) {
+		if (mod->id == object->id) {
 			switch (mod->type) {
 			case 0:
 				val = mod->value;
@@ -265,7 +266,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 
 static int __fastcall HitChanceMod(int base, TGameObj* critter) {
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
-		if (critter->ID == hitChanceMods[i].id) {
+		if (critter->id == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
 		}
 	}
@@ -284,7 +285,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 
 static long __fastcall CheckDisableBurst(TGameObj* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter->ID) {
+		if (noBursts[i] == critter->id) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
@@ -310,21 +311,21 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 	std::vector<KnockbackModifier>* mods;
 	switch (mode) {
 	case 0:
-		if (object->pid >> 24 != OBJ_TYPE_ITEM) {
+		if (object->Type() != OBJ_TYPE_ITEM) {
 			DebugPrintf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
 			return;
 		}
 		mods = &mWeapons;
 		break;
 	case 1:
-		if (object->pid >> 24 != OBJ_TYPE_CRITTER) {
+		if (object->Type() != OBJ_TYPE_CRITTER) {
 			DebugPrintf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
 			return;
 		}
 		mods = &mTargets;
 		break;
 	case 2:
-		if (object->pid >> 24 != OBJ_TYPE_CRITTER) {
+		if (object->Type() != OBJ_TYPE_CRITTER) {
 			DebugPrintf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
 			return;
 		}
@@ -339,7 +340,7 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 			: SetObjectUniqueID(object);
 
 	KnockbackModifier mod = { id, type, (double)val };
-	for (DWORD i = 0; i < mods->size(); i++) {
+	for (size_t i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
 			(*mods)[i] = mod;
 			return;
@@ -364,7 +365,7 @@ void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 		return;
 	}
 	for (size_t i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == object->ID) {
+		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
 			if (mode == 0) SetNewEngineID(object); // revert to engine range id
 			return;
@@ -378,7 +379,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		baseHitChance.mod = mod;
 		return;
 	}
-	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
+	if (critter->Type() != OBJ_TYPE_CRITTER) return;
 	long id = SetObjectUniqueID(critter);
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
@@ -395,7 +396,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 }
 
 void __stdcall SetNoBurstMode(TGameObj* critter, bool on) {
-	if (critter == *ptr_obj_dude || critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
+	if (critter == *ptr_obj_dude || critter->Type() != OBJ_TYPE_CRITTER) return;
 
 	long id = SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
@@ -408,7 +409,7 @@ void __stdcall SetNoBurstMode(TGameObj* critter, bool on) {
 }
 
 static int __fastcall AimedShotTest(DWORD pid) {
-	if (pid) pid = ((TGameObj*)pid)->pid;
+	if (pid) pid = ((TGameObj*)pid)->protoId;
 	for (size_t i = 0; i < disabledAS.size(); i++) {
 		if (disabledAS[i] == pid) return -1;
 	}

@@ -45,15 +45,16 @@ c15:
 }
 
 static void __declspec(naked) register_object_take_out_hack() {
+	using namespace Fields;
 	__asm {
 		push ecx;
 		push eax;
 		mov  ecx, edx;                            // ID1
-		mov  edx, [eax + 0x1C];                   // cur_rot
+		mov  edx, [eax + rotation];               // cur_rot
 		inc  edx;
 		push edx;                                 // ID3
 		xor  ebx, ebx;                            // ID2
-		mov  edx, [eax + 0x20];                   // fid
+		mov  edx, [eax + artFid];                 // fid
 		and  edx, 0xFFF;                          // Index
 		xor  eax, eax;
 		inc  eax;                                 // Obj_Type CRITTER
@@ -455,8 +456,8 @@ static void SkipLoadingGameSettingsPatch() {
 static void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
-		SafeWrite8(0x46ECE9, WIN_Exclusive); // Player Inventory/Loot/UseOn
-		SafeWrite8(0x41B966, WIN_Exclusive); // Automap
+		SafeWrite8(0x46ECE9, WinFlags::Exclusive); // Player Inventory/Loot/UseOn
+		SafeWrite8(0x41B966, WinFlags::Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -567,7 +568,7 @@ void MiscPatchesInit() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", 491); // GVAR_MODOC_SHITTY_DEATH
+	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
 	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {

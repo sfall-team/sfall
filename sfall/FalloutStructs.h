@@ -21,7 +21,7 @@
 #include <Windows.h>
 
 /******************************************************************************/
-/* FALLOUT2.EXE structs, function offsets and wrappers should be placed here  */
+/* FALLOUT2.EXE structs should be placed here  */
 /******************************************************************************/
 
 struct TGameObj;
@@ -59,20 +59,20 @@ struct TInvenRec {
 // Game objects (items, critters, etc.), including those stored in inventories.
 #pragma pack(push, 1)
 struct TGameObj {
-	long ID;
+	long id;
 	long tile;
 	long x;
 	long y;
 	long sx;
 	long sy;
-	long currentFrm;
+	long frm;
 	long rotation;
 	long artFid;
 	long flags;
 	long elevation;
-	long invenCount;
+	long invenSize;
 	long invenMax;
-	TInvenRec *invenTablePtr;
+	TInvenRec *invenTable;
 	char gap_38[4];
 	long itemCharges;
 	long critterAP_itemAmmoPid;
@@ -84,14 +84,21 @@ struct TGameObj {
 	long health;         // critter
 	long rads;           // critter
 	long poison;         // critter
-	DWORD pid;
+	DWORD protoId;
 	long cid;
 	long lightDistance;
 	long lightIntensity;
 	DWORD outline;
-	long scriptID;
+	long scriptId;
 	TGameObj* owner;
-	long script_index;
+	long scriptIndex;
+
+	inline char Type() {
+		return (protoId >> 24);
+	}
+	inline char TypeFid() {
+		return ((artFid >> 24) & 0x0F);
+	}
 };
 #pragma pack(pop)
 
@@ -125,29 +132,29 @@ struct TComputeAttack {
 // Script instance attached to an object or tile (spatial script).
 #pragma pack(push, 1)
 struct TScript {
-	long script_id;
+	long id;
 	long next;
 	// first 3 bits - elevation, rest - tile number
-	long elevation_and_tile;
-	long spatial_radius;
+	long elevationAndTile;
+	long spatialRadius;
 	long flags;
-	long script_index;
-	TProgram *program_ptr;
-	long self_obj_id;
-	long local_var_offset;
-	long num_local_vars;
-	long return_value;
+	long scriptIdx;
+	TProgram *program;
+	long selfObjectId;
+	long localVarOffset;
+	long numLocalVars;
+	long returnValue;
 	long action;
-	long fixed_param;
-	TGameObj *self_obj;
-	TGameObj *source_obj;
-	TGameObj *target_obj;
-	long action_num;
-	long script_overrides;
+	long fixedParam;
+	TGameObj *selfObject;
+	TGameObj *sourceObject;
+	TGameObj *targetObject;
+	long actionNum;
+	long scriptOverrides;
 	char gap_48[4];
-	long how_much;
+	long howMuch;
 	char gap_50[4];
-	long procedure_table[28];
+	long procedureTable[28];
 };
 #pragma pack(pop)
 

@@ -28,10 +28,11 @@ static bool explosionsMetaruleReset = false;
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
 static void __declspec(naked) ranged_attack_lighting_fix() {
 	static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
+	using namespace Fields;
 	__asm {
-		mov  eax, [esp + 40];   // source projectile ptr - 1st arg
-		mov  ecx, [eax + 0x70]; // check existing light intensity
-		test ecx, ecx;          // if non-zero, skip obj_set_light call
+		mov  eax, [esp + 40];             // source projectile ptr - 1st arg
+		mov  ecx, [eax + lightIntensity]; // check existing light intensity
+		test ecx, ecx;                    // if non-zero, skip obj_set_light call
 		jnz  skip;
 		mov  ecx, [esp + 0x1C]; // protoPtr of projectile
 		mov  edx, [ecx + 0x0C]; // light radius - 2nd arg
@@ -209,7 +210,7 @@ void ResetExplosionSettings() {
 	// explosion radiuses
 	SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 	// explosion dmgtype
-	SafeWriteBatch<BYTE>(6, explosion_dmg_check_adr); // DMG_explosion
+	SafeWriteBatch<BYTE>(DMG_explosion, explosion_dmg_check_adr);
 	explosionsMetaruleReset = false;
 }
 

@@ -172,7 +172,7 @@ const DWORD* ptr_pip_win              = reinterpret_cast<DWORD*>(_pip_win);
 DWORD* ptr_pipboy_message_file        = reinterpret_cast<DWORD*>(_pipboy_message_file);
 DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
 DWORD* ptr_preload_list_index         = reinterpret_cast<DWORD*>(_preload_list_index);
-DWORD* ptr_procTableStrs              = reinterpret_cast<DWORD*>(_procTableStrs);  // table of procId (from define.h) => procName map
+const char** ptr_procTableStrs        = reinterpret_cast<const char**>(_procTableStrs);  // table of procId (from define.h) => procName map
 MSGList* ptr_proto_main_msg_file      = reinterpret_cast<MSGList*>(_proto_main_msg_file);
 DWORD* ptr_proto_msg_files            = reinterpret_cast<DWORD*>(_proto_msg_files); // array of 6 MSGList elements
 DWORD* ptr_ptable                     = reinterpret_cast<DWORD*>(_ptable);
@@ -1734,7 +1734,7 @@ char* GetProtoPtr(long pid) {
 
 char AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
-		char* proto = GetProtoPtr(weapon->pid);
+		char* proto = GetProtoPtr(weapon->protoId);
 		if (proto != nullptr && *(int*)(proto + 32) == item_type_weapon) {
 			return (char)(*(int*)(proto + 36));
 		}
@@ -1777,7 +1777,7 @@ TGameObj* GetActiveItem() {
 }
 
 bool HeroIsFemale() {
-	return (StatLevel(*ptr_obj_dude, STAT_gender) == 1); // GENDER_FEMALE
+	return (StatLevel(*ptr_obj_dude, STAT_gender) == GENDER_FEMALE);
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
@@ -1794,7 +1794,7 @@ long __fastcall IsRadInfluence() {
 long GetScriptLocalVars(long sid) {
 	TScript* script = nullptr;
 	ScrPtr(sid, &script);
-	return (script) ? script->num_local_vars : 0;
+	return (script) ? script->numLocalVars : 0;
 }
 
 // Returns window ID by x/y coordinate (hidden windows are ignored)
@@ -1804,7 +1804,7 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 	for (int n = countWin; n >= 0; n--) {
 		win = (WINinfo*)ptr_window[n];
 		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
-			if (!(win->flags & WIN_Hidden)) {
+			if (!(win->flags & WinFlags::Hidden)) {
 				break;
 			}
 		}
@@ -1873,8 +1873,8 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 	for (long tile = GetRangeTileNumbers(sourceTile, radius, endTile); tile < endTile; tile++) {
 		TGameObj* obj = ObjFindFirstAtTile(elev, tile);
 		while (obj) {
-			if (type == -1 || type == obj->pid >> 24) {
-				bool multiHex = (obj->flags & 0x800) ? true : false;
+			if (type == -1 || type == obj->Type()) {
+				bool multiHex = (obj->flags & ObjectFlag::MultiHex) ? true : false;
 				if (TileDist(sourceTile, obj->tile) <= (radius + multiHex)) {
 					objs.push_back(obj);
 				}

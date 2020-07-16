@@ -1481,9 +1481,10 @@ endFunc:
 
 static void __declspec(naked) op_obj_art_fid_hack() {
 	static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
+	using namespace Fields;
 	__asm {
-		mov  esi, [edi + 0x20]; // artFid
-		mov  eax, [edi + 0x64]; // protoId
+		mov  esi, [edi + artFid];
+		mov  eax, [edi + protoId];
 		cmp  eax, PID_Player;
 		jne  skip;
 		mov  eax, esi;
@@ -1497,11 +1498,12 @@ skip:
 }
 
 static void __declspec(naked) op_metarule3_hook() {
+	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 0x4C - 0x44 + 8]; // source
 		cmp  edi, ds:[_obj_dude];
 		jne  skip;
-		mov  edi, [edi + 0x64]; // protoId
+		mov  edi, [edi + protoId];
 		cmp  edi, PID_Player;
 		jne  skip;
 		mov  edi, edx; // edx = set fid number

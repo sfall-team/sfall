@@ -119,10 +119,10 @@ static void __stdcall op_set_critter_base_stat2() {
 					  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->pid);
+				char* proto = GetProtoPtr(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_base_stat");
@@ -145,10 +145,10 @@ static void __stdcall op_set_critter_extra_stat2() {
 					  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->pid);
+				char* proto = GetProtoPtr(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_extra_stat");
@@ -171,10 +171,10 @@ static void __stdcall op_get_critter_base_stat2() {
 	const ScriptValue &statArg = opHandler.arg(1);
 
 	if (obj && statArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->pid);
+				char* proto = GetProtoPtr(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[9 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_base_stat");
@@ -198,10 +198,10 @@ static void __stdcall op_get_critter_extra_stat2() {
 	const ScriptValue &statArg = opHandler.arg(1);
 
 	if (obj && statArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->pid);
+				char* proto = GetProtoPtr(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[44 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_extra_stat");
@@ -359,15 +359,16 @@ end:
 }
 
 static void __declspec(naked) op_get_critter_current_ap() {
+	using namespace Fields;
 	__asm {
 		_GET_ARG_INT(fail); // Get function arg and check if valid
 		test eax, eax;
 		jz   fail;
-		mov  edx, [eax + 0x64]; // protoId
+		mov  edx, [eax + protoId];
 		shr  edx, 24;
 		cmp  edx, OBJ_TYPE_CRITTER;
 		jnz  fail;
-		mov  edx, [eax + 0x40];
+		mov  edx, [eax + movePoints];
 end:
 		mov  eax, ebx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT); // Pass back the result
@@ -382,7 +383,7 @@ static void __stdcall op_set_critter_current_ap2() {
 	const ScriptValue &apArg = opHandler.arg(1);
 
 	if (obj && apArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			long ap = apArg.rawValue();
 			if (ap < 0) ap = 0;
 			obj->critterAP_itemAmmoPid = ap;
@@ -440,7 +441,7 @@ static void __stdcall op_set_critter_hit_chance_mod2() {
 					  &modArg = opHandler.arg(2);
 
 	if (obj && maxArg.isInt() && modArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			SetHitChanceMax(obj, maxArg.rawValue(), modArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_hit_chance_mod");
@@ -478,7 +479,7 @@ static void __stdcall op_set_critter_pickpocket_mod2() {
 					  &modArg = opHandler.arg(2);
 
 	if (obj && maxArg.isInt() && modArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			SetPickpocketMax(obj, maxArg.rawValue(), modArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_pickpocket_mod");
@@ -515,7 +516,7 @@ static void __stdcall op_set_critter_skill_mod2() {
 	const ScriptValue &maxArg = opHandler.arg(1);
 
 	if (obj && maxArg.isInt()) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			SetSkillMax(obj, maxArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_skill_mod");

@@ -34,9 +34,9 @@
 static void __stdcall op_remove_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
-		if (object->scriptID != 0xFFFFFFFF) {
-			ScrRemove(object->scriptID);
-			object->scriptID = 0xFFFFFFFF;
+		if (object->scriptId != 0xFFFFFFFF) {
+			ScrRemove(object->scriptId);
+			object->scriptId = 0xFFFFFFFF;
 		}
 	} else {
 		OpcodeInvalidArgs("remove_script");
@@ -48,6 +48,9 @@ static void __declspec(naked) op_remove_script() {
 }
 
 static void __stdcall op_set_script2() {
+	using Scripts::start;
+	using Scripts::map_enter_p_proc;
+
 	TGameObj* object = opHandler.arg(0).asObject();
 	const ScriptValue &scriptIdxArg = opHandler.arg(1);
 
@@ -62,18 +65,18 @@ static void __stdcall op_set_script2() {
 		}
 		scriptIndex--;
 	
-		if (object->scriptID != 0xFFFFFFFF) {
-			ScrRemove(object->scriptID);
-			object->scriptID = 0xFFFFFFFF;
+		if (object->scriptId != 0xFFFFFFFF) {
+			ScrRemove(object->scriptId);
+			object->scriptId = 0xFFFFFFFF;
 		}
-		if (object->pid >> 24 == OBJ_TYPE_CRITTER) {
-			scriptType = SCRIPT_CRITTER;
+		if (object->Type() == OBJ_TYPE_CRITTER) {
+			scriptType = Scripts::SCRIPT_CRITTER;
 		} else {
-			scriptType = SCRIPT_ITEM;
+			scriptType = Scripts::SCRIPT_ITEM;
 		}
 		ObjNewSidInst(object, scriptType, scriptIndex);
 	
-		long scriptId = object->scriptID;
+		long scriptId = object->scriptId;
 		exec_script_proc(scriptId, start);
 		if ((valArg & 0x80000000) == 0) exec_script_proc(scriptId, map_enter_p_proc);
 	} else {
@@ -86,6 +89,8 @@ static void __declspec(naked) op_set_script() {
 }
 
 static void __stdcall op_create_spatial2() {
+	using Scripts::start;
+
 	const ScriptValue &scriptIdxArg = opHandler.arg(0),
 					  &tileArg = opHandler.arg(1),
 					  &elevArg = opHandler.arg(2),
@@ -99,17 +104,17 @@ static void __stdcall op_create_spatial2() {
 
 		long scriptId;
 		TScript* scriptPtr;
-		if (ScrNew(&scriptId, SCRIPT_SPATIAL) == -1 || ScrPtr(scriptId, &scriptPtr) == -1) return;
+		if (ScrNew(&scriptId, Scripts::SCRIPT_SPATIAL) == -1 || ScrPtr(scriptId, &scriptPtr) == -1) return;
 
 		// set spatial script properties:
-		scriptPtr->script_index = scriptIndex - 1;
-		scriptPtr->elevation_and_tile = (elevation << 29) & 0xE0000000 | tile;
-		scriptPtr->spatial_radius = radius;
+		scriptPtr->scriptIdx = scriptIndex - 1;
+		scriptPtr->elevationAndTile = (elevation << 29) & 0xE0000000 | tile;
+		scriptPtr->spatialRadius = radius;
 
 		// this will load appropriate script program and link it to the script instance we just created:
 		exec_script_proc(scriptId, start);
 
-		opHandler.setReturn(ScrFindObjFromProgram(scriptPtr->program_ptr));
+		opHandler.setReturn(ScrFindObjFromProgram(scriptPtr->program));
 	} else {
 		OpcodeInvalidArgs("create_spatial");
 		opHandler.setReturn(0);
@@ -124,8 +129,8 @@ static void mf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	if (spatialObj) {
 		TScript* script;
-		if (ScrPtr(spatialObj->scriptID, &script) != -1) {
-			opHandler.setReturn(script->spatial_radius);
+		if (ScrPtr(spatialObj->scriptId, &script) != -1) {
+			opHandler.setReturn(script->spatialRadius);
 		}
 	} else {
 		OpcodeInvalidArgs("spatial_radius");
@@ -136,7 +141,7 @@ static void mf_spatial_radius() {
 static void __stdcall op_get_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
-		long scriptIndex = object->script_index;
+		long scriptIndex = object->scriptIndex;
 		opHandler.setReturn((scriptIndex >= 0) ? ++scriptIndex : 0);
 	} else {
 		OpcodeInvalidArgs("get_script");
@@ -279,7 +284,7 @@ static void __stdcall op_make_path2() {
 			func = getBlockingFunc(type);
 
 		// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
-		long pathLength, checkFlag = (objFrom->pid >> 24 == OBJ_TYPE_CRITTER);
+		long pathLength, checkFlag = (objFrom->Type() == OBJ_TYPE_CRITTER);
 
 		tileFrom = objFrom->tile;
 		char pathData[800];
@@ -320,7 +325,7 @@ static void __stdcall op_obj_blocking_at2() {
 			  type = typeArg.rawValue();
 
 		TGameObj* resultObj = obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
-		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & 0x80000000)) { // don't know what this flag means, copy-pasted from the engine code
+		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
 			// this check was added because the engine always does exactly this when using shoot blocking checks
 			resultObj = nullptr;
 		}
@@ -370,7 +375,7 @@ static void __stdcall op_get_party_members2() {
 		for (int i = 0; i < actualCount; i++) {
 			TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
 			if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
-				if (obj->pid >> 24 != OBJ_TYPE_CRITTER) // obj type != critter
+				if (obj->Type() != OBJ_TYPE_CRITTER) // obj type != critter
 					continue;
 				__asm {
 					mov eax, obj;
@@ -379,7 +384,7 @@ static void __stdcall op_get_party_members2() {
 				}
 				if (isDead)
 					continue;
-				if (obj->flags & 1) // Mouse_3d flag
+				if (obj->flags & ObjectFlag::Mouse_3d)
 					continue;
 			}
 			arrays[arrayId].push_back((long)obj);
@@ -417,9 +422,9 @@ static void __stdcall op_obj_is_carrying_obj2() {
 	TGameObj *invenObj = invenObjArg.asObject(),
 			 *itemObj = itemObjArg.asObject();
 	if (invenObj != nullptr && itemObj != nullptr) {
-		for (int i = 0; i < invenObj->invenCount; i++) {
-			if (invenObj->invenTablePtr[i].object == itemObj) {
-				num = invenObj->invenTablePtr[i].count;
+		for (int i = 0; i < invenObj->invenSize; i++) {
+			if (invenObj->invenTable[i].object == itemObj) {
+				num = invenObj->invenTable[i].count;
 				break;
 			}
 		}
@@ -450,7 +455,7 @@ static void mf_critter_inven_obj2() {
 			opHandler.setReturn(InvenLeftHand(critter));
 			break;
 		case -2:
-			opHandler.setReturn(critter->invenCount);
+			opHandler.setReturn(critter->invenSize);
 			break;
 		default:
 			opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
@@ -665,7 +670,7 @@ static void mf_set_unique_id() {
 	long id;
 	if (opHandler.numArgs() > 1 && opHandler.arg(1).rawValue() == -1) {
 		id = NewObjId();
-		obj->ID = id;
+		obj->id = id;
 	} else {
 		id = SetObjectUniqueID(obj);
 	}

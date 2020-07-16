@@ -113,9 +113,10 @@ static void __declspec(naked) GetNextLevelXPHook() {
 }
 
 static void __declspec(naked) CalcApToAcBonus() {
+	using namespace Fields;
 	__asm {
 		xor  eax, eax;
-		mov  edi, [ebx + 0x40];
+		mov  edi, [ebx + movePoints];
 		test edi, edi;
 		jz   end;
 		cmp  [esp + 0x1C - 0x18 + 4], 2; // pc have perk h2hEvade (2 - vanilla bonus)
@@ -148,7 +149,7 @@ static void __stdcall StatRecalcDerived(TGameObj* critter) {
 	for (int i = STAT_st; i <= STAT_lu; i++) basestats[i] = StatLevel(critter, i);
 
 	int* proto;
-	ProtoPtr(critter->pid, &proto);
+	ProtoPtr(critter->protoId, &proto);
 
 	for (int i = STAT_max_hit_points; i <= STAT_poison_resist; i++) {
 		if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;

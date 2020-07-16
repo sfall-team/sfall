@@ -311,7 +311,7 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 	args[3] = damage;
 
 	// weapon_ptr
-	args[0] = (weapon) ? weapon->pid : -1; // attack is unarmed
+	args[0] = (weapon) ? weapon->protoId : -1; // attack is unarmed
 
 	bool createNewObj = false;
 	args[4] = -1; // set 'no anim' for combined hooks use
@@ -434,6 +434,7 @@ static void __declspec(naked) ComputeDamageHook() {
 }
 
 static void __declspec(naked) OnDeathHook() {
+	using namespace Fields;
 	__asm {
 		push edx;
 		call BeginHook;
@@ -447,7 +448,7 @@ static void __declspec(naked) OnDeathHook() {
 	__asm {
 		pop edx;
 		// engine code
-		mov eax, [esi + 0x64]; // protoId
+		mov eax, [esi + protoId];
 		mov ebp, ebx;
 		retn;
 	}
@@ -862,9 +863,9 @@ failed:
 static void __declspec(naked) AmmoCostHook() {
 	__asm {
 		xor  ecx, ecx;             // type of hook (0)
-		cmp  dword ptr [esp + 0x1C + 4], 46; // ANIM_fire_burst
+		cmp  dword ptr [esp + 0x1C + 4], ANIM_fire_burst;
 		jl   skip;
-		cmp  dword ptr [esp + 0x1C + 4], 47; // ANIM_fire_continuous
+		cmp  dword ptr [esp + 0x1C + 4], ANIM_fire_continuous;
 		jg   skip;
 		mov  ecx, 3;               // hook type burst
 skip:
@@ -1400,12 +1401,12 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		pushadc;
 	}
 	// set slot
-	if (args[2] & 0x2000000) {        // right hand slot
+	if (args[2] & ObjectFlag::Right_Hand) {       // right hand slot
 		args[2] = INVEN_TYPE_RIGHT_HAND;
-	} else if (args[2] & 0x1000000) { // left hand slot
+	} else if (args[2] & ObjectFlag::Left_Hand) { // left hand slot
 		args[2] = INVEN_TYPE_LEFT_HAND;
 	} else {
-		args[2] = INVEN_TYPE_WORN;    // armor slot
+		args[2] = INVEN_TYPE_WORN;                // armor slot
 	}
 	InvenWieldHook_ScriptPart(0, 1); // unwield event (armor by default)
 	// engine handler is not overridden
@@ -1416,6 +1417,7 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 }
 
 static void __declspec(naked) item_drop_all_hack() {
+	using namespace ObjectFlag;
 	__asm {
 		mov  ecx, 1;
 		push eax;
@@ -1423,9 +1425,9 @@ static void __declspec(naked) item_drop_all_hack() {
 		push ecx; // remove event
 		push 0;   // unwield event
 		inc  ecx; // INVEN_TYPE_LEFT_HAND (2)
-		test ah, 0x1; // Left_Hand >> 24
+		test ah, Left_Hand >> 24;
 		jnz  skip;
-		test ah, 0x4; // Worn >> 24
+		test ah, Worn >> 24;
 		setz cl; // set INVEN_TYPE_WORN or INVEN_TYPE_RIGHT_HAND
 skip:
 		push ecx;      // slot
@@ -1440,12 +1442,14 @@ skip:
 
 // called from bugfixes for obj_drop_
 void __declspec(naked) InvenUnwield_HookDrop() { // ecx - critter, edx - item
+	using namespace Fields;
+	using namespace ObjectFlag;
 	__asm {
 		pushadc;
 		mov  eax, INVEN_TYPE_LEFT_HAND;
-		test byte ptr [edx + 0x27], 0x1; // Left_Hand >> 24
+		test byte ptr [edx + flags + 3], Left_Hand >> 24;
 		jnz  isLeft;
-		test byte ptr [edx + 0x27], 0x4; // Worn >> 24
+		test byte ptr [edx + flags + 3], Worn >> 24;
 		setz al;  // set INVEN_TYPE_WORN or INVEN_TYPE_RIGHT_HAND
 isLeft:
 		push 1;   // remove event
@@ -1527,9 +1531,9 @@ long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item,
 	long result = 1;
 	if (!hooks[HOOK_INVENWIELD].empty()) {
 		long slot = INVEN_TYPE_WORN;
-		if (flags & 0x2000000) {        // right hand slot
+		if (flags & ObjectFlag::Right_Hand) {       // right hand slot
 			slot = INVEN_TYPE_RIGHT_HAND;
-		} else if (flags & 0x1000000) { // left hand slot
+		} else if (flags & ObjectFlag::Left_Hand) { // left hand slot
 			slot = INVEN_TYPE_LEFT_HAND;
 		}
 		result = InvenWieldHook_Script(critter, item, slot, 0, 0);

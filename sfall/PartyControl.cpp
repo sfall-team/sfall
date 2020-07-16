@@ -58,7 +58,7 @@ static long real_tag_skill[4];
 static const DWORD* list_com = ptr_list_com;
 
 static bool __stdcall IsInPidList(TGameObj* obj) {
-	int pid = obj->pid & 0xFFFFFF;
+	int pid = obj->protoId & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); ++it) {
 		if (*it == pid) {
 			return true;
@@ -150,7 +150,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 		*ptr_itemCurrentItem = 1;
 	}
 
-	*ptr_inven_pid = npc->pid;
+	*ptr_inven_pid = npc->protoId;
 
 	// switch main dude_obj pointers - this should be done last!
 	*ptr_obj_dude = npc;
@@ -171,7 +171,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 
 	*ptr_obj_dude = real_dude;
 	*ptr_inven_dude = real_dude;
-	*ptr_inven_pid = real_dude->pid;
+	*ptr_inven_pid = real_dude->protoId;
 
 	*ptr_itemCurrentItem = real_hand;
 	memcpy(ptr_itemButtonItems, real_itemButtonItems, sizeof(ItemButtonItem) * 2);

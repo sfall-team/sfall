@@ -526,9 +526,9 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 				mov scriptPtr, eax;
 			}
 			while (scriptPtr != nullptr) {
-				self_obj = scriptPtr->self_obj;
+				self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
-					programPtr = scriptPtr->program_ptr;
+					programPtr = scriptPtr->program;
 					self_obj = ScrFindObjFromProgram(programPtr);
 				}
 				vec.push_back(self_obj);
@@ -551,7 +551,7 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 			for (int tile = 0; tile < 40000; tile++) {
 				TGameObj* obj = ObjFindFirstAtTile(elv, tile);
 				while (obj) {
-					DWORD otype = obj->pid >> 24;
+					DWORD otype = obj->Type();
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
 						vec.push_back(obj);
 					}

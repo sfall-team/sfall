@@ -320,7 +320,7 @@ static void __stdcall op_is_iface_tag_active2() {
 				}
 			} else { // Sneak/Level/Addict
 				TGameObj* obj = *ptr_obj_dude;
-				char* proto = GetProtoPtr(obj->pid);
+				char* proto = GetProtoPtr(obj->protoId);
 				int flagBit = 1 << tag;
 				result = ((*(int*)(proto + 0x20) & flagBit) != 0);
 			}
@@ -436,7 +436,7 @@ static void mf_inventory_redraw() {
 static void mf_create_win() {
 	int flags = (opHandler.numArgs() > 5)
 		? opHandler.arg(5).rawValue()
-		: WIN_MoveOnTop;
+		: WinFlags::MoveOnTop;
 
 	if (CreateWindowFunc(opHandler.arg(0).strValue(),
 		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // y, x
@@ -485,10 +485,10 @@ static void mf_hide_window() {
 static void mf_set_window_flag() {
 	long bitFlag = opHandler.arg(1).rawValue();
 	switch (bitFlag) {
-		case WIN_MoveOnTop:
-		case WIN_Hidden:
-		case WIN_Exclusive:
-		case WIN_Transparent:
+		case WinFlags::MoveOnTop:
+		case WinFlags::Hidden:
+		case WinFlags::Exclusive:
+		case WinFlags::Transparent:
 			break;
 		default:
 			return; // unsupported set flag
@@ -692,7 +692,7 @@ static void mf_unwield_slot() {
 		return;
 	}
 	TGameObj* critter = opHandler.arg(0).object();
-	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) {
+	if (critter->Type() != OBJ_TYPE_CRITTER) {
 		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
 		opHandler.setReturn(-1);
 		return;
@@ -718,7 +718,7 @@ static void mf_unwield_slot() {
 				itemRef = (long*)_i_rhand;
 			}
 			if (item) {
-				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? 0x1000000 : 0x2000000)) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? ObjectFlag::Left_Hand : ObjectFlag::Right_Hand)) {
 					return;
 				}
 				*itemRef = 0;
@@ -734,7 +734,7 @@ static void mf_unwield_slot() {
 				forceAdd = true;
 			}
 			if (item) {
-				if (!CorrectFidForRemovedItem_wHook(critter, item, 0x4000000)) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, ObjectFlag::Worn)) {
 					if (forceAdd) *ptr_i_worn = item;
 					return;
 				}

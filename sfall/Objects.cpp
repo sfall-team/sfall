@@ -30,36 +30,37 @@ long objUniqueID = UID_START; // current counter id, saving to sfallgv.sav
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long __fastcall SetObjectUniqueID(TGameObj* obj) {
-	long id = obj->ID;
+	long id = obj->id;
 	if (id > UID_START || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
 	if ((DWORD)objUniqueID >= (DWORD)UID_END) objUniqueID = UID_START;
-	obj->ID = ++objUniqueID;
+	obj->id = ++objUniqueID;
 	return objUniqueID;
 }
 
 // Assigns a unique ID in the negative range (0xFFFFFFF6 - 0x8FFFFFF7)
 long __fastcall SetSpecialID(TGameObj* obj) {
-	long id = obj->ID;
+	long id = obj->id;
 	if (id <= -10 || id > UID_START) return id;
 
 	if ((DWORD)objUniqueID >= (DWORD)UID_END) objUniqueID = UID_START;
 	id = -9 - (++objUniqueID - UID_START);
-	obj->ID = id;
+	obj->id = id;
 	return id;
 }
 
 void SetNewEngineID(TGameObj* obj) {
-	if (obj->ID > UID_START) return;
-	obj->ID = NewObjId();
+	if (obj->id > UID_START) return;
+	obj->id = NewObjId();
 }
 
 static void __declspec(naked) item_identical_hack() {
+	using namespace Fields;
 	__asm {
 		mov  ecx, [edi]; // item id
 		cmp  ecx, UID_START; // start unique ID
 		jg   notIdentical;
-		mov  eax, [esi + 0x78]; // scriptID
+		mov  eax, [esi + scriptId];
 		cmp  eax, ebx;
 notIdentical:
 		retn; // if ZF == 0 then item is not identical
@@ -83,8 +84,8 @@ static void __stdcall map_fix_critter_id() {
 	long npcStartID = 4096;
 	TGameObj* obj = ObjFindFirst();
 	while (obj) {
-		if (obj->pid >> 24 == OBJ_TYPE_CRITTER && obj->ID < PLAYER_ID) {
-			obj->ID = npcStartID++;
+		if (obj->Type() == OBJ_TYPE_CRITTER && obj->id < PLAYER_ID) {
+			obj->id = npcStartID++;
 		}
 		obj = ObjFindNext();
 	}
@@ -110,6 +111,7 @@ skip:
 }
 
 static void __declspec(naked) queue_add_hack() {
+	using namespace Fields;
 	__asm {
 		// engine code
 		mov  [edx + 8], edi; // queue.object
@@ -122,7 +124,7 @@ static void __declspec(naked) queue_add_hack() {
 skip:
 		retn;
 fix:
-		mov  eax, [edi + 0x64];
+		mov  eax, [edi + protoId];
 		and  eax, 0x0F000000;
 		jnz  notItem; // object is not an item?
 		push ecx;
@@ -196,6 +198,7 @@ void LoadProtoAutoMaxLimit() {
 
 // Places the PID_CORPSE_BLOOD object on the lower layer of objects on the tile
 static void __declspec(naked) obj_insert_hack() {
+	using namespace Fields;
 	__asm {
 		// engine code
 		mov  edi, [ebx]; // tableNodes.objectPtr
@@ -207,14 +210,14 @@ insert: //----------
 		mov  esi, [ecx]; // esi - inserted object
 		mov  edi, [edi]; // object placed on the tile
 		xor  edx, edx;
-		cmp  dword ptr [esi + 0x64], PID_CORPSE_BLOOD;
+		cmp  dword ptr [esi + protoId], PID_CORPSE_BLOOD;
 		je   fix;
-		cmp  dword ptr [edi + 0x64], PID_CORPSE_BLOOD;
+		cmp  dword ptr [edi + protoId], PID_CORPSE_BLOOD;
 		jne  skip;
 		sete dl; // set to 1 if PID_CORPSE_BLOOD is already located on the map
 fix:
-		mov  esi, [esi + 0x28]; // elevation
-		cmp  [edi + 0x28], esi;
+		mov  esi, [esi + elevation];
+		cmp  [edi + elevation], esi;
 		jne  skip;
 		xor  edi, edi;
 		test dl, dl;

@@ -453,7 +453,7 @@ extern const DWORD* ptr_pip_win;
 extern DWORD* ptr_pipboy_message_file;
 extern DWORD* ptr_pipmesg;
 extern DWORD* ptr_preload_list_index;
-extern DWORD* ptr_procTableStrs;  // table of procId (from define.h) => procName map
+extern const char** ptr_procTableStrs;  // table of procId (from define.h) => procName map
 extern MSGList* ptr_proto_main_msg_file;
 extern DWORD* ptr_proto_msg_files;
 extern DWORD* ptr_ptable;

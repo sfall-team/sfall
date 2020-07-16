@@ -73,7 +73,7 @@ energy:
 
 static int __fastcall PickpocketMod(int base, TGameObj* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
-		if (critter->ID == pickpocketMods[i].id) {
+		if (critter->id == pickpocketMods[i].id) {
 			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
 		}
 	}
@@ -95,7 +95,7 @@ static void __declspec(naked) skill_check_stealing_hack() {
 
 static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
-		if (critter->ID == skillMaxMods[i].id) {
+		if (critter->id == skillMaxMods[i].id) {
 			return min(base, skillMaxMods[i].maximum);
 		}
 	}
