@@ -155,6 +155,7 @@
 #define FO_VAR_mouse_y                    0x664450
 #define FO_VAR_mouse_y_                   0x6AC7A4
 #define FO_VAR_movePointRect              0x518FD4
+#define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_font                  0x56D74C

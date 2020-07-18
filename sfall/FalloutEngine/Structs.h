@@ -811,7 +811,7 @@ struct QueueDrug {
 };
 
 struct QueueAddict {
-	long init;      // 1 - perk is not active yet
+	long init;       // 1 - perk is not active yet
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };

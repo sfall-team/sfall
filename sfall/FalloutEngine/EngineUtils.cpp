@@ -68,7 +68,7 @@ bool CritterCopyProto(long pid, long* &proto_dst) {
 		proto_dst = nullptr;
 		return false;
 	}
-	proto_dst = reinterpret_cast<long*>(new int32_t[104]);
+	proto_dst = reinterpret_cast<long*>(new long[104]);
 	memcpy(proto_dst, protoPtr, 416);
 	return true;
 }
@@ -505,7 +505,7 @@ void RedrawObject(GameObject* obj) {
 	func::tile_refresh_rect(&rect, obj->elevation);
 }
 
-/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
 
 static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
