@@ -479,16 +479,14 @@ void MoviesInit() {
 		strcpy_s(ininame, "Movie");
 		_itoa_s(i + 1, &ininame[5], 3, 10);
 		if (i < 17) {
-			GetConfigString("Misc", ininame, (char*)(0x518DA0 + i * 4), &MoviePaths[i * 65], 65);
+			GetConfigString("Misc", ininame, ptr_movie_list[i], &MoviePaths[i * 65], 65);
 		} else {
 			GetConfigString("Misc", ininame, "", &MoviePaths[i * 65], 65);
 		}
 	}
 	dlog(".", DL_INIT);
-	SafeWrite32(0x44E6AE, (DWORD)MoviePtrs);
-	SafeWrite32(0x44E721, (DWORD)MoviePtrs);
-	SafeWrite32(0x44E75E, (DWORD)MoviePtrs);
-	SafeWrite32(0x44E78A, (DWORD)MoviePtrs);
+	const DWORD movieListAddr[] = {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A};
+	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, movieListAddr);
 	dlog(".", DL_INIT);
 
 	/*

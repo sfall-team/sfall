@@ -129,6 +129,7 @@ DWORD* ptr_master_volume              = reinterpret_cast<DWORD*>(_master_volume)
 DWORD* ptr_max                        = reinterpret_cast<DWORD*>(_max);
 long*  ptr_maxScriptNum               = reinterpret_cast<long*>(_maxScriptNum);
 DWORD* ptr_Meet_Frank_Horrigan        = reinterpret_cast<DWORD*>(_Meet_Frank_Horrigan);
+const char** ptr_movie_list           = reinterpret_cast<const char**>(_movie_list); // array of 17 char*
 DWORD* ptr_mouse_hotx                 = reinterpret_cast<DWORD*>(_mouse_hotx);
 DWORD* ptr_mouse_hoty                 = reinterpret_cast<DWORD*>(_mouse_hoty);
 DWORD* ptr_mouse_is_hidden            = reinterpret_cast<DWORD*>(_mouse_is_hidden);

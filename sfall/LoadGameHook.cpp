@@ -314,13 +314,13 @@ static void __declspec(naked) main_init_system_hook() {
 static void NewGame2() {
 	ResetState(0);
 
-	dlogr("Starting new game", DL_MAIN);
-
-	SetNewCharAppearanceGlobals();
-
 	CritLoad();
-	LoadGlobalScripts();
+	SetNewCharAppearanceGlobals();
 	LoadHeroAppearance();
+	LoadGlobalScripts();
+
+	dlogr("New Game started.", DL_MAIN);
+
 	gameLoaded = true;
 }
 

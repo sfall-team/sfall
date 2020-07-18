@@ -167,6 +167,7 @@
 #define _maxScriptNum               0x51C7CC
 #define _Meet_Frank_Horrigan        0x672E04
 #define _Move_on_Car                0x672E64
+#define _movie_list                 0x518DA0
 #define _mouse_hotx                 0x6AC7D0
 #define _mouse_hoty                 0x6AC7CC
 #define _mouse_is_hidden            0x6AC790
@@ -410,6 +411,7 @@ extern DWORD* ptr_master_volume;
 extern DWORD* ptr_max;
 extern long*  ptr_maxScriptNum;
 extern DWORD* ptr_Meet_Frank_Horrigan;
+extern const char** ptr_movie_list; // array of 17 char*
 extern DWORD* ptr_mouse_hotx;
 extern DWORD* ptr_mouse_hoty;
 extern DWORD* ptr_mouse_is_hidden;
@@ -1084,9 +1086,11 @@ long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
 void __declspec() DebugPrintf(const char* fmt, ...);
 
 // Displays message in main UI console window
-void __stdcall DisplayConsoleMessage(const char* msg);
+void __stdcall DisplayPrint(const char* msg);
 
 long __stdcall GetInputBtn();
+
+const char* __stdcall Getmsg(const MSGList* fileAddr, MSGNode* result, long messageId);
 
 // plays SFX sound with given name
 void __stdcall GsoundPlaySfxFile(const char* name);
@@ -1330,6 +1334,8 @@ long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
 
 long __fastcall ObjectUnderMouse(long crSwitch, long inclDude, long elevation);
 
+long __stdcall MessageSearch(const MSGList* file, MSGNode* msg);
+
 // loads MSG file into given MessageList
 long __stdcall MessageLoad(MSGList *msgList, const char *msgFilePath);
 
@@ -1435,7 +1441,7 @@ const char* MsgSearch(const MSGList* fileAddr, long messageId);
 char* GetProtoPtr(long pid);
 
 // returns weapon animation code
-char AnimCodeByWeapon(TGameObj* weapon);
+long AnimCodeByWeapon(TGameObj* weapon);
 
 // wrapper for skill_get_tags with bounds checking
 void SkillGetTags(long* result, long num);
@@ -1505,3 +1511,5 @@ DWORD __stdcall GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
 void __stdcall RedrawObject(TGameObj* obj);
+
+UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
