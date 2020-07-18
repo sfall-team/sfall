@@ -31,8 +31,8 @@ struct KarmaFrmSetting {
 
 static std::vector<KarmaFrmSetting> karmaFrms;
 
-static char KarmaGainMsg[128];
-static char KarmaLossMsg[128];
+static char karmaGainMsg[128];
+static char karmaLossMsg[128];
 
 static DWORD __stdcall DrawCard() {
 	int reputation = **(int**)_game_global_vars;
@@ -71,11 +71,11 @@ static void __stdcall SetKarma(int value) {
 	char buf[128];
 	if (old == 0) return;
 	if (old > 0) {
-		sprintf_s(buf, KarmaGainMsg, old);
+		sprintf_s(buf, karmaGainMsg, old);
 	} else {
-		sprintf_s(buf, KarmaLossMsg, -old);
+		sprintf_s(buf, karmaLossMsg, -old);
 	}
-	DisplayConsoleMessage(buf);
+	DisplayPrint(buf);
 }
 
 static void __declspec(naked) SetGlobalVarWrapper() {
@@ -94,8 +94,8 @@ end:
 static void ApplyDisplayKarmaChangesPatch() {
 	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		Translate("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg);
-		Translate("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg);
+		Translate("sfall", "KarmaGain", "You gained %d karma.", karmaGainMsg);
+		Translate("sfall", "KarmaLoss", "You lost %d karma.", karmaLossMsg);
 		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}

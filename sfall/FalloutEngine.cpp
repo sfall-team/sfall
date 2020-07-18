@@ -875,12 +875,16 @@ void __declspec(naked) DebugPrintf(const char* fmt, ...) {
 }
 
 // Displays message in main UI console window
-void __stdcall DisplayConsoleMessage(const char* msg) {
+void __stdcall DisplayPrint(const char* msg) {
 	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
 long __stdcall GetInputBtn() {
 	WRAP_WATCOM_CALL0(get_input_)
+}
+
+const char* __stdcall Getmsg(const MSGList* fileAddr, MSGNode* result, long messageId) {
+	WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
 }
 
 void __stdcall GsoundPlaySfxFile(const char* name) {
@@ -1485,6 +1489,10 @@ long __fastcall ObjectUnderMouse(long crSwitch, long inclDude, long elevation) {
 	WRAP_WATCOM_FCALL3(object_under_mouse_, crSwitch, inclDude, elevation)
 }
 
+long __stdcall MessageSearch(const MSGList* file, MSGNode* msg) {
+	WRAP_WATCOM_CALL2(message_search_, file, msg)
+}
+
 long __stdcall MessageLoad(MSGList *msgList, const char *msgFilePath) {
 	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
 }
@@ -1694,27 +1702,15 @@ void __stdcall WmRefreshInterfaceOverlay(long isRedraw) {
 static MSGNode messageBuf;
 
 const char* GetMessageStr(const MSGList* fileAddr, long messageId) {
-	const char* result;
-	__asm {
-		mov  ebx, messageId;
-		lea  edx, messageBuf;
-		mov  eax, fileAddr;
-		call getmsg_;
-		mov  result, eax;
-	}
-	return result;
+	return Getmsg(fileAddr, &messageBuf, messageId);
 }
 
 const char* MsgSearch(const MSGList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
-	long result;
-	__asm {
-		lea  edx, messageBuf;
-		mov  eax, fileAddr;
-		call message_search_;
-		mov  result, eax;
+	if (MessageSearch(fileAddr, &messageBuf) == 1) {
+		return messageBuf.message;
 	}
-	return (result == 1) ? messageBuf.message : nullptr;
+	return nullptr;
 }
 
 char* GetProtoPtr(long pid) {
@@ -1732,11 +1728,11 @@ char* GetProtoPtr(long pid) {
 	return nullptr;
 }
 
-char AnimCodeByWeapon(TGameObj* weapon) {
+long AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
 		char* proto = GetProtoPtr(weapon->protoId);
 		if (proto != nullptr && *(int*)(proto + 32) == item_type_weapon) {
-			return (char)(*(int*)(proto + 36));
+			return *(int*)(proto + 36);
 		}
 	}
 	return 0;
@@ -2109,4 +2105,95 @@ void __stdcall RedrawObject(TGameObj* obj) {
 	BoundRect rect;
 	ObjBound(obj, &rect);
 	TileRefreshRect(&rect, obj->elevation);
+}
+
+/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
+
+static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
+	if (DbFReadInt(frmStream, &frmHeader->version) == -1)
+		return false;
+	else if (DbFReadShort(frmStream, &frmHeader->FPS) == -1)
+		return false;
+	else if (DbFReadShort(frmStream, &frmHeader->actionFrame) == -1)
+		return false;
+	else if (DbFReadShort(frmStream, &frmHeader->numFrames) == -1)
+		return false;
+	else if (DbFReadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
+		return false;
+	else if (DbFReadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
+		return false;
+	else if (DbFReadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
+		return false;
+	else if (DbFReadInt(frmStream, &frmHeader->frameAreaSize) == -1)
+		return false;
+
+	return true;
+}
+
+static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
+	//FRMframe *frameHeader = (FRMframe*)frameMEM;
+	//BYTE* frameBuff = frame + sizeof(FRMframe);
+
+	if (DbFReadShort(frmStream, &frame->width) == -1)
+		return false;
+	else if (DbFReadShort(frmStream, &frame->height) == -1)
+		return false;
+	else if (DbFReadInt(frmStream, &frame->size) == -1)
+		return false;
+	else if (DbFReadShort(frmStream, &frame->x) == -1)
+		return false;
+	else if (DbFReadShort(frmStream, &frame->y) == -1)
+		return false;
+
+	frame->indexBuff = new BYTE[frame->size];
+	if (DbFRead(frame->indexBuff, frame->size, 1, frmStream) != 1)
+		return false;
+
+	return true;
+}
+
+UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
+
+	char *artfolder = ptr_art[folderRef].path; // address of art type name
+	char FrmPath[MAX_PATH];
+
+	sprintf_s(FrmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+
+	UNLSTDfrm *frm = new UNLSTDfrm;
+
+	DbFile* frmStream = XFOpen(FrmPath, "rb");
+
+	if (frmStream != nullptr) {
+		if (!LoadFrmHeader(frm, frmStream)) {
+			DbFClose(frmStream);
+			delete frm;
+			return nullptr;
+		}
+
+		DWORD oriOffset_1st = frm->oriOffset[0];
+		DWORD oriOffset_new = 0;
+		frm->frames = new UNLSTDfrm::Frame[6 * frm->numFrames];
+		for (int ori = 0; ori < 6; ori++) {
+			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
+				frm->oriOffset[ori] = oriOffset_new;
+				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
+					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
+						DbFClose(frmStream);
+						delete frm;
+						return nullptr;
+					}
+				}
+				oriOffset_new += frm->numFrames;
+			} else {
+				frm->oriOffset[ori] = 0;
+			}
+		}
+
+		DbFClose(frmStream);
+	} else {
+		delete frm;
+		return nullptr;
+	}
+	return frm;
 }

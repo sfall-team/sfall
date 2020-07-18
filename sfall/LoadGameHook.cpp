@@ -115,7 +115,7 @@ void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *ptr_patches, *ptr_slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
-static char SaveSfallDataFailMsg[128];
+static char saveSfallDataFailMsg[128];
 
 static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
@@ -152,23 +152,23 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	DisplayConsoleMessage(SaveSfallDataFailMsg);
+	DisplayPrint(saveSfallDataFailMsg);
 	GsoundPlaySfxFile("IISXXXX1");
 }
 
-static char SaveFailMsg[128];
+static char saveFailMsg[128];
 
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			DisplayConsoleMessage(SaveFailMsg);
+			DisplayPrint(saveFailMsg);
 			return 0;
 		}
 		int ap = StatLevel(*ptr_obj_dude, STAT_max_move_points);
 		int bonusmove = PerkLevel(*ptr_obj_dude, PERK_bonus_move);
-		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *ptr_combat_free_move) {
-			DisplayConsoleMessage(SaveFailMsg);
+		if ((*ptr_obj_dude)->critter.movePoints != ap || bonusmove * 2 != *ptr_combat_free_move) {
+			DisplayPrint(saveFailMsg);
 			return 0;
 		}
 	}
@@ -620,8 +620,8 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 void LoadGameHookInit() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	Translate("sfall", "SaveInCombat", "Cannot save at this time.", SaveFailMsg);
-	Translate("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg);
+	Translate("sfall", "SaveInCombat", "Cannot save at this time.", saveFailMsg);
+	Translate("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
 
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:

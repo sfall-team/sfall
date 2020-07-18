@@ -71,7 +71,7 @@ static OpcodeMetaTableType opcodeMetaTable;
 
 class ScriptValue {
 public:
-	ScriptValue(SfallDataType type, DWORD value) {
+	ScriptValue(SfallDataType type, unsigned long value) {
 		_val.dw = value;
 		_type = type;
 	}
@@ -191,8 +191,8 @@ public:
 
 private:
 	union Value {
-		DWORD dw;
-		int i;
+		unsigned long dw;
+		long i;
 		float f;
 		const char* str;
 		TGameObj* gObj;
@@ -200,17 +200,6 @@ private:
 
 	SfallDataType _type; // TODO: replace with enum class
 };
-
-typedef struct {
-	union Value {
-		DWORD dw;
-		int i;
-		float f;
-		const char* str;
-		TGameObj* gObj;
-	} val;
-	DWORD type; // TODO: replace with enum class
-} ScriptValue1;
 
 class OpcodeHandler {
 public:
@@ -254,7 +243,7 @@ public:
 	}
 
 	// set return value for current opcode
-	void setReturn(DWORD value, SfallDataType type) {
+	void setReturn(unsigned long value, SfallDataType type) {
 		_ret = ScriptValue(type, value);
 	}
 
@@ -379,8 +368,8 @@ static DWORD highlightContainers = 0;
 static DWORD highlightCorpses = 0;
 static int outlineColor = 0x10;
 static int idle;
-static char HighlightFail1[128];
-static char HighlightFail2[128];
+static char highlightFail1[128];
+static char highlightFail2[128];
 
 struct sGlobalScript {
 	sScriptProgram prog;
@@ -1456,10 +1445,10 @@ static void RunGlobalScripts1() {
 								inc eax;
 								mov highlightingToggled, eax;
 							}
-							if (!highlightingToggled) DisplayConsoleMessage(HighlightFail2);
+							if (!highlightingToggled) DisplayPrint(highlightFail2);
 						} else highlightingToggled = 1;
 					} else {
-						DisplayConsoleMessage(HighlightFail1);
+						DisplayPrint(highlightFail1);
 					}
 				} else highlightingToggled = 1;
 				if (highlightingToggled) obj_outline_all_items_on();
@@ -1699,8 +1688,8 @@ void ScriptExtenderInit() {
 		outlineColor = GetConfigInt("Input", "OutlineColor", 0x10);
 		if (outlineColor < 1) outlineColor = 0x40;
 		motionScanner = GetConfigInt("Misc", "MotionScannerFlags", 1);
-		Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1);
-		Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2);
+		Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
+		Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
 		HookCall(0x44BD1C, obj_remove_outline_hook); // gmouse_bk_process_
 		HookCall(0x44E559, obj_remove_outline_hook); // gmouse_remove_item_outline_
 	}

@@ -1374,7 +1374,7 @@ end:
 static int __stdcall ItemCountFix(TGameObj* who, TGameObj* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenSize; i++) {
-		TInvenRec* tableItem = &who->invenTable[i];
+		TGameObj::TInvenRec* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (ItemGetType(tableItem->object) == item_type_container) {

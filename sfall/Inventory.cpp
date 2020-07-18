@@ -320,7 +320,7 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 }
 /////////////////////////////////////////////////////////////////
 
-static char SuperStimMsg[128];
+static char superStimMsg[128];
 static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
 	if (item->protoId != PID_SUPER_STIMPAK || !target || target->Type() != OBJ_TYPE_CRITTER) {
 		return 0;
@@ -330,7 +330,7 @@ static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
 	long max_hp = StatLevel(target, STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
 
-	DisplayConsoleMessage(SuperStimMsg);
+	DisplayPrint(superStimMsg);
 	return -1;
 }
 
@@ -689,7 +689,7 @@ void InventoryInit() {
 	SafeWrite32(0x472632, widthWeight);
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
-		Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg);
+		Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", superStimMsg);
 		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 

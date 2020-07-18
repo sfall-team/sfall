@@ -25,26 +25,6 @@ static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
 
-struct sElevator {
-	DWORD ID1;
-	DWORD Elevation1;
-	DWORD Tile1;
-	DWORD ID2;
-	DWORD Elevation2;
-	DWORD Tile2;
-	DWORD ID3;
-	DWORD Elevation3;
-	DWORD Tile3;
-	DWORD ID4;
-	DWORD Elevation4;
-	DWORD Tile4;
-};
-
-struct sElevatorFrms {
-	DWORD main;
-	DWORD buttons;
-};
-
 static DWORD elevatorType[elevatorCount] = {0};
 static sElevator elevators[elevatorCount] = {0};         // _retvals
 static sElevatorFrms elevatorsFrms[elevatorCount] = {0}; // _intotal

@@ -48,14 +48,6 @@ struct BoundRect {
 };
 #pragma pack(pop)
 
-/*   26 */
-#pragma pack(push, 1)
-struct TInvenRec {
-	TGameObj *object;
-	long count;
-};
-#pragma pack(pop)
-
 // Game objects (items, critters, etc.), including those stored in inventories.
 #pragma pack(push, 1)
 struct TGameObj {
@@ -72,18 +64,36 @@ struct TGameObj {
 	long elevation;
 	long invenSize;
 	long invenMax;
-	TInvenRec *invenTable;
-	char gap_38[4];
-	long itemCharges;
-	long critterAP_itemAmmoPid;
-	long damageFlags;    // critter
-	long damageLastTurn; // critter
-	long aiPacket;       // critter
-	long teamNum;        // critter
-	TGameObj* whoHitMe;  // critter
-	long health;         // critter
-	long rads;           // critter
-	long poison;         // critter
+	struct TInvenRec {
+		TGameObj *object;
+		long count;
+	} *invenTable;
+
+	union {
+		struct {
+			char updatedFlags[4];
+			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
+			long charges;
+			// current type of ammo loaded in magazine
+			long ammoPid;
+			char gap_44[32];
+		} item;
+		struct {
+			long reaction;
+			// 1 - combat, 2 - enemies out of sight, 4 - running away
+			long combatState;
+			// aka action points
+			long movePoints;
+			long damageFlags;
+			long damageLastTurn;
+			long aiPacket;
+			long teamNum;
+			TGameObj* whoHitMe;
+			long health;
+			long rads;
+			long poison;
+		} critter;
+	};
 	DWORD protoId;
 	long cid;
 	long lightDistance;
@@ -182,9 +192,14 @@ struct TProgram {
 #pragma pack(push, 1)
 struct ItemButtonItem {
 	TGameObj* item;
-	char cantUse;
-	char itsWeapon;
-	short unkFlag;
+	union {
+		long flags;
+		struct {
+			char cantUse;
+			char itsWeapon;
+			short unkFlag;
+		};
+	};
 	long primaryAttack;
 	long secondaryAttack;
 	long mode;
@@ -224,6 +239,28 @@ struct PerkInfo {
 struct DbFile {
 	long fileType;
 	void* handle;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct sElevator {
+	long ID1;
+	long Elevation1;
+	long Tile1;
+	long ID2;
+	long Elevation2;
+	long Tile2;
+	long ID3;
+	long Elevation3;
+	long Tile3;
+	long ID4;
+	long Elevation4;
+	long Tile4;
+};
+
+struct sElevatorFrms {
+	DWORD main;
+	DWORD buttons;
 };
 #pragma pack(pop)
 
@@ -273,9 +310,63 @@ public:
 } FrmHeaderData;
 #pragma pack(pop)
 
+// structures for loading unlisted frms
+#pragma pack(push, 1)
+struct UNLSTDfrm {
+	DWORD version;
+	WORD FPS;
+	WORD actionFrame;
+	WORD numFrames;
+	WORD xCentreShift[6];
+	WORD yCentreShift[6];
+	DWORD oriOffset[6];
+	DWORD frameAreaSize;
+
+	struct Frame {
+		WORD width;
+		WORD height;
+		DWORD size;
+		WORD x;
+		WORD y;
+		BYTE *indexBuff;
+
+		Frame() {
+			width = 0;
+			height = 0;
+			size = 0;
+			x = 0;
+			y = 0;
+			indexBuff = nullptr;
+		}
+		~Frame() {
+			if (indexBuff != nullptr)
+				delete[] indexBuff;
+		}
+	} *frames;
+
+	UNLSTDfrm() {
+		version = 0;
+		FPS = 0;
+		actionFrame = 0;
+		numFrames = 0;
+		for (int i = 0; i < 6; i++) {
+			xCentreShift[i] = 0;
+			yCentreShift[i] = 0;
+			oriOffset[i] = 0;
+		}
+		frameAreaSize = 0;
+		frames = nullptr;
+	}
+	~UNLSTDfrm() {
+		if (frames != nullptr)
+			delete[] frames;
+	}
+};
+#pragma pack(pop)
+
 //for holding a message
 #pragma pack(push, 1)
-typedef struct MSGNode {
+struct MSGNode {
 	long number;
 	long flags;
 	char* audio;
@@ -287,7 +378,7 @@ typedef struct MSGNode {
 		audio = nullptr;
 		message = nullptr;
 	}
-} MSGNode;
+};
 #pragma pack(pop)
 
 //for holding msg array

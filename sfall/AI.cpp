@@ -34,7 +34,7 @@ static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
 // Returns the friendly critter or any blocking object in the line of fire
 TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
-	if (object && object->Type() == OBJ_TYPE_CRITTER && object->teamNum != team) { // is not friendly fire
+	if (object && object->Type() == OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
 
@@ -55,7 +55,7 @@ TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long 
 TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
-	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->teamNum);
+	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
 	return (!object || object->TypeFid() == OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
 }
 
@@ -238,7 +238,7 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 			proto = GetProtoPtr(weapon->protoId);
 			maxAmmo = *(long*)(proto + 96); // item.weapon.maxAmmo
 		}
-		if (weapon->itemCharges >= maxAmmo) break; // magazine is full
+		if (weapon->item.charges >= maxAmmo) break; // magazine is full
 
 		long pidAmmo = ammo->protoId;
 		ObjDestroy(ammo);
@@ -279,7 +279,7 @@ static long __fastcall CheckWeaponRangeAndApCost(TGameObj* source, TGameObj* tar
 	long targetDist  = ObjDist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
-	return (source->critterAP_itemAmmoPid >= sf_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
+	return (source->critter.movePoints >= sf_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
 static void __declspec(naked) ai_pick_hit_mode_hook() {

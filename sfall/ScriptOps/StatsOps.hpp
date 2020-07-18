@@ -386,7 +386,7 @@ static void __stdcall op_set_critter_current_ap2() {
 		if (obj->Type() == OBJ_TYPE_CRITTER) {
 			long ap = apArg.rawValue();
 			if (ap < 0) ap = 0;
-			obj->critterAP_itemAmmoPid = ap;
+			obj->critter.movePoints = ap;
 
 			if (obj == *ptr_obj_dude) IntfaceUpdateMovePoints(ap, *ptr_combat_free_move);
 		} else {

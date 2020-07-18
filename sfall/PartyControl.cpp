@@ -250,7 +250,7 @@ skip:
 }
 
 static void __stdcall DisplayCantDoThat() {
-	DisplayConsoleMessage(GetMessageStr(ptr_proto_main_msg_file, 675)); // I Can't do that
+	DisplayPrint(GetMessageStr(ptr_proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
@@ -258,7 +258,7 @@ int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
 	// don't allow to use the weapon, if no art exist for it
 	if (/*isControllingNPC &&*/ ItemGetType(item) == item_type_weapon) {
 		int fId = *ptr_i_fid; //(*ptr_obj_dude)->artFid;
-		char weaponCode = AnimCodeByWeapon(item);
+		long weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		if (!ArtExists(fId)) {
 			DisplayCantDoThat();

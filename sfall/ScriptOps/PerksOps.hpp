@@ -400,7 +400,7 @@ end:
 }
 
 static void mf_add_trait() {
-	if (*(DWORD*)(*(DWORD*)_obj_dude + 0x64) != PID_Player) {
+	if ((*ptr_obj_dude)->protoId != PID_Player) {
 		opHandler.printOpcodeError("add_trait() - traits can be added only to the player.");
 		opHandler.setReturn(-1);
 		return;

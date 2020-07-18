@@ -59,152 +59,6 @@ typedef struct LineNode {
 	}
 } LineNode;
 
-// structures for loading unlisted frms
-#pragma pack(push, 1)
-typedef class UNLSTDframe {
-public:
-	WORD width;
-	WORD height;
-	DWORD size;
-	WORD x;
-	WORD y;
-	BYTE *indexBuff;
-	UNLSTDframe() {
-		width = 0;
-		height = 0;
-		size = 0;
-		x = 0;
-		y = 0;
-		indexBuff = nullptr;
-	}
-	~UNLSTDframe() {
-		if (indexBuff != nullptr)
-			delete[] indexBuff;
-	}
-} UNLSTDframe;
-
-typedef class UNLSTDfrm {
-public:
-	DWORD version;
-	WORD FPS;
-	WORD actionFrame;
-	WORD numFrames;
-	WORD xCentreShift[6];
-	WORD yCentreShift[6];
-	DWORD oriOffset[6];
-	DWORD frameAreaSize;
-	UNLSTDframe *frames;
-	UNLSTDfrm() {
-		version = 0;
-		FPS = 0;
-		actionFrame = 0;
-		numFrames = 0;
-		for (int i = 0; i < 6; i++) {
-			xCentreShift[i] = 0;
-			yCentreShift[i] = 0;
-			oriOffset[i] = 0;
-		}
-		frameAreaSize = 0;
-		frames = nullptr;
-	}
-	~UNLSTDfrm() {
-		if (frames != nullptr)
-			delete[] frames;
-	}
-} UNLSTDfrm;
-#pragma pack(pop)
-
-/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
-
-static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
-	if (DbFReadInt(frmStream, &frmHeader->version) == -1)
-		return false;
-	else if (DbFReadShort(frmStream, &frmHeader->FPS) == -1)
-		return false;
-	else if (DbFReadShort(frmStream, &frmHeader->actionFrame) == -1)
-		return false;
-	else if (DbFReadShort(frmStream, &frmHeader->numFrames) == -1)
-		return false;
-	else if (DbFReadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
-		return false;
-	else if (DbFReadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
-		return false;
-	else if (DbFReadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
-		return false;
-	else if (DbFReadInt(frmStream, &frmHeader->frameAreaSize) == -1)
-		return false;
-
-	return true;
-}
-
-static bool LoadFrmFrame(UNLSTDframe *frame, DbFile* frmStream) {
-	//FRMframe *frameHeader = (FRMframe*)frameMEM;
-	//BYTE* frameBuff = frame + sizeof(FRMframe);
-
-	if (DbFReadShort(frmStream, &frame->width) == -1)
-		return false;
-	else if (DbFReadShort(frmStream, &frame->height) == -1)
-		return false;
-	else if (DbFReadInt(frmStream, &frame->size) == -1)
-		return false;
-	else if (DbFReadShort(frmStream, &frame->x) == -1)
-		return false;
-	else if (DbFReadShort(frmStream, &frame->y) == -1)
-		return false;
-
-	frame->indexBuff = new BYTE[frame->size];
-	if (DbFRead(frame->indexBuff, frame->size, 1, frmStream) != 1)
-		return false;
-
-	return true;
-}
-
-UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
-
-	char *artfolder = ptr_art[folderRef].path; // address of art type name
-	char FrmPath[MAX_PATH];
-
-	sprintf_s(FrmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
-
-	UNLSTDfrm *frm = new UNLSTDfrm;
-
-	DbFile* frmStream = XFOpen(FrmPath, "rb");
-
-	if (frmStream != nullptr) {
-		if (!LoadFrmHeader(frm, frmStream)) {
-			DbFClose(frmStream);
-			delete frm;
-			return nullptr;
-		}
-
-		DWORD oriOffset_1st = frm->oriOffset[0];
-		DWORD oriOffset_new = 0;
-		frm->frames = new UNLSTDframe[6 * frm->numFrames];
-		for (int ori = 0; ori < 6; ori++) {
-			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
-				frm->oriOffset[ori] = oriOffset_new;
-				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
-					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						DbFClose(frmStream);
-						delete frm;
-						return nullptr;
-					}
-				}
-				oriOffset_new += frm->numFrames;
-			} else {
-				frm->oriOffset[ori] = 0;
-			}
-		}
-
-		DbFClose(frmStream);
-	} else {
-		delete frm;
-		return nullptr;
-	}
-	return frm;
-}
-
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS//////////////////////////////////////////////////////////////////////
 
 static void SetFont(long ref) {
@@ -727,7 +581,7 @@ static void DrawPCConsole() {
 		WINinfo *WinInfo = GNWFind(WinRef);
 
 		//DWORD critNum = *ptr_art_vault_guy_num; // pointer to current base hero critter FrmId
-		DWORD critNum = *(DWORD*)(*(DWORD*)_obj_dude + 0x20); // pointer to current armored hero critter FrmId
+		DWORD critNum = (*ptr_obj_dude)->artFid; // pointer to current armored hero critter FrmId
 
 		surface_draw(70, 102, 640, 338, 78, charScrnBackSurface, WinInfo->width, 338, 78, WinInfo->surface); // restore background image
 		DrawBody(critNum, WinInfo->surface, 338, 78, WinInfo->width);
@@ -906,7 +760,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	DWORD RedrawTick = 0, NewTick = 0, OldTick = 0;
 
 	DWORD critNum = *ptr_art_vault_guy_num; // pointer to current base hero critter FrmID
-	//DWORD critNum = *(DWORD*)(*(DWORD*)_obj_dude + 0x20); // pointer to current armored hero critter FrmID
+	//DWORD critNum = (*ptr_obj_dude)->artFid; // pointer to current armored hero critter FrmID
 
 	int raceVal = currentRaceVal, styleVal = currentStyleVal; // show default style when setting race
 	if (!isStyle) styleVal = 0;

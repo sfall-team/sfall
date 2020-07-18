@@ -82,7 +82,7 @@ static bool combatDisabled;
 static char combatBlockedMessage[128];
 
 static void __stdcall CombatBlocked() {
-	DisplayConsoleMessage(combatBlockedMessage);
+	DisplayPrint(combatBlockedMessage);
 }
 
 static void __declspec(naked) intface_use_item_hook() {

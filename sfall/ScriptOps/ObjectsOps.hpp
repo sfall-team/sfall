@@ -171,7 +171,7 @@ static void __declspec(naked) op_set_critter_burst_disable() {
 static void __stdcall op_get_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(obj->critterAP_itemAmmoPid);
+		opHandler.setReturn(obj->item.ammoPid);
 	} else {
 		OpcodeInvalidArgs("get_weapon_ammo_pid");
 		opHandler.setReturn(-1);
@@ -187,7 +187,7 @@ static void __stdcall op_set_weapon_ammo_pid2() {
 	const ScriptValue &pidArg = opHandler.arg(1);
 
 	if (obj && pidArg.isInt()) {
-		obj->critterAP_itemAmmoPid = pidArg.rawValue();
+		obj->item.ammoPid = pidArg.rawValue();
 	} else {
 		OpcodeInvalidArgs("set_weapon_ammo_pid");
 	}
@@ -200,7 +200,7 @@ static void __declspec(naked) op_set_weapon_ammo_pid() {
 static void __stdcall op_get_weapon_ammo_count2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(obj->itemCharges);
+		opHandler.setReturn(obj->item.charges);
 	} else {
 		OpcodeInvalidArgs("get_weapon_ammo_count");
 		opHandler.setReturn(0);
@@ -216,7 +216,7 @@ static void __stdcall op_set_weapon_ammo_count2() {
 	const ScriptValue &countArg = opHandler.arg(1);
 
 	if (obj && countArg.isInt()) {
-		obj->itemCharges = countArg.rawValue();
+		obj->item.charges = countArg.rawValue();
 	} else {
 		OpcodeInvalidArgs("set_weapon_ammo_count");
 	}
