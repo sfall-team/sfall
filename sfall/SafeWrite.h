@@ -1,5 +1,14 @@
 #pragma once
 
+enum CodeType : BYTE {
+	CODETYPE_Call      = 0xE8,
+	CODETYPE_Jump      = 0xE9,
+	CODETYPE_Nop       = 0x90,
+	CODETYPE_JumpShort = 0xEB, // 0xEB [jmp short ...]
+	CODETYPE_JumpNZ    = 0x75, // 0x75 [jnz short ...]
+	CODETYPE_JumpZ     = 0x74, // 0x74 [jz  short ...]
+};
+
 template <typename T>
 void __stdcall SafeWrite(DWORD addr, T data) {
 	DWORD oldProtect;

@@ -410,7 +410,7 @@ extern PathNode** ptr_master_db_handle;
 extern DWORD* ptr_master_volume;
 extern DWORD* ptr_max;
 extern long*  ptr_maxScriptNum;
-extern DWORD* ptr_Meet_Frank_Horrigan;
+extern bool*  ptr_Meet_Frank_Horrigan;
 extern const char** ptr_movie_list; // array of 17 char*
 extern DWORD* ptr_mouse_hotx;
 extern DWORD* ptr_mouse_hoty;

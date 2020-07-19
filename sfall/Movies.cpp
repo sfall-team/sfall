@@ -472,20 +472,22 @@ void MoviesInit() {
 	if (*((DWORD*)0x00518DA0) != 0x00503300) {
 		dlog("Error: The value at address 0x001073A0 is not equal to 0x00503300.", DL_INIT);
 	}
+
+	char optName[8] = "Movie";
 	for (int i = 0; i < MaxMovies; i++) {
-		MoviePtrs[i] = (DWORD)&MoviePaths[65 * i];
-		MoviePaths[i * 65 + 64] = 0;
-		char ininame[8];
-		strcpy_s(ininame, "Movie");
-		_itoa_s(i + 1, &ininame[5], 3, 10);
+		int index = 65 * i;
+		MoviePtrs[i] = (DWORD)&MoviePaths[index];
+		MoviePaths[index + 64] = '\0';
+
+		_itoa_s(i + 1, &optName[5], 3, 10);
 		if (i < 17) {
-			GetConfigString("Misc", ininame, ptr_movie_list[i], &MoviePaths[i * 65], 65);
+			GetConfigString("Misc", optName, ptr_movie_list[i], &MoviePaths[index], 65);
 		} else {
-			GetConfigString("Misc", ininame, "", &MoviePaths[i * 65], 65);
+			GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
 		}
 	}
 	dlog(".", DL_INIT);
-	const DWORD movieListAddr[] = {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A};
+	const DWORD movieListAddr[] = {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A}; // gmovie_play_
 	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, movieListAddr);
 	dlog(".", DL_INIT);
 

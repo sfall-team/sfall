@@ -236,6 +236,7 @@ errorLoad:
 
 static void __stdcall LoadGame_After() {
 	CritLoad();
+	*ptr_Meet_Frank_Horrigan = disableHorrigan;
 	LoadGlobalScripts();
 	gameLoaded = true;
 }
@@ -317,6 +318,7 @@ static void NewGame2() {
 	CritLoad();
 	SetNewCharAppearanceGlobals();
 	LoadHeroAppearance();
+	*ptr_Meet_Frank_Horrigan = disableHorrigan;
 	LoadGlobalScripts();
 
 	dlogr("New Game started.", DL_MAIN);
@@ -328,8 +330,6 @@ static void __declspec(naked) NewGame() {
 	__asm {
 		pushad;
 		call NewGame2;
-		mov  al, disableHorrigan;
-		mov  byte ptr ds:[_Meet_Frank_Horrigan], al;
 		popad;
 		jmp  main_game_loop_;
 	}
@@ -628,13 +628,12 @@ void LoadGameHookInit() {
 		pipBoyAvailableAtGameStart = true;
 		break;
 	case 2:
-		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
+		SafeWrite8(0x497011, CODETYPE_JumpShort); // skip the vault suit movie check
 		break;
 	}
 
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		disableHorrigan = true;
-		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
 	// 4.x backport
