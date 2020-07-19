@@ -509,17 +509,16 @@ static void PipboyAvailableAtStartPatch() {
 		};
 		break;
 	case 2:
-		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
+		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
 		break;
 	}
 }
 
 static void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
-		LoadGameHook::OnAfterNewGame() += []() {
+		LoadGameHook::OnAfterGameStarted() += []() {
 			fo::var::Meet_Frank_Horrigan = true;
 		};
-		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 }
 
