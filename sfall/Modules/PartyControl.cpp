@@ -527,7 +527,7 @@ static void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite8(0x495CFB, 0xEB); // jmps 0x495D28 (skip random check)
+		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
 	}
 }

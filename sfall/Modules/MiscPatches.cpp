@@ -317,7 +317,7 @@ static void ScienceOnCrittersPatch() {
 		HookCall(0x41276E, action_use_skill_on_hook_science);
 		break;
 	case 2:
-		SafeWrite8(0x41276A, 0xEB);
+		SafeWrite8(0x41276A, CodeType::JumpShort);
 		break;
 	}
 }
@@ -366,7 +366,7 @@ static void InstantWeaponEquipPatch() {
 	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(0xEB, PutAwayWeapon); // jmps
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon); // jmps
 		BlockCall(0x472AD5); //
 		BlockCall(0x472AE0); // invenUnwieldFunc_
 		BlockCall(0x472AF0); //
@@ -378,7 +378,7 @@ static void InstantWeaponEquipPatch() {
 static void DontTurnOffSneakIfYouRunPatch() {
 	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
-		SafeWrite8(0x418135, 0xEB);
+		SafeWrite8(0x418135, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -467,7 +467,7 @@ static void AlwaysReloadMsgs() {
 
 static void RemoveWindowRoundingPatch() {
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
-		SafeWriteBatch<BYTE>(0xEB, {0x4D6EDD, 0x4D6F12});
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x4D6EDD, 0x4D6F12});
 		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
 	}
 }
@@ -593,7 +593,7 @@ static void F1EngineBehaviorPatch() {
 	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
-		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight for power armor items
 		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
 		dlogr(" Done", DL_INIT);
 	}
