@@ -2732,7 +2732,7 @@ void BugFixesInit()
 		// // removes this line by making unconditional jump:
 		// if ( who == obj_dude )
 		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
-		SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
+		SafeWrite8(0x424527, CODETYPE_JumpShort); // in detemine_to_hit_func_()
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2786,7 +2786,7 @@ void BugFixesInit()
 		// Fix for move_obj_inven_to_obj function
 		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
 		SafeWrite16(0x45C496, 0x9090);
-		SafeWrite8(0x45C4A3, 0x75); // jmp > jnz
+		SafeWrite8(0x45C4A3, CODETYPE_JumpNZ); // jmp > jnz
 		// Fix for drop_obj function
 		HookCall(0x49B965, obj_drop_hook);
 		dlogr(" Done", DL_INIT);
@@ -2897,7 +2897,7 @@ void BugFixesInit()
 
 	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
 		dlog("Applying shiv patch.", DL_INIT);
-		SafeWrite8(0x477B2B, 0xEB);
+		SafeWrite8(0x477B2B, CODETYPE_JumpShort);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2906,8 +2906,8 @@ void BugFixesInit()
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
 		SafeWrite32(0x46B35D, 0x90909090);
-		SafeWrite8(0x46DBF1, 0xEB); // Disable warnings
-		SafeWrite8(0x46DDC4, 0xEB); // Disable warnings
+		const DWORD execProcWarnAddr[] = {0x46DBF1, 0x46DDC4};
+		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, execProcWarnAddr); // Disable warnings
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}
@@ -2930,7 +2930,7 @@ void BugFixesInit()
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
 		// Check neighboring tiles to prevent critters from overlapping other object tiles when moving to the retargeted tile
-		//SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
+		SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
 		HookCall(0x42A3A8, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
 		dlogr(" Done", DL_INIT);
 	//}
@@ -2969,8 +2969,8 @@ void BugFixesInit()
 	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
-		SafeWrite8(0x478115, 0xBA);
-		SafeWrite8(0x478138, 0xBA);
+		const DWORD itemQueuedAddr[] = {0x478115, 0x478138};
+		SafeWriteBatch<BYTE>(0xBA, itemQueuedAddr); // mov eax, 1 > mov edx, 1
 		MakeJump(0x474D22, barter_attempt_transaction_hack);
 		HookCall(0x4798B1, item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
@@ -3113,8 +3113,8 @@ void BugFixesInit()
 	// Fix broken op_obj_can_hear_obj_ function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
-		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
-		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
+		SafeWrite8(0x4583D8, 0x3B);           // jz loc_458414
+		SafeWrite8(0x4583DE, CODETYPE_JumpZ); // jz loc_458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3180,7 +3180,7 @@ void BugFixesInit()
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_INIT);
 		const DWORD activeGeigerAddr[] = {0x42D424, 0x42D444};
-		SafeWriteBatch<BYTE>(0x74, activeGeigerAddr); // jnz > jz
+		SafeWriteBatch<BYTE>(CODETYPE_JumpZ, activeGeigerAddr); // jnz > jz
 		dlogr(" Done", DL_INIT);
 	}
 	// Display a pop-up message box about death from radiation
@@ -3191,8 +3191,8 @@ void BugFixesInit()
 		dlog("Applying AI drug use preference fix.", DL_INIT);
 		MakeCall(0x42869D, ai_check_drugs_hack_break);
 		MakeCall(0x4286AB, ai_check_drugs_hack_check);
-		SafeWrite16(0x4286B0, 0x7490); // jnz > jz
-		SafeWrite8(0x4286C5, 0x75);    // jz  > jnz
+		SafeWrite16(0x4286B0, 0x7490);         // jnz > jz
+		SafeWrite8(0x4286C5, CODETYPE_JumpNZ); // jz  > jnz
 		MakeCall(0x4286C7, ai_check_drugs_hack_use);
 		dlogr(" Done", DL_INIT);
 	}

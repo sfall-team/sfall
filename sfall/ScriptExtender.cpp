@@ -1141,6 +1141,7 @@ static void __declspec(naked) CombatOverHook() {
 }
 
 static void __declspec(naked) obj_outline_all_items_on() {
+	using namespace Fields;
 	__asm {
 		pushadc;
 		mov  eax, ds:[_map_elevation];
@@ -1151,7 +1152,7 @@ loopObject:
 		cmp  eax, ds:[_outlined_object];
 		je   nextObject;
 		xchg ecx, eax;
-		mov  eax, [ecx + 0x20];
+		mov  eax, [ecx + artFid];
 		and  eax, 0xF000000;
 		sar  eax, 0x18;
 		test eax, eax;                            // Is this an item?
@@ -1160,25 +1161,25 @@ loopObject:
 		jnz  nextObject;                          // No
 		cmp  highlightCorpses, eax;               // Highlight corpses?
 		je   nextObject;                          // No
-		test byte ptr [ecx + 0x44], DAM_DEAD;     // source.results & DAM_DEAD?
+		test byte ptr [ecx + damageFlags], DAM_DEAD; // source.results & DAM_DEAD?
 		jz   nextObject;                          // No
-		mov  edx, 0x20;                           // _Steal flag
-		mov  eax, [ecx + 0x64];                   // eax = source.pid
+		mov  edx, CFLG_NoSteal;                   // _Steal flag
+		mov  eax, [ecx + protoId];                // eax = source.pid
 		call critter_flag_check_;
 		test eax, eax;                            // Can't be stolen from?
 		jnz  nextObject;                          // Yes
 skip:
-		cmp  [ecx + 0x7C], eax;                   // Owned by someone?
+		cmp  [ecx + owner], eax;                  // Owned by someone?
 		jnz  nextObject;                          // Yes
-		test [ecx + 0x74], eax;                   // Already outlined?
+		test [ecx + outline], eax;                // Already outlined?
 		jnz  nextObject;                          // Yes
-		test byte ptr [ecx + 0x25], 0x10;         // Is NoHighlight_ flag set (is this a container)?
+		test byte ptr [ecx + flags + 1], 0x10;    // Is NoHighlight_ flag set (is this a container)?
 		jz   NoHighlight;                         // No
 		cmp  highlightContainers, eax;            // Highlight containers?
 		je   nextObject;                          // No
 NoHighlight:
 		mov  edx, outlineColor;
-		mov  [ecx + 0x74], edx;
+		mov  [ecx + outline], edx;
 nextObject:
 		call obj_find_next_at_;
 		jmp  loopObject;
@@ -1190,6 +1191,7 @@ end:
 }
 
 static void __declspec(naked) obj_outline_all_items_off() {
+	using namespace Fields;
 	__asm {
 		pushadc;
 		mov  eax, ds:[_map_elevation];
@@ -1200,19 +1202,19 @@ loopObject:
 		cmp  eax, ds:[_outlined_object];
 		je   nextObject;
 		xchg ecx, eax;
-		mov  eax, [ecx + 0x20];
+		mov  eax, [ecx + artFid];
 		and  eax, 0xF000000;
 		sar  eax, 0x18;
 		test eax, eax;                            // Is this an item?
 		jz   skip;                                // Yes
 		dec  eax;                                 // Is this a critter?
 		jnz  nextObject;                          // No
-		test byte ptr [ecx + 0x44], DAM_DEAD;     // source.results & DAM_DEAD?
+		test byte ptr [ecx + damageFlags], DAM_DEAD; // source.results & DAM_DEAD?
 		jz   nextObject;                          // No
 skip:
-		cmp  [ecx + 0x7C], eax;                   // Owned by someone?
+		cmp  [ecx + owner], eax;                  // Owned by someone?
 		jnz  nextObject;                          // Yes
-		mov  [ecx + 0x74], eax;
+		mov  [ecx + outline], eax;
 nextObject:
 		call obj_find_next_at_;
 		jmp  loopObject;

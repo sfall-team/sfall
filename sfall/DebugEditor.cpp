@@ -107,8 +107,8 @@ static void RunEditorInternal(SOCKET &s) {
 		}
 	}
 	int numCritters = vec.size();
-	int numGlobals = *(int*)_num_game_global_vars;
-	int numMapVars = *(int*)_num_map_global_vars;
+	int numGlobals = *ptr_num_game_global_vars;
+	int numMapVars = *ptr_num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
 	int numArrays = GetNumArrays();
 
@@ -124,8 +124,8 @@ static void RunEditorInternal(SOCKET &s) {
 	sArray* arrays = new sArray[numArrays];
 	GetArrays((int*)arrays);
 
-	InternalSend(s, *(void**)_game_global_vars, 4 * numGlobals);
-	InternalSend(s, *(void**)_map_global_vars, 4 * numMapVars);
+	InternalSend(s, reinterpret_cast<void*>(*ptr_game_global_vars), 4 * numGlobals);
+	InternalSend(s, reinterpret_cast<void*>(*ptr_map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar) * numSGlobals);
 	InternalSend(s, arrays, numArrays * sizeof(sArray));
 	for (int i = 0; i < numCritters; i++) {
@@ -142,12 +142,12 @@ static void RunEditorInternal(SOCKET &s) {
 		case CODE_SET_GLOBAL:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			(*(DWORD**)_game_global_vars)[id] = val;
+			*ptr_game_global_vars[id] = val;
 			break;
 		case CODE_SET_MAPVAR:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			(*(DWORD**)_map_global_vars)[id] = val;
+			*ptr_map_global_vars[id] = val;
 			break;
 		case CODE_GET_CRITTER:
 			InternalRecv(s, &id, 4);
@@ -365,7 +365,7 @@ static void DebugModePatch() {
 			SafeWrite32(0x4C6D9C, (DWORD)debugLog);
 			if (dbgMode & 1) {
 				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
-				SafeWrite8(0x4C6EF2, 0xEB);
+				SafeWrite8(0x4C6EF2, CODETYPE_JumpShort);
 				SafeWrite8(0x4C7034, 0x0);
 				MakeCall(0x4DC319, win_debug_hook, 2);
 			}
@@ -394,7 +394,7 @@ static void DebugModePatch() {
 static void DontDeleteProtosPatch() {
 	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ddrawIniDef)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xEB);
+		SafeWrite8(0x48007E, CODETYPE_JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }

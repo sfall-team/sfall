@@ -73,7 +73,7 @@ DWORD* ptr_folder_card_title          = reinterpret_cast<DWORD*>(_folder_card_ti
 DWORD* ptr_folder_card_title2         = reinterpret_cast<DWORD*>(_folder_card_title2);
 DWORD* ptr_frame_time                 = reinterpret_cast<DWORD*>(_frame_time);
 char*  ptr_free_perk                  = reinterpret_cast<char*>(_free_perk);
-DWORD* ptr_game_global_vars           = reinterpret_cast<DWORD*>(_game_global_vars);
+long** ptr_game_global_vars           = reinterpret_cast<long**>(_game_global_vars); // dynamic array of size == num_game_global_vars
 DWORD* ptr_game_user_wants_to_quit    = reinterpret_cast<DWORD*>(_game_user_wants_to_quit);
 DWORD* ptr_gcsd                       = reinterpret_cast<DWORD*>(_gcsd);
 DWORD* ptr_gdBarterMod                = reinterpret_cast<DWORD*>(_gdBarterMod);
@@ -123,7 +123,7 @@ DWORD* ptr_lsgwin                     = reinterpret_cast<DWORD*>(_lsgwin);
 DWORD* ptr_main_ctd                   = reinterpret_cast<DWORD*>(_main_ctd);
 DWORD* ptr_main_window                = reinterpret_cast<DWORD*>(_main_window);
 DWORD* ptr_map_elevation              = reinterpret_cast<DWORD*>(_map_elevation);
-DWORD* ptr_map_global_vars            = reinterpret_cast<DWORD*>(_map_global_vars);
+long** ptr_map_global_vars            = reinterpret_cast<long**>(_map_global_vars); // array
 PathNode** ptr_master_db_handle       = reinterpret_cast<PathNode**>(_master_db_handle);
 DWORD* ptr_master_volume              = reinterpret_cast<DWORD*>(_master_volume);
 DWORD* ptr_max                        = reinterpret_cast<DWORD*>(_max);

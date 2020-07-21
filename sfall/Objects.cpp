@@ -161,7 +161,7 @@ void SetAutoUnjamLockTime(DWORD time) {
 		}
 		unjamTimeState = 1;
 	} else {
-		SafeWrite8(0x4831DA, 0xEB); // disable auto unjam
+		SafeWrite8(0x4831DA, CODETYPE_JumpShort); // disable auto unjam
 		unjamTimeState = 2;
 	}
 }

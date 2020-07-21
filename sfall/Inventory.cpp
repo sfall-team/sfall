@@ -641,10 +641,9 @@ void InventoryInit() {
 		if (sizeLimitMode >= 4) {
 			sizeLimitMode -= 4;
 			// item_total_weight_ patch
-			SafeWrite8(0x477EB3, 0xEB);
-			SafeWrite8(0x477EF5, 0);
-			SafeWrite8(0x477F11, 0);
-			SafeWrite8(0x477F29, 0);
+			SafeWrite8(0x477EB3, CODETYPE_JumpShort);
+			const DWORD itemTotalWtAddr[] = {0x477EF5, 0x477F11, 0x477F29};
+			SafeWriteBatch<BYTE>(0, itemTotalWtAddr);
 		}
 		invSizeMaxLimit = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 

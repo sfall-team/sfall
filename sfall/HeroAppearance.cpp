@@ -1442,7 +1442,7 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x4DEEE5, LoadNewHeroArt, 1);
 
 	// Divert critter frm file name function exit for file checking (art_get_name_)
-	SafeWrite8(0x419520, 0xEB); // divert func exit
+	SafeWrite8(0x419520, CODETYPE_JumpShort); // divert func exit
 	SafeWrite32(0x419521, 0x9090903E);
 
 	// Check if new hero art exists otherwise use regular art (art_get_name_)
@@ -1528,8 +1528,7 @@ static void EnableHeroAppearanceMod() {
 	HookCall(0x42613A, FixPcCriticalHitMsg);
 
 	// Force Criticals For Testing
-	//SafeWrite32(0x423A8F, 0x90909090);
-	//SafeWrite32(0x423A93, 0x90909090);
+	//SafeMemSet(0x423A8F, 0x90, 8);
 }
 
 void HeroAppearanceModExit() {

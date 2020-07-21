@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #pragma once
 
 /*
@@ -355,7 +356,7 @@ extern DWORD* ptr_folder_card_title;
 extern DWORD* ptr_folder_card_title2;
 extern DWORD* ptr_frame_time;
 extern char*  ptr_free_perk;
-extern DWORD* ptr_game_global_vars;
+extern long** ptr_game_global_vars; // dynamic array of size == num_game_global_vars
 extern DWORD* ptr_game_user_wants_to_quit;
 extern DWORD* ptr_gcsd;
 extern DWORD* ptr_gdBarterMod;
@@ -405,7 +406,7 @@ extern DWORD* ptr_lsgwin;
 extern DWORD* ptr_main_ctd;
 extern DWORD* ptr_main_window;
 extern DWORD* ptr_map_elevation;
-extern DWORD* ptr_map_global_vars;
+extern long** ptr_map_global_vars; // array
 extern PathNode** ptr_master_db_handle;
 extern DWORD* ptr_master_volume;
 extern DWORD* ptr_max;

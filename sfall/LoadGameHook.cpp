@@ -104,11 +104,12 @@ static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameSt
 	ResetExplosionRadius();
 	BarBoxes_OnGameLoad();
 	ScriptExtender_OnGameLoad();
-	inLoop = 0;
 	if (isDebug) {
 		char* str = (onLoad) ? "on Load" : "on Exit";
 		DebugPrintf("\n[SFALL: State reset %s]", str);
 	}
+	inLoop = 0;
+	gameLoaded = false;
 }
 
 void GetSavePath(char* buf, char* ftype) {

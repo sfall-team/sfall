@@ -560,7 +560,7 @@ void CombatInit() {
 	BodypartHitReadConfig();
 
 	// Remove the dependency of Body_Torso from Body_Uncalled
-	SafeWrite8(0x423830, 0xEB); // compute_attack_
+	SafeWrite8(0x423830, CODETYPE_JumpShort); // compute_attack_
 	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
 	SafeWrite8(0x42A713, 7); // Body_Uncalled > Body_Groin (ai_called_shot_)
 	SafeWriteBatch<BYTE>(8, bodypartAddr); // replace Body_Torso with Body_Uncalled

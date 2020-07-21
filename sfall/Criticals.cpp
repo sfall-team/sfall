@@ -256,9 +256,9 @@ static void CriticalTableOverride() {
 static void RemoveCriticalTimeLimitsPatch() {
 	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x424118, 0xEB);  // jump to 0x424131
-		SafeWrite16(0x4A3052, 0x9090);
-		SafeWrite16(0x4A3093, 0x9090);
+		SafeWrite8(0x424118, CODETYPE_JumpShort); // jump to 0x424131
+		const DWORD rollChkCritAddr[] = {0x4A3052, 0x4A3093};
+		SafeWriteBatch<WORD>(0x9090, rollChkCritAddr);
 		dlogr(" Done", DL_INIT);
 	}
 }
