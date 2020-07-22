@@ -155,6 +155,7 @@
 #define _LSData                     0x613D30
 #define _lsgwin                     0x6142C4
 #define _main_ctd                   0x56D2B0
+#define _main_death_voiceover_done  0x614838
 #define _main_window                0x5194F0
 #define _map_elevation              0x519578
 #define _map_global_vars            0x51956C
@@ -237,6 +238,7 @@
 #define _sneak_working              0x56D77C // DWORD var
 #define _sound_music_path1          0x518E78
 #define _sound_music_path2          0x518E7C
+#define _speech_volume              0x518E8C
 #define _square                     0x631E40
 #define _squares                    0x66BE08
 #define _stack                      0x59E86C
@@ -404,6 +406,7 @@ extern DWORD* ptr_loadingGame;
 extern DWORD* ptr_LSData;
 extern DWORD* ptr_lsgwin;
 extern DWORD* ptr_main_ctd;
+extern DWORD* ptr_main_death_voiceover_done;
 extern DWORD* ptr_main_window;
 extern DWORD* ptr_map_elevation;
 extern long** ptr_map_global_vars; // array
@@ -477,6 +480,7 @@ extern DWORD* ptr_sndfx_volume;
 extern DWORD* ptr_sneak_working; // DWORD var
 extern char** ptr_sound_music_path1;
 extern char** ptr_sound_music_path2;
+extern DWORD* ptr_speech_volume;
 extern DWORD* ptr_square;
 extern DWORD* ptr_squares;
 extern DWORD* ptr_stack;
@@ -699,6 +703,7 @@ extern const DWORD gsound_background_volume_get_set_;
 extern const DWORD gsound_play_sfx_file_;
 extern const DWORD gsound_red_butt_press_;
 extern const DWORD gsound_red_butt_release_;
+extern const DWORD gsound_speech_play_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
 extern const DWORD inc_stat_;

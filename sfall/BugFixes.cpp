@@ -2811,7 +2811,7 @@ void BugFixesInit()
 
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
-	SafeWrite8(0x4AC377, 0x7F);                // jg
+	SafeWrite8(0x4AC377, 0x7F); // jg
 	dlogr(" Done", DL_INIT);
 
 	// Fix for negative SPECIAL values in character creation
@@ -2833,8 +2833,8 @@ void BugFixesInit()
 	//}
 
 	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
-	SafeWrite8(0x475541, 64);
-	SafeWrite8(0x475789, 64);
+	const DWORD displayTableInvAddr[] = {0x475541, 0x475789};
+	SafeWriteBatch<BYTE>(64, displayTableInvAddr);
 
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);

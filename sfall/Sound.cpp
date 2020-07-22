@@ -34,14 +34,16 @@ enum SoundType : unsigned long {
 };
 
 enum SoundMode : long {
-	SNDMODE_single_play = 0, // uses sfx volume
-	SNDMODE_loop_play   = 1, // uses sfx volume
-	SNDMODE_music_play  = 2, // uses background volume
+	SNDMODE_single_play  = 0, // uses sfx volume
+	SNDMODE_loop_play    = 1, // uses sfx volume
+	SNDMODE_music_play   = 2, // uses background volume
+	SNDMODE_speech_play  = 3, // uses speech volume
 	SNDMODE_engine_music_play = -1 // used when playing game music in an alternative format (not used from scripts)
 };
 
 enum SoundFlags : unsigned long {
 	SNDFLAG_looping = 0x10000000,
+	SNDFLAG_on_stop = 0x20000000,
 	SNDFLAG_restore = 0x40000000, // restore background game music on stop play
 	SNDFLAG_engine  = 0x80000000
 };
@@ -119,6 +121,9 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 				} else {
 					FreeSound(sound);
 					playingSounds.erase(playingSounds.begin() + index);
+					if (id & SNDFLAG_on_stop) {
+						*ptr_main_death_voiceover_done = 1; // death speech sound playback is completed
+					}
 				}
 			}
 		}
@@ -178,7 +183,7 @@ void __stdcall ResumeAllSfallSound() {
 	}
 }
 
-static long CalculateVolumeDB(long masterVolume, long passVolume) {
+long __stdcall CalculateVolumeDB(long masterVolume, long passVolume) {
 	if (masterVolume <= 0 || passVolume <= 0) return -9999; // mute
 
 	const int volOffset = -100;  // adjust the maximum volume
@@ -194,7 +199,7 @@ static long CalculateVolumeDB(long masterVolume, long passVolume) {
 	master_volume:     sound=0 type=game_master passVolume=background_volume
 	background_volume: sound=backgroundMusic type=background_loop passVolume=background_volume
 	sfx_volume:        sound=0 type=game_sfx passVolume=sndfx_volume
- */
+*/
 static void __cdecl SfallSoundVolume(sDSSound* sound, SoundType type, long passVolume) {
 	long volume, sfxVolume, masterVolume = *ptr_master_volume;
 
@@ -224,27 +229,32 @@ static void __cdecl SfallSoundVolume(sDSSound* sound, SoundType type, long passV
 	}
 }
 
-static bool IsMute(bool type) {
+static bool IsMute(SoundMode mode) {
 	//if (*ptr_master_volume == 0) return true;
-	int value;
-	if (type) {
-		value = *ptr_background_volume;
-	} else {
-		value = *ptr_sndfx_volume;
+
+	switch (mode) {
+	case SNDMODE_single_play:
+		return (*ptr_sndfx_volume == 0);
+	case SNDMODE_speech_play:
+		return (*ptr_speech_volume == 0);
+	default:
+		return (*ptr_background_volume == 0);
 	}
-	return (value == 0);
 }
+
+static bool deathSceneSpeech = false;
 
 /*
 	single_play: mode 0 - single sound playback (with sound overlay)
 	loop_play:   mode 1 - loop sound playback (with sound overlay)
 	music_play:  mode 2 - loop sound playback with the background game music turned off
+	speech_play: mode 3 -
 */
 static sDSSound* PlayingSound(wchar_t* path, SoundMode mode) {
 	if (!soundwindow) CreateSndWnd();
 
-	bool isLoop = (mode != SNDMODE_single_play);
-	if (IsMute(isLoop)) return nullptr;
+	if (IsMute(mode)) return nullptr;
+	bool isLoop = (mode != SNDMODE_single_play && mode != SNDMODE_speech_play);
 
 	sDSSound* sound = new sDSSound();
 
@@ -276,6 +286,7 @@ static sDSSound* PlayingSound(wchar_t* path, SoundMode mode) {
 		backgroundMusic = sound;
 	}
 	else if (mode == SNDMODE_engine_music_play) sound->id |= SNDFLAG_engine; // engine play
+	else if (deathSceneSpeech && mode == SNDMODE_speech_play) sound->id |= SNDFLAG_on_stop;
 
 	sound->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP, sound->id);
 	sound->pControl->RenderFile(path);
@@ -286,42 +297,66 @@ static sDSSound* PlayingSound(wchar_t* path, SoundMode mode) {
 		SfallSoundVolume(sound, SNDTYPE_sfx_loop, (mode == SNDMODE_loop_play) ? *ptr_sndfx_volume : *ptr_background_volume);
 	} else {
 		playingSounds.push_back(sound);
-		SfallSoundVolume(sound, SNDTYPE_sfx_single, *ptr_sndfx_volume);
+		SfallSoundVolume(sound, SNDTYPE_sfx_single, (mode == SNDMODE_speech_play) ? *ptr_speech_volume : *ptr_sndfx_volume);
 	}
 	return sound;
 }
 
-static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
+enum PlayType : signed char {
+	PLAYTYPE_sfx    = 0,
+	PLAYTYPE_music  = 1,
+	PLAYTYPE_speech = 2,
+};
 
-static bool __cdecl SoundFileLoad(DWORD called, const char* path) {
-	if (!path || strlen(path) < 4) return false;
-	wchar_t buf[256];
-	mbstowcs_s(0, buf, path, 256);
+static const wchar_t *SoundExtensions[] = { L"mp3", L"wav", L"wma" };
+
+static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
+	if (!path) return false;
+
+	int len = 0;
+	while (len < 4 && path[len] != '\0') len++; // X.acm0
+	if (len <= 3) return false;                 // 012345
+	len = 0;
+
+	wchar_t buf[MAX_PATH];
+	if (playType != PLAYTYPE_music) {
+		char* master_patches = *ptr_patches; // all sfx/speech sounds must be placed in patches folder
+		while (master_patches[len]) buf[len] = master_patches[len++];
+		buf[len++] = L'\\';
+	}
+
+	const char* _path = path - len;
+	while (len < MAX_PATH && _path[len]) buf[len] = _path[len++];
+	if (len >= MAX_PATH) return false;
+	buf[len] = L'\0';
+	len -= 3; // the position of the first character of the file extension
 
 	bool isExist = false;
-	int len = wcslen(buf) - 3;
 	for (int i = 0; i < 3; i++) {
-		buf[len] = 0;
-		wcscat_s(buf, SoundExtensions[i]);
+		int j = len;
+		buf[j++] = SoundExtensions[i][0];
+		buf[j++] = SoundExtensions[i][1];
+		buf[j]   = SoundExtensions[i][2];
+
 		if (GetFileAttributesW(buf) & FILE_ATTRIBUTE_DIRECTORY) continue; // also file not found
 		isExist = true;
 		break;
 	}
 
-	bool music = (called == 0x45092B); // from gsound_background_play_
-	if (music && backgroundMusic != nullptr) {
+	if (playType == PLAYTYPE_music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
 		StopSfallSound(backgroundMusic->id);
 		backgroundMusic = nullptr;
 	}
 	if (!isExist) return false;
 
-	if (music) {
+	if (playType == PLAYTYPE_music) {
 		//strcpy_s(playingMusicFile, path);
 		backgroundMusic = PlayingSound(buf, SNDMODE_engine_music_play); // background music loop
 		if (!backgroundMusic) return false;
 	} else {
-		if (!PlayingSound(buf, SNDMODE_single_play)) return false;
+		if (!PlayingSound(buf, (playType == PLAYTYPE_speech) ? SNDMODE_speech_play : SNDMODE_single_play)) return false;
+		deathSceneSpeech = false;
 	}
 	return true;
 }
@@ -331,10 +366,10 @@ static void __fastcall MakeMusicPath(const char* file) {
 	char pathBuf[256];
 
 	sprintf_s(pathBuf, pathFmt, *ptr_sound_music_path1, file);
-	if (SoundFileLoad(0x45092B, pathBuf)) return;
+	if (SoundFileLoad(PLAYTYPE_music, pathBuf)) return;
 
 	sprintf_s(pathBuf, pathFmt, *ptr_sound_music_path2, file);
-	SoundFileLoad(0x45092B, pathBuf);
+	SoundFileLoad(PLAYTYPE_music, pathBuf);
 }
 
 DWORD __stdcall PlaySfallSound(const char* path, long mode) {
@@ -370,10 +405,16 @@ static void __declspec(naked) soundLoad_hack() {
 		mov  ebx, eax;
 		// end engine code
 		push ecx;
-		push edx;
-		push [esp + 24];
+		push edx;            // path to file
+		mov  eax, [esp + 24];
+		cmp  eax, 0x45092B;  // called from gsound_background_play_
+		sete cl;             // PLAYTYPE_sfx / PLAYTYPE_music
+		je   skip;
+		cmp  eax, 0x450EB9;  // called from gsound_speech_play_
+		jne  skip;
+		mov  cl, 2;          // PLAYTYPE_speech
+skip:
 		call SoundFileLoad;
-		add  esp, 4;
 		pop  edx;
 		pop  ecx;
 		test al, al;
@@ -381,6 +422,20 @@ static void __declspec(naked) soundLoad_hack() {
 		jmp  SoundLoadHackRet; // play acm
 playSfall:
 		jmp  SoundLoadHackEnd; // don't play acm (force error)
+	}
+}
+
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  deathSceneSpeech, 1;
+		call gsound_speech_play_;
+		cmp  deathSceneSpeech, 0
+		je   playSfall;
+		mov  deathSceneSpeech, 0;
+		retn;
+playSfall:
+		xor  eax, eax;
+		retn;
 	}
 }
 
@@ -579,6 +634,7 @@ void SoundInit() {
 		MakeJump(0x4AD499, soundLoad_hack);
 		const DWORD gmoviePlayStopAddr[] = {0x44E80A, 0x445280};
 		HookCalls(gmovie_play_hook_stop, gmoviePlayStopAddr); // only play looping music
+		HookCall(0x4813EE, main_death_scene_hook);
 		if (allowDShowSound > 1) {
 			HookCall(0x450851, gsound_background_play_hook);
 		}
