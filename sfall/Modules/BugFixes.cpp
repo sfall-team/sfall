@@ -2831,7 +2831,7 @@ void BugFixes::init()
 
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
-	SafeWrite8(0x4AC377, 0x7F);                // jg
+	SafeWrite8(0x4AC377, 0x7F); // jg
 	dlogr(" Done", DL_INIT);
 
 	// Fix for negative SPECIAL values in character creation

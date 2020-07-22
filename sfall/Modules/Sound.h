@@ -31,6 +31,8 @@ public:
 
 	static DWORD PlaySfallSound(const char* path, long mode);
 	static void __stdcall StopSfallSound(DWORD id);
+
+	static long CalculateVolumeDB(long masterVolume, long passVolume);
 };
 
 }

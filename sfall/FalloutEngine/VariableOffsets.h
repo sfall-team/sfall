@@ -135,6 +135,7 @@
 #define FO_VAR_LSData                     0x613D30
 #define FO_VAR_lsgwin                     0x6142C4
 #define FO_VAR_main_ctd                   0x56D2B0
+#define FO_VAR_main_death_voiceover_done  0x614838
 #define FO_VAR_main_window                0x5194F0
 #define FO_VAR_map_elevation              0x519578
 #define FO_VAR_map_global_vars            0x51956C
@@ -223,6 +224,7 @@
 #define FO_VAR_sneak_working              0x56D77C // DWORD var
 #define FO_VAR_sound_music_path1          0x518E78
 #define FO_VAR_sound_music_path2          0x518E7C
+#define FO_VAR_speech_volume              0x518E8C
 #define FO_VAR_square                     0x631E40
 #define FO_VAR_squares                    0x66BE08
 #define FO_VAR_stack                      0x59E86C
