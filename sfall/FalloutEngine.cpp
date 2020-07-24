@@ -52,6 +52,7 @@ DWORD* ptr_crnt_func                  = reinterpret_cast<DWORD*>(_crnt_func);
 DWORD* ptr_curr_font_num              = reinterpret_cast<DWORD*>(_curr_font_num);
 DWORD* ptr_curr_pc_stat               = reinterpret_cast<DWORD*>(_curr_pc_stat);
 DWORD* ptr_curr_stack                 = reinterpret_cast<DWORD*>(_curr_stack);
+TProgram** ptr_currentProgram         = reinterpret_cast<TProgram**>(_currentProgram);
 DWORD* ptr_cursor_line                = reinterpret_cast<DWORD*>(_cursor_line);
 BYTE*  ptr_DARK_GREY_Color            = reinterpret_cast<BYTE*>(_DARK_GREY_Color);
 BYTE*  ptr_DarkGreenColor             = reinterpret_cast<BYTE*>(_DarkGreenColor);

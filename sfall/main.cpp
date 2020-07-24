@@ -54,6 +54,7 @@
 #include "Logging.h"
 #include "MainMenu.h"
 #include "Message.h"
+#include "MetaruleExtender.h"
 #include "MiscPatches.h"
 #include "Movies.h"
 #include "Objects.h"
@@ -281,6 +282,9 @@ static void DllMain2() {
 	TalkingHeadsInit();
 
 	// most of modules should be initialized before running the script handlers
+	dlogr("Running MetaruleExtenderInit().", DL_INIT);
+	MetaruleExtenderInit();
+
 	dlogr("Running ScriptExtenderInit().", DL_INIT);
 	ScriptExtenderInit();
 

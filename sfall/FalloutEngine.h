@@ -68,6 +68,7 @@
 #define _curr_font_num              0x51E3B0
 #define _curr_pc_stat               0x6681AC
 #define _curr_stack                 0x59E96C
+#define _currentProgram             0x59E78C
 #define _currentWindow              0x51DCB8
 #define _cursor_line                0x664514
 #define _debug_func                 0x51DF04
@@ -337,6 +338,7 @@ extern DWORD* ptr_crnt_func;
 extern DWORD* ptr_curr_font_num;
 extern DWORD* ptr_curr_pc_stat;
 extern DWORD* ptr_curr_stack;
+extern TProgram** ptr_currentProgram;
 extern DWORD* ptr_cursor_line;
 extern BYTE*  ptr_DARK_GREY_Color;
 extern BYTE*  ptr_DarkGreenColor;

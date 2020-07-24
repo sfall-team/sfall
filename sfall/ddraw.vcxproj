@@ -297,6 +297,7 @@
     <ClInclude Include="Interface.h" />
     <ClInclude Include="Karma.h" />
     <ClInclude Include="LoadOrder.h" />
+    <ClInclude Include="MetaruleExtender.h" />
     <ClInclude Include="MiscPatches.h" />
     <ClInclude Include="PlayerModel.h" />
     <ClInclude Include="TalkingHeads.h" />
@@ -371,6 +372,7 @@
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="Karma.cpp" />
     <ClCompile Include="LoadOrder.cpp" />
+    <ClCompile Include="MetaruleExtender.cpp" />
     <ClCompile Include="MiscPatches.cpp" />
     <ClCompile Include="PlayerModel.cpp" />
     <ClCompile Include="TalkingHeads.cpp" />

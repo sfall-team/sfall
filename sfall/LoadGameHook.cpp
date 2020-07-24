@@ -37,6 +37,7 @@
 #include "LoadOrder.h"
 #include "Logging.h"
 #include "Message.h"
+#include "MetaruleExtender.h"
 #include "Movies.h"
 #include "Objects.h"
 #include "PartyControl.h"
@@ -103,6 +104,7 @@ static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameSt
 	PartyControl_OnGameLoad();
 	ResetExplosionRadius();
 	BarBoxes_OnGameLoad();
+	MetaruleExtenderReset();
 	ScriptExtender_OnGameLoad();
 	if (isDebug) {
 		char* str = (onLoad) ? "on Load" : "on Exit";

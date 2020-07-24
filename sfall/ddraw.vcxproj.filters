@@ -223,6 +223,9 @@
     <ClInclude Include="MiscPatches.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="MetaruleExtender.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -383,6 +386,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="MiscPatches.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaruleExtender.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
