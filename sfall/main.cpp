@@ -58,6 +58,7 @@
 #include "Modules\MainMenu.h"
 #include "Modules\MainLoopHook.h"
 #include "Modules\Message.h"
+#include "Modules\MetaruleExtender.h"
 #include "Modules\MiscPatches.h"
 #include "Modules\Movies.h"
 #include "Modules\Objects.h"
@@ -218,6 +219,7 @@ static void InitModules() {
 	manager.add<ScriptShaders>();
 
 	// all built-in events(delegates) of modules should be executed before running the script handlers
+	manager.add<MetaruleExtender>();
 	manager.add<HookScripts>();
 	manager.add<ScriptExtender>();
 

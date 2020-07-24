@@ -11,6 +11,7 @@ std::multimap<long, long> writeAddress;
 
 static std::vector<long> excludeWarning = {
 	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x4CB850, // from movies.cpp
+	0x4C06D8, // DisableHorrigan
 };
 
 static std::vector<long> excludeConflict = {

@@ -298,6 +298,9 @@
     <ClInclude Include="FalloutEngine\AsmMacros.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\MetaruleExtender.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -549,6 +552,9 @@
     </ClCompile>
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp">
       <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\MetaruleExtender.cpp">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
