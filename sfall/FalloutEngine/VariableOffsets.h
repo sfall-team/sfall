@@ -69,6 +69,8 @@
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_EncounterMapID             0x672E4C
+#define FO_VAR_endgame_subtitle_done      0x570BD0
+#define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_game_time          0x51C720
@@ -89,6 +91,7 @@
 #define FO_VAR_gconfig_file_name          0x58E978
 #define FO_VAR_gcsd                       0x51094C
 #define FO_VAR_gdBarterMod                0x51873C
+#define FO_VAR_gdialog_speech_playing     0x518710
 #define FO_VAR_gDialogMusicVol            0x5187D8
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
@@ -97,6 +100,7 @@
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
 #define FO_VAR_gsound_initialized         0x518E30
+#define FO_VAR_gsound_speech_tag          0x518E54
 #define FO_VAR_hit_location_penalty       0x510954
 #define FO_VAR_holo_flag                  0x664529
 #define FO_VAR_holodisk                   0x6644F4
