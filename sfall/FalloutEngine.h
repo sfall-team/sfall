@@ -90,6 +90,8 @@
 #define _edit_win                   0x57060C
 #define _Educated                   0x57082C
 #define _elevation                  0x631D2C
+#define _endgame_subtitle_done      0x570BD0
+#define _endgame_subtitle_characters 0x51866C
 #define _Experience_                0x6681B4
 #define _fallout_game_time          0x51C720
 #define _fidgetFID                  0x5186F4
@@ -109,6 +111,7 @@
 #define _gconfig_file_name          0x58E978
 #define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
+#define _gdialog_speech_playing     0x518710
 #define _gDialogMusicVol            0x5187D8
 #define _gdNumOptions               0x5186D8
 #define _gIsSteal                   0x51D430
@@ -117,6 +120,7 @@
 #define _gmovie_played_list         0x596C78
 #define _GNW_win_init_flag          0x51E3E0
 #define _gsound_initialized         0x518E30
+#define _gsound_speech_tag          0x518E54
 #define _hit_location_penalty       0x510954
 #define _holo_flag                  0x664529
 #define _holodisk                   0x6644F4
@@ -350,6 +354,7 @@ extern DWORD* ptr_drugInfoList;
 extern const DWORD* ptr_edit_win;
 extern DWORD* ptr_Educated;
 extern DWORD* ptr_elevation;
+extern DWORD* ptr_endgame_subtitle_done;
 extern DWORD* ptr_Experience_;
 extern DWORD* ptr_fallout_game_time;
 extern DWORD* ptr_fidgetFID;
@@ -975,6 +980,9 @@ extern const DWORD skill_set_tags_; // eax - pointer to array DWORD, edx - numbe
 extern const DWORD skill_use_;
 extern const DWORD skilldex_select_;
 extern const DWORD soundDelete_;
+extern const DWORD soundGetPosition_;
+extern const DWORD soundPlay_;
+extern const DWORD soundPlaying_;
 extern const DWORD sprintf_;
 extern const DWORD square_num_;
 extern const DWORD stat_get_base_direct_;
