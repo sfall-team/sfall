@@ -22,9 +22,13 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+
 #include "Graphics.h"
+#include "Sound.h"
 
 #include "Movies.h"
+
+static DWORD MoviePtrs[MaxMovies];
 
 class CAllocator : public IVMRSurfaceAllocator9, IVMRImagePresenter9 {
 
@@ -132,7 +136,6 @@ private:
 	}
 
 	HRESULT __stdcall PresentImage(DWORD_PTR dwUserID, VMR9PresentationInfo *lpPresInfo) {
-		//dlog_f("\nPresent Image %d", DL_INIT, isStartPresenting);
 		if (isStartPresenting) {
 			IDirect3DTexture9* tex;
 			lpPresInfo->lpSurf->GetContainer(IID_IDirect3DTexture9, (LPVOID*)&tex);
@@ -192,18 +195,34 @@ struct sDSTexture {
 	IVMRSurfaceAllocatorNotify9 *pAlloc;
 	IMediaControl *pControl;
 	IMediaSeeking *pSeek;
+	IBasicAudio   *pAudio;
 } movieInterface;
+
+enum AviState : long {
+	AVISTATE_Stop,
+	AVISTATE_ReadyToPlay,
+	AVISTATE_Playing
+};
+
+static AviState aviPlayState;
+static DWORD backgroundVolume = 0;
 
 void PlayMovie(sDSTexture* movie) {
 	movie->pControl->Run();
+	movie->pAudio->put_Volume(
+		CalculateVolumeDB(*ptr_master_volume, (backgroundVolume) ? backgroundVolume : *ptr_background_volume)
+	);
 }
 
 void PauseMovie(sDSTexture* movie) {
 	movie->pControl->Pause();
 }
 
-void StopMovie(sDSTexture* movie) {
-	movie->pControl->Stop();
+void StopMovie() {
+	aviPlayState = AVISTATE_Stop;
+	movieInterface.pControl->Stop();
+	Gfx_SetMovieTexture(0);
+	if (*(DWORD*)_subtitles == 0) RefreshGNW(); // Note: it is only necessary when the game is loaded
 }
 /*
 void RewindMovie(sDSTexture* movie) {
@@ -227,6 +246,7 @@ DWORD FreeMovie(sDSTexture* movie) {
 	if (movie->pConfig) movie->pConfig->Release();
 	if (movie->pVmr) movie->pVmr->Release();
 	if (movie->pGraph) movie->pGraph->Release();
+	if (movie->pAudio) movie->pAudio->Release();
 	return 0;
 }
 
@@ -271,6 +291,8 @@ DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
 	hr = movie->pGraph->AddFilter(movie->pVmr, L"VMR9");
 	if (hr != S_OK) return FreeMovie(movie);
 
+	movie->pGraph->QueryInterface(IID_IBasicAudio, (void**)&movie->pAudio);
+
 	dlog("\nStart rendering file.", DL_INIT);
 	hr = movie->pGraph->RenderFile(path, nullptr);
 	if (hr != S_OK) dlog_f(" ERROR: %d", DL_INIT, hr);
@@ -282,12 +304,24 @@ static __int64 endMoviePosition;
 
 // Movie play looping
 static DWORD PlayMovieLoop() {
-	//dlog("\nPlay Movie Loop.", DL_INIT);
+	static bool onlyOnce = false;
 
-	if (*(DWORD*)_subtitles) __asm call movieUpdate_; // for reading subtitles when playing mve
+	if (aviPlayState == AVISTATE_ReadyToPlay) {
+		aviPlayState = AVISTATE_Playing;
+		PlayMovie(&movieInterface);
+		onlyOnce = false;
+	}
+
+	if (*(DWORD*)_subtitles) {
+		__asm call movieUpdate_; // for reading subtitles when playing mve
+		if (!onlyOnce) {
+			onlyOnce = true;
+			ClearWindow(*(DWORD*)_GNWWin);
+		}
+	}
 
 	if (GetAsyncKeyState(VK_ESCAPE)) {
-		StopMovie(&movieInterface);
+		StopMovie();
 		return 0; // break play
 	}
 
@@ -297,7 +331,7 @@ static DWORD PlayMovieLoop() {
 	movieInterface.pSeek->GetCurrentPosition(&pos);
 
 	bool isPlayEnd = (endMoviePosition == pos);
-	if (isPlayEnd) StopMovie(&movieInterface);
+	if (isPlayEnd) StopMovie();
 
 	return !isPlayEnd; // 0 - for breaking play
 }
@@ -320,8 +354,6 @@ static void __declspec(naked) gmovie_play_hook_input() {
 	}
 }
 
-static DWORD backgroundVolume = 0;
-
 static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 	static long isNotWMR = -1;
 	// Verify that the VMR exists on this system
@@ -339,19 +371,20 @@ static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 
 	// Get file path in unicode
 	wchar_t path[MAX_PATH];
+	long pos = 0;
+
 	char* master_patches = *ptr_patches;
-	DWORD len = 0;
-	while (master_patches[len]) {
-		path[len] = master_patches[len]; len++;
-	}
-	path[len] = 0;
-	wcscat_s(path, L"\\art\\cuts\\");
-	len = wcslen(path);
-	char* movie = &MoviePaths[id * 65] - len;
-	while (movie[len]) {
-		path[len] = movie[len]; len++;
-	}
-	wcscpy_s(&path[len - 3], 5, L"avi");
+	while (pos < MAX_PATH && master_patches[pos]) path[pos] = master_patches[pos++];
+	if ((pos + 10) >= MAX_PATH) return 0;
+
+	wcscpy(&path[pos], L"\\art\\cuts\\");
+	pos += 10;
+
+	char* movie = (char*)(MoviePtrs[id] - pos);
+	while (pos < MAX_PATH && movie[pos]) path[pos] = movie[pos++];
+	if (pos >= MAX_PATH) return 0;
+
+	wcscpy(&path[pos - 3], L"avi");
 
 	// Check for existance of file
 	if (GetFileAttributesW(path) & FILE_ATTRIBUTE_DIRECTORY) return 0; // also file not found
@@ -362,28 +395,18 @@ static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 	HookCall(0x44E949, gmovie_play_hook_input); // block get_input_ (if subtitles are disabled then mve videos will not be played)
 	HookCall(0x44E937, gmovie_play_hook);       // looping call moviePlaying_
 
-	// patching gmovie_play_ for disabled game subtitles
-	if (*(DWORD*)_subtitles == 0) {
-		SafeWrite8(0x4CB850, 0xC3); // GNW95_ShowRect_ blocking image rendering from the 'descSurface' surface when subtitles are disabled (optional)
-	} else {
-		//SafeWrite8(0x486654, 0xC3); // blocking movie_MVE_ShowFrame_
-		//SafeWrite8(0x486900, 0xC3); // blocking movieShowFrame_
-		SafeWrite8(0x4F5F40, 0xC3); // blocking sfShowFrame_ for disabling the display of mve video frames
+	// patching MVE_rmStepMovie_ for game subtitles
+	if (*(DWORD*)_subtitles) {
+		SafeWrite8(0x4F5F40, CODETYPE_Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
 
 		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
 		backgroundVolume = GsoundBackgroundVolumeGetSet(0);
 		#endif
 	}
-
-	//WIP
-	//SafeWrite32(0x4C73B2, 0x2E);
-	//BlockCall(0x48827E);
-	//BlockCall(0x44E92B);
-
 	movieInterface.pSeek->GetStopPosition(&endMoviePosition);
-	PlayMovie(&movieInterface);
+	aviPlayState = AVISTATE_ReadyToPlay;
 
-	return 1; // play AVI
+	return 1; // for playing AVI
 }
 
 static void __stdcall PlayMovieRestore() {
@@ -394,14 +417,12 @@ static void __stdcall PlayMovieRestore() {
 	SafeWrite32(0x44E938, 0x3934C); // call moviePlaying_
 	SafeWrite32(0x44E94A, 0x7A22A); // call get_input_
 
-	if (*(DWORD*)_subtitles == 0) {
-		SafeWrite8(0x4CB850, 0x53); // GNW95_ShowRect_
-	} else {
+	if (*(DWORD*)_subtitles) {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
 		if (backgroundVolume) backgroundVolume = GsoundBackgroundVolumeGetSet(backgroundVolume); // restore volume
 	}
 
-	Gfx_SetMovieTexture(0);
+	aviPlayState = AVISTATE_Stop;
 	FreeMovie(&movieInterface);
 }
 
@@ -420,14 +441,14 @@ static void __declspec(naked) gmovie_play_hack() {
 		pop  edx;
 		pop  ecx;
 		jz   failPlayAvi;
-		push offset return; // return to here label
+		push offset return; // return to here "return" label
 failPlayAvi:
 		push ebx;
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
-		jmp  gmovie_play_addr;
+		jmp  gmovie_play_addr; // continue
 return:
 		push ecx;
 		call PlayMovieRestore;
@@ -437,11 +458,19 @@ return:
 	}
 }
 
+static void __declspec(naked) gmovie_play_hook_stop() {
+	__asm {
+		cmp  aviPlayState, AVISTATE_Playing;
+		jne  skip;
+		call StopMovie;
+skip:
+		jmp  movieStop_;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 char MoviePaths[MaxMovies * 65];
-
-static DWORD MoviePtrs[MaxMovies];
 static DWORD Artimer1DaysCheckTimer;
 
 static void __declspec(naked) Artimer1DaysCheckHack() {
@@ -493,13 +522,11 @@ void MoviesInit() {
 
 	/*
 		WIP: Task
-		Necessary to implement setting the volume according to the volume control in Fallout settings.
-		Add fade effects and brightness adjustment for videos.
 		Implement subtitle output from the need to play an mve file in the background.
-		Fix minor bugs.
 	*/
 	if (GraphicsMode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) {
 		MakeJump(0x44E690, gmovie_play_hack);
+		HookCall(0x44E993, gmovie_play_hook_stop);
 		/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
 	}
 	dlogr(" Done", DL_INIT);
@@ -517,6 +544,5 @@ void MoviesInit() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Should be AFTER the PlayMovieHook setup above
 	SkipOpeningMoviesPatch();
 }

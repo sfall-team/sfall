@@ -84,7 +84,7 @@ static DWORD ShaderVersion;
 IDirect3D9* d3d9 = 0;
 IDirect3DDevice9* d3d9Device = 0;
 
-static IDirect3DTexture9* Tex = 0;
+static IDirect3DTexture9* mainTex = 0;
 static IDirect3DTexture9* sTex1 = 0;
 static IDirect3DTexture9* sTex2 = 0;
 
@@ -378,8 +378,8 @@ static void ResetDevice(bool createNew) {
 	ShaderVertices[2].x = ResWidth - 0.5f;
 	ShaderVertices[3].y = ResHeight - 0.5f;
 	ShaderVertices[3].x = ResWidth - 0.5f;
-	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0) != D3D_OK) {
-		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0);
+	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) {
+		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0);
 		GPUBlt = 0;
 		dlog(" Error: D3DFMT_A8 unsupported texture format. Now CPU is used to convert the palette.", DL_MAIN);
 	}
@@ -387,7 +387,7 @@ static void ResetDevice(bool createNew) {
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
 	if (GPUBlt) {
 		d3d9Device->CreateTexture(256, 1, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &gpuPalette, 0);
-		gpuBltEffect->SetTexture(gpuBltBuf, Tex);
+		gpuBltEffect->SetTexture(gpuBltBuf, mainTex);
 		gpuBltEffect->SetTexture(gpuBltPalette, gpuPalette);
 	}
 
@@ -421,7 +421,7 @@ static void ResetDevice(bool createNew) {
 	vBuffer2->Unlock();
 
 	d3d9Device->SetFVF(_VERTEXFORMAT);
-	d3d9Device->SetTexture(0, Tex);
+	d3d9Device->SetTexture(0, mainTex);
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
 
 	//d3d9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, false); // default false
@@ -484,7 +484,7 @@ static void Present() {
 		dlogr("Present: DEVICELOST", DL_MAIN);
 		#endif
 		d3d9Device->SetTexture(0, 0);
-		SAFERELEASE(Tex)
+		SAFERELEASE(mainTex)
 		SAFERELEASE(backbuffer);
 		SAFERELEASE(sSurf1);
 		SAFERELEASE(sSurf2);
@@ -520,7 +520,7 @@ void RefreshGraphics() {
 		d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy: sSurf1 to sSurf2
 		d3d9Device->SetTexture(0, sTex2);
 	} else {
-		d3d9Device->SetTexture(0, Tex);
+		d3d9Device->SetTexture(0, mainTex);
 	}
 	for (int d = shadersSize - 1; d >= 0; d--) {
 		if (!shaders[d].Effect || !shaders[d].Active) continue;
@@ -543,6 +543,7 @@ void RefreshGraphics() {
 
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backbuffer);
+
 	if (GPUBlt && !shadersSize) {
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
@@ -614,29 +615,30 @@ void Gfx_SetMovieTexture(IDirect3DTexture9* tex) {
 
 void Gfx_ShowMovieFrame() {
 	//d3d9Device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(255, 0, 255), 1.0f, 0); // for debbuging
+	if (!PlayAviMovie) return;
+
 	d3d9Device->BeginScene();
 
 	if (GPUBlt && shadersSize) {
 		d3d9Device->SetTexture(0, sTex2);
 	} else {
-		d3d9Device->SetTexture(0, Tex);
+		d3d9Device->SetTexture(0, mainTex);
 	}
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backbuffer);
 
-	// TODO: The commented code sometimes for some unknown reason crashes the game when playing videos
-	//if (GPUBlt /*&& !shadersSize*/) {
-	//	UINT unused;
-	//	gpuBltEffect->Begin(&unused, 0);
-	//	gpuBltEffect->BeginPass(0);
-	//}
+	if (GPUBlt) {
+		UINT passes;
+		gpuBltEffect->Begin(&passes, 0);
+		gpuBltEffect->BeginPass(0);
+	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	//if (GPUBlt /*&& !shadersSize*/) {
-	//	gpuBltEffect->EndPass();
-	//	gpuBltEffect->End();
-	//}
+	if (GPUBlt) {
+		gpuBltEffect->EndPass();
+		gpuBltEffect->End();
+	}
 
-	// for movie
+	// for avi movie
 	d3d9Device->SetTexture(0, movieTex);
 	d3d9Device->SetStreamSource(0, movieBuffer, 0, sizeof(VertexFormat));
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
@@ -735,9 +737,8 @@ public:
 			primaryDDSurface->SetPalette(0); // update
 		}
 		if (!PlayAviMovie) {
+			//dlog("\nSetEntries: -> RefreshGraphics", DL_INIT);
 			RefreshGraphics();
-		} else {
-			Gfx_ShowMovieFrame();
 		}
 		return DD_OK;
 	}
@@ -797,7 +798,7 @@ public:
 
 		BYTE* lockTarget = ((FakeSurface2*)b)->lockTarget;
 		D3DLOCKED_RECT dRect;
-		Tex->LockRect(0, &dRect, a, 0);
+		mainTex->LockRect(0, &dRect, a, 0);
 		DWORD width = movieDesc.lPitch; // the current size of the width of the mve movie
 		int pitch = dRect.Pitch;
 		if (GPUBlt) {
@@ -851,11 +852,11 @@ public:
 			//	}
 			//}
 		}
-		Tex->UnlockRect(0);
+		mainTex->UnlockRect(0);
 
 		if (!DeviceLost) {
 			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
-			d3d9Device->SetTexture(0, Tex);
+			d3d9Device->SetTexture(0, mainTex);
 			d3d9Device->BeginScene();
 			if (GPUBlt) {
 				UINT unused;
@@ -923,7 +924,7 @@ public:
 		if (a) return DD_OK; // prevents executing the function when called from outside of sfall
 
 		D3DLOCKED_RECT dRect;
-		Tex->LockRect(0, &dRect, 0, 0);
+		mainTex->LockRect(0, &dRect, 0, 0);
 
 		DWORD* pBits = (DWORD*)dRect.pBits;
 		int pitch = dRect.Pitch / 4;
@@ -936,7 +937,7 @@ public:
 				pBits[yp + x] = palette[lockTarget[yw + x]];
 			}
 		}
-		Tex->UnlockRect(0);
+		mainTex->UnlockRect(0);
 		return DD_OK;
 	}
 
@@ -959,7 +960,7 @@ public:
 			}
 			if (!DeviceLost) {
 				D3DLOCKED_RECT dRect;
-				Tex->LockRect(0, &dRect, 0, 0);
+				mainTex->LockRect(0, &dRect, 0, 0);
 				int pitch = dRect.Pitch;
 				DWORD width = ResWidth;
 				if (GPUBlt) {
@@ -1031,9 +1032,10 @@ start2:
 						}
 					}
 				}
-				Tex->UnlockRect(0);
+				mainTex->UnlockRect(0);
 				if (!IsPlayMovie && !PlayAviMovie) {
 					subTitlesShow = false;
+					//dlog("\nUnlock: -> RefreshGraphics", DL_INIT);
 					RefreshGraphics();
 				};
 			}
@@ -1074,7 +1076,7 @@ public:
 			SAFERELEASE(backbuffer);
 			SAFERELEASE(sSurf1);
 			SAFERELEASE(sSurf2);
-			SAFERELEASE(Tex);
+			SAFERELEASE(mainTex);
 			SAFERELEASE(sTex1);
 			SAFERELEASE(sTex2);
 			SAFERELEASE(vBuffer);

@@ -475,12 +475,12 @@ static void SpeedInterfaceCounterAnimsPatch() {
 
 static bool IFACE_BAR_MODE = false;
 static long gmouse_handle_event_hook() {
-	long countWin = *(DWORD*)_num_windows;
+	long countWin = *ptr_num_windows;
 	long ifaceWin = *ptr_interfaceWindow;
 	WINinfo* win = nullptr;
 
 	for (int n = 1; n < countWin; n++) {
-		win = (WINinfo*)ptr_window[n];
+		win = ptr_window[n];
 		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check scripted windows
 			&& !(win->flags & WinFlags::Hidden)) {
 			RECT *rect = &win->wRect;

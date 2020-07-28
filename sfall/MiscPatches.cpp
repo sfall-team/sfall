@@ -344,7 +344,7 @@ static void EncounterTableSizePatch() {
 static void DisablePipboyAlarmPatch() {
 	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
-		SafeWrite8(0x499518, 0xC3);
+		SafeWrite8(0x499518, CODETYPE_Ret);
 		SafeWrite8(0x443601, 0x0);
 		dlogr(" Done", DL_INIT);
 	}

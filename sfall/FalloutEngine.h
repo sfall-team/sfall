@@ -85,6 +85,7 @@
 #define _dialogueWindow             0x518744
 #define _display_win                0x631E4C
 #define _displayMapList             0x41B560
+#define _doing_refresh_all          0x6ADF38
 #define _dropped_explosive          0x5190E0
 #define _drugInfoList               0x5191CC
 #define _edit_win                   0x57060C
@@ -119,6 +120,7 @@
 #define _gmouse_current_cursor      0x518C0C
 #define _gmovie_played_list         0x596C78
 #define _GNW_win_init_flag          0x51E3E0
+#define _GNWWin                     0x5195B8
 #define _gsound_initialized         0x518E30
 #define _gsound_speech_tag          0x518E54
 #define _hit_location_penalty       0x510954
@@ -351,6 +353,7 @@ extern TGameObj** ptr_dialog_target;
 extern DWORD* ptr_dialog_target_is_party;
 extern const DWORD* ptr_dialogueBackWindow;
 extern DWORD* ptr_drugInfoList;
+extern BYTE*  ptr_DullPinkColor;
 extern const DWORD* ptr_edit_win;
 extern DWORD* ptr_Educated;
 extern DWORD* ptr_elevation;
@@ -435,6 +438,7 @@ extern DWORD* ptr_name_font;
 extern DWORD* ptr_name_sort_list;
 extern DWORD* ptr_num_game_global_vars;
 extern DWORD* ptr_num_map_global_vars;
+extern DWORD* ptr_num_windows;
 extern TGameObj** ptr_obj_dude;
 extern DWORD* ptr_objectTable;
 extern DWORD* ptr_objItemOutlineState;
@@ -517,7 +521,7 @@ extern DWORD* ptr_title_font;
 extern DWORD* ptr_trait_data;
 extern DWORD* ptr_view_page;
 extern DWORD* ptr_wd_obj;
-extern DWORD* ptr_window; // total 50 WINinfo*
+extern WINinfo** ptr_window; // array of 50 WINinfo*
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
 extern const DWORD* ptr_wmBkWin;
@@ -700,6 +704,7 @@ extern const DWORD gmouse_set_cursor_;
 extern const DWORD gmovie_play_;
 extern const DWORD GNW_do_bk_process_;
 extern const DWORD GNW_find_;
+extern const DWORD GNW_win_refresh_;
 extern const DWORD GNW95_process_message_;
 extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_background_pause_;
@@ -837,6 +842,7 @@ extern const DWORD mouse_hide_;
 extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
+extern const DWORD movieStop_;
 extern const DWORD movieUpdate_;
 extern const DWORD new_obj_id_;
 extern const DWORD NixHotLines_;
@@ -1024,8 +1030,10 @@ extern const DWORD win_disable_button_;
 extern const DWORD win_draw_;
 extern const DWORD win_draw_rect_;
 extern const DWORD win_enable_button_;
+extern const DWORD win_fill_;
 extern const DWORD win_get_buf_;
 extern const DWORD win_get_top_win_;
+extern const DWORD win_height_;
 extern const DWORD win_hide_;
 extern const DWORD win_line_;
 extern const DWORD win_print_;
@@ -1033,6 +1041,7 @@ extern const DWORD win_register_button_;
 extern const DWORD win_register_button_disable_;
 extern const DWORD win_register_button_sound_func_;
 extern const DWORD win_show_;
+extern const DWORD win_width_;
 extern const DWORD windowDisplayBuf_;
 extern const DWORD windowDisplayTransBuf_;
 extern const DWORD windowGetBuffer_;
@@ -1336,6 +1345,8 @@ long __stdcall NewObjId();
 
 FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction);
 
+void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer);
+
 void __stdcall MapDirErase(const char* folder, const char* ext);
 
 void __stdcall MouseGetPosition(long* outX, long* outY);
@@ -1501,6 +1512,9 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
+// Fills the specified non-scripted interface window with black color
+void ClearWindow(DWORD winID, bool refresh = true);
+
 // Print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 void __stdcall PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
@@ -1526,6 +1540,9 @@ DWORD __stdcall GetCharGapWidth();
 DWORD __stdcall GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
-void __stdcall RedrawObject(TGameObj* obj);
+void RedrawObject(TGameObj* obj);
+
+// Redraws all interface windows
+void RefreshGNW();
 
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);

@@ -185,7 +185,7 @@ void __stdcall BarBoxes_SetText(int box, const char* text, DWORD color) {
 		clr = *ptr_GoodColor;
 		break;
 	case 7:
-		clr = *(BYTE*)_DullPinkColor;
+		clr = *ptr_DullPinkColor;
 		break;
 	default:
 		clr = *ptr_GreenColor;

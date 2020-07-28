@@ -1,6 +1,7 @@
 #pragma once
 
 enum CodeType : BYTE {
+	CODETYPE_Ret       = 0xC3,
 	CODETYPE_Call      = 0xE8,
 	CODETYPE_Jump      = 0xE9,
 	CODETYPE_Nop       = 0x90,

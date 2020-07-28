@@ -61,6 +61,7 @@ TGameObj** ptr_dialog_target          = reinterpret_cast<TGameObj**>(_dialog_tar
 DWORD* ptr_dialog_target_is_party     = reinterpret_cast<DWORD*>(_dialog_target_is_party);
 const DWORD* ptr_dialogueBackWindow   = reinterpret_cast<DWORD*>(_dialogueBackWindow);
 DWORD* ptr_drugInfoList               = reinterpret_cast<DWORD*>(_drugInfoList);
+BYTE*  ptr_DullPinkColor              = reinterpret_cast<BYTE*>(_DullPinkColor);
 const DWORD* ptr_edit_win             = reinterpret_cast<DWORD*>(_edit_win);
 DWORD* ptr_Educated                   = reinterpret_cast<DWORD*>(_Educated);
 DWORD* ptr_elevation                  = reinterpret_cast<DWORD*>(_elevation);
@@ -145,6 +146,7 @@ DWORD* ptr_name_font                  = reinterpret_cast<DWORD*>(_name_font);
 DWORD* ptr_name_sort_list             = reinterpret_cast<DWORD*>(_name_sort_list);
 DWORD* ptr_num_game_global_vars       = reinterpret_cast<DWORD*>(_num_game_global_vars);
 DWORD* ptr_num_map_global_vars        = reinterpret_cast<DWORD*>(_num_map_global_vars);
+DWORD* ptr_num_windows                = reinterpret_cast<DWORD*>(_num_windows);
 TGameObj** ptr_obj_dude               = reinterpret_cast<TGameObj**>(_obj_dude);
 DWORD* ptr_objectTable                = reinterpret_cast<DWORD*>(_objectTable);
 DWORD* ptr_objItemOutlineState        = reinterpret_cast<DWORD*>(_objItemOutlineState);
@@ -226,7 +228,7 @@ DWORD* ptr_title_font                 = reinterpret_cast<DWORD*>(_title_font);
 DWORD* ptr_trait_data                 = reinterpret_cast<DWORD*>(_trait_data);
 DWORD* ptr_view_page                  = reinterpret_cast<DWORD*>(_view_page);
 DWORD* ptr_wd_obj                     = reinterpret_cast<DWORD*>(_wd_obj);
-DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // total 50 WINinfo*
+WINinfo** ptr_window                  = reinterpret_cast<WINinfo**>(_window); // array of 50 WINinfo*
 BYTE*  ptr_WhiteColor                 = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
 const DWORD* ptr_wmBkWin              = reinterpret_cast<DWORD*>(_wmBkWin);
@@ -426,6 +428,7 @@ const DWORD gmouse_set_cursor_ = 0x44C840;
 const DWORD gmovie_play_ = 0x44E690;
 const DWORD GNW_do_bk_process_ = 0x4C8D1C;
 const DWORD GNW_find_ = 0x4D7888;
+const DWORD GNW_win_refresh_ = 0x4D6FD8;
 const DWORD GNW95_process_message_ = 0x4C9CF0;
 const DWORD gsnd_build_weapon_sfx_name_ = 0x451760;
 const DWORD gsound_background_pause_ = 0x450B50;
@@ -557,6 +560,7 @@ const DWORD mouse_hide_ = 0x4CA534;
 const DWORD mouse_in_ = 0x4CA8C8;
 const DWORD mouse_show_ = 0x4CA34C;
 const DWORD move_inventory_ = 0x474708;
+const DWORD movieStop_ = 0x487150;
 const DWORD movieUpdate_ = 0x487BEC;
 const DWORD new_obj_id_ = 0x4A386C;
 const DWORD NixHotLines_ = 0x4999C0;
@@ -741,8 +745,10 @@ const DWORD win_disable_button_ = 0x4D94D0;
 const DWORD win_draw_ = 0x4D6F5C;
 const DWORD win_draw_rect_ = 0x4D6F80;
 const DWORD win_enable_button_ = 0x4D9474;
+const DWORD win_fill_ = 0x4D6CC8;
 const DWORD win_get_buf_ = 0x4D78B0;
 const DWORD win_get_top_win_ = 0x4D78CC;
+const DWORD win_height_ = 0x4D7934;
 const DWORD win_hide_ = 0x4D6E64;
 const DWORD win_line_ = 0x4D6B24;
 const DWORD win_print_ = 0x4D684C;
@@ -750,6 +756,7 @@ const DWORD win_register_button_ = 0x4D8260;
 const DWORD win_register_button_disable_ = 0x4D8674;
 const DWORD win_register_button_sound_func_ = 0x4D87F8;
 const DWORD win_show_ = 0x4D6DAC;
+const DWORD win_width_ = 0x4D7918;
 const DWORD windowDisplayBuf_ = 0x4B8EF0;
 const DWORD windowDisplayTransBuf_ = 0x4B8F64;
 const DWORD windowGetBuffer_ = 0x4B82DC;
@@ -1470,6 +1477,10 @@ FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction
 	WRAP_WATCOM_FCALL3(frame_ptr_, frm, frame, direction)
 }
 
+void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer) {
+	WRAP_WATCOM_FCALL3(GNW_win_refresh_, win, rect, buffer)
+}
+
 void __stdcall MapDirErase(const char* folder, const char* ext) {
 	WRAP_WATCOM_CALL2(MapDirErase_, folder, ext)
 }
@@ -1805,9 +1816,9 @@ long GetScriptLocalVars(long sid) {
 // Returns window ID by x/y coordinate (hidden windows are ignored)
 long __fastcall GetTopWindowID(long xPos, long yPos) {
 	WINinfo* win = nullptr;
-	long countWin = *(DWORD*)_num_windows - 1;
+	long countWin = *ptr_num_windows - 1;
 	for (int n = countWin; n >= 0; n--) {
-		win = (WINinfo*)ptr_window[n];
+		win = ptr_window[n];
 		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
 			if (!(win->flags & WinFlags::Hidden)) {
 				break;
@@ -2004,6 +2015,24 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
+// Fills the specified non-scripted interface window with black color
+void ClearWindow(DWORD winID, bool refresh) {
+	__asm {
+		xor  ebx, ebx;
+		push ebx;
+		mov  eax, winID;
+		call win_height_;
+		push eax;
+		mov  eax, winID;
+		call win_width_;
+		mov  ecx, eax;
+		mov  edx, ebx;
+		mov  eax, winID; //dword ptr ds:[_GNWWin];
+		call win_fill_;
+	}
+	if (refresh) WinDraw(winID);
+}
+
 //---------------------------------------------------------
 // print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
@@ -2110,10 +2139,19 @@ DWORD __stdcall GetMaxCharWidth() {
 //	return charWidth;
 }
 
-void __stdcall RedrawObject(TGameObj* obj) {
+void RedrawObject(TGameObj* obj) {
 	BoundRect rect;
 	ObjBound(obj, &rect);
 	TileRefreshRect(&rect, obj->elevation);
+}
+
+// Redraws all interface windows
+void RefreshGNW() {
+	*(DWORD*)_doing_refresh_all = 1;
+	for (size_t i = 0; i < *ptr_num_windows; i++) {
+		GNWWinRefresh(ptr_window[i], ptr_scr_size, 0);
+	}
+	*(DWORD*)_doing_refresh_all = 0;
 }
 
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
