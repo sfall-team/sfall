@@ -23,6 +23,7 @@ WRAP_WATCOM_FFUNC4(long, determine_to_hit, GameObject*, source, GameObject*, tar
 WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
 WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
 WRAP_WATCOM_FFUNC3(FrmFrameData*, frame_ptr, FrmHeaderData*, frm, long, frame, long, direction)
+WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, Window*, win, BoundRect*, rect, long*, buffer)
 WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft,long, modeRight)
 WRAP_WATCOM_FFUNC3(GameObject*, inven_find_type, GameObject*, critter, long, itemType, DWORD*, buf)
 WRAP_WATCOM_FFUNC3(long, item_add_force, GameObject*, critter, GameObject*, item, long, count)

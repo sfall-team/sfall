@@ -62,6 +62,7 @@
 #define FO_VAR_dialogueWindow             0x518744
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
+#define FO_VAR_doing_refresh_all          0x6ADF38
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_editor_message_file        0x56FCA8
@@ -99,6 +100,7 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
+#define FO_VAR_GNWWin                     0x5195B8
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_gsound_speech_tag          0x518E54
 #define FO_VAR_hit_location_penalty       0x510954

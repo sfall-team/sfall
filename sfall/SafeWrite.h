@@ -8,6 +8,7 @@ namespace sfall
 {
 
 enum CodeType : BYTE {
+	Ret       = 0xC3,
 	Call      = 0xE8,
 	Jump      = 0xE9,
 	Nop       = 0x90,

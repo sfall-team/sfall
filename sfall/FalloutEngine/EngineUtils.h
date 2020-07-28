@@ -104,6 +104,9 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
+// Fills the specified non-scripted interface window with black color
+void ClearWindow(DWORD winID, bool refresh = true);
+
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
@@ -130,6 +133,9 @@ DWORD GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(GameObject* obj);
+
+// Redraws all interface windows
+void RefreshGNW();
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 

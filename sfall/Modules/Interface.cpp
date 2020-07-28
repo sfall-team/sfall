@@ -843,7 +843,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 
 static bool IFACE_BAR_MODE = false;
 static long gmouse_handle_event_hook() {
-	long countWin = *(DWORD*)FO_VAR_num_windows;
+	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
 	fo::Window* win = nullptr;
 
