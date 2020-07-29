@@ -405,7 +405,7 @@ void ClearWindow(DWORD winID, bool refresh) {
 		call fo::funcoffs::win_width_;
 		mov  ecx, eax;
 		mov  edx, ebx;
-		mov  eax, winID; //dword ptr ds:[FO_VAR_GNWWin];
+		mov  eax, winID;
 		call fo::funcoffs::win_fill_;
 	}
 	if (refresh) fo::func::win_draw(winID);
