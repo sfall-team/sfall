@@ -210,7 +210,7 @@ static DWORD backgroundVolume = 0;
 void PlayMovie(sDSTexture* movie) {
 	movie->pControl->Run();
 	movie->pAudio->put_Volume(
-		CalculateVolumeDB(*ptr_master_volume, (backgroundVolume) ? backgroundVolume : *ptr_background_volume)
+		Sound_CalculateVolumeDB(*ptr_master_volume, (backgroundVolume) ? backgroundVolume : *ptr_background_volume)
 	);
 }
 
@@ -524,10 +524,14 @@ void MoviesInit() {
 		WIP: Task
 		Implement subtitle output from the need to play an mve file in the background.
 	*/
-	if (GraphicsMode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) {
-		MakeJump(0x44E690, gmovie_play_hack);
-		HookCall(0x44E993, gmovie_play_hook_stop);
-		/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
+	if (GraphicsMode != 0) {
+		int allowDShowMovies = GetConfigInt("Graphics", "AllowDShowMovies", 0);
+		if (allowDShowMovies > 0) {
+			MakeJump(0x44E690, gmovie_play_hack);
+			HookCall(0x44E993, gmovie_play_hook_stop);
+			if (allowDShowMovies > 1) AviMovieWidthFit = true;
+			/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
+		}
 	}
 	dlogr(" Done", DL_INIT);
 

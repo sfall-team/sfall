@@ -22,8 +22,8 @@
 
 void AIInit();
 
-TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
-TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
+TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
+TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
 
 void __stdcall AICombatStart();
 void __stdcall AICombatEnd();

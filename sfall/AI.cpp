@@ -33,7 +33,7 @@ static std::tr1::unordered_map<TGameObj*, TGameObj*> targets;
 static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
 // Returns the friendly critter or any blocking object in the line of fire
-TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
+TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
 	if (object && object->Type() == OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
@@ -52,7 +52,7 @@ TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long 
 }
 
 // Returns the friendly critter in the line of fire
-TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
+TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
 	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);

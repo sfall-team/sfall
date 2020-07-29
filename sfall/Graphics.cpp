@@ -52,6 +52,7 @@ DWORD GPUBlt;
 DWORD GraphicsMode;
 
 bool PlayAviMovie = false;
+bool AviMovieWidthFit = false;
 
 static BYTE* titlesBuffer = nullptr;
 
@@ -569,8 +570,8 @@ void Gfx_SetMovieTexture(IDirect3DTexture9* tex) {
 	D3DSURFACE_DESC desc;
 	movieTex->GetLevelDesc(0, &desc);
 
-	float aspect = (float)desc.Width / (float)desc.Height;
-	float winaspect = (float)gWidth / (float)gHeight;
+	float aviAspect = (float)desc.Width / (float)desc.Height;
+	float winAspect = (float)gWidth / (float)gHeight;
 
 	VertexFormat ShaderVertices2[4] = {
 		ShaderVertices[0],
@@ -584,25 +585,35 @@ void Gfx_SetMovieTexture(IDirect3DTexture9* tex) {
 	ShaderVertices2[3].y = (float)gHeight - 0.5f;
 	ShaderVertices2[3].x = (float)gWidth - 0.5f;
 
-	DWORD gap;
-	if (aspect > winaspect) {
-		aspect = (float)desc.Width / (float)gWidth;
-		desc.Height = (int)(desc.Height / aspect);
-		gap = (gHeight - desc.Height) / 2;
+	long offset;
+	if (aviAspect > winAspect) {
+		// scales height proportionally and places the movie surface at the center of the window along the Y-axis
+		aviAspect = (float)desc.Width / (float)gWidth;
+		desc.Height = (int)(desc.Height / aviAspect);
 
-		ShaderVertices2[0].y += gap;
-		ShaderVertices2[2].y += gap;
-		ShaderVertices2[1].y -= gap;
-		ShaderVertices2[3].y -= gap;
-	} else if (aspect < winaspect) {
-		aspect = (float)desc.Height / (float)gHeight;
-		desc.Width = (int)(desc.Width / aspect);
-		gap = (gWidth - desc.Width) / 2;
+		offset = (gHeight - desc.Height) / 2;
 
-		ShaderVertices2[0].x += gap;
-		ShaderVertices2[2].x -= gap;
-		ShaderVertices2[3].x -= gap;
-		ShaderVertices2[1].x += gap;
+		ShaderVertices2[0].y += offset;
+		ShaderVertices2[2].y += offset;
+		ShaderVertices2[1].y -= offset;
+		ShaderVertices2[3].y -= offset;
+	} else if (aviAspect < winAspect) {
+		if (AviMovieWidthFit || (hrpIsEnabled && *(DWORD*)HRPAddress(0x1006EC10) == 2)) {
+			// scales the movie surface to screen width
+			aviAspect = (float)gWidth / (float)desc.Width;
+			desc.Width = (int)(desc.Width * aviAspect);
+		} else {
+			// scales width proportionally and places the movie surface at the center of the window along the X-axis
+			aviAspect = (float)desc.Height / (float)gHeight;
+			desc.Width = (int)(desc.Width / aviAspect);
+
+			offset = (gWidth - desc.Width) / 2;
+
+			ShaderVertices2[0].x += offset;
+			ShaderVertices2[2].x -= offset;
+			ShaderVertices2[3].x -= offset;
+			ShaderVertices2[1].x += offset;
+		}
 	}
 
 	byte* VertexPointer;
@@ -682,68 +693,6 @@ void Graphics_OnGameLoad() {
 	LoadGlobalShader();
 }
 
-class FakePalette2 : IDirectDrawPalette {
-private:
-	ULONG Refs;
-public:
-	FakePalette2() {
-		Refs = 1;
-	}
-
-	// IUnknown methods
-	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) {
-		return E_NOINTERFACE;
-	}
-
-	ULONG __stdcall AddRef() {
-		return ++Refs;
-	}
-
-	ULONG __stdcall Release() {
-		if (!--Refs) {
-			delete this;
-			return 0;
-		} else return Refs;
-	}
-
-	// IDirectDrawPalette methods
-	HRESULT __stdcall GetCaps(LPDWORD) { UNUSEDFUNCTION; }
-	HRESULT __stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
-	HRESULT __stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
-
-	/* Called from:
-		0x4CB5C7 GNW95_SetPalette_
-		0x4CB36B GNW95_SetPaletteEntries_
-	*/
-	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
-		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
-
-		CopyMemory(&palette[b], destPal, c * 4);
-		if (GPUBlt) {
-			if (gpuPalette) {
-				D3DLOCKED_RECT rect;
-				if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
-					CopyMemory(rect.pBits, palette, 256 * 4);
-					gpuPalette->UnlockRect(0);
-				}
-			}
-		} else {
-			// X8B8G8R8 format
-			for (DWORD i = b; i < b + c; i++) { // swap color B <> R
-				BYTE clr = *(BYTE*)((DWORD)&palette[i]); // B
-				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2); // R
-				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
-			}
-			primaryDDSurface->SetPalette(0); // update
-		}
-		if (!PlayAviMovie) {
-			//dlog("\nSetEntries: -> RefreshGraphics", DL_INIT);
-			RefreshGraphics();
-		}
-		return DD_OK;
-	}
-};
-
 class FakeSurface2 : IDirectDrawSurface {
 private:
 	ULONG Refs;
@@ -791,10 +740,10 @@ public:
 		movieDesc.lPitch = (a->right - a->left);
 		//xoffset = (ResWidth - movieDesc.lPitch) / 2;
 
-		//dlog_f("\nMovieDesc: w:%d, h:%d", DL_INIT, movieDesc.lPitch, movieDesc.dwHeight);
+		//dlog_f("\nBlt: [MovieDesc: w:%d, h:%d]", DL_INIT, movieDesc.lPitch, movieDesc.dwHeight);
 
 		IsPlayMovie = true;
-		if (PlayAviMovie) return DD_OK;
+		//if (PlayAviMovie) return DD_OK;
 
 		BYTE* lockTarget = ((FakeSurface2*)b)->lockTarget;
 		D3DLOCKED_RECT dRect;
@@ -855,9 +804,9 @@ public:
 		mainTex->UnlockRect(0);
 
 		if (!DeviceLost) {
+			d3d9Device->BeginScene();
 			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 			d3d9Device->SetTexture(0, mainTex);
-			d3d9Device->BeginScene();
 			if (GPUBlt) {
 				UINT unused;
 				gpuBltEffect->Begin(&unused, 0);
@@ -949,9 +898,9 @@ public:
 }
 
 	HRESULT __stdcall Unlock(LPVOID) { // common game (is primary)
-		//dlog("\nUnlock()", DL_INIT);
+		//dlog("\nUnlock", DL_INIT);
 		if (Primary && d3d9Device) {
-			//dlog(" is primary.", DL_INIT);
+			//dlog(" - is primary.", DL_INIT);
 			if (DeviceLost) {
 				if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 					ResetDevice(false);
@@ -1051,6 +1000,73 @@ start2:
 
 bool FakeSurface2::IsPlayMovie;
 bool FakeSurface2::subTitlesShow;
+
+class FakePalette2 : IDirectDrawPalette {
+private:
+	ULONG Refs;
+public:
+	FakePalette2() {
+		Refs = 1;
+	}
+
+	// IUnknown methods
+	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) {
+		return E_NOINTERFACE;
+	}
+
+	ULONG __stdcall AddRef() {
+		return ++Refs;
+	}
+
+	ULONG __stdcall Release() {
+		if (!--Refs) {
+			delete this;
+			return 0;
+		} else return Refs;
+	}
+
+	// IDirectDrawPalette methods
+	HRESULT __stdcall GetCaps(LPDWORD) { UNUSEDFUNCTION; }
+	HRESULT __stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
+	HRESULT __stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
+
+	/* Called from:
+		0x4CB5C7 GNW95_SetPalette_
+		0x4CB36B GNW95_SetPaletteEntries_
+	*/
+	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
+		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
+
+		CopyMemory(&palette[b], destPal, c * 4);
+		if (GPUBlt) {
+			if (gpuPalette) {
+				D3DLOCKED_RECT rect;
+				if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
+					CopyMemory(rect.pBits, palette, 256 * 4);
+					gpuPalette->UnlockRect(0);
+				}
+			}
+		} else {
+			// X8B8G8R8 format
+			for (DWORD i = b; i < b + c; i++) { // swap color B <> R
+				BYTE clr = *(BYTE*)((DWORD)&palette[i]); // B
+				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2); // R
+				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
+			}
+			primaryDDSurface->SetPalette(0); // update
+			if (FakeSurface2::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
+		}
+		if (!PlayAviMovie) {
+			//dlog("\nSetEntries: -> RefreshGraphics", DL_INIT);
+			RefreshGraphics();
+		} else {
+			// only for debugging
+			//dlog("\nSetEntries: -> ShowMovieFrame", DL_INIT);
+			//Graphics::ShowMovieFrame();
+		}
+		return DD_OK;
+	}
+};
 
 class FakeDirectDraw2 : IDirectDraw
 {

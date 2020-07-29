@@ -25,4 +25,4 @@ void WipeSounds();
 DWORD __stdcall PlaySfallSound(const char* path, long mode);
 void __stdcall StopSfallSound(DWORD id);
 
-long __stdcall CalculateVolumeDB(long masterVolume, long passVolume);
+long Sound_CalculateVolumeDB(long masterVolume, long passVolume);

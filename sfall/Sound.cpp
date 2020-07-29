@@ -163,7 +163,7 @@ static void CreateSndWnd() {
 }
 
 // Get sound duration in seconds
-static DWORD __stdcall GetSpeechDurationTime() {
+static DWORD GetSpeechDurationTime() {
 	if (!speechSound->pSeek || !speechSound) return 0;
 	speechSound->pSeek->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME);
 	__int64 outVal;
@@ -171,7 +171,7 @@ static DWORD __stdcall GetSpeechDurationTime() {
 	return static_cast<DWORD>(outVal / 10000000) + 1;
 }
 
-static DWORD __stdcall GetSpeechPlayingPosition() {
+static DWORD GetSpeechPlayingPosition() {
 	if (!speechSound) return 0;
 	__int64 pos;
 	speechSound->pSeek->GetCurrentPosition(&pos);
@@ -212,7 +212,7 @@ void __stdcall ResumeAllSfallSound() {
 	}
 }
 
-long __stdcall CalculateVolumeDB(long masterVolume, long passVolume) {
+long Sound_CalculateVolumeDB(long masterVolume, long passVolume) {
 	if (masterVolume <= 0 || passVolume <= 0) return -9999; // mute
 
 	const int volOffset = -100;  // adjust the maximum volume
@@ -233,8 +233,8 @@ long __stdcall CalculateVolumeDB(long masterVolume, long passVolume) {
 static void __cdecl SfallSoundVolume(sDSSound* sound, SoundType type, long passVolume) {
 	long volume, sfxVolume, masterVolume = *ptr_master_volume;
 
-	volume = CalculateVolumeDB(masterVolume, passVolume);
-	if (type == SNDTYPE_game_master) sfxVolume = CalculateVolumeDB(masterVolume, *ptr_sndfx_volume);
+	volume = Sound_CalculateVolumeDB(masterVolume, passVolume);
+	if (type == SNDTYPE_game_master) sfxVolume = Sound_CalculateVolumeDB(masterVolume, *ptr_sndfx_volume);
 
 	if (sound) {
 		sound->pAudio->put_Volume(volume);

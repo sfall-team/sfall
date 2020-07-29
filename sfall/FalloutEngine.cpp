@@ -2027,7 +2027,7 @@ void ClearWindow(DWORD winID, bool refresh) {
 		call win_width_;
 		mov  ecx, eax;
 		mov  edx, ebx;
-		mov  eax, winID; //dword ptr ds:[_GNWWin];
+		mov  eax, winID;
 		call win_fill_;
 	}
 	if (refresh) WinDraw(winID);

@@ -162,7 +162,7 @@ static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
 		FrmFrameData* frame = FramePtr((FrmHeaderData*)frm, frameno, 0);
-		Gfx_SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift/*, (frm->showHighlights == 2)*/);
+		Gfx_SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift);
 		showHighlights = frm->showHighlights;
 		return;
 	}

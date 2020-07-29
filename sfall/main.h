@@ -17,9 +17,10 @@
  */
 
 #pragma once
-#pragma warning(disable:4996)
+#pragma warning(disable: 4996) // function or variable may be unsafe
+#pragma warning(disable: 4995) // 'function': name was marked as #pragma deprecated
 #ifdef NDEBUG
-#pragma warning(disable:4414)
+#pragma warning(disable: 4414) // 'function': short jump to function converted to near
 #endif
 
 #include <cassert>
