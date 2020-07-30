@@ -164,7 +164,7 @@ static void CreateSndWnd() {
 
 // Get sound duration in seconds
 static DWORD GetSpeechDurationTime() {
-	if (!speechSound->pSeek || !speechSound) return 0;
+	if (!speechSound || !speechSound->pSeek) return 0;
 	speechSound->pSeek->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME);
 	__int64 outVal;
 	speechSound->pSeek->GetDuration(&outVal);
@@ -178,12 +178,12 @@ static DWORD GetSpeechPlayingPosition() {
 	return static_cast<DWORD>(pos << 1);
 }
 
-void __stdcall PauseSfallSound(sDSSound* sound) {
-	sound->pControl->Pause();
+void __fastcall PauseSfallSound(sDSSound* sound) {
+	if (sound) sound->pControl->Pause();
 }
 
-void __stdcall ResumeSfallSound(sDSSound* sound) {
-	sound->pControl->Run();
+void __fastcall ResumeSfallSound(sDSSound* sound) {
+	if (sound) sound->pControl->Run();
 }
 
 void __stdcall PauseAllSfallSound() {
@@ -278,7 +278,7 @@ static bool IsMute(SoundMode mode) {
 	music_play:  mode 2 - loop sound playback with the background game music turned off
 	speech_play: mode 3 -
 */
-static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode) {
+static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, bool isPaused = false) {
 	if (!soundwindow) CreateSndWnd();
 
 	if (IsMute(mode)) return nullptr;
@@ -327,6 +327,9 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode) {
 	} else {
 		SfallSoundVolume(sound, SNDTYPE_sfx_single, (mode == SNDMODE_speech_play) ? *ptr_speech_volume : *ptr_sndfx_volume);
 		if (mode == SNDMODE_speech_play) speechSound = sound;
+		if (isPaused) {
+			sound->pControl->Pause(); // for delayed playback
+		}
 		playingSounds.push_back(sound);
 	}
 	return sound;
@@ -336,7 +339,8 @@ enum PlayType : signed char {
 	PLAYTYPE_sfx    = 0,
 	PLAYTYPE_music  = 1,
 	PLAYTYPE_lips   = 2,
-	PLAYTYPE_speech = 3
+	PLAYTYPE_speech = 3,
+	PLAYTYPE_slides = 4 // speech for endgame slideshow
 };
 
 static const wchar_t *SoundExtensions[] = { L"wav", L"mp3", L"wma" };
@@ -399,7 +403,9 @@ static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
 		backgroundMusic = PlayingSound(buf, SNDMODE_engine_music_play); // background music loop
 		if (!backgroundMusic) return false;
 	} else {
-		if (!PlayingSound(buf, (playType >= PLAYTYPE_lips) ? SNDMODE_speech_play : SNDMODE_single_play)) return false;
+		if (!PlayingSound(buf, ((playType >= PLAYTYPE_lips) ? SNDMODE_speech_play : SNDMODE_single_play), (playType == PLAYTYPE_slides))) {
+			return false;
+		}
 		if (playType == PLAYTYPE_lips) {
 			lipsPlaying = true;
 			return false;
@@ -477,18 +483,20 @@ static void __declspec(naked) soundLoad_hack() {
 		mov  ebx, eax;
 		// end engine code
 		push ecx;
-		push edx;            // path to file
+		push edx; // path to file
 		mov  eax, [esp + 24];
-		cmp  eax, 0x45092B;  // called from gsound_background_play_
-		sete cl;             // PLAYTYPE_sfx / PLAYTYPE_music
+		cmp  eax, 0x450926 + 5; // called from gsound_background_play_
+		sete cl;                // PLAYTYPE_sfx / PLAYTYPE_music
 		je   skip;
-		cmp  eax, 0x47B6BA;  // called from lips_make_speech_
+		cmp  eax, 0x47B6B5 + 5; // called from lips_make_speech_
 		je   jlips;
-		cmp  eax, 0x450EB9;  // called from gsound_speech_play_
+		cmp  eax, 0x450EB4 + 5; // called from gsound_speech_play_
 		jne  skip;
+		cmp  dword ptr [esp + 24 + 0x114 + 4], 0x440200 + 5; // called from endgame_load_voiceover_
+		sete cl;
 		inc  cl;
 jlips:
-		add  cl, 2;          // PLAYTYPE_lips / PLAYTYPE_speech
+		add  cl, 2; // PLAYTYPE_lips / PLAYTYPE_speech / PLAYTYPE_slides
 skip:
 		call SoundFileLoad;
 		pop  edx;
@@ -498,6 +506,16 @@ skip:
 		jmp  SoundLoadHackRet; // play acm
 playSfall:
 		jmp  SoundLoadHackEnd; // don't play acm (force error)
+	}
+}
+
+static void __declspec(naked) gsound_background_play_hook() {
+	__asm {
+		mov  esi, eax;         // store
+		mov  ecx, ebp;         // file
+		call MakeMusicPath;
+		mov  eax, esi;         // restore eax
+		jmp  soundDelete_;
 	}
 }
 
@@ -514,6 +532,8 @@ playSfall:
 		retn;
 	}
 }
+
+//////////////////////// SLIDES SPEECH SOUND CONTROL //////////////////////////
 
 static void __declspec(naked) endgame_load_voiceover_hack() {
 	__asm {
@@ -533,13 +553,41 @@ skip:
 	}
 }
 
-static void __declspec(naked) gsound_background_play_hook() {
+static void __declspec(naked) endgame_pan_desert_hack() {
 	__asm {
-		mov  esi, eax;         // store
-		mov  ecx, ebp;         // file
-		call MakeMusicPath;
-		mov  eax, esi;         // restore eax
-		jmp  soundDelete_;
+		mov  ecx, speechSound;
+		test ecx, ecx;
+		jnz  skip;
+		mov  ecx, dword ptr ds:[_endgame_voiceover_loaded];
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) endgame_pan_desert_hook() {
+	__asm {
+		cmp  speechSound, 0;
+		jnz  GetSpeechDurationTime;
+		jmp  gsound_speech_length_get_;
+	}
+}
+
+static void __declspec(naked) endgame_display_image_hack() {
+	__asm {
+		mov  ecx, speechSound;
+		call ResumeSfallSound;
+		mov  edx, dword ptr ds:[_endgame_voiceover_loaded];
+		retn;
+	}
+}
+
+static void __declspec(naked) endgame_pan_desert_hack_play() {
+	__asm {
+		mov  ecx, speechSound;
+		call ResumeSfallSound;
+		mov  eax, dword ptr ds:[_endgame_voiceover_loaded];
+		xor  ecx, ecx;
+		retn;
 	}
 }
 
@@ -794,13 +842,23 @@ void SoundInit() {
 
 	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
-		MakeJump(0x4AD499, soundLoad_hack);
+		MakeJump(0x4AD499, soundLoad_hack); // main hook
+
 		const DWORD gmoviePlayStopAddr[] = {0x44E80A, 0x445280};
 		HookCalls(gmovie_play_hook_stop, gmoviePlayStopAddr); // only play looping music
+		if (allowDShowSound > 1) {
+			HookCall(0x450851, gsound_background_play_hook);
+		}
 
 		HookCall(0x4813EE, main_death_scene_hook);
 		MakeCall(0x451038, gsound_speech_stop_hack, 1);
 		MakeCall(0x440286, endgame_load_voiceover_hack, 2);
+		MakeCall(0x43FCED, endgame_pan_desert_hack, 1);
+		HookCall(0x43FCF9, endgame_pan_desert_hook);
+		// play slideshow speech
+		MakeCall(0x43FEF3, endgame_pan_desert_hack_play, 1);
+		MakeCall(0x43FF37, endgame_pan_desert_hack_play, 1);
+		MakeCall(0x4400B2, endgame_display_image_hack, 1);
 
 		// lips sounds hacks
 		HookCall(0x47ACDE, lips_play_speech_hook);
@@ -808,9 +866,6 @@ void SoundInit() {
 		HookCall(0x447B68, gdialog_bk_hook);
 		MakeCall(0x4450C5, gdialogFreeSpeech_hack, 2);
 
-		if (allowDShowSound > 1) {
-			HookCall(0x450851, gsound_background_play_hook);
-		}
 		CreateSndWnd();
 	}
 

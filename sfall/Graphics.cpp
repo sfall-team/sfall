@@ -599,9 +599,7 @@ void Gfx_SetMovieTexture(IDirect3DTexture9* tex) {
 		ShaderVertices2[3].y -= offset;
 	} else if (aviAspect < winAspect) {
 		if (AviMovieWidthFit || (hrpIsEnabled && *(DWORD*)HRPAddress(0x1006EC10) == 2)) {
-			// scales the movie surface to screen width
-			aviAspect = (float)gWidth / (float)desc.Width;
-			desc.Width = (int)(desc.Width * aviAspect);
+			desc.Width = gWidth; // scales the movie surface to screen width
 		} else {
 			// scales width proportionally and places the movie surface at the center of the window along the X-axis
 			aviAspect = (float)desc.Height / (float)gHeight;

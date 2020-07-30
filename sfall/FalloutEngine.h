@@ -93,6 +93,7 @@
 #define _elevation                  0x631D2C
 #define _endgame_subtitle_done      0x570BD0
 #define _endgame_subtitle_characters 0x51866C
+#define _endgame_voiceover_loaded   0x570AB8
 #define _Experience_                0x6681B4
 #define _fallout_game_time          0x51C720
 #define _fidgetFID                  0x5186F4
@@ -715,6 +716,7 @@ extern const DWORD gsound_background_volume_get_set_;
 extern const DWORD gsound_play_sfx_file_;
 extern const DWORD gsound_red_butt_press_;
 extern const DWORD gsound_red_butt_release_;
+extern const DWORD gsound_speech_length_get_;
 extern const DWORD gsound_speech_play_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;

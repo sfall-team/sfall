@@ -527,9 +527,9 @@ void MoviesInit() {
 	if (GraphicsMode != 0) {
 		int allowDShowMovies = GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
+			if (allowDShowMovies > 1) AviMovieWidthFit = true;
 			MakeJump(0x44E690, gmovie_play_hack);
 			HookCall(0x44E993, gmovie_play_hook_stop);
-			if (allowDShowMovies > 1) AviMovieWidthFit = true;
 			/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
 		}
 	}

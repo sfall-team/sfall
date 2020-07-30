@@ -439,6 +439,7 @@ const DWORD gsound_background_volume_get_set_ = 0x450620;
 const DWORD gsound_play_sfx_file_ = 0x4519A8;
 const DWORD gsound_red_butt_press_ = 0x451970;
 const DWORD gsound_red_butt_release_ = 0x451978;
+const DWORD gsound_speech_length_get_ = 0x450C94;
 const DWORD gsound_speech_play_ = 0x450CA0;
 const DWORD handle_inventory_ = 0x46E7B0;
 const DWORD inc_game_time_ = 0x4A34CC;
