@@ -72,6 +72,7 @@
 #define FO_VAR_EncounterMapID             0x672E4C
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
+#define FO_VAR_endgame_voiceover_loaded   0x570AB8
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_game_time          0x51C720
