@@ -335,7 +335,7 @@ void Drugs::init() {
 				MakeCall(0x47A5B8, pid_to_gvar_hack, 1);
 				MakeCall(0x47A50C, perform_withdrawal_start_hack);
 				SafeWrite32(0x47A523, 0x9090EBD1); // shr ebx, 1 (fix for trait drug addict)
-				SafeWrite8(0x47A527, 0x90);
+				SafeWrite8(0x47A527, CodeType::Nop);
 
 				if (addictionGvarCount) {
 					LoadGameHook::OnAfterGameInit() += CheckValidGvarNumber;

@@ -245,8 +245,8 @@ static void GetExtraPatches() {
 static void MultiPatchesPatch() {
 	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
-		SafeWrite8(0x44435C, 0xC4); // Disable check
+		SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
+		SafeWrite8(0x44435C, 0xC4);          // Disable check
 		dlogr(" Done", DL_INIT);
 	//}
 }
