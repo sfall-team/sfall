@@ -331,8 +331,8 @@ static void TimeLimitPatch() {
 				0x4A3547  // inc_game_time_in_seconds_
 			};
 			MakeCalls(TimerReset, timerResetAddr);
-			SafeMemSet(0x4A34F4, 0x90, 16);
-			SafeMemSet(0x4A354C, 0x90, 16);
+			SafeMemSet(0x4A34F4, CODETYPE_Nop, 16);
+			SafeMemSet(0x4A354C, CODETYPE_Nop, 16);
 		} else {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);

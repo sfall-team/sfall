@@ -166,9 +166,9 @@ static void CreateSndWnd() {
 static DWORD GetSpeechDurationTime() {
 	if (!speechSound || !speechSound->pSeek) return 0;
 	speechSound->pSeek->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME);
-	__int64 outVal;
+	__int64 outVal = -1;
 	speechSound->pSeek->GetDuration(&outVal);
-	return static_cast<DWORD>(outVal / 10000000) + 1;
+	return (outVal != -1) ? static_cast<DWORD>(outVal / 10000000) + 1 : 0;
 }
 
 static DWORD GetSpeechPlayingPosition() {
@@ -870,8 +870,8 @@ void SoundInit() {
 	}
 
 	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
-	if (sBuff > 0 && sBuff <= 32) {
-		SafeWrite8(0x451129, (BYTE)sBuff);
+	if (sBuff > 0) {
+		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 	}
 
 	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {

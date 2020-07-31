@@ -575,6 +575,7 @@ extern const DWORD buf_to_buf_;
 extern const DWORD cai_attempt_w_reload_;
 extern const DWORD caiHasWeapPrefType_;
 extern const DWORD check_death_;
+extern const DWORD check_for_death_;
 extern const DWORD Check4Keys_;
 extern const DWORD combat_;
 extern const DWORD combat_ai_;

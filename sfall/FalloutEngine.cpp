@@ -298,6 +298,7 @@ const DWORD buf_to_buf_ = 0x4D36D4;
 const DWORD cai_attempt_w_reload_ = 0x42AECC;
 const DWORD caiHasWeapPrefType_ = 0x42938C;
 const DWORD check_death_ = 0x410814;
+const DWORD check_for_death_ = 0x424EE8;
 const DWORD Check4Keys_ = 0x43F73C;
 const DWORD combat_ = 0x422D2C;
 const DWORD combat_ai_ = 0x42B130;

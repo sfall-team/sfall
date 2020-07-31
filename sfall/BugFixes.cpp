@@ -1995,6 +1995,69 @@ static void __declspec(naked) op_attack_hook() {
 	}
 }
 
+static void __declspec(naked) op_attack_hook_flags() {
+	__asm {
+		and  eax, 0xFF;
+		test ebp, ebp;
+		jz   skip;
+		or   al, 2; // set bit 2
+skip:
+		// EAX: gcsd.changeFlags contains the attribute value for setting the flags
+		// bit 1 - set result flags for target, bit 2 - set result flags for attacker
+		test eax, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_attack_hack_gcsdFlags() {
+	__asm {
+		mov  ebp, [eax + 0x24]; // gcsd.flagsTarget
+		mov  ebx, [eax + 0x1C]; // gcsd.changeFlags
+		test bl, 2;
+		jz   checkTarget;
+		// set source
+		mov  eax, ds:[_main_ctd + 0x14]; // flagsSource
+		and  eax, DAM_DEAD;
+		or   edx, eax; // don't unset DAM_DEAD flag
+		mov  ds:[_main_ctd + 0x14], edx; // flagsSource
+checkTarget:
+		mov  eax, ds:[_main_ctd + 0x30]; // flagsTarget
+		test bl, 1;
+		jnz  setTarget;
+		retn;
+setTarget:
+		and  eax, DAM_DEAD;
+		or   ebp, eax; // don't unset DAM_DEAD flag
+		mov  eax, ebp;
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_attack_hack_gcsdMinDamage() {
+	__asm {
+		mov  ds:[_main_ctd + 0x2C], ecx; // amountTarget (min)
+		mov  edx, ecx;
+		lea  ebx, ds:[_main_ctd + 0x30]; // flagsTarget
+		mov  eax, ds:[_main_ctd + 0x20]; // Target
+		jmp  check_for_death_;           // set DAM_DEAD
+	}
+}
+
+static void __declspec(naked) combat_attack_hack_gcsdMaxDamage() {
+	__asm {
+		mov  ds:[_main_ctd + 0x2C], ebp; // amountTarget (max)
+		mov  eax, ds:[_main_ctd + 0x20]; // Target
+		call critter_get_hits_;
+		cmp  eax, ebp; // curr.HP <= max.DMG
+		jle  skip;
+		cmp  eax, edx; // curr.HP > curr.DMG
+		jg   skip;
+		and  byte ptr ds:[_main_ctd + 0x30], ~DAM_DEAD; // flagsTarget (unset)
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) combat_attack_hack() {
 	__asm {
 		mov  ebx, ds:[_main_ctd + 0x2C]; // amountTarget
@@ -3134,7 +3197,7 @@ void BugFixesInit()
 
 	// Fix for the encounter description being displayed in two lines instead of one
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
-	SafeWrite8(0x4C1015, 0x90);
+	SafeWrite8(0x4C1015, CODETYPE_Nop);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
 	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
@@ -3205,18 +3268,28 @@ void BugFixesInit()
 	HookCall(0x4C6162, db_freadInt_hook);
 
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
-	// also change the behavior of the result flags arguments
 	// called_shot - additional damage, when the damage received by the target is above the specified minimum
 	// num_attacks - the number of free action points on the first turn only
-	// attacker_results - unused, must be 0 or not equal to the target_results argument when specifying result flags for the target
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
-		dlog("Applying attack_complex fix.", DL_INIT);
+		dlog("Applying attack_complex arguments fix.", DL_INIT);
 		HookCall(0x456D4A, op_attack_hook);
 		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
 		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
-		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
+
+		// Fix setting result flags arguments for the attacker and the target (now work independently of each other)
+		SafeWrite16(0x456D95, 0xC085); // cmp eax, ebx > test eax, eax
+		MakeCall(0x456D9A, op_attack_hook_flags);
+		SafeWrite8(0x456D9F, CODETYPE_JumpNZ); // jz > jnz
+		SafeWrite16(0x456DA7, 0x8489); // mov [gcsd.changeFlags], 1 > mov [gcsd.changeFlags], eax
+		SafeWrite8(0x456DAB, 0);
+		SafeWrite8(0x456DAE, CODETYPE_Nop);
 		dlogr(" Done", DL_INIT);
 	}
+	// Fix result flags for the attacker and the target when calling attack_complex function
+	MakeCall(0x42302B, combat_attack_hack_gcsdFlags, 4);
+	// Set/Unset the DAM_DEAD flag when changing the minimum/maximum damage to the target
+	MakeCall(0x422FFF, combat_attack_hack_gcsdMinDamage, 1);
+	MakeCall(0x423017, combat_attack_hack_gcsdMaxDamage, 1);
 
 	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
 	MakeCall(0x422FE5, combat_attack_hack, 1);
