@@ -371,7 +371,7 @@ extern DWORD* ptr_frame_time;
 extern char*  ptr_free_perk;
 extern long** ptr_game_global_vars; // dynamic array of size == num_game_global_vars
 extern DWORD* ptr_game_user_wants_to_quit;
-extern DWORD* ptr_gcsd;
+extern CombatGcsd** ptr_gcsd;
 extern DWORD* ptr_gdBarterMod;
 extern DWORD* ptr_gdNumOptions;
 extern DWORD* ptr_gIsSteal;
@@ -416,7 +416,7 @@ extern DWORD* ptr_list_total;
 extern DWORD* ptr_loadingGame;
 extern DWORD* ptr_LSData;
 extern DWORD* ptr_lsgwin;
-extern DWORD* ptr_main_ctd;
+extern TComputeAttack* ptr_main_ctd;
 extern DWORD* ptr_main_death_voiceover_done;
 extern DWORD* ptr_main_window;
 extern DWORD* ptr_map_elevation;
@@ -473,7 +473,7 @@ extern DWORD* ptr_pipmesg;
 extern DWORD* ptr_preload_list_index;
 extern const char** ptr_procTableStrs;  // table of procId (from define.h) => procName map
 extern MSGList* ptr_proto_main_msg_file;
-extern DWORD* ptr_proto_msg_files;
+extern MSGList* ptr_proto_msg_files; // array of 6 elements
 extern DWORD* ptr_ptable;
 extern DWORD* ptr_pud;
 extern DWORD* ptr_queue;
@@ -1405,6 +1405,8 @@ long __stdcall ItemWRounds(TGameObj* item);
 long __stdcall ItemWeight(TGameObj* item);
 
 long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target);
+
+void __fastcall CheckForDeath(TGameObj* critter, long amountDamage, long* flags);
 
 void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag);
 

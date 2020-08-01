@@ -495,7 +495,7 @@ static void __stdcall op_message_str_game2() {
 			if (fileId < 20) { // main msg files
 				msg = GetMessageStr(gameMsgFiles[fileId], msgId);
 			} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-				msg = GetMessageStr((MSGList*)&ptr_proto_msg_files[2 * (fileId - 0x1000)], msgId);
+				msg = GetMessageStr(&ptr_proto_msg_files[fileId - 0x1000], msgId);
 			} else if (fileId >= 0x2000) { // Extra game message files.
 				ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 				if (it != gExtraGameMsgLists.end()) {

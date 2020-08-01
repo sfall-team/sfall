@@ -1989,8 +1989,8 @@ skip:
 
 static void __declspec(naked) op_attack_hook() {
 	__asm {
-		mov  esi, dword ptr [esp + 0x3C + 4];   // free_move
-		mov  ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		mov  esi, dword ptr [esp + 0x3C + 4]; // free_move
+		mov  ebx, dword ptr [esp + 0x40 + 4]; // add amount damage to target
 		jmp  gdialogActive_;
 	}
 }
@@ -1998,9 +1998,10 @@ static void __declspec(naked) op_attack_hook() {
 static void __declspec(naked) op_attack_hook_flags() {
 	__asm {
 		and  eax, 0xFF;
+		shl  al, 1; // shift to bit 2
 		test ebp, ebp;
 		jz   skip;
-		or   al, 2; // set bit 2
+		or   al, 1;
 skip:
 		// EAX: gcsd.changeFlags contains the attribute value for setting the flags
 		// bit 1 - set result flags for target, bit 2 - set result flags for attacker
@@ -2009,65 +2010,44 @@ skip:
 	}
 }
 
-static void __declspec(naked) combat_attack_hack_gcsdFlags() {
-	__asm {
-		mov  ebp, [eax + 0x24]; // gcsd.flagsTarget
-		mov  ebx, [eax + 0x1C]; // gcsd.changeFlags
-		test bl, 2;
-		jz   checkTarget;
-		// set source
-		mov  eax, ds:[_main_ctd + 0x14]; // flagsSource
-		and  eax, DAM_DEAD;
-		or   edx, eax; // don't unset DAM_DEAD flag
-		mov  ds:[_main_ctd + 0x14], edx; // flagsSource
-checkTarget:
-		mov  eax, ds:[_main_ctd + 0x30]; // flagsTarget
-		test bl, 1;
-		jnz  setTarget;
-		retn;
-setTarget:
-		and  eax, DAM_DEAD;
-		or   ebp, eax; // don't unset DAM_DEAD flag
-		mov  eax, ebp;
-		retn;
+static void __stdcall combat_attack_gcsd() {
+	if ((*ptr_gcsd)->changeFlags & 2) { // only for AttackComplexFix
+		long flags = (*ptr_gcsd)->flagsSource;
+		flags |= (*ptr_main_ctd).attackerFlags & (DAM_HIT | DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		(*ptr_main_ctd).attackerFlags = flags;
 	}
-}
-
-static void __declspec(naked) combat_attack_hack_gcsdMinDamage() {
-	__asm {
-		mov  ds:[_main_ctd + 0x2C], ecx; // amountTarget (min)
-		mov  edx, ecx;
-		lea  ebx, ds:[_main_ctd + 0x30]; // flagsTarget
-		mov  eax, ds:[_main_ctd + 0x20]; // Target
-		jmp  check_for_death_;           // set DAM_DEAD
+	if ((*ptr_gcsd)->changeFlags & 1) {
+		long flags = (*ptr_gcsd)->flagsTarget;
+		flags |= (*ptr_main_ctd).targetFlags & DAM_DEAD; // don't unset DAM_DEAD flag
+		(*ptr_main_ctd).targetFlags = flags;
 	}
-}
 
-static void __declspec(naked) combat_attack_hack_gcsdMaxDamage() {
-	__asm {
-		mov  ds:[_main_ctd + 0x2C], ebp; // amountTarget (max)
-		mov  eax, ds:[_main_ctd + 0x20]; // Target
-		call critter_get_hits_;
-		cmp  eax, ebp; // curr.HP <= max.DMG
-		jle  skip;
-		cmp  eax, edx; // curr.HP > curr.DMG
-		jg   skip;
-		and  byte ptr ds:[_main_ctd + 0x30], ~DAM_DEAD; // flagsTarget (unset)
-skip:
-		retn;
+	if ((*ptr_main_ctd).attackerFlags & DAM_HIT) {
+		long damage = (*ptr_main_ctd).targetDamage;
+		(*ptr_main_ctd).targetDamage += (*ptr_gcsd)->bonusDamage;
+		if ((*ptr_main_ctd).targetDamage < (*ptr_gcsd)->minDamage) {
+			(*ptr_main_ctd).targetDamage = (*ptr_gcsd)->minDamage;
+		}
+		// check the hit points and set the DAM_DEAD flag
+		if (damage != (*ptr_main_ctd).targetDamage) {
+			CheckForDeath((*ptr_main_ctd).target, (*ptr_main_ctd).targetDamage, &(*ptr_main_ctd).targetFlags);
+		}
+		if ((*ptr_main_ctd).targetDamage > (*ptr_gcsd)->maxDamage) {
+			(*ptr_main_ctd).targetDamage = (*ptr_gcsd)->maxDamage;
+			if ((*ptr_main_ctd).target->Type() == OBJ_TYPE_CRITTER) {
+				long cHP = (*ptr_main_ctd).target->critter.health;
+				if (cHP > (*ptr_gcsd)->maxDamage && cHP <= damage) {
+					(*ptr_main_ctd).targetFlags &= ~DAM_DEAD; // unset
+				}
+			}
+		}
 	}
 }
 
 static void __declspec(naked) combat_attack_hack() {
 	__asm {
-		mov  ebx, ds:[_main_ctd + 0x2C]; // amountTarget
-		test ebx, ebx;
-		jz   end;
-		retn;
-end:
-		add  esp, 4;
-		mov  ebx, 0x423039;
-		jmp  ebx;
+		push 0x423039; // return addr
+		jmp  combat_attack_gcsd;
 	}
 }
 
@@ -3268,31 +3248,30 @@ void BugFixesInit()
 	HookCall(0x4C6162, db_freadInt_hook);
 
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
-	// called_shot - additional damage, when the damage received by the target is above the specified minimum
+	// called_shot - additional damage when hitting the target
 	// num_attacks - the number of free action points on the first turn only
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
 		dlog("Applying attack_complex arguments fix.", DL_INIT);
 		HookCall(0x456D4A, op_attack_hook);
-		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
-		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
+		SafeWrite8(0x456D61, 0x74); // mov [gcsd.free_move], esi
+		SafeWrite8(0x456D92, 0x5C); // mov [gcsd.amount], ebx
 
-		// Fix setting result flags arguments for the attacker and the target (now work independently of each other)
-		SafeWrite16(0x456D95, 0xC085); // cmp eax, ebx > test eax, eax
+		// Allow setting result flags arguments for the attacker and the target (now work independently of each other)
+		SafeWrite16(0x456D95, 0xC085); // cmp eax, ebp > test eax, eax
 		MakeCall(0x456D9A, op_attack_hook_flags);
-		SafeWrite8(0x456D9F, CODETYPE_JumpNZ); // jz > jnz
 		SafeWrite16(0x456DA7, 0x8489); // mov [gcsd.changeFlags], 1 > mov [gcsd.changeFlags], eax
 		SafeWrite8(0x456DAB, 0);
 		SafeWrite8(0x456DAE, CODETYPE_Nop);
 		dlogr(" Done", DL_INIT);
+	} else {
+		// Fix setting result flags argument for the target
+		SafeWrite16(0x456D95, 0xED85); // cmp eax, ebp > test ebp, ebp
 	}
+	SafeWrite8(0x456D9F, CODETYPE_JumpNZ); // jz > jnz
 	// Fix result flags for the attacker and the target when calling attack_complex function
-	MakeCall(0x42302B, combat_attack_hack_gcsdFlags, 4);
-	// Set/Unset the DAM_DEAD flag when changing the minimum/maximum damage to the target
-	MakeCall(0x422FFF, combat_attack_hack_gcsdMinDamage, 1);
-	MakeCall(0x423017, combat_attack_hack_gcsdMaxDamage, 1);
-
-	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
-	MakeCall(0x422FE5, combat_attack_hack, 1);
+	// also set/unset the DAM_DEAD flag when changing the minimum/maximum damage to the target
+	// and fix minimum damage still being applied to the target when the attacker misses
+	MakeJump(0x422FE5, combat_attack_hack, 1);
 
 	// Fix for critter_mod_skill taking a negative amount value as a positive
 	dlog("Applying critter_mod_skill fix.", DL_INIT);

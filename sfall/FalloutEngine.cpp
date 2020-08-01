@@ -78,7 +78,7 @@ DWORD* ptr_frame_time                 = reinterpret_cast<DWORD*>(_frame_time);
 char*  ptr_free_perk                  = reinterpret_cast<char*>(_free_perk);
 long** ptr_game_global_vars           = reinterpret_cast<long**>(_game_global_vars); // dynamic array of size == num_game_global_vars
 DWORD* ptr_game_user_wants_to_quit    = reinterpret_cast<DWORD*>(_game_user_wants_to_quit);
-DWORD* ptr_gcsd                       = reinterpret_cast<DWORD*>(_gcsd);
+CombatGcsd** ptr_gcsd                 = reinterpret_cast<CombatGcsd**>(_gcsd);
 DWORD* ptr_gdBarterMod                = reinterpret_cast<DWORD*>(_gdBarterMod);
 DWORD* ptr_gdNumOptions               = reinterpret_cast<DWORD*>(_gdNumOptions);
 DWORD* ptr_gIsSteal                   = reinterpret_cast<DWORD*>(_gIsSteal);
@@ -123,7 +123,7 @@ DWORD* ptr_list_total                 = reinterpret_cast<DWORD*>(_list_total);
 DWORD* ptr_loadingGame                = reinterpret_cast<DWORD*>(_loadingGame);
 DWORD* ptr_LSData                     = reinterpret_cast<DWORD*>(_LSData);
 DWORD* ptr_lsgwin                     = reinterpret_cast<DWORD*>(_lsgwin);
-DWORD* ptr_main_ctd                   = reinterpret_cast<DWORD*>(_main_ctd);
+TComputeAttack* ptr_main_ctd          = reinterpret_cast<TComputeAttack*>(_main_ctd);
 DWORD* ptr_main_death_voiceover_done  = reinterpret_cast<DWORD*>(_main_death_voiceover_done);
 DWORD* ptr_main_window                = reinterpret_cast<DWORD*>(_main_window);
 DWORD* ptr_map_elevation              = reinterpret_cast<DWORD*>(_map_elevation);
@@ -180,7 +180,7 @@ DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
 DWORD* ptr_preload_list_index         = reinterpret_cast<DWORD*>(_preload_list_index);
 const char** ptr_procTableStrs        = reinterpret_cast<const char**>(_procTableStrs);  // table of procId (from define.h) => procName map
 MSGList* ptr_proto_main_msg_file      = reinterpret_cast<MSGList*>(_proto_main_msg_file);
-DWORD* ptr_proto_msg_files            = reinterpret_cast<DWORD*>(_proto_msg_files); // array of 6 MSGList elements
+MSGList* ptr_proto_msg_files          = reinterpret_cast<MSGList*>(_proto_msg_files); // array of 6 elements
 DWORD* ptr_ptable                     = reinterpret_cast<DWORD*>(_ptable);
 DWORD* ptr_pud                        = reinterpret_cast<DWORD*>(_pud);
 DWORD* ptr_queue                      = reinterpret_cast<DWORD*>(_queue);
@@ -1613,6 +1613,10 @@ long __stdcall ItemWeight(TGameObj* item) {
 
 long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target) {
 	WRAP_WATCOM_CALL2(barter_compute_value_, source, target)
+}
+
+void __fastcall CheckForDeath(TGameObj* critter, long amountDamage, long* flags) {
+	WRAP_WATCOM_FCALL3(check_for_death_, critter, amountDamage, flags)
 }
 
 void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag) {

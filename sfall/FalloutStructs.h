@@ -137,6 +137,19 @@ struct TComputeAttack {
 	long extraFlags[6];
 	long extraKnockbackValue[6];
 };
+
+struct CombatGcsd {
+	TGameObj* source;
+	TGameObj* target;
+	long freeAP;
+	long bonusToHit;
+	long bonusDamage;
+	long minDamage;
+	long maxDamage;
+	long changeFlags;
+	DWORD flagsSource;
+	DWORD flagsTarget;
+};
 #pragma pack(pop)
 
 // Script instance attached to an object or tile (spatial script).
