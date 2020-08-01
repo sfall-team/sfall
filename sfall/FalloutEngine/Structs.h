@@ -166,6 +166,19 @@ struct ComputeAttackResult {
 	long extraKnockbackValue[6];
 };
 
+struct CombatGcsd {
+	GameObject* source;
+	GameObject* target;
+	long freeAP;
+	long bonusToHit;
+	long bonusDamage;
+	long minDamage;
+	long maxDamage;
+	long changeFlags;
+	DWORD flagsSource;
+	DWORD flagsTarget;
+};
+
 // Script instance attached to an object or tile (spatial script).
 #pragma pack(1)
 struct ScriptInstance {

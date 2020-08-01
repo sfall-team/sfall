@@ -17,6 +17,7 @@
 // For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
 // because the compiler builds the better/optimized code when calling the engine functions
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC3(void, check_for_death, GameObject*, critter, long, amountDamage, long*, flags)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
 WRAP_WATCOM_FFUNC4(long, determine_to_hit, GameObject*, source, GameObject*, target, long, bodyPart, long, hitMode)
