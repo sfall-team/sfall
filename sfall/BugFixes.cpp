@@ -2013,12 +2013,22 @@ skip:
 static void __stdcall combat_attack_gcsd() {
 	if ((*ptr_gcsd)->changeFlags & 2) { // only for AttackComplexFix
 		long flags = (*ptr_gcsd)->flagsSource;
-		flags |= (*ptr_main_ctd).attackerFlags & (DAM_HIT | DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		if (flags & DAM_PRESERVE_FLAGS) {
+			flags &= ~DAM_PRESERVE_FLAGS;
+			flags |= (*ptr_main_ctd).attackerFlags;
+		} else {
+			flags |= (*ptr_main_ctd).attackerFlags & (DAM_HIT | DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		}
 		(*ptr_main_ctd).attackerFlags = flags;
 	}
 	if ((*ptr_gcsd)->changeFlags & 1) {
 		long flags = (*ptr_gcsd)->flagsTarget;
-		flags |= (*ptr_main_ctd).targetFlags & DAM_DEAD; // don't unset DAM_DEAD flag
+		if (flags & DAM_PRESERVE_FLAGS) {
+			flags &= ~DAM_PRESERVE_FLAGS;
+			flags |= (*ptr_main_ctd).targetFlags;
+		} else {
+			flags |= (*ptr_main_ctd).targetFlags & DAM_DEAD; // don't unset DAM_DEAD flag (fix death animation)
+		}
 		(*ptr_main_ctd).targetFlags = flags;
 	}
 
@@ -2028,17 +2038,17 @@ static void __stdcall combat_attack_gcsd() {
 		if ((*ptr_main_ctd).targetDamage < (*ptr_gcsd)->minDamage) {
 			(*ptr_main_ctd).targetDamage = (*ptr_gcsd)->minDamage;
 		}
-		// check the hit points and set the DAM_DEAD flag
-		if (damage != (*ptr_main_ctd).targetDamage) {
+		if (damage < (*ptr_main_ctd).targetDamage) { // check the hit points and set the DAM_DEAD flag
 			CheckForDeath((*ptr_main_ctd).target, (*ptr_main_ctd).targetDamage, &(*ptr_main_ctd).targetFlags);
 		}
+
 		if ((*ptr_main_ctd).targetDamage > (*ptr_gcsd)->maxDamage) {
 			(*ptr_main_ctd).targetDamage = (*ptr_gcsd)->maxDamage;
-			if ((*ptr_main_ctd).target->Type() == OBJ_TYPE_CRITTER) {
-				long cHP = (*ptr_main_ctd).target->critter.health;
-				if (cHP > (*ptr_gcsd)->maxDamage && cHP <= damage) {
-					(*ptr_main_ctd).targetFlags &= ~DAM_DEAD; // unset
-				}
+		}
+		if (damage > (*ptr_main_ctd).targetDamage && (*ptr_main_ctd).target->Type() == OBJ_TYPE_CRITTER) {
+			long cHP = (*ptr_main_ctd).target->critter.health;
+			if (cHP > (*ptr_gcsd)->maxDamage && cHP <= damage) {
+				(*ptr_main_ctd).targetFlags &= ~DAM_DEAD; // unset
 			}
 		}
 	}

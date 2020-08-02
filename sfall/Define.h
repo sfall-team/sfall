@@ -114,50 +114,51 @@ enum CritterFlags : long
 	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
 };
 
-enum DamageFlag : long
+enum DamageFlag : unsigned long
 {
-	DAM_KNOCKED_OUT = 0x1,
-	DAM_KNOCKED_DOWN = 0x2,
-	DAM_CRIP_LEG_LEFT = 0x4,
-	DAM_CRIP_LEG_RIGHT = 0x8,
-	DAM_CRIP_ARM_LEFT = 0x10,
-	DAM_CRIP_ARM_RIGHT = 0x20,
-	DAM_BLIND = 0x40,
-	DAM_DEAD = 0x80,
-	DAM_HIT = 0x100,
-	DAM_CRITICAL = 0x200,
-	DAM_ON_FIRE = 0x400,
-	DAM_BYPASS = 0x800,
-	DAM_EXPLODE = 0x1000,
-	DAM_DESTROY = 0x2000,
-	DAM_DROP = 0x4000,
-	DAM_LOSE_TURN = 0x8000,
-	DAM_HIT_SELF = 0x10000,
-	DAM_LOSE_AMMO = 0x20000,
-	DAM_DUD = 0x40000,
-	DAM_HURT_SELF = 0x80000,
-	DAM_RANDOM_HIT = 0x100000,
-	DAM_CRIP_RANDOM = 0x200000,
-	DAM_BACKWASH = 0x400000,
+	DAM_KNOCKED_OUT     = 0x1,
+	DAM_KNOCKED_DOWN    = 0x2,
+	DAM_CRIP_LEG_LEFT   = 0x4,
+	DAM_CRIP_LEG_RIGHT  = 0x8,
+	DAM_CRIP_ARM_LEFT   = 0x10,
+	DAM_CRIP_ARM_RIGHT  = 0x20,
+	DAM_BLIND           = 0x40,
+	DAM_DEAD            = 0x80,
+	DAM_HIT             = 0x100,
+	DAM_CRITICAL        = 0x200,
+	DAM_ON_FIRE         = 0x400,
+	DAM_BYPASS          = 0x800,
+	DAM_EXPLODE         = 0x1000,
+	DAM_DESTROY         = 0x2000,
+	DAM_DROP            = 0x4000,
+	DAM_LOSE_TURN       = 0x8000,
+	DAM_HIT_SELF        = 0x10000,
+	DAM_LOSE_AMMO       = 0x20000,
+	DAM_DUD             = 0x40000,
+	DAM_HURT_SELF       = 0x80000,
+	DAM_RANDOM_HIT      = 0x100000,
+	DAM_CRIP_RANDOM     = 0x200000,
+	DAM_BACKWASH        = 0x400000,
 	DAM_PERFORM_REVERSE = 0x800000,
+	DAM_PRESERVE_FLAGS  = 0x80000000 // sfall, used for attack_complex
 };
 
 enum DamageType
 {
-	DMG_normal = 0,
-	DMG_laser = 1,
-	DMG_fire = 2,
-	DMG_plasma = 3,
-	DMG_electrical = 4,
-	DMG_emp = 5,
-	DMG_explosion = 6,
+	DMG_normal       = 0,
+	DMG_laser        = 1,
+	DMG_fire         = 2,
+	DMG_plasma       = 3,
+	DMG_electrical   = 4,
+	DMG_emp          = 5,
+	DMG_explosion    = 6,
 	DMG_BYPASS_ARMOR = 256,
-	DMG_NOANIMATE = 512,
+	DMG_NOANIMATE    = 512,
 };
 
 enum Gender
 {
-	GENDER_MALE = 0,
+	GENDER_MALE   = 0,
 	GENDER_FEMALE = 1,
 };
 
