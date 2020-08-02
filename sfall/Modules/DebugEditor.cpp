@@ -374,7 +374,7 @@ static void DebugModePatch() {
 			SafeWrite32(0x4C6D9C, (DWORD)debugLog);
 			if (dbgMode & 1) {
 				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
-				SafeWrite8(0x4C6EF2, 0xEB);
+				SafeWrite8(0x4C6EF2, CodeType::JumpShort);
 				SafeWrite8(0x4C7034, 0x0);
 				MakeCall(0x4DC319, win_debug_hook, 2);
 			}
@@ -403,7 +403,7 @@ static void DebugModePatch() {
 static void DontDeleteProtosPatch() {
 	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xEB);
+		SafeWrite8(0x48007E, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }

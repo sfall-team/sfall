@@ -46,8 +46,8 @@ static struct StatFormula {
 
 static fo::GameObject* cCritter;
 
-static const DWORD StatLevelHack_Ret = 0x4AEF52;
 static void __declspec(naked) stat_level_hack() {
+	static const DWORD StatLevelHack_Ret = 0x4AEF52;
 	__asm {
 		mov cCritter, eax;
 		sub esp, 8;
@@ -56,7 +56,7 @@ static void __declspec(naked) stat_level_hack() {
 	}
 }
 
-static int __fastcall check_stat_level(register int value, DWORD stat) {
+static int __fastcall check_stat_level(int value, DWORD stat) {
 	int valLimit;
 	if (cCritter == fo::var::obj_dude) {
 		valLimit = statMinimumsPC[stat];
@@ -73,11 +73,10 @@ static int __fastcall check_stat_level(register int value, DWORD stat) {
 }
 
 static void __declspec(naked) stat_level_hack_check() {
-	static const DWORD StatLevelHackCheck_Ret = 0x4AF3D7;
 	__asm {
 		mov  edx, esi;         // stat
-		call check_stat_level; // ecx - value
-		jmp  StatLevelHackCheck_Ret;
+		push 0x4AF3D7;         // return address
+		jmp  check_stat_level; // ecx - value
 	}
 }
 
@@ -318,27 +317,41 @@ void Stats::init() {
 	}
 }
 
-void __stdcall SetPCStatMax(int stat, int i) {
+long Stats::GetStatMax(int stat, int isNPC) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		statMaximumsPC[stat] = i;
+		return (isNPC) ? statMaximumsNPC[stat] : statMaximumsPC[stat];
+	}
+	return 0;
+}
+
+long Stats::GetStatMin(int stat, int isNPC) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
+		return (isNPC) ? statMinimumsNPC[stat] : statMinimumsPC[stat];
+	}
+	return 0;
+}
+
+void __stdcall SetPCStatMax(int stat, int value) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
+		statMaximumsPC[stat] = value;
 	}
 }
 
-void __stdcall SetPCStatMin(int stat, int i) {
+void __stdcall SetPCStatMin(int stat, int value) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		statMinimumsPC[stat] = i;
+		statMinimumsPC[stat] = value;
 	}
 }
 
-void __stdcall SetNPCStatMax(int stat, int i) {
+void __stdcall SetNPCStatMax(int stat, int value) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		statMaximumsNPC[stat] = i;
+		statMaximumsNPC[stat] = value;
 	}
 }
 
-void __stdcall SetNPCStatMin(int stat, int i) {
+void __stdcall SetNPCStatMin(int stat, int value) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		statMinimumsNPC[stat] = i;
+		statMinimumsNPC[stat] = value;
 	}
 }
 

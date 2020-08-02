@@ -166,6 +166,19 @@ struct ComputeAttackResult {
 	long extraKnockbackValue[6];
 };
 
+struct CombatGcsd {
+	GameObject* source;
+	GameObject* target;
+	long freeAP;
+	long bonusToHit;
+	long bonusDamage;
+	long minDamage;
+	long maxDamage;
+	long changeFlags;
+	DWORD flagsSource;
+	DWORD flagsTarget;
+};
+
 // Script instance attached to an object or tile (spatial script).
 #pragma pack(1)
 struct ScriptInstance {
@@ -811,7 +824,7 @@ struct QueueDrug {
 };
 
 struct QueueAddict {
-	long init;      // 1 - perk is not active yet
+	long init;       // 1 - perk is not active yet
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };

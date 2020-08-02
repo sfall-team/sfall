@@ -50,6 +50,7 @@ public:
 	static void SetMovieTexture(IDirect3DTexture9* tex);
 
 	static bool PlayAviMovie;
+	static bool AviMovieWidthFit;
 };
 
 extern IDirect3D9* d3d9;

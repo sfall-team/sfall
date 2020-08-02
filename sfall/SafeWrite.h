@@ -7,6 +7,16 @@
 namespace sfall
 {
 
+enum CodeType : BYTE {
+	Ret       = 0xC3,
+	Call      = 0xE8,
+	Jump      = 0xE9,
+	Nop       = 0x90,
+	JumpShort = 0xEB, // 0xEB [jmp short ...]
+	JumpNZ    = 0x75, // 0x75 [jnz short ...]
+	JumpZ     = 0x74, // 0x74 [jz  short ...]
+};
+
 template <typename T>
 void __stdcall SafeWrite(DWORD addr, T data) {
 	DWORD oldProtect;

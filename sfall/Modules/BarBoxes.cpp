@@ -187,7 +187,7 @@ void BarBoxes::SetText(int box, const char* text, DWORD color) {
 		clr = fo::var::GoodColor;
 		break;
 	case 7:
-		clr = *(BYTE*)FO_VAR_DullPinkColor;
+		clr = fo::var::DullPinkColor;
 		break;
 	default:
 		clr = fo::var::GreenColor;

@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #pragma once
 
 #include <string>
@@ -85,7 +86,13 @@ long __fastcall GetTopWindowID(long xPos, long yPos);
 
 fo::Window* GetWindow(long winType);
 
+// Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1);
+
+// Checks the blocking tiles and returns the first blocking object
+fo::GameObject* CheckAroundBlockingTiles(fo::GameObject* source, long dstTile);
+
+fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long dstTile);
 
 long wmGetCurrentTerrainType();
 
@@ -96,6 +103,9 @@ void DrawToSurface(long toX, long toY, long width, long height, long toWidth, lo
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef);
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
+
+// Fills the specified non-scripted interface window with black color
+void ClearWindow(DWORD winID, bool refresh = true);
 
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
@@ -123,6 +133,9 @@ DWORD GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(GameObject* obj);
+
+// Redraws all interface windows
+void RefreshGNW();
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 

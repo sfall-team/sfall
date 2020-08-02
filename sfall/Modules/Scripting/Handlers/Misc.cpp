@@ -247,11 +247,11 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 
 		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
 
-		SafeMemSet(0x495C77, 0x90, 6);     // Check that the player is high enough for the npc to consider this level
-		//SafeMemSet(0x495C8C, 0x90, 6);   // Check that the npc isn't already at its maximum level
-		SafeMemSet(0x495CEC, 0x90, 6);     // Check that the npc hasn't already levelled up recently
+		SafeMemSet(0x495C77, CodeType::Nop, 6);   // Check that the player is high enough for the npc to consider this level
+		//SafeMemSet(0x495C8C, CodeType::Nop, 6); // Check that the npc isn't already at its maximum level
+		SafeMemSet(0x495CEC, CodeType::Nop, 6);   // Check that the npc hasn't already levelled up recently
 		if (!npcAutoLevelEnabled) {
-			SafeWrite8(0x495CFB, 0xEB);    // Disable random element
+			SafeWrite8(0x495CFB, CodeType::JumpShort); // Disable random element
 		}
 		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
 	} else {
@@ -281,7 +281,7 @@ void op_inc_npc_level(OpcodeContext& ctx) {
 	data = 0x0130850F;
 	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
 	if (!npcAutoLevelEnabled) {
-		SafeWrite8(0x495CFB, 0x74);
+		SafeWrite8(0x495CFB, CodeType::JumpZ);
 	}
 }
 

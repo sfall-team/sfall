@@ -932,20 +932,41 @@ end:
 	}
 }
 
+static void __declspec(naked) MultiHexRetargetTileFix() {
+	__asm {
+		push edx;                     // retargeted tile
+		call fo::funcoffs::obj_blocking_at_;
+		pop  edx;
+		test eax, eax;
+		jz   isFreeTile;
+		retn;
+isFreeTile:
+		test [ebp + flags + 1], 0x08; // is source multihex?
+		jnz  isMultiHex;
+		retn;
+isMultiHex:
+		push ecx;
+		mov  ecx, ebp;
+		call fo::MultiHexMoveIsBlocking;
+		pop  ecx;
+		retn;
+	}
+}
+
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		je   checkObj;
-		retn;                         // tilenums are not equal, always move to tile
-checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // move to tile
 multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   moveToObject;
+		retn;                         // tilenums are not equal, always move to tile
+moveToObject:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret; // move to object
 	}
@@ -954,17 +975,17 @@ multiHex:
 static void __declspec(naked) MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		je   checkObj;
-		retn;                         // tilenums are not equal, always run to tile
-checkObj:
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
 		jnz  multiHex;
 		retn;                         // run to tile
 multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		je   runToObject;
+		retn;                         // tilenums are not equal, always run to tile
+runToObject:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_run_object_ret; // run to object
 	}
@@ -1212,27 +1233,6 @@ skip:
 		pop  eax
 end:
 		mov  edx, edi                             // dude_turn
-		retn
-	}
-}
-
-static void __declspec(naked) wmTeleportToArea_hack() {
-	__asm {
-		cmp  ebx, ds:[FO_VAR_WorldMapCurrArea]
-		je   end
-		mov  ds:[FO_VAR_WorldMapCurrArea], ebx
-		sub  eax, edx
-		add  eax, ds:[FO_VAR_wmAreaInfoList]
-		mov  edx, [eax+0x30]                      // wmAreaInfoList.world_posy
-		mov  ds:[FO_VAR_world_ypos], edx
-		mov  edx, [eax+0x2C]                      // wmAreaInfoList.world_posx
-		mov  ds:[FO_VAR_world_xpos], edx
-end:
-		xor  eax, eax
-		mov  ds:[FO_VAR_target_xpos], eax
-		mov  ds:[FO_VAR_target_ypos], eax
-		mov  ds:[FO_VAR_In_WorldMap], eax
-		push 0x4C5A77
 		retn
 	}
 }
@@ -2006,22 +2006,65 @@ skip:
 
 static void __declspec(naked) op_attack_hook() {
 	__asm {
-		mov  esi, dword ptr [esp + 0x3C + 4];   // free_move
-		mov  ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		mov  esi, dword ptr [esp + 0x3C + 4]; // free_move
+		mov  ebx, dword ptr [esp + 0x40 + 4]; // add amount damage to target
 		jmp  fo::funcoffs::gdialogActive_;
+	}
+}
+
+static void __declspec(naked) op_attack_hook_flags() {
+	__asm {
+		and  eax, 0xFF;
+		shl  al, 1; // shift to bit 2
+		test ebp, ebp;
+		jz   skip;
+		or   al, 1;
+skip:
+		// EAX: gcsd.changeFlags contains the attribute value for setting the flags
+		// bit 1 - set result flags for target, bit 2 - set result flags for attacker
+		test eax, eax;
+		retn;
+	}
+}
+
+static void __stdcall combat_attack_gcsd() {
+	if (fo::var::gcsd->changeFlags & 2) { // only for AttackComplexFix
+		long flags = fo::var::gcsd->flagsSource;
+		flags |= fo::var::main_ctd.attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		fo::var::main_ctd.attackerFlags = flags;
+	}
+	if (fo::var::gcsd->changeFlags & 1) {
+		long flags = fo::var::gcsd->flagsTarget;
+		flags |= fo::var::main_ctd.targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag
+		fo::var::main_ctd.targetFlags = flags;
+	}
+
+	if (fo::var::main_ctd.attackerFlags & fo::DamageFlag::DAM_HIT) {
+		long damage = fo::var::main_ctd.targetDamage;
+		fo::var::main_ctd.targetDamage += fo::var::gcsd->bonusDamage;
+		if (fo::var::main_ctd.targetDamage < fo::var::gcsd->minDamage) {
+			fo::var::main_ctd.targetDamage = fo::var::gcsd->minDamage;
+		}
+		// check the hit points and set the DAM_DEAD flag
+		if (damage != fo::var::main_ctd.targetDamage) {
+			fo::func::check_for_death(fo::var::main_ctd.target, fo::var::main_ctd.targetDamage, &fo::var::main_ctd.targetFlags);
+		}
+		if (fo::var::main_ctd.targetDamage > fo::var::gcsd->maxDamage) {
+			fo::var::main_ctd.targetDamage = fo::var::gcsd->maxDamage;
+			if (fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+				long cHP = fo::var::main_ctd.target->critter.health;
+				if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
+					fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
+				}
+			}
+		}
 	}
 }
 
 static void __declspec(naked) combat_attack_hack() {
 	__asm {
-		mov  ebx, ds:[FO_VAR_main_ctd + 0x2C]; // amountTarget
-		test ebx, ebx;
-		jz   end;
-		retn;
-end:
-		add  esp, 4;
-		mov  ebx, 0x423039;
-		jmp  ebx;
+		push 0x423039; // return addr
+		jmp  combat_attack_gcsd;
 	}
 }
 
@@ -2301,6 +2344,42 @@ static void __declspec(naked) action_climb_ladder_hack() {
 	}
 }
 
+static void __declspec(naked) wmTeleportToArea_hack() {
+	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
+	__asm {
+		xor  ecx, ecx;
+		cmp  ebx, ds:[FO_VAR_WorldMapCurrArea];
+		je   end;
+		mov  ds:[FO_VAR_WorldMapCurrArea], ebx;
+		sub  eax, edx;
+		add  eax, ds:[FO_VAR_wmAreaInfoList];
+		cmp  dword ptr [eax + 0x34], 1;           // wmAreaInfoList.size
+		mov  edx, [eax + 0x30];                   // wmAreaInfoList.world_posy
+		mov  eax, [eax + 0x2C];                   // wmAreaInfoList.world_posx
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub  eax, 5;
+		lea  edx, [edx - 5];
+mediumLoc:
+		sub  eax, 10
+		lea  edx, [edx - 10];
+		// check negative values
+		test  eax, eax;
+		cmovl eax, ecx;
+		test  edx, edx;
+		cmovl edx, ecx;
+largeLoc:
+		mov  ds:[FO_VAR_world_ypos], edx;
+		mov  ds:[FO_VAR_world_xpos], eax;
+end:
+		mov  ds:[FO_VAR_target_xpos], ecx;
+		mov  ds:[FO_VAR_target_ypos], ecx;
+		mov  ds:[FO_VAR_In_WorldMap], ecx;
+		jmp  wmTeleportToArea_Ret;
+	}
+}
+
 static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 	static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
@@ -2323,6 +2402,14 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 mediumLoc:
 		sub  eax, 10;
 		lea  edx, [edx - 10];
+		// check negative values
+		push ecx;
+		xor  ecx, ecx;
+		test eax, eax;
+		cmovl eax, ecx;
+		test edx, edx;
+		cmovl edx, ecx;
+		pop  ecx;
 largeLoc:
 		lea  ebx, [esp]; // ppSubTile out
 		push edx;
@@ -2363,8 +2450,8 @@ fixRadius:
 
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
-		mov  ebx, [ebx + 0x34]; // wmAreaInfoList.size
-		cmp  ebx, 1;
+		cmp  dword ptr [ebx + 0x34], 1; // wmAreaInfoList.size
+		mov  ebx, 0;
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
@@ -2373,8 +2460,12 @@ static void __declspec(naked) wmWorldMap_hack() {
 mediumLoc:
 		sub  eax, 10;
 		lea  edx, [edx - 10];
+		// check negative values
+		test eax, eax;
+		cmovl eax, ebx;
+		test edx, edx;
+		cmovl edx, ebx;
 largeLoc:
-		xor  ebx, ebx;
 		jmp  fo::funcoffs::wmPartyInitWalking_;
 	}
 }
@@ -2705,7 +2796,7 @@ void BugFixes::init()
 		// // removes this line by making unconditional jump:
 		// if ( who == obj_dude )
 		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
-		SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
+		SafeWrite8(0x424527, CodeType::JumpShort); // in detemine_to_hit_func_()
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2758,7 +2849,7 @@ void BugFixes::init()
 		// Fix for move_obj_inven_to_obj function
 		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
 		SafeWrite16(0x45C496, 0x9090);
-		SafeWrite8(0x45C4A3, 0x75); // jmp > jnz
+		SafeWrite8(0x45C4A3, CodeType::JumpNZ); // jmp > jnz
 		// Fix for drop_obj function
 		HookCall(0x49B965, obj_drop_hook);
 		dlogr(" Done", DL_INIT);
@@ -2783,7 +2874,7 @@ void BugFixes::init()
 
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
-	SafeWrite8(0x4AC377, 0x7F);                // jg
+	SafeWrite8(0x4AC377, 0x7F); // jg
 	dlogr(" Done", DL_INIT);
 
 	// Fix for negative SPECIAL values in character creation
@@ -2805,8 +2896,7 @@ void BugFixes::init()
 	//}
 
 	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
-	SafeWrite8(0x475541, 64);
-	SafeWrite8(0x475789, 64);
+	SafeWriteBatch<BYTE>(64, {0x475541, 0x475789});
 
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
@@ -2869,7 +2959,7 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
 		dlog("Applying shiv patch.", DL_INIT);
-		SafeWrite8(0x477B2B, 0xEB);
+		SafeWrite8(0x477B2B, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2878,8 +2968,7 @@ void BugFixes::init()
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
 		SafeWrite32(0x46B35D, 0x90909090);
-		SafeWrite8(0x46DBF1, 0xEB); // Disable warnings
-		SafeWrite8(0x46DDC4, 0xEB); // Disable warnings
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x46DBF1, 0x46DDC4}); // Disable warnings
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}
@@ -2900,6 +2989,9 @@ void BugFixes::init()
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
+		// Check neighboring tiles to prevent critters from overlapping other object tiles when moving to the retargeted tile
+		SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
+		HookCall(0x42A3A8, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2937,8 +3029,7 @@ void BugFixes::init()
 	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
-		SafeWrite8(0x478115, 0xBA);
-		SafeWrite8(0x478138, 0xBA);
+		SafeWriteBatch<BYTE>(0xBA, {0x478115, 0x478138}); // mov eax, 1 > mov edx, 1
 		MakeJump(0x474D22, barter_attempt_transaction_hack);
 		HookCall(0x4798B1, item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
@@ -2958,13 +3049,6 @@ void BugFixes::init()
 
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
-
-	// Partial fix for incorrect positioning after exiting small locations (e.g. Ghost Farm)
-	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
-		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
-		MakeJump(0x4C5A41, wmTeleportToArea_hack);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
 		dlog("Applying print to file fix.", DL_INIT);
@@ -3087,8 +3171,8 @@ void BugFixes::init()
 	// Fix broken op_obj_can_hear_obj_ function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
-		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
-		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
+		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
+		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz loc_458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3107,7 +3191,7 @@ void BugFixes::init()
 
 	// Fix for the encounter description being displayed in two lines instead of one
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
-	SafeWrite8(0x4C1015, 0x90);
+	SafeWrite8(0x4C1015, CodeType::Nop);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
 	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
@@ -3151,7 +3235,7 @@ void BugFixes::init()
 	// Display messages about radiation for the active geiger counter
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(0x74, {0x42D424, 0x42D444}); // jnz > jz
+		SafeWriteBatch<BYTE>(CodeType::JumpZ, {0x42D424, 0x42D444}); // jnz > jz
 		dlogr(" Done", DL_INIT);
 	}
 	// Display a pop-up message box about death from radiation
@@ -3162,8 +3246,8 @@ void BugFixes::init()
 		dlog("Applying AI drug use preference fix.", DL_INIT);
 		MakeCall(0x42869D, ai_check_drugs_hack_break);
 		MakeCall(0x4286AB, ai_check_drugs_hack_check);
-		SafeWrite16(0x4286B0, 0x7490); // jnz > jz
-		SafeWrite8(0x4286C5, 0x75);    // jz  > jnz
+		SafeWrite16(0x4286B0, 0x7490);          // jnz > jz
+		SafeWrite8(0x4286C5, CodeType::JumpNZ); // jz  > jnz
 		MakeCall(0x4286C7, ai_check_drugs_hack_use);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3176,21 +3260,30 @@ void BugFixes::init()
 	HookCall(0x4C6162, db_freadInt_hook);
 
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
-	// also change the behavior of the result flags arguments
-	// called_shot - additional damage, when the damage received by the target is above the specified minimum
+	// called_shot - additional damage when hitting the target
 	// num_attacks - the number of free action points on the first turn only
-	// attacker_results - unused, must be 0 or not equal to the target_results argument when specifying result flags for the target
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
-		dlog("Applying attack_complex fix.", DL_INIT);
+		dlog("Applying attack_complex arguments fix.", DL_INIT);
 		HookCall(0x456D4A, op_attack_hook);
-		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
-		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
-		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
-		dlogr(" Done", DL_INIT);
-	}
+		SafeWrite8(0x456D61, 0x74); // mov [gcsd.free_move], esi
+		SafeWrite8(0x456D92, 0x5C); // mov [gcsd.amount], ebx
 
-	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
-	MakeCall(0x422FE5, combat_attack_hack, 1);
+		// Allow setting result flags arguments for the attacker and the target (now work independently of each other)
+		SafeWrite16(0x456D95, 0xC085); // cmp eax, ebp > test eax, eax
+		MakeCall(0x456D9A, op_attack_hook_flags);
+		SafeWrite16(0x456DA7, 0x8489); // mov [gcsd.changeFlags], 1 > mov [gcsd.changeFlags], eax
+		SafeWrite8(0x456DAB, 0);
+		SafeWrite8(0x456DAE, CodeType::Nop);
+		dlogr(" Done", DL_INIT);
+	} else {
+		// Fix setting result flags argument for the target
+		SafeWrite16(0x456D95, 0xED85); // cmp eax, ebp > test ebp, ebp
+	}
+	SafeWrite8(0x456D9F, CodeType::JumpNZ); // jz > jnz
+	// Fix result flags for the attacker and the target when calling attack_complex function
+	// also set/unset the DAM_DEAD flag when changing the minimum/maximum damage to the target
+	// and fix minimum damage still being applied to the target when the attacker misses
+	MakeJump(0x422FE5, combat_attack_hack, 1);
 
 	// Fix for critter_mod_skill taking a negative amount value as a positive
 	dlog("Applying critter_mod_skill fix.", DL_INIT);
@@ -3281,13 +3374,20 @@ void BugFixes::init()
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
 	MakeCall(0x411DF7, action_climb_ladder_hack); // bug caused by anim_move_to_tile_ fix
 
+	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
+	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
+		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_INIT);
+		MakeJump(0x4C5A41, wmTeleportToArea_hack);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
 	// also fix the incorrect coordinates for small/medium location circles that the engine uses to highlight their sub-tiles
 	// and fix visited tiles on the world map being darkened again when a location is added next to them
 	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
 	SafeWrite8(0x4C46AB, 0x58); // esi > ebx
 
-	// Fix the position of the target marker for small/medium location circles
+	// Fix the position of the destination marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
 	// Fix to prevent using number keys to enter unvisited areas on a town map
@@ -3358,8 +3458,27 @@ void BugFixes::init()
 	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
 	// object or source tile
 	// Note: this bug does not cause an error in the function work
-	__int64 data = 0x840F04708B90; // remove jnz and modify jmp > jz
-	SafeWriteBytes(0x426D60, (BYTE*)&data, 6);
+	BYTE codeData[] = {
+		0x8B, 0x70, 0x04,       // mov  esi, [eax + 4]
+		0xF6, 0x40, 0x25, 0x08, // test [eax + flags2], MultiHex_
+		0x74, 0x1E,             // jz   0x426D83
+		0x39, 0xEE,             // cmp  esi, ebp
+		0x74, 0x1A,             // jz   0x426D83
+		0x90
+	};
+	SafeWriteBytes(0x426D5C, codeData, 14); // combat_is_shot_blocked_
+
+	// Fix for NPC stuck in an animation loop in combat when trying to move close to a multihex critter
+	// this prevents moving to the multihex critter when the critters are close together
+	BYTE codeData1[] = {
+		0x89, 0xF0,                      // mov  eax, esi
+		0x89, 0xFA,                      // mov  edx, edi
+		0xE8, 0x00, 0x00, 0x0, 0x0,      // call obj_dist_
+		0x83, 0xF8, 0x01,                // cmp  eax, 1
+		0x0F, 0x8E, 0xAB, 0x0, 0x0, 0x0, // jle  0x42A1B1 (exit)
+	};
+	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
+	HookCall(0x42A0F8, (void*)fo::funcoffs::obj_dist_);
 }
 
 }

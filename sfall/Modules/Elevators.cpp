@@ -26,7 +26,7 @@ namespace sfall
 
 static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
-static const int elevatorCount = 50;
+static const int elevatorCount = 50; // The maximum allowed for Elevator stub in the BIS mapper
 
 static DWORD elevatorType[elevatorCount] = {0};
 static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals
@@ -120,8 +120,8 @@ static void LoadElevators(const char* elevFile) {
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
 				int cBtn = iniGetInt(section, "ButtonCount", 2, elevFile);
-				if (cBtn > exitsPerElevator) cBtn = exitsPerElevator;
-				elevatorsBtnCount[i] = max(2, cBtn);
+				if (cBtn < 2) cBtn = 2;
+				elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
 			}
 			elevatorsFrms[i].main = iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
 			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);

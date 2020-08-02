@@ -857,11 +857,7 @@ static void PerkEngineInit() {
 
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
-	SafeWrite8(0x43C2EC, 0xEB); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
-
-	// Disable losing unused perks
-	SafeWrite16(0x43C369, 0x0DFE); // dec  byte ptr ds:_free_perk
-	SafeWrite8(0x43C370, 0xB1);    // jmp  0x43C322
+	SafeWrite8(0x43C2EC, CodeType::JumpShort); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
 }
 
 static void PerkSetup() {
@@ -1221,6 +1217,19 @@ static __declspec(naked) void TraitInitWrapper() {
 	}
 }
 
+static void __declspec(naked) perks_dialog_hook() {
+	static const DWORD perks_dialog_Ret = 0x43C92F;
+	__asm {
+		call fo::funcoffs::ListDPerks_;
+		test eax, eax;
+		jz   dlgExit;
+		retn;
+dlgExit:
+		add  esp, 4;
+		jmp  perks_dialog_Ret;
+	}
+}
+
 static void __declspec(naked) item_w_called_shot_hack() {
 	static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
 	static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
@@ -1450,6 +1459,14 @@ void Perks::init() {
 	LoadGameHook::OnGameReset() += PerksReset;
 
 	FastShotTraitFix();
+
+	// Disable losing unused perks
+	SafeWrite16(0x43C369, 0x0DFE); // mov ds:[_free_perk], dh > dec ds:[_free_perk]
+	// If there are unused perks, then call the perk selection window
+	SafeWrite8(0x43C370, 0xB1);    // jmp 0x43C322
+
+	// Don't show an empty perk selection window
+	HookCall(0x43C80B, perks_dialog_hook);
 
 	// Disable gain perks for bonus stats
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);

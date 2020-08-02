@@ -43,7 +43,7 @@ struct ProtoMem {
 	}
 
 	void CreateProtoMem(long* srcProto) {
-		this->proto = reinterpret_cast<long*>(new int32_t[104]); // 416 bytes
+		this->proto = reinterpret_cast<long*>(new long[104]); // 416 bytes
 		std::memcpy(this->proto, srcProto, 416);
 	}
 

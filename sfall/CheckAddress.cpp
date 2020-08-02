@@ -9,8 +9,12 @@ namespace sfall
 
 std::multimap<long, long> writeAddress;
 
-static std::vector<long> excludeAddr = {
-	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x4CB850, // from movies.cpp
+static std::vector<long> excludeWarning = {
+	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, // from movies.cpp
+};
+
+static std::vector<long> excludeConflict = {
+	0x42A0F8,                                         // bugfixes.cpp
 };
 
 struct HackPair {
@@ -72,7 +76,7 @@ static std::vector<HackPair> hackAddr = {
 	{0x484B18, 1}, {0x484B19, 4}, // hookcall
 	// module: Movies
 	{0x44E937, 1}, {0x44E938, 4}, {0x44E949, 1}, {0x44E94A, 4}, // hookcalls
-	{0x4F5F40, 1}, {0x4CB850, 1},
+	{0x4F5F40, 1},
 	// module: Objects
 	{0x4A364A, 5}, {0x4831D9, 1}, {0x4831DA, 1},
 	{0x4841D6, 1}, {0x4841D7, 4}, // hookcall
@@ -135,8 +139,10 @@ void PrintAddrList() {
 		if (diff == 0) {
 			dlog_f("0x%x L:%d [Overwriting]\n", DL_MAIN, el.addr, el.len);
 		} else if (diff < pl) {
-			dlog_f("0x%x L:%d [Conflict] with 0x%x L:%d\n", DL_MAIN, el.addr, el.len, pa, pl);
-			MessageBoxA(0, "Conflict detected!", "", MB_TASKMODAL);
+			if (std::find(excludeConflict.cbegin(), excludeConflict.cend(), el.addr) == excludeConflict.cend()) {
+				dlog_f("0x%x L:%d [Conflict] with 0x%x L:%d\n", DL_MAIN, el.addr, el.len, pa, pl);
+				MessageBoxA(0, "Conflict detected!", "", MB_TASKMODAL);
+			}
 		} else if (level >= 11 && diff == pl) {
 			dlog_f("0x%x L:%d [Warning] Hacking near:0x%x\n", DL_MAIN, el.addr, el.len, pa);
 		} else if (level >= 12) {
@@ -149,7 +155,7 @@ void PrintAddrList() {
 
 void CheckConflict(DWORD addr, long len) {
 	if (writeAddress.find(addr) != writeAddress.cend()) {
-		if (std::find(excludeAddr.cbegin(), excludeAddr.cend(), addr) != excludeAddr.cend()) return;
+		if (std::find(excludeWarning.cbegin(), excludeWarning.cend(), addr) != excludeWarning.cend()) return;
 		char buf[64];
 		sprintf_s(buf, "Memory overwriting at address 0x%x", addr);
 		MessageBoxA(0, buf, "", MB_TASKMODAL);
