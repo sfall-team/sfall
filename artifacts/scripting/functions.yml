@@ -126,6 +126,16 @@
   - name: get_critter_extra_stat
     detail: int get_critter_extra_stat(CritterPtr, int StatID)
     opcode: 0x8161
+  - name: get_stat_min
+    detail: get_stat_min(stat, bool who = False)
+    doc: |
+      - Returns the minimum set value of the specified stat (see `set_stat_min` functions)
+      - who: 0 (`false`) or omitting the argument - returns the value of the player, 1 (true) - returns the value set for other critters
+  - name: get_stat_max
+    detail: get_stat_max(stat, bool who = False)
+    doc: |
+      - Returns the maximum set value of the specified stat (see `set_stat_max` functions)
+      - who: 0 (`false`) or omitting the argument - returns the value of the player, 1 (true) - returns the value set for other critters
 
 - name: Alter min/max
   doc: The `set_stat_max/min` functions can be used to set the valid ranges on stats. Values returned by `get_current_stat` will be clamped to this range. The `set_pc_` function only effect the player, the `set_npc_` functions only effect other critters, and the `set_` functions effect both.
@@ -1678,7 +1688,9 @@
   items:
   - name: display_stats
     detail: void display_stats()
-    doc: Updates player stats in the inventory screen display window. Works only in opened player inventory.
+    doc: |
+      - Updates player's stats in the inventory display window or on the character screen.
+      - NOTE: works only when the interface window is opened
     macro: sfall.h
   - name: inventory_redraw
     detail: void inventory_redraw(invSide)
