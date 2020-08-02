@@ -2030,12 +2030,22 @@ skip:
 static void __stdcall combat_attack_gcsd() {
 	if (fo::var::gcsd->changeFlags & 2) { // only for AttackComplexFix
 		long flags = fo::var::gcsd->flagsSource;
-		flags |= fo::var::main_ctd.attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
+			flags |= fo::var::main_ctd.attackerFlags;
+		} else {
+			flags |= fo::var::main_ctd.attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		}
 		fo::var::main_ctd.attackerFlags = flags;
 	}
 	if (fo::var::gcsd->changeFlags & 1) {
 		long flags = fo::var::gcsd->flagsTarget;
-		flags |= fo::var::main_ctd.targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
+			flags |= fo::var::main_ctd.targetFlags;
+		} else {
+			flags |= fo::var::main_ctd.targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag (fix death animation)
+		}
 		fo::var::main_ctd.targetFlags = flags;
 	}
 
@@ -2045,17 +2055,17 @@ static void __stdcall combat_attack_gcsd() {
 		if (fo::var::main_ctd.targetDamage < fo::var::gcsd->minDamage) {
 			fo::var::main_ctd.targetDamage = fo::var::gcsd->minDamage;
 		}
-		// check the hit points and set the DAM_DEAD flag
-		if (damage != fo::var::main_ctd.targetDamage) {
+		if (damage < fo::var::main_ctd.targetDamage) { // check the hit points and set the DAM_DEAD flag
 			fo::func::check_for_death(fo::var::main_ctd.target, fo::var::main_ctd.targetDamage, &fo::var::main_ctd.targetFlags);
 		}
+
 		if (fo::var::main_ctd.targetDamage > fo::var::gcsd->maxDamage) {
 			fo::var::main_ctd.targetDamage = fo::var::gcsd->maxDamage;
-			if (fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
-				long cHP = fo::var::main_ctd.target->critter.health;
-				if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
-					fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
-				}
+		}
+		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+			long cHP = fo::var::main_ctd.target->critter.health;
+			if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
+				fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
 			}
 		}
 	}
