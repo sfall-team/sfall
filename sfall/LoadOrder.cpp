@@ -166,6 +166,7 @@ end:
 }
 
 #define _F_PATHFILE 0x6143F4
+
 static void __declspec(naked) GameMap2Slot_hack() { // save party pids
 	__asm {
 		push ecx;
@@ -231,7 +232,7 @@ static void __declspec(naked) SlotMap2Game_hack_attr() {
 		call ResetReadOnlyAttr;
 		or   eax, 1; // reset ZF
 end:
-		retn 0x8;
+		retn 8;
 	}
 }
 
@@ -240,6 +241,48 @@ end:
 
 void RemoveSavFiles() {
 	MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
+}
+
+static DWORD aliasFID = -1;
+
+static void __declspec(naked) art_get_name_hook() {
+	__asm {
+		call art_alias_fid_;
+		cmp  eax, -1;
+		jne  artAlias;
+		retn; // if aliasFID here is not equal to -1, then the algorithm is not working correctly
+artAlias:
+		cmp  eax, edx;
+		je   skip;
+		mov  aliasFID, eax;
+skip:
+		mov  eax, -1;
+		retn;
+	}
+}
+
+void __declspec(naked) LoadOrder_art_get_name_hack() {
+	static const DWORD art_get_name_Alias = 0x41944A;
+	__asm {
+		mov  eax, _art_name;
+		cmp  aliasFID, -1;
+		jne  artHasAlias;
+		retn;
+artHasAlias:
+		sub  esp, 4;
+		mov  edx, esp;
+		call db_dir_entry_;
+		add  esp, 4;
+		cmp  eax, -1;
+		je   artNotExist;
+		mov  aliasFID, -1;
+		mov  eax, _art_name;
+		retn;
+artNotExist:
+		xchg eax, aliasFID
+		add  esp, 4;
+		jmp  art_get_name_Alias; // get name of art alias
+	}
 }
 
 void LoadOrder_OnGameLoad() {
@@ -259,6 +302,14 @@ void LoadOrderInit() {
 		dlogr(" Done", DL_INIT);
 	} else {
 		HookCall(0x44436D, game_init_databases_hook1);
+	}
+
+	// Predefined behavior for replacing art aliases for critters
+	// first check the existence of the art file of the current critter and then replace the art alias if file not found
+	HookCall(0x419440, art_get_name_hook);
+	SafeWrite16(0x419521, 0x003B); // jmp 0x419560
+	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0) <= 0) { // Hero Appearance mod uses an alternative code
+		MakeCall(0x419560, LoadOrder_art_get_name_hack);
 	}
 
 	dlog("Applying party member protos save/load patch.", DL_INIT);

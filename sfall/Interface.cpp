@@ -210,7 +210,7 @@ static void __declspec(naked) DrawingDots() {
 
 static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 	long area = *ptr_WorldMapCurrArea;
-	char* text = (area != -1 || !showTerrainType) ? (char*)Wmap_GetCustomAreaTitle(area) : (char*)Wmap_GetCurrentTerrainName();
+	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap_GetCustomAreaTitle(area) : (char*)Worldmap_GetCurrentTerrainName();
 	if (!text) return false;
 
 	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
@@ -268,7 +268,7 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 }
 
 static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
-	if (!showTerrainType && Wmap_AreaTitlesIsEmpty()) return;
+	if (!showTerrainType && Worldmap_AreaTitlesIsEmpty()) return;
 
 	long deltaX = 20, deltaY = 20;
 

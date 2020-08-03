@@ -2378,7 +2378,7 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
 	static long isNoRadius;
 
-	isNoRadius = Wmap_AreaMarkStateIsNoRadius(); // F1 behavior radius
+	isNoRadius = Worldmap_AreaMarkStateIsNoRadius(); // F1 behavior radius
 	__asm {
 		mov  [ecx + 0x40], esi; // wmAreaInfoList.visited
 		test esi, esi;          // mark "unknown" state

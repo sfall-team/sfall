@@ -21,6 +21,7 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
+#include "LoadOrder.h"
 #include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
@@ -237,16 +238,16 @@ isNotReading:
 
 static void __declspec(naked) CheckHeroExist() {
 	__asm {
-		mov  eax, _art_name;              // critter art file name address (file name)
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jg   checkArt;
-		retn;
+		jmp  LoadOrder_art_get_name_hack;
 checkArt:
+		mov  eax, _art_name;              // critter art file name address (file name)
 		call db_access_;                  // check art file exists
 		test eax, eax;
 		jz   notExists;
-		mov  eax, _art_name;
-		retn;
+		//mov  eax, _art_name;
+		jmp  LoadOrder_art_get_name_hack; //retn; Not sure if we need a jump to: art_get_name_hack
 notExists: // if file not found load regular critter art instead
 		sub  esi, critterArraySize;
 		add  esp, 4;                      // drop func ret address
@@ -1442,8 +1443,8 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x4DEEE5, LoadNewHeroArt, 1);
 
 	// Divert critter frm file name function exit for file checking (art_get_name_)
-	SafeWrite8(0x419520, CODETYPE_JumpShort); // divert func exit
-	SafeWrite32(0x419521, 0x9090903E);
+	//__int64 data = 0x9090903EEB; // jmp 0x419560 (divert func exit)
+	//SafeWriteBytes(0x419520, (BYTE*)&data, 5);
 
 	// Check if new hero art exists otherwise use regular art (art_get_name_)
 	MakeCall(0x419560, CheckHeroExist);

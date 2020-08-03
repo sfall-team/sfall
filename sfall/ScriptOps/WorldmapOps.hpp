@@ -231,9 +231,9 @@ static void mf_tile_by_position() {
 }
 
 static void mf_set_terrain_name() {
-	Wmap_SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
+	Worldmap_SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
 }
 
 static void mf_set_town_title() {
-	Wmap_SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
+	Worldmap_SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
 }

@@ -279,7 +279,7 @@ jLoop:
 
 // Fallout 1 behavior: No radius for uncovered locations on the world map
 // for the mark_area_known script function when the mark_state argument of the function is set to 3
-long __declspec(naked) Wmap_AreaMarkStateIsNoRadius() {
+long __declspec(naked) Worldmap_AreaMarkStateIsNoRadius() {
 	__asm {
 		xor  eax, eax;
 		cmp  esi, 3; // esi - mark_state value
@@ -474,33 +474,33 @@ static const char* GetOverrideTerrainName(long x, long y) {
 }
 
 // x, y - position of the sub-tile on the world map
-void Wmap_SetTerrainTypeName(long x, long y, const char* name) {
+void Worldmap_SetTerrainTypeName(long x, long y, const char* name) {
 	long subTileID = x + y * (*ptr_wmNumHorizontalTiles * 7);
 	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
 }
 
 // TODO: someone might need to know the name of a terrain type?
-/*const char* Wmap_GetTerrainTypeName(long x, long y) {
+/*const char* Worldmap_GetTerrainTypeName(long x, long y) {
 	const char* name = GetOverrideTerrainName(x, y);
 	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
 }*/
 
 // Returns the name of the terrain type in the position of the player's marker on the world map
-const char* Wmap_GetCurrentTerrainName() {
+const char* Worldmap_GetCurrentTerrainName() {
 	const char* name = GetOverrideTerrainName(*ptr_world_xpos / 50, *ptr_world_ypos / 50);
 	return (name) ? name : GetMessageStr(ptr_wmMsgFile, 1000 + wmGetCurrentTerrainType());
 }
 
-bool Wmap_AreaTitlesIsEmpty() {
+bool Worldmap_AreaTitlesIsEmpty() {
 	return wmAreaHotSpotTitle.empty();
 }
 
-void Wmap_SetCustomAreaTitle(long areaID, const char* msg) {
+void Worldmap_SetCustomAreaTitle(long areaID, const char* msg) {
 	wmAreaHotSpotTitle[areaID] = msg;
 }
 
-const char* Wmap_GetCustomAreaTitle(long areaID) {
-	if (Wmap_AreaTitlesIsEmpty()) return nullptr;
+const char* Worldmap_GetCustomAreaTitle(long areaID) {
+	if (Worldmap_AreaTitlesIsEmpty()) return nullptr;
 	const auto &it = wmAreaHotSpotTitle.find(areaID);
 	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }

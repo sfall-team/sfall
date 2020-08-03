@@ -24,14 +24,14 @@ void Worldmap_OnGameLoad();
 DWORD GetAddedYears(bool isCheck = true);
 void SetAddedYears(DWORD years);
 
-void Wmap_SetTerrainTypeName(long x, long y, const char* name);
-//const char* Wmap_GetTerrainTypeName(long x, long y);
-const char* Wmap_GetCurrentTerrainName();
+void Worldmap_SetTerrainTypeName(long x, long y, const char* name);
+//const char* Worldmap_GetTerrainTypeName(long x, long y);
+const char* Worldmap_GetCurrentTerrainName();
 
-bool Wmap_AreaTitlesIsEmpty();
-const char* Wmap_GetCustomAreaTitle(long areaID);
-void Wmap_SetCustomAreaTitle(long areaID, const char* msg);
+bool Worldmap_AreaTitlesIsEmpty();
+const char* Worldmap_GetCustomAreaTitle(long areaID);
+void Worldmap_SetCustomAreaTitle(long areaID, const char* msg);
 
-long Wmap_AreaMarkStateIsNoRadius();
+long Worldmap_AreaMarkStateIsNoRadius();
 
 void __stdcall SetMapMulti(float value);

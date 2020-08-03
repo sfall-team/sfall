@@ -203,7 +203,7 @@ end:
 	}
 }
 
-static void __declspec(naked)  action_climb_ladder_hook() {
+static void __declspec(naked) action_climb_ladder_hook() {
 	__asm {
 		cmp  word ptr [edi + 0x40], 0xFFFF; // DestTile
 		je   skip;
@@ -218,6 +218,22 @@ reset:
 		and  al, ~0x4; // reset RB_DONTSTAND flag
 skip:
 		jmp  register_begin_;
+	}
+}
+
+static void __declspec(naked) art_alias_fid_hack() {
+	static const DWORD art_alias_fid_Ret = 0x419A6D;
+	__asm {
+		cmp  eax, ANIM_called_shot_pic;
+		je   skip;
+		cmp  eax, ANIM_charred_body;
+		je   skip;
+		cmp  eax, ANIM_charred_body_sf;
+		je   skip;
+		add  esp, 4;
+		jmp  art_alias_fid_Ret;
+skip:
+		retn;
 	}
 }
 
@@ -340,6 +356,9 @@ void AnimationsInit() {
 
 	// Fix for the player stuck at "climbing" frame after ladder climbing animation
 	HookCall(0x411E1F, action_climb_ladder_hook);
+
+	// Add ANIM_charred_body/ANIM_charred_body_sf animations to art aliases
+	MakeCall(0x419A17, art_alias_fid_hack);
 }
 
 void AnimationsExit() {
