@@ -50,13 +50,11 @@
 #include "version.h"
 #include "Worldmap.h"
 
-#define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
-
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
+static bool gameLoaded = false;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
-static bool gameLoaded = false;
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
@@ -239,7 +237,7 @@ errorLoad:
 
 static void __stdcall LoadGame_After() {
 	CritLoad();
-	*ptr_Meet_Frank_Horrigan = disableHorrigan;
+	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
 	LoadGlobalScripts();
 	gameLoaded = true;
 }
@@ -321,7 +319,7 @@ static void NewGame2() {
 	CritLoad();
 	SetNewCharAppearanceGlobals();
 	LoadHeroAppearance();
-	*ptr_Meet_Frank_Horrigan = disableHorrigan;
+	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
 	LoadGlobalScripts();
 
 	dlogr("New Game started.", DL_MAIN);
@@ -339,8 +337,7 @@ static void __declspec(naked) NewGame() {
 }
 
 static void ReadExtraGameMsgFilesIfNeeded() {
-	if (gExtraGameMsgLists.empty())
-		ReadExtraGameMsgFiles();
+	if (gExtraGameMsgLists.empty()) ReadExtraGameMsgFiles();
 }
 
 static void __declspec(naked) MainMenuHook() {
@@ -349,7 +346,7 @@ static void __declspec(naked) MainMenuHook() {
 		push 0;
 		call ResetState;
 		mov  al, pipBoyAvailableAtGameStart;
-		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
+		mov  byte ptr ds:[_gmovie_played_list + 3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		popad;
 		jmp  main_menu_loop_;

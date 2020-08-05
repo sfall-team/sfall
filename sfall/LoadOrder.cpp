@@ -269,16 +269,14 @@ void __declspec(naked) LoadOrder_art_get_name_hack() {
 		jne  artHasAlias;
 		retn;
 artHasAlias:
-		sub  esp, 4;
-		mov  edx, esp;
-		call db_dir_entry_;
-		add  esp, 4;
-		cmp  eax, -1;
-		je   artNotExist;
+		call db_access_;
+		test eax, eax;
+		jz   artNotExist;
 		mov  aliasFID, -1;
 		mov  eax, _art_name;
 		retn;
 artNotExist:
+		dec  eax; // -1
 		xchg eax, aliasFID
 		add  esp, 4;
 		jmp  art_get_name_Alias; // get name of art alias
@@ -304,7 +302,7 @@ void LoadOrderInit() {
 		HookCall(0x44436D, game_init_databases_hook1);
 	}
 
-	// Predefined behavior for replacing art aliases for critters
+	// Redefined behavior for replacing art aliases for critters
 	// first check the existence of the art file of the current critter and then replace the art alias if file not found
 	HookCall(0x419440, art_get_name_hook);
 	SafeWrite16(0x419521, 0x003B); // jmp 0x419560
