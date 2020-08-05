@@ -253,8 +253,8 @@ checkArt:
 		call fo::funcoffs::db_access_;    // check art file exists
 		test eax, eax;
 		jz   notExists;
-		//mov  eax, FO_VAR_art_name;
-		jmp  LoadOrder::art_get_name_hack; //retn; Not sure if we need a jump to: art_get_name_hack
+		mov  eax, FO_VAR_art_name;
+		retn;
 notExists: // if file not found load regular critter art instead
 		sub  esi, critterArraySize;
 		add  esp, 4;                      // drop func ret address

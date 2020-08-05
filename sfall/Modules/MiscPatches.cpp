@@ -132,13 +132,32 @@ fail:
 }
 
 static void __declspec(naked) op_obj_can_see_obj_hook() {
+	using namespace fo;
+	using namespace Fields;
 	__asm {
+		mov  edi, [esp + 4];                         // buf **ret_objStruct
 		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
 		push 0x20;                                   // flags, 0x20 = check ShootThru
-		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
-		push ecx;
-		xor  ecx, ecx;
-		call fo::funcoffs::make_straight_path_func_; // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX 0, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		push edi;
+		call fo::funcoffs::make_straight_path_func_;
+		// fix: see through critters
+		mov  edx, [esp + 4];
+		mov  ebx, [edx];
+		test ebx, ebx;
+		jz   skip;
+		cmp  ebx, [edx - 8]; // target
+		jne  noTarget;
+skip:
+		retn 8;
+noTarget:
+		mov  eax, [ebx + protoId];
+		shr  eax, 24;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		je   isCritter;
+		retn 8;
+isCritter:
+		mov  [edx - 4], ebx;            // replace source
+		mov  dword ptr [esp], 0x456BAB; // continue
 		retn 8;
 	}
 }
@@ -277,6 +296,18 @@ influence:
 skip:
 		add  esp, 4;
 		jmp  ListDrvdStats_Ret;
+	}
+}
+
+static void __declspec(naked) obj_render_outline_hack() {
+	__asm {
+		test eax, 0xFF00;
+		jnz  palColor;
+		mov  al, ds:[FO_VAR_GoodColor];
+		retn;
+palColor:
+		mov  al, ah;
+		retn;
 	}
 }
 
@@ -433,7 +464,7 @@ static void DisablePipboyAlarmPatch() {
 
 static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
-		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
+		dlog("Applying obj_can_see_obj fix for critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -704,6 +735,9 @@ void MiscPatches::init() {
 
 	// Increase the max text width of the information card on the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
+
+	// Allow setting custom colors from the game palette for object outlines
+	MakeCall(0x48EE00, obj_render_outline_hack);
 
 	F1EngineBehaviorPatch();
 	DialogueFix();
