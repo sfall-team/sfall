@@ -14,7 +14,8 @@ static std::vector<long> excludeWarning = {
 };
 
 static std::vector<long> excludeConflict = {
-	0x42A0F8,                                         // bugfixes.cpp
+	0x42A0F8,                               // bugfixes.cpp
+	0x461495,                               // BarBoxes.cpp
 };
 
 struct HackPair {

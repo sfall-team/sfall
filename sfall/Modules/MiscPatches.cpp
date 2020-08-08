@@ -135,17 +135,28 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
-		mov  edi, [esp + 4];                         // buf **ret_objStruct
-		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
-		push 0x20;                                   // flags, 0x20 = check ShootThru
+		mov  edi, [esp + 4]; // buf **ret_objStruct
+		test ebp, ebp;
+		jz   onlyOnce;
+		xor  ebp, ebp;
+		push edx;
+		mov  edx, [edi - 8]; // target
+		push eax;            // source
+		call fo::funcoffs::can_see_;
+		test eax, eax;
+		pop  eax;
+		pop  edx;
+		jz   normal;
+onlyOnce:
+		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
+		push 0x20;                                 // flags, 0x20 = check ShootThru
 		push edi;
 		call fo::funcoffs::make_straight_path_func_;
-		// fix: see through critters
-		mov  edx, [esp + 4];
-		mov  ebx, [edx];
+		// see through critter
+		mov  ebx, [edi];
 		test ebx, ebx;
 		jz   skip;
-		cmp  ebx, [edx - 8]; // target
+		cmp  ebx, [edi - 8]; // target
 		jne  noTarget;
 skip:
 		retn 8;
@@ -156,8 +167,13 @@ noTarget:
 		je   isCritter;
 		retn 8;
 isCritter:
-		mov  [edx - 4], ebx;            // replace source
+		mov  [edi - 4], ebx;            // replace source
 		mov  dword ptr [esp], 0x456BAB; // continue
+		retn 8;
+normal: // vanilla behavior
+		push 0x10;
+		push edi;
+		call fo::funcoffs::make_straight_path_;
 		retn 8;
 	}
 }
