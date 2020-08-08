@@ -575,6 +575,7 @@ extern const DWORD block_for_tocks_;
 extern const DWORD buf_to_buf_;
 extern const DWORD cai_attempt_w_reload_;
 extern const DWORD caiHasWeapPrefType_;
+extern const DWORD can_see_;
 extern const DWORD check_death_;
 extern const DWORD check_for_death_;
 extern const DWORD Check4Keys_;
@@ -824,6 +825,7 @@ extern const DWORD main_menu_loop_;
 // - path is saved in ecx as a sequence of tile directions (0..5) to move on each step,
 // - returns path length
 extern const DWORD make_path_func_;
+extern const DWORD make_straight_path_;
 extern const DWORD make_straight_path_func_; // (TGameObj *aObj<eax>, int aTileFrom<edx>, int a3<ecx>, signed int aTileTo<ebx>, TGameObj **aObjResult, int a5, int (*a6)(void))
 extern const DWORD map_disable_bk_processes_;
 extern const DWORD map_enable_bk_processes_;
