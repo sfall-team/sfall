@@ -327,6 +327,30 @@ palColor:
 	}
 }
 
+static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
+	if (fo::var::text_object_index > 0) {
+		for (size_t i = 0; i < fo::var::text_object_index; i++) {
+			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
+			fo::func::mem_free(fo::var::text_object_list[i]);
+		}
+		fo::var::text_object_index = 0;
+	}
+	__asm {
+		mov  eax, tile;
+		mov  edx, flags;
+		call fo::funcoffs::tile_set_center_;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hook() {
+	__asm {
+		mov  ecx, eax;
+		call RemoveAllFloatTextObjects;
+		mov  eax, ds:[FO_VAR_display_win];
+		jmp  fo::funcoffs::win_draw_; // update black edges
+	}
+}
+
 static void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -734,6 +758,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	BlockCall(0x4425E6); // Patch out ereg call
+
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
@@ -755,6 +781,11 @@ void MiscPatches::init() {
 	// Allow setting custom colors from the game palette for object outlines
 	MakeCall(0x48EE00, obj_render_outline_hack);
 
+	// Remove floating text messages after moving to another map elevation
+	// and redraw the screen to update black edges of the map (HRP bug)
+	// https://github.com/phobos2077/sfall/issues/282
+	HookCall(0x48A954, obj_move_to_tile_hook);
+
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
@@ -766,9 +797,6 @@ void MiscPatches::init() {
 
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
-
-	dlogr("Patching out ereg call.", DL_INIT);
-	BlockCall(0x4425E6);
 
 	OverrideMusicDirPatch();
 	BoostScriptDialogLimitPatch();

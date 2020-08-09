@@ -836,4 +836,19 @@ struct DrugInfoList {
 	long numEffects;
 };
 
+struct FloatText {
+	long flags;
+	void* unknown0;
+	long unknown1;
+	long unknown2;
+	long unknown3;
+	long unknown4;
+	long unknown5;
+	long unknown6;
+	long unknown7;
+	long unknown8;
+	long unknown9;
+	void* unknown10;
+};
+
 }

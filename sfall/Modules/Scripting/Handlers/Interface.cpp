@@ -521,10 +521,7 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
 		}
 	}
-	__asm {
-		mov  eax, frmPtr;
-		call fo::funcoffs::mem_free_;
-	}
+	fo::func::mem_free(frmPtr);
 	return 1;
 }
 

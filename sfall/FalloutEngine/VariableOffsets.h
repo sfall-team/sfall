@@ -254,6 +254,8 @@
 #define FO_VAR_text_height                0x51E3BC
 #define FO_VAR_text_max                   0x51E3D4
 #define FO_VAR_text_mono_width            0x51E3C8
+#define FO_VAR_text_object_index          0x51D944
+#define FO_VAR_text_object_list           0x6681C0
 #define FO_VAR_text_spacing               0x51E3CC
 #define FO_VAR_text_to_buf                0x51E3B8
 #define FO_VAR_text_width                 0x51E3C0
