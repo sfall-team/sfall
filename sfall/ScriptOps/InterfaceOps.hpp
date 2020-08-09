@@ -584,10 +584,7 @@ static void mf_draw_image() {
 	}
 	// with x/y frame offsets
 	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, noTrans);
-	__asm {
-		mov  eax, frmPtr;
-		call mem_free_;
-	}
+	MemFree(frmPtr);
 	opHandler.setReturn(1);
 }
 
@@ -677,10 +674,7 @@ static void mf_draw_image_scaled() {
 		long xy_pos = (y * w_width) + x;
 		TransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
 	}
-	__asm {
-		mov  eax, frmPtr;
-		call mem_free_;
-	}
+	MemFree(frmPtr);
 	opHandler.setReturn(1);
 }
 

@@ -28,7 +28,7 @@ struct TGameObj;
 struct TProgram;
 struct TScript;
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct sArt {
 	long flags;
 	char path[16];
@@ -36,20 +36,18 @@ struct sArt {
 	long d18;
 	long total;
 };
-#pragma pack(pop)
 
 // Bounding rectangle, used by tile_refresh_rect and related functions.
-#pragma pack(push, 1)
+#pragma pack(1)
 struct BoundRect {
 	long x;
 	long y;
 	long offx;
 	long offy;
 };
-#pragma pack(pop)
 
 // Game objects (items, critters, etc.), including those stored in inventories.
-#pragma pack(push, 1)
+#pragma pack(1)
 struct TGameObj {
 	long id;
 	long tile;
@@ -110,10 +108,9 @@ struct TGameObj {
 		return ((artFid >> 24) & 0x0F);
 	}
 };
-#pragma pack(pop)
 
 // Results of compute_attack_() function.
-#pragma pack(push, 1)
+#pragma pack(1)
 struct TComputeAttack {
 	TGameObj* attacker;
 	long hitMode;
@@ -150,10 +147,9 @@ struct CombatGcsd {
 	DWORD flagsSource;
 	DWORD flagsTarget;
 };
-#pragma pack(pop)
 
 // Script instance attached to an object or tile (spatial script).
-#pragma pack(push, 1)
+#pragma pack(1)
 struct TScript {
 	long id;
 	long next;
@@ -179,10 +175,9 @@ struct TScript {
 	char gap_50[4];
 	long procedureTable[28];
 };
-#pragma pack(pop)
 
 // Script run-time data
-#pragma pack(push, 1)
+#pragma pack(1)
 struct TProgram {
 	const char* fileName;
 	long *codeStackPtr;
@@ -200,9 +195,8 @@ struct TProgram {
 	long gap_34;
 	long *procTablePtr;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct ItemButtonItem {
 	TGameObj* item;
 	union {
@@ -218,13 +212,12 @@ struct ItemButtonItem {
 	long mode;
 	long fid;
 };
-#pragma pack(pop)
 
 // When gained, the perk increases Stat by StatMag, which may be negative. All other perk effects come from being
 // specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
 // below the value specified (e.g., -7 indicates a stat must be less than 7). Type is only non-zero when there
 // are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
-#pragma pack(push, 1)
+#pragma pack(1)
 struct PerkInfo {
 	const char* Name;
 	const char* Desc;
@@ -246,16 +239,14 @@ struct PerkInfo {
 	long Agl;
 	long Lck;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct DbFile {
 	long fileType;
 	void* handle;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct sElevator {
 	long ID1;
 	long Elevation1;
@@ -271,13 +262,13 @@ struct sElevator {
 	long Tile4;
 };
 
+#pragma pack(1)
 struct sElevatorFrms {
 	DWORD main;
 	DWORD buttons;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct FrmFile {
 	long id;				//0x00
 	short fps;				//0x04
@@ -294,10 +285,9 @@ struct FrmFile {
 	short yoffset;			//0x48
 	BYTE pixels[80 * 36];	//0x4a
 };
-#pragma pack(pop)
 
 //structures for holding frms loaded with fallout2 functions
-#pragma pack(push, 1)
+#pragma pack(1)
 typedef class FrmFrameData { // sizeof 12 + 1 byte
 public:
 	WORD width;
@@ -307,9 +297,8 @@ public:
 	WORD y;
 	BYTE data[1]; // begin frame data
 } FrmFrameData;
-#pragma pack(pop)
 
-#pragma pack(push, 2)
+#pragma pack(2)
 typedef class FrmHeaderData { // sizeof 62
 public:
 	DWORD version;        // version num
@@ -321,10 +310,9 @@ public:
 	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
 	DWORD frameAreaSize;  // size of all frames area
 } FrmHeaderData;
-#pragma pack(pop)
 
 // structures for loading unlisted frms
-#pragma pack(push, 1)
+#pragma pack(1)
 struct UNLSTDfrm {
 	DWORD version;
 	WORD FPS;
@@ -375,10 +363,9 @@ struct UNLSTDfrm {
 			delete[] frames;
 	}
 };
-#pragma pack(pop)
 
 //for holding a message
-#pragma pack(push, 1)
+#pragma pack(1)
 struct MSGNode {
 	long number;
 	long flags;
@@ -392,10 +379,9 @@ struct MSGNode {
 		message = nullptr;
 	}
 };
-#pragma pack(pop)
 
 //for holding msg array
-#pragma pack(push, 1)
+#pragma pack(1)
 typedef struct MSGList {
 	long numMsgs;
 	MSGNode *nodes;
@@ -405,9 +391,8 @@ typedef struct MSGList {
 		numMsgs = 0;
 	}
 } MSGList;
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct CritInfo {
 	union {
 		struct {
@@ -429,9 +414,8 @@ struct CritInfo {
 		long values[7];
 	};
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct SkillInfo {
 	const char* name;
 	const char* description;
@@ -447,36 +431,32 @@ struct SkillInfo {
 	// 1 for Lockpick, Steal, Traps; 0 otherwise
 	long f;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct TraitInfo {
 	const char* Name;
 	const char* Desc;
 	long Image;
 };
-#pragma pack(pop)
 
 //fallout2 path node structure
-#pragma pack(push, 1)
+#pragma pack(1)
 struct PathNode {
 	char* path;
 	void* pDat;
 	long isDat;
 	PathNode* next;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
 	char unknown[20];
 };
-#pragma pack(pop)
 
 //for holding window info
-#pragma pack(push, 1)
+#pragma pack(1)
 struct WINinfo {
 	long wID;
 	long flags;
@@ -493,9 +473,8 @@ struct WINinfo {
 	long *menuBar;
 	long *drawFunc;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct sWindow {
 	char name[32];
 	long wID;
@@ -514,9 +493,8 @@ struct sWindow {
 	long unknown7;
 	long unknown8;
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct LSData {
 	char signature[24];
 	short majorVer;
@@ -539,9 +517,8 @@ struct LSData {
 	short mapNumber;
 	char mapName[16];
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct Queue {
 	DWORD time;
 	long type;
@@ -554,4 +531,18 @@ struct QueueRadiation {
 	long level;
 	long init; // 1 - for removing effect
 };
-#pragma pack(pop)
+
+struct FloatText {
+	long flags;
+	void* unknown0;
+	long unknown1;
+	long unknown2;
+	long unknown3;
+	long unknown4;
+	long unknown5;
+	long unknown6;
+	long unknown7;
+	long unknown8;
+	long unknown9;
+	void* unknown10;
+};

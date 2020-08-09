@@ -268,6 +268,8 @@
 #define _text_height                0x51E3BC
 #define _text_max                   0x51E3D4
 #define _text_mono_width            0x51E3C8
+#define _text_object_index          0x51D944
+#define _text_object_list           0x6681C0
 #define _text_spacing               0x51E3CC
 #define _text_to_buf                0x51E3B8
 #define _text_width                 0x51E3C0
@@ -513,6 +515,8 @@ extern DWORD* ptr_text_char_width;
 extern DWORD* ptr_text_height;
 extern DWORD* ptr_text_max;
 extern DWORD* ptr_text_mono_width;
+extern DWORD* ptr_text_object_index;
+extern FloatText** ptr_text_object_list; // array of 20 FloatText*
 extern DWORD* ptr_text_spacing;
 extern DWORD* ptr_text_to_buf;
 extern DWORD* ptr_text_width;
@@ -1023,6 +1027,7 @@ extern const DWORD tile_num_in_direction_;
 extern const DWORD tile_refresh_display_;
 extern const DWORD tile_refresh_rect_; // (int elevation<edx>, unkown<ecx>)
 extern const DWORD tile_scroll_to_;
+extern const DWORD tile_set_center_;
 extern const DWORD trait_get_;
 extern const DWORD trait_init_;
 extern const DWORD trait_level_;
@@ -1354,6 +1359,8 @@ FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction
 void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer);
 
 void __stdcall MapDirErase(const char* folder, const char* ext);
+
+void __stdcall MemFree(void* folder);
 
 void __stdcall MouseGetPosition(long* outX, long* outY);
 

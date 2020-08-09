@@ -219,6 +219,8 @@ DWORD* ptr_text_char_width            = reinterpret_cast<DWORD*>(_text_char_widt
 DWORD* ptr_text_height                = reinterpret_cast<DWORD*>(_text_height);
 DWORD* ptr_text_max                   = reinterpret_cast<DWORD*>(_text_max);
 DWORD* ptr_text_mono_width            = reinterpret_cast<DWORD*>(_text_mono_width);
+DWORD* ptr_text_object_index          = reinterpret_cast<DWORD*>(_text_object_index);
+FloatText** ptr_text_object_list      = reinterpret_cast<FloatText**>(_text_object_list); // array of 20 FloatText*
 DWORD* ptr_text_spacing               = reinterpret_cast<DWORD*>(_text_spacing);
 DWORD* ptr_text_to_buf                = reinterpret_cast<DWORD*>(_text_to_buf);
 DWORD* ptr_text_width                 = reinterpret_cast<DWORD*>(_text_width);
@@ -737,6 +739,7 @@ const DWORD tile_num_in_direction_ = 0x4B1A6C;
 const DWORD tile_refresh_display_ = 0x4B12D8;
 const DWORD tile_refresh_rect_ = 0x4B12C0;
 const DWORD tile_scroll_to_ = 0x4B3924;
+const DWORD tile_set_center_ = 0x4B12F8;
 const DWORD trait_get_ = 0x4B3B54;
 const DWORD trait_init_ = 0x4B39F0;
 const DWORD trait_level_ = 0x4B3BC8;
@@ -1488,6 +1491,10 @@ void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer) {
 
 void __stdcall MapDirErase(const char* folder, const char* ext) {
 	WRAP_WATCOM_CALL2(MapDirErase_, folder, ext)
+}
+
+void __stdcall MemFree(void* folder) {
+	WRAP_WATCOM_CALL1(mem_free_, folder)
 }
 
 void __stdcall MouseGetPosition(long* outX, long* outY) {
