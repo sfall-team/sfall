@@ -22,7 +22,6 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "HookScripts.h"
-#include "Inventory.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "PartyControl.h"
@@ -876,21 +875,18 @@ skip:
 	}
 }
 
-DWORD __stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
+void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	if (!IsGameLoaded()) {
-		return 0;
+		return;
 	}
-	DWORD result = 0;
 	BeginHook();
 	argCount = 3;
 	args[0] = (DWORD)pressed;
-	args[1] = dxKey;
+	args[1] = *dxKey;
 	args[2] = vKey;
 	RunHookScript(HOOK_KEYPRESS);
-	if (cRet != 0) dxKey = result = rets[0];
-	InventoryKeyPressedHook(dxKey, pressed);
+	if (cRet != 0) *dxKey = rets[0];
 	EndHook();
-	return result;
 }
 
 void __stdcall MouseClickHook(DWORD button, bool pressed) {

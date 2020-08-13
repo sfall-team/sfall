@@ -21,9 +21,12 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "Arrays.h"
-#include "DebugEditor.h"
 #include "Graphics.h"
+#include "InputFuncs.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
+
+#include "DebugEditor.h"
 
 enum DECode {
 	CODE_SET_GLOBAL  = 0,
@@ -44,6 +47,8 @@ enum DECode {
 
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
+
+static DWORD debugEditorKey = 0;
 
 struct sArray {
 	DWORD id;
@@ -224,6 +229,7 @@ static void RunEditorInternal(SOCKET &s) {
 	delete[] sglobals;
 	delete[] arrays;
 
+	FlushInputBuffer();
 	*(DWORD*)_script_engine_running = 1;
 }
 
@@ -404,4 +410,12 @@ void DebugEditorInit() {
 
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
+
+	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
+}
+
+void DebugEditorKeyPressedHook(DWORD scanCode, bool pressed) {
+	if (debugEditorKey != 0 && scanCode == debugEditorKey && pressed && IsGameLoaded()) {
+		RunDebugEditor();
+	}
 }

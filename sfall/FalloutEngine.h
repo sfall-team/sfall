@@ -487,7 +487,7 @@ extern DWORD* ptr_retvals;
 extern DWORD* ptr_rotation;
 extern DWORD* ptr_sad;
 extern BoundRect* ptr_scr_size;
-extern DWORD* ptr_scriptListInfo;
+extern ScriptListInfoItem** ptr_scriptListInfo; // dynamic array
 extern DWORD* ptr_skill_data;
 extern const DWORD* ptr_skldxwin;
 extern DWORD* ptr_slot_cursor;

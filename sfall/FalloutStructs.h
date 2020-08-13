@@ -455,6 +455,12 @@ struct PremadeChar {
 	char unknown[20];
 };
 
+#pragma pack(1)
+struct ScriptListInfoItem {
+	char fileName[16];
+	long numLocalVars;
+};
+
 //for holding window info
 #pragma pack(1)
 struct WINinfo {

@@ -23,14 +23,15 @@
 #include <queue>
 
 #include "main.h"
-
-#include "FalloutEngine.h"
-#include "Graphics.h"
-#include "ScriptExtender.h"
-#include "HookScripts.h"
-#include "InputFuncs.h"
-#include "DebugEditor.h"
 #include "Logging.h"
+#include "FalloutEngine.h"
+#include "DebugEditor.h"
+#include "Graphics.h"
+#include "HookScripts.h"
+#include "Inventory.h"
+#include "ScriptExtender.h"
+
+#include "InputFuncs.h"
 
 typedef HRESULT (__stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
 
@@ -57,8 +58,6 @@ static int mouseX;
 static int mouseY;
 
 static DWORD forcingGraphicsRefresh = 0;
-
-static DWORD debugEditorKey = 0;
 
 void __stdcall ForceGraphicsRefresh(DWORD d) {
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
@@ -88,6 +87,11 @@ void SetMDown(bool down, bool right) {
 void SetMPos(int x, int y) {
 	MPMouseX = x;
 	MPMouseY = y;
+}
+
+void FlushInputBuffer() {
+	while (!bufferedPresses.empty()) bufferedPresses.pop();
+	__asm call kb_clear_;
 }
 
 DWORD __stdcall KeyDown(DWORD key) {
@@ -262,20 +266,21 @@ public:
 		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);
 			if (FAILED(hr) || !buf || !(*count)) return hr;
-			DWORD keyOverride;
 			for (DWORD i = 0; i < *count; i++) {
 				DWORD dxKey = buf[i].dwOfs;
 				DWORD state = buf[i].dwData & 0x80;
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
-				keyOverride = KeyPressHook(dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
-				if (keyOverride != 0) {
+				KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				if (dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
-					buf[i].dwOfs = keyOverride;
+					buf[i].dwOfs = dxKey; // Override key
 					keysDown[buf[i].dwOfs] = state;
 				}
+				// OnKeyPressed
+				InventoryKeyPressedHook(buf[i].dwOfs, (state > 0));
+				DebugEditorKeyPressedHook(buf[i].dwOfs, (state > 0));
 			}
-			if (keysDown[debugEditorKey]) RunDebugEditor();
 			return hr;
 		}
 		//Despite passing an array of 32 data objects, fallout cant seem to cope with a key being pressed and released in the same frame...
@@ -427,8 +432,6 @@ HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c,
 
 	backgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
 	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
-
-	if (isDebug) debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 
 	keyboardLayout = GetKeyboardLayout(0);
 

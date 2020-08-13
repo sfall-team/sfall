@@ -66,7 +66,7 @@ extern DWORD initingHookScripts;
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 void __stdcall RunHookScriptsAtProc(DWORD procId);
 
-DWORD __stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
+void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 void __stdcall MouseClickHook(DWORD button, bool pressed);
 
 long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);

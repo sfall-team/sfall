@@ -1303,7 +1303,7 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 bool __stdcall IsGameScript(const char* filename) {
 	for (int i = 0; filename[i]; ++i) if (i > 8) return false;
 	for (int i = 0; i < *ptr_maxScriptNum; i++) {
-		if (strcmp(filename, (char*)(*ptr_scriptListInfo + i * 20)) == 0) return true;
+		if (strcmp(filename, (*ptr_scriptListInfo)[i].fileName) == 0) return true;
 	}
 	return false;
 }

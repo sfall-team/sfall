@@ -26,6 +26,7 @@ extern bool middleMouseDown;
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
+void FlushInputBuffer();
 DWORD __stdcall KeyDown(DWORD key);
 void __stdcall TapKey(DWORD key);
 
