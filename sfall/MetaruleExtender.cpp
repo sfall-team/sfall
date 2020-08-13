@@ -28,6 +28,7 @@ static bool HorriganEncounterDisabled = false;
 
 enum MetaruleFunction : long {
 	SET_HORRIGAN_ENCOUNTER = 200, // sets the number of days for the Frank Horrigan encounter or disable encounter
+	CLEAR_KEYBOARD_BUFFER  = 201, // clears the keyboard input buffer, should be used in the HOOK_KEYPRESS hook to clear keyboard events in some cases
 };
 
 /*
@@ -51,6 +52,9 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			}
 			break;
 		}
+		case CLEAR_KEYBOARD_BUFFER:
+			__asm call kb_clear_;
+			break;
 		default:
 			DebugPrintf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
 						metafunc, (*ptr_currentProgram)->fileName, FindCurrentProc(*ptr_currentProgram));

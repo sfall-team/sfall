@@ -106,7 +106,9 @@ private:
 		//}
 
 		if (d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &mTex, nullptr) != D3D_OK) {
-			dlog(" Failed to create movie texture!", DL_INIT);
+			dlogr(" Failed to create movie texture!", DL_INIT);
+		} else {
+			dlogr(" OK!", DL_INIT);
 		}
 		return S_OK;
 	}
@@ -470,6 +472,8 @@ skip:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#define DEFAULT_MOVIES    17 // max vanilla movies
+
 char MoviePaths[MaxMovies * 65];
 static DWORD Artimer1DaysCheckTimer;
 
@@ -482,6 +486,25 @@ static void __declspec(naked) Artimer1DaysCheckHack() {
 		jmp Artimer1DaysCheckJmp;
 less:
 		jmp Artimer1DaysCheckJmpLess;
+	}
+}
+
+static void __declspec(naked) gmovie_play_hack_subpal() {
+	__asm {
+		xor eax, eax;
+		lea edx, [ebp * 4];
+		cmp ebp, DEFAULT_MOVIES;
+		cmovb eax, edx;
+		retn;
+	}
+}
+
+static void __declspec(naked) op_play_gmovie_hack() {
+	__asm {
+		mov edx, 0xB; // default play mode flags
+		cmp ecx, DEFAULT_MOVIES;
+		cmovb edx, eax;
+		retn;
 	}
 }
 
@@ -509,7 +532,7 @@ void MoviesInit() {
 		MoviePaths[index + 64] = '\0';
 
 		_itoa_s(i + 1, &optName[5], 3, 10);
-		if (i < 17) {
+		if (i < DEFAULT_MOVIES) {
 			GetConfigString("Misc", optName, ptr_movie_list[i], &MoviePaths[index], 65);
 		} else {
 			GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
@@ -518,6 +541,8 @@ void MoviesInit() {
 	dlog(".", DL_INIT);
 	const DWORD movieListAddr[] = {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A}; // gmovie_play_
 	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, movieListAddr);
+	MakeCall(0x44E896, gmovie_play_hack_subpal, 2);
+	MakeCall(0x45A1C9, op_play_gmovie_hack);
 	dlog(".", DL_INIT);
 
 	/*
