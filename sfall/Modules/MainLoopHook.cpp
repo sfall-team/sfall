@@ -3,32 +3,39 @@
 
 #include "MainLoopHook.h"
 
-namespace sfall 
+namespace sfall
 {
 
 static Delegate<> onMainLoop;
 static Delegate<> onCombatLoop;
 static Delegate<> onAfterCombatAttack;
 
-void __stdcall MainGameLoopHook2() {
-	onMainLoop.invoke();
+bool MainLoopHook::displayWinUpdateState = false;
+
+static void MainGameLoopResetStates() {
+	MainLoopHook::displayWinUpdateState = false;
 }
 
-void __stdcall CombatLoopHook2() {
+static void __stdcall MainGameLoop() {
+	onMainLoop.invoke();
+	MainGameLoopResetStates();
+}
+
+static void __stdcall CombatLoop() {
 	onCombatLoop.invoke();
 }
 
-void AfterCombatAttackHook2() {
+static void __stdcall AfterCombatAttack() {
 	onAfterCombatAttack.invoke();
 }
 
 static void __declspec(naked) MainGameLoopHook() {
 	__asm {
-		call fo::funcoffs::get_input_;
 		push ecx;
+		call fo::funcoffs::get_input_;
 		push edx;
 		push eax;
-		call MainGameLoopHook2;
+		call MainGameLoop;
 		pop  eax;
 		pop  edx;
 		pop  ecx;
@@ -41,7 +48,7 @@ static void __declspec(naked) CombatLoopHook() {
 		push ecx;
 		push edx;
 		//push eax;
-		call CombatLoopHook2;
+		call CombatLoop;
 		//pop  eax;
 		pop  edx;
 		call fo::funcoffs::get_input_;
@@ -54,7 +61,7 @@ static void __declspec(naked) AfterCombatAttackHook() {
 	__asm {
 		push ecx;
 		push edx;
-		call AfterCombatAttackHook2;
+		call AfterCombatAttack;
 		pop  edx;
 		pop  ecx;
 		mov  eax, 1;

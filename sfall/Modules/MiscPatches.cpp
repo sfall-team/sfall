@@ -20,6 +20,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "LoadGameHook.h"
+#include "MainLoopHook.h"
 
 #include "MiscPatches.h"
 
@@ -340,6 +341,7 @@ static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
 		mov  edx, flags;
 		call fo::funcoffs::tile_set_center_;
 	}
+	MainLoopHook::displayWinUpdateState = true;
 }
 
 static void __declspec(naked) obj_move_to_tile_hook() {
@@ -348,6 +350,14 @@ static void __declspec(naked) obj_move_to_tile_hook() {
 		call RemoveAllFloatTextObjects;
 		mov  eax, ds:[FO_VAR_display_win];
 		jmp  fo::funcoffs::win_draw_; // update black edges
+	}
+}
+
+static void __declspec(naked) map_check_state_hook() {
+	__asm {
+		cmp  MainLoopHook::displayWinUpdateState, 0;
+		je   obj_move_to_tile_hook;
+		jmp  fo::funcoffs::tile_set_center_;
 	}
 }
 
@@ -785,6 +795,7 @@ void MiscPatches::init() {
 	// and redraw the screen to update black edges of the map (HRP bug)
 	// https://github.com/phobos2077/sfall/issues/282
 	HookCall(0x48A954, obj_move_to_tile_hook);
+	HookCall(0x483726, map_check_state_hook);
 
 	F1EngineBehaviorPatch();
 	DialogueFix();
