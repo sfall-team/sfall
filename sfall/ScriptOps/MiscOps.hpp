@@ -581,7 +581,7 @@ result:
 }
 
 static DWORD __stdcall GetTickCount2() {
-	return GetTickCount(); //timeGetTime
+	return GetTickCount();
 }
 
 static void __declspec(naked) op_get_uptime() {

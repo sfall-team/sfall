@@ -302,8 +302,8 @@ hide:
 	}
 }
 
-static char* artDbgMsg = "\nERROR: File not found: %s\n";
 static void __declspec(naked) art_data_size_hook() {
+	static char* artDbgMsg = "\nERROR: File not found: %s\n";
 	__asm {
 		test edi, edi;
 		jz   artNotExist;

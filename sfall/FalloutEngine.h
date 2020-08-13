@@ -423,6 +423,7 @@ extern DWORD* ptr_main_death_voiceover_done;
 extern DWORD* ptr_main_window;
 extern DWORD* ptr_map_elevation;
 extern long** ptr_map_global_vars; // array
+extern DWORD* ptr_map_number;
 extern PathNode** ptr_master_db_handle;
 extern DWORD* ptr_master_volume;
 extern DWORD* ptr_max;
@@ -703,6 +704,7 @@ extern const DWORD gdReviewExit_;
 extern const DWORD gdReviewInit_;
 extern const DWORD GetSlotList_;
 extern const DWORD get_input_;
+extern const DWORD get_input_str2_;
 extern const DWORD get_time_;
 extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
 extern const DWORD gmouse_3d_get_mode_;
@@ -809,6 +811,7 @@ extern const DWORD item_w_subtype_;
 extern const DWORD item_w_try_reload_;
 extern const DWORD item_w_unload_;
 extern const DWORD item_weight_;
+extern const DWORD kb_clear_;
 extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
 extern const DWORD ListDPerks_;
 extern const DWORD ListDrvdStats_;
@@ -833,6 +836,7 @@ extern const DWORD make_straight_path_;
 extern const DWORD make_straight_path_func_; // (TGameObj *aObj<eax>, int aTileFrom<edx>, int a3<ecx>, signed int aTileTo<ebx>, TGameObj **aObjResult, int a5, int (*a6)(void))
 extern const DWORD map_disable_bk_processes_;
 extern const DWORD map_enable_bk_processes_;
+extern const DWORD map_get_short_name_;
 extern const DWORD map_load_idx_;
 extern const DWORD MapDirErase_;
 extern const DWORD mem_free_;
@@ -1358,9 +1362,11 @@ FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction
 
 void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer);
 
+const char* __stdcall MapGetShortName(long mapID);
+
 void __stdcall MapDirErase(const char* folder, const char* ext);
 
-void __stdcall MemFree(void* folder);
+void __stdcall MemFree(void* mem);
 
 void __stdcall MouseGetPosition(long* outX, long* outY);
 

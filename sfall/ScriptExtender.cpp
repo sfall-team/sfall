@@ -422,7 +422,6 @@ std::tr1::unordered_map<DWORD, SelfOverrideObj> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
-DWORD isGlobalScriptLoading = 0;
 
 std::tr1::unordered_map<__int64, int> globalVars;
 typedef std::tr1::unordered_map<__int64, int>::iterator glob_itr;
@@ -431,7 +430,9 @@ typedef std::pair<__int64, int> glob_pair;
 
 static void* opcodes[0x300];
 DWORD availableGlobalScriptTypes = 0;
+DWORD isGlobalScriptLoading = 0;
 bool isGameLoading;
+bool displayWinUpdateState = false;
 
 TScript overrideScriptStruct = {0};
 
@@ -984,13 +985,21 @@ end:
 	}
 }
 
+/**
+	Do some cleaning after each combat attack action
+*/
+static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack
+	ResetExplosionSettings();
+}
+
 static void __declspec(naked) MainGameLoopHook() {
 	__asm {
-		call get_input_;
 		push ecx;
+		call get_input_;
 		push edx;
 		push eax;
 		call RunGlobalScripts1;
+		mov  displayWinUpdateState, 0; // reset
 		pop  eax;
 		pop  edx;
 		pop  ecx;
@@ -1016,7 +1025,7 @@ static void __declspec(naked) AfterCombatAttackHook() {
 	__asm {
 		push ecx;
 		push edx;
-		call AfterAttackCleanup;
+		call AfterCombatAttack;
 		pop  edx;
 		pop  ecx;
 		mov  eax, 1;
@@ -1414,13 +1423,6 @@ static void RunScript(sGlobalScript* script) {
 static void ResetStateAfterFrame() {
 	DeleteAllTempArrays();
 	RegAnimCombatCheck(1);
-}
-
-/**
-	Do some cleaning after each combat attack action
-*/
-void AfterAttackCleanup() {
-	ResetExplosionSettings();
 }
 
 static void RunGlobalScripts1() {

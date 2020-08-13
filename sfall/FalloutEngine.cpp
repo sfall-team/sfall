@@ -128,6 +128,7 @@ DWORD* ptr_main_death_voiceover_done  = reinterpret_cast<DWORD*>(_main_death_voi
 DWORD* ptr_main_window                = reinterpret_cast<DWORD*>(_main_window);
 DWORD* ptr_map_elevation              = reinterpret_cast<DWORD*>(_map_elevation);
 long** ptr_map_global_vars            = reinterpret_cast<long**>(_map_global_vars); // array
+DWORD* ptr_map_number                 = reinterpret_cast<DWORD*>(_map_number);
 PathNode** ptr_master_db_handle       = reinterpret_cast<PathNode**>(_master_db_handle);
 DWORD* ptr_master_volume              = reinterpret_cast<DWORD*>(_master_volume);
 DWORD* ptr_max                        = reinterpret_cast<DWORD*>(_max);
@@ -424,6 +425,7 @@ const DWORD gdReviewExit_ = 0x445C18;
 const DWORD gdReviewInit_ = 0x445938;
 const DWORD GetSlotList_ = 0x47E5D0;
 const DWORD get_input_ = 0x4C8B78;
+const DWORD get_input_str2_ = 0x47F084;
 const DWORD get_time_ = 0x4C9370;
 const DWORD getmsg_ = 0x48504C; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
 const DWORD gmouse_3d_get_mode_ = 0x44CB6C;
@@ -527,6 +529,7 @@ const DWORD item_w_subtype_ = 0x478280;
 const DWORD item_w_try_reload_ = 0x478768;
 const DWORD item_w_unload_ = 0x478F80;
 const DWORD item_weight_ = 0x477B88;
+const DWORD kb_clear_ = 0x4CBDA8;
 const DWORD light_get_tile_ = 0x47A980;
 const DWORD ListDPerks_ = 0x43D0BC;
 const DWORD ListDrvdStats_ = 0x43527C;
@@ -548,6 +551,7 @@ const DWORD make_straight_path_ = 0x4163AC;
 const DWORD make_straight_path_func_ = 0x4163C8;
 const DWORD map_disable_bk_processes_ = 0x482104;
 const DWORD map_enable_bk_processes_ = 0x4820C0;
+const DWORD map_get_short_name_ = 0x48261C;
 const DWORD map_load_idx_ = 0x482B34;
 const DWORD MapDirErase_ = 0x480040;
 const DWORD mem_free_ = 0x4C5C24;
@@ -1489,12 +1493,16 @@ void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer) {
 	WRAP_WATCOM_FCALL3(GNW_win_refresh_, win, rect, buffer)
 }
 
+const char* __stdcall MapGetShortName(long mapID) {
+	WRAP_WATCOM_CALL1(map_get_short_name_, mapID)
+}
+
 void __stdcall MapDirErase(const char* folder, const char* ext) {
 	WRAP_WATCOM_CALL2(MapDirErase_, folder, ext)
 }
 
-void __stdcall MemFree(void* folder) {
-	WRAP_WATCOM_CALL1(mem_free_, folder)
+void __stdcall MemFree(void* mem) {
+	WRAP_WATCOM_CALL1(mem_free_, mem)
 }
 
 void __stdcall MouseGetPosition(long* outX, long* outY) {

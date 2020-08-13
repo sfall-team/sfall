@@ -51,7 +51,6 @@ void LoadGlobalScripts();
 void RunGlobalScripts2();
 void RunGlobalScripts3();
 void __stdcall RunGlobalScriptsAtProc(DWORD procId);
-void AfterAttackCleanup();
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
@@ -95,3 +94,4 @@ void __stdcall RemoveTimerEventScripts(DWORD script);
 // variables
 extern DWORD isGlobalScriptLoading;
 extern DWORD availableGlobalScriptTypes;
+extern bool displayWinUpdateState;
