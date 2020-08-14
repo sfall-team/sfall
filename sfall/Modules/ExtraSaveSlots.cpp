@@ -535,7 +535,7 @@ void ExtraSaveSlots::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Adds the city name in the description of a save slot
+	// Adds the city name in the description for empty save slots
 	MakeJump(0x47F02C, GetComment_hack);
 }
 

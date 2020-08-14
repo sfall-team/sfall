@@ -19,6 +19,7 @@
 //#include <unordered_set>
 #include <unordered_map>
 #include <map>
+#include <stack>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -84,16 +85,20 @@ struct SelfOverrideObj {
 	}
 };
 
+// Events in global scripts cannot be saved because the scripts don't have a binding object
 struct TimedEvent {
 	ScriptProgram* script;
 	unsigned long time;
 	long fixed_param;
+	bool isActive;
 
 	bool operator() (const TimedEvent &a, const TimedEvent &b) {
 		return a.time < b.time;
 	}
 } *timedEvent = nullptr;
 
+static long executeTimedEventDepth = 0;
+static std::stack<TimedEvent*> executeTimedEvents;
 static std::list<TimedEvent> timerEventScripts;
 
 static std::vector<std::string> globalScriptPathList;
@@ -559,6 +564,9 @@ static void ClearGlobalScripts() {
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	timerEventScripts.clear();
+	timedEvent = nullptr;
+	executeTimedEventDepth = 0;
+	while (!executeTimedEvents.empty()) executeTimedEvents.pop();
 	HookScriptClear();
 }
 
@@ -637,7 +645,9 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
 			fo::func::runProgram(it->prog.ptr);
 		}
-	} else if (procId == fo::Scripts::ScriptProc::map_exit_p_proc) onMapExit.invoke();
+	} else if (procId == fo::Scripts::ScriptProc::map_exit_p_proc) {
+		onMapExit.invoke();
+	}
 
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId);   // all hs_ scripts
@@ -647,25 +657,50 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 
 static DWORD HandleTimedEventScripts() {
 	DWORD currentTime = fo::var::fallout_game_time;
-	bool wasRunning = false;
-	auto timerIt = timerEventScripts.cbegin();
-	for (; timerIt != timerEventScripts.cend(); ++timerIt) {
+	if (timerEventScripts.empty()) return currentTime;
+
+	executeTimedEventDepth++;
+
+	fo::func::dev_printf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+
+	bool eventsWereRunning = false;
+	for (auto timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
+		fo::func::dev_printf("\n[TimedEventScripts] Event: %d", timerIt->time);
+		if (timerIt->isActive == false) continue;
 		if (currentTime >= timerIt->time) {
+			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event
+
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
-			fo::func::dev_printf("\n[TimedEventScripts] run event: %d", timerIt->time);
+			timedEvent->isActive = false;
+
+			fo::func::dev_printf("\n[TimedEventScripts] Run event: %d", timerIt->time);
 			RunScriptProc(timerIt->script, fo::Scripts::ScriptProc::timed_event_p_proc);
-			wasRunning = true;
+			fo::func::dev_printf("\n[TimedEventScripts] Event done: %d", timerIt->time);
+
+			timedEvent = nullptr;
+			if (!executeTimedEvents.empty()) {
+				timedEvent = executeTimedEvents.top(); // restore a pointer to a previously running event
+				executeTimedEvents.pop();
+			}
+			eventsWereRunning = true;
 		} else {
 			break;
 		}
 	}
-	if (wasRunning) {
-		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; ++_it) {
-			fo::func::dev_printf("\n[TimedEventScripts] delete event: %d", _it->time);
+	executeTimedEventDepth--;
+
+	if (eventsWereRunning && executeTimedEventDepth == 0) {
+		timedEvent = nullptr;
+		// delete all previously executed events
+		for (auto it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
+			if (it->isActive == false) {
+				fo::func::dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
+				it = timerEventScripts.erase(it);
+			} else {
+				++it;
+			}
 		}
-		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
 	}
-	timedEvent = nullptr;
 	return currentTime;
 }
 
@@ -677,7 +712,7 @@ static DWORD TimedEventNextTime() {
 		mov  nextTime, eax;
 		push edx;
 	}
-	if (!timerEventScripts.empty()) {
+	if (!timerEventScripts.empty() && timerEventScripts.front().isActive) {
 		DWORD time = timerEventScripts.front().time;
 		if (!nextTime || time < nextTime) nextTime = time;
 	}
@@ -693,6 +728,7 @@ static DWORD script_chk_timed_events_hook() {
 void ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
 	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	TimedEvent timer;
+	timer.isActive = true;
 	timer.script = scriptProg;
 	timer.fixed_param = param;
 	timer.time = fo::var::fallout_game_time + time;

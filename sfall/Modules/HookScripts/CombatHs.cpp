@@ -527,8 +527,7 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 		targetRet = (rets[0] != 0) ? rets[0] : object; // 0 - default object, -1 - invalid target, or object override
 		object = (targetRet != -1) ? targetRet : 0;    // object can't be -1
 		targetObjHookHasRet = true;
-	}
-	else if (targetObjHookHasRet && type == 1) {
+	} else if (targetObjHookHasRet && type == 1) {
 		targetObjHookHasRet = false;
 		if (targetRet != -1) object = targetRet;
 	}

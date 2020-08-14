@@ -359,8 +359,7 @@ static void Present() {
 				DWORD move = r.right - r2.right;
 				windowLeft -= move;
 				r.right -= move;
-			}
-			else if (r.left < r2.left) {
+			} else if (r.left < r2.left) {
 				DWORD move = r2.left - r.left;
 				windowLeft += move;
 				r.right += move;
@@ -369,8 +368,7 @@ static void Present() {
 				DWORD move = r.bottom - r2.bottom;
 				windowTop -= move;
 				r.bottom -= move;
-			}
-			else if (r.top < r2.top) {
+			} else if (r.top < r2.top) {
 				DWORD move = r2.top - r.top;
 				windowTop += move;
 				r.bottom += move;

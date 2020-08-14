@@ -2766,6 +2766,17 @@ checkTiles:
 	}
 }
 
+static void __declspec(naked) doBkProcesses_hook() {
+	__asm {
+		call fo::funcoffs::gdialogActive_;
+		test eax, eax;
+		jz   skip;
+		retn;
+skip:
+		jmp  fo::funcoffs::gmovieIsPlaying_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -3489,6 +3500,9 @@ void BugFixes::init()
 	};
 	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
 	HookCall(0x42A0F8, (void*)fo::funcoffs::obj_dist_);
+
+	// Fix to prevent the execution of critter_p_proc and game events when playing movies (same as when the dialog is active)
+	HookCall(0x4A3C89, doBkProcesses_hook);
 }
 
 }

@@ -726,6 +726,7 @@ struct Window {
 	long *drawFunc;
 };
 
+#pragma pack(1)
 struct sWindow {
 	char name[32];
 	long wID;
