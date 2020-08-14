@@ -18,6 +18,7 @@
 
 //#include <unordered_set>
 #include <unordered_map>
+#include <stack>
 
 #include "main.h"
 #include "FalloutEngine.h"
@@ -398,16 +399,20 @@ struct SelfOverrideObj {
 	}
 };
 
+// Events in global scripts cannot be saved because the scripts don't have a binding object
 struct TimedEvent {
 	sScriptProgram* script;
 	unsigned long time;
 	long fixed_param;
+	bool isActive;
 
 	bool operator() (const TimedEvent &a, const TimedEvent &b) {
 		return a.time < b.time;
 	}
 } *timedEvent = nullptr;
 
+static long executeTimedEventDepth = 0;
+static std::stack<TimedEvent*> executeTimedEvents;
 static std::list<TimedEvent> timerEventScripts;
 
 static std::vector<DWORD> checkedScripts;
@@ -1372,6 +1377,9 @@ static void ClearGlobalScripts() {
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	timerEventScripts.clear();
+	timedEvent = nullptr;
+	executeTimedEventDepth = 0;
+	while (!executeTimedEvents.empty()) executeTimedEvents.pop();
 	HookScriptClear();
 }
 
@@ -1523,25 +1531,50 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 
 static DWORD HandleTimedEventScripts() {
 	DWORD currentTime = *ptr_fallout_game_time;
-	bool wasRunning = false;
-	std::list<TimedEvent>::const_iterator timerIt = timerEventScripts.cbegin();
-	for (; timerIt != timerEventScripts.cend(); ++timerIt) {
+	if (timerEventScripts.empty()) return currentTime;
+
+	executeTimedEventDepth++;
+
+	DevPrintf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+
+	bool eventsWereRunning = false;
+	for (std::list<TimedEvent>::const_iterator timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
+		DevPrintf("\n[TimedEventScripts] Event: %d", timerIt->time);
+		if (timerIt->isActive == false) continue;
 		if (currentTime >= timerIt->time) {
+			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event
+
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
-			DevPrintf("\n[TimedEventScripts] run event: %d", timerIt->time);
+			timedEvent->isActive = false;
+
+			DevPrintf("\n[TimedEventScripts] Run event: %d", timerIt->time);
 			RunScriptProc(timerIt->script, Scripts::timed_event_p_proc);
-			wasRunning = true;
+			DevPrintf("\n[TimedEventScripts] Event done: %d", timerIt->time);
+
+			timedEvent = nullptr;
+			if (!executeTimedEvents.empty()) {
+				timedEvent = executeTimedEvents.top(); // restore a pointer to a previously running event
+				executeTimedEvents.pop();
+			}
+			eventsWereRunning = true;
 		} else {
 			break;
 		}
 	}
-	if (wasRunning) {
-		for (std::list<TimedEvent>::const_iterator _it = timerEventScripts.cbegin(); _it != timerIt; ++_it) {
-			DevPrintf("\n[TimedEventScripts] delete event: %d", _it->time);
+	executeTimedEventDepth--;
+
+	if (eventsWereRunning && executeTimedEventDepth == 0) {
+		timedEvent = nullptr;
+		// delete all previously executed events
+		for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
+			if (it->isActive == false) {
+				DevPrintf("\n[TimedEventScripts] Remove event: %d", it->time);
+				it = timerEventScripts.erase(it);
+			} else {
+				++it;
+			}
 		}
-		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
 	}
-	timedEvent = nullptr;
 	return currentTime;
 }
 
@@ -1553,7 +1586,7 @@ static DWORD TimedEventNextTime() {
 		mov  nextTime, eax;
 		push edx;
 	}
-	if (!timerEventScripts.empty()) {
+	if (!timerEventScripts.empty() && timerEventScripts.front().isActive) {
 		DWORD time = timerEventScripts.front().time;
 		if (!nextTime || time < nextTime) nextTime = time;
 	}
@@ -1569,6 +1602,7 @@ static DWORD script_chk_timed_events_hook() {
 void __stdcall AddTimerEventScripts(DWORD script, long time, long param) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	TimedEvent timer;
+	timer.isActive = true;
 	timer.script = scriptProg;
 	timer.fixed_param = param;
 	timer.time = *ptr_fallout_game_time + time;

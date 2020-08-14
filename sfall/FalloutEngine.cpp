@@ -433,6 +433,7 @@ const DWORD gmouse_3d_set_mode_ = 0x44CA18;
 const DWORD gmouse_is_scrolling_ = 0x44B54C;
 const DWORD gmouse_set_cursor_ = 0x44C840;
 const DWORD gmovie_play_ = 0x44E690;
+const DWORD gmovieIsPlaying_ = 0x44EB14;
 const DWORD GNW_do_bk_process_ = 0x4C8D1C;
 const DWORD GNW_find_ = 0x4D7888;
 const DWORD GNW_win_refresh_ = 0x4D6FD8;

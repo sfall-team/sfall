@@ -712,6 +712,7 @@ extern const DWORD gmouse_3d_set_mode_;
 extern const DWORD gmouse_is_scrolling_;
 extern const DWORD gmouse_set_cursor_;
 extern const DWORD gmovie_play_;
+extern const DWORD gmovieIsPlaying_;
 extern const DWORD GNW_do_bk_process_;
 extern const DWORD GNW_find_;
 extern const DWORD GNW_win_refresh_;
