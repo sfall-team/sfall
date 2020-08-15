@@ -886,7 +886,7 @@ void ScriptExtender::init() {
 	}
 
 	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
-	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
+	if (alwaysFindScripts) dlogr("Always searching for global/hook scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
 	MakeJump(0x4A5E34, ScrPtrHack);

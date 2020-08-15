@@ -73,11 +73,19 @@ enum HookType
 	HOOK_COUNT
 };
 
+struct HookFile {
+	int id;
+//	std::string filePath;
+	const char* name;
+};
+
 class HookScripts : public Module {
 
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
+
+	static std::vector<HookFile> hookScriptFilesList;
 
 	static bool HookHasScript(int hookId);
 

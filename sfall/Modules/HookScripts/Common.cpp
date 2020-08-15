@@ -31,11 +31,23 @@ DWORD cRetTmp; // how many return values were set by specific hook script (when 
 
 std::vector<HookScript> hooks[numHooks];
 
-bool LoadHookScript(const char* name, int id) {
-	if (id >= numHooks || IsGameScript(name)) return false;
+void LoadHookScript(const char* name, int id) {
+	//if (id >= numHooks || IsGameScript(name)) return;
 
+	bool hookIsLoaded = LoadHookScriptFile(name, id);
+	if (hookIsLoaded || (HookScripts::injectAllHooks && id != HOOK_SUBCOMBATDAMAGE)) {
+		HookScripts::InjectingHook(id); // inject hook to engine code
+
+		if (!hookIsLoaded) return;
+		HookFile hookFile = { id, name };
+		HookScripts::hookScriptFilesList.push_back(hookFile);
+	}
+}
+
+bool LoadHookScriptFile(const char* name, int id) {
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
+
 	ScriptProgram prog;
 	if (fo::func::db_access(filename)) {
 		dlog("> ", DL_HOOK);
@@ -53,11 +65,7 @@ bool LoadHookScript(const char* name, int id) {
 			dlogr(" Error!", DL_HOOK);
 		}
 	}
-	bool hookIsLoaded = (prog.ptr != nullptr);
-	if (hookIsLoaded || (id != HOOK_SUBCOMBATDAMAGE && HookScripts::injectAllHooks)) {
-		HookScripts::InjectingHook(id); // inject hook to engine code
-	}
-	return hookIsLoaded;
+	return (prog.ptr != nullptr);
 }
 
 // List of hooks that are not allowed to be called recursively

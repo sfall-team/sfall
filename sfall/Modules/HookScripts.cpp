@@ -36,6 +36,8 @@
 namespace sfall
 {
 
+std::vector<HookFile> HookScripts::hookScriptFilesList;
+
 typedef void(*HookInjectFunc)();
 struct HooksInjectInfo {
 	int id;
@@ -225,17 +227,27 @@ void RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 static void HookScriptInit() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
-	InitCombatHookScripts();
-	InitDeathHookScripts();
-	InitHexBlockingHookScripts();
-	InitInventoryHookScripts();
-	InitObjectHookScripts();
-	InitMiscHookScripts();
+	static bool hooksFilesLoaded = false;
+	if (!hooksFilesLoaded) { // hook files are already put in the list
+		HookScripts::hookScriptFilesList.clear();
 
-	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+		InitCombatHookScripts();
+		InitDeathHookScripts();
+		InitHexBlockingHookScripts();
+		InitInventoryHookScripts();
+		InitObjectHookScripts();
+		InitMiscHookScripts();
 
+		LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+		LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+		LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+
+		hooksFilesLoaded = !alwaysFindScripts;
+	} else {
+		for (auto& hook : HookScripts::hookScriptFilesList) {
+			LoadHookScriptFile(hook.name, hook.id);
+		}
+	}
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
