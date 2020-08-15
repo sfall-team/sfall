@@ -415,15 +415,15 @@ static long executeTimedEventDepth = 0;
 static std::stack<TimedEvent*> executeTimedEvents;
 static std::list<TimedEvent> timerEventScripts;
 
-static std::vector<DWORD> checkedScripts;
+static std::vector<TProgram*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef std::tr1::unordered_map<DWORD, sScriptProgram> SfallProgsMap;
+typedef std::tr1::unordered_map<TProgram*, sScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-std::tr1::unordered_map<DWORD, SelfOverrideObj> selfOverrideMap;
+std::tr1::unordered_map<TProgram*, SelfOverrideObj> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
@@ -449,8 +449,7 @@ TScript overrideScriptStruct = {0};
 //To return a value, move it to edx, mov the script pointer to eax, call interpretPushLong_
 //mov the value type to edx, mov the script pointer to eax, call interpretPushShort_
 
-
-static void __fastcall SetGlobalScriptRepeat(DWORD script, int frames) {
+static void __fastcall SetGlobalScriptRepeat(TProgram* script, int frames) {
 	for (size_t i = 0; i < globalScripts.size(); i++) {
 		if (globalScripts[i].prog.ptr == script) {
 			if (frames == -1) {
@@ -476,7 +475,7 @@ end:
 	}
 }
 
-static void __fastcall SetGlobalScriptType(DWORD script, int type) {
+static void __fastcall SetGlobalScriptType(TProgram* script, int type) {
 	if (type <= 3) {
 		for (size_t i = 0; i < globalScripts.size(); i++) {
 			if (globalScripts[i].prog.ptr == script) {
@@ -705,8 +704,8 @@ static void __declspec(naked) op_init_hook() {
 	}
 }
 
-static void __fastcall SetSelfObject(DWORD script, TGameObj* obj) {
-	std::tr1::unordered_map<DWORD, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
+static void __fastcall SetSelfObject(TProgram* script, TGameObj* obj) {
+	std::tr1::unordered_map<TProgram*, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
 	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
 		if (isFind) {
@@ -744,7 +743,7 @@ static void __stdcall op_register_hook2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), -1, false);
+		RegisterHook(opHandler.program(), idArg.rawValue(), -1, false);
 	} else {
 		OpcodeInvalidArgs("register_hook");
 	}
@@ -759,7 +758,7 @@ static void __stdcall op_register_hook_proc2() {
 					  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
+		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
 	} else {
 		OpcodeInvalidArgs("register_hook_proc");
 	}
@@ -774,7 +773,7 @@ static void __stdcall op_register_hook_proc_spec2() {
 					  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);
+		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);
 	} else {
 		OpcodeInvalidArgs("register_hook_proc_spec");
 	}
@@ -785,14 +784,14 @@ static void __declspec(naked) op_register_hook_proc_spec() {
 }
 
 static void mf_add_g_timer_event() {
-	AddTimerEventScripts((DWORD)opHandler.program(), opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
+	AddTimerEventScripts(opHandler.program(), opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
 }
 
 static void mf_remove_timer_event() {
 	if (opHandler.numArgs() > 0) {
-		RemoveTimerEventScripts((DWORD)opHandler.program(), opHandler.arg(0).rawValue());
+		RemoveTimerEventScripts(opHandler.program(), opHandler.arg(0).rawValue());
 	} else {
-		RemoveTimerEventScripts((DWORD)opHandler.program()); // remove all
+		RemoveTimerEventScripts(opHandler.program()); // remove all
 	}
 }
 
@@ -895,8 +894,8 @@ long GetResetScriptReturnValue() {
 	return val;
 }
 
-static DWORD __stdcall FindSid(DWORD script) {
-	std::tr1::unordered_map<DWORD, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
+static DWORD __stdcall FindSid(TProgram* script) {
+	std::tr1::unordered_map<TProgram*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
 		overrideScriptStruct.id = scriptId;
@@ -1111,7 +1110,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void __stdcall FreeProgram(DWORD progPtr) {
+static void __stdcall FreeProgram(TProgram* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
@@ -1253,45 +1252,27 @@ end:
 	}
 }
 
-DWORD __stdcall GetScriptProcByName(DWORD scriptPtr, const char* procName) {
-	__asm {
-		mov  edx, procName;
-		mov  eax, scriptPtr;
-		call interpretFindProcedure_;
-	}
-}
-
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
-	DWORD scriptPtr;
-	__asm {
-		mov  eax, fileName;
-		call loadProgram_;
-		mov  scriptPtr, eax;
-	}
+	TProgram* scriptPtr = LoadProgram(fileName);
+
 	if (scriptPtr) {
 		const char** procTable = ptr_procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
 		for (int i = 0; i < Scripts::count; ++i) {
-			prog.procLookup[i] = GetScriptProcByName(prog.ptr, procTable[i]);
+			prog.procLookup[i] = InterpretFindProcedure(prog.ptr, procTable[i]);
 		}
 		prog.initialized = 0;
 	} else {
-		prog.ptr = NULL;
+		prog.ptr = nullptr;
 	}
 }
 
 void InitScriptProgram(sScriptProgram &prog) {
-	DWORD progPtr = prog.ptr;
 	if (prog.initialized == 0) {
-		__asm {
-			mov  eax, progPtr;
-			call runProgram_;
-			mov  edx, -1;
-			mov  eax, progPtr;
-			call interpret_;
-		}
+		RunProgram(prog.ptr);
+		Interpret(prog.ptr, -1);
 		prog.initialized = 1;
 	}
 }
@@ -1300,7 +1281,7 @@ void AddProgramToMap(sScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
 
-sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
+sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
 	SfallProgsMap::iterator it = sfallProgsMap.find(scriptPtr);
 	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
@@ -1358,7 +1339,7 @@ void LoadGlobalScripts() {
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
-static bool __stdcall ScriptHasLoaded(DWORD script) {
+static bool __stdcall ScriptHasLoaded(TProgram* script) {
 	for (size_t i = 0; i < checkedScripts.size(); i++) {
 		if (checkedScripts[i] == script) {
 			return false;
@@ -1383,35 +1364,27 @@ static void ClearGlobalScripts() {
 	HookScriptClear();
 }
 
-void __stdcall RunScriptProcByNum(DWORD sptr, DWORD procNum) {
-	__asm {
-		mov  edx, procNum;
-		mov  eax, sptr;
-		call executeProcedure_;
-	}
-}
-
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
-	DWORD sptr = prog->ptr;
-	DWORD procNum = GetScriptProcByName(sptr, procName);
+	TProgram* sptr = prog->ptr;
+	int procNum = InterpretFindProcedure(sptr, procName);
 	if (procNum != -1) {
-		RunScriptProcByNum(sptr, procNum);
+		ExecuteProcedure(sptr, procNum);
 	}
 }
 
-void RunScriptProc(sScriptProgram* prog, DWORD procId) {
+void RunScriptProc(sScriptProgram* prog, long procId) {
 	if (procId > 0 && procId < Scripts::count) {
-		DWORD procNum = prog->procLookup[procId];
+		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
-			RunScriptProcByNum(prog->ptr, procNum);
+			ExecuteProcedure(prog->ptr, procNum);
 		}
 	}
 }
 
 int RunScriptStartProc(sScriptProgram* prog) {
-	DWORD procNum = prog->procLookup[Scripts::start];
+	int procNum = prog->procLookup[Scripts::start];
 	if (procNum != -1) {
-		RunScriptProcByNum(prog->ptr, procNum);
+		ExecuteProcedure(prog->ptr, procNum);
 	}
 	return procNum;
 }
@@ -1419,7 +1392,7 @@ int RunScriptStartProc(sScriptProgram* prog) {
 static void RunScript(sGlobalScript* script) {
 	script->count = 0;
 	if (script->startProc != -1) {
-		RunScriptProcByNum(script->prog.ptr, script->startProc); // run "start"
+		ExecuteProcedure(script->prog.ptr, script->startProc); // run "start"
 	}
 }
 
@@ -1513,11 +1486,7 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == Scripts::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
-			DWORD progPtr = it->prog.ptr;
-			__asm {
-				mov  eax, progPtr;
-				call runProgram_;
-			}
+			RunProgram(it->prog.ptr);
 		}
 	} else if (procId == Scripts::map_exit_p_proc) {
 		ClearEventsOnMapExit(); // for reordering the execution of functions before exiting the map
@@ -1599,7 +1568,7 @@ static DWORD script_chk_timed_events_hook() {
 	return (!*ptr_queue && timerEventScripts.empty());
 }
 
-void __stdcall AddTimerEventScripts(DWORD script, long time, long param) {
+void __stdcall AddTimerEventScripts(TProgram* script, long time, long param) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	TimedEvent timer;
 	timer.isActive = true;
@@ -1610,14 +1579,14 @@ void __stdcall AddTimerEventScripts(DWORD script, long time, long param) {
 	timerEventScripts.sort(TimedEvent());
 }
 
-void __stdcall RemoveTimerEventScripts(DWORD script, long param) {
+void __stdcall RemoveTimerEventScripts(TProgram* script, long param) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
 		return timer.script == scriptProg && timer.fixed_param == param;
 	});
 }
 
-void __stdcall RemoveTimerEventScripts(DWORD script) {
+void __stdcall RemoveTimerEventScripts(TProgram* script) {
 	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
 		return timer.script == scriptProg;
@@ -1744,7 +1713,9 @@ void ScriptExtenderInit() {
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
-	} else dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
+	} else {
+		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
+	}
 
 	HookCall(0x480E7B, MainGameLoopHook); // hook the main game loop
 	HookCall(0x422845, CombatLoopHook);   // hook the combat loop

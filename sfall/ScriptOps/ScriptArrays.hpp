@@ -520,11 +520,7 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 		TGameObj* self_obj;
 		TProgram* programPtr;
 		for (int elev = 0; elev <= 2; elev++) {
-			__asm {
-				mov eax, elev;
-				call scr_find_first_at_;
-				mov scriptPtr, eax;
-			}
+			scriptPtr = ScrFindFirstAt(elev);
 			while (scriptPtr != nullptr) {
 				self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
@@ -532,10 +528,7 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 					self_obj = ScrFindObjFromProgram(programPtr);
 				}
 				vec.push_back(self_obj);
-				__asm {
-					call scr_find_next_at_;
-					mov scriptPtr, eax;
-				}
+				scriptPtr = ScrFindNextAt();
 			}
 		}
 	/*} else if (type == 4) {

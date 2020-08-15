@@ -57,7 +57,7 @@ void __stdcall SetHSArg(DWORD id, DWORD value);
 void __stdcall SetHSReturn(DWORD d);
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void __stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg);
+void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg);
 
 void HookScriptInit();
 void HookScriptClear();

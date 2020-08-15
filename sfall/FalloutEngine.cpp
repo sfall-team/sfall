@@ -908,6 +908,10 @@ void __stdcall DisplayPrint(const char* msg) {
 	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
+void __stdcall ExecuteProcedure(TProgram* sptr, long procNum) {
+	WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
+}
+
 long __stdcall GetInputBtn() {
 	WRAP_WATCOM_CALL0(get_input_)
 }
@@ -1027,12 +1031,24 @@ long __stdcall XFSeek(DbFile* file, long fOffset, long origin) {
 	WRAP_WATCOM_CALL3(xfseek_, file, fOffset, origin)
 }
 
-TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
-	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
-}
-
 long __stdcall RollRandom(long minValue, long maxValue) {
 	WRAP_WATCOM_CALL2(roll_random_, minValue, maxValue)
+}
+
+DWORD* __stdcall RunProgram(TProgram* progPtr) {
+	WRAP_WATCOM_CALL1(runProgram_, progPtr)
+}
+
+TScript* __stdcall ScrFindFirstAt(long elevation) {
+	WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
+}
+
+TScript* __stdcall ScrFindNextAt() {
+	WRAP_WATCOM_CALL0(scr_find_next_at_)
+}
+
+TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
+	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
 }
 
 // Saves pointer to script object into scriptPtr using scriptID.
@@ -1130,6 +1146,14 @@ long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long no
 	WRAP_WATCOM_CALL3(register_object_turn_towards_, object, tileNum, nothing)
 }
 
+long __stdcall Interpret(TProgram* program, long arg2) {
+	WRAP_WATCOM_CALL2(interpret_, program, arg2)
+}
+
+long __stdcall InterpretFindProcedure(TProgram* scriptPtr, const char* procName) {
+	WRAP_WATCOM_CALL2(interpretFindProcedure_, scriptPtr, procName)
+}
+
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 	WRAP_WATCOM_CALL1(interpretPopShort_, scriptPtr)
@@ -1185,11 +1209,6 @@ void __declspec(naked) InterpretError(const char* fmt, ...) {
 	__asm jmp interpretError_;
 }
 
-// returns the name of current procedure by program pointer
-const char* __stdcall FindCurrentProc(TProgram* program) {
-	WRAP_WATCOM_CALL1(findCurrentProc_, program)
-}
-
 // critter worn item (armor)
 TGameObj* __stdcall InvenWorn(TGameObj* critter) {
 	WRAP_WATCOM_CALL1(inven_worn_, critter)
@@ -1203,6 +1222,15 @@ TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
 // item in critter's right hand slot
 TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
+}
+
+// returns the name of current procedure by program pointer
+const char* __stdcall FindCurrentProc(TProgram* program) {
+	WRAP_WATCOM_CALL1(findCurrentProc_, program)
+}
+
+TProgram* __stdcall LoadProgram(const char* fileName) {
+	WRAP_WATCOM_CALL1(loadProgram_, fileName)
 }
 
 void* __stdcall MemRealloc(void* lpmem, DWORD msize) {

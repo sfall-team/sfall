@@ -30,8 +30,8 @@ enum SfallDataType {
 };
 
 typedef struct {
-	DWORD ptr;
-	DWORD procLookup[Scripts::count];
+	TProgram* ptr;
+	int procLookup[Scripts::count];
 	char initialized;
 } sScriptProgram;
 
@@ -65,19 +65,19 @@ void SetGlobalVarInt(DWORD var, int val);
 long GetGlobalVar(const char* var);
 long GetGlobalVarInt(DWORD var);
 
-bool __stdcall ScriptHasLoaded(DWORD script);
-// finds procedure ID for given script program pointer and procedure name
-DWORD __stdcall GetScriptProcByName(DWORD scriptPtr, const char* procName);
-// loads script from .int file into scripting engine, fill scriptPtr and proc table
+bool __stdcall ScriptHasLoaded(TProgram* script);
+
+// loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
+
 // init program after load, needs to be called once
 void InitScriptProgram(sScriptProgram &prog);
-// execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-void __stdcall RunScriptProcByNum(DWORD sptr, DWORD procNum);
+
 // execute script by specific proc name
 void RunScriptProc(sScriptProgram* prog, const char* procName);
+
 // execute script proc by procId from define.h
-void RunScriptProc(sScriptProgram* prog, DWORD procId);
+void RunScriptProc(sScriptProgram* prog, long procId);
 
 int RunScriptStartProc(sScriptProgram* prog);
 
@@ -85,11 +85,11 @@ long GetScriptReturnValue();
 long GetResetScriptReturnValue();
 
 void AddProgramToMap(sScriptProgram &prog);
-sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
+sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
 
-void __stdcall AddTimerEventScripts(DWORD script, long time, long param);
-void __stdcall RemoveTimerEventScripts(DWORD script, long param);
-void __stdcall RemoveTimerEventScripts(DWORD script);
+void __stdcall AddTimerEventScripts(TProgram* script, long time, long param);
+void __stdcall RemoveTimerEventScripts(TProgram* script, long param);
+void __stdcall RemoveTimerEventScripts(TProgram* script);
 
 // variables
 extern DWORD isGlobalScriptLoading;

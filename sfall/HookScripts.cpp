@@ -130,7 +130,7 @@ static void __stdcall RunSpecificHookScript(sHookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
-		RunScriptProcByNum(hook->prog.ptr, hook->callback);
+		ExecuteProcedure(hook->prog.ptr, hook->callback);
 	} else {
 		hook->callback = RunScriptStartProc(&hook->prog); // run start
 	}
@@ -1567,7 +1567,7 @@ void __stdcall SetHSReturn(DWORD value) {
 	}
 }
 
-void __stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) {
+void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg) {
 	if (id >= numHooks) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {

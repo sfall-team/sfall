@@ -1129,8 +1129,12 @@ void __declspec() DebugPrintf(const char* fmt, ...);
 // Displays message in main UI console window
 void __stdcall DisplayPrint(const char* msg);
 
+// execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
+void __stdcall ExecuteProcedure(TProgram* sptr, long procNum);
+
 long __stdcall GetInputBtn();
 
+// searches for message ID in given message file and places result in @result
 const char* __stdcall Getmsg(const MSGList* fileAddr, MSGNode* result, long messageId);
 
 // plays SFX sound with given name
@@ -1196,9 +1200,15 @@ DbFile* __stdcall XFOpen(const char* fileName, const char* flags);
 
 long __stdcall XFSeek(DbFile* file, long fOffset, long origin);
 
-TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
-
 long __stdcall RollRandom(long minValue, long maxValue);
+
+DWORD* __stdcall RunProgram(TProgram* progPtr);
+
+TScript* __stdcall ScrFindFirstAt(long elevation);
+
+TScript* __stdcall ScrFindNextAt();
+
+TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
 
 // Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
@@ -1242,14 +1252,10 @@ long __stdcall RegisterObjectMustErase(TGameObj* object);
 long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing);
 long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing);
 
-// critter worn item (armor)
-TGameObj* __stdcall InvenWorn(TGameObj* critter);
+long __stdcall Interpret(TProgram* program, long arg2);
 
-// item in critter's left hand slot
-TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
-
-// item in critter's right hand slot
-TGameObj* __stdcall InvenRightHand(TGameObj* critter);
+// finds procedure ID for given script program pointer and procedure name
+long __stdcall InterpretFindProcedure(TProgram* scriptPtr, const char* procName);
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
@@ -1267,8 +1273,19 @@ DWORD __fastcall InterpretGetValue(TProgram* scriptPtr, DWORD &outType);
 // USE WITH CAUTION
 void __declspec() InterpretError(const char* fmt, ...);
 
+// critter worn item (armor)
+TGameObj* __stdcall InvenWorn(TGameObj* critter);
+
+// item in critter's left hand slot
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
+
+// item in critter's right hand slot
+TGameObj* __stdcall InvenRightHand(TGameObj* critter);
+
 // returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program);
+
+TProgram* __stdcall LoadProgram(const char* fileName);
 
 void* __stdcall MemRealloc(void* lpmem, DWORD msize);
 
