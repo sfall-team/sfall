@@ -24,11 +24,12 @@
 /* FALLOUT2.EXE structs should be placed here  */
 /******************************************************************************/
 
+#pragma pack(push, 1)
+
 struct TGameObj;
 struct TProgram;
 struct TScript;
 
-#pragma pack(1)
 struct sArt {
 	long flags;
 	char path[16];
@@ -38,7 +39,6 @@ struct sArt {
 };
 
 // Bounding rectangle, used by tile_refresh_rect and related functions.
-#pragma pack(1)
 struct BoundRect {
 	long x;
 	long y;
@@ -47,7 +47,6 @@ struct BoundRect {
 };
 
 // Game objects (items, critters, etc.), including those stored in inventories.
-#pragma pack(1)
 struct TGameObj {
 	long id;
 	long tile;
@@ -110,7 +109,6 @@ struct TGameObj {
 };
 
 // Results of compute_attack_() function.
-#pragma pack(1)
 struct TComputeAttack {
 	TGameObj* attacker;
 	long hitMode;
@@ -149,7 +147,6 @@ struct CombatGcsd {
 };
 
 // Script instance attached to an object or tile (spatial script).
-#pragma pack(1)
 struct TScript {
 	long id;
 	long next;
@@ -177,7 +174,6 @@ struct TScript {
 };
 
 // Script run-time data
-#pragma pack(1)
 struct TProgram {
 	const char* fileName;
 	long *codeStackPtr;
@@ -196,7 +192,6 @@ struct TProgram {
 	long *procTablePtr;
 };
 
-#pragma pack(1)
 struct ItemButtonItem {
 	TGameObj* item;
 	union {
@@ -217,7 +212,6 @@ struct ItemButtonItem {
 // specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
 // below the value specified (e.g., -7 indicates a stat must be less than 7). Type is only non-zero when there
 // are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
-#pragma pack(1)
 struct PerkInfo {
 	const char* Name;
 	const char* Desc;
@@ -240,13 +234,11 @@ struct PerkInfo {
 	long Lck;
 };
 
-#pragma pack(1)
 struct DbFile {
 	long fileType;
 	void* handle;
 };
 
-#pragma pack(1)
 struct sElevator {
 	long ID1;
 	long Elevation1;
@@ -262,13 +254,11 @@ struct sElevator {
 	long Tile4;
 };
 
-#pragma pack(1)
 struct sElevatorFrms {
 	DWORD main;
 	DWORD buttons;
 };
 
-#pragma pack(1)
 struct FrmFile {
 	long id;				//0x00
 	short fps;				//0x04
@@ -287,7 +277,6 @@ struct FrmFile {
 };
 
 //structures for holding frms loaded with fallout2 functions
-#pragma pack(1)
 typedef class FrmFrameData { // sizeof 12 + 1 byte
 public:
 	WORD width;
@@ -298,7 +287,7 @@ public:
 	BYTE data[1]; // begin frame data
 } FrmFrameData;
 
-#pragma pack(2)
+#pragma pack(push, 2)
 typedef class FrmHeaderData { // sizeof 62
 public:
 	DWORD version;        // version num
@@ -310,9 +299,9 @@ public:
 	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
 	DWORD frameAreaSize;  // size of all frames area
 } FrmHeaderData;
+#pragma pack(pop)
 
 // structures for loading unlisted frms
-#pragma pack(1)
 struct UNLSTDfrm {
 	DWORD version;
 	WORD FPS;
@@ -365,7 +354,6 @@ struct UNLSTDfrm {
 };
 
 //for holding a message
-#pragma pack(1)
 struct MSGNode {
 	long number;
 	long flags;
@@ -381,7 +369,6 @@ struct MSGNode {
 };
 
 //for holding msg array
-#pragma pack(1)
 typedef struct MSGList {
 	long numMsgs;
 	MSGNode *nodes;
@@ -392,7 +379,6 @@ typedef struct MSGList {
 	}
 } MSGList;
 
-#pragma pack(1)
 struct CritInfo {
 	union {
 		struct {
@@ -415,7 +401,6 @@ struct CritInfo {
 	};
 };
 
-#pragma pack(1)
 struct SkillInfo {
 	const char* name;
 	const char* description;
@@ -432,7 +417,6 @@ struct SkillInfo {
 	long f;
 };
 
-#pragma pack(1)
 struct TraitInfo {
 	const char* Name;
 	const char* Desc;
@@ -440,7 +424,6 @@ struct TraitInfo {
 };
 
 //fallout2 path node structure
-#pragma pack(1)
 struct PathNode {
 	char* path;
 	void* pDat;
@@ -448,21 +431,18 @@ struct PathNode {
 	PathNode* next;
 };
 
-#pragma pack(1)
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
 	char unknown[20];
 };
 
-#pragma pack(1)
 struct ScriptListInfoItem {
 	char fileName[16];
 	long numLocalVars;
 };
 
 //for holding window info
-#pragma pack(1)
 struct WINinfo {
 	long wID;
 	long flags;
@@ -480,7 +460,6 @@ struct WINinfo {
 	long *drawFunc;
 };
 
-#pragma pack(1)
 struct sWindow {
 	char name[32];
 	long wID;
@@ -500,7 +479,6 @@ struct sWindow {
 	long unknown8;
 };
 
-#pragma pack(1)
 struct LSData {
 	char signature[24];
 	short majorVer;
@@ -524,7 +502,6 @@ struct LSData {
 	char mapName[16];
 };
 
-#pragma pack(1)
 struct Queue {
 	DWORD time;
 	long type;
@@ -552,3 +529,5 @@ struct FloatText {
 	long unknown9;
 	void* unknown10;
 };
+
+#pragma pack(pop)

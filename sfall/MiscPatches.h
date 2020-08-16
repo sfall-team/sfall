@@ -20,11 +20,3 @@
 
 void MiscPatchesInit();
 void MiscPatchesExit();
-
-#pragma pack(1)
-struct CodeData {
-	DWORD dd;
-	BYTE  db;
-
-	CodeData() : dd(0x0024548D), db(0x90) {}
-};

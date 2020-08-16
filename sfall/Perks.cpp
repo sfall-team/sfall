@@ -48,6 +48,7 @@ static int perksEnable = 0;
 static PerkInfo Perks[PERK_count];
 static TraitInfo Traits[TRAIT_count];
 
+#pragma pack(push, 1)
 struct FakePerk {
 	int Level; // current level (max 100)
 	int Image;
@@ -55,6 +56,7 @@ struct FakePerk {
 	char Desc[maxDescLen];
 	char reserve[512]; // empty block
 };
+#pragma pack(pop)
 
 std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;

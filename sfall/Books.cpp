@@ -25,11 +25,13 @@
 static int BooksCount = 0;
 static const int BooksMax = 50;
 
+#pragma pack(push, 1)
 struct sBook {
 	DWORD bookPid;
 	DWORD msgID;
 	DWORD skill;
 };
+#pragma pack(pop)
 
 static sBook* books = nullptr;
 

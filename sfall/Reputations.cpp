@@ -21,10 +21,12 @@
 #include "main.h"
 #include "Utils.h"
 
+#pragma pack(push, 1)
 struct CityRep {
 	DWORD globalID;
 	DWORD cityID;
 };
+#pragma pack(pop)
 
 // C-array is neccessary, because it is used by game engine
 static CityRep* repList = nullptr;

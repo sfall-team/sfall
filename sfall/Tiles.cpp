@@ -47,9 +47,11 @@ static const DWORD Tiles_C0[] = {
 	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
 
+#pragma pack(push, 1)
 struct TilesData {
 	short tile[2];
 };
+#pragma pack(pop)
 
 struct OverrideEntry {
 	DWORD xtiles;
