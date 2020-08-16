@@ -47,7 +47,7 @@ void dlog_f(const char *fmt, int type, ...) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		va_list args;
 		va_start(args, type);
-		char buf[4096];
+		char buf[1024];
 		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
 		Log << buf;
 		Log.flush();

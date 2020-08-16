@@ -638,15 +638,22 @@ static void PartyMemberSkillPatch() {
 	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
 }
 
+#pragma pack(push, 1)
+struct CodeData {
+	DWORD dd = 0x0024548D;
+	BYTE  db = 0x90;
+} patchData;
+#pragma pack(pop)
+
 static void SkipLoadingGameSettingsPatch() {
 	if (int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
-		dlog("Applying skip loading game settings from saved games patch.", DL_INIT);
+		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
 		BlockCall(0x493421);
 		SafeWrite8(0x4935A8, 0x1F);
 		SafeWrite32(0x4935AB, 0x90901B75);
-		CodeData PatchData;
-		if (skipLoading == 2) SafeWriteBatch<CodeData>(PatchData, {0x49341C, 0x49343B});
-		SafeWriteBatch<CodeData>(PatchData, {
+
+		if (skipLoading == 2) SafeWriteBatch<CodeData>(patchData, {0x49341C, 0x49343B});
+		SafeWriteBatch<CodeData>(patchData, {
 			0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE,
 			0x4934E3, 0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569,
 			0x49357A

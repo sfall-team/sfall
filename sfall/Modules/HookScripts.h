@@ -76,7 +76,7 @@ enum HookType
 struct HookFile {
 	int id;
 //	std::string filePath;
-	const char* name;
+	std::string name;
 };
 
 class HookScripts : public Module {

@@ -245,7 +245,7 @@ static void HookScriptInit() {
 		hooksFilesLoaded = !alwaysFindScripts;
 	} else {
 		for (auto& hook : HookScripts::hookScriptFilesList) {
-			LoadHookScriptFile(hook.name, hook.id);
+			LoadHookScriptFile(hook.name.c_str(), hook.id);
 		}
 	}
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);

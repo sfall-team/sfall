@@ -75,6 +75,7 @@ struct PerkInfoExt {
 };
 static std::vector<PerkInfoExt> extPerks;
 
+#pragma pack(push, 1)
 struct FakePerk {
 	int Level; // current level (max 100)
 	int Image;
@@ -93,6 +94,7 @@ struct FakePerk {
 		strncpy_s(this->Desc, _desc, _TRUNCATE);
 	}
 };
+#pragma pack(pop)
 
 std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;

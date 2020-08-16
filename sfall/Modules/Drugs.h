@@ -41,6 +41,7 @@ public:
 
 #define SIZE_S_DRUGS    (32 + 1)
 
+#pragma pack(push, 1)
 struct sDrugs {
 	DWORD drugPid;      // don't move
 	long gvarID;        // don't move
@@ -53,6 +54,7 @@ struct sDrugs {
 
 	char skip;
 };
+#pragma pack(pop)
 
 extern sDrugs *drugs;
 
