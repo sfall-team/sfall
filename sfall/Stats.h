@@ -18,8 +18,8 @@
 
 #pragma once
 
-void Stats_OnGameLoad();
 void StatsInit();
+void Stats_OnGameLoad();
 
 long __stdcall GetStatMax(int stat, int isNPC);
 long __stdcall GetStatMin(int stat, int isNPC);

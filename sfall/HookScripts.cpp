@@ -86,22 +86,19 @@ static void __stdcall BeginHook() {
 		memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
 		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
 
-		// for debugging
-		/*dlog_f("\nSaved cArgs/cRets: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
-		for (unsigned int i = 0; i < maxArgs; i++) {
-			dlog_f("Saved Args/Rets: %d / %d\n", DL_HOOK, savedArgs[cDepth].oldArgs[i], ((i < maxRets) ? savedArgs[cDepth].oldRets[i] : -1));
-		}*/
+		//devlog_f("\nSaved cArgs/cRet: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
+		//for (unsigned int i = 0; i < maxArgs; i++) {
+		//	devlog_f("Saved Args/Rets: %d / %d\n", DL_HOOK, savedArgs[cDepth].oldArgs[i], ((i < maxRets) ? savedArgs[cDepth].oldRets[i] : -1));
+		//}
 	}
 	callDepth++;
-	#ifndef NDEBUG
-		dlog_f("Begin running hook, current depth: %d, current executable hook: %d\n", DL_HOOK, callDepth, currentRunHook);
-	#endif
+
+	devlog_f("Begin running hook, current depth: %d, current executable hook: %d\n", DL_HOOK, callDepth, currentRunHook);
 }
 
 static void __stdcall EndHook() {
-	#ifndef NDEBUG
-		dlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
-	#endif
+	devlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
+
 	callDepth--;
 	if (callDepth) {
 		if (callDepth <= maxDepth) {
@@ -115,11 +112,10 @@ static void __stdcall EndHook() {
 			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
 			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
 
-			// for debugging
-			/*dlog_f("Restored cArgs/cRets: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
-			for (unsigned int i = 0; i < maxArgs; i++) {
-				dlog_f("Restored Args/Rets: %d / %d\n", args[i], ((i < maxRets) ? rets[i] : -1));
-			}*/
+			//devlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
+			//for (unsigned int i = 0; i < maxArgs; i++) {
+			//	devlog_f("Restored Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
+			//}
 		}
 	} else {
 		currentRunHook = -1;
@@ -150,18 +146,16 @@ static void __stdcall RunHookScript(DWORD hook) {
 		for (int i = hooksCount - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
 
-			// for debugging
-			/*dlog_f("> Hook: %d, script entry: %d done\n", DL_HOOK, hook, i);
-			dlog_f("> Check cArg/cRet: %d / %d(%d)\n", DL_HOOK, cArg, cRet, cRetTmp);
-			for (unsigned int i = 0; i < maxArgs; i++) {
-				dlog_f("> Check Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
-			}*/
+			//devlog_f("> Hook: %d, script entry: %d done\n", DL_HOOK, hook, i);
+			//devlog_f("> Check cArg/cRet: %d / %d(%d)\n", DL_HOOK, cArg, cRet, cRetTmp);
+			//for (unsigned int i = 0; i < maxArgs; i++) {
+			//	devlog_f("> Check Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
+			//}
 		}
 	} else {
 		cArg = 0;
-		#ifndef NDEBUG
-			dlog_f(">>> Try running hook ID: %d\n", DL_HOOK, hook);
-		#endif
+
+		devlog_f(">>> Try running hook ID: %d\n", DL_HOOK, hook);
 	}
 }
 
@@ -1595,10 +1589,11 @@ void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg)
 }
 
 static void LoadHookScript(const char* name, int id) {
-	if (id >= numHooks || IsGameScript(name)) return;
+	//if (id >= numHooks || IsGameScript(name)) return;
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
+
 	if (DbAccess(filename)) {
 		sScriptProgram prog;
 		dlog("> ", DL_HOOK);

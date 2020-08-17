@@ -1505,10 +1505,12 @@ static DWORD HandleTimedEventScripts() {
 	executeTimedEventDepth++;
 
 	DevPrintf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+	for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend(); ++it) {
+		DevPrintf("\n[TimedEventScripts] Event: %d", it->time);
+	}
 
 	bool eventsWereRunning = false;
 	for (std::list<TimedEvent>::const_iterator timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
-		DevPrintf("\n[TimedEventScripts] Event: %d", timerIt->time);
 		if (timerIt->isActive == false) continue;
 		if (currentTime >= timerIt->time) {
 			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event

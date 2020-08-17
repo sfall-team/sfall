@@ -1111,8 +1111,8 @@ extern const DWORD xvfprintf_;
 // WRAPPERS:
 // TODO: move these to different namespace
 
-// Prints debug message to debug.log file for develop build
 #ifndef NDEBUG
+// Prints debug message to game debug.log file for develop build
 void DevPrintf(const char* fmt, ...);
 #else
 void DevPrintf(...);

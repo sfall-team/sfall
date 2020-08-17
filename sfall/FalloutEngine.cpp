@@ -812,7 +812,7 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 // WRAPPERS
 // please, use CamelCase for those
 
-// Prints debug message to debug.log file for develop build
+// Prints debug message to game debug.log file for develop build
 #ifndef NDEBUG
 void __declspec(naked) DevPrintf(const char* fmt, ...) {
 	__asm jmp debug_printf_;

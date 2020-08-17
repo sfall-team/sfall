@@ -40,7 +40,7 @@ void dlogr(const char* a, int type) {
 	}
 }
 
-void dlog_f(const char *fmt, int type, ...) {
+void dlog_f(const char* fmt, int type, ...) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		va_list args;
 		va_start(args, type);
@@ -51,6 +51,23 @@ void dlog_f(const char *fmt, int type, ...) {
 		va_end(args);
 	}
 }
+
+// Prints debug message to sfall log file for develop build
+#ifndef NDEBUG
+void devlog_f(const char* fmt, int type, ...) {
+	if (type == DL_MAIN || (type & DebugTypes)) {
+		va_list args;
+		va_start(args, type);
+		char buf[1024];
+		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
+		Log << buf;
+		Log.flush();
+		va_end(args);
+	}
+}
+#else
+void devlog_f(...) {}
+#endif
 
 void LoggingInit() {
 	Log.open("sfall-log.txt", std::ios_base::out | std::ios_base::trunc);

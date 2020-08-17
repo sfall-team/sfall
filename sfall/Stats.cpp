@@ -145,8 +145,8 @@ static void __declspec(naked) __stdcall ProtoPtr(DWORD pid, int** proto) {
 }
 
 static void __stdcall StatRecalcDerived(TGameObj* critter) {
-	int basestats[7];
-	for (int i = STAT_st; i <= STAT_lu; i++) basestats[i] = StatLevel(critter, i);
+	int baseStats[7];
+	for (int i = STAT_st; i <= STAT_lu; i++) baseStats[i] = StatLevel(critter, i);
 
 	int* proto;
 	ProtoPtr(critter->protoId, &proto);
@@ -156,7 +156,7 @@ static void __stdcall StatRecalcDerived(TGameObj* critter) {
 
 		double sum = 0;
 		for (int j = STAT_st; j <= STAT_lu; j++) {
-			sum += (basestats[j] + StatShifts[i * 7 + j]) * StatMulti[i * 7 + j];
+			sum += (baseStats[j] + StatShifts[i * 7 + j]) * StatMulti[i * 7 + j];
 		}
 		proto[i + 9] = StatFormulas[i * 2] + (int)floor(sum);
 		if (proto[i + 9] < StatFormulas[i * 2 + 1]) proto[i + 9] = StatFormulas[i * 2 + 1];

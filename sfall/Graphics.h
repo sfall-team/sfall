@@ -31,9 +31,9 @@ extern bool AviMovieWidthFit;
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 
-void Graphics_OnGameLoad();
 void GraphicsInit();
 void GraphicsExit();
+void Graphics_OnGameLoad();
 
 long Gfx_GetGameWidthRes();
 long Gfx_GetGameHeightRes();

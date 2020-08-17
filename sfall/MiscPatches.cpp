@@ -693,6 +693,12 @@ void MiscPatchesInit() {
 	HookCall(0x48A954, obj_move_to_tile_hook);
 	HookCall(0x483726, map_check_state_hook);
 
+	// Corrects the height of the black background for the subtitles on death screens
+	if (hrpVersionValid) {
+		SafeWrite8(HRPAddress(0x10011738), 10);
+		SafeWrite8(0x481345, 4); // main_death_scene_
+	}
+
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();

@@ -86,6 +86,7 @@ void ClearLoopFlag(LoopFlag flag) {
 }
 
 static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameStart
+	BugFixes_OnGameLoad();
 	if (GraphicsMode > 3) Graphics_OnGameLoad();
 	ForceGraphicsRefresh(0); // disable refresh
 	LoadOrder_OnGameLoad();

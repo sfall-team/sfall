@@ -27,7 +27,15 @@
 
 void dlog(const char* msg, int type);
 void dlogr(const char* msg, int type);
-void dlog_f(const char *format, int type, ...);
+void dlog_f(const char* fmt, int type, ...);
+
+#ifndef NDEBUG
+// Prints debug message to sfall log file for develop build
+void devlog_f(const char* fmt, int type, ...);
+#else
+void devlog_f(...);
+#endif
+
 void LoggingInit();
 #else
 #define dlog(a,b)
