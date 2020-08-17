@@ -117,6 +117,12 @@ void MakeCalls(void* func, std::initializer_list<DWORD> addrs) {
 	}
 }
 
+void MakeJumps(void* func, std::initializer_list<DWORD> addrs) {
+	for (auto& addr : addrs) {
+		MakeJump(addr, func);
+	}
+}
+
 void SafeMemSet(DWORD addr, BYTE val, int len) {
 	DWORD oldProtect;
 

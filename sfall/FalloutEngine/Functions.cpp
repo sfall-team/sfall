@@ -26,7 +26,7 @@ namespace fo
 namespace func
 {
 
-// Prints debug message to debug.log file for develop build
+// Prints debug message to game debug.log file for develop build
 #ifndef NDEBUG
 void __declspec(naked) dev_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;

@@ -2777,6 +2777,35 @@ skip:
 	}
 }
 
+static bool dudeIsAnimDeath = false;
+
+static void __declspec(naked) show_damage_to_object_hack() {
+	static const DWORD show_damage_to_object_Ret = 0x410B90;
+	__asm {
+		jnz  isDeath;
+		add  esp, 4;
+		jmp  show_damage_to_object_Ret;
+isDeath:
+		cmp  esi, ds:[FO_VAR_obj_dude];
+		sete dudeIsAnimDeath;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hack_ondeath() {
+	static const DWORD obj_move_to_tile_Ret = 0x48A759;
+	__asm {
+		test esi, esi;
+		jz   skip;
+		cmp  dudeIsAnimDeath, 0;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  obj_move_to_tile_Ret;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2786,6 +2815,7 @@ void BugFixes::init()
 
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
+	LoadGameHook::OnGameReset() += []() { dudeIsAnimDeath = false; };
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -3503,6 +3533,11 @@ void BugFixes::init()
 
 	// Fix to prevent the execution of critter_p_proc and game events when playing movies (same as when the dialog is active)
 	HookCall(0x4A3C89, doBkProcesses_hook);
+
+	// Fix to prevent the player from leaving the map when the death animation causes the player to cross an exit grid
+	// (e.g. fire dance or knockback animation)
+	MakeCall(0x41094B, show_damage_to_object_hack, 1);
+	MakeCall(0x48A6CB, obj_move_to_tile_hack_ondeath, 1);
 }
 
 }

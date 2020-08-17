@@ -26,12 +26,20 @@
 #include <stdio.h>
 #include <string>
 
-namespace sfall 
+namespace sfall
 {
 
 void dlog(const std::string&, int type);
 void dlogr(const std::string&, int type);
-void dlog_f(const char *format, int type, ...);
+void dlog_f(const char* fmt, int type, ...);
+
+#ifndef NDEBUG
+// Prints debug message to sfall log file for develop build
+void devlog_f(const char* fmt, int type, ...);
+#else
+void devlog_f(...);
+#endif
+
 void LoggingInit();
 
 }

@@ -478,7 +478,7 @@ bool IsGameScript(const char* filename) {
 static void LoadGlobalScriptsList() {
 	ScriptProgram prog;
 	for (auto& item : globalScriptFilesList) {
-		auto scriptFile = item.second;
+		auto &scriptFile = item.second;
 		dlog("> " + scriptFile, DL_SCRIPT);
 		isGlobalScriptLoading = 1;
 		LoadScriptProgram(prog, scriptFile.c_str(), true);
@@ -521,7 +521,7 @@ static void PrepareGlobalScriptsListByMask() {
 					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
 					continue;
 				}
-				globalScriptFilesList.insert(std::make_pair(baseName, fullPath));
+				globalScriptFilesList.insert(std::make_pair(baseName, fullPath)); // script files should be sorted in alphabetical order
 			}
 		}
 		fo::func::db_free_file_list(&filenames, 0);
@@ -662,10 +662,12 @@ static DWORD HandleTimedEventScripts() {
 	executeTimedEventDepth++;
 
 	fo::func::dev_printf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+	for (auto it = timerEventScripts.cbegin(); it != timerEventScripts.cend(); ++it) {
+		fo::func::dev_printf("\n[TimedEventScripts] Event: %d", it->time);
+	}
 
 	bool eventsWereRunning = false;
 	for (auto timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
-		fo::func::dev_printf("\n[TimedEventScripts] Event: %d", timerIt->time);
 		if (timerIt->isActive == false) continue;
 		if (currentTime >= timerIt->time) {
 			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event
