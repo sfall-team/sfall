@@ -2778,7 +2778,6 @@ isDeath:
 static void __declspec(naked) obj_move_to_tile_hack_ondeath() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A759;
 	__asm {
-		test esi, esi;
 		jz   skip;
 		cmp  dudeIsAnimDeath, 0;
 		jnz  skip;
@@ -2786,6 +2785,16 @@ static void __declspec(naked) obj_move_to_tile_hack_ondeath() {
 skip:
 		add  esp, 4;
 		jmp  obj_move_to_tile_Ret;
+	}
+}
+
+static void __declspec(naked) action_knockback_hack() {
+	__asm {
+		mov  ecx, 20; // cap knockback distance
+		cmp  ebp, ecx;
+		cmovg ebp, ecx;
+		mov  ecx, 1;
+		retn;
 	}
 }
 
@@ -3532,4 +3541,7 @@ void BugFixesInit()
 	// (e.g. fire dance or knockback animation)
 	MakeCall(0x41094B, show_damage_to_object_hack, 1);
 	MakeCall(0x48A6CB, obj_move_to_tile_hack_ondeath, 1);
+
+	// Fix to limit the maximum distance for knockback animation
+	MakeCall(0x4104D5, action_knockback_hack);
 }

@@ -415,6 +415,8 @@ static long executeTimedEventDepth = 0;
 static std::stack<TimedEvent*> executeTimedEvents;
 static std::list<TimedEvent> timerEventScripts;
 
+static std::vector<std::string> globalScriptFilesList;
+
 static std::vector<TProgram*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 
@@ -437,6 +439,7 @@ static void* opcodes[0x300];
 DWORD availableGlobalScriptTypes = 0;
 DWORD isGlobalScriptLoading = 0;
 bool isGameLoading;
+bool alwaysFindScripts;
 bool displayWinUpdateState = false;
 
 TScript overrideScriptStruct = {0};
@@ -1294,18 +1297,36 @@ bool __stdcall IsGameScript(const char* filename) {
 	return false;
 }
 
-// this runs after the game was loaded/started
-void LoadGlobalScripts() {
-	isGameLoading = false;
-	HookScriptInit();
-	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
+static void LoadGlobalScriptsList() {
+	sScriptProgram prog;
+	for (std::vector<std::string>::const_iterator it = globalScriptFilesList.begin(); it != globalScriptFilesList.end(); ++it) {
+		const std::string &scriptFile = *it;
+		dlog("> ", DL_SCRIPT);
+		dlog(scriptFile.c_str(), DL_SCRIPT);
+		isGlobalScriptLoading = 1;
+		LoadScriptProgram(prog, scriptFile.c_str());
+		if (prog.ptr) {
+			dlogr(" Done", DL_SCRIPT);
+			sGlobalScript gscript = sGlobalScript(prog);
+			gscript.startProc = prog.procLookup[Scripts::start]; // get 'start' procedure position
+			globalScripts.push_back(gscript);
+			AddProgramToMap(prog);
+			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
+			InitScriptProgram(prog);
+		} else {
+			dlogr(" Error!", DL_SCRIPT);
+		}
+		isGlobalScriptLoading = 0;
+	}
+}
+
+static void PrepareGlobalScriptsList() {
+	globalScriptFilesList.clear();
 
 	char* name = "scripts\\gl*.int";
 	char** filenames;
 	int count = DbGetFileList(name, &filenames);
 
-	// TODO: refactor script programs
-	sScriptProgram prog;
 	for (int i = 0; i < count; i++) {
 		name = _strlwr(filenames[i]); // name of the script in lower case
 		if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
@@ -1316,26 +1337,25 @@ void LoadGlobalScripts() {
 
 		baseName = baseName.substr(0, lastDot); // script name without extension
 		if (!IsGameScript(baseName.c_str())) {
-			dlog("> ", DL_SCRIPT);
-			dlog(name, DL_SCRIPT);
-			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, baseName.c_str());
-			if (prog.ptr) {
-				dlogr(" Done", DL_SCRIPT);
-				sGlobalScript gscript = sGlobalScript(prog);
-				gscript.startProc = prog.procLookup[Scripts::start]; // get 'start' procedure position
-				globalScripts.push_back(gscript);
-				AddProgramToMap(prog);
-				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
-				InitScriptProgram(prog);
-			} else {
-				dlogr(" Error!", DL_SCRIPT);
-			}
-			isGlobalScriptLoading = 0;
+			globalScriptFilesList.push_back(baseName);
 		}
 	}
 	DbFreeFileList(&filenames, 0);
+}
 
+// this runs after the game was loaded/started
+void LoadGlobalScripts() {
+	static bool listIsPrepared = false;
+	isGameLoading = false;
+
+	LoadHookScripts();
+
+	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
+	if (!listIsPrepared) { // only once
+		PrepareGlobalScriptsList();
+		listIsPrepared = !alwaysFindScripts;
+	}
+	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
@@ -1509,7 +1529,7 @@ static DWORD HandleTimedEventScripts() {
 		DevPrintf("\n[TimedEventScripts] Event: %d", it->time);
 	}
 
-	bool eventsWereRunning = false;
+	bool eventWasRunning = false;
 	for (std::list<TimedEvent>::const_iterator timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
 		if (timerIt->isActive == false) continue;
 		if (currentTime >= timerIt->time) {
@@ -1527,14 +1547,14 @@ static DWORD HandleTimedEventScripts() {
 				timedEvent = executeTimedEvents.top(); // restore a pointer to a previously running event
 				executeTimedEvents.pop();
 			}
-			eventsWereRunning = true;
+			eventWasRunning = true;
 		} else {
 			break;
 		}
 	}
 	executeTimedEventDepth--;
 
-	if (eventsWereRunning && executeTimedEventDepth == 0) {
+	if (eventWasRunning && executeTimedEventDepth == 0) {
 		timedEvent = nullptr;
 		// delete all previously executed events
 		for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
@@ -1718,6 +1738,9 @@ void ScriptExtenderInit() {
 	} else {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
+
+	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ddrawIniDef) != 0);
+	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
 	HookCall(0x480E7B, MainGameLoopHook); // hook the main game loop
 	HookCall(0x422845, CombatLoopHook);   // hook the combat loop

@@ -51,16 +51,16 @@ enum HookType
 
 DWORD __stdcall GetHSArgCount();
 DWORD __stdcall GetHSArg();
-DWORD* __stdcall GetHSArgs();
 DWORD __stdcall GetHSArgAt(DWORD id);
+DWORD* __stdcall GetHSArgs();
 void __stdcall SetHSArg(DWORD id, DWORD value);
 void __stdcall SetHSReturn(DWORD d);
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg);
 
-void HookScriptInit();
 void HookScriptClear();
+void LoadHookScripts();
 
 extern DWORD initingHookScripts;
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);

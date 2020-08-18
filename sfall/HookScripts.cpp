@@ -1613,7 +1613,7 @@ static void LoadHookScript(const char* name, int id) {
 	}
 }
 
-static void HookScriptInit2() {
+static void HookScriptInit() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	char* mask = "scripts\\hs_*.int";
@@ -1812,9 +1812,9 @@ void HookScriptClear() {
 	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
 }
 
-void HookScriptInit() {
+void LoadHookScripts() {
 	isGlobalScriptLoading = 1; // this should allow to register global exported variables
-	HookScriptInit2();
+	HookScriptInit();
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
