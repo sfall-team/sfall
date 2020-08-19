@@ -114,16 +114,14 @@ DWORD __stdcall KeyDown(DWORD key) {
 	}
 	key = key & 0xFFFF;
 	// combined use of DINPUT states + confirmation from GetAsyncKeyState()
-	if (key > MAX_KEYS) {
-		return 0;
-	} else {
-		DWORD keyVK = 0;
+	if (key < MAX_KEYS) {
 		if (keysDown[key]) { // confirm pressed state
-			keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
+			DWORD keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
 			if (keyVK) keysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
 		}
 		return (keysDown[key] > 0);
 	}
+	return 0;
 }
 
 void __stdcall TapKey(DWORD key) {

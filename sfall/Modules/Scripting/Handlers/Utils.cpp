@@ -199,7 +199,7 @@ void mf_string_compare(OpcodeContext& ctx) {
 }
 
 // A safer version of sprintf for using in user scripts.
-static char* sprintf_lite(const char* format, ScriptValue value) {
+static char* sprintf_lite(const char* format, const ScriptValue& value) {
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
 

@@ -69,7 +69,7 @@ DWORD InCombat();
 
 DWORD InDialog();
 
-enum LoopFlag : long {
+enum LoopFlag : unsigned long {
 	WORLDMAP    = 1 << 0, // 0x1
 //	RESERVED    = 1 << 1, // 0x2 (unused)
 	DIALOG      = 1 << 2, // 0x4
@@ -92,7 +92,7 @@ enum LoopFlag : long {
 	DIALOGVIEW  = 1 << 19, // 0x80000
 	COUNTERWIN  = 1 << 20, // 0x100000 Counter window for moving multiple items or setting a timer
 
-	SPECIAL     = 1 << 31  // 0x80000000 Additional special flag for all modes
+	SPECIAL     = 1UL << 31  // 0x80000000 Additional special flag for all modes
 };
 
 DWORD GetLoopFlags();

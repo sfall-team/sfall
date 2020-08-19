@@ -3548,7 +3548,7 @@ void BugFixes::init()
 	MakeCall(0x41094B, show_damage_to_object_hack, 1);
 	MakeCall(0x48A6CB, obj_move_to_tile_hack_ondeath, 1);
 
-	// Fix to limit the maximum distance for knockback animation
+	// Fix to limit the maximum distance for the knockback animation
 	MakeCall(0x4104D5, action_knockback_hack);
 }
 
