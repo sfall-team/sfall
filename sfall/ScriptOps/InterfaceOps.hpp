@@ -693,7 +693,7 @@ static void mf_unwield_slot() {
 	}
 	bool isDude = (critter == *ptr_obj_dude);
 	bool update = false;
-	if (slot && (GetLoopFlags() && (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
+	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
 		if (InvenUnwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
 			update = isDude;
 		}

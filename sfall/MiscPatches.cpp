@@ -694,10 +694,11 @@ void MiscPatchesInit() {
 	HookCall(0x483726, map_check_state_hook);
 
 	// Corrects the height of the black background for the subtitles on death screens
-	if (hrpVersionValid) {
-		SafeWrite8(HRPAddress(0x10011738), 10);
+	if (hrpIsEnabled == false || hrpVersionValid) {
+		SafeWrite32(0x48134D, -602 - (640 * 2)); // main_death_scene_ (shift y-offset 2px up, w/o HRP)
 		SafeWrite8(0x481345, 4); // main_death_scene_
 	}
+	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 
 	F1EngineBehaviorPatch();
 	DialogueFix();
