@@ -1006,6 +1006,7 @@ extern const DWORD soundPlay_;
 extern const DWORD soundPlaying_;
 extern const DWORD sprintf_;
 extern const DWORD square_num_;
+extern const DWORD stat_get_base_;
 extern const DWORD stat_get_base_direct_;
 extern const DWORD stat_get_bonus_;
 extern const DWORD stat_level_;

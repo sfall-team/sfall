@@ -59,10 +59,11 @@ void __stdcall SetHSReturn(DWORD d);
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg);
 
-void HookScriptClear();
 void LoadHookScripts();
+void HookScriptClear();
 
 extern DWORD initingHookScripts;
+
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 void __stdcall RunHookScriptsAtProc(DWORD procId);
 

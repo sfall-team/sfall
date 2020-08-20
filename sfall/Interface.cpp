@@ -95,7 +95,7 @@ run:
 
 static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
-		mov  eax, 0x65; // normal text font
+		mov  eax, 101; // normal text font
 		jmp  text_font_;
 	}
 }

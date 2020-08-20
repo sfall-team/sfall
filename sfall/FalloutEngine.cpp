@@ -718,6 +718,7 @@ const DWORD soundPlay_ = 0x4AD73C;
 const DWORD soundPlaying_ = 0x4ADA84;
 const DWORD sprintf_ = 0x4F0041;
 const DWORD square_num_ = 0x4B1F04;
+const DWORD stat_get_base_ = 0x4AF3E0;
 const DWORD stat_get_base_direct_ = 0x4AF408;
 const DWORD stat_get_bonus_ = 0x4AF474;
 const DWORD stat_level_ = 0x4AEF48; // &GetCurrentStat(void* critter, int statID)

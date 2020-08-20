@@ -506,7 +506,6 @@ static void __declspec(naked) op_available_global_script_types() {
 	__asm {
 		mov  edx, availableGlobalScriptTypes;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -703,7 +702,6 @@ static void __declspec(naked) op_init_hook() {
 	__asm {
 		mov  edx, initingHookScripts;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
