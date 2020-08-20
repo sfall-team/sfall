@@ -20,7 +20,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 
 #include "..\..\..\Version.h"
-#include "..\..\HookScripts.h"
+#include "..\..\HookScripts\Common.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
@@ -66,7 +66,6 @@ void __declspec(naked) op_available_global_script_types() {
 	__asm {
 		mov  edx, availableGlobalScriptTypes;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -110,7 +109,7 @@ void op_get_sfall_global_float(OpcodeContext& ctx) {
 void __declspec(naked) op_get_sfall_arg() {
 	__asm {
 		mov  esi, ecx;
-		call HookScripts::GetHSArg;
+		call HookCommon::GetHSArg;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
@@ -122,18 +121,18 @@ void __declspec(naked) op_get_sfall_arg() {
 void mf_get_sfall_arg_at(OpcodeContext& ctx) {
 	long argVal = 0;
 	long id = ctx.arg(0).rawValue();
-	if (id >= static_cast<long>(HookScripts::GetHSArgCount()) || id < 0) {
+	if (id >= static_cast<long>(HookCommon::GetHSArgCount()) || id < 0) {
 		ctx.printOpcodeError("%s() - invalid value for argument.", ctx.getMetaruleName());
 	} else {
-		argVal = HookScripts::GetHSArgAt(id);
+		argVal = HookCommon::GetHSArgAt(id);
 	}
 	ctx.setReturn(argVal);
 }
 
 void op_get_sfall_args(OpcodeContext& ctx) {
-	DWORD argCount = HookScripts::GetHSArgCount();
+	DWORD argCount = HookCommon::GetHSArgCount();
 	DWORD id = TempArray(argCount, 0);
-	DWORD* args = HookScripts::GetHSArgs();
+	DWORD* args = HookCommon::GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);
 	}
@@ -141,7 +140,7 @@ void op_get_sfall_args(OpcodeContext& ctx) {
 }
 
 void op_set_sfall_arg(OpcodeContext& ctx) {
-	HookScripts::SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	HookCommon::SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
 void __declspec(naked) op_set_sfall_return() {
@@ -149,7 +148,7 @@ void __declspec(naked) op_set_sfall_return() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call HookScripts::SetHSReturn;
+		call HookCommon::SetHSReturn;
 end:
 		mov  ecx, esi;
 		retn;
@@ -160,7 +159,6 @@ void __declspec(naked) op_init_hook() {
 	__asm {
 		mov  edx, initingHookScripts;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -191,7 +189,7 @@ void op_register_hook(OpcodeContext& ctx) {
 	default:
 		proc = -1;
 	}
-	RegisterHook(ctx.program(), ctx.arg(0).rawValue(), proc, specReg);
+	HookScripts::RegisterHook(ctx.program(), ctx.arg(0).rawValue(), proc, specReg);
 }
 
 void mf_add_g_timer_event(OpcodeContext& ctx) {

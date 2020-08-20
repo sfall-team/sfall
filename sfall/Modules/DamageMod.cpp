@@ -290,8 +290,14 @@ static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];      // Get pointer to PC
 		call fo::funcoffs::perk_level_;                // Get rank of Bonus HtH Damage
 		shl  eax, 1;                                   // Multiply by 2
-		sub  ecx, eax;                                 // Subtract from Melee Damage
-		mov  eax, ecx;                                 // Move back to eax in preparation of push
+		push eax;
+		mov  edx, STAT_melee_dmg;
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::stat_get_base_;
+		pop  edx;
+		sub  ecx, edx;                                 // Subtract from Melee Damage
+		cmp  ecx, eax;
+		cmovg eax, ecx;                                // Move back to eax in preparation of push
 		retn;
 	}
 }
@@ -304,8 +310,14 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
 		call fo::funcoffs::perk_level_;                // Get rank of Bonus HtH Damage
 		shl  eax, 1;                                   // Multiply by 2
-		sub  ebx, eax;                                 // Subtract from Melee Damage
-		mov  eax, ebx;                                 // Move back to eax in preparation of push
+		push eax;
+		mov  edx, STAT_melee_dmg;
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::stat_get_base_;
+		pop  edx;
+		sub  ebx, edx;                                 // Subtract from Melee Damage
+		cmp  ebx, eax;
+		cmovg eax, ebx;                                // Move back to eax in preparation of push
 		retn;
 	}
 }

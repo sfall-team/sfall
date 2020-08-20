@@ -361,6 +361,14 @@ static void __declspec(naked) map_check_state_hook() {
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 101;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
+	}
+}
+
 static void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -804,11 +812,15 @@ void MiscPatches::init() {
 	HookCall(0x48A954, obj_move_to_tile_hook);
 	HookCall(0x483726, map_check_state_hook);
 
-	// Corrects the height of the black background for the subtitles on death screens
-	if (hrpIsEnabled == false || hrpVersionValid) {
-		SafeWrite32(0x48134D, -602 - (640 * 2)); // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-		SafeWrite8(0x481345, 4); // main_death_scene_
+	// Set the normal font for death screen subtitles
+	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
+		dlog("Applying death screen font patch.", DL_INIT);
+		HookCall(0x4812DF, main_death_scene_hook);
+		dlogr(" Done", DL_INIT);
 	}
+	// Corrects the height of the black background for death screen subtitles
+	if (hrpIsEnabled == false) SafeWrite32(0x48134D, -602 - (640 * 2));    // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
 	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 
 	F1EngineBehaviorPatch();

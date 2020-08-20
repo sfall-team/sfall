@@ -26,7 +26,7 @@
 #include "Logging.h"
 #include "FalloutEngine\Fallout2.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
+#include "Modules\HookScripts\Common.h"
 
 #include "InputFuncs.h"
 
@@ -283,7 +283,7 @@ public:
 				DWORD state = buf[i].dwData & 0x80;
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
-				HookScripts::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 				if (dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = dxKey; // Override key

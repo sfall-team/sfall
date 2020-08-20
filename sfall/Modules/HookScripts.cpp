@@ -22,6 +22,8 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "LoadGameHook.h"
+
 #include "HookScripts\Common.h"
 #include "HookScripts\CombatHs.h"
 #include "HookScripts\DeathHs.h"
@@ -29,12 +31,14 @@
 #include "HookScripts\InventoryHs.h"
 #include "HookScripts\ObjectHs.h"
 #include "HookScripts\MiscHs.h"
-#include "LoadGameHook.h"
 
 #include "HookScripts.h"
 
 namespace sfall
 {
+
+bool HookScripts::injectAllHooks;
+DWORD initingHookScripts;
 
 std::vector<HookFile> HookScripts::hookScriptFilesList;
 
@@ -98,80 +102,6 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_ENCOUNTER,        Inject_EncounterHook,        false},
 };
 
-bool HookScripts::injectAllHooks;
-DWORD initingHookScripts;
-
-// BEGIN HOOKS
-void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!IsGameLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
-		return;
-	}
-	BeginHook();
-	argCount = 3;
-	args[0] = (DWORD)pressed;
-	args[1] = *dxKey;
-	args[2] = vKey;
-	RunHookScript(HOOK_KEYPRESS);
-	if (cRet != 0) *dxKey = rets[0];
-	EndHook();
-}
-
-void __stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
-		return;
-	}
-	BeginHook();
-	argCount = 2;
-	args[0] = (DWORD)pressed;
-	args[1] = button;
-	RunHookScript(HOOK_MOUSECLICK);
-	EndHook();
-}
-
-static unsigned long previousGameMode = 0;
-
-void HookScripts::GameModeChangeHook(DWORD exit) {
-	if (HookHasScript(HOOK_GAMEMODECHANGE)) {
-		BeginHook();
-		argCount = 2;
-		args[0] = exit;
-		args[1] = previousGameMode;
-		RunHookScript(HOOK_GAMEMODECHANGE);
-		EndHook();
-	}
-	previousGameMode = GetLoopFlags();
-}
-// END HOOKS
-
-DWORD HookScripts::GetHSArgCount() {
-	return argCount;
-}
-
-DWORD HookScripts::GetHSArg() {
-	return (cArg == argCount) ? 0 : args[cArg++];
-}
-
-void HookScripts::SetHSArg(DWORD id, DWORD value) {
-	if (id < argCount) args[id] = value;
-}
-
-DWORD* HookScripts::GetHSArgs() {
-	return args;
-}
-
-DWORD HookScripts::GetHSArgAt(DWORD id) {
-	return args[id];
-}
-
-void __stdcall HookScripts::SetHSReturn(DWORD value) {
-	if (cRetTmp < maxRets) {
-		rets[cRetTmp++] = value;
-	}
-	if (cRetTmp > cRet) {
-		cRet = cRetTmp;
-	}
-}
-
 void HookScripts::InjectingHook(int hookId) {
 	if (!injectHooks[hookId].isInject && injectHooks[hookId].id == hookId) {
 		injectHooks[hookId].isInject = true;
@@ -187,7 +117,7 @@ bool HookScripts::HookHasScript(int hookId) {
 	return (hooks[hookId].empty() == false);
 }
 
-void RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
+void HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	if (id >= numHooks) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
@@ -224,6 +154,39 @@ void RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	}
 }
 
+// run specific event procedure for all hook scripts
+void HookScripts::RunHookScriptsAtProc(DWORD procId) {
+	for (int i = 0; i < numHooks; i++) {
+		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
+			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int
+		}
+	}
+}
+
+bool HookScripts::LoadHookScriptFile(const char* name, int id) {
+	char filename[MAX_PATH];
+	sprintf(filename, "scripts\\%s.int", name);
+
+	ScriptProgram prog;
+	if (fo::func::db_access(filename)) {
+		dlog("> ", DL_HOOK);
+		dlog(name, DL_HOOK);
+		LoadScriptProgram(prog, name);
+		if (prog.ptr) {
+			dlogr(" Done", DL_HOOK);
+			HookScript hook;
+			hook.prog = prog;
+			hook.callback = -1;
+			hook.isGlobalScript = false;
+			hooks[id].push_back(hook);
+			ScriptExtender::AddProgramToMap(prog);
+		} else {
+			dlogr(" Error!", DL_HOOK);
+		}
+	}
+	return (prog.ptr != nullptr);
+}
+
 static void HookScriptInit() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
@@ -245,21 +208,13 @@ static void HookScriptInit() {
 		hooksFilesLoaded = !alwaysFindScripts;
 	} else {
 		for (auto& hook : HookScripts::hookScriptFilesList) {
-			LoadHookScriptFile(hook.name.c_str(), hook.id);
+			HookScripts::LoadHookScriptFile(hook.name.c_str(), hook.id);
 		}
 	}
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
-void HookScriptClear() {
-	for(int i = 0; i < numHooks; i++) {
-		hooks[i].clear();
-	}
-	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
-	previousGameMode = 0;
-}
-
-void LoadHookScripts() {
+void HookScripts::LoadHookScripts() {
 	isGlobalScriptLoading = 1; // this should allow to register global exported variables
 	HookScriptInit();
 	initingHookScripts = 1;
@@ -273,18 +228,17 @@ void LoadHookScripts() {
 	initingHookScripts = 0;
 }
 
-// run specific event procedure for all hook scripts
-void RunHookScriptsAtProc(DWORD procId) {
-	for (int i = 0; i < numHooks; i++) {
-		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
-			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int
-		}
+void HookScripts::HookScriptClear() {
+	for(int i = 0; i < numHooks; i++) {
+		hooks[i].clear();
 	}
+	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	HookCommon::Reset();
 }
 
 void HookScripts::init() {
-	OnMouseClick() += MouseClickHook;
-	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
+	OnMouseClick() += HookCommon::MouseClickHook;
+	LoadGameHook::OnGameModeChange() += HookCommon::GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
 	HookScripts::injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);

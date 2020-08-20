@@ -533,7 +533,7 @@ static void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
 	isGameLoading = false;
 
-	LoadHookScripts();
+	HookScripts::LoadHookScripts();
 
 	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once
@@ -567,7 +567,7 @@ static void ClearGlobalScripts() {
 	timedEvent = nullptr;
 	executeTimedEventDepth = 0;
 	while (!executeTimedEvents.empty()) executeTimedEvents.pop();
-	HookScriptClear();
+	HookScripts::HookScriptClear();
 }
 
 void RunScriptProc(ScriptProgram* prog, const char* procName) {
@@ -650,7 +650,7 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	}
 
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	RunHookScriptsAtProc(procId);   // all hs_ scripts
+	HookScripts::RunHookScriptsAtProc(procId);   // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
 }

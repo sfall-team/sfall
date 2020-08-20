@@ -23,6 +23,22 @@ struct HookScript {
 	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
 };
 
+class HookCommon {
+public:
+	static DWORD GetHSArgCount();
+	static DWORD GetHSArg();
+	static DWORD GetHSArgAt(DWORD id);
+	static DWORD* GetHSArgs();
+	static void SetHSArg(DWORD id, DWORD value);
+	static void __stdcall SetHSReturn(DWORD d);
+
+	static void GameModeChangeHook(DWORD exit);
+	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
+	static void __stdcall MouseClickHook(DWORD button, bool pressed);
+
+	static void Reset();
+};
+
 // All currently registered hook scripts
 extern std::vector<HookScript> hooks[];
 
@@ -35,7 +51,6 @@ extern DWORD cRet;    // how many return values were set by current hook script
 extern DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
 void LoadHookScript(const char* name, int id);
-bool LoadHookScriptFile(const char* name, int id);
 
 void __stdcall BeginHook();
 void __stdcall RunHookScript(DWORD hook);
