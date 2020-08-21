@@ -325,26 +325,26 @@ end:
 }
 ////////////////////////////////////////////////////////////////////////////////
 
+// Display melee damage w/o perk bonus
 static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 	__asm {
+		mov  ecx, eax;                                 // Store pointer to critter
 		call stat_level_;                              // Get Melee Damage
-		mov  ecx, eax;                                 // Store value
+		xchg ecx, eax;                                 // Store Melee Damage value
 		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
-		mov  eax, dword ptr ds:[_obj_dude];            // Get pointer to PC
 		call perk_level_;                              // Get rank of Bonus HtH Damage
 		shl  eax, 1;                                   // Multiply by 2
-		push eax;
+		sub  ecx, eax;                                 // Subtract from Melee Damage
 		mov  edx, STAT_melee_dmg;
-		mov  eax, dword ptr ds:[_obj_dude];
-		call stat_get_base_;
-		pop  edx;
-		sub  ecx, edx;                                 // Subtract from Melee Damage
-		cmp  ecx, eax;
+		mov  eax, ds:[_obj_dude];                      // Get pointer to PC
+		call stat_get_base_;                           // Get Melee Damage w/o bonuses
+		cmp  ecx, eax;                                 // HtH Damage vs Base Melee Damage
 		cmovg eax, ecx;                                // Move back to eax in preparation of push
 		retn;
 	}
 }
 
+// Display max melee damage w/o perk bonus
 static __declspec(naked) void CommonDmgRngDispFix_hook() {
 	__asm {
 		mov  ebx, eax;                                 // Store pointer to critter
@@ -353,13 +353,11 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
 		call perk_level_;                              // Get rank of Bonus HtH Damage
 		shl  eax, 1;                                   // Multiply by 2
-		push eax;
+		sub  ebx, eax;                                 // Subtract from Melee Damage
 		mov  edx, STAT_melee_dmg;
-		mov  eax, dword ptr ds:[_obj_dude];
-		call stat_get_base_;
-		pop  edx;
-		sub  ebx, edx;                                 // Subtract from Melee Damage
-		cmp  ebx, eax;
+		mov  eax, ds:[_stack];
+		call stat_get_base_;                           // Get Melee Damage w/o bonuses
+		cmp  ebx, eax;                                 // HtH Damage vs Base Melee Damage
 		cmovg eax, ebx;                                // Move back to eax in preparation of push
 		retn;
 	}
@@ -367,16 +365,16 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 
 static __declspec(naked) void HtHDamageFix1a_hack() {
 	__asm {
-		xor  edx, edx;
 		cmp  ecx, dword ptr ds:[_obj_dude];            // Is the critter == PC?
-		jnz  skip;                                     // Skip if no
+		je   fix;                                      // Skip if no
+		mov  edx, 1;                                   // Min_Damage = 1
+		retn;
+fix:
 		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
 		mov  eax, ecx;                                 // pointer to PC
 		call perk_level_;                              // Return Rank_of_Bonus_HtH_Damage_perk
 		shl  eax, 1;                                   // Rank_of_Bonus_HtH_Damage_perk *= 2
-		mov  edx, eax;                                 // Min_Damage = Rank_of_Bonus_HtH_Damage_perk
-skip:
-		add  edx, 1;                                   // Min_Damage += 1
+		lea  edx, [eax + 1];                           // Min_Damage = 1 + Rank_of_Bonus_HtH_Damage_perk
 		retn;
 	}
 }
@@ -385,7 +383,9 @@ static __declspec(naked) void HtHDamageFix1b_hook() {
 	__asm {
 		call stat_level_;                              // Get Total_Melee_Damage
 		cmp  ecx, dword ptr ds:[_obj_dude];            // Is the critter == PC?
-		jnz  end;                                      // Skip to exit if no
+		je   fix;                                      // Skip to exit if no
+		retn;
+fix:
 		push eax;
 		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
 		mov  eax, ecx;                                 // pointer to PC
@@ -393,7 +393,6 @@ static __declspec(naked) void HtHDamageFix1b_hook() {
 		shl  eax, 1;                                   // Rank_of_Bonus_HtH_Damage_perk *= 2
 		add  dword ptr [esp + 0x24 - 0x20 + 8], eax;   // Min_Damage += Rank_of_Bonus_HtH_Damage_perk
 		pop  eax;
-end:
 		retn;
 	}
 }
@@ -403,7 +402,7 @@ static void __declspec(naked) DisplayBonusRangedDmg_hook() {
 		mov  edx, PERK_bonus_ranged_damage;
 		mov  eax, dword ptr ds:[_stack];
 		call perk_level_;
-		shl  eax, 1;
+		shl  eax, 1;                                   // Multiply by 2
 		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus
 		add  dword ptr [esp + 4 * 5], eax;             // max_dmg + perk bonus
 		jmp  sprintf_;
@@ -415,14 +414,14 @@ static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 		mov  edx, PERK_bonus_hth_damage;
 		mov  eax, dword ptr ds:[_stack];
 		call perk_level_;
-		shl  eax, 1;
+		shl  eax, 1;                                   // Multiply by 2
 		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus
 		jmp  sprintf_;
 	}
 }
 
 static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
-	static const DWORD DisplayBonusHtHDmg2Exit = 0x472569;
+	static const DWORD DisplayBonusHtHDmg2Exit = 0x47254E;
 	__asm {
 		mov  ecx, eax;
 		call stat_level_;
@@ -431,16 +430,8 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 		mov  edx, PERK_bonus_hth_damage;
 		mov  eax, ecx;
 		call perk_level_;
-		shl  eax, 1;
-		add  eax, 1;
-		push eax;                                      // min dmg + bonus
-		mov  ecx, dword ptr [esp + 0x98 + 0x4];
-		push ecx;                                      // message
-		push 0x509EDC;                                 // '%s %d-%d'
-		lea  eax, [esp + 0x0C + 0x4];
-		push eax;                                      // buf
-		call sprintf_;
-		add  esp, 0x10 + 0x4;
+		shl  eax, 1;                                   // Multiply by 2
+		inc  eax;                                      // min dmg (1 + bonus)
 		jmp  DisplayBonusHtHDmg2Exit;
 	}
 }
@@ -462,7 +453,7 @@ void DamageModInit() {
 	int DisplayBonusDmg = GetConfigInt("Misc", "DisplayBonusDamage", 0);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
-		if (!DisplayBonusDmg) {                               // Subtract damage from perk bonus (vanilla displaying)
+		if (DisplayBonusDmg == 0) {                           // Subtract damage from perk bonus (vanilla displaying)
 			const DWORD meleeDmgDispPrtAddr[] = {
 				0x435C0C,                                     // DisplayFix (ListDrvdStats_)
 				0x439921                                      // PrintFix   (Save_as_ASCII_)
@@ -485,6 +476,10 @@ void DamageModInit() {
 		if (BonusHtHDmgFix) {
 			HookCall(0x472309, DisplayBonusHtHDmg1_hook);     // display_stats_
 			MakeJump(0x472546, DisplayBonusHtHDmg2_hack);     // display_stats_
+			SafeWrite32(0x472558, 0x509EDC);                  // fmt: '%s %d-%d'
+			SafeWrite8(0x472552, 0x98 + 4);
+			SafeWrite8(0x47255F, 0x0C + 4);
+			SafeWrite8(0x472568, 0x10 + 4);
 		}
 		dlogr(" Done", DL_INIT);
 	}

@@ -359,6 +359,14 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 101;
+		call text_font_;
+		jmp  debug_printf_;
+	}
+}
+
 static void WorldMapInterfacePatch() {
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
@@ -520,6 +528,18 @@ void InterfaceInit() {
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	// InterfaceGmouseHandleHook will be run before game initialization
+
+	// Set the normal font for death screen subtitles
+	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
+		dlog("Applying death screen font patch.", DL_INIT);
+		HookCall(0x4812DF, main_death_scene_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Corrects the height of the black background for death screen subtitles
+	if (hrpIsEnabled == false) SafeWrite32(0x48134D, -602 - (640 * 2));    // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
+	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 }
 
 void InterfaceExit() {
