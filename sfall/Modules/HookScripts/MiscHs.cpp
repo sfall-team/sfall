@@ -707,17 +707,17 @@ void Inject_EncounterHook() {
 }
 
 void InitMiscHookScripts() {
-	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
-	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
-	LoadHookScript("hs_useskill", HOOK_USESKILL);
-	LoadHookScript("hs_steal", HOOK_STEAL);
-	LoadHookScript("hs_sneak", HOOK_SNEAK);
-	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
-	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
-	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
-	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
-	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
-	LoadHookScript("hs_encounter", HOOK_ENCOUNTER);
+	HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+	HookScripts::LoadHookScript("hs_useskillon", HOOK_USESKILLON);
+	HookScripts::LoadHookScript("hs_useskill", HOOK_USESKILL);
+	HookScripts::LoadHookScript("hs_steal", HOOK_STEAL);
+	HookScripts::LoadHookScript("hs_sneak", HOOK_SNEAK);
+	HookScripts::LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+	HookScripts::LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+	HookScripts::LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	HookScripts::LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+	HookScripts::LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
+	HookScripts::LoadHookScript("hs_encounter", HOOK_ENCOUNTER);
 }
 
 }

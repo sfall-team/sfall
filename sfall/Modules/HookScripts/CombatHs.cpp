@@ -652,17 +652,17 @@ void Inject_TargetObjectHook() {
 }
 
 void InitCombatHookScripts() {
-	LoadHookScript("hs_tohit", HOOK_TOHIT);
-	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
-	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
-	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
-	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
-	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
-	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
-	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
-	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
-	LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
-	LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
+	HookScripts::LoadHookScript("hs_tohit", HOOK_TOHIT);
+	HookScripts::LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+	HookScripts::LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+	HookScripts::LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+	HookScripts::LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+	HookScripts::LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+	HookScripts::LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+	HookScripts::LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
+	HookScripts::LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
+	HookScripts::LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
+	HookScripts::LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
 }
 
 }

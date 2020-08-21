@@ -37,8 +37,11 @@
 namespace sfall
 {
 
+// Number of types of hooks
+static constexpr int numHooks = HOOK_COUNT;
+
 bool HookScripts::injectAllHooks;
-DWORD initingHookScripts;
+DWORD HookScripts::initingHookScripts;
 
 std::vector<HookFile> HookScripts::hookScriptFilesList;
 
@@ -53,7 +56,7 @@ static struct HooksPositionInfo {
 	long hsPosition    = 0; // index of the hs_* script, or the beginning of the position for registering scripts using register_hook
 //	long positionShift = 0; // offset to the last script registered by register_hook
 	bool hasHsScript   = false;
-} hooksInfo[HOOK_COUNT];
+} hooksInfo[numHooks];
 
 static HooksInjectInfo injectHooks[] = {
 	{HOOK_TOHIT,            Inject_ToHitHook,            false},
@@ -163,6 +166,19 @@ void HookScripts::RunHookScriptsAtProc(DWORD procId) {
 	}
 }
 
+void HookScripts::LoadHookScript(const char* name, int id) {
+	//if (id >= numHooks || IsGameScript(name)) return;
+
+	bool hookIsLoaded = HookScripts::LoadHookScriptFile(name, id);
+	if (hookIsLoaded || (HookScripts::injectAllHooks && id != HOOK_SUBCOMBATDAMAGE)) {
+		HookScripts::InjectingHook(id); // inject hook to engine code
+
+		if (!hookIsLoaded) return;
+		HookFile hookFile = { id, name };
+		HookScripts::hookScriptFilesList.push_back(hookFile);
+	}
+}
+
 bool HookScripts::LoadHookScriptFile(const char* name, int id) {
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
@@ -201,9 +217,9 @@ static void HookScriptInit() {
 		InitObjectHookScripts();
 		InitMiscHookScripts();
 
-		LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-		LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-		LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+		HookScripts::LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+		HookScripts::LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+		HookScripts::LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 		hooksFilesLoaded = !alwaysFindScripts;
 	} else {
@@ -232,7 +248,7 @@ void HookScripts::HookScriptClear() {
 	for(int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
-	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
 	HookCommon::Reset();
 }
 

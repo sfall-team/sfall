@@ -27,6 +27,8 @@
 
 #include "SubModules\CombatBlock.h"
 
+#include "HookScripts\CombatHS.h"
+
 #include "Combat.h"
 
 namespace sfall

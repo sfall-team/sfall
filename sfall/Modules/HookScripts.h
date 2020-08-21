@@ -85,8 +85,11 @@ public:
 	const char* name() { return "HookScripts"; }
 	void init();
 
+	static DWORD initingHookScripts;
+
 	static std::vector<HookFile> hookScriptFilesList;
 
+	static void LoadHookScript(const char* name, int id);
 	static bool LoadHookScriptFile(const char* name, int id);
 	static void LoadHookScripts();
 	static void HookScriptClear();
@@ -102,9 +105,5 @@ public:
 
 	static void RunHookScriptsAtProc(DWORD procId);
 };
-
-extern DWORD initingHookScripts;
-
-extern int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
 }

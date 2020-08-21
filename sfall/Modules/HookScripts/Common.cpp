@@ -6,8 +6,9 @@
 namespace sfall
 {
 
-constexpr int maxArgs = 16;
-constexpr int maxDepth = 8;
+constexpr int maxArgs = 16; // Maximum number of hook arguments
+constexpr int maxRets = 8;  // Maximum number of return values
+constexpr int maxDepth = 8; // Maximum recursion depth for hook calls
 
 struct {
 	DWORD hookID;
@@ -30,20 +31,7 @@ DWORD cArg;    // how many arguments were taken by current hook script
 DWORD cRet;    // how many return values were set by current hook script
 DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
-std::vector<HookScript> hooks[numHooks];
-
-void LoadHookScript(const char* name, int id) {
-	//if (id >= numHooks || IsGameScript(name)) return;
-
-	bool hookIsLoaded = HookScripts::LoadHookScriptFile(name, id);
-	if (hookIsLoaded || (HookScripts::injectAllHooks && id != HOOK_SUBCOMBATDAMAGE)) {
-		HookScripts::InjectingHook(id); // inject hook to engine code
-
-		if (!hookIsLoaded) return;
-		HookFile hookFile = { id, name };
-		HookScripts::hookScriptFilesList.push_back(hookFile);
-	}
-}
+std::vector<HookScript> hooks[HOOK_COUNT];
 
 DWORD HookCommon::GetHSArgCount() {
 	return argCount;
@@ -124,7 +112,7 @@ void __stdcall RunHookScript(DWORD hook) {
 		if (callDepth > 1) {
 			if (CheckRecursiveHooks(hook) || callDepth > 8) {
 				fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
-				dlog_f("The hook %d cannot be executed due to exceeded depth limit or recursive calls\n", DL_MAIN, hook);
+				dlog_f("The hook %d cannot be executed due to exceeding depth limit or disallowed recursive calls\n", DL_MAIN, hook);
 				return;
 			}
 		}

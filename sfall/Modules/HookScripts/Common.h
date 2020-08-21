@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Windows.h>
-
 #include "..\HookScripts.h"
 #include "..\ScriptExtender.h"
 
@@ -9,19 +7,6 @@
 
 namespace sfall
 {
-
-// Number of types of hooks
-constexpr int numHooks = HOOK_COUNT;
-
-// Maximum number of return values
-const int maxRets = 8;
-
-// Struct for registered hook script
-struct HookScript {
-	ScriptProgram prog;
-	int callback;        // proc number in script's proc table
-	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
-};
 
 class HookCommon {
 public:
@@ -39,6 +24,13 @@ public:
 	static void Reset();
 };
 
+// Struct for registered hook script
+struct HookScript {
+	ScriptProgram prog;
+	int callback;        // proc number in script's proc table
+	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
+};
+
 // All currently registered hook scripts
 extern std::vector<HookScript> hooks[];
 
@@ -49,8 +41,6 @@ extern DWORD argCount;
 extern DWORD cArg;    // how many arguments were taken by current hook script
 extern DWORD cRet;    // how many return values were set by current hook script
 extern DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
-
-void LoadHookScript(const char* name, int id);
 
 void __stdcall BeginHook();
 void __stdcall RunHookScript(DWORD hook);

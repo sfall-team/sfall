@@ -157,7 +157,7 @@ end:
 
 void __declspec(naked) op_init_hook() {
 	__asm {
-		mov  edx, initingHookScripts;
+		mov  edx, HookScripts::initingHookScripts;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

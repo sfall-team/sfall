@@ -343,14 +343,13 @@ void Inject_ScriptProcedureHook2() {
 }
 
 void InitObjectHookScripts() {
-
-	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
-	LoadHookScript("hs_useobj", HOOK_USEOBJ);
-	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
-	LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
-	LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
-	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
-	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
+	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
+	HookScripts::LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
+	HookScripts::LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
+	HookScripts::LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
+	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
+	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
 }
 
 }

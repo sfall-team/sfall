@@ -157,11 +157,9 @@ void Inject_OnDeathHook() {
 }
 
 void InitDeathHookScripts() {
-
-	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
-	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
-	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
-
+	HookScripts::LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
+	HookScripts::LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+	HookScripts::LoadHookScript("hs_ondeath", HOOK_ONDEATH);
 }
 
 }
