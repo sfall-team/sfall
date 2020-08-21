@@ -1172,21 +1172,6 @@ static void __declspec(naked) action_explode_hack1() {
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hack() {
-	__asm {
-		cmp  dword ptr [eax + protoId], PID_ACTIVE_GEIGER_COUNTER
-		je   found
-		cmp  dword ptr [eax + protoId], PID_ACTIVE_STEALTH_BOY
-		je   found
-		mov  eax, 0x474D34
-		jmp  eax
-found:
-		call fo::funcoffs::item_m_turn_off_
-		mov  eax, 0x474D17
-		jmp  eax                                  // Is there any other activated items among the ones being sold?
-	}
-}
-
 static void __declspec(naked) barter_attempt_transaction_hook_weight() {
 	__asm {
 		call fo::funcoffs::item_total_weight_;
@@ -1198,10 +1183,25 @@ skip:
 	}
 }
 
+static void __declspec(naked) barter_attempt_transaction_hack() {
+	__asm {
+		mov  edx, [eax + protoId];
+		cmp  edx, PID_ACTIVE_GEIGER_COUNTER;
+		je   found;
+		cmp  edx, PID_ACTIVE_STEALTH_BOY;
+		je   found;
+		mov  eax, 0x474D34;                       // Can't sell
+		jmp  eax;
+found:
+		push 0x474D17;                            // Is there any other activated items among the ones being sold?
+		jmp  fo::funcoffs::item_m_turn_off_;
+	}
+}
+
 static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
-		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
-		jmp  fo::funcoffs::queue_remove_this_
+		and  byte ptr [eax + 0x25], ~0x20;        // Unset flag of used items
+		jmp  fo::funcoffs::queue_remove_this_;
 	}
 }
 
@@ -3089,8 +3089,8 @@ void BugFixes::init()
 	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
-		SafeWriteBatch<BYTE>(0xBA, {0x478115, 0x478138}); // mov eax, 1 > mov edx, 1
-		MakeJump(0x474D22, barter_attempt_transaction_hack);
+		SafeWriteBatch<BYTE>(0xBA, {0x478115, 0x478138}); // item_queued_ (will return the found item)
+		MakeJump(0x474D22, barter_attempt_transaction_hack, 1);
 		HookCall(0x4798B1, item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
