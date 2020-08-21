@@ -27,14 +27,17 @@
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
-static const int maxArgs = 16;
-static const int maxRets = 8;
-static const int maxDepth = 8;
+// Number of types of hooks
 static const int numHooks = HOOK_COUNT;
 
+static const int maxArgs = 16; // Maximum number of hook arguments
+static const int maxRets = 8;  // Maximum number of return values
+static const int maxDepth = 8; // Maximum recursion depth for hook calls
+
+// Struct for registered hook script
 struct sHookScript {
 	sScriptProgram prog;
-	int callback; // proc number in script's proc table
+	int callback;        // proc number in script's proc table
 	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
 };
 
@@ -65,7 +68,7 @@ static struct HooksPositionInfo {
 	long hsPosition;    // index of the hs_* script, or the beginning of the position for registering scripts using register_hook
 //	long positionShift; // offset to the last script registered by register_hook
 	bool hasHsScript;
-} hooksInfo[HOOK_COUNT];
+} hooksInfo[numHooks];
 
 DWORD initingHookScripts;
 
@@ -137,7 +140,7 @@ static void __stdcall RunHookScript(DWORD hook) {
 	if (!hooks[hook].empty()) {
 		if (callDepth > 8) {
 			DebugPrintf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
-			dlog_f("The hook %d cannot be executed due to exceeded depth limit\n", DL_MAIN, hook);
+			dlog_f("The hook %d cannot be executed due to exceeding depth limit\n", DL_MAIN, hook);
 			return;
 		}
 		currentRunHook = hook;
@@ -1809,7 +1812,7 @@ void HookScriptClear() {
 	for (int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
-	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
 }
 
 void LoadHookScripts() {
