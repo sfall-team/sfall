@@ -166,7 +166,7 @@ void Objects::SetAutoUnjamLockTime(DWORD time) {
 		}
 		unjamTimeState = 1;
 	} else {
-		SafeWrite8(0x4831DA, 0xEB); // disable auto unjam
+		SafeWrite8(0x4831DA, CodeType::JumpShort); // disable auto unjam
 		unjamTimeState = 2;
 	}
 }
@@ -242,7 +242,7 @@ void Objects::init() {
 	};
 
 	HookCall(0x4A38A5, new_obj_id_hook);
-	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
+	SafeWrite8(0x4A38B3, CodeType::Nop); // fix ID increment
 
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 

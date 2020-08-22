@@ -29,8 +29,8 @@ namespace fo
 namespace func
 {
 
-// Prints debug message to debug.log file for develop build
 #ifndef NDEBUG
+// Prints debug message to game debug.log file for develop build
 void dev_printf(const char* fmt, ...);
 #else
 void dev_printf(...);

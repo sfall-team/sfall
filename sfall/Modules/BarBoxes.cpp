@@ -35,6 +35,8 @@ static long newBoxSlot[16];
 static long maxSlots = 6;                 // maximum number of slots for the current game window resolution
 static long ifaceWidth;
 
+#pragma pack(push, 1)
+
 #define sSize    (12)
 static struct sBox {
 	DWORD msg;
@@ -50,6 +52,8 @@ static struct tBox {
 	bool isActive;
 	char text[tSize - 4];
 } *boxText;
+
+#pragma pack(pop)
 
 static bool setCustomBoxText;
 
@@ -187,7 +191,7 @@ void BarBoxes::SetText(int box, const char* text, DWORD color) {
 		clr = fo::var::GoodColor;
 		break;
 	case 7:
-		clr = *(BYTE*)FO_VAR_DullPinkColor;
+		clr = fo::var::DullPinkColor;
 		break;
 	default:
 		clr = fo::var::GreenColor;

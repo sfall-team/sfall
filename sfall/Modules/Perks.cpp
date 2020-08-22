@@ -75,6 +75,7 @@ struct PerkInfoExt {
 };
 static std::vector<PerkInfoExt> extPerks;
 
+#pragma pack(push, 1)
 struct FakePerk {
 	int Level; // current level (max 100)
 	int Image;
@@ -93,6 +94,7 @@ struct FakePerk {
 		strncpy_s(this->Desc, _desc, _TRUNCATE);
 	}
 };
+#pragma pack(pop)
 
 std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;
@@ -857,7 +859,7 @@ static void PerkEngineInit() {
 
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
-	SafeWrite8(0x43C2EC, 0xEB); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
+	SafeWrite8(0x43C2EC, CodeType::JumpShort); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
 }
 
 static void PerkSetup() {

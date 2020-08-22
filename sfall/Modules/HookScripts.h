@@ -73,11 +73,26 @@ enum HookType
 	HOOK_COUNT
 };
 
+struct HookFile {
+	int id;
+//	std::string filePath;
+	std::string name;
+};
+
 class HookScripts : public Module {
 
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
+
+	static DWORD initingHookScripts;
+
+	static std::vector<HookFile> hookScriptFilesList;
+
+	static void LoadHookScript(const char* name, int id);
+	static bool LoadHookScriptFile(const char* name, int id);
+	static void LoadHookScripts();
+	static void HookScriptClear();
 
 	static bool HookHasScript(int hookId);
 
@@ -85,26 +100,10 @@ public:
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);
 
-	static void GameModeChangeHook(DWORD exit);
-	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
+	// register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
+	static void RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
 
-	static DWORD GetHSArgCount();
-	static DWORD GetHSArg();
-	static DWORD GetHSArgAt(DWORD id);
-	static DWORD* GetHSArgs();
-	static void SetHSArg(DWORD id, DWORD value);
-	static void __stdcall SetHSReturn(DWORD d);
+	static void RunHookScriptsAtProc(DWORD procId);
 };
-
-// register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
-
-// TODO: move
-void HookScriptClear();
-void LoadHookScripts();
-
-extern DWORD initingHookScripts;
-extern int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
-void RunHookScriptsAtProc(DWORD procId);
 
 }

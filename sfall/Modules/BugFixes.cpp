@@ -1172,21 +1172,6 @@ static void __declspec(naked) action_explode_hack1() {
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hack() {
-	__asm {
-		cmp  dword ptr [eax + protoId], PID_ACTIVE_GEIGER_COUNTER
-		je   found
-		cmp  dword ptr [eax + protoId], PID_ACTIVE_STEALTH_BOY
-		je   found
-		mov  eax, 0x474D34
-		jmp  eax
-found:
-		call fo::funcoffs::item_m_turn_off_
-		mov  eax, 0x474D17
-		jmp  eax                                  // Is there any other activated items among the ones being sold?
-	}
-}
-
 static void __declspec(naked) barter_attempt_transaction_hook_weight() {
 	__asm {
 		call fo::funcoffs::item_total_weight_;
@@ -1198,10 +1183,25 @@ skip:
 	}
 }
 
+static void __declspec(naked) barter_attempt_transaction_hack() {
+	__asm {
+		mov  edx, [eax + protoId];
+		cmp  edx, PID_ACTIVE_GEIGER_COUNTER;
+		je   found;
+		cmp  edx, PID_ACTIVE_STEALTH_BOY;
+		je   found;
+		mov  eax, 0x474D34;                       // Can't sell
+		jmp  eax;
+found:
+		push 0x474D17;                            // Is there any other activated items among the ones being sold?
+		jmp  fo::funcoffs::item_m_turn_off_;
+	}
+}
+
 static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
-		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
-		jmp  fo::funcoffs::queue_remove_this_
+		and  byte ptr [eax + 0x25], ~0x20;        // Unset flag of used items
+		jmp  fo::funcoffs::queue_remove_this_;
 	}
 }
 
@@ -2006,22 +2006,75 @@ skip:
 
 static void __declspec(naked) op_attack_hook() {
 	__asm {
-		mov  esi, dword ptr [esp + 0x3C + 4];   // free_move
-		mov  ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		mov  esi, dword ptr [esp + 0x3C + 4]; // free_move
+		mov  ebx, dword ptr [esp + 0x40 + 4]; // add amount damage to target
 		jmp  fo::funcoffs::gdialogActive_;
+	}
+}
+
+static void __declspec(naked) op_attack_hook_flags() {
+	__asm {
+		and  eax, 0xFF;
+		shl  al, 1; // shift to bit 2
+		test ebp, ebp;
+		jz   skip;
+		or   al, 1;
+skip:
+		// EAX: gcsd.changeFlags contains the attribute value for setting the flags
+		// bit 1 - set result flags for target, bit 2 - set result flags for attacker
+		test eax, eax;
+		retn;
+	}
+}
+
+static void __stdcall combat_attack_gcsd() {
+	if (fo::var::gcsd->changeFlags & 2) { // only for AttackComplexFix
+		long flags = fo::var::gcsd->flagsSource;
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
+			flags |= fo::var::main_ctd.attackerFlags;
+		} else {
+			flags |= fo::var::main_ctd.attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		}
+		fo::var::main_ctd.attackerFlags = flags;
+	}
+	if (fo::var::gcsd->changeFlags & 1) {
+		long flags = fo::var::gcsd->flagsTarget;
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
+			flags |= fo::var::main_ctd.targetFlags;
+		} else {
+			flags |= fo::var::main_ctd.targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag (fix death animation)
+		}
+		fo::var::main_ctd.targetFlags = flags;
+	}
+
+	if (fo::var::main_ctd.attackerFlags & fo::DamageFlag::DAM_HIT) {
+		long damage = fo::var::main_ctd.targetDamage;
+		fo::var::main_ctd.targetDamage += fo::var::gcsd->bonusDamage;
+		if (fo::var::main_ctd.targetDamage < fo::var::gcsd->minDamage) {
+			fo::var::main_ctd.targetDamage = fo::var::gcsd->minDamage;
+		}
+		if (damage < fo::var::main_ctd.targetDamage) { // check the hit points and set the DAM_DEAD flag
+			fo::func::check_for_death(fo::var::main_ctd.target, fo::var::main_ctd.targetDamage, &fo::var::main_ctd.targetFlags);
+		}
+
+		if (fo::var::main_ctd.targetDamage > fo::var::gcsd->maxDamage) {
+			fo::var::main_ctd.targetDamage = fo::var::gcsd->maxDamage;
+		}
+		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+			long cHP = fo::var::main_ctd.target->critter.health;
+			if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
+				fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
+			}
+		}
 	}
 }
 
 static void __declspec(naked) combat_attack_hack() {
 	__asm {
-		mov  ebx, ds:[FO_VAR_main_ctd + 0x2C]; // amountTarget
-		test ebx, ebx;
-		jz   end;
-		retn;
-end:
-		add  esp, 4;
-		mov  ebx, 0x423039;
-		jmp  ebx;
+		push 0x423039; // return addr
+		jmp  combat_attack_gcsd;
 	}
 }
 
@@ -2713,6 +2766,55 @@ checkTiles:
 	}
 }
 
+static void __declspec(naked) doBkProcesses_hook() {
+	__asm {
+		call fo::funcoffs::gdialogActive_;
+		test eax, eax;
+		jz   skip;
+		retn;
+skip:
+		jmp  fo::funcoffs::gmovieIsPlaying_;
+	}
+}
+
+static bool dudeIsAnimDeath = false;
+
+static void __declspec(naked) show_damage_to_object_hack() {
+	static const DWORD show_damage_to_object_Ret = 0x410B90;
+	__asm {
+		jnz  isDeath;
+		add  esp, 4;
+		jmp  show_damage_to_object_Ret;
+isDeath:
+		cmp  esi, ds:[FO_VAR_obj_dude];
+		sete dudeIsAnimDeath;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hack_ondeath() {
+	static const DWORD obj_move_to_tile_Ret = 0x48A759;
+	__asm {
+		jz   skip;
+		cmp  dudeIsAnimDeath, 0;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  obj_move_to_tile_Ret;
+	}
+}
+
+static void __declspec(naked) action_knockback_hack() {
+	__asm {
+		mov  ecx, 20; // cap knockback distance
+		cmp  ebp, ecx;
+		cmovg ebp, ecx;
+		mov  ecx, 1;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2722,6 +2824,7 @@ void BugFixes::init()
 
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
+	LoadGameHook::OnGameReset() += []() { dudeIsAnimDeath = false; };
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -2753,7 +2856,7 @@ void BugFixes::init()
 		// // removes this line by making unconditional jump:
 		// if ( who == obj_dude )
 		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
-		SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
+		SafeWrite8(0x424527, CodeType::JumpShort); // in detemine_to_hit_func_()
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2806,7 +2909,7 @@ void BugFixes::init()
 		// Fix for move_obj_inven_to_obj function
 		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
 		SafeWrite16(0x45C496, 0x9090);
-		SafeWrite8(0x45C4A3, 0x75); // jmp > jnz
+		SafeWrite8(0x45C4A3, CodeType::JumpNZ); // jmp > jnz
 		// Fix for drop_obj function
 		HookCall(0x49B965, obj_drop_hook);
 		dlogr(" Done", DL_INIT);
@@ -2831,7 +2934,7 @@ void BugFixes::init()
 
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
-	SafeWrite8(0x4AC377, 0x7F);                // jg
+	SafeWrite8(0x4AC377, 0x7F); // jg
 	dlogr(" Done", DL_INIT);
 
 	// Fix for negative SPECIAL values in character creation
@@ -2853,8 +2956,7 @@ void BugFixes::init()
 	//}
 
 	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
-	SafeWrite8(0x475541, 64);
-	SafeWrite8(0x475789, 64);
+	SafeWriteBatch<BYTE>(64, {0x475541, 0x475789});
 
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
@@ -2917,7 +3019,7 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
 		dlog("Applying shiv patch.", DL_INIT);
-		SafeWrite8(0x477B2B, 0xEB);
+		SafeWrite8(0x477B2B, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2926,8 +3028,7 @@ void BugFixes::init()
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
 		SafeWrite32(0x46B35D, 0x90909090);
-		SafeWrite8(0x46DBF1, 0xEB); // Disable warnings
-		SafeWrite8(0x46DDC4, 0xEB); // Disable warnings
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x46DBF1, 0x46DDC4}); // Disable warnings
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}
@@ -2988,9 +3089,8 @@ void BugFixes::init()
 	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
-		SafeWrite8(0x478115, 0xBA);
-		SafeWrite8(0x478138, 0xBA);
-		MakeJump(0x474D22, barter_attempt_transaction_hack);
+		SafeWriteBatch<BYTE>(0xBA, {0x478115, 0x478138}); // item_queued_ (will return the found item)
+		MakeJump(0x474D22, barter_attempt_transaction_hack, 1);
 		HookCall(0x4798B1, item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3131,8 +3231,8 @@ void BugFixes::init()
 	// Fix broken op_obj_can_hear_obj_ function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
-		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
-		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
+		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
+		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz loc_458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3151,7 +3251,7 @@ void BugFixes::init()
 
 	// Fix for the encounter description being displayed in two lines instead of one
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
-	SafeWrite8(0x4C1015, 0x90);
+	SafeWrite8(0x4C1015, CodeType::Nop);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
 	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
@@ -3195,7 +3295,7 @@ void BugFixes::init()
 	// Display messages about radiation for the active geiger counter
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(0x74, {0x42D424, 0x42D444}); // jnz > jz
+		SafeWriteBatch<BYTE>(CodeType::JumpZ, {0x42D424, 0x42D444}); // jnz > jz
 		dlogr(" Done", DL_INIT);
 	}
 	// Display a pop-up message box about death from radiation
@@ -3206,8 +3306,8 @@ void BugFixes::init()
 		dlog("Applying AI drug use preference fix.", DL_INIT);
 		MakeCall(0x42869D, ai_check_drugs_hack_break);
 		MakeCall(0x4286AB, ai_check_drugs_hack_check);
-		SafeWrite16(0x4286B0, 0x7490); // jnz > jz
-		SafeWrite8(0x4286C5, 0x75);    // jz  > jnz
+		SafeWrite16(0x4286B0, 0x7490);          // jnz > jz
+		SafeWrite8(0x4286C5, CodeType::JumpNZ); // jz  > jnz
 		MakeCall(0x4286C7, ai_check_drugs_hack_use);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3220,21 +3320,30 @@ void BugFixes::init()
 	HookCall(0x4C6162, db_freadInt_hook);
 
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
-	// also change the behavior of the result flags arguments
-	// called_shot - additional damage, when the damage received by the target is above the specified minimum
+	// called_shot - additional damage when hitting the target
 	// num_attacks - the number of free action points on the first turn only
-	// attacker_results - unused, must be 0 or not equal to the target_results argument when specifying result flags for the target
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
-		dlog("Applying attack_complex fix.", DL_INIT);
+		dlog("Applying attack_complex arguments fix.", DL_INIT);
 		HookCall(0x456D4A, op_attack_hook);
-		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
-		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
-		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
-		dlogr(" Done", DL_INIT);
-	}
+		SafeWrite8(0x456D61, 0x74); // mov [gcsd.free_move], esi
+		SafeWrite8(0x456D92, 0x5C); // mov [gcsd.amount], ebx
 
-	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
-	MakeCall(0x422FE5, combat_attack_hack, 1);
+		// Allow setting result flags arguments for the attacker and the target (now work independently of each other)
+		SafeWrite16(0x456D95, 0xC085); // cmp eax, ebp > test eax, eax
+		MakeCall(0x456D9A, op_attack_hook_flags);
+		SafeWrite16(0x456DA7, 0x8489); // mov [gcsd.changeFlags], 1 > mov [gcsd.changeFlags], eax
+		SafeWrite8(0x456DAB, 0);
+		SafeWrite8(0x456DAE, CodeType::Nop);
+		dlogr(" Done", DL_INIT);
+	} else {
+		// Fix setting result flags argument for the target
+		SafeWrite16(0x456D95, 0xED85); // cmp eax, ebp > test ebp, ebp
+	}
+	SafeWrite8(0x456D9F, CodeType::JumpNZ); // jz > jnz
+	// Fix result flags for the attacker and the target when calling attack_complex function
+	// also set/unset the DAM_DEAD flag when changing the minimum/maximum damage to the target
+	// and fix minimum damage still being applied to the target when the attacker misses
+	MakeJump(0x422FE5, combat_attack_hack, 1);
 
 	// Fix for critter_mod_skill taking a negative amount value as a positive
 	dlog("Applying critter_mod_skill fix.", DL_INIT);
@@ -3430,6 +3539,17 @@ void BugFixes::init()
 	};
 	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
 	HookCall(0x42A0F8, (void*)fo::funcoffs::obj_dist_);
+
+	// Fix to prevent the execution of critter_p_proc and game events when playing movies (same as when the dialog is active)
+	HookCall(0x4A3C89, doBkProcesses_hook);
+
+	// Fix to prevent the player from leaving the map when the death animation causes the player to cross an exit grid
+	// (e.g. fire dance or knockback animation)
+	MakeCall(0x41094B, show_damage_to_object_hack, 1);
+	MakeCall(0x48A6CB, obj_move_to_tile_hack_ondeath, 1);
+
+	// Fix to limit the maximum distance for the knockback animation
+	MakeCall(0x4104D5, action_knockback_hack);
 }
 
 }

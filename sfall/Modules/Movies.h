@@ -30,7 +30,7 @@ public:
 	void exit() override;
 };
 
-static const int MaxMovies = 32;
+static constexpr int MaxMovies = 32;
 extern char MoviePaths[MaxMovies * 65];
 
 }

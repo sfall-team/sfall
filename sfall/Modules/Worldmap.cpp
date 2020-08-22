@@ -37,9 +37,12 @@ static DWORD AutomapPipboyList[AUTOMAP_MAX];
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+#pragma pack(push, 1)
 struct levelRest {
 	char level[4];
 };
+#pragma pack(pop)
+
 std::unordered_map<int, levelRest> mapRestInfo;
 
 std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
@@ -361,8 +364,8 @@ static void WorldLimitsPatches() {
 
 	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
-		if (*((BYTE*)0x4BF3BB) != 0xEB) {
-			SafeWrite8(0x4BF3BB, 0xEB);
+		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
+			SafeWrite8(0x4BF3BB, CodeType::JumpShort);
 		}
 		dlogr(" Done", DL_INIT);
 	//}
@@ -384,8 +387,8 @@ static void TimeLimitPatch() {
 				0x4A34EF, // inc_game_time_
 				0x4A3547  // inc_game_time_in_seconds_
 			});
-			SafeMemSet(0x4A34F4, 0x90, 16);
-			SafeMemSet(0x4A354C, 0x90, 16);
+			SafeMemSet(0x4A34F4, CodeType::Nop, 16);
+			SafeMemSet(0x4A354C, CodeType::Nop, 16);
 		} else {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);

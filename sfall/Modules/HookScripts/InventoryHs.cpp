@@ -80,7 +80,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	int result = PartyControl::SwitchHandHook(item);
 	if (result != -1) {
 		cRetTmp = 0;
-		HookScripts::SetHSReturn(result);
+		HookCommon::SetHSReturn(result);
 	}
 	result = (cRet > 0) ? rets[0] : -1;
 	EndHook();
@@ -658,12 +658,11 @@ long CorrectFidForRemovedItem_wHook(fo::GameObject* critter, fo::GameObject* ite
 }
 
 void InitInventoryHookScripts() {
-
-	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
-	LoadHookScript("hs_movecost", HOOK_MOVECOST);
-	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
-	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
-	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+	HookScripts::LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+	HookScripts::LoadHookScript("hs_movecost", HOOK_MOVECOST);
+	HookScripts::LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+	HookScripts::LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+	HookScripts::LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
 
 	Inventory::OnAdjustFid() += AdjustFidHook; // should be registered last
 }

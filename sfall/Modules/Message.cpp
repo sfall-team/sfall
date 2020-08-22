@@ -91,12 +91,12 @@ static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFil
 					pos++;
 					// shift all chars to the left
 					do {
-						*n++ = *pos++;
 						if (pos == _pos) { // skip '^' char
 							while (*++pos && *pos != '>');  // skip female side
 							do *n++ = *++pos; while (*pos); // continue shift (with '\0')
 							break;
 						}
+						*n++ = *pos++;
 					} while (*pos);
 				}
 				break; // exit for

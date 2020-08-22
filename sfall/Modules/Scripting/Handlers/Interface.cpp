@@ -521,10 +521,7 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
 		}
 	}
-	__asm {
-		mov  eax, frmPtr;
-		call fo::funcoffs::mem_free_;
-	}
+	fo::func::mem_free(frmPtr);
 	return 1;
 }
 
@@ -551,7 +548,7 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 	}
 	bool isDude = (critter == fo::var::obj_dude);
 	bool update = false;
-	if (slot && (GetLoopFlags() && (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
+	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
 		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::Left : fo::Right) == 0) {
 			update = isDude;
 		}

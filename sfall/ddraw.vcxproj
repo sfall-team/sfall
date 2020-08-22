@@ -304,6 +304,7 @@
     <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Modules\MainLoopHook.h" />
+    <ClInclude Include="Modules\MetaruleExtender.h" />
     <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\DamageMod.h" />
@@ -402,6 +403,7 @@
     <ClCompile Include="Modules\DamageMod.cpp" />
     <ClCompile Include="Modules\Animations.cpp" />
     <ClCompile Include="Modules\MainLoopHook.cpp" />
+    <ClCompile Include="Modules\MetaruleExtender.cpp" />
     <ClCompile Include="Modules\MiscPatches.cpp" />
     <ClCompile Include="Modules\Karma.cpp" />
     <ClCompile Include="Modules\LoadOrder.cpp" />

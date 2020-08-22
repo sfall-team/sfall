@@ -45,6 +45,7 @@
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
+#define FO_VAR_currentProgram             0x59E78C
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
 #define FO_VAR_debug_func                 0x51DF04
@@ -61,6 +62,7 @@
 #define FO_VAR_dialogueWindow             0x518744
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
+#define FO_VAR_doing_refresh_all          0x6ADF38
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_editor_message_file        0x56FCA8
@@ -68,6 +70,9 @@
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_EncounterMapID             0x672E4C
+#define FO_VAR_endgame_subtitle_done      0x570BD0
+#define FO_VAR_endgame_subtitle_characters 0x51866C
+#define FO_VAR_endgame_voiceover_loaded   0x570AB8
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_game_time          0x51C720
@@ -88,6 +93,7 @@
 #define FO_VAR_gconfig_file_name          0x58E978
 #define FO_VAR_gcsd                       0x51094C
 #define FO_VAR_gdBarterMod                0x51873C
+#define FO_VAR_gdialog_speech_playing     0x518710
 #define FO_VAR_gDialogMusicVol            0x5187D8
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
@@ -95,7 +101,9 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
+#define FO_VAR_GNWWin                     0x5195B8
 #define FO_VAR_gsound_initialized         0x518E30
+#define FO_VAR_gsound_speech_tag          0x518E54
 #define FO_VAR_hit_location_penalty       0x510954
 #define FO_VAR_holo_flag                  0x664529
 #define FO_VAR_holodisk                   0x6644F4
@@ -135,6 +143,7 @@
 #define FO_VAR_LSData                     0x613D30
 #define FO_VAR_lsgwin                     0x6142C4
 #define FO_VAR_main_ctd                   0x56D2B0
+#define FO_VAR_main_death_voiceover_done  0x614838
 #define FO_VAR_main_window                0x5194F0
 #define FO_VAR_map_elevation              0x519578
 #define FO_VAR_map_global_vars            0x51956C
@@ -155,6 +164,7 @@
 #define FO_VAR_mouse_y                    0x664450
 #define FO_VAR_mouse_y_                   0x6AC7A4
 #define FO_VAR_movePointRect              0x518FD4
+#define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_font                  0x56D74C
@@ -222,6 +232,7 @@
 #define FO_VAR_sneak_working              0x56D77C // DWORD var
 #define FO_VAR_sound_music_path1          0x518E78
 #define FO_VAR_sound_music_path2          0x518E7C
+#define FO_VAR_speech_volume              0x518E8C
 #define FO_VAR_square                     0x631E40
 #define FO_VAR_squares                    0x66BE08
 #define FO_VAR_stack                      0x59E86C
@@ -243,6 +254,8 @@
 #define FO_VAR_text_height                0x51E3BC
 #define FO_VAR_text_max                   0x51E3D4
 #define FO_VAR_text_mono_width            0x51E3C8
+#define FO_VAR_text_object_index          0x51D944
+#define FO_VAR_text_object_list           0x6681C0
 #define FO_VAR_text_spacing               0x51E3CC
 #define FO_VAR_text_to_buf                0x51E3B8
 #define FO_VAR_text_width                 0x51E3C0

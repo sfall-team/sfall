@@ -26,7 +26,7 @@ namespace sfall
 
 static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
-static const int elevatorCount = 50;
+static const int elevatorCount = 50; // The maximum allowed for Elevator stub in the BIS mapper
 
 static DWORD elevatorType[elevatorCount] = {0};
 static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals

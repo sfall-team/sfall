@@ -68,7 +68,7 @@ bool CritterCopyProto(long pid, long* &proto_dst) {
 		proto_dst = nullptr;
 		return false;
 	}
-	proto_dst = reinterpret_cast<long*>(new int32_t[104]);
+	proto_dst = reinterpret_cast<long*>(new long[104]);
 	memcpy(proto_dst, protoPtr, 416);
 	return true;
 }
@@ -194,7 +194,7 @@ long GetScriptLocalVars(long sid) {
 // Returns window ID by x/y coordinate (hidden windows are ignored)
 long __fastcall GetTopWindowID(long xPos, long yPos) {
 	fo::Window* win = nullptr;
-	long countWin = *(DWORD*)FO_VAR_num_windows - 1;
+	long countWin = fo::var::num_windows - 1;
 	for (int n = countWin; n >= 0; n--) {
 		win = fo::var::window[n];
 		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
@@ -393,6 +393,24 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
+// Fills the specified non-scripted interface window with black color
+void ClearWindow(DWORD winID, bool refresh) {
+	__asm {
+		xor  ebx, ebx;
+		push ebx;
+		mov  eax, winID;
+		call fo::funcoffs::win_height_;
+		push eax;
+		mov  eax, winID;
+		call fo::funcoffs::win_width_;
+		mov  ecx, eax;
+		mov  edx, ebx;
+		mov  eax, winID;
+		call fo::funcoffs::win_fill_;
+	}
+	if (refresh) fo::func::win_draw(winID);
+}
+
 //---------------------------------------------------------
 // print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
@@ -505,7 +523,16 @@ void RedrawObject(GameObject* obj) {
 	func::tile_refresh_rect(&rect, obj->elevation);
 }
 
-/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
+// Redraws all interface windows
+void RefreshGNW() {
+	*(DWORD*)FO_VAR_doing_refresh_all = 1;
+	for (size_t i = 0; i < fo::var::num_windows; i++) {
+		func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
+	}
+	*(DWORD*)FO_VAR_doing_refresh_all = 0;
+}
+
+/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
 
 static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)

@@ -29,13 +29,14 @@ namespace fo
 /* FALLOUT2.EXE structs should be placed here  */
 /******************************************************************************/
 
+#pragma pack(push, 1)
+
 // TODO: make consistent naming for all FO structs
 
 struct GameObject;
 struct Program;
 struct ScriptInstance;
 
-#pragma pack(1)
 struct Art {
 	long flags;
 	char path[16];
@@ -44,7 +45,6 @@ struct Art {
 	long total;
 };
 
-#pragma pack(1)
 struct AnimationSet {
 	long currentAnim;
 	long counter;
@@ -69,7 +69,6 @@ struct AnimationSet {
 static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition.");
 
 // Bounding rectangle, used by tile_refresh_rect and related functions.
-#pragma pack(1)
 struct BoundRect {
 	long x;
 	long y;
@@ -78,7 +77,6 @@ struct BoundRect {
 };
 
 // Game objects (items, critters, etc.), including those stored in inventories.
-#pragma pack(1)
 struct GameObject {
 	long id;
 	long tile;
@@ -141,7 +139,6 @@ struct GameObject {
 };
 
 // Results of compute_attack_() function.
-#pragma pack(1)
 struct ComputeAttackResult {
 	GameObject* attacker;
 	long hitMode;
@@ -166,8 +163,20 @@ struct ComputeAttackResult {
 	long extraKnockbackValue[6];
 };
 
+struct CombatGcsd {
+	GameObject* source;
+	GameObject* target;
+	long freeAP;
+	long bonusToHit;
+	long bonusDamage;
+	long minDamage;
+	long maxDamage;
+	long changeFlags;
+	DWORD flagsSource;
+	DWORD flagsTarget;
+};
+
 // Script instance attached to an object or tile (spatial script).
-#pragma pack(1)
 struct ScriptInstance {
 	long id;
 	long next;
@@ -195,7 +204,6 @@ struct ScriptInstance {
 };
 
 // Script run-time data
-#pragma pack(1)
 struct Program {
 	const char* fileName;
 	long *codeStackPtr;
@@ -214,7 +222,6 @@ struct Program {
 	long *procTablePtr;
 };
 
-#pragma pack(1)
 struct ItemButtonItem {
 	GameObject* item;
 	union {
@@ -235,7 +242,6 @@ struct ItemButtonItem {
 // specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
 // below the value specified (e.g., -7 indicates a stat must be less than 7). Operator is only non-zero when there
 // are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
-#pragma pack(1)
 struct PerkInfo {
 	const char* name;
 	const char* description;
@@ -258,26 +264,22 @@ struct PerkInfo {
 	long luckMin;
 };
 
-#pragma pack(1)
 struct DbFile {
 	long fileType;
 	void* handle;
 };
 
-#pragma pack(1)
 struct ElevatorExit {
 	long id;
 	long elevation;
 	long tile;
 };
 
-#pragma pack(1)
 struct ElevatorFrms {
 	DWORD main;
 	DWORD buttons;
 };
 
-#pragma pack(1)
 struct FrmFile {
 	long id;				//0x00
 	short fps;				//0x04
@@ -296,7 +298,6 @@ struct FrmFile {
 };
 
 //structures for holding frms loaded with fallout2 functions
-#pragma pack(1)
 typedef class FrmFrameData { // sizeof 12 + 1 byte
 public:
 	WORD width;
@@ -307,7 +308,7 @@ public:
 	BYTE data[1]; // begin frame data
 } FrmFrameData;
 
-#pragma pack(2)
+#pragma pack(push, 2)
 typedef class FrmHeaderData { // sizeof 62
 public:
 	DWORD version;        // version num
@@ -319,9 +320,9 @@ public:
 	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
 	DWORD frameAreaSize;  // size of all frames area
 } FrmHeaderData;
+#pragma pack(pop)
 
 // structures for loading unlisted frms
-#pragma pack(1)
 struct UnlistedFrm {
 	DWORD version;
 	WORD FPS;
@@ -374,7 +375,6 @@ struct UnlistedFrm {
 };
 
 //for holding a message
-#pragma pack(1)
 struct MessageNode {
 	long number;
 	long flags;
@@ -390,7 +390,6 @@ struct MessageNode {
 };
 
 //for holding msg array
-#pragma pack(1)
 typedef struct MessageList {
 	long numMsgs;
 	MessageNode *nodes;
@@ -401,7 +400,6 @@ typedef struct MessageList {
 	}
 } MessageList;
 
-#pragma pack(1)
 struct CritInfo {
 	union {
 		struct {
@@ -424,7 +422,6 @@ struct CritInfo {
 	};
 };
 
-#pragma pack(1)
 struct SkillInfo {
 	const char* name;
 	const char* description;
@@ -441,7 +438,6 @@ struct SkillInfo {
 	long f;
 };
 
-#pragma pack(1)
 struct StatInfo {
 	const char* dame;
 	const char* description;
@@ -451,7 +447,6 @@ struct StatInfo {
 	long defaultValue;
 };
 
-#pragma pack(1)
 struct TraitInfo {
 	const char* name;
 	const char* description;
@@ -459,7 +454,6 @@ struct TraitInfo {
 };
 
 //fallout2 path node structure
-#pragma pack(1)
 struct PathNode {
 	char* path;
 	void* pDat;
@@ -467,7 +461,6 @@ struct PathNode {
 	PathNode* next;
 };
 
-#pragma pack(1)
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
@@ -475,7 +468,6 @@ struct PremadeChar {
 };
 
 // In-memory PROTO structure, not the same as PRO file format.
-#pragma pack(1)
 struct Proto {
 	struct Tile {
 		long scriptId;
@@ -688,14 +680,12 @@ struct Proto {
 
 static_assert(offsetof(Proto, item) + offsetof(Proto::Item, material) == 0x6C, "Incorrect Proto definition.");
 
-#pragma pack(1)
 struct ScriptListInfoItem {
 	char fileName[16];
 	long numLocalVars;
 };
 
 //for holding window info
-#pragma pack(1)
 struct Window {
 	long wID;
 	long flags;
@@ -732,7 +722,6 @@ struct sWindow {
 	long unknown8;
 };
 
-#pragma pack(1)
 struct LSData {
 	char signature[24];
 	short majorVer;
@@ -756,7 +745,6 @@ struct LSData {
 	char mapName[16];
 };
 
-#pragma pack(1)
 struct AIcap {
 	long name;
 	long packet_num;
@@ -786,7 +774,6 @@ struct AIcap {
 	long general_type;
 };
 
-#pragma pack(1)
 struct Queue {
 	DWORD time;
 	long type;
@@ -811,16 +798,32 @@ struct QueueDrug {
 };
 
 struct QueueAddict {
-	long init;      // 1 - perk is not active yet
+	long init;       // 1 - perk is not active yet
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };
 
-#pragma pack(1)
 struct DrugInfoList {
 	DWORD itemPid;
 	long addictGvar;
 	long numEffects;
 };
+
+struct FloatText {
+	long flags;
+	void* unknown0;
+	long unknown1;
+	long unknown2;
+	long unknown3;
+	long unknown4;
+	long unknown5;
+	long unknown6;
+	long unknown7;
+	long unknown8;
+	long unknown9;
+	void* unknown10;
+};
+
+#pragma pack(pop)
 
 }

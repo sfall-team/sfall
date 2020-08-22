@@ -20,6 +20,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "LoadGameHook.h"
+#include "MainLoopHook.h"
 
 #include "MiscPatches.h"
 
@@ -132,13 +133,48 @@ fail:
 }
 
 static void __declspec(naked) op_obj_can_see_obj_hook() {
+	using namespace fo;
+	using namespace Fields;
 	__asm {
-		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
-		push 0x20;                                   // flags, 0x20 = check ShootThru
-		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
-		push ecx;
-		xor  ecx, ecx;
-		call fo::funcoffs::make_straight_path_func_; // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX 0, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		mov  edi, [esp + 4]; // buf **ret_objStruct
+		test ebp, ebp;
+		jz   onlyOnce;
+		xor  ebp, ebp;
+		push edx;
+		mov  edx, [edi - 8]; // target
+		push eax;            // source
+		call fo::funcoffs::can_see_;
+		test eax, eax;
+		pop  eax;
+		pop  edx;
+		jz   normal;
+onlyOnce:
+		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
+		push 0x20;                                 // flags, 0x20 = check ShootThru
+		push edi;
+		call fo::funcoffs::make_straight_path_func_;
+		// see through critter
+		mov  ebx, [edi];
+		test ebx, ebx;
+		jz   skip;
+		cmp  ebx, [edi - 8]; // target
+		jne  noTarget;
+skip:
+		retn 8;
+noTarget:
+		mov  eax, [ebx + protoId];
+		shr  eax, 24;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		je   isCritter;
+		retn 8;
+isCritter:
+		mov  [edi - 4], ebx;            // replace source
+		mov  dword ptr [esp], 0x456BAB; // continue
+		retn 8;
+normal: // vanilla behavior
+		push 0x10;
+		push edi;
+		call fo::funcoffs::make_straight_path_;
 		retn 8;
 	}
 }
@@ -280,6 +316,51 @@ skip:
 	}
 }
 
+static void __declspec(naked) obj_render_outline_hack() {
+	__asm {
+		test eax, 0xFF00;
+		jnz  palColor;
+		mov  al, ds:[FO_VAR_GoodColor];
+		retn;
+palColor:
+		mov  al, ah;
+		retn;
+	}
+}
+
+static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
+	if (fo::var::text_object_index > 0) {
+		for (size_t i = 0; i < fo::var::text_object_index; i++) {
+			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
+			fo::func::mem_free(fo::var::text_object_list[i]);
+		}
+		fo::var::text_object_index = 0;
+	}
+	__asm {
+		mov  eax, tile;
+		mov  edx, flags;
+		call fo::funcoffs::tile_set_center_;
+	}
+	MainLoopHook::displayWinUpdateState = true;
+}
+
+static void __declspec(naked) obj_move_to_tile_hook() {
+	__asm {
+		mov  ecx, eax;
+		call RemoveAllFloatTextObjects;
+		mov  eax, ds:[FO_VAR_display_win];
+		jmp  fo::funcoffs::win_draw_; // update black edges
+	}
+}
+
+static void __declspec(naked) map_check_state_hook() {
+	__asm {
+		cmp  MainLoopHook::displayWinUpdateState, 0;
+		je   obj_move_to_tile_hook;
+		jmp  fo::funcoffs::tile_set_center_;
+	}
+}
+
 static void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -317,7 +398,7 @@ static void ScienceOnCrittersPatch() {
 		HookCall(0x41276E, action_use_skill_on_hook_science);
 		break;
 	case 2:
-		SafeWrite8(0x41276A, 0xEB);
+		SafeWrite8(0x41276A, CodeType::JumpShort);
 		break;
 	}
 }
@@ -366,7 +447,7 @@ static void InstantWeaponEquipPatch() {
 	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(0xEB, PutAwayWeapon); // jmps
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon); // jmps
 		BlockCall(0x472AD5); //
 		BlockCall(0x472AE0); // invenUnwieldFunc_
 		BlockCall(0x472AF0); //
@@ -378,7 +459,7 @@ static void InstantWeaponEquipPatch() {
 static void DontTurnOffSneakIfYouRunPatch() {
 	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
-		SafeWrite8(0x418135, 0xEB);
+		SafeWrite8(0x418135, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -425,7 +506,7 @@ static void EncounterTableSizePatch() {
 static void DisablePipboyAlarmPatch() {
 	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
-		SafeWrite8(0x499518, 0xC3);
+		SafeWrite8(0x499518, CodeType::Ret);
 		SafeWrite8(0x443601, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
@@ -433,18 +514,21 @@ static void DisablePipboyAlarmPatch() {
 
 static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
-		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
+		dlog("Applying obj_can_see_obj fix for critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
-static const char* musicOverridePath = "data\\sound\\music\\";
 static void OverrideMusicDirPatch() {
+	static const char* musicOverridePath = "data\\sound\\music\\";
+
 	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
-		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB});
+		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
 		if (overrideMode == 2) {
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
+			__int64 data = 0x90909040EB; // jmp 0x44FD35 (skip paths initialization)
+			SafeWriteBytes(0x44FCF3, (BYTE*)&data, 5);
 		}
 	}
 }
@@ -467,7 +551,7 @@ static void AlwaysReloadMsgs() {
 
 static void RemoveWindowRoundingPatch() {
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
-		SafeWriteBatch<BYTE>(0xEB, {0x4D6EDD, 0x4D6F12});
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x4D6EDD, 0x4D6F12});
 		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
 	}
 }
@@ -509,17 +593,16 @@ static void PipboyAvailableAtStartPatch() {
 		};
 		break;
 	case 2:
-		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
+		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
 		break;
 	}
 }
 
 static void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
-		LoadGameHook::OnAfterNewGame() += []() {
+		LoadGameHook::OnAfterGameStarted() += []() {
 			fo::var::Meet_Frank_Horrigan = true;
 		};
-		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 }
 
@@ -555,15 +638,22 @@ static void PartyMemberSkillPatch() {
 	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
 }
 
+#pragma pack(push, 1)
+struct CodeData {
+	DWORD dd = 0x0024548D;
+	BYTE  db = 0x90;
+} patchData;
+#pragma pack(pop)
+
 static void SkipLoadingGameSettingsPatch() {
 	if (int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
-		dlog("Applying skip loading game settings from saved games patch.", DL_INIT);
+		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
 		BlockCall(0x493421);
 		SafeWrite8(0x4935A8, 0x1F);
 		SafeWrite32(0x4935AB, 0x90901B75);
-		CodeData PatchData;
-		if (skipLoading == 2) SafeWriteBatch<CodeData>(PatchData, {0x49341C, 0x49343B});
-		SafeWriteBatch<CodeData>(PatchData, {
+
+		if (skipLoading == 2) SafeWriteBatch<CodeData>(patchData, {0x49341C, 0x49343B});
+		SafeWriteBatch<CodeData>(patchData, {
 			0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE,
 			0x4934E3, 0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569,
 			0x49357A
@@ -594,7 +684,7 @@ static void F1EngineBehaviorPatch() {
 	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
-		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight for power armor items
 		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
 		dlogr(" Done", DL_INIT);
 	}
@@ -685,6 +775,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	BlockCall(0x4425E6); // Patch out ereg call
+
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
@@ -703,6 +795,15 @@ void MiscPatches::init() {
 	// Increase the max text width of the information card on the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
 
+	// Allow setting custom colors from the game palette for object outlines
+	MakeCall(0x48EE00, obj_render_outline_hack);
+
+	// Remove floating text messages after moving to another map elevation
+	// and redraw the screen to update black edges of the map (HRP bug)
+	// https://github.com/phobos2077/sfall/issues/282
+	HookCall(0x48A954, obj_move_to_tile_hook);
+	HookCall(0x483726, map_check_state_hook);
+
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
@@ -714,9 +815,6 @@ void MiscPatches::init() {
 
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
-
-	dlogr("Patching out ereg call.", DL_INIT);
-	BlockCall(0x4425E6);
 
 	OverrideMusicDirPatch();
 	BoostScriptDialogLimitPatch();

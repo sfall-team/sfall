@@ -30,11 +30,5 @@ public:
 	void exit() override;
 };
 
-#pragma pack(1)
-struct CodeData {
-	DWORD dd = 0x0024548D;
-	BYTE  db = 0x90;
-};
-
 }
 

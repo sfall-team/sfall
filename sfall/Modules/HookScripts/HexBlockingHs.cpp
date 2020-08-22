@@ -127,12 +127,10 @@ void Inject_HexMoveBlockHook() {
 }
 
 void InitHexBlockingHookScripts() {
-
-	LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
-	LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
-	LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
-	LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
-
+	HookScripts::LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
+	HookScripts::LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
+	HookScripts::LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
+	HookScripts::LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
 }
 
 }

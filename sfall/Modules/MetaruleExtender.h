@@ -23,16 +23,12 @@
 namespace sfall
 {
 
-class Sound : public Module {
+class MetaruleExtender : public Module {
 public:
-	const char* name() { return "Sounds"; }
+	const char* name() { return "MetaruleExtender"; }
 	void init();
-	void exit() override;
+	//void exit() override;
 
-	static DWORD PlaySfallSound(const char* path, long mode);
-	static void __stdcall StopSfallSound(DWORD id);
-
-	static long CalculateVolumeDB(long masterVolume, long passVolume);
 };
 
 }

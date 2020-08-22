@@ -1,14 +1,7 @@
-#include "main.h"
-#include "CheckAddress.h"
+#include "SafeWrite.h"
 
 namespace sfall
 {
-
-enum CodeType : BYTE {
-	Call = 0xE8,
-	Jump = 0xE9,
-	Nop  = 0x90
-};
 
 static void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	DWORD oldProtect, data = (DWORD)func - (addr + 5);
@@ -121,6 +114,12 @@ void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
 void MakeCalls(void* func, std::initializer_list<DWORD> addrs) {
 	for (auto& addr : addrs) {
 		MakeCall(addr, func);
+	}
+}
+
+void MakeJumps(void* func, std::initializer_list<DWORD> addrs) {
+	for (auto& addr : addrs) {
+		MakeJump(addr, func);
 	}
 }
 

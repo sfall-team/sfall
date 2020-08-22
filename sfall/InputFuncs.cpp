@@ -26,7 +26,7 @@
 #include "Logging.h"
 #include "FalloutEngine\Fallout2.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
+#include "Modules\HookScripts\Common.h"
 
 #include "InputFuncs.h"
 
@@ -114,16 +114,14 @@ DWORD __stdcall KeyDown(DWORD key) {
 	}
 	key = key & 0xFFFF;
 	// combined use of DINPUT states + confirmation from GetAsyncKeyState()
-	if (key > MAX_KEYS) {
-		return 0;
-	} else {
-		DWORD keyVK = 0;
+	if (key < MAX_KEYS) {
 		if (keysDown[key]) { // confirm pressed state
-			keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
+			DWORD keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
 			if (keyVK) keysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
 		}
 		return (keysDown[key] > 0);
 	}
+	return 0;
 }
 
 void __stdcall TapKey(DWORD key) {
@@ -285,7 +283,7 @@ public:
 				DWORD state = buf[i].dwData & 0x80;
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
-				HookScripts::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 				if (dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = dxKey; // Override key

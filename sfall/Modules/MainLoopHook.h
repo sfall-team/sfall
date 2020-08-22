@@ -20,6 +20,8 @@ public:
 
 	// Called after each attack action in combat (at the end of combat_attack() function)
 	static Delegate<>& OnAfterCombatAttack();
+
+	static bool displayWinUpdateState;
 };
 
 }

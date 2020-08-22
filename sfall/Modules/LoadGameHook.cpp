@@ -66,8 +66,6 @@ static Delegate<> onBeforeGameClose;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
-static bool disableHorrigan = false;
-static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
 
 // True if game was started, false when on the main menu

@@ -23,6 +23,7 @@
 #include "..\FalloutEngine\EngineUtils.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"
+#include "LoadOrder.h"
 #include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
@@ -244,11 +245,11 @@ isNotReading:
 
 static void __declspec(naked) CheckHeroExist() {
 	__asm {
-		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jg   checkArt;
-		retn;
+		jmp  LoadOrder::art_get_name_hack;
 checkArt:
+		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
 		call fo::funcoffs::db_access_;    // check art file exists
 		test eax, eax;
 		jz   notExists;
@@ -727,7 +728,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	DWORD RedrawTick = 0, NewTick = 0, OldTick = 0;
 
 	DWORD critNum = fo::var::art_vault_guy_num;  // pointer to current base hero critter FrmID
-	//DWORD critNum = fo::var::obj_dude->artFID; // pointer to current armored hero critter FrmID
+	//DWORD critNum = fo::var::obj_dude->artFid; // pointer to current armored hero critter FrmID
 
 	int raceVal = currentRaceVal, styleVal = currentStyleVal; // show default style when setting race
 	if (!isStyle) styleVal = 0;
@@ -1410,8 +1411,8 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x4DEEE5, LoadNewHeroArt, 1);
 
 	// Divert critter frm file name function exit for file checking (art_get_name_)
-	SafeWrite8(0x419520, 0xEB); // divert func exit
-	SafeWrite32(0x419521, 0x9090903E);
+	//__int64 data = 0x9090903EEB; // jmp 0x419560 (divert func exit)
+	//SafeWriteBytes(0x419520, (BYTE*)&data, 5);
 
 	// Check if new hero art exists otherwise use regular art (art_get_name_)
 	MakeCall(0x419560, CheckHeroExist);
@@ -1496,8 +1497,7 @@ static void EnableHeroAppearanceMod() {
 	HookCall(0x42613A, FixPcCriticalHitMsg);
 
 	// Force Criticals For Testing
-	//SafeWrite32(0x423A8F, 0x90909090);
-	//SafeWrite32(0x423A93, 0x90909090);
+	//SafeMemSet(0x423A8F, CodeType::Nop, 8);
 }
 
 static void HeroAppearanceModExit() {

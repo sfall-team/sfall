@@ -311,8 +311,8 @@ hide:
 	}
 }
 
-static char* artDbgMsg = "\nERROR: File not found: %s\n";
 static void __declspec(naked) art_data_size_hook() {
+	static char* artDbgMsg = "\nERROR: File not found: %s\n";
 	__asm {
 		test edi, edi;
 		jz   artNotExist;
@@ -335,6 +335,20 @@ display:
 		add  esp, 20;
 		lea  eax, [esp + 4];
 		jmp  fo::funcoffs::display_print_;
+	}
+}
+
+static void __declspec(naked) proto_load_pid_hack() {
+	static char* proDbgMsg = "\nERROR reading prototype file: %s\n";
+	__asm {
+		mov  dword ptr [esp + 0x120 - 0x1C + 4], -1;
+		lea  eax, [esp + 0x120 - 0x120 + 4]; // pro file
+		push eax;
+		push proDbgMsg;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 8;
+		mov  eax, 0x500494; // 'iisxxxx1'
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
@@ -374,7 +388,7 @@ static void DebugModePatch() {
 			SafeWrite32(0x4C6D9C, (DWORD)debugLog);
 			if (dbgMode & 1) {
 				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
-				SafeWrite8(0x4C6EF2, 0xEB);
+				SafeWrite8(0x4C6EF2, CodeType::JumpShort);
 				SafeWrite8(0x4C7034, 0x0);
 				MakeCall(0x4DC319, win_debug_hook, 2);
 			}
@@ -384,7 +398,7 @@ static void DebugModePatch() {
 		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
-		// prints a debug message about missing art file for critters to both debug.log and the message window in sfall debugging mode
+		// prints a debug message about a missing critter art file to both debug.log and the message window in sfall debugging mode
 		HookCall(0x419B65, art_data_size_hook);
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
@@ -403,13 +417,16 @@ static void DebugModePatch() {
 static void DontDeleteProtosPatch() {
 	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xEB);
+		SafeWrite8(0x48007E, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 void DebugEditor::init() {
 	DebugModePatch();
+
+	// Notifies and prints a debug message about a corrupted proto file to debug.log
+	MakeCall(0x4A1D73, proto_load_pid_hack, 6);
 
 	if (!isDebug) return;
 	DontDeleteProtosPatch();

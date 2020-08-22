@@ -179,7 +179,7 @@ run:
 
 static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
-		mov  eax, 0x65; // normal text font
+		mov  eax, 101; // normal text font
 		jmp  fo::funcoffs::text_font_;
 	}
 }
@@ -726,6 +726,7 @@ static void WorldMapInterfacePatch() {
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
 	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
@@ -843,7 +844,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 
 static bool IFACE_BAR_MODE = false;
 static long gmouse_handle_event_hook() {
-	long countWin = *(DWORD*)FO_VAR_num_windows;
+	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
 	fo::Window* win = nullptr;
 
@@ -869,6 +870,14 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 101;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
+	}
+}
+
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
@@ -885,6 +894,18 @@ void Interface::init() {
 		if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
 		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 	};
+
+	// Set the normal font for death screen subtitles
+	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
+		dlog("Applying death screen font patch.", DL_INIT);
+		HookCall(0x4812DF, main_death_scene_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Corrects the height of the black background for death screen subtitles
+	if (hrpIsEnabled == false) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
+	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 }
 
 void Interface::exit() {

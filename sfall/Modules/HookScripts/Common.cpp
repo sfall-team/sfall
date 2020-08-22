@@ -1,12 +1,14 @@
 #include "..\..\FalloutEngine\Fallout2.h"
+#include "..\LoadGameHook.h"
 
 #include "Common.h"
 
 namespace sfall
 {
 
-constexpr int maxArgs = 16;
-constexpr int maxDepth = 8;
+constexpr int maxArgs = 16; // Maximum number of hook arguments
+constexpr int maxRets = 8;  // Maximum number of return values
+constexpr int maxDepth = 8; // Maximum recursion depth for hook calls
 
 struct {
 	DWORD hookID;
@@ -29,35 +31,35 @@ DWORD cArg;    // how many arguments were taken by current hook script
 DWORD cRet;    // how many return values were set by current hook script
 DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
-std::vector<HookScript> hooks[numHooks];
+std::vector<HookScript> hooks[HOOK_COUNT];
 
-bool LoadHookScript(const char* name, int id) {
-	if (id >= numHooks || IsGameScript(name)) return false;
+DWORD HookCommon::GetHSArgCount() {
+	return argCount;
+}
 
-	char filename[MAX_PATH];
-	sprintf(filename, "scripts\\%s.int", name);
-	ScriptProgram prog;
-	if (fo::func::db_access(filename)) {
-		dlog("> ", DL_HOOK);
-		dlog(name, DL_HOOK);
-		LoadScriptProgram(prog, name);
-		if (prog.ptr) {
-			dlogr(" Done", DL_HOOK);
-			HookScript hook;
-			hook.prog = prog;
-			hook.callback = -1;
-			hook.isGlobalScript = false;
-			hooks[id].push_back(hook);
-			ScriptExtender::AddProgramToMap(prog);
-		} else {
-			dlogr(" Error!", DL_HOOK);
-		}
+DWORD HookCommon::GetHSArg() {
+	return (cArg == argCount) ? 0 : args[cArg++];
+}
+
+void HookCommon::SetHSArg(DWORD id, DWORD value) {
+	if (id < argCount) args[id] = value;
+}
+
+DWORD* HookCommon::GetHSArgs() {
+	return args;
+}
+
+DWORD HookCommon::GetHSArgAt(DWORD id) {
+	return args[id];
+}
+
+void __stdcall HookCommon::SetHSReturn(DWORD value) {
+	if (cRetTmp < maxRets) {
+		rets[cRetTmp++] = value;
 	}
-	bool hookIsLoaded = (prog.ptr != nullptr);
-	if (hookIsLoaded || (id != HOOK_SUBCOMBATDAMAGE && HookScripts::injectAllHooks)) {
-		HookScripts::InjectingHook(id); // inject hook to engine code
+	if (cRetTmp > cRet) {
+		cRet = cRetTmp;
 	}
-	return hookIsLoaded;
 }
 
 // List of hooks that are not allowed to be called recursively
@@ -84,16 +86,14 @@ void __stdcall BeginHook() {
 		memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
 		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
 
-		// for debugging
-		/*dlog_f("\nSaved cArgs/cRets: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
-		for (unsigned int i = 0; i < maxArgs; i++) {
-			dlog_f("Saved Args/Rets: %d / %d\n", DL_HOOK, savedArgs[cDepth].oldArgs[i], ((i < maxRets) ? savedArgs[cDepth].oldRets[i] : -1));
-		}*/
+		//devlog_f("\nSaved cArgs/cRet: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
+		//for (unsigned int i = 0; i < maxArgs; i++) {
+		//	devlog_f("Saved Args/Rets: %d / %d\n", DL_HOOK, savedArgs[cDepth].oldArgs[i], ((i < maxRets) ? savedArgs[cDepth].oldRets[i] : -1));
+		//}
 	}
 	callDepth++;
-	#ifndef NDEBUG
-		dlog_f("Begin running hook, current depth: %d, current executable hook: %d\n", DL_HOOK, callDepth, currentRunHook);
-	#endif
+
+	devlog_f("Begin running hook, current depth: %d, current executable hook: %d\n", DL_HOOK, callDepth, currentRunHook);
 }
 
 static void __stdcall RunSpecificHookScript(HookScript *hook) {
@@ -112,7 +112,7 @@ void __stdcall RunHookScript(DWORD hook) {
 		if (callDepth > 1) {
 			if (CheckRecursiveHooks(hook) || callDepth > 8) {
 				fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
-				dlog_f("The hook %d cannot be executed due to exceeded depth limit or recursive calls\n", DL_MAIN, hook);
+				dlog_f("The hook %d cannot be executed due to exceeding depth limit or disallowed recursive calls\n", DL_MAIN, hook);
 				return;
 			}
 		}
@@ -122,25 +122,22 @@ void __stdcall RunHookScript(DWORD hook) {
 		for (int i = hooksCount - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
 
-			// for debugging
-			/*dlog_f("> Hook: %d, script entry: %d done\n", DL_HOOK, hook, i);
-			dlog_f("> Check cArg/cRet: %d / %d(%d)\n", DL_HOOK, cArg, cRet, cRetTmp);
-			for (unsigned int i = 0; i < maxArgs; i++) {
-				dlog_f("> Check Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
-			}*/
+			//devlog_f("> Hook: %d, script entry: %d done\n", DL_HOOK, hook, i);
+			//devlog_f("> Check cArg/cRet: %d / %d(%d)\n", DL_HOOK, cArg, cRet, cRetTmp);
+			//for (unsigned int i = 0; i < maxArgs; i++) {
+			//	devlog_f("> Check Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
+			//}
 		}
 	} else {
 		cArg = 0;
-		#ifndef NDEBUG
-			dlog_f(">>> Try running hook ID: %d\n", DL_HOOK, hook);
-		#endif
+
+		devlog_f(">>> Try running hook ID: %d\n", DL_HOOK, hook);
 	}
 }
 
 void __stdcall EndHook() {
-	#ifndef NDEBUG
-		dlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
-	#endif
+	devlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
+
 	callDepth--;
 	if (callDepth) {
 		if (callDepth <= maxDepth) {
@@ -154,15 +151,60 @@ void __stdcall EndHook() {
 			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
 			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
 
-			// for debugging
-			/*dlog_f("Restored cArgs/cRets: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
-			for (unsigned int i = 0; i < maxArgs; i++) {
-				dlog_f("Restored Args/Rets: %d / %d\n", args[i], ((i < maxRets) ? rets[i] : -1));
-			}*/
+			//devlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
+			//for (unsigned int i = 0; i < maxArgs; i++) {
+			//	devlog_f("Restored Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
+			//}
 		}
 	} else {
 		currentRunHook = -1;
 	}
+}
+
+// BEGIN HOOKS
+void HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
+	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_KEYPRESS)) {
+		return;
+	}
+	BeginHook();
+	argCount = 3;
+	args[0] = (DWORD)pressed;
+	args[1] = *dxKey;
+	args[2] = vKey;
+	RunHookScript(HOOK_KEYPRESS);
+	if (cRet != 0) *dxKey = rets[0];
+	EndHook();
+}
+
+void __stdcall HookCommon::MouseClickHook(DWORD button, bool pressed) {
+	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
+		return;
+	}
+	BeginHook();
+	argCount = 2;
+	args[0] = (DWORD)pressed;
+	args[1] = button;
+	RunHookScript(HOOK_MOUSECLICK);
+	EndHook();
+}
+
+static unsigned long previousGameMode = 0;
+
+void HookCommon::GameModeChangeHook(DWORD exit) {
+	if (HookScripts::HookHasScript(HOOK_GAMEMODECHANGE)) {
+		BeginHook();
+		argCount = 2;
+		args[0] = exit;
+		args[1] = previousGameMode;
+		RunHookScript(HOOK_GAMEMODECHANGE);
+		EndHook();
+	}
+	previousGameMode = GetLoopFlags();
+}
+// END HOOKS
+
+void HookCommon::Reset() {
+	previousGameMode = 0;
 }
 
 }
