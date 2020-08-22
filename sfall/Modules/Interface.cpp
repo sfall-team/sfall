@@ -718,14 +718,6 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
-static void __declspec(naked) main_death_scene_hook() {
-	__asm {
-		mov  eax, 101;
-		call fo::funcoffs::text_font_;
-		jmp  fo::funcoffs::debug_printf_;
-	}
-}
-
 static void WorldMapInterfacePatch() {
 	BlockCall(0x4C2380); // Remove disabling palette animations (can be used as a place to call a hack function in wmInterfaceInit_)
 
@@ -734,6 +726,7 @@ static void WorldMapInterfacePatch() {
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
 	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
@@ -877,6 +870,14 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 101;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
+	}
+}
+
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
@@ -902,7 +903,7 @@ void Interface::init() {
 	}
 
 	// Corrects the height of the black background for death screen subtitles
-	if (hrpIsEnabled == false) SafeWrite32(0x48134D, -602 - (640 * 2));    // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (hrpIsEnabled == false) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
 	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
 	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 }
