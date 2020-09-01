@@ -527,8 +527,7 @@ static void OverrideMusicDirPatch() {
 		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
 		if (overrideMode == 2) {
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
-			__int64 data = 0x90909040EB; // jmp 0x44FD35 (skip paths initialization)
-			SafeWriteBytes(0x44FCF3, (BYTE*)&data, 5);
+			SafeWrite16(0x44FCF3, 0x40EB); // jmp 0x44FD35 (skip paths initialization)
 		}
 	}
 }

@@ -3492,9 +3492,9 @@ void BugFixes::init()
 	HookCall(0x481409, main_death_scene_hook);
 
 	// Fix for trying to loot corpses with the "NoSteal" flag
+	MakeCall(0x4123F8, action_loot_container_hack, 1);
 	SafeWrite8(0x4123F2, CommonObj::protoId);
 	BlockCall(0x4123F3);
-	MakeCall(0x4123F8, action_loot_container_hack, 1);
 
 	// Fix the music volume when entering the dialog
 	SafeWrite32(0x44525D, (DWORD)FO_VAR_background_volume);

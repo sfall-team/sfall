@@ -221,6 +221,7 @@
 #define FO_VAR_retvals                    0x43EA7C
 #define FO_VAR_rotation                   0x631D34
 #define FO_VAR_sad                        0x530014
+#define FO_VAR_sampleRate                 0x66815C
 #define FO_VAR_scr_size                   0x6AC9F0
 #define FO_VAR_script_engine_running      0x51C714
 #define FO_VAR_script_path_base           0x51C710
