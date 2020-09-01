@@ -447,8 +447,7 @@ static void OverrideMusicDirPatch() {
 		if (overrideMode == 2) {
 			const DWORD musicOverride2Addr[] = {0x518E78, 0x518E7C};
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, musicOverride2Addr);
-			__int64 data = 0x90909040EB; // jmp 0x44FD35 (skip paths initialization)
-			SafeWriteBytes(0x44FCF3, (BYTE*)&data, 5);
+			SafeWrite16(0x44FCF3, 0x40EB); // jmp 0x44FD35 (skip paths initialization)
 		}
 	}
 }

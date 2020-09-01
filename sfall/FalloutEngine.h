@@ -236,6 +236,7 @@
 #define _retvals                    0x43EA7C
 #define _rotation                   0x631D34
 #define _sad                        0x530014
+#define _sampleRate                 0x66815C
 #define _scr_size                   0x6AC9F0
 #define _script_engine_running      0x51C714
 #define _scriptListInfo             0x51C7C8
@@ -485,7 +486,7 @@ extern DWORD* ptr_read_callback;
 extern BYTE*  ptr_RedColor;
 extern DWORD* ptr_retvals;
 extern DWORD* ptr_rotation;
-extern DWORD* ptr_sad;
+extern DWORD* ptr_sampleRate;
 extern BoundRect* ptr_scr_size;
 extern ScriptListInfoItem** ptr_scriptListInfo; // dynamic array
 extern DWORD* ptr_skill_data;
@@ -573,6 +574,11 @@ extern const DWORD art_ptr_lock_;
 extern const DWORD art_ptr_lock_data_;
 extern const DWORD art_ptr_unlock_;
 extern const DWORD attack_crit_success_;
+extern const DWORD audioCloseFile_;
+extern const DWORD audioFileSize_;
+extern const DWORD audioOpen_;
+extern const DWORD audioRead_;
+extern const DWORD audioSeek_;
 extern const DWORD automap_;
 extern const DWORD barter_compute_value_;
 extern const DWORD barter_inventory_;
@@ -781,6 +787,7 @@ extern const DWORD item_d_check_addict_;
 extern const DWORD item_d_take_drug_;
 extern const DWORD item_drop_all_;
 extern const DWORD item_get_type_;
+extern const DWORD item_hit_with_;
 extern const DWORD item_m_cell_pid_;
 extern const DWORD item_m_dec_charges_;
 extern const DWORD item_m_turn_off_;
@@ -1004,6 +1011,9 @@ extern const DWORD soundDelete_;
 extern const DWORD soundGetPosition_;
 extern const DWORD soundPlay_;
 extern const DWORD soundPlaying_;
+extern const DWORD soundSetCallback_;
+extern const DWORD soundSetFileIO_;
+extern const DWORD soundVolume_;
 extern const DWORD sprintf_;
 extern const DWORD square_num_;
 extern const DWORD stat_get_base_;
