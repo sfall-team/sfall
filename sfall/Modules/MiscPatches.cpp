@@ -132,49 +132,62 @@ fail:
 	}
 }
 
+static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target) {
+	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
+	if (dir < 0) dir = -dir;
+	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
+		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, fo::STAT_pe) * 3));
+	}
+	return (dir == 0); // is directly in front
+}
+
 static void __declspec(naked) op_obj_can_see_obj_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 4]; // buf **ret_objStruct
-		test ebp, ebp;
-		jz   onlyOnce;
-		xor  ebp, ebp;
+		test ebp, ebp; // check only once
+		jz   checkSee;
+		xor  ebp, ebp; // for only once
 		push edx;
+		push eax;
 		mov  edx, [edi - 8]; // target
-		push eax;            // source
-		call fo::funcoffs::can_see_;
-		test eax, eax;
+		mov  ecx, eax;       // source
+		call SeeIsFront;
+		xor  ecx, ecx;
+		test al, al;
 		pop  eax;
 		pop  edx;
-		jz   normal;
-onlyOnce:
+		jnz  checkSee; // can see
+		// vanilla behavior
+		push 0x10;
+		push edi;
+		call fo::funcoffs::make_straight_path_;
+		retn 8;
+checkSee:
 		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
 		push 0x20;                                 // flags, 0x20 = check ShootThru
 		push edi;
 		call fo::funcoffs::make_straight_path_func_;
-		// see through critter
-		mov  ebx, [edi];
+		mov  edx, [edi - 8]; // target
+		mov  ebx, [edi];     // blocking object
 		test ebx, ebx;
-		jz   skip;
-		cmp  ebx, [edi - 8]; // target
-		jne  noTarget;
-skip:
+		jz   isSee;          // no blocking object
+		cmp  ebx, edx;
+		jne  checkObj;       // object is not equal to target
 		retn 8;
-noTarget:
+isSee:
+		mov  [edi], edx;     // fix for target with ShootThru flag
+		retn 8;
+checkObj:
 		mov  eax, [ebx + protoId];
 		shr  eax, 24;
 		cmp  eax, OBJ_TYPE_CRITTER;
-		je   isCritter;
+		je   continue; // see through critter
 		retn 8;
-isCritter:
-		mov  [edi - 4], ebx;            // replace source
-		mov  dword ptr [esp], 0x456BAB; // continue
-		retn 8;
-normal: // vanilla behavior
-		push 0x10;
-		push edi;
-		call fo::funcoffs::make_straight_path_;
+continue:
+		mov  [edi - 4], ebx;            // replace source with blocking object
+		mov  dword ptr [esp], 0x456BAB; // repeat from the blocking object
 		retn 8;
 	}
 }
@@ -514,7 +527,7 @@ static void DisablePipboyAlarmPatch() {
 
 static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
-		dlog("Applying obj_can_see_obj fix for critters and ShootThru objects.", DL_INIT);
+		dlog("Applying obj_can_see_obj fix for seeing through critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}

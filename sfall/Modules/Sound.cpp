@@ -832,7 +832,7 @@ static void __declspec(naked) soundStartInterpret_hook() {
 		mov  eax, ebp;
 		call fo::funcoffs::soundSetFileIO_;
 		pop  ecx;
-		mov  bx, [esp + 0x18 - 0x18 + 4+2]; // get volume adjustment: 0 - max, 32767 - mute
+		mov  bx, [esp + 0x18 - 0x18 + 4+2]; // get volume adjustment: 0 - max volume, 32767 - mute
 		and  bx, ~0x8000;
 rawFile:
 		xor  edx, edx;
@@ -906,7 +906,7 @@ void Sound::init() {
 		}
 	}
 
-	// Support for ACM audio file playback and volume adjustment for the soundplay script function
+	// Support for ACM audio file playback and volume control for the soundplay script function
 	HookCall(0x4661B3, soundStartInterpret_hook);
 }
 
