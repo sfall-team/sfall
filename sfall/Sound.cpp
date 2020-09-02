@@ -844,7 +844,7 @@ static void __declspec(naked) soundStartInterpret_hook() {
 		mov  eax, ebp;
 		call soundSetFileIO_;
 		pop  ecx;
-		mov  bx, [esp + 0x18 - 0x18 + 4+2]; // get volume adjustment: 0 - max, 32767 - mute
+		mov  bx, [esp + 0x18 - 0x18 + 4+2]; // get volume adjustment: 0 - max volume, 32767 - mute
 		and  bx, ~0x8000;
 rawFile:
 		xor  edx, edx;
@@ -858,10 +858,14 @@ rawFile:
 
 static const int SampleRate = 44100; // 44.1kHz
 
+//void SetSoundSampleRate() {
+//	*ptr_sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
+//}
+
 void SoundInit() {
 	// Set the sample rate for the primary sound buffer
 	//SafeWrite32(0x44FDBC, SampleRate);
-	//LoadGameHook::OnAfterGameInit() += []() { *ptr_sampleRate = SampleRate / 2; }; // Revert to 22kHz for secondary sound buffers
+	// SetSoundSampleRate will be run after game initialization
 
 	HookCall(0x44E816, gmovie_play_hook_pause);
 	HookCall(0x44EA84, gmovie_play_hook_unpause);
@@ -916,7 +920,7 @@ void SoundInit() {
 		}
 	}
 
-	// Support for ACM audio file playback and volume adjustment for the soundplay script function
+	// Support for ACM audio file playback and volume control for the soundplay script function
 	HookCall(0x4661B3, soundStartInterpret_hook);
 }
 
