@@ -558,6 +558,7 @@ extern const DWORD ai_check_drugs_;
 extern const DWORD ai_run_away_;
 extern const DWORD ai_search_inven_armor_;
 extern const DWORD ai_try_attack_;
+extern const DWORD anim_can_use_door_;
 extern const DWORD art_alias_fid_;
 extern const DWORD art_alias_num_;
 extern const DWORD art_exists_; // eax - frameID, used for critter FIDs

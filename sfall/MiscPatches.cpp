@@ -418,15 +418,29 @@ static void MotionScannerFlagsPatch() {
 	}
 }
 
+static void __declspec(naked) ResizeEncounterMessagesTable() {
+	__asm {
+		add  eax, eax; // double the increment
+		add  eax, 3000;
+		retn;
+	}
+}
+
 static void EncounterTableSizePatch() {
 	const DWORD EncounterTableSize[] = {
 		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
 	};
 
-	DWORD tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
-	if (tableSize > 40 && tableSize <= 127) {
+	int tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
+	if (tableSize > 40) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
+		if (tableSize > 50) {
+			if (tableSize > 100) tableSize = 100;
+			// Increase the count of message lines from 50 to 100 for the encounter tables in worldmap.msg
+			const DWORD encounterMsgsTableAddr[] = {0x4C102C, 0x4C0B57};
+			MakeCalls(ResizeEncounterMessagesTable, encounterMsgsTableAddr);
+		}
 		SafeWrite8(0x4BDB17, (BYTE)tableSize);
 		DWORD nsize = (tableSize + 1) * 180 + 0x50;
 		SafeWriteBatch<DWORD>(nsize, EncounterTableSize);

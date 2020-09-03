@@ -279,6 +279,7 @@ const DWORD add_bar_box_ = 0x4616F0;
 const DWORD AddHotLines_ = 0x4998C0;
 const DWORD adjust_ac_ = 0x4715F8;
 const DWORD adjust_fid_ = 0x4716E8;
+const DWORD anim_can_use_door_ = 0x415E24;
 const DWORD art_alias_fid_ = 0x4199D4;
 const DWORD art_alias_num_ = 0x419998;
 const DWORD art_exists_ = 0x4198C8; // eax - frameID, used for critter FIDs
