@@ -919,6 +919,19 @@ static void __declspec(naked) NPCStage6Fix2() {
 	}
 }
 
+static void __declspec(naked) make_path_func_hook() {
+	__asm {
+		mov  ebx, [edx + tile];            // object tile
+		cmp  ebx, [esp + 0x5C - 0x1C + 4]; // target tile
+		je   fix;
+		jmp  fo::funcoffs::anim_can_use_door_;
+fix:
+		mov  ebx, [esp + 0x5C - 0x14 + 4]; // current tile
+		mov  [esp + 0x5C - 0x1C + 4], ebx; // target tile
+		retn;
+	}
+}
+
 // Haenlomal: Check path to critter for attack
 static void __declspec(naked) MultiHexFix() {
 	__asm {
@@ -3045,6 +3058,7 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
+		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
 		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
