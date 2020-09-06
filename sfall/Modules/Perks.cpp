@@ -1286,6 +1286,11 @@ static void FastShotTraitFix() {
 		SafeWrite16(0x478C9F, 0x9090);
 		HookCalls((void*)0x478C7D, {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F});
 		goto done;
+	case 3:
+		dlog("Applying Fast Shot trait patch. (Fallout 1 behavior)", DL_INIT);
+		HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
+		SafeWrite16(0x478C9E, CodeType::JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
+		goto done;
 	default:
 		dlog("Applying Fast Shot trait fix.", DL_INIT);
 	fix:
