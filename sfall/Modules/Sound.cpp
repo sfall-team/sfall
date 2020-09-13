@@ -748,11 +748,7 @@ static void __declspec(naked) gsound_set_sfx_volume_hack() {
 	}
 }
 
-static void SoundLostFocus() {
-	long isActive;
-	__asm push ecx;
-	__asm mov  isActive, eax;
-
+void Sound::SoundLostFocus(long isActive) {
 	if (!loopingSounds.empty() || !playingSounds.empty()) {
 		if (isActive) {
 			ResumeAllSfallSound();
@@ -760,7 +756,6 @@ static void SoundLostFocus() {
 			PauseAllSfallSound();
 		}
 	}
-	__asm pop ecx;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -844,7 +839,7 @@ rawFile:
 	}
 }
 
-constexpr int SampleRate = 44100; // 44.1kHz
+//constexpr int SampleRate = 44100; // 44.1kHz
 
 void Sound::init() {
 	// Set the sample rate for the primary sound buffer
@@ -859,9 +854,6 @@ void Sound::init() {
 	MakeCall(0x450525, gsound_background_volume_set_hack);
 	MakeCall(0x4503CA, gsound_master_volume_set_hack, 1);
 	MakeCall(0x45042C, gsound_set_sfx_volume_hack);
-
-	// Pause and resume sound playback when the game loses focus
-	fo::func::set_focus_func(SoundLostFocus);
 
 	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {

@@ -199,7 +199,7 @@ public:
 
 	// Only called for the mouse
 	HRESULT __stdcall GetDeviceState(DWORD a, LPVOID b) {
-		if (forcingGraphicsRefresh) RefreshGraphics();
+		if (forcingGraphicsRefresh) Graphics::RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
 		}

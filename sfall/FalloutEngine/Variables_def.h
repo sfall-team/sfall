@@ -196,6 +196,7 @@ VARA(stack,                      DWORD, 10)
 VARA(stack_offset,               DWORD, 10)
 VARA(stat_data,                  fo::StatInfo, fo::STAT_real_max_stat) // dynamic array
 VAR_(stat_flag,                  DWORD)
+VAR_(subtitleList,               fo::SubTitleList*)
 VARA(sWindows,                   fo::sWindow, 16)
 VAR_(Tag_,                       DWORD)
 VAR_(tag_skill,                  DWORD)

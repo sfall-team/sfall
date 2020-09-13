@@ -16,18 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef _DEBUG
-#define D3D_DEBUG_INFO
-#define DEBUGMESS(a, b) OutputDebugStringA(a b)
-#else
-#ifndef NDEBUG
-#define DEBUGMESS(a, b) MessageBoxA(0, "Unused function called.", b, MB_TASKMODAL) //fo::func::debug_printf(a, b)
-#else
-#define DEBUGMESS(a, b)
-#endif
-#endif
-
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
@@ -40,7 +28,7 @@
 namespace sfall
 {
 
-#define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
+#define UNUSEDFUNCTION { return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
 typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
@@ -63,9 +51,11 @@ static DWORD yoffset;
 //static DWORD xoffset;
 
 static bool DeviceLost = false;
+static bool mainTexLock = false;
 
 static DDSURFACEDESC surfaceDesc;
-static DDSURFACEDESC movieDesc;
+static DDSURFACEDESC mveDesc;
+static D3DSURFACE_DESC movieDesc;
 
 static DWORD palette[256];
 //static bool paletteInit = false;
@@ -94,14 +84,14 @@ static IDirect3DTexture9* sTex2 = 0;
 
 static IDirect3DSurface9* sSurf1 = 0;
 static IDirect3DSurface9* sSurf2 = 0;
-static IDirect3DSurface9* backbuffer = 0;
+static IDirect3DSurface9* backBuffer = 0;
 
 static IDirect3DVertexBuffer9* vBuffer;
 static IDirect3DVertexBuffer9* vBuffer2;
 static IDirect3DVertexBuffer9* movieBuffer;
 
 static IDirect3DTexture9* gpuPalette;
-static IDirect3DTexture9* movieTex = 0;
+static IDirect3DTexture9* movieTex;
 
 static ID3DXEffect* gpuBltEffect;
 static const char* gpuEffect =
@@ -172,10 +162,10 @@ struct VertexFormat {
 
 static VertexFormat ShaderVertices[] = {
 	// x      y    z rhw u  v
-	{-0.5,  -0.5,  0, 1, 0, 0},
-	{-0.5,  479.5, 0, 1, 0, 1},
-	{639.5, -0.5,  0, 1, 1, 0},
-	{639.5, 479.5, 0, 1, 1, 1}
+	{-0.5,  -0.5,  0, 1, 0, 0}, // 0 - top left
+	{-0.5,  479.5, 0, 1, 0, 1}, // 1 - bottom left
+	{639.5, -0.5,  0, 1, 1, 0}, // 2 - top right
+	{639.5, 479.5, 0, 1, 1, 1}  // 3 - bottom right
 };
 
 HWND GetFalloutWindowInfo(RECT* rect) {
@@ -237,11 +227,12 @@ static void ResetDevice(bool createNew) {
 	params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 	if (!params.Windowed) params.FullScreen_RefreshRateInHz = dispMode.RefreshRate;
 
-	bool software = false;
+	static bool software = false;
 	if (createNew) {
 		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
-			dlog(" Failed to create D3D9 Device. Use software vertex processing.", DL_MAIN);
+			MessageBoxA(window, "Failed to create hardware vertex processing device.\nUsing software vertex processing instead.",
+			                    "D3D9 Device", MB_TASKMODAL | MB_ICONWARNING);
 			software = true;
 			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
 		}
@@ -269,19 +260,18 @@ static void ResetDevice(bool createNew) {
 			Graphics::SetDefaultTechnique();
 		}
 	} else {
+		dlog("Resetting D3D9 Device...", DL_MAIN);
 		d3d9Device->Reset(&params);
 		if (gpuBltEffect) gpuBltEffect->OnResetDevice();
 		ScriptShaders::OnResetDevice();
+		mainTexLock = false;
 	}
 
-	ShaderVertices[1].y = ResHeight - 0.5f;
-	ShaderVertices[2].x = ResWidth - 0.5f;
-	ShaderVertices[3].y = ResHeight - 0.5f;
-	ShaderVertices[3].x = ResWidth - 0.5f;
 	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, Graphics::GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) {
 		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0);
 		Graphics::GPUBlt = 0;
-		dlog(" Error: D3DFMT_A8 unsupported texture format. Now CPU is used to convert the palette.", DL_MAIN);
+		MessageBoxA(window, "GPU does not support the D3DFMT_A8 texture format.\nNow CPU is used to convert the palette.",
+		                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
 	}
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex1, 0);
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
@@ -293,32 +283,37 @@ static void ResetDevice(bool createNew) {
 
 	sTex1->GetSurfaceLevel(0, &sSurf1);
 	sTex2->GetSurfaceLevel(0, &sSurf2);
-	d3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+	d3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+
+	ShaderVertices[1].y = ResHeight - 0.5f;
+	ShaderVertices[2].x = ResWidth - 0.5f;
+	ShaderVertices[3].y = ResHeight - 0.5f;
+	ShaderVertices[3].x = ResWidth - 0.5f;
 
 	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vBuffer, 0);
-	byte* VertexPointer;
-	vBuffer->Lock(0, 0, (void**)&VertexPointer, 0);
-	CopyMemory(VertexPointer, ShaderVertices, sizeof(ShaderVertices));
+	void* vertexPointer;
+	vBuffer->Lock(0, 0, &vertexPointer, 0);
+	CopyMemory(vertexPointer, ShaderVertices, sizeof(ShaderVertices));
 	vBuffer->Unlock();
 
-	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &movieBuffer, 0);
-
-	VertexFormat ShaderVertices2[4] = {
+	VertexFormat shaderVertices[4] = {
 		ShaderVertices[0],
 		ShaderVertices[1],
 		ShaderVertices[2],
 		ShaderVertices[3]
 	};
 
-	ShaderVertices2[1].y = (float)gHeight - 0.5f;
-	ShaderVertices2[2].x = (float)gWidth - 0.5f;
-	ShaderVertices2[3].y = (float)gHeight - 0.5f;
-	ShaderVertices2[3].x = (float)gWidth - 0.5f;
+	shaderVertices[1].y = (float)gHeight - 0.5f;
+	shaderVertices[2].x = (float)gWidth - 0.5f;
+	shaderVertices[3].y = (float)gHeight - 0.5f;
+	shaderVertices[3].x = (float)gWidth - 0.5f;
 
 	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vBuffer2, 0);
-	vBuffer2->Lock(0, 0, (void**)&VertexPointer, 0);
-	CopyMemory(VertexPointer, ShaderVertices2, sizeof(ShaderVertices2));
+	vBuffer2->Lock(0, 0, &vertexPointer, 0);
+	CopyMemory(vertexPointer, shaderVertices, sizeof(shaderVertices));
 	vBuffer2->Unlock();
+
+	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &movieBuffer, 0);
 
 	d3d9Device->SetFVF(_VERTEXFORMAT);
 	d3d9Device->SetTexture(0, mainTex);
@@ -326,11 +321,15 @@ static void ResetDevice(bool createNew) {
 
 	//d3d9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, false); // default false
 	//d3d9Device->SetRenderState(D3DRS_ALPHATESTENABLE, false);  // default false
-	d3d9Device->SetRenderState(D3DRS_ZENABLE, false);
-	d3d9Device->SetRenderState(D3DRS_CULLMODE, 2);
-	//d3d9Device->SetRenderState(D3DRS_TEXTUREFACTOR, 0);
+	d3d9Device->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+	d3d9Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	d3d9Device->SetRenderState(D3DRS_LIGHTING, false);
 
-	if (createNew) dlogr(" Done", DL_MAIN);
+	d3d9Device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	d3d9Device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+
+	//d3d9Device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(255, 0, 255), 1.0f, 0); // for debbuging
+	dlogr(" Done", DL_MAIN);
 }
 
 static void Present() {
@@ -379,11 +378,12 @@ static void Present() {
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 		#ifndef NDEBUG
-		dlogr("Present: DEVICELOST", DL_MAIN);
+		dlogr("\nPresent: D3DERR_DEVICELOST", DL_MAIN);
 		#endif
+		DeviceLost = true;
 		d3d9Device->SetTexture(0, 0);
 		SAFERELEASE(mainTex)
-		SAFERELEASE(backbuffer);
+		SAFERELEASE(backBuffer);
 		SAFERELEASE(sSurf1);
 		SAFERELEASE(sSurf2);
 		SAFERELEASE(sTex1);
@@ -392,14 +392,14 @@ static void Present() {
 		SAFERELEASE(vBuffer2);
 		SAFERELEASE(movieBuffer);
 		SAFERELEASE(gpuPalette);
+		Graphics::ReleaseMovieTexture();
 		if (gpuBltEffect) gpuBltEffect->OnLostDevice();
 		ScriptShaders::OnLostDevice();
-		DeviceLost = true;
 	}
 }
 
-void RefreshGraphics() {
-	if (DeviceLost) return;
+void Graphics::RefreshGraphics() {
+	if (DeviceLost || Graphics::PlayAviMovie) return;
 
 	d3d9Device->BeginScene();
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
@@ -421,7 +421,7 @@ void RefreshGraphics() {
 	ScriptShaders::Refresh(sSurf1, sSurf2, sTex2);
 
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
-	d3d9Device->SetRenderTarget(0, backbuffer);
+	d3d9Device->SetRenderTarget(0, backBuffer);
 
 	if (Graphics::GPUBlt && !ScriptShaders::Count()) {
 		gpuBltEffect->Begin(&unused, 0);
@@ -437,31 +437,42 @@ void RefreshGraphics() {
 	Present();
 }
 
-void Graphics::SetMovieTexture(IDirect3DTexture9* tex) {
+HRESULT Graphics::CreateMovieTexture(D3DSURFACE_DESC &desc) {
+	HRESULT hr = d3d9Device->CreateTexture(desc.Width, desc.Height, 1, 0, desc.Format, D3DPOOL_DEFAULT, &movieTex, nullptr);
+	if (movieTex) movieTex->GetLevelDesc(0, &movieDesc);
+	return hr;
+}
+
+void Graphics::ReleaseMovieTexture() {
+	SAFERELEASE(movieTex);
+}
+
+void Graphics::SetMovieTexture(bool state) {
 	dlog("\nSet movie texture.", DL_INIT);
-	movieTex = tex;
-	if (!tex) {
+	if (!state) {
 		PlayAviMovie = false;
 		return;
-	}
+	} else if (PlayAviMovie) return;
 
-	D3DSURFACE_DESC desc;
-	movieTex->GetLevelDesc(0, &desc);
+	if (!movieTex) Graphics::CreateMovieTexture(movieDesc);
+	D3DSURFACE_DESC &desc = movieDesc;
 
 	float aviAspect = (float)desc.Width / (float)desc.Height;
 	float winAspect = (float)gWidth / (float)gHeight;
 
-	VertexFormat ShaderVertices2[4] = {
+	VertexFormat shaderVertices[4] = {
 		ShaderVertices[0],
 		ShaderVertices[1],
 		ShaderVertices[2],
 		ShaderVertices[3]
 	};
 
-	ShaderVertices2[1].y = (float)gHeight - 0.5f;
-	ShaderVertices2[2].x = (float)gWidth - 0.5f;
-	ShaderVertices2[3].y = (float)gHeight - 0.5f;
-	ShaderVertices2[3].x = (float)gWidth - 0.5f;
+	shaderVertices[1].y = (float)gHeight - 0.5f;
+	shaderVertices[2].x = (float)gWidth - 0.5f;
+	shaderVertices[3].y = (float)gHeight - 0.5f;
+	shaderVertices[3].x = (float)gWidth - 0.5f;
+
+	bool subtitleShow = (fo::var::subtitleList != nullptr);
 
 	long offset;
 	if (aviAspect > winAspect) {
@@ -471,13 +482,15 @@ void Graphics::SetMovieTexture(IDirect3DTexture9* tex) {
 
 		offset = (gHeight - desc.Height) / 2;
 
-		ShaderVertices2[0].y += offset;
-		ShaderVertices2[2].y += offset;
-		ShaderVertices2[1].y -= offset;
-		ShaderVertices2[3].y -= offset;
+		shaderVertices[0].y += offset;
+		shaderVertices[2].y += offset;
+		shaderVertices[1].y -= offset;
+		shaderVertices[3].y -= offset;
+
+		subtitleShow = false;
 	} else if (aviAspect < winAspect) {
 		if (Graphics::AviMovieWidthFit || (hrpIsEnabled && *(DWORD*)HRPAddress(0x1006EC10) == 2)) {
-			desc.Width = gWidth; // scales the movie surface to screen width
+			//desc.Width = gWidth; // scales the movie surface to screen width
 		} else {
 			// scales width proportionally and places the movie surface at the center of the window along the X-axis
 			aviAspect = (float)desc.Height / (float)gHeight;
@@ -485,46 +498,53 @@ void Graphics::SetMovieTexture(IDirect3DTexture9* tex) {
 
 			offset = (gWidth - desc.Width) / 2;
 
-			ShaderVertices2[0].x += offset;
-			ShaderVertices2[2].x -= offset;
-			ShaderVertices2[3].x -= offset;
-			ShaderVertices2[1].x += offset;
+			shaderVertices[0].x += offset;
+			shaderVertices[2].x -= offset;
+			shaderVertices[3].x -= offset;
+			shaderVertices[1].x += offset;
 		}
 	}
+	if (subtitleShow) { // decrease the surface size to display the subtitle text on the lower layer of surfaces
+		int offset = (int)(15.0f * ((float)gHeight / (float)ResHeight));
+		shaderVertices[1].y -= offset;
+		shaderVertices[3].y -= offset;
+	}
 
-	byte* VertexPointer;
-	movieBuffer->Lock(0, 0, (void**)&VertexPointer, 0);
-	CopyMemory(VertexPointer, ShaderVertices2, sizeof(ShaderVertices2));
+	void* vertexPointer;
+	movieBuffer->Lock(0, 0, &vertexPointer, 0);
+	CopyMemory(vertexPointer, shaderVertices, sizeof(shaderVertices));
 	movieBuffer->Unlock();
 
 	PlayAviMovie = true;
 }
 
-void Graphics::ShowMovieFrame() {
-	//d3d9Device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(255, 0, 255), 1.0f, 0); // for debbuging
-	if (!PlayAviMovie) return;
+void Graphics::ShowMovieFrame(IDirect3DTexture9* tex) {
+	if (!tex || DeviceLost || !movieTex) return;
+
+	d3d9Device->UpdateTexture(tex, movieTex);
+	d3d9Device->SetRenderTarget(0, backBuffer);
 
 	d3d9Device->BeginScene();
+	if (!mainTexLock) {
+		if (Graphics::GPUBlt && ScriptShaders::Count()) {
+			d3d9Device->SetTexture(0, sTex2);
+		} else {
+			d3d9Device->SetTexture(0, mainTex);
+		}
+		d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 
-	if (Graphics::GPUBlt && ScriptShaders::Count()) {
-		d3d9Device->SetTexture(0, sTex2);
-	} else {
-		d3d9Device->SetTexture(0, mainTex);
+		// for showing subtitles
+		if (Graphics::GPUBlt) {
+			UINT passes;
+			gpuBltEffect->Begin(&passes, 0);
+			gpuBltEffect->BeginPass(0);
+		}
+		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+		if (Graphics::GPUBlt) {
+			gpuBltEffect->EndPass();
+			gpuBltEffect->End();
+		}
 	}
-	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
-	d3d9Device->SetRenderTarget(0, backbuffer);
-
-	if (Graphics::GPUBlt) {
-		UINT passes;
-		gpuBltEffect->Begin(&passes, 0);
-		gpuBltEffect->BeginPass(0);
-	}
-	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (Graphics::GPUBlt) {
-		gpuBltEffect->EndPass();
-		gpuBltEffect->End();
-	}
-
 	// for avi movie
 	d3d9Device->SetTexture(0, movieTex);
 	d3d9Device->SetStreamSource(0, movieBuffer, 0, sizeof(VertexFormat));
@@ -579,31 +599,28 @@ void Graphics::SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
 }
 
-class FakeSurface2 : IDirectDrawSurface {
+class FakeDirectDrawSurface : IDirectDrawSurface {
 private:
 	ULONG Refs;
-	bool Primary;
+	bool isPrimary;
 	BYTE* lockTarget;
 
 public:
 	static bool IsPlayMovie;
 	static bool subTitlesShow;
 
-	FakeSurface2(bool primary) {
+	FakeDirectDrawSurface(bool primary) {
 		Refs = 1;
-		Primary = primary;
+		isPrimary = primary;
 		lockTarget = new BYTE[ResWidth * ResHeight];
 		if (!windowInit) std::memset(lockTarget, 0, ResWidth * ResHeight);
 	}
 
-	// IUnknown methods
-	HRESULT __stdcall QueryInterface(REFIID, LPVOID *) {
-		return E_NOINTERFACE;
-	}
+	/* IUnknown methods */
 
-	ULONG __stdcall AddRef() {
-		return ++Refs;
-	}
+	HRESULT __stdcall QueryInterface(REFIID, LPVOID *) { return E_NOINTERFACE; }
+
+	ULONG __stdcall AddRef() { return ++Refs; }
 
 	ULONG __stdcall Release() {
 		if (!--Refs) {
@@ -613,42 +630,40 @@ public:
 		} else return Refs;
 	}
 
-	// IDirectDrawSurface methods
+	/* IDirectDrawSurface methods */
+
 	HRESULT __stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 	HRESULT __stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
 
-	/*
-		0x4868DA movie_MVE_ShowFrame_
-	*/
-	HRESULT __stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // used for game movies (only for w/o HRP)
-		movieDesc.dwHeight = (a->bottom - a->top);
-		yoffset = (ResHeight - movieDesc.dwHeight) / 2;
-		movieDesc.lPitch = (a->right - a->left);
-		//xoffset = (ResWidth - movieDesc.lPitch) / 2;
+	HRESULT __stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // called 0x4868DA movie_MVE_ShowFrame_ (used for game movies, only for w/o HRP)
+		mveDesc.dwHeight = (a->bottom - a->top);
+		yoffset = (ResHeight - mveDesc.dwHeight) / 2;
+		mveDesc.lPitch = (a->right - a->left);
+		//xoffset = (ResWidth - mveDesc.lPitch) / 2;
 
-		//dlog_f("\nBlt: [MovieDesc: w:%d, h:%d]", DL_INIT, movieDesc.lPitch, movieDesc.dwHeight);
+		dlog_f("\nBlt: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 
 		IsPlayMovie = true;
-		//if (Graphics::PlayAviMovie) return DD_OK;
+		//mainTexLock = true;
 
-		BYTE* lockTarget = ((FakeSurface2*)b)->lockTarget;
+		BYTE* lockTarget = ((FakeDirectDrawSurface*)b)->lockTarget;
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, a, 0);
-		DWORD width = movieDesc.lPitch; // the current size of the width of the mve movie
+		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 		int pitch = dRect.Pitch;
 		if (Graphics::GPUBlt) {
 			char* pBits = (char*)dRect.pBits;
 			if (subTitlesShow) {
 				subTitlesShow = false;
-				DWORD bottom = yoffset + movieDesc.dwHeight;
+				DWORD bottom = yoffset + mveDesc.dwHeight;
 				long x_shift = (ResWidth - width) / 2; // shift the position of subtitles relative to the width difference
-				for (DWORD y = 0; y < ResHeight; y++) {
-					if (y < yoffset || y > bottom) { // paste subtitles excluding video region
+				for (DWORD y = bottom; y < ResHeight; y++) {
+					//if (y < yoffset || y > bottom) { // paste subtitles excluding video region
 						CopyMemory(&pBits[(y - yoffset) * pitch], &titlesBuffer[(y * ResWidth) + x_shift], width);
-					}
+					//}
 				}
 			}
-			for (DWORD y = 0; y < movieDesc.dwHeight; y++) {
+			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 				CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
 			}
 			//if (ResWidth > 640) {
@@ -661,19 +676,19 @@ public:
 			pitch /= 4;
 			if (subTitlesShow) {
 				subTitlesShow = false;
-				DWORD bottom = yoffset + movieDesc.dwHeight;
+				DWORD bottom = yoffset + mveDesc.dwHeight;
 				long x_shift = (ResWidth - width) / 2; // shift the position of subtitles relative to the width difference
-				for (DWORD y = 0; y < ResHeight; y++) {
-					if (y < yoffset || y > bottom) {
+				for (DWORD y = bottom; y < ResHeight; y++) {
+					//if (y < yoffset || y > bottom) {
 						int yyp = (y - yoffset) * pitch;
 						int yw = (y * ResWidth) + x_shift;
 						for (DWORD x = 0; x < width; x++) {
 							((DWORD*)dRect.pBits)[yyp + x] = palette[titlesBuffer[yw + x]];
 						}
-					}
+					//}
 				}
 			}
-			for (DWORD y = 0; y < movieDesc.dwHeight; y++) {
+			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 				int yp = y * pitch;
 				int yw = y * width;
 				for (DWORD x = 0; x < width; x++) {
@@ -688,6 +703,9 @@ public:
 			//}
 		}
 		mainTex->UnlockRect(0);
+		//mainTexLock = false;
+
+		//if (!Graphics::PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
 
 		if (!DeviceLost) {
 			d3d9Device->BeginScene();
@@ -730,33 +748,35 @@ public:
 	HRESULT __stdcall IsLost() { UNUSEDFUNCTION; }
 
 	/* Called from:
-		0x4CB887 GNW95_ShowRect_ (c=1)
-		0x48699D movieShowFrame_ (c=0)
-		0x4CBBFA GNW95_zero_vid_mem_ (c=1)
-		0x4F5E91/0x4F5EBB sub_4F5E60 (c=0)
+		0x4CB887 GNW95_ShowRect_      [c=1]
+		0x48699D movieShowFrame_      [c=1]
+		0x4CBBFA GNW95_zero_vid_mem_  [c=1] (clear surface)
+		0x4F5E91/0x4F5EBB sub_4F5E60  [c=0] (from MVE_rmStepMovie_)
+		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (Primary) {
-			//dlog_f("\nLock(%d) use surfaceDesc.", DL_INIT, c);
+		if (isPrimary) {
 			*b = surfaceDesc;
 		} else {
-			//dlog_f("\nLock(%d) use movieDesc.", DL_INIT, c);
-			movieDesc.lPitch = *(DWORD*)FO_VAR_lastMovieW;
-			movieDesc.dwHeight = *(DWORD*)FO_VAR_lastMovieH;
-			*b = movieDesc;
+			mveDesc.lPitch = *(DWORD*)FO_VAR_lastMovieW;
+			mveDesc.dwHeight = *(DWORD*)FO_VAR_lastMovieH;
+			dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
+			*b = mveDesc;
 		}
 		b->lpSurface = lockTarget;
 		return DD_OK;
 	}
 
 	HRESULT __stdcall ReleaseDC(HDC) { UNUSEDFUNCTION; }
-	HRESULT __stdcall Restore() { UNUSEDFUNCTION; } // call from fallout2.exe - 0x4CB907
+	HRESULT __stdcall Restore() { UNUSEDFUNCTION; } // called 0x4CB907 GNW95_ShowRect_
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
 	HRESULT __stdcall SetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
 	HRESULT __stdcall SetOverlayPosition(LONG, LONG) { UNUSEDFUNCTION; }
 
-	HRESULT __stdcall SetPalette(LPDIRECTDRAWPALETTE a) {
-		if (a) return DD_OK; // prevents executing the function when called from outside of sfall
+	HRESULT __stdcall SetPalette(LPDIRECTDRAWPALETTE a) { // called 0x4CB198 GNW95_init_DirectDraw_
+		if (DeviceLost || a) return DD_OK;                // prevents executing the function when called from outside of sfall
+		//dlog("\nSetPalette", DL_INIT);
+		mainTexLock = true;
 
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, 0, 0);
@@ -773,109 +793,125 @@ public:
 			}
 		}
 		mainTex->UnlockRect(0);
+		mainTexLock = false;
 		return DD_OK;
 	}
 
-#define FASTCOPY(a) __asm {                     \
-	__asm movzx eax, byte ptr ds:[esi]          \
-	__asm mov eax, dword ptr ds:[ebx + eax * 4] \
-	__asm inc esi                               \
-	__asm mov dword ptr ds:[edi + a], eax       \
+#define FASTCOPY(a) __asm {               \
+	__asm movzx eax, [esi]                \
+	__asm mov eax, [ebx + eax * 4]        \
+	__asm inc esi                         \
+	__asm mov dword ptr ds:[edi + a], eax \
 }
-
-	HRESULT __stdcall Unlock(LPVOID) { // common game (is primary)
+	/* Called from:
+		0x4CB8F0 GNW95_ShowRect_
+		0x486A87 movieShowFrame_
+		0x4CBC5A GNW95_zero_vid_mem_ (clear surface)
+		0x4F5ECC sub_4F5E60 (from MVE_rmStepMovie_)
+		0x4868BA movie_MVE_ShowFrame_ (capture, never called)
+	*/
+	HRESULT __stdcall Unlock(LPVOID) { // common game (primary)
 		//dlog("\nUnlock", DL_INIT);
-		if (Primary && d3d9Device) {
-			//dlog(" - is primary.", DL_INIT);
-			if (DeviceLost) {
-				if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
-					ResetDevice(false);
-					DeviceLost = false;
-				}
-			}
-			if (!DeviceLost) {
-				D3DLOCKED_RECT dRect;
-				mainTex->LockRect(0, &dRect, 0, 0);
-				int pitch = dRect.Pitch;
-				DWORD width = ResWidth;
-				if (Graphics::GPUBlt) {
-					char* pBits = (char*)dRect.pBits;
-					if (IsPlayMovie) { // for subtitles
-						subTitlesShow = true;
-						if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
-						DWORD bottom = (yoffset + movieDesc.dwHeight);
-						for (DWORD y = 0; y < ResHeight; y++) {
-							if (y < yoffset || y > bottom) CopyMemory(&titlesBuffer[y * width], &lockTarget[y * width], width); //copy subtitles region to buffer
-						}
-					} else {
-						for (DWORD y = 0; y < ResHeight; y++) {
-							CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
-						}
-					}
-				} else {
-					DWORD* pBits = (DWORD*)dRect.pBits;
-					pitch /= 4;
-					if (IsPlayMovie) { // for subtitles
-						subTitlesShow = true;
-						if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
-						DWORD bottom = (yoffset + movieDesc.dwHeight);
-						for (DWORD y = 0; y < ResHeight; y++) {
-							if (y >= yoffset && y <= bottom) continue;
-							int yw = y * width;
-							for (DWORD x = 0; x < width; x++) {
-								titlesBuffer[yw + x] = lockTarget[yw + x];
-							}
-						}
-					} else if (!(ResWidth % 8)) {
-						DWORD* target = (DWORD*)&lockTarget[0];
-						pitch = (pitch - ResWidth) * 4;
-						DWORD width = ResWidth / 8;
-						__asm {
-							mov esi, target;
-							mov edi, dRect.pBits;
-							lea ebx, [palette];
-							mov edx, ResHeight;
-start:
-							mov ecx, width;
-start2:
-							movzx eax, byte ptr ds:[esi];
-							mov eax, dword ptr ds:[ebx + eax * 4];
-							inc esi;
-							mov dword ptr ds:[edi], eax;
-							FASTCOPY(4)
-							FASTCOPY(8)
-							FASTCOPY(12)
-							FASTCOPY(16)
-							FASTCOPY(20)
-							FASTCOPY(24)
-							FASTCOPY(28)
-							lea edi, [edi + 32];
+		if (!isPrimary || !d3d9Device) return DD_OK;
 
-							dec ecx;
-							jnz start2;
-							add edi, pitch;
-							dec edx;
-							jnz start;
-						}
-					} else {
-						for (DWORD y = 0; y < ResHeight; y++) {
-							int yp = y * pitch;
-							int yw = y * width;
-							for (DWORD x = 0; x < width; x++) {
-								pBits[yp + x] = palette[lockTarget[yw + x]];
-							}
-						}
+		//dlog("\nUnlock primary", DL_INIT);
+		if (DeviceLost) {
+			if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
+				dlog("\nResetDevice", DL_INIT);
+				ResetDevice(false);
+				DeviceLost = false;
+			}
+			if (DeviceLost) return DD_OK;
+		}
+
+		mainTexLock = true;
+
+		D3DLOCKED_RECT dRect;
+		mainTex->LockRect(0, &dRect, 0, 0);
+
+		int pitch = dRect.Pitch;
+		DWORD width = ResWidth;
+
+		if (Graphics::GPUBlt) {
+			if (IsPlayMovie) { // for subtitles (w/o HRP)
+				subTitlesShow = true;
+				if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
+				DWORD bottom = (yoffset + mveDesc.dwHeight);
+				for (DWORD y = bottom; y < ResHeight; y++) {
+					//if (y < yoffset || y > bottom)
+						CopyMemory(&titlesBuffer[y * width], &lockTarget[y * width], width); // copy subtitles region to buffer
+				}
+			} else {
+				char* pBits = (char*)dRect.pBits;
+				for (DWORD y = 0; y < ResHeight; y++) {
+					CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
+				}
+			}
+		} else {
+			pitch /= 4;
+			if (IsPlayMovie) { // for subtitles (w/o HRP)
+				subTitlesShow = true;
+				if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
+				DWORD bottom = (yoffset + mveDesc.dwHeight);
+				for (DWORD y = bottom; y < ResHeight; y++) {
+					//if (y >= yoffset && y <= bottom) continue;
+					int yw = y * width;
+					for (DWORD x = 0; x < width; x++) {
+						titlesBuffer[yw + x] = lockTarget[yw + x];
 					}
 				}
-				mainTex->UnlockRect(0);
-				if (!IsPlayMovie && !Graphics::PlayAviMovie) {
-					subTitlesShow = false;
-					//dlog("\nUnlock: -> RefreshGraphics", DL_INIT);
-					RefreshGraphics();
-				};
+			} else if (!(ResWidth % 8)) {
+				DWORD* source = (DWORD*)&lockTarget[0];
+				pitch = (pitch - ResWidth) * 4;
+				DWORD width = ResWidth / 8;
+				__asm {
+					mov esi, source;      // source surface
+					mov edi, dRect.pBits; // target surface
+					lea ebx, [palette];
+					mov edx, ResHeight;
+				start:
+					mov ecx, width;
+				start2:
+					movzx eax, [esi];         // color index in the palette
+					mov eax, [ebx + eax * 4]; // take the color value from the palette
+					inc esi;
+					mov [edi], eax;           // write the color to dRect.pBits
+
+					FASTCOPY(4)
+					FASTCOPY(8)
+					FASTCOPY(12)
+					FASTCOPY(16)
+					FASTCOPY(20)
+					FASTCOPY(24)
+					FASTCOPY(28)
+
+					lea edi, [edi + 32];
+					dec ecx;
+					jnz start2;
+					add edi, pitch;
+					dec edx;
+					jnz start;
+				}
+			} else {
+				DWORD* pBits = (DWORD*)dRect.pBits;
+				for (DWORD y = 0; y < ResHeight; y++) {
+					int yp = y * pitch;
+					int yw = y * width;
+					for (DWORD x = 0; x < width; x++) {
+						pBits[yp + x] = palette[lockTarget[yw + x]];
+					}
+				}
 			}
-			IsPlayMovie = false;
 		}
+		mainTex->UnlockRect(0);
+		mainTexLock = false;
+
+		if (!IsPlayMovie && !Graphics::PlayAviMovie) {
+			subTitlesShow = false;
+			//dlog("\nUnlock: -> RefreshGraphics", DL_INIT);
+			Graphics::RefreshGraphics();
+		}
+		IsPlayMovie = false;
 		return DD_OK;
 	}
 
@@ -884,25 +920,22 @@ start2:
 	HRESULT __stdcall UpdateOverlayZOrder(DWORD, LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 };
 
-bool FakeSurface2::IsPlayMovie;
-bool FakeSurface2::subTitlesShow;
+bool FakeDirectDrawSurface::IsPlayMovie;
+bool FakeDirectDrawSurface::subTitlesShow;
 
-class FakePalette2 : IDirectDrawPalette {
+class FakeDirectDrawPalette : IDirectDrawPalette {
 private:
 	ULONG Refs;
 public:
-	FakePalette2() {
+	FakeDirectDrawPalette() {
 		Refs = 1;
 	}
 
-	// IUnknown methods
-	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) {
-		return E_NOINTERFACE;
-	}
+	/* IUnknown methods */
 
-	ULONG __stdcall AddRef() {
-		return ++Refs;
-	}
+	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) { return E_NOINTERFACE; }
+
+	ULONG __stdcall AddRef() { return ++Refs; }
 
 	ULONG __stdcall Release() {
 		if (!--Refs) {
@@ -911,7 +944,8 @@ public:
 		} else return Refs;
 	}
 
-	// IDirectDrawPalette methods
+	/* IDirectDrawPalette methods */
+
 	HRESULT __stdcall GetCaps(LPDWORD) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 	HRESULT __stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
@@ -924,13 +958,11 @@ public:
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
 		CopyMemory(&palette[b], destPal, c * 4);
-		if (Graphics::GPUBlt) {
-			if (gpuPalette) {
-				D3DLOCKED_RECT rect;
-				if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
-					CopyMemory(rect.pBits, palette, 256 * 4);
-					gpuPalette->UnlockRect(0);
-				}
+		if (Graphics::GPUBlt && gpuPalette) {
+			D3DLOCKED_RECT rect;
+			if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
+				CopyMemory(rect.pBits, palette, 256 * 4);
+				gpuPalette->UnlockRect(0);
 			}
 		} else {
 			// X8B8G8R8 format
@@ -940,11 +972,11 @@ public:
 				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
 			}
 			primaryDDSurface->SetPalette(0); // update
-			if (FakeSurface2::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
+			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
 		}
 		if (!Graphics::PlayAviMovie) {
 			//dlog("\nSetEntries: -> RefreshGraphics", DL_INIT);
-			RefreshGraphics();
+			Graphics::RefreshGraphics();
 		} else {
 			// only for debugging
 			//dlog("\nSetEntries: -> ShowMovieFrame", DL_INIT);
@@ -954,16 +986,17 @@ public:
 	}
 };
 
-class FakeDirectDraw2 : IDirectDraw
+class FakeDirectDraw : IDirectDraw
 {
 private:
 	ULONG Refs;
 public:
-	FakeDirectDraw2() {
-		Refs=1;
+	FakeDirectDraw() {
+		Refs = 1;
 	}
 
-	// IUnknown methods
+	/* IUnknown methods */
+
 	HRESULT __stdcall QueryInterface(REFIID, LPVOID*) { return E_NOINTERFACE; }
 
 	ULONG __stdcall AddRef()  { return ++Refs; }
@@ -972,7 +1005,7 @@ public:
 		if (!--Refs) {
 			ScriptShaders::Release();
 
-			SAFERELEASE(backbuffer);
+			SAFERELEASE(backBuffer);
 			SAFERELEASE(sSurf1);
 			SAFERELEASE(sSurf2);
 			SAFERELEASE(mainTex);
@@ -991,22 +1024,25 @@ public:
 		} else return Refs;
 	}
 
-	// IDirectDraw methods
+	/* IDirectDraw methods */
+
 	HRESULT __stdcall Compact() { UNUSEDFUNCTION; }
 	HRESULT __stdcall CreateClipper(DWORD, LPDIRECTDRAWCLIPPER*, IUnknown*) { UNUSEDFUNCTION; }
 
-	HRESULT __stdcall CreatePalette(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE* c, IUnknown*) {
-		*c = (IDirectDrawPalette*)new FakePalette2();
+	HRESULT __stdcall CreatePalette(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE* c, IUnknown*) { // called 0x4CB182 GNW95_init_DirectDraw_
+		*c = (IDirectDrawPalette*)new FakeDirectDrawPalette();
 		return DD_OK;
 	}
 
+	/*
+		0x4CB094 GNW95_init_DirectDraw_ (primary surface)
+		0x4F5DD4/0x4F5DF9 nfConfig_     (mve surface)
+	*/
 	HRESULT __stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
-		//dlog("\nCreateSurface", DL_INIT);
-		if (a->dwFlags == 1 && a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE) {
-			//dlog(" primary.", DL_INIT);
-			*b = primaryDDSurface = (IDirectDrawSurface*)new FakeSurface2(true);
+		if (a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE && a->dwFlags == DDSD_CAPS) {
+			*b = primaryDDSurface = (IDirectDrawSurface*)new FakeDirectDrawSurface(true);
 		} else {
-			*b = (IDirectDrawSurface*)new FakeSurface2(false);
+			*b = (IDirectDrawSurface*)new FakeDirectDrawSurface(false);
 		}
 		return DD_OK;
 	}
@@ -1025,7 +1061,7 @@ public:
 	HRESULT __stdcall Initialize(GUID *) { UNUSEDFUNCTION; }
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
-	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) {
+	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
 		window = a;
 
 		if (!d3d9Device) {
@@ -1051,13 +1087,14 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT __stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; }
+	HRESULT __stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; } // called 0x4CB01B GNW95_init_DirectDraw_
 	HRESULT __stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
-HRESULT __stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
+HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
+	// original resolution or HRP
 	ResWidth = *(DWORD*)0x4CAD6B;  // 640
 	ResHeight = *(DWORD*)0x4CAD66; // 480
 
@@ -1071,20 +1108,20 @@ HRESULT __stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	surfaceDesc.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_PITCH;
 	surfaceDesc.dwWidth = ResWidth;
 	surfaceDesc.dwHeight = ResHeight;
-	surfaceDesc.ddpfPixelFormat.dwRGBBitCount = 16;
+	surfaceDesc.ddpfPixelFormat.dwRGBBitCount = 16; // R5G6B5
 	surfaceDesc.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
-	surfaceDesc.ddpfPixelFormat.dwRBitMask = 0xF800; // 1111100000000000
-	surfaceDesc.ddpfPixelFormat.dwGBitMask = 0x7E0;  // 0000011111100000
-	surfaceDesc.ddpfPixelFormat.dwBBitMask = 0x1F;   // 0000000000011111
+	surfaceDesc.ddpfPixelFormat.dwRBitMask = 0xF800;
+	surfaceDesc.ddpfPixelFormat.dwGBitMask = 0x7E0;
+	surfaceDesc.ddpfPixelFormat.dwBBitMask = 0x1F;
 	surfaceDesc.ddpfPixelFormat.dwFlags = DDPF_RGB;
 	surfaceDesc.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
 	surfaceDesc.lPitch = ResWidth;
 
 	// set params for .mve surface
-	movieDesc = surfaceDesc;
-	movieDesc.lPitch = 640;
-	movieDesc.dwWidth = 640;
-	movieDesc.dwHeight = 480;
+	mveDesc = surfaceDesc;
+	mveDesc.lPitch = 640;
+	mveDesc.dwWidth = 640;
+	mveDesc.dwHeight = 480;
 
 	if (Graphics::mode == 6) {
 		D3DDISPLAYMODE dispMode;
@@ -1135,7 +1172,7 @@ HRESULT __stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
 
-	*b = (IDirectDraw*)new FakeDirectDraw2();
+	*b = (IDirectDraw*)new FakeDirectDraw();
 
 	dlogr(" Done", DL_MAIN);
 	return DD_OK;
@@ -1175,7 +1212,7 @@ void Graphics::init() {
 #define _DLL_NAME "d3dx9_43.dll"
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
-			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing.\n"
+			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
 						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
@@ -1211,5 +1248,5 @@ void Graphics::exit() {
 
 // This should be in global namespace
 HRESULT __stdcall FakeDirectDrawCreate2(void* a, IDirectDraw** b, void* c) {
-	return sfall::FakeDirectDrawCreate2_Init(a, b, c);
+	return sfall::InitFakeDirectDrawCreate(a, b, c);
 }

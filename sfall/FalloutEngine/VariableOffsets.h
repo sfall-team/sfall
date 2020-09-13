@@ -101,6 +101,7 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
+#define FO_VAR_GNW95_isActive             0x51E444
 #define FO_VAR_GNWWin                     0x5195B8
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_gsound_speech_tag          0x518E54
@@ -219,6 +220,7 @@
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC
 #define FO_VAR_retvals                    0x43EA7C
+#define FO_VAR_rm_FrameCount              0x6B36A8
 #define FO_VAR_rotation                   0x631D34
 #define FO_VAR_sad                        0x530014
 #define FO_VAR_sampleRate                 0x66815C
@@ -240,6 +242,7 @@
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_subtitleList               0x638E74
 #define FO_VAR_subtitles                  0x663974
 #define FO_VAR_sWindows                   0x6727B0
 #define FO_VAR_Tag_                       0x5708B0
