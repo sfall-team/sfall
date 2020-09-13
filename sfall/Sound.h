@@ -26,3 +26,5 @@ DWORD __stdcall PlaySfallSound(const char* path, long mode);
 void __stdcall StopSfallSound(DWORD id);
 
 long Sound_CalculateVolumeDB(long masterVolume, long passVolume);
+
+void Sound_SoundLostFocus(long isActive);

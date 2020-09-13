@@ -121,6 +121,7 @@
 #define _gmouse_current_cursor      0x518C0C
 #define _gmovie_played_list         0x596C78
 #define _GNW_win_init_flag          0x51E3E0
+#define _GNW95_isActive             0x51E444
 #define _GNWWin                     0x5195B8
 #define _gsound_initialized         0x518E30
 #define _gsound_speech_tag          0x518E54
@@ -234,6 +235,7 @@
 #define _quick_done                 0x5193BC
 #define _read_callback              0x51DEEC
 #define _retvals                    0x43EA7C
+#define _rm_FrameCount              0x6B36A8
 #define _rotation                   0x631D34
 #define _sad                        0x530014
 #define _sampleRate                 0x66815C
@@ -254,6 +256,7 @@
 #define _stack_offset               0x59E844
 #define _stat_data                  0x51D53C
 #define _stat_flag                  0x66452A
+#define _subtitleList               0x638E74
 #define _subtitles                  0x663974
 #define _sWindows                   0x6727B0
 #define _Tag_                       0x5708B0
@@ -503,6 +506,7 @@ extern DWORD* ptr_stack;
 extern DWORD* ptr_stack_offset;
 extern DWORD* ptr_stat_data;
 extern DWORD* ptr_stat_flag;
+extern SubTitleList** ptr_subtitleList;
 extern DWORD* ptr_sWindows; // total 16 sWindow struct
 extern DWORD* ptr_Tag_;
 extern DWORD* ptr_tag_skill;
@@ -723,6 +727,7 @@ extern const DWORD gmovieIsPlaying_;
 extern const DWORD GNW_do_bk_process_;
 extern const DWORD GNW_find_;
 extern const DWORD GNW_win_refresh_;
+extern const DWORD GNW95_lost_focus_;
 extern const DWORD GNW95_process_message_;
 extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_background_pause_;
@@ -865,6 +870,7 @@ extern const DWORD mouse_hide_;
 extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
+extern const DWORD movieRun_;
 extern const DWORD movieStop_;
 extern const DWORD movieUpdate_;
 extern const DWORD new_obj_id_;

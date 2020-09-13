@@ -42,8 +42,13 @@ void Gfx_SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int
 void Gfx_SetHeadTechnique();
 void Gfx_SetDefaultTechnique();
 
-void Gfx_ShowMovieFrame();
-void Gfx_SetMovieTexture(IDirect3DTexture9* tex);
+void Gfx_ShowMovieFrame(IDirect3DTexture9* movieTex);
+
+void Gfx_SetMovieTexture(bool state);
+HRESULT Gfx_CreateMovieTexture(D3DSURFACE_DESC &desc);
+void Gfx_ReleaseMovieTexture();
+
+void Gfx_RefreshGraphics();
 
 int __stdcall GetShaderVersion();
 int __stdcall LoadShader(const char*);
@@ -59,5 +64,4 @@ void __stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, f
 int __stdcall GetShaderTexture(DWORD d, DWORD id);
 void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value);
 
-void RefreshGraphics();
 HWND GetFalloutWindowInfo(RECT* rect);
