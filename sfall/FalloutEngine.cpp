@@ -1198,23 +1198,6 @@ isNotStr:
 	}
 }
 
-DWORD __fastcall InterpretGetValue(TProgram* scriptPtr, DWORD &outType) {
-	__asm {
-		mov  eax, ecx;
-		call interpretPopShort_; // pops value type from Data stack (must be followed by InterpretPopLong)
-		mov  [edx], eax; // out type
-		mov  edx, eax;
-		mov  eax, ecx;
-		call interpretPopLong_; // pops value from Data stack (must be preceded by InterpretPopShort)
-		cmp  dx, VAR_TYPE_STR;
-		ja   isNotStr;
-		mov  ebx, eax;
-		mov  eax, ecx;
-		call interpretGetString_; // retrieve string argument
-isNotStr:
-	}
-}
-
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
 void __declspec(naked) InterpretError(const char* fmt, ...) {

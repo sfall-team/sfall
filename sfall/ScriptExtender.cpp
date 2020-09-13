@@ -318,9 +318,16 @@ public:
 		// process arguments on stack (reverse order)
 		for (int i = argNum - 1; i >= 0; i--) {
 			// get argument from stack
-			DWORD rawValueType;
-			DWORD rawValue = InterpretGetValue(program, rawValueType);
-			_args[i] = ScriptValue(static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType)), rawValue);
+			DWORD rawValueType = InterpretPopShort(program);
+			DWORD rawValue = InterpretPopLong(program);
+			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+
+			// retrieve string argument
+			if (type == DATATYPE_STR) {
+				_args[i] = InterpretGetString(program, rawValueType, rawValue);
+			} else {
+				_args[i] = ScriptValue(type, rawValue);
+			}
 		}
 		// flag that arguments passed are valid
 		bool argumentsValid = true;

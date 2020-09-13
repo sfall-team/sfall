@@ -1279,8 +1279,6 @@ const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, D
 
 void __stdcall InterpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType);
 
-DWORD __fastcall InterpretGetValue(TProgram* scriptPtr, DWORD &outType);
-
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
 void __declspec() InterpretError(const char* fmt, ...);
