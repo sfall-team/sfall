@@ -164,22 +164,24 @@ static void ResetShaders() {
 }
 
 void ScriptShaders::Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2, IDirect3DTexture9* sTex2) {
-	for (int d = shadersSize - 1; d >= 0; d--) {
-		if (!shaders[d].Effect || !shaders[d].Active) continue;
-		if (shaders[d].mode2 && !(shaders[d].mode2 & GetLoopFlags())) continue;
-		if (shaders[d].mode & GetLoopFlags()) continue;
+	for (int i = shadersSize - 1; i >= 0; i--) {
+		if (!shaders[i].Effect || !shaders[i].Active) continue;
+		if (shaders[i].mode2 && !(shaders[i].mode2 & GetLoopFlags())) continue;
+		if (shaders[i].mode & GetLoopFlags()) continue;
 
-		if (shaders[d].ehTicks) shaders[d].Effect->SetInt(shaders[d].ehTicks, GetTickCount());
+		if (shaders[i].ehTicks) shaders[i].Effect->SetInt(shaders[i].ehTicks, GetTickCount());
+
 		UINT passes;
-		shaders[d].Effect->Begin(&passes, 0);
+		shaders[i].Effect->Begin(&passes, 0);
 		for (DWORD pass = 0; pass < passes; pass++) {
-			shaders[d].Effect->BeginPass(pass);
+			shaders[i].Effect->BeginPass(pass);
 			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			shaders[d].Effect->EndPass();
-			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE);
+			shaders[i].Effect->EndPass();
+
+			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy sSurf1 to sSurf2
 			d3d9Device->SetTexture(0, sTex2);
 		}
-		shaders[d].Effect->End();
+		shaders[i].Effect->End();
 		d3d9Device->SetTexture(0, sTex2);
 	}
 }
