@@ -90,7 +90,6 @@ void SetMPos(int x, int y) {
 }
 
 void FlushInputBuffer() {
-	while (!bufferedPresses.empty()) bufferedPresses.pop();
 	__asm call kb_clear_;
 }
 
@@ -253,9 +252,16 @@ public:
 		return 0;
 	}
 
-	// Only called for the keyboard (dxinput_read_keyboard_buffer_ called at 0x4E06AB)
+	/* Only called for the keyboard
+		0x4E06AB dxinput_read_keyboard_buffer_
+		0x4E0631 dxinput_flush_keyboard_buffer_
+	*/
 	HRESULT __stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* buf, DWORD* count, DWORD d) { // buf - DirectInputKeyboardBuffer (0x6B2560)
 		if (DeviceType != kDeviceType_KEYBOARD) {
+			return RealDevice->GetDeviceData(a, buf, count, d);
+		}
+		if (!buf && !d && *count == INFINITE) { // flush
+			while (!bufferedPresses.empty()) bufferedPresses.pop();
 			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
 
@@ -264,6 +270,7 @@ public:
 		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);
 			if (FAILED(hr) || !buf || !(*count)) return hr;
+
 			for (DWORD i = 0; i < *count; i++) {
 				DWORD dxKey = buf[i].dwOfs;
 				DWORD state = buf[i].dwData & 0x80;
