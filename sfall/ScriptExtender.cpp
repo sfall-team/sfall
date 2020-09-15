@@ -351,7 +351,7 @@ public:
 			if (_ret.type() == DATATYPE_NONE) {
 				_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 			}
-			InterpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type()));
+			InterpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type())); // 4.x backport
 		}
 	}
 

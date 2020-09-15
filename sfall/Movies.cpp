@@ -193,10 +193,8 @@ static struct sDSTexture {
 	IVMRSurfaceAllocatorNotify9 *pAlloc;
 	IMediaControl *pControl;
 	IMediaSeeking *pSeek;
-	IBasicAudio   *pAudio;
+	IBasicAudio *pAudio;
 	bool released;
-
-	sDSTexture() : released(false) {}
 } movieInterface;
 
 enum AviState : long {

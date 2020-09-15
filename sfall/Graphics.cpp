@@ -28,7 +28,7 @@
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
 typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
-typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
+//typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
 
 static IDirectDrawSurface* primaryDDSurface = nullptr;
 
@@ -40,8 +40,6 @@ DWORD GraphicsMode;
 
 bool PlayAviMovie = false;
 bool AviMovieWidthFit = false;
-
-static BYTE* titlesBuffer = nullptr;
 
 static DWORD yoffset;
 //static DWORD xoffset;
@@ -119,8 +117,8 @@ static const char* gpuEffect =
 	"}"
 
 	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);"
-	  "return float4(result.b, result.g, result.r, 1);" // GPU swap R <> B
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);"    // get color in palette
+	  "return float4(result.b, result.g, result.r, 1);" // swap R <> B
 	"}"
 
 	"technique T0"
@@ -128,7 +126,7 @@ static const char* gpuEffect =
 	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
 	"}";
 
-static D3DXHANDLE gpuBltBuf;
+static D3DXHANDLE gpuBltMainTex;
 static D3DXHANDLE gpuBltPalette;
 static D3DXHANDLE gpuBltHead;
 static D3DXHANDLE gpuBltHeadSize;
@@ -306,7 +304,7 @@ static void WindowInit() {
 static void GetDisplayMode(D3DDISPLAYMODE &ddm) {
 	ZeroMemory(&ddm, sizeof(ddm));
 	d3d9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &ddm);
-	dlog_f("Display mode format id: %d\n", DL_INIT, ddm.Format);
+	dlog_f("\nDisplay mode format id: %d", DL_INIT, ddm.Format);
 }
 
 static void ResetDevice(bool createNew) {
@@ -348,7 +346,7 @@ static void ResetDevice(bool createNew) {
 
 		if (GPUBlt) {
 			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
-			gpuBltBuf = gpuBltEffect->GetParameterByName(0, "image");
+			gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
 			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
 			// for head textures
 			gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
@@ -377,7 +375,7 @@ static void ResetDevice(bool createNew) {
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
 	if (GPUBlt) {
 		d3d9Device->CreateTexture(256, 1, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &gpuPalette, 0);
-		gpuBltEffect->SetTexture(gpuBltBuf, mainTex);
+		gpuBltEffect->SetTexture(gpuBltMainTex, mainTex);
 		gpuBltEffect->SetTexture(gpuBltPalette, gpuPalette);
 	}
 
@@ -425,8 +423,8 @@ static void ResetDevice(bool createNew) {
 	d3d9Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	d3d9Device->SetRenderState(D3DRS_LIGHTING, false);
 
-	d3d9Device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-	d3d9Device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+	//d3d9Device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_NONE); //D3DTEXF_LINEAR
+	//d3d9Device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_NONE); //D3DTEXF_LINEAR
 
 	//d3d9Device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(255, 0, 255), 1.0f, 0); // for debbuging
 	dlogr(" Done", DL_MAIN);
@@ -500,60 +498,66 @@ static void Present() {
 	}
 }
 
-void Gfx_RefreshGraphics() {
-	if (DeviceLost || PlayAviMovie) return;
+static void Refresh() {
+	if (DeviceLost) return;
 
 	d3d9Device->BeginScene();
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, sSurf1);
 
 	UINT unused;
-	if (GPUBlt && shadersSize) {
+	if (shadersSize && GPUBlt) {
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
 		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 
-		d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy: sSurf1 to sSurf2
+		d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy sSurf1 to sSurf2
 		d3d9Device->SetTexture(0, sTex2);
 	} else {
 		d3d9Device->SetTexture(0, mainTex);
 	}
-	for (int d = shadersSize - 1; d >= 0; d--) {
-		if (!shaders[d].Effect || !shaders[d].Active) continue;
-		if (shaders[d].mode2 && !(shaders[d].mode2 & GetLoopFlags())) continue;
-		if (shaders[d].mode & GetLoopFlags()) continue;
+	for (int i = shadersSize - 1; i >= 0; i--) {
+		if (!shaders[i].Effect || !shaders[i].Active) continue;
+		if (shaders[i].mode2 && !(shaders[i].mode2 & GetLoopFlags())) continue;
+		if (shaders[i].mode & GetLoopFlags()) continue;
 
-		if (shaders[d].ehTicks) shaders[d].Effect->SetInt(shaders[d].ehTicks, GetTickCount());
+		if (shaders[i].ehTicks) shaders[i].Effect->SetInt(shaders[i].ehTicks, GetTickCount());
+
 		UINT passes;
-		shaders[d].Effect->Begin(&passes, 0);
+		shaders[i].Effect->Begin(&passes, 0);
 		for (DWORD pass = 0; pass < passes; pass++) {
-			shaders[d].Effect->BeginPass(pass);
+			shaders[i].Effect->BeginPass(pass);
 			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			shaders[d].Effect->EndPass();
-			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE);
+			shaders[i].Effect->EndPass();
+
+			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy sSurf1 to sSurf2
 			d3d9Device->SetTexture(0, sTex2);
 		}
-		shaders[d].Effect->End();
+		shaders[i].Effect->End();
 		d3d9Device->SetTexture(0, sTex2);
 	}
 
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backBuffer);
 
-	if (GPUBlt && !shadersSize) {
+	if (!shadersSize && GPUBlt) {
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
 	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (GPUBlt && !shadersSize) {
+	if (!shadersSize && GPUBlt) {
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 	}
 
 	d3d9Device->EndScene();
 	Present();
+}
+
+void Gfx_RefreshGraphics() {
+	if (!PlayAviMovie) Refresh();
 }
 
 HRESULT Gfx_CreateMovieTexture(D3DSURFACE_DESC &desc) {
@@ -701,7 +705,7 @@ void Gfx_SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
 }
 
-void Graphics_OnGameLoad() {
+void Graphics_OnGameLoad() { // ResetShaders
 	for (DWORD d = 0; d < shadersSize; d++) SAFERELEASE(shaders[d].Effect);
 	shaders.clear();
 	shadersSize = 0;
@@ -714,15 +718,19 @@ private:
 	bool isPrimary;
 	BYTE* lockTarget;
 
+	FakeDirectDrawSurface() : lockTarget(nullptr) {}
+
 public:
 	static bool IsPlayMovie;
-	static bool subTitlesShow;
 
 	FakeDirectDrawSurface(bool primary) {
 		Refs = 1;
 		isPrimary = primary;
-		lockTarget = new BYTE[ResWidth * ResHeight];
-		if (!windowInit) std::memset(lockTarget, 0, ResWidth * ResHeight);
+		if (primary && GPUBlt) {
+			// use the mainTex texture as a buffer
+		} else {
+			lockTarget = new BYTE[ResWidth * ResHeight];
+		}
 	}
 
 	/* IUnknown methods */
@@ -744,59 +752,32 @@ public:
 	HRESULT __stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 	HRESULT __stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
 
-	HRESULT __stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // called 0x4868DA movie_MVE_ShowFrame_ (used for game movies, only for w/o HRP)
-		mveDesc.dwHeight = (a->bottom - a->top);
+	HRESULT __stdcall Blt(LPRECT dsc, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) { // called 0x4868DA movie_MVE_ShowFrame_ (used for game movies, only for w/o HRP)
+		mveDesc.dwHeight = (dsc->bottom - dsc->top);
 		yoffset = (ResHeight - mveDesc.dwHeight) / 2;
-		mveDesc.lPitch = (a->right - a->left);
+		mveDesc.lPitch = (dsc->right - dsc->left);
 		//xoffset = (ResWidth - mveDesc.lPitch) / 2;
 
-		dlog_f("\nBlt: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
+		//dlog_f("\nBlt: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 
 		IsPlayMovie = true;
 		//mainTexLock = true;
 
 		BYTE* lockTarget = ((FakeDirectDrawSurface*)b)->lockTarget;
+
 		D3DLOCKED_RECT dRect;
-		mainTex->LockRect(0, &dRect, a, 0);
+		mainTex->LockRect(0, &dRect, dsc, 0);
+
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 		int pitch = dRect.Pitch;
+
 		if (GPUBlt) {
 			char* pBits = (char*)dRect.pBits;
-			if (subTitlesShow) {
-				subTitlesShow = false;
-				DWORD bottom = yoffset + mveDesc.dwHeight;
-				long x_shift = (ResWidth - width) / 2; // shift the position of subtitles relative to the width difference
-				for (DWORD y = bottom; y < ResHeight; y++) {
-					//if (y < yoffset || y > bottom) { // paste subtitles excluding video region
-						CopyMemory(&pBits[(y - yoffset) * pitch], &titlesBuffer[(y * ResWidth) + x_shift], width);
-					//}
-				}
-			}
 			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 				CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
 			}
-			//if (ResWidth > 640) {
-			//	for (DWORD y = yoffset; y < ResHeight - yoffset; y++) {
-			//		ZeroMemory(&pBits[y*dRect.Pitch], xoffset);
-			//		ZeroMemory(&pBits[y*dRect.Pitch + (ResWidth - xoffset)], xoffset);
-			//	}
-			//}
 		} else {
 			pitch /= 4;
-			if (subTitlesShow) {
-				subTitlesShow = false;
-				DWORD bottom = yoffset + mveDesc.dwHeight;
-				long x_shift = (ResWidth - width) / 2; // shift the position of subtitles relative to the width difference
-				for (DWORD y = bottom; y < ResHeight; y++) {
-					//if (y < yoffset || y > bottom) {
-						int yyp = (y - yoffset) * pitch;
-						int yw = (y * ResWidth) + x_shift;
-						for (DWORD x = 0; x < width; x++) {
-							((DWORD*)dRect.pBits)[yyp + x] = palette[titlesBuffer[yw + x]];
-						}
-					//}
-				}
-			}
 			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 				int yp = y * pitch;
 				int yw = y * width;
@@ -804,12 +785,6 @@ public:
 					((DWORD*)dRect.pBits)[yp + x] = palette[lockTarget[yw + x]];
 				}
 			}
-			//if (ResWidth > 640) {
-			//	for (DWORD y = yoffset; y < ResHeight - yoffset; y++) {
-			//		for (DWORD x = 0; x < xoffset; x++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
-			//		for (DWORD x = ResWidth - xoffset; x < ResWidth; x++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
-			//	}
-			//}
 		}
 		mainTex->UnlockRect(0);
 		//mainTexLock = false;
@@ -864,20 +839,44 @@ public:
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
+		if (DeviceLost) return DDERR_SURFACELOST;
 		if (isPrimary) {
-			*b = surfaceDesc;
+			if (GPUBlt) {
+				D3DLOCKED_RECT buf;
+				HRESULT hr = mainTex->LockRect(0, &buf, 0, 0);
+				if (hr) goto surface; // lock failed, use old method
+
+				mainTexLock = true;
+
+				b->lpSurface = buf.pBits;
+				b->lPitch = buf.Pitch;
+			} else {
+		surface:
+				*b = surfaceDesc;
+				b->lpSurface = lockTarget;
+			}
 		} else {
 			mveDesc.lPitch = *(DWORD*)_lastMovieW;
 			mveDesc.dwHeight = *(DWORD*)_lastMovieH;
-			dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
+			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 			*b = mveDesc;
+			b->lpSurface = lockTarget;
 		}
-		b->lpSurface = lockTarget;
 		return DD_OK;
 	}
 
 	HRESULT __stdcall ReleaseDC(HDC) { UNUSEDFUNCTION; }
-	HRESULT __stdcall Restore() { UNUSEDFUNCTION; } // called 0x4CB907 GNW95_ShowRect_
+
+	HRESULT __stdcall Restore() { // called 0x4CB907 GNW95_ShowRect_
+		if (!d3d9Device) return DD_FALSE;
+		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
+			ResetDevice(false);
+			DeviceLost = false;
+			RefreshGNW();
+		}
+		return !DeviceLost;
+	}
+
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
 	HRESULT __stdcall SetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
 	HRESULT __stdcall SetOverlayPosition(LONG, LONG) { UNUSEDFUNCTION; }
@@ -898,7 +897,7 @@ public:
 			int yp = y * pitch;
 			int yw = y * width;
 			for (DWORD x = 0; x < width; x++) {
-				pBits[yp + x] = palette[lockTarget[yw + x]];
+				pBits[yp + x] = palette[lockTarget[yw + x]]; // takes the color index in the palette and copies the color value to the texture surface
 			}
 		}
 		mainTex->UnlockRect(0);
@@ -906,119 +905,43 @@ public:
 		return DD_OK;
 	}
 
-#define FASTCOPY(a) __asm {               \
-	__asm movzx eax, [esi]                \
-	__asm mov eax, [ebx + eax * 4]        \
-	__asm inc esi                         \
-	__asm mov dword ptr ds:[edi + a], eax \
-}
 	/* Called from:
-		0x4CB8F0 GNW95_ShowRect_
+		0x4CB8F0 GNW95_ShowRect_      (common game, primary)
 		0x486A87 movieShowFrame_
-		0x4CBC5A GNW95_zero_vid_mem_ (clear surface)
-		0x4F5ECC sub_4F5E60 (from MVE_rmStepMovie_)
-		0x4868BA movie_MVE_ShowFrame_ (capture, never called)
+		0x4CBC5A GNW95_zero_vid_mem_  (clear surface)
+		0x4F5ECC sub_4F5E60           (from MVE_rmStepMovie_)
+		0x4868BA movie_MVE_ShowFrame_ (capture never call)
 	*/
-	HRESULT __stdcall Unlock(LPVOID) { // common game (primary)
+	HRESULT __stdcall Unlock(LPVOID) {
 		//dlog("\nUnlock", DL_INIT);
-		if (!isPrimary || !d3d9Device) return DD_OK;
+		if ((DeviceLost && Restore() == DD_FALSE) || !isPrimary) return DD_OK;
 
-		//dlog("\nUnlock primary", DL_INIT);
-		if (DeviceLost) {
-			if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
-				dlog("\nResetDevice", DL_INIT);
-				ResetDevice(false);
-				DeviceLost = false;
-			}
-			if (DeviceLost) return DD_OK;
-		}
+		//dlog("\nUnlock -> primary", DL_INIT);
 
-		mainTexLock = true;
+		if (GPUBlt == 0) {
+			mainTexLock = true;
 
-		D3DLOCKED_RECT dRect;
-		mainTex->LockRect(0, &dRect, 0, 0);
+			D3DLOCKED_RECT dRect;
+			mainTex->LockRect(0, &dRect, 0, 0);
 
-		int pitch = dRect.Pitch;
-		DWORD width = ResWidth;
-
-		if (GPUBlt) {
-			if (IsPlayMovie) { // for subtitles (w/o HRP)
-				subTitlesShow = true;
-				if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
-				DWORD bottom = (yoffset + mveDesc.dwHeight);
-				for (DWORD y = bottom; y < ResHeight; y++) {
-					//if (y < yoffset || y > bottom)
-						CopyMemory(&titlesBuffer[y * width], &lockTarget[y * width], width); // copy subtitles region to buffer
-				}
-			} else {
-				char* pBits = (char*)dRect.pBits;
-				for (DWORD y = 0; y < ResHeight; y++) {
-					CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
-				}
-			}
-		} else {
-			pitch /= 4;
-			if (IsPlayMovie) { // for subtitles (w/o HRP)
-				subTitlesShow = true;
-				if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
-				DWORD bottom = (yoffset + mveDesc.dwHeight);
-				for (DWORD y = bottom; y < ResHeight; y++) {
-					//if (y >= yoffset && y <= bottom) continue;
-					int yw = y * width;
-					for (DWORD x = 0; x < width; x++) {
-						titlesBuffer[yw + x] = lockTarget[yw + x];
-					}
-				}
-			} else if (!(ResWidth % 8)) {
-				DWORD* source = (DWORD*)&lockTarget[0];
-				pitch = (pitch - ResWidth) * 4;
-				DWORD width = ResWidth / 8;
-				__asm {
-					mov esi, source;      // source surface
-					mov edi, dRect.pBits; // target surface
-					lea ebx, [palette];
-					mov edx, ResHeight;
-				start:
-					mov ecx, width;
-				start2:
-					movzx eax, [esi];         // color index in the palette
-					mov eax, [ebx + eax * 4]; // take the color value from the palette
-					inc esi;
-					mov [edi], eax;           // write the color to dRect.pBits
-
-					FASTCOPY(4)
-					FASTCOPY(8)
-					FASTCOPY(12)
-					FASTCOPY(16)
-					FASTCOPY(20)
-					FASTCOPY(24)
-					FASTCOPY(28)
-
-					lea edi, [edi + 32];
-					dec ecx;
-					jnz start2;
-					add edi, pitch;
-					dec edx;
-					jnz start;
-				}
-			} else {
-				DWORD* pBits = (DWORD*)dRect.pBits;
-				for (DWORD y = 0; y < ResHeight; y++) {
-					int yp = y * pitch;
-					int yw = y * width;
-					for (DWORD x = 0; x < width; x++) {
-						pBits[yp + x] = palette[lockTarget[yw + x]];
-					}
+			int pitch = dRect.Pitch / 4;
+			DWORD* pBits = (DWORD*)dRect.pBits;
+			DWORD width = ResWidth;
+			// slow copy method
+			for (DWORD y = 0; y < ResHeight; y++) {
+				int yp = y * pitch;
+				int yw = y * width;
+				for (DWORD x = 0; x < width; x++) {
+					pBits[yp + x] = palette[lockTarget[yw + x]];
 				}
 			}
 		}
-		mainTex->UnlockRect(0);
+		if (mainTexLock) mainTex->UnlockRect(0);
 		mainTexLock = false;
 
 		if (!IsPlayMovie && !PlayAviMovie) {
-			subTitlesShow = false;
-			//dlog("\nUnlock: -> RefreshGraphics", DL_INIT);
-			Gfx_RefreshGraphics();
+			//dlog("\nUnlock -> RefreshGraphics", DL_INIT);
+			Refresh();
 		}
 		IsPlayMovie = false;
 		return DD_OK;
@@ -1030,7 +953,6 @@ public:
 };
 
 bool FakeDirectDrawSurface::IsPlayMovie;
-bool FakeDirectDrawSurface::subTitlesShow;
 
 class FakeDirectDrawPalette : IDirectDrawPalette {
 private:
@@ -1084,12 +1006,8 @@ public:
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
 		}
 		if (!PlayAviMovie) {
-			//dlog("\nSetEntries: -> RefreshGraphics", DL_INIT);
-			Gfx_RefreshGraphics();
-		} else {
-			// only for debugging
-			//dlog("\nSetEntries: -> ShowMovieFrame", DL_INIT);
-			//Graphics::ShowMovieFrame();
+			//dlog("\nSetEntries -> RefreshGraphics", DL_INIT);
+			Refresh();
 		}
 		return DD_OK;
 	}
@@ -1210,9 +1128,7 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	ResWidth = *(DWORD*)0x4CAD6B;  // 640
 	ResHeight = *(DWORD*)0x4CAD66; // 480
 
-	if (!d3d9) {
-		d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
-	}
+	if (!d3d9) d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 
 	ZeroMemory(&surfaceDesc, sizeof(DDSURFACEDESC));
 
@@ -1358,7 +1274,6 @@ void GraphicsExit() {
 			unsigned int data = windowTop | (windowLeft << 16);
 			if (data != windowData) SetConfigInt("Graphics", "WindowData", data);
 		}
-		if (titlesBuffer) delete[] titlesBuffer;
 		CoUninitialize();
 	}
 }
