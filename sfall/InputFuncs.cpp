@@ -260,7 +260,7 @@ public:
 		if (DeviceType != kDeviceType_KEYBOARD) {
 			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
-		if (!buf && !d && *count == INFINITE) { // flush
+		if (*count == INFINITE && !buf && !d) { // flush
 			while (!bufferedPresses.empty()) bufferedPresses.pop();
 			return RealDevice->GetDeviceData(a, buf, count, d);
 		}

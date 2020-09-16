@@ -209,6 +209,62 @@ static void __declspec(naked) display_stats_hook() {
 	}
 }
 
+static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
+	if (toSlot && GetItemType(item) != item_type_weapon && GetItemType(toSlot) != item_type_weapon) {
+		return;
+	}
+	ItemButtonItem* leftSlot  = &ptr_itemButtonItems[0];
+	ItemButtonItem* rightSlot = &ptr_itemButtonItems[1];
+
+	if (toSlot == nullptr) { // copy to slot
+		ItemButtonItem* slot;
+		ItemButtonItem item[1];
+		if ((int)&toSlot == _i_lhand) {
+			std::memcpy(item, rightSlot, 0x14);
+			item[0].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
+			item[0].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
+			slot = leftSlot; // Rslot > Lslot
+		} else {
+			std::memcpy(item, leftSlot, 0x14);
+			item[0].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
+			item[0].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
+			slot = rightSlot; // Lslot > Rslot;
+		}
+		std::memcpy(slot, item, 0x14);
+	} else { // swap slots
+		ItemButtonItem hands[2];
+		std::memcpy(hands, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
+		hands[0].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
+		hands[0].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
+		hands[1].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
+		hands[1].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
+
+		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
+	}
+}
+
+static void __declspec(naked) switch_hand_hack() {
+	__asm {
+		pushfd;
+		test ebx, ebx;
+		jz   skip;
+		cmp  ebx, edx;
+		jz   skip;
+		push ecx;
+		mov  ecx, eax;
+		call SwapHandSlots;
+		pop  ecx;
+skip:
+		popfd;
+		jz   end;
+		retn;
+end:
+		mov  dword ptr [esp], 0x4715B7;
+		retn;
+	}
+}
+
 static void __declspec(naked) endgame_movie_hook() {
 	__asm {
 		cmp  [esp + 16], 0x45C563; // call from op_endgame_movie_
@@ -541,6 +597,14 @@ static void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
+static void KeepWeaponSelectModePatch() {
+	//if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
+		dlog("Applying keep weapon select mode patch.", DL_INIT);
+		MakeCall(0x4714EC, switch_hand_hack, 1);
+		dlogr(" Done", DL_INIT);
+	//}
+}
+
 #pragma pack(push, 1)
 struct CodeData {
 	DWORD dd;
@@ -747,6 +811,7 @@ void MiscPatchesInit() {
 	NumbersInDialoguePatch();
 
 	DisplaySecondWeaponRangePatch();
+	KeepWeaponSelectModePatch();
 
 	SkipLoadingGameSettingsPatch();
 	InterfaceDontMoveOnTopPatch();

@@ -1819,6 +1819,10 @@ void SkillSetTags(long* tags, long num) {
 	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
 
+long __fastcall GetItemType(TGameObj* item) {
+	return ItemGetType(item);
+}
+
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot) {
 	TGameObj* itemPtr = nullptr;
 	switch (slot) {
