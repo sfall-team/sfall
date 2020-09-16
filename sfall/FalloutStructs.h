@@ -239,19 +239,10 @@ struct DbFile {
 	void* handle;
 };
 
-struct sElevator {
-	long ID1;
-	long Elevation1;
-	long Tile1;
-	long ID2;
-	long Elevation2;
-	long Tile2;
-	long ID3;
-	long Elevation3;
-	long Tile3;
-	long ID4;
-	long Elevation4;
-	long Tile4;
+struct sElevatorExit {
+	long id;
+	long elevation;
+	long tile;
 };
 
 struct sElevatorFrms {

@@ -1028,7 +1028,7 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 
 // 4.x backport
 static int __fastcall SwitchHandHook_Script(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
-	if (itemReplaced && ItemGetType(itemReplaced) == item_type_weapon && ItemGetType(item) == item_type_ammo) {
+	if (itemReplaced && GetItemType(itemReplaced) == item_type_weapon && GetItemType(item) == item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 
@@ -1341,7 +1341,7 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		pushad;
 	}
 	// right hand slot?
-	if (args[2] != INVEN_TYPE_RIGHT_HAND && ItemGetType((TGameObj*)args[1]) != item_type_armor) {
+	if (args[2] != INVEN_TYPE_RIGHT_HAND && GetItemType((TGameObj*)args[1]) != item_type_armor) {
 		args[2] = INVEN_TYPE_LEFT_HAND;
 	}
 	InvenWieldHook_ScriptPart(1); // wield event

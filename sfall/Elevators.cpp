@@ -26,9 +26,9 @@ static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50; // The maximum allowed for Elevator stub in the BIS mapper
 
 static DWORD elevatorType[elevatorCount] = {0};
-static sElevator elevators[elevatorCount] = {0};         // _retvals
-static sElevatorFrms elevatorsFrms[elevatorCount] = {0}; // _intotal
-static DWORD elevatorsBtnCount[elevatorCount] = {0};     // _btncount
+static sElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals
+static sElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
+static DWORD elevatorsBtnCount[elevatorCount] = {0};                       // _btncount
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
@@ -95,7 +95,7 @@ static void __declspec(naked) GetNumButtonsHook3() {
 }
 
 static void ResetElevators() {
-	//memset(&elevators[vanillaElevatorCount], 0, sizeof(sElevator) * (elevatorCount - vanillaElevatorCount));
+	//memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(sElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
 	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(sElevatorFrms) * (elevatorCount - vanillaElevatorCount));
 	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
 }
@@ -103,7 +103,7 @@ static void ResetElevators() {
 static void LoadElevators(const char* elevFile) {
 	//ResetElevators();
 
-	memcpy(elevators, (void*)_retvals, sizeof(sElevator) * vanillaElevatorCount);
+	memcpy(elevatorExits, (void*)_retvals, sizeof(sElevatorExit) * vanillaElevatorCount * exitsPerElevator);
 	memcpy(elevatorsFrms, (void*)_intotal, sizeof(sElevatorFrms) * vanillaElevatorCount);
 	memcpy(elevatorsBtnCount, (void*)_btncnt, sizeof(DWORD) * vanillaElevatorCount);
 
@@ -122,18 +122,15 @@ static void LoadElevators(const char* elevFile) {
 			}
 			elevatorsFrms[i].main = iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
 			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
-			elevators[i].ID1 = iniGetInt(section, "ID1", elevators[i].ID1, elevFile);
-			elevators[i].ID2 = iniGetInt(section, "ID2", elevators[i].ID2, elevFile);
-			elevators[i].ID3 = iniGetInt(section, "ID3", elevators[i].ID3, elevFile);
-			elevators[i].ID4 = iniGetInt(section, "ID4", elevators[i].ID4, elevFile);
-			elevators[i].Elevation1 = iniGetInt(section, "Elevation1", elevators[i].Elevation1, elevFile);
-			elevators[i].Elevation2 = iniGetInt(section, "Elevation2", elevators[i].Elevation2, elevFile);
-			elevators[i].Elevation3 = iniGetInt(section, "Elevation3", elevators[i].Elevation3, elevFile);
-			elevators[i].Elevation4 = iniGetInt(section, "Elevation4", elevators[i].Elevation4, elevFile);
-			elevators[i].Tile1 = iniGetInt(section, "Tile1", elevators[i].Tile1, elevFile);
-			elevators[i].Tile2 = iniGetInt(section, "Tile2", elevators[i].Tile2, elevFile);
-			elevators[i].Tile3 = iniGetInt(section, "Tile3", elevators[i].Tile3, elevFile);
-			elevators[i].Tile4 = iniGetInt(section, "Tile4", elevators[i].Tile4, elevFile);
+			char setting[32];
+			for (int j = 0; j < exitsPerElevator; j++) {
+				sprintf(setting, "ID%d", j + 1);
+				elevatorExits[i][j].id = iniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
+				sprintf(setting, "Elevation%d", j + 1);
+				elevatorExits[i][j].elevation = iniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
+				sprintf(setting, "Tile%d", j + 1);
+				elevatorExits[i][j].tile = iniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
+			}
 		}
 	}
 }
@@ -144,11 +141,11 @@ static void ElevatorsInit2() {
 	//HookCall(0x43F2D2, UnknownHook2); // unused
 
 	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
-	const DWORD elevatorsAddr[] = {0x43EFA4, 0x43EFB9, 0x43F2FC};
-	SafeWriteBatch<DWORD>((DWORD)elevators, elevatorsAddr);
+	const DWORD elevatorsIdAddr[] = {0x43EFA4, 0x43EFB9, 0x43F2FC};
+	SafeWriteBatch<DWORD>((DWORD)elevatorExits, elevatorsIdAddr);
 	const DWORD elevatorsTileAddr[] = {0x43EFEA, 0x43F315};
-	SafeWriteBatch<DWORD>((DWORD)&elevators[0].Tile1, elevatorsTileAddr);
-	SafeWrite32(0x43F309, (DWORD)&elevators[0].Elevation1);
+	SafeWriteBatch<DWORD>((DWORD)&elevatorExits[0][0].tile, elevatorsTileAddr);
+	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
 
 	SafeWrite32(0x43F438, (DWORD)&elevatorsFrms[0].main);
 	SafeWrite32(0x43F475, (DWORD)&elevatorsFrms[0].buttons);
