@@ -202,7 +202,7 @@ const float* Graphics::rcpresGet() {
 static void GetDisplayMode(D3DDISPLAYMODE &ddm) {
 	ZeroMemory(&ddm, sizeof(ddm));
 	d3d9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &ddm);
-	dlog_f("Display mode format id: %d\n", DL_INIT, ddm.Format);
+	dlog_f("Display mode format ID: %d\n", DL_INIT, ddm.Format);
 }
 
 static void ResetDevice(bool createNew) {

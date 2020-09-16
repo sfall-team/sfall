@@ -217,39 +217,37 @@ static void __declspec(naked) display_stats_hook() {
 	}
 }
 
-static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
-	if (fo::GetItemType(item) != fo::item_type_weapon && *toSlot
-		 && fo::GetItemType((fo::GameObject*)*toSlot) != fo::item_type_weapon) {
+static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
+	if (toSlot && fo::GetItemType(item) != fo::item_type_weapon && fo::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
+	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[0];
+	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[1];
 
-	DWORD* leftSlot = (DWORD*)FO_VAR_itemButtonItems;
-	DWORD* rightSlot = leftSlot + 6;
-
-	if (*toSlot == 0) { //copy to slot
-		DWORD* slot;
+	if (toSlot == nullptr) { // copy to slot
+		fo::ItemButtonItem* slot;
 		fo::ItemButtonItem item[1];
-		if ((int)toSlot == FO_VAR_i_lhand) {
-			memcpy(item, rightSlot, 0x14);
+		if ((int)&toSlot == FO_VAR_i_lhand) {
+			std::memcpy(item, rightSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 			slot = leftSlot; // Rslot > Lslot
 		} else {
-			memcpy(item, leftSlot, 0x14);
+			std::memcpy(item, leftSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 			slot = rightSlot; // Lslot > Rslot;
 		}
-		memcpy(slot, item, 0x14);
-	} else { // swap slot
-		auto swapBuf = fo::var::itemButtonItems;
-		swapBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		swapBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		swapBuf[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		swapBuf[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		std::memcpy(slot, item, 0x14);
+	} else { // swap slots
+		auto hands = fo::var::itemButtonItems;
+		hands[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		memcpy(leftSlot,  &swapBuf[1], 0x14); // buf Rslot > Lslot
-		memcpy(rightSlot, &swapBuf[0], 0x14); // buf Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
 	}
 }
 
@@ -641,11 +639,11 @@ static void DisplaySecondWeaponRangePatch() {
 }
 
 static void KeepWeaponSelectModePatch() {
-	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
+	//if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 static void PartyMemberSkillPatch() {
