@@ -62,7 +62,10 @@ void __stdcall ForceGraphicsRefresh(DWORD d) {
 }
 
 void GetMouse(int* x, int* y) {
-	*x = mouseX; *y = mouseY; mouseX = 0; mouseY = 0;
+	*x = mouseX;
+	*y = mouseY;
+	mouseX = 0;
+	mouseY = 0;
 }
 
 static BYTE LMouse = 0;
@@ -354,7 +357,8 @@ private:
 public:
 	/*** Constructor ***/
 	FakeDirectInput(IDirectInput* Real) {
-		RealInput = Real; Refs = 1;
+		RealInput = Real;
+		Refs = 1;
 	}
 
 	/*** IUnknown methods ***/

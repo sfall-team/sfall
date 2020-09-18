@@ -516,9 +516,62 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 	}
 }
 
-//void __declspec(naked) __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height) {
-//	__asm jmp fo::funcoffs::srcCopy_;
-//}
+// Engine function buf_to_buf_ with SSE implementation
+void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void* dst, long dst_width) {
+	if (height <= 0 || width <= 0) return;
+
+	size_t blockCount = width / 64; // 64 bytes
+	size_t remainder = width % 64;
+	size_t remainderD = remainder / 4;
+	size_t remainderB = remainder % 4;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	__asm {
+		mov  ebx, s_pitch;
+		mov  edx, d_pitch;
+		mov  esi, src;
+		mov  edi, dst;
+		mov  eax, height;
+	startLoop:
+		mov  ecx, blockCount;
+		test ecx, ecx;
+		jz   copySmall;
+	copyBlock: // copies block of 64 bytes
+		movups xmm0, [esi];
+		movups xmm1, [esi + 16];
+		movups xmm2, [esi + 32];
+		movups xmm3, [esi + 48];
+		movups [edi], xmm0;
+		movups [edi + 16], xmm1;
+		movups [edi + 32], xmm2;
+		movups [edi + 48], xmm3;
+		add  esi, 64;
+		lea  edi, [edi + 64];
+		dec  ecx;  // blockCount
+		jnz  copyBlock;
+		// copies the remaining bytes
+		mov  ecx, remainderD;
+		rep  movsd;
+		mov  ecx, remainderB;
+		rep  movsb;
+		add  esi, ebx; // s_pitch
+		add  edi, edx; // d_pitch
+		dec  eax;      // height
+		jnz  startLoop;
+		jmp  end;
+copySmall: // copies the small size data
+		mov  ecx, remainderD;
+		rep  movsd;
+		mov  ecx, remainderB;
+		rep  movsb;
+		add  esi, ebx; // s_pitch
+		add  edi, edx; // d_pitch
+		dec  eax;      // height
+		jnz  copySmall;
+end:
+	}
+}
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
 	__asm {
@@ -531,6 +584,7 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 ////////////////////////////////////
 // X-Macro for wrapper functions. //
 ////////////////////////////////////
+
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name() { \
 		WRAP_WATCOM_CALL0(name##_) \

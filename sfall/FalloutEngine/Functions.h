@@ -214,7 +214,8 @@ void __fastcall displayInWindow(long w_here, long width, long height, void* data
 
 void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
-//void __declspec() __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height);
+// Engine function buf_to_buf_ with SSE implementation
+void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void* dst, long dst_width);
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param);
 
