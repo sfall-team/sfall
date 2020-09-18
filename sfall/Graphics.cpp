@@ -65,7 +65,7 @@ static DWORD windowTop = 0;
 static HWND window;
 static DWORD windowStyle = WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX;
 
-static unsigned int windowData;
+static int windowData;
 
 static DWORD ShaderVersion;
 
@@ -188,6 +188,8 @@ int __stdcall GetShaderVersion() {
 	return ShaderVersion;
 }
 
+//////////////////////////////// SCRIPT SHADERS ////////////////////////////////
+
 void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	if (mode & 0x80000000) {
@@ -293,6 +295,8 @@ void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
 	if (d >= shadersSize || !shaders[d].Effect || value >= shaderTextures.size()) return;
 	shaders[d].Effect->SetTexture(param, shaderTextures[value]);
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void WindowInit() {
 	windowInit = true;
@@ -685,11 +689,6 @@ void Gfx_SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int
 	size[1] = (float)height * rcpres[1];
 	gpuBltEffect->SetFloatArray(gpuBltHeadSize, size, 2);
 
-	// adjust head texture position for HRP 4.1.8
-	int h = Gfx_GetGameHeightRes();
-	if (h > 480) yoff += ((h - 480) / 2) - 47; // TODO: get dialog interface position
-	xoff += ((Gfx_GetGameWidthRes() - 640) / 2);
-
 	size[0] = (126.0f + xoff + ((388 - width) / 2)) * rcpres[0];
 	size[1] = (14.0f + yoff + ((200 - height) / 2)) * rcpres[1];
 	gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
@@ -988,6 +987,7 @@ public:
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
 		CopyMemory(&palette[b], destPal, c * 4);
+
 		if (GPUBlt && gpuPalette) {
 			D3DLOCKED_RECT rect;
 			if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
@@ -996,10 +996,10 @@ public:
 			}
 		} else {
 			// X8B8G8R8 format
-			for (DWORD i = b; i < b + c; i++) { // swap color B <> R
-				BYTE clr = *(BYTE*)((DWORD)&palette[i]); // B
-				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2); // R
-				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
+			for (size_t i = b; i < b + c; i++) { // swap color B <> R
+				BYTE clr = *(BYTE*)((long)&palette[i]); // B
+				*(BYTE*)((long)&palette[i]) = *(BYTE*)((long)&palette[i] + 2); // R
+				*(BYTE*)((long)&palette[i] + 2) = clr;
 			}
 			primaryDDSurface->SetPalette(0); // update
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
@@ -1192,8 +1192,12 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 			moveWindowKey[0] &= 0xFF;
 		}
 		windowData = GetConfigInt("Graphics", "WindowData", 0);
-		windowLeft = windowData >> 16;
-		windowTop = windowData & 0xFFFF;
+		if (windowData > 0) {
+			windowLeft = windowData >> 16;
+			windowTop = windowData & 0xFFFF;
+		} else {
+			windowData = 0;
+		}
 	}
 
 	rcpres[0] = 1.0f / (float)gWidth;
@@ -1215,6 +1219,7 @@ static __declspec(naked) void game_init_hook() {
 }
 
 static double fadeMulti;
+
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
 		push ebx; // _fade_steps
@@ -1270,8 +1275,8 @@ void GraphicsInit() {
 void GraphicsExit() {
 	if (GraphicsMode) {
 		if (GraphicsMode == 5) {
-			unsigned int data = windowTop | (windowLeft << 16);
-			if (data != windowData) SetConfigInt("Graphics", "WindowData", data);
+			int data = windowTop | (windowLeft << 16);
+			if (data >= 0 && data != windowData) SetConfigInt("Graphics", "WindowData", data);
 		}
 		CoUninitialize();
 	}

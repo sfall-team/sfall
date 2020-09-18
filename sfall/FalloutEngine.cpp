@@ -1239,126 +1239,6 @@ long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD wi
 	WRAP_WATCOM_FCALL7(createWindow_, winName, x, y, width, height, color, flags)
 }
 
-long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
-	__asm {
-		push buttonType;
-		push arg12;
-		push pictureDown;
-		push pictureUp;
-		push buttonUp;
-		push buttonDown;
-		push hoverOff;
-		push hoverOn;
-		push height;
-		mov  ecx, width;
-		mov  ebx, yPos;
-		mov  edx, xPos;
-		mov  eax, winRef;
-		call win_register_button_;
-	}
-}
-
-void __stdcall DialogOut(const char* text) {
-	__asm {
-		push 1;          // DIALOGOUT_NORMAL flag
-		xor  edx, edx;
-		push edx;
-		push edx;
-		mov  dl, byte ptr ds:[0x6AB718];
-		push edx;        // ColorMsg
-		mov  ecx, 192;   // x
-		push 116;        // y
-		mov  eax, text;  // DisplayText
-		xor  ebx, ebx;
-		call dialog_out_;
-	}
-}
-
-long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors) {
-	__asm {
-		mov  ebx, colors; // Color index
-		xor  eax, eax;
-		push flags;
-		test ebx, ebx;
-		jnz  cColor;
-		mov  al, byte ptr ds:[0x6AB718];
-		mov  bl, al;
-		jmp  skip;
-cColor:
-		mov  al, bh;
-		and  ebx, 0xFF
-skip:
-		push eax;        // ColorMsg2
-		push 0;          // DisplayMsg (unknown)
-		mov  eax, ecx;   // DisplayText (first line)
-		push ebx;        // ColorMsg1
-		mov  ecx, 192;   // x
-		push 116;        // y
-		mov  ebx, lines; // count second lines
-		call dialog_out_; // edx - DisplayText (seconds lines)
-	}
-}
-
-void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD startYPos, DWORD endYPos, BYTE colour) {
-	__asm {
-		xor  eax, eax;
-		mov  al, colour;
-		push eax;
-		push endYPos;
-		mov  eax, ecx; // winRef
-		mov  ecx, endXPos;
-		mov  ebx, startYPos;
-		//mov  edx, xStartPos;
-		call win_line_;
-	}
-}
-
-// draws an image to the buffer without scaling and with transparency display toggle
-void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
-	__asm {
-		push height;
-		push edx;       // from_width
-		push y;
-		mov  eax, data; // from
-		mov  ebx, windowDisplayTransBuf_;
-		cmp  noTrans, 0;
-		cmovnz ebx, windowDisplayBuf_;
-		call ebx; // *data<eax>, from_width<edx>, unused<ebx>, X<ecx>, Y, width, height
-	}
-}
-
-// draws an image in the window and scales it to fit the window
-void __fastcall DisplayInWindow(long w_here, long width, long height, void* data) {
-	__asm {
-		mov  ebx, height;
-		mov  eax, data;
-		call displayInWindow_; // *data<eax>, width<edx>, height<ebx>, where<ecx>
-	}
-}
-
-void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
-	__asm {
-		push w_width;
-		push s_height;
-		push s_width;
-		mov  ebx, edx; // i_height
-		mov  edx, ecx; // i_width
-		call windowGetBuffer_;
-		add  eax, xy_shift;
-		push eax;      // to_buff
-		mov  eax, data;
-		call trans_cscale_; // *from_buff<eax>, i_width<edx>, i_height<ebx>, i_width2<ecx>, to_buff, width, height, to_width
-	}
-}
-
-long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
-	__asm {
-		mov  ebx, param;
-		mov  eax, _game_config;
-		call config_get_string_; // section<edx>, outValue<ecx>
-	}
-}
-
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
 }
@@ -1766,6 +1646,126 @@ long __stdcall FMtextWidth(const char* text) {
 
 void __stdcall WmRefreshInterfaceOverlay(long isRedraw) {
 	WRAP_WATCOM_CALL1(wmRefreshInterfaceOverlay_, isRedraw)
+}
+
+long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
+	__asm {
+		push buttonType;
+		push arg12;
+		push pictureDown;
+		push pictureUp;
+		push buttonUp;
+		push buttonDown;
+		push hoverOff;
+		push hoverOn;
+		push height;
+		mov  ecx, width;
+		mov  ebx, yPos;
+		mov  edx, xPos;
+		mov  eax, winRef;
+		call win_register_button_;
+	}
+}
+
+void __stdcall DialogOut(const char* text) {
+	__asm {
+		push 1;          // DIALOGOUT_NORMAL flag
+		xor  edx, edx;
+		push edx;
+		push edx;
+		mov  dl, byte ptr ds:[0x6AB718];
+		push edx;        // ColorMsg
+		mov  ecx, 192;   // x
+		push 116;        // y
+		mov  eax, text;  // DisplayText
+		xor  ebx, ebx;
+		call dialog_out_;
+	}
+}
+
+long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors) {
+	__asm {
+		mov  ebx, colors; // Color index
+		xor  eax, eax;
+		push flags;
+		test ebx, ebx;
+		jnz  cColor;
+		mov  al, byte ptr ds:[0x6AB718];
+		mov  bl, al;
+		jmp  skip;
+cColor:
+		mov  al, bh;
+		and  ebx, 0xFF
+skip:
+		push eax;        // ColorMsg2
+		push 0;          // DisplayMsg (unknown)
+		mov  eax, ecx;   // DisplayText (first line)
+		push ebx;        // ColorMsg1
+		mov  ecx, 192;   // x
+		push 116;        // y
+		mov  ebx, lines; // count second lines
+		call dialog_out_; // edx - DisplayText (seconds lines)
+	}
+}
+
+void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD startYPos, DWORD endYPos, BYTE colour) {
+	__asm {
+		xor  eax, eax;
+		mov  al, colour;
+		push eax;
+		push endYPos;
+		mov  eax, ecx; // winRef
+		mov  ecx, endXPos;
+		mov  ebx, startYPos;
+		//mov  edx, xStartPos;
+		call win_line_;
+	}
+}
+
+// draws an image to the buffer without scaling and with transparency display toggle
+void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
+	__asm {
+		push height;
+		push edx;       // from_width
+		push y;
+		mov  eax, data; // from
+		mov  ebx, windowDisplayTransBuf_;
+		cmp  noTrans, 0;
+		cmovnz ebx, windowDisplayBuf_;
+		call ebx; // *data<eax>, from_width<edx>, unused<ebx>, X<ecx>, Y, width, height
+	}
+}
+
+// draws an image in the window and scales it to fit the window
+void __fastcall DisplayInWindow(long w_here, long width, long height, void* data) {
+	__asm {
+		mov  ebx, height;
+		mov  eax, data;
+		call displayInWindow_; // *data<eax>, width<edx>, height<ebx>, where<ecx>
+	}
+}
+
+void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+	__asm {
+		push w_width;
+		push s_height;
+		push s_width;
+		mov  ebx, edx; // i_height
+		mov  edx, ecx; // i_width
+		call windowGetBuffer_;
+		add  eax, xy_shift;
+		push eax;      // to_buff
+		mov  eax, data;
+		call trans_cscale_; // *from_buff<eax>, i_width<edx>, i_height<ebx>, i_width2<ecx>, to_buff, width, height, to_width
+	}
+}
+
+long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
+	__asm {
+		mov  ebx, param;
+		mov  eax, _game_config;
+		call config_get_string_; // section<edx>, outValue<ecx>
+	}
 }
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////

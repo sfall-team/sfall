@@ -82,6 +82,7 @@ bool Use32BitTalkingHeads = false;
  0-000-1000-00000000-0000-000000000000
    ID3 Type   ID2    ID1   .lst index
 */
+
 static bool GetHeadFrmName(char* name) {
 	int headFid = (*(DWORD*)_lips_draw_head)
 				? *ptr_lipsFID
@@ -116,6 +117,11 @@ static bool LoadFrm(Frm* frm) {
 		char buf[MAX_PATH];
 		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *ptr_patches, frm->path);
 		if (pathLen > 250) return false;
+
+		if (!(GetFileAttributes(frm->path) & FILE_ATTRIBUTE_DIRECTORY)) {
+			frm->broken = 1;
+			return false;
+		}
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
 			sprintf(&buf[pathLen], "%d.png", i);
@@ -158,11 +164,22 @@ static bool LoadFrm(Frm* frm) {
 	return true;
 }
 
+static WINinfo* dialogWin = nullptr;
+
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
 		FrmFrameData* frame = FramePtr((FrmHeaderData*)frm, frameno, 0);
-		Gfx_SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift);
+
+		if (dialogWin == nullptr) {
+			dialogWin = GNWFind(*ptr_dialogueBackWindow);
+		}
+		Gfx_SetHeadTex(frm->textures[frameno],
+		               frame->width,
+		               frame->height,
+		               frame->x + frm->xshift + dialogWin->wRect.left,
+		               frame->y + frm->yshift + dialogWin->wRect.top
+		);
 		showHighlights = frm->showHighlights;
 		return;
 	}
@@ -190,6 +207,7 @@ void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
 		call Gfx_SetDefaultTechnique;
 		mov  showHighlights, 0;
+		//mov  dialogWin, 0; // uncomment if the dialog window position is supposed to change
 		pop  ebp;
 		pop  edi;
 		pop  edx;
@@ -229,6 +247,7 @@ noScroll:
 void TalkingHeadsSetup() {
 	if (!GPUBlt) return;
 
+	*(DWORD*)_lips_draw_head = 0; // fix for non-speaking heads
 	const DWORD transTalkAddr[] = {0x44AFB4, 0x44B00B};
 	HookCalls(TransTalkHook, transTalkAddr);
 	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm

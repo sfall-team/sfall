@@ -1308,21 +1308,6 @@ void* __stdcall MemRealloc(void* lpmem, DWORD msize);
 // creates a window with the name and flags
 long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags);
 
-// creates a button
-long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
-
-void __stdcall DialogOut(const char* text);;
-
-long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors = 0);
-
-void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
-
-void __fastcall DisplayInWindow(long w_here, long width, long height, void* data);
-
-void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
-
-long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
-
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
 long __stdcall Gmouse3dGetMode();
@@ -1510,6 +1495,25 @@ long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
 long __stdcall FMtextWidth(const char* text);
 
 void __stdcall WmRefreshInterfaceOverlay(long isRedraw);
+
+// Creates a button on a given window
+// buttonType: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click
+// pictureUp/pictureDown - pointers to a surface
+long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
+
+void __stdcall DialogOut(const char* text);;
+
+long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors = 0);
+
+// draws an image to the buffer without scaling and with transparency display toggle
+void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
+
+// draws an image in the window and scales it to fit the window
+void __fastcall DisplayInWindow(long w_here, long width, long height, void* data);
+
+void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
+
+long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
