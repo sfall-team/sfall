@@ -651,11 +651,11 @@ public:
 		int pitch = dRect.Pitch;
 
 		if (Graphics::GPUBlt) {
-			//fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, dRect.pBits, pitch); // SSE
-			char* pBits = (char*)dRect.pBits;
-			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
-				CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
-			}
+			fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, dRect.pBits, pitch);
+			//char* pBits = (char*)dRect.pBits;
+			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
+			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
+			//}
 		} else {
 			pitch /= 4;
 			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
@@ -868,7 +868,7 @@ public:
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		CopyMemory(&palette[b], destPal, c * 4); // __movsd(&palette[b], (unsigned long*)destPal, c); // SSE
+		__movsd(&palette[b], (unsigned long*)destPal, c); //CopyMemory(&palette[b], destPal, c * 4);
 
 		if (Graphics::GPUBlt && gpuPalette) {
 			D3DLOCKED_RECT rect;
@@ -1143,8 +1143,8 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Replace the srcCopy_ function with an SSE implementation
-	//MakeJump(0x4D36D4, fo::func::buf_to_buf); // buf_to_buf_
+	// Replace the srcCopy_ function with a pure MMX implementation
+	MakeJump(0x4D36D4, fo::func::buf_to_buf); // buf_to_buf_
 }
 
 void Graphics::exit() {

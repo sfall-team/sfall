@@ -100,136 +100,9 @@ void dev_printf(...) {}
 	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 
-bool __stdcall art_exists(long artFid) {
-	WRAP_WATCOM_CALL1(art_exists_, artFid)
-}
-
-// Returns the name of the critter
-const char* __stdcall critter_name(GameObject* critter) {
-	WRAP_WATCOM_CALL1(critter_name_, critter)
-}
-
-// Change the name of playable character
-void critter_pc_set_name(const char* newName) {
-	WRAP_WATCOM_CALL1(critter_pc_set_name_, newName)
-}
-
-bool __stdcall db_access(const char* fileName) {
-	WRAP_WATCOM_CALL1(db_access_, fileName)
-}
-
-long __stdcall db_fclose(DbFile* file) {
-	WRAP_WATCOM_CALL1(db_fclose_, file)
-}
-
-DbFile* __stdcall db_fopen(const char* path, const char* mode) {
-	WRAP_WATCOM_CALL2(db_fopen_, path, mode)
-}
-
-long __stdcall db_fgetc(DbFile* file) {
-	WRAP_WATCOM_CALL1(db_fgetc_, file)
-}
-
-char* __stdcall db_fgets(char* buf, long max_count, DbFile* file) {
-	WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
-}
-
-long __stdcall db_fread(void* buf, long elsize, long count, DbFile* file) {
-	WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
-}
-
-long __stdcall db_fseek(DbFile* file, long pos, long origin) {
-	WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
-}
-
-long __stdcall db_freadByte(DbFile* file, BYTE* _out) {
-	WRAP_WATCOM_CALL2(db_freadByte_, file, _out)
-}
-
-long __stdcall db_freadByteCount(DbFile* file, BYTE* cptr, long count) {
-	WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
-}
-
-long __stdcall db_freadShort(DbFile* file, WORD* _out) {
-	WRAP_WATCOM_CALL2(db_freadShort_, file, _out)
-}
-
-long __stdcall db_freadInt(DbFile* file, DWORD* _out) {
-	WRAP_WATCOM_CALL2(db_freadInt_, file, _out)
-}
-
-void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
-	WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
-}
-
-long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count) {
-	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
-}
-
-long __stdcall db_get_file_list(const char* searchMask, char* * *fileList) {
-	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
-}
-
-long __stdcall db_init(const char* path_dat, const char* path_patches) {
-	WRAP_WATCOM_CALL3(db_init_, path_dat, 0, path_patches)
-}
-
-// Check fallout file and get file size (result 0 - file exists)
-long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
-	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
-}
-
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
-}
-
-// Displays message in main UI console window
-void display_print(const char* msg) {
-	WRAP_WATCOM_CALL1(display_print_, msg)
-}
-
-void executeProcedure(Program* sptr, long procNum) {
-	WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
-}
-
-long __stdcall get_input() {
-	WRAP_WATCOM_CALL0(get_input_)
-}
-
-// returns the name of current procedure by program pointer
-const char* __stdcall findCurrentProc(Program* program) {
-	WRAP_WATCOM_CALL1(findCurrentProc_, program)
-}
-
-const char* __stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId) {
-	WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
-}
-
-void __stdcall gsound_play_sfx_file(const char* name) {
-	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
-}
-
-long __stdcall interpret(Program* program, long arg2) {
-	WRAP_WATCOM_CALL2(interpret_, program, arg2)
-}
-
-long __stdcall interpretFindProcedure(Program* scriptPtr, const char* procName) {
-	WRAP_WATCOM_CALL2(interpretFindProcedure_, scriptPtr, procName)
-}
-
-// pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall interpretPopShort(Program* scriptPtr) {
-	WRAP_WATCOM_CALL1(interpretPopShort_, scriptPtr)
-}
-
-// pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall interpretPopLong(Program* scriptPtr) {
-	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
-}
-
-const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
-	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
 void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType) {
@@ -273,69 +146,6 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_
 }
 
-long __stdcall isPartyMember(GameObject* obj) {
-	WRAP_WATCOM_CALL1(isPartyMember_, obj)
-}
-
-long __stdcall item_get_type(GameObject* item) {
-	WRAP_WATCOM_CALL1(item_get_type_, item)
-}
-
-long __stdcall item_m_dec_charges(GameObject* item) {
-	WRAP_WATCOM_CALL1(item_m_dec_charges_, item) //Returns -1 if the item has no charges
-}
-
-GameObject* __stdcall inven_pid_is_carried_ptr(GameObject* invenObj, long pid) {
-	WRAP_WATCOM_CALL2(inven_pid_is_carried_ptr_, invenObj, pid)
-}
-
-// critter worn item (armor)
-GameObject* __stdcall inven_worn(GameObject* critter) {
-	WRAP_WATCOM_CALL1(inven_worn_, critter)
-}
-
-// item in critter's left hand slot
-GameObject* __stdcall inven_left_hand(GameObject* critter) {
-	WRAP_WATCOM_CALL1(inven_left_hand_, critter)
-}
-
-// item in critter's right hand slot
-GameObject* __stdcall inven_right_hand(GameObject* critter) {
-	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
-}
-
-Program* __stdcall loadProgram(const char* fileName) {
-	WRAP_WATCOM_CALL1(loadProgram_, fileName)
-}
-
-void* __stdcall mem_realloc(void* lpmem, DWORD msize) {
-	WRAP_WATCOM_CALL2(mem_realloc_, lpmem, msize)
-}
-
-long __stdcall message_add(MessageList* file, MessageNode* msg) {
-	WRAP_WATCOM_CALL2(message_add_, file, msg)
-}
-
-long __stdcall message_filter(MessageList* file) {
-	WRAP_WATCOM_CALL1(message_filter_, file)
-}
-
-long __stdcall message_make_path(char* outpath, char* path) {
-	WRAP_WATCOM_CALL2(message_make_path_, outpath, path)
-}
-
-long __stdcall message_search(const MessageList* file, MessageNode* msg) {
-	WRAP_WATCOM_CALL2(message_search_, file, msg)
-}
-
-long __stdcall message_load(MessageList *msgList, const char *msgFilePath) {
-	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
-}
-
-long __stdcall message_exit(MessageList *msgList) {
-	WRAP_WATCOM_CALL1(message_exit_, msgList)
-}
-
 long __fastcall tile_num(long x, long y) {
 	__asm push ebx; // don't delete (bug in tile_num_)
 	WRAP_WATCOM_FCALL2(tile_num_, x, y)
@@ -348,60 +158,6 @@ GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWOR
 		mov  ebx, elevation;
 		call func;
 	}
-}
-
-GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum) {
-	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
-}
-
-GameObject* __stdcall obj_find_next_at_tile() {
-	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
-}
-
-long __stdcall partyMemberGetCurLevel(GameObject* obj) {
-	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
-}
-
-long __stdcall perk_level(GameObject* critter, long perkId) {
-	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
-}
-
-long proto_ptr(long pid, Proto* *ptrPtr) {
-	WRAP_WATCOM_CALL2(proto_ptr_, pid, ptrPtr)
-}
-
-DWORD* __stdcall runProgram(Program* progPtr) {
-	WRAP_WATCOM_CALL1(runProgram_, progPtr)
-}
-
-ScriptInstance* __stdcall scr_find_first_at(long elevation) {
-	WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
-}
-
-ScriptInstance* __stdcall scr_find_next_at() {
-	WRAP_WATCOM_CALL0(scr_find_next_at_)
-}
-
-GameObject* __stdcall scr_find_obj_from_program(Program* program) {
-	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
-}
-
-// Saves pointer to script object into scriptPtr using scriptID.
-// Returns 0 on success, -1 on failure.
-long __stdcall scr_ptr(long scriptId, ScriptInstance** scriptPtr) {
-	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
-}
-
-void skill_get_tags(long* result, long num) {
-	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
-}
-
-void skill_set_tags(long* tags, long num) {
-	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
-}
-
-long __stdcall stat_level(GameObject* critter, long statId) {
-	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
 
 long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
@@ -516,7 +272,7 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 	}
 }
 
-// Engine function buf_to_buf_ with SSE implementation
+// buf_to_buf_ engine function with pure MMX implementation
 void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
@@ -538,17 +294,25 @@ void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void
 		test ecx, ecx;
 		jz   copySmall;
 	copyBlock: // copies block of 64 bytes
-		movups xmm0, [esi];
-		movups xmm1, [esi + 16];
-		movups xmm2, [esi + 32];
-		movups xmm3, [esi + 48];
-		movups [edi], xmm0;
-		movups [edi + 16], xmm1;
-		movups [edi + 32], xmm2;
-		movups [edi + 48], xmm3;
+		movq mm0, [esi];      // movups xmm0, [esi]; // SSE implementation
+		movq mm1, [esi + 8];
+		movq mm2, [esi + 16]; // movups xmm1, [esi + 16];
+		movq mm3, [esi + 24];
+		movq mm4, [esi + 32]; // movups xmm2, [esi + 32];
+		movq mm5, [esi + 40];
+		movq mm6, [esi + 48]; // movups xmm3, [esi + 48];
+		movq mm7, [esi + 56];
+		movq [edi], mm0;      // movups [edi], xmm0;
+		movq [edi + 8], mm1;
+		movq [edi + 16], mm2; // movups [edi + 16], xmm1;
+		movq [edi + 24], mm3;
+		movq [edi + 32], mm4; // movups xmm2, [esi + 32];
+		movq [edi + 40], mm5;
+		movq [edi + 48], mm6; // movups xmm3, [esi + 48];
+		movq [edi + 56], mm7;
 		add  esi, 64;
 		lea  edi, [edi + 64];
-		dec  ecx;  // blockCount
+		dec  ecx; // blockCount
 		jnz  copyBlock;
 		// copies the remaining bytes
 		mov  ecx, remainderD;
@@ -571,6 +335,7 @@ copySmall: // copies the small size data
 		jnz  copySmall;
 end:
 	}
+	if (blockCount) _mm_empty(); //__asm emms
 }
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
