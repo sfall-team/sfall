@@ -278,27 +278,15 @@ static void __stdcall op_make_path2() {
 					  &typeArg = opHandler.arg(2);
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
-		DWORD tileFrom = 0,
-			tileTo = tileToArg.rawValue(),
-			type = typeArg.rawValue(),
-			func = getBlockingFunc(type);
+		DWORD tileTo = tileToArg.rawValue(),
+			  type = typeArg.rawValue(),
+			  func = getBlockingFunc(type);
 
 		// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
-		long pathLength, checkFlag = (objFrom->Type() == OBJ_TYPE_CRITTER);
+		long checkFlag = (objFrom->Type() == OBJ_TYPE_CRITTER);
 
-		tileFrom = objFrom->tile;
 		char pathData[800];
-		char* pathDataPtr = pathData;
-		__asm {
-			mov eax, objFrom;
-			mov edx, tileFrom;
-			mov ecx, pathDataPtr;
-			mov ebx, tileTo;
-			push func;
-			push checkFlag;
-			call make_path_func_;
-			mov pathLength, eax;
-		}
+		long pathLength = MakePathFunc(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
 		DWORD arrayId = TempArray(pathLength, 0);
 		for (int i = 0; i < pathLength; i++) {
 			arrays[arrayId].val[i].set((long)pathData[i]);
@@ -368,26 +356,15 @@ static void __stdcall op_get_party_members2() {
 	const ScriptValue &modeArg = opHandler.arg(0);
 
 	if (modeArg.isInt()) {
-		DWORD mode = modeArg.rawValue(), isDead;
+		DWORD includeHidden = modeArg.rawValue();
 		int actualCount = *ptr_partyMemberCount;
 		DWORD arrayId = TempArray(0, 4);
 		DWORD* partyMemberList = *ptr_partyMemberList;
 		for (int i = 0; i < actualCount; i++) {
 			TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
-			if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
-				if (obj->Type() != OBJ_TYPE_CRITTER) // obj type != critter
-					continue;
-				__asm {
-					mov eax, obj;
-					call critter_is_dead_;
-					mov isDead, eax;
-				}
-				if (isDead)
-					continue;
-				if (obj->flags & ObjectFlag::Mouse_3d)
-					continue;
+			if (includeHidden || (obj->Type() == OBJ_TYPE_CRITTER && !CritterIsDead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
+				arrays[arrayId].push_back((long)obj);
 			}
-			arrays[arrayId].push_back((long)obj);
 		}
 		opHandler.setReturn(arrayId);
 	} else {

@@ -1435,26 +1435,15 @@ static void RunGlobalScripts1() {
 	if (idle > -1) Sleep(idle);
 
 	if (toggleHighlightsKey) {
-		//0x48C294 to toggle
+		// 0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (motionScanner & 4) {
-					DWORD scanner;
-					__asm {
-						mov eax, ds:[_obj_dude];
-						mov edx, PID_MOTION_SENSOR;
-						call inven_pid_is_carried_ptr_;
-						mov scanner, eax;
-					}
+					TGameObj* scanner = InvenPidIsCarriedPtr(*ptr_obj_dude, PID_MOTION_SENSOR);
 					if (scanner) {
 						if (!(motionScanner & 2)) {
-							__asm {
-								mov eax, scanner;
-								call item_m_dec_charges_; //Returns -1 if the item has no charges
-								call intface_redraw_;
-								inc eax;
-								mov highlightingToggled, eax;
-							}
+							highlightingToggled = ItemMDecCharges(scanner) + 1;
+							IntfaceRedraw();
 							if (!highlightingToggled) DisplayPrint(highlightFail2);
 						} else highlightingToggled = 1;
 					} else {
