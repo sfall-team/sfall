@@ -46,6 +46,7 @@ static DWORD yoffset;
 
 static bool DeviceLost = false;
 static bool mainTexLock = false;
+static bool textureFilter = false;
 
 static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
@@ -375,16 +376,18 @@ static void ResetDevice(bool createNew) {
 		MessageBoxA(window, "GPU does not support the D3DFMT_A8 texture format.\nNow CPU is used to convert the palette.",
 		                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
 	}
+
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex1, 0);
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
+	sTex1->GetSurfaceLevel(0, &sSurf1);
+	sTex2->GetSurfaceLevel(0, &sSurf2);
+
 	if (GPUBlt) {
 		d3d9Device->CreateTexture(256, 1, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &gpuPalette, 0);
 		gpuBltEffect->SetTexture(gpuBltMainTex, mainTex);
 		gpuBltEffect->SetTexture(gpuBltPalette, gpuPalette);
 	}
 
-	sTex1->GetSurfaceLevel(0, &sSurf1);
-	sTex2->GetSurfaceLevel(0, &sSurf2);
 	d3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 
 	ShaderVertices[1].y = ResHeight - 0.5f;
@@ -427,9 +430,10 @@ static void ResetDevice(bool createNew) {
 	d3d9Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	d3d9Device->SetRenderState(D3DRS_LIGHTING, false);
 
-	//d3d9Device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_NONE); //D3DTEXF_LINEAR
-	//d3d9Device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_NONE); //D3DTEXF_LINEAR
-
+	if (textureFilter) {
+		d3d9Device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		d3d9Device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	}
 	//d3d9Device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(255, 0, 255), 1.0f, 0); // for debbuging
 	dlogr(" Done", DL_MAIN);
 }
@@ -509,9 +513,9 @@ static void Refresh() {
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, sSurf1);
 
-	UINT unused;
-	if (shadersSize && GPUBlt) {
-		gpuBltEffect->Begin(&unused, 0);
+	UINT passes;
+	if ((textureFilter || shadersSize) && GPUBlt) {
+		gpuBltEffect->Begin(&passes, 0);
 		gpuBltEffect->BeginPass(0);
 		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 		gpuBltEffect->EndPass();
@@ -546,12 +550,12 @@ static void Refresh() {
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backBuffer);
 
-	if (!shadersSize && GPUBlt) {
+	if (!textureFilter && !shadersSize && GPUBlt) {
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
 	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (!shadersSize && GPUBlt) {
+	if (!textureFilter && !shadersSize && GPUBlt) {
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 	}
@@ -653,7 +657,7 @@ void Gfx_ShowMovieFrame(IDirect3DTexture9* tex) {
 
 	d3d9Device->BeginScene();
 	if (!mainTexLock) {
-		if (GPUBlt && shadersSize) {
+		if (shadersSize && GPUBlt) {
 			d3d9Device->SetTexture(0, sTex2);
 		} else {
 			d3d9Device->SetTexture(0, mainTex);
@@ -786,20 +790,34 @@ public:
 		}
 		mainTex->UnlockRect(0);
 		//mainTexLock = false;
-
-		//if (!PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
+		//if (PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
 
 		if (!DeviceLost) {
-			d3d9Device->BeginScene();
-			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 			d3d9Device->SetTexture(0, mainTex);
-			if (GPUBlt) {
-				UINT unused;
-				gpuBltEffect->Begin(&unused, 0);
+
+			d3d9Device->BeginScene();
+			UINT passes;
+			if (textureFilter && GPUBlt) { // fixes color palette distortion of movie images when texture filtering and GPUBlt are enabled
+				d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
+				d3d9Device->SetRenderTarget(0, sSurf1);
+
+				gpuBltEffect->Begin(&passes, 0);
+				gpuBltEffect->BeginPass(0);
+				d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+				gpuBltEffect->EndPass();
+				gpuBltEffect->End();
+
+				d3d9Device->SetTexture(0, sTex1);
+				d3d9Device->SetRenderTarget(0, backBuffer);
+			}
+			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
+
+			if (!textureFilter && GPUBlt) {
+				gpuBltEffect->Begin(&passes, 0);
 				gpuBltEffect->BeginPass(0);
 			}
 			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			if (GPUBlt) {
+			if (!textureFilter && GPUBlt) {
 				gpuBltEffect->EndPass();
 				gpuBltEffect->End();
 			}
@@ -1203,6 +1221,9 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
 
+	// Disable texture filtering if the set resolutions are equal
+	textureFilter = (textureFilter && (ResWidth != gWidth || ResHeight != gHeight));
+
 	*b = (IDirectDraw*)new FakeDirectDraw();
 
 	dlogr(" Done", DL_MAIN);
@@ -1257,6 +1278,8 @@ void GraphicsInit() {
 		}
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
+
+		textureFilter = (GetConfigInt("Graphics", "TextureFilter", 0) != 0);
 		dlogr(" Done", DL_INIT);
 
 		gShaderFile = GetConfigString("Graphics", "GlobalShaderFile", "", MAX_PATH);

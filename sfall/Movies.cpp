@@ -318,7 +318,7 @@ static DWORD __fastcall PlayMovieLoop() {
 		StopMovie();
 		return 0; // break play
 	}
-	//Sleep(10); // idle delay
+	Sleep(10); // idle delay, reduces dropping frames when playing AVI
 
 	__int64 pos;
 	movieInterface.pSeek->GetCurrentPosition(&pos);
