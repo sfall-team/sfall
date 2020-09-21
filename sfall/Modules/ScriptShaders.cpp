@@ -30,9 +30,16 @@ namespace sfall
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
 static size_t shadersSize;
+static bool globalShadersActive = false;
 
-static bool globalShaderActive = false;
-std::string gShaderFile;
+struct GlobalShader {
+	std::string gShaderFile;
+	bool badShader = false;
+
+	GlobalShader(std::string file) {
+		gShaderFile = std::move(file);
+	}
+};
 
 struct sShader {
 	ID3DXEffect* Effect;
@@ -44,6 +51,7 @@ struct sShader {
 	sShader() : Effect(0), ehTicks(0), mode(0), mode2(0), Active(false) {}
 };
 
+static std::vector<GlobalShader> gShaderFiles;
 static std::vector<sShader> shaders;
 static std::vector<IDirect3DTexture9*> shaderTextures;
 
@@ -98,13 +106,18 @@ int __stdcall LoadShader(const char* file) {
 }
 
 void ScriptShaders::LoadGlobalShader() {
-	if (!globalShaderActive) return;
-	long index = LoadShader(gShaderFile.c_str());
-	if (index != -1) {
-		shaders[index].Effect->SetInt("w", Graphics::GetGameWidthRes());
-		shaders[index].Effect->SetInt("h", Graphics::GetGameHeightRes());
-		shaders[index].Active = true;
-		dlogr("Global shader file loaded.", DL_INIT);
+	if (!globalShadersActive) return;
+	for (auto &shader : gShaderFiles) {
+		if (shader.badShader) continue;
+		long index = LoadShader(shader.gShaderFile.c_str());
+		if (index != -1) {
+			shaders[index].Effect->SetInt("w", Graphics::GetGameWidthRes());
+			shaders[index].Effect->SetInt("h", Graphics::GetGameHeightRes());
+			shaders[index].Active = true;
+			dlog_f("Global shader file %s is loaded.\n", DL_INIT, shader.gShaderFile.c_str());
+		} else {
+			shader.badShader = true;
+		}
 	}
 }
 
@@ -199,7 +212,7 @@ void ScriptShaders::OnLostDevice() {
 }
 
 void ScriptShaders::Release() {
-	globalShaderActive = false;
+	globalShadersActive = false;
 	ResetShaders();
 	for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
 	shaderTextures.clear();
@@ -207,8 +220,10 @@ void ScriptShaders::Release() {
 
 void ScriptShaders::init() {
 	if (Graphics::mode) {
-		gShaderFile = GetConfigString("Graphics", "GlobalShaderFile", "", MAX_PATH);
-		globalShaderActive = (gShaderFile.length() > 3);
+		for each (const auto& shaderFile in GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
+			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
+		}
+		globalShadersActive = !gShaderFiles.empty();
 
 		LoadGameHook::OnGameReset() += ResetShaders;
 	}

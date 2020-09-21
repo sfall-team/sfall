@@ -50,7 +50,7 @@ static DWORD yoffset;
 
 static bool DeviceLost = false;
 static bool mainTexLock = false;
-static bool textureFilter = false;
+static bool textureFilter = true;
 
 static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
@@ -886,7 +886,7 @@ public:
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		__movsd(&palette[b], (unsigned long*)destPal, c); //CopyMemory(&palette[b], destPal, c * 4);
+		__movsd(&palette[b], (unsigned long*)destPal, c);
 
 		if (Graphics::GPUBlt && gpuPalette) {
 			D3DLOCKED_RECT rect;
@@ -912,8 +912,7 @@ public:
 	}
 };
 
-class FakeDirectDraw : IDirectDraw
-{
+class FakeDirectDraw : IDirectDraw {
 private:
 	ULONG Refs;
 public:
@@ -1154,7 +1153,7 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		textureFilter = (GetConfigInt("Graphics", "TextureFilter", 0) != 0);
+		textureFilter = (GetConfigInt("Graphics", "TextureFilter", 1) != 0);
 		dlogr(" Done", DL_INIT);
 	}
 

@@ -162,20 +162,20 @@ GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWOR
 
 long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
 	__asm {
-		push buttonType
-		push arg12
-		push pictureDown
-		push pictureUp
-		push buttonUp
-		push buttonDown
-		push hoverOff
-		push hoverOn
-		push height
-		mov ecx, width
-		mov ebx, yPos
-		mov edx, xPos
-		mov eax, winRef
-		call fo::funcoffs::win_register_button_
+		push buttonType;
+		push arg12;
+		push pictureDown;
+		push pictureUp;
+		push buttonUp;
+		push buttonDown;
+		push hoverOff;
+		push hoverOn;
+		push height;
+		mov  ecx, width;
+		mov  ebx, yPos;
+		mov  edx, xPos;
+		mov  eax, winRef;
+		call fo::funcoffs::win_register_button_;
 	}
 }
 
