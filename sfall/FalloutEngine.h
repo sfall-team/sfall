@@ -1167,6 +1167,9 @@ void __fastcall DisplayInWindow(long w_here, long width, long height, void* data
 
 void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
+// buf_to_buf_ function with pure MMX implementation
+void __cdecl BufToBuf(void* src, long width, long height, long src_width, void* dst, long dst_width);
+
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
 /* stdcall */

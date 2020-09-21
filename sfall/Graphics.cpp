@@ -781,10 +781,11 @@ public:
 		int pitch = dRect.Pitch;
 
 		if (GPUBlt) {
-			char* pBits = (char*)dRect.pBits;
-			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
-				CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
-			}
+			BufToBuf(lockTarget, width, mveDesc.dwHeight, width, dRect.pBits, pitch);
+			//char* pBits = (char*)dRect.pBits;
+			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
+			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
+			//}
 		} else {
 			pitch /= 4;
 			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
@@ -1011,7 +1012,7 @@ public:
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		CopyMemory(&palette[b], destPal, c * 4);
+		__movsd(&palette[b], (unsigned long*)destPal, c);
 
 		if (GPUBlt && gpuPalette) {
 			D3DLOCKED_RECT rect;
@@ -1308,6 +1309,9 @@ void GraphicsInit() {
 		fadeMulti = ((double)fadeMulti) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Replace the srcCopy_ function with a pure MMX implementation
+	MakeJump(0x4D36D4, BufToBuf); // buf_to_buf_
 }
 
 void GraphicsExit() {

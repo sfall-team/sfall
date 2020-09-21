@@ -61,33 +61,29 @@ skip:
 }
 
 static void __stdcall SetKarma(int value) {
-	int old;
-	__asm {
-		xor eax, eax;
-		call game_get_global_var_;
-		mov old, eax;
-	}
-	old = value - old;
 	char buf[128];
-	if (old == 0) return;
-	if (old > 0) {
-		sprintf_s(buf, karmaGainMsg, old);
+	if (value > 0) {
+		sprintf_s(buf, karmaGainMsg, value);
 	} else {
-		sprintf_s(buf, karmaLossMsg, -old);
+		sprintf_s(buf, karmaLossMsg, -value);
 	}
 	DisplayPrint(buf);
 }
 
 static void __declspec(naked) SetGlobalVarWrapper() {
 	__asm {
-		test eax, eax; // GVar number
-		jnz end;
+		test eax, eax; // Gvar number
+		jnz  end;
 		pushadc;
+		call game_get_global_var_;
+		sub  edx, eax; // value -= old
+		jz   skip;
 		push edx;
 		call SetKarma;
+skip:
 		popadc;
 end:
-		jmp game_set_global_var_;
+		jmp  game_set_global_var_;
 	}
 }
 

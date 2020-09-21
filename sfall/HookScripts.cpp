@@ -75,8 +75,6 @@ DWORD initingHookScripts;
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
 
-#define HookBeginArgs(a) HookBegin __asm mov argCount, a
-
 static void __stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
 		// save all values of the current hook if another hook was called during the execution of the current hook
@@ -97,32 +95,6 @@ static void __stdcall BeginHook() {
 	callDepth++;
 
 	devlog_f("Begin running hook, current depth: %d, current executable hook: %d\n", DL_HOOK, callDepth, currentRunHook);
-}
-
-static void __stdcall EndHook() {
-	devlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
-
-	callDepth--;
-	if (callDepth) {
-		if (callDepth <= maxDepth) {
-			// restore all saved values of the previous hook
-			int cDepth = callDepth - 1;
-			currentRunHook = savedArgs[cDepth].hookID;
-			argCount = savedArgs[cDepth].argCount;
-			cArg = savedArgs[cDepth].cArg;
-			cRet = savedArgs[cDepth].cRet;
-			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of return values
-			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
-			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
-
-			//devlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
-			//for (unsigned int i = 0; i < maxArgs; i++) {
-			//	devlog_f("Restored Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
-			//}
-		}
-	} else {
-		currentRunHook = -1;
-	}
 }
 
 static void __stdcall RunSpecificHookScript(sHookScript *hook) {
@@ -162,6 +134,33 @@ static void __stdcall RunHookScript(DWORD hook) {
 	}
 }
 
+static void __stdcall EndHook() {
+	devlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
+
+	callDepth--;
+	if (callDepth) {
+		if (callDepth <= maxDepth) {
+			// restore all saved values of the previous hook
+			int cDepth = callDepth - 1;
+			currentRunHook = savedArgs[cDepth].hookID;
+			argCount = savedArgs[cDepth].argCount;
+			cArg = savedArgs[cDepth].cArg;
+			cRet = savedArgs[cDepth].cRet;
+			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of return values
+			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
+			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
+
+			//devlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
+			//for (unsigned int i = 0; i < maxArgs; i++) {
+			//	devlog_f("Restored Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
+			//}
+		}
+	} else {
+		currentRunHook = -1;
+	}
+}
+
+// BEGIN HOOKS
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		HookBegin;
@@ -256,20 +255,22 @@ long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled)
 
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
-		HookBeginArgs(4);
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		HookBegin;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call item_w_mp_cost_;
-		mov args[12], eax;
+		mov  args[12], eax;
 		pushad;
-		push HOOK_CALCAPCOST;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -278,20 +279,22 @@ end:
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
-		HookBeginArgs(4);
+		HookBegin;
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
-		mov eax, 2; // vanilla value
+		mov eax, 2;       // vanilla value
 		mov args[12], eax;
 		pushad;
-		push HOOK_CALCAPCOST;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -500,72 +503,81 @@ static void __declspec(naked) FindTargetHook() {
 
 static void __declspec(naked) UseObjOnHook() {
 	__asm {
-		HookBeginArgs(3);
+		HookBegin;
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
 		pushad;
-		push HOOK_USEOBJON;
-		call RunHookScript;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_USEOBJON);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		jz  defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call protinst_use_item_on_;
-end:
 		HookEnd;
 		retn;
+defaultHandler:
+		HookEnd;
+		jmp protinst_use_item_on_;
 	}
 }
 
 static void __declspec(naked) Drug_UseObjOnHook() {
 	__asm {
-		HookBeginArgs(3);
+		HookBegin;
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
 		pushad;
-		push HOOK_USEOBJON; // useobjon
-		call RunHookScript;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_USEOBJON);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		jz  defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call item_d_take_drug_;
-end:
 		HookEnd;
 		retn;
+defaultHandler:
+		HookEnd;
+		jmp item_d_take_drug_;
 	}
 }
 
 static void __declspec(naked) UseObjHook() {
 	__asm {
-		HookBeginArgs(2);
+		HookBegin;
 		mov args[0], eax; // user
 		mov args[4], edx; // object
 		pushad;
-		push HOOK_USEOBJ;
-		call RunHookScript;
+	}
+
+	argCount = 2;
+	RunHookScript(HOOK_USEOBJ);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je  defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call protinst_use_item_;
-end:
 		HookEnd;
 		retn;
+defaultHandler:
+		HookEnd;
+		jmp protinst_use_item_;
 	}
 }
 
@@ -629,7 +641,7 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 		args[7] = pcCost = ItemTotalCost(pTable);
 	}
 
-	args[8] = (DWORD)(callAddr == 0x474D51); // offers button is pressed
+	args[8] = (DWORD)(callAddr == 0x474D51); // offers button pressed
 	args[9] = (DWORD)barterIsParty;
 
 	RunHookScript(HOOK_BARTERPRICE);
@@ -687,19 +699,21 @@ static void __declspec(naked) OverrideCost_BarterPriceHook() {
 
 static void __declspec(naked) MoveCostHook() {
 	__asm {
-		HookBeginArgs(3);
-		mov args[0], eax;
-		mov args[4], edx;
+		HookBegin;
+		mov  args[0], eax;
+		mov  args[4], edx;
 		call critter_compute_ap_from_distance_;
-		mov args[8], eax;
-		pushad;
-		push HOOK_MOVECOST;
-		call RunHookScript;
-		popad;
+		mov  args[8], eax;
+		pushadc;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_MOVECOST);
+
+	__asm {
+		popadc;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -708,27 +722,31 @@ end:
 static void __declspec(naked) HexMBlockingHook() {
 	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
-		HookBeginArgs(4);
+		HookBegin;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
-		push next;
+		push return;
+		// engine code
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
 		mov ecx, eax;
 		jmp _obj_blocking_at;
-next:
+		// end engine code
+return:
 		mov args[12], eax;
 		pushad;
-		push HOOK_HEXMOVEBLOCKING;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_HEXMOVEBLOCKING);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -736,20 +754,22 @@ end:
 
 static void __declspec(naked) HexABlockingHook() {
 	__asm {
-		HookBeginArgs(4);
+		HookBegin;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
 		call obj_ai_blocking_at_;
 		mov args[12], eax;
 		pushad;
-		push HOOK_HEXAIBLOCKING;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_HEXAIBLOCKING);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -757,20 +777,22 @@ end:
 
 static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
-		HookBeginArgs(4);
+		HookBegin;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
 		call obj_shoot_blocking_at_;
 		mov args[12], eax;
 		pushad;
-		push HOOK_HEXSHOOTBLOCKING;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_HEXSHOOTBLOCKING);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -778,20 +800,22 @@ end:
 
 static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
-		HookBeginArgs(4);
+		HookBegin;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
 		call obj_sight_blocking_at_;
 		mov args[12], eax;
 		pushad;
-		push HOOK_HEXSIGHTBLOCKING;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_HEXSIGHTBLOCKING);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -799,33 +823,35 @@ end:
 
 static void __declspec(naked) ItemDamageHook() {
 	__asm {
-		HookBeginArgs(6);
-		mov args[0], eax; //min
-		mov args[4], edx; //max
-		mov args[8], edi; //weapon
-		mov args[12], ecx; //critter
-		mov args[16], esi; //type
-		mov args[20], ebp; //non-zero for weapon melee attack
-		test edi, edi;
-		jnz skip;
-		add args[16], 8;
-skip:
+		HookBegin;
+		mov args[0], eax;  // min
+		mov args[4], edx;  // max
+		mov args[8], edi;  // weapon
+		mov args[12], ecx; // critter
+		mov args[16], esi; // type
+		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
 		pushad;
-		push HOOK_ITEMDAMAGE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 0;
-		je runrandom;
-		mov eax, rets[0];
-		cmp cRet, 1;
-		je end;
-		mov edx, rets[4];
-runrandom:
-		call roll_random_;
-end:
-		HookEnd;
-		retn;
 	}
+
+	if (args[2] == 0) {  // weapon arg
+		args[4] += 8;    // type arg
+	}
+
+	argCount = 6;
+	RunHookScript(HOOK_ITEMDAMAGE);
+
+	__asm popad;
+	if (cRet > 0) {
+		__asm mov eax, rets[0];     // set min
+		if (cRet > 1) {
+			__asm mov edx, rets[4]; // set max
+		} else {
+			HookEnd;
+			__asm retn;             // no calc random
+		}
+	}
+	HookEnd;
+	__asm jmp roll_random_;
 }
 
 // 4.x backport
@@ -900,51 +926,57 @@ void __stdcall MouseClickHook(DWORD button, bool pressed) {
 
 static void __declspec(naked) UseSkillHook() {
 	__asm {
-		HookBeginArgs(4);
-		mov args[0], eax; // user
-		mov args[4], edx; // target
-		mov args[8], ebx; // skill id
+		HookBegin;
+		mov args[0], eax;  // user
+		mov args[4], edx;  // target
+		mov args[8], ebx;  // skill id
 		mov args[12], ecx; // skill bonus
 		pushad;
-		push HOOK_USESKILL;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_USESKILL);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call skill_use_;
-end:
 		HookEnd;
 		retn;
+defaultHandler:
+		HookEnd;
+		jmp skill_use_;
 	}
 }
 
 static void __declspec(naked) StealCheckHook() {
 	__asm {
-		HookBeginArgs(4);
-		mov args[0], eax; // thief
-		mov args[4], edx; // target
-		mov args[8], ebx; // item
+		HookBegin;
+		mov args[0], eax;  // thief
+		mov args[4], edx;  // target
+		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
-		pushad;
-		push HOOK_STEAL;
-		call RunHookScript;
-		popad;
+		pushadc;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_STEAL);
+
+	__asm {
+		popadc;
 		cmp cRet, 1;
-		jl defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call skill_check_stealing_;
-end:
 		HookEnd;
 		retn;
+defaultHandler:
+		HookEnd;
+		jmp skill_check_stealing_;
 	}
 }
 
@@ -1534,6 +1566,7 @@ long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item,
 	if (result) CorrectFidForRemovedItemFunc(critter, item, flags);
 	return result;
 }
+// END HOOKS
 
 DWORD __stdcall GetHSArgCount() {
 	return argCount;
