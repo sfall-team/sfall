@@ -58,7 +58,7 @@ static void __declspec(naked) MoveCostHook() {
 	__asm {
 		popadc;
 		cmp cRet, 1;
-		cmovge eax, rets[0];
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}

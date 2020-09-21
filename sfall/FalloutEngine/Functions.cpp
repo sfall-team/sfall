@@ -272,7 +272,7 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 	}
 }
 
-// buf_to_buf_ engine function with pure MMX implementation
+// buf_to_buf_ function with pure MMX implementation
 void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
@@ -323,6 +323,7 @@ void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void
 		add  edi, edx; // d_pitch
 		dec  eax;      // height
 		jnz  startLoop;
+		emms;
 		jmp  end;
 	copySmall: // copies the small size data
 		mov  ecx, remainderD;
@@ -335,7 +336,6 @@ void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void
 		jnz  copySmall;
 end:
 	}
-	if (blockCount) _mm_empty(); //__asm emms
 }
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
