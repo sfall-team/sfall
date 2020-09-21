@@ -46,7 +46,7 @@ static DWORD yoffset;
 
 static bool DeviceLost = false;
 static bool mainTexLock = false;
-static bool textureFilter = false;
+static bool textureFilter = true;
 
 static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
@@ -136,9 +136,17 @@ static D3DXHANDLE gpuBltHeadCorner;
 static float rcpres[2];
 
 static size_t shadersSize;
+static bool globalShadersActive = false;
 
-static bool globalShaderActive = false;
-std::string gShaderFile;
+struct sGlobalShader {
+	std::string gShaderFile;
+	bool badShader;
+
+	sGlobalShader(std::string file) {
+		gShaderFile = std::move(file);
+		badShader = false;
+	}
+};
 
 struct sShader {
 	ID3DXEffect* Effect;
@@ -150,6 +158,7 @@ struct sShader {
 	sShader() : Effect(0), ehTicks(0), mode(0), mode2(0), Active(false) {}
 };
 
+static std::vector<sGlobalShader> gShaderFiles;
 static std::vector<sShader> shaders;
 static std::vector<IDirect3DTexture9*> shaderTextures;
 
@@ -239,13 +248,18 @@ int __stdcall LoadShader(const char* file) {
 }
 
 static void LoadGlobalShader() {
-	if (!globalShaderActive) return;
-	long index = LoadShader(gShaderFile.c_str());
-	if (index != -1) {
-		shaders[index].Effect->SetInt("w", Gfx_GetGameWidthRes());
-		shaders[index].Effect->SetInt("h", Gfx_GetGameHeightRes());
-		shaders[index].Active = true;
-		dlogr("Global shader file loaded.", DL_INIT);
+	if (!globalShadersActive) return;
+	for (std::vector<sGlobalShader>::iterator it = gShaderFiles.begin(); it != gShaderFiles.end(); ++it) {
+		if (it->badShader) continue;
+		long index = LoadShader(it->gShaderFile.c_str());
+		if (index != -1) {
+			shaders[index].Effect->SetInt("w", Gfx_GetGameWidthRes());
+			shaders[index].Effect->SetInt("h", Gfx_GetGameHeightRes());
+			shaders[index].Active = true;
+			dlog_f("Global shader file %s is loaded.\n", DL_INIT, it->gShaderFile.c_str());
+		} else {
+			it->badShader = true;
+		}
 	}
 }
 
@@ -551,7 +565,7 @@ static void Refresh() {
 	d3d9Device->SetRenderTarget(0, backBuffer);
 
 	if (!textureFilter && !shadersSize && GPUBlt) {
-		gpuBltEffect->Begin(&unused, 0);
+		gpuBltEffect->Begin(&passes, 0);
 		gpuBltEffect->BeginPass(0);
 	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
@@ -706,13 +720,6 @@ void Gfx_SetHeadTechnique() {
 
 void Gfx_SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
-}
-
-void Graphics_OnGameLoad() { // ResetShaders
-	for (DWORD d = 0; d < shadersSize; d++) SAFERELEASE(shaders[d].Effect);
-	shaders.clear();
-	shadersSize = 0;
-	LoadGlobalShader();
 }
 
 class FakeDirectDrawSurface : IDirectDrawSurface {
@@ -1030,8 +1037,7 @@ public:
 	}
 };
 
-class FakeDirectDraw : IDirectDraw
-{
+class FakeDirectDraw : IDirectDraw {
 private:
 	ULONG Refs;
 public:
@@ -1047,7 +1053,7 @@ public:
 
 	ULONG __stdcall Release() { // called from game on exit
 		if (!--Refs) {
-			globalShaderActive = false;
+			globalShadersActive = false;
 			Graphics_OnGameLoad();
 			for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
 			shaderTextures.clear();
@@ -1252,6 +1258,13 @@ static __declspec(naked) void palette_fade_to_hook() {
 	}
 }
 
+void Graphics_OnGameLoad() { // ResetShaders
+	for (DWORD d = 0; d < shadersSize; d++) SAFERELEASE(shaders[d].Effect);
+	shaders.clear();
+	shadersSize = 0;
+	LoadGlobalShader();
+}
+
 void GraphicsInit() {
 	GraphicsMode = GetConfigInt("Graphics", "Mode", 0);
 	if (GraphicsMode == 6) {
@@ -1279,11 +1292,13 @@ void GraphicsInit() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		textureFilter = (GetConfigInt("Graphics", "TextureFilter", 0) != 0);
+		textureFilter = (GetConfigInt("Graphics", "TextureFilter", 1) != 0);
 		dlogr(" Done", DL_INIT);
 
-		gShaderFile = GetConfigString("Graphics", "GlobalShaderFile", "", MAX_PATH);
-		globalShaderActive = (gShaderFile.length() > 3);
+		for each (const std::string& shaderFile in GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
+			if (shaderFile.length() > 3) gShaderFiles.push_back(sGlobalShader(shaderFile));
+		}
+		globalShadersActive = !gShaderFiles.empty();
 	}
 
 	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
