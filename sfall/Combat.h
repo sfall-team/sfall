@@ -50,3 +50,5 @@ void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);
 void __stdcall SetNoBurstMode(TGameObj* critter, bool on);
 void __stdcall DisableAimedShots(DWORD pid);
 void __stdcall ForceAimedShots(DWORD pid);
+
+extern long Combat_rawHitChance;

@@ -21,11 +21,13 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
-#include "HookScripts.h"
+#include "Combat.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
+
+#include "HookScripts.h"
 
 // Number of types of hooks
 static const int numHooks = HOOK_COUNT;
@@ -180,13 +182,14 @@ static void __declspec(naked) ToHitHook() {
 		pushadc;
 	}
 
-	argCount = 7;
+	argCount = 8;
+	args[7] = Combat_rawHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
 		popadc;
 		cmp  cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn 8;
 	}
@@ -270,7 +273,7 @@ static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -294,7 +297,7 @@ static void __declspec(naked) CalcApCostHook2() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -375,7 +378,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -516,7 +519,7 @@ static void __declspec(naked) UseObjOnHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		jb  defaultHandler;
+		jl  defaultHandler;
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
@@ -543,7 +546,7 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		jb  defaultHandler;
+		jl  defaultHandler;
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
@@ -569,7 +572,7 @@ static void __declspec(naked) UseObjHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		jb  defaultHandler;
+		jl  defaultHandler;
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
@@ -713,7 +716,7 @@ static void __declspec(naked) MoveCostHook() {
 	__asm {
 		popadc;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -746,7 +749,7 @@ return:
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -769,7 +772,7 @@ static void __declspec(naked) HexABlockingHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -792,7 +795,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -815,7 +818,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -940,7 +943,7 @@ static void __declspec(naked) UseSkillHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		jb  defaultHandler;
+		jl  defaultHandler;
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
@@ -968,7 +971,7 @@ static void __declspec(naked) StealCheckHook() {
 	__asm {
 		popadc;
 		cmp cRet, 1;
-		jb  defaultHandler;
+		jl  defaultHandler;
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
@@ -980,36 +983,14 @@ defaultHandler:
 	}
 }
 
-// Implementation of is_within_perception_ engine function with the hook
-long __fastcall sf_is_within_perception(TGameObj* watcher, TGameObj* target) {
+// 4.x backport
+static long __fastcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* target, int type) {
 	long result = IsWithinPerception(watcher, target);
 
 	BeginHook();
 
 	args[0] = (DWORD)watcher;
 	args[1] = (DWORD)target;
-	args[2] = result;
-	args[3] = 0; // type
-
-	argCount = 4;
-	RunHookScript(HOOK_WITHINPERCEPTION);
-
-	if (cRet > 0) result = rets[0];
-	EndHook();
-
-	return result;
-}
-
-// 4.x backport
-static long __stdcall PerceptionRangeHook_Script(int type) {
-	long result;
-	__asm {
-		HookBegin;
-		mov  args[0], eax; // watcher
-		mov  args[4], edx; // target
-		call is_within_perception_;
-		mov  result, eax;  // check result
-	}
 	args[2] = result;
 	args[3] = type;
 
@@ -1022,10 +1003,16 @@ static long __stdcall PerceptionRangeHook_Script(int type) {
 	return result;
 }
 
+// Implementation of is_within_perception_ engine function with the hook
+long __fastcall sf_is_within_perception(TGameObj* watcher, TGameObj* target) { // TODO: add type arg
+	return PerceptionRangeHook_Script(watcher, target, 0);
+}
+
 static void __declspec(naked) PerceptionRangeHook() {
 	__asm {
 		push ecx;
 		push 0;
+		mov  ecx, eax;
 		call PerceptionRangeHook_Script;
 		pop  ecx;
 		retn;
@@ -1036,6 +1023,7 @@ static void __declspec(naked) PerceptionRangeSeeHook() {
 	__asm {
 		push ecx;
 		push 1;
+		mov  ecx, eax;
 		call PerceptionRangeHook_Script;
 		pop  ecx;
 		cmp  eax, 2;
@@ -1052,6 +1040,18 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 	__asm {
 		push ecx;
 		push 2;
+		mov  ecx, eax;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) PerceptionSearchTargetHook() {
+	__asm {
+		push ecx;
+		push 3;
+		mov  ecx, eax;
 		call PerceptionRangeHook_Script;
 		pop  ecx;
 		retn;
@@ -1782,13 +1782,13 @@ static void HookScriptInit() {
 
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	const DWORD perceptionRngHkAddr[] = {
-		0x429157,
 		0x42B4ED,
 		0x42BC87,
 		0x42BC9F,
 		0x42BD04
 	};
 	HookCalls(PerceptionRangeHook, perceptionRngHkAddr);
+	HookCall(0x429157, PerceptionSearchTargetHook);
 	HookCall(0x456BA2, PerceptionRangeSeeHook);
 	HookCall(0x458403, PerceptionRangeHearHook);
 
