@@ -72,6 +72,8 @@ struct KnockbackModifier {
 	double value;
 };
 
+long Combat::rawHitChance; // the value of hit chance w/o any cap
+
 static std::vector<long> noBursts; // object id
 
 static std::vector<KnockbackModifier> mTargets;
@@ -240,6 +242,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 }
 
 static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
+	Combat::rawHitChance = base;
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (critter->id == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);

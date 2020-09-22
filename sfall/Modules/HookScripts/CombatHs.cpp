@@ -1,5 +1,6 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
+#include "..\Combat.h"
 #include "..\DamageMod.h"
 #include "..\HookScripts.h"
 #include "Common.h"
@@ -28,13 +29,14 @@ static void __declspec(naked) ToHitHook() {
 		pushadc;
 	}
 
-	argCount = 7;
+	argCount = 8;
+	args[7] = Combat::rawHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
 		popadc;
 		cmp  cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn 8;
 	}
@@ -119,7 +121,7 @@ static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -143,7 +145,7 @@ static void __declspec(naked) CalcApCostHook2() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}

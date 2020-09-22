@@ -247,12 +247,15 @@ void __declspec(naked) op_set_pickpocket_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
-		mov  ecx, 100;
+		xor  edx, edx;
+		test eax, eax;
+		cmovs eax, edx;  // max < 0
+		mov  ecx, 999;
 		cmp  eax, ecx;
-		cmova eax, ecx; // 0 - 100
-		push 0;
-		push eax;
-		push 0xFFFFFFFF;
+		cmova eax, ecx;  // 0 - 999 (maximum)
+		push edx;        // mod (0)
+		push eax;        // maximum
+		push 0xFFFFFFFF; // critter
 		call SetPickpocketMax;
 end:
 		mov  ecx, esi;
@@ -264,12 +267,15 @@ void __declspec(naked) op_set_hit_chance_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
-		mov  ecx, 100;
+		xor  edx, edx;
+		test eax, eax;
+		cmovs eax, edx;  // max < 0
+		mov  ecx, 999;
 		cmp  eax, ecx;
-		cmova eax, ecx; // 0 - 100
-		push 0;
-		push eax;
-		push 0xFFFFFFFF;
+		cmova eax, ecx;  // 0 - 999 (maximum)
+		push edx;        // mod (0)
+		push eax;        // maximum
+		push 0xFFFFFFFF; // critter
 		call SetHitChanceMax;
 end:
 		mov  ecx, esi;

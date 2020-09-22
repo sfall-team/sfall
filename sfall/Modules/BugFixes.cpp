@@ -3564,6 +3564,11 @@ void BugFixes::init()
 
 	// Fix to limit the maximum distance for the knockback animation
 	MakeCall(0x4104D5, action_knockback_hack);
+
+	// Fix for combat_is_shot_blocked_ engine function not checking critters and their flags correctly
+	// when calculating the hit chance penalty based on the number of critters in the line of fire
+	SafeWriteBatch<BYTE>(0x41, {0x426D46, 0x426D4E}); // edi > ecx (replace target with object critter)
+	SafeWrite8(0x426D48, fo::DAM_DEAD | fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
 }
 
 }
