@@ -13,8 +13,9 @@ namespace sfall
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		HookBegin;
-		mov  args[4],  eax;   // attacker
-		mov  args[8],  ebx;   // target
+		mov  argCount, 8;
+		mov  args[4], eax;    // attacker
+		mov  args[8], ebx;    // target
 		mov  args[12], ecx;   // body part
 		mov  args[16], edx;   // source tile
 		mov  eax, [esp + 8];
@@ -29,8 +30,7 @@ static void __declspec(naked) ToHitHook() {
 		pushadc;
 	}
 
-	argCount = 8;
-	args[7] = Combat::rawHitChance;
+	args[7] = Combat::determineHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
@@ -89,13 +89,13 @@ long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isC
 	if (!HookScripts::HookHasScript(HOOK_CALCAPCOST)) return cost;
 
 	BeginHook();
+	argCount = 4;
 
 	args[0] = (DWORD)source;
 	args[1] = hitMode;
 	args[2] = isCalled;
 	args[3] = cost;
 
-	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	if (cRet > 0) cost = rets[0];
@@ -107,6 +107,7 @@ long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isC
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
+		mov  argCount, 4;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
@@ -115,7 +116,6 @@ static void __declspec(naked) CalcApCostHook() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -296,12 +296,12 @@ static void __declspec(naked) ItemDamageHook() {
 		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
 		pushad;
 	}
+	argCount = 6;
 
 	if (args[2] == 0) {  // weapon arg
 		args[4] += 8;    // type arg
 	}
 
-	argCount = 6;
 	RunHookScript(HOOK_ITEMDAMAGE);
 
 	__asm popad;

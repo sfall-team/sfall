@@ -3531,7 +3531,7 @@ void BugFixes::init()
 
 	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
 	// object or source tile
-	// Note: this bug does not cause an error in the function work
+	// Note: this bug does not cause any noticeable error in the function
 	BYTE codeData[] = {
 		0x8B, 0x70, 0x04,       // mov  esi, [eax + 4]
 		0xF6, 0x40, 0x25, 0x08, // test [eax + flags2], MultiHex_
@@ -3565,8 +3565,8 @@ void BugFixes::init()
 	// Fix to limit the maximum distance for the knockback animation
 	MakeCall(0x4104D5, action_knockback_hack);
 
-	// Fix for combat_is_shot_blocked_ engine function not checking critters and their flags correctly
-	// when calculating the hit chance penalty based on the number of critters in the line of fire
+	// Fix for combat_is_shot_blocked_ engine function not taking the flags of critters in the line of fire into account
+	// when calculating the hit chance penalty of ranged attacks in determine_to_hit_func_ engine function
 	SafeWriteBatch<BYTE>(0x41, {0x426D46, 0x426D4E}); // edi > ecx (replace target with object critter)
 	SafeWrite8(0x426D48, fo::DAM_DEAD | fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
 }

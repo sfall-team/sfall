@@ -118,9 +118,9 @@ static void __declspec(naked) OnDeathHook() {
 
 static void __declspec(naked) OnDeathHook2() {
 	__asm {
+		call fo::funcoffs::partyMemberRemove_;
 		HookBegin;
 		mov  args[0], esi;
-		call fo::funcoffs::partyMemberRemove_;
 		pushad;
 	}
 

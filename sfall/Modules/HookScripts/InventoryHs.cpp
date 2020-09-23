@@ -45,6 +45,7 @@ static void __declspec(naked) RemoveObjHook() {
 static void __declspec(naked) MoveCostHook() {
 	__asm {
 		HookBegin;
+		mov  argCount, 3;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		call fo::funcoffs::critter_compute_ap_from_distance_;
@@ -52,7 +53,6 @@ static void __declspec(naked) MoveCostHook() {
 		pushadc;
 	}
 
-	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
@@ -340,6 +340,7 @@ static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameOb
 		}
 	}
 	BeginHook();
+	argCount = 5;
 
 	args[0] = (DWORD)critter;
 	args[1] = (DWORD)item;
@@ -347,7 +348,6 @@ static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameOb
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
-	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	long result = (cRet == 0 || rets[0] == -1);
@@ -360,7 +360,6 @@ static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long is
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
-	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	bool result = (cRet == 0 || rets[0] == -1);
@@ -377,6 +376,8 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		mov args[8], ebx; // slot
 		pushad;
 	}
+	argCount = 5;
+
 	// right hand slot?
 	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::GetItemType((fo::GameObject*)args[1]) != fo::item_type_armor) {
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
@@ -402,10 +403,13 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		mov args[8], edx; // slot
 		pushad;
 	}
+	argCount = 5;
+
 	// set slot
 	if (args[2] == 0) { // left hand slot?
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
+
 	// get item
 	args[1] = (DWORD)fo::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]);
 
@@ -431,6 +435,8 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		mov args[8], ebx; // item flag
 		pushadc;
 	}
+	argCount = 5;
+
 	// set slot
 	if (args[2] & fo::ObjectFlag::Right_Hand) {       // right hand slot
 		args[2] = fo::INVEN_TYPE_RIGHT_HAND;
@@ -439,7 +445,9 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	} else {
 		args[2] = fo::INVEN_TYPE_WORN;                // armor slot
 	}
+
 	InvenWieldHook_ScriptPart(0, 1); // unwield event (armor by default)
+
 	// engine handler is not overridden
 	__asm {
 		popadc;

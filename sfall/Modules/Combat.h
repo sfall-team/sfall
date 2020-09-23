@@ -28,7 +28,7 @@ public:
 	const char* name() { return "Combat"; }
 	void init();
 
-	static long rawHitChance;
+	static long determineHitChance;
 
 	static DWORD __fastcall check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode);
 };

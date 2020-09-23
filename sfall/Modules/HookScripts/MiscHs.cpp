@@ -7,7 +7,6 @@
 
 #include "MiscHs.h"
 
-// Misc. hook scripts
 namespace sfall
 {
 
@@ -260,13 +259,13 @@ static long __fastcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::G
 	long result = fo::func::is_within_perception(watcher, target);
 
 	BeginHook();
+	argCount = 4;
 
 	args[0] = (DWORD)watcher;
 	args[1] = (DWORD)target;
 	args[2] = result;
 	args[3] = type;
 
-	argCount = 4;
 	RunHookScript(HOOK_WITHINPERCEPTION);
 
 	if (cRet > 0) result = rets[0];
@@ -338,6 +337,7 @@ static constexpr long maxGasAmount = 80000;
 static void CarTravelHook_Script() {
 	BeginHook();
 	argCount = 2;
+
 	// calculate vanilla speed
 	int carSpeed = 3;
 	if (fo::func::game_get_global_var(fo::GVAR_CAR_BLOWER)) {
@@ -426,18 +426,17 @@ static void __declspec(naked) SetGlobalVarHook() {
 }
 
 static int restTicks;
-static long __stdcall RestTimerHook_Script() {
-	DWORD addrHook;
-	__asm {
-		mov addrHook, ebx;
-		HookBegin;
-		mov args[0], eax;
-		mov args[8], ecx;
-		mov args[12], edx;
-	}
 
-	argCount = 4;
+static long __fastcall RestTimerHook_Script(DWORD hours, DWORD minutes, DWORD gameTime, DWORD addrHook) {
 	addrHook -= 5;
+
+	BeginHook();
+	argCount = 4;
+
+	args[0] = gameTime;
+	args[2] = hours;
+	args[3] = minutes;
+
 	if (addrHook == 0x499CA1 || addrHook == 0x499B63) {
 		args[0] = restTicks;
 		args[1] = -1;
@@ -458,19 +457,16 @@ static long __stdcall RestTimerHook_Script() {
 
 static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
-		push eax;
-		push edx;
-		push ecx;
-		push ebx;
-		mov  ebx, [esp + 16];
-		mov  ecx, [esp + 20 + 0x40]; // hours_
+		pushadc;
 		mov  edx, [esp + 20 + 0x44]; // minutes_
+		mov  ecx, [esp + 20 + 0x40]; // hours_
+		push [esp + 16];             // addrHook
+		push eax;                    // gameTime
 		call RestTimerHook_Script;
-		pop  ebx;
 		pop  ecx;
 		pop  edx;
-		cmp  eax, 0;
-		cmovge edi, eax;             // return 1 to interrupt resting
+		test eax, eax;   // result >= 0
+		cmovge edi, eax; // return 1 to interrupt resting
 		pop  eax;
 		jmp  fo::funcoffs::set_game_time_;
 	}
@@ -481,19 +477,16 @@ static void __declspec(naked) RestTimerEscapeHook() {
 		mov  edi, 1;    // engine code
 		cmp  eax, 0x1B; // ESC ASCII code
 		jnz  skip;
-		push eax;
-		push edx;
-		push ecx;
-		push ebx;
-		mov  ebx, [esp + 16];
-		mov  ecx, [esp + 20 + 0x40]; // hours_
+		pushadc;
 		mov  edx, [esp + 20 + 0x44]; // minutes_
+		mov  ecx, [esp + 20 + 0x40]; // hours_
+		push [esp + 16];             // addrHook
+		push eax;                    // gameTime
 		call RestTimerHook_Script;
-		pop  ebx;
 		pop  ecx;
 		pop  edx;
-		cmp  eax, 0;
-		cmovge edi, eax;             // return 0 for cancel ESC key
+		test eax, eax;   // result >= 0
+		cmovge edi, eax; // return 0 for cancel ESC key
 		pop  eax;
 skip:
 		retn;
