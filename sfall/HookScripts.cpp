@@ -166,8 +166,9 @@ static void __stdcall EndHook() {
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		HookBegin;
-		mov  args[4],  eax;   // attacker
-		mov  args[8],  ebx;   // target
+		mov  argCount, 8;
+		mov  args[4], eax;    // attacker
+		mov  args[8], ebx;    // target
 		mov  args[12], ecx;   // body part
 		mov  args[16], edx;   // source tile
 		mov  eax, [esp + 8];
@@ -182,7 +183,6 @@ static void __declspec(naked) ToHitHook() {
 		pushadc;
 	}
 
-	argCount = 8;
 	args[7] = Combat_rawHitChance;
 	RunHookScript(HOOK_TOHIT);
 
@@ -259,6 +259,7 @@ long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled)
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
+		mov  argCount, 4;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
@@ -267,7 +268,6 @@ static void __declspec(naked) CalcApCostHook() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -283,6 +283,7 @@ static void __declspec(naked) CalcApCostHook() {
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
@@ -291,7 +292,6 @@ static void __declspec(naked) CalcApCostHook2() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -331,7 +331,6 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 
 	DWORD animDeath = PickDeath(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
-	//argCount = 5;
 	args[4] = animDeath;
 	RunHookScript(HOOK_DEATHANIM2);
 
@@ -362,6 +361,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		call check_death_; // call original function
 		HookBegin;
+		mov argCount, 5;
 		mov ebx, [esp + 60];
 		mov args[4], ebx;    // attacker
 		mov args[8], esi;    // target
@@ -371,7 +371,6 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 		pushad;
 	}
 
-	argCount = 5;
 	args[0] = -1;     // weaponPid
 	RunHookScript(HOOK_DEATHANIM2);
 
@@ -440,10 +439,10 @@ static void __declspec(naked) OnDeathHook() {
 	__asm {
 		push edx;
 		call BeginHook;
+		mov  argCount, 1;
 		mov  args[0], esi;
 	}
 
-	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
@@ -459,12 +458,12 @@ static void __declspec(naked) OnDeathHook() {
 static void __declspec(naked) OnDeathHook2() {
 	__asm {
 		HookBegin;
+		mov  argCount, 1;
 		mov  args[0], esi;
 		call partyMemberRemove_;
 		pushad;
 	}
 
-	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
@@ -507,13 +506,13 @@ static void __declspec(naked) FindTargetHook() {
 static void __declspec(naked) UseObjOnHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 3;
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
 		pushad;
 	}
 
-	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
@@ -534,13 +533,13 @@ defaultHandler:
 static void __declspec(naked) Drug_UseObjOnHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 3;
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
 		pushad;
 	}
 
-	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
@@ -561,12 +560,12 @@ defaultHandler:
 static void __declspec(naked) UseObjHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 2;
 		mov args[0], eax; // user
 		mov args[4], edx; // object
 		pushad;
 	}
 
-	argCount = 2;
 	RunHookScript(HOOK_USEOBJ);
 
 	__asm {
@@ -589,6 +588,7 @@ static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		mov ecx, [esp + 8]; // call addr
 		HookBegin;
+		mov argCount, 5;
 		mov args[0], eax;   // source
 		mov args[4], edx;   // item
 		mov args[8], ebx;   // count
@@ -603,7 +603,6 @@ static void __declspec(naked) RemoveObjHook() {
 		push edx;
 	}
 
-	argCount = 5;
 	RunHookScript(HOOK_REMOVEINVENOBJ);
 	EndHook();
 
@@ -703,6 +702,7 @@ static void __declspec(naked) OverrideCost_BarterPriceHook() {
 static void __declspec(naked) MoveCostHook() {
 	__asm {
 		HookBegin;
+		mov  argCount, 3;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		call critter_compute_ap_from_distance_;
@@ -710,7 +710,6 @@ static void __declspec(naked) MoveCostHook() {
 		pushadc;
 	}
 
-	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
@@ -726,6 +725,7 @@ static void __declspec(naked) HexMBlockingHook() {
 	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -743,7 +743,6 @@ return:
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_HEXMOVEBLOCKING);
 
 	__asm {
@@ -758,6 +757,7 @@ return:
 static void __declspec(naked) HexABlockingHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -766,7 +766,6 @@ static void __declspec(naked) HexABlockingHook() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_HEXAIBLOCKING);
 
 	__asm {
@@ -781,6 +780,7 @@ static void __declspec(naked) HexABlockingHook() {
 static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -789,7 +789,6 @@ static void __declspec(naked) HexShootBlockingHook() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_HEXSHOOTBLOCKING);
 
 	__asm {
@@ -804,6 +803,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -812,7 +812,6 @@ static void __declspec(naked) HexSightBlockingHook() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_HEXSIGHTBLOCKING);
 
 	__asm {
@@ -827,6 +826,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 static void __declspec(naked) ItemDamageHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 6;
 		mov args[0], eax;  // min
 		mov args[4], edx;  // max
 		mov args[8], edi;  // weapon
@@ -840,7 +840,6 @@ static void __declspec(naked) ItemDamageHook() {
 		args[4] += 8;    // type arg
 	}
 
-	argCount = 6;
 	RunHookScript(HOOK_ITEMDAMAGE);
 
 	__asm popad;
@@ -930,6 +929,7 @@ void __stdcall MouseClickHook(DWORD button, bool pressed) {
 static void __declspec(naked) UseSkillHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], eax;  // user
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // skill id
@@ -937,7 +937,6 @@ static void __declspec(naked) UseSkillHook() {
 		pushad;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_USESKILL);
 
 	__asm {
@@ -958,6 +957,7 @@ defaultHandler:
 static void __declspec(naked) StealCheckHook() {
 	__asm {
 		HookBegin;
+		mov argCount, 4;
 		mov args[0], eax;  // thief
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
@@ -965,7 +965,6 @@ static void __declspec(naked) StealCheckHook() {
 		pushadc;
 	}
 
-	argCount = 4;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
@@ -1323,6 +1322,7 @@ skip:
 	}
 }
 
+// 4.x backport
 /* Common InvenWield script hooks */
 static long __fastcall InvenWieldHook_Script(TGameObj* critter, TGameObj* item, long slot, long isWield, long isRemove) {
 	if (!isWield) {

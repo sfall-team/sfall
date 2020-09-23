@@ -3559,8 +3559,8 @@ void BugFixesInit()
 	// Fix to limit the maximum distance for the knockback animation
 	MakeCall(0x4104D5, action_knockback_hack);
 
-	// Fix for combat_is_shot_blocked_ engine function not checking critters and their flags correctly
-	// when calculating the hit chance penalty based on the number of critters in the line of fire
+	// Fix for combat_is_shot_blocked_ engine function not taking the flags of critters in the line of fire into account
+	// when calculating the hit chance penalty of ranged attacks in determine_to_hit_func_ engine function
 	const DWORD isShotBlockedAddr[] = {0x426D46, 0x426D4E};
 	SafeWriteBatch<BYTE>(0x41, isShotBlockedAddr); // edi > ecx (replace target with object critter)
 	SafeWrite8(0x426D48, DAM_DEAD | DAM_KNOCKED_DOWN | DAM_KNOCKED_OUT);
