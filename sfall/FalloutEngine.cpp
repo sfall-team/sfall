@@ -1783,7 +1783,7 @@ void __fastcall CheckForDeath(TGameObj* critter, long amountDamage, long* flags)
 	WRAP_WATCOM_FCALL3(check_for_death_, critter, amountDamage, flags)
 }
 
-void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag) {
+void __fastcall CorrectFidForRemovedItem(TGameObj* critter, TGameObj* item, long slotFlag) {
 	WRAP_WATCOM_FCALL3(correctFidForRemovedItem_, critter, item, slotFlag)
 }
 

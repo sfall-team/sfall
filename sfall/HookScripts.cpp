@@ -183,7 +183,7 @@ static void __declspec(naked) ToHitHook() {
 		pushadc;
 	}
 
-	args[7] = Combat_rawHitChance;
+	args[7] = Combat_determineHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
@@ -241,13 +241,13 @@ long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled)
 	long cost = ItemWMpCost(source, hitMode, isCalled);
 
 	BeginHook();
+	argCount = 4;
 
 	args[0] = (DWORD)source;
 	args[1] = hitMode;
 	args[2] = isCalled;
 	args[3] = cost;
 
-	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	if (cRet > 0) cost = rets[0];
@@ -283,7 +283,6 @@ static void __declspec(naked) CalcApCostHook() {
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
@@ -292,6 +291,7 @@ static void __declspec(naked) CalcApCostHook2() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -361,7 +361,6 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		call check_death_; // call original function
 		HookBegin;
-		mov argCount, 5;
 		mov ebx, [esp + 60];
 		mov args[4], ebx;    // attacker
 		mov args[8], esi;    // target
@@ -371,6 +370,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 		pushad;
 	}
 
+	argCount = 5;
 	args[0] = -1;     // weaponPid
 	RunHookScript(HOOK_DEATHANIM2);
 
@@ -439,10 +439,10 @@ static void __declspec(naked) OnDeathHook() {
 	__asm {
 		push edx;
 		call BeginHook;
-		mov  argCount, 1;
 		mov  args[0], esi;
 	}
 
+	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
@@ -457,13 +457,13 @@ static void __declspec(naked) OnDeathHook() {
 
 static void __declspec(naked) OnDeathHook2() {
 	__asm {
-		HookBegin;
-		mov  argCount, 1;
-		mov  args[0], esi;
 		call partyMemberRemove_;
+		HookBegin;
+		mov  args[0], esi;
 		pushad;
 	}
 
+	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
@@ -506,13 +506,13 @@ static void __declspec(naked) FindTargetHook() {
 static void __declspec(naked) UseObjOnHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 3;
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
 		pushad;
 	}
 
+	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
@@ -533,13 +533,13 @@ defaultHandler:
 static void __declspec(naked) Drug_UseObjOnHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 3;
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
 		pushad;
 	}
 
+	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
@@ -560,12 +560,12 @@ defaultHandler:
 static void __declspec(naked) UseObjHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 2;
 		mov args[0], eax; // user
 		mov args[4], edx; // object
 		pushad;
 	}
 
+	argCount = 2;
 	RunHookScript(HOOK_USEOBJ);
 
 	__asm {
@@ -588,7 +588,6 @@ static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		mov ecx, [esp + 8]; // call addr
 		HookBegin;
-		mov argCount, 5;
 		mov args[0], eax;   // source
 		mov args[4], edx;   // item
 		mov args[8], ebx;   // count
@@ -603,6 +602,7 @@ static void __declspec(naked) RemoveObjHook() {
 		push edx;
 	}
 
+	argCount = 5;
 	RunHookScript(HOOK_REMOVEINVENOBJ);
 	EndHook();
 
@@ -826,7 +826,6 @@ static void __declspec(naked) HexSightBlockingHook() {
 static void __declspec(naked) ItemDamageHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 6;
 		mov args[0], eax;  // min
 		mov args[4], edx;  // max
 		mov args[8], edi;  // weapon
@@ -835,6 +834,7 @@ static void __declspec(naked) ItemDamageHook() {
 		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
 		pushad;
 	}
+	argCount = 6;
 
 	if (args[2] == 0) {  // weapon arg
 		args[4] += 8;    // type arg
@@ -929,7 +929,6 @@ void __stdcall MouseClickHook(DWORD button, bool pressed) {
 static void __declspec(naked) UseSkillHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], eax;  // user
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // skill id
@@ -937,6 +936,7 @@ static void __declspec(naked) UseSkillHook() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_USESKILL);
 
 	__asm {
@@ -957,7 +957,6 @@ defaultHandler:
 static void __declspec(naked) StealCheckHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], eax;  // thief
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
@@ -965,6 +964,7 @@ static void __declspec(naked) StealCheckHook() {
 		pushadc;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
@@ -987,13 +987,13 @@ static long __fastcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* t
 	long result = IsWithinPerception(watcher, target);
 
 	BeginHook();
+	argCount = 4;
 
 	args[0] = (DWORD)watcher;
 	args[1] = (DWORD)target;
 	args[2] = result;
 	args[3] = type;
 
-	argCount = 4;
 	RunHookScript(HOOK_WITHINPERCEPTION);
 
 	if (cRet > 0) result = rets[0];
@@ -1335,6 +1335,7 @@ static long __fastcall InvenWieldHook_Script(TGameObj* critter, TGameObj* item, 
 		}
 	}
 	BeginHook();
+	argCount = 5;
 
 	args[0] = (DWORD)critter;
 	args[1] = (DWORD)item;
@@ -1342,7 +1343,6 @@ static long __fastcall InvenWieldHook_Script(TGameObj* critter, TGameObj* item, 
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
-	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	long result = (cRet == 0 || rets[0] == -1);
@@ -1355,7 +1355,6 @@ static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long is
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
-	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	bool result = (cRet == 0 || rets[0] == -1);
@@ -1372,6 +1371,8 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		mov args[8], ebx; // slot
 		pushad;
 	}
+	argCount = 5;
+
 	// right hand slot?
 	if (args[2] != INVEN_TYPE_RIGHT_HAND && GetItemType((TGameObj*)args[1]) != item_type_armor) {
 		args[2] = INVEN_TYPE_LEFT_HAND;
@@ -1397,10 +1398,13 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		mov args[8], edx; // slot
 		pushad;
 	}
+	argCount = 5;
+
 	// set slot
 	if (args[2] == 0) { // left hand slot?
 		args[2] = INVEN_TYPE_LEFT_HAND;
 	}
+
 	// get item
 	args[1] = (DWORD)GetItemPtrSlot((TGameObj*)args[0], (InvenType)args[2]);
 
@@ -1425,6 +1429,8 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		mov args[8], ebx; // item flag
 		pushadc;
 	}
+	argCount = 5;
+
 	// set slot
 	if (args[2] & ObjectFlag::Right_Hand) {       // right hand slot
 		args[2] = INVEN_TYPE_RIGHT_HAND;
@@ -1433,7 +1439,9 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	} else {
 		args[2] = INVEN_TYPE_WORN;                // armor slot
 	}
+
 	InvenWieldHook_ScriptPart(0, 1); // unwield event (armor by default)
+
 	// engine handler is not overridden
 	__asm {
 		popadc;
@@ -1563,7 +1571,7 @@ long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item,
 		}
 		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
 	}
-	if (result) CorrectFidForRemovedItemFunc(critter, item, flags);
+	if (result) CorrectFidForRemovedItem(critter, item, flags);
 	return result;
 }
 // END HOOKS

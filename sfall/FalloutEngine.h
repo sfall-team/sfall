@@ -1339,7 +1339,7 @@ long __stdcall XFSeek(DbFile* file, long fOffset, long origin);
 /* fastcall */
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 void __fastcall CheckForDeath(TGameObj* critter, long amountDamage, long* flags);
-void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag);
+void __fastcall CorrectFidForRemovedItem(TGameObj* critter, TGameObj* item, long slotFlag);
 long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags);
 long __fastcall DetermineToHit(TGameObj* source, TGameObj* target, long bodyPart, long hitMode);
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
