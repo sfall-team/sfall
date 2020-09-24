@@ -45,7 +45,6 @@ static void __declspec(naked) RemoveObjHook() {
 static void __declspec(naked) MoveCostHook() {
 	__asm {
 		HookBegin;
-		mov  argCount, 3;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		call fo::funcoffs::critter_compute_ap_from_distance_;
@@ -53,6 +52,7 @@ static void __declspec(naked) MoveCostHook() {
 		pushadc;
 	}
 
+	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
@@ -357,6 +357,8 @@ static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameOb
 }
 
 static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long isRemove = 0) {
+	argCount = 5;
+
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
@@ -376,7 +378,6 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		mov args[8], ebx; // slot
 		pushad;
 	}
-	argCount = 5;
 
 	// right hand slot?
 	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::GetItemType((fo::GameObject*)args[1]) != fo::item_type_armor) {
@@ -403,7 +404,6 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		mov args[8], edx; // slot
 		pushad;
 	}
-	argCount = 5;
 
 	// set slot
 	if (args[2] == 0) { // left hand slot?
@@ -435,7 +435,6 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		mov args[8], ebx; // item flag
 		pushadc;
 	}
-	argCount = 5;
 
 	// set slot
 	if (args[2] & fo::ObjectFlag::Right_Hand) {       // right hand slot
@@ -583,9 +582,11 @@ static void AdjustFidHook(DWORD vanillaFid) {
 
 	BeginHook();
 	argCount = 2;
+
 	args[0] = vanillaFid;
 	args[1] = fo::var::i_fid; // modified FID by sfall code
 	RunHookScript(HOOK_ADJUSTFID);
+
 	if (cRet > 0) {
 		fo::var::i_fid = rets[0];
 	}

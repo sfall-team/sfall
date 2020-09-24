@@ -13,7 +13,6 @@ namespace sfall
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		HookBegin;
-		mov  argCount, 8;
 		mov  args[4], eax;    // attacker
 		mov  args[8], ebx;    // target
 		mov  args[12], ecx;   // body part
@@ -29,6 +28,7 @@ static void __declspec(naked) ToHitHook() {
 		mov  args[0], eax;
 		pushadc;
 	}
+	argCount = 8;
 
 	args[7] = Combat::determineHitChance;
 	RunHookScript(HOOK_TOHIT);
@@ -107,7 +107,6 @@ long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isC
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
-		mov  argCount, 4;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
@@ -116,6 +115,7 @@ static void __declspec(naked) CalcApCostHook() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
