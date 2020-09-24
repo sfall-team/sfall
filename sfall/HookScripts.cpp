@@ -86,8 +86,8 @@ static void __stdcall BeginHook() {
 		savedArgs[cDepth].cArg = cArg;                                             // current count of taken arguments
 		savedArgs[cDepth].cRet = cRet;                                             // number of return values for the current hook
 		savedArgs[cDepth].cRetTmp = cRetTmp;
-		memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
-		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
+		std::memcpy(&savedArgs[cDepth].oldArgs, args, maxArgs * sizeof(DWORD));           // values of the arguments
+		if (cRet) std::memcpy(&savedArgs[cDepth].oldRets, rets, maxRets * sizeof(DWORD)); // return values
 
 		//devlog_f("\nSaved cArgs/cRet: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
 		//for (unsigned int i = 0; i < maxArgs; i++) {
@@ -149,8 +149,8 @@ static void __stdcall EndHook() {
 			cArg = savedArgs[cDepth].cArg;
 			cRet = savedArgs[cDepth].cRet;
 			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of return values
-			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
-			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
+			std::memcpy(args, &savedArgs[cDepth].oldArgs, maxArgs * sizeof(DWORD));
+			if (cRet) std::memcpy(rets, &savedArgs[cDepth].oldRets, maxRets * sizeof(DWORD));
 
 			//devlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
 			//for (unsigned int i = 0; i < maxArgs; i++) {
@@ -166,7 +166,6 @@ static void __stdcall EndHook() {
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		HookBegin;
-		mov  argCount, 8;
 		mov  args[4], eax;    // attacker
 		mov  args[8], ebx;    // target
 		mov  args[12], ecx;   // body part
@@ -182,6 +181,7 @@ static void __declspec(naked) ToHitHook() {
 		mov  args[0], eax;
 		pushadc;
 	}
+	argCount = 8;
 
 	args[7] = Combat_determineHitChance;
 	RunHookScript(HOOK_TOHIT);
@@ -259,7 +259,6 @@ long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled)
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
-		mov  argCount, 4;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
@@ -268,6 +267,7 @@ static void __declspec(naked) CalcApCostHook() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -702,7 +702,6 @@ static void __declspec(naked) OverrideCost_BarterPriceHook() {
 static void __declspec(naked) MoveCostHook() {
 	__asm {
 		HookBegin;
-		mov  argCount, 3;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		call critter_compute_ap_from_distance_;
@@ -710,6 +709,7 @@ static void __declspec(naked) MoveCostHook() {
 		pushadc;
 	}
 
+	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
@@ -725,7 +725,6 @@ static void __declspec(naked) HexMBlockingHook() {
 	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -743,6 +742,7 @@ return:
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_HEXMOVEBLOCKING);
 
 	__asm {
@@ -757,7 +757,6 @@ return:
 static void __declspec(naked) HexABlockingHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -766,6 +765,7 @@ static void __declspec(naked) HexABlockingHook() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_HEXAIBLOCKING);
 
 	__asm {
@@ -780,7 +780,6 @@ static void __declspec(naked) HexABlockingHook() {
 static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -789,6 +788,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_HEXSHOOTBLOCKING);
 
 	__asm {
@@ -803,7 +803,6 @@ static void __declspec(naked) HexShootBlockingHook() {
 static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
 		HookBegin;
-		mov argCount, 4;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -812,6 +811,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 		pushad;
 	}
 
+	argCount = 4;
 	RunHookScript(HOOK_HEXSIGHTBLOCKING);
 
 	__asm {
@@ -1352,6 +1352,8 @@ static long __fastcall InvenWieldHook_Script(TGameObj* critter, TGameObj* item, 
 }
 
 static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long isRemove = 0) {
+	argCount = 5;
+
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
@@ -1371,7 +1373,6 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		mov args[8], ebx; // slot
 		pushad;
 	}
-	argCount = 5;
 
 	// right hand slot?
 	if (args[2] != INVEN_TYPE_RIGHT_HAND && GetItemType((TGameObj*)args[1]) != item_type_armor) {
@@ -1398,7 +1399,6 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		mov args[8], edx; // slot
 		pushad;
 	}
-	argCount = 5;
 
 	// set slot
 	if (args[2] == 0) { // left hand slot?
@@ -1429,7 +1429,6 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		mov args[8], ebx; // item flag
 		pushadc;
 	}
-	argCount = 5;
 
 	// set slot
 	if (args[2] & ObjectFlag::Right_Hand) {       // right hand slot

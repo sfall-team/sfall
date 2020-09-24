@@ -592,29 +592,17 @@ static void mf_draw_image() {
 			frameno = opHandler.arg(1).rawValue();
 	}
 
-	FrmFile* frmPtr = nullptr;
-	if (LoadFrame(file, &frmPtr)) {
+	FrmFrameData* framePtr;
+	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr);
+	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
 		opHandler.setReturn(-1);
 		return;
 	}
-	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
-	if (direction > 0 && direction < 6) {
-		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[direction];
-		framePtr = (FrmFrameData*)offsOriFrame;
-	}
-	if (frameno > 0) {
-		int maxFrames = frmPtr->frames - 1;
-		if (frameno > maxFrames) frameno = maxFrames;
-		while (frameno-- > 0) {
-			BYTE* offsFrame = (BYTE*)framePtr;
-			offsFrame += framePtr->size + (sizeof(FrmFrameData) - 1);
-			framePtr = (FrmFrameData*)offsFrame;
-		}
-	}
+
 	// with x/y frame offsets
 	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, noTrans);
+
 	MemFree(frmPtr);
 	opHandler.setReturn(1);
 }
@@ -651,27 +639,15 @@ static void mf_draw_image_scaled() {
 			frameno = opHandler.arg(1).rawValue();
 	}
 
-	FrmFile* frmPtr = nullptr;
-	if (LoadFrame(file, &frmPtr)) {
+	FrmFrameData* framePtr;
+	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr);
+	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
 		opHandler.setReturn(-1);
 		return;
 	}
-	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
-	if (direction > 0 && direction < 6) {
-		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[direction];
-		framePtr = (FrmFrameData*)offsOriFrame;
-	}
-	if (frameno > 0) {
-		int maxFrames = frmPtr->frames - 1;
-		if (frameno > maxFrames) frameno = maxFrames;
-		while (frameno-- > 0) {
-			BYTE* offsFrame = (BYTE*)framePtr;
-			offsFrame += framePtr->size + (sizeof(FrmFrameData) - 1);
-			framePtr = (FrmFrameData*)offsFrame;
-		}
-	}
+	long result = 1;
+
 	if (opHandler.numArgs() < 3) {
 		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
 	} else {
@@ -691,16 +667,18 @@ static void mf_draw_image_scaled() {
 			s_height = s_width * framePtr->height / framePtr->width;
 		}
 		if (s_width <= 0 || s_height <= 0) {
-			opHandler.setReturn(0);
-			return;
+			result = 0;
+			goto exit;
 		}
 
 		long w_width = WindowWidth();
 		long xy_pos = (y * w_width) + x;
 		WindowTransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
 	}
+
+exit:
 	MemFree(frmPtr);
-	opHandler.setReturn(1);
+	opHandler.setReturn(result);
 }
 
 static void mf_unwield_slot() {
