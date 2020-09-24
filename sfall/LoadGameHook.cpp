@@ -56,6 +56,8 @@ static bool gameLoaded = false;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
 
+long LoadGameHook_interfaceWID = -1;
+
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
 	return gameLoaded;
@@ -489,7 +491,7 @@ static void __declspec(naked) DialogHook_Start() {
 static void __declspec(naked) DialogHook_End() {
 	__asm {
 		and inLoop, (-1 ^ DIALOG);
-		jmp gdialogFreeSpeech_;
+		jmp gdDestroyHeadWindow_;
 	}
 }
 
@@ -583,12 +585,23 @@ static void __declspec(naked) BarterInventoryHook() {
 	}
 }
 
-static void __declspec(naked) AutomapHook() {
+static void __declspec(naked) AutomapHook_Start() {
 	__asm {
+		call gmouse_set_cursor_;
+		test edx, edx;
+		jnz  skip;
+		mov  LoadGameHook_interfaceWID, ebp;
 		or inLoop, AUTOMAP;
-		call automap_;
-		and inLoop, (-1 ^ AUTOMAP);
+skip:
 		retn;
+	}
+}
+
+static void __declspec(naked) AutomapHook_End() {
+	__asm {
+		and inLoop, (-1 ^ AUTOMAP);
+		mov LoadGameHook_interfaceWID, -1
+		jmp win_delete_;
 	}
 }
 
@@ -677,8 +690,8 @@ void LoadGameHookInit() {
 	HookCall(0x443A50, HelpMenuHook);  // game_handle_input_
 	HookCall(0x443320, CharacterHook); // 0x4A73EB, 0x4A740A for character creation
 
-	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_
-	HookCall(0x4452CD, DialogHook_End);   // gdialogExitFromScript_ (old 0x445748)
+	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_ (old 0x445748)
+	HookCall(0x445317, DialogHook_End);   // gdialogExitFromScript_
 
 	const DWORD pipboyHkStartAddr[] = {0x49767F, 0x4977EF, 0x49780D}; // StartPipboy_ (old 0x443463, 0x443605)
 	HookCalls(PipboyHook_Start, pipboyHkStartAddr);
@@ -698,8 +711,8 @@ void LoadGameHookInit() {
 
 	HookCall(0x4466C7, BarterInventoryHook); // gdProcess_
 
-	const DWORD automapHkAddr[] = {0x44396D, 0x479519};
-	HookCalls(AutomapHook, automapHkAddr);
+	HookCall(0x41BAB6, AutomapHook_Start); // automap_
+	HookCall(0x41BCDB, AutomapHook_End);   // automap_
 
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);

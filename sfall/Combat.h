@@ -37,6 +37,8 @@ struct ChanceModifier {
 	}
 };
 
+extern long Combat_determineHitChance;
+
 void CombatInit();
 void Combat_OnGameLoad();
 
@@ -50,5 +52,3 @@ void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);
 void __stdcall SetNoBurstMode(TGameObj* critter, bool on);
 void __stdcall DisableAimedShots(DWORD pid);
 void __stdcall ForceAimedShots(DWORD pid);
-
-extern long Combat_determineHitChance;

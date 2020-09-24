@@ -18,6 +18,8 @@
 
 #pragma once
 
+extern long LoadGameHook_interfaceWID;
+
 void LoadGameHookInit();
 
 // True if game was started, false when on the main menu

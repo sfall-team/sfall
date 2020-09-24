@@ -20,8 +20,61 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "LoadGameHook.h"
 #include "Utils.h"
 #include "Worldmap.h"
+
+long Interface_ActiveInterfaceWID() {
+	return LoadGameHook_interfaceWID;
+}
+
+enum WinNameType {
+	WINTYPE_Inventory = 0, // any inventory window (player/loot/use/barter)
+	WINTYPE_Dialog    = 1,
+	WINTYPE_PipBoy    = 2,
+	WINTYPE_WorldMap  = 3,
+	WINTYPE_IfaceBar  = 4, // the interface bar
+	WINTYPE_Character = 5,
+	WINTYPE_Skilldex  = 6,
+	WINTYPE_EscMenu   = 7, // escape menu
+	WINTYPE_Automap   = 8,
+};
+
+WINinfo* Interface_GetWindow(long winType) {
+	long winID = 0;
+	switch (winType) {
+	case WINTYPE_Inventory:
+		if (GetLoopFlags() & INVENTORY) winID = *ptr_i_wid;
+		break;
+	case WINTYPE_Dialog:
+		if (GetLoopFlags() & DIALOG) winID = *ptr_dialogueBackWindow;
+		break;
+	case WINTYPE_PipBoy:
+		if (GetLoopFlags() & PIPBOY) winID = *ptr_pip_win;
+		break;
+	case WINTYPE_WorldMap:
+		if (GetLoopFlags() & WORLDMAP) winID = *ptr_wmBkWin;
+		break;
+	case WINTYPE_IfaceBar:
+		winID = *ptr_interfaceWindow;
+		break;
+	case WINTYPE_Character:
+		if (GetLoopFlags() & CHARSCREEN) winID = *ptr_edit_win;
+		break;
+	case WINTYPE_Skilldex:
+		if (GetLoopFlags() & SKILLDEX) winID = *ptr_skldxwin;
+		break;
+	case WINTYPE_EscMenu:
+		if (GetLoopFlags() & ESCMENU) winID = *ptr_optnwin;
+		break;
+	case WINTYPE_Automap:
+		if (GetLoopFlags() & AUTOMAP) winID = Interface_ActiveInterfaceWID();
+		break;
+	default:
+		return (WINinfo*)(-1);
+	}
+	return (winID > 0) ? GNWFind(winID) : nullptr;
+}
 
 static long costAP = -1;
 static void __declspec(naked) intface_redraw_items_hack0() {
@@ -482,7 +535,7 @@ static long gmouse_handle_event_hook() {
 
 	for (int n = 1; n < countWin; n++) {
 		win = ptr_window[n];
-		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check scripted windows
+		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check the script windows
 			&& !(win->flags & WinFlags::Hidden)) {
 			RECT *rect = &win->wRect;
 			if (MouseClickIn(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area

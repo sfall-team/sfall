@@ -706,6 +706,7 @@ extern const DWORD game_help_;
 extern const DWORD game_set_global_var_;
 extern const DWORD game_time_;
 extern const DWORD game_time_date_;
+extern const DWORD gdDestroyHeadWindow_;
 extern const DWORD gdialog_barter_cleanup_tables_;
 extern const DWORD gdialog_barter_pressed_;
 extern const DWORD gdialogActive_;
@@ -1137,6 +1138,11 @@ void DevPrintf(const char* fmt, ...);
 void DevPrintf(...);
 #endif
 
+/*
+	Add functions here if they have non-trivial wrapper implementation (like vararg functions or too many arguments, etc.)
+	Otherwise use FalloutFuncs_def.h file (much easier).
+*/
+
 // prints message to debug.log file
 void __declspec() DebugPrintf(const char* fmt, ...);
 
@@ -1165,203 +1171,80 @@ void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* 
 // draws an image in the window and scales it to fit the window
 void __fastcall DisplayInWindow(long w_here, long width, long height, void* data);
 
-void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
+// draws an image to the buffer of the active script window
+void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
 // buf_to_buf_ function with pure MMX implementation
 void __cdecl BufToBuf(void* src, long width, long height, long src_width, void* dst, long dst_width);
 
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
-/* stdcall */
-bool __stdcall ArtExists(long artFid);
-void __stdcall ArtFlush();
-const char* __stdcall ArtGetName(long artFID);
-long __stdcall ArtId(long artType, long lstIndex, long animCode, long weaponCode, long directionCode);
-BYTE* __stdcall ArtFrameData(FrmHeaderData* frm, long frameNum, long rotation);
-long __stdcall ArtFrameWidth(FrmHeaderData* frm, long frameNum, long rotation);
-long __stdcall ArtFrameLength(FrmHeaderData* frm, long frameNum, long rotation);
-FrmHeaderData* __stdcall ArtPtrLock(long frmId, DWORD* lockPtr);
-BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* lockPtr);
-BYTE* __stdcall ArtLock(long frmId, DWORD* lockPtr, long* widthOut, long* heightOut);
-long __stdcall ArtPtrUnlock(DWORD lockId);
-long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target);
-long __stdcall BlockForTocks(long ticks);
-const char* __stdcall CritterName(TGameObj* critter); // Returns the name of the critter
-void __stdcall CritterPcSetName(const char* newName); // Change the name of playable character
-/* Database functions */
-bool __stdcall DbAccess(const char* fileName); // Checks if given file exists in DB
-long __stdcall DbFClose(DbFile* file);
-DbFile* __stdcall DbFOpen(const char* path, const char* mode);
-long __stdcall DbFGetc(DbFile* file);
-char* __stdcall DbFGets(char* buf, long max_count, DbFile* file);
-long __stdcall DbFRead(void* buf, long elsize, long count, DbFile* file);
-long __stdcall DbFSeek(DbFile* file, long pos, long origin);
-void __stdcall DbFreeFileList(char*** fileList, DWORD arg2); // Destroys filelist array created by DbGetFileList
-long __stdcall DbFReadByte(DbFile* file, BYTE* rout);
-long __stdcall DbFReadShort(DbFile* file, WORD* rout);
-long __stdcall DbFReadInt(DbFile* file, DWORD* rout);
-long __stdcall DbFReadByteCount(DbFile* file, BYTE* cptr, long count);
-long __stdcall DbFReadShortCount(DbFile* file, WORD* dest, long count);
-long __stdcall DbFReadIntCount(DbFile* file, DWORD* dest, long count);
-long __stdcall DbFWriteByte(DbFile* file, long value);
-long __stdcall DbFWriteInt(DbFile* file, long value);
-long __stdcall DbFWriteByteCount(DbFile* file, const BYTE* cptr, long count);
-long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut); // Check fallout file and get file size (result 0 - file exists)
-// Searches files in DB by given path/filename mask and stores result in fileList
-// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
-long __stdcall DbGetFileList(const char* searchMask, char*** fileList); // Returns number of elements in *fileList
-long __stdcall DbInit(const char* path_dat, const char* path_patches);
-void* __stdcall DbaseOpen(const char* fileName);
-void __stdcall DbaseClose(void* dbPtr);
-////////////////////////
-void __stdcall DisplayPrint(const char* msg); // Displays message in main UI console window
-void __stdcall DisplayStats();
-long __stdcall CritterIsDead(TGameObj* critter);
-// Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-void __stdcall ExecuteProcedure(TProgram* sptr, long procNum);
-const char* __stdcall FindCurrentProc(TProgram* program); // Returns the name of current procedure by program pointer
-long __stdcall FMtextWidth(const char* text);
-long __stdcall GetInputBtn();
-// Searches for message ID in given message file and places result in result argument
-const char* __stdcall Getmsg(const MSGList* fileAddr, MSGNode* result, long messageId);
-long __stdcall Gmouse3dGetMode();
-void __stdcall Gmouse3dSetMode(long mode);
-long __stdcall GmouseSetCursor(long picNum);
-long __stdcall GsoundBackgroundVolumeGetSet(long setVolume);
-void __stdcall GsoundPlaySfxFile(const char* name); // Plays SFX sound with given name
-WINinfo* __stdcall GNWFind(long winRef);
-long __stdcall Interpret(TProgram* program, long arg2);
-// Finds procedure ID for given script program pointer and procedure name
-long __stdcall InterpretFindProcedure(TProgram* scriptPtr, const char* procName);
-DWORD __stdcall InterpretPopShort(TProgram* scriptPtr); // Pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall InterpretPopLong(TProgram* scriptPtr);  // Pops value from Data stack (must be preceded by InterpretPopShort)
-long __stdcall IntfaceGetAttack(DWORD* hitMode, DWORD* isSecondary);
-long __stdcall IntfaceIsHidden();
-void __stdcall IntfaceRedraw(); // Redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void __stdcall IntfaceToggleItemState();
-void __stdcall IntfaceUpdateAc(long animate);
-void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP);
-void __stdcall IntfaceUseItem();
-TGameObj* __stdcall InvenLeftHand(TGameObj* critter); // Item in critter's left hand slot
-TGameObj* __stdcall InvenRightHand(TGameObj* critter); // Item in critter's right hand slot
-TGameObj* __stdcall InvenPidIsCarriedPtr(TGameObj* invenObj, long pid);
-long __stdcall InvenUnwield(TGameObj* critter, long slot);
-TGameObj* __stdcall InvenWorn(TGameObj* critter); // Critter worn item (armor)
-long __stdcall IsPartyMember(TGameObj* obj);
-long __stdcall IsWithinPerception(TGameObj* source, TGameObj* target);
-long __stdcall ItemCCurrSize(TGameObj* critter);
-long __stdcall ItemCapsTotal(TGameObj* object);
-long __stdcall ItemGetType(TGameObj* item);
-long __stdcall ItemMDecCharges(TGameObj* item); // Returns 0 on success, -1 if the item has no charges
-long __stdcall ItemSize(TGameObj* item);
-long __stdcall ItemTotalCost(TGameObj* object);
-long __stdcall ItemTotalWeight(TGameObj* object);
-long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
-long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);
-long __stdcall ItemWCurrAmmo(TGameObj* item);
-long __stdcall ItemWMaxAmmo(TGameObj* item);
-long __stdcall ItemWRange(TGameObj* critter, long hitMode);
-long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo);
-long __stdcall ItemWRounds(TGameObj* item);
-long __stdcall ItemWeight(TGameObj* item);
-long __stdcall LightGetTile(long elevation, long tileNum); // Returns light level at given tile
-long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
-TProgram* __stdcall LoadProgram(const char* fileName);
-const char* __stdcall MapGetShortName(long mapID);
-void __stdcall MapDirErase(const char* folder, const char* ext);
-void __stdcall MemFree(void* mem);
-void* __stdcall MemRealloc(void* lpmem, DWORD msize);
-long __stdcall MessageExit(MSGList* msgList); // Destroys message list
-long __stdcall MessageLoad(MSGList* msgList, const char* msgFilePath); // Loads MSG file into given MessageList
-long __stdcall MessageSearch(const MSGList* file, MSGNode* msg);
-void __stdcall MouseGetPosition(long* outX, long* outY);
-void __stdcall MouseShow();
-void __stdcall MouseHide();
-// Calculates path and returns it's length
-long __stdcall MakePathFunc(TGameObj* objectFrom, long tileFrom, long tileTo, char* pathDataBuffer, long arg5, void* blockingFunc);
-long __stdcall NewObjId();
-void __stdcall ObjBound(TGameObj* object, BoundRect* boundRect); // Calculates bounding box (rectangle) for a given object
-long __stdcall ObjDestroy(TGameObj* object);
-long __stdcall ObjDist(TGameObj* obj_src, TGameObj* obj_trg);
-long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect);
-TGameObj* __stdcall ObjFindFirst();
-TGameObj* __stdcall ObjFindNext();
-TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum);
-TGameObj* __stdcall ObjFindNextAtTile();
-long __stdcall ObjPidNew(TGameObj* object, long pid);
-long __stdcall ObjLockIsJammed(TGameObj* object); // Checks/unjams jammed locks
-void __stdcall ObjUnjamLock(TGameObj* object);
-long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
-long __stdcall PerkCanAdd(TGameObj* critter, long perkId);
-long __stdcall PerkLevel(TGameObj* critter, long perkId);
-long __stdcall PickDeath(TGameObj* attacker, TGameObj* target, TGameObj* weapon, long amount, long anim, long hitFromBack);
-void __stdcall ProcessBk();
-void __stdcall ProtoDudeUpdateGender();
-long* __stdcall QueueFindFirst(TGameObj* object, long qType);
-long* __stdcall QueueFindNext(TGameObj* object, long qType);
-long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay);
-long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay);
-long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay);
-long __stdcall RegisterObjectMustErase(TGameObj* object);
-long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing);
-long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing);
-long __stdcall RollRandom(long minValue, long maxValue);
-long* __stdcall RunProgram(TProgram* progPtr);
-TScript* __stdcall ScrFindFirstAt(long elevation);
-TScript* __stdcall ScrFindNextAt();
-TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
-long __stdcall ScrNew(long* scriptID, long sType);
-// Saves pointer to script object into scriptPtr using scriptID
-long __stdcall ScrPtr(long scriptId, TScript** scriptPtr); // Returns 0 on success, -1 on failure
-long __stdcall ScrRemove(long scriptID);
-void __stdcall SetFocusFunc(void* func);
-long __stdcall SkillIsTagged(long skill);
-long __stdcall StatGetBaseDirect(TGameObj* critter, long statID);
-long __stdcall StatLevel(TGameObj* critter, long statId);
-long __stdcall TextFont(long fontNum);
-long __stdcall TileDist(long scrTile, long dstTile);
-long __stdcall TileDir(long scrTile, long dstTile);
-void __stdcall TileRefreshDisplay(); // Redraws the whole screen
-void __stdcall TileRefreshRect(BoundRect* boundRect, long elevation); // Redraws the given rectangle on screen
-long __stdcall TraitLevel(long traitID);
-long __stdcall WinAdd(long x, long y, long width, long height, long bgColorIndex, long flags);
-void __stdcall WinShow(DWORD winRef);
-void __stdcall WinHide(DWORD winRef);
-BYTE* __stdcall WinGetBuf(DWORD winRef);
-void __stdcall WinDraw(DWORD winRef);
-void __stdcall WinDrawRect(DWORD winRef, RECT* rect);
-void __stdcall WinDelete(DWORD winRef);
-long __stdcall WindowWidth();
-void __stdcall WmRefreshInterfaceOverlay(long isRedraw);
-DbFile* __stdcall XFOpen(const char* fileName, const char* flags);
-long __stdcall XFSeek(DbFile* file, long fOffset, long origin);
+// X-Macro for wrapper functions.
+#define WRAP_WATCOM_FUNC0(retType, name, funcoff) \
+	retType __stdcall name();
 
-/* fastcall */
-long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
-void __fastcall CheckForDeath(TGameObj* critter, long amountDamage, long* flags);
-void __fastcall CorrectFidForRemovedItem(TGameObj* critter, TGameObj* item, long slotFlag);
-long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags);
-long __fastcall DetermineToHit(TGameObj* source, TGameObj* target, long bodyPart, long hitMode);
-void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
-void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);
-FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction);
-void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer);
-void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight);
-TGameObj* __fastcall InvenFindType(TGameObj* critter, long itemType, DWORD* buf);
-long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count);
-long __fastcall ItemWMpCost(TGameObj* source, long hitMode, long isCalled);
-void __fastcall MakeStraightPathFunc(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
-long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf);
-long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);
-TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
-long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
-long __fastcall ObjectUnderMouse(long crSwitch, long inclDude, long elevation);
-void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
-long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
-long __fastcall ScrSetLocalVar(long sid, long varId, long value);
-long __fastcall TileNumInDirection(long tile, long rotation, long distance);
+#define WRAP_WATCOM_FUNC1(retType, name, funcoff, arg1t, arg1) \
+	retType __stdcall name(arg1t arg1);
 
-const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId);
+#define WRAP_WATCOM_FUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
+	retType __stdcall name(arg1t arg1, arg2t arg2);
+
+#define WRAP_WATCOM_FUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3);
+
+#define WRAP_WATCOM_FUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
+
+#define WRAP_WATCOM_FUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
+
+#define WRAP_WATCOM_FUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
+
+
+#define WRAP_WATCOM_FFUNC1(retType, name, funcoff, arg1t, arg1) \
+	retType __fastcall name(arg1t arg1);
+
+#define WRAP_WATCOM_FFUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
+	retType __fastcall name(arg1t arg1, arg2t arg2);
+
+#define WRAP_WATCOM_FFUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3);
+
+#define WRAP_WATCOM_FFUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
+
+#define WRAP_WATCOM_FFUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
+
+#define WRAP_WATCOM_FFUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
+
+#define WRAP_WATCOM_FFUNC7(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
+
+#define WRAP_WATCOM_FFUNC8(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
+
+#include "FalloutFuncs_def.h"
+
+#undef WRAP_WATCOM_FUNC0
+#undef WRAP_WATCOM_FUNC1
+#undef WRAP_WATCOM_FUNC2
+#undef WRAP_WATCOM_FUNC3
+#undef WRAP_WATCOM_FUNC4
+#undef WRAP_WATCOM_FUNC5
+#undef WRAP_WATCOM_FUNC6
+//#undef WRAP_WATCOM_FUNC7
+
+#undef WRAP_WATCOM_FFUNC1
+#undef WRAP_WATCOM_FFUNC2
+#undef WRAP_WATCOM_FFUNC3
+#undef WRAP_WATCOM_FFUNC4
+#undef WRAP_WATCOM_FFUNC5
+#undef WRAP_WATCOM_FFUNC6
+#undef WRAP_WATCOM_FFUNC7
+#undef WRAP_WATCOM_FFUNC8
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
@@ -1400,8 +1283,6 @@ long __fastcall IsRadInfluence();
 long GetScriptLocalVars(long sid);
 
 long __fastcall GetTopWindowID(long xPos, long yPos);
-
-WINinfo* GetUIWindow(long winType);
 
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1);

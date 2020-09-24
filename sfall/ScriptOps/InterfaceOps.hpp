@@ -21,6 +21,7 @@
 #include "main.h"
 
 #include "InputFuncs.h"
+#include "Interface.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
@@ -524,6 +525,42 @@ static void mf_set_window_flag() {
 	}
 }
 
+static long GetArtFIDFile(long fid, const char* &file) {
+	long direction = 0;
+	long _fid = fid & 0xFFFFFFF;
+	file = ArtGetName(_fid); // .frm
+	if (_fid >> 24 == OBJ_TYPE_CRITTER) {
+		direction = (fid >> 28);
+		if (direction && !DbAccess(file)) {
+			file = ArtGetName(fid); // .fr#
+		}
+	}
+	return direction;
+}
+
+static FrmFile* LoadArtFile(const char* file, long frameno, long direction, FrmFrameData* &framePtr) {
+	FrmFile* frmPtr = nullptr;
+	if (LoadFrame(file, &frmPtr)) {
+		return nullptr;
+	}
+	framePtr = (FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (FrmFrameData*)offsOriFrame;
+	}
+	if (frameno > 0) {
+		int maxFrames = frmPtr->frames - 1;
+		if (frameno > maxFrames) frameno = maxFrames;
+		while (frameno-- > 0) {
+			BYTE* offsFrame = (BYTE*)framePtr;
+			offsFrame += framePtr->size + (sizeof(FrmFrameData) - 1);
+			framePtr = (FrmFrameData*)offsFrame;
+		}
+	}
+	return frmPtr;
+}
+
 static void mf_draw_image() {
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
@@ -538,28 +575,9 @@ static void mf_draw_image() {
 			opHandler.setReturn(-1);
 			return;
 		}
-		long _fid = fid & 0xFFFFFFF;
-		file = ArtGetName(_fid); // .frm
-		if (_fid >> 24 == OBJ_TYPE_CRITTER) {
-			direction = (fid >> 28);
-			if (direction && !DbAccess(file)) {
-				file = ArtGetName(fid); // .fr#
-			}
-		}
+		direction = GetArtFIDFile(fid, file);
 	} else {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
-	}
-	FrmFile* frmPtr = nullptr;
-	if (LoadFrame(file, &frmPtr)) {
-		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
-		opHandler.setReturn(-1);
-		return;
-	}
-	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
-	if (direction > 0 && direction < 6) {
-		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[direction];
-		framePtr = (FrmFrameData*)offsOriFrame;
 	}
 	// initialize other args
 	int frameno = 0, x = 0, y = 0, noTrans = 0;
@@ -572,6 +590,19 @@ static void mf_draw_image() {
 			x = opHandler.arg(2).rawValue();
 		case 2:
 			frameno = opHandler.arg(1).rawValue();
+	}
+
+	FrmFile* frmPtr = nullptr;
+	if (LoadFrame(file, &frmPtr)) {
+		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
+		opHandler.setReturn(-1);
+		return;
+	}
+	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (FrmFrameData*)offsOriFrame;
 	}
 	if (frameno > 0) {
 		int maxFrames = frmPtr->frames - 1;
@@ -602,28 +633,9 @@ static void mf_draw_image_scaled() {
 			opHandler.setReturn(-1);
 			return;
 		}
-		long _fid = fid & 0xFFFFFFF;
-		file = ArtGetName(_fid); // .frm
-		if (_fid >> 24 == OBJ_TYPE_CRITTER) {
-			direction = (fid >> 28);
-			if (direction && !DbAccess(file)) {
-				file = ArtGetName(fid); // .fr#
-			}
-		}
+		direction = GetArtFIDFile(fid, file);
 	} else {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
-	}
-	FrmFile* frmPtr = nullptr;
-	if (LoadFrame(file, &frmPtr)) {
-		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
-		opHandler.setReturn(-1);
-		return;
-	}
-	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
-	if (direction > 0 && direction < 6) {
-		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[direction];
-		framePtr = (FrmFrameData*)offsOriFrame;
 	}
 	// initialize other args
 	int frameno = 0, x = 0, y = 0, wsize = 0;
@@ -637,6 +649,19 @@ static void mf_draw_image_scaled() {
 			x = opHandler.arg(2).rawValue();
 		case 2:
 			frameno = opHandler.arg(1).rawValue();
+	}
+
+	FrmFile* frmPtr = nullptr;
+	if (LoadFrame(file, &frmPtr)) {
+		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
+		opHandler.setReturn(-1);
+		return;
+	}
+	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (FrmFrameData*)offsOriFrame;
 	}
 	if (frameno > 0) {
 		int maxFrames = frmPtr->frames - 1;
@@ -672,7 +697,7 @@ static void mf_draw_image_scaled() {
 
 		long w_width = WindowWidth();
 		long xy_pos = (y * w_width) + x;
-		TransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+		WindowTransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
 	}
 	MemFree(frmPtr);
 	opHandler.setReturn(1);
@@ -744,7 +769,7 @@ static void mf_get_window_attribute() {
 	long attr = 0;
 	if (opHandler.numArgs() > 1) attr = opHandler.arg(1).rawValue();
 
-	WINinfo* win = GetUIWindow(opHandler.arg(0).rawValue());
+	WINinfo* win = Interface_GetWindow(opHandler.arg(0).rawValue());
 	if (win == nullptr) {
 		if (attr != 0) {
 			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");

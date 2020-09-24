@@ -424,6 +424,7 @@ const DWORD game_help_ = 0x443F74;
 const DWORD game_set_global_var_ = 0x443C98;
 const DWORD game_time_ = 0x4A3330;
 const DWORD game_time_date_ = 0x4A3338;
+const DWORD gdDestroyHeadWindow_ = 0x447294;
 const DWORD gdialog_barter_cleanup_tables_ = 0x448660;
 const DWORD gdialog_barter_pressed_ = 0x44A52C;
 const DWORD gdialogActive_ = 0x444D2C;
@@ -901,6 +902,9 @@ void DevPrintf(...) {}
 	__asm push arg7				\
 	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+#define WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	__asm push arg8				\
+	WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 
 // prints message to debug.log file
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
@@ -1042,7 +1046,8 @@ void __fastcall DisplayInWindow(long w_here, long width, long height, void* data
 	}
 }
 
-void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+// draws an image to the buffer of the active script window
+void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
 	__asm {
 		push w_width;
 		push s_height;
@@ -1131,745 +1136,87 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 	}
 }
 
-/* stdcall */
-bool __stdcall ArtExists(long artFid) {
-	WRAP_WATCOM_CALL1(art_exists_, artFid)
-}
-
-void __stdcall ArtFlush() {
-	WRAP_WATCOM_CALL0(art_flush_)
-}
-
-const char* __stdcall ArtGetName(long artFID) {
-	WRAP_WATCOM_CALL1(art_get_name_, artFID)
-}
-
-long __stdcall ArtId(long artType, long lstIndex, long animCode, long weaponCode, long directionCode) {
-	WRAP_WATCOM_CALL5(art_id_, artType, lstIndex, animCode, weaponCode, directionCode)
-}
-
-BYTE* __stdcall ArtFrameData(FrmHeaderData* frm, long frameNum, long rotation) {
-	WRAP_WATCOM_CALL3(art_frame_data_, frm, frameNum, rotation)
-}
-
-long __stdcall ArtFrameWidth(FrmHeaderData* frm, long frameNum, long rotation) {
-	WRAP_WATCOM_CALL3(art_frame_width_, frm, frameNum, rotation)
-}
-
-long __stdcall ArtFrameLength(FrmHeaderData* frm, long frameNum, long rotation) {
-	WRAP_WATCOM_CALL3(art_frame_length_, frm, frameNum, rotation)
-}
-
-FrmHeaderData* __stdcall ArtPtrLock(long frmId, DWORD* lockPtr) {
-	WRAP_WATCOM_CALL2(art_ptr_lock_, frmId, lockPtr)
-}
-
-BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* lockPtr) {
-	WRAP_WATCOM_CALL4(art_ptr_lock_data_, frmId, frameNum, rotation, lockPtr)
-}
-
-BYTE* __stdcall ArtLock(long frmId, DWORD* lockPtr, long* widthOut, long* heightOut) {
-	WRAP_WATCOM_CALL4(art_lock_, frmId, lockPtr, widthOut, heightOut)
-}
-
-long __stdcall ArtPtrUnlock(DWORD lockId) {
-	WRAP_WATCOM_CALL1(art_ptr_unlock_, lockId)
-}
-
-long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target) {
-	WRAP_WATCOM_CALL2(barter_compute_value_, source, target)
-}
-
-long __stdcall BlockForTocks(long ticks) {
-	WRAP_WATCOM_CALL1(block_for_tocks_, ticks)
-}
-
-// Returns the name of the critter
-const char* __stdcall CritterName(TGameObj* critter) {
-	WRAP_WATCOM_CALL1(critter_name_, critter)
-}
-
-// Change the name of playable character
-void __stdcall CritterPcSetName(const char* newName) {
-	WRAP_WATCOM_CALL1(critter_pc_set_name_, newName)
-}
-
-// Checks if given file exists in DB
-bool __stdcall DbAccess(const char* fileName) {
-	WRAP_WATCOM_CALL1(db_access_, fileName)
-}
-
-long __stdcall DbFClose(DbFile* file) {
-	WRAP_WATCOM_CALL1(db_fclose_, file)
-}
-
-DbFile* __stdcall DbFOpen(const char* path, const char* mode) {
-	WRAP_WATCOM_CALL2(db_fopen_, path, mode)
-}
-
-long __stdcall DbFGetc(DbFile* file) {
-	WRAP_WATCOM_CALL1(db_fgetc_, file)
-}
-
-char* __stdcall DbFGets(char* buf, long max_count, DbFile* file) {
-	WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
-}
-
-long __stdcall DbFRead(void* buf, long elsize, long count, DbFile* file) {
-	WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
-}
-
-long __stdcall DbFSeek(DbFile* file, long pos, long origin) {
-	WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
-}
-
-// Destroys filelist array created by DbGetFileList
-void __stdcall DbFreeFileList(char*** fileList, DWORD arg2) {
-	WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
-}
-
-long __stdcall DbFReadByte(DbFile* file, BYTE* rout) {
-	WRAP_WATCOM_CALL2(db_freadByte_, file, rout)
-}
-
-long __stdcall DbFReadShort(DbFile* file, WORD* rout) {
-	WRAP_WATCOM_CALL2(db_freadShort_, file, rout)
-}
-
-long __stdcall DbFReadInt(DbFile* file, DWORD* rout) {
-	WRAP_WATCOM_CALL2(db_freadInt_, file, rout)
-}
-
-long __stdcall DbFReadByteCount(DbFile* file, BYTE* cptr, long count) {
-	WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
-}
-
-long __stdcall DbFReadShortCount(DbFile* file, WORD* dest, long count) {
-	WRAP_WATCOM_CALL3(db_freadShortCount_, file, dest, count)
-}
-
-long __stdcall DbFReadIntCount(DbFile* file, DWORD* dest, long count) {
-	WRAP_WATCOM_CALL3(db_freadIntCount_, file, dest, count)
-}
-
-long __stdcall DbFWriteByte(DbFile* file, long value) {
-	WRAP_WATCOM_CALL2(db_fwriteByte_, file, value)
-}
-
-long __stdcall DbFWriteInt(DbFile* file, long value) {
-	WRAP_WATCOM_CALL2(db_fwriteInt_, file, value)
-}
-
-long __stdcall DbFWriteByteCount(DbFile* file, const BYTE* cptr, long count) {
-	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
-}
-
-// Check fallout file and get file size (result 0 - file exists)
-long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
-	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
-}
-
-// Searches files in DB by given path/filename mask and stores result in fileList
-// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
-// Returns number of elements in *fileList
-long __stdcall DbGetFileList(const char* searchMask, char* * *fileList) {
-	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
-}
-
-long __stdcall DbInit(const char* path_dat, const char* path_patches) {
-	WRAP_WATCOM_CALL2(db_init_, path_dat, path_patches)
-}
-
-void* __stdcall DbaseOpen(const char* fileName) {
-	WRAP_WATCOM_CALL1(dbase_open_, fileName)
-}
-
-void __stdcall DbaseClose(void* dbPtr) {
-	WRAP_WATCOM_CALL1(dbase_close_, dbPtr)
-}
-
-// Displays message in main UI console window
-void __stdcall DisplayPrint(const char* msg) {
-	WRAP_WATCOM_CALL1(display_print_, msg)
-}
-
-void __stdcall DisplayStats() {
-	WRAP_WATCOM_CALL0(display_stats_)
-}
-
-long __stdcall CritterIsDead(TGameObj* critter) {
-	WRAP_WATCOM_CALL1(critter_is_dead_, critter)
-}
-
-// Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-void __stdcall ExecuteProcedure(TProgram* sptr, long procNum) {
-	WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
-}
-
-// Returns the name of current procedure by program pointer
-const char* __stdcall FindCurrentProc(TProgram* program) {
-	WRAP_WATCOM_CALL1(findCurrentProc_, program)
-}
-
-long __stdcall FMtextWidth(const char* text) {
-	WRAP_WATCOM_CALL1(FMtext_width_, text)
-}
-
-long __stdcall GetInputBtn() {
-	WRAP_WATCOM_CALL0(get_input_)
-}
-
-// Searches for message ID in given message file and places result in result argument
-const char* __stdcall Getmsg(const MSGList* fileAddr, MSGNode* result, long messageId) {
-	WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
-}
-
-long __stdcall Gmouse3dGetMode() {
-	WRAP_WATCOM_CALL0(gmouse_3d_get_mode_)
-}
-
-void __stdcall Gmouse3dSetMode(long mode) {
-	WRAP_WATCOM_CALL1(gmouse_3d_set_mode_, mode)
-}
-
-long __stdcall GmouseSetCursor(long picNum) {
-	WRAP_WATCOM_CALL1(gmouse_set_cursor_, picNum)
-}
-
-long __stdcall GsoundBackgroundVolumeGetSet(long setVolume) {
-	WRAP_WATCOM_CALL1(gsound_background_volume_get_set_, setVolume)
-}
-
-// Plays SFX sound with given name
-void __stdcall GsoundPlaySfxFile(const char* name) {
-	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
-}
-
-WINinfo* __stdcall GNWFind(long winRef) {
-	WRAP_WATCOM_CALL1(GNW_find_, winRef)
-}
-
-long __stdcall Interpret(TProgram* program, long arg2) {
-	WRAP_WATCOM_CALL2(interpret_, program, arg2)
-}
-
-long __stdcall InterpretFindProcedure(TProgram* scriptPtr, const char* procName) {
-	WRAP_WATCOM_CALL2(interpretFindProcedure_, scriptPtr, procName)
-}
-
-// pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
-	WRAP_WATCOM_CALL1(interpretPopShort_, scriptPtr)
-}
-
-// pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
-	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
-}
-
-long __stdcall IntfaceGetAttack(DWORD* hitMode, DWORD* isSecondary) {
-	WRAP_WATCOM_CALL2(intface_get_attack_, hitMode, isSecondary)
-}
-
-long __stdcall IntfaceIsHidden() {
-	WRAP_WATCOM_CALL0(intface_is_hidden_)
-}
-
-// Redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void __stdcall IntfaceRedraw() {
-	WRAP_WATCOM_CALL0(intface_redraw_)
-}
-
-void __stdcall IntfaceToggleItemState() {
-	WRAP_WATCOM_CALL0(intface_toggle_item_state_)
-}
-
-void __stdcall IntfaceUpdateAc(long animate) {
-	WRAP_WATCOM_CALL1(intface_update_ac_, animate)
-}
-
-void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP) {
-	WRAP_WATCOM_CALL2(intface_update_move_points_, ap, freeAP)
-}
-
-void __stdcall IntfaceUseItem() {
-	WRAP_WATCOM_CALL0(intface_use_item_)
-}
-
-// Item in critter's left hand slot
-TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
-	WRAP_WATCOM_CALL1(inven_left_hand_, critter)
-}
-
-// Item in critter's right hand slot
-TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
-	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
-}
-
-TGameObj* __stdcall InvenPidIsCarriedPtr(TGameObj* invenObj, long pid) {
-	WRAP_WATCOM_CALL2(inven_pid_is_carried_ptr_, invenObj, pid)
-}
-
-long __stdcall InvenUnwield(TGameObj* critter, long slot) {
-	WRAP_WATCOM_CALL2(inven_unwield_, critter, slot)
-}
-
-// Critter worn item (armor)
-TGameObj* __stdcall InvenWorn(TGameObj* critter) {
-	WRAP_WATCOM_CALL1(inven_worn_, critter)
-}
-
-long __stdcall IsPartyMember(TGameObj* obj) {
-	WRAP_WATCOM_CALL1(isPartyMember_, obj)
-}
-
-long __stdcall IsWithinPerception(TGameObj* source, TGameObj* target) {
-	WRAP_WATCOM_CALL2(is_within_perception_, source, target)
-}
-
-long __stdcall ItemCCurrSize(TGameObj* critter) {
-	WRAP_WATCOM_CALL1(item_c_curr_size_, critter)
-}
-
-long __stdcall ItemCapsTotal(TGameObj* object) {
-	WRAP_WATCOM_CALL1(item_caps_total_, object)
-}
-
-long __stdcall ItemGetType(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_get_type_, item)
-}
-
-// Returns 0 on success, -1 if the item has no charges
-long __stdcall ItemMDecCharges(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_m_dec_charges_, item)
-}
-
-long __stdcall ItemSize(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_size_, item)
-}
-
-long __stdcall ItemTotalCost(TGameObj* object) {
-	WRAP_WATCOM_CALL1(item_total_cost_, object)
-}
-
-long __stdcall ItemTotalWeight(TGameObj* object) {
-	WRAP_WATCOM_CALL1(item_total_weight_, object)
-}
-
-long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
-	WRAP_WATCOM_CALL2(item_w_anim_weap_, item, hitMode)
-}
-
-long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds) {
-	WRAP_WATCOM_CALL2(item_w_compute_ammo_cost_, item, rounds)
-}
-
-long __stdcall ItemWCurrAmmo(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_w_curr_ammo_, item)
-}
-
-long __stdcall ItemWMaxAmmo(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_w_max_ammo_, item)
-}
-
-long __stdcall ItemWRange(TGameObj* critter, long hitMode) {
-	WRAP_WATCOM_CALL2(item_w_range_, critter, hitMode)
-}
-
-long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo) {
-	WRAP_WATCOM_CALL2(item_w_reload_, weapon, ammo)
-}
-
-long __stdcall ItemWRounds(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_w_rounds_, item)
-}
-
-long __stdcall ItemWeight(TGameObj* item) {
-	WRAP_WATCOM_CALL1(item_weight_, item)
-}
-
-// Returns light level at given tile
-long __stdcall LightGetTile(long elevation, long tileNum) {
-	WRAP_WATCOM_CALL2(light_get_tile_, elevation, tileNum)
-}
-
-long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
-	WRAP_WATCOM_CALL2(load_frame_, filename, frmPtr)
-}
-
-TProgram* __stdcall LoadProgram(const char* fileName) {
-	WRAP_WATCOM_CALL1(loadProgram_, fileName)
-}
-
-const char* __stdcall MapGetShortName(long mapID) {
-	WRAP_WATCOM_CALL1(map_get_short_name_, mapID)
-}
-
-void __stdcall MapDirErase(const char* folder, const char* ext) {
-	WRAP_WATCOM_CALL2(MapDirErase_, folder, ext)
-}
-
-void __stdcall MemFree(void* mem) {
-	WRAP_WATCOM_CALL1(mem_free_, mem)
-}
-
-void* __stdcall MemRealloc(void* lpmem, DWORD msize) {
-	WRAP_WATCOM_CALL2(mem_realloc_, lpmem, msize)
-}
-
-// Destroys message list
-long __stdcall MessageExit(MSGList* msgList) {
-	WRAP_WATCOM_CALL1(message_exit_, msgList)
-}
-
-// Loads MSG file into given MessageList
-long __stdcall MessageLoad(MSGList* msgList, const char* msgFilePath) {
-	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
-}
-
-long __stdcall MessageSearch(const MSGList* file, MSGNode* msg) {
-	WRAP_WATCOM_CALL2(message_search_, file, msg)
-}
-
-void __stdcall MouseGetPosition(long* outX, long* outY) {
-	WRAP_WATCOM_CALL2(mouse_get_position_, outX, outY)
-}
-
-void __stdcall MouseShow() {
-	WRAP_WATCOM_CALL0(mouse_show_)
-}
-
-void __stdcall MouseHide() {
-	WRAP_WATCOM_CALL0(mouse_hide_)
-}
-
-// Calculates path and returns it's length
-long __stdcall MakePathFunc(TGameObj* objectFrom, long tileFrom, long tileTo, char* pathDataBuffer, long arg5, void* blockingFunc) {
-	WRAP_WATCOM_CALL6(make_path_func_, objectFrom, tileFrom, tileTo, pathDataBuffer, arg5, blockingFunc)
-}
-
-long __stdcall NewObjId() {
-	WRAP_WATCOM_CALL0(new_obj_id_)
-}
-
-// Calculates bounding box (rectangle) for a given object
-void __stdcall ObjBound(TGameObj* object, BoundRect* boundRect) {
-	WRAP_WATCOM_CALL2(obj_bound_, object, boundRect)
-}
-
-long __stdcall ObjDestroy(TGameObj* object) {
-	WRAP_WATCOM_CALL1(obj_destroy_, object)
-}
-
-long __stdcall ObjDist(TGameObj* obj_src, TGameObj* obj_trg) {
-	WRAP_WATCOM_CALL2(obj_dist_, obj_src, obj_trg)
-}
-
-long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect) {
-	WRAP_WATCOM_CALL2(obj_erase_object_, object, boundRect)
-}
-
-TGameObj* __stdcall ObjFindFirst() {
-	WRAP_WATCOM_CALL0(obj_find_first_)
-}
-
-TGameObj* __stdcall ObjFindNext() {
-	WRAP_WATCOM_CALL0(obj_find_next_)
-}
-
-TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum) {
-	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
-}
-
-TGameObj* __stdcall ObjFindNextAtTile() {
-	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
-}
-
-long __stdcall ObjPidNew(TGameObj* object, long pid) {
-	WRAP_WATCOM_CALL2(obj_pid_new_, object, pid)
-}
-
-// Checks/unjams jammed locks
-long __stdcall ObjLockIsJammed(TGameObj* object) {
-	WRAP_WATCOM_CALL1(obj_lock_is_jammed_, object)
-}
-
-void __stdcall ObjUnjamLock(TGameObj* object) {
-	WRAP_WATCOM_CALL1(obj_unjam_lock_, object)
-}
-
-long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
-	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
-}
-
-long __stdcall PerkCanAdd(TGameObj* critter, long perkId) {
-	WRAP_WATCOM_CALL2(perk_can_add_, critter, perkId)
-}
-
-long __stdcall PerkLevel(TGameObj* critter, long perkId) {
-	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
-}
-
-long __stdcall PickDeath(TGameObj* attacker, TGameObj* target, TGameObj* weapon, long amount, long anim, long hitFromBack) {
-	WRAP_WATCOM_CALL6(pick_death_, attacker, target, weapon, amount, anim, hitFromBack)
-}
-
-void __stdcall ProcessBk() {
-	WRAP_WATCOM_CALL0(process_bk_)
-}
-
-void __stdcall ProtoDudeUpdateGender() {
-	WRAP_WATCOM_CALL0(proto_dude_update_gender_)
-}
-
-long* __stdcall QueueFindFirst(TGameObj* object, long qType) {
-	WRAP_WATCOM_CALL2(queue_find_first_, object, qType)
-}
-
-long* __stdcall QueueFindNext(TGameObj* object, long qType) {
-	WRAP_WATCOM_CALL2(queue_find_next_, object, qType)
-}
-
-long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay) {
-	WRAP_WATCOM_CALL3(register_object_animate_and_hide_, object, anim, delay)
-}
-
-long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay) {
-	WRAP_WATCOM_CALL3(register_object_change_fid_, object, artFid, delay)
-}
-
-long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay) {
-	WRAP_WATCOM_CALL3(register_object_light_, object, lightRadius, delay)
-}
-
-long __stdcall RegisterObjectMustErase(TGameObj* object) {
-	WRAP_WATCOM_CALL1(register_object_must_erase_, object)
-}
-
-long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing) {
-	WRAP_WATCOM_CALL3(register_object_take_out_, object, holdFrameId, nothing)
-}
-
-long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing) {
-	WRAP_WATCOM_CALL3(register_object_turn_towards_, object, tileNum, nothing)
-}
-
-long __stdcall RollRandom(long minValue, long maxValue) {
-	WRAP_WATCOM_CALL2(roll_random_, minValue, maxValue)
-}
-
-long* __stdcall RunProgram(TProgram* progPtr) {
-	WRAP_WATCOM_CALL1(runProgram_, progPtr)
-}
-
-TScript* __stdcall ScrFindFirstAt(long elevation) {
-	WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
-}
-
-TScript* __stdcall ScrFindNextAt() {
-	WRAP_WATCOM_CALL0(scr_find_next_at_)
-}
-
-TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
-	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
-}
-
-long __stdcall ScrNew(long* scriptID, long sType) {
-	WRAP_WATCOM_CALL2(scr_new_, scriptID, sType)
-}
-
-// Saves pointer to script object into scriptPtr using scriptID
-// Returns 0 on success, -1 on failure
-long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
-	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
-}
-
-long __stdcall ScrRemove(long scriptID) {
-	WRAP_WATCOM_CALL1(scr_remove_, scriptID)
-}
-
-void __stdcall SetFocusFunc(void* func) {
-	WRAP_WATCOM_CALL1(set_focus_func_, func)
-}
-
-long __stdcall SkillIsTagged(long skill) {
-	WRAP_WATCOM_CALL1(skill_is_tagged_, skill)
-}
-
-long __stdcall StatGetBaseDirect(TGameObj* critter, long statID) {
-	WRAP_WATCOM_CALL2(stat_get_base_direct_, critter, statID)
-}
-
-long __stdcall StatLevel(TGameObj* critter, long statId) {
-	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
-}
-
-long __stdcall TextFont(long fontNum) {
-	WRAP_WATCOM_CALL1(text_font_, fontNum)
-}
-
-long __stdcall TileDist(long scrTile, long dstTile) {
-	WRAP_WATCOM_CALL2(tile_dist_, scrTile, dstTile)
-}
-
-long __stdcall TileDir(long scrTile, long dstTile) {
-	WRAP_WATCOM_CALL2(tile_dir_, scrTile, dstTile)
-}
-
-// Redraws the whole screen
-void __stdcall TileRefreshDisplay() {
-	WRAP_WATCOM_CALL0(tile_refresh_display_)
-}
-
-// Redraws the given rectangle on screen
-void __stdcall TileRefreshRect(BoundRect* boundRect, long elevation) {
-	WRAP_WATCOM_CALL2(tile_refresh_rect_, boundRect, elevation)
-}
-
-long __stdcall TraitLevel(long traitID) {
-	WRAP_WATCOM_CALL1(trait_level_, traitID)
-}
-
-long __stdcall WinAdd(long x, long y, long width, long height, long bgColorIndex, long flags) {
-	WRAP_WATCOM_CALL6(win_add_, x, y, width, height, bgColorIndex, flags)
-}
-
-void __stdcall WinShow(DWORD winRef) {
-	WRAP_WATCOM_CALL1(win_show_, winRef)
-}
-
-void __stdcall WinHide(DWORD winRef) {
-	WRAP_WATCOM_CALL1(win_hide_, winRef)
-}
-
-BYTE* __stdcall WinGetBuf(DWORD winRef) {
-	WRAP_WATCOM_CALL1(win_get_buf_, winRef)
-}
-
-void __stdcall WinDraw(DWORD winRef) {
-	WRAP_WATCOM_CALL1(win_draw_, winRef)
-}
-
-void __stdcall WinDrawRect(DWORD winRef, RECT* rect) {
-	WRAP_WATCOM_CALL2(win_draw_rect_, winRef, rect)
-}
-
-void __stdcall WinDelete(DWORD winRef) {
-	WRAP_WATCOM_CALL1(win_delete_, winRef)
-}
-
-long __stdcall WindowWidth() {
-	WRAP_WATCOM_CALL0(windowWidth_)
-}
-
-void __stdcall WmRefreshInterfaceOverlay(long isRedraw) {
-	WRAP_WATCOM_CALL1(wmRefreshInterfaceOverlay_, isRedraw)
-}
-
-DbFile* __stdcall XFOpen(const char* fileName, const char* flags) {
-	WRAP_WATCOM_CALL2(xfopen_, fileName, flags)
-}
-
-long __stdcall XFSeek(DbFile* file, long fOffset, long origin) {
-	WRAP_WATCOM_CALL3(xfseek_, file, fOffset, origin)
-}
-
-/* fastcall */
-long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
-	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
-}
-
-void __fastcall CheckForDeath(TGameObj* critter, long amountDamage, long* flags) {
-	WRAP_WATCOM_FCALL3(check_for_death_, critter, amountDamage, flags)
-}
-
-void __fastcall CorrectFidForRemovedItem(TGameObj* critter, TGameObj* item, long slotFlag) {
-	WRAP_WATCOM_FCALL3(correctFidForRemovedItem_, critter, item, slotFlag)
-}
-
-long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags) {
-	WRAP_WATCOM_FCALL7(createWindow_, winName, x, y, width, height, color, flags)
-}
-
-long __fastcall DetermineToHit(TGameObj* source, TGameObj* target, long bodyPart, long hitMode) {
-	WRAP_WATCOM_FCALL4(determine_to_hit_, source, target, bodyPart, hitMode)
-}
-
-void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
-	WRAP_WATCOM_FCALL3(display_inventory_, inventoryOffset, visibleOffset, mode)
-}
-
-void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode) {
-	WRAP_WATCOM_FCALL4(display_target_inventory_, inventoryOffset, visibleOffset, targetInventory, mode)
-}
-
-FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction) {
-	WRAP_WATCOM_FCALL3(frame_ptr_, frm, frame, direction)
-}
-
-void __fastcall GNWWinRefresh(WINinfo* win, BoundRect* rect, long* buffer) {
-	WRAP_WATCOM_FCALL3(GNW_win_refresh_, win, rect, buffer)
-}
-
-void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight) {
-	WRAP_WATCOM_FCALL3(intface_update_items_, animate, modeLeft, modeRight)
-}
-
-TGameObj* __fastcall InvenFindType(TGameObj* critter, long itemType, DWORD* buf) {
-	WRAP_WATCOM_FCALL3(inven_find_type_, critter, itemType, buf)
-}
-
-long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count) {
-	WRAP_WATCOM_FCALL3(item_add_force_, critter, item, count)
-}
-
-long __fastcall ItemWMpCost(TGameObj* source, long hitMode, long isCalled) {
-	WRAP_WATCOM_FCALL3(item_w_mp_cost_, source, hitMode, isCalled)
-}
-
-void __fastcall MakeStraightPathFunc(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
-	WRAP_WATCOM_FCALL7(make_straight_path_func_, objFrom, tileFrom, tileTo, rotationPtr, result, flags, func)
-}
-
-long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf) {
-	WRAP_WATCOM_FCALL3(message_find_, msgFile, msgNumber, outBuf)
-}
-
-long __fastcall MouseClickIn(long x, long y, long x_end, long y_end) {
-	WRAP_WATCOM_FCALL4(mouse_click_in_, x, y, x_end, y_end)
-}
-
-TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) {
-	WRAP_WATCOM_FCALL3(obj_blocking_at_, object, tile, elevation)
-}
-
-long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
-	WRAP_WATCOM_FCALL3(obj_new_sid_inst_, object, sType, scriptIndex)
-}
-
-long __fastcall ObjectUnderMouse(long crSwitch, long inclDude, long elevation) {
-	WRAP_WATCOM_FCALL3(object_under_mouse_, crSwitch, inclDude, elevation)
-}
-
-void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
-	WRAP_WATCOM_FCALL4(register_object_call_, target, source, func, delay)
-}
-
-long __fastcall ScrGetLocalVar(long sid, long varId, long* value) {
-	WRAP_WATCOM_FCALL3(scr_get_local_var_, sid, varId, value)
-}
-
-long __fastcall ScrSetLocalVar(long sid, long varId, long value) {
-	WRAP_WATCOM_FCALL3(scr_set_local_var_, sid, varId, value)
-}
-
-long __fastcall TileNumInDirection(long tile, long rotation, long distance) {
-	WRAP_WATCOM_FCALL3(tile_num_in_direction_, tile, rotation, distance)
-}
-
-const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId) {
-	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
-}
+////////////////////////////////////
+// X-Macro for wrapper functions. //
+////////////////////////////////////
+
+#define WRAP_WATCOM_FUNC0(retType, name, funcoff) \
+	retType __stdcall name() { \
+		WRAP_WATCOM_CALL0(funcoff) \
+	}
+
+#define WRAP_WATCOM_FUNC1(retType, name, funcoff, arg1t, arg1) \
+	retType __stdcall name(arg1t arg1) { \
+		WRAP_WATCOM_CALL1(funcoff, arg1) \
+	}
+
+#define WRAP_WATCOM_FUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
+	retType __stdcall name(arg1t arg1, arg2t arg2) { \
+		WRAP_WATCOM_CALL2(funcoff, arg1, arg2) \
+	}
+
+#define WRAP_WATCOM_FUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3) { \
+		WRAP_WATCOM_CALL3(funcoff, arg1, arg2, arg3) \
+	}
+
+#define WRAP_WATCOM_FUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
+		WRAP_WATCOM_CALL4(funcoff, arg1, arg2, arg3, arg4) \
+	}
+
+#define WRAP_WATCOM_FUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
+		WRAP_WATCOM_CALL5(funcoff, arg1, arg2, arg3, arg4, arg5) \
+	}
+
+#define WRAP_WATCOM_FUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
+		WRAP_WATCOM_CALL6(funcoff, arg1, arg2, arg3, arg4, arg5, arg6) \
+	}
+
+
+#define WRAP_WATCOM_FFUNC1(retType, name, funcoff, arg1t, arg1) \
+	retType __fastcall name(arg1t arg1) { \
+		WRAP_WATCOM_FCALL1(funcoff, arg1) \
+	}
+
+#define WRAP_WATCOM_FFUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
+	retType __fastcall name(arg1t arg1, arg2t arg2) { \
+		WRAP_WATCOM_FCALL2(funcoff, arg1, arg2) \
+	}
+
+#define WRAP_WATCOM_FFUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3) { \
+		WRAP_WATCOM_FCALL3(funcoff, arg1, arg2, arg3) \
+	}
+
+#define WRAP_WATCOM_FFUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
+		WRAP_WATCOM_FCALL4(funcoff, arg1, arg2, arg3, arg4) \
+	}
+
+#define WRAP_WATCOM_FFUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
+		WRAP_WATCOM_FCALL5(funcoff, arg1, arg2, arg3, arg4, arg5) \
+	}
+
+#define WRAP_WATCOM_FFUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
+		WRAP_WATCOM_FCALL6(funcoff, arg1, arg2, arg3, arg4, arg5, arg6) \
+	}
+
+#define WRAP_WATCOM_FFUNC7(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
+		WRAP_WATCOM_FCALL7(funcoff, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	}
+
+#define WRAP_WATCOM_FFUNC8(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
+		WRAP_WATCOM_FCALL8(funcoff, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	}
+
+#include "FalloutFuncs_def.h"
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
@@ -1986,51 +1333,6 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 	return win->wID;
 }
 
-enum WinNameType {
-	WINTYPE_Inventory = 0, // any inventory window (player/loot/use/barter)
-	WINTYPE_Dialog    = 1,
-	WINTYPE_PipBoy    = 2,
-	WINTYPE_WorldMap  = 3,
-	WINTYPE_IfaceBar  = 4, // the interface bar
-	WINTYPE_Character = 5,
-	WINTYPE_Skilldex  = 6,
-	WINTYPE_EscMenu   = 7, // escape menu
-	//WINTYPE_Automap   = 8  // for this window there is no global variable
-};
-
-WINinfo* GetUIWindow(long winType) {
-	long winID = 0;
-	switch (winType) {
-	case WINTYPE_Inventory:
-		winID = *ptr_i_wid;
-		break;
-	case WINTYPE_Dialog:
-		winID = *ptr_dialogueBackWindow;
-		break;
-	case WINTYPE_PipBoy:
-		winID = *ptr_pip_win;
-		break;
-	case WINTYPE_WorldMap:
-		winID = *ptr_wmBkWin;
-		break;
-	case WINTYPE_IfaceBar:
-		winID = *ptr_interfaceWindow;
-		break;
-	case WINTYPE_Character:
-		winID = *ptr_edit_win;
-		break;
-	case WINTYPE_Skilldex:
-		winID = *ptr_skldxwin;
-		break;
-	case WINTYPE_EscMenu:
-		winID = *ptr_optnwin;
-		break;
-	default:
-		return (WINinfo*)(-1);
-	}
-	return (winID > 0) ? GNWFind(winID) : nullptr;
-}
-
 static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
 	long hexRadius = 200 * (radius + 1);
 
@@ -2116,9 +1418,11 @@ void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long from
 	fromSurface += fromY * fromWidth + fromX;
 	long i = 0;
 	for (long h = 0; h < height; h++) {
-		for (long w = 0; w < width; w++) {
+		/*for (long w = 0; w < width; w++) {
 			toMem[i++] = fromSurface[w];
-		}
+		}*/
+		std::memcpy(&toMem[i], fromSurface, width);
+		i += width;
 		fromSurface += fromWidth;
 	}
 }

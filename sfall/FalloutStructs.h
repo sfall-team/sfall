@@ -437,7 +437,10 @@ struct ScriptListInfoItem {
 struct WINinfo {
 	long wID;
 	long flags;
-	RECT wRect;
+	union {
+		RECT wRect;
+		BoundRect rect;
+	};
 	long width;
 	long height;
 	long clearColour;
