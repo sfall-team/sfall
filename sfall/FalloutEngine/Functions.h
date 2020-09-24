@@ -71,7 +71,8 @@ void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* 
 // draws an image in the window and scales it to fit the window
 void __fastcall displayInWindow(long w_here, long width, long height, void* data);
 
-void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
+// draws an image to the buffer of the active script window
+void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
 // buf_to_buf_ function with pure MMX implementation
 void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void* dst, long dst_width);
@@ -122,6 +123,9 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
 	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
 
+#define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
+
 #include "Functions_def.h"
 
 #undef WRAP_WATCOM_FUNC0
@@ -140,6 +144,7 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #undef WRAP_WATCOM_FFUNC5
 #undef WRAP_WATCOM_FFUNC6
 #undef WRAP_WATCOM_FFUNC7
+#undef WRAP_WATCOM_FFUNC8
 
 }
 }

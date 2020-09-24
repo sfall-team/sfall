@@ -99,6 +99,9 @@ void dev_printf(...) {}
 	__asm push arg7				\
 	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+#define WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	__asm push arg8				\
+	WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
@@ -257,7 +260,8 @@ void __fastcall displayInWindow(long w_here, long width, long height, void* data
 	}
 }
 
-void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+// draws an image to the buffer of the active script window
+void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
 	__asm {
 		push w_width;
 		push s_height;
@@ -419,6 +423,11 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
 	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
 		WRAP_WATCOM_FCALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	}
+
+#define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
+		WRAP_WATCOM_FCALL8(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
 	}
 
 #include "Functions_def.h"

@@ -23,6 +23,7 @@
 #include "..\..\BarBoxes.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
+#include "..\..\Interface.h"
 #include "..\OpcodeContext.h"
 
 #include "..\..\HookScripts\InventoryHs.h"
@@ -451,6 +452,42 @@ void mf_set_window_flag(OpcodeContext& ctx) {
 	}
 }
 
+static long GetArtFIDFile(long fid, const char* &file) {
+	long direction = 0;
+	long _fid = fid & 0xFFFFFFF;
+	file = fo::func::art_get_name(_fid); // .frm
+	if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
+		direction = (fid >> 28);
+		if (direction && !fo::func::db_access(file)) {
+			file = fo::func::art_get_name(fid); // .fr#
+		}
+	}
+	return direction;
+}
+
+static fo::FrmFile* LoadArtFile(const char* file, long frameno, long direction, fo::FrmFrameData* &framePtr) {
+	fo::FrmFile* frmPtr = nullptr;
+	if (fo::func::load_frame(file, &frmPtr)) {
+		return nullptr;
+	}
+	framePtr = (fo::FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (fo::FrmFrameData*)offsOriFrame;
+	}
+	if (frameno > 0) {
+		int maxFrames = frmPtr->frames - 1;
+		if (frameno > maxFrames) frameno = maxFrames;
+		while (frameno-- > 0) {
+			BYTE* offsFrame = (BYTE*)framePtr;
+			offsFrame += framePtr->size + (sizeof(fo::FrmFrameData) - 1);
+			framePtr = (fo::FrmFrameData*)offsFrame;
+		}
+	}
+	return frmPtr;
+}
+
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (*(DWORD*)FO_VAR_currentWindow == -1) {
 		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
@@ -461,38 +498,20 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (ctx.arg(0).isInt()) { // art id
 		long fid = ctx.arg(0).rawValue();
 		if (fid == -1) return -1;
-		long _fid = fid & 0xFFFFFFF;
-		file = fo::func::art_get_name(_fid); // .frm
-		if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
-			direction = (fid >> 28);
-			if (direction && !fo::func::db_access(file)) {
-				file = fo::func::art_get_name(fid); // .fr#
-			}
-		}
+
+		direction = GetArtFIDFile(fid, file);
 	} else {
 		file = ctx.arg(0).strValue(); // path to frm/pcx file
 	}
-	fo::FrmFile* frmPtr = nullptr;
-	if (fo::func::load_frame(file, &frmPtr)) {
+
+	fo::FrmFrameData* framePtr;
+	fo::FrmFile* frmPtr = LoadArtFile(file, ctx.arg(1).rawValue(), direction, framePtr);
+	if (frmPtr == nullptr) {
 		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
 		return -1;
 	}
-	fo::FrmFrameData* framePtr = (fo::FrmFrameData*)&frmPtr->width;
-	if (direction > 0 && direction < 6) {
-		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[direction];
-		framePtr = (fo::FrmFrameData*)offsOriFrame;
-	}
-	int frameno = ctx.arg(1).rawValue();
-	if (frameno > 0) {
-		int maxFrames = frmPtr->frames - 1;
-		if (frameno > maxFrames) frameno = maxFrames;
-		while (frameno-- > 0) {
-			BYTE* offsFrame = (BYTE*)framePtr;
-			offsFrame += framePtr->size + (sizeof(fo::FrmFrameData) - 1);
-			framePtr = (fo::FrmFrameData*)offsFrame;
-		}
-	}
+	long result = 1;
+
 	if (isScaled && ctx.numArgs() < 3) {
 		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
 	} else {
@@ -512,17 +531,22 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 			} else if (s_height <= -1 && s_width > 0) {
 				s_height = s_width * framePtr->height / framePtr->width;
 			}
-			if (s_width <= 0 || s_height <= 0) return 0;
+			if (s_width <= 0 || s_height <= 0) {
+				result = 0;
+				goto exit;
+			}
 
 			long w_width = fo::func::windowWidth();
 			long xy_pos = (y * w_width) + x;
-			fo::func::trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+			fo::func::window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
 		} else { // with x/y frame offsets
 			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
 		}
 	}
+
+exit:
 	fo::func::mem_free(frmPtr);
-	return 1;
+	return result;
 }
 
 void mf_draw_image(OpcodeContext& ctx) {
@@ -596,7 +620,7 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 }
 
 void mf_get_window_attribute(OpcodeContext& ctx) {
-	fo::Window* win = fo::GetWindow(ctx.arg(0).rawValue());
+	fo::Window* win = Interface::GetWindow(ctx.arg(0).rawValue());
 	if (win == nullptr) {
 		if (ctx.arg(1).rawValue() != 0) {
 			ctx.printOpcodeError("%s() - failed to get the interface window.", ctx.getMetaruleName());

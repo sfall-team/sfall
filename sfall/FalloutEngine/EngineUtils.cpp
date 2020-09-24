@@ -206,51 +206,6 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 	return win->wID;
 }
 
-enum WinNameType {
-	Inventory = 0, // any inventory window (player/loot/use/barter)
-	Dialog    = 1,
-	PipBoy    = 2,
-	WorldMap  = 3,
-	IfaceBar  = 4, // the interface bar
-	Character = 5,
-	Skilldex  = 6,
-	EscMenu   = 7, // escape menu
-	//Automap   = 8  // for this window there is no global variable
-};
-
-fo::Window* GetWindow(long winType) {
-	long winID = 0;
-	switch (winType) {
-	case WinNameType::Inventory:
-		winID = fo::var::i_wid;
-		break;
-	case WinNameType::Dialog:
-		winID = fo::var::dialogueBackWindow;
-		break;
-	case WinNameType::PipBoy:
-		winID = fo::var::pip_win;
-		break;
-	case WinNameType::WorldMap:
-		winID = fo::var::wmBkWin;
-		break;
-	case WinNameType::IfaceBar:
-		winID = fo::var::interfaceWindow;
-		break;
-	case WinNameType::Character:
-		winID = fo::var::edit_win;
-		break;
-	case WinNameType::Skilldex:
-		winID = fo::var::skldxwin;
-		break;
-	case WinNameType::EscMenu:
-		winID = fo::var::optnwin;
-		break;
-	default:
-		return (fo::Window*)(-1);
-	}
-	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
-}
-
 static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
 	long hexRadius = 200 * (radius + 1);
 
@@ -336,9 +291,11 @@ void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long from
 	fromSurface += fromY * fromWidth + fromX;
 	long i = 0;
 	for (long h = 0; h < height; h++) {
-		for (long w = 0; w < width; w++) {
+		/*for (long w = 0; w < width; w++) {
 			toMem[i++] = fromSurface[w];
-		}
+		}*/
+		std::memcpy(&toMem[i], fromSurface, width);
+		i += width;
 		fromSurface += fromWidth;
 	}
 }
