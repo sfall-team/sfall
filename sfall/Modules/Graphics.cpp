@@ -196,6 +196,7 @@ static void WindowInit() {
 	ScriptShaders::LoadGlobalShader();
 }
 
+// pixel size for the current game resolution
 const float* Graphics::rcpresGet() {
 	return rcpres;
 }
@@ -770,7 +771,7 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			fo::RefreshGNW();
+			fo::RefreshGNW(0);
 		}
 		return !DeviceLost;
 	}

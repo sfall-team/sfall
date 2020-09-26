@@ -46,11 +46,8 @@ enum WinNameType {
 	EscMenu   = 7, // escape menu
 	Automap   = 8,
 	// TODO
-	IntfaceUse,
-	IntfaceLoot,
 	DialogView,
 	DialogPanel,
-	BarterPanel,
 	MemberPanel,
 };
 
@@ -58,7 +55,7 @@ fo::Window* Interface::GetWindow(long winType) {
 	long winID = 0;
 	switch (winType) {
 	case WinNameType::Inventory:
-		if (GetLoopFlags() & INVENTORY) winID = fo::var::i_wid;
+		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = fo::var::i_wid;
 		break;
 	case WinNameType::Dialog:
 		if (GetLoopFlags() & DIALOG) winID = fo::var::dialogueBackWindow;

@@ -539,8 +539,12 @@ void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 }
 
 int LenArray(DWORD id) {
-	if (arrays.find(id) == arrays.end()) return -1;
-	return arrays[id].size();
+	array_itr it = arrays.find(id);
+	return (it != arrays.end()) ? it->second.size() : -1;
+}
+
+bool ArrayExist(DWORD id) {
+	return (arrays.find(id) != arrays.end());
 }
 
 template <class T>
@@ -744,6 +748,11 @@ long StackArray(const ScriptValue& key, const ScriptValue& val) {
 	}
 	SetArray(id, key, val, false);
 	return 0;
+}
+
+sArrayVar* GetRawArray(DWORD id) {
+	array_itr it = arrays.find(id);
+	return (it != arrays.end()) ? &it->second : nullptr;
 }
 
 }

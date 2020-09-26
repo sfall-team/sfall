@@ -133,7 +133,7 @@ DWORD GetMaxCharWidth();
 void RedrawObject(GameObject* obj);
 
 // Redraws all interface windows
-void RefreshGNW();
+void RefreshGNW(size_t from);
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 

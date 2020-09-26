@@ -216,7 +216,7 @@ static void StopMovie() {
 	aviPlayState = AviState::Stop;
 	Graphics::SetMovieTexture(false);
 	movieInterface.pControl->Stop();
-	if (*(DWORD*)FO_VAR_subtitles == 0) fo::RefreshGNW(); // Note: it is only necessary when in the game
+	if (*(DWORD*)FO_VAR_subtitles == 0) fo::RefreshGNW(0); // Note: it is only necessary when in the game
 }
 
 DWORD FreeMovie(sDSTexture* movie) {

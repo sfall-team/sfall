@@ -481,9 +481,9 @@ void RedrawObject(GameObject* obj) {
 }
 
 // Redraws all interface windows
-void RefreshGNW() {
+void RefreshGNW(size_t from) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 1;
-	for (size_t i = 0; i < fo::var::num_windows; i++) {
+	for (size_t i = from; i < fo::var::num_windows; i++) {
 		func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
 	}
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;

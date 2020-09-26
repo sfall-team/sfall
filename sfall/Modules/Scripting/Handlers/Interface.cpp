@@ -24,6 +24,7 @@
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Interface.h"
+#include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
 #include "..\..\HookScripts\InventoryHs.h"
@@ -265,7 +266,11 @@ void op_is_iface_tag_active(OpcodeContext &ctx) {
 }
 
 void mf_intface_redraw(OpcodeContext& ctx) {
-	fo::func::intface_redraw();
+	if (ctx.arg(0).rawValue() == 0) {
+		fo::func::intface_redraw();
+	} else {
+		fo::func::RefreshGNW(1); // redraw all interfaces
+	}
 }
 
 void mf_intface_show(OpcodeContext& ctx) {
@@ -458,7 +463,7 @@ static long GetArtFIDFile(long fid, const char* &file) {
 	file = fo::func::art_get_name(_fid); // .frm
 	if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
 		direction = (fid >> 28);
-		if (direction && !fo::func::db_access(file)) {
+		if (direction > 0 && !fo::func::db_access(file)) {
 			file = fo::func::art_get_name(fid); // .fr#
 		}
 	}
@@ -555,6 +560,73 @@ void mf_draw_image(OpcodeContext& ctx) {
 
 void mf_draw_image_scaled(OpcodeContext& ctx) {
 	ctx.setReturn(DrawImage(ctx, true));
+}
+
+static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
+	const char* file = nullptr;
+	bool useShift = false;
+	long direction = -1, w = -1, h = -1;
+
+	if (ctx.arg(1).isInt()) { // art id
+		long fid = ctx.arg(1).rawValue();
+		if (fid == -1) return -1;
+
+		useShift = (((fid & 0xF000000) >> 24) == fo::OBJ_TYPE_CRITTER);
+		direction = GetArtFIDFile(fid, file);
+	} else {
+		file = ctx.arg(1).strValue(); // path to frm/pcx file
+	}
+
+	if (ctx.numArgs() > 5) { // array params
+		sArrayVar* sArray = GetRawArray(ctx.arg(5).rawValue());
+		if (sArray) {
+			if (direction < 0) direction = sArray->val[0].intVal;
+			int size = sArray->size();
+			if (size > 1) w = sArray->val[1].intVal;
+			if (size > 2) h = sArray->val[2].intVal;
+		}
+	}
+	long frame = ctx.arg(4).rawValue();
+
+	fo::FrmFrameData* framePtr;
+	fo::FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr);
+	if (frmPtr == nullptr) {
+		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
+		return -1;
+	}
+	int x = ctx.arg(2).rawValue();
+	int y = ctx.arg(3).rawValue();
+
+	if (useShift && direction >= 0) {
+		x += frmPtr->xshift[direction];
+		y += frmPtr->yshift[direction];
+	}
+	if (x < 0) x = 0;
+	if (y < 0) y = 0;
+
+	int width  = (w >= 0) ? w : framePtr->width;
+	int height = (h >= 0) ? h : framePtr->height;
+
+	fo::func::trans_cscale(framePtr->data, framePtr->width, framePtr->height, framePtr->width,
+	                       interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
+	);
+
+	if (!(ctx.arg(0).rawValue() & 0x10000)) {
+		fo::func::GNW_win_refresh(interfaceWin, &interfaceWin->rect, 0);
+	}
+	fo::func::mem_free(frmPtr);
+	return 1;
+}
+
+void mf_interface_art_draw(OpcodeContext& ctx) {
+	long result = -1;
+	fo::Window* win = Interface::GetWindow(ctx.arg(0).rawValue() & 0xFF);
+	if (win && (int)win != -1) {
+		result = InterfaceDrawImage(ctx, win);
+	} else {
+		ctx.printOpcodeError("%s() - the game interface window is not created or invalid value for the interface.", ctx.getMetaruleName());
+	}
+	ctx.setReturn(result);
 }
 
 void mf_unwield_slot(OpcodeContext& ctx) {

@@ -185,6 +185,8 @@ void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 // number of elements in list or pairs in map
 int LenArray(DWORD id);
 
+bool ArrayExist(DWORD id);
+
 // change array size (only works with list)
 long ResizeArray(DWORD id, int newlen);
 
@@ -202,6 +204,8 @@ void SaveArray(const ScriptValue& key, DWORD id);
 
 // special function that powers array expressions
 long StackArray(const ScriptValue& key, const ScriptValue& val);
+
+sArrayVar* GetRawArray(DWORD id);
 
 }
 }
