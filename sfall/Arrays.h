@@ -182,6 +182,8 @@ void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD val
 // number of elements in list or pairs in map
 int __stdcall LenArray(DWORD id);
 
+bool __stdcall ArrayExist(DWORD id);
+
 // change array size (only works with list)
 void __stdcall ResizeArray(DWORD id, int newlen);
 
@@ -199,3 +201,5 @@ void __stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
 
 // special function that powers array expressions
 long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);
+
+sArrayVar* __stdcall GetRawArray(DWORD id);

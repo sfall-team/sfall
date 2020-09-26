@@ -340,7 +340,12 @@ static void __declspec(naked) op_is_iface_tag_active() {
 }
 
 static void mf_intface_redraw() {
-	IntfaceRedraw();
+	DWORD flag = (opHandler.numArgs() > 0) ? opHandler.arg(0).rawValue() : 0;
+	if (flag == 0) {
+		IntfaceRedraw();
+	} else {
+		RefreshGNW(1); // redraw all interfaces
+	}
 }
 
 static void mf_intface_show() {
@@ -531,7 +536,7 @@ static long GetArtFIDFile(long fid, const char* &file) {
 	file = ArtGetName(_fid); // .frm
 	if (_fid >> 24 == OBJ_TYPE_CRITTER) {
 		direction = (fid >> 28);
-		if (direction && !DbAccess(file)) {
+		if (direction > 0 && !DbAccess(file)) {
 			file = ArtGetName(fid); // .fr#
 		}
 	}
@@ -678,6 +683,73 @@ static void mf_draw_image_scaled() {
 
 exit:
 	MemFree(frmPtr);
+	opHandler.setReturn(result);
+}
+
+static void mf_interface_art_draw() {
+	long result = -1;
+	WINinfo* interfaceWin = Interface_GetWindow(opHandler.arg(0).rawValue() & 0xFF);
+	if (interfaceWin && (int)interfaceWin != -1) {
+		const char* file = nullptr;
+		bool useShift = false;
+		long direction = -1, w = -1, h = -1;
+
+		if (opHandler.arg(1).isInt()) { // art id
+			long fid = opHandler.arg(1).rawValue();
+			if (fid == -1) {
+				result = -1;
+				goto exit;
+			}
+			useShift = (((fid & 0xF000000) >> 24) == OBJ_TYPE_CRITTER);
+			direction = GetArtFIDFile(fid, file);
+		} else {
+			file = opHandler.arg(1).strValue(); // path to frm/pcx file
+		}
+
+		if (opHandler.numArgs() > 5) { // array params
+			sArrayVar* sArray = GetRawArray(opHandler.arg(5).rawValue());
+			if (sArray) {
+				if (direction < 0) direction = sArray->val[0].intVal;
+				int size = sArray->size();
+				if (size > 1) w = sArray->val[1].intVal;
+				if (size > 2) h = sArray->val[2].intVal;
+			}
+		}
+		long frame = (opHandler.numArgs() > 4) ? opHandler.arg(4).rawValue() : 0;
+
+		FrmFrameData* framePtr;
+		FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr);
+		if (frmPtr == nullptr) {
+			opHandler.printOpcodeError("interface_art_draw() - cannot open the file: %s", file);
+			result = -1;
+			goto exit;
+		}
+		int x = opHandler.arg(2).rawValue();
+		int y = opHandler.arg(3).rawValue();
+
+		if (useShift && direction >= 0) {
+			x += frmPtr->xshift[direction];
+			y += frmPtr->yshift[direction];
+		}
+		if (x < 0) x = 0;
+		if (y < 0) y = 0;
+
+		int width  = (w >= 0) ? w : framePtr->width;
+		int height = (h >= 0) ? h : framePtr->height;
+
+		TransCscale(framePtr->data, framePtr->width, framePtr->height, framePtr->width,
+		            interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
+		);
+
+		if (!(opHandler.arg(0).rawValue() & 0x10000)) {
+			GNWWinRefresh(interfaceWin, &interfaceWin->rect, 0);
+		}
+		MemFree(frmPtr);
+		result = 1;
+	} else {
+		opHandler.printOpcodeError("interface_art_draw() - the game interface window is not created or invalid value for the interface.");
+	}
+exit:
 	opHandler.setReturn(result);
 }
 

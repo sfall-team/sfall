@@ -42,7 +42,7 @@ WRAP_WATCOM_FFUNC4(void, RegisterObjectCall, register_object_call_, long*, targe
 WRAP_WATCOM_FFUNC3(long, ScrGetLocalVar, scr_get_local_var_, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, ScrSetLocalVar, scr_set_local_var_, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC3(long, TileNumInDirection, tile_num_in_direction_, long, tile, long, rotation, long, distance)
-//WRAP_WATCOM_FFUNC8(void, TransCscale, trans_cscale_, void*, fromBuff, long, width, long, height, long, pitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
+WRAP_WATCOM_FFUNC8(void, TransCscale, trans_cscale_, void*, fromBuff, long, width, long, height, long, pitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 
 WRAP_WATCOM_FFUNC3(const char*, InterpretGetString, interpretGetString_, TProgram*, scriptPtr, DWORD, dataType, DWORD, strId)
 

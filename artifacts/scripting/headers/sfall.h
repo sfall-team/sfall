@@ -70,6 +70,7 @@
 #define WINTYPE_CHARACTER    (5)
 #define WINTYPE_SKILLDEX     (6)
 #define WINTYPE_ESCMENU      (7) // escape menu
+#define WINTYPE_AUTOMAP      (8)
 
 //Valid flags for force_encounter_with_flags
 #define ENCOUNTER_FLAG_NO_CAR   (0x1)
@@ -268,8 +269,8 @@
 #define critter_inven_obj2(obj, type)                   sfall_func2("critter_inven_obj2", obj, type)
 #define dialog_obj                                      sfall_func0("dialog_obj")
 #define display_stats                                   sfall_func0("display_stats")
-#define draw_image(pathFile, frame, x, y, noTrans)      sfall_func5("draw_image", pathFile, frame, x, y, noTrans)
-#define draw_image_scaled(pathFile, frame, x, y, w, h)  sfall_func6("draw_image_scaled", pathFile, frame, x, y, w, h)
+#define draw_image(artFile, frame, x, y, noTrans)       sfall_func5("draw_image", artFile, frame, x, y, noTrans)
+#define draw_image_scaled(artFile, frame, x, y, w, h)   sfall_func6("draw_image_scaled", artFile, frame, x, y, w, h)
 #define exec_map_update_scripts                         sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                   sfall_func1("floor2", value)
 #define get_current_inven_size(obj)                     sfall_func1("get_current_inven_size", obj)
@@ -289,6 +290,10 @@
 #define get_sfall_arg_at(argNum)                        sfall_func1("get_sfall_arg_at", argNum)
 #define get_text_width(text)                            sfall_func1("get_text_width", text)
 #define hide_window(winName)                            sfall_func1("hide_window", winName)
+#define interface_art_draw(winID, artFile, x, y)        sfall_func4("interface_art_draw", winID, artFile, x, y)
+#define interface_art_draw_frame(wID, art, x, y, frame) sfall_func5("interface_art_draw", wID, art, x, y, frame)
+#define interface_art_draw_ex(wID, art, x, y, frm, prm) sfall_func6("interface_art_draw", wID, art, x, y, frm, prm)
+#define interface_redraw_all                            sfall_func1("intface_redraw", 1)
 #define intface_hide                                    sfall_func0("intface_hide")
 #define intface_is_hidden                               sfall_func0("intface_is_hidden")
 #define intface_is_shown(winType)                       sfall_func1("get_window_attribute", winType)

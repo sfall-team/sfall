@@ -896,7 +896,7 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			RefreshGNW();
+			RefreshGNW(0);
 		}
 		return !DeviceLost;
 	}

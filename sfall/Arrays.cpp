@@ -580,8 +580,12 @@ void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD val
 }
 
 int __stdcall LenArray(DWORD id) {
-	if (arrays.find(id) == arrays.end()) return -1;
-	return arrays[id].size();
+	array_itr it = arrays.find(id);
+	return (it != arrays.end()) ? it->second.size() : -1;
+}
+
+bool __stdcall ArrayExist(DWORD id) {
+	return (arrays.find(id) != arrays.end());
 }
 
 template <class T>
@@ -790,4 +794,9 @@ long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
 	}
 	SetArray(id, key, keyType, val, valType, 0);
 	return 0;
+}
+
+sArrayVar* __stdcall GetRawArray(DWORD id) {
+	array_itr it = arrays.find(id);
+	return (it != arrays.end()) ? &it->second : nullptr;
 }

@@ -44,7 +44,7 @@ WINinfo* Interface_GetWindow(long winType) {
 	long winID = 0;
 	switch (winType) {
 	case WINTYPE_Inventory:
-		if (GetLoopFlags() & INVENTORY) winID = *ptr_i_wid;
+		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = *ptr_i_wid;
 		break;
 	case WINTYPE_Dialog:
 		if (GetLoopFlags() & DIALOG) winID = *ptr_dialogueBackWindow;

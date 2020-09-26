@@ -1608,9 +1608,9 @@ void RedrawObject(TGameObj* obj) {
 }
 
 // Redraws all interface windows
-void RefreshGNW() {
+void RefreshGNW(size_t from) {
 	*(DWORD*)_doing_refresh_all = 1;
-	for (size_t i = 0; i < *ptr_num_windows; i++) {
+	for (size_t i = from; i < *ptr_num_windows; i++) {
 		GNWWinRefresh(ptr_window[i], ptr_scr_size, 0);
 	}
 	*(DWORD*)_doing_refresh_all = 0;
