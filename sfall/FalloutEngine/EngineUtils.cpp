@@ -289,13 +289,8 @@ long wmGetCurrentTerrainType() {
 // copy the area from the interface buffer to the data array
 void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem) {
 	fromSurface += fromY * fromWidth + fromX;
-	long i = 0;
-	for (long h = 0; h < height; h++) {
-		/*for (long w = 0; w < width; w++) {
-			toMem[i++] = fromSurface[w];
-		}*/
+	for (long i = 0, h = 0; h < height; h++, i += width) {
 		std::memcpy(&toMem[i], fromSurface, width);
-		i += width;
 		fromSurface += fromWidth;
 	}
 }

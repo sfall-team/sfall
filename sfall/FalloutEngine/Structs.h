@@ -280,6 +280,17 @@ struct ElevatorFrms {
 	DWORD buttons;
 };
 
+// structures for holding frms loaded with fallout2 functions
+typedef class FrmFrameData { // sizeof 12 + 1 byte
+public:
+	WORD width;
+	WORD height;
+	DWORD size;   // width * height
+	WORD x;
+	WORD y;
+	BYTE data[1]; // begin frame image data
+} FrmFrameData;
+
 struct FrmFile {
 	long id;				//0x00
 	short fps;				//0x04
@@ -289,24 +300,35 @@ struct FrmFile {
 	short yshift[6];		//0x16
 	long oriFrameOffset[6];	//0x22
 	long frameAreaSize;		//0x3a
-	short width;			//0x3e
+	union {					//0x3e
+		FrmFrameData *frameData;
+		short width;
+	};
 	short height;			//0x40
 	long frameSize;			//0x42
 	short xoffset;			//0x46
 	short yoffset;			//0x48
-	BYTE pixels[80 * 36];	//0x4a
-};
+	union {					//0x4a
+		BYTE *pixelData;
+		BYTE pixels[80 * 36]; // for tiles FRM
+	};
 
-//structures for holding frms loaded with fallout2 functions
-typedef class FrmFrameData { // sizeof 12 + 1 byte
-public:
-	WORD width;
-	WORD height;
-	DWORD size;   // width * height
-	WORD x;
-	WORD y;
-	BYTE data[1]; // begin frame data
-} FrmFrameData;
+	// Returns a pointer to the data of the frame in the direction
+	FrmFrameData* GetFrameData(long dir, long frame) {
+		BYTE* offsDirectionFrame = (BYTE*)&frameData;
+		if (dir > 0 && dir < 6) {
+			offsDirectionFrame += oriFrameOffset[dir];
+		}
+		if (frame > 0) {
+			int maxFrames = frames - 1;
+			if (frame > maxFrames) frame = maxFrames;
+			while (frame-- > 0) {
+				offsDirectionFrame += ((FrmFrameData*)offsDirectionFrame)->size + (sizeof(FrmFrameData) - 1);
+			}
+		}
+		return (FrmFrameData*)offsDirectionFrame;
+	}
+};
 
 #pragma pack(push, 2)
 typedef class FrmHeaderData { // sizeof 62

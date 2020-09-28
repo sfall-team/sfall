@@ -470,26 +470,13 @@ static long GetArtFIDFile(long fid, const char* &file) {
 	return direction;
 }
 
-static fo::FrmFile* LoadArtFile(const char* file, long frameno, long direction, fo::FrmFrameData* &framePtr) {
+static fo::FrmFile* LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr) {
 	fo::FrmFile* frmPtr = nullptr;
 	if (fo::func::load_frame(file, &frmPtr)) {
 		return nullptr;
 	}
-	framePtr = (fo::FrmFrameData*)&frmPtr->width;
-	if (direction > 0 && direction < 6) {
-		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[direction];
-		framePtr = (fo::FrmFrameData*)offsOriFrame;
-	}
-	if (frameno > 0) {
-		int maxFrames = frmPtr->frames - 1;
-		if (frameno > maxFrames) frameno = maxFrames;
-		while (frameno-- > 0) {
-			BYTE* offsFrame = (BYTE*)framePtr;
-			offsFrame += framePtr->size + (sizeof(fo::FrmFrameData) - 1);
-			framePtr = (fo::FrmFrameData*)offsFrame;
-		}
-	}
+	framePtr = frmPtr->GetFrameData(direction, frame);
+
 	return frmPtr;
 }
 

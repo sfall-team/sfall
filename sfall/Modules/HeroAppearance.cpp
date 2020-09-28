@@ -510,7 +510,7 @@ static void surface_draw(long width, long height, long fromWidth, long fromX, lo
 	toBuff += toY * toWidth + toX;
 
 	for (long h = 0; h < height; h++) {
-		for (long w = 0; w < width; w++) toBuff[w] = fromBuff[w];
+		std::memcpy(toBuff, fromBuff, width);
 		fromBuff += fromWidth;
 		toBuff += toWidth;
 	}

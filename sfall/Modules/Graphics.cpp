@@ -50,7 +50,7 @@ static DWORD yoffset;
 
 static bool DeviceLost = false;
 static bool mainTexLock = false;
-static bool textureFilter = true;
+static char textureFilter; // 1 - auto, 2 - force
 
 static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
@@ -771,7 +771,7 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			fo::RefreshGNW(0);
+			fo::RefreshGNW();
 		}
 		return !DeviceLost;
 	}
@@ -1100,8 +1100,18 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
 
-	// Disable texture filtering if the set resolutions are equal
-	textureFilter = (textureFilter && (ResWidth != gWidth || ResHeight != gHeight));
+	if (textureFilter) {
+		float wScale = (float)gWidth / ResWidth;
+		float hScale = (float)gHeight / ResHeight;
+		if (wScale == 1.0f && hScale == 1.0f) textureFilter = 0; // disable texture filtering if the set resolutions are equal
+		if (textureFilter == 1) {
+			int ws = static_cast<int>(wScale);
+			int hs = static_cast<int>(hScale);
+			if (ws == wScale && hs == hScale) {
+				textureFilter = 0; // disable for integer scales
+			}
+		}
+	}
 
 	*b = (IDirectDraw*)new FakeDirectDraw();
 
@@ -1154,7 +1164,7 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		textureFilter = (GetConfigInt("Graphics", "TextureFilter", 1) != 0);
+		textureFilter = GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
 	}
 

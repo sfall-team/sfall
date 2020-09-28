@@ -925,7 +925,7 @@ static void __declspec(naked) make_path_func_hook() {
 		cmp  ebx, [esp + 0x5C - 0x1C + 4]; // target tile
 		je   fix;
 		jmp  fo::funcoffs::anim_can_use_door_;
-fix:
+fix:	// replace the target tile (where the multihex object is located) with the current tile
 		mov  ebx, [esp + 0x5C - 0x14 + 4]; // current tile
 		mov  [esp + 0x5C - 0x1C + 4], ebx; // target tile
 		retn;
@@ -3193,7 +3193,7 @@ void BugFixes::init()
 	HookCall(0x4A22DF, ResetPlayer_hook);
 
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of the "count" argument is over 99999
-	SafeWrite32(0x45A2A0, 0x1869F); // 99999
+	SafeWrite32(0x45A2A0, 99999);
 
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
 	// some exit hex in destination map

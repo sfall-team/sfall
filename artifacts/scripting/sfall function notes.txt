@@ -751,7 +751,7 @@ optional arguments:
 - x/y: offset relative to the top-left corner of the window
 optional arguments:
 - frame: frame number, the first frame starts from zero
-- param: an array which specifies additional parameters:
+- param: an array which specifies additional parameters, where:
   index 0 - sprite direction for multi-directional FRM
   index 1/index 2 - the new width/height to scale the image to. Pass -1 to use the original width/height
 
