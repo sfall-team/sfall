@@ -23,6 +23,8 @@
 #pragma warning(disable: 4414) // 'function': short jump to function converted to near
 #endif
 
+#pragma intrinsic(memcpy, memset)
+
 #include <cassert>
 #include <string>
 #include <list>
