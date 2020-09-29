@@ -1107,9 +1107,7 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		if (textureFilter == 1) {
 			int ws = static_cast<int>(wScale);
 			int hs = static_cast<int>(hScale);
-			if (ws == wScale && hs == hScale) {
-				textureFilter = 0; // disable for integer scales
-			}
+			if (ws == wScale && hs == hScale) textureFilter = 0; // disable for integer scales
 		}
 	}
 
