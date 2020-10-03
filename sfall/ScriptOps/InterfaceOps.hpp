@@ -447,7 +447,7 @@ static void mf_create_win() {
 	if (CreateWindowFunc(opHandler.arg(0).strValue(),
 		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // y, x
 		opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
-		256, flags) == -1)
+		(flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
 		opHandler.printOpcodeError("create_win() - couldn't create window.");
 		opHandler.setReturn(-1);

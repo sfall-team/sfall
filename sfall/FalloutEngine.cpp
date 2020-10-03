@@ -187,6 +187,7 @@ DWORD* ptr_pud                          = reinterpret_cast<DWORD*>(_pud);
 DWORD* ptr_queue                        = reinterpret_cast<DWORD*>(_queue);
 DWORD* ptr_quick_done                   = reinterpret_cast<DWORD*>(_quick_done);
 DWORD* ptr_read_callback                = reinterpret_cast<DWORD*>(_read_callback);
+RectList** ptr_rectList                 = reinterpret_cast<RectList**>(_rectList);
 BYTE*  ptr_RedColor                     = reinterpret_cast<BYTE*>(_RedColor);
 DWORD* ptr_retvals                      = reinterpret_cast<DWORD*>(_retvals);
 DWORD* ptr_rotation                     = reinterpret_cast<DWORD*>(_rotation);
@@ -444,6 +445,7 @@ const DWORD gmouse_is_scrolling_ = 0x44B54C;
 const DWORD gmouse_set_cursor_ = 0x44C840;
 const DWORD gmovie_play_ = 0x44E690;
 const DWORD gmovieIsPlaying_ = 0x44EB14;
+const DWORD GNW_button_refresh_ = 0x4D9A58;
 const DWORD GNW_do_bk_process_ = 0x4C8D1C;
 const DWORD GNW_find_ = 0x4D7888;
 const DWORD GNW_win_refresh_ = 0x4D6FD8;
@@ -580,6 +582,7 @@ const DWORD message_make_path_ = 0x484CB8;
 const DWORD message_search_ = 0x484C30;
 const DWORD mouse_click_in_ = 0x4CA934;
 const DWORD mouse_get_position_ = 0x4CA9DC;
+const DWORD mouse_get_rect_ = 0x4CA9A0;
 const DWORD mouse_hide_ = 0x4CA534;
 const DWORD mouse_in_ = 0x4CA8C8;
 const DWORD mouse_show_ = 0x4CA34C;
@@ -676,6 +679,9 @@ const DWORD queue_find_next_ = 0x4A2994;
 const DWORD queue_leaving_map_ = 0x4A2920;
 const DWORD queue_next_time_ = 0x4A2808;
 const DWORD queue_remove_this_ = 0x4A264C;
+const DWORD rect_clip_ = 0x4C6AAC;
+const DWORD rect_malloc_ = 0x4C6BB8;
+const DWORD refresh_all_ = 0x4D7814;
 const DWORD refresh_box_bar_win_ = 0x4614CC;
 const DWORD register_begin_ = 0x413AF4;
 const DWORD register_clear_ = 0x413C4C;
@@ -770,6 +776,7 @@ const DWORD trans_cscale_ = 0x4D3560;
 const DWORD use_inventory_on_ = 0x4717E4;
 const DWORD _word_wrap_ = 0x4BC6F0;
 const DWORD win_add_ = 0x4D6238;
+const DWORD win_clip_ = 0x4D75B0;
 const DWORD win_delete_ = 0x4D6468;
 const DWORD win_disable_button_ = 0x4D94D0;
 const DWORD win_draw_ = 0x4D6F5C;
@@ -1063,7 +1070,7 @@ void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, lon
 }
 
 // buf_to_buf_ function with pure MMX implementation
-void __cdecl BufToBuf(void* src, long width, long height, long src_width, void* dst, long dst_width) {
+void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
 	size_t blockCount = width / 64; // 64 bytes
@@ -1126,6 +1133,57 @@ void __cdecl BufToBuf(void* src, long width, long height, long src_width, void* 
 		jnz  copySmall;
 end:
 	}
+}
+
+// trans_buf_to_buf_ function implementation
+void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
+	if (height <= 0 || width <= 0) return;
+
+	size_t blockCount = width / 8;
+	size_t lastBytes  = width % 8;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	__asm {
+		mov  esi, src;
+		mov  edi, dst;
+		pxor mm3, mm3;
+	}
+	do {
+		size_t count = blockCount;
+		while (count--) {
+			__asm {
+				movq  mm0, qword ptr [esi]; // 8 bytes
+				movq  mm1, qword ptr [edi];
+				movq  mm2, mm0;             // src copy to mm2
+				pcmpeqb mm2, mm3;           // mm2 = (src == 0) ? 1 : 0;
+				lea   esi, [esi + 8];
+				movq  mm4, mm2;
+				pandn mm2, mm0;             // mm2 = mm2 AND (NOT mm0)
+				pand  mm4, mm1;
+				por   mm2, mm4;
+				movq  qword ptr [edi], mm2;
+				lea   edi, [edi + 8];
+			}
+		}
+		size_t bytes = lastBytes;
+		while (bytes--) {
+			__asm {
+				mov  al, [esi];
+				lea  esi, [esi + 1];
+				test al, al;
+				jz   skip;
+				mov  [edi], al;
+			skip:
+				lea  edi, [edi + 1];
+			}
+		}
+		__asm {
+			add esi, s_pitch;
+			add edi, d_pitch;
+		}
+	} while (--height);
+	__asm emms;
 }
 
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
@@ -1472,22 +1530,15 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-// Fills the specified non-scripted interface window with black color
-void ClearWindow(DWORD winID, bool refresh) {
-	__asm {
-		xor  ebx, ebx;
-		push ebx;
-		mov  eax, winID;
-		call win_height_;
-		push eax;
-		mov  eax, winID;
-		call win_width_;
-		mov  ecx, eax;
-		mov  edx, ebx;
-		mov  eax, winID;
-		call win_fill_;
+// Fills the specified non-scripted interface window with index color 0 (black color)
+void ClearWindow(long winID, bool refresh) {
+	WINinfo* win = GNWFind(winID);
+	for (long i = 0; i < win->height; i++) {
+		std::memset(win->surface, 0, win->width);
 	}
-	if (refresh) WinDraw(winID);
+	if (refresh) {
+		GNWWinRefresh(win, &win->rect, 0);
+	}
 }
 
 //---------------------------------------------------------

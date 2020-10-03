@@ -701,7 +701,7 @@ namespace WinFlags {
 	enum WinButtonFlags : long
 	{
 		OwnerFlag             = 0x1,
-		UnknownFlag2          = 0x2,
+		DontMoveTop           = 0x2,
 		MoveOnTop             = 0x4,
 		Hidden                = 0x8,
 		Exclusive             = 0x10,

@@ -30,7 +30,7 @@
 typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 //typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
 
-static IDirectDrawSurface* primaryDDSurface = nullptr;
+static IDirectDrawSurface* primaryDDSurface = nullptr; // aka _GNW95_DDPrimarySurface
 
 static DWORD ResWidth;
 static DWORD ResHeight;
@@ -781,7 +781,7 @@ public:
 		int pitch = dRect.Pitch;
 
 		if (GPUBlt) {
-			BufToBuf(lockTarget, width, mveDesc.dwHeight, width, dRect.pBits, pitch);
+			BufToBuf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, pitch);
 			//char* pBits = (char*)dRect.pBits;
 			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
@@ -867,7 +867,7 @@ public:
 		if (isPrimary) {
 			if (GPUBlt) {
 				D3DLOCKED_RECT buf;
-				HRESULT hr = mainTex->LockRect(0, &buf, 0, 0);
+				HRESULT hr = mainTex->LockRect(0, &buf, a, 0);
 				if (hr) goto surface; // lock failed, use old method
 
 				mainTexLock = true;
@@ -1233,9 +1233,9 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		float hScale = (float)gHeight / ResHeight;
 		if (wScale == 1.0f && hScale == 1.0f) textureFilter = 0; // disable texture filtering if the set resolutions are equal
 		if (textureFilter == 1) {
-			int ws = static_cast<int>(wScale);
-			int hs = static_cast<int>(hScale);
-			if (ws == wScale && hs == hScale) textureFilter = 0; // disable for integer scales
+			if (static_cast<int>(wScale) == wScale && static_cast<int>(hScale) == hScale) {
+				textureFilter = 0; // disable for integer scales
+			}
 		}
 	}
 
@@ -1264,6 +1264,163 @@ static __declspec(naked) void palette_fade_to_hook() {
 		fistp [esp];
 		pop  ebx;
 		jmp  fadeSystemPalette_;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+static void __forceinline UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+	DDSURFACEDESC desc;
+	RECT lockRect = { rect->left, rect->top, rect->right + 1, rect->bottom + 1 };
+
+	primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+
+	BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); // + (desc.lPitch * rect->top) + rect->left
+
+	primaryDDSurface->Unlock(desc.lpSurface);
+}
+
+static BYTE* GetBuffer() {
+	return (BYTE*)*(DWORD*)_screen_buffer;
+}
+
+static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toBuffer) {
+	if (win->flags & WinFlags::Hidden) return;
+	RectList* rects;
+
+	if (win->flags & WinFlags::Transparent && !*(DWORD*)_doing_refresh_all) {
+		__asm {
+			mov  eax, updateRect;
+			mov  edx, ds:[_screen_buffer];
+			call refresh_all_;
+		}
+		int w = updateRect->right - updateRect->left + 1;
+
+		if (*ptr_mouse_is_hidden || !MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+			if (!DeviceLost) {
+				int h = (updateRect->bottom - updateRect->top) + 1;
+				UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
+			}
+		} else {
+			//fo::func::mouse_show();
+			RECT mouseRect;
+			__asm {
+				lea  eax, mouseRect;
+				mov  edx, eax;
+				call mouse_get_rect_;
+				mov  eax, updateRect;
+				call rect_clip_;
+				mov  rects, eax;
+			}
+			while (rects) { // updates everything except the cursor area
+				//__asm {
+				//	mov  eax, win;
+				//	mov  edx, rects;
+				//	call GNW_button_refresh_;
+				//}
+				if (!DeviceLost) {
+					int wRect = (rects->wRect.right - rects->wRect.left) + 1;
+					int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
+					UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
+				}
+				RectList* next = rects->nextRect;
+				sf_rect_free(rects);
+				rects = next;
+			}
+		}
+		return;
+	}
+
+	/* Allocates memory for 10 RectList (if no memory was allocated), returns the first Rect and removes it from the list */
+	__asm {
+		call rect_malloc_;
+		mov  rects, eax;
+	}
+	if (!rects) return;
+
+	rects->rect.x = updateRect->left;
+	rects->rect.y = updateRect->top;
+	rects->rect.offx = updateRect->right;
+	rects->rect.offy = updateRect->bottom;
+	rects->nextRect = nullptr;
+	RECT &rect = rects->wRect;
+
+	/*
+		If the border of the updateRect rectangle is located outside the window, then assign to rects->rect the border of the window rectangle
+		Otherwise, rects->rect contains the borders from the update rectangle (updateRect)
+	*/
+	if (win->wRect.left >= rect.left) rect.left = win->wRect.left;
+	if (win->wRect.top >= rect.top) rect.top = win->wRect.top;
+	if (win->wRect.right <= rect.right) rect.right = win->wRect.right;
+	if (win->wRect.bottom <= rect.bottom) rect.bottom = win->wRect.bottom;
+
+	if (rect.right < rect.left || rect.bottom < rect.top) {
+		sf_rect_free(rects);
+		return;
+	}
+
+	int widthFrom = win->width;
+	int toWidth = (toBuffer) ? updateRect->right - updateRect->left + 1 : Gfx_GetGameWidthRes();
+
+	WinClip(win, &rects, toBuffer);
+
+	RectList* currRect = rects;
+	while (currRect) {
+		RECT &crect = currRect->wRect;
+		int width = (crect.right - crect.left) + 1;   // for current rectangle
+		int height = (crect.bottom - crect.top) + 1;; // for current rectangle
+
+		BYTE* surface;
+		if (win->wID) {
+			__asm {
+				mov  eax, win;
+				mov  edx, currRect;
+				call GNW_button_refresh_;
+			}
+			surface = &win->surface[crect.left - win->rect.x] + ((crect.top - win->rect.y) * win->width);
+		} else {
+			surface = new BYTE[height * width](); // black background
+			widthFrom = width; // replace with rectangle
+		}
+
+		auto drawFunc = (win->flags & WinFlags::Transparent && win->wID) ? TransBufToBuf : BufToBuf;
+		if (toBuffer) {
+			drawFunc(surface, width, height, widthFrom, &toBuffer[crect.left - updateRect->left] + ((crect.top - updateRect->top) * toWidth), toWidth);
+		} else {
+			// copy to buffer instead of DD surface (buffering)
+			drawFunc(surface, width, height, widthFrom, &GetBuffer()[crect.left] + (crect.top * toWidth), toWidth);
+			//if (!DeviceLost) UpdateDDSurface(surface, width, height, widthFrom, crect);
+		}
+		if (win->wID == 0) delete[] surface;
+
+		currRect = currRect->nextRect;
+	}
+
+	while (rects) {
+		// copy all rectangles from the buffer to the DD surface (buffering)
+		if (!toBuffer && !DeviceLost) {
+			int width = (rects->rect.offx - rects->rect.x) + 1;
+			int height = (rects->rect.offy - rects->rect.y) + 1;
+			int widthFrom = toWidth;
+			UpdateDDSurface(&GetBuffer()[rects->rect.x] + (rects->rect.y * widthFrom), width, height, widthFrom, &rects->wRect);
+		}
+		RectList* next = rects->nextRect;
+		sf_rect_free(rects);
+		rects = next;
+	}
+
+	if (!toBuffer && !*(DWORD*)_doing_refresh_all && !*ptr_mouse_is_hidden && MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+		MouseShow();
+	}
+}
+
+static __declspec(naked) void GNW_win_refresh_hack(void* from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y) {
+	__asm {
+		push ebx; // toBuffer
+		mov  ecx, eax;
+		call sf_GNW_win_refresh;
+		pop  ecx;
+		retn;
 	}
 }
 
@@ -1320,6 +1477,19 @@ void GraphicsInit() {
 
 	// Replace the srcCopy_ function with a pure MMX implementation
 	MakeJump(0x4D36D4, BufToBuf); // buf_to_buf_
+	// Replace the transSrcCopy_ function
+	MakeJump(0x4D3704, TransBufToBuf); // trans_buf_to_buf_
+
+	// Enable support for transparent interface windows
+	SafeWrite16(0x4D5D46, 0x9090); // win_init_ (create screen_buffer)
+	if (GraphicsMode) {
+		// custom implementation of the GNW_win_refresh function
+		MakeJump(0x4D6FD9, GNW_win_refresh_hack);
+		SafeWrite16(0x4D75E6, 0x9090); // win_clip_ (remove _buffering checking)
+	} else { // for default or HRP graphics mode
+		SafeWrite8(0x4D5DAB, 0x1D); // ecx > ebx (enable _buffering)
+		BlockCall(0x431076); // dialogMessage_
+	}
 }
 
 void GraphicsExit() {

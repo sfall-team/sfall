@@ -345,7 +345,7 @@ static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
 	if (!path) return false;
 
 	/*if (playType == PLAYTYPE_sfx) {
-		auto it = sfxSoundsFiles.find(path);
+		std::unordered_map<std::string, std::wstring>::iterator it = sfxSoundsFiles.find(path);
 		if (it != sfxSoundsFiles.cend()) {
 			return (PlayingSound(it->second.c_str(), SNDMODE_single_play) != nullptr);
 		}

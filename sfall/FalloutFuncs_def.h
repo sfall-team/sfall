@@ -34,7 +34,8 @@ WRAP_WATCOM_FFUNC3(long, ItemAddForce, item_add_force_, TGameObj*, critter, TGam
 WRAP_WATCOM_FFUNC3(long, ItemWMpCost, item_w_mp_cost_, TGameObj*, source, long, hitMode, long, isCalled)
 WRAP_WATCOM_FFUNC7(void, MakeStraightPathFunc, make_straight_path_func_, TGameObj*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
 WRAP_WATCOM_FFUNC3(long, MessageFind, message_find_, DWORD*, msgFile, long, msgNumber, DWORD*, outBuf)
-WRAP_WATCOM_FFUNC4(long, MouseClickIn, mouse_click_in_, long, x, long, y, long, x_end, long, y_end)
+WRAP_WATCOM_FFUNC4(long, MouseClickIn, mouse_click_in_, long, x, long, y, long, x_offs, long, y_offs)
+WRAP_WATCOM_FFUNC4(long, MouseIn, mouse_in_, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC3(TGameObj*, ObjBlockingAt, obj_blocking_at_, TGameObj*, object, long, tile, long, elevation)
 WRAP_WATCOM_FFUNC3(long, ObjNewSidInst, obj_new_sid_inst_, TGameObj*, object, long, sType, long, scriptIndex)
 WRAP_WATCOM_FFUNC3(long, ObjectUnderMouse, object_under_mouse_, long, crSwitch, long, inclDude, long, elevation)
@@ -43,6 +44,7 @@ WRAP_WATCOM_FFUNC3(long, ScrGetLocalVar, scr_get_local_var_, long, sid, long, va
 WRAP_WATCOM_FFUNC3(long, ScrSetLocalVar, scr_set_local_var_, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC3(long, TileNumInDirection, tile_num_in_direction_, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, TransCscale, trans_cscale_, void*, fromBuff, long, width, long, height, long, pitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
+WRAP_WATCOM_FFUNC3(void, WinClip, win_clip_, WINinfo*, window, RectList**, rects, void*, buffer)
 
 WRAP_WATCOM_FFUNC3(const char*, InterpretGetString, interpretGetString_, TProgram*, scriptPtr, DWORD, dataType, DWORD, strId)
 

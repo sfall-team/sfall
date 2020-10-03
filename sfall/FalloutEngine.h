@@ -234,12 +234,15 @@
 #define _queue                      0x6648C0
 #define _quick_done                 0x5193BC
 #define _read_callback              0x51DEEC
+#define _rectList                   0x51DEF4
 #define _retvals                    0x43EA7C
 #define _rm_FrameCount              0x6B36A8
 #define _rotation                   0x631D34
 #define _sad                        0x530014
 #define _sampleRate                 0x66815C
+#define _scr_blit                   0x6ACA18
 #define _scr_size                   0x6AC9F0
+#define _screen_buffer              0x51E3FC
 #define _script_engine_running      0x51C714
 #define _scriptListInfo             0x51C7C8
 #define _skill_data                 0x51D118
@@ -486,6 +489,7 @@ extern DWORD* ptr_pud;
 extern DWORD* ptr_queue;
 extern DWORD* ptr_quick_done;
 extern DWORD* ptr_read_callback;
+extern RectList** ptr_rectList;
 extern BYTE*  ptr_RedColor;
 extern DWORD* ptr_retvals;
 extern DWORD* ptr_rotation;
@@ -726,6 +730,7 @@ extern const DWORD gmouse_is_scrolling_;
 extern const DWORD gmouse_set_cursor_;
 extern const DWORD gmovie_play_;
 extern const DWORD gmovieIsPlaying_;
+extern const DWORD GNW_button_refresh_;
 extern const DWORD GNW_do_bk_process_;
 extern const DWORD GNW_find_;
 extern const DWORD GNW_win_refresh_;
@@ -868,6 +873,7 @@ extern const DWORD message_make_path_;
 extern const DWORD message_search_;
 extern const DWORD mouse_click_in_;
 extern const DWORD mouse_get_position_;
+extern const DWORD mouse_get_rect_;
 extern const DWORD mouse_hide_;
 extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
@@ -967,6 +973,9 @@ extern const DWORD queue_find_next_;
 extern const DWORD queue_leaving_map_;
 extern const DWORD queue_next_time_;
 extern const DWORD queue_remove_this_;
+extern const DWORD rect_clip_;
+extern const DWORD rect_malloc_;
+extern const DWORD refresh_all_;
 extern const DWORD refresh_box_bar_win_;
 extern const DWORD register_begin_;
 extern const DWORD register_clear_;
@@ -1061,6 +1070,7 @@ extern const DWORD trans_cscale_;
 extern const DWORD use_inventory_on_;
 extern const DWORD _word_wrap_;
 extern const DWORD win_add_;
+extern const DWORD win_clip_;
 extern const DWORD win_delete_;
 extern const DWORD win_disable_button_;
 extern const DWORD win_draw_;
@@ -1175,7 +1185,10 @@ void __fastcall DisplayInWindow(long w_here, long width, long height, void* data
 void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
 // buf_to_buf_ function with pure MMX implementation
-void __cdecl BufToBuf(void* src, long width, long height, long src_width, void* dst, long dst_width);
+void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
+
+// trans_buf_to_buf_ function implementation
+void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
 
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
@@ -1248,6 +1261,13 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
+// rect_free_ function for inline implementation
+__forceinline void sf_rect_free(RectList* rect) {
+	RectList* front = *ptr_rectList;
+	*ptr_rectList = rect;
+	rect->nextRect = front;
+}
+
 // returns message string from given file or "Error" when not found
 const char* GetMessageStr(const MSGList* fileAddr, long messageId);
 
@@ -1302,8 +1322,8 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
-// Fills the specified non-scripted interface window with black color
-void ClearWindow(DWORD winID, bool refresh = true);
+// Fills the specified non-scripted interface window with index color 0 (black color)
+void ClearWindow(long winID, bool refresh = true);
 
 // Print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
