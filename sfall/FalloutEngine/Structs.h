@@ -72,8 +72,16 @@ static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition."
 struct BoundRect {
 	long x;
 	long y;
-	long offx; // left
+	long offx; // right
 	long offy; // bottom
+};
+
+struct RectList {
+	union {
+		BoundRect rect;
+		RECT wRect;
+	};
+	RectList* nextRect;
 };
 
 // Game objects (items, critters, etc.), including those stored in inventories.
@@ -315,7 +323,7 @@ struct FrmFile {            // sizeof 2954
 	long oriFrameOffset[6]; // 0x22
 	long frameAreaSize;     // 0x3A
 	union {
-		FrmFrameData* const frameData;
+		FrmFrameData* frameData;
 		struct {
 			short width;    // 0x3E
 			short height;   // 0x40

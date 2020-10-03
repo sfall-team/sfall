@@ -380,7 +380,7 @@ void mf_create_win(OpcodeContext& ctx) {
 	if (fo::func::createWindow(ctx.arg(0).strValue(),
 		ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), // y, x
 		ctx.arg(3).rawValue(), ctx.arg(4).rawValue(), // w, h
-		256, flags) == -1)
+		(flags & fo::WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
 		ctx.printOpcodeError("%s() - couldn't create window.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
@@ -433,7 +433,7 @@ void mf_set_window_flag(OpcodeContext& ctx) {
 		const char* name = ctx.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
 			if (_stricmp(name, fo::var::sWindows[i].name) == 0) {
-				fo::Window* win =fo::func::GNW_find(fo::var::sWindows[i].wID);
+				fo::Window* win = fo::func::GNW_find(fo::var::sWindows[i].wID);
 				if (mode) {
 					fo::var::sWindows[i].flags |= bitFlag;
 					win->flags |= bitFlag;

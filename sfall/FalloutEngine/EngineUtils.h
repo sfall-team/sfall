@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "Functions.h"
+#include "Variables.h"
 
 //
 // Various utility functions, based on FO engine functions
@@ -30,12 +31,19 @@
 namespace fo
 {
 
-// returns weapon animation code
-long AnimCodeByWeapon(GameObject* weapon);
-
-inline void DisplayPrint(const std::string& str) {
+__inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
 }
+
+// rect_free_ function for inline implementation
+__forceinline void sf_rect_free(fo::RectList* rect) {
+	fo::RectList* front = fo::var::rectList;
+	fo::var::rectList = rect;
+	rect->nextRect = front;
+}
+
+// returns weapon animation code
+long AnimCodeByWeapon(GameObject* weapon);
 
 // returns message string from given file or "Error" when not found
 const char* GetMessageStr(const MessageList* fileAddr, long messageId);
@@ -102,8 +110,8 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
-// Fills the specified non-scripted interface window with black color
-void ClearWindow(DWORD winID, bool refresh = true);
+// Fills the specified non-scripted interface window with index color 0 (black color)
+void ClearWindow(long winID, bool refresh = true);
 
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);

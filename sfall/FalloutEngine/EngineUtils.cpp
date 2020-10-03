@@ -18,10 +18,8 @@
 
 #include <cstdint>
 
-#include "Functions.h"
 #include "FunctionOffsets.h"
 #include "Structs.h"
-#include "Variables.h"
 #include "VariableOffsets.h"
 
 #include "EngineUtils.h"
@@ -345,22 +343,15 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-// Fills the specified non-scripted interface window with black color
-void ClearWindow(DWORD winID, bool refresh) {
-	__asm {
-		xor  ebx, ebx;
-		push ebx;
-		mov  eax, winID;
-		call fo::funcoffs::win_height_;
-		push eax;
-		mov  eax, winID;
-		call fo::funcoffs::win_width_;
-		mov  ecx, eax;
-		mov  edx, ebx;
-		mov  eax, winID;
-		call fo::funcoffs::win_fill_;
+// Fills the specified non-scripted interface window with index color 0 (black color)
+void ClearWindow(long winID, bool refresh) {
+	fo::Window* win = fo::func::GNW_find(winID);
+	for (long i = 0; i < win->height; i++) {
+		std::memset(win->surface, 0, win->width);
 	}
-	if (refresh) fo::func::win_draw(winID);
+	if (refresh) {
+		fo::func::GNW_win_refresh(win, &win->rect, 0);
+	}
 }
 
 //---------------------------------------------------------
@@ -479,7 +470,7 @@ void RedrawObject(GameObject* obj) {
 void RefreshGNW(size_t from) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 1;
 	for (size_t i = from; i < fo::var::num_windows; i++) {
-		func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
+		fo::func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
 	}
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;
 }

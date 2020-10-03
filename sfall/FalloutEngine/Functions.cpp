@@ -277,7 +277,7 @@ void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, l
 }
 
 // buf_to_buf_ function with pure MMX implementation
-void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void* dst, long dst_width) {
+void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
 	size_t blockCount = width / 64; // 64 bytes
@@ -340,6 +340,57 @@ void __cdecl buf_to_buf(void* src, long width, long height, long src_width, void
 		jnz  copySmall;
 end:
 	}
+}
+
+// trans_buf_to_buf_ function implementation
+void __cdecl trans_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
+	if (height <= 0 || width <= 0) return;
+
+	size_t blockCount = width / 8;
+	size_t lastBytes  = width % 8;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	__asm {
+		mov  esi, src;
+		mov  edi, dst;
+		pxor mm3, mm3;
+	}
+	do {
+		size_t count = blockCount;
+		while (count--) {
+			__asm {
+				movq  mm0, qword ptr [esi]; // 8 bytes
+				movq  mm1, qword ptr [edi];
+				movq  mm2, mm0;             // src copy to mm2
+				pcmpeqb mm2, mm3;           // mm2 = (src == 0) ? 1 : 0;
+				lea   esi, [esi + 8];
+				movq  mm4, mm2;
+				pandn mm2, mm0;             // mm2 = mm2 AND (NOT mm0)
+				pand  mm4, mm1;
+				por   mm2, mm4;
+				movq  qword ptr [edi], mm2;
+				lea   edi, [edi + 8];
+			}
+		}
+		size_t bytes = lastBytes;
+		while (bytes--) {
+			__asm {
+				mov  al, [esi];
+				lea  esi, [esi + 1];
+				test al, al;
+				jz   skip;
+				mov  [edi], al;
+			skip:
+				lea  edi, [edi + 1];
+			}
+		}
+		__asm {
+			add esi, s_pitch;
+			add edi, d_pitch;
+		}
+	} while (--height);
+	__asm emms;
 }
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {

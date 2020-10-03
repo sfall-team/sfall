@@ -175,6 +175,7 @@ VAR_(pud,                        DWORD)
 VAR_(queue,                      DWORD)
 VAR_(quick_done,                 DWORD)
 VAR_(read_callback,              DWORD)
+VAR_(rectList,                   fo::RectList*) 
 VAR_(RedColor,                   BYTE)
 VAR2(retvals,                    fo::ElevatorExit, 24, 4)  // 24 elevators, 4 exits each
 VAR_(rotation,                   DWORD)
