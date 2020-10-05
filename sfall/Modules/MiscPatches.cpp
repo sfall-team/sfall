@@ -686,12 +686,12 @@ static void SkipLoadingGameSettingsPatch() {
 }
 
 static void InterfaceDontMoveOnTopPatch() {
-	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
+	//if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 static void UseWalkDistancePatch() {

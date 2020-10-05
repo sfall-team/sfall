@@ -189,19 +189,22 @@ long GetScriptLocalVars(long sid) {
 	return (script) ? script->numLocalVars : 0;
 }
 
-// Returns window ID by x/y coordinate (hidden windows are ignored)
-long __fastcall GetTopWindowID(long xPos, long yPos) {
-	fo::Window* win = nullptr;
-	long countWin = fo::var::num_windows - 1;
-	for (int n = countWin; n >= 0; n--) {
-		win = fo::var::window[n];
-		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
-			if (!(win->flags & fo::WinFlags::Hidden)) {
-				break;
+// Returns window by x/y coordinate (hidden windows are ignored)
+fo::Window* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans) {
+	long num = fo::var::num_windows - 1;
+	if (num) {
+		int cflags = fo::WinFlags::Hidden;
+		if (bypassTrans) cflags |= fo::WinFlags::Transparent;
+		do {
+			fo::Window* win = fo::var::window[num];
+			if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
+				if (!(win->flags & cflags)) {
+					return win;
+				}
 			}
-		}
+		} while (--num);
 	}
-	return win->wID;
+	return fo::var::window[0];
 }
 
 static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
@@ -371,7 +374,7 @@ void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD
 	}
 }
 
-void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;

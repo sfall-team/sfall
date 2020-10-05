@@ -899,6 +899,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 }
 
 static bool IFACE_BAR_MODE = false;
+
 static long gmouse_handle_event_hook() {
 	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
@@ -921,8 +922,11 @@ static long gmouse_handle_event_hook() {
 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
-		mov ecx, eax;
-		jmp fo::GetTopWindowID;
+		push 1; // bypass Transparent
+		mov  ecx, eax;
+		call fo::GetTopWindowAtPos;
+		mov  eax, [eax]; // wID
+		retn;
 	}
 }
 
@@ -942,8 +946,8 @@ void Interface::init() {
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
 
-	// Fix for interface windows with 'Hidden' and 'ScriptWindow' flags
-	// Hidden - will not toggle the mouse cursor when the cursor hovers over a hidden window
+	// Fix for interface windows with 'Transparent', 'Hidden' and 'ScriptWindow' flags
+	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	LoadGameHook::OnBeforeGameInit() += []() {

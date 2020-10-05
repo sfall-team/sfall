@@ -90,7 +90,8 @@ bool IsPartyMember(fo::GameObject* critter);
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
-long __fastcall GetTopWindowID(long xPos, long yPos);
+// Returns window by x/y coordinate (hidden windows are ignored)
+fo::Window* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans = false);
 
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1);
@@ -115,7 +116,7 @@ void ClearWindow(long winID, bool refresh = true);
 
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
-void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 
 // gets the height of the currently selected font
 DWORD GetTextHeight();

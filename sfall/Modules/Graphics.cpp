@@ -742,8 +742,7 @@ public:
 		if (isPrimary) {
 			if (Graphics::GPUBlt) {
 				D3DLOCKED_RECT buf;
-				HRESULT hr = mainTex->LockRect(0, &buf, a, 0);
-				if (hr) goto surface; // lock failed, use old method
+				if (mainTex->LockRect(0, &buf, a, 0)) goto surface; // fail to lock, use old method
 
 				mainTexLock = true;
 
@@ -1147,7 +1146,7 @@ static void __forceinline UpdateDDSurface(BYTE* surface, int width, int height, 
 
 	primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
 
-	fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); // + (desc.lPitch * rect->top) + rect->left
+	fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); //+ (desc.lPitch * rect->top) + rect->left
 
 	primaryDDSurface->Unlock(desc.lpSurface);
 }
@@ -1169,12 +1168,17 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 		int w = updateRect->right - updateRect->left + 1;
 
 		if (fo::var::mouse_is_hidden || !fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+			/*__asm {
+				mov  eax, win;
+				mov  edx, updateRect;
+				call fo::funcoffs::GNW_button_refresh_;
+			}*/
 			if (!DeviceLost) {
 				int h = (updateRect->bottom - updateRect->top) + 1;
 				UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
 			}
 		} else {
-			//fo::func::mouse_show();
+			fo::func::mouse_show(); // for updating background cursor area
 			RECT mouseRect;
 			__asm {
 				lea  eax, mouseRect;
@@ -1185,11 +1189,11 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 				mov  rects, eax;
 			}
 			while (rects) { // updates everything except the cursor area
-				//__asm {
-				//	mov  eax, win;
-				//	mov  edx, rects;
-				//	call fo::funcoffs::GNW_button_refresh_;
-				//}
+				/*__asm {
+					mov  eax, win;
+					mov  edx, rects;
+					call fo::funcoffs::GNW_button_refresh_;
+				}*/
 				if (!DeviceLost) {
 					int wRect = (rects->wRect.right - rects->wRect.left) + 1;
 					int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
@@ -1283,7 +1287,7 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 	}
 }
 
-static __declspec(naked) void GNW_win_refresh_hack(void* from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y) {
+static __declspec(naked) void GNW_win_refresh_hack() {
 	__asm {
 		push ebx; // toBuffer
 		mov  ecx, eax;
@@ -1337,7 +1341,7 @@ void Graphics::init() {
 	SafeWrite16(0x4D5D46, 0x9090); // win_init_ (create screen_buffer)
 	if (Graphics::mode) {
 		// custom implementation of the GNW_win_refresh function
-		MakeJump(0x4D6FD9, GNW_win_refresh_hack);
+		MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
 		SafeWrite16(0x4D75E6, 0x9090); // win_clip_ (remove _buffering checking)
 	} else { // for default or HRP graphics mode
 		SafeWrite8(0x4D5DAB, 0x1D); // ecx > ebx (enable _buffering)
