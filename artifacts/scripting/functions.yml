@@ -127,18 +127,18 @@
     detail: int get_critter_extra_stat(CritterPtr, int StatID)
     opcode: 0x8161
   - name: get_stat_min
-    detail: get_stat_min(stat, bool who = False)
+    detail: get_stat_min(int stat, bool who = False)
     doc: |
       - Returns the minimum set value of the specified stat (see `set_stat_min` functions)
       - who: 0 (`false`) or omitting the argument - returns the value of the player, 1 (true) - returns the value set for other critters
   - name: get_stat_max
-    detail: get_stat_max(stat, bool who = False)
+    detail: get_stat_max(int stat, bool who = False)
     doc: |
       - Returns the maximum set value of the specified stat (see `set_stat_max` functions)
       - who: 0 (`false`) or omitting the argument - returns the value of the player, 1 (true) - returns the value set for other critters
 
 - name: Alter min/max
-  doc: The `set_stat_max/min` functions can be used to set the valid ranges on stats. Values returned by `get_current_stat` will be clamped to this range. The `set_pc_` function only effect the player, the `set_npc_` functions only effect other critters, and the `set_` functions effect both.
+  doc: The `set_stat_max/min` functions can be used to set the valid ranges on stats. Values returned by `get_current_stat` will be clamped to this range. The `set_pc_` function only affects the player, the `set_npc_` functions only affects other critters, and the `set_` functions affects both.
   parent: Stats
   items:
   - name: set_stat_max
@@ -551,7 +551,10 @@
   - name: play_sfall_sound
     detail: int play_sfall_sound(string file, int mode)
     opcode: 0x822b
-    doc: Used to play `mp3/wav/wma` files. The path given is relative to the Fallout folder. Specify mode as 1 to loop the file continuously, 2 to replace the current background game music with playing the specified file in loop mode, or 0 to play the file once. If you don't wish to loop, `play_sfall_sound` returns 0. If you do loop, it returns an id which can be passed back to `stop_sfall_sound` when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. Does not require `AllowDShowSound` to be set to 1 in `ddraw.ini`.
+    doc: |
+      Used to play `mp3/wav/wma` files. The path given is relative to the Fallout folder. Specify mode as 1 to loop the file continuously, 2 to replace the current background game music with playing the specified file in loop mode, or 0 to play the file once. If you don't wish to loop, `play_sfall_sound` returns 0. If you do loop, it returns an id which can be passed back to `stop_sfall_sound` when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. Does not require `AllowDShowSound` to be set to 1 in `ddraw.ini`.
+
+      Starting from sfall 4.2.8/3.8.28, you can pass a value in the `mode` argument for a reduced sound volume. To set the volume, You need to convert the number to hexadecimal and use the argument format `0xZZZZ000Y`, where `ZZZZ` is the volume reduction value in range from 0 to 32767 (the value 32767 is mute), and `Y` is the playback mode.
   - name: stop_sfall_sound
     detail: void stop_sfall_sound(int soundID)
     opcode: 0x822c
@@ -824,7 +827,7 @@
     opcode: 0x826d
   - name: tile_get_objs
     detail: array tile_get_objs(int tileNum, int elevation)
-    doc: Returns array of all objects at given tile. It will include any hidden, dead or system objects (like cursor), so make sure to check properly when iterating.
+    doc: Returns an array of all objects at given tile. It will include any hidden, dead or system objects (like cursor), so make sure to check properly when iterating.
     opcode: 0x8270
   - name: tile_refresh_display
     detail: void tile_refresh_display()
@@ -890,11 +893,11 @@
   - name: set_pickpocket_max
     detail: void set_pickpocket_max(int percentage)
     opcode: 0x81a0
-    doc: Effects all critters rather than just the player.
+    doc: Effects all critters rather than just the player and can set the maximum in range from 0 to 999.
   - name: set_hit_chance_max
     detail: void set_hit_chance_max(int percentage)
     opcode: 0x81a1
-    doc: Effects all critters rather than just the player.
+    doc: Effects all critters rather than just the player and can set the maximum in range from 0 to 999.
   - name: set_xp_mod
     detail: void set_xp_mod(int percentage)
     opcode: 0x81aa
@@ -931,7 +934,7 @@
   - name: set_unspent_ap_bonus
     detail: void set_unspent_ap_bonus(int multiplier)
     opcode: 0x81e6
-    doc: Alter the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.)
+    doc: Alters the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.)
   - name: get_unspent_ap_bonus
     detail: int get_unspent_ap_bonus()
     doc: Gets the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.)
@@ -939,11 +942,11 @@
   - name: set_unspent_ap_perk_bonus
     detail: void set_unspent_ap_perk_bonus(int multiplier)
     opcode: 0x81e8
-    doc: Similar to `set_unspent_ap_bonus`, but effects the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
+    doc: Similar to `set_unspent_ap_bonus`, but effects the extra AC granted by the H2H Evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
   - name: get_unspent_ap_perk_bonus
     detail: int get_unspent_ap_perk_bonus()
     opcode: 0x81e9
-    doc: Similar to `get_unspent_ap_bonus`, but accounts for the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
+    doc: Similar to `get_unspent_ap_bonus`, but accounts for the extra AC granted by the H2H Evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
 
   - name: nb_create_char
     detail: int nb_create_char()
@@ -1419,35 +1422,9 @@
       ```
       - message: the text in the dialog box. Use the \n control character to move text to a new line (example: "Hello\nWorld!")
       optional arguments:
-      - flags: mode flags (see MSGBOX_* constants in define_extra.h). Pass -1 to skip setting the flags (default flags are NORMAL and YESNO)
-      - color1/2: the color index in Fallout palette. color1 sets the text color for the first line, and color2 for all subsequent lines of text (default color is 145)
+      - flags: mode flags (see `MSGBOX_*` constants in define_extra.h). Pass -1 to skip setting the flags (default flags are NORMAL and YESNO)
+      - color1/color2: the color index in Fallout palette. color1 sets the text color for the first line, and color2 for all subsequent lines of text (default color is 145)
       ```
-
-
-  - name: draw_image
-    detail: void draw_image(string/int pathFile/artId, int frame, int x, int y, bool noTransparent)
-    doc: |
-      - displays the specified PCX or FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
-      - pathFile/artId: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. 117440550, see specification of the FID format)
-      optional arguments:
-      - `frame`: frame number, the first frame starts from zero
-      - `x/y`: offset relative to the top-left corner of the window
-      - `noTransparent`: pass true to display an image without transparent background
-      - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
-    macro: sfall.h
-
-  - name: draw_image_scaled
-    detail: void draw_image_scaled(string/int pathFile/artId, int frame, int x, int y, int width, int height)
-    doc: |
-      - displays the specified PCX or FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
-      - pathFile/artId: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. 117440550, see specification of the FID format)
-      optional arguments:
-      - `frame`: frame number, the first frame starts from zero
-      - `x/y`: offset relative to the top-left corner of the window
-      - `width/height`: image size, used to scale the image when displaying it. Pass -1 to either width or height to keep the aspect ratio when scaling
-      - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
-      - if called without `x/y/width/height` arguments, the image will be scaled to fit the window without transparent background
-    macro: sfall.h
 
   - name: metarule_exist
     detail: bool metarule_exist(string metaruleName)
@@ -1496,7 +1473,7 @@
     macro: sfall.h
 
   - name: set_window_flag
-    detail: void set_window_flag(string/int winName/winID, int flag, bool value)
+    detail: void set_window_flag(string winName/int winID, int flag, bool value)
     doc: |
       Changes the specified flag for the created script or game interface window.
       - winName: the window name, assigned to the window by the `CreateWin/create_win` function
@@ -1647,6 +1624,71 @@
     doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Should be called before going to worldmap. Vanilla art index is 0x1B1.'
     macro: sfall.h
 
+- name: Windows and images
+  parent: Interface
+  items:
+    - name: interface_art_draw
+      detail: int sfall_func4("interface_art_draw", int winType, string artFile/int artID, int x, int y)
+      doc: |
+        ```c++
+        int sfall_func4("interface_art_draw", int winType, string artFile/int artID, int x, int y)
+        int sfall_func5("interface_art_draw", int winType, string artFile/int artID, int x, int y, int frame)
+        int sfall_func6("interface_art_draw", int winType, string artFile/int artID, int x, int y, int frame, array param)
+        ```
+        - draws the specified PCX or FRM image in the game interface window, returns -1 in case of any error
+        - `winType`: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`)
+          this also takes the value of the flag (0x10000) to prevent immediate redrawing of the interface window
+        - `artFile/artId`: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
+        - `x/y`: offset relative to the top-left corner of the window
+
+        optional arguments:
+        - `frame`: frame number, the first frame starts from zero
+        - `param`: an array which specifies additional parameters, where:
+          index 0 - sprite direction for multi-directional FRM
+          index 1/index 2 - the new width/height to scale the image to. Pass -1 to use the original width/height
+
+    - name: print_text
+      detail: int sfall_func5("print_text", string text, int winType, int x, int y, int color)
+      doc: |
+        ```c++
+        int sfall_func5("print_text", string text, int winType, int x, int y, int color)
+        int sfall_func6("print_text", string text, int winType, int x, int y, int color, int width)
+        ```
+        - displays the text in the specified interface window with the current font. Use vanilla `SetFont` function to set the font
+        - `text`: the text to be printed. Use the `\n` control character to move text to a new line (example: "Hello\nWorld!")
+        - `winType`: the type number of the interface window (see `WINTYPE_*` constants in sfall.h)
+        - `x/y`: offset relative to the top-left corner of the window
+        - `color`: the color index in Fallout palette. Pass 0 if the text color was previously set by vanilla SetTextColor function
+          it can also take additional flags (via `bwor`) for displaying text:
+          `0x0010000` - adds a shadow to the text, the 'textshadow' compiler constant
+          `0x2000000` - fills the background of the text with black color, the 'textnofill' compiler constant (works the other way around)
+        - `width`: the maximum width of the text. The text will be wrapped to fit within the specified width
+
+    - name: draw_image
+      detail: void draw_image(string/int artFile/artId, int frame, int x, int y, bool noTransparent)
+      doc: |
+        - displays the specified PCX or FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
+        - artFile/artId: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
+        optional arguments:
+        - `frame`: frame number, the first frame starts from zero
+        - `x/y`: offset relative to the top-left corner of the window
+        - `noTransparent`: pass True to display an image without transparent background
+        - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
+      macro: sfall.h
+
+    - name: draw_image_scaled
+      detail: void draw_image_scaled(string/int artFile/artId, int frame, int x, int y, int width, int height)
+      doc: |
+        - displays the specified PCX or FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
+        - artFile/artId: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
+        optional arguments:
+        - `frame`: frame number, the first frame starts from zero
+        - `x/y`: offset relative to the top-left corner of the window
+        - `width/height`: the new width/height to scale the image to. Pass -1 to either width or height to keep the aspect ratio when scaling
+        - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
+        - if called without `x/y/width/height` arguments, the image will be scaled to fit the window without transparent background
+      macro: sfall.h
+
 - name: Outline
   parent: Interface
   items:
@@ -1660,7 +1702,10 @@
     macro: sfall.h
   - name: set_outline
     detail: void set_outline(ObjectPtr obj, int color)
-    doc: 'Sets the outline color of an object. 0 means or any value above 0x00FFFFFF disables the outline. Call `tile_refresh_display` after changing outline of objects to properly redraw the scene.'
+    doc: |
+      - sets the outline color of an object (see `OUTLINE_*` constants in `sfall.h`)
+      - can also set a custom color from the game palette by shifting the color index value left by 8 bits: `0xCC00` where `CC` is the palette index (available since sfall 4.2.7/3.8.27)
+      - passing 0 will disable the outline
     macro: sfall.h
 
 - name: Main interface
@@ -1671,9 +1716,12 @@
     macro: sfall.h
     doc: Returns 1 if interface is currently hidden, 0 otherwise.
   - name: intface_redraw
-    detail: void intface_redraw()
+    detail: void intface_redraw(bool eachWin)
     macro: sfall.h
-    doc: Redraws main game interface. Useful after direct changes to current player weapons or stats to reflect changes.
+    doc: |
+      Redraws main game interface. Useful after direct changes to current player weapons or stats to reflect changes.
+      - redraws main game interface, useful to reflect changes after directly changing current player weapons or stats
+      - `eachWin`: pass True to redraw all interface windows
   - name: intface_hide
     detail: void intface_hide()
     doc: Hides main interface.
