@@ -29,6 +29,8 @@ namespace sfall
 
 #define MAX_FILE_SIZE    0xA00000
 
+#pragma pack(push, 1)
+
 struct fsFile {
 	BYTE* data;
 	DWORD length;
@@ -51,6 +53,8 @@ struct sFile {
 	DWORD type;
 	OpenFile* openFile;
 };
+
+#pragma pack(pop)
 
 std::vector<fsFile> files;
 

@@ -30,9 +30,16 @@ namespace sfall
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
 static size_t shadersSize;
+static bool globalShadersActive = false;
 
-static bool globalShaderActive = false;
-std::string gShaderFile;
+struct GlobalShader {
+	std::string gShaderFile;
+	bool badShader = false;
+
+	GlobalShader(std::string file) {
+		gShaderFile = std::move(file);
+	}
+};
 
 struct sShader {
 	ID3DXEffect* Effect;
@@ -44,6 +51,7 @@ struct sShader {
 	sShader() : Effect(0), ehTicks(0), mode(0), mode2(0), Active(false) {}
 };
 
+static std::vector<GlobalShader> gShaderFiles;
 static std::vector<sShader> shaders;
 static std::vector<IDirect3DTexture9*> shaderTextures;
 
@@ -98,13 +106,18 @@ int __stdcall LoadShader(const char* file) {
 }
 
 void ScriptShaders::LoadGlobalShader() {
-	if (!globalShaderActive) return;
-	long index = LoadShader(gShaderFile.c_str());
-	if (index != -1) {
-		shaders[index].Effect->SetInt("w", Graphics::GetGameWidthRes());
-		shaders[index].Effect->SetInt("h", Graphics::GetGameHeightRes());
-		shaders[index].Active = true;
-		dlogr("Global shader file loaded.", DL_INIT);
+	if (!globalShadersActive) return;
+	for (auto &shader : gShaderFiles) {
+		if (shader.badShader) continue;
+		long index = LoadShader(shader.gShaderFile.c_str());
+		if (index != -1) {
+			shaders[index].Effect->SetInt("w", Graphics::GetGameWidthRes());
+			shaders[index].Effect->SetInt("h", Graphics::GetGameHeightRes());
+			shaders[index].Active = true;
+			dlog_f("Global shader file %s is loaded.\n", DL_INIT, shader.gShaderFile.c_str());
+		} else {
+			shader.badShader = true;
+		}
 	}
 }
 
@@ -164,22 +177,24 @@ static void ResetShaders() {
 }
 
 void ScriptShaders::Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2, IDirect3DTexture9* sTex2) {
-	for (int d = shadersSize - 1; d >= 0; d--) {
-		if (!shaders[d].Effect || !shaders[d].Active) continue;
-		if (shaders[d].mode2 && !(shaders[d].mode2 & GetLoopFlags())) continue;
-		if (shaders[d].mode & GetLoopFlags()) continue;
+	for (int i = shadersSize - 1; i >= 0; i--) {
+		if (!shaders[i].Effect || !shaders[i].Active) continue;
+		if (shaders[i].mode2 && !(shaders[i].mode2 & GetLoopFlags())) continue;
+		if (shaders[i].mode & GetLoopFlags()) continue;
 
-		if (shaders[d].ehTicks) shaders[d].Effect->SetInt(shaders[d].ehTicks, GetTickCount());
+		if (shaders[i].ehTicks) shaders[i].Effect->SetInt(shaders[i].ehTicks, GetTickCount());
+
 		UINT passes;
-		shaders[d].Effect->Begin(&passes, 0);
+		shaders[i].Effect->Begin(&passes, 0);
 		for (DWORD pass = 0; pass < passes; pass++) {
-			shaders[d].Effect->BeginPass(pass);
+			shaders[i].Effect->BeginPass(pass);
 			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			shaders[d].Effect->EndPass();
-			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE);
+			shaders[i].Effect->EndPass();
+
+			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy sSurf1 to sSurf2
 			d3d9Device->SetTexture(0, sTex2);
 		}
-		shaders[d].Effect->End();
+		shaders[i].Effect->End();
 		d3d9Device->SetTexture(0, sTex2);
 	}
 }
@@ -197,7 +212,7 @@ void ScriptShaders::OnLostDevice() {
 }
 
 void ScriptShaders::Release() {
-	globalShaderActive = false;
+	globalShadersActive = false;
 	ResetShaders();
 	for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
 	shaderTextures.clear();
@@ -205,8 +220,10 @@ void ScriptShaders::Release() {
 
 void ScriptShaders::init() {
 	if (Graphics::mode) {
-		gShaderFile = GetConfigString("Graphics", "GlobalShaderFile", "", MAX_PATH);
-		globalShaderActive = (gShaderFile.length() > 3);
+		for each (const auto& shaderFile in GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
+			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
+		}
+		globalShadersActive = !gShaderFiles.empty();
 
 		LoadGameHook::OnGameReset() += ResetShaders;
 	}

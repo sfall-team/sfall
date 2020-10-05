@@ -23,6 +23,7 @@
 #include "..\FalloutEngine\EngineUtils.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"
+#include "LoadOrder.h"
 #include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
@@ -244,11 +245,11 @@ isNotReading:
 
 static void __declspec(naked) CheckHeroExist() {
 	__asm {
-		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jg   checkArt;
-		retn;
+		jmp  LoadOrder::art_get_name_hack;
 checkArt:
+		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
 		call fo::funcoffs::db_access_;    // check art file exists
 		test eax, eax;
 		jz   notExists;
@@ -509,7 +510,7 @@ static void surface_draw(long width, long height, long fromWidth, long fromX, lo
 	toBuff += toY * toWidth + toX;
 
 	for (long h = 0; h < height; h++) {
-		for (long w = 0; w < width; w++) toBuff[w] = fromBuff[w];
+		std::memcpy(toBuff, fromBuff, width);
 		fromBuff += fromWidth;
 		toBuff += toWidth;
 	}
@@ -1410,8 +1411,8 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x4DEEE5, LoadNewHeroArt, 1);
 
 	// Divert critter frm file name function exit for file checking (art_get_name_)
-	SafeWrite8(0x419520, CodeType::JumpShort); // divert func exit
-	SafeWrite32(0x419521, 0x9090903E);
+	//__int64 data = 0x9090903EEB; // jmp 0x419560 (divert func exit)
+	//SafeWriteBytes(0x419520, (BYTE*)&data, 5);
 
 	// Check if new hero art exists otherwise use regular art (art_get_name_)
 	MakeCall(0x419560, CheckHeroExist);

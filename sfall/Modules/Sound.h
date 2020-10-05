@@ -33,6 +33,8 @@ public:
 	static void __stdcall StopSfallSound(DWORD id);
 
 	static long CalculateVolumeDB(long masterVolume, long passVolume);
+
+	static void SoundLostFocus(long isActive);
 };
 
 }

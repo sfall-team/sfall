@@ -29,13 +29,14 @@ namespace fo
 /* FALLOUT2.EXE structs should be placed here  */
 /******************************************************************************/
 
+#pragma pack(push, 1)
+
 // TODO: make consistent naming for all FO structs
 
 struct GameObject;
 struct Program;
 struct ScriptInstance;
 
-#pragma pack(1)
 struct Art {
 	long flags;
 	char path[16];
@@ -44,7 +45,6 @@ struct Art {
 	long total;
 };
 
-#pragma pack(1)
 struct AnimationSet {
 	long currentAnim;
 	long counter;
@@ -69,16 +69,22 @@ struct AnimationSet {
 static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition.");
 
 // Bounding rectangle, used by tile_refresh_rect and related functions.
-#pragma pack(1)
 struct BoundRect {
 	long x;
 	long y;
-	long offx;
-	long offy;
+	long offx; // right
+	long offy; // bottom
+};
+
+struct RectList {
+	union {
+		BoundRect rect;
+		RECT wRect;
+	};
+	RectList* nextRect;
 };
 
 // Game objects (items, critters, etc.), including those stored in inventories.
-#pragma pack(1)
 struct GameObject {
 	long id;
 	long tile;
@@ -141,7 +147,6 @@ struct GameObject {
 };
 
 // Results of compute_attack_() function.
-#pragma pack(1)
 struct ComputeAttackResult {
 	GameObject* attacker;
 	long hitMode;
@@ -180,7 +185,6 @@ struct CombatGcsd {
 };
 
 // Script instance attached to an object or tile (spatial script).
-#pragma pack(1)
 struct ScriptInstance {
 	long id;
 	long next;
@@ -208,7 +212,6 @@ struct ScriptInstance {
 };
 
 // Script run-time data
-#pragma pack(1)
 struct Program {
 	const char* fileName;
 	long *codeStackPtr;
@@ -227,7 +230,6 @@ struct Program {
 	long *procTablePtr;
 };
 
-#pragma pack(1)
 struct ItemButtonItem {
 	GameObject* item;
 	union {
@@ -248,7 +250,6 @@ struct ItemButtonItem {
 // specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
 // below the value specified (e.g., -7 indicates a stat must be less than 7). Operator is only non-zero when there
 // are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
-#pragma pack(1)
 struct PerkInfo {
 	const char* name;
 	const char* description;
@@ -271,56 +272,23 @@ struct PerkInfo {
 	long luckMin;
 };
 
-#pragma pack(1)
 struct DbFile {
 	long fileType;
 	void* handle;
 };
 
-#pragma pack(1)
 struct ElevatorExit {
 	long id;
 	long elevation;
 	long tile;
 };
 
-#pragma pack(1)
 struct ElevatorFrms {
 	DWORD main;
 	DWORD buttons;
 };
 
-#pragma pack(1)
-struct FrmFile {
-	long id;				//0x00
-	short fps;				//0x04
-	short actionFrame;		//0x06
-	short frames;			//0x08
-	short xshift[6];		//0x0a
-	short yshift[6];		//0x16
-	long oriFrameOffset[6];	//0x22
-	long frameAreaSize;		//0x3a
-	short width;			//0x3e
-	short height;			//0x40
-	long frameSize;			//0x42
-	short xoffset;			//0x46
-	short yoffset;			//0x48
-	BYTE pixels[80 * 36];	//0x4a
-};
-
-//structures for holding frms loaded with fallout2 functions
-#pragma pack(1)
-typedef class FrmFrameData { // sizeof 12 + 1 byte
-public:
-	WORD width;
-	WORD height;
-	DWORD size;   // width * height
-	WORD x;
-	WORD y;
-	BYTE data[1]; // begin frame data
-} FrmFrameData;
-
-#pragma pack(2)
+#pragma pack(push, 2)
 typedef class FrmHeaderData { // sizeof 62
 public:
 	DWORD version;        // version num
@@ -332,9 +300,63 @@ public:
 	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
 	DWORD frameAreaSize;  // size of all frames area
 } FrmHeaderData;
+#pragma pack(pop)
+
+// structures for holding frms loaded with fallout2 functions
+typedef class FrmFrameData { // sizeof 12 + 1 byte
+public:
+	WORD width;
+	WORD height;
+	DWORD size;   // width * height
+	WORD x;
+	WORD y;
+	BYTE data[1]; // begin frame image data
+} FrmFrameData;
+
+struct FrmFile {            // sizeof 2954
+	long id;                // 0x00
+	short fps;              // 0x04
+	short actionFrame;      // 0x06
+	short frames;           // 0x08
+	short xshift[6];        // 0x0A
+	short yshift[6];        // 0x16
+	long oriFrameOffset[6]; // 0x22
+	long frameAreaSize;     // 0x3A
+	union {
+		FrmFrameData* frameData;
+		struct {
+			short width;    // 0x3E
+			short height;   // 0x40
+		};
+	};
+	long frameSize;         // 0x42
+	short xoffset;          // 0x46
+	short yoffset;          // 0x48
+	union {                 // 0x4A
+		BYTE *pixelData;
+		BYTE pixels[80 * 36]; // for tiles FRM
+	};
+
+	// Returns a pointer to the data of the frame in the direction
+	FrmFrameData* GetFrameData(long dir, long frame) {
+		BYTE* offsDirectionFrame = (BYTE*)&frameData;
+		if (dir > 0 && dir < 6) {
+			offsDirectionFrame += oriFrameOffset[dir];
+		}
+		if (frame > 0) {
+			int maxFrames = frames - 1;
+			if (frame > maxFrames) frame = maxFrames;
+			while (frame-- > 0) {
+				offsDirectionFrame += ((FrmFrameData*)offsDirectionFrame)->size + (sizeof(FrmFrameData) - 1);
+			}
+		}
+		return (FrmFrameData*)offsDirectionFrame;
+	}
+};
+
+static_assert(sizeof(FrmFile) == 2954, "Incorrect FrmFile definition.");
 
 // structures for loading unlisted frms
-#pragma pack(1)
 struct UnlistedFrm {
 	DWORD version;
 	WORD FPS;
@@ -387,7 +409,6 @@ struct UnlistedFrm {
 };
 
 //for holding a message
-#pragma pack(1)
 struct MessageNode {
 	long number;
 	long flags;
@@ -403,7 +424,6 @@ struct MessageNode {
 };
 
 //for holding msg array
-#pragma pack(1)
 typedef struct MessageList {
 	long numMsgs;
 	MessageNode *nodes;
@@ -414,7 +434,6 @@ typedef struct MessageList {
 	}
 } MessageList;
 
-#pragma pack(1)
 struct CritInfo {
 	union {
 		struct {
@@ -437,7 +456,6 @@ struct CritInfo {
 	};
 };
 
-#pragma pack(1)
 struct SkillInfo {
 	const char* name;
 	const char* description;
@@ -454,7 +472,6 @@ struct SkillInfo {
 	long f;
 };
 
-#pragma pack(1)
 struct StatInfo {
 	const char* dame;
 	const char* description;
@@ -464,7 +481,6 @@ struct StatInfo {
 	long defaultValue;
 };
 
-#pragma pack(1)
 struct TraitInfo {
 	const char* name;
 	const char* description;
@@ -472,7 +488,6 @@ struct TraitInfo {
 };
 
 //fallout2 path node structure
-#pragma pack(1)
 struct PathNode {
 	char* path;
 	void* pDat;
@@ -480,7 +495,6 @@ struct PathNode {
 	PathNode* next;
 };
 
-#pragma pack(1)
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
@@ -488,7 +502,6 @@ struct PremadeChar {
 };
 
 // In-memory PROTO structure, not the same as PRO file format.
-#pragma pack(1)
 struct Proto {
 	struct Tile {
 		long scriptId;
@@ -701,18 +714,19 @@ struct Proto {
 
 static_assert(offsetof(Proto, item) + offsetof(Proto::Item, material) == 0x6C, "Incorrect Proto definition.");
 
-#pragma pack(1)
 struct ScriptListInfoItem {
 	char fileName[16];
 	long numLocalVars;
 };
 
 //for holding window info
-#pragma pack(1)
 struct Window {
 	long wID;
 	long flags;
-	RECT wRect;
+	union {
+		RECT wRect;
+		BoundRect rect;
+	};
 	long width;
 	long height;
 	long clearColour;
@@ -745,7 +759,6 @@ struct sWindow {
 	long unknown8;
 };
 
-#pragma pack(1)
 struct LSData {
 	char signature[24];
 	short majorVer;
@@ -769,7 +782,6 @@ struct LSData {
 	char mapName[16];
 };
 
-#pragma pack(1)
 struct AIcap {
 	long name;
 	long packet_num;
@@ -799,7 +811,6 @@ struct AIcap {
 	long general_type;
 };
 
-#pragma pack(1)
 struct Queue {
 	DWORD time;
 	long type;
@@ -829,11 +840,33 @@ struct QueueAddict {
 	fo::Perk perkId; // effect of addiction
 };
 
-#pragma pack(1)
 struct DrugInfoList {
 	DWORD itemPid;
 	long addictGvar;
 	long numEffects;
 };
+
+struct FloatText {
+	long flags;
+	void* unknown0;
+	long unknown1;
+	long unknown2;
+	long unknown3;
+	long unknown4;
+	long unknown5;
+	long unknown6;
+	long unknown7;
+	long unknown8;
+	long unknown9;
+	void* unknown10;
+};
+
+struct SubTitleList {
+	long text;
+	long frame;
+	long* next;
+};
+
+#pragma pack(pop)
 
 }

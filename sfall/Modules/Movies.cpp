@@ -44,16 +44,14 @@ private:
 	IVMRSurfaceAllocatorNotify9 *pAllocNotify;
 
 	std::vector<IDirect3DSurface9*> surfaces;
-	//IDirect3DTexture9* pTex;
-	IDirect3DTexture9* mTex;
 
-	bool isStartPresenting = false;
+	bool startPresenting = false;
+	bool initialized = false;
 
 	HRESULT __stdcall TerminateDevice(DWORD_PTR dwID) {
 		dlog_f("\nTerminate Device id: %d\n", DL_INIT, dwID);
 
-		//SAFERELEASE(pTex);
-		SAFERELEASE(mTex);
+		Graphics::ReleaseMovieTexture();
 
 		for (auto &surface : surfaces) SAFERELEASE(surface);
 		surfaces.clear();
@@ -82,7 +80,8 @@ private:
 	}
 
 	HRESULT __stdcall InitializeDevice(DWORD_PTR dwUserID, VMR9AllocationInfo *lpAllocInfo, DWORD *lpNumBuffers) {
-		dlog("\nInitialize Device:", DL_INIT);
+		dlog("\nInitialize Device...", DL_INIT);
+		initialized = false;
 
 		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface; // | VMR9AllocFlag_DXVATarget;
 		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
@@ -92,22 +91,25 @@ private:
 		surfaces.resize(*lpNumBuffers);
 
 		HRESULT hr = pAllocNotify->AllocateSurfaceHelper(lpAllocInfo, lpNumBuffers, &surfaces[0]);
-		if (FAILED(hr)) return hr;
+		if (FAILED(hr)) {
+			dlog_f("\nAllocateSurfaceHelper error: 0x%x", DL_MAIN, hr);
+			return hr;
+		}
 
 		#ifndef NDEBUG
-		dlog_f(" Width: %d,", DL_INIT, lpAllocInfo->dwWidth);
-		dlog_f(" Height: %d,", DL_INIT, lpAllocInfo->dwHeight);
-		dlog_f(" Format: %d", DL_INIT, lpAllocInfo->Format);
+		dlog_f(" Width: %d, Height: %d, Format: %d", DL_INIT, lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, lpAllocInfo->Format);
 		#endif
 
-		//hr = surfaces[0]->GetContainer(IID_IDirect3DTexture9, (void**)&pTex);
-		//if (FAILED(hr)) {
-		//	TerminateDevice(-1);
-		//	return hr;
-		//}
+		D3DSURFACE_DESC desc;
+		desc.Width = lpAllocInfo->dwWidth;
+		desc.Height = lpAllocInfo->dwHeight;
+		desc.Format = lpAllocInfo->Format;
 
-		if (d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &mTex, nullptr) != D3D_OK) {
-			dlog(" Failed to create movie texture!", DL_INIT);
+		if (Graphics::CreateMovieTexture(desc) != D3D_OK) {
+			dlogr(" Failed to create movie texture!", DL_INIT);
+		} else {
+			initialized = true;
+			dlogr(" OK!", DL_INIT);
 		}
 		return S_OK;
 	}
@@ -125,23 +127,22 @@ private:
 
 	HRESULT __stdcall StartPresenting(DWORD_PTR dwUserID) {
 		dlog("\nStart Presenting.", DL_INIT);
-		Graphics::SetMovieTexture(mTex);
-		isStartPresenting = true;
+		Graphics::SetMovieTexture(true);
+		startPresenting = true;
 		return S_OK;
 	}
 
 	HRESULT __stdcall StopPresenting(DWORD_PTR dwUserID) {
 		dlog("\nStop Presenting.", DL_INIT);
-		isStartPresenting = false;
+		startPresenting = false;
 		return S_OK;
 	}
 
 	HRESULT __stdcall PresentImage(DWORD_PTR dwUserID, VMR9PresentationInfo *lpPresInfo) {
-		if (isStartPresenting) {
+		if (startPresenting) {
 			IDirect3DTexture9* tex;
 			lpPresInfo->lpSurf->GetContainer(IID_IDirect3DTexture9, (LPVOID*)&tex);
-			d3d9Device->UpdateTexture(tex, mTex);
-			Graphics::ShowMovieFrame();
+			Graphics::ShowMovieFrame(tex);
 		}
 		return S_OK;
 	}
@@ -150,8 +151,6 @@ public:
 	CAllocator() {
 		RefCount = 1;
 		pAllocNotify = nullptr;
-		mTex = nullptr;
-		//pTex = nullptr;
 	}
 
 	ULONG __stdcall AddRef() {
@@ -177,17 +176,15 @@ public:
 
 		// Set the device
 		HMONITOR hMonitor = d3d9->GetAdapterMonitor(D3DADAPTER_DEFAULT);
-		HRESULT hr = pAllocNotify->SetD3DDevice(d3d9Device, hMonitor);
-
-		return hr;
+		return pAllocNotify->SetD3DDevice(d3d9Device, hMonitor);
 	}
 
-	IDirect3DTexture9* GetMovieTexture() {
-		return mTex;
+	bool IsInitialized() {
+		return initialized;
 	}
 };
 
-struct sDSTexture {
+static struct sDSTexture {
 	CAllocator *pSFAlloc;
 	IGraphBuilder *pGraph;
 	IBaseFilter *pVmr;
@@ -195,7 +192,8 @@ struct sDSTexture {
 	IVMRSurfaceAllocatorNotify9 *pAlloc;
 	IMediaControl *pControl;
 	IMediaSeeking *pSeek;
-	IBasicAudio   *pAudio;
+	IBasicAudio *pAudio;
+	bool released = false;
 } movieInterface;
 
 enum AviState : long {
@@ -207,35 +205,23 @@ enum AviState : long {
 static AviState aviPlayState;
 static DWORD backgroundVolume = 0;
 
-void PlayMovie(sDSTexture* movie) {
+static void PlayMovie(sDSTexture* movie) {
 	movie->pControl->Run();
 	movie->pAudio->put_Volume(
 		Sound::CalculateVolumeDB(fo::var::master_volume, (backgroundVolume) ? backgroundVolume : fo::var::background_volume)
 	);
 }
 
-void PauseMovie(sDSTexture* movie) {
-	movie->pControl->Pause();
-}
-
-void StopMovie() {
+static void StopMovie() {
 	aviPlayState = AviState::Stop;
+	Graphics::SetMovieTexture(false);
 	movieInterface.pControl->Stop();
-	Graphics::SetMovieTexture(0);
-	if (*(DWORD*)FO_VAR_subtitles == 0) fo::RefreshGNW(); // Note: it is only necessary when the game is loaded
-}
-/*
-void RewindMovie(sDSTexture* movie) {
-	LONGLONG time = 0;
-	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
+	if (*(DWORD*)FO_VAR_subtitles == 0) fo::RefreshGNW(); // Note: it is only necessary when in the game
 }
 
-void SeekMovie(sDSTexture* movie, DWORD shortTime) {
-	LONGLONG time = shortTime * 10000;
-	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
-}
-*/
 DWORD FreeMovie(sDSTexture* movie) {
+	if (movie->released) return 0;
+	movie->released = true;
 	#ifndef NDEBUG
 	dlog("\nRelease movie interfaces.", DL_INIT);
 	#endif
@@ -248,6 +234,11 @@ DWORD FreeMovie(sDSTexture* movie) {
 	if (movie->pGraph) movie->pGraph->Release();
 	if (movie->pAudio) movie->pAudio->Release();
 	return 0;
+}
+
+static void BreakMovie() {
+	StopMovie();
+	FreeMovie(&movieInterface);
 }
 
 DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
@@ -293,26 +284,28 @@ DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
 
 	movie->pGraph->QueryInterface(IID_IBasicAudio, (void**)&movie->pAudio);
 
-	dlog("\nStart rendering file.", DL_INIT);
+	dlog("\nStart rendering file.", DL_MAIN);
 	hr = movie->pGraph->RenderFile(path, nullptr);
-	if (hr != S_OK) dlog_f(" ERROR: %d", DL_INIT, hr);
+	if (hr != S_OK) dlog_f(" ERROR: 0x%x", DL_MAIN, hr);
 
-	return (hr == S_OK && movie->pSFAlloc->GetMovieTexture()) ? 1 : 0;
+	return (hr == S_OK && movie->pSFAlloc->IsInitialized()) ? 1 : 0;
 }
 
 static __int64 endMoviePosition;
 
 // Movie play looping
-static DWORD PlayMovieLoop() {
+static DWORD __fastcall PlayMovieLoop() {
 	static bool onlyOnce = false;
 
 	if (aviPlayState == AviState::ReadyToPlay) {
 		aviPlayState = AviState::Playing;
 		PlayMovie(&movieInterface);
 		onlyOnce = false;
+	} else if (aviPlayState == AviState::Stop) { // when device is lost
+		return 0;
 	}
 
-	if (*(DWORD*)FO_VAR_subtitles) {
+	if (*(DWORD*)FO_VAR_subtitles && fo::var::subtitleList) {
 		__asm call fo::funcoffs::movieUpdate_; // for reading subtitles when playing mve
 		if (!onlyOnce) {
 			onlyOnce = true;
@@ -320,12 +313,11 @@ static DWORD PlayMovieLoop() {
 		}
 	}
 
-	if (GetAsyncKeyState(VK_ESCAPE)) {
+	if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
 		StopMovie();
 		return 0; // break play
 	}
-
-	Sleep(10); // idle delay
+	Sleep(10); // idle delay, reduces dropping frames when playing AVI
 
 	__int64 pos;
 	movieInterface.pSeek->GetCurrentPosition(&pos);
@@ -333,13 +325,17 @@ static DWORD PlayMovieLoop() {
 	bool isPlayEnd = (endMoviePosition == pos);
 	if (isPlayEnd) StopMovie();
 
-	return !isPlayEnd; // 0 - for breaking play
+	return (!isPlayEnd); // 0 - for breaking play
 }
 
 static void __declspec(naked) gmovie_play_hook() {
 	__asm {
 		push ecx;
 		call fo::funcoffs::GNW95_process_message_; // windows message pump
+		cmp  ds:[FO_VAR_GNW95_isActive], 0;
+		jnz  skip;
+		call fo::funcoffs::GNW95_lost_focus_;
+skip:
 		call PlayMovieLoop;
 		pop  ecx;
 		retn;
@@ -354,7 +350,31 @@ static void __declspec(naked) gmovie_play_hook_input() {
 	}
 }
 
-static DWORD __fastcall PreparePlayMovie(const DWORD id) {
+static void __stdcall PreparePlayMovie() {
+	// if subtitles are disabled then mve videos will not be played
+	if (*(DWORD*)FO_VAR_subtitles || !fo::var::subtitleList) {
+		// patching MVE_rmStepMovie_ for game subtitles
+		SafeWrite8(0x4F5F40, CodeType::Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
+
+		// TODO
+
+		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
+		backgroundVolume = fo::func::gsound_background_volume_get_set(0);
+		#endif
+	}
+}
+
+static void __declspec(naked) gmovie_play_hook_run() {
+	__asm {
+		call fo::funcoffs::movieRun_;
+		mov  ebx, ecx;
+		call PreparePlayMovie;
+		mov  ecx, ebx;
+		retn;
+	}
+}
+
+static DWORD __fastcall PrepareLoadMovie(const DWORD id) {
 	static long isNotWMR = -1;
 	// Verify that the VMR exists on this system
 	if (isNotWMR == -1) {
@@ -392,17 +412,10 @@ static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 	// Create texture and graph filter
 	if (!CreateDSGraph(path, &movieInterface)) return FreeMovie(&movieInterface);
 
-	HookCall(0x44E949, gmovie_play_hook_input); // block get_input_ (if subtitles are disabled then mve videos will not be played)
+	HookCall(0x44E932, gmovie_play_hook_run);
+	HookCall(0x44E949, gmovie_play_hook_input); // block get_input_
 	HookCall(0x44E937, gmovie_play_hook);       // looping call moviePlaying_
 
-	// patching MVE_rmStepMovie_ for game subtitles
-	if (*(DWORD*)FO_VAR_subtitles) {
-		SafeWrite8(0x4F5F40, CodeType::Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
-
-		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
-		backgroundVolume = fo::func::gsound_background_volume_get_set(0);
-		#endif
-	}
 	movieInterface.pSeek->GetStopPosition(&endMoviePosition);
 	aviPlayState = AviState::ReadyToPlay;
 
@@ -414,14 +427,14 @@ static void __stdcall PlayMovieRestore() {
 	dlog("\nPlay Movie Restore.", DL_INIT);
 	#endif
 
+	SafeWrite32(0x44E933, 0x39191); // call movieRun_
 	SafeWrite32(0x44E938, 0x3934C); // call moviePlaying_
 	SafeWrite32(0x44E94A, 0x7A22A); // call get_input_
 
-	if (*(DWORD*)FO_VAR_subtitles) {
+	if (*(DWORD*)FO_VAR_subtitles || !fo::var::subtitleList) {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
 		if (backgroundVolume) backgroundVolume = fo::func::gsound_background_volume_get_set(backgroundVolume); // restore volume
 	}
-
 	aviPlayState = AviState::Stop;
 	FreeMovie(&movieInterface);
 }
@@ -435,7 +448,7 @@ static void __declspec(naked) gmovie_play_hack() {
 		push edx;
 		push eax;
 		mov  ecx, eax;
-		call PreparePlayMovie;
+		call PrepareLoadMovie;
 		test eax,eax;
 		pop  eax;
 		pop  edx;
@@ -462,13 +475,17 @@ static void __declspec(naked) gmovie_play_hook_stop() {
 	__asm {
 		cmp  aviPlayState, Playing;
 		jne  skip;
+		mov  ebx, ecx;
 		call StopMovie;
+		mov  ecx, ebx;
 skip:
 		jmp  fo::funcoffs::movieStop_;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#define DEFAULT_MOVIES    17 // max vanilla movies
 
 char MoviePaths[MaxMovies * 65];
 static DWORD Artimer1DaysCheckTimer;
@@ -485,6 +502,25 @@ less:
 	}
 }
 
+static void __declspec(naked) gmovie_play_hack_subpal() {
+	__asm {
+		xor eax, eax;
+		lea edx, [ebp * 4];
+		cmp ebp, DEFAULT_MOVIES;
+		cmovb eax, edx;
+		retn;
+	}
+}
+
+static void __declspec(naked) op_play_gmovie_hack() {
+	__asm {
+		mov edx, 0xB; // default play mode flags
+		cmp ecx, DEFAULT_MOVIES;
+		cmovb edx, eax;
+		retn;
+	}
+}
+
 void SkipOpeningMoviesPatch() {
 	int skipOpening = GetConfigInt("Misc", "SkipOpeningMovies", 0);
 	if (skipOpening) {
@@ -495,12 +531,41 @@ void SkipOpeningMoviesPatch() {
 	}
 }
 
+static __declspec(naked) void LostFocus() {
+	long isActive; // _GNW95_isActive
+	__asm { // prolog
+		pushad;
+		mov  ebp, esp;
+		sub  esp, __LOCAL_SIZE;
+		mov  isActive, eax;
+	}
+
+	Sound::SoundLostFocus(isActive);
+
+	if (aviPlayState == AviState::Playing) {
+		if (isActive)
+			movieInterface.pControl->Run();
+		else if (Graphics::mode == 4)
+			BreakMovie();
+		else
+			movieInterface.pControl->Pause();
+	}
+	__asm { // epilog
+		mov esp, ebp;
+		popad;
+		retn;
+	}
+}
+
 void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
-	if (*((DWORD*)0x00518DA0) != 0x00503300) {
-		dlog("Error: The value at address 0x001073A0 is not equal to 0x00503300.", DL_INIT);
-	}
+	//if (*((DWORD*)0x00518DA0) != 0x00503300) {
+	//	dlog("Error: The value at address 0x001073A0 is not equal to 0x00503300.", DL_INIT);
+	//}
+
+	// Pause and resume movie/sound playback when the game loses focus
+	fo::func::set_focus_func(LostFocus);
 
 	char optName[8] = "Movie";
 	for (int i = 0; i < MaxMovies; i++) {
@@ -509,7 +574,7 @@ void Movies::init() {
 		MoviePaths[index + 64] = '\0';
 
 		_itoa_s(i + 1, &optName[5], 3, 10);
-		if (i < 17) {
+		if (i < DEFAULT_MOVIES) {
 			GetConfigString("Misc", optName, fo::var::movie_list[i], &MoviePaths[index], 65);
 		} else {
 			GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
@@ -517,6 +582,8 @@ void Movies::init() {
 	}
 	dlog(".", DL_INIT);
 	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A}); // gmovie_play_
+	MakeCall(0x44E896, gmovie_play_hack_subpal, 2);
+	MakeCall(0x45A1C9, op_play_gmovie_hack);
 	dlog(".", DL_INIT);
 
 	/*
@@ -526,7 +593,7 @@ void Movies::init() {
 	if (Graphics::mode != 0) {
 		int allowDShowMovies = GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
-			if (allowDShowMovies > 1) Graphics::AviMovieWidthFit = true;
+			Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
 			MakeJump(0x44E690, gmovie_play_hack);
 			HookCall(0x44E993, gmovie_play_hook_stop);
 			/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */

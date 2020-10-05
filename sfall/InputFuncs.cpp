@@ -26,7 +26,7 @@
 #include "Logging.h"
 #include "FalloutEngine\Fallout2.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
+#include "Modules\HookScripts\Common.h"
 
 #include "InputFuncs.h"
 
@@ -62,7 +62,10 @@ void __stdcall ForceGraphicsRefresh(DWORD d) {
 }
 
 void GetMouse(int* x, int* y) {
-	*x = mouseX; *y = mouseY; mouseX = 0; mouseY = 0;
+	*x = mouseX;
+	*y = mouseY;
+	mouseX = 0;
+	mouseY = 0;
 }
 
 static BYTE LMouse = 0;
@@ -104,7 +107,6 @@ Delegate<>& OnInputLoop() {
 }
 
 void FlushInputBuffer() {
-	while (!bufferedPresses.empty()) bufferedPresses.pop();
 	__asm call fo::funcoffs::kb_clear_;
 }
 
@@ -114,16 +116,14 @@ DWORD __stdcall KeyDown(DWORD key) {
 	}
 	key = key & 0xFFFF;
 	// combined use of DINPUT states + confirmation from GetAsyncKeyState()
-	if (key > MAX_KEYS) {
-		return 0;
-	} else {
-		DWORD keyVK = 0;
+	if (key < MAX_KEYS) {
 		if (keysDown[key]) { // confirm pressed state
-			keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
+			DWORD keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
 			if (keyVK) keysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
 		}
 		return (keysDown[key] > 0);
 	}
+	return 0;
 }
 
 void __stdcall TapKey(DWORD key) {
@@ -201,7 +201,7 @@ public:
 
 	// Only called for the mouse
 	HRESULT __stdcall GetDeviceState(DWORD a, LPVOID b) {
-		if (forcingGraphicsRefresh) RefreshGraphics();
+		if (forcingGraphicsRefresh) Graphics::RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
 		}
@@ -269,9 +269,16 @@ public:
 		return 0;
 	}
 
-	// Only called for the keyboard (dxinput_read_keyboard_buffer_ called at 0x4E06AB)
+	/* Only called for the keyboard
+		0x4E06AB dxinput_read_keyboard_buffer_
+		0x4E0631 dxinput_flush_keyboard_buffer_
+	*/
 	HRESULT __stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* buf, DWORD* count, DWORD d) { // buf - DirectInputKeyboardBuffer (0x6B2560)
 		if (DeviceType != kDeviceType_KEYBOARD) {
+			return RealDevice->GetDeviceData(a, buf, count, d);
+		}
+		if (*count == INFINITE && !buf && !d) { // flush
+			while (!bufferedPresses.empty()) bufferedPresses.pop();
 			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
 
@@ -280,12 +287,13 @@ public:
 		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);
 			if (FAILED(hr) || !buf || !(*count)) return hr;
+
 			for (DWORD i = 0; i < *count; i++) {
 				DWORD dxKey = buf[i].dwOfs;
 				DWORD state = buf[i].dwData & 0x80;
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
-				HookScripts::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 				if (dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = dxKey; // Override key
@@ -349,7 +357,8 @@ private:
 public:
 	/*** Constructor ***/
 	FakeDirectInput(IDirectInput* Real) {
-		RealInput = Real; Refs = 1;
+		RealInput = Real;
+		Refs = 1;
 	}
 
 	/*** IUnknown methods ***/

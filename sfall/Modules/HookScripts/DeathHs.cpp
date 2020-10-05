@@ -89,7 +89,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -118,9 +118,9 @@ static void __declspec(naked) OnDeathHook() {
 
 static void __declspec(naked) OnDeathHook2() {
 	__asm {
+		call fo::funcoffs::partyMemberRemove_;
 		HookBegin;
 		mov  args[0], esi;
-		call fo::funcoffs::partyMemberRemove_;
 		pushad;
 	}
 
@@ -157,11 +157,9 @@ void Inject_OnDeathHook() {
 }
 
 void InitDeathHookScripts() {
-
-	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
-	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
-	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
-
+	HookScripts::LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
+	HookScripts::LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+	HookScripts::LoadHookScript("hs_ondeath", HOOK_ONDEATH);
 }
 
 }

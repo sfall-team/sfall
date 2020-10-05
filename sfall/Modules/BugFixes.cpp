@@ -919,18 +919,31 @@ static void __declspec(naked) NPCStage6Fix2() {
 	}
 }
 
-// Haenlomal: Check path to critter for attack
-static void __declspec(naked) MultiHexFix() {
+static void __declspec(naked) make_path_func_hook() {
 	__asm {
-		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
-		test [ebx + flags + 1], 0x08;       // is target multihex?
-		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
-		je   end;                           // skip if not multihex
-		inc  ebx;                           // otherwise, increase tilenum by 1
-end:
-		retn;                               // call make_path_func (at 0x429024, 0x429175)
+		mov  ebx, [edx + tile];            // object tile
+		cmp  ebx, [esp + 0x5C - 0x1C + 4]; // target tile
+		je   fix;
+		jmp  fo::funcoffs::anim_can_use_door_;
+fix:	// replace the target tile (where the multihex object is located) with the current tile
+		mov  ebx, [esp + 0x5C - 0x14 + 4]; // current tile
+		mov  [esp + 0x5C - 0x1C + 4], ebx; // target tile
+		retn;
 	}
 }
+
+// Haenlomal: Check path to critter for attack
+//static void __declspec(naked) MultiHexFix() {
+//	__asm {
+//		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
+//		test [ebx + flags + 1], 0x08;       // is target multihex?
+//		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
+//		je   end;                           // skip if not multihex
+//		inc  ebx;                           // otherwise, increase tilenum by 1
+//end:
+//		retn;                               // call make_path_func (at 0x429024, 0x429175)
+//	}
+//}
 
 static void __declspec(naked) MultiHexRetargetTileFix() {
 	__asm {
@@ -1172,21 +1185,6 @@ static void __declspec(naked) action_explode_hack1() {
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hack() {
-	__asm {
-		cmp  dword ptr [eax + protoId], PID_ACTIVE_GEIGER_COUNTER
-		je   found
-		cmp  dword ptr [eax + protoId], PID_ACTIVE_STEALTH_BOY
-		je   found
-		mov  eax, 0x474D34
-		jmp  eax
-found:
-		call fo::funcoffs::item_m_turn_off_
-		mov  eax, 0x474D17
-		jmp  eax                                  // Is there any other activated items among the ones being sold?
-	}
-}
-
 static void __declspec(naked) barter_attempt_transaction_hook_weight() {
 	__asm {
 		call fo::funcoffs::item_total_weight_;
@@ -1198,10 +1196,25 @@ skip:
 	}
 }
 
+static void __declspec(naked) barter_attempt_transaction_hack() {
+	__asm {
+		mov  edx, [eax + protoId];
+		cmp  edx, PID_ACTIVE_GEIGER_COUNTER;
+		je   found;
+		cmp  edx, PID_ACTIVE_STEALTH_BOY;
+		je   found;
+		mov  eax, 0x474D34;                       // Can't sell
+		jmp  eax;
+found:
+		push 0x474D17;                            // Is there any other activated items among the ones being sold?
+		jmp  fo::funcoffs::item_m_turn_off_;
+	}
+}
+
 static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
-		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
-		jmp  fo::funcoffs::queue_remove_this_
+		and  byte ptr [eax + 0x25], ~0x20;        // Unset flag of used items
+		jmp  fo::funcoffs::queue_remove_this_;
 	}
 }
 
@@ -2030,12 +2043,22 @@ skip:
 static void __stdcall combat_attack_gcsd() {
 	if (fo::var::gcsd->changeFlags & 2) { // only for AttackComplexFix
 		long flags = fo::var::gcsd->flagsSource;
-		flags |= fo::var::main_ctd.attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
+			flags |= fo::var::main_ctd.attackerFlags;
+		} else {
+			flags |= fo::var::main_ctd.attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+		}
 		fo::var::main_ctd.attackerFlags = flags;
 	}
 	if (fo::var::gcsd->changeFlags & 1) {
 		long flags = fo::var::gcsd->flagsTarget;
-		flags |= fo::var::main_ctd.targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
+			flags |= fo::var::main_ctd.targetFlags;
+		} else {
+			flags |= fo::var::main_ctd.targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag (fix death animation)
+		}
 		fo::var::main_ctd.targetFlags = flags;
 	}
 
@@ -2045,17 +2068,17 @@ static void __stdcall combat_attack_gcsd() {
 		if (fo::var::main_ctd.targetDamage < fo::var::gcsd->minDamage) {
 			fo::var::main_ctd.targetDamage = fo::var::gcsd->minDamage;
 		}
-		// check the hit points and set the DAM_DEAD flag
-		if (damage != fo::var::main_ctd.targetDamage) {
+		if (damage < fo::var::main_ctd.targetDamage) { // check the hit points and set the DAM_DEAD flag
 			fo::func::check_for_death(fo::var::main_ctd.target, fo::var::main_ctd.targetDamage, &fo::var::main_ctd.targetFlags);
 		}
+
 		if (fo::var::main_ctd.targetDamage > fo::var::gcsd->maxDamage) {
 			fo::var::main_ctd.targetDamage = fo::var::gcsd->maxDamage;
-			if (fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
-				long cHP = fo::var::main_ctd.target->critter.health;
-				if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
-					fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
-				}
+		}
+		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+			long cHP = fo::var::main_ctd.target->critter.health;
+			if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
+				fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
 			}
 		}
 	}
@@ -2756,6 +2779,55 @@ checkTiles:
 	}
 }
 
+static void __declspec(naked) doBkProcesses_hook() {
+	__asm {
+		call fo::funcoffs::gdialogActive_;
+		test eax, eax;
+		jz   skip;
+		retn;
+skip:
+		jmp  fo::funcoffs::gmovieIsPlaying_;
+	}
+}
+
+static bool dudeIsAnimDeath = false;
+
+static void __declspec(naked) show_damage_to_object_hack() {
+	static const DWORD show_damage_to_object_Ret = 0x410B90;
+	__asm {
+		jnz  isDeath;
+		add  esp, 4;
+		jmp  show_damage_to_object_Ret;
+isDeath:
+		cmp  esi, ds:[FO_VAR_obj_dude];
+		sete dudeIsAnimDeath;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hack_ondeath() {
+	static const DWORD obj_move_to_tile_Ret = 0x48A759;
+	__asm {
+		jz   skip;
+		cmp  dudeIsAnimDeath, 0;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  obj_move_to_tile_Ret;
+	}
+}
+
+static void __declspec(naked) action_knockback_hack() {
+	__asm {
+		mov  ecx, 20; // cap knockback distance
+		cmp  ebp, ecx;
+		cmovg ebp, ecx;
+		mov  ecx, 1;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2765,6 +2837,7 @@ void BugFixes::init()
 
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
+	LoadGameHook::OnGameReset() += []() { dudeIsAnimDeath = false; };
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -2985,7 +3058,9 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
+		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
+		//MakeCalls(MultiHexFix, {0x42901F, 0x429170}); // obsolete fix
+
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
@@ -3029,8 +3104,8 @@ void BugFixes::init()
 	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
-		SafeWriteBatch<BYTE>(0xBA, {0x478115, 0x478138}); // mov eax, 1 > mov edx, 1
-		MakeJump(0x474D22, barter_attempt_transaction_hack);
+		SafeWriteBatch<BYTE>(0xBA, {0x478115, 0x478138}); // item_queued_ (will return the found item)
+		MakeJump(0x474D22, barter_attempt_transaction_hack, 1);
 		HookCall(0x4798B1, item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -3118,7 +3193,7 @@ void BugFixes::init()
 	HookCall(0x4A22DF, ResetPlayer_hook);
 
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of the "count" argument is over 99999
-	SafeWrite32(0x45A2A0, 0x1869F); // 99999
+	SafeWrite32(0x45A2A0, 99999);
 
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
 	// some exit hex in destination map
@@ -3432,9 +3507,9 @@ void BugFixes::init()
 	HookCall(0x481409, main_death_scene_hook);
 
 	// Fix for trying to loot corpses with the "NoSteal" flag
+	MakeCall(0x4123F8, action_loot_container_hack, 1);
 	SafeWrite8(0x4123F2, CommonObj::protoId);
 	BlockCall(0x4123F3);
-	MakeCall(0x4123F8, action_loot_container_hack, 1);
 
 	// Fix the music volume when entering the dialog
 	SafeWrite32(0x44525D, (DWORD)FO_VAR_background_volume);
@@ -3457,7 +3532,7 @@ void BugFixes::init()
 
 	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
 	// object or source tile
-	// Note: this bug does not cause an error in the function work
+	// Note: this bug does not cause any noticeable error in the function
 	BYTE codeData[] = {
 		0x8B, 0x70, 0x04,       // mov  esi, [eax + 4]
 		0xF6, 0x40, 0x25, 0x08, // test [eax + flags2], MultiHex_
@@ -3479,6 +3554,22 @@ void BugFixes::init()
 	};
 	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
 	HookCall(0x42A0F8, (void*)fo::funcoffs::obj_dist_);
+
+	// Fix to prevent the execution of critter_p_proc and game events when playing movies (same as when the dialog is active)
+	HookCall(0x4A3C89, doBkProcesses_hook);
+
+	// Fix to prevent the player from leaving the map when the death animation causes the player to cross an exit grid
+	// (e.g. fire dance or knockback animation)
+	MakeCall(0x41094B, show_damage_to_object_hack, 1);
+	MakeCall(0x48A6CB, obj_move_to_tile_hack_ondeath, 1);
+
+	// Fix to limit the maximum distance for the knockback animation
+	MakeCall(0x4104D5, action_knockback_hack);
+
+	// Fix for combat_is_shot_blocked_ engine function not taking the flags of critters in the line of fire into account
+	// when calculating the hit chance penalty of ranged attacks in determine_to_hit_func_ engine function
+	SafeWriteBatch<BYTE>(0x41, {0x426D46, 0x426D4E}); // edi > ecx (replace target with object critter)
+	SafeWrite8(0x426D48, fo::DAM_DEAD | fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
 }
 
 }

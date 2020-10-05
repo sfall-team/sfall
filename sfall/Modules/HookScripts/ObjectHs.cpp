@@ -26,11 +26,10 @@ static void __declspec(naked) UseObjOnHook() {
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
-		jz  defaultHandler;
+		je  defaultHandler;
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::protinst_use_item_on_;
@@ -54,11 +53,10 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
-		jz  defaultHandler;
+		je  defaultHandler;
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::item_d_take_drug_;
@@ -85,7 +83,6 @@ static void __declspec(naked) UseObjHook() {
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::protinst_use_item_;
@@ -343,14 +340,13 @@ void Inject_ScriptProcedureHook2() {
 }
 
 void InitObjectHookScripts() {
-
-	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
-	LoadHookScript("hs_useobj", HOOK_USEOBJ);
-	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
-	LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
-	LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
-	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
-	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
+	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
+	HookScripts::LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
+	HookScripts::LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
+	HookScripts::LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
+	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
+	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
 }
 
 }

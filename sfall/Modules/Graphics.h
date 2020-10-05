@@ -41,16 +41,21 @@ public:
 
 	static const float* rcpresGet();
 
-	static void SetHighlightTexture(IDirect3DTexture9* htex);
+	static void SetHighlightTexture(IDirect3DTexture9* htex, int xPos, int yPos);
 	static void SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff, int showHighlight);
 	static void SetHeadTechnique();
 	static void SetDefaultTechnique();
 
-	static void ShowMovieFrame();
-	static void SetMovieTexture(IDirect3DTexture9* tex);
+	static void ShowMovieFrame(IDirect3DTexture9* movieTex);
+
+	static void SetMovieTexture(bool state);
+	static HRESULT CreateMovieTexture(D3DSURFACE_DESC &desc);
+	static void ReleaseMovieTexture();
 
 	static bool PlayAviMovie;
 	static bool AviMovieWidthFit;
+
+	static void RefreshGraphics();
 };
 
 extern IDirect3D9* d3d9;
@@ -58,7 +63,6 @@ extern IDirect3DDevice9* d3d9Device;
 
 int __stdcall GetShaderVersion();
 
-void RefreshGraphics();
 HWND GetFalloutWindowInfo(RECT* rect);
 
 }

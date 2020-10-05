@@ -89,6 +89,7 @@
 #define WINTYPE_CHARACTER    (5)
 #define WINTYPE_SKILLDEX     (6)
 #define WINTYPE_ESCMENU      (7) // escape menu
+#define WINTYPE_AUTOMAP      (8)
 
 //Valid flags for force_encounter_with_flags
 #define ENCOUNTER_FLAG_NO_CAR   (0x1)
@@ -273,16 +274,16 @@
                                                         set_self(0)
 
 // returns the corrected tile distance between two objects to the distance variable (return value >= 9996 is an error when getting the distance)
-#define distance_objs(distance, obj1, obj2)             distance := tile_distance_objs(obj1, obj2) - 1;      \
-                                                        if (get_flags(obj1) bwand FLAG_MULTIHEX) distance--; \
-                                                        if (get_flags(obj2) bwand FLAG_MULTIHEX) distance--
+#define distance_objs(distance, obj1, obj2)             distance := tile_distance_objs(obj1, obj2) - 1;           \
+                                                        if (get_flags(obj1) bwand FLAG_MULTIHEX) then distance--; \
+                                                        if (get_flags(obj2) bwand FLAG_MULTIHEX) then distance--
 
 
-/* sfall metalure3 function macros */
-#define SET_HORRIGAN_ENCOUNTER                          (200)
-
+/* sfall metarule3 function macros */
 // sets the number of days (range 1...127) for the Frank Horrigan encounter, or disable the encounter if days is set to 0
-#define set_horrigan_days(day)                          metarule3(SET_HORRIGAN_ENCOUNTER, day, 0, 0)
+#define set_horrigan_days(day)                          metarule3(200, day, 0, 0)
+// clears the keyboard input buffer, use it in the HOOK_KEYPRESS hook to clear keyboard events before calling functions that are waiting for keyboard input
+#define clear_keyboard_buffer                           metarule3(201, 0, 0, 0)
 
 
 /* sfall_funcX macros */
@@ -299,8 +300,8 @@
 #define dialog_message(text)                            sfall_func1("dialog_message", text)
 #define dialog_obj                                      sfall_func0("dialog_obj")
 #define display_stats                                   sfall_func0("display_stats")
-#define draw_image(pathFile, frame, x, y, noTrans)      sfall_func5("draw_image", pathFile, frame, x, y, noTrans)
-#define draw_image_scaled(pathFile, frame, x, y, w, h)  sfall_func6("draw_image_scaled", pathFile, frame, x, y, w, h)
+#define draw_image(artFile, frame, x, y, noTrans)       sfall_func5("draw_image", artFile, frame, x, y, noTrans)
+#define draw_image_scaled(artFile, frame, x, y, w, h)   sfall_func6("draw_image_scaled", artFile, frame, x, y, w, h)
 #define exec_map_update_scripts                         sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                   sfall_func1("floor2", value)
 #define get_can_rest_on_map(map, elev)                  sfall_func2("get_can_rest_on_map", map, elev)
@@ -320,13 +321,17 @@
 #define get_pc_stat_max(stat)                           sfall_func1("get_stat_max", stat)
 #define get_pc_stat_min(stat)                           sfall_func1("get_stat_min", stat)
 #define get_npc_stat_max(stat)                          sfall_func2("get_stat_max", stat, 1)
-#define get_npc_stat_min(stat)                          sfall_func2("get_stat_mix", stat, 1)
+#define get_npc_stat_min(stat)                          sfall_func2("get_stat_min", stat, 1)
 #define get_sfall_arg_at(argNum)                        sfall_func1("get_sfall_arg_at", argNum)
 #define get_string_pointer(text)                        sfall_func1("get_string_pointer", text)
 #define get_text_width(text)                            sfall_func1("get_text_width", text)
 #define has_fake_perk_npc(npc, perk)                    sfall_func2("has_fake_perk_npc", npc, perk)
 #define has_fake_trait_npc(npc, trait)                  sfall_func2("has_fake_trait_npc", npc, trait)
 #define hide_window(winName)                            sfall_func1("hide_window", winName)
+#define interface_art_draw(winID, artFile, x, y)        sfall_func4("interface_art_draw", winID, artFile, x, y)
+#define interface_art_draw_frame(wID, art, x, y, frame) sfall_func5("interface_art_draw", wID, art, x, y, frame)
+#define interface_art_draw_ex(wID, art, x, y, frm, prm) sfall_func6("interface_art_draw", wID, art, x, y, frm, prm)
+#define interface_redraw_all                            sfall_func1("intface_redraw", 1)
 #define intface_hide                                    sfall_func0("intface_hide")
 #define intface_is_hidden                               sfall_func0("intface_is_hidden")
 #define intface_is_shown(winType)                       sfall_func1("get_window_attribute", winType)
@@ -343,6 +348,8 @@
 #define obj_under_cursor(onlyCritter, includeDude)      sfall_func2("obj_under_cursor", onlyCritter, includeDude)
 #define objects_in_radius(tile, radius, elev, type)     sfall_func4("objects_in_radius", tile, radius, elev, type)
 #define outlined_object                                 sfall_func0("outlined_object")
+#define print_text(text, winType, x, y, color)          sfall_func5("print_text", text, winType, x, y, color)
+#define print_text_width(text, winType, x, y, color, w) sfall_func6("print_text", text, winType, x, y, color, w)
 #define real_dude_obj                                   sfall_func0("real_dude_obj")
 #define remove_all_timer_events                         sfall_func0("remove_timer_event")
 #define remove_timer_event(fixedParam)                  sfall_func1("remove_timer_event", fixedParam)

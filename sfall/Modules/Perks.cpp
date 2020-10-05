@@ -75,6 +75,7 @@ struct PerkInfoExt {
 };
 static std::vector<PerkInfoExt> extPerks;
 
+#pragma pack(push, 1)
 struct FakePerk {
 	int Level; // current level (max 100)
 	int Image;
@@ -93,6 +94,7 @@ struct FakePerk {
 		strncpy_s(this->Desc, _desc, _TRUNCATE);
 	}
 };
+#pragma pack(pop)
 
 std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;
@@ -1230,39 +1232,71 @@ dlgExit:
 	}
 }
 
-static void __declspec(naked) item_w_called_shot_hack() {
-	static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
-	static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
+static void __declspec(naked) item_w_mp_cost_hook() {
 	__asm {
-		test eax, eax;                    // does player have Fast Shot trait?
-		je ajmp;                          // skip ahead if no
-		mov edx, ecx;                     // argument for item_w_range_: hit_mode
-		mov eax, ebx;                     // argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
-		call fo::funcoffs::item_w_range_; // get weapon's range
-		cmp eax, 0x2;                     // is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
-		jle ajmp;                         // skip ahead if yes
-		xor eax, eax;                     // otherwise, disallow called shot attempt
-		jmp bjmp;
-ajmp:
-		jmp FastShotTraitFixEnd1;         // continue processing called shot attempt
-bjmp:
-		jmp FastShotTraitFixEnd2;         // clean up and exit function item_w_called_shot
+		call fo::funcoffs::item_w_range_;
+		cmp  eax, 2;
+		jge  checkType;                     // is weapon range less than 2?
+		retn;                               // yes, skip -1 AP cost (0x478CA2)
+checkType:
+		mov  eax, edi;                      // source
+		mov  edx, ecx;                      // hit_mode
+		call fo::funcoffs::item_hit_with_;  // get pointer to weapon
+		mov  edx, ecx;                      // hit_mode
+		jmp  fo::funcoffs::item_w_subtype_; // eax - item
+	}
+}
+
+// Haenlomal's fix
+static void __declspec(naked) item_w_called_shot_hack() {
+	static const DWORD FastShotTraitFix_End = 0x478E7F;
+	__asm {
+		mov  edx, ecx;                     // argument for item_hit_with_: hit_mode
+		mov  eax, ebx;                     // argument for item_hit_with_: pointer to source_obj (always dude_obj due to code path)
+		call fo::funcoffs::item_hit_with_; // get pointer to weapon
+		mov  edx, ecx;
+		call fo::funcoffs::item_w_subtype_;
+		cmp  eax, THROWING;                // is weapon type GUNS or THROWING?
+		jge  checkRange;                   // yes
+		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
+checkRange:
+		mov  edx, ecx;                     // argument for item_w_range_: hit_mode
+		mov  eax, ebx;                     // argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
+		call fo::funcoffs::item_w_range_;  // get weapon's range
+		cmp  eax, 2;                       // is weapon range greater than or equal to 2 (i.e. ranged attack)?
+		jge  cantUse;                      // yes, disallow called shot attempt
+		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
+cantUse:
+		xor  eax, eax;                     // clean up and exit function item_w_called_shot
+		pop  esi;
+		pop  ecx;
+		pop  ebx;
+		retn;
 	}
 }
 
 static void FastShotTraitFix() {
 	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
 	case 1:
-		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
-		MakeJump(0x478E75, item_w_called_shot_hack);
-		goto done;
+		dlog("Applying Fast Shot trait patch. (Haenlomal's fix)", DL_INIT);
+		MakeJump(0x478E79, item_w_called_shot_hack);
+		goto fix;
 	case 2:
-		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
+		dlog("Applying Fast Shot trait patch. (Alternative behavior)", DL_INIT);
 		SafeWrite16(0x478C9F, 0x9090);
 		HookCalls((void*)0x478C7D, {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F});
+		goto done;
+	case 3:
+		dlog("Applying Fast Shot trait patch. (Fallout 1 behavior)", DL_INIT);
+		HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
+		SafeWrite16(0x478C9E, CodeType::JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
+		goto done;
+	default:
+		dlog("Applying Fast Shot trait fix.", DL_INIT);
+	fix:
+		HookCall(0x478C97, item_w_mp_cost_hook);
 	done:
 		dlogr(" Done", DL_INIT);
-		break;
 	}
 }
 

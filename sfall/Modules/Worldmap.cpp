@@ -37,9 +37,12 @@ static DWORD AutomapPipboyList[AUTOMAP_MAX];
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+#pragma pack(push, 1)
 struct levelRest {
 	char level[4];
 };
+#pragma pack(pop)
+
 std::unordered_map<int, levelRest> mapRestInfo;
 
 std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles

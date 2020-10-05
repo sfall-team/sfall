@@ -55,6 +55,7 @@ std::unordered_map<long, ProtoMem> protoMem; // key - critter ID, value - pointe
 typedef std::unordered_map<long, ProtoMem>::iterator itProtoMem;
 static void ModifyAllStats(const itProtoMem&);
 
+#pragma pack(push, 1)
 struct StatModify {
 	long objID;
 	long objPID;   // used for additional verification
@@ -104,6 +105,7 @@ struct StatModify {
 		return nullptr;
 	}
 };
+#pragma pack(pop)
 
 std::vector<StatModify> bonusStatProto;
 std::vector<StatModify> baseStatProto;

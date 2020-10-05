@@ -27,6 +27,8 @@
 
 #include "SubModules\CombatBlock.h"
 
+#include "HookScripts\CombatHS.h"
+
 #include "Combat.h"
 
 namespace sfall
@@ -69,6 +71,8 @@ struct KnockbackModifier {
 	DWORD type;
 	double value;
 };
+
+long Combat::determineHitChance; // the value of hit chance w/o any cap
 
 static std::vector<long> noBursts; // object id
 
@@ -238,6 +242,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 }
 
 static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
+	Combat::determineHitChance = base;
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (critter->id == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);

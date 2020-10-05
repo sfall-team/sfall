@@ -20,6 +20,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "LoadGameHook.h"
+#include "MainLoopHook.h"
 
 #include "MiscPatches.h"
 
@@ -131,14 +132,62 @@ fail:
 	}
 }
 
+static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target) {
+	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
+	if (dir < 0) dir = -dir;
+	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
+		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, fo::STAT_pe) * 3));
+	}
+	return (dir == 0); // is directly in front
+}
+
 static void __declspec(naked) op_obj_can_see_obj_hook() {
+	using namespace fo;
+	using namespace Fields;
 	__asm {
-		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
-		push 0x20;                                   // flags, 0x20 = check ShootThru
-		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
-		push ecx;
+		mov  edi, [esp + 4]; // buf **ret_objStruct
+		test ebp, ebp; // check only once
+		jz   checkSee;
+		xor  ebp, ebp; // for only once
+		push edx;
+		push eax;
+		mov  edx, [edi - 8]; // target
+		mov  ecx, eax;       // source
+		call SeeIsFront;
 		xor  ecx, ecx;
-		call fo::funcoffs::make_straight_path_func_; // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX 0, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		test al, al;
+		pop  eax;
+		pop  edx;
+		jnz  checkSee; // can see
+		// vanilla behavior
+		push 0x10;
+		push edi;
+		call fo::funcoffs::make_straight_path_;
+		retn 8;
+checkSee:
+		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
+		push 0x20;                                 // flags, 0x20 = check ShootThru
+		push edi;
+		call fo::funcoffs::make_straight_path_func_;
+		mov  edx, [edi - 8]; // target
+		mov  ebx, [edi];     // blocking object
+		test ebx, ebx;
+		jz   isSee;          // no blocking object
+		cmp  ebx, edx;
+		jne  checkObj;       // object is not equal to target
+		retn 8;
+isSee:
+		mov  [edi], edx;     // fix for target with ShootThru flag
+		retn 8;
+checkObj:
+		mov  eax, [ebx + protoId];
+		shr  eax, 24;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		je   continue; // see through critter
+		retn 8;
+continue:
+		mov  [edi - 4], ebx;            // replace source with blocking object
+		mov  dword ptr [esp], 0x456BAB; // repeat from the blocking object
 		retn 8;
 	}
 }
@@ -168,39 +217,37 @@ static void __declspec(naked) display_stats_hook() {
 	}
 }
 
-static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
-	if (fo::GetItemType(item) != fo::item_type_weapon && *toSlot
-		 && fo::GetItemType((fo::GameObject*)*toSlot) != fo::item_type_weapon) {
+static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
+	if (toSlot && fo::GetItemType(item) != fo::item_type_weapon && fo::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
+	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[0];
+	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[1];
 
-	DWORD* leftSlot = (DWORD*)FO_VAR_itemButtonItems;
-	DWORD* rightSlot = leftSlot + 6;
-
-	if (*toSlot == 0) { //copy to slot
-		DWORD* slot;
+	if (toSlot == nullptr) { // copy to slot
+		fo::ItemButtonItem* slot;
 		fo::ItemButtonItem item[1];
-		if ((int)toSlot == FO_VAR_i_lhand) {
-			memcpy(item, rightSlot, 0x14);
+		if ((int)&toSlot == FO_VAR_i_lhand) {
+			std::memcpy(item, rightSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 			slot = leftSlot; // Rslot > Lslot
 		} else {
-			memcpy(item, leftSlot, 0x14);
+			std::memcpy(item, leftSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 			slot = rightSlot; // Lslot > Rslot;
 		}
-		memcpy(slot, item, 0x14);
-	} else { // swap slot
-		auto swapBuf = fo::var::itemButtonItems;
-		swapBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		swapBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		swapBuf[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		swapBuf[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		std::memcpy(slot, item, 0x14);
+	} else { // swap slots
+		auto hands = fo::var::itemButtonItems;
+		hands[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		memcpy(leftSlot,  &swapBuf[1], 0x14); // buf Rslot > Lslot
-		memcpy(rightSlot, &swapBuf[0], 0x14); // buf Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
 	}
 }
 
@@ -277,6 +324,51 @@ influence:
 skip:
 		add  esp, 4;
 		jmp  ListDrvdStats_Ret;
+	}
+}
+
+static void __declspec(naked) obj_render_outline_hack() {
+	__asm {
+		test eax, 0xFF00;
+		jnz  palColor;
+		mov  al, ds:[FO_VAR_GoodColor];
+		retn;
+palColor:
+		mov  al, ah;
+		retn;
+	}
+}
+
+static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
+	if (fo::var::text_object_index > 0) {
+		for (size_t i = 0; i < fo::var::text_object_index; i++) {
+			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
+			fo::func::mem_free(fo::var::text_object_list[i]);
+		}
+		fo::var::text_object_index = 0;
+	}
+	__asm {
+		mov  eax, tile;
+		mov  edx, flags;
+		call fo::funcoffs::tile_set_center_;
+	}
+	MainLoopHook::displayWinUpdateState = true;
+}
+
+static void __declspec(naked) obj_move_to_tile_hook() {
+	__asm {
+		mov  ecx, eax;
+		call RemoveAllFloatTextObjects;
+		mov  eax, ds:[FO_VAR_display_win];
+		jmp  fo::funcoffs::win_draw_; // update black edges
+	}
+}
+
+static void __declspec(naked) map_check_state_hook() {
+	__asm {
+		cmp  MainLoopHook::displayWinUpdateState, 0;
+		je   obj_move_to_tile_hook;
+		jmp  fo::funcoffs::tile_set_center_;
 	}
 }
 
@@ -406,15 +498,28 @@ static void MotionScannerFlagsPatch() {
 	}
 }
 
+static void __declspec(naked) ResizeEncounterMessagesTable() {
+	__asm {
+		add  eax, eax; // double the increment
+		add  eax, 3000;
+		retn;
+	}
+}
+
 static void EncounterTableSizePatch() {
 	const DWORD EncounterTableSize[] = {
 		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
 	};
 
-	DWORD tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
-	if (tableSize > 40 && tableSize <= 127) {
+	int tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
+	if (tableSize > 40) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
+		if (tableSize > 50) {
+			if (tableSize > 100) tableSize = 100;
+			// Increase the count of message lines from 50 to 100 for the encounter tables in worldmap.msg
+			MakeCalls(ResizeEncounterMessagesTable, {0x4C102C, 0x4C0B57});
+		}
 		SafeWrite8(0x4BDB17, (BYTE)tableSize);
 		DWORD nsize = (tableSize + 1) * 180 + 0x50;
 		SafeWriteBatch<DWORD>(nsize, EncounterTableSize);
@@ -433,18 +538,20 @@ static void DisablePipboyAlarmPatch() {
 
 static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
-		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
+		dlog("Applying obj_can_see_obj fix for seeing through critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
-static const char* musicOverridePath = "data\\sound\\music\\";
 static void OverrideMusicDirPatch() {
+	static const char* musicOverridePath = "data\\sound\\music\\";
+
 	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
-		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB});
+		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
 		if (overrideMode == 2) {
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
+			SafeWrite16(0x44FCF3, 0x40EB); // jmp 0x44FD35 (skip paths initialization)
 		}
 	}
 }
@@ -532,11 +639,11 @@ static void DisplaySecondWeaponRangePatch() {
 }
 
 static void KeepWeaponSelectModePatch() {
-	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
+	//if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 static void PartyMemberSkillPatch() {
@@ -554,15 +661,22 @@ static void PartyMemberSkillPatch() {
 	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
 }
 
+#pragma pack(push, 1)
+struct CodeData {
+	DWORD dd = 0x0024548D;
+	BYTE  db = 0x90;
+} patchData;
+#pragma pack(pop)
+
 static void SkipLoadingGameSettingsPatch() {
 	if (int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
-		dlog("Applying skip loading game settings from saved games patch.", DL_INIT);
+		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
 		BlockCall(0x493421);
 		SafeWrite8(0x4935A8, 0x1F);
 		SafeWrite32(0x4935AB, 0x90901B75);
-		CodeData PatchData;
-		if (skipLoading == 2) SafeWriteBatch<CodeData>(PatchData, {0x49341C, 0x49343B});
-		SafeWriteBatch<CodeData>(PatchData, {
+
+		if (skipLoading == 2) SafeWriteBatch<CodeData>(patchData, {0x49341C, 0x49343B});
+		SafeWriteBatch<CodeData>(patchData, {
 			0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE,
 			0x4934E3, 0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569,
 			0x49357A
@@ -572,12 +686,12 @@ static void SkipLoadingGameSettingsPatch() {
 }
 
 static void InterfaceDontMoveOnTopPatch() {
-	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
+	//if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 static void UseWalkDistancePatch() {
@@ -684,6 +798,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	BlockCall(0x4425E6); // Patch out ereg call
+
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
@@ -702,6 +818,15 @@ void MiscPatches::init() {
 	// Increase the max text width of the information card on the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
 
+	// Allow setting custom colors from the game palette for object outlines
+	MakeCall(0x48EE00, obj_render_outline_hack);
+
+	// Remove floating text messages after moving to another map elevation
+	// and redraw the screen to update black edges of the map (HRP bug)
+	// https://github.com/phobos2077/sfall/issues/282
+	HookCall(0x48A954, obj_move_to_tile_hook);
+	HookCall(0x483726, map_check_state_hook);
+
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
@@ -713,9 +838,6 @@ void MiscPatches::init() {
 
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
-
-	dlogr("Patching out ereg call.", DL_INIT);
-	BlockCall(0x4425E6);
 
 	OverrideMusicDirPatch();
 	BoostScriptDialogLimitPatch();

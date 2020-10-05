@@ -1,5 +1,6 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
+#include "..\Combat.h"
 #include "..\DamageMod.h"
 #include "..\HookScripts.h"
 #include "Common.h"
@@ -12,8 +13,8 @@ namespace sfall
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		HookBegin;
-		mov  args[4],  eax;   // attacker
-		mov  args[8],  ebx;   // target
+		mov  args[4], eax;    // attacker
+		mov  args[8], ebx;    // target
 		mov  args[12], ecx;   // body part
 		mov  args[16], edx;   // source tile
 		mov  eax, [esp + 8];
@@ -27,14 +28,15 @@ static void __declspec(naked) ToHitHook() {
 		mov  args[0], eax;
 		pushadc;
 	}
+	argCount = 8;
 
-	argCount = 7;
+	args[7] = Combat::determineHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
 		popadc;
 		cmp  cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn 8;
 	}
@@ -87,13 +89,13 @@ long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isC
 	if (!HookScripts::HookHasScript(HOOK_CALCAPCOST)) return cost;
 
 	BeginHook();
+	argCount = 4;
 
 	args[0] = (DWORD)source;
 	args[1] = hitMode;
 	args[2] = isCalled;
 	args[3] = cost;
 
-	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	if (cRet > 0) cost = rets[0];
@@ -119,7 +121,7 @@ static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -143,7 +145,7 @@ static void __declspec(naked) CalcApCostHook2() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -294,12 +296,12 @@ static void __declspec(naked) ItemDamageHook() {
 		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
 		pushad;
 	}
+	argCount = 6;
 
 	if (args[2] == 0) {  // weapon arg
 		args[4] += 8;    // type arg
 	}
 
-	argCount = 6;
 	RunHookScript(HOOK_ITEMDAMAGE);
 
 	__asm popad;
@@ -527,8 +529,7 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 		targetRet = (rets[0] != 0) ? rets[0] : object; // 0 - default object, -1 - invalid target, or object override
 		object = (targetRet != -1) ? targetRet : 0;    // object can't be -1
 		targetObjHookHasRet = true;
-	}
-	else if (targetObjHookHasRet && type == 1) {
+	} else if (targetObjHookHasRet && type == 1) {
 		targetObjHookHasRet = false;
 		if (targetRet != -1) object = targetRet;
 	}
@@ -653,17 +654,17 @@ void Inject_TargetObjectHook() {
 }
 
 void InitCombatHookScripts() {
-	LoadHookScript("hs_tohit", HOOK_TOHIT);
-	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
-	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
-	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
-	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
-	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
-	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
-	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
-	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
-	LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
-	LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
+	HookScripts::LoadHookScript("hs_tohit", HOOK_TOHIT);
+	HookScripts::LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+	HookScripts::LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+	HookScripts::LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+	HookScripts::LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+	HookScripts::LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+	HookScripts::LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+	HookScripts::LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
+	HookScripts::LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
+	HookScripts::LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
+	HookScripts::LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
 }
 
 }

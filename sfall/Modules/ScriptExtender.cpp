@@ -19,6 +19,7 @@
 //#include <unordered_set>
 #include <unordered_map>
 #include <map>
+#include <stack>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -84,16 +85,20 @@ struct SelfOverrideObj {
 	}
 };
 
+// Events in global scripts cannot be saved because the scripts don't have a binding object
 struct TimedEvent {
 	ScriptProgram* script;
 	unsigned long time;
 	long fixed_param;
+	bool isActive;
 
 	bool operator() (const TimedEvent &a, const TimedEvent &b) {
 		return a.time < b.time;
 	}
 } *timedEvent = nullptr;
 
+static long executeTimedEventDepth = 0;
+static std::stack<TimedEvent*> executeTimedEvents;
 static std::list<TimedEvent> timerEventScripts;
 
 static std::vector<std::string> globalScriptPathList;
@@ -473,7 +478,7 @@ bool IsGameScript(const char* filename) {
 static void LoadGlobalScriptsList() {
 	ScriptProgram prog;
 	for (auto& item : globalScriptFilesList) {
-		auto scriptFile = item.second;
+		auto &scriptFile = item.second;
 		dlog("> " + scriptFile, DL_SCRIPT);
 		isGlobalScriptLoading = 1;
 		LoadScriptProgram(prog, scriptFile.c_str(), true);
@@ -516,7 +521,7 @@ static void PrepareGlobalScriptsListByMask() {
 					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
 					continue;
 				}
-				globalScriptFilesList.insert(std::make_pair(baseName, fullPath));
+				globalScriptFilesList.insert(std::make_pair(baseName, fullPath)); // script files should be sorted in alphabetical order
 			}
 		}
 		fo::func::db_free_file_list(&filenames, 0);
@@ -528,7 +533,7 @@ static void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
 	isGameLoading = false;
 
-	LoadHookScripts();
+	HookScripts::LoadHookScripts();
 
 	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once
@@ -559,7 +564,10 @@ static void ClearGlobalScripts() {
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	timerEventScripts.clear();
-	HookScriptClear();
+	timedEvent = nullptr;
+	executeTimedEventDepth = 0;
+	while (!executeTimedEvents.empty()) executeTimedEvents.pop();
+	HookScripts::HookScriptClear();
 }
 
 void RunScriptProc(ScriptProgram* prog, const char* procName) {
@@ -637,35 +645,64 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
 			fo::func::runProgram(it->prog.ptr);
 		}
-	} else if (procId == fo::Scripts::ScriptProc::map_exit_p_proc) onMapExit.invoke();
+	} else if (procId == fo::Scripts::ScriptProc::map_exit_p_proc) {
+		onMapExit.invoke();
+	}
 
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	RunHookScriptsAtProc(procId);   // all hs_ scripts
+	HookScripts::RunHookScriptsAtProc(procId);   // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
 }
 
 static DWORD HandleTimedEventScripts() {
 	DWORD currentTime = fo::var::fallout_game_time;
-	bool wasRunning = false;
-	auto timerIt = timerEventScripts.cbegin();
-	for (; timerIt != timerEventScripts.cend(); ++timerIt) {
+	if (timerEventScripts.empty()) return currentTime;
+
+	executeTimedEventDepth++;
+
+	fo::func::dev_printf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+	for (auto it = timerEventScripts.cbegin(); it != timerEventScripts.cend(); ++it) {
+		fo::func::dev_printf("\n[TimedEventScripts] Event: %d", it->time);
+	}
+
+	bool eventWasRunning = false;
+	for (auto timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
+		if (timerIt->isActive == false) continue;
 		if (currentTime >= timerIt->time) {
+			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event
+
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
-			fo::func::dev_printf("\n[TimedEventScripts] run event: %d", timerIt->time);
+			timedEvent->isActive = false;
+
+			fo::func::dev_printf("\n[TimedEventScripts] Run event: %d", timerIt->time);
 			RunScriptProc(timerIt->script, fo::Scripts::ScriptProc::timed_event_p_proc);
-			wasRunning = true;
+			fo::func::dev_printf("\n[TimedEventScripts] Event done: %d", timerIt->time);
+
+			timedEvent = nullptr;
+			if (!executeTimedEvents.empty()) {
+				timedEvent = executeTimedEvents.top(); // restore a pointer to a previously running event
+				executeTimedEvents.pop();
+			}
+			eventWasRunning = true;
 		} else {
 			break;
 		}
 	}
-	if (wasRunning) {
-		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; ++_it) {
-			fo::func::dev_printf("\n[TimedEventScripts] delete event: %d", _it->time);
+	executeTimedEventDepth--;
+
+	if (eventWasRunning && executeTimedEventDepth == 0) {
+		timedEvent = nullptr;
+		// delete all previously executed events
+		for (auto it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
+			if (it->isActive == false) {
+				fo::func::dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
+				it = timerEventScripts.erase(it);
+			} else {
+				++it;
+			}
 		}
-		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
 	}
-	timedEvent = nullptr;
 	return currentTime;
 }
 
@@ -677,7 +714,7 @@ static DWORD TimedEventNextTime() {
 		mov  nextTime, eax;
 		push edx;
 	}
-	if (!timerEventScripts.empty()) {
+	if (!timerEventScripts.empty() && timerEventScripts.front().isActive) {
 		DWORD time = timerEventScripts.front().time;
 		if (!nextTime || time < nextTime) nextTime = time;
 	}
@@ -693,6 +730,7 @@ static DWORD script_chk_timed_events_hook() {
 void ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
 	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	TimedEvent timer;
+	timer.isActive = true;
 	timer.script = scriptProg;
 	timer.fixed_param = param;
 	timer.time = fo::var::fallout_game_time + time;
@@ -850,7 +888,7 @@ void ScriptExtender::init() {
 	}
 
 	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
-	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
+	if (alwaysFindScripts) dlogr("Always searching for global/hook scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
 	MakeJump(0x4A5E34, ScrPtrHack);

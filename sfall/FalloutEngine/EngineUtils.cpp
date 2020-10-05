@@ -18,10 +18,8 @@
 
 #include <cstdint>
 
-#include "Functions.h"
 #include "FunctionOffsets.h"
 #include "Structs.h"
-#include "Variables.h"
 #include "VariableOffsets.h"
 
 #include "EngineUtils.h"
@@ -191,64 +189,22 @@ long GetScriptLocalVars(long sid) {
 	return (script) ? script->numLocalVars : 0;
 }
 
-// Returns window ID by x/y coordinate (hidden windows are ignored)
-long __fastcall GetTopWindowID(long xPos, long yPos) {
-	fo::Window* win = nullptr;
-	long countWin = fo::var::num_windows - 1;
-	for (int n = countWin; n >= 0; n--) {
-		win = fo::var::window[n];
-		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
-			if (!(win->flags & fo::WinFlags::Hidden)) {
-				break;
+// Returns window by x/y coordinate (hidden windows are ignored)
+fo::Window* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans) {
+	long num = fo::var::num_windows - 1;
+	if (num) {
+		int cflags = fo::WinFlags::Hidden;
+		if (bypassTrans) cflags |= fo::WinFlags::Transparent;
+		do {
+			fo::Window* win = fo::var::window[num];
+			if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
+				if (!(win->flags & cflags)) {
+					return win;
+				}
 			}
-		}
+		} while (--num);
 	}
-	return win->wID;
-}
-
-enum WinNameType {
-	Inventory = 0, // any inventory window (player/loot/use/barter)
-	Dialog    = 1,
-	PipBoy    = 2,
-	WorldMap  = 3,
-	IfaceBar  = 4, // the interface bar
-	Character = 5,
-	Skilldex  = 6,
-	EscMenu   = 7, // escape menu
-	//Automap   = 8  // for this window there is no global variable
-};
-
-fo::Window* GetWindow(long winType) {
-	long winID = 0;
-	switch (winType) {
-	case WinNameType::Inventory:
-		winID = fo::var::i_wid;
-		break;
-	case WinNameType::Dialog:
-		winID = fo::var::dialogueBackWindow;
-		break;
-	case WinNameType::PipBoy:
-		winID = fo::var::pip_win;
-		break;
-	case WinNameType::WorldMap:
-		winID = fo::var::wmBkWin;
-		break;
-	case WinNameType::IfaceBar:
-		winID = fo::var::interfaceWindow;
-		break;
-	case WinNameType::Character:
-		winID = fo::var::edit_win;
-		break;
-	case WinNameType::Skilldex:
-		winID = fo::var::skldxwin;
-		break;
-	case WinNameType::EscMenu:
-		winID = fo::var::optnwin;
-		break;
-	default:
-		return (fo::Window*)(-1);
-	}
-	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
+	return fo::var::window[0];
 }
 
 static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
@@ -334,11 +290,8 @@ long wmGetCurrentTerrainType() {
 // copy the area from the interface buffer to the data array
 void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem) {
 	fromSurface += fromY * fromWidth + fromX;
-	long i = 0;
-	for (long h = 0; h < height; h++) {
-		for (long w = 0; w < width; w++) {
-			toMem[i++] = fromSurface[w];
-		}
+	for (long i = 0, h = 0; h < height; h++, i += width) {
+		std::memcpy(&toMem[i], fromSurface, width);
 		fromSurface += fromWidth;
 	}
 }
@@ -393,22 +346,15 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-// Fills the specified non-scripted interface window with black color
-void ClearWindow(DWORD winID, bool refresh) {
-	__asm {
-		xor  ebx, ebx;
-		push ebx;
-		mov  eax, winID;
-		call fo::funcoffs::win_height_;
-		push eax;
-		mov  eax, winID;
-		call fo::funcoffs::win_width_;
-		mov  ecx, eax;
-		mov  edx, ebx;
-		mov  eax, winID;
-		call fo::funcoffs::win_fill_;
+// Fills the specified non-scripted interface window with index color 0 (black color)
+void ClearWindow(long winID, bool refresh) {
+	fo::Window* win = fo::func::GNW_find(winID);
+	for (long i = 0; i < win->height; i++) {
+		std::memset(win->surface, 0, win->width);
 	}
-	if (refresh) fo::func::win_draw(winID);
+	if (refresh) {
+		fo::func::GNW_win_refresh(win, &win->rect, 0);
+	}
 }
 
 //---------------------------------------------------------
@@ -428,7 +374,7 @@ void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD
 	}
 }
 
-void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
@@ -524,10 +470,10 @@ void RedrawObject(GameObject* obj) {
 }
 
 // Redraws all interface windows
-void RefreshGNW() {
+void RefreshGNW(size_t from) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 1;
-	for (size_t i = 0; i < fo::var::num_windows; i++) {
-		func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
+	for (size_t i = from; i < fo::var::num_windows; i++) {
+		fo::func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
 	}
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Windows.h>
-
 #include "..\HookScripts.h"
 #include "..\ScriptExtender.h"
 
@@ -10,11 +8,21 @@
 namespace sfall
 {
 
-// Number of types of hooks
-constexpr int numHooks = HOOK_COUNT;
+class HookCommon {
+public:
+	static DWORD GetHSArgCount();
+	static DWORD GetHSArg();
+	static DWORD GetHSArgAt(DWORD id);
+	static DWORD* GetHSArgs();
+	static void SetHSArg(DWORD id, DWORD value);
+	static void __stdcall SetHSReturn(DWORD d);
 
-// Maximum number of return values
-const int maxRets = 8;
+	static void GameModeChangeHook(DWORD exit);
+	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
+	static void __stdcall MouseClickHook(DWORD button, bool pressed);
+
+	static void Reset();
+};
 
 // Struct for registered hook script
 struct HookScript {
@@ -34,7 +42,6 @@ extern DWORD cArg;    // how many arguments were taken by current hook script
 extern DWORD cRet;    // how many return values were set by current hook script
 extern DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
-bool LoadHookScript(const char* name, int id);
 void __stdcall BeginHook();
 void __stdcall RunHookScript(DWORD hook);
 void __stdcall EndHook();

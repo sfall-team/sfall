@@ -66,9 +66,9 @@ static Delegate<> onBeforeGameClose;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
-static bool disableHorrigan = false;
-static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
+
+long LoadGameHook::interfaceWID = -1;
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
@@ -341,7 +341,13 @@ static void __stdcall game_init_hook() {
 	onGameInit.invoke();
 }
 
-static void __stdcall GameInitialized() {
+static void __stdcall GameInitialized(int initResult) {
+	#ifdef NDEBUG
+	if (!initResult) {
+		MessageBoxA(0, "Game initialization failed!", "Error", MB_TASKMODAL | MB_ICONERROR);
+		return;
+	}
+	#endif
 	onAfterGameInit.invoke();
 }
 
@@ -360,6 +366,7 @@ static void __declspec(naked) main_init_system_hook() {
 		popadc;
 		call fo::funcoffs::main_init_system_;
 		pushadc;
+		push eax;
 		call GameInitialized;
 		popadc;
 		retn;
@@ -534,8 +541,11 @@ static void __declspec(naked) DialogHook_Start() {
 
 static void __declspec(naked) DialogHook_End() {
 	__asm {
-		_InLoop2(0, DIALOG);
-		jmp fo::funcoffs::gdialogFreeSpeech_;
+		and inLoop, ~DIALOG;  // unset flag
+		_InLoop2(1, SPECIAL); // set the flag before animating the panel when exiting the dialog
+		call fo::funcoffs::gdDestroyHeadWindow_;
+		_InLoop2(0, SPECIAL);
+		retn;
 	}
 }
 
@@ -620,7 +630,7 @@ skip:
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
-		and inLoop, ~SPECIAL; // unset flag
+		and inLoop, ~SPECIAL; // unset flag after animating the dialog panel
 		_InLoop(1, BARTER);
 		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
@@ -630,12 +640,23 @@ static void __declspec(naked) BarterInventoryHook() {
 	}
 }
 
-static void __declspec(naked) AutomapHook() {
+static void __declspec(naked) AutomapHook_Start() {
 	__asm {
+		call fo::funcoffs::gmouse_set_cursor_;
+		test edx, edx;
+		jnz  skip;
+		mov  LoadGameHook::interfaceWID, ebp;
 		_InLoop(1, AUTOMAP);
-		call fo::funcoffs::automap_;
-		_InLoop(0, AUTOMAP);
+skip:
 		retn;
+	}
+}
+
+static void __declspec(naked) AutomapHook_End() {
+	__asm {
+		_InLoop(0, AUTOMAP);
+		mov LoadGameHook::interfaceWID, -1
+		jmp fo::funcoffs::win_delete_;
 	}
 }
 
@@ -682,7 +703,7 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 
 static void __declspec(naked) gdialog_bk_hook() {
 	__asm {
-		_InLoop2(1, SPECIAL);
+		_InLoop2(1, SPECIAL); // set the flag before switching from dialog mode to barter
 		jmp fo::funcoffs::gdialog_window_destroy_;
 	}
 }
@@ -690,7 +711,7 @@ static void __declspec(naked) gdialog_bk_hook() {
 static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
 	__asm {
 		push edx;
-		_InLoop2(1, SPECIAL);
+		_InLoop2(1, SPECIAL); // set the flag before animating the dialog panel when a party member joins/leaves
 		pop  edx;
 		jmp  fo::funcoffs::gdialog_window_destroy_;
 	}
@@ -699,7 +720,7 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
 static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 	__asm {
 		call fo::funcoffs::gdialog_window_create_;
-		_InLoop2(0, SPECIAL);
+		_InLoop2(0, SPECIAL); // unset the flag when entering the party member control panel
 		retn;
 	}
 }
@@ -752,8 +773,8 @@ void LoadGameHook::init() {
 	HookCall(0x443A50, HelpMenuHook);  // game_handle_input_
 	HookCall(0x443320, CharacterHook); // 0x4A73EB, 0x4A740A for character creation
 
-	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_
-	HookCall(0x4452CD, DialogHook_End);   // gdialogExitFromScript_ (old 0x445748)
+	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_ (old 0x445748)
+	HookCall(0x445317, DialogHook_End);   // gdialogExitFromScript_
 
 	HookCalls(PipboyHook_Start, {0x49767F, 0x4977EF, 0x49780D}); // StartPipboy_ (old 0x443463, 0x443605)
 	HookCall(0x497868, PipboyHook_End); // EndPipboy_
@@ -771,7 +792,8 @@ void LoadGameHook::init() {
 
 	HookCall(0x4466C7, BarterInventoryHook); // gdProcess_
 
-	HookCalls(AutomapHook, {0x44396D, 0x479519}); // TODO
+	HookCall(0x41BAB6, AutomapHook_Start); // automap_
+	HookCall(0x41BCDB, AutomapHook_End);   // automap_
 
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);

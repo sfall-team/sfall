@@ -35,7 +35,7 @@ return:
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -58,7 +58,7 @@ static void __declspec(naked) HexABlockingHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -81,7 +81,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -104,7 +104,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovnb eax, rets[0];
+		cmovge eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -127,12 +127,10 @@ void Inject_HexMoveBlockHook() {
 }
 
 void InitHexBlockingHookScripts() {
-
-	LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
-	LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
-	LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
-	LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
-
+	HookScripts::LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
+	HookScripts::LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
+	HookScripts::LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
+	HookScripts::LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
 }
 
 }

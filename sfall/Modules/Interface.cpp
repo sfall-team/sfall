@@ -31,6 +31,62 @@
 namespace sfall
 {
 
+long Interface::ActiveInterfaceWID() {
+	return LoadGameHook::interfaceWID;
+}
+
+enum WinNameType {
+	Inventory = 0, // any inventory window (player/loot/use/barter)
+	Dialog    = 1,
+	PipBoy    = 2,
+	WorldMap  = 3,
+	IfaceBar  = 4, // the interface bar
+	Character = 5,
+	Skilldex  = 6,
+	EscMenu   = 7, // escape menu
+	Automap   = 8,
+	// TODO
+	DialogView,
+	DialogPanel,
+	MemberPanel,
+};
+
+fo::Window* Interface::GetWindow(long winType) {
+	long winID = 0;
+	switch (winType) {
+	case WinNameType::Inventory:
+		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = fo::var::i_wid;
+		break;
+	case WinNameType::Dialog:
+		if (GetLoopFlags() & DIALOG) winID = fo::var::dialogueBackWindow;
+		break;
+	case WinNameType::PipBoy:
+		if (GetLoopFlags() & PIPBOY) winID = fo::var::pip_win;
+		break;
+	case WinNameType::WorldMap:
+		if (GetLoopFlags() & WORLDMAP) winID = fo::var::wmBkWin;
+		break;
+	case WinNameType::IfaceBar:
+		winID = fo::var::interfaceWindow;
+		break;
+	case WinNameType::Character:
+		if (GetLoopFlags() & CHARSCREEN) winID = fo::var::edit_win;
+		break;
+	case WinNameType::Skilldex:
+		if (GetLoopFlags() & SKILLDEX) winID = fo::var::skldxwin;
+		break;
+	case WinNameType::EscMenu:
+		if (GetLoopFlags() & ESCMENU) winID = fo::var::optnwin;
+		break;
+	case WinNameType::Automap:
+		if (GetLoopFlags() & AUTOMAP) winID = ActiveInterfaceWID();
+		break;
+	default:
+		return (fo::Window*)(-1);
+	}
+	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
+}
+
 static BYTE movePointBackground[16 * 9 * 5];
 static fo::UnlistedFrm* ifaceFrm = nullptr;
 
@@ -179,7 +235,7 @@ run:
 
 static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
-		mov  eax, 0x65; // normal text font
+		mov  eax, 101; // normal text font
 		jmp  fo::funcoffs::text_font_;
 	}
 }
@@ -726,6 +782,7 @@ static void WorldMapInterfacePatch() {
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
 	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
@@ -842,6 +899,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 }
 
 static bool IFACE_BAR_MODE = false;
+
 static long gmouse_handle_event_hook() {
 	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
@@ -864,8 +922,19 @@ static long gmouse_handle_event_hook() {
 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
-		mov ecx, eax;
-		jmp fo::GetTopWindowID;
+		push 1; // bypass Transparent
+		mov  ecx, eax;
+		call fo::GetTopWindowAtPos;
+		mov  eax, [eax]; // wID
+		retn;
+	}
+}
+
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 101;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -877,14 +946,26 @@ void Interface::init() {
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
 
-	// Fix for interface windows with 'Hidden' and 'ScriptWindow' flags
-	// Hidden - will not toggle the mouse cursor when the cursor hovers over a hidden window
+	// Fix for interface windows with 'Transparent', 'Hidden' and 'ScriptWindow' flags
+	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	LoadGameHook::OnBeforeGameInit() += []() {
 		if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
 		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 	};
+
+	// Set the normal font for death screen subtitles
+	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
+		dlog("Applying death screen font patch.", DL_INIT);
+		HookCall(0x4812DF, main_death_scene_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Corrects the height of the black background for death screen subtitles
+	if (hrpIsEnabled == false) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
+	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 }
 
 void Interface::exit() {

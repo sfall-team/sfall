@@ -311,8 +311,8 @@ hide:
 	}
 }
 
-static char* artDbgMsg = "\nERROR: File not found: %s\n";
 static void __declspec(naked) art_data_size_hook() {
+	static char* artDbgMsg = "\nERROR: File not found: %s\n";
 	__asm {
 		test edi, edi;
 		jz   artNotExist;
@@ -335,6 +335,20 @@ display:
 		add  esp, 20;
 		lea  eax, [esp + 4];
 		jmp  fo::funcoffs::display_print_;
+	}
+}
+
+static void __declspec(naked) proto_load_pid_hack() {
+	static char* proDbgMsg = "\nERROR reading prototype file: %s\n";
+	__asm {
+		mov  dword ptr [esp + 0x120 - 0x1C + 4], -1;
+		lea  eax, [esp + 0x120 - 0x120 + 4]; // pro file
+		push eax;
+		push proDbgMsg;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 8;
+		mov  eax, 0x500494; // 'iisxxxx1'
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
@@ -384,7 +398,7 @@ static void DebugModePatch() {
 		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
-		// prints a debug message about missing art file for critters to both debug.log and the message window in sfall debugging mode
+		// prints a debug message about a missing critter art file to both debug.log and the message window in sfall debugging mode
 		HookCall(0x419B65, art_data_size_hook);
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
@@ -410,6 +424,9 @@ static void DontDeleteProtosPatch() {
 
 void DebugEditor::init() {
 	DebugModePatch();
+
+	// Notifies and prints a debug message about a corrupted proto file to debug.log
+	MakeCall(0x4A1D73, proto_load_pid_hack, 6);
 
 	if (!isDebug) return;
 	DontDeleteProtosPatch();

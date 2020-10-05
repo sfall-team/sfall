@@ -80,7 +80,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	int result = PartyControl::SwitchHandHook(item);
 	if (result != -1) {
 		cRetTmp = 0;
-		HookScripts::SetHSReturn(result);
+		HookCommon::SetHSReturn(result);
 	}
 	result = (cRet > 0) ? rets[0] : -1;
 	EndHook();
@@ -340,6 +340,7 @@ static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameOb
 		}
 	}
 	BeginHook();
+	argCount = 5;
 
 	args[0] = (DWORD)critter;
 	args[1] = (DWORD)item;
@@ -347,7 +348,6 @@ static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameOb
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
-	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	long result = (cRet == 0 || rets[0] == -1);
@@ -357,10 +357,11 @@ static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameOb
 }
 
 static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long isRemove = 0) {
+	argCount = 5;
+
 	args[3] = isWield; // unwield/wield event
 	args[4] = isRemove;
 
-	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	bool result = (cRet == 0 || rets[0] == -1);
@@ -377,6 +378,7 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		mov args[8], ebx; // slot
 		pushad;
 	}
+
 	// right hand slot?
 	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::GetItemType((fo::GameObject*)args[1]) != fo::item_type_armor) {
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
@@ -402,10 +404,12 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		mov args[8], edx; // slot
 		pushad;
 	}
+
 	// set slot
 	if (args[2] == 0) { // left hand slot?
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
+
 	// get item
 	args[1] = (DWORD)fo::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]);
 
@@ -431,6 +435,7 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		mov args[8], ebx; // item flag
 		pushadc;
 	}
+
 	// set slot
 	if (args[2] & fo::ObjectFlag::Right_Hand) {       // right hand slot
 		args[2] = fo::INVEN_TYPE_RIGHT_HAND;
@@ -439,7 +444,9 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	} else {
 		args[2] = fo::INVEN_TYPE_WORN;                // armor slot
 	}
+
 	InvenWieldHook_ScriptPart(0, 1); // unwield event (armor by default)
+
 	// engine handler is not overridden
 	__asm {
 		popadc;
@@ -575,9 +582,11 @@ static void AdjustFidHook(DWORD vanillaFid) {
 
 	BeginHook();
 	argCount = 2;
+
 	args[0] = vanillaFid;
 	args[1] = fo::var::i_fid; // modified FID by sfall code
 	RunHookScript(HOOK_ADJUSTFID);
+
 	if (cRet > 0) {
 		fo::var::i_fid = rets[0];
 	}
@@ -658,12 +667,11 @@ long CorrectFidForRemovedItem_wHook(fo::GameObject* critter, fo::GameObject* ite
 }
 
 void InitInventoryHookScripts() {
-
-	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
-	LoadHookScript("hs_movecost", HOOK_MOVECOST);
-	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
-	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
-	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+	HookScripts::LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+	HookScripts::LoadHookScript("hs_movecost", HOOK_MOVECOST);
+	HookScripts::LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+	HookScripts::LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+	HookScripts::LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
 
 	Inventory::OnAdjustFid() += AdjustFidHook; // should be registered last
 }
