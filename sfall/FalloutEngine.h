@@ -1302,7 +1302,8 @@ long __fastcall IsRadInfluence();
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
-long __fastcall GetTopWindowID(long xPos, long yPos);
+// Returns window by x/y coordinate (hidden windows are ignored)
+WINinfo* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans = false);
 
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1);
@@ -1327,7 +1328,7 @@ void ClearWindow(long winID, bool refresh = true);
 
 // Print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
-void __stdcall PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void __stdcall PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 
 // gets the height of the currently selected font
 DWORD __stdcall GetTextHeight();
