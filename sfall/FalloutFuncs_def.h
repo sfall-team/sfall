@@ -45,6 +45,7 @@ WRAP_WATCOM_FFUNC3(long, ScrSetLocalVar, scr_set_local_var_, long, sid, long, va
 WRAP_WATCOM_FFUNC3(long, TileNumInDirection, tile_num_in_direction_, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, TransCscale, trans_cscale_, void*, fromBuff, long, width, long, height, long, pitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, WinClip, win_clip_, WINinfo*, window, RectList**, rects, void*, buffer)
+WRAP_WATCOM_FFUNC9(long, WindowWrapLineWithSpacing, windowWrapLineWithSpacing_, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, unknown)
 
 WRAP_WATCOM_FFUNC3(const char*, InterpretGetString, interpretGetString_, TProgram*, scriptPtr, DWORD, dataType, DWORD, strId)
 

@@ -344,7 +344,7 @@ static void mf_intface_redraw() {
 	if (flag == 0) {
 		IntfaceRedraw();
 	} else {
-		RefreshGNW(1); // redraw all interfaces
+		RefreshGNW(2); // fake redraw all interfaces (TODO: need a real redraw of interfaces)
 	}
 }
 
@@ -491,6 +491,7 @@ static void mf_hide_window() {
 static void mf_set_window_flag() {
 	long bitFlag = opHandler.arg(1).rawValue();
 	switch (bitFlag) {
+		case WinFlags::DontMoveTop:
 		case WinFlags::MoveOnTop:
 		case WinFlags::Hidden:
 		case WinFlags::Exclusive:
@@ -832,4 +833,38 @@ static void mf_get_window_attribute() {
 		break;
 	}
 	opHandler.setReturn(result);
+}
+
+static void mf_print_text() { // same as vanilla PrintRect
+	WINinfo* win = Interface_GetWindow(opHandler.arg(1).rawValue());
+	if (win == nullptr || (int)win == -1) {
+		opHandler.printOpcodeError("print_text() - the game interface window is not created or invalid value for the interface.");
+		opHandler.setReturn(-1);
+		return;
+	}
+	const char* text = opHandler.arg(0).strValue();
+	long x = opHandler.arg(2).rawValue();
+	long y = opHandler.arg(3).rawValue();
+	long color = opHandler.arg(4).rawValue();
+	long width = (opHandler.numArgs() > 5) ? opHandler.arg(5).rawValue() : 0;
+
+	int maxHeight = win->height - y;
+	int maxWidth = win->width - x;
+	if (width <= 0) {
+		width = maxWidth;
+	} else if (width > maxWidth) {
+		width = maxWidth;
+	}
+
+	color ^= 0x2000000; // fills background with black color if the flag is set
+	if ((color & 0xFF) == 0) {
+		__asm call windowGetTextColor_; // set from SetTextColor
+		__asm mov  byte ptr color, al;
+	}
+	if (color & 0x10000) { // shadow
+		WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
+		color ^= 0x10000;
+	}
+	opHandler.setReturn(WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0));
+	GNWWinRefresh(win, &win->rect, 0);
 }

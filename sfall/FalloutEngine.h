@@ -1091,9 +1091,11 @@ extern const DWORD win_width_;
 extern const DWORD windowDisplayBuf_;
 extern const DWORD windowDisplayTransBuf_;
 extern const DWORD windowGetBuffer_;
+extern const DWORD windowGetTextColor_;
 extern const DWORD windowHide_;
 extern const DWORD windowShow_;
 extern const DWORD windowWidth_;
+extern const DWORD windowWrapLineWithSpacing_;
 extern const DWORD wmDrawCursorStopped_;
 extern const DWORD wmFindCurSubTileFromPos_;
 extern const DWORD wmInterfaceInit_;
@@ -1239,6 +1241,9 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 #define WRAP_WATCOM_FFUNC8(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
 	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
 
+#define WRAP_WATCOM_FFUNC9(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9);
+
 #include "FalloutFuncs_def.h"
 
 #undef WRAP_WATCOM_FUNC0
@@ -1258,6 +1263,7 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 #undef WRAP_WATCOM_FFUNC6
 #undef WRAP_WATCOM_FFUNC7
 #undef WRAP_WATCOM_FFUNC8
+#undef WRAP_WATCOM_FFUNC9
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
