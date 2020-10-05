@@ -348,6 +348,8 @@
 #define obj_under_cursor(onlyCritter, includeDude)      sfall_func2("obj_under_cursor", onlyCritter, includeDude)
 #define objects_in_radius(tile, radius, elev, type)     sfall_func4("objects_in_radius", tile, radius, elev, type)
 #define outlined_object                                 sfall_func0("outlined_object")
+#define print_text(text, winType, x, y, color)          sfall_func5("print_text", text, winType, x, y, color)
+#define print_text_width(text, winType, x, y, color, w) sfall_func6("print_text", text, winType, x, y, color, w)
 #define real_dude_obj                                   sfall_func0("real_dude_obj")
 #define remove_all_timer_events                         sfall_func0("remove_timer_event")
 #define remove_timer_event(fixedParam)                  sfall_func1("remove_timer_event", fixedParam)

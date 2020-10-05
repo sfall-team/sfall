@@ -129,6 +129,9 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
 	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
 
+#define WRAP_WATCOM_FFUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9);
+
 #include "Functions_def.h"
 
 #undef WRAP_WATCOM_FUNC0
@@ -148,6 +151,7 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #undef WRAP_WATCOM_FFUNC6
 #undef WRAP_WATCOM_FFUNC7
 #undef WRAP_WATCOM_FFUNC8
+#undef WRAP_WATCOM_FFUNC9
 
 }
 }

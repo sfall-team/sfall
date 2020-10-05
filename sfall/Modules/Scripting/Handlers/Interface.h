@@ -117,5 +117,7 @@ void mf_unwield_slot(OpcodeContext&);
 
 void mf_get_window_attribute(OpcodeContext&);
 
+void mf_print_text(OpcodeContext& ctx);
+
 }
 }
