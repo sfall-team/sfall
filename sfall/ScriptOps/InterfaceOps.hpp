@@ -729,7 +729,7 @@ static void mf_interface_art_draw() {
 		            interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
 		);
 
-		if (!(opHandler.arg(0).rawValue() & 0x10000)) {
+		if (!(opHandler.arg(0).rawValue() & 0x1000000)) {
 			GNWWinRefresh(interfaceWin, &interfaceWin->rect, 0);
 		}
 		MemFree(frmPtr);
@@ -804,8 +804,7 @@ static void mf_unwield_slot() {
 }
 
 static void mf_get_window_attribute() {
-	long attr = 0;
-	if (opHandler.numArgs() > 1) attr = opHandler.arg(1).rawValue();
+	long attr = (opHandler.numArgs() > 1) ? opHandler.arg(1).rawValue() : 0;
 
 	WINinfo* win = Interface_GetWindow(opHandler.arg(0).rawValue());
 	if (win == nullptr) {
@@ -835,16 +834,20 @@ static void mf_get_window_attribute() {
 	opHandler.setReturn(result);
 }
 
-static void mf_print_text() { // same as vanilla PrintRect
+static void mf_interface_print() { // same as vanilla PrintRect
 	WINinfo* win = Interface_GetWindow(opHandler.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
-		opHandler.printOpcodeError("print_text() - the game interface window is not created or invalid value for the interface.");
+		opHandler.printOpcodeError("interface_print() - the game interface window is not created or invalid value for the interface.");
 		opHandler.setReturn(-1);
 		return;
 	}
 	const char* text = opHandler.arg(0).strValue();
+
 	long x = opHandler.arg(2).rawValue();
+	if (x < 0) x = 0;
 	long y = opHandler.arg(3).rawValue();
+	if (y < 0) y = 0;
+
 	long color = opHandler.arg(4).rawValue();
 	long width = (opHandler.numArgs() > 5) ? opHandler.arg(5).rawValue() : 0;
 
@@ -856,15 +859,17 @@ static void mf_print_text() { // same as vanilla PrintRect
 		width = maxWidth;
 	}
 
-	color ^= 0x2000000; // fills background with black color if the flag is set
+	color ^= 0x2000000; // fills background with black color if the flag is set (textnofill)
 	if ((color & 0xFF) == 0) {
 		__asm call windowGetTextColor_; // set from SetTextColor
 		__asm mov  byte ptr color, al;
 	}
-	if (color & 0x10000) { // shadow
+	if (color & 0x10000) { // shadow (textshadow)
 		WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
 		color ^= 0x10000;
 	}
-	opHandler.setReturn(WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0));
-	GNWWinRefresh(win, &win->rect, 0);
+	opHandler.setReturn(WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
+
+	// no redraw (textdirect)
+	if (!(color & 0x1000000)) GNWWinRefresh(win, &win->rect, 0);
 }

@@ -3231,7 +3231,7 @@ void BugFixesInit()
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
-	// Fix broken op_obj_can_hear_obj_ function
+	// Fix broken obj_can_hear_obj function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B);           // jz loc_458414
@@ -3565,4 +3565,7 @@ void BugFixesInit()
 	const DWORD isShotBlockedAddr[] = {0x426D46, 0x426D4E};
 	SafeWriteBatch<BYTE>(0x41, isShotBlockedAddr); // edi > ecx (replace target with object critter)
 	SafeWrite8(0x426D48, DAM_DEAD | DAM_KNOCKED_DOWN | DAM_KNOCKED_OUT);
+
+	// Fix broken Print() script function
+	HookCall(0x461AD4, (void*)windowOutput_);
 }

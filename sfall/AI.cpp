@@ -415,6 +415,10 @@ void AIInit() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	#ifndef NDEBUG
+	if (iniGetInt("Debugging", "AIBugFixes", 1, ddrawIniDef) == 0) return;
+	#endif
+
 	// Fix for NPCs not fully reloading a weapon if it has more ammo capacity than a box of ammo
 	const DWORD itemWReloadAddr[] = {
 		0x42AF15,           // cai_attempt_w_reload_
@@ -435,10 +439,6 @@ void AIInit() {
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
 	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
 	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
-
-	#ifndef NDEBUG
-	if (iniGetInt("Debugging", "AIBugFixes", 1, ddrawIniDef) == 0) return;
-	#endif
 
 	// Tweak for finding new targets for party members
 	// Save the current target in the "target1" variable and find other potential targets

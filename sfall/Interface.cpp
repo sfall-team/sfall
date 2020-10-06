@@ -566,6 +566,26 @@ static void __declspec(naked) main_death_scene_hook() {
 	}
 }
 
+static void __declspec(naked) display_body_hook() {
+	static const DWORD display_body_hook_Ret = 0x47098D;
+	__asm {
+		mov  ebx, [esp + 0x60 - 0x28 + 8];
+		cmp  ebx, 1; // check mode 0 or 1
+		jbe  fix;
+		add  esp, 8;
+		mov  dword ptr [esp + 0x60 - 0x40], 0; // frm_ptr
+		jmp  display_body_hook_Ret;
+fix:
+		dec  edx;     // USE.FRM
+		mov  ecx, 48; // INVBOX.FRM
+		test ebx, ebx;
+		cmovz edx, ecx;
+		xor  ebx, ebx;
+		xor  ecx, ecx;
+		jmp  art_id_;
+	}
+}
+
 void InterfaceGmouseHandleHook() {
 	if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
@@ -584,7 +604,7 @@ void InterfaceInit() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	// InterfaceGmouseHandleHook will be run before game initialization
+	// InterfaceGmouseHandleHook will be executed before game initialization
 
 	// Set the normal font for death screen subtitles
 	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
@@ -597,6 +617,16 @@ void InterfaceInit() {
 	if (hrpIsEnabled == false) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
 	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
 	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
+
+	// Cosmetic fix for the background image of the character portrait on the inventory and character screens
+	HookCall(0x47093C, display_body_hook);
+	BYTE code[11] = {
+		0x8B, 0xD3,             // mov  edx, ebx
+		0x66, 0x8B, 0x58, 0xF4, // mov  bx, [eax - 12] [sizeof(frame)]
+		0x0F, 0xAF, 0xD3,       // imul edx, ebx (y * frame width)
+		0x53, 0x90              // push ebx (frame width)
+	};
+	SafeWriteBytes(0x470971, code, 11);
 }
 
 void InterfaceExit() {

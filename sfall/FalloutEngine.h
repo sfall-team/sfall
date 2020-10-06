@@ -1093,6 +1093,7 @@ extern const DWORD windowDisplayTransBuf_;
 extern const DWORD windowGetBuffer_;
 extern const DWORD windowGetTextColor_;
 extern const DWORD windowHide_;
+extern const DWORD windowOutput_;
 extern const DWORD windowShow_;
 extern const DWORD windowWidth_;
 extern const DWORD windowWrapLineWithSpacing_;

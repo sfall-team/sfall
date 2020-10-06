@@ -799,6 +799,7 @@ const DWORD windowDisplayTransBuf_ = 0x4B8F64;
 const DWORD windowGetBuffer_ = 0x4B82DC;
 const DWORD windowGetTextColor_ = 0x4B6174;
 const DWORD windowHide_ = 0x4B7610;
+const DWORD windowOutput_ = 0x4B80A4;
 const DWORD windowShow_ = 0x4B7648;
 const DWORD windowWidth_ = 0x4B7734;
 const DWORD windowWrapLineWithSpacing_ = 0x4B8854;
