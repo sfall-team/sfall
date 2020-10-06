@@ -599,7 +599,7 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
 	                       interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
 	);
 
-	if (!(ctx.arg(0).rawValue() & 0x10000)) {
+	if (!(ctx.arg(0).rawValue() & 0x1000000)) {
 		fo::func::GNW_win_refresh(interfaceWin, &interfaceWin->rect, 0);
 	}
 	fo::func::mem_free(frmPtr);
@@ -708,7 +708,7 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void mf_print_text(OpcodeContext& ctx) { // same as vanilla PrintRect
+void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	fo::Window* win = Interface::GetWindow(ctx.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
 		ctx.printOpcodeError("%s() - the game interface window is not created or invalid value for the interface.", ctx.getMetaruleName());
@@ -716,8 +716,12 @@ void mf_print_text(OpcodeContext& ctx) { // same as vanilla PrintRect
 		return;
 	}
 	const char* text = ctx.arg(0).strValue();
+
 	long x = ctx.arg(2).rawValue();
+	if (x < 0) x = 0;
 	long y = ctx.arg(3).rawValue();
+	if (y < 0) y = 0;
+
 	long color = ctx.arg(4).rawValue();
 	long width = ctx.arg(5).rawValue();
 
@@ -729,17 +733,19 @@ void mf_print_text(OpcodeContext& ctx) { // same as vanilla PrintRect
 		width = maxWidth;
 	}
 
-	color ^= 0x2000000; // fills background with black color if the flag is set
+	color ^= 0x2000000; // fills background with black color if the flag is set (textnofill)
 	if ((color & 0xFF) == 0) {
 		__asm call fo::funcoffs::windowGetTextColor_; // set from SetTextColor
 		__asm mov  byte ptr color, al;
 	}
-	if (color & 0x10000) { // shadow
+	if (color & 0x10000) { // shadow (textshadow)
 		fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
 		color ^= 0x10000;
 	}
-	ctx.setReturn(fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0));
-	fo::func::GNW_win_refresh(win, &win->rect, 0);
+	ctx.setReturn(fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
+
+	// no redraw (textdirect)
+	if (!(color & 0x1000000)) fo::func::GNW_win_refresh(win, &win->rect, 0);
 }
 
 }
