@@ -408,24 +408,13 @@ void op_set_proto_data(OpcodeContext& ctx) {
 }
 
 void mf_get_object_data(OpcodeContext& ctx) {
-	DWORD result = 0;
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
-	if (*(object_ptr - 1) != 0xFEEDFACE) {
-		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
-	} else {
-		result = *(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue());
-	}
-	ctx.setReturn(result);
+	ctx.setReturn(*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()));
 }
 
 void mf_set_object_data(OpcodeContext& ctx) {
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
-	if (*(object_ptr - 1) != 0xFEEDFACE) {
-		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
-		ctx.setReturn(-1);
-	} else {
-		*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
-	}
+	*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
 }
 
 void mf_get_object_ai_data(OpcodeContext& ctx) {

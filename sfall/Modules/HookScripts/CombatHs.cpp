@@ -68,17 +68,13 @@ static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DW
 static void __declspec(naked) AfterHitRollHook() {
 	using namespace fo;
 	__asm {
-		push ecx;
-		push edx;
-		mov  ecx, esi;                 // ctd
-		mov  edx, [esp + 0x18 + 12];   // hit chance
-		push eax;                      // was it a hit?
+		mov  ecx, esi;              // ctd
+		mov  edx, [esp + 0x18 + 4]; // hit chance
+		push eax;                   // was it a hit?
 		call AfterHitRollHook_Script;
-		pop  edx;
-		pop  ecx;
 		// engine code
 		mov  ebx, eax;
-		cmp  ebx, ROLL_FAILURE;
+		cmp  eax, ROLL_FAILURE;
 		retn;
 	}
 }
@@ -153,7 +149,7 @@ static void __declspec(naked) CalcApCostHook2() {
 
 static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiplier) {
 	BeginHook();
-	argCount = 12;
+	argCount = 13;
 
 	args[0] = (DWORD)ctd.target;           // Target
 	args[1] = (DWORD)ctd.attacker;         // Attacker
@@ -167,6 +163,7 @@ static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DW
 	args[9] = rounds;                      // number of rounds
 	args[10] = ctd.knockbackValue;
 	args[11] = ctd.hitMode;                // attack type
+	args[12] = (DWORD)&ctd;                // main_ctd/shoot_ctd/explosion_ctd
 
 	RunHookScript(HOOK_COMBATDAMAGE);
 
@@ -227,7 +224,7 @@ static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd,
 	args[8] = multiplyDamage;
 	args[9] = difficulty;
 	args[10] = accumulatedDamage;
-	args[11] = (DWORD)&ctd;
+	args[11] = (DWORD)&ctd; // main_ctd/shoot_ctd/explosion_ctd
 
 	RunHookScript(HOOK_SUBCOMBATDAMAGE);
 

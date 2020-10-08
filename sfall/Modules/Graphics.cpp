@@ -1339,6 +1339,7 @@ void Graphics::init() {
 
 	// Enable support for transparent interface windows
 	SafeWrite16(0x4D5D46, 0x9090); // win_init_ (create screen_buffer)
+	SafeWrite8(0x42F869, fo::WinFlags::MoveOnTop | fo::WinFlags::OwnerFlag); // addWindow_ (remove Transparent flag)
 	if (Graphics::mode) {
 		// custom implementation of the GNW_win_refresh function
 		MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);

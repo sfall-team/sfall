@@ -911,5 +911,13 @@ void mf_npc_engine_level_up(OpcodeContext& ctx) {
 	}
 }
 
+void mf_combat_data(OpcodeContext& ctx) {
+	fo::ComputeAttackResult* ctd = nullptr;
+	if (fo::var::combat_state & 1) {
+		ctd = &fo::var::main_ctd;
+	}
+	ctx.setReturn((DWORD)ctd, DataType::INT);
+}
+
 }
 }
