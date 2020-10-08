@@ -65,7 +65,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 		jnz  noCar;
 		cmp  ds:[_Move_on_Car], 0;
 		jz   noCar;
-		mov  edx, _CarCurrArea;
+		mov  edx, _carCurrentArea;
 		mov  eax, ForceEncounterMapID;
 		call wmMatchAreaContainingMapIdx_;
 noCar:
@@ -200,6 +200,10 @@ fail:
 		pop ebx;
 		retn;
 	}
+}
+
+static void mf_set_car_intface_art() {
+	Worldmap_SetCarInterfaceArt(opHandler.arg(0).rawValue());
 }
 
 static void mf_set_map_enter_position() {

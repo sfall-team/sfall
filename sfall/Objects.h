@@ -5,14 +5,14 @@ enum UniqueID : long {
 	UID_END   = 0x7FFFFFFF
 };
 
-extern long objUniqueID;
+extern long Objects_uniqueID;
 
 void ObjectsInit();
-
-long __fastcall SetObjectUniqueID(TGameObj* obj);
-long __fastcall SetSpecialID(TGameObj* obj);
-void SetNewEngineID(TGameObj* obj);
-
-void SetAutoUnjamLockTime(DWORD time);
 void RestoreObjUnjamAllLocks();
-void LoadProtoAutoMaxLimit();
+
+long __fastcall Objects_SetObjectUniqueID(TGameObj* obj);
+long __fastcall Objects_SetSpecialID(TGameObj* obj);
+void Objects_SetNewEngineID(TGameObj* obj);
+
+void Objects_SetAutoUnjamLockTime(DWORD time);
+void Objects_LoadProtoAutoMaxLimit();

@@ -267,7 +267,7 @@ void __stdcall SetSkillMax(TGameObj* critter, int maximum) {
 		return;
 	}
 
-	long id = SetObjectUniqueID(critter);
+	long id = Objects_SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
 		if (id == skillMaxMods[i].id) {
 			skillMaxMods[i].maximum = maximum;
@@ -288,7 +288,7 @@ void __stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		return;
 	}
 
-	long id = SetObjectUniqueID(critter);
+	long id = Objects_SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
 		if (id == pickpocketMods[i].id) {
 			pickpocketMods[i].maximum = maximum;

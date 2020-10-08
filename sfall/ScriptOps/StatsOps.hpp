@@ -84,7 +84,7 @@ static void __stdcall op_get_pc_base_stat2() {
 	} else {
 		OpcodeInvalidArgs("get_pc_base_stat");
 	}
-	opHandler.setReturn(value, DATATYPE_INT);
+	opHandler.setReturn(value);
 
 }
 
@@ -106,7 +106,7 @@ static void __stdcall op_get_pc_extra_stat2() {
 	} else {
 		OpcodeInvalidArgs("get_pc_extra_stat");
 	}
-	opHandler.setReturn(value, DATATYPE_INT);
+	opHandler.setReturn(value);
 }
 
 static void __declspec(naked) op_get_pc_extra_stat() {
@@ -185,7 +185,7 @@ static void __stdcall op_get_critter_base_stat2() {
 	} else {
 		OpcodeInvalidArgs("get_critter_base_stat");
 	}
-	opHandler.setReturn(result, DATATYPE_INT);
+	opHandler.setReturn(result);
 }
 
 static void __declspec(naked) op_get_critter_base_stat() {
@@ -212,7 +212,7 @@ static void __stdcall op_get_critter_extra_stat2() {
 	} else {
 		OpcodeInvalidArgs("get_critter_extra_stat");
 	}
-	opHandler.setReturn(result, DATATYPE_INT);
+	opHandler.setReturn(result);
 }
 
 static void __declspec(naked) op_get_critter_extra_stat() {

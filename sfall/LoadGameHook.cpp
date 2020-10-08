@@ -131,7 +131,7 @@ static void __stdcall SaveGame2() {
 	HANDLE h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		SaveGlobals(h);
-		WriteFile(h, &objUniqueID, 4, &size, 0); // save unique id counter
+		WriteFile(h, &Objects_uniqueID, 4, &size, 0); // save unique id counter
 		data = Worldmap_GetAddedYears(false) << 16; // save to high bytes (short)
 		WriteFile(h, &data, 4, &size, 0);
 		PerksSave(h);
@@ -218,7 +218,7 @@ static bool __stdcall LoadGame_Before() {
 		if (LoadGlobals(h)) goto errorLoad;
 		long uID = 0;
 		ReadFile(h, &uID, 4, &size, 0);
-		if (uID > UID_START) objUniqueID = uID;
+		if (uID > UID_START) Objects_uniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap_SetAddedYears(data >> 16);
 		if (size != 4 || !PerksLoad(h)) goto errorLoad;
@@ -305,7 +305,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	}
 	#endif
 	RemoveSavFiles();
-	SetBoxMaxSlots();
+	BarBoxes_SetMaxSlots();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 }
 

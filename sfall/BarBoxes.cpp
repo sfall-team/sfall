@@ -222,7 +222,7 @@ static void SetEngine(int count) {
 	}
 }
 
-long SetBoxMaxSlots() {
+long BarBoxes_SetMaxSlots() {
 	long scrWidth = Gfx_GetGameWidthRes();
 
 	int slots = scrWidth / 127;
@@ -242,7 +242,7 @@ long SetBoxMaxSlots() {
 
 static long __fastcall GetOffsetX(int width) {
 	int x_offset = 0;
-	if (SetBoxMaxSlots() > 640 && width > ifaceWidth) {
+	if (BarBoxes_SetMaxSlots() > 640 && width > ifaceWidth) {
 		x_offset -= (width - ifaceWidth) / 2;
 	}
 	return x_offset;
@@ -305,7 +305,7 @@ void BarBoxesInit() {
 	if (ifaceWidth < 640) ifaceWidth = 640;
 }
 
-long __stdcall AddExtraBox() {
+long __stdcall BarBoxes_AddExtraBox() {
 	if (boxCount < totalBoxCount) {
 		actualBoxCount++;
 		boxCount++;
@@ -344,18 +344,18 @@ long __stdcall AddExtraBox() {
 	return BarBoxes_MaxBox(); // current number of added box
 }
 
-bool __stdcall GetBox(int i) {
+bool __stdcall BarBoxes_GetBox(int i) {
 	if (i < 5 || i > BarBoxes_MaxBox()) return false;
 	return boxText[i - 5].isActive;
 }
 
-void __stdcall AddBox(int i) {
+void __stdcall BarBoxes_AddBox(int i) {
 	if (i < 5 || i > BarBoxes_MaxBox()) return;
 	boxText[i - 5].isActive = true;
 	__asm call refresh_box_bar_win_;
 }
 
-void __stdcall RemoveBox(int i) {
+void __stdcall BarBoxes_RemoveBox(int i) {
 	if (i < 5 || i > BarBoxes_MaxBox()) return;
 	boxText[i - 5].isActive = false;
 	__asm call refresh_box_bar_win_;

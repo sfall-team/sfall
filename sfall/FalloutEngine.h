@@ -49,7 +49,8 @@
 #define _bottom_line                0x664524
 #define _btable                     0x59E944
 #define _btncnt                     0x43EA1C
-#define _CarCurrArea                0x672E68
+#define _carCurrentArea             0x672E68
+#define _carGasAmount               0x672E6C
 #define _card_old_fid1              0x5709EC
 #define _character_points           0x518538
 #define _cmap                       0x51DF34
@@ -339,7 +340,8 @@ extern BYTE*  ptr_BlueColor;
 extern DWORD* ptr_bottom_line;
 extern DWORD* ptr_btable;
 extern DWORD* ptr_btncnt;
-extern DWORD* ptr_CarCurrArea;
+extern DWORD* ptr_carCurrentArea;
+extern long*  ptr_carGasAmount; // from 0 to 80000
 extern DWORD* ptr_cmap;
 extern DWORD* ptr_colorTable;
 extern DWORD* ptr_combat_free_move;

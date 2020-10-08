@@ -18,10 +18,10 @@
 
 #pragma once
 
-long __stdcall GetInvenApCost();
-void __fastcall SetInvenApCost(int cost);
-DWORD __stdcall sf_item_total_size(TGameObj* critter);
-
 void InventoryInit();
 void InventoryReset();
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed);
+
+long __stdcall GetInvenApCost();
+void __fastcall SetInvenApCost(int cost);
+DWORD __stdcall sf_item_total_size(TGameObj* critter);

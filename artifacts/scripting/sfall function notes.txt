@@ -439,7 +439,16 @@ Some utility/math functions are available:
 - returns an object that is currently highlighted by hovering the mouse above it
 
 > void sfall_func0("real_dude_obj")
-- returns the initial dude_obj after taking control of other critters
+- returns the initial dude_obj after taking control of other critters in combat
+
+> int sfall_func0("car_gas_amount")
+- returns the current amount of fuel in player's car (between 0 and 80000)
+- to change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount) - amount can be positive or negative
+
+> void sfall_func1("set_car_intface_art", int artIndex)
+- changes the interface art (index in intrface.lst) for the car image on the world map interface
+- should be called before going to the world map
+- vanilla art index is 433
 
 > int sfall_func0("get_cursor_mode")
 - returns the current cursor mode (0 - movement cursor, 1 - command cursor, 2 - targeting cursor)

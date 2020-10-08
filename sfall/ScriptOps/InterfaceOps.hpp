@@ -260,7 +260,7 @@ end:
 }
 
 static void mf_add_iface_tag() {
-	int result = AddExtraBox();
+	int result = BarBoxes_AddExtraBox();
 	if (result == -1) opHandler.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
 	opHandler.setReturn(result);
 }
@@ -273,7 +273,7 @@ static void __stdcall op_show_iface_tag2() {
 			__asm mov  eax, tag;
 			__asm call pc_flag_on_;
 		} else {
-			AddBox(tag);
+			BarBoxes_AddBox(tag);
 		}
 	} else {
 		OpcodeInvalidArgs("show_iface_tag");
@@ -292,7 +292,7 @@ static void __stdcall op_hide_iface_tag2() {
 			__asm mov  eax, tag;
 			__asm call pc_flag_off_;
 		} else {
-			RemoveBox(tag);
+			BarBoxes_RemoveBox(tag);
 		}
 	} else {
 		OpcodeInvalidArgs("hide_iface_tag");
@@ -326,7 +326,7 @@ static void __stdcall op_is_iface_tag_active2() {
 				result = ((*(int*)(proto + 0x20) & flagBit) != 0);
 			}
 		} else {
-			result = GetBox(tag);
+			result = BarBoxes_GetBox(tag);
 		}
 		opHandler.setReturn(result);
 	} else {

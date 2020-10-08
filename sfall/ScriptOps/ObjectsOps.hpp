@@ -494,6 +494,10 @@ static void mf_real_dude_obj() {
 	opHandler.setReturn(RealDudeObject());
 }
 
+static void mf_car_gas_amount() {
+	opHandler.setReturn(*ptr_carGasAmount);
+}
+
 static void mf_lock_is_jammed() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
@@ -514,7 +518,7 @@ static void mf_set_unjam_locks_time() {
 		opHandler.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
 		opHandler.setReturn(-1);
 	} else {
-		SetAutoUnjamLockTime(time);
+		Objects_SetAutoUnjamLockTime(time);
 	}
 }
 
@@ -599,7 +603,7 @@ static void __stdcall op_set_proto_data2() {
 		if (result != -1) {
 			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
 			if (!protoMaxLimitPatch) {
-				LoadProtoAutoMaxLimit();
+				Objects_LoadProtoAutoMaxLimit();
 				protoMaxLimitPatch = true;
 			}
 		} else {
@@ -639,7 +643,7 @@ static void mf_set_unique_id() {
 		id = NewObjId();
 		obj->id = id;
 	} else {
-		id = SetObjectUniqueID(obj);
+		id = Objects_SetObjectUniqueID(obj);
 	}
 	opHandler.setReturn(id);
 }

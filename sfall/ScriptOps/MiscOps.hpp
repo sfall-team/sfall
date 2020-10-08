@@ -599,7 +599,7 @@ static void __declspec(naked) op_get_uptime() {
 static void __declspec(naked) op_set_car_current_town() {
 	__asm {
 		_GET_ARG_INT(end);
-		mov  ds:[_CarCurrArea], eax;
+		mov  ds:[_carCurrentArea], eax;
 end:
 		retn;
 	}

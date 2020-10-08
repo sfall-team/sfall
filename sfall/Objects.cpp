@@ -24,32 +24,32 @@
 static int unjamTimeState;
 static int maxCountLoadProto = 512;
 
-long objUniqueID = UID_START; // current counter id, saving to sfallgv.sav
+long Objects_uniqueID = UID_START; // current counter id, saving to sfallgv.sav
 
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
-long __fastcall SetObjectUniqueID(TGameObj* obj) {
+long __fastcall Objects_SetObjectUniqueID(TGameObj* obj) {
 	long id = obj->id;
 	if (id > UID_START || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
-	if ((DWORD)objUniqueID >= (DWORD)UID_END) objUniqueID = UID_START;
-	obj->id = ++objUniqueID;
-	return objUniqueID;
+	if ((DWORD)Objects_uniqueID >= (DWORD)UID_END) Objects_uniqueID = UID_START;
+	obj->id = ++Objects_uniqueID;
+	return Objects_uniqueID;
 }
 
 // Assigns a unique ID in the negative range (0xFFFFFFF6 - 0x8FFFFFF7)
-long __fastcall SetSpecialID(TGameObj* obj) {
+long __fastcall Objects_SetSpecialID(TGameObj* obj) {
 	long id = obj->id;
 	if (id <= -10 || id > UID_START) return id;
 
-	if ((DWORD)objUniqueID >= (DWORD)UID_END) objUniqueID = UID_START;
-	id = -9 - (++objUniqueID - UID_START);
+	if ((DWORD)Objects_uniqueID >= (DWORD)UID_END) Objects_uniqueID = UID_START;
+	id = -9 - (++Objects_uniqueID - UID_START);
 	obj->id = id;
 	return id;
 }
 
-void SetNewEngineID(TGameObj* obj) {
+void Objects_SetNewEngineID(TGameObj* obj) {
 	if (obj->id > UID_START) return;
 	obj->id = NewObjId();
 }
@@ -80,7 +80,7 @@ pickNewID: // skip PM range (18000 - 83535)
 }
 
 // Reassigns object IDs to all critters upon first loading a map
-static void __stdcall map_fix_critter_id() {
+static void map_fix_critter_id() {
 	long npcStartID = 4096;
 	TGameObj* obj = ObjFindFirst();
 	while (obj) {
@@ -130,7 +130,7 @@ fix:
 		push ecx;
 		push edx;
 		mov  ecx, edi;
-		call SetSpecialID;
+		call Objects_SetSpecialID;
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -142,7 +142,7 @@ notItem:
 		push ecx;
 		push edx;
 		mov  ecx, edi;
-		call SetObjectUniqueID;
+		call Objects_SetObjectUniqueID;
 		pop  edx;
 		pop  ecx;
 end:
@@ -151,7 +151,7 @@ end:
 	}
 }
 
-void SetAutoUnjamLockTime(DWORD time) {
+void Objects_SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
 	if (time > 0) {
@@ -192,7 +192,7 @@ end:
 	}
 }
 
-void LoadProtoAutoMaxLimit() {
+void Objects_LoadProtoAutoMaxLimit() {
 	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 

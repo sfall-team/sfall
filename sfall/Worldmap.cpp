@@ -462,6 +462,10 @@ DWORD Worldmap_GetAddedYears(bool isCheck) {
 	return (isCheck && !addYear) ? 0 : addedYears;
 }
 
+void Worldmap_SetCarInterfaceArt(DWORD artIndex) {
+	SafeWrite32(0x4C2D9B, artIndex);
+}
+
 static const char* GetOverrideTerrainName(long x, long y) {
 	if (wmTerrainTypeNames.empty()) return nullptr;
 
@@ -506,6 +510,7 @@ const char* Worldmap_GetCustomAreaTitle(long areaID) {
 }
 
 void Worldmap_OnGameLoad() {
+	Worldmap_SetCarInterfaceArt(433); // set index
 	wmTerrainTypeNames.clear();
 	wmAreaHotSpotTitle.clear();
 }

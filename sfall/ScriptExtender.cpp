@@ -862,6 +862,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{mf_inventory_redraw,       "inventory_redraw",       {DATATYPE_MASK_INT}},
 	{mf_message_box,            "message_box",            {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{mf_remove_timer_event,     "remove_timer_event",     {DATATYPE_MASK_INT}},
+	{mf_set_car_intface_art,    "set_car_intface_art",    {DATATYPE_MASK_INT}},
 	{mf_set_cursor_mode,        "set_cursor_mode",        {DATATYPE_MASK_INT}},
 	{mf_set_flags,              "set_flags",              {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{mf_set_iface_tag_text,     "set_iface_tag_text",     {DATATYPE_MASK_INT, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},

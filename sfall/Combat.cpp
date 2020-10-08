@@ -339,8 +339,8 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 	}
 
 	long id = (mode == 0)
-			? SetSpecialID(object)
-			: SetObjectUniqueID(object);
+			? Objects_SetSpecialID(object)
+			: Objects_SetObjectUniqueID(object);
 
 	KnockbackModifier mod = { id, type, (double)val };
 	for (size_t i = 0; i < mods->size(); i++) {
@@ -370,7 +370,7 @@ void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 	for (size_t i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
-			if (mode == 0) SetNewEngineID(object); // revert to engine range id
+			if (mode == 0) Objects_SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -383,7 +383,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		return;
 	}
 	if (critter->Type() != OBJ_TYPE_CRITTER) return;
-	long id = SetObjectUniqueID(critter);
+	long id = Objects_SetObjectUniqueID(critter);
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
 			hitChanceMods[i].maximum = maximum;
@@ -401,7 +401,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 void __stdcall SetNoBurstMode(TGameObj* critter, bool on) {
 	if (critter == *ptr_obj_dude || critter->Type() != OBJ_TYPE_CRITTER) return;
 
-	long id = SetObjectUniqueID(critter);
+	long id = Objects_SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
 		if (noBursts[i] == id) {
 			if (!on) noBursts.erase(noBursts.begin() + i); // off

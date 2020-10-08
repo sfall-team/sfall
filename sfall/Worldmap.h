@@ -21,6 +21,8 @@
 void WorldmapInit();
 void Worldmap_OnGameLoad();
 
+void Worldmap_SetCarInterfaceArt(DWORD artIndex);
+
 DWORD Worldmap_GetAddedYears(bool isCheck = true);
 void Worldmap_SetAddedYears(DWORD years);
 
