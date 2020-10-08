@@ -120,6 +120,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"add_trait",               mf_add_trait,               1, 1},
 	{"art_cache_clear",         mf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         mf_attack_is_aimed,         0, 0},
+	{"combat_data",             mf_combat_data,             0, 0},
 	{"create_win",              mf_create_win,              5, 6},
 	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2},
 	{"dialog_obj",              mf_get_dialog_object,       0, 0},

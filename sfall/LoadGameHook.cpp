@@ -132,11 +132,11 @@ static void __stdcall SaveGame2() {
 	if (h != INVALID_HANDLE_VALUE) {
 		SaveGlobals(h);
 		WriteFile(h, &objUniqueID, 4, &size, 0); // save unique id counter
-		data = GetAddedYears(false) << 16; // save to high bytes (short)
+		data = Worldmap_GetAddedYears(false) << 16; // save to high bytes (short)
 		WriteFile(h, &data, 4, &size, 0);
 		PerksSave(h);
 		SaveArrays(h);
-		DrugsSaveFix(h);
+		BugFixes_DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -220,10 +220,10 @@ static bool __stdcall LoadGame_Before() {
 		ReadFile(h, &uID, 4, &size, 0);
 		if (uID > UID_START) objUniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
-		SetAddedYears(data >> 16);
+		Worldmap_SetAddedYears(data >> 16);
 		if (size != 4 || !PerksLoad(h)) goto errorLoad;
 		long result = LoadArrays(h); // 1 - old save, -1 - broken save
-		if (result == -1 || (!result && DrugsLoadFix(h))) goto errorLoad;
+		if (result == -1 || (!result && BugFixes_DrugsLoadFix(h))) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);

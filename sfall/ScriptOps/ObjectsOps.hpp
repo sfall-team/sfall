@@ -615,31 +615,21 @@ static void __declspec(naked) op_set_proto_data() {
 }
 
 static void mf_get_object_data() {
-	DWORD result = 0;
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &offsetArg = opHandler.arg(1);
 
 	if (obj && offsetArg.isInt()) {
 		DWORD* object_ptr = (DWORD*)obj;
-		if (*(object_ptr - 1) != 0xFEEDFACE) {
-			opHandler.printOpcodeError("get_object_data() - invalid object pointer.");
-		} else {
-			result = *(long*)((BYTE*)object_ptr + offsetArg.rawValue());
-		}
+		opHandler.setReturn(*(long*)((BYTE*)object_ptr + offsetArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("get_object_data");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(result);
 }
 
 static void mf_set_object_data() {
 	DWORD* object_ptr = (DWORD*)opHandler.arg(0).rawValue();
-	if (*(object_ptr - 1) != 0xFEEDFACE) {
-		opHandler.printOpcodeError("set_object_data() - invalid object pointer.");
-		opHandler.setReturn(-1);
-	} else {
-		*(long*)((BYTE*)object_ptr + opHandler.arg(1).rawValue()) = opHandler.arg(2).rawValue();
-	}
+	*(long*)((BYTE*)object_ptr + opHandler.arg(1).rawValue()) = opHandler.arg(2).rawValue();
 }
 
 static void mf_set_unique_id() {

@@ -32,7 +32,7 @@ static int __fastcall DrugPidPop() {
 	return pid;
 }
 
-void DrugsSaveFix(HANDLE file) {
+void BugFixes_DrugsSaveFix(HANDLE file) {
 	DWORD sizeWrite, count = drugsPid.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	if (!count) return;
@@ -44,7 +44,7 @@ void DrugsSaveFix(HANDLE file) {
 	return;
 }
 
-bool DrugsLoadFix(HANDLE file) {
+bool BugFixes_DrugsLoadFix(HANDLE file) {
 	DWORD count, sizeRead;
 	ReadFile(file, &count, 4, &sizeRead, 0);
 	if (sizeRead != 4) return false;

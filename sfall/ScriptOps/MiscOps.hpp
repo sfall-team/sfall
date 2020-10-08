@@ -1161,3 +1161,11 @@ static void mf_npc_engine_level_up() {
 		npcEngineLevelUp = false;
 	}
 }
+
+static void mf_combat_data() {
+	TComputeAttack* ctd = nullptr;
+	if (*ptr_combat_state & 1) {
+		ctd = ptr_main_ctd;
+	}
+	opHandler.setReturn((DWORD)ctd, DATATYPE_INT);
+}

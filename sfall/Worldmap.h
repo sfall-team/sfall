@@ -21,8 +21,8 @@
 void WorldmapInit();
 void Worldmap_OnGameLoad();
 
-DWORD GetAddedYears(bool isCheck = true);
-void SetAddedYears(DWORD years);
+DWORD Worldmap_GetAddedYears(bool isCheck = true);
+void Worldmap_SetAddedYears(DWORD years);
 
 void Worldmap_SetTerrainTypeName(long x, long y, const char* name);
 //const char* Worldmap_GetTerrainTypeName(long x, long y);

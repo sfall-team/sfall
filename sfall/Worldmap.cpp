@@ -454,11 +454,11 @@ void __stdcall SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 
-void SetAddedYears(DWORD years) {
+void Worldmap_SetAddedYears(DWORD years) {
 	addedYears = years;
 }
 
-DWORD GetAddedYears(bool isCheck) {
+DWORD Worldmap_GetAddedYears(bool isCheck) {
 	return (isCheck && !addYear) ? 0 : addedYears;
 }
 
