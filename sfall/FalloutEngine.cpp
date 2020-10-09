@@ -856,70 +856,71 @@ void DevPrintf(...) {}
 	__asm call offs
 
 #define WRAP_WATCOM_CALL1(offs, arg1) \
-	__asm mov eax, arg1				\
+	__asm mov eax, arg1               \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_CALL2(offs, arg1, arg2) \
-	__asm mov edx, arg2				\
+	__asm mov edx, arg2                     \
 	WRAP_WATCOM_CALL1(offs, arg1)
 
 #define WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				\
+	__asm mov ebx, arg3                           \
 	WRAP_WATCOM_CALL2(offs, arg1, arg2)
 
 #define WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov ecx, arg4				\
+	__asm mov ecx, arg4                                 \
 	WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3)
 
 #define WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	__asm push arg5				\
+	__asm push arg5                                           \
 	WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	__asm push arg6				\
+	__asm push arg6                                                 \
 	WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	__asm push arg7				\
+	__asm push arg7                                                       \
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 // defines wrappers for __fastcall
 #define WRAP_WATCOM_FCALL1(offs, arg1) \
-	__asm mov eax, ecx				\
+	__asm mov eax, ecx                 \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_FCALL2(offs, arg1, arg2) \
 	WRAP_WATCOM_FCALL1(offs, arg1)
 
 #define WRAP_WATCOM_FCALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				\
+	__asm mov ebx, arg3                            \
 	WRAP_WATCOM_FCALL1(offs, arg1)
 
 #define WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov eax, ecx				\
-	__asm mov ebx, arg3				\
-	__asm mov ecx, arg4				\
+	__asm mov eax, ecx     \
+	__asm mov ebx, arg3    \
+	__asm mov ecx, arg4    \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	__asm push arg5				\
+	__asm push arg5                                            \
 	WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	__asm push arg6				\
+	__asm push arg6                                                  \
 	WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	__asm push arg7				\
+	__asm push arg7                                                        \
 	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 #define WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
-	__asm push arg8				\
+	__asm push arg8                                                              \
 	WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 
 #define WRAP_WATCOM_FCALL9(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
-	__asm push arg9				\
+	__asm push arg9                                                                    \
 	WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
 
 // prints message to debug.log file
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
@@ -1152,26 +1153,21 @@ void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, B
 	size_t s_pitch = src_width - width;
 	size_t d_pitch = dst_width - width;
 
-	__asm {
-		mov  esi, src;
-		mov  edi, dst;
-		pxor mm3, mm3;
-	}
+	__asm mov esi, src;
+	__asm mov edi, dst;
 	do {
 		size_t count = blockCount;
 		while (count--) {
 			__asm {
-				movq  mm0, qword ptr [esi]; // 8 bytes
-				movq  mm1, qword ptr [edi];
-				movq  mm2, mm0;             // src copy to mm2
-				pcmpeqb mm2, mm3;           // mm2 = (src == 0) ? 1 : 0;
-				lea   esi, [esi + 8];
-				movq  mm4, mm2;
-				pandn mm2, mm0;             // mm2 = mm2 AND (NOT mm0)
-				pand  mm4, mm1;
-				por   mm2, mm4;
-				movq  qword ptr [edi], mm2;
-				lea   edi, [edi + 8];
+				pxor mm2, mm2;
+				movq mm0, qword ptr [esi]; // 8 bytes
+				movq mm1, qword ptr [edi];
+				pcmpeqb mm2, mm0;          // mm2 = (src == 0) ? 1 : 0;
+				lea  esi, [esi + 8];
+				pand mm2, mm1;
+				por  mm0, mm2;
+				movq qword ptr [edi], mm0; // src or dst
+				lea  edi, [edi + 8];
 			}
 		}
 		size_t bytes = lastBytes;
@@ -1186,10 +1182,8 @@ void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, B
 				lea  edi, [edi + 1];
 			}
 		}
-		__asm {
-			add esi, s_pitch;
-			add edi, d_pitch;
-		}
+		__asm add esi, s_pitch;
+		__asm add edi, d_pitch;
 	} while (--height);
 	__asm emms;
 }
