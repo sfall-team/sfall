@@ -48,7 +48,7 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			} else {
 				if (argValue > 127) argValue = 127;
 				SafeWrite8(HorriganEncounterDays, static_cast<BYTE>(argValue));
-				HorriganEncounterSetDays = static_cast<BYTE>(argValue);
+				HorriganEncounterSetDays = static_cast<signed char>(argValue);
 			}
 			break;
 		}

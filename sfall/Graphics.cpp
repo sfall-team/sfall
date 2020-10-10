@@ -20,7 +20,6 @@
 #include "FalloutEngine.h"
 #include "InputFuncs.h"
 #include "LoadGameHook.h"
-#include "Version.h"
 
 #include "Graphics.h"
 
@@ -176,7 +175,7 @@ static VertexFormat ShaderVertices[] = {
 	{639.5, 479.5, 0, 1, 1, 1}  // 3 - bottom right
 };
 
-HWND GetFalloutWindowInfo(RECT* rect) {
+HWND Gfx_GetFalloutWindowInfo(RECT* rect) {
 	if (rect) {
 		rect->left = windowLeft;
 		rect->top = windowTop;
@@ -212,8 +211,7 @@ void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 int __stdcall LoadShader(const char* file) {
 	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
-	PathNode* masterPtr = *ptr_master_db_handle;
-	sprintf_s(buf, "%s\\shaders\\%s", masterPtr->path, file); // *ptr_patches
+	sprintf_s(buf, "%s\\shaders\\%s", (*ptr_master_db_handle)->path, file); // *ptr_patches
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (!shaders[d].Effect) {
 			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) {
@@ -234,8 +232,9 @@ int __stdcall LoadShader(const char* file) {
 
 		sprintf(buf, "texname%d", i);
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", masterPtr->path, name); // *ptr_patches
+		sprintf_s(buf, "%s\\art\\stex\\%s", (*ptr_master_db_handle)->path, name); // *ptr_patches
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
+
 		sprintf(buf, "tex%d", i);
 		shader.Effect->SetTexture(buf, tex);
 		shaderTextures.push_back(tex);
@@ -1268,15 +1267,17 @@ static __declspec(naked) void palette_fade_to_hook() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __forceinline UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
-	DDSURFACEDESC desc;
-	RECT lockRect = { rect->left, rect->top, rect->right + 1, rect->bottom + 1 };
+static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+	if (!DeviceLost) {
+		DDSURFACEDESC desc;
+		RECT lockRect = { rect->left, rect->top, rect->right + 1, rect->bottom + 1 };
 
-	primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+		primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
 
-	BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); //+ (desc.lPitch * rect->top) + rect->left
+		BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); //+ (desc.lPitch * rect->top) + rect->left
 
-	primaryDDSurface->Unlock(desc.lpSurface);
+		primaryDDSurface->Unlock(desc.lpSurface);
+	}
 }
 
 static BYTE* GetBuffer() {
@@ -1301,10 +1302,8 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 				mov  edx, updateRect;
 				call GNW_button_refresh_;
 			}*/
-			if (!DeviceLost) {
-				int h = (updateRect->bottom - updateRect->top) + 1;
-				UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
-			}
+			int h = (updateRect->bottom - updateRect->top) + 1;
+			UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
 		} else {
 			MouseShow(); // for updating background cursor area
 			RECT mouseRect;
@@ -1322,11 +1321,10 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 					mov  edx, rects;
 					call GNW_button_refresh_;
 				}*/
-				if (!DeviceLost) {
-					int wRect = (rects->wRect.right - rects->wRect.left) + 1;
-					int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
-					UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
-				}
+				int wRect = (rects->wRect.right - rects->wRect.left) + 1;
+				int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
+				UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
+
 				RectList* next = rects->nextRect;
 				sf_rect_free(rects);
 				rects = next;
@@ -1336,10 +1334,8 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 	}
 
 	/* Allocates memory for 10 RectList (if no memory was allocated), returns the first Rect and removes it from the list */
-	__asm {
-		call rect_malloc_;
-		mov  rects, eax;
-	}
+	__asm call rect_malloc_;
+	__asm mov  rects, eax;
 	if (!rects) return;
 
 	rects->rect.x = updateRect->left;
@@ -1393,7 +1389,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 		} else {
 			// copy to buffer instead of DD surface (buffering)
 			drawFunc(surface, width, height, widthFrom, &GetBuffer()[crect.left] + (crect.top * toWidth), toWidth);
-			//if (!DeviceLost) UpdateDDSurface(surface, width, height, widthFrom, crect);
+			//UpdateDDSurface(surface, width, height, widthFrom, crect);
 		}
 		if (win->wID == 0) delete[] surface;
 
@@ -1402,7 +1398,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 
 	while (rects) {
 		// copy all rectangles from the buffer to the DD surface (buffering)
-		if (!toBuffer && !DeviceLost) {
+		if (!toBuffer) {
 			int width = (rects->rect.offx - rects->rect.x) + 1;
 			int height = (rects->rect.offy - rects->rect.y) + 1;
 			int widthFrom = toWidth;

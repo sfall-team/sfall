@@ -35,6 +35,7 @@ void GraphicsInit();
 void GraphicsExit();
 void Graphics_OnGameLoad();
 
+HWND Gfx_GetFalloutWindowInfo(RECT* rect);
 long Gfx_GetGameWidthRes();
 long Gfx_GetGameHeightRes();
 
@@ -63,5 +64,3 @@ void __stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, f
 
 int __stdcall GetShaderTexture(DWORD d, DWORD id);
 void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value);
-
-HWND GetFalloutWindowInfo(RECT* rect);
