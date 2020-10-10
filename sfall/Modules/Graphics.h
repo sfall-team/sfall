@@ -27,6 +27,11 @@
 namespace sfall
 {
 
+extern IDirect3D9* d3d9;
+extern IDirect3DDevice9* d3d9Device;
+extern IDirectDrawSurface* primaryDDSurface;
+extern bool DeviceLost;
+
 class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }
@@ -36,8 +41,11 @@ public:
 	static DWORD mode;
 	static DWORD GPUBlt;
 
+	static HWND GetFalloutWindowInfo(RECT* rect);
 	static long GetGameWidthRes();
 	static long GetGameHeightRes();
+
+	static int __stdcall GetShaderVersion();
 
 	static const float* rcpresGet();
 
@@ -56,13 +64,19 @@ public:
 	static bool AviMovieWidthFit;
 
 	static void RefreshGraphics();
+
+	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+		if (!DeviceLost) {
+			DDSURFACEDESC desc;
+			RECT lockRect = { rect->left, rect->top, rect->right + 1, rect->bottom + 1 };
+
+			primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+
+			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); //+ (desc.lPitch * rect->top) + rect->left
+
+			primaryDDSurface->Unlock(desc.lpSurface);
+		}
+	}
 };
-
-extern IDirect3D9* d3d9;
-extern IDirect3DDevice9* d3d9Device;
-
-int __stdcall GetShaderVersion();
-
-HWND GetFalloutWindowInfo(RECT* rect);
 
 }

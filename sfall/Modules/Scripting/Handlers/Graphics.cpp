@@ -406,7 +406,7 @@ end:
 void __declspec(naked) op_get_shader_version() {
 	__asm {
 		mov  esi, ecx;
-		call GetShaderVersion;
+		call Graphics::GetShaderVersion;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
