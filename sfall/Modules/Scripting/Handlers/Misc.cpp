@@ -890,7 +890,7 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 				*val = '\0';
 				val += 1;
 
-				SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+				setArray(arrayId, ScriptValue(key), ScriptValue(val), false);
 
 				key = val + std::strlen(val) + 1;
 			} else {
