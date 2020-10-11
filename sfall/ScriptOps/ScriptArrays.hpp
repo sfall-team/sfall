@@ -108,7 +108,7 @@ notstring1:
 		push ecx; // arg 3: key type
 		push esi; // arg 2: key
 		push edi; // arg 1: arrayID
-		call SetArray
+		call SetArray;
 end:
 		popaop;
 		retn;

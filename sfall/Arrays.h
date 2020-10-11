@@ -103,6 +103,10 @@ public:
 
 	sArrayVar() : flags(0), key() {}
 
+	sArrayVar(int len, int flag) : flags(flag), key() {
+		if (len > 0) val.reserve(len + 10);
+	}
+
 	bool isAssoc() const {
 		return (flags & ARRAYFLAG_ASSOC);
 	}
@@ -148,6 +152,7 @@ extern ArrayKeysMap savedArrays;
 long LoadArrays(HANDLE h);
 void SaveArrays(HANDLE h);
 int GetNumArrays();
+bool ArrayExist(DWORD id);
 void GetArrays(int* arrays);
 
 void DEGetArray(int id, DWORD* types, char* data);
@@ -176,13 +181,14 @@ DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType);
 // get array element by index (list) or key (map)
 DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType);
 
-// set array element by index or key
+// set array element by index or key (with checking the existence of the array ID)
 void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
+
+// set array element by index or key
+void __stdcall setArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
 
 // number of elements in list or pairs in map
 int __stdcall LenArray(DWORD id);
-
-bool __stdcall ArrayExist(DWORD id);
 
 // change array size (only works with list)
 void __stdcall ResizeArray(DWORD id, int newlen);
