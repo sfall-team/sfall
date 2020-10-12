@@ -21,6 +21,17 @@
 
 #include "Stats.h"
 
+void __fastcall sf_critter_adjust_poison(TGameObj* critter, long amount) {
+	if (amount == 0) return;
+	if (amount > 0) {
+		amount -= StatLevel(critter, STAT_poison_resist) * amount / 100;
+	} else if (critter->critter.poison == 0) {
+		return;
+	}
+	critter->critter.poison += amount;
+	if (critter->critter.poison < 0) critter->critter.poison = 0; // level can't be negative
+}
+
 static DWORD StatMaximumsPC[STAT_max_stat];
 static DWORD StatMinimumsPC[STAT_max_stat];
 static DWORD StatMaximumsNPC[STAT_max_stat];
@@ -206,6 +217,14 @@ allow:
 	}
 }
 
+static void __declspec(naked) critter_adjust_poison_hack() {
+	__asm {
+		mov  edx, esi;
+		mov  ecx, edi;
+		jmp  sf_critter_adjust_poison;
+	}
+}
+
 static void StatsReset() {
 	for (size_t i = 0; i < STAT_max_stat; i++) {
 		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
@@ -238,6 +257,9 @@ void StatsInit() {
 	// Allow set_critter_stat function to change STAT_unused and STAT_dmg_* stats for the player
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
+	// Allow changing the poison level for critters
+	MakeCall(0x42D226, critter_adjust_poison_hack);
+	SafeWrite8(0x42D22C, 0xDA); // jmp 0x42D30A
 
 	std::vector<std::string> xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();
