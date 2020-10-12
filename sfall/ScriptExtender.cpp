@@ -658,7 +658,7 @@ static void mf_get_sfall_arg_at() {
 
 static DWORD __stdcall GetSfallArgs() {
 	DWORD argCount = GetHSArgCount();
-	DWORD id = TempArray(argCount, 0);
+	DWORD id = CreateTempArray(argCount, 0);
 	DWORD* args = GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);

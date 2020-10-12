@@ -308,7 +308,7 @@ static void __declspec(naked) op_temp_array() {
 		jne fail;
 		push ecx;
 		push eax;
-		call TempArray;
+		call CreateTempArray;
 		mov edx, eax;
 		jmp end;
 fail:
@@ -559,7 +559,7 @@ static DWORD __stdcall ListAsArray(DWORD type) {
 	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
 	size_t sz = vec.size();
-	DWORD id = TempArray(sz, 0);
+	DWORD id = CreateTempArray(sz, 0);
 	for (size_t i = 0; i < sz; i++) {
 		arrays[id].val[i].set((long)vec[i]);
 	}

@@ -171,7 +171,7 @@ static int __stdcall StringSplit(const char* str, const char* split) {
 	size_t count, splitLen = strlen(split);
 	if (!splitLen) {
 		count = strlen(str);
-		id = TempArray(count, 0);
+		id = CreateTempArray(count, 0);
 		for (DWORD i = 0; i < count; i++) {
 			arrays[id].val[i].set(&str[i], 1);
 		}
@@ -184,7 +184,7 @@ static int __stdcall StringSplit(const char* str, const char* split) {
 			count++;
 			ptr = newptr + splitLen;
 		}
-		id = TempArray(count, 0);
+		id = CreateTempArray(count, 0);
 		ptr = str;
 		count = 0;
 		while (true) {

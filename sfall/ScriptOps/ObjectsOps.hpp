@@ -287,7 +287,7 @@ static void __stdcall op_make_path2() {
 
 		char pathData[800];
 		long pathLength = MakePathFunc(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
-		DWORD arrayId = TempArray(pathLength, 0);
+		DWORD arrayId = CreateTempArray(pathLength, 0);
 		for (int i = 0; i < pathLength; i++) {
 			arrays[arrayId].val[i].set((long)pathData[i]);
 		}
@@ -335,7 +335,7 @@ static void __stdcall op_tile_get_objects2() {
 	if (tileArg.isInt() && elevArg.isInt()) {
 		DWORD tile = tileArg.rawValue(),
 			elevation = elevArg.rawValue();
-		DWORD arrayId = TempArray(0, 4);
+		DWORD arrayId = CreateTempArray(0, 4);
 		TGameObj* obj = ObjFindFirstAtTile(elevation, tile);
 		while (obj) {
 			arrays[arrayId].push_back(reinterpret_cast<long>(obj));
@@ -358,7 +358,7 @@ static void __stdcall op_get_party_members2() {
 	if (modeArg.isInt()) {
 		DWORD includeHidden = modeArg.rawValue();
 		int actualCount = *ptr_partyMemberCount;
-		DWORD arrayId = TempArray(0, 4);
+		DWORD arrayId = CreateTempArray(0, 4);
 		DWORD* partyMemberList = *ptr_partyMemberList;
 		for (int i = 0; i < actualCount; i++) {
 			TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
@@ -670,7 +670,7 @@ static void mf_objects_in_radius() {
 		objects.reserve(25);
 		GetObjectsTileRadius(objects, tileArg.rawValue(), radius, elev, type);
 		size_t sz = objects.size();
-		id = TempArray(sz, 0);
+		id = CreateTempArray(sz, 0);
 		for (size_t i = 0; i < sz; i++) {
 			arrays[id].val[i].set((long)objects[i]);
 		}

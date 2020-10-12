@@ -264,7 +264,7 @@ long LoadArrays(HANDLE h) {
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
-		while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+		while (ArrayExist(nextArrayID)) nextArrayID++;
 		if (nextArrayID == 0) nextArrayID++;
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
@@ -295,7 +295,7 @@ void SaveArrays(HANDLE h) {
 	for (it = savedArrays.begin(); it != savedArrays.end(); ++it) {
 		arrayIt = arrays.find(it->second);
 		if (arrayIt != arrays.end()) {
-			sArrayVar &var = arrays[it->second];
+			sArrayVar &var = arrayIt->second; //arrays[it->second];
 			SaveArrayElement(&var.key, h); // type, key/length of key and string of key
 			WriteFile(h, &var.flags, 4, &unused, 0);
 			elCount = var.val.size();
@@ -426,11 +426,11 @@ DWORD __stdcall CreateArray(int len, DWORD flags) {
 	}
 	sArrayVar var(len, flags);
 
-	if (!var.isAssoc()) {
+	if (!var.isAssoc() && len) {
 		var.val.resize(len);
 	}
 
-	while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+	while (ArrayExist(nextArrayID)) nextArrayID++;
 	if (nextArrayID == 0) nextArrayID++;
 
 	if (arraysBehavior == 0) {
@@ -442,7 +442,7 @@ DWORD __stdcall CreateArray(int len, DWORD flags) {
 	return nextArrayID++;
 }
 
-DWORD __stdcall TempArray(DWORD len, DWORD flags) {
+DWORD __stdcall CreateTempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
 	temporaryArrays.insert(id);
 	return id;
@@ -468,7 +468,7 @@ void DeleteAllTempArrays() {
 
 DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
+	if (!ArrayExist(id) || index < -1 || index > arrays[id].size()) {
 		return 0;
 	}
 	if (index == -1) { // special index to indicate if array is associative
@@ -479,10 +479,10 @@ DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 		// for associative array - return key at the specified index
 		switch(arrays[id].val[index].type) {
 		case DATATYPE_INT:
-			return *(DWORD *)&arrays[id].val[index].intVal;
+			return *(DWORD*)&arrays[id].val[index].intVal;
 		case DATATYPE_FLOAT:
 			*resultType = VAR_TYPE_FLOAT;
-			return *(DWORD *)&arrays[id].val[index].intVal;
+			return *(DWORD*)&arrays[id].val[index].intVal;
 		case DATATYPE_STR:
 			*resultType = VAR_TYPE_STR;
 			return (DWORD)arrays[id].val[index].strVal;
@@ -498,9 +498,8 @@ DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 
 DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	if (arrays.find(id) == arrays.end()) {
-		return 0;
-	}
+	if (!ArrayExist(id)) return 0;
+
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
@@ -520,10 +519,10 @@ DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) 
 	case DATATYPE_NONE:
 		return 0;
 	case DATATYPE_INT:
-		return *(DWORD *)&arr.val[el].intVal;
+		return *(DWORD*)&arr.val[el].intVal;
 	case DATATYPE_FLOAT:
 		*resultType = VAR_TYPE_FLOAT;
-		return *(DWORD *)&arr.val[el].intVal;
+		return *(DWORD*)&arr.val[el].intVal;
 	case DATATYPE_STR:
 		*resultType = VAR_TYPE_STR;
 		return (DWORD)arr.val[el].strVal;
@@ -580,8 +579,7 @@ void __stdcall setArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD val
 }
 
 void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
-	if (!ArrayExist(id)) return;
-	setArray(id, key, keyType, val, valType, allowUnset);
+	if (ArrayExist(id)) setArray(id, key, keyType, val, valType, allowUnset);
 }
 
 int __stdcall LenArray(DWORD id) {
@@ -646,7 +644,7 @@ static void MapSort(sArrayVar& arr, int type) {
 }
 
 void __stdcall ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || arrays.find(id) == arrays.end()) return;
+	if (newlen == -1 || !ArrayExist(id)) return;
 
 	sArrayVar &arr = arrays[id];
 	int arrSize = arr.size();
@@ -698,18 +696,18 @@ void __stdcall FixArray(DWORD id) {
 int __stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	datatype = getSfallTypeByScriptType(datatype);
-	if (arrays.find(id) == arrays.end()) {
+	if (!ArrayExist(id)) {
 		return -1;
 	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
-	for (DWORD i = 0; i < arrays[id].val.size(); i += step) {
+	for (size_t i = 0; i < arrays[id].val.size(); i += step) {
 		sArrayElement &el = arrays[id].val[i + step - 1];
 		if (el.type == datatype) {
 			if ((datatype != DATATYPE_STR && *(DWORD*)&(el.intVal) == val) ||
 				(datatype == DATATYPE_STR && strcmp(el.strVal, (char*)val) == 0)) {
 				if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
 					*resultType = getScriptTypeBySfallType(arrays[id].val[i].type);
-					return *(DWORD *)&arrays[id].val[i].intVal;
+					return *(DWORD*)&arrays[id].val[i].intVal;
 				} else {
 					return i;
 				}
@@ -725,7 +723,7 @@ DWORD __stdcall LoadArray(DWORD key, DWORD keyType) {
 		sArrayElement keyEl = sArrayElement(key, dataType);
 
 		if (keyEl.type == DATATYPE_STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
-			DWORD tmpArrId = TempArray(savedArrays.size(), 0);
+			DWORD tmpArrId = CreateTempArray(savedArrays.size(), 0);
 			if (tmpArrId > 0) {
 				std::vector<sArrayElement>::iterator elIt;
 				ArrayKeysMap::iterator it;
@@ -790,7 +788,7 @@ long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
 	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
 		size_t size = arrays[stackArrayId].val.size();
 		if (size >= ARRAY_MAX_SIZE) return 0;
-		if (key >= size) arrays[stackArrayId].val.resize(size + 10); // resize with a small margin
+		if (key >= size) arrays[stackArrayId].val.resize(size + 1);
 	}
 	setArray(stackArrayId, key, keyType, val, valType, 0);
 	return 0;

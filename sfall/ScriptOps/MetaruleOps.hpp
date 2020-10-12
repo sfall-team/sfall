@@ -84,7 +84,7 @@ static void mf_test() {
 
 // returns current contents of metarule table
 static void mf_get_metarule_table() {
-	DWORD arrId = TempArray(metaruleTable.size(), 0);
+	DWORD arrId = CreateTempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
 		arrays[arrId].val[i].set(it->first.c_str());
