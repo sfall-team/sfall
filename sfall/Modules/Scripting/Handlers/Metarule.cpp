@@ -157,7 +157,7 @@ static const SfallMetarule metarules[] = {
 
 // returns current contents of metarule table
 static void mf_get_metarule_table(OpcodeContext& ctx) {
-	DWORD arrId = TempArray(metaruleTable.size(), 0);
+	DWORD arrId = CreateTempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
 		arrays[arrId].val[i].set(it->first.c_str());

@@ -271,7 +271,7 @@ long LoadArrays(HANDLE h) {
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
-		while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+		while (ArrayExist(nextArrayID)) nextArrayID++;
 		if (nextArrayID == 0) nextArrayID++;
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
@@ -302,7 +302,7 @@ void SaveArrays(HANDLE h) {
 	for (it = savedArrays.begin(); it != savedArrays.end(); ++it) {
 		arrayIt = arrays.find(it->second);
 		if (arrayIt != arrays.end()) {
-			sArrayVar &var = arrays[it->second];
+			sArrayVar &var = arrayIt->second; //arrays[it->second];
 			SaveArrayElement(&var.key, h); // type, key/length of key and string of key
 			WriteFile(h, &var.flags, 4, &unused, 0);
 			elCount = var.val.size();
@@ -393,11 +393,11 @@ DWORD CreateArray(int len, DWORD flags) {
 	}
 	sArrayVar var(len, flags);
 
-	if (!var.isAssoc()) {
+	if (!var.isAssoc() && len) {
 		var.val.resize(len);
 	}
 
-	while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+	while (ArrayExist(nextArrayID)) nextArrayID++;
 	if (nextArrayID == 0) nextArrayID++;
 
 	if (arraysBehavior == 0) {
@@ -409,7 +409,7 @@ DWORD CreateArray(int len, DWORD flags) {
 	return nextArrayID++;
 }
 
-DWORD TempArray(DWORD len, DWORD flags) {
+DWORD CreateTempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
 	temporaryArrays.insert(id);
 	return id;
@@ -434,7 +434,7 @@ void DeleteAllTempArrays() {
 }
 
 ScriptValue GetArrayKey(DWORD id, int index) {
-	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
+	if (!ArrayExist(id) || index < -1 || index > arrays[id].size()) {
 		return ScriptValue(0);
 	}
 	if (index == -1) { // special index to indicate if array is associative
@@ -461,9 +461,8 @@ ScriptValue GetArrayKey(DWORD id, int index) {
 }
 
 ScriptValue GetArray(DWORD id, const ScriptValue& key) {
-	if (arrays.find(id) == arrays.end()) {
-		return 0;
-	}
+	if (!ArrayExist(id)) return 0;
+
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
@@ -539,8 +538,7 @@ void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 }
 
 void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
-	if (!ArrayExist(id)) return;
-	setArray(id, key, val, allowUnset);
+	if (ArrayExist(id)) setArray(id, key, val, allowUnset);
 }
 
 int LenArray(DWORD id) {
@@ -605,7 +603,7 @@ static void MapSort(sArrayVar& arr, int type) {
 }
 
 long ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || arrays.find(id) == arrays.end()) return 0;
+	if (newlen == -1 || !ArrayExist(id)) return 0;
 
 	sArrayVar &arr = arrays[id];
 	int arrSize = arr.size();
@@ -652,7 +650,7 @@ void FixArray(DWORD id) {
 }
 
 ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
-	if (arrays.find(id) == arrays.end()) {
+	if (!ArrayExist(id)) {
 		return ScriptValue(-1);
 	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
@@ -680,7 +678,7 @@ DWORD LoadArray(const ScriptValue& key) {
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 
 		if (keyEl.type == DataType::STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
-			DWORD tmpArrId = TempArray(savedArrays.size(), 0);
+			DWORD tmpArrId = CreateTempArray(savedArrays.size(), 0);
 			if (tmpArrId > 0) {
 				std::vector<sArrayElement>::iterator elIt;
 				ArrayKeysMap::iterator it;
@@ -744,7 +742,7 @@ long StackArray(const ScriptValue& key, const ScriptValue& val) {
 	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
 		size_t size = arrays[stackArrayId].val.size();
 		if (size >= ARRAY_MAX_SIZE) return 0;
-		if (key.rawValue() >= size) arrays[stackArrayId].val.resize(size + 10); // resize with a small margin
+		if (key.rawValue() >= size) arrays[stackArrayId].val.resize(size + 1);
 	}
 	setArray(stackArrayId, key, val, false);
 	return 0;

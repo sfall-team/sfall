@@ -375,7 +375,7 @@ static int GetExplosionDamage(int pid) {
 			GetDamage(pid, min, max);
 	}
 
-	DWORD arrayId = script::TempArray(2, 0);
+	DWORD arrayId = script::CreateTempArray(2, 0);
 	script::arrays[arrayId].val[0] = min;
 	script::arrays[arrayId].val[1] = max;
 

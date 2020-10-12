@@ -89,6 +89,7 @@ struct sArrayVarOld
 
 #define ARRAYFLAG_ASSOC		(1) // is map
 #define ARRAYFLAG_CONSTVAL	(2) // don't update value of key if the key exists in map
+#define ARRAYFLAG_RESERVED	(4)
 
 typedef std::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sArrayElement_EqualFunc> ArrayKeysMap;
 
@@ -110,7 +111,8 @@ public:
 	sArrayVar() : flags(0), key() {}
 
 	sArrayVar(int len, int flag) : flags(flag), key() {
-		if (len > 0) val.reserve(len + 10);
+		if (len == 0) val.reserve((flag & 0x7FFF0000) >> 16);
+		if (len < 0) val.reserve(20); // for assoc
 	}
 
 	bool isAssoc() const {
@@ -168,7 +170,7 @@ void DESetArray(int id, const DWORD* types, const char* data);
 DWORD CreateArray(int len, DWORD flags);
 
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
-DWORD TempArray(DWORD len, DWORD flags);
+DWORD CreateTempArray(DWORD len, DWORD flags);
 
 // destroys array
 void FreeArray(DWORD id);
