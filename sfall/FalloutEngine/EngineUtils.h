@@ -42,14 +42,16 @@ __forceinline void sf_rect_free(fo::RectList* rect) {
 	rect->nextRect = front;
 }
 
-// returns weapon animation code
-long AnimCodeByWeapon(GameObject* weapon);
-
 // returns message string from given file or "Error" when not found
 const char* GetMessageStr(const MessageList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
 const char* MessageSearch(const MessageList* fileAddr, long messageId);
+
+Queue* QueueFind(GameObject* object, long type);
+
+// returns weapon animation code
+long AnimCodeByWeapon(GameObject* weapon);
 
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);
@@ -78,6 +80,8 @@ long CheckAddictByPid(fo::GameObject* critter, long pid);
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();
+
+bool IsNpcFlag(fo::GameObject* npc, long flag);
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
 

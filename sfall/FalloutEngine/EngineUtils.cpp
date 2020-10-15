@@ -42,6 +42,18 @@ const char* MessageSearch(const MessageList* fileAddr, long messageId) {
 	return nullptr;
 }
 
+Queue* QueueFind(GameObject* object, long type) {
+	if (fo::var::queue) {
+		Queue* queue = fo::var::queue;
+		while (queue->object != object && queue->type != type) {
+			queue = queue->next;
+			if (!queue) break;
+		}
+		return queue;
+	}
+	return nullptr;
+}
+
 long AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
 		Proto* proto = GetProto(weapon->protoId);
@@ -150,6 +162,14 @@ long __fastcall IsRadInfluence() {
 		queue = (fo::QueueRadiation*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
 	}
 	return 0;
+}
+
+bool IsNpcFlag(fo::GameObject* npc, long flag) {
+	Proto* protoPtr;
+	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
+		return (protoPtr->critter.critterFlags & (1 << flag)) != 0;
+	}
+	return false;
 }
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
