@@ -51,7 +51,19 @@ static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
 static D3DSURFACE_DESC movieDesc;
 
-static DWORD palette[256];
+#pragma pack(push, 1)
+static struct PALCOLOR {
+	union {
+		DWORD xRGB;
+		struct {
+			BYTE B;
+			BYTE G;
+			BYTE R;
+		};
+	};
+} palette[256];
+#pragma pack(pop)
+
 //static bool paletteInit = false;
 
 static DWORD gWidth;
@@ -726,6 +738,7 @@ private:
 	ULONG Refs;
 	bool isPrimary;
 	BYTE* lockTarget;
+	RECT* lockRect;
 
 public:
 	static bool IsPlayMovie;
@@ -777,22 +790,24 @@ public:
 		mainTex->LockRect(0, &dRect, dsc, 0);
 
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
-		int pitch = dRect.Pitch;
 
 		if (GPUBlt) {
-			BufToBuf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, pitch);
+			BufToBuf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
 			//char* pBits = (char*)dRect.pBits;
 			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
 			//}
 		} else {
-			pitch /= 4;
-			for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
-				int yp = y * pitch;
-				int yw = y * width;
-				for (DWORD x = 0; x < width; x++) {
-					((DWORD*)dRect.pBits)[yp + x] = palette[lockTarget[yw + x]];
-				}
+			int pitch = dRect.Pitch / 4;
+			DWORD* pBits = (DWORD*)dRect.pBits;
+			BYTE* target = lockTarget;
+
+			int height = mveDesc.dwHeight;
+			while (height--) {
+				int x = width;
+				while (x--) pBits[x] = palette[target[x]].xRGB;
+				target += width;
+				pBits += pitch;
 			}
 		}
 		mainTex->UnlockRect(0);
@@ -864,16 +879,15 @@ public:
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
 		if (DeviceLost) return DDERR_SURFACELOST;
 		if (isPrimary) {
+			lockRect = a;
 			if (GPUBlt) {
 				D3DLOCKED_RECT buf;
-				if (mainTex->LockRect(0, &buf, a, 0)) goto surface; // fail to lock, use old method
-
-				mainTexLock = true;
-
-				b->lpSurface = buf.pBits;
-				b->lPitch = buf.Pitch;
+				if (SUCCEEDED(mainTex->LockRect(0, &buf, lockRect, 0))) {
+					mainTexLock = true;
+					b->lpSurface = buf.pBits;
+					b->lPitch = buf.Pitch;
+				}
 			} else {
-		surface:
 				*b = surfaceDesc;
 				b->lpSurface = lockTarget;
 			}
@@ -912,15 +926,18 @@ public:
 		mainTex->LockRect(0, &dRect, 0, 0);
 
 		DWORD* pBits = (DWORD*)dRect.pBits;
-		int pitch = dRect.Pitch / 4;
-		DWORD width = ResWidth;
+		int pitch = (dRect.Pitch / 4) - ResWidth;
 
-		for (DWORD y = 0; y < ResHeight; y++) {
-			int yp = y * pitch;
-			int yw = y * width;
-			for (DWORD x = 0; x < width; x++) {
-				pBits[yp + x] = palette[lockTarget[yw + x]]; // takes the color index in the palette and copies the color value to the texture surface
+		BYTE* target = lockTarget;
+		int height = ResHeight;
+		while (height--) {
+			int width = ResWidth;
+			while (width--) {
+				pBits[0] = palette[target[0]].xRGB; // takes the color index in the palette and copies the color value to the texture surface
+				target++;
+				pBits++;
 			}
+			pBits += pitch;
 		}
 		mainTex->UnlockRect(0);
 		mainTexLock = false;
@@ -934,27 +951,43 @@ public:
 		0x4F5ECC sub_4F5E60           (from MVE_rmStepMovie_)
 		0x4868BA movie_MVE_ShowFrame_ (capture never call)
 	*/
-	HRESULT __stdcall Unlock(LPVOID) {
+	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		//dlog("\nUnlock", DL_INIT);
 		if ((DeviceLost && Restore() == DD_FALSE) || !isPrimary) return DD_OK;
-
 		//dlog("\nUnlock -> primary", DL_INIT);
 
 		if (GPUBlt == 0) {
 			mainTexLock = true;
 
 			D3DLOCKED_RECT dRect;
-			mainTex->LockRect(0, &dRect, 0, 0);
+			mainTex->LockRect(0, &dRect, lockRect, 0);
 
-			int pitch = dRect.Pitch / 4;
 			DWORD* pBits = (DWORD*)dRect.pBits;
-			DWORD width = ResWidth;
-			// slow copy method
-			for (DWORD y = 0; y < ResHeight; y++) {
-				int yp = y * pitch;
-				int yw = y * width;
-				for (DWORD x = 0; x < width; x++) {
-					pBits[yp + x] = palette[lockTarget[yw + x]];
+			int pitch = dRect.Pitch / 4;
+
+			if (lockRect) {
+				BYTE* target = (BYTE*)lockSurface;
+				int width = (lockRect->right - lockRect->left);
+				int height = (lockRect->bottom - lockRect->top);
+				while (height--) {
+					int w = width;
+					while (w--) pBits[w] = palette[target[w]].xRGB;
+					pBits += pitch;
+					target += ResWidth;
+				}
+			} else {
+				pitch -= ResWidth;
+				BYTE* target = lockTarget;
+				int height = ResHeight;
+				// slow copy method
+				while (height--) {
+					int width = ResWidth;
+					while (width--) {
+						pBits[0] = palette[target[0]].xRGB;
+						target++;
+						pBits++;
+					}
+					pBits += pitch;
 				}
 			}
 		}
@@ -1010,20 +1043,20 @@ public:
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		__movsd(&palette[b], (unsigned long*)destPal, c);
+		__movsd((DWORD*)&palette[b], (DWORD*)destPal, c);
 
-		if (GPUBlt && gpuPalette) {
+		if (GPUBlt) {
 			D3DLOCKED_RECT rect;
-			if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
+			if (gpuPalette && !FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
 				CopyMemory(rect.pBits, palette, 256 * 4);
 				gpuPalette->UnlockRect(0);
 			}
 		} else {
 			// X8B8G8R8 format
 			for (size_t i = b; i < b + c; i++) { // swap color B <> R
-				BYTE clr = *(BYTE*)((long)&palette[i]); // B
-				*(BYTE*)((long)&palette[i]) = *(BYTE*)((long)&palette[i] + 2); // R
-				*(BYTE*)((long)&palette[i] + 2) = clr;
+				BYTE clr = palette[i].B;
+				palette[i].B = palette[i].R;
+				palette[i].R = clr;
 			}
 			primaryDDSurface->SetPalette(0); // update
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
@@ -1274,7 +1307,8 @@ static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, 
 
 		primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
 
-		BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); //+ (desc.lPitch * rect->top) + rect->left
+		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * rect->top) + rect->left;
+		BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
 		primaryDDSurface->Unlock(desc.lpSurface);
 	}
@@ -1487,6 +1521,7 @@ void GraphicsInit() {
 		// custom implementation of the GNW_win_refresh function
 		MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
 		SafeWrite16(0x4D75E6, 0x9090); // win_clip_ (remove _buffering checking)
+		SafeWrite32(0x4C8FD1, _screen_buffer); // replace screendump_buf
 	} else { // for default or HRP graphics mode
 		SafeWrite8(0x4D5DAB, 0x1D); // ecx > ebx (enable _buffering)
 		BlockCall(0x431076); // dialogMessage_
