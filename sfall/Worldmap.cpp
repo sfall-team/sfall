@@ -63,7 +63,7 @@ static void TimerReset() {
 	addedYears += 13;
 
 	// fix queue time
-	Queue* queue = (Queue*)(*ptr_queue);
+	Queue* queue = *ptr_queue;
 	while (queue) {
 		if (queue->time > time) {
 			queue->time -= time;

@@ -32,10 +32,10 @@ void __fastcall sf_critter_adjust_poison(TGameObj* critter, long amount) {
 	if (critter->critter.poison < 0) critter->critter.poison = 0; // level can't be negative
 }
 
-static DWORD StatMaximumsPC[STAT_max_stat];
-static DWORD StatMinimumsPC[STAT_max_stat];
-static DWORD StatMaximumsNPC[STAT_max_stat];
-static DWORD StatMinimumsNPC[STAT_max_stat];
+static DWORD statMaximumsPC[STAT_max_stat];
+static DWORD statMinimumsPC[STAT_max_stat];
+static DWORD statMaximumsNPC[STAT_max_stat];
+static DWORD statMinimumsNPC[STAT_max_stat];
 
 static DWORD xpTable[99];
 
@@ -43,9 +43,12 @@ float ExperienceMod = 1.0f; // set_xp_mod func
 DWORD StandardApAcBonus = 4;
 DWORD ExtraApAcBonus = 4;
 
-static int StatFormulas[33 * 2] = {0};
-static int StatShifts[33 * 7] = {0};
-static double StatMulti[33 * 7] = {0};
+static struct StatFormula {
+	long base;
+	long min;
+	long shift[STAT_lu + 1];
+	double multi[STAT_lu + 1];
+} statFormulas[STAT_max_derived + 1] = {0};
 
 static TGameObj* cCritter;
 
@@ -62,14 +65,14 @@ static void __declspec(naked) stat_level_hack() {
 static int __fastcall check_stat_level(int value, DWORD stat) {
 	int valLimit;
 	if (cCritter == *ptr_obj_dude) {
-		valLimit = StatMinimumsPC[stat];
+		valLimit = statMinimumsPC[stat];
 		if (value < valLimit) return valLimit;
-		valLimit = StatMaximumsPC[stat];
+		valLimit = statMaximumsPC[stat];
 		if (value > valLimit) return valLimit;
 	} else {
-		valLimit = StatMinimumsNPC[stat];
+		valLimit = statMinimumsNPC[stat];
 		if (value < valLimit) return valLimit;
-		valLimit = StatMaximumsNPC[stat];
+		valLimit = statMaximumsNPC[stat];
 		if (value > valLimit) return valLimit;
 	}
 	return value;
@@ -90,15 +93,15 @@ static void __declspec(naked) stat_set_base_hack_check() {
 	__asm {
 		cmp esi, dword ptr ds:[_obj_dude];
 		jz  pc;
-		cmp ebx, StatMinimumsNPC[eax];
+		cmp ebx, statMinimumsNPC[eax];
 		jl  failMin;
-		cmp ebx, StatMaximumsNPC[eax];
+		cmp ebx, statMaximumsNPC[eax];
 		jg  failMax;
 		jmp StatSetBaseHack_Ret;
 pc:
-		cmp ebx, StatMinimumsPC[eax];
+		cmp ebx, statMinimumsPC[eax];
 		jl  failMin;
-		cmp ebx, StatMaximumsPC[eax];
+		cmp ebx, statMaximumsPC[eax];
 		jg  failMax;
 		jmp StatSetBaseHack_Ret;
 failMin:
@@ -157,7 +160,7 @@ static void __declspec(naked) __stdcall ProtoPtr(DWORD pid, int** proto) {
 
 static void __stdcall StatRecalcDerived(TGameObj* critter) {
 	int baseStats[7];
-	for (int i = STAT_st; i <= STAT_lu; i++) baseStats[i] = StatLevel(critter, i);
+	for (int stat = STAT_st; stat <= STAT_lu; stat++) baseStats[stat] = StatLevel(critter, stat);
 
 	int* proto;
 	ProtoPtr(critter->protoId, &proto);
@@ -166,11 +169,12 @@ static void __stdcall StatRecalcDerived(TGameObj* critter) {
 		if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
 
 		double sum = 0;
-		for (int j = STAT_st; j <= STAT_lu; j++) {
-			sum += (baseStats[j] + StatShifts[i * 7 + j]) * StatMulti[i * 7 + j];
+		for (int stat = STAT_st; stat <= STAT_lu; stat++) {
+			sum += (baseStats[stat] + statFormulas[i].shift[stat]) * statFormulas[i].multi[stat];
 		}
-		proto[i + 9] = StatFormulas[i * 2] + (int)floor(sum);
-		if (proto[i + 9] < StatFormulas[i * 2 + 1]) proto[i + 9] = StatFormulas[i * 2 + 1];
+		long calcStat = statFormulas[i].base + (int)floor(sum);
+		if (calcStat < statFormulas[i].min) calcStat = statFormulas[i].min;
+		proto[9 + i] = calcStat; // offset from base_stat_srength
 	}
 }
 
@@ -227,8 +231,8 @@ static void __declspec(naked) critter_adjust_poison_hack() {
 
 static void StatsReset() {
 	for (size_t i = 0; i < STAT_max_stat; i++) {
-		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
-		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i * 24);
+		statMaximumsPC[i] = statMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
+		statMinimumsPC[i] = statMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i * 24);
 	}
 }
 
@@ -283,32 +287,32 @@ void StatsInit() {
 		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 
 		// STAT_st + STAT_en * 2 + 15
-		StatFormulas[7 * 2]          = 15; // max hp
-		StatMulti[7 * 7 + STAT_st]   = 1;
-		StatMulti[7 * 7 + STAT_en]   = 2;
+		statFormulas[STAT_max_hit_points].base            = 15; // max hp
+		statFormulas[STAT_max_hit_points].multi[STAT_st]  = 1;
+		statFormulas[STAT_max_hit_points].multi[STAT_en]  = 2;
 		// STAT_ag / 2 + 5
-		StatFormulas[8 * 2]          = 5;  // max ap
-		StatMulti[8 * 7 + STAT_ag]   = 0.5;
+		statFormulas[STAT_max_move_points].base           = 5;  // max ap
+		statFormulas[STAT_max_move_points].multi[STAT_ag] = 0.5;
 
-		StatMulti[9 * 7 + STAT_ag]   = 1;  // ac
+		statFormulas[STAT_ac].multi[STAT_ag]              = 1;  // ac
 		// STAT_st - 5
-		StatFormulas[11 * 2 + 1]     = 1;  // melee damage
-		StatShifts[11 * 7 + STAT_st] = -5;
-		StatMulti[11 * 7 + STAT_st]  = 1;
+		statFormulas[STAT_melee_dmg].min                  = 1;  // melee damage
+		statFormulas[STAT_melee_dmg].shift[STAT_st]       = -5;
+		statFormulas[STAT_melee_dmg].multi[STAT_st]       = 1;
 		// STAT_st * 25 + 25
-		StatFormulas[12 * 2]         = 25; // carry weight
-		StatMulti[12 * 7 + STAT_st]  = 25;
+		statFormulas[STAT_carry_amt].base                 = 25; // carry weight
+		statFormulas[STAT_carry_amt].multi[STAT_st]       = 25;
 		// STAT_pe * 2
-		StatMulti[13 * 7 + STAT_pe]  = 2;  // sequence
+		statFormulas[STAT_sequence].multi[STAT_pe]        = 2;  // sequence
 		// STAT_en / 3
-		StatFormulas[14 * 2 + 1]     = 1;  // heal rate
-		StatMulti[14 * 7 + STAT_en]  = 1.0 / 3.0;
+		statFormulas[STAT_heal_rate].min                  = 1;  // heal rate
+		statFormulas[STAT_heal_rate].multi[STAT_en]       = 1.0 / 3.0;
 
-		StatMulti[15 * 7 + STAT_lu]  = 1;  // critical chance
+		statFormulas[STAT_crit_chance].multi[STAT_lu]     = 1;  // critical chance
 		// STAT_en * 2
-		StatMulti[31 * 7 + STAT_en]  = 2;  // rad resist
+		statFormulas[STAT_rad_resist].multi[STAT_en]      = 2;  // rad resist
 		// STAT_en * 5
-		StatMulti[32 * 7 + STAT_en]  = 5;  // poison resist
+		statFormulas[STAT_poison_resist].multi[STAT_en]   = 5;  // poison resist
 
 		char key[6], buf2[256], buf3[256];
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
@@ -318,15 +322,15 @@ void StatsInit() {
 			if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
 
 			_itoa(i, key, 10);
-			StatFormulas[i * 2] = iniGetInt(key, "base", StatFormulas[i * 2], statFile);
-			StatFormulas[i * 2 + 1] = iniGetInt(key, "min", StatFormulas[i * 2 + 1], statFile);
+			statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
+			statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
 			for (int j = 0; j < STAT_max_hit_points; j++) {
 				sprintf(buf2, "shift%d", j);
-				StatShifts[i * 7 + j] = iniGetInt(key, buf2, StatShifts[i * 7 + j], statFile);
+				statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
 				sprintf(buf2, "multi%d", j);
-				_gcvt(StatMulti[i * 7 + j], 16, buf3);
+				_gcvt(statFormulas[i].multi[j], 16, buf3);
 				iniGetString(key, buf2, buf3, buf2, 256, statFile);
-				StatMulti[i * 7 + j] = atof(buf2);
+				statFormulas[i].multi[j] = atof(buf2);
 			}
 		}
 	}
@@ -334,38 +338,38 @@ void StatsInit() {
 
 long __stdcall GetStatMax(int stat, int isNPC) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		return (isNPC) ? StatMaximumsNPC[stat] : StatMaximumsPC[stat];
+		return (isNPC) ? statMaximumsNPC[stat] : statMaximumsPC[stat];
 	}
 	return 0;
 }
 
 long __stdcall GetStatMin(int stat, int isNPC) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		return (isNPC) ? StatMinimumsNPC[stat] : StatMinimumsPC[stat];
+		return (isNPC) ? statMinimumsNPC[stat] : statMinimumsPC[stat];
 	}
 	return 0;
 }
 
 void __stdcall SetPCStatMax(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMaximumsPC[stat] = value;
+		statMaximumsPC[stat] = value;
 	}
 }
 
 void __stdcall SetPCStatMin(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMinimumsPC[stat] = value;
+		statMinimumsPC[stat] = value;
 	}
 }
 
 void __stdcall SetNPCStatMax(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMaximumsNPC[stat] = value;
+		statMaximumsNPC[stat] = value;
 	}
 }
 
 void __stdcall SetNPCStatMin(int stat, int value) {
 	if (stat >= 0 && stat < STAT_max_stat) {
-		StatMinimumsNPC[stat] = value;
+		statMinimumsNPC[stat] = value;
 	}
 }

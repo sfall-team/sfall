@@ -216,30 +216,30 @@ struct ItemButtonItem {
 	long fid;
 };
 
-// When gained, the perk increases Stat by StatMag, which may be negative. All other perk effects come from being
+// When gained, the perk increases Stat by StatMod, which may be negative. All other perk effects come from being
 // specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
-// below the value specified (e.g., -7 indicates a stat must be less than 7). Type is only non-zero when there
+// below the value specified (e.g., -7 indicates a stat must be less than 7). Operator is only non-zero when there
 // are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
 struct PerkInfo {
-	const char* Name;
-	const char* Desc;
-	long Image;
-	long Ranks;
-	long Level;
-	long Stat;
-	long StatMag;
-	long Skill1;
-	long Skill1Mag;
-	long Type;
-	long Skill2;
-	long Skill2Mag;
-	long Str;
-	long Per;
-	long End;
-	long Chr;
-	long Int;
-	long Agl;
-	long Lck;
+	const char* name;
+	const char* description;
+	long image;
+	long ranks;
+	long levelMin;
+	long stat;
+	long statMod;
+	long skill1;
+	long skill1Min;
+	long skillOperator;
+	long skill2;
+	long skill2Min;
+	long strengthMin;
+	long perceptionMin;
+	long enduranceMin;
+	long charismaMin;
+	long intelligenceMin;
+	long agilityMin;
+	long luckMin;
 };
 
 struct DbFile {
@@ -443,9 +443,9 @@ struct SkillInfo {
 };
 
 struct TraitInfo {
-	const char* Name;
-	const char* Desc;
-	long Image;
+	const char* name;
+	const char* description;
+	long image;
 };
 
 //fallout2 path node structure

@@ -175,7 +175,7 @@ char*  ptr_pc_name                      = reinterpret_cast<char*>(_pc_name);
 DWORD* ptr_pc_proto                     = reinterpret_cast<DWORD*>(_pc_proto);
 BYTE*  ptr_PeanutButter                 = reinterpret_cast<BYTE*>(_PeanutButter);
 DWORD* ptr_perk_data                    = reinterpret_cast<DWORD*>(_perk_data);
-int**  ptr_perkLevelDataList            = reinterpret_cast<int**>(_perkLevelDataList);
+long** ptr_perkLevelDataList            = reinterpret_cast<long**>(_perkLevelDataList); // dynamic array, limited to PERK_Count
 const DWORD* ptr_pip_win                = reinterpret_cast<DWORD*>(_pip_win);
 DWORD* ptr_pipboy_message_file          = reinterpret_cast<DWORD*>(_pipboy_message_file);
 DWORD* ptr_pipmesg                      = reinterpret_cast<DWORD*>(_pipmesg);
@@ -185,7 +185,7 @@ MSGList* ptr_proto_main_msg_file        = reinterpret_cast<MSGList*>(_proto_main
 MSGList* ptr_proto_msg_files            = reinterpret_cast<MSGList*>(_proto_msg_files); // array of 6 elements
 DWORD* ptr_ptable                       = reinterpret_cast<DWORD*>(_ptable);
 DWORD* ptr_pud                          = reinterpret_cast<DWORD*>(_pud);
-DWORD* ptr_queue                        = reinterpret_cast<DWORD*>(_queue);
+Queue** ptr_queue                       = reinterpret_cast<Queue**>(_queue);
 DWORD* ptr_quick_done                   = reinterpret_cast<DWORD*>(_quick_done);
 DWORD* ptr_read_callback                = reinterpret_cast<DWORD*>(_read_callback);
 RectList** ptr_rectList                 = reinterpret_cast<RectList**>(_rectList);
@@ -1295,6 +1295,18 @@ const char* MsgSearch(const MSGList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
 	if (MessageSearch(fileAddr, &messageBuf) == 1) {
 		return messageBuf.message;
+	}
+	return nullptr;
+}
+
+Queue* QueueFindUtil(TGameObj* object, long type) {
+	if (*ptr_queue) {
+		Queue* queue = *ptr_queue;
+		while (queue->object != object && queue->type != type) {
+			queue = queue->next;
+			if (!queue) break;
+		}
+		return queue;
 	}
 	return nullptr;
 }

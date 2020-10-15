@@ -478,7 +478,7 @@ extern char*  ptr_pc_name;
 extern DWORD* ptr_pc_proto;
 extern BYTE*  ptr_PeanutButter;
 extern DWORD* ptr_perk_data;
-extern int**  ptr_perkLevelDataList; // limited to PERK_Count
+extern long** ptr_perkLevelDataList; // dynamic array, limited to PERK_Count
 extern const DWORD* ptr_pip_win;
 extern DWORD* ptr_pipboy_message_file;
 extern DWORD* ptr_pipmesg;
@@ -488,7 +488,7 @@ extern MSGList* ptr_proto_main_msg_file;
 extern MSGList* ptr_proto_msg_files; // array of 6 elements
 extern DWORD* ptr_ptable;
 extern DWORD* ptr_pud;
-extern DWORD* ptr_queue;
+extern Queue** ptr_queue;
 extern DWORD* ptr_quick_done;
 extern DWORD* ptr_read_callback;
 extern RectList** ptr_rectList;
@@ -1282,6 +1282,8 @@ const char* GetMessageStr(const MSGList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
 const char* MsgSearch(const MSGList* fileAddr, long messageId);
+
+Queue* QueueFindUtil(TGameObj* object, long type);
 
 // returns pointer to prototype by PID, or nullptr on failure
 char* GetProtoPtr(long pid);

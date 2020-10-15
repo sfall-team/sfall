@@ -36,24 +36,28 @@ static bool skipCounterAnim  = false;
 static std::vector<WORD> Chars;
 static int delayedExperience;
 
-static TGameObj* real_dude = nullptr;
-static long real_traits[2];
-static char real_pc_name[32];
-static DWORD real_last_level;
-static DWORD real_Level;
-static DWORD real_Experience;
-static char real_free_perk;
-static DWORD real_unspent_skill_points;
-//static DWORD real_map_elevation;
-static DWORD real_sneak_working;
-//static DWORD real_sneak_queue_time;
-static DWORD real_hand;
-static ItemButtonItem real_itemButtonItems[2];
-static DWORD real_perkLevelDataList[PERK_count];
-//static DWORD real_drug_gvar[6];
-//static DWORD real_jet_gvar;
-static long real_tag_skill[4];
-//static DWORD real_bbox_sneak;
+static struct DudeState {
+	TGameObj* obj_dude;
+	DWORD art_vault_guy_num;
+	long traits[2];
+	char pc_name[32];
+	DWORD last_level;
+	DWORD Level;
+	DWORD Experience;
+	char free_perk;
+	DWORD unspent_skill_points;
+	//DWORD map_elevation;
+	DWORD sneak_working;
+	//DWORD sneak_queue_time;
+	DWORD itemCurrentItem;
+	ItemButtonItem itemButtonItems[2];
+	long perkLevelDataList[PERK_count];
+	//long addictGvar[8];
+	long tag_skill[4];
+	//DWORD bbox_sneak;
+
+	DudeState() : obj_dude(nullptr) {}
+} realDude;
 
 static const DWORD* list_com = ptr_list_com;
 
@@ -69,10 +73,10 @@ static bool __stdcall IsInPidList(TGameObj* obj) {
 
 static void __stdcall SetInventoryCheck(bool skip) {
 	if (skip) {
-		SafeWrite16(0x46E7CD, 0x9090); //Inventory check
+		SafeWrite16(0x46E7CD, 0x9090); // Inventory check
 		SafeWrite32(0x46E7CF, 0x90909090);
 	} else {
-		SafeWrite16(0x46E7CD, 0x850F); //Inventory check
+		SafeWrite16(0x46E7CD, 0x850F); // Inventory check
 		SafeWrite32(0x46E7CF, 0x4B1);
 	}
 }
@@ -86,19 +90,20 @@ static void __stdcall StatPcAddExperience(int amount) {
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
-	real_dude = *ptr_obj_dude;
-	real_hand = *ptr_itemCurrentItem;
-	memcpy(real_itemButtonItems, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
-	memcpy(real_traits, ptr_pc_traits, sizeof(long) * 2);
-	memcpy(real_perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
-	strcpy_s(real_pc_name, 32, ptr_pc_name);
-	real_Level = *ptr_Level_;
-	real_last_level = *ptr_last_level;
-	real_Experience = *ptr_Experience_;
-	real_free_perk = *ptr_free_perk;
-	real_unspent_skill_points = ptr_curr_pc_stat[0];
-	real_sneak_working = *ptr_sneak_working;
-	SkillGetTags(real_tag_skill, 4);
+	realDude.obj_dude = *ptr_obj_dude;
+	realDude.art_vault_guy_num = *ptr_art_vault_guy_num;
+	realDude.itemCurrentItem = *ptr_itemCurrentItem;
+	memcpy(realDude.itemButtonItems, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
+	memcpy(realDude.traits, ptr_pc_traits, sizeof(long) * 2);
+	memcpy(realDude.perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	strcpy_s(realDude.pc_name, 32, ptr_pc_name);
+	realDude.Level = *ptr_Level_;
+	realDude.last_level = *ptr_last_level;
+	realDude.Experience = *ptr_Experience_;
+	realDude.free_perk = *ptr_free_perk;
+	realDude.unspent_skill_points = ptr_curr_pc_stat[0];
+	realDude.sneak_working = *ptr_sneak_working;
+	SkillGetTags(realDude.tag_skill, 4);
 
 	if (skipCounterAnim) {
 		const DWORD counterAnimAddr[] = {0x422BDE, 0x4229EC};
@@ -127,8 +132,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// change level
 	int level = IsPartyMember(npc)
-		? PartyMemberGetCurrentLevel(npc)
-		: 0;
+				? PartyMemberGetCurrentLevel(npc)
+				: 0;
 
 	*ptr_Level_ = level;
 	*ptr_last_level = level;
@@ -144,17 +149,17 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
-	if (AnimCodeByWeapon(InvenLeftHand(npc)) == critterAnim) { // definitely left hand..
+	if (AnimCodeByWeapon(InvenLeftHand(npc)) == critterAnim) { // definitely left hand
 		*ptr_itemCurrentItem = 0;
 	} else {
 		*ptr_itemCurrentItem = 1;
 	}
 
-	*ptr_inven_pid = npc->protoId;
-
 	// switch main dude_obj pointers - this should be done last!
 	*ptr_obj_dude = npc;
 	*ptr_inven_dude = npc;
+	*ptr_inven_pid = npc->protoId;
+	*ptr_art_vault_guy_num = npc->artFid & 0xFFF;
 
 	isControllingNPC = true;
 	delayedExperience = 0;
@@ -165,26 +170,27 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 // restores the real dude state
 static void RestoreRealDudeState(bool redraw = true) {
-	assert(real_dude != nullptr);
+	assert(realDude.obj_dude != nullptr);
 
-	*ptr_map_elevation = real_dude->elevation;
+	*ptr_map_elevation = realDude.obj_dude->elevation;
 
-	*ptr_obj_dude = real_dude;
-	*ptr_inven_dude = real_dude;
-	*ptr_inven_pid = real_dude->protoId;
+	*ptr_obj_dude = realDude.obj_dude;
+	*ptr_inven_dude = realDude.obj_dude;
+	*ptr_inven_pid = realDude.obj_dude->protoId;
+	*ptr_art_vault_guy_num = realDude.art_vault_guy_num;
 
-	*ptr_itemCurrentItem = real_hand;
-	memcpy(ptr_itemButtonItems, real_itemButtonItems, sizeof(ItemButtonItem) * 2);
-	memcpy(ptr_pc_traits, real_traits, sizeof(long) * 2);
-	memcpy(*ptr_perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
-	strcpy_s(ptr_pc_name, 32, real_pc_name);
-	*ptr_Level_ = real_Level;
-	*ptr_last_level = real_last_level;
-	*ptr_Experience_ = real_Experience;
-	*ptr_free_perk = real_free_perk;
-	ptr_curr_pc_stat[0] = real_unspent_skill_points;
-	*ptr_sneak_working = real_sneak_working;
-	SkillSetTags(real_tag_skill, 4);
+	*ptr_itemCurrentItem = realDude.itemCurrentItem;
+	memcpy(ptr_itemButtonItems, realDude.itemButtonItems, sizeof(ItemButtonItem) * 2);
+	memcpy(ptr_pc_traits, realDude.traits, sizeof(long) * 2);
+	memcpy(*ptr_perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * PERK_count);
+	strcpy_s(ptr_pc_name, 32, realDude.pc_name);
+	*ptr_Level_ = realDude.Level;
+	*ptr_last_level = realDude.last_level;
+	*ptr_Experience_ = realDude.Experience;
+	*ptr_free_perk = realDude.free_perk;
+	ptr_curr_pc_stat[0] = realDude.unspent_skill_points;
+	*ptr_sneak_working = realDude.sneak_working;
+	SkillSetTags(realDude.tag_skill, 4);
 
 	if (delayedExperience > 0) {
 		StatPcAddExperience(delayedExperience);
@@ -199,7 +205,6 @@ static void RestoreRealDudeState(bool redraw = true) {
 
 	SetInventoryCheck(false);
 	isControllingNPC = false;
-	real_dude = nullptr;
 
 	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.\n");
 }
@@ -269,39 +274,39 @@ int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
 }
 
 static long __fastcall GetRealDudePerk(TGameObj* source, long perk) {
-	if (isControllingNPC && source == real_dude) {
-		return real_perkLevelDataList[perk];
+	if (isControllingNPC && source == realDude.obj_dude) {
+		return realDude.perkLevelDataList[perk];
 	}
 	return PerkLevel(source, perk);
 }
 
 static long __fastcall GetRealDudeTrait(TGameObj* source, long trait) {
-	if (isControllingNPC && source == real_dude) {
-		return (trait == real_traits[0] || trait == real_traits[1]) ? 1 : 0;
+	if (isControllingNPC && source == realDude.obj_dude) {
+		return (trait == realDude.traits[0] || trait == realDude.traits[1]) ? 1 : 0;
 	}
 	return TraitLevel(trait);
 }
 
 static void __declspec(naked) CombatWrapper_v2() {
 	__asm {
-		sub esp, 4;
+		sub  esp, 4;
 		pushad;
 		push eax;
 		call CombatWrapperInner;
-		mov [esp+32], eax;
+		mov  [esp + 32], eax;
 		popad;
-		add esp, 4;
-		cmp [esp-4], 0;
-		je gonormal;
-		cmp [esp-4], -1;
-		je combatend;
-		xor eax, eax;
+		add  esp, 4;
+		cmp  [esp - 4], 0;
+		je   gonormal;
+		cmp  [esp - 4], -1;
+		je   combatend;
+		xor  eax, eax;
 		retn;
 combatend:
-		mov eax, -1; // don't continue combat, as the game was loaded
+		mov  eax, -1; // don't continue combat, as the game was loaded
 		retn;
 gonormal:
-		jmp combat_turn_;
+		jmp  combat_turn_;
 	}
 }
 
@@ -310,13 +315,13 @@ static void __declspec(naked) CombatHack_add_noncoms_() {
 	static const DWORD CombatHack_add_noncoms_back = 0x422359;
 	__asm {
 		call CombatWrapper_v2;
-		cmp eax, -1;
-		jne gonormal;
-		mov eax, list_com;
-		mov [eax], 0;
-		mov ecx, [esp];
+		cmp  eax, -1;
+		jne  gonormal;
+		mov  eax, list_com;
+		mov  [eax], 0;
+		mov  ecx, [esp];
 gonormal:
-		jmp CombatHack_add_noncoms_back;
+		jmp  CombatHack_add_noncoms_back;
 	}
 }
 
@@ -379,15 +384,16 @@ static void __declspec(naked) proto_name_hook() {
 		jne  pcName;
 		jmp  critter_name_;
 pcName:
-		lea  eax, real_pc_name;
+		lea  eax, realDude.pc_name;
 		retn;
 	}
 }
 
 static void PartyControlReset() {
-	if (real_dude != nullptr && isControllingNPC) {
+	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
 	}
+	realDude.obj_dude = nullptr;
 }
 
 bool IsNpcControlled() {
@@ -395,12 +401,13 @@ bool IsNpcControlled() {
 }
 
 TGameObj* RealDudeObject() {
-	return real_dude != nullptr
-		? real_dude
+	return realDude.obj_dude != nullptr
+		? realDude.obj_dude
 		: *ptr_obj_dude;
 }
 
 static char levelMsg[12], armorClassMsg[12], addictMsg[16];
+
 static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	const char* fmt = "%s %d";
 	char lvlMsg[16], acMsg[16];

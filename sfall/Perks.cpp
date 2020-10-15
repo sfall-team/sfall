@@ -44,9 +44,8 @@ static DWORD addPerkMode = 2;
 static bool perksReInit = false;
 static int perksEnable = 0;
 
-//static const PerkInfo BlankPerk={ &Name[PERK_count*64], &Desc[PERK_count*1024], 0x48, 1, 1, -1, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0 };
-static PerkInfo Perks[PERK_count];
-static TraitInfo Traits[TRAIT_count];
+static PerkInfo perks[PERK_count];
+static TraitInfo traits[TRAIT_count];
 
 #pragma pack(push, 1)
 struct FakePerk {
@@ -330,13 +329,7 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 
 static DWORD __stdcall HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
-		DWORD a = (DWORD)fakeTraits[i].Name;
-		__asm {
-			mov  eax, a;
-			call folder_print_line_;
-			mov  a, eax;
-		}
-		if (a && !isSelect) {
+		if (FolderPrintLine(fakeTraits[i].Name) && !isSelect) {
 			isSelect = 1;
 			*ptr_folder_card_fid = fakeTraits[i].Image;
 			*ptr_folder_card_title = (DWORD)fakeTraits[i].Name;
@@ -626,7 +619,7 @@ lower:
 static bool perkHeaveHoModFix = false;
 void __stdcall ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
-	Perks[PERK_heave_ho].Str = 0;
+	perks[PERK_heave_ho].strengthMin = 0;
 	perkHeaveHoModFix = true;
 }
 
@@ -682,59 +675,59 @@ static void PerkSetup() {
 	if (!perksReInit) {
 		// _perk_data
 		const DWORD perkDataAddr[] = {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25};
-		SafeWriteBatch<DWORD>((DWORD)Perks, perkDataAddr);
+		SafeWriteBatch<DWORD>((DWORD)perks, perkDataAddr);
 		const DWORD perkDataDescAddr[] = {0x496696, 0x496BD1};
-		SafeWriteBatch<DWORD>((DWORD)&Perks[0].Desc, perkDataDescAddr);
-		SafeWrite32(0x496BF5, (DWORD)&Perks[0].Image);
-		SafeWrite32(0x496AD4, (DWORD)&Perks[0].Ranks);
+		SafeWriteBatch<DWORD>((DWORD)&perks[0].description, perkDataDescAddr);
+		SafeWrite32(0x496BF5, (DWORD)&perks[0].image);
+		SafeWrite32(0x496AD4, (DWORD)&perks[0].ranks);
 	}
-	memcpy(Perks, (void*)_perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
+	memcpy(perks, (void*)_perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
 
 	if (perksEnable) {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa(i, num, 10);
 			if (iniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
-				Perks[i].Name = &Name[i * maxNameLen];
+				perks[i].name = &Name[i * maxNameLen];
 			}
 			if (iniGetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
-				Perks[i].Desc = &Desc[i * descLen];
+				perks[i].description = &Desc[i * descLen];
 			}
 			int value;
 			value = iniGetInt(num, "Image", -99999, perksFile);
-			if (value != -99999) Perks[i].Image = value;
+			if (value != -99999) perks[i].image = value;
 			value = iniGetInt(num, "Ranks", -99999, perksFile);
-			if (value != -99999) Perks[i].Ranks = value;
+			if (value != -99999) perks[i].ranks = value;
 			value = iniGetInt(num, "Level", -99999, perksFile);
-			if (value != -99999) Perks[i].Level = value;
+			if (value != -99999) perks[i].levelMin = value;
 			value = iniGetInt(num, "Stat", -99999, perksFile);
-			if (value != -99999) Perks[i].Stat = value;
+			if (value != -99999) perks[i].stat = value;
 			value = iniGetInt(num, "StatMag", -99999, perksFile);
-			if (value != -99999) Perks[i].StatMag = value;
+			if (value != -99999) perks[i].statMod = value;
 			value = iniGetInt(num, "Skill1", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill1 = value;
+			if (value != -99999) perks[i].skill1 = value;
 			value = iniGetInt(num, "Skill1Mag", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill1Mag = value;
+			if (value != -99999) perks[i].skill1Min = value;
 			value = iniGetInt(num, "Type", -99999, perksFile);
-			if (value != -99999) Perks[i].Type = value;
+			if (value != -99999) perks[i].skillOperator = value;
 			value = iniGetInt(num, "Skill2", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill2 = value;
+			if (value != -99999) perks[i].skill2 = value;
 			value = iniGetInt(num, "Skill2Mag", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill2Mag = value;
+			if (value != -99999) perks[i].skill2Min = value;
 			value = iniGetInt(num, "STR", -99999, perksFile);
-			if (value != -99999) Perks[i].Str = value;
+			if (value != -99999) perks[i].strengthMin = value;
 			value = iniGetInt(num, "PER", -99999, perksFile);
-			if (value != -99999) Perks[i].Per = value;
+			if (value != -99999) perks[i].perceptionMin = value;
 			value = iniGetInt(num, "END", -99999, perksFile);
-			if (value != -99999) Perks[i].End = value;
+			if (value != -99999) perks[i].enduranceMin = value;
 			value = iniGetInt(num, "CHR", -99999, perksFile);
-			if (value != -99999) Perks[i].Chr = value;
+			if (value != -99999) perks[i].charismaMin = value;
 			value = iniGetInt(num, "INT", -99999, perksFile);
-			if (value != -99999) Perks[i].Int = value;
+			if (value != -99999) perks[i].intelligenceMin = value;
 			value = iniGetInt(num, "AGL", -99999, perksFile);
-			if (value != -99999) Perks[i].Agl = value;
+			if (value != -99999) perks[i].agilityMin = value;
 			value = iniGetInt(num, "LCK", -99999, perksFile);
-			if (value != -99999) Perks[i].Lck = value;
+			if (value != -99999) perks[i].luckMin = value;
 		}
 	}
 	perksReInit = false;
@@ -883,28 +876,28 @@ static void TraitSetup() {
 	MakeJump(0x4B3C7C, TraitAdjustStatHack);  // trait_adjust_stat_
 	MakeJump(0x4B40FC, TraitAdjustSkillHack); // trait_adjust_skill_
 
-	memcpy(Traits, (void*)_trait_data, sizeof(TraitInfo) * TRAIT_count);
+	memcpy(traits, (void*)_trait_data, sizeof(TraitInfo) * TRAIT_count);
 
 	// _trait_data
 	const DWORD traitDataAddr[] = {0x4B3A81, 0x4B3B80};
-	SafeWriteBatch<DWORD>((DWORD)Traits, traitDataAddr);
+	SafeWriteBatch<DWORD>((DWORD)traits, traitDataAddr);
 	const DWORD traitDataDescAddr[] = {0x4B3AAE, 0x4B3BA0};
-	SafeWriteBatch<DWORD>((DWORD)&Traits[0].Desc, traitDataDescAddr);
-	SafeWrite32(0x4B3BC0, (DWORD)&Traits[0].Image);
+	SafeWriteBatch<DWORD>((DWORD)&traits[0].description, traitDataDescAddr);
+	SafeWrite32(0x4B3BC0, (DWORD)&traits[0].image);
 
 	char buf[512], num[5] = {'t'};
 	char* num2 = &num[1];
 	for (int i = 0; i < TRAIT_count; i++) {
 		_itoa_s(i, num2, 4, 10);
 		if (iniGetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
-			Traits[i].Name = &tName[i * maxNameLen];
+			traits[i].name = &tName[i * maxNameLen];
 		}
 		if (iniGetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
-			Traits[i].Desc = &tDesc[i * descLen];
+			traits[i].description = &tDesc[i * descLen];
 		}
 		int value;
 		value = iniGetInt(num, "Image", -99999, perksFile);
-		if (value != -99999) Traits[i].Image = value;
+		if (value != -99999) traits[i].image = value;
 
 		if (iniGetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
@@ -1068,21 +1061,21 @@ static void FastShotTraitFix() {
 
 void __fastcall SetPerkValue(int id, int param, int value) {
 	if (id < 0 || id >= PERK_count) return;
-	*(DWORD*)((DWORD)(&Perks[id]) + param) = value;
+	*(DWORD*)((DWORD)(&perks[id]) + param) = value;
 	perksReInit = true;
 }
 
 void __stdcall SetPerkName(int id, const char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
-	Perks[id].Name = &Name[maxNameLen * id];
+	perks[id].name = &Name[maxNameLen * id];
 	perksReInit = true;
 }
 
 void __stdcall SetPerkDesc(int id, const char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strncpy_s(&Desc[id * descLen], descLen, value, _TRUNCATE);
-	Perks[id].Desc = &Desc[descLen * id];
+	perks[id].description = &Desc[descLen * id];
 	perksReInit = true;
 }
 
