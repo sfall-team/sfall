@@ -202,6 +202,7 @@ void GameRender::init() {
 		// custom implementation of the GNW_win_refresh function
 		MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
 		SafeWrite16(0x4D75E6, 0x9090); // win_clip_ (remove _buffering checking)
+		SafeWrite32(0x4C8FD1, FO_VAR_screen_buffer); // replace screendump_buf
 	} else { // for default or HRP graphics mode
 		SafeWrite8(0x4D5DAB, 0x1D); // ecx > ebx (enable _buffering)
 		BlockCall(0x431076); // dialogMessage_

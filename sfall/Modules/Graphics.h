@@ -72,7 +72,8 @@ public:
 
 			primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
 
-			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch); //+ (desc.lPitch * rect->top) + rect->left
+			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * rect->top) + rect->left;
+			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
 			primaryDDSurface->Unlock(desc.lpSurface);
 		}
