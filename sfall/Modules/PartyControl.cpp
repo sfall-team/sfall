@@ -286,7 +286,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::art_vault_guy_num = realDude.art_vault_guy_num;
 
 	fo::var::itemCurrentItem = realDude.itemCurrentItem;
-	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(DWORD) * 6 * 2);
+	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
 	memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
 	memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
@@ -404,6 +404,7 @@ static void __declspec(naked) pc_flag_off_hook() {
 	}
 }
 
+// prevents equipping a weapon when the current appearance has no animation for it
 static void __declspec(naked) intface_toggle_items_hack() {
 	__asm {
 //		cmp  isControllingNPC, 0;
