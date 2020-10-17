@@ -59,8 +59,6 @@ static struct DudeState {
 	DudeState() : obj_dude(nullptr) {}
 } realDude;
 
-static const DWORD* list_com = ptr_list_com;
-
 static bool __stdcall IsInPidList(TGameObj* obj) {
 	int pid = obj->protoId & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); ++it) {
@@ -209,22 +207,22 @@ static void RestoreRealDudeState(bool redraw = true) {
 	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.\n");
 }
 
-static int __stdcall CombatTurn(TGameObj* obj) {
+static long __stdcall CombatTurn(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
+		mov  eax, obj;
 		call combat_turn_;
 	}
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static int __stdcall CombatWrapperInner(TGameObj* obj) {
+static long __stdcall CombatWrapperInner(TGameObj* obj) {
 	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
 
 		// Do combat turn
-		int turnResult = CombatTurn(obj);
+		long turnResult = CombatTurn(obj);
 
 		// restore state
 		if (isControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
@@ -240,14 +238,14 @@ static int __stdcall CombatWrapperInner(TGameObj* obj) {
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
 static void __declspec(naked) FidChangeHook() {
 	__asm {
-		cmp isControllingNPC, 0;
-		je skip;
+		cmp  isControllingNPC, 0;
+		je   skip;
 		push eax;
-		mov eax, [eax+0x20]; // current fid
-		and eax, 0xFFFF0FFF;
-		and edx, 0x0000F000;
-		or edx, eax; // only change one octet with weapon type
-		pop eax;
+		mov  eax, [eax + 0x20]; // current fid
+		and  eax, 0xFFFF0FFF;
+		and  edx, 0x0000F000;
+		or   edx, eax; // only change one octet with weapon type
+		pop  eax;
 skip:
 		call obj_change_fid_;
 		retn;
@@ -310,18 +308,16 @@ gonormal:
 	}
 }
 
-// hack to exit from this function safely when you load game during NPC turn
-static void __declspec(naked) CombatHack_add_noncoms_() {
-	static const DWORD CombatHack_add_noncoms_back = 0x422359;
+// hack to exit from combat_add_noncoms function without crashing when you load game during PM/NPC turn
+static void __declspec(naked) combat_add_noncoms_hook() {
 	__asm {
 		call CombatWrapper_v2;
-		cmp  eax, -1;
-		jne  gonormal;
-		mov  eax, list_com;
-		mov  [eax], 0;
-		mov  ecx, [esp];
-gonormal:
-		jmp  CombatHack_add_noncoms_back;
+		inc  eax;
+		jnz  end; // jump if return value != -1
+		mov  ds:[_list_com], eax; // eax = 0
+		mov  ecx, [esp + 4]; // list
+end:
+		retn;
 	}
 }
 
@@ -346,6 +342,7 @@ static void __declspec(naked) pc_flag_toggle_hook() {
 	}
 }
 
+// prevents equipping a weapon when the current appearance has no animation for it
 static void __declspec(naked) intface_toggle_items_hack() {
 	__asm {
 //		cmp  isControllingNPC, 0;
@@ -488,7 +485,7 @@ void PartyControlInit() {
 
 		HookCall(0x46EBEE, FidChangeHook);
 
-		MakeJump(0x422354, CombatHack_add_noncoms_);
+		HookCall(0x422354, combat_add_noncoms_hook);
 		const DWORD combatWrapperAddr[] = {0x422D87, 0x422E20};
 		HookCalls(CombatWrapper_v2, combatWrapperAddr);
 
