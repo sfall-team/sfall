@@ -87,7 +87,7 @@ void op_resize_array(OpcodeContext& ctx) {
 }
 
 void op_temp_array(OpcodeContext& ctx) {
-	auto arrayId = TempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	auto arrayId = CreateTempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(arrayId);
 }
 
@@ -196,7 +196,7 @@ static DWORD ListAsArray(DWORD type) {
 	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
 	size_t sz = vec.size();
-	DWORD id = TempArray(sz, 0);
+	DWORD id = CreateTempArray(sz, 0);
 	for (size_t i = 0; i < sz; i++) {
 		arrays[id].val[i].set((long)vec[i]);
 	}

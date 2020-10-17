@@ -132,49 +132,62 @@ fail:
 	}
 }
 
+static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target) {
+	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
+	if (dir < 0) dir = -dir;
+	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
+		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, fo::STAT_pe) * 3));
+	}
+	return (dir == 0); // is directly in front
+}
+
 static void __declspec(naked) op_obj_can_see_obj_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 4]; // buf **ret_objStruct
-		test ebp, ebp;
-		jz   onlyOnce;
-		xor  ebp, ebp;
+		test ebp, ebp; // check only once
+		jz   checkSee;
+		xor  ebp, ebp; // for only once
 		push edx;
+		push eax;
 		mov  edx, [edi - 8]; // target
-		push eax;            // source
-		call fo::funcoffs::can_see_;
-		test eax, eax;
+		mov  ecx, eax;       // source
+		call SeeIsFront;
+		xor  ecx, ecx;
+		test al, al;
 		pop  eax;
 		pop  edx;
-		jz   normal;
-onlyOnce:
+		jnz  checkSee; // can see
+		// vanilla behavior
+		push 0x10;
+		push edi;
+		call fo::funcoffs::make_straight_path_;
+		retn 8;
+checkSee:
 		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
 		push 0x20;                                 // flags, 0x20 = check ShootThru
 		push edi;
 		call fo::funcoffs::make_straight_path_func_;
-		// see through critter
-		mov  ebx, [edi];
+		mov  edx, [edi - 8]; // target
+		mov  ebx, [edi];     // blocking object
 		test ebx, ebx;
-		jz   skip;
-		cmp  ebx, [edi - 8]; // target
-		jne  noTarget;
-skip:
+		jz   isSee;          // no blocking object
+		cmp  ebx, edx;
+		jne  checkObj;       // object is not equal to target
 		retn 8;
-noTarget:
+isSee:
+		mov  [edi], edx;     // fix for target with ShootThru flag
+		retn 8;
+checkObj:
 		mov  eax, [ebx + protoId];
 		shr  eax, 24;
 		cmp  eax, OBJ_TYPE_CRITTER;
-		je   isCritter;
+		je   continue; // see through critter
 		retn 8;
-isCritter:
-		mov  [edi - 4], ebx;            // replace source
-		mov  dword ptr [esp], 0x456BAB; // continue
-		retn 8;
-normal: // vanilla behavior
-		push 0x10;
-		push edi;
-		call fo::funcoffs::make_straight_path_;
+continue:
+		mov  [edi - 4], ebx;            // replace source with blocking object
+		mov  dword ptr [esp], 0x456BAB; // repeat from the blocking object
 		retn 8;
 	}
 }
@@ -204,39 +217,37 @@ static void __declspec(naked) display_stats_hook() {
 	}
 }
 
-static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
-	if (fo::GetItemType(item) != fo::item_type_weapon && *toSlot
-		 && fo::GetItemType((fo::GameObject*)*toSlot) != fo::item_type_weapon) {
+static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
+	if (toSlot && fo::GetItemType(item) != fo::item_type_weapon && fo::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
+	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[0];
+	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[1];
 
-	DWORD* leftSlot = (DWORD*)FO_VAR_itemButtonItems;
-	DWORD* rightSlot = leftSlot + 6;
-
-	if (*toSlot == 0) { //copy to slot
-		DWORD* slot;
+	if (toSlot == nullptr) { // copy to slot
+		fo::ItemButtonItem* slot;
 		fo::ItemButtonItem item[1];
-		if ((int)toSlot == FO_VAR_i_lhand) {
-			memcpy(item, rightSlot, 0x14);
+		if ((int)&toSlot == FO_VAR_i_lhand) {
+			std::memcpy(item, rightSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 			slot = leftSlot; // Rslot > Lslot
 		} else {
-			memcpy(item, leftSlot, 0x14);
+			std::memcpy(item, leftSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 			slot = rightSlot; // Lslot > Rslot;
 		}
-		memcpy(slot, item, 0x14);
-	} else { // swap slot
-		auto swapBuf = fo::var::itemButtonItems;
-		swapBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		swapBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		swapBuf[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		swapBuf[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		std::memcpy(slot, item, 0x14);
+	} else { // swap slots
+		auto hands = fo::var::itemButtonItems;
+		hands[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		memcpy(leftSlot,  &swapBuf[1], 0x14); // buf Rslot > Lslot
-		memcpy(rightSlot, &swapBuf[0], 0x14); // buf Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
 	}
 }
 
@@ -487,15 +498,28 @@ static void MotionScannerFlagsPatch() {
 	}
 }
 
+static void __declspec(naked) ResizeEncounterMessagesTable() {
+	__asm {
+		add  eax, eax; // double the increment
+		add  eax, 3000;
+		retn;
+	}
+}
+
 static void EncounterTableSizePatch() {
 	const DWORD EncounterTableSize[] = {
 		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
 	};
 
-	DWORD tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
-	if (tableSize > 40 && tableSize <= 127) {
+	int tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
+	if (tableSize > 40) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
+		if (tableSize > 50) {
+			if (tableSize > 100) tableSize = 100;
+			// Increase the count of message lines from 50 to 100 for the encounter tables in worldmap.msg
+			MakeCalls(ResizeEncounterMessagesTable, {0x4C102C, 0x4C0B57});
+		}
 		SafeWrite8(0x4BDB17, (BYTE)tableSize);
 		DWORD nsize = (tableSize + 1) * 180 + 0x50;
 		SafeWriteBatch<DWORD>(nsize, EncounterTableSize);
@@ -514,7 +538,7 @@ static void DisablePipboyAlarmPatch() {
 
 static void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
-		dlog("Applying obj_can_see_obj fix for critters and ShootThru objects.", DL_INIT);
+		dlog("Applying obj_can_see_obj fix for seeing through critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -527,8 +551,7 @@ static void OverrideMusicDirPatch() {
 		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
 		if (overrideMode == 2) {
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
-			__int64 data = 0x90909040EB; // jmp 0x44FD35 (skip paths initialization)
-			SafeWriteBytes(0x44FCF3, (BYTE*)&data, 5);
+			SafeWrite16(0x44FCF3, 0x40EB); // jmp 0x44FD35 (skip paths initialization)
 		}
 	}
 }
@@ -616,11 +639,11 @@ static void DisplaySecondWeaponRangePatch() {
 }
 
 static void KeepWeaponSelectModePatch() {
-	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
+	//if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 static void PartyMemberSkillPatch() {
@@ -663,12 +686,12 @@ static void SkipLoadingGameSettingsPatch() {
 }
 
 static void InterfaceDontMoveOnTopPatch() {
-	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
+	//if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 static void UseWalkDistancePatch() {

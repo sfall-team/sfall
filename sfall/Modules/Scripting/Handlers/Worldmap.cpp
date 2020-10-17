@@ -191,7 +191,7 @@ void mf_set_map_enter_position(OpcodeContext& ctx) {
 }
 
 void mf_get_map_enter_position(OpcodeContext& ctx) {
-	DWORD id = TempArray(3, 0);
+	DWORD id = CreateTempArray(3, 0);
 	arrays[id].val[0].set((long)fo::var::tile);
 	arrays[id].val[1].set((long)fo::var::elevation);
 	arrays[id].val[2].set((long)fo::var::rotation);

@@ -70,6 +70,7 @@ static const SfallMetarule metarules[] = {
 	{"art_cache_clear",         mf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         mf_attack_is_aimed,         0, 0},
 	{"car_gas_amount",          mf_car_gas_amount,          0, 0},
+	{"combat_data",             mf_combat_data,             0, 0},
 	{"create_win",              mf_create_win,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message",          mf_dialog_message,          1, 1, -1, {ARG_STRING}},
@@ -100,9 +101,11 @@ static const SfallMetarule metarules[] = {
 	{"has_fake_perk_npc",       mf_has_fake_perk_npc,       2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"has_fake_trait_npc",      mf_has_fake_trait_npc,      2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"hide_window",             mf_hide_window,             0, 1, -1, {ARG_STRING}},
+	{"interface_art_draw",      mf_interface_art_draw,      4, 6, -1, {ARG_INT, ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"interface_print",         mf_interface_print,         5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"intface_hide",            mf_intface_hide,            0, 0},
 	{"intface_is_hidden",       mf_intface_is_hidden,       0, 0},
-	{"intface_redraw",          mf_intface_redraw,          0, 0},
+	{"intface_redraw",          mf_intface_redraw,          0, 1},
 	{"intface_show",            mf_intface_show,            0, 0},
 	{"inventory_redraw",        mf_inventory_redraw,        0, 1, -1, {ARG_INT}},
 	{"item_make_explosive",     mf_item_make_explosive,     3, 4, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
@@ -154,7 +157,7 @@ static const SfallMetarule metarules[] = {
 
 // returns current contents of metarule table
 static void mf_get_metarule_table(OpcodeContext& ctx) {
-	DWORD arrId = TempArray(metaruleTable.size(), 0);
+	DWORD arrId = CreateTempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
 		arrays[arrId].val[i].set(it->first.c_str());

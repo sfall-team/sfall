@@ -22,6 +22,7 @@
 #include "Drugs.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
+#include "ScriptExtender.h"
 
 #include "PartyControl.h"
 
@@ -58,7 +59,7 @@ static struct DudeState {
 	DWORD unspent_skill_points;
 	//DWORD map_elevation;
 	DWORD sneak_working;
-	//DWORD sneak_queue_time;
+	DWORD sneak_queue_time;
 	DWORD itemCurrentItem;
 	fo::ItemButtonItem itemButtonItems[2];
 	long perkLevelDataList[fo::PERK_count];
@@ -68,6 +69,22 @@ static struct DudeState {
 	long* extendAddictGvar = nullptr;
 	bool isSaved = false;
 } realDude;
+
+struct PartySneakWorking {
+	fo::GameObject* object;
+	unsigned long sneak_queue_time;
+	long sneak_working;
+};
+static std::vector<PartySneakWorking> partySneakWorking;
+
+static void __fastcall RemoveSneakWorking(fo::GameObject* object) {
+	for (size_t i = 0; i < partySneakWorking.size(); i++) {
+		if (partySneakWorking[i].object == object) {
+			partySneakWorking.erase(partySneakWorking.cbegin() + i);
+			break;
+		}
+	}
+}
 
 static void SaveAddictGvarState() {
 	int n = 0;
@@ -118,7 +135,16 @@ static void SaveRealDudeState() {
 	realDude.Experience = fo::var::Experience_;
 	realDude.free_perk = fo::var::free_perk;
 	realDude.unspent_skill_points = fo::var::curr_pc_stat[0];
+
+	fo::Queue* queue = nullptr;
 	realDude.sneak_working = fo::var::sneak_working;
+	if (fo::func::is_pc_flag(0)) { // sneak flag
+		queue = fo::QueueFind(realDude.obj_dude, fo::QueueType::sneak_event);
+		fo::func::queue_remove_this(realDude.obj_dude, fo::QueueType::sneak_event);
+	}
+	realDude.sneak_queue_time = (queue) ? queue->time : 0;
+	devlog_f("Dude save sneak: time %d[%d], state %d\n", DL_MAIN, realDude.sneak_queue_time, fo::var::fallout_game_time, realDude.sneak_working);
+
 	fo::SkillGetTags(realDude.tag_skill, 4);
 
 	for (int i = 0; i < 6; i++) realDude.addictGvar[i] = fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar];
@@ -227,6 +253,24 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	isControllingNPC = true;
 	delayedExperience = 0;
 
+	if (fo::IsNpcFlag(npc, 0)) { // sneak flag
+		bool exist = false;
+		/* restore the previously saved sneak state */
+		for (const auto& member : partySneakWorking) {
+			if (member.object == npc) {
+				exist = member.sneak_queue_time > fo::var::fallout_game_time; // is false: the event time less than the current time -> run critter_sneak_check_
+				if (exist) {
+					devlog_f("%s restore sneak: time %d[%d], state %d\n", DL_MAIN, fo::func::critter_name(npc), member.sneak_queue_time, fo::var::fallout_game_time, member.sneak_working);
+					fo::func::queue_add(member.sneak_queue_time - fo::var::fallout_game_time, npc, 0, fo::QueueType::sneak_event);
+					fo::var::sneak_working = member.sneak_working;
+				} else {
+					devlog_f("%s recheck sneak: time %d<=[%d], state %d\n", DL_MAIN, fo::func::critter_name(npc), member.sneak_queue_time, fo::var::fallout_game_time, member.sneak_working);
+				}
+				break;
+			}
+		}
+		if (!exist) __asm call fo::funcoffs::critter_sneak_check_;
+	}
 	fo::func::intface_redraw();
 }
 
@@ -242,7 +286,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::art_vault_guy_num = realDude.art_vault_guy_num;
 
 	fo::var::itemCurrentItem = realDude.itemCurrentItem;
-	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(DWORD) * 6 * 2);
+	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
 	memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
 	memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
@@ -251,7 +295,15 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::Experience_ = realDude.Experience;
 	fo::var::free_perk = realDude.free_perk;
 	fo::var::curr_pc_stat[0] = realDude.unspent_skill_points;
-	fo::var::sneak_working = realDude.sneak_working;
+
+	fo::var::sneak_working = 0;
+	if (realDude.sneak_queue_time && fo::func::is_pc_flag(0)) {
+		/* restore the saved sneak state */
+		fo::func::queue_add(realDude.sneak_queue_time - fo::var::fallout_game_time, realDude.obj_dude, 0, fo::QueueType::sneak_event);
+		fo::var::sneak_working = realDude.sneak_working;
+		devlog_f("Dude restore sneak: time %d, state %d\n", DL_MAIN, realDude.sneak_queue_time, realDude.sneak_working);
+	}
+
 	fo::SkillSetTags(realDude.tag_skill, 4);
 
 	if (delayedExperience > 0) {
@@ -333,14 +385,26 @@ skip:
 }
 
 // prevents using sneak when controlling NPCs
-static void __declspec(naked) pc_flag_toggle_hook() {
+//static void __declspec(naked) pc_flag_toggle_hook() {
+//	__asm {
+//		cmp  isControllingNPC, 0;
+//		jne  near DisplayCantDoThat;
+//		jmp  fo::funcoffs::pc_flag_toggle_;
+//	}
+//}
+
+// removes the saved sneak state for the controlled NPC
+static void __declspec(naked) pc_flag_off_hook() {
 	__asm {
-		cmp  isControllingNPC, 0;
-		jne  near DisplayCantDoThat;
-		jmp  fo::funcoffs::pc_flag_toggle_;
+		mov  ecx, eax;
+		call fo::funcoffs::queue_remove_this_;
+		test isControllingNPC, 1;
+		jnz  near RemoveSneakWorking;
+		retn;
 	}
 }
 
+// prevents equipping a weapon when the current appearance has no animation for it
 static void __declspec(naked) intface_toggle_items_hack() {
 	__asm {
 //		cmp  isControllingNPC, 0;
@@ -390,6 +454,7 @@ static void PartyControlReset() {
 	}
 	realDude.obj_dude = nullptr;
 	realDude.isSaved = false;
+	partySneakWorking.clear();
 	weaponState.clear();
 }
 
@@ -456,6 +521,31 @@ static void NPCWeaponTweak() {
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
+		if (fo::IsNpcFlag(fo::var::obj_dude, 0)) { // sneak flag
+			/* saves the sneak state for the currently controlled NPC and clears its events before switching */
+			bool exist = false;
+			for (auto& member : partySneakWorking) {
+				if (member.object == fo::var::obj_dude) {
+					fo::Queue* queue = fo::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
+					member.sneak_queue_time = (queue) ? queue->time : 0;
+					member.sneak_working = fo::var::sneak_working;
+					exist = true;
+					devlog_f("[Switch] %s update sneak: time %d, state %d\n", DL_MAIN, fo::func::critter_name(fo::var::obj_dude), member.sneak_queue_time, member.sneak_working);
+					break;
+				}
+			}
+			if (!exist) {
+				PartySneakWorking member;
+				member.object = fo::var::obj_dude;
+				fo::Queue* queue = fo::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
+				member.sneak_queue_time = (queue) ? queue->time : 0;
+				member.sneak_working = fo::var::sneak_working;
+				partySneakWorking.push_back(member);
+				devlog_f("[Switch] %s save sneak: time %d, state %d\n", DL_MAIN, fo::func::critter_name(fo::var::obj_dude), member.sneak_queue_time, member.sneak_working);
+			}
+			fo::func::queue_remove_this(fo::var::obj_dude, fo::QueueType::sneak_event); // remove the event
+		}
+
 		NPCWeaponTweak();
 		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
 	}
@@ -469,6 +559,14 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		switchHandHookInjected = true;
 //		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
 
+		ScriptExtender::OnMapExit() += []() {
+			if (!partySneakWorking.empty()) {
+				// unset active sneak flags for controlled NPCs when exiting the map
+				for (const auto& member : partySneakWorking) fo::ToggleNpcFlag(member.object, 0, false);
+				partySneakWorking.clear();
+			}
+		};
+		HookCall(0x42E25B, pc_flag_off_hook);
 		HookCall(0x49EB09, proto_name_hook);
 
 		// Gets dude perks and traits from script while controlling another NPC
@@ -485,6 +583,7 @@ fo::GameObject* PartyControl::RealDudeObject() {
 }
 
 static char levelMsg[12], armorClassMsg[12], addictMsg[16];
+
 static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	const char* fmt = "%s %d";
 	char lvlMsg[16], acMsg[16];
@@ -544,7 +643,7 @@ void PartyControl::init() {
 	if (Drugs::addictionGvarCount) realDude.extendAddictGvar = new long[Drugs::addictionGvarCount];
 
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
-	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
+	//HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
 	MakeCall(0x45F47C, intface_toggle_items_hack);
 	HookCalls(inven_pickup_hook, { // will be overwritten if HOOK_INVENTORYMOVE is injected
 		0x4712E3, // left slot

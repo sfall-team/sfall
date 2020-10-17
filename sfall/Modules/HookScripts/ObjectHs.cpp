@@ -26,11 +26,10 @@ static void __declspec(naked) UseObjOnHook() {
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
-		jz  defaultHandler;
+		je  defaultHandler;
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::protinst_use_item_on_;
@@ -54,11 +53,10 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
-		jz  defaultHandler;
+		je  defaultHandler;
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::item_d_take_drug_;
@@ -85,7 +83,6 @@ static void __declspec(naked) UseObjHook() {
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::protinst_use_item_;

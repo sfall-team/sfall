@@ -42,194 +42,75 @@ void dev_printf(...) {}
 	__asm call fo::funcoffs::offs
 
 #define WRAP_WATCOM_CALL1(offs, arg1) \
-	__asm mov eax, arg1				\
+	__asm mov eax, arg1               \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_CALL2(offs, arg1, arg2) \
-	__asm mov edx, arg2				\
+	__asm mov edx, arg2                     \
 	WRAP_WATCOM_CALL1(offs, arg1)
 
 #define WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				\
+	__asm mov ebx, arg3                           \
 	WRAP_WATCOM_CALL2(offs, arg1, arg2)
 
 #define WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov ecx, arg4				\
+	__asm mov ecx, arg4                                 \
 	WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3)
 
 #define WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	__asm push arg5				\
+	__asm push arg5                                           \
 	WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	__asm push arg6				\
+	__asm push arg6                                                 \
 	WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	__asm push arg7				\
+	__asm push arg7                                                       \
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 // defines wrappers for __fastcall
 #define WRAP_WATCOM_FCALL1(offs, arg1) \
-	__asm mov eax, ecx				\
+	__asm mov eax, ecx                 \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_FCALL2(offs, arg1, arg2) \
 	WRAP_WATCOM_FCALL1(offs, arg1)
 
 #define WRAP_WATCOM_FCALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				\
+	__asm mov ebx, arg3                            \
 	WRAP_WATCOM_FCALL1(offs, arg1)
 
 #define WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov eax, ecx				\
-	__asm mov ebx, arg3				\
-	__asm mov ecx, arg4				\
+	__asm mov eax, ecx     \
+	__asm mov ebx, arg3    \
+	__asm mov ecx, arg4    \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	__asm push arg5				\
+	__asm push arg5                                            \
 	WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	__asm push arg6				\
+	__asm push arg6                                                  \
 	WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	__asm push arg7				\
+	__asm push arg7                                                        \
 	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+#define WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	__asm push arg8                                                              \
+	WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 
-bool __stdcall art_exists(long artFid) {
-	WRAP_WATCOM_CALL1(art_exists_, artFid)
-}
+#define WRAP_WATCOM_FCALL9(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+	__asm push arg9                                                                    \
+	WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 
-// Returns the name of the critter
-const char* __stdcall critter_name(GameObject* critter) {
-	WRAP_WATCOM_CALL1(critter_name_, critter)
-}
-
-// Change the name of playable character
-void critter_pc_set_name(const char* newName) {
-	WRAP_WATCOM_CALL1(critter_pc_set_name_, newName)
-}
-
-bool __stdcall db_access(const char* fileName) {
-	WRAP_WATCOM_CALL1(db_access_, fileName)
-}
-
-long __stdcall db_fclose(DbFile* file) {
-	WRAP_WATCOM_CALL1(db_fclose_, file)
-}
-
-DbFile* __stdcall db_fopen(const char* path, const char* mode) {
-	WRAP_WATCOM_CALL2(db_fopen_, path, mode)
-}
-
-long __stdcall db_fgetc(DbFile* file) {
-	WRAP_WATCOM_CALL1(db_fgetc_, file)
-}
-
-char* __stdcall db_fgets(char* buf, long max_count, DbFile* file) {
-	WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
-}
-
-long __stdcall db_fread(void* buf, long elsize, long count, DbFile* file) {
-	WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
-}
-
-long __stdcall db_fseek(DbFile* file, long pos, long origin) {
-	WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
-}
-
-long __stdcall db_freadByte(DbFile* file, BYTE* _out) {
-	WRAP_WATCOM_CALL2(db_freadByte_, file, _out)
-}
-
-long __stdcall db_freadByteCount(DbFile* file, BYTE* cptr, long count) {
-	WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
-}
-
-long __stdcall db_freadShort(DbFile* file, WORD* _out) {
-	WRAP_WATCOM_CALL2(db_freadShort_, file, _out)
-}
-
-long __stdcall db_freadInt(DbFile* file, DWORD* _out) {
-	WRAP_WATCOM_CALL2(db_freadInt_, file, _out)
-}
-
-void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
-	WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
-}
-
-long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count) {
-	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
-}
-
-long __stdcall db_get_file_list(const char* searchMask, char* * *fileList) {
-	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
-}
-
-long __stdcall db_init(const char* path_dat, const char* path_patches) {
-	WRAP_WATCOM_CALL3(db_init_, path_dat, 0, path_patches)
-}
-
-// Check fallout file and get file size (result 0 - file exists)
-long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
-	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
-}
 
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
-}
-
-// Displays message in main UI console window
-void display_print(const char* msg) {
-	WRAP_WATCOM_CALL1(display_print_, msg)
-}
-
-void executeProcedure(Program* sptr, long procNum) {
-	WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
-}
-
-long __stdcall get_input() {
-	WRAP_WATCOM_CALL0(get_input_)
-}
-
-// returns the name of current procedure by program pointer
-const char* __stdcall findCurrentProc(Program* program) {
-	WRAP_WATCOM_CALL1(findCurrentProc_, program)
-}
-
-const char* __stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId) {
-	WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
-}
-
-void __stdcall gsound_play_sfx_file(const char* name) {
-	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
-}
-
-long __stdcall interpret(Program* program, long arg2) {
-	WRAP_WATCOM_CALL2(interpret_, program, arg2)
-}
-
-long __stdcall interpretFindProcedure(Program* scriptPtr, const char* procName) {
-	WRAP_WATCOM_CALL2(interpretFindProcedure_, scriptPtr, procName)
-}
-
-// pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall interpretPopShort(Program* scriptPtr) {
-	WRAP_WATCOM_CALL1(interpretPopShort_, scriptPtr)
-}
-
-// pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall interpretPopLong(Program* scriptPtr) {
-	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
-}
-
-const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
-	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
 void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType) {
@@ -270,70 +151,7 @@ isNotStr:
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
 void __declspec(naked) interpretError(const char* fmt, ...) {
-	__asm jmp fo::funcoffs::interpretError_
-}
-
-long __stdcall isPartyMember(GameObject* obj) {
-	WRAP_WATCOM_CALL1(isPartyMember_, obj)
-}
-
-long __stdcall item_get_type(GameObject* item) {
-	WRAP_WATCOM_CALL1(item_get_type_, item)
-}
-
-long __stdcall item_m_dec_charges(GameObject* item) {
-	WRAP_WATCOM_CALL1(item_m_dec_charges_, item) //Returns -1 if the item has no charges
-}
-
-GameObject* __stdcall inven_pid_is_carried_ptr(GameObject* invenObj, long pid) {
-	WRAP_WATCOM_CALL2(inven_pid_is_carried_ptr_, invenObj, pid)
-}
-
-// critter worn item (armor)
-GameObject* __stdcall inven_worn(GameObject* critter) {
-	WRAP_WATCOM_CALL1(inven_worn_, critter)
-}
-
-// item in critter's left hand slot
-GameObject* __stdcall inven_left_hand(GameObject* critter) {
-	WRAP_WATCOM_CALL1(inven_left_hand_, critter)
-}
-
-// item in critter's right hand slot
-GameObject* __stdcall inven_right_hand(GameObject* critter) {
-	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
-}
-
-Program* __stdcall loadProgram(const char* fileName) {
-	WRAP_WATCOM_CALL1(loadProgram_, fileName)
-}
-
-void* __stdcall mem_realloc(void* lpmem, DWORD msize) {
-	WRAP_WATCOM_CALL2(mem_realloc_, lpmem, msize)
-}
-
-long __stdcall message_add(MessageList* file, MessageNode* msg) {
-	WRAP_WATCOM_CALL2(message_add_, file, msg)
-}
-
-long __stdcall message_filter(MessageList* file) {
-	WRAP_WATCOM_CALL1(message_filter_, file)
-}
-
-long __stdcall message_make_path(char* outpath, char* path) {
-	WRAP_WATCOM_CALL2(message_make_path_, outpath, path)
-}
-
-long __stdcall message_search(const MessageList* file, MessageNode* msg) {
-	WRAP_WATCOM_CALL2(message_search_, file, msg)
-}
-
-long __stdcall message_load(MessageList *msgList, const char *msgFilePath) {
-	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
-}
-
-long __stdcall message_exit(MessageList *msgList) {
-	WRAP_WATCOM_CALL1(message_exit_, msgList)
+	__asm jmp fo::funcoffs::interpretError_;
 }
 
 long __fastcall tile_num(long x, long y) {
@@ -350,76 +168,22 @@ GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWOR
 	}
 }
 
-GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum) {
-	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
-}
-
-GameObject* __stdcall obj_find_next_at_tile() {
-	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
-}
-
-long __stdcall partyMemberGetCurLevel(GameObject* obj) {
-	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
-}
-
-long __stdcall perk_level(GameObject* critter, long perkId) {
-	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
-}
-
-long proto_ptr(long pid, Proto* *ptrPtr) {
-	WRAP_WATCOM_CALL2(proto_ptr_, pid, ptrPtr)
-}
-
-DWORD* __stdcall runProgram(Program* progPtr) {
-	WRAP_WATCOM_CALL1(runProgram_, progPtr)
-}
-
-ScriptInstance* __stdcall scr_find_first_at(long elevation) {
-	WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
-}
-
-ScriptInstance* __stdcall scr_find_next_at() {
-	WRAP_WATCOM_CALL0(scr_find_next_at_)
-}
-
-GameObject* __stdcall scr_find_obj_from_program(Program* program) {
-	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
-}
-
-// Saves pointer to script object into scriptPtr using scriptID.
-// Returns 0 on success, -1 on failure.
-long __stdcall scr_ptr(long scriptId, ScriptInstance** scriptPtr) {
-	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
-}
-
-void skill_get_tags(long* result, long num) {
-	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
-}
-
-void skill_set_tags(long* tags, long num) {
-	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
-}
-
-long __stdcall stat_level(GameObject* critter, long statId) {
-	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
-}
-
 long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
 	__asm {
-		push buttonType
-		push arg12
-		push pictureDown
-		push pictureUp
-		push buttonUp
-		push buttonDown
-		push hoverOff
-		push hoverOn
-		push height
-		mov ecx, width
-		mov ebx, yPos
-		mov edx, xPos
-		mov eax, winRef
-		call fo::funcoffs::win_register_button_
+		push buttonType;
+		push arg12;
+		push pictureDown;
+		push pictureUp;
+		push buttonUp;
+		push buttonDown;
+		push hoverOff;
+		push hoverOn;
+		push height;
+		mov  ecx, width;
+		mov  ebx, yPos;
+		mov  edx, xPos;
+		mov  eax, winRef;
+		call fo::funcoffs::win_register_button_;
 	}
 }
 
@@ -501,24 +265,131 @@ void __fastcall displayInWindow(long w_here, long width, long height, void* data
 	}
 }
 
-void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+// draws an image to the buffer of the active script window
+void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
 	__asm {
 		push w_width;
 		push s_height;
 		push s_width;
-		mov  ebx, edx; // i_height
-		mov  edx, ecx; // i_width
 		call fo::funcoffs::windowGetBuffer_;
 		add  eax, xy_shift;
+		mov  ebx, edx; // i_height
+		mov  edx, ecx; // i_width
 		push eax;      // to_buff
 		mov  eax, data;
 		call fo::funcoffs::trans_cscale_; // *from_buff<eax>, i_width<edx>, i_height<ebx>, i_width2<ecx>, to_buff, width, height, to_width
 	}
 }
 
-//void __declspec(naked) __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height) {
-//	__asm jmp fo::funcoffs::srcCopy_;
-//}
+// buf_to_buf_ function with pure MMX implementation
+void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
+	if (height <= 0 || width <= 0) return;
+
+	size_t blockCount = width / 64; // 64 bytes
+	size_t remainder = width % 64;
+	size_t remainderD = remainder / 4;
+	size_t remainderB = remainder % 4;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	__asm {
+		mov  ebx, s_pitch;
+		mov  edx, d_pitch;
+		mov  esi, src;
+		mov  edi, dst;
+		mov  eax, height;
+	startLoop:
+		mov  ecx, blockCount;
+		test ecx, ecx;
+		jz   copySmall;
+	copyBlock: // copies block of 64 bytes
+		movq mm0, [esi];      // movups xmm0, [esi]; // SSE implementation
+		movq mm1, [esi + 8];
+		movq mm2, [esi + 16]; // movups xmm1, [esi + 16];
+		movq mm3, [esi + 24];
+		movq mm4, [esi + 32]; // movups xmm2, [esi + 32];
+		movq mm5, [esi + 40];
+		movq mm6, [esi + 48]; // movups xmm3, [esi + 48];
+		movq mm7, [esi + 56];
+		movq [edi], mm0;      // movups [edi], xmm0;
+		movq [edi + 8], mm1;
+		movq [edi + 16], mm2; // movups [edi + 16], xmm1;
+		movq [edi + 24], mm3;
+		movq [edi + 32], mm4; // movups xmm2, [esi + 32];
+		movq [edi + 40], mm5;
+		movq [edi + 48], mm6; // movups xmm3, [esi + 48];
+		movq [edi + 56], mm7;
+		add  esi, 64;
+		lea  edi, [edi + 64];
+		dec  ecx; // blockCount
+		jnz  copyBlock;
+		// copies the remaining bytes
+		mov  ecx, remainderD;
+		rep  movsd;
+		mov  ecx, remainderB;
+		rep  movsb;
+		add  esi, ebx; // s_pitch
+		add  edi, edx; // d_pitch
+		dec  eax;      // height
+		jnz  startLoop;
+		emms;
+		jmp  end;
+	copySmall: // copies the small size data
+		mov  ecx, remainderD;
+		rep  movsd;
+		mov  ecx, remainderB;
+		rep  movsb;
+		add  esi, ebx; // s_pitch
+		add  edi, edx; // d_pitch
+		dec  eax;      // height
+		jnz  copySmall;
+end:
+	}
+}
+
+// trans_buf_to_buf_ function implementation
+void __cdecl trans_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
+	if (height <= 0 || width <= 0) return;
+
+	size_t blockCount = width / 8;
+	size_t lastBytes  = width % 8;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	__asm mov esi, src;
+	__asm mov edi, dst;
+	do {
+		size_t count = blockCount;
+		while (count--) {
+			__asm {
+				pxor mm2, mm2;
+				movq mm0, qword ptr [esi]; // 8 bytes
+				movq mm1, qword ptr [edi];
+				pcmpeqb mm2, mm0;          // mm2 = (src == 0) ? 1 : 0;
+				lea  esi, [esi + 8];
+				pand mm2, mm1;
+				por  mm0, mm2;
+				movq qword ptr [edi], mm0; // src or dst
+				lea  edi, [edi + 8];
+			}
+		}
+		size_t bytes = lastBytes;
+		while (bytes--) {
+			__asm {
+				mov  al, [esi];
+				lea  esi, [esi + 1];
+				test al, al;
+				jz   skip;
+				mov  [edi], al;
+			skip:
+				lea  edi, [edi + 1];
+			}
+		}
+		__asm add esi, s_pitch;
+		__asm add edi, d_pitch;
+	} while (--height);
+	__asm emms;
+}
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
 	__asm {
@@ -531,6 +402,7 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 ////////////////////////////////////
 // X-Macro for wrapper functions. //
 ////////////////////////////////////
+
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name() { \
 		WRAP_WATCOM_CALL0(name##_) \
@@ -600,6 +472,16 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
 	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
 		WRAP_WATCOM_FCALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	}
+
+#define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
+		WRAP_WATCOM_FCALL8(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	}
+
+#define WRAP_WATCOM_FFUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9) { \
+		WRAP_WATCOM_FCALL9(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
 	}
 
 #include "Functions_def.h"

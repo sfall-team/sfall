@@ -41,86 +41,8 @@ void dev_printf(...);
 	Otherwise use Functions_def.h file (much easier).
 */
 
-bool __stdcall art_exists(long artFid);
-
-// Returns the name of the critter
-const char* __stdcall critter_name(GameObject* critter);
-
-// Change the name of playable character
-void critter_pc_set_name(const char* newName);
-
-// Checks if given file exists in DB
-bool __stdcall db_access(const char* fileName);
-
-long __stdcall db_fclose(DbFile* file);
-
-DbFile* __stdcall db_fopen(const char* path, const char* mode);
-
-long __stdcall db_fgetc(DbFile* file);
-
-char* __stdcall db_fgets(char* buf, long max_count, DbFile* file);
-
-//long db_ungetc(long c, DBFile* file);
-long __stdcall db_fread(void* buf, long elsize, long count, DbFile* file);
-
-long __stdcall db_fseek(DbFile* file, long pos, long origin);
-
-long __stdcall db_freadByte(DbFile* file, BYTE* _out);
-
-long __stdcall db_freadByteCount(DbFile* file, BYTE* cptr, long count);
-
-long __stdcall db_freadShort(DbFile* file, WORD* _out);
-
-long __stdcall db_freadInt(DbFile* file, DWORD* _out);
-
-// destroys filelist array created by db_get_file_list
-void __stdcall db_free_file_list(char* * *fileList, DWORD arg2);
-
-long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count);
-
-// searches files in DB by given path/filename mask and stores result in fileList
-// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
-// returns number of elements in *fileList
-long __stdcall db_get_file_list(const char* searchMask, char* * *fileList);
-
-long __stdcall db_init(const char* path_dat, const char* path_patches);
-
-// Check fallout file and get file size (result 0 - file exists)
-long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut);
-
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);
-
-// Displays message in main UI console window
-void display_print(const char* msg);
-
-// execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-void executeProcedure(Program* sptr, long procNum);
-
-long __stdcall get_input();
-
-long __stdcall isPartyMember(GameObject* obj);
-
-long __stdcall item_get_type(GameObject* item);
-
-// searches for message ID in given message file and places result in @result
-const char* __stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId);
-
-// plays SFX sound with given name
-void __stdcall gsound_play_sfx_file(const char* name);
-
-long __stdcall interpret(Program* program, long arg2);
-
-// finds procedure ID for given script program pointer and procedure name
-long __stdcall interpretFindProcedure(Program* scriptPtr, const char* procName);
-
-// pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall interpretPopShort(Program* scriptPtr);
-
-// pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall interpretPopLong(Program* scriptPtr);
-
-const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
 
 void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
 
@@ -130,72 +52,9 @@ DWORD __fastcall interpretGetValue(Program* scriptPtr, DWORD &outType);
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
-// Returns 0 on success, -1 if the item has no charges
-long __stdcall item_m_dec_charges(GameObject* item);
-
-GameObject* __stdcall inven_pid_is_carried_ptr(GameObject* invenObj, long pid);
-
-// critter worn item (armor)
-GameObject* __stdcall inven_worn(GameObject* critter);
-
-// item in critter's left hand slot
-GameObject* __stdcall inven_left_hand(GameObject* critter);
-
-// item in critter's right hand slot
-GameObject* __stdcall inven_right_hand(GameObject* critter);
-
-// returns the name of current procedure by program pointer
-const char* __stdcall findCurrentProc(Program* program);
-
-Program* __stdcall loadProgram(const char* fileName);
-
-void* __stdcall mem_realloc(void* lpmem, DWORD msize);
-
-long __stdcall message_add(MessageList* file, MessageNode* msg);
-
-long __stdcall message_filter(MessageList* file);
-
-long __stdcall message_make_path(char* outpath, char* path);
-
-long __stdcall message_search(const MessageList* file, MessageNode* msg);
-
-// loads MSG file into given MessageList
-long __stdcall message_load(MessageList *msgList, const char *msgFilePath);
-
-// destroys message list
-long __stdcall message_exit(MessageList *msgList);
-
 long __fastcall tile_num(long x, long y);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
-
-GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum);
-
-GameObject* __stdcall obj_find_next_at_tile();
-
-long __stdcall partyMemberGetCurLevel(GameObject* obj);
-
-long __stdcall perk_level(GameObject* critter, long perkId);
-
-// places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
-long proto_ptr(long pid, Proto* *ptrPtr);
-
-DWORD* __stdcall runProgram(Program* progPtr);
-
-ScriptInstance* __stdcall scr_find_first_at(long elevation);
-
-ScriptInstance* __stdcall scr_find_next_at();
-
-GameObject* __stdcall scr_find_obj_from_program(Program* program);
-
-// Saves pointer to script object into scriptPtr using scriptID.
-// Returns 0 on success, -1 on failure.
-long __stdcall scr_ptr(long scriptId, ScriptInstance** scriptPtr);
-
-void skill_get_tags(long* result, long num);
-void skill_set_tags(long* tags, long num);
-
-long __stdcall stat_level(GameObject* critter, long statId);
 
 // Creates a button on a given window
 // buttonType: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click
@@ -212,9 +71,14 @@ void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* 
 // draws an image in the window and scales it to fit the window
 void __fastcall displayInWindow(long w_here, long width, long height, void* data);
 
-void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
+// draws an image to the buffer of the active script window
+void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
-//void __declspec() __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height);
+// buf_to_buf_ function with pure MMX implementation
+void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
+
+// trans_buf_to_buf_ function implementation
+void __cdecl trans_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param);
 
@@ -262,6 +126,12 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
 	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
 
+#define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
+
+#define WRAP_WATCOM_FFUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9);
+
 #include "Functions_def.h"
 
 #undef WRAP_WATCOM_FUNC0
@@ -280,6 +150,8 @@ long __fastcall get_game_config_string(const char* outValue, const char* section
 #undef WRAP_WATCOM_FFUNC5
 #undef WRAP_WATCOM_FFUNC6
 #undef WRAP_WATCOM_FFUNC7
+#undef WRAP_WATCOM_FFUNC8
+#undef WRAP_WATCOM_FFUNC9
 
 }
 }

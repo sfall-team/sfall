@@ -131,7 +131,7 @@ void mf_get_sfall_arg_at(OpcodeContext& ctx) {
 
 void op_get_sfall_args(OpcodeContext& ctx) {
 	DWORD argCount = HookCommon::GetHSArgCount();
-	DWORD id = TempArray(argCount, 0);
+	DWORD id = CreateTempArray(argCount, 0);
 	DWORD* args = HookCommon::GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);

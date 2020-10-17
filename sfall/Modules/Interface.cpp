@@ -31,6 +31,62 @@
 namespace sfall
 {
 
+long Interface::ActiveInterfaceWID() {
+	return LoadGameHook::interfaceWID;
+}
+
+enum WinNameType {
+	Inventory = 0, // any inventory window (player/loot/use/barter)
+	Dialog    = 1,
+	PipBoy    = 2,
+	WorldMap  = 3,
+	IfaceBar  = 4, // the interface bar
+	Character = 5,
+	Skilldex  = 6,
+	EscMenu   = 7, // escape menu
+	Automap   = 8,
+	// TODO
+	DialogView,
+	DialogPanel,
+	MemberPanel,
+};
+
+fo::Window* Interface::GetWindow(long winType) {
+	long winID = 0;
+	switch (winType) {
+	case WinNameType::Inventory:
+		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = fo::var::i_wid;
+		break;
+	case WinNameType::Dialog:
+		if (GetLoopFlags() & DIALOG) winID = fo::var::dialogueBackWindow;
+		break;
+	case WinNameType::PipBoy:
+		if (GetLoopFlags() & PIPBOY) winID = fo::var::pip_win;
+		break;
+	case WinNameType::WorldMap:
+		if (GetLoopFlags() & WORLDMAP) winID = fo::var::wmBkWin;
+		break;
+	case WinNameType::IfaceBar:
+		winID = fo::var::interfaceWindow;
+		break;
+	case WinNameType::Character:
+		if (GetLoopFlags() & CHARSCREEN) winID = fo::var::edit_win;
+		break;
+	case WinNameType::Skilldex:
+		if (GetLoopFlags() & SKILLDEX) winID = fo::var::skldxwin;
+		break;
+	case WinNameType::EscMenu:
+		if (GetLoopFlags() & ESCMENU) winID = fo::var::optnwin;
+		break;
+	case WinNameType::Automap:
+		if (GetLoopFlags() & AUTOMAP) winID = ActiveInterfaceWID();
+		break;
+	default:
+		return (fo::Window*)(-1);
+	}
+	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
+}
+
 static BYTE movePointBackground[16 * 9 * 5];
 static fo::UnlistedFrm* ifaceFrm = nullptr;
 
@@ -843,6 +899,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 }
 
 static bool IFACE_BAR_MODE = false;
+
 static long gmouse_handle_event_hook() {
 	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
@@ -865,8 +922,11 @@ static long gmouse_handle_event_hook() {
 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
-		mov ecx, eax;
-		jmp fo::GetTopWindowID;
+		push 1; // bypass Transparent
+		mov  ecx, eax;
+		call fo::GetTopWindowAtPos;
+		mov  eax, [eax]; // wID
+		retn;
 	}
 }
 
@@ -878,6 +938,26 @@ static void __declspec(naked) main_death_scene_hook() {
 	}
 }
 
+static void __declspec(naked) display_body_hook() {
+	static const DWORD display_body_hook_Ret = 0x47098D;
+	__asm {
+		mov  ebx, [esp + 0x60 - 0x28 + 8];
+		cmp  ebx, 1; // check mode 0 or 1
+		jbe  fix;
+		add  esp, 8;
+		mov  dword ptr [esp + 0x60 - 0x40], 0; // frm_ptr
+		jmp  display_body_hook_Ret;
+fix:
+		dec  edx;     // USE.FRM
+		mov  ecx, 48; // INVBOX.FRM
+		test ebx, ebx;
+		cmovz edx, ecx;
+		xor  ebx, ebx;
+		xor  ecx, ecx;
+		jmp  fo::funcoffs::art_id_;
+	}
+}
+
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
@@ -886,8 +966,8 @@ void Interface::init() {
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
 
-	// Fix for interface windows with 'Hidden' and 'ScriptWindow' flags
-	// Hidden - will not toggle the mouse cursor when the cursor hovers over a hidden window
+	// Fix for interface windows with 'Transparent', 'Hidden' and 'ScriptWindow' flags
+	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	LoadGameHook::OnBeforeGameInit() += []() {
@@ -906,6 +986,16 @@ void Interface::init() {
 	if (hrpIsEnabled == false) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
 	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
 	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
+
+	// Cosmetic fix for the background image of the character portrait on the inventory and character screens
+	HookCall(0x47093C, display_body_hook);
+	BYTE code[11] = {
+		0x8B, 0xD3,             // mov  edx, ebx
+		0x66, 0x8B, 0x58, 0xF4, // mov  bx, [eax - 12] [sizeof(frame)]
+		0x0F, 0xAF, 0xD3,       // imul edx, ebx (y * frame width)
+		0x53, 0x90              // push ebx (frame width)
+	};
+	SafeWriteBytes(0x470971, code, 11);
 }
 
 void Interface::exit() {

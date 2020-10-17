@@ -85,6 +85,7 @@ static long reactionID;
  0-000-1000-00000000-0000-000000000000
    ID3 Type   ID2    ID1   .lst index
 */
+
 static bool GetHeadFrmName(char* name) {
 	int headFid = (*(DWORD*)FO_VAR_lips_draw_head)
 				? fo::var::lipsFID
@@ -119,6 +120,11 @@ static bool LoadFrm(Frm* frm) {
 		char buf[MAX_PATH];
 		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", fo::var::patches, frm->path);
 		if (pathLen > 250) return false;
+
+		if (!(GetFileAttributes(frm->path) & FILE_ATTRIBUTE_DIRECTORY)) {
+			frm->broken = 1;
+			return false;
+		}
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
 			sprintf(&buf[pathLen], "%d.png", i);
@@ -166,11 +172,24 @@ static bool LoadFrm(Frm* frm) {
 	return true;
 }
 
+static fo::Window* dialogWin = nullptr;
+
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
 		fo::FrmFrameData* frame = fo::func::frame_ptr((fo::FrmHeaderData*)frm, frameno, 0);
-		Graphics::SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift, (frm->showHighlights == 2));
+
+		if (dialogWin == nullptr) {
+			dialogWin = fo::func::GNW_find(fo::var::dialogueBackWindow);
+			if (texHighlight) Graphics::SetHighlightTexture(texHighlight, dialogWin->wRect.left, dialogWin->wRect.top);
+		}
+		Graphics::SetHeadTex(frm->textures[frameno],
+		                     frame->width,
+		                     frame->height,
+		                     frame->x + frm->xshift + dialogWin->wRect.left,
+		                     frame->y + frm->yshift + dialogWin->wRect.top,
+		                     (frm->showHighlights == 2)
+		);
 		showHighlights = frm->showHighlights;
 		return;
 	}
@@ -198,6 +217,7 @@ void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
 		call Graphics::SetDefaultTechnique;
 		mov  showHighlights, 0;
+		//mov  dialogWin, 0; // uncomment if the dialog window position is supposed to change
 		pop  ebp;
 		pop  edi;
 		pop  edx;
@@ -237,6 +257,7 @@ noScroll:
 static void TalkingHeadsInit() {
 	if (!Graphics::GPUBlt) return;
 
+	*(DWORD*)FO_VAR_lips_draw_head = 0; // fix for non-speaking heads
 	HookCalls(TransTalkHook, {0x44AFB4, 0x44B00B});
 	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm
 	MakeJump(0x4472F8, gdDestroyHeadWindow_hack);
@@ -246,7 +267,6 @@ static void TalkingHeadsInit() {
 	char buf[MAX_PATH];
 	sprintf_s(buf, "%s\\art\\stex\\highlight.png", fo::var::patches);
 	if (!FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &texHighlight))) {
-		Graphics::SetHighlightTexture(texHighlight);
 		LoadGameHook::OnGameModeChange() += [](DWORD state) {
 			static bool setHeadTech = false;
 			if (showHighlights == 2) {

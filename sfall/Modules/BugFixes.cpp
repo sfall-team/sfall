@@ -919,18 +919,31 @@ static void __declspec(naked) NPCStage6Fix2() {
 	}
 }
 
-// Haenlomal: Check path to critter for attack
-static void __declspec(naked) MultiHexFix() {
+static void __declspec(naked) make_path_func_hook() {
 	__asm {
-		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
-		test [ebx + flags + 1], 0x08;       // is target multihex?
-		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
-		je   end;                           // skip if not multihex
-		inc  ebx;                           // otherwise, increase tilenum by 1
-end:
-		retn;                               // call make_path_func (at 0x429024, 0x429175)
+		mov  ebx, [edx + tile];            // object tile
+		cmp  ebx, [esp + 0x5C - 0x1C + 4]; // target tile
+		je   fix;
+		jmp  fo::funcoffs::anim_can_use_door_;
+fix:	// replace the target tile (where the multihex object is located) with the current tile
+		mov  ebx, [esp + 0x5C - 0x14 + 4]; // current tile
+		mov  [esp + 0x5C - 0x1C + 4], ebx; // target tile
+		retn;
 	}
 }
+
+// Haenlomal: Check path to critter for attack
+//static void __declspec(naked) MultiHexFix() {
+//	__asm {
+//		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
+//		test [ebx + flags + 1], 0x08;       // is target multihex?
+//		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
+//		je   end;                           // skip if not multihex
+//		inc  ebx;                           // otherwise, increase tilenum by 1
+//end:
+//		retn;                               // call make_path_func (at 0x429024, 0x429175)
+//	}
+//}
 
 static void __declspec(naked) MultiHexRetargetTileFix() {
 	__asm {
@@ -3045,7 +3058,9 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
+		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
+		//MakeCalls(MultiHexFix, {0x42901F, 0x429170}); // obsolete fix
+
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
@@ -3178,7 +3193,7 @@ void BugFixes::init()
 	HookCall(0x4A22DF, ResetPlayer_hook);
 
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of the "count" argument is over 99999
-	SafeWrite32(0x45A2A0, 0x1869F); // 99999
+	SafeWrite32(0x45A2A0, 99999);
 
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
 	// some exit hex in destination map
@@ -3228,7 +3243,7 @@ void BugFixes::init()
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
-	// Fix broken op_obj_can_hear_obj_ function
+	// Fix broken obj_can_hear_obj function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
@@ -3492,9 +3507,9 @@ void BugFixes::init()
 	HookCall(0x481409, main_death_scene_hook);
 
 	// Fix for trying to loot corpses with the "NoSteal" flag
+	MakeCall(0x4123F8, action_loot_container_hack, 1);
 	SafeWrite8(0x4123F2, CommonObj::protoId);
 	BlockCall(0x4123F3);
-	MakeCall(0x4123F8, action_loot_container_hack, 1);
 
 	// Fix the music volume when entering the dialog
 	SafeWrite32(0x44525D, (DWORD)FO_VAR_background_volume);
@@ -3517,7 +3532,7 @@ void BugFixes::init()
 
 	// Fix the code in combat_is_shot_blocked_ to correctly get the next tile from a multihex object instead of the previous
 	// object or source tile
-	// Note: this bug does not cause an error in the function work
+	// Note: this bug does not cause any noticeable error in the function
 	BYTE codeData[] = {
 		0x8B, 0x70, 0x04,       // mov  esi, [eax + 4]
 		0xF6, 0x40, 0x25, 0x08, // test [eax + flags2], MultiHex_
@@ -3550,6 +3565,14 @@ void BugFixes::init()
 
 	// Fix to limit the maximum distance for the knockback animation
 	MakeCall(0x4104D5, action_knockback_hack);
+
+	// Fix for combat_is_shot_blocked_ engine function not taking the flags of critters in the line of fire into account
+	// when calculating the hit chance penalty of ranged attacks in determine_to_hit_func_ engine function
+	SafeWriteBatch<BYTE>(0x41, {0x426D46, 0x426D4E}); // edi > ecx (replace target with object critter)
+	SafeWrite8(0x426D48, fo::DAM_DEAD | fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
+
+	// Fix broken Print() script function
+	HookCall(0x461AD4, (void*)fo::funcoffs::windowOutput_);
 }
 
 }

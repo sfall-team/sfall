@@ -27,6 +27,11 @@
 namespace sfall
 {
 
+extern IDirect3D9* d3d9;
+extern IDirect3DDevice9* d3d9Device;
+extern IDirectDrawSurface* primaryDDSurface;
+extern bool DeviceLost;
+
 class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }
@@ -36,29 +41,43 @@ public:
 	static DWORD mode;
 	static DWORD GPUBlt;
 
+	static HWND GetFalloutWindowInfo(RECT* rect);
 	static long GetGameWidthRes();
 	static long GetGameHeightRes();
 
+	static int __stdcall GetShaderVersion();
+
 	static const float* rcpresGet();
 
-	static void SetHighlightTexture(IDirect3DTexture9* htex);
+	static void SetHighlightTexture(IDirect3DTexture9* htex, int xPos, int yPos);
 	static void SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff, int showHighlight);
 	static void SetHeadTechnique();
 	static void SetDefaultTechnique();
 
-	static void ShowMovieFrame();
-	static void SetMovieTexture(IDirect3DTexture9* tex);
+	static void ShowMovieFrame(IDirect3DTexture9* movieTex);
+
+	static void SetMovieTexture(bool state);
+	static HRESULT CreateMovieTexture(D3DSURFACE_DESC &desc);
+	static void ReleaseMovieTexture();
 
 	static bool PlayAviMovie;
 	static bool AviMovieWidthFit;
+
+	static void RefreshGraphics();
+
+	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+		if (!DeviceLost) {
+			DDSURFACEDESC desc;
+			RECT lockRect = { rect->left, rect->top, rect->right + 1, rect->bottom + 1 };
+
+			primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+
+			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * rect->top) + rect->left;
+			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
+
+			primaryDDSurface->Unlock(desc.lpSurface);
+		}
+	}
 };
-
-extern IDirect3D9* d3d9;
-extern IDirect3DDevice9* d3d9Device;
-
-int __stdcall GetShaderVersion();
-
-void RefreshGraphics();
-HWND GetFalloutWindowInfo(RECT* rect);
 
 }

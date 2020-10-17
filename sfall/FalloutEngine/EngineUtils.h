@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "Functions.h"
+#include "Variables.h"
 
 //
 // Various utility functions, based on FO engine functions
@@ -30,11 +31,15 @@
 namespace fo
 {
 
-// returns weapon animation code
-long AnimCodeByWeapon(GameObject* weapon);
-
-inline void DisplayPrint(const std::string& str) {
+__inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
+}
+
+// rect_free_ function for inline implementation
+__forceinline void sf_rect_free(fo::RectList* rect) {
+	fo::RectList* front = fo::var::rectList;
+	fo::var::rectList = rect;
+	rect->nextRect = front;
 }
 
 // returns message string from given file or "Error" when not found
@@ -42,6 +47,11 @@ const char* GetMessageStr(const MessageList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
 const char* MessageSearch(const MessageList* fileAddr, long messageId);
+
+Queue* QueueFind(GameObject* object, long type);
+
+// returns weapon animation code
+long AnimCodeByWeapon(GameObject* weapon);
 
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);
@@ -71,6 +81,8 @@ long CheckAddictByPid(fo::GameObject* critter, long pid);
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();
 
+bool IsNpcFlag(fo::GameObject* npc, long flag);
+
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
 
 // Returns the position of party member in the existing table (begins from 1)
@@ -82,9 +94,8 @@ bool IsPartyMember(fo::GameObject* critter);
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
-long __fastcall GetTopWindowID(long xPos, long yPos);
-
-fo::Window* GetWindow(long winType);
+// Returns window by x/y coordinate (hidden windows are ignored)
+fo::Window* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans = false);
 
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1);
@@ -104,12 +115,12 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
-// Fills the specified non-scripted interface window with black color
-void ClearWindow(DWORD winID, bool refresh = true);
+// Fills the specified non-scripted interface window with index color 0 (black color)
+void ClearWindow(long winID, bool refresh = true);
 
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
-void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 
 // gets the height of the currently selected font
 DWORD GetTextHeight();
@@ -135,7 +146,7 @@ DWORD GetMaxCharWidth();
 void RedrawObject(GameObject* obj);
 
 // Redraws all interface windows
-void RefreshGNW();
+void RefreshGNW(size_t from = 0);
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 

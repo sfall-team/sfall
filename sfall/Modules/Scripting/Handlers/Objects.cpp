@@ -186,7 +186,7 @@ void op_make_path(OpcodeContext& ctx) {
 
 	char pathData[800];
 	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
-	auto arrayId = TempArray(pathLength, 0);
+	auto arrayId = CreateTempArray(pathLength, 0);
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arrayId].val[i].set((long)pathData[i]);
 	}
@@ -209,7 +209,7 @@ void op_obj_blocking_at(OpcodeContext& ctx) {
 void op_tile_get_objects(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).rawValue(),
 		elevation = ctx.arg(1).rawValue();
-	DWORD arrayId = TempArray(0, 4);
+	DWORD arrayId = CreateTempArray(0, 4);
 	auto obj = fo::func::obj_find_first_at_tile(elevation, tile);
 	while (obj) {
 		arrays[arrayId].push_back(reinterpret_cast<long>(obj));
@@ -221,7 +221,7 @@ void op_tile_get_objects(OpcodeContext& ctx) {
 void op_get_party_members(OpcodeContext& ctx) {
 	auto includeHidden = ctx.arg(0).rawValue();
 	int actualCount = fo::var::partyMemberCount;
-	DWORD arrayId = TempArray(0, 4);
+	DWORD arrayId = CreateTempArray(0, 4);
 	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
 		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
@@ -408,24 +408,13 @@ void op_set_proto_data(OpcodeContext& ctx) {
 }
 
 void mf_get_object_data(OpcodeContext& ctx) {
-	DWORD result = 0;
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
-	if (*(object_ptr - 1) != 0xFEEDFACE) {
-		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
-	} else {
-		result = *(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue());
-	}
-	ctx.setReturn(result);
+	ctx.setReturn(*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()));
 }
 
 void mf_set_object_data(OpcodeContext& ctx) {
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
-	if (*(object_ptr - 1) != 0xFEEDFACE) {
-		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
-		ctx.setReturn(-1);
-	} else {
-		*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
-	}
+	*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
 }
 
 void mf_get_object_ai_data(OpcodeContext& ctx) {
@@ -475,7 +464,7 @@ void mf_get_object_ai_data(OpcodeContext& ctx) {
 		value = cap->called_freq;
 		break;
 	case 14:
-		arrayId = TempArray(3, 0);
+		arrayId = CreateTempArray(3, 0);
 		arrays[arrayId].val[0].set(cap->chem_primary_desire);
 		arrays[arrayId].val[1].set(cap->chem_primary_desire1);
 		arrays[arrayId].val[2].set(cap->chem_primary_desire2);
@@ -532,7 +521,7 @@ void mf_objects_in_radius(OpcodeContext& ctx) {
 	objects.reserve(25);
 	fo::GetObjectsTileRadius(objects, ctx.arg(0).rawValue(), radius, elev, type);
 	size_t sz = objects.size();
-	DWORD id = TempArray(sz, 0);
+	DWORD id = CreateTempArray(sz, 0);
 	for (size_t i = 0; i < sz; i++) {
 		arrays[id].val[i].set((long)objects[i]);
 	}

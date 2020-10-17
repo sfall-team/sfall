@@ -72,8 +72,16 @@ static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition."
 struct BoundRect {
 	long x;
 	long y;
-	long offx;
-	long offy;
+	long offx; // right
+	long offy; // bottom
+};
+
+struct RectList {
+	union {
+		BoundRect rect;
+		RECT wRect;
+	};
+	RectList* nextRect;
 };
 
 // Game objects (items, critters, etc.), including those stored in inventories.
@@ -280,34 +288,6 @@ struct ElevatorFrms {
 	DWORD buttons;
 };
 
-struct FrmFile {
-	long id;				//0x00
-	short fps;				//0x04
-	short actionFrame;		//0x06
-	short frames;			//0x08
-	short xshift[6];		//0x0a
-	short yshift[6];		//0x16
-	long oriFrameOffset[6];	//0x22
-	long frameAreaSize;		//0x3a
-	short width;			//0x3e
-	short height;			//0x40
-	long frameSize;			//0x42
-	short xoffset;			//0x46
-	short yoffset;			//0x48
-	BYTE pixels[80 * 36];	//0x4a
-};
-
-//structures for holding frms loaded with fallout2 functions
-typedef class FrmFrameData { // sizeof 12 + 1 byte
-public:
-	WORD width;
-	WORD height;
-	DWORD size;   // width * height
-	WORD x;
-	WORD y;
-	BYTE data[1]; // begin frame data
-} FrmFrameData;
-
 #pragma pack(push, 2)
 typedef class FrmHeaderData { // sizeof 62
 public:
@@ -321,6 +301,60 @@ public:
 	DWORD frameAreaSize;  // size of all frames area
 } FrmHeaderData;
 #pragma pack(pop)
+
+// structures for holding frms loaded with fallout2 functions
+typedef class FrmFrameData { // sizeof 12 + 1 byte
+public:
+	WORD width;
+	WORD height;
+	DWORD size;   // width * height
+	WORD x;
+	WORD y;
+	BYTE data[1]; // begin frame image data
+} FrmFrameData;
+
+struct FrmFile {            // sizeof 2954
+	long id;                // 0x00
+	short fps;              // 0x04
+	short actionFrame;      // 0x06
+	short frames;           // 0x08
+	short xshift[6];        // 0x0A
+	short yshift[6];        // 0x16
+	long oriFrameOffset[6]; // 0x22
+	long frameAreaSize;     // 0x3A
+	union {
+		FrmFrameData* frameData;
+		struct {
+			short width;    // 0x3E
+			short height;   // 0x40
+		};
+	};
+	long frameSize;         // 0x42
+	short xoffset;          // 0x46
+	short yoffset;          // 0x48
+	union {                 // 0x4A
+		BYTE *pixelData;
+		BYTE pixels[80 * 36]; // for tiles FRM
+	};
+
+	// Returns a pointer to the data of the frame in the direction
+	FrmFrameData* GetFrameData(long dir, long frame) {
+		BYTE* offsDirectionFrame = (BYTE*)&frameData;
+		if (dir > 0 && dir < 6) {
+			offsDirectionFrame += oriFrameOffset[dir];
+		}
+		if (frame > 0) {
+			int maxFrames = frames - 1;
+			if (frame > maxFrames) frame = maxFrames;
+			while (frame-- > 0) {
+				offsDirectionFrame += ((FrmFrameData*)offsDirectionFrame)->size + (sizeof(FrmFrameData) - 1);
+			}
+		}
+		return (FrmFrameData*)offsDirectionFrame;
+	}
+};
+
+static_assert(sizeof(FrmFile) == 2954, "Incorrect FrmFile definition.");
 
 // structures for loading unlisted frms
 struct UnlistedFrm {
@@ -689,7 +723,10 @@ struct ScriptListInfoItem {
 struct Window {
 	long wID;
 	long flags;
-	RECT wRect;
+	union {
+		RECT wRect;
+		BoundRect rect;
+	};
 	long width;
 	long height;
 	long clearColour;
@@ -822,6 +859,12 @@ struct FloatText {
 	long unknown8;
 	long unknown9;
 	void* unknown10;
+};
+
+struct SubTitleList {
+	long text;
+	long frame;
+	long* next;
 };
 
 #pragma pack(pop)

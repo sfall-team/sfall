@@ -83,8 +83,8 @@ void __stdcall BeginHook() {
 		savedArgs[cDepth].cArg = cArg;                                             // current count of taken arguments
 		savedArgs[cDepth].cRet = cRet;                                             // number of return values for the current hook
 		savedArgs[cDepth].cRetTmp = cRetTmp;
-		memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
-		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
+		std::memcpy(&savedArgs[cDepth].oldArgs, args, maxArgs * sizeof(DWORD));           // values of the arguments
+		if (cRet) std::memcpy(&savedArgs[cDepth].oldRets, rets, maxRets * sizeof(DWORD)); // return values
 
 		//devlog_f("\nSaved cArgs/cRet: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
 		//for (unsigned int i = 0; i < maxArgs; i++) {
@@ -148,8 +148,8 @@ void __stdcall EndHook() {
 			cArg = savedArgs[cDepth].cArg;
 			cRet = savedArgs[cDepth].cRet;
 			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of return values
-			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
-			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
+			std::memcpy(args, &savedArgs[cDepth].oldArgs, maxArgs * sizeof(DWORD));
+			if (cRet) std::memcpy(rets, &savedArgs[cDepth].oldRets, maxRets * sizeof(DWORD));
 
 			//devlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
 			//for (unsigned int i = 0; i < maxArgs; i++) {

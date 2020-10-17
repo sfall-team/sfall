@@ -856,7 +856,7 @@ static std::string GetIniFilePath(const ScriptValue &arg) {
 
 void mf_get_ini_sections(OpcodeContext& ctx) {
 	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
-		ctx.setReturn(TempArray(0, 0));
+		ctx.setReturn(CreateTempArray(0, 0));
 		return;
 	}
 	std::vector<char*> sections;
@@ -866,7 +866,7 @@ void mf_get_ini_sections(OpcodeContext& ctx) {
 		section += std::strlen(section) + 1;
 	}
 	size_t sz = sections.size();
-	int arrayId = TempArray(sz, 0);
+	int arrayId = CreateTempArray(sz, 0);
 	auto& arr = arrays[arrayId];
 
 	for (size_t i = 0; i < sz; ++i) {
@@ -879,7 +879,7 @@ void mf_get_ini_sections(OpcodeContext& ctx) {
 
 void mf_get_ini_section(OpcodeContext& ctx) {
 	auto section = ctx.arg(1).strValue();
-	int arrayId = TempArray(-1, 0); // associative
+	int arrayId = CreateTempArray(-1, 0); // associative
 
 	if (GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
 		auto& arr = arrays[arrayId];
@@ -890,7 +890,7 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 				*val = '\0';
 				val += 1;
 
-				SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+				setArray(arrayId, ScriptValue(key), ScriptValue(val), false);
 
 				key = val + std::strlen(val) + 1;
 			} else {
@@ -909,6 +909,14 @@ void mf_npc_engine_level_up(OpcodeContext& ctx) {
 		if (npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0xE990);
 		npcEngineLevelUp = false;
 	}
+}
+
+void mf_combat_data(OpcodeContext& ctx) {
+	fo::ComputeAttackResult* ctd = nullptr;
+	if (fo::var::combat_state & 1) {
+		ctd = &fo::var::main_ctd;
+	}
+	ctx.setReturn((DWORD)ctd, DataType::INT);
 }
 
 }
