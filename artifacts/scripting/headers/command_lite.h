@@ -2,8 +2,8 @@
 	Copyright 1998-2003 Interplay Entertainment Corp.  All rights reserved.
 */
 
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef COMMAND_LITE_H
+#define COMMAND_LITE_H
 
 
 #define critter_is_armed(x)                 (((obj_item_subtype(critter_inven_obj(x,INVEN_TYPE_RIGHT_HAND))) == item_type_weapon) or \
@@ -26,6 +26,8 @@
 #endif
 #define dude_age                            (get_critter_stat(dude_obj,STAT_age))
 #define dude_weight                         critter_weight(dude_obj)
+#define dude_cur_carry                      who_carry_amount(dude_obj)
+#define dude_max_carry                      who_max_carry(dude_obj)
 
 #define dude_moron_not_vegetable            (((get_critter_stat(dude_obj,STAT_iq)) > 1) and ((get_critter_stat(dude_obj,STAT_iq)) < 3) )
 
@@ -564,4 +566,4 @@
 #define set_is_click                                  set_lvar_bit_off(LVAR_Flags, is_float_bit)
 
 
-#endif // COMMAND_H
+#endif // COMMAND_LITE_H
