@@ -352,6 +352,7 @@ const DWORD critter_name_ = 0x42D0A8;
 const DWORD critter_pc_set_name_ = 0x42D138;
 const DWORD critterClearObjDrugs_ = 0x42DA54;
 const DWORD critterIsOverloaded_ = 0x42E66C;
+const DWORD datafileConvertData_ = 0x42EE84;
 const DWORD db_access_ = 0x4390B4;
 const DWORD db_dir_entry_ = 0x4C5D68;
 const DWORD db_fclose_ = 0x4C5EB4;
@@ -554,6 +555,7 @@ const DWORD ListSkills_ = 0x436154;
 const DWORD ListTraits_ = 0x43B8A8;
 const DWORD loadColorTable_ = 0x4C78E4;
 const DWORD LoadGame_ = 0x47C640;
+const DWORD loadPCX_ = 0x496494;
 const DWORD loadProgram_ = 0x4A3B74;
 const DWORD LoadSlot_ = 0x47DC68;
 const DWORD load_frame_ = 0x419EC0;
@@ -591,6 +593,7 @@ const DWORD move_inventory_ = 0x474708;
 const DWORD movieRun_ = 0x487AC8;
 const DWORD movieStop_ = 0x487150;
 const DWORD movieUpdate_ = 0x487BEC;
+const DWORD my_free_ = 0x4C5C2C;
 const DWORD new_obj_id_ = 0x4A386C;
 const DWORD NixHotLines_ = 0x4999C0;
 const DWORD nrealloc_ = 0x4F1669;
@@ -1186,6 +1189,23 @@ void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, B
 		__asm add edi, d_pitch;
 	} while (--height);
 	__asm emms;
+}
+
+BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height) {
+	__asm {
+		mov  eax, ecx;
+		mov  ebx, height;
+		mov  ecx, _pal;
+		call loadPCX_;
+		push eax;
+		mov  ebx, [width];
+		mov  edx, _pal;
+		mov  ecx, [height];
+		mov  ebx, [ebx];
+		mov  ecx, [ecx];
+		call datafileConvertData_;
+		pop  eax;
+	}
 }
 
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {

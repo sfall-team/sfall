@@ -531,6 +531,45 @@ static void mf_set_window_flag() {
 	}
 }
 
+static void __fastcall FreeArtFile(FrmFile* frmPtr) {
+	if (frmPtr->id == 'PCX') {
+		__asm mov  eax, frmPtr;
+		__asm mov  eax, [eax]frmPtr.pixelData;
+		__asm call ds:[_freePtr];
+		delete[] frmPtr;
+	} else {
+		__asm mov  eax, frmPtr;
+		__asm call my_free_;
+	}
+}
+
+static FrmFile* LoadArtFile(const char* file, long frame, long direction, FrmFrameData* &framePtr, bool checkPCX) {
+	FrmFile* frmPtr = nullptr;
+	if (checkPCX) {
+		const char* pos = strrchr(file, '.');
+		if (pos && _stricmp(pos, ".PCX") == 0) {
+			long w, h;
+			BYTE* data = LoadPCXData(file, &w, &h);
+			if (!data) return nullptr;
+
+			frmPtr = reinterpret_cast<FrmFile*>(new BYTE[78]);
+			std::memset(frmPtr, 0, 74);
+
+			frmPtr->id = 'PCX';
+			frmPtr->width = static_cast<short>(w);
+			frmPtr->height = static_cast<short>(h);
+			frmPtr->pixelData = data;
+			framePtr = frmPtr->GetFrameData(0, 0);
+			return frmPtr;
+		}
+	}
+	if (LoadFrame(file, &frmPtr)) {
+		return nullptr;
+	}
+	framePtr = frmPtr->GetFrameData(direction, frame);
+	return frmPtr;
+}
+
 static long GetArtFIDFile(long fid, const char* &file) {
 	long direction = 0;
 	long _fid = fid & 0xFFFFFFF;
@@ -544,16 +583,6 @@ static long GetArtFIDFile(long fid, const char* &file) {
 	return direction;
 }
 
-static FrmFile* LoadArtFile(const char* file, long frame, long direction, FrmFrameData* &framePtr) {
-	FrmFile* frmPtr = nullptr;
-	if (LoadFrame(file, &frmPtr)) {
-		return nullptr;
-	}
-	framePtr = frmPtr->GetFrameData(direction, frame);
-
-	return frmPtr;
-}
-
 static void mf_draw_image() {
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
@@ -562,7 +591,9 @@ static void mf_draw_image() {
 	}
 	long direction = 0;
 	const char* file = nullptr;
-	if (opHandler.arg(0).isInt()) { // art id
+
+	bool isID = opHandler.arg(0).isInt();
+	if (isID) { // art id
 		long fid = opHandler.arg(0).rawValue();
 		if (fid == -1) {
 			opHandler.setReturn(-1);
@@ -586,17 +617,18 @@ static void mf_draw_image() {
 	}
 
 	FrmFrameData* framePtr;
-	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr);
+	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
 		opHandler.setReturn(-1);
 		return;
 	}
+	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
 
 	// with x/y frame offsets
-	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, noTrans);
+	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, noTrans);
 
-	MemFree(frmPtr);
+	FreeArtFile(frmPtr);
 	opHandler.setReturn(1);
 }
 
@@ -608,7 +640,9 @@ static void mf_draw_image_scaled() {
 	}
 	long direction = 0;
 	const char* file = nullptr;
-	if (opHandler.arg(0).isInt()) { // art id
+
+	bool isID = opHandler.arg(0).isInt();
+	if (isID) { // art id
 		long fid = opHandler.arg(0).rawValue();
 		if (fid == -1) {
 			opHandler.setReturn(-1);
@@ -633,16 +667,17 @@ static void mf_draw_image_scaled() {
 	}
 
 	FrmFrameData* framePtr;
-	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr);
+	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
 		opHandler.setReturn(-1);
 		return;
 	}
 	long result = 1;
+	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
 
 	if (opHandler.numArgs() < 3) {
-		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
+		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
 	} else {
 		// draw to scale
 		long s_width, s_height;
@@ -666,11 +701,11 @@ static void mf_draw_image_scaled() {
 
 		long w_width = WindowWidth();
 		long xy_pos = (y * w_width) + x;
-		WindowTransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+		WindowTransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
 	}
 
 exit:
-	MemFree(frmPtr);
+	FreeArtFile(frmPtr);
 	opHandler.setReturn(result);
 }
 
@@ -682,12 +717,11 @@ static void mf_interface_art_draw() {
 		bool useShift = false;
 		long direction = -1, w = -1, h = -1;
 
-		if (opHandler.arg(1).isInt()) { // art id
+		bool isID = opHandler.arg(1).isInt();
+		if (isID) { // art id
 			long fid = opHandler.arg(1).rawValue();
-			if (fid == -1) {
-				result = -1;
-				goto exit;
-			}
+			if (fid == -1) goto exit;
+
 			useShift = (((fid & 0xF000000) >> 24) == OBJ_TYPE_CRITTER);
 			direction = GetArtFIDFile(fid, file);
 		} else {
@@ -706,10 +740,9 @@ static void mf_interface_art_draw() {
 		long frame = (opHandler.numArgs() > 4) ? opHandler.arg(4).rawValue() : 0;
 
 		FrmFrameData* framePtr;
-		FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr);
+		FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr, !isID);
 		if (frmPtr == nullptr) {
 			opHandler.printOpcodeError("interface_art_draw() - cannot open the file: %s", file);
-			result = -1;
 			goto exit;
 		}
 		int x = opHandler.arg(2).rawValue();
@@ -725,14 +758,15 @@ static void mf_interface_art_draw() {
 		int width  = (w >= 0) ? w : framePtr->width;
 		int height = (h >= 0) ? h : framePtr->height;
 
-		TransCscale(framePtr->data, framePtr->width, framePtr->height, framePtr->width,
+		TransCscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
 		            interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
 		);
 
 		if (!(opHandler.arg(0).rawValue() & 0x1000000)) {
 			GNWWinRefresh(interfaceWin, &interfaceWin->rect, 0);
 		}
-		MemFree(frmPtr);
+
+		FreeArtFile(frmPtr);
 		result = 1;
 	} else {
 		opHandler.printOpcodeError("interface_art_draw() - the game interface window is not created or invalid value for the interface.");
@@ -825,10 +859,10 @@ static void mf_get_window_attribute() {
 		result = 1;
 		break;
 	case 1: // x
-		result = win->wRect.left;
+		result = win->rect.x;
 		break;
 	case 2: // y
-		result = win->wRect.top;
+		result = win->rect.y;
 		break;
 	}
 	opHandler.setReturn(result);

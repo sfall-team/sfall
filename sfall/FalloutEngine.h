@@ -106,6 +106,7 @@
 #define _folder_card_title2         0x5705BC
 #define _frame_time                 0x5709C4
 #define _free_perk                  0x570A29
+#define _freePtr                    0x519594
 #define _frstc_draw1                0x5707D8
 #define _game_config                0x58E950
 #define _game_global_vars           0x5186C0
@@ -206,6 +207,7 @@
 #define _optionsButtonUpKey         0x518F28
 #define _optnwin                    0x663900
 #define _outlined_object            0x518D94
+#define _pal                        0x56D7E0
 #define _partyMemberAIOptions       0x519DB8
 #define _partyMemberCount           0x519DAC
 #define _partyMemberLevelUpInfoList 0x519DBC
@@ -638,6 +640,7 @@ extern const DWORD critter_name_;
 extern const DWORD critter_pc_set_name_;
 extern const DWORD critterClearObjDrugs_;
 extern const DWORD critterIsOverloaded_;
+extern const DWORD datafileConvertData_;
 extern const DWORD db_access_;
 extern const DWORD db_dir_entry_;
 extern const DWORD db_fclose_;
@@ -843,6 +846,7 @@ extern const DWORD ListSkills_;
 extern const DWORD ListTraits_;
 extern const DWORD loadColorTable_;
 extern const DWORD LoadGame_;
+extern const DWORD loadPCX_;
 extern const DWORD loadProgram_; // loads script from scripts/ folder by file name and returns pointer to it: char* <eax> - file name (w/o extension)
 extern const DWORD LoadSlot_;
 extern const DWORD load_frame_;
@@ -883,6 +887,7 @@ extern const DWORD move_inventory_;
 extern const DWORD movieRun_;
 extern const DWORD movieStop_;
 extern const DWORD movieUpdate_;
+extern const DWORD my_free_;
 extern const DWORD new_obj_id_;
 extern const DWORD NixHotLines_;
 extern const DWORD nrealloc_;
@@ -1194,6 +1199,8 @@ void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* 
 
 // trans_buf_to_buf_ function implementation
 void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
+
+BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height);
 
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
