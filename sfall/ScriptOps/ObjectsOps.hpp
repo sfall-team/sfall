@@ -639,7 +639,7 @@ static void mf_set_object_data() {
 static void mf_set_unique_id() {
 	TGameObj* obj = opHandler.arg(0).object();
 	long id;
-	if (opHandler.numArgs() > 1 && opHandler.arg(1).rawValue() == -1) {
+	if (opHandler.arg(1).rawValue() == -1) {
 		id = NewObjId();
 		obj->id = id;
 	} else {

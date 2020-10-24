@@ -206,7 +206,7 @@ class OpcodeHandler {
 public:
 	OpcodeHandler() {
 		_argShift = 0;
-		_args.reserve(OP_MAX_ARGUMENTS);
+		_args.resize(OP_MAX_ARGUMENTS);
 	}
 
 	// number of arguments, possibly reduced by argShift
@@ -260,6 +260,7 @@ public:
 		// reset return value
 		_ret = ScriptValue();
 		// reset argument list
+		std::fill(_args.begin(), _args.end(), ScriptValue());
 		_args.resize(argNum);
 		// reset arg shift
 		_argShift = 0;

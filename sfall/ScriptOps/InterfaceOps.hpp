@@ -340,8 +340,7 @@ static void __declspec(naked) op_is_iface_tag_active() {
 }
 
 static void mf_intface_redraw() {
-	DWORD flag = (opHandler.numArgs() > 0) ? opHandler.arg(0).rawValue() : 0;
-	if (flag == 0) {
+	if (opHandler.arg(0).rawValue() == 0) {
 		IntfaceRedraw();
 	} else {
 		RefreshGNW(2); // fake redraw all interfaces (TODO: need a real redraw of interfaces)
@@ -598,21 +597,9 @@ static void mf_draw_image() {
 	} else {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
-	// initialize other args
-	long frameno = 0, x = 0, y = 0, noTrans = 0;
-	switch (opHandler.numArgs()) {
-		case 5:
-			noTrans = opHandler.arg(4).rawValue();
-		case 4:
-			y = opHandler.arg(3).rawValue();
-		case 3:
-			x = opHandler.arg(2).rawValue();
-		case 2:
-			frameno = opHandler.arg(1).rawValue();
-	}
 
 	FrmFrameData* framePtr;
-	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr, !isID);
+	FrmFile* frmPtr = LoadArtFile(file, opHandler.arg(1).rawValue(), direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
 		opHandler.setReturn(-1);
@@ -620,8 +607,9 @@ static void mf_draw_image() {
 	}
 	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
 
+	int x = opHandler.arg(2).rawValue(), y = opHandler.arg(3).rawValue();
 	// with x/y frame offsets
-	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, noTrans);
+	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, opHandler.arg(4).rawValue());
 
 	FreeArtFile(frmPtr);
 	opHandler.setReturn(1);
@@ -648,22 +636,9 @@ static void mf_draw_image_scaled() {
 	} else {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
-	// initialize other args
-	long frameno = 0, x = 0, y = 0, wsize = 0;
-	switch (opHandler.numArgs()) {
-		case 6:
-		case 5:
-			wsize = opHandler.arg(4).rawValue();
-		case 4:
-			y = opHandler.arg(3).rawValue();
-		case 3:
-			x = opHandler.arg(2).rawValue();
-		case 2:
-			frameno = opHandler.arg(1).rawValue();
-	}
 
 	FrmFrameData* framePtr;
-	FrmFile* frmPtr = LoadArtFile(file, frameno, direction, framePtr, !isID);
+	FrmFile* frmPtr = LoadArtFile(file, opHandler.arg(1).rawValue(), direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
 		opHandler.setReturn(-1);
@@ -675,13 +650,14 @@ static void mf_draw_image_scaled() {
 	if (opHandler.numArgs() < 3) {
 		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
 	} else {
+		int x = opHandler.arg(2).rawValue(), y = opHandler.arg(3).rawValue();
 		// draw to scale
 		long s_width, s_height;
 		if (opHandler.numArgs() < 5) {
 			s_width = framePtr->width;
 			s_height = framePtr->height;
 		} else {
-			s_width = wsize;
+			s_width = opHandler.arg(4).rawValue();
 			s_height = (opHandler.numArgs() > 5) ? opHandler.arg(5).rawValue() : -1;
 		}
 		// scale with aspect ratio if w or h is set to -1
@@ -733,7 +709,7 @@ static void mf_interface_art_draw() {
 				if (size > 2) h = sArray->val[2].intVal;
 			}
 		}
-		long frame = (opHandler.numArgs() > 4) ? opHandler.arg(4).rawValue() : 0;
+		long frame = opHandler.arg(4).rawValue();
 
 		FrmFrameData* framePtr;
 		FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr, !isID);
@@ -834,11 +810,9 @@ static void mf_unwield_slot() {
 }
 
 static void mf_get_window_attribute() {
-	long attr = (opHandler.numArgs() > 1) ? opHandler.arg(1).rawValue() : 0;
-
 	WINinfo* win = Interface_GetWindow(opHandler.arg(0).rawValue());
 	if (win == nullptr) {
-		if (attr != 0) {
+		if (opHandler.arg(1).rawValue() != 0) {
 			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
 			opHandler.setReturn(-1);
 		}
@@ -850,7 +824,7 @@ static void mf_get_window_attribute() {
 		return;
 	}
 	long result = 0;
-	switch (attr) {
+	switch (opHandler.arg(1).rawValue()) {
 	case 0: // check if window exists
 		result = 1;
 		break;
@@ -879,7 +853,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	if (y < 0) y = 0;
 
 	long color = opHandler.arg(4).rawValue();
-	long width = (opHandler.numArgs() > 5) ? opHandler.arg(5).rawValue() : 0;
+	long width = opHandler.arg(5).rawValue();
 
 	int maxHeight = win->height - y;
 	int maxWidth = win->width - x;
@@ -912,22 +886,8 @@ static void mf_win_fill_color() {
 		opHandler.setReturn(-1);
 		return;
 	}
-	// initialize args
-	long x = 0, y = 0, width = 0, height = 0, color = 0;
-	switch (opHandler.numArgs()) {
-		case 5:
-			color = opHandler.arg(4).rawValue();
-		case 4:
-			height = opHandler.arg(3).rawValue();
-		case 3:
-			width = opHandler.arg(2).rawValue();
-		case 2:
-			y = opHandler.arg(1).rawValue();
-		case 1:
-			x = opHandler.arg(0).rawValue();
-	}
 	if (opHandler.numArgs() > 0) {
-		WinFillRect(ptr_sWindows[iWin].wID, x, y, width, height, (BYTE)color);
+		WinFillRect(ptr_sWindows[iWin].wID, opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), (BYTE)opHandler.arg(4).rawValue());
 	} else {
 		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
 	}
