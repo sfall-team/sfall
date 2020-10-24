@@ -150,6 +150,7 @@ static const SfallMetarule metarules[] = {
 	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              mf_unjam_lock,              1, 1, -1, {ARG_OBJECT}},
 	{"unwield_slot",            mf_unwield_slot,            2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"win_fill_color",          mf_win_fill_color,          0, 5, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	#ifndef NDEBUG
 	{"validate_test",           mf_test,                    2, 5, -1, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif

@@ -474,7 +474,7 @@ static fo::FrmFile* LoadArtFile(const char* file, long frame, long direction, fo
 	fo::FrmFile* frmPtr = nullptr;
 	if (checkPCX) {
 		const char* pos = strrchr(file, '.');
-		if (pos && _stricmp(pos, ".PCX") == 0) {
+		if (pos && _stricmp(++pos, "PCX") == 0) {
 			long w, h;
 			BYTE* data = fo::func::loadPCX(file, &w, &h);
 			if (!data) return nullptr;
@@ -511,6 +511,7 @@ static long GetArtFIDFile(long fid, const char* &file) {
 }
 
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
+	fo::func::selectWindowID(ctx.program()->currentScriptWin);
 	if (*(DWORD*)FO_VAR_currentWindow == -1) {
 		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
 		return 0;
@@ -780,6 +781,21 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 
 	// no redraw (textdirect)
 	if (!(color & 0x1000000)) fo::func::GNW_win_refresh(win, &win->rect, 0);
+}
+
+void mf_win_fill_color(OpcodeContext& ctx) {
+	fo::func::selectWindowID(ctx.program()->currentScriptWin);
+	long iWin = *(DWORD*)FO_VAR_currentWindow;
+	if (iWin == -1) {
+		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
+		return;
+	}
+	if (ctx.numArgs() > 0) {
+		fo::WinFillRect(fo::var::sWindows[iWin].wID, ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), (BYTE)ctx.arg(4).rawValue());
+	} else {
+		fo::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
+	}
 }
 
 }

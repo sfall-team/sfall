@@ -366,11 +366,25 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-// Fills the specified non-scripted interface window with index color 0 (black color)
+// Fills the specified interface window with index color
+void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
+	fo::Window* win = fo::func::GNW_find(winID);
+	BYTE* surf = win->surface + (win->width * y) + x;
+	long pitch = win->width - width;
+	while (height--) {
+		long w = width;
+		while (w--) *surf++ = indexColor;
+		surf += pitch;
+	};
+}
+
+// Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	fo::Window* win = fo::func::GNW_find(winID);
+	BYTE* surf = win->surface;
 	for (long i = 0; i < win->height; i++) {
-		std::memset(win->surface, 0, win->width);
+		std::memset(surf, 0, win->width);
+		surf += win->width;
 	}
 	if (refresh) {
 		fo::func::GNW_win_refresh(win, &win->rect, 0);

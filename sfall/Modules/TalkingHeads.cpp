@@ -172,24 +172,27 @@ static bool LoadFrm(Frm* frm) {
 	return true;
 }
 
-static long dialogWinX = 0, dialogWinY = 0;
+static struct DialogWinPos {
+	long x = -1;
+	long y;
+} dialogWinPos;
 
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
 		fo::FrmFrameData* frame = fo::func::frame_ptr((fo::FrmHeaderData*)frm, frameno, 0);
 
-		if (dialogWinX == -1) {
+		if (dialogWinPos.x == -1) {
 			fo::Window* dialogWin = fo::func::GNW_find(fo::var::dialogueBackWindow);
 			if (texHighlight) Graphics::SetHighlightTexture(texHighlight, dialogWin->rect.x, dialogWin->rect.y);
-			dialogWinX = dialogWin->rect.x;
-			dialogWinY = dialogWin->rect.y;
+			dialogWinPos.x = dialogWin->rect.x;
+			dialogWinPos.y = dialogWin->rect.y;
 		}
 		Graphics::SetHeadTex(frm->textures[frameno],
 		                     frame->width,
 		                     frame->height,
-		                     frame->x + frm->xshift + dialogWinX,
-		                     frame->y + frm->yshift + dialogWinY,
+		                     frame->x + frm->xshift + dialogWinPos.x,
+		                     frame->y + frm->yshift + dialogWinPos.y,
 		                     (frm->showHighlights == 2)
 		);
 		showHighlights = frm->showHighlights;
@@ -219,7 +222,7 @@ void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
 		call Graphics::SetDefaultTechnique;
 		mov  showHighlights, 0;
-		//mov  dialogWinX, -1; // uncomment if the dialog window position is supposed to change
+		//mov  dword ptr ds:[dialogWinPos], -1; // uncomment if the dialog window position is supposed to change
 		pop  ebp;
 		pop  edi;
 		pop  edx;
