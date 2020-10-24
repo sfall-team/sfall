@@ -210,7 +210,7 @@ DWORD* ptr_stack_offset                 = reinterpret_cast<DWORD*>(_stack_offset
 DWORD* ptr_stat_data                    = reinterpret_cast<DWORD*>(_stat_data);
 DWORD* ptr_stat_flag                    = reinterpret_cast<DWORD*>(_stat_flag);
 SubTitleList** ptr_subtitleList         = reinterpret_cast<SubTitleList**>(_subtitleList);
-DWORD* ptr_sWindows                     = reinterpret_cast<DWORD*>(_sWindows); // total 16 sWindow struct
+sWindow* ptr_sWindows                   = reinterpret_cast<sWindow*>(_sWindows); // array of 16 sWindow
 DWORD* ptr_Tag_                         = reinterpret_cast<DWORD*>(_Tag_);
 DWORD* ptr_tag_skill                    = reinterpret_cast<DWORD*>(_tag_skill);
 DWORD* ptr_target_curr_stack            = reinterpret_cast<DWORD*>(_target_curr_stack);
@@ -721,6 +721,7 @@ const DWORD scr_set_ext_param_ = 0x4A3B34;
 const DWORD scr_set_local_var_ = 0x4A6E58;
 const DWORD scr_set_objs_ = 0x4A3B0C;
 const DWORD scr_write_ScriptNode_ = 0x4A5704;
+const DWORD selectWindowID_ = 0x4B81C4;
 const DWORD set_focus_func_ = 0x4C9438;
 const DWORD set_game_time_ = 0x4A347C;
 const DWORD setup_move_timer_win_ = 0x476AB8;
@@ -1572,11 +1573,25 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-// Fills the specified non-scripted interface window with index color 0 (black color)
+// Fills the specified interface window with index color
+void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
+	WINinfo* win = GNWFind(winID);
+	BYTE* surf = win->surface + (win->width * y) + x;
+	long pitch = win->width - width;
+	while (height--) {
+		long w = width;
+		while (w--) *surf++ = indexColor;
+		surf += pitch;
+	};
+}
+
+// Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	WINinfo* win = GNWFind(winID);
+	BYTE* surf = win->surface;
 	for (long i = 0; i < win->height; i++) {
-		std::memset(win->surface, 0, win->width);
+		std::memset(surf, 0, win->width);
+		surf += win->width;
 	}
 	if (refresh) {
 		GNWWinRefresh(win, &win->rect, 0);

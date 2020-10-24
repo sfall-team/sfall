@@ -158,8 +158,7 @@ struct CombatGcsd {
 struct TScript {
 	long id;
 	long next;
-	// first 3 bits - elevation, rest - tile number
-	long elevationAndTile;
+	long elevationAndTile; // first 3 bits - elevation, rest - tile number
 	long spatialRadius;
 	long flags;
 	long scriptIdx;
@@ -175,30 +174,49 @@ struct TScript {
 	TGameObj *targetObject;
 	long actionNum;
 	long scriptOverrides;
-	char gap_48[4];
+	long field_48;
 	long howMuch;
-	char gap_50[4];
+	long field_50;
 	long procedureTable[28];
 };
 
 // Script run-time data
 struct TProgram {
-	const char* fileName;
+	const char* fileName; // path and file name of the script "scripts\*.int"
 	long *codeStackPtr;
-	long gap_8;
-	long gap_9;
+	long field_8;
+	long field_C;
 	long *codePtr;
 	long field_14;
-	long gap_18;
+	long field_18;
 	long *dStackPtr;
 	long *aStackPtr;
 	long *dStackOffs;
 	long *aStackOffs;
-	long gap_2C;
+	long field_2C;
 	long *stringRefPtr;
-	long gap_34;
-	long *procTablePtr;
+	long field_34;      // procTablePtr
+	long *procTablePtr; // field_38
+	long regs[12];
+	long field_6C;
+	long field_70;
+	long field_74;
+	long field_78;
+	long field_7C;
+	union {
+		long flags;
+		struct {
+			char flags1;
+			char flags2;
+			char flags3;
+			char flags4;
+		};
+	};
+	long currentScriptWin; // current window for executing script
+	long field_88;
 };
+
+static_assert(sizeof(TProgram) == 140, "Incorrect TProgram definition.");
 
 struct ItemButtonItem {
 	TGameObj* item;
@@ -478,14 +496,14 @@ struct WINinfo {
 	long width;
 	long height;
 	long clearColour;
-	long rand1;
-	long rand2;
+	long randX;
+	long randY;
 	BYTE *surface; // bytes frame data ref to palette
 	long *buttonsList;
-	long unknown5; // buttonptr?
-	long unknown6;
+	long buttonT1; // buttonptr?
+	long buttonT2;
 	long *menuBar;
-	long *drawFunc;
+	long *drawFunc; // trans_buf_to_buf_
 };
 
 struct sWindow {
@@ -493,18 +511,18 @@ struct sWindow {
 	long wID;
 	long width;
 	long height;
-	long unknown1;
-	long unknown2;
-	long unknown3;
-	long unknown4;
+	long region1;
+	long region2;
+	long region3;
+	long region4;
 	long *buttons;
 	long numButtons;
-	long unknown5;
-	long unknown6;
+	long setPositionX;
+	long setPositionY;
 	long clearColour;
 	long flags;
-	long unknown7;
-	long unknown8;
+	float randX;
+	float randY;
 };
 
 struct LSData {

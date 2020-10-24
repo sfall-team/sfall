@@ -184,6 +184,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              mf_unjam_lock,              1, 1},
 	{"unwield_slot",            mf_unwield_slot,            2, 2},
+	{"win_fill_color",          mf_win_fill_color,          0, 5},
 	#ifndef NDEBUG
 	{"validate_test",           mf_test,                    2, 5},
 	#endif

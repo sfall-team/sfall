@@ -187,6 +187,7 @@ WRAP_WATCOM_FUNC3(long, RegisterObjectTakeOut, register_object_take_out_, TGameO
 WRAP_WATCOM_FUNC3(long, RegisterObjectTurnTowards, register_object_turn_towards_, TGameObj*, object, long, tileNum, long, nothing)
 WRAP_WATCOM_FUNC2(long, RollRandom, roll_random_, long, minValue, long, maxValue)
 WRAP_WATCOM_FUNC1(long*, RunProgram, runProgram_, TProgram*, progPtr)
+WRAP_WATCOM_FUNC1(long, SelectWindowID, selectWindowID_, long, sWinID)
 WRAP_WATCOM_FUNC1(TScript*, ScrFindFirstAt, scr_find_first_at_, long, elevation)
 WRAP_WATCOM_FUNC0(TScript*, ScrFindNextAt, scr_find_next_at_)
 WRAP_WATCOM_FUNC1(TGameObj*, ScrFindObjFromProgram, scr_find_obj_from_program_, TProgram*, program)

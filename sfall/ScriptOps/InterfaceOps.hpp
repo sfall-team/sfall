@@ -457,11 +457,9 @@ static void mf_create_win() {
 static void mf_show_window() {
 	if (opHandler.numArgs() > 0) {
 		const char* name = opHandler.arg(0).strValue();
-		sWindow sWin;
 		for (size_t i = 0; i < 16; i++) {
-			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
-			if (_stricmp(name, sWin.name) == 0) {
-				WinShow(sWin.wID);
+			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
+				WinShow(ptr_sWindows[i].wID);
 				return;
 			}
 		}
@@ -474,11 +472,9 @@ static void mf_show_window() {
 static void mf_hide_window() {
 	if (opHandler.numArgs() > 0) {
 		const char* name = opHandler.arg(0).strValue();
-		sWindow sWin;
 		for (size_t i = 0; i < 16; i++) {
-			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
-			if (_stricmp(name, sWin.name) == 0) {
-				WinHide(sWin.wID);
+			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
+				WinHide(ptr_sWindows[i].wID);
 				return;
 			}
 		}
@@ -503,16 +499,14 @@ static void mf_set_window_flag() {
 	bool mode = opHandler.arg(2).asBool();
 	if (opHandler.arg(0).isString()) {
 		const char* name = opHandler.arg(0).strValue();
-		sWindow sWin;
 		for (size_t i = 0; i < 16; i++) {
-			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
-			if (_stricmp(name, sWin.name) == 0) {
-				WINinfo* win = GNWFind(sWin.wID);
+			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
+				WINinfo* win = GNWFind(ptr_sWindows[i].wID);
 				if (mode) {
-					sWin.flags |= bitFlag;
+					ptr_sWindows[i].flags |= bitFlag;
 					win->flags |= bitFlag;
 				} else {
-					sWin.flags &= ~bitFlag;
+					ptr_sWindows[i].flags &= ~bitFlag;
 					win->flags &= ~bitFlag;
 				}
 				return;
@@ -547,7 +541,7 @@ static FrmFile* LoadArtFile(const char* file, long frame, long direction, FrmFra
 	FrmFile* frmPtr = nullptr;
 	if (checkPCX) {
 		const char* pos = strrchr(file, '.');
-		if (pos && _stricmp(pos, ".PCX") == 0) {
+		if (pos && _stricmp(++pos, "PCX") == 0) {
 			long w, h;
 			BYTE* data = LoadPCXData(file, &w, &h);
 			if (!data) return nullptr;
@@ -584,6 +578,7 @@ static long GetArtFIDFile(long fid, const char* &file) {
 }
 
 static void mf_draw_image() {
+	SelectWindowID(opHandler.program()->currentScriptWin);
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
 		opHandler.setReturn(0);
@@ -604,7 +599,7 @@ static void mf_draw_image() {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
 	// initialize other args
-	int frameno = 0, x = 0, y = 0, noTrans = 0;
+	long frameno = 0, x = 0, y = 0, noTrans = 0;
 	switch (opHandler.numArgs()) {
 		case 5:
 			noTrans = opHandler.arg(4).rawValue();
@@ -633,6 +628,7 @@ static void mf_draw_image() {
 }
 
 static void mf_draw_image_scaled() {
+	SelectWindowID(opHandler.program()->currentScriptWin);
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image_scaled() - no created/selected window for the image.");
 		opHandler.setReturn(0);
@@ -653,7 +649,7 @@ static void mf_draw_image_scaled() {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
 	// initialize other args
-	int frameno = 0, x = 0, y = 0, wsize = 0;
+	long frameno = 0, x = 0, y = 0, wsize = 0;
 	switch (opHandler.numArgs()) {
 		case 6:
 		case 5:
@@ -906,4 +902,33 @@ static void mf_interface_print() { // same as vanilla PrintRect
 
 	// no redraw (textdirect)
 	if (!(color & 0x1000000)) GNWWinRefresh(win, &win->rect, 0);
+}
+
+static void mf_win_fill_color() {
+	SelectWindowID(opHandler.program()->currentScriptWin);
+	long iWin = *(DWORD*)_currentWindow;
+	if (iWin == -1) {
+		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");
+		opHandler.setReturn(-1);
+		return;
+	}
+	// initialize args
+	long x = 0, y = 0, width = 0, height = 0, color = 0;
+	switch (opHandler.numArgs()) {
+		case 5:
+			color = opHandler.arg(4).rawValue();
+		case 4:
+			height = opHandler.arg(3).rawValue();
+		case 3:
+			width = opHandler.arg(2).rawValue();
+		case 2:
+			y = opHandler.arg(1).rawValue();
+		case 1:
+			x = opHandler.arg(0).rawValue();
+	}
+	if (opHandler.numArgs() > 0) {
+		WinFillRect(ptr_sWindows[iWin].wID, x, y, width, height, (BYTE)color);
+	} else {
+		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
+	}
 }
