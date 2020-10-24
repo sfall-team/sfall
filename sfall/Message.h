@@ -19,6 +19,7 @@
 #pragma once
 
 #include <unordered_map>
+
 #include "main.h"
 
 #define MSG_FILE_COMBAT		(0x56D368)
@@ -46,9 +47,12 @@ typedef std::tr1::unordered_map<int, MSGList*> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 extern const MSGList* gameMsgFiles[];
 
-MSGNode* GetMsgNode(MSGList* msgList, int msgRef);
-char* GetMsg(MSGList* msgList, int msgRef, int msgNum);
+void MessageInit();
+//void MessageExit();
 
 void ReadExtraGameMsgFiles();
 void FallbackEnglishLoadMsgFiles();
 void ClearReadExtraGameMsgFiles();
+
+MSGNode* GetMsgNode(MSGList* msgList, int msgRef);
+char* GetMsg(MSGList* msgList, int msgRef, int msgNum);

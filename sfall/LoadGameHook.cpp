@@ -346,10 +346,6 @@ static void __declspec(naked) NewGame() {
 	}
 }
 
-static void ReadExtraGameMsgFilesIfNeeded() {
-	if (gExtraGameMsgLists.empty()) ReadExtraGameMsgFiles();
-}
-
 static void __declspec(naked) MainMenuHook() {
 	__asm {
 		pushad;
@@ -357,7 +353,7 @@ static void __declspec(naked) MainMenuHook() {
 		call ResetState;
 		mov  al, pipBoyAvailableAtGameStart;
 		mov  byte ptr ds:[_gmovie_played_list + 3], al;
-		call ReadExtraGameMsgFilesIfNeeded;
+		call ReadExtraGameMsgFiles;
 		popad;
 		jmp  main_menu_loop_;
 	}

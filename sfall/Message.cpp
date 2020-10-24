@@ -17,9 +17,10 @@
  */
 
 #include <string>
-#include "main.h"
 
+#include "main.h"
 #include "FalloutEngine.h"
+
 #include "Message.h"
 
 #define CASTMSG(adr) reinterpret_cast<MSGList*>(adr)
@@ -48,6 +49,7 @@ const MSGList* gameMsgFiles[] = {
 #undef CASTMSG
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
+static std::vector<std::string> msgFileList;
 
 // Loads the msg file from the 'english' folder if it does not exist in the current language directory
 static void __declspec(naked) message_load_hook() {
@@ -106,40 +108,27 @@ char* GetMsg(MSGList* msgList, int msgRef, int msgNum) {
 }
 
 void ReadExtraGameMsgFiles() {
-	int read;
-	std::string names;
-
-	names.resize(256);
-
-	while ((read = GetConfigString("Misc", "ExtraGameMsgFileList", "",
-		(LPSTR)names.data(), names.size())) == names.size() - 1)
-		names.resize(names.size() + 256);
-
-	if (names.empty()) return;
-
-	names.resize(names.find_first_of('\0'));
-	names.append(",");
-
-	int begin = 0;
-	int end;
-	int length;
-	int number = 0;
-
-	while ((end = names.find_first_of(',', begin)) != std::string::npos) {
-		length = end - begin;
-
-		if (length > 0) {
-			std::string path = "game\\" + names.substr(begin, length) + ".msg";
-			MSGList* list = new MSGList;
+	if (!msgFileList.empty()) {
+		int number = 0;
+		for (std::vector<std::string>::const_iterator it = msgFileList.begin(); it != msgFileList.end(); ++it) {
+			std::string path("game\\");
+			size_t n = it->find(':');
+			if (n == std::string::npos) {
+				path += *it;
+			} else {
+				path += it->substr(0, n);
+				number = std::stoi(it->substr(n + 1), nullptr, 0);
+			}
+			path += ".msg";
+			MSGList* list = new MSGList();
 			if (MessageLoad(list, path.c_str()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
 			}
+			if (++number == 4096) break;
 		}
-		if (++number == 4096) break;
-
-		begin = end + 1;
+		msgFileList.clear();
 	}
 }
 
@@ -156,3 +145,11 @@ void ClearReadExtraGameMsgFiles() {
 		delete it->second;
 	}
 }
+
+void MessageInit() {
+	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
+}
+
+//void MessageExit() {
+	//gExtraGameMsgLists.clear();
+//}

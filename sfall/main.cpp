@@ -254,6 +254,9 @@ static void DllMain2() {
 	dlogr("Running ExplosionInit().", DL_INIT);
 	ExplosionInit();
 
+	dlogr("Running MessageInit().", DL_INIT);
+	MessageInit();
+
 	dlogr("Running ElevatorsInit().", DL_INIT);
 	ElevatorsInit();
 
@@ -304,7 +307,7 @@ static void __stdcall OnExit() {
 	ConsoleExit();
 	ExtraSaveSlotsExit();
 	BooksExit();
-	//gExtraGameMsgLists.clear();
+	//MessageExit();
 	AnimationsExit();
 	BarBoxesExit();
 	HeroAppearanceModExit();
