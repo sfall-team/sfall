@@ -577,9 +577,8 @@ static long GetArtFIDFile(long fid, const char* &file) {
 }
 
 static void mf_draw_image() {
-	SelectWindowID(opHandler.program()->currentScriptWin);
-	if (*(DWORD*)_currentWindow == -1) {
-		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
+	if (!SelectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)_currentWindow == -1) {
+		opHandler.printOpcodeError("draw_image() - no created or selected window.");
 		opHandler.setReturn(0);
 		return;
 	}
@@ -616,9 +615,8 @@ static void mf_draw_image() {
 }
 
 static void mf_draw_image_scaled() {
-	SelectWindowID(opHandler.program()->currentScriptWin);
-	if (*(DWORD*)_currentWindow == -1) {
-		opHandler.printOpcodeError("draw_image_scaled() - no created/selected window for the image.");
+	if (!SelectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)_currentWindow == -1) {
+		opHandler.printOpcodeError("draw_image_scaled() - no created or selected window.");
 		opHandler.setReturn(0);
 		return;
 	}
@@ -879,9 +877,9 @@ static void mf_interface_print() { // same as vanilla PrintRect
 }
 
 static void mf_win_fill_color() {
-	SelectWindowID(opHandler.program()->currentScriptWin);
+	long result = SelectWindowID(opHandler.program()->currentScriptWin);
 	long iWin = *(DWORD*)_currentWindow;
-	if (iWin == -1) {
+	if (!result || iWin == -1) {
 		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");
 		opHandler.setReturn(-1);
 		return;

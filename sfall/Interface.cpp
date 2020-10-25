@@ -567,14 +567,12 @@ static void __declspec(naked) main_death_scene_hook() {
 }
 
 static void __declspec(naked) display_body_hook() {
-	static const DWORD display_body_hook_Ret = 0x47098D;
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
 		cmp  ebx, 1; // check mode 0 or 1
 		jbe  fix;
-		add  esp, 8;
-		mov  dword ptr [esp + 0x60 - 0x40], 0; // frm_ptr
-		jmp  display_body_hook_Ret;
+		xor  ebx, ebx;
+		jmp  art_id_;
 fix:
 		dec  edx;     // USE.FRM
 		mov  ecx, 48; // INVBOX.FRM
@@ -618,7 +616,7 @@ void InterfaceInit() {
 	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
 	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 
-	// Cosmetic fix for the background image of the character portrait on the inventory and character screens
+	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
 	HookCall(0x47093C, display_body_hook);
 	BYTE code[11] = {
 		0x8B, 0xD3,             // mov  edx, ebx
@@ -626,7 +624,7 @@ void InterfaceInit() {
 		0x0F, 0xAF, 0xD3,       // imul edx, ebx (y * frame width)
 		0x53, 0x90              // push ebx (frame width)
 	};
-	SafeWriteBytes(0x470971, code, 11);
+	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
 }
 
 void InterfaceExit() {
