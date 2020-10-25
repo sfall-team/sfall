@@ -511,9 +511,8 @@ static long GetArtFIDFile(long fid, const char* &file) {
 }
 
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
-	fo::func::selectWindowID(ctx.program()->currentScriptWin);
-	if (*(DWORD*)FO_VAR_currentWindow == -1) {
-		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
+	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
+		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		return 0;
 	}
 	long direction = 0;
@@ -784,9 +783,9 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 }
 
 void mf_win_fill_color(OpcodeContext& ctx) {
-	fo::func::selectWindowID(ctx.program()->currentScriptWin);
+	long result = fo::func::selectWindowID(ctx.program()->currentScriptWin);
 	long iWin = *(DWORD*)FO_VAR_currentWindow;
-	if (iWin == -1) {
+	if (!result || iWin == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 		return;
