@@ -211,7 +211,7 @@ public:
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const {
-		return _args.size() - _argShift;
+		return _numArgs - _argShift;
 	}
 
 	// returns current argument shift, default is 0
@@ -223,7 +223,6 @@ public:
 	// for example if shift value is 2, then subsequent calls to arg(i) will return arg(i+2) instead, etc.
 	void setArgShift(int shift) {
 		assert(shift >= 0);
-
 		_argShift = shift;
 	}
 
@@ -257,11 +256,12 @@ public:
 	void resetState(TProgram* program, int argNum) {
 		_program = program;
 
+		// reset argument list
+		if (argNum < OP_MAX_ARGUMENTS) std::fill(_args.begin() + argNum, _args.end(), ScriptValue());
 		// reset return value
 		_ret = ScriptValue();
-		// reset argument list
-		std::fill(_args.begin(), _args.end(), ScriptValue());
-		_args.resize(argNum);
+		// reset number of arguments
+		_numArgs = argNum;
 		// reset arg shift
 		_argShift = 0;
 	}
@@ -357,11 +357,13 @@ public:
 	}
 
 private:
-	TProgram* _program;
-
-	int _argShift;
 	std::vector<ScriptValue> _args;
 	ScriptValue _ret;
+
+	TProgram* _program;
+
+	int _numArgs;
+	int _argShift;
 };
 
 static OpcodeHandler opHandler;

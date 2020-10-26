@@ -444,7 +444,7 @@ static void mf_create_win() {
 		: WinFlags::MoveOnTop;
 
 	if (CreateWindowFunc(opHandler.arg(0).strValue(),
-		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // y, x
+		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // x, y
 		opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
 		(flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
@@ -885,7 +885,11 @@ static void mf_win_fill_color() {
 		return;
 	}
 	if (opHandler.numArgs() > 0) {
-		WinFillRect(ptr_sWindows[iWin].wID, opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), (BYTE)opHandler.arg(4).rawValue());
+		WinFillRect(ptr_sWindows[iWin].wID,
+		            opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), // x, y
+		            opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), // w, h
+		            static_cast<BYTE>(opHandler.arg(4).rawValue())
+		);
 	} else {
 		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
 	}

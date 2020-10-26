@@ -692,7 +692,7 @@ optional arguments:
 
 > int sfall_func0("win_fill_color")
 > int sfall_func5("win_fill_color", int x, int y, int width, int height, int color)
-- fills the rectangle area of the currently selected script window with the specified color, or clears the entire window with transparent color (called without arguments)
+- fills the rectangle area of the currently selected script window with the specified color, or clears the window with transparent (index 0) color (call the function without arguments)
 - color: the color index in the game palette (from 0 to 255)
 
 ------------------------
