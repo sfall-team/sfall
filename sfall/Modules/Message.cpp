@@ -272,8 +272,8 @@ void Message::init() {
 	LoadGameHook::OnGameReset() += ClearScriptAddedExtraGameMsg;
 }
 
-//void Message::exit() {
+void Message::exit() {
 	//gExtraGameMsgLists.clear();
-//}
+}
 
 }
