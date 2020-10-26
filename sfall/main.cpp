@@ -307,7 +307,7 @@ static void __stdcall OnExit() {
 	ConsoleExit();
 	ExtraSaveSlotsExit();
 	BooksExit();
-	//MessageExit();
+	MessageExit();
 	AnimationsExit();
 	BarBoxesExit();
 	HeroAppearanceModExit();

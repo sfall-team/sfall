@@ -150,6 +150,6 @@ void MessageInit() {
 	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
 }
 
-//void MessageExit() {
+void MessageExit() {
 	//gExtraGameMsgLists.clear();
-//}
+}
