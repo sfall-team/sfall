@@ -115,7 +115,10 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
-// Fills the specified non-scripted interface window with index color 0 (black color)
+// Fills the specified interface window with index color
+void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor);
+
+// Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);
 
 // Print text to surface

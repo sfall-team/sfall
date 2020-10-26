@@ -378,7 +378,7 @@ void mf_create_win(OpcodeContext& ctx) {
 		: fo::WinFlags::MoveOnTop;
 
 	if (fo::func::createWindow(ctx.arg(0).strValue(),
-		ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), // y, x
+		ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), // x, y
 		ctx.arg(3).rawValue(), ctx.arg(4).rawValue(), // w, h
 		(flags & fo::WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
@@ -458,6 +458,45 @@ void mf_set_window_flag(OpcodeContext& ctx) {
 	}
 }
 
+static void __fastcall FreeArtFile(fo::FrmFile* frmPtr) {
+	if (frmPtr->id == 'PCX') {
+		__asm mov  eax, frmPtr;
+		__asm mov  eax, [eax]frmPtr.pixelData;
+		__asm call ds:[FO_VAR_freePtr];
+		delete[] frmPtr;
+	} else {
+		__asm mov  eax, frmPtr;
+		__asm call fo::funcoffs::my_free_;
+	}
+}
+
+static fo::FrmFile* LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
+	fo::FrmFile* frmPtr = nullptr;
+	if (checkPCX) {
+		const char* pos = strrchr(file, '.');
+		if (pos && _stricmp(++pos, "PCX") == 0) {
+			long w, h;
+			BYTE* data = fo::func::loadPCX(file, &w, &h);
+			if (!data) return nullptr;
+
+			frmPtr = reinterpret_cast<fo::FrmFile*>(new BYTE[78]);
+			std::memset(frmPtr, 0, 74);
+
+			frmPtr->id = 'PCX';
+			frmPtr->width = static_cast<short>(w);
+			frmPtr->height = static_cast<short>(h);
+			frmPtr->pixelData = data;
+			framePtr = frmPtr->GetFrameData(0, 0);
+			return frmPtr;
+		}
+	}
+	if (fo::func::load_frame(file, &frmPtr)) {
+		return nullptr;
+	}
+	framePtr = frmPtr->GetFrameData(direction, frame);
+	return frmPtr;
+}
+
 static long GetArtFIDFile(long fid, const char* &file) {
 	long direction = 0;
 	long _fid = fid & 0xFFFFFFF;
@@ -471,24 +510,16 @@ static long GetArtFIDFile(long fid, const char* &file) {
 	return direction;
 }
 
-static fo::FrmFile* LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr) {
-	fo::FrmFile* frmPtr = nullptr;
-	if (fo::func::load_frame(file, &frmPtr)) {
-		return nullptr;
-	}
-	framePtr = frmPtr->GetFrameData(direction, frame);
-
-	return frmPtr;
-}
-
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
-	if (*(DWORD*)FO_VAR_currentWindow == -1) {
-		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
+	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
+		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		return 0;
 	}
 	long direction = 0;
 	const char* file = nullptr;
-	if (ctx.arg(0).isInt()) { // art id
+
+	bool isID = ctx.arg(0).isInt();
+	if (isID) { // art id
 		long fid = ctx.arg(0).rawValue();
 		if (fid == -1) return -1;
 
@@ -498,15 +529,16 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	}
 
 	fo::FrmFrameData* framePtr;
-	fo::FrmFile* frmPtr = LoadArtFile(file, ctx.arg(1).rawValue(), direction, framePtr);
+	fo::FrmFile* frmPtr = LoadArtFile(file, ctx.arg(1).rawValue(), direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
 		return -1;
 	}
 	long result = 1;
+	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
 
 	if (isScaled && ctx.numArgs() < 3) {
-		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
+		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
 	} else {
 		int x = ctx.arg(2).rawValue(), y = ctx.arg(3).rawValue();
 		if (isScaled) { // draw to scale
@@ -531,14 +563,14 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 
 			long w_width = fo::func::windowWidth();
 			long xy_pos = (y * w_width) + x;
-			fo::func::window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+			fo::func::window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
 		} else { // with x/y frame offsets
-			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
+			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, ctx.arg(4).rawValue());
 		}
 	}
 
 exit:
-	fo::func::mem_free(frmPtr);
+	FreeArtFile(frmPtr);
 	return result;
 }
 
@@ -555,7 +587,8 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
 	bool useShift = false;
 	long direction = -1, w = -1, h = -1;
 
-	if (ctx.arg(1).isInt()) { // art id
+	bool isID = ctx.arg(1).isInt();
+	if (isID) { // art id
 		long fid = ctx.arg(1).rawValue();
 		if (fid == -1) return -1;
 
@@ -577,7 +610,7 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
 	long frame = ctx.arg(4).rawValue();
 
 	fo::FrmFrameData* framePtr;
-	fo::FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr);
+	fo::FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
 		return -1;
@@ -595,14 +628,15 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
 	int width  = (w >= 0) ? w : framePtr->width;
 	int height = (h >= 0) ? h : framePtr->height;
 
-	fo::func::trans_cscale(framePtr->data, framePtr->width, framePtr->height, framePtr->width,
+	fo::func::trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
 	                       interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
 	);
 
 	if (!(ctx.arg(0).rawValue() & 0x1000000)) {
 		fo::func::GNW_win_refresh(interfaceWin, &interfaceWin->rect, 0);
 	}
-	fo::func::mem_free(frmPtr);
+
+	FreeArtFile(frmPtr);
 	return 1;
 }
 
@@ -699,10 +733,10 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 		result = 1;
 		break;
 	case 1: // x
-		result = win->wRect.left;
+		result = win->rect.x;
 		break;
 	case 2: // y
-		result = win->wRect.top;
+		result = win->rect.y;
 		break;
 	}
 	ctx.setReturn(result);
@@ -746,6 +780,25 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 
 	// no redraw (textdirect)
 	if (!(color & 0x1000000)) fo::func::GNW_win_refresh(win, &win->rect, 0);
+}
+
+void mf_win_fill_color(OpcodeContext& ctx) {
+	long result = fo::func::selectWindowID(ctx.program()->currentScriptWin);
+	long iWin = *(DWORD*)FO_VAR_currentWindow;
+	if (!result || iWin == -1) {
+		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
+		return;
+	}
+	if (ctx.numArgs() > 0) {
+		fo::WinFillRect(fo::var::sWindows[iWin].wID,
+		                ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), // x, y
+		                ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), // w, h
+		                static_cast<BYTE>(ctx.arg(4).rawValue())
+		);
+	} else {
+		fo::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
+	}
 }
 
 }

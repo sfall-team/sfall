@@ -163,10 +163,8 @@ public:
 	static DWORD getScriptTypeBySfallType(DataType dataType);
 
 private:
-	// pops arguments from data stack
-	void _popArguments();
-	// pushes return value to data stack
-	void _pushReturnValue();
+	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
+	ScriptValue _ret;
 
 	fo::Program* _program;
 	DWORD _opcode;
@@ -174,12 +172,15 @@ private:
 
 	const SfallMetarule* _metarule;
 
-	int _numArgs;
+	int  _numArgs;
 	bool _hasReturn;
-	int _argShift;
-	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
-	ScriptValue _ret;
+	int  _argShift;
 	long _errorVal; // error value for incorrect arguments
+
+	// pops arguments from data stack
+	void _popArguments();
+	// pushes return value to data stack
+	void _pushReturnValue();
 };
 
 }
