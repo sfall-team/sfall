@@ -70,7 +70,6 @@ int OpcodeContext::argShift() const {
 
 void OpcodeContext::setArgShift (int shift) {
 	assert(shift >= 0);
-
 	_argShift = shift;
 }
 
@@ -175,6 +174,7 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 	if (_hasReturn) _pushReturnValue();
 }
 
+// unused method
 void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, char argNum, bool hasReturn) {
 	// for each opcode create new context on stack (no allocations at this point)
 	OpcodeContext currentContext(program, opcodeOffset / 4, argNum, hasReturn);
