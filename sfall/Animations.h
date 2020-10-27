@@ -18,5 +18,5 @@
 
 #pragma once
 
-void AnimationsInit();
-void AnimationsExit();
+void Animations_Init();
+void Animations_Exit();

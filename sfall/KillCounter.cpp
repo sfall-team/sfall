@@ -37,7 +37,7 @@ static void __declspec(naked) IncKillCounter() {
 	}
 }
 
-static void KillCounterInit2() {
+static void KillCounterInit() {
 	usingExtraKillTypes = true;
 
 	// Overwrite the critter_kill_count_ function that reads the kill counter
@@ -67,10 +67,10 @@ bool UsingExtraKillTypes() {
 	return usingExtraKillTypes;
 }
 
-void KillCounterInit() {
+void KillCounter_Init() {
 	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
-		KillCounterInit2();
+		KillCounterInit();
 		dlogr(" Done", DL_INIT);
 	}
 }

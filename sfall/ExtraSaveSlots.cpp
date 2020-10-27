@@ -506,7 +506,7 @@ notEmpty:
 	}
 }
 
-void ExtraSaveSlotsInit() {
+void ExtraSaveSlots_Init() {
 	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
 		dlog("Applying extra save slots patch.", DL_INIT);
@@ -538,6 +538,6 @@ void ExtraSaveSlotsInit() {
 	MakeJump(0x47F02C, GetComment_hack);
 }
 
-void ExtraSaveSlotsExit() {
+void ExtraSaveSlots_Exit() {
 	if (SaveLoadSurface) delete[] SaveLoadSurface;
 }

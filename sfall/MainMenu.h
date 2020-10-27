@@ -16,4 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void MainMenuInit();
+#pragma once
+
+void MainMenu_Init();

@@ -1,2 +1,4 @@
-void ReputationsInit();
-void ReputationsExit();
+#pragma once
+
+void Reputations_Init();
+void Reputations_Exit();

@@ -18,5 +18,5 @@
 
 #pragma once
 
-void MetaruleExtenderInit();
+void MetaruleExtender_Init();
 void MetaruleExtenderReset();

@@ -118,7 +118,7 @@ static void ApplyKarmaFRMsPatch() {
 	}
 }
 
-void KarmaInit() {
+void Karma_Init() {
 	ApplyDisplayKarmaChangesPatch();
 	ApplyKarmaFRMsPatch();
 }

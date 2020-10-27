@@ -708,7 +708,7 @@ bool FileSystemIsEmpty() {
 	return (int)(files.size() - loadedFiles) <= 0;
 }
 
-void FileSystemInit() {
+void FileSystem_Init() {
 	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
 		UsingFileSystem = true;

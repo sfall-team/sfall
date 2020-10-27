@@ -1465,7 +1465,7 @@ void Graphics_OnGameLoad() { // ResetShaders
 	LoadGlobalShader();
 }
 
-void GraphicsInit() {
+void Graphics_Init() {
 	GraphicsMode = GetConfigInt("Graphics", "Mode", 0);
 	if (GraphicsMode == 6) {
 		windowStyle = WS_OVERLAPPED;
@@ -1528,7 +1528,7 @@ void GraphicsInit() {
 	}
 }
 
-void GraphicsExit() {
+void Graphics_Exit() {
 	if (GraphicsMode) {
 		if (GraphicsMode == 5) {
 			int data = windowTop | (windowLeft << 16);

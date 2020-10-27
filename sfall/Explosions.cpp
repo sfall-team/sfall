@@ -218,7 +218,7 @@ void ResetExplosionRadius() {
 	if (set_expl_radius_grenade != 2 || set_expl_radius_rocket != 3) SetExplosionRadius(2, 3);
 }
 
-void ExplosionInit() {
+void Explosion_Init() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
 	lightingEnabled = GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;

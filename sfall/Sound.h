@@ -18,8 +18,8 @@
 
 #pragma once
 
-void SoundInit();
-void SoundExit();
+void Sound_Init();
+void Sound_Exit();
 void WipeSounds();
 
 DWORD __stdcall PlaySfallSound(const char* path, long mode);

@@ -18,4 +18,4 @@
 
 #pragma once
 
-void TilesInit();
+void Tiles_Init();

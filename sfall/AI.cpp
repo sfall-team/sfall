@@ -401,7 +401,7 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
-void AIInit() {
+void AI_Init() {
 	const DWORD combatAttackAddr[] = {
 		0x426A95, // combat_attack_this_
 		0x42A796  // ai_attack_

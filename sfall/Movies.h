@@ -21,4 +21,4 @@
 static const int MaxMovies = 32;
 extern char MoviePaths[MaxMovies * 65];
 
-void MoviesInit();
+void Movies_Init();

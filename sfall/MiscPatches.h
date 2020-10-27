@@ -18,5 +18,5 @@
 
 #pragma once
 
-void MiscPatchesInit();
-void MiscPatchesExit();
+void MiscPatches_Init();
+void MiscPatches_Exit();

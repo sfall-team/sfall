@@ -21,7 +21,7 @@
 
 PremadeChar* premade;
 
-void PremadeInit() {
+void Premade_Init() {
 	std::vector<std::string> premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
 	std::vector<std::string> premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (!premadePaths.empty() && !premadeFids.empty()) {

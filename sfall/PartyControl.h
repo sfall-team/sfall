@@ -21,7 +21,7 @@
 extern bool npcAutoLevelEnabled;
 extern bool npcEngineLevelUp;
 
-void PartyControlInit();
+void PartyControl_Init();
 void PartyControl_OnGameLoad();
 
 int __fastcall PartyControl_SwitchHandHook(TGameObj* item);

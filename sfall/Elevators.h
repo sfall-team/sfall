@@ -18,4 +18,4 @@
 
 #pragma once
 
-void ElevatorsInit();
+void Elevators_Init();

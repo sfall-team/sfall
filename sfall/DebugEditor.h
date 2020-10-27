@@ -1,4 +1,4 @@
 #pragma once
 
-void DebugEditorInit();
+void DebugEditor_Init();
 void DebugEditorKeyPressedHook(DWORD scanCode, bool pressed);

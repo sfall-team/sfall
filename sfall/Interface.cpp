@@ -593,7 +593,7 @@ void Interface_OnGameLoad() {
 	dots.clear();
 }
 
-void InterfaceInit() {
+void Interface_Init() {
 	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
@@ -627,6 +627,6 @@ void InterfaceInit() {
 	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
 }
 
-void InterfaceExit() {
+void Interface_Exit() {
 	if (dotStyle) delete[] dotStyle;
 }

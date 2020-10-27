@@ -18,7 +18,7 @@
 
 #pragma once
 
-void ExplosionInit();
+void Explosion_Init();
 int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
 void ResetExplosionSettings();
 void ResetExplosionRadius();

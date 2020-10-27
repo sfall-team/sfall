@@ -2815,7 +2815,7 @@ void BugFixes_OnGameLoad() {
 	dudeIsAnimDeath = false;
 }
 
-void BugFixesInit()
+void BugFixes_Init()
 {
 	#ifndef NDEBUG
 	if (iniGetInt("Debugging", "BugFixes", 1, ddrawIniDef) == 0) return;

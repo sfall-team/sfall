@@ -633,7 +633,7 @@ void InventoryReset() {
 	invenApCost = invenApCostDef;
 }
 
-void InventoryInit() {
+void Inventory_Init() {
 	long widthWeight = 135;
 
 	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);

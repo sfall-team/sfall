@@ -47,11 +47,10 @@ typedef std::tr1::unordered_map<int, MSGList*> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 extern const MSGList* gameMsgFiles[];
 
-void MessageInit();
-void MessageExit();
-
-void ReadExtraGameMsgFiles();
+void Message_Init();
+void Message_Exit();
 void FallbackEnglishLoadMsgFiles();
+void ReadExtraGameMsgFiles();
 void ClearReadExtraGameMsgFiles();
 
 MSGNode* GetMsgNode(MSGList* msgList, int msgRef);

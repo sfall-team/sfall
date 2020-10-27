@@ -39,7 +39,7 @@ struct ChanceModifier {
 
 extern long Combat_determineHitChance;
 
-void CombatInit();
+void Combat_Init();
 void Combat_OnGameLoad();
 
 void __stdcall SetBlockCombat(long toggle);

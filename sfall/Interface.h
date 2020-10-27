@@ -1,7 +1,7 @@
 #pragma once
 
-void InterfaceInit();
-void InterfaceExit();
+void Interface_Init();
+void Interface_Exit();
 void Interface_OnGameLoad();
 void InterfaceGmouseHandleHook();
 

@@ -18,8 +18,8 @@
 
 #pragma once
 
-void HeroAppearanceModInit();
-void HeroAppearanceModExit();
+void HeroAppearance_Init();
+void HeroAppearance_Exit();
 
 void __stdcall HeroSelectWindow(int raceStyleFlag);
 void __stdcall SetHeroStyle(int newStyleVal);

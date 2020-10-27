@@ -535,7 +535,7 @@ void Combat_OnGameLoad() {
 	BodypartHitChances(); // was in ClearGlobalScripts()
 }
 
-void CombatInit() {
+void Combat_Init() {
 	HookCall(0x45F626, intface_use_item_hook); // jnz hook
 	HookCall(0x4432A6, game_handle_input_hook);
 	Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);

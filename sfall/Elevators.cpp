@@ -135,7 +135,7 @@ static void LoadElevators(const char* elevFile) {
 	}
 }
 
-static void ElevatorsInit2() {
+static void ElevatorsInit() {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, CheckHotKeysHook);
 	//HookCall(0x43F2D2, UnknownHook2); // unused
@@ -158,11 +158,11 @@ static void ElevatorsInit2() {
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
 }
 
-void ElevatorsInit() {
+void Elevators_Init() {
 	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
 	if (!elevPath.empty()) {
 		dlog("Applying elevator patch.", DL_INIT);
-		ElevatorsInit2();
+		ElevatorsInit();
 		LoadElevators(elevPath.insert(0, ".\\").c_str());
 		dlogr(" Done", DL_INIT);
 	}

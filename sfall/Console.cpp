@@ -44,7 +44,7 @@ static void __declspec(naked) ConsoleHook() {
 	}
 }
 
-void ConsoleInit() {
+void Console_Init() {
 	std::string path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
 	if (!path.empty()) {
 		consoleFile.open(path);
@@ -54,7 +54,7 @@ void ConsoleInit() {
 	}
 }
 
-void ConsoleExit() {
+void Console_Exit() {
 	if (consoleFile.is_open()) {
 		consoleFile.close();
 	}

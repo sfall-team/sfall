@@ -92,7 +92,7 @@ void MetaruleExtenderReset() {
 	}
 }
 
-void MetaruleExtenderInit() {
+void MetaruleExtender_Init() {
 	// Keep default value
 	HorriganEncounterDefaultDays = *(BYTE*)HorriganEncounterDays;
 

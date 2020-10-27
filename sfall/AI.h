@@ -20,7 +20,7 @@
 
 #include "FalloutEngine.h"
 
-void AIInit();
+void AI_Init();
 
 TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
 TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);

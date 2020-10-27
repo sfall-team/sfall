@@ -1,7 +1,7 @@
 #pragma once
 
-void BarBoxesInit();
-void BarBoxesExit();
+void BarBoxes_Init();
+void BarBoxes_Exit();
 void BarBoxes_OnGameLoad();
 long BarBoxes_SetMaxSlots();
 

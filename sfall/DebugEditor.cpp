@@ -419,7 +419,7 @@ static void DontDeleteProtosPatch() {
 	}
 }
 
-void DebugEditorInit() {
+void DebugEditor_Init() {
 	DebugModePatch();
 
 	// Notifies and prints a debug message about a corrupted proto file to debug.log

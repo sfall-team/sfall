@@ -18,4 +18,4 @@
 
 #pragma once
 
-void QuestListInit();
+void QuestList_Init();

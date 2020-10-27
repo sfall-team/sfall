@@ -18,7 +18,7 @@
 
 #pragma once
 
-void WorldmapInit();
+void Worldmap_Init();
 void Worldmap_OnGameLoad();
 
 void Worldmap_SetCarInterfaceArt(DWORD artIndex);

@@ -467,7 +467,7 @@ void QuestListPatch() {
 	MakeCall(0x497A7D, pip_print_hack);
 }
 
-void QuestListInit() {
+void QuestList_Init() {
 	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
 		dlog("Applying quests list patch.", DL_INIT);

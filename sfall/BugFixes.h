@@ -1,6 +1,6 @@
 #pragma once
 
-void BugFixesInit();
+void BugFixes_Init();
 void BugFixes_OnGameLoad();
 void BugFixes_Initialization();
 

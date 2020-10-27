@@ -1710,7 +1710,7 @@ void ScriptExtender_OnGameLoad() {
 	ForceEncounterRestore(); // restore if the encounter did not happen
 }
 
-void ScriptExtenderInit() {
+void ScriptExtender_Init() {
 	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
 		highlightContainers = GetConfigInt("Input", "HighlightContainers", 0);

@@ -634,7 +634,7 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 	}
 }
 
-void LoadGameHookInit() {
+void LoadGameHook_Init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	Translate("sfall", "SaveInCombat", "Cannot save at this time.", saveFailMsg);

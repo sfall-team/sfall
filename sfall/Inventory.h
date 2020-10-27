@@ -18,7 +18,7 @@
 
 #pragma once
 
-void InventoryInit();
+void Inventory_Init();
 void InventoryReset();
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed);
 

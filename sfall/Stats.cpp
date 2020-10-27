@@ -249,7 +249,7 @@ void Stats_OnGameLoad() {
 	SafeWrite8(0x43C27A, 5);
 }
 
-void StatsInit() {
+void Stats_Init() {
 	StatsReset();
 
 	MakeJump(0x4AEF4D, stat_level_hack);

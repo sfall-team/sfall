@@ -18,4 +18,4 @@
 
 #pragma once
 
-void BurstModsInit();
+void BurstMods_Init();

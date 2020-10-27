@@ -20,7 +20,7 @@
 
 extern bool UsingFileSystem;
 
-void FileSystemInit();
+void FileSystem_Init();
 void FileSystemReset();
 void FileSystemSave(HANDLE h);
 bool FileSystemIsEmpty();

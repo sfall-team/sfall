@@ -16,4 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void PremadeInit();
+#pragma once
+
+void Premade_Init();

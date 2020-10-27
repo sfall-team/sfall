@@ -18,5 +18,5 @@
 
 #pragma once
 
-void BooksInit();
-void BooksExit();
+void Books_Init();
+void Books_Exit();

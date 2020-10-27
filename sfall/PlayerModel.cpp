@@ -26,7 +26,7 @@ char defaultMaleModelName[65]        = {};
 static char startFemaleModelName[65] = {};
 char defaultFemaleModelName[65]      = {};
 
-void PlayerModelInit() {
+void PlayerModel_Init() {
 	if (GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 64)) {
 		dlog("Applying male start model patch.", DL_INIT);
 		SafeWrite32(0x418B88, (DWORD)&startMaleModelName);

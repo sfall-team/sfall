@@ -693,7 +693,7 @@ static void EngineOptimizationPatches() {
 	SafeWrite32(0x467296, 0xC308C0C1);
 }
 
-void MiscPatchesInit() {
+void MiscPatches_Init() {
 	EngineOptimizationPatches();
 
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -819,6 +819,6 @@ void MiscPatchesInit() {
 	UseWalkDistancePatch();
 }
 
-void MiscPatchesExit() {
+void MiscPatches_Exit() {
 	if (scriptDialog) delete[] scriptDialog;
 }

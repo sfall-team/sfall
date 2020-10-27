@@ -288,7 +288,7 @@ void LoadOrder_OnGameLoad() {
 	RemoveSavFiles();
 }
 
-void LoadOrderInit() {
+void LoadOrder_Init() {
 	MultiPatchesPatch();
 
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {

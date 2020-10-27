@@ -18,8 +18,8 @@
 
 #pragma once
 
-void SkillsInit();
-void SkillsExit();
+void Skills_Init();
+void Skills_Exit();
 void Skills_OnGameLoad();
 
 void __stdcall SetSkillMax(TGameObj* critter, int maximum);

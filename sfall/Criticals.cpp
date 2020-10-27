@@ -263,7 +263,7 @@ static void RemoveCriticalTimeLimitsPatch() {
 	}
 }
 
-void CriticalsInit() {
+void Criticals_Init() {
 	mode = GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {

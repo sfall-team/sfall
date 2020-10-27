@@ -151,7 +151,7 @@ morelines:
 	}
 }
 
-void CreditsInit() {
+void Credits_Init() {
 	const DWORD showCreditsAddr[] = {0x480C49, 0x43F881};
 	HookCalls(ShowCreditsHook, showCreditsAddr);
 	if (GetConfigInt("Misc", "CreditsAtBottom", 0)) {

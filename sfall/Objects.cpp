@@ -230,7 +230,7 @@ skip:
 	}
 }
 
-void ObjectsInit() {
+void Objects_Init() {
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, CODETYPE_Nop); // fix ID increment
 

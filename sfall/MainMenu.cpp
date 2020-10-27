@@ -95,7 +95,7 @@ static void __declspec(naked) MainMenuTextHook() {
 	}
 }
 
-void MainMenuInit() {
+void MainMenu_Init() {
 	int offset;
 	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
 		SafeWrite32(0x481753, 15 + offset);

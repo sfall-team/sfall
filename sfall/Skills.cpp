@@ -311,7 +311,7 @@ void Skills_OnGameLoad() {
 	baseSkillMax.SetDefault();
 }
 
-void SkillsInit() {
+void Skills_Init() {
 	MakeJump(0x4AA63C, skill_level_hack, 1);
 	MakeCall(0x4AA847, skill_inc_point_force_hack);
 	MakeCall(0x4AA725, skill_inc_point_hack);
@@ -413,6 +413,6 @@ void SkillsInit() {
 	}
 }
 
-void SkillsExit() {
+void Skills_Exit() {
 	delete[] multipliers;
 }

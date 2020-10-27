@@ -18,4 +18,4 @@
 
 #pragma once
 
-void DamageModInit();
+void DamageMod_Init();

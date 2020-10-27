@@ -18,7 +18,7 @@
 
 #pragma once
 
-void PerksInit();
+void Perks_Init();
 void PerksReset();
 void PerksSave(HANDLE file);
 bool PerksLoad(HANDLE file);

@@ -43,7 +43,7 @@ struct sGlobalVar {
 };
 #pragma pack(pop)
 
-void ScriptExtenderInit();
+void ScriptExtender_Init();
 void ScriptExtender_OnGameLoad();
 bool __stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();

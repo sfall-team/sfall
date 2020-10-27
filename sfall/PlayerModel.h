@@ -21,4 +21,4 @@
 extern char defaultMaleModelName[65];
 extern char defaultFemaleModelName[65];
 
-void PlayerModelInit();
+void PlayerModel_Init();

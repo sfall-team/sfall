@@ -82,7 +82,7 @@ static void LoadVanillaBooks() {
 	books[4].skill = 17;
 }
 
-void BooksInit() {
+void Books_Init() {
 	std::string booksFile = GetConfigString("Misc", "BooksFile", "", MAX_PATH);
 	if (!booksFile.empty()) {
 		dlog("Applying books patch...", DL_INIT);
@@ -118,6 +118,6 @@ void BooksInit() {
 	}
 }
 
-void BooksExit() {
+void Books_Exit() {
 	if (books) delete[] books;
 }

@@ -20,7 +20,7 @@
 
 extern long LoadGameHook_interfaceWID;
 
-void LoadGameHookInit();
+void LoadGameHook_Init();
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded();

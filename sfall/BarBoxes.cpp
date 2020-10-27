@@ -267,7 +267,7 @@ void BarBoxes_OnGameLoad() {
 	}
 }
 
-void BarBoxesInit() {
+void BarBoxes_Init() {
 	initCount += GetConfigInt("Misc", "BoxBarCount", 5);
 	if (initCount < 5)  initCount = 5; // exclude the influence of negative values from the config
 	if (initCount > 100) initCount = 100;
@@ -361,7 +361,7 @@ void __stdcall BarBoxes_RemoveBox(int i) {
 	__asm call refresh_box_bar_win_;
 }
 
-void BarBoxesExit() {
+void BarBoxes_Exit() {
 	delete[] boxes;
 	delete[] boxText;
 }

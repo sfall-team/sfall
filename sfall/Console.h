@@ -18,6 +18,5 @@
 
 #pragma once
 
-void ConsoleExit();
-void ConsoleInit();
-//void DisplayAlertPopup(const char* msg, const char* line2);
+void Console_Init();
+void Console_Exit();

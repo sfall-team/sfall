@@ -338,7 +338,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>(40 + sadAddr, sad_28);
 }
 
-void AnimationsInit() {
+void Animations_Init() {
 	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
@@ -361,7 +361,7 @@ void AnimationsInit() {
 	MakeCall(0x419A17, art_alias_fid_hack);
 }
 
-void AnimationsExit() {
+void Animations_Exit() {
 	if (animationLimit <= 32) return;
 	delete[] anim_set;
 	delete[] sad;

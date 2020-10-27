@@ -558,7 +558,7 @@ static __declspec(naked) void LostFocus() {
 	}
 }
 
-void MoviesInit() {
+void Movies_Init() {
 	dlog("Applying movie patch.", DL_INIT);
 
 	//if (*((DWORD*)0x00518DA0) != 0x00503300) {

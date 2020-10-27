@@ -253,7 +253,7 @@ end:
 	}
 }
 
-void TilesInit() {
+void Tiles_Init() {
 	if (tileMode = GetConfigInt("Misc", "AllowLargeTiles", 0)) {
 		dlog("Applying allow large tiles patch.", DL_INIT);
 		HookCall(0x481D72, iso_init_hook);

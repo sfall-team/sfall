@@ -149,7 +149,7 @@ void TimerInit() {
 	}
 }
 
-void SpeedPatchInit() {
+void SpeedPatch_Init() {
 	if (GetConfigInt("Speed", "Enable", 0)) {
 		modKey = GetConfigInt("Input", "SpeedModKey", 0);
 		int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
@@ -177,6 +177,6 @@ void SpeedPatchInit() {
 	}
 }
 
-void SpeedPatchExit() {
+void SpeedPatch_Exit() {
 	if (speed) delete[] speed;
 }

@@ -1532,7 +1532,7 @@ static void EnableHeroAppearanceMod() {
 	//SafeMemSet(0x423A8F, CODETYPE_Nop, 8);
 }
 
-void HeroAppearanceModExit() {
+static void HeroAppearanceModExit() {
 	if (!appModEnabled) return;
 
 	delete[] heroPathPtr[0]->path;
@@ -1546,7 +1546,7 @@ void HeroAppearanceModExit() {
 	delete racePathPtr[1];
 }
 
-void HeroAppearanceModInit() {
+void HeroAppearance_Init() {
 	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
@@ -1559,4 +1559,8 @@ void HeroAppearanceModInit() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void HeroAppearance_Exit() {
+	HeroAppearanceModExit();
 }

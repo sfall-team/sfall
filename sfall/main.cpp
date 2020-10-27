@@ -154,11 +154,11 @@ static void DllMain2() {
 	dlogr("In DllMain2", DL_MAIN);
 
 	// fixes should be applied at the beginning
-	dlogr("Running BugFixesInit().", DL_INIT);
-	BugFixesInit();
+	dlogr("Running BugFixes_Init().", DL_INIT);
+	BugFixes_Init();
 
-	dlogr("Running GraphicsInit().", DL_INIT);
-	GraphicsInit();
+	dlogr("Running Graphics_Init().", DL_INIT);
+	Graphics_Init();
 
 	//if (GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
@@ -167,152 +167,152 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	dlogr("Running LoadOrderInit().", DL_INIT);
-	LoadOrderInit();
+	dlogr("Running LoadOrder_Init().", DL_INIT);
+	LoadOrder_Init();
 
-	dlogr("Running LoadGameHookInit().", DL_INIT);
-	LoadGameHookInit();
+	dlogr("Running LoadGameHook_Init().", DL_INIT);
+	LoadGameHook_Init();
 
-	dlogr("Running MoviesInit().", DL_INIT);
-	MoviesInit();
+	dlogr("Running Movies_Init().", DL_INIT);
+	Movies_Init();
 
-	dlogr("Running MainMenuInit().", DL_INIT);
-	MainMenuInit();
+	dlogr("Running MainMenu_Init().", DL_INIT);
+	MainMenu_Init();
 
-	dlogr("Running InterfaceInit().", DL_INIT);
-	InterfaceInit();
+	dlogr("Running Interface_Init().", DL_INIT);
+	Interface_Init();
 
-	dlogr("Running ObjectsInit().", DL_INIT);
-	ObjectsInit();
+	dlogr("Running Objects_Init().", DL_INIT);
+	Objects_Init();
 
-	dlogr("Running SpeedPatchInit().", DL_INIT);
-	SpeedPatchInit();
+	dlogr("Running SpeedPatch_Init().", DL_INIT);
+	SpeedPatch_Init();
 
-	dlogr("Running PlayerModelInit().", DL_INIT);
-	PlayerModelInit();
+	dlogr("Running PlayerModel_Init().", DL_INIT);
+	PlayerModel_Init();
 
-	dlogr("Running WorldmapInit().", DL_INIT);
-	WorldmapInit();
+	dlogr("Running Worldmap_Init().", DL_INIT);
+	Worldmap_Init();
 
-	dlogr("Running StatsInit().", DL_INIT);
-	StatsInit();
+	dlogr("Running Stats_Init().", DL_INIT);
+	Stats_Init();
 
-	dlogr("Running PerksInit().", DL_INIT);
-	PerksInit();
+	dlogr("Running Perks_Init().", DL_INIT);
+	Perks_Init();
 
-	dlogr("Running CombatInit().", DL_INIT);
-	CombatInit();
+	dlogr("Running Combat_Init().", DL_INIT);
+	Combat_Init();
 
-	dlogr("Running SkillsInit().", DL_INIT);
-	SkillsInit();
+	dlogr("Running Skills_Init().", DL_INIT);
+	Skills_Init();
 
-	dlogr("Running FileSystemInit().", DL_INIT);
-	FileSystemInit();
+	dlogr("Running FileSystem_Init().", DL_INIT);
+	FileSystem_Init();
 
-	dlogr("Running CriticalsInit().", DL_INIT);
-	CriticalsInit();
+	dlogr("Running Criticals_Init().", DL_INIT);
+	Criticals_Init();
 
-	dlogr("Running KarmaInit().", DL_INIT);
-	KarmaInit();
+	dlogr("Running Karma_Init().", DL_INIT);
+	Karma_Init();
 
-	dlogr("Running TilesInit().", DL_INIT);
-	TilesInit();
+	dlogr("Running Tiles_Init().", DL_INIT);
+	Tiles_Init();
 
-	dlogr("Running CreditsInit().", DL_INIT);
-	CreditsInit();
+	dlogr("Running Credits_Init().", DL_INIT);
+	Credits_Init();
 
-	dlogr("Running QuestListInit().", DL_INIT);
-	QuestListInit();
+	dlogr("Running QuestList_Init().", DL_INIT);
+	QuestList_Init();
 
-	dlogr("Running PremadeInit().", DL_INIT);
-	PremadeInit();
+	dlogr("Running Premade_Init().", DL_INIT);
+	Premade_Init();
 
-	dlogr("Running SoundInit().", DL_INIT);
-	SoundInit();
+	dlogr("Running Sound_Init().", DL_INIT);
+	Sound_Init();
 
-	dlogr("Running ReputationsInit().", DL_INIT);
-	ReputationsInit();
+	dlogr("Running Reputations_Init().", DL_INIT);
+	Reputations_Init();
 
-	dlogr("Running ConsoleInit().", DL_INIT);
-	ConsoleInit();
+	dlogr("Running Console_Init().", DL_INIT);
+	Console_Init();
 
-	dlogr("Running ExtraSaveSlotsInit().", DL_INIT);
-	ExtraSaveSlotsInit();
+	dlogr("Running ExtraSaveSlots_Init().", DL_INIT);
+	ExtraSaveSlots_Init();
 
-	dlogr("Running InventoryInit().", DL_INIT);
-	InventoryInit();
+	dlogr("Running Inventory_Init().", DL_INIT);
+	Inventory_Init();
 
-	dlogr("Running PartyControlInit().", DL_INIT);
-	PartyControlInit();
+	dlogr("Running PartyControl_Init().", DL_INIT);
+	PartyControl_Init();
 
-	dlogr("Running BurstModsInit().", DL_INIT);
-	BurstModsInit();
+	dlogr("Running BurstMods_Init().", DL_INIT);
+	BurstMods_Init();
 
-	dlogr("Running BooksInit().", DL_INIT);
-	BooksInit();
+	dlogr("Running Books_Init().", DL_INIT);
+	Books_Init();
 
-	dlogr("Running ExplosionInit().", DL_INIT);
-	ExplosionInit();
+	dlogr("Running Explosion_Init().", DL_INIT);
+	Explosion_Init();
 
-	dlogr("Running MessageInit().", DL_INIT);
-	MessageInit();
+	dlogr("Running Message_Init().", DL_INIT);
+	Message_Init();
 
-	dlogr("Running ElevatorsInit().", DL_INIT);
-	ElevatorsInit();
+	dlogr("Running Elevators_Init().", DL_INIT);
+	Elevators_Init();
 
-	dlogr("Running KillCounterInit().", DL_INIT);
-	KillCounterInit();
+	dlogr("Running KillCounter_Init().", DL_INIT);
+	KillCounter_Init();
 
-	dlogr("Running AIInit().", DL_INIT);
-	AIInit();
+	dlogr("Running AI_Init().", DL_INIT);
+	AI_Init();
 
-	dlogr("Running DamageModInit().", DL_INIT);
-	DamageModInit();
+	dlogr("Running DamageMod_Init().", DL_INIT);
+	DamageMod_Init();
 
-	dlogr("Running AnimationsInit().", DL_INIT);
-	AnimationsInit();
+	dlogr("Running Animations_Init().", DL_INIT);
+	Animations_Init();
 
-	dlogr("Running BarBoxesInit().", DL_INIT);
-	BarBoxesInit();
+	dlogr("Running BarBoxes_Init().", DL_INIT);
+	BarBoxes_Init();
 
-	dlogr("Running HeroAppearanceModInit().", DL_INIT);
-	HeroAppearanceModInit();
+	dlogr("Running HeroAppearance_Init().", DL_INIT);
+	HeroAppearance_Init();
 
-	dlogr("Running MiscPatchesInit().", DL_INIT);
-	MiscPatchesInit();
+	dlogr("Running MiscPatches_Init().", DL_INIT);
+	MiscPatches_Init();
 
-	dlogr("Running TalkingHeadsInit().", DL_INIT);
-	TalkingHeadsInit();
+	dlogr("Running TalkingHeads_Init().", DL_INIT);
+	TalkingHeads_Init();
 
 	// most of modules should be initialized before running the script handlers
-	dlogr("Running MetaruleExtenderInit().", DL_INIT);
-	MetaruleExtenderInit();
+	dlogr("Running MetaruleExtender_Init().", DL_INIT);
+	MetaruleExtender_Init();
 
-	dlogr("Running ScriptExtenderInit().", DL_INIT);
-	ScriptExtenderInit();
+	dlogr("Running ScriptExtender_Init().", DL_INIT);
+	ScriptExtender_Init();
 
-	dlogr("Running DebugEditorInit().", DL_INIT);
-	DebugEditorInit();
+	dlogr("Running DebugEditor_Init().", DL_INIT);
+	DebugEditor_Init();
 
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
 static void __stdcall OnExit() {
-	GraphicsExit();
-	InterfaceExit();
-	SpeedPatchExit();
-	SkillsExit();
-	SoundExit();
-	ReputationsExit();
-	ConsoleExit();
-	ExtraSaveSlotsExit();
-	BooksExit();
-	MessageExit();
-	AnimationsExit();
-	BarBoxesExit();
-	HeroAppearanceModExit();
-	MiscPatchesExit();
-	TalkingHeadsExit();
+	Graphics_Exit();
+	Interface_Exit();
+	SpeedPatch_Exit();
+	Skills_Exit();
+	Sound_Exit();
+	Reputations_Exit();
+	Console_Exit();
+	ExtraSaveSlots_Exit();
+	Books_Exit();
+	Message_Exit();
+	Animations_Exit();
+	BarBoxes_Exit();
+	HeroAppearance_Exit();
+	MiscPatches_Exit();
+	TalkingHeads_Exit();
 }
 
 static void __declspec(naked) OnExitFunc() {

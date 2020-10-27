@@ -460,7 +460,7 @@ void PartyControl_OnGameLoad() {
 	}
 }
 
-void PartyControlInit() {
+void PartyControl_Init() {
 	Mode = GetConfigInt("Misc", "ControlCombat", 0);
 	if (Mode > 2) Mode = 0;
 	if (Mode > 0) {

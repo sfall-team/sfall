@@ -62,7 +62,7 @@ static void __declspec(naked) compute_spray_rounds_distribution() {
 	}
 }
 
-void BurstModsInit() {
+void BurstMods_Init() {
 	if (GetConfigInt("Misc", "ComputeSprayMod", 0)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
 		compute_spray_center_mult = GetConfigInt("Misc", "ComputeSpray_CenterMult", 1);

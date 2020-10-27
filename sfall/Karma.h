@@ -18,4 +18,4 @@
 
 #pragma once
 
-void KarmaInit();
+void Karma_Init();

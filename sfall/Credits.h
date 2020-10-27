@@ -18,4 +18,4 @@
 
 #pragma once
 
-void CreditsInit();
+void Credits_Init();

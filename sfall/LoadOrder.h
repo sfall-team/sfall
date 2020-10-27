@@ -18,7 +18,7 @@
 
 #pragma once
 
-void LoadOrderInit();
+void LoadOrder_Init();
 void LoadOrder_OnGameLoad();
 void RemoveSavFiles();
 

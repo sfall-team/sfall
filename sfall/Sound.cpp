@@ -857,7 +857,7 @@ rawFile:
 //	*ptr_sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
 //}
 
-void SoundInit() {
+void Sound_Init() {
 	// Set the sample rate for the primary sound buffer
 	//SafeWrite32(0x44FDBC, SampleRate);
 	// SetSoundSampleRate will be run after game initialization
@@ -916,6 +916,6 @@ void SoundInit() {
 	HookCall(0x4661B3, soundStartInterpret_hook);
 }
 
-void SoundExit() {
+void Sound_Exit() {
 	if (soundwindow && GraphicsMode == 0) CoUninitialize();
 }

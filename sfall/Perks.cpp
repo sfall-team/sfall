@@ -1212,7 +1212,7 @@ void PerksAcceptCharScreen() {
 	}
 }
 
-void PerksInit() {
+void Perks_Init() {
 	FastShotTraitFix();
 
 	// Disable losing unused perks

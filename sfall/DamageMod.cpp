@@ -436,7 +436,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	}
 }
 
-void DamageModInit() {
+void DamageMod_Init() {
 	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
 		case 1:

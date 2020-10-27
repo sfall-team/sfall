@@ -515,7 +515,7 @@ void Worldmap_OnGameLoad() {
 	wmAreaHotSpotTitle.clear();
 }
 
-void WorldmapInit() {
+void Worldmap_Init() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();

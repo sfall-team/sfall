@@ -262,7 +262,7 @@ void TalkingHeadsSetup() {
 	HookCall(0x44768B, gdPlayTransition_hook);
 }
 
-void TalkingHeadsInit() {
+void TalkingHeads_Init() {
 	// Disable centering the screen if NPC has talking head
 	HookCall(0x445224, gdialogInitFromScript_hook);
 
@@ -271,7 +271,7 @@ void TalkingHeadsInit() {
 	}
 }
 
-void TalkingHeadsExit() {
+void TalkingHeads_Exit() {
 	if (!texMap.empty()) {
 		for (tex_citr it = texMap.begin(); it != texMap.end(); ++it) {
 			for (int i = 0; i < it->second.frames; i++) {
