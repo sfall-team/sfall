@@ -532,11 +532,11 @@ static void SetGlobalVarInternal(__int64 var, int val) {
 	}
 }
 
-void SetGlobalVarInt(DWORD var, int val) {
+static void __stdcall SetGlobalVarInt(DWORD var, int val) {
 	SetGlobalVarInternal(static_cast<__int64>(var), val);
 }
 
-long SetGlobalVar(const char* var, int val) {
+long __stdcall SetGlobalVar(const char* var, int val) {
 	if (strlen(var) != 8) {
 		return -1;
 	}
@@ -570,32 +570,40 @@ static long GetGlobalVarInternal(__int64 val) {
 	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
-long GetGlobalVar(const char* var) {
+static long __stdcall GetGlobalVarInt(DWORD var) {
+	return GetGlobalVarInternal(static_cast<__int64>(var));
+}
+
+long __stdcall GetGlobalVar(const char* var) {
 	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
-long GetGlobalVarInt(DWORD var) {
-	return GetGlobalVarInternal(static_cast<__int64>(var));
+static long __stdcall GetGlobalVarNameString(OpcodeHandler& opHandler, const char* opcodeName) {
+	const char* var = opHandler.arg(0).strValue();
+	if (strlen(var) != 8) {
+		opHandler.printOpcodeError("%s() - the name of the global variable must consist of 8 characters.", opcodeName);
+		return 0;
+	}
+	return GetGlobalVarInternal(*(__int64*)var);
+}
+
+static void __stdcall GetGlobalVarFunc(OpcodeHandler& opHandler, SfallDataType type, const char* opcodeName) {
+	long result;
+	if (opHandler.arg(0).isString()) {
+		result = GetGlobalVarNameString(opHandler, opcodeName);
+	} else {
+		result = GetGlobalVarInt(opHandler.arg(0).rawValue());
+	}
+	opHandler.setReturn(result, type);
 }
 
 static void __stdcall op_get_sfall_global_int2() {
 	const ScriptValue &varArg = opHandler.arg(0);
-	long result = 0;
 
 	if (!varArg.isFloat()) {
-		if (varArg.isString()) {
-			const char* var = varArg.strValue();
-			if (strlen(var) != 8) {
-				opHandler.printOpcodeError("get_sfall_global_int() - the name of the global variable must consist of 8 characters.");
-			} else {
-				result = GetGlobalVarInternal(*(__int64*)var);
-			}
-		} else {
-			result = GetGlobalVarInt(varArg.rawValue());
-		}
-		opHandler.setReturn(result, DATATYPE_INT);
+		GetGlobalVarFunc(opHandler, DATATYPE_INT, "get_sfall_global_int");
 	} else {
-		opHandler.printOpcodeError("get_sfall_global_int() - argument is not an integer or a string.");
+		OpcodeInvalidArgs("get_sfall_global_int");
 		opHandler.setReturn(0);
 	}
 }
@@ -606,22 +614,11 @@ static void __declspec(naked) op_get_sfall_global_int() {
 
 static void __stdcall op_get_sfall_global_float2() {
 	const ScriptValue &varArg = opHandler.arg(0);
-	long result = 0;
 
 	if (!varArg.isFloat()) {
-		if (varArg.isString()) {
-			const char* var = varArg.strValue();
-			if (strlen(var) != 8) {
-				opHandler.printOpcodeError("get_sfall_global_float() - The name of the global variable must consist of 8 characters.");
-			} else {
-				result = GetGlobalVarInternal(*(__int64*)var);
-			}
-		} else {
-			result = GetGlobalVarInt(varArg.rawValue());
-		}
-		opHandler.setReturn(result, DATATYPE_FLOAT);
+		GetGlobalVarFunc(opHandler, DATATYPE_FLOAT, "get_sfall_global_float");
 	} else {
-		opHandler.printOpcodeError("get_sfall_global_float() - argument is not an integer or a string.");
+		OpcodeInvalidArgs("get_sfall_global_float");
 		opHandler.setReturn(0);
 	}
 }
@@ -643,20 +640,21 @@ static void __declspec(naked) op_get_sfall_arg() {
 }
 
 static void mf_get_sfall_arg_at() {
-	long argVal = 0;
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		long id = opHandler.arg(0).rawValue();
+		long argVal = 0;
+		long id = idArg.rawValue();
 		if (id >= static_cast<long>(GetHSArgCount()) || id < 0) {
 			opHandler.printOpcodeError("get_sfall_arg_at() - invalid value for argument.");
 		} else {
 			argVal = GetHSArgAt(id);
 		}
+		opHandler.setReturn(argVal);
 	} else {
 		OpcodeInvalidArgs("get_sfall_arg_at");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(argVal);
 }
 
 static DWORD __stdcall GetSfallArgs() {

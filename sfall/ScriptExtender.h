@@ -59,11 +59,9 @@ int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
 void SetGlobals(sGlobalVar* globals);
 
-long SetGlobalVar(const char* var, int val);
-void SetGlobalVarInt(DWORD var, int val);
+long __stdcall SetGlobalVar(const char* var, int val);
 
-long GetGlobalVar(const char* var);
-long GetGlobalVarInt(DWORD var);
+long __stdcall GetGlobalVar(const char* var);
 
 bool __stdcall ScriptHasLoaded(TProgram* script);
 
