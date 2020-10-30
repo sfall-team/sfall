@@ -147,6 +147,9 @@ static void CriticalTableOverride() {
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
 	if (mode == 2 || mode == 3) { // bug fixes
+		SetEntry(0, 8, 2, 1, 2050);
+		SetEntry(0, 8, 2, 5, 5019);
+
 		SetEntry(2, 4, 1, 4, 0);
 		SetEntry(2, 4, 1, 5, 5216);
 		SetEntry(2, 4, 1, 6, 5000);
@@ -163,6 +166,10 @@ static void CriticalTableOverride() {
 		SetEntry(2, 5, 2, 5, 5216);
 		SetEntry(2, 5, 2, 6, 5000);
 
+		SetEntry(2, 8, 1, 0, 4);
+		SetEntry(2, 8, 2, 1, 2050);
+		SetEntry(2, 8, 2, 5, 5212);
+
 		SetEntry(3, 5, 1, 6, 5306);
 
 		SetEntry(4, 0, 4, 2, -1);
@@ -172,16 +179,29 @@ static void CriticalTableOverride() {
 		SetEntry(6, 4, 1, 4, 2);
 
 		SetEntry(6, 5, 1, 4, 2);
-
 		SetEntry(6, 5, 2, 6, 5608);
 
 		SetEntry(9, 3, 3, 4, 2);
+
+		SetEntry(9, 8, 3, 4, 2);
 
 		SetEntry(13, 5, 1, 4, 4);
 		SetEntry(13, 5, 2, 4, 4);
 		SetEntry(13, 5, 3, 4, 4);
 		SetEntry(13, 5, 4, 4, 4);
 		SetEntry(13, 5, 5, 4, 4);
+
+		SetEntry(15, 8, 0, 5, 6701);
+		SetEntry(15, 8, 1, 5, 6701);
+		SetEntry(15, 8, 2, 1, 2050);
+		SetEntry(15, 8, 2, 5, 6704);
+		SetEntry(15, 8, 3, 5, 6704);
+		SetEntry(15, 8, 4, 5, 6704);
+		SetEntry(15, 8, 5, 5, 6704);
+
+		SetEntry(16, 8, 2, 1, 2050);
+
+		SetEntry(17, 8, 2, 1, 2050);
 
 		SetEntry(18, 0, 0, 5, 5001);
 		SetEntry(18, 0, 1, 5, 5001);
@@ -229,7 +249,6 @@ static void CriticalTableOverride() {
 		SetEntry(18, 6, 0, 5, 5027);
 		SetEntry(18, 6, 1, 5, 5027);
 		SetEntry(18, 6, 2, 5, 5027);
-		//SetEntry(18,6,2,6,0);
 		SetEntry(18, 6, 3, 5, 5027);
 		SetEntry(18, 6, 4, 5, 7104);
 		SetEntry(18, 6, 5, 5, 7104);
@@ -241,6 +260,11 @@ static void CriticalTableOverride() {
 		SetEntry(18, 7, 3, 5, 7101);
 		SetEntry(18, 7, 4, 5, 7101);
 		SetEntry(18, 7, 5, 5, 7101);
+
+		SetEntry(18, 8, 2, 0, 3);
+		SetEntry(18, 8, 4, 0, 4);
+		SetEntry(18, 8, 4, 5, 7101);
+		SetEntry(18, 8, 5, 5, 7101);
 	}
 
 	if (CritTableLoad()) {

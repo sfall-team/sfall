@@ -379,7 +379,7 @@ static void SetGlobalVarInternal(__int64 var, int val) {
 		globalVars.emplace(var, val);
 	} else {
 		if (val == 0) {
-			globalVars.erase(itr);    // applies for both float 0.0 and integer 0
+			globalVars.erase(itr); // applies for both float 0.0 and integer 0
 		} else {
 			itr->second = val;
 		}
@@ -403,12 +403,12 @@ long GetGlobalVarInternal(__int64 val) {
 	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
-long GetGlobalVar(const char* var) {
-	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
-}
-
 long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(static_cast<__int64>(var));
+}
+
+long GetGlobalVar(const char* var) {
+	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
