@@ -351,7 +351,7 @@ extern DWORD* ptr_combat_list;
 extern DWORD* ptr_combat_state;
 extern DWORD* ptr_combat_turn_running;
 extern DWORD* ptr_combatNumTurns;
-extern DWORD* ptr_crit_succ_eff;
+extern CritInfo* ptr_crit_succ_eff; // array: 20 critters with 9 body parts and 6 effects each
 extern PathNode** ptr_critter_db_handle;
 extern DWORD* ptr_critterClearObj;
 extern DWORD* ptr_crnt_func;
@@ -474,7 +474,7 @@ extern DWORD* ptr_partyMemberMaxCount;
 extern DWORD** ptr_partyMemberPidList;
 extern char** ptr_patches;
 extern PathNode** ptr_paths;
-extern DWORD* ptr_pc_crit_succ_eff;
+extern CritInfo* ptr_pc_crit_succ_eff; // array: 9 body parts, 6 effects
 extern DWORD* ptr_pc_kill_counts;
 extern char*  ptr_pc_name;
 extern DWORD* ptr_pc_proto;

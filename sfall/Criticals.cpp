@@ -31,7 +31,7 @@ static const DWORD CritTableCount = 2 * 19 + 1;            // Number of species 
 static const DWORD CritTableSize = 6 * 9 * CritTableCount; // Number of entries in new critical table
 static DWORD mode;
 
-static const char* CritNames[] = {
+static const char* critNames[] = {
 	"DamageMultiplier",
 	"EffectFlags",
 	"StatCheck",
@@ -41,8 +41,8 @@ static const char* CritNames[] = {
 	"FailMessage",
 };
 
-static CritInfo* baseCritTable; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
-static CritInfo* critTable;
+static CritInfo baseCritTable[CritTableSize] = {0}; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
+static CritInfo critTable[CritTableSize];
 static CritInfo* playerCrit;
 
 static bool Inited = false;
@@ -74,19 +74,19 @@ void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element
 }
 
 static int CritTableLoad() {
-	CritInfo* defaultTable = (CritInfo*)_crit_succ_eff;
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
 		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
+		CritInfo* defaultTable = ptr_crit_succ_eff;
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
 				for (DWORD crit = 0; crit < 6; crit++) {
 					sprintf_s(section, "c_%02d_%d_%d", critter, part, crit);
-					int slot1 = crit + part * 6 + critter * 9 * 6;
-					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6;
+					int slot1 = crit + part * 6 + critter * 9 * 6; // default effect
+					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6; // new effect
 					for (int i = 0; i < 7; i++) {
-						baseCritTable[slot2].values[i] = iniGetInt(section, CritNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
+						baseCritTable[slot2].values[i] = iniGetInt(section, critNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
 						if (isDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
@@ -100,9 +100,9 @@ static int CritTableLoad() {
 		}
 	} else {
 		dlog("Setting up critical hit table using RP fixes", DL_CRITICALS);
-		memcpy(baseCritTable, defaultTable, 19 * 6 * 9 * sizeof(CritInfo));
+		memcpy(baseCritTable, ptr_crit_succ_eff, 19 * 6 * 9 * sizeof(CritInfo));
 		//memset(&baseCritTable[6 * 9 * 19], 0, 19 * 6 * 9 * sizeof(CritInfo));
-		memcpy(&baseCritTable[6 * 9 * 38], (CritInfo*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritInfo)); // PC crit table
+		memcpy(&baseCritTable[6 * 9 * 38], ptr_pc_crit_succ_eff, 6 * 9 * sizeof(CritInfo)); // PC crit table
 
 		if (mode == 3) {
 			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
@@ -122,7 +122,7 @@ static int CritTableLoad() {
 					for (int crit = 0; crit < 6; crit++) {
 						int slot = crit + part * 6 + critter * 9 * 6;
 						for (int i = 0; i < 7; i++) {
-							sprintf_s(buf3, "e%d_%s", crit, CritNames[i]);
+							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
 							baseCritTable[slot].values[i] = iniGetInt(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
 						}
 					}
@@ -135,18 +135,17 @@ static int CritTableLoad() {
 	return 0;
 }
 
-#define SetEntry(critter, bodypart, effect, param, value) defaultTable[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value;
+#define SetEntry(critter, bodypart, effect, param, value) ptr_crit_succ_eff[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value;
 
 static void CriticalTableOverride() {
 	dlogr("Initializing critical table override...", DL_INIT);
-	baseCritTable = new CritInfo[CritTableSize]();
-	critTable = new CritInfo[CritTableSize];
 	playerCrit = &critTable[6 * 9 * 38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
 	if (mode == 2 || mode == 3) { // bug fixes
-		CritInfo* defaultTable = (CritInfo*)_crit_succ_eff;
+		SetEntry(0, 8, 2, 1, 2050);
+		SetEntry(0, 8, 2, 5, 5019);
 
 		SetEntry(2, 4, 1, 4, 0);
 		SetEntry(2, 4, 1, 5, 5216);
@@ -164,6 +163,10 @@ static void CriticalTableOverride() {
 		SetEntry(2, 5, 2, 5, 5216);
 		SetEntry(2, 5, 2, 6, 5000);
 
+		SetEntry(2, 8, 1, 0, 4);
+		SetEntry(2, 8, 2, 1, 2050);
+		SetEntry(2, 8, 2, 5, 5212);
+
 		SetEntry(3, 5, 1, 6, 5306);
 
 		SetEntry(4, 0, 4, 2, -1);
@@ -173,16 +176,29 @@ static void CriticalTableOverride() {
 		SetEntry(6, 4, 1, 4, 2);
 
 		SetEntry(6, 5, 1, 4, 2);
-
 		SetEntry(6, 5, 2, 6, 5608);
 
 		SetEntry(9, 3, 3, 4, 2);
+
+		SetEntry(9, 8, 3, 4, 2);
 
 		SetEntry(13, 5, 1, 4, 4);
 		SetEntry(13, 5, 2, 4, 4);
 		SetEntry(13, 5, 3, 4, 4);
 		SetEntry(13, 5, 4, 4, 4);
 		SetEntry(13, 5, 5, 4, 4);
+
+		SetEntry(15, 8, 0, 5, 6701);
+		SetEntry(15, 8, 1, 5, 6701);
+		SetEntry(15, 8, 2, 1, 2050);
+		SetEntry(15, 8, 2, 5, 6704);
+		SetEntry(15, 8, 3, 5, 6704);
+		SetEntry(15, 8, 4, 5, 6704);
+		SetEntry(15, 8, 5, 5, 6704);
+
+		SetEntry(16, 8, 2, 1, 2050);
+
+		SetEntry(17, 8, 2, 1, 2050);
 
 		SetEntry(18, 0, 0, 5, 5001);
 		SetEntry(18, 0, 1, 5, 5001);
@@ -230,7 +246,6 @@ static void CriticalTableOverride() {
 		SetEntry(18, 6, 0, 5, 5027);
 		SetEntry(18, 6, 1, 5, 5027);
 		SetEntry(18, 6, 2, 5, 5027);
-		//SetEntry(18,6,2,6,0);
 		SetEntry(18, 6, 3, 5, 5027);
 		SetEntry(18, 6, 4, 5, 7104);
 		SetEntry(18, 6, 5, 5, 7104);
@@ -242,6 +257,11 @@ static void CriticalTableOverride() {
 		SetEntry(18, 7, 3, 5, 7101);
 		SetEntry(18, 7, 4, 5, 7101);
 		SetEntry(18, 7, 5, 5, 7101);
+
+		SetEntry(18, 8, 2, 0, 3);
+		SetEntry(18, 8, 4, 0, 4);
+		SetEntry(18, 8, 4, 5, 7101);
+		SetEntry(18, 8, 5, 5, 7101);
 	}
 
 	if (CritTableLoad()) {
@@ -276,5 +296,5 @@ void Criticals_Init() {
 
 void CritLoad() {
 	if (!Inited) return;
-	memcpy(critTable, baseCritTable, CritTableSize * sizeof(CritInfo)); // Apply loaded critical table
+	memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table
 }

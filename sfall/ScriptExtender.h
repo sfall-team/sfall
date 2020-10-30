@@ -66,6 +66,8 @@ long __stdcall GetGlobalVar(const char* var);
 bool __stdcall ScriptHasLoaded(TProgram* script);
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
+// prog - reference to program structure
+// fileName - the script file name without extension
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 
 // init program after load, needs to be called once
