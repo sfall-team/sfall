@@ -851,6 +851,7 @@ static void __declspec(naked) op_sfall_ver_build() {
 	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
 */
 static const SfallOpcodeMetadata opcodeMetaArray[] = {
+	{mf_add_extra_msg_file,     "add_extra_msg_file",     {DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
 	{mf_add_g_timer_event,      "add_g_timer_event",      {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{mf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
 	{mf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},

@@ -515,6 +515,21 @@ static void __declspec(naked) op_message_str_game() {
 	_WRAP_OPCODE(op_message_str_game2, 2, 1)
 }
 
+static void mf_add_extra_msg_file() {
+	long result = Message_AddExtraMsgFile(opHandler.arg(0).strValue(), (opHandler.numArgs() == 2) ? opHandler.arg(1).rawValue() : 0);
+	switch (result) {
+	case -1 :
+		opHandler.printOpcodeError("add_extra_msg_file() - cannot add message file with the specified number.");
+		break;
+	case -2 :
+		opHandler.printOpcodeError("add_extra_msg_file() - error loading message file.");
+		break;
+	case -3 :
+		opHandler.printOpcodeError("add_extra_msg_file() - the limit of adding message files has been exceeded.");
+	}
+	opHandler.setReturn(result);
+}
+
 static void mf_get_text_width() {
 	const ScriptValue &textArg = opHandler.arg(0);
 

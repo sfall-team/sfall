@@ -259,6 +259,7 @@
 
 
 /* sfall_funcX macros */
+#define add_extra_msg_file(name)                                sfall_func1("add_extra_msg_file", name)
 #define add_global_timer_event(time, fixedParam)                sfall_func2("add_g_timer_event", time, fixedParam)
 #define add_iface_tag                                           sfall_func0("add_iface_tag")
 #define add_trait(traitID)                                      sfall_func1("add_trait", traitID)

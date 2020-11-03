@@ -557,6 +557,15 @@ optional arguments:
 - NOTE: to omit optional arguments starting from the right, call the functions with different sfall_funcX (e.g. sfall_func4("draw_image", pathFile, frame, x, y))
 - if draw_image_scaled is called without x/y/width/height arguments, the image will be scaled to fit the window without transparent background
 
+> int sfall_func1("add_extra_msg_file", string fileName)
+> int sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
+- loads the custom message file, and returns the file ID number assigned to it in range from 0x3000 to 0x3FFF for the message_str_game function to get messages from the file
+- fileName: the name of the custom message file (including the .msg extension) in "text\<language>\game\" directory
+- NOTE: if the msg file does not exist in the current language directory, the function will try to load it from "text\English\game\" directory
+optional argument:
+- fileNumber: the file ID number for the message_str_game function. The available range is from 0x2000 to 0x2FFF (see ExtraGameMsgFileList setting in ddraw.ini)
+  use fileNumber only if you want to add a message file without editing ddraw.ini or existing scripts to support the old way
+
 > void sfall_func2("unwield_slot", object critter, int slot)
 - unequips an item from the specified slot for a critter or the player
 - can take off player's equipped item when the inventory is opened, or the player is in the barter screen

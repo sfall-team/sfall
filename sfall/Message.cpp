@@ -51,6 +51,8 @@ const MSGList* gameMsgFiles[] = {
 ExtraGameMessageListsMap gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
 
+static long msgNumCounter = 0x3000;
+
 // Loads the msg file from the 'english' folder if it does not exist in the current language directory
 static void __declspec(naked) message_load_hook() {
 	__asm {
@@ -130,6 +132,41 @@ void ReadExtraGameMsgFiles() {
 		}
 		msgFileList.clear();
 	}
+}
+
+long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
+	if (msgNumber) {
+		if (msgNumber < 0x2000 || msgNumber > 0x2FFF) return -1;
+		if (gExtraGameMsgLists.count(msgNumber)) return 0; // file has already been added
+	} else if (msgNumCounter > 0x3FFF) return -3;
+
+	std::string path("game\\");
+	path += msgName;
+	MSGList* list = new MSGList();
+	if (!MessageLoad(list, path.c_str())) {
+		// change current language folder
+		//path.insert(0, "..\\english\\");
+		//if (!MessageLoad(list, path.c_str())) {
+			delete list;
+			return -2;
+		//}
+	}
+	if (msgNumber == 0) msgNumber = msgNumCounter++;
+	gExtraGameMsgLists.insert(std::make_pair(msgNumber, list));
+	return msgNumber;
+}
+
+void ClearScriptAddedExtraGameMsg() {
+	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end();) {
+		if (it->first >= 0x3000 && it->first <= 0x3FFF) {
+			MessageExit(it->second);
+			delete it->second;
+			it = gExtraGameMsgLists.erase(it);
+		} else {
+			++it;
+		}
+	}
+	msgNumCounter = 0x3000;
 }
 
 void FallbackEnglishLoadMsgFiles() {

@@ -115,6 +115,7 @@ static void mf_metarule_exist() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
 */
 static const SfallMetarule metaruleArray[] = {
+	{"add_extra_msg_file",      mf_add_extra_msg_file,      1, 2},
 	{"add_iface_tag",           mf_add_iface_tag,           0, 0},
 	{"add_g_timer_event",       mf_add_g_timer_event,       2, 2},
 	{"add_trait",               mf_add_trait,               1, 1},

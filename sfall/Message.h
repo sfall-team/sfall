@@ -52,6 +52,9 @@ void Message_Exit();
 void FallbackEnglishLoadMsgFiles();
 void ReadExtraGameMsgFiles();
 void ClearReadExtraGameMsgFiles();
+void ClearScriptAddedExtraGameMsg();
+
+long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber);
 
 MSGNode* GetMsgNode(MSGList* msgList, int msgRef);
 char* GetMsg(MSGList* msgList, int msgRef, int msgNum);
