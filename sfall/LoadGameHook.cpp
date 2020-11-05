@@ -103,7 +103,7 @@ static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameSt
 	WipeSounds();
 	InventoryReset();
 	PartyControl_OnGameLoad();
-	ResetExplosionRadius();
+	Explosions_OnGameLoad();
 	ClearScriptAddedExtraGameMsg();
 	BarBoxes_OnGameLoad();
 	MetaruleExtenderReset();

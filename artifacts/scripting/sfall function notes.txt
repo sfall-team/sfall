@@ -224,7 +224,7 @@ Some additional reg_anim_* functions were introduced. They all work in the same 
 > void reg_anim_callback(procedure proc)
 - adds the given procedure to an animation sequence-list and executes it in the registered sequence.
 
-> int metarule2_explosions(int arg1, int arg2, int arg3)
+> int/array metarule2_explosions(int arg1, int arg2, int arg3)
 was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action. Following macros are available in sfall.h:
 
 > void set_attack_explosion_pattern(x, y)
@@ -242,6 +242,20 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 > void set_explosion_radius(grenade, rocket)
 - sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
 - changed radius will be reset each time the player reloads the game.
+
+> array get_explosion_damage(itemPid)
+- returns an array of the minimum and maximum damage of Dynamite or Plastic Explosives.
+
+> void set_dynamite_damage(minDmg, maxDmg)
+- sets the minimum and maximum damage for Dynamite.
+- changed damage will be reset each time the player reloads the game.
+
+> void set_plastic_damage(minDmg, maxDmg)
+- sets the minimum and maximum damage for Plastic Explosives.
+- changed damage will be reset each time the player reloads the game.
+
+> void set_explosion_max_targets(x)
+- sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)
 
 
 Some utility/math functions are available:
@@ -346,7 +360,7 @@ Some utility/math functions are available:
 - it will include any hidden, dead or system objects (like cursor), so make sure to check properly when iterating
 
 > array party_member_list(int includeHidden)
-- returns array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
+- returns an array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
 
 > array path_find_to(object objFrom, int tileTo, int blockingType)
 - returns the shortest path to a given tile using given blocking function as an array of tile directions (0..5) to move on each step

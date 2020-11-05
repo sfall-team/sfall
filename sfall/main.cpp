@@ -251,8 +251,8 @@ static void DllMain2() {
 	dlogr("Running Books_Init().", DL_INIT);
 	Books_Init();
 
-	dlogr("Running Explosion_Init().", DL_INIT);
-	Explosion_Init();
+	dlogr("Running Explosions_Init().", DL_INIT);
+	Explosions_Init();
 
 	dlogr("Running Message_Init().", DL_INIT);
 	Message_Init();

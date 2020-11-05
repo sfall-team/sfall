@@ -20,10 +20,13 @@
 
 #include "FalloutEngine.h"
 #include "Logging.h"
+#include "Arrays.h"
 #include "ScriptExtender.h"
 
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
+static bool explosionsDamageReset = false;
+static bool explosionMaxTargetReset = false;
 
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
 static void __declspec(naked) ranged_attack_lighting_fix() {
@@ -148,22 +151,70 @@ static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
 static const DWORD explosion_radius_grenade = 0x479183;
 static const DWORD explosion_radius_rocket  = 0x47918B;
 
+static const DWORD dynamite_min_dmg_addr = 0x4A2878;
+static const DWORD dynamite_max_dmg_addr = 0x4A2873;
+static const DWORD plastic_min_dmg_addr  = 0x4A2884;
+static const DWORD plastic_max_dmg_addr  = 0x4A287F;
+
+// default values
+static DWORD dynamite_minDmg;
+static DWORD dynamite_maxDmg;
+static DWORD plastic_minDmg;
+static DWORD plastic_maxDmg;
 static DWORD set_expl_radius_grenade = 2;
 static DWORD set_expl_radius_rocket  = 3;
 
 static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_art_adr[0]);
 
-static void SetExplosionRadius(int arg1, int arg2) {
+static void __stdcall SetExplosionRadius(int arg1, int arg2) {
 	SafeWrite32(explosion_radius_grenade, arg1);
 	SafeWrite32(explosion_radius_rocket, arg2);
 }
 
+static void __stdcall SetExplosionDamage(int pid, int min, int max) {
+	explosionsDamageReset = true;
+	switch (pid) {
+		case PID_DYNAMITE:
+			SafeWrite32(dynamite_min_dmg_addr, min);
+			SafeWrite32(dynamite_max_dmg_addr, max);
+			break;
+		case PID_PLASTIC_EXPLOSIVES:
+			SafeWrite32(plastic_min_dmg_addr, min);
+			SafeWrite32(plastic_max_dmg_addr, max);
+			break;
+	}
+}
+
+static int __stdcall GetExplosionDamage(int pid) {
+	DWORD min = 0, max = 0;
+	switch (pid) {
+		case PID_DYNAMITE:
+			min = *(DWORD*)dynamite_min_dmg_addr;
+			max = *(DWORD*)dynamite_max_dmg_addr;
+			break;
+		case PID_PLASTIC_EXPLOSIVES:
+			min = *(DWORD*)plastic_min_dmg_addr;
+			max = *(DWORD*)plastic_max_dmg_addr;
+			break;
+	}
+
+	DWORD arrayId = CreateTempArray(2, 0);
+	arrays[arrayId].val[0] = min;
+	arrays[arrayId].val[1] = max;
+
+	return arrayId;
+}
+
 enum MetaruleExplosionsMode {
-	EXPL_FORCE_EXPLOSION_PATTERN = 1,
-	EXPL_FORCE_EXPLOSION_ART     = 2,
-	EXPL_FORCE_EXPLOSION_RADIUS  = 3,
-	EXPL_FORCE_EXPLOSION_DMGTYPE = 4,
-	EXPL_STATIC_EXPLOSION_RADIUS = 5,
+	EXPL_FORCE_EXPLOSION_PATTERN       = 1,
+	EXPL_FORCE_EXPLOSION_ART           = 2,
+	EXPL_FORCE_EXPLOSION_RADIUS        = 3,
+	EXPL_FORCE_EXPLOSION_DMGTYPE       = 4,
+	EXPL_STATIC_EXPLOSION_RADIUS       = 5,
+	EXPL_GET_EXPLOSION_DAMAGE          = 6,
+	EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE = 7,
+	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE  = 8,
+	EXPL_SET_EXPLOSION_MAX_TARGET      = 9,
 };
 
 int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
@@ -191,6 +242,22 @@ int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 			if (arg2 > 0) set_expl_radius_rocket = arg2;
 			SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 			break;
+		case EXPL_GET_EXPLOSION_DAMAGE:
+			return GetExplosionDamage(arg1);
+		case EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE:
+			SetExplosionDamage(PID_DYNAMITE, arg1, arg2);
+			return 0;
+		case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
+			SetExplosionDamage(PID_PLASTIC_EXPLOSIVES, arg1, arg2);
+			return 0;
+		case EXPL_SET_EXPLOSION_MAX_TARGET:
+			if (arg1 > 0 && arg1 < 7) {
+				SafeWrite8(0x423C93, arg1);
+				explosionMaxTargetReset = true;
+			} else {
+				return 0;
+			}
+			break;
 		default:
 			return -1;
 	}
@@ -211,6 +278,11 @@ void ResetExplosionSettings() {
 	SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 	// explosion dmgtype
 	SafeWriteBatch<BYTE>(DMG_explosion, explosion_dmg_check_adr);
+	// explosion max target count
+	if (explosionMaxTargetReset) {
+		SafeWrite8(0x423C93, 6);
+		explosionMaxTargetReset = false;
+	}
 	explosionsMetaruleReset = false;
 }
 
@@ -218,7 +290,21 @@ void ResetExplosionRadius() {
 	if (set_expl_radius_grenade != 2 || set_expl_radius_rocket != 3) SetExplosionRadius(2, 3);
 }
 
-void Explosion_Init() {
+static void ResetExplosionDamage() {
+	if (!explosionsDamageReset) return;
+	SafeWrite32(dynamite_min_dmg_addr, dynamite_minDmg);
+	SafeWrite32(dynamite_max_dmg_addr, dynamite_maxDmg);
+	SafeWrite32(plastic_min_dmg_addr, plastic_minDmg);
+	SafeWrite32(plastic_max_dmg_addr, plastic_maxDmg);
+	explosionsDamageReset = false;
+}
+
+void Explosions_OnGameLoad() {
+	ResetExplosionRadius();
+	ResetExplosionDamage();
+}
+
+void Explosions_Init() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
 	lightingEnabled = GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
@@ -230,9 +316,9 @@ void Explosion_Init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	DWORD tmp;
-	tmp = SimplePatch<DWORD>(0x4A2873, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
-	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
-	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
-	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
+	// initialize explosives
+	dynamite_maxDmg = SimplePatch<DWORD>(dynamite_max_dmg_addr, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
+	dynamite_minDmg = SimplePatch<DWORD>(dynamite_min_dmg_addr, "Misc", "Dynamite_DmgMin", 30, 0, dynamite_maxDmg);
+	plastic_maxDmg = SimplePatch<DWORD>(plastic_max_dmg_addr, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
+	plastic_minDmg = SimplePatch<DWORD>(plastic_min_dmg_addr, "Misc", "PlasticExplosive_DmgMin", 40, 0, plastic_maxDmg);
 }
