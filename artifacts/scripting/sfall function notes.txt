@@ -456,6 +456,13 @@ Some utility/math functions are available:
 > void sfall_func0("real_dude_obj")
 - returns the initial dude_obj after taking control of other critters in combat
 
+> array sfall_func1("get_ini_sections", string fileName)
+- returns an array of names of all sections in a given INI file
+
+> array sfall_func2("get_ini_section", string fileName, string section)
+- returns an associative array of keys and values for a given INI file and section
+- NOTE: all keys and their values will be of String type
+
 > int sfall_func0("car_gas_amount")
 - returns the current amount of fuel in player's car (between 0 and 80000)
 - to change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount) - amount can be positive or negative

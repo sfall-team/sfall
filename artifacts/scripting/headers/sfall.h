@@ -284,6 +284,8 @@
 #define get_current_inven_size(obj)                             sfall_func1("get_current_inven_size", obj)
 #define get_cursor_mode                                         sfall_func0("get_cursor_mode")
 #define get_flags(obj)                                          sfall_func1("get_flags", obj)
+#define get_ini_section(file, sect)                             sfall_func2("get_ini_section", file, sect)
+#define get_ini_sections(file)                                  sfall_func1("get_ini_sections", file)
 #define get_interface_x(winType)                                sfall_func2("get_window_attribute", winType, 1)
 #define get_interface_y(winType)                                sfall_func2("get_window_attribute", winType, 2)
 #define get_inven_ap_cost                                       sfall_func0("get_inven_ap_cost")

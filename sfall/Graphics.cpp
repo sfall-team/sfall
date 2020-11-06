@@ -37,8 +37,8 @@ static DWORD ResHeight;
 DWORD GPUBlt;
 DWORD GraphicsMode;
 
-bool PlayAviMovie = false;
-bool AviMovieWidthFit = false;
+bool Gfx_PlayAviMovie = false;
+bool Gfx_AviMovieWidthFit = false;
 
 static DWORD yoffset;
 //static DWORD xoffset;
@@ -590,7 +590,7 @@ static void Refresh() {
 }
 
 void Gfx_RefreshGraphics() {
-	if (!PlayAviMovie) Refresh();
+	if (!Gfx_PlayAviMovie) Refresh();
 }
 
 HRESULT Gfx_CreateMovieTexture(D3DSURFACE_DESC &desc) {
@@ -606,9 +606,9 @@ void Gfx_ReleaseMovieTexture() {
 void Gfx_SetMovieTexture(bool state) {
 	dlog("\nSet movie texture.", DL_INIT);
 	if (!state) {
-		PlayAviMovie = false;
+		Gfx_PlayAviMovie = false;
 		return;
-	} else if (PlayAviMovie) return;
+	} else if (Gfx_PlayAviMovie) return;
 
 	if (!movieTex) Gfx_CreateMovieTexture(movieDesc);
 	D3DSURFACE_DESC &desc = movieDesc;
@@ -645,7 +645,7 @@ void Gfx_SetMovieTexture(bool state) {
 
 		subtitleShow = false;
 	} else if (aviAspect < winAspect) {
-		if (AviMovieWidthFit || (hrpIsEnabled && *(DWORD*)HRPAddress(0x1006EC10) == 2)) {
+		if (Gfx_AviMovieWidthFit || (hrpIsEnabled && *(DWORD*)HRPAddress(0x1006EC10) == 2)) {
 			//desc.Width = gWidth; // scales the movie surface to screen width
 		} else {
 			// scales width proportionally and places the movie surface at the center of the window along the X-axis
@@ -671,7 +671,7 @@ void Gfx_SetMovieTexture(bool state) {
 	CopyMemory(vertexPointer, shaderVertices, sizeof(shaderVertices));
 	movieBuffer->Unlock();
 
-	PlayAviMovie = true;
+	Gfx_PlayAviMovie = true;
 }
 
 void Gfx_ShowMovieFrame(IDirect3DTexture9* tex) {
@@ -812,7 +812,7 @@ public:
 		}
 		mainTex->UnlockRect(0);
 		//mainTexLock = false;
-		//if (PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
+		//if (Gfx_PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
 
 		if (!DeviceLost) {
 			d3d9Device->SetTexture(0, mainTex);
@@ -994,7 +994,7 @@ public:
 		if (mainTexLock) mainTex->UnlockRect(0);
 		mainTexLock = false;
 
-		if (!IsPlayMovie && !PlayAviMovie) {
+		if (!IsPlayMovie && !Gfx_PlayAviMovie) {
 			//dlog("\nUnlock -> RefreshGraphics", DL_INIT);
 			Refresh();
 		}
@@ -1061,7 +1061,7 @@ public:
 			primaryDDSurface->SetPalette(0); // update
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
 		}
-		if (!PlayAviMovie) {
+		if (!Gfx_PlayAviMovie) {
 			//dlog("\nSetEntries -> RefreshGraphics", DL_INIT);
 			Refresh();
 		}

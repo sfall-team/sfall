@@ -857,6 +857,8 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{mf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{mf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{mf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_get_ini_section,        "get_ini_section",        {DATATYPE_MASK_STR, DATATYPE_MASK_STR}},
+	{mf_get_ini_sections,       "get_ini_sections",       {DATATYPE_MASK_STR}},
 	{mf_get_window_attribute,   "get_window_attribute",   {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{mf_hide_window,            "hide_window",            {DATATYPE_MASK_STR}},
 	{mf_interface_art_draw,     "interface_art_draw",     {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},

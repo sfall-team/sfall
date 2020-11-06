@@ -22,11 +22,11 @@
 #include "FalloutStructs.h"
 
 // TODO: replace with enum class
-enum SfallDataType {
-	DATATYPE_NONE = 0,
-	DATATYPE_INT,
-	DATATYPE_FLOAT,
-	DATATYPE_STR
+enum SfallDataType : unsigned long {
+	DATATYPE_NONE  = 0,
+	DATATYPE_INT   = 1,
+	DATATYPE_FLOAT = 2,
+	DATATYPE_STR   = 3,
 };
 
 typedef struct {

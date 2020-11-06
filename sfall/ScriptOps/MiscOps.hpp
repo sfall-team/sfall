@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <cstring>
+
 #include "main.h"
 
 #include "AI.h"
@@ -1150,6 +1152,55 @@ static void mf_set_ini_setting() {
 		return;
 	}
 	opHandler.setReturn(-1);
+}
+
+static void mf_get_ini_sections() {
+	std::string fileName = std::string(".\\") + opHandler.arg(0).strValue();
+	if (!GetPrivateProfileSectionNamesA(gTextBuffer, GlblTextBufferSize(), fileName.c_str())) {
+		opHandler.setReturn(CreateTempArray(0, 0));
+		return;
+	}
+	std::vector<char*> sections;
+	char* section = gTextBuffer;
+	while (*section != 0) {
+		sections.push_back(section); // position
+		section += std::strlen(section) + 1;
+	}
+	size_t sz = sections.size();
+	int arrayId = CreateTempArray(sz, 0);
+	sArrayVar &arr = arrays[arrayId];
+
+	for (size_t i = 0; i < sz; ++i) {
+		size_t j = i + 1;
+		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
+		arr.val[i].set(sections[i], len); // copy string from buffer
+	}
+	opHandler.setReturn(arrayId);
+}
+
+static void mf_get_ini_section() {
+	std::string fileName = std::string(".\\") + opHandler.arg(0).strValue();
+	const char* section = opHandler.arg(1).strValue();
+	int arrayId = CreateTempArray(-1, 0); // associative
+
+	if (GetPrivateProfileSectionA(section, gTextBuffer, GlblTextBufferSize(), fileName.c_str())) {
+		sArrayVar &arr = arrays[arrayId];
+		char *key = gTextBuffer, *val = nullptr;
+		while (*key != 0) {
+			char* val = std::strpbrk(key, "=");
+			if (val != nullptr) {
+				*val = '\0';
+				val += 1;
+
+				setArray(arrayId, ScriptValue(key).rawValue(), VAR_TYPE_STR, ScriptValue(val).rawValue(), VAR_TYPE_STR, 0);
+
+				key = val + std::strlen(val) + 1;
+			} else {
+				key += std::strlen(key) + 1;
+			}
+		}
+	}
+	opHandler.setReturn(arrayId);
 }
 
 static void mf_npc_engine_level_up() {

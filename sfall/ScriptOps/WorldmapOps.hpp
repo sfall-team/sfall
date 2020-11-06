@@ -19,7 +19,6 @@
 #pragma once
 
 #include "main.h"
-#include "Arrays.h"
 #include "ScriptExtender.h"
 #include "Worldmap.h"
 
