@@ -244,7 +244,7 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 - changed radius will be reset each time the player reloads the game.
 
 > array get_explosion_damage(itemPid)
-- returns array of the minimum and maximum damage of the explosive item.
+- returns an array of the minimum and maximum damage of the explosive item.
 
 > void set_dynamite_damage(minDmg, maxDmg)
 - sets the minimum and maximum damage for Dynamite.
@@ -360,7 +360,7 @@ Some utility/math functions are available:
 - it will include any hidden, dead or system objects (like cursor), so make sure to check properly when iterating
 
 > array party_member_list(int includeHidden)
-- returns array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
+- returns an array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
 
 > array path_find_to(object objFrom, int tileTo, int blockingType)
 - returns the shortest path to a given tile using given blocking function as an array of tile directions (0..5) to move on each step
