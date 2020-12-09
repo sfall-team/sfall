@@ -29,6 +29,76 @@
 typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 //typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
 
+static const char* gpuEffectA8 =
+	"texture image;"
+	"texture palette;"
+	"texture head;"
+	"sampler s0 = sampler_state { texture=<image>; };"
+	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
+	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"float2 size;"
+	"float2 corner;"
+	// shader for displaying head textures
+	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float backdrop = tex2D(s0, Tex).a;"
+	  "float3 result;"
+	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
+	    "result = tex2D(s2, saturate((Tex - corner) / size));"
+	  "} else {"
+	    "result = tex1D(s1, backdrop).bgr;" // get color in palette and swap R <> B
+	  "}"
+	  "return float4(result, 1);"
+	"}"
+	"technique T1"
+	"{"
+	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	"}"
+
+	// main shader
+	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);" // get color in palette
+	  "return float4(result.bgr, 1);"                // swap R <> B
+	"}"
+	"technique T0"
+	"{"
+	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}";
+
+static const char* gpuEffectL8 =
+	"texture image;"
+	"texture palette;"
+	"texture head;"
+	"sampler s0 = sampler_state { texture=<image>; };"
+	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
+	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"float2 size;"
+	"float2 corner;"
+	// shader for displaying head textures
+	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float backdrop = tex2D(s0, Tex).r;"
+	  "float3 result;"
+	  "if (abs(backdrop - 1.0) < 0.001) {"
+	    "result = tex2D(s2, saturate((Tex - corner) / size));"
+	  "} else {"
+	    "result = tex1D(s1, backdrop).bgr;"
+	  "}"
+	  "return float4(result, 1);"
+	"}"
+	"technique T1"
+	"{"
+	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	"}"
+
+	// main shader
+	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).r);"
+	  "return float4(result.bgr, 1);"
+	"}"
+	"technique T0"
+	"{"
+	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}";
+
 static IDirectDrawSurface* primaryDDSurface = nullptr; // aka _GNW95_DDPrimarySurface
 
 static DWORD ResWidth;
@@ -99,43 +169,6 @@ static IDirect3DVertexBuffer9* vertexMovie;
 
 static IDirect3DTexture9* gpuPalette;
 static ID3DXEffect* gpuBltEffect;
-
-static const char* gpuEffect =
-	"texture image;"
-	"texture palette;"
-	"texture head;"
-	"sampler s0 = sampler_state { texture=<image>; };"
-	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
-	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"float2 size;"
-	"float2 corner;"
-
-	// shader for displaying head textures
-	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float backdrop = tex2D(s0, Tex).r;"
-	  "float3 result;"
-	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
-	    "result = tex2D(s2, saturate((Tex - corner) / size));"
-	  "} else {"
-	    "result = tex1D(s1, backdrop).bgr;" // get color in palette and swap R <> B
-	  "}"
-	  "return float4(result, 1);"
-	"}"
-
-	"technique T1"
-	"{"
-	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
-	"}"
-	// main shader
-	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float3 result = tex1D(s1, tex2D(s0, Tex).r);" // get color in palette
-	  "return float4(result.bgr, 1);"                // swap R <> B
-	"}"
-
-	"technique T0"
-	"{"
-	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}";
 
 static D3DXHANDLE gpuBltMainTex;
 static D3DXHANDLE gpuBltPalette;
@@ -357,6 +390,9 @@ static void ResetDevice(bool createNew) {
 	if (!params.Windowed) params.FullScreen_RefreshRateInHz = dispMode.RefreshRate;
 
 	static bool software = false;
+	static D3DFORMAT textureFormat = D3DFMT_X8R8G8B8;
+	bool A8_IsSupport = false;
+
 	if (createNew) {
 		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
@@ -374,7 +410,11 @@ static void ResetDevice(bool createNew) {
 		if (GPUBlt == 2 && ShaderVersion < 20) GPUBlt = 0;
 
 		if (GPUBlt) {
-			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
+			A8_IsSupport = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8, D3DPOOL_DEFAULT, &mainTex, 0) == D3D_OK);
+			textureFormat = (A8_IsSupport) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
+
+			const char* shader = (A8_IsSupport) ? gpuEffectA8 : gpuEffectL8;
+			D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0);
 			gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
 			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
 			// for head textures
@@ -394,9 +434,10 @@ static void ResetDevice(bool createNew) {
 		mainTexLock = false;
 	}
 
-	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_L8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) { // D3DFMT_A8 - not supported on some older video cards
+	if (!A8_IsSupport && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, textureFormat, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) {
 		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0);
 		GPUBlt = 0;
+		textureFormat = D3DFMT_X8R8G8B8;
 		MessageBoxA(window, "GPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.",
 		                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
 	}
