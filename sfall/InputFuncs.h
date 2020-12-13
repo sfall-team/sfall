@@ -32,6 +32,8 @@ void __stdcall TapKey(DWORD key);
 
 void GetMouse(int* x, int* y);
 
+void MouseDeviceUnacquire(bool mode);
+
 void __stdcall ForceGraphicsRefresh(DWORD);
 
 #define DIK_ESCAPE          0x01

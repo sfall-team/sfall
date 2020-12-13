@@ -35,6 +35,8 @@
 
 typedef HRESULT (__stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
 
+IDirectInputDeviceA* MouseDevice;
+
 bool useScrollWheel = true;
 static DWORD wheelMod;
 
@@ -68,6 +70,15 @@ void GetMouse(int* x, int* y) {
 	*y = mouseY;
 	mouseX = 0;
 	mouseY = 0;
+}
+
+void MouseDeviceUnacquire(bool mode) {
+	if (backgroundMouse || !MouseDevice) return;
+	if (mode) {
+		MouseDevice->Unacquire();
+	} else {
+		MouseDevice->Acquire();
+	}
 }
 
 static BYTE LMouse = 0;
@@ -133,7 +144,7 @@ private:
 
 public:
 	/*** Constructor and misc functions ***/
-	FakeDirectInputDevice(IDirectInputDevice* device,DWORD type) {
+	FakeDirectInputDevice(IDirectInputDevice* device, DWORD type) {
 		RealDevice = device;
 		DeviceType = type;
 		Refs = 1;
@@ -376,21 +387,20 @@ public:
 		if (r != GUID_SysKeyboard && r != GUID_SysMouse) {
 			return RealInput->CreateDevice(r, device, unused);
 		} else {
-			DWORD d;
-			IDirectInputDeviceA* RealDevice;
-			HRESULT hr;
+			DWORD type = (r == GUID_SysKeyboard) ? kDeviceType_KEYBOARD : kDeviceType_MOUSE;
 
-			if (r == GUID_SysKeyboard) d = kDeviceType_KEYBOARD;
-			else d = kDeviceType_MOUSE;
-			hr = RealInput->CreateDevice(r, &RealDevice, unused);
+			IDirectInputDeviceA* realDevice;
+			HRESULT hr = RealInput->CreateDevice(r, &realDevice, unused);
 			if (hr != DI_OK) return hr;
 
-			FakeDirectInputDevice* fd = new FakeDirectInputDevice(RealDevice, d);
-			*device = fd;
-			if (d == kDeviceType_MOUSE) {
-				if (FAILED(fd->SetDataFormat(&c_dfDIMouse2))) {
+			FakeDirectInputDevice* fdevice = new FakeDirectInputDevice(realDevice, type);
+			*device = fdevice;
+
+			if (type == kDeviceType_MOUSE) {
+				MouseDevice = realDevice;
+				if (FAILED(fdevice->SetDataFormat(&c_dfDIMouse2))) {
 					dlogr("ERROR: Could not set mouse format to DIMOUSESTATE2. Only 4 buttons will be available!", DL_MAIN);
-				} else fd->LockDataFormat(true);
+				} else fdevice->LockDataFormat(true);
 			}
 			return DI_OK;
 		}
