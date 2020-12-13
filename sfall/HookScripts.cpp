@@ -179,7 +179,7 @@ static void __declspec(naked) ToHitHook() {
 		mov  eax, args[4];    // restore
 		call determine_to_hit_func_;
 		mov  args[0], eax;
-		pushadc;
+		mov  ebx, eax;
 	}
 	argCount = 8;
 
@@ -187,10 +187,10 @@ static void __declspec(naked) ToHitHook() {
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
-		popadc;
 		cmp  cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
 		retn 8;
 	}
 }
@@ -260,17 +260,19 @@ static void __declspec(naked) CalcApCostHook() {
 		mov  args[8], ebx;
 		call item_w_mp_cost_;
 		mov  args[12], eax;
-		pushad;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -282,19 +284,20 @@ static void __declspec(naked) CalcApCostHook2() {
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
-		mov eax, 2;       // vanilla value
-		mov args[12], eax;
-		pushad;
+		mov ebx, 2;       // vanilla cost value
+		mov args[12], ebx;
+		//push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		//pop  ecx;
 		retn;
 	}
 }
@@ -356,14 +359,14 @@ static void __declspec(naked) CalcDeathAnimHook() {
 static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		call check_death_; // call original function
-		HookBegin;
-		mov ebx, [esp + 60];
-		mov args[4], ebx;    // attacker
-		mov args[8], esi;    // target
-		mov ebx, [esp + 12];
-		mov args[12], ebx;   // dmgAmount
-		mov args[16], eax;   // calculated animID
-		pushad;
+		mov  ebx, eax;
+		call BeginHook;
+		mov  eax, [esp + 60];
+		mov  args[4], eax;    // attacker
+		mov  args[8], esi;    // target
+		mov  eax, [esp + 12];
+		mov  args[12], eax;   // dmgAmount
+		mov  args[16], ebx;   // calculated animID
 	}
 
 	argCount = 5;
@@ -371,10 +374,10 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	RunHookScript(HOOK_DEATHANIM2);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
 		retn;
 	}
 }
@@ -457,14 +460,14 @@ static void __declspec(naked) OnDeathHook2() {
 		call partyMemberRemove_;
 		HookBegin;
 		mov  args[0], esi;
-		pushad;
+		pushadc;
 	}
 
 	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
-	__asm popad;
+	__asm popadc;
 	__asm retn;
 }
 
@@ -703,73 +706,81 @@ static void __declspec(naked) MoveCostHook() {
 		mov  args[4], edx;
 		call critter_compute_ap_from_distance_;
 		mov  args[8], eax;
-		pushadc;
+		push ebx;
+		push ecx;
+		mov  ebx, eax;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
-		popadc;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
 
-static void __declspec(naked) HexMBlockingHook() {
+static void __declspec(naked) HexMoveBlockingHook() {
 	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		push return;
 		// engine code
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
-		mov ecx, eax;
-		jmp _obj_blocking_at;
+		mov  ecx, eax;
 		// end engine code
+		jmp  _obj_blocking_at;
 return:
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXMOVEBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-static void __declspec(naked) HexABlockingHook() {
+static void __declspec(naked) HexAIBlockingHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call obj_ai_blocking_at_;
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXAIBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -777,22 +788,24 @@ static void __declspec(naked) HexABlockingHook() {
 static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call obj_shoot_blocking_at_;
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXSHOOTBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -800,22 +813,24 @@ static void __declspec(naked) HexShootBlockingHook() {
 static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call obj_sight_blocking_at_;
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXSIGHTBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -829,7 +844,7 @@ static void __declspec(naked) ItemDamageHook() {
 		mov args[12], ecx; // critter
 		mov args[16], esi; // type
 		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
-		pushad;
+		pushadc;
 	}
 	argCount = 6;
 
@@ -839,7 +854,7 @@ static void __declspec(naked) ItemDamageHook() {
 
 	RunHookScript(HOOK_ITEMDAMAGE);
 
-	__asm popad;
+	__asm popadc;
 	if (cRet > 0) {
 		__asm mov eax, rets[0];     // set min
 		if (cRet > 1) {
@@ -930,14 +945,14 @@ static void __declspec(naked) UseSkillHook() {
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // skill id
 		mov args[12], ecx; // skill bonus
-		pushad;
+		pushadc;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_USESKILL);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
@@ -1394,7 +1409,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		HookBegin;
 		mov args[0], eax; // critter
 		mov args[8], edx; // slot
-		pushad;
+		pushadc;
 	}
 
 	// set slot
@@ -1409,7 +1424,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 
 	__asm {
 		test al, al;
-		popad;
+		popadc;
 		jz   skip;
 		jmp  invenUnwieldFunc_;
 skip:
@@ -1760,8 +1775,8 @@ static void HookScriptInit() {
 	SafeWrite32(0x413979, (DWORD)&HexSightBlockingHook);
 	const DWORD shootBlockingAddr[] = {0x4C1A88, 0x423178, 0x4232D4, 0x423B4D, 0x426CF8, 0x42A570};
 	SafeWriteBatch<DWORD>((DWORD)&HexShootBlockingHook, shootBlockingAddr);
-	SafeWrite32(0x42A0A4, (DWORD)&HexABlockingHook);
-	MakeJump(0x48B848, HexMBlockingHook);
+	SafeWrite32(0x42A0A4, (DWORD)&HexAIBlockingHook);
+	MakeJump(0x48B848, HexMoveBlockingHook);
 
 	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
 	HookCall(0x478560, ItemDamageHook);
