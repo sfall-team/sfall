@@ -273,7 +273,7 @@ void RunDebugEditor() {
 
 	si.cb = sizeof(si);
 
-	if (!CreateProcessA("FalloutClient.exe", "FalloutClient.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
+	if (!CreateProcessA("FalloutDebug.exe", "FalloutDebug.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
 		closesocket(sock);
 		WSACleanup();
 		return;

@@ -15,7 +15,8 @@ namespace FalloutClient {
             if (args.Length == 1 && args[0] == "-debugedit") {
                 Application.Run(new DebugEditor(new EditorConnection()));
             } else {
-                MessageBox.Show("The debug editor can only be run from the game.",
+                MessageBox.Show("The debug editor can only be run from the game.\n" +
+                    "Use the key assigned to the DebugEditorKey option in ddraw.ini to run the debugger.",
                     "sfall Debug Editor", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             }
         }
