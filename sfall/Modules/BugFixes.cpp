@@ -407,7 +407,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   noArmor;
-		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
+		and  byte ptr [eax][flags + 3], ~(Worn >> 24); // Unset flag of equipped armor
 		jmp  nextArmor;
 noArmor:
 		mov  eax, esi;
@@ -423,7 +423,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   end;
-		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
+		and  byte ptr [eax][flags + 3], ~(Worn >> 24); // Unset flag of equipped armor
 		jmp  nextArmor;
 end:
 		retn;

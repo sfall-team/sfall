@@ -145,6 +145,10 @@ static void __stdcall SaveGame2() {
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
 		CritterStats::SaveStatData(h);
+
+		// last marker
+		data = 0xCC | VERSION_MAJOR << 8 | VERSION_MINOR << 16 | VERSION_BUILD << 24;
+		WriteFile(h, &data, 4, &size, 0);
 		CloseHandle(h);
 	} else {
 		goto errorSave;

@@ -290,6 +290,7 @@ void RunDebugEditor() {
 		return;
 	}
 
+	MouseDeviceUnacquire(true);
 	RunEditorInternal(client);
 
 	closesocket(client);
