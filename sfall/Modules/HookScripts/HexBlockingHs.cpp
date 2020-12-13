@@ -8,58 +8,62 @@
 namespace sfall
 {
 
-static void __declspec(naked) HexMBlockingHook() {
+static void __declspec(naked) HexMoveBlockingHook() {
 	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		push return;
 		// engine code
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
-		mov ecx, eax;
-		jmp _obj_blocking_at;
+		mov  ecx, eax;
 		// end engine code
+		jmp  _obj_blocking_at;
 return:
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXMOVEBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-static void __declspec(naked) HexABlockingHook() {
+static void __declspec(naked) HexAIBlockingHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call fo::funcoffs::obj_ai_blocking_at_;
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXAIBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -67,22 +71,24 @@ static void __declspec(naked) HexABlockingHook() {
 static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call fo::funcoffs::obj_shoot_blocking_at_;
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXSHOOTBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -90,28 +96,30 @@ static void __declspec(naked) HexShootBlockingHook() {
 static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call fo::funcoffs::obj_sight_blocking_at_;
-		mov args[12], eax;
-		pushad;
+		mov  args[12], eax;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXSIGHTBLOCKING);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void Inject_HexSightBlockHook() {
-	SafeWriteBatch<DWORD>((DWORD)&HexSightBlockingHook, { 0x413979 });
+	SafeWrite32(0x413979, (DWORD)&HexSightBlockingHook);
 }
 
 void Inject_HexShootBlockHook() {
@@ -119,11 +127,11 @@ void Inject_HexShootBlockHook() {
 }
 
 void Inject_HexIABlockHook() {
-	SafeWriteBatch<DWORD>((DWORD)&HexABlockingHook, { 0x42A0A4 });
+	SafeWrite32(0x42A0A4, (DWORD)&HexAIBlockingHook);
 }
 
 void Inject_HexMoveBlockHook() {
-	MakeJump(0x48B848, HexMBlockingHook);
+	MakeJump(0x48B848, HexMoveBlockingHook);
 }
 
 void InitHexBlockingHookScripts() {

@@ -72,14 +72,14 @@ static void __declspec(naked) CalcDeathAnimHook() {
 static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		call fo::funcoffs::check_death_; // call original function
-		HookBegin;
-		mov ebx, [esp + 60];
-		mov args[4], ebx;    // attacker
-		mov args[8], esi;    // target
-		mov ebx, [esp + 12];
-		mov args[12], ebx;   // dmgAmount
-		mov args[16], eax;   // calculated animID
-		pushad;
+		mov  ebx, eax;
+		call BeginHook;
+		mov  eax, [esp + 60];
+		mov  args[4], eax;    // attacker
+		mov  args[8], esi;    // target
+		mov  eax, [esp + 12];
+		mov  args[12], eax;   // dmgAmount
+		mov  args[16], ebx;   // calculated animID
 	}
 
 	argCount = 5;
@@ -87,10 +87,10 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	RunHookScript(HOOK_DEATHANIM2);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
 		retn;
 	}
 }
@@ -121,14 +121,14 @@ static void __declspec(naked) OnDeathHook2() {
 		call fo::funcoffs::partyMemberRemove_;
 		HookBegin;
 		mov  args[0], esi;
-		pushad;
+		pushadc;
 	}
 
 	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
-	__asm popad;
+	__asm popadc;
 	__asm retn;
 }
 

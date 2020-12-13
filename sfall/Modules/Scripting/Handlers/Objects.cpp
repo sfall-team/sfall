@@ -152,13 +152,13 @@ enum {
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
 	case BLOCKING_TYPE_BLOCK: default:
-		return fo::funcoffs::obj_blocking_at_;
+		return fo::funcoffs::obj_blocking_at_;       // with calling hook
 	case BLOCKING_TYPE_SHOOT:
-		return fo::funcoffs::obj_shoot_blocking_at_;
+		return fo::funcoffs::obj_shoot_blocking_at_; // w/o calling hook
 	case BLOCKING_TYPE_AI:
-		return fo::funcoffs::obj_ai_blocking_at_;
+		return fo::funcoffs::obj_ai_blocking_at_;    // w/o calling hook
 	case BLOCKING_TYPE_SIGHT:
-		return fo::funcoffs::obj_sight_blocking_at_;
+		return fo::funcoffs::obj_sight_blocking_at_; // w/o calling hook
 	//case 4:
 	//	return obj_scroll_blocking_at_;
 	}
