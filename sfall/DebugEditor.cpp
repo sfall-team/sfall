@@ -123,7 +123,7 @@ static void RunEditorInternal(SOCKET &s) {
 	InternalSend(s, &numArrays, 4);
 	InternalSend(s, &numCritters, 4);
 
-	sGlobalVar* sglobals=new sGlobalVar[numSGlobals];
+	sGlobalVar* sglobals = new sGlobalVar[numSGlobals];
 	GetGlobals(sglobals);
 
 	sArray* arrays = new sArray[numArrays];
@@ -147,12 +147,12 @@ static void RunEditorInternal(SOCKET &s) {
 		case CODE_SET_GLOBAL:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			*ptr_game_global_vars[id] = val;
+			(*ptr_game_global_vars)[id] = val;
 			break;
 		case CODE_SET_MAPVAR:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			*ptr_map_global_vars[id] = val;
+			(*ptr_map_global_vars)[id] = val;
 			break;
 		case CODE_GET_CRITTER:
 			InternalRecv(s, &id, 4);
@@ -270,7 +270,7 @@ void RunDebugEditor() {
 
 	si.cb = sizeof(si);
 
-	if (!CreateProcessA("FalloutClient.exe", "FalloutClient.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
+	if (!CreateProcessA("FalloutDebug.exe", "FalloutDebug.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
 		closesocket(sock);
 		WSACleanup();
 		return;
