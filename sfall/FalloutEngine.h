@@ -623,6 +623,7 @@ extern const DWORD config_set_value_;
 extern const DWORD construct_box_bar_win_;
 extern const DWORD container_exit_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
+extern const DWORD Create_AudioDecoder_;
 extern const DWORD createWindow_;
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;

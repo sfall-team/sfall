@@ -35,7 +35,7 @@ static char karmaGainMsg[128];
 static char karmaLossMsg[128];
 
 static DWORD __stdcall DrawCard() {
-	int reputation = *ptr_game_global_vars[GVAR_PLAYER_REPUTATION];
+	int reputation = (*ptr_game_global_vars)[GVAR_PLAYER_REPUTATION];
 	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
 		if (reputation < it->points) {
 			return it->frm;

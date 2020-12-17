@@ -509,14 +509,14 @@ static void __declspec(naked) UseObjOnHook() {
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
-		pushad;
+		pushadc;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
@@ -536,14 +536,14 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
-		pushad;
+		pushadc;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
@@ -562,14 +562,14 @@ static void __declspec(naked) UseObjHook() {
 		HookBegin;
 		mov args[0], eax; // user
 		mov args[4], edx; // object
-		pushad;
+		pushadc;
 	}
 
 	argCount = 2;
 	RunHookScript(HOOK_USEOBJ);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;

@@ -584,7 +584,7 @@ fix:
 	}
 }
 
-void InterfaceGmouseHandleHook() {
+void Interface_OnBeforeGameInit() {
 	if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 }
@@ -602,7 +602,7 @@ void Interface_Init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	// InterfaceGmouseHandleHook will be executed before game initialization
+	// Interface_OnBeforeGameInit will be run before game initialization
 
 	// Set the normal font for death screen subtitles
 	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {

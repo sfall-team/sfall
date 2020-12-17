@@ -291,7 +291,7 @@ static void __declspec(naked) EndLoadHook() {
 
 static void __stdcall GameInitialization() { // OnBeforeGameInit
 	BugFixes_Initialization();
-	InterfaceGmouseHandleHook();
+	Interface_OnBeforeGameInit();
 }
 
 static void __stdcall game_init_hook() { // OnGameInit
@@ -306,6 +306,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	}
 	#endif
 	RemoveSavFiles();
+	Sound_OnAfterGameInit();
 	BarBoxes_SetMaxSlots();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 }

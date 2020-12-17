@@ -21,6 +21,7 @@
 void Sound_Init();
 void Sound_Exit();
 void WipeSounds();
+void Sound_OnAfterGameInit();
 
 DWORD __stdcall PlaySfallSound(const char* path, long mode);
 void __stdcall StopSfallSound(DWORD id);

@@ -335,6 +335,7 @@ const DWORD config_set_value_ = 0x42C160;
 const DWORD construct_box_bar_win_ = 0x461134;
 const DWORD container_exit_ = 0x476394;
 const DWORD correctFidForRemovedItem_ = 0x45409C;
+const DWORD Create_AudioDecoder_ = 0x4D50A8;
 const DWORD createWindow_ = 0x4B7F3C;
 const DWORD credits_ = 0x42C860;
 const DWORD credits_get_next_line_ = 0x42CE6C;
