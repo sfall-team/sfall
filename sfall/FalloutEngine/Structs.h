@@ -754,7 +754,7 @@ struct Window {
 	long buttonT1; // buttonptr?
 	long buttonT2;
 	long *menuBar;
-	long *drawFunc; // trans_buf_to_buf_
+	void (__cdecl *drawFunc)(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width); // trans_buf_to_buf_
 };
 
 struct sWindow {
@@ -830,7 +830,7 @@ struct AIcap {
 
 struct Queue {
 	DWORD time;
-	long type;
+	long  type;
 	GameObject* object;
 	DWORD* data;
 	Queue* next;
@@ -852,36 +852,112 @@ struct QueueDrug {
 };
 
 struct QueueAddict {
-	long init;       // 1 - perk is not active yet
+	long  init;      // 1 - perk is not active yet
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };
 
 struct DrugInfoList {
 	DWORD itemPid;
-	long addictGvar;
-	long numEffects;
+	long  addictGvar;
+	long  numEffects;
 };
 
 struct FloatText {
-	long flags;
+	long  flags;
 	void* unknown0;
-	long unknown1;
-	long unknown2;
-	long unknown3;
-	long unknown4;
-	long unknown5;
-	long unknown6;
-	long unknown7;
-	long unknown8;
-	long unknown9;
+	long  unknown1;
+	long  unknown2;
+	long  unknown3;
+	long  unknown4;
+	long  unknown5;
+	long  unknown6;
+	long  unknown7;
+	long  unknown8;
+	long  unknown9;
 	void* unknown10;
 };
 
 struct SubTitleList {
-	long text;
-	long frame;
+	long  text;
+	long  frame;
 	long* next;
+};
+
+struct ACMSoundData {
+	void* OpenFunc;
+	void* CloseFunc;
+	void* ReadFunc;
+	void* WriteFunc;
+	void* SeekFunc;
+	void* TellFunc;
+	void* FileSizeFunc;
+	long  openAudioIndex;
+	long  memData;
+	long  soundBuffer;
+	long  dwSize;              // begin DSBUFFERDESC structure
+	long  dwFlags;
+	long  dwBufferBytes;
+	long  dwReserved;
+	WAVEFORMATEX* lpwfxFormat; // end DSBUFFERDESC structure
+	long  soundMode;
+	long  state;
+	long  mode;
+	long  lastPosition;
+	long  volume;
+	long  field_50;
+	long  field_54;
+	long  field_58;
+	long  field_5C;
+	long  fileSize;
+	long  field_64;
+	long  field_68;
+	long  readLimit;
+	long  field_70;
+	long  field_74;
+	long  numBuffers;
+	long  dataSize;
+	long  field_80;
+	long  soundTag;
+	void* CallBackFunc;
+	long  field_8C;
+	long  field_90;
+	void* managerList;
+	ACMSoundData* self;
+};
+
+struct AudioDecode {
+	void* ReadFunc;
+	void* openfile_data;
+	void* read_data;
+	long  read_data_size;
+	long  field_10;
+	long  countReadBytes;
+	long  signature;
+	long  count;
+	long  field_20;
+	long  field_24;
+	long  field_28;
+	long  field_2C;
+	long  field_30;
+	long  data;
+	long  field_38;
+	long  field_3C;
+	long  out_Channels;
+	long  out_SampleRate;
+	long  out_Length;
+	long  field_4C;
+	long  field_50;
+};
+
+struct AudioFile {
+	long  flags;
+	void* open_file;
+	AudioDecode* decoderData;
+	long  length;
+	long  sample_rate;
+	long  channels;
+	long  tell;
 };
 
 #pragma pack(pop)
