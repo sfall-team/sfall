@@ -381,7 +381,7 @@ Some utility/math functions are available:
 > any sfall_funcX(string funcName, ...)
 - these opcodes allows to use additional scripting functions, that do not require new opcode
 - first argument is always function name (string)
-- there are 7 versions of this opcode for different number of additional arguments (for convenience)
+- there are 9 versions of this opcode for different number of additional arguments (for convenience)
 - opcodes have return value, but it is not necessary to use it
 
 
@@ -720,6 +720,9 @@ optional argument:
 - winType: the type number of the interface window (see WINTYPE_* constants in sfall.h)
 - attrType: 0 - checks and returns a value of 1 if the specified interface window is created by the game (same as without the argument)
             1 - X position, 2 - Y position (relative to the top-left corner of the game screen)
+            3 - interface width size, 4 - interface height size
+           -1 - returns an associative array of keys (left, top, right, bottom) and values that define the position of the window rectangle
+                (use standard syntax to access array values, e.g. winRect.top, winRect.bottom)
 - returns -1 if the specified attribute cannot be obtained
 
 > void sfall_func2("set_town_title", int areaID, string title)

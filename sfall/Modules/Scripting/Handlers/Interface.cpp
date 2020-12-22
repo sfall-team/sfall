@@ -646,7 +646,7 @@ void mf_interface_art_draw(OpcodeContext& ctx) {
 	if (win && (int)win != -1) {
 		result = InterfaceDrawImage(ctx, win);
 	} else {
-		ctx.printOpcodeError("%s() - the game interface window is not created or invalid value for the interface.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - the game interface window is not created or invalid window type number.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(result);
 }
@@ -729,14 +729,27 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 	}
 	long result = 0;
 	switch (ctx.arg(1).rawValue()) {
+	case -1: // rectangle map.left map.top map.right map.bottom
+		result = CreateTempArray(-1, 0); // associative
+		setArray(result, ScriptValue("left"), ScriptValue(win->rect.x), false);
+		setArray(result, ScriptValue("top"), ScriptValue(win->rect.y), false);
+		setArray(result, ScriptValue("right"), ScriptValue(win->rect.offx), false);
+		setArray(result, ScriptValue("bottom"), ScriptValue(win->rect.offy), false);
+		break;
 	case 0: // check if window exists
 		result = 1;
 		break;
-	case 1: // x
+	case 1:
 		result = win->rect.x;
 		break;
-	case 2: // y
+	case 2:
 		result = win->rect.y;
+		break;
+	case 3:
+		result = win->width;
+		break;
+	case 4:
+		result = win->height;
 		break;
 	}
 	ctx.setReturn(result);
@@ -745,7 +758,7 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	fo::Window* win = Interface::GetWindow(ctx.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
-		ctx.printOpcodeError("%s() - the game interface window is not created or invalid value for the interface.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - the game interface window is not created or invalid window type number.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 		return;
 	}

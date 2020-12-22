@@ -39,7 +39,7 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 			mov  edx, ds:[FO_VAR_screen_buffer];
 			call fo::funcoffs::refresh_all_;
 		}
-		int w = updateRect->right - updateRect->left + 1;
+		int w = (updateRect->right - updateRect->left) + 1;
 
 		if (fo::var::mouse_is_hidden || !fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 			/*__asm {
@@ -48,7 +48,9 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 				call fo::funcoffs::GNW_button_refresh_;
 			}*/
 			int h = (updateRect->bottom - updateRect->top) + 1;
+
 			Graphics::UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
+
 		} else {
 			fo::func::mouse_show(); // for updating background cursor area
 			RECT mouseRect;
@@ -66,8 +68,10 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 					mov  edx, rects;
 					call fo::funcoffs::GNW_button_refresh_;
 				}*/
+
 				int wRect = (rects->wRect.right - rects->wRect.left) + 1;
 				int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
+
 				Graphics::UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
 
 				fo::RectList* next = rects->nextRect;
@@ -102,7 +106,7 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 	}
 
 	int widthFrom = win->width;
-	int toWidth = (toBuffer) ? updateRect->right - updateRect->left + 1 : Graphics::GetGameWidthRes();
+	int toWidth = (toBuffer) ? (updateRect->right - updateRect->left) + 1 : Graphics::GetGameWidthRes();
 
 	fo::func::win_clip(win, &rects, toBuffer);
 
@@ -113,7 +117,7 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 		int height = (crect.bottom - crect.top) + 1;; // for current rectangle
 
 		BYTE* surface;
-		if (win->wID) {
+		if (win->wID > 0) {
 			__asm {
 				mov  eax, win;
 				mov  edx, currRect;
@@ -144,6 +148,7 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 			int width = (rects->rect.offx - rects->rect.x) + 1;
 			int height = (rects->rect.offy - rects->rect.y) + 1;
 			int widthFrom = toWidth;
+
 			Graphics::UpdateDDSurface(&GetBuffer()[rects->rect.x] + (rects->rect.y * widthFrom), width, height, widthFrom, &rects->wRect);
 		}
 		fo::RectList* next = rects->nextRect;

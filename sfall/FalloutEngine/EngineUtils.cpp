@@ -381,13 +381,9 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	fo::Window* win = fo::func::GNW_find(winID);
-	BYTE* surf = win->surface;
-	for (long i = 0; i < win->height; i++) {
-		std::memset(surf, 0, win->width);
-		surf += win->width;
-	}
+	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
-		fo::func::GNW_win_refresh(win, &win->rect, 0);
+		fo::func::GNW_win_refresh(win, &win->rect, nullptr);
 	}
 }
 
