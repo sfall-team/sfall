@@ -712,7 +712,7 @@ static void mf_interface_art_draw() {
 	if (win && (int)win != -1) {
 		result = InterfaceDrawImage(opHandler, win, "interface_art_draw");
 	} else {
-		opHandler.printOpcodeError("interface_art_draw() - the game interface window is not created or invalid value for the interface.");
+		opHandler.printOpcodeError("interface_art_draw() - the game interface window is not created or invalid window type number.");
 	}
 	opHandler.setReturn(result);
 }
@@ -795,14 +795,27 @@ static void mf_get_window_attribute() {
 	}
 	long result = 0;
 	switch (opHandler.arg(1).rawValue()) {
+	case -1: // rectangle map.left map.top map.right map.bottom
+		result = CreateTempArray(-1, 0); // associative
+		setArray(result, ScriptValue("left").rawValue(), VAR_TYPE_STR, win->rect.x, VAR_TYPE_INT, 0);
+		setArray(result, ScriptValue("top").rawValue(), VAR_TYPE_STR, win->rect.y, VAR_TYPE_INT, 0);
+		setArray(result, ScriptValue("right").rawValue(), VAR_TYPE_STR, win->rect.offx, VAR_TYPE_INT, 0);
+		setArray(result, ScriptValue("bottom").rawValue(), VAR_TYPE_STR, win->rect.offy, VAR_TYPE_INT, 0);
+		break;
 	case 0: // check if window exists
 		result = 1;
 		break;
-	case 1: // x
+	case 1:
 		result = win->rect.x;
 		break;
-	case 2: // y
+	case 2:
 		result = win->rect.y;
+		break;
+	case 3:
+		result = win->width;
+		break;
+	case 4:
+		result = win->height;
 		break;
 	}
 	opHandler.setReturn(result);
@@ -811,7 +824,7 @@ static void mf_get_window_attribute() {
 static void mf_interface_print() { // same as vanilla PrintRect
 	WINinfo* win = Interface_GetWindow(opHandler.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
-		opHandler.printOpcodeError("interface_print() - the game interface window is not created or invalid value for the interface.");
+		opHandler.printOpcodeError("interface_print() - the game interface window is not created or invalid window type number.");
 		opHandler.setReturn(-1);
 		return;
 	}

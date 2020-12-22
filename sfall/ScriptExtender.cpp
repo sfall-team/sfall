@@ -2080,11 +2080,14 @@ void ScriptExtender_Init() {
 	opcodes[0x279] = op_sfall_metarule3;
 	opcodes[0x27a] = op_sfall_metarule4;
 	opcodes[0x27b] = op_sfall_metarule5;
-	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
+	opcodes[0x27c] = op_sfall_metarule6;
 
 	opcodes[0x27d] = op_register_hook_proc_spec;
 	opcodes[0x27e] = op_reg_anim_callback;
 	opcodes[0x27f] = op_div; // div operator
+
+	opcodes[0x280] = op_sfall_metarule7;
+	opcodes[0x281] = op_sfall_metarule8; // if you need more arguments - use arrays
 
 	InitOpcodeMetaTable();
 	InitMetaruleTable();

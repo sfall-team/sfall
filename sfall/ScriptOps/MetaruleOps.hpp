@@ -261,5 +261,7 @@ metaruleOpcode(3, 4)
 metaruleOpcode(4, 5)
 metaruleOpcode(5, 6)
 metaruleOpcode(6, 7)
+metaruleOpcode(7, 8)
+metaruleOpcode(8, 9)
 
 #undef metaruleOpcode

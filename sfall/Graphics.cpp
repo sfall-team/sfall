@@ -1337,7 +1337,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 			mov  edx, ds:[_screen_buffer];
 			call refresh_all_;
 		}
-		int w = updateRect->right - updateRect->left + 1;
+		int w = (updateRect->right - updateRect->left) + 1;
 
 		if (*ptr_mouse_is_hidden || !MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 			/*__asm {
@@ -1346,7 +1346,9 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 				call GNW_button_refresh_;
 			}*/
 			int h = (updateRect->bottom - updateRect->top) + 1;
+
 			UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
+
 		} else {
 			MouseShow(); // for updating background cursor area
 			RECT mouseRect;
@@ -1364,8 +1366,10 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 					mov  edx, rects;
 					call GNW_button_refresh_;
 				}*/
+
 				int wRect = (rects->wRect.right - rects->wRect.left) + 1;
 				int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
+
 				UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
 
 				RectList* next = rects->nextRect;
@@ -1403,7 +1407,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 	}
 
 	int widthFrom = win->width;
-	int toWidth = (toBuffer) ? updateRect->right - updateRect->left + 1 : Gfx_GetGameWidthRes();
+	int toWidth = (toBuffer) ? (updateRect->right - updateRect->left) + 1 : Gfx_GetGameWidthRes();
 
 	WinClip(win, &rects, toBuffer);
 
@@ -1414,7 +1418,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 		int height = (crect.bottom - crect.top) + 1;; // for current rectangle
 
 		BYTE* surface;
-		if (win->wID) {
+		if (win->wID > 0) {
 			__asm {
 				mov  eax, win;
 				mov  edx, currRect;

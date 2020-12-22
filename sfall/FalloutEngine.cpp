@@ -1089,8 +1089,8 @@ void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* 
 
 	size_t blockCount = width / 64; // 64 bytes
 	size_t remainder = width % 64;
-	size_t remainderD = remainder / 4;
-	size_t remainderB = remainder % 4;
+	size_t sizeD = remainder >> 2;
+	size_t sizeB = remainder & 3;
 	size_t s_pitch = src_width - width;
 	size_t d_pitch = dst_width - width;
 
@@ -1126,9 +1126,9 @@ void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* 
 		dec  ecx; // blockCount
 		jnz  copyBlock;
 		// copies the remaining bytes
-		mov  ecx, remainderD;
+		mov  ecx, sizeD;
 		rep  movsd;
-		mov  ecx, remainderB;
+		mov  ecx, sizeB;
 		rep  movsb;
 		add  esi, ebx; // s_pitch
 		add  edi, edx; // d_pitch
@@ -1137,9 +1137,9 @@ void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* 
 		emms;
 		jmp  end;
 	copySmall: // copies the small size data
-		mov  ecx, remainderD;
+		mov  ecx, sizeD;
 		rep  movsd;
-		mov  ecx, remainderB;
+		mov  ecx, sizeB;
 		rep  movsb;
 		add  esi, ebx; // s_pitch
 		add  edi, edx; // d_pitch
@@ -1153,8 +1153,8 @@ end:
 void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
-	size_t blockCount = width / 8;
-	size_t lastBytes  = width % 8;
+	size_t blockCount = width >> 3;
+	size_t lastBytes  = width & 7;
 	size_t s_pitch = src_width - width;
 	size_t d_pitch = dst_width - width;
 
@@ -1589,13 +1589,9 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	WINinfo* win = GNWFind(winID);
-	BYTE* surf = win->surface;
-	for (long i = 0; i < win->height; i++) {
-		std::memset(surf, 0, win->width);
-		surf += win->width;
-	}
+	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
-		GNWWinRefresh(win, &win->rect, 0);
+		GNWWinRefresh(win, &win->rect, nullptr);
 	}
 }
 
