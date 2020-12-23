@@ -51,6 +51,12 @@ void Gfx_ReleaseMovieTexture();
 
 void Gfx_RefreshGraphics();
 
+void GameRender_CreateOverlaySurface(WINinfo* win, long winType);
+//void GameRender_DestroyOverlaySurface(long winType);
+void GameRender_ClearOverlay(WINinfo* win);
+void GameRender_ClearOverlay(WINinfo* win, sRectangle &rect);
+BYTE* GameRender_GetOverlaySurface(WINinfo* win);
+
 int __stdcall GetShaderVersion();
 int __stdcall LoadShader(const char*);
 void __stdcall ActivateShader(DWORD);

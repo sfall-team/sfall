@@ -20,6 +20,7 @@
 
 #include "main.h"
 
+#include "Graphics.h"
 #include "InputFuncs.h"
 #include "Interface.h"
 #include "LoadGameHook.h"
@@ -648,7 +649,7 @@ static void mf_draw_image_scaled() {
 	opHandler.setReturn(DrawImage(opHandler, true, "draw_image_scaled"));
 }
 
-static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* interfaceWin, const char* metaruleName) {
+static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifaceWin, const char* metaruleName) {
 	const char* file = nullptr;
 	bool useShift = false;
 	long direction = -1, w = -1, h = -1;
@@ -694,12 +695,14 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* inte
 	int width  = (w >= 0) ? w : framePtr->width;
 	int height = (h >= 0) ? h : framePtr->height;
 
+	BYTE* surface = (ifaceWin->randY) ? GameRender_GetOverlaySurface(ifaceWin) : ifaceWin->surface;
+
 	TransCscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
-	            interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
+	            surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
 	if (!(opHandler.arg(0).rawValue() & 0x1000000)) {
-		GNWWinRefresh(interfaceWin, &interfaceWin->rect, 0);
+		GNWWinRefresh(ifaceWin, &ifaceWin->rect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -851,11 +854,20 @@ static void mf_interface_print() { // same as vanilla PrintRect
 		__asm call windowGetTextColor_; // set from SetTextColor
 		__asm mov  byte ptr color, al;
 	}
+
+	BYTE* surface;
+	if (win->randY) { // if a surface was created, the engine will draw on it
+		surface = win->surface;
+		win->surface = GameRender_GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
+	}
+
 	if (color & 0x10000) { // shadow (textshadow)
 		WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
 		color ^= 0x10000;
 	}
 	opHandler.setReturn(WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
+
+	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
 	if (!(color & 0x1000000)) GNWWinRefresh(win, &win->rect, 0);
@@ -877,5 +889,39 @@ static void mf_win_fill_color() {
 		);
 	} else {
 		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
+	}
+}
+
+static void mf_interface_overlay() {
+	WINinfo* win = nullptr;
+	long winType = opHandler.arg(0).rawValue();
+
+	if (opHandler.arg(1).rawValue()) {
+		win = Interface_GetWindow(winType);
+		if (!win || (int)win == -1) return;
+	}
+
+	switch (opHandler.arg(1).rawValue()) {
+	case 1:
+		GameRender_CreateOverlaySurface(win, winType);
+		break;
+	case 2: // clear
+		if (opHandler.numArgs() > 2) {
+			long w = opHandler.arg(4).rawValue();
+			long h = opHandler.arg(5).rawValue();
+			if (w <= 0 || h <= 0) return;
+
+			long x = opHandler.arg(2).rawValue();
+			long y = opHandler.arg(3).rawValue();
+			if (x < 0 || y < 0) return;
+
+			sRectangle rect = { x, y, w, h };
+			GameRender_ClearOverlay(win, rect);
+		} else {
+			GameRender_ClearOverlay(win);
+		}
+		break;
+	//case 0: // unused (reserved)
+	//	GameRender_DestroyOverlaySurface(winType);
 	}
 }

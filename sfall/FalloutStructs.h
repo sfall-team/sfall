@@ -487,28 +487,28 @@ struct ScriptListInfoItem {
 
 //for holding window info
 struct WINinfo {
-	long wID;
+	long wID; // window position in the _window_index array
 	long flags;
 	union {
 		RECT wRect;
 		BoundRect rect;
 	};
-	long width;
-	long height;
-	long clearColour;
-	long randX;
-	long randY;
-	BYTE *surface; // bytes frame data ref to palette
-	long *buttonsList;
-	long buttonT1; // buttonptr?
-	long buttonT2;
-	long *menuBar;
-	void (__cdecl *drawFunc)(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width); // trans_buf_to_buf_
+	long  width;
+	long  height;
+	long  clearColour;
+	long  randX;   // not used by engine
+	long* randY;   // used by sfall for additional surfaces
+	BYTE* surface; // bytes frame data ref to palette
+	long* buttonsList;
+	long  buttonT1; // buttonptr?
+	long  buttonT2;
+	long* menuBar;
+	void  (__cdecl *drawFunc)(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width); // trans_buf_to_buf_
 };
 
 struct sWindow {
 	char name[32];
-	long wID;
+	long wID; // window position in the _window_index array
 	long width;
 	long height;
 	long region1;

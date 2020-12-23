@@ -76,6 +76,13 @@ struct ddrawDll {
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
+struct sRectangle {
+	long x, y, width, height;
+
+	long right() { return x + width; }
+	long bottom() { return y + height; }
+};
+
 // Gets the integer value from given INI file.
 int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
 

@@ -148,6 +148,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"get_window_attribute",    mf_get_window_attribute,    1, 2},
 	{"hide_window",             mf_hide_window,             0, 1},
 	{"interface_art_draw",      mf_interface_art_draw,      4, 6},
+	{"interface_overlay",       mf_interface_overlay,       2, 6},
 	{"interface_print",         mf_interface_print,         5, 6},
 	{"intface_hide",            mf_intface_hide,            0, 0},
 	{"intface_is_hidden",       mf_intface_is_hidden,       0, 0},
