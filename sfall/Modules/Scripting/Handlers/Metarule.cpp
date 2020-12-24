@@ -70,6 +70,7 @@ static const SfallMetarule metarules[] = {
 	{"art_cache_clear",         mf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         mf_attack_is_aimed,         0, 0},
 	{"car_gas_amount",          mf_car_gas_amount,          0, 0},
+	{"combat_data",             mf_combat_data,             0, 0},
 	{"create_win",              mf_create_win,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message",          mf_dialog_message,          1, 1, -1, {ARG_STRING}},
@@ -101,6 +102,8 @@ static const SfallMetarule metarules[] = {
 	{"has_fake_trait_npc",      mf_has_fake_trait_npc,      2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"hide_window",             mf_hide_window,             0, 1, -1, {ARG_STRING}},
 	{"interface_art_draw",      mf_interface_art_draw,      4, 6, -1, {ARG_INT, ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"interface_overlay",       mf_interface_overlay,       2, 6, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"interface_print",         mf_interface_print,         5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"intface_hide",            mf_intface_hide,            0, 0},
 	{"intface_is_hidden",       mf_intface_is_hidden,       0, 0},
 	{"intface_redraw",          mf_intface_redraw,          0, 1},
@@ -116,7 +119,6 @@ static const SfallMetarule metarules[] = {
 	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2,  0, {ARG_INT, ARG_INT}},
 	{"objects_in_radius",       mf_objects_in_radius,       3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"outlined_object",         mf_outlined_object,         0, 0},
-	{"print_text",              mf_print_text,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
 	{"remove_timer_event",      mf_remove_timer_event,      0, 1, -1, {ARG_INT}},
 	{"set_can_rest_on_map",     mf_set_rest_on_map,         3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
@@ -149,6 +151,7 @@ static const SfallMetarule metarules[] = {
 	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              mf_unjam_lock,              1, 1, -1, {ARG_OBJECT}},
 	{"unwield_slot",            mf_unwield_slot,            2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"win_fill_color",          mf_win_fill_color,          0, 5, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	#ifndef NDEBUG
 	{"validate_test",           mf_test,                    2, 5, -1, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif
@@ -156,7 +159,7 @@ static const SfallMetarule metarules[] = {
 
 // returns current contents of metarule table
 static void mf_get_metarule_table(OpcodeContext& ctx) {
-	DWORD arrId = TempArray(metaruleTable.size(), 0);
+	DWORD arrId = CreateTempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); ++it) {
 		arrays[arrId].val[i].set(it->first.c_str());

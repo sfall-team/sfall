@@ -301,6 +301,9 @@
     <ClInclude Include="Modules\MetaruleExtender.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\SubModules\GameRender.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -555,6 +558,9 @@
     </ClCompile>
     <ClCompile Include="Modules\MetaruleExtender.cpp">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\GameRender.cpp">
+      <Filter>Modules\SubModules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

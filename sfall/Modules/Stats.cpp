@@ -26,6 +26,17 @@
 namespace sfall
 {
 
+void __fastcall sf_critter_adjust_poison(fo::GameObject* critter, long amount) {
+	if (amount == 0) return;
+	if (amount > 0) {
+		amount -= fo::func::stat_level(critter, fo::STAT_poison_resist) * amount / 100;
+	} else if (critter->critter.poison == 0) {
+		return;
+	}
+	critter->critter.poison += amount;
+	if (critter->critter.poison < 0) critter->critter.poison = 0; // level can't be negative
+}
+
 static DWORD statMaximumsPC[fo::STAT_max_stat];
 static DWORD statMinimumsPC[fo::STAT_max_stat];
 static DWORD statMaximumsNPC[fo::STAT_max_stat];
@@ -209,6 +220,14 @@ allow:
 	}
 }
 
+static void __declspec(naked) critter_adjust_poison_hack() {
+	__asm {
+		mov  edx, esi;
+		mov  ecx, edi;
+		jmp  sf_critter_adjust_poison;
+	}
+}
+
 static void StatsReset() {
 	for (size_t i = 0; i < fo::STAT_max_stat; i++) {
 		statMaximumsPC[i] = statMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
@@ -243,6 +262,9 @@ void Stats::init() {
 	// Allow set_critter_stat function to change STAT_unused and STAT_dmg_* stats for the player
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
+	// Allow changing the poison level for critters
+	MakeCall(0x42D226, critter_adjust_poison_hack);
+	SafeWrite8(0x42D22C, 0xDA); // jmp 0x42D30A
 
 	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();

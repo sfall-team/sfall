@@ -85,6 +85,7 @@
 #define FO_VAR_folder_card_title2         0x5705BC
 #define FO_VAR_frame_time                 0x5709C4
 #define FO_VAR_free_perk                  0x570A29
+#define FO_VAR_freePtr                    0x519594
 #define FO_VAR_frstc_draw1                0x5707D8
 #define FO_VAR_game_config                0x58E950
 #define FO_VAR_game_global_vars           0x5186C0
@@ -190,6 +191,7 @@
 #define FO_VAR_optionsButtonUpKey         0x518F28
 #define FO_VAR_optnwin                    0x663900
 #define FO_VAR_outlined_object            0x518D94
+#define FO_VAR_pal                        0x56D7E0
 #define FO_VAR_partyMemberAIOptions       0x519DB8
 #define FO_VAR_partyMemberCount           0x519DAC
 #define FO_VAR_partyMemberLevelUpInfoList 0x519DBC

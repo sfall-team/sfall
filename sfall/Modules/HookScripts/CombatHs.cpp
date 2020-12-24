@@ -26,7 +26,7 @@ static void __declspec(naked) ToHitHook() {
 		mov  eax, args[4];    // restore
 		call fo::funcoffs::determine_to_hit_func_;
 		mov  args[0], eax;
-		pushadc;
+		mov  ebx, eax;
 	}
 	argCount = 8;
 
@@ -34,10 +34,10 @@ static void __declspec(naked) ToHitHook() {
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
-		popadc;
 		cmp  cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
 		retn 8;
 	}
 }
@@ -68,17 +68,13 @@ static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DW
 static void __declspec(naked) AfterHitRollHook() {
 	using namespace fo;
 	__asm {
-		push ecx;
-		push edx;
-		mov  ecx, esi;                 // ctd
-		mov  edx, [esp + 0x18 + 12];   // hit chance
-		push eax;                      // was it a hit?
+		mov  ecx, esi;              // ctd
+		mov  edx, [esp + 0x18 + 4]; // hit chance
+		push eax;                   // was it a hit?
 		call AfterHitRollHook_Script;
-		pop  edx;
-		pop  ecx;
 		// engine code
 		mov  ebx, eax;
-		cmp  ebx, ROLL_FAILURE;
+		cmp  eax, ROLL_FAILURE;
 		retn;
 	}
 }
@@ -112,17 +108,19 @@ static void __declspec(naked) CalcApCostHook() {
 		mov  args[8], ebx;
 		call fo::funcoffs::item_w_mp_cost_;
 		mov  args[12], eax;
-		pushad;
+		mov  ebx, eax;
+		push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -134,26 +132,27 @@ static void __declspec(naked) CalcApCostHook2() {
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
-		mov eax, 2;       // vanilla value
-		mov args[12], eax;
-		pushad;
+		mov ebx, 2;       // vanilla cost value
+		mov args[12], ebx;
+		//push ecx;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		//pop  ecx;
 		retn;
 	}
 }
 
 static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiplier) {
 	BeginHook();
-	argCount = 12;
+	argCount = 13;
 
 	args[0] = (DWORD)ctd.target;           // Target
 	args[1] = (DWORD)ctd.attacker;         // Attacker
@@ -167,6 +166,7 @@ static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DW
 	args[9] = rounds;                      // number of rounds
 	args[10] = ctd.knockbackValue;
 	args[11] = ctd.hitMode;                // attack type
+	args[12] = (DWORD)&ctd;                // main_ctd/shoot_ctd/explosion_ctd
 
 	RunHookScript(HOOK_COMBATDAMAGE);
 
@@ -227,7 +227,7 @@ static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd,
 	args[8] = multiplyDamage;
 	args[9] = difficulty;
 	args[10] = accumulatedDamage;
-	args[11] = (DWORD)&ctd;
+	args[11] = (DWORD)&ctd; // main_ctd/shoot_ctd/explosion_ctd
 
 	RunHookScript(HOOK_SUBCOMBATDAMAGE);
 
@@ -294,7 +294,7 @@ static void __declspec(naked) ItemDamageHook() {
 		mov args[12], ecx; // critter
 		mov args[16], esi; // type
 		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
-		pushad;
+		pushadc;
 	}
 	argCount = 6;
 
@@ -304,7 +304,7 @@ static void __declspec(naked) ItemDamageHook() {
 
 	RunHookScript(HOOK_ITEMDAMAGE);
 
-	__asm popad;
+	__asm popadc;
 	if (cRet > 0) {
 		__asm mov eax, rets[0];     // set min
 		if (cRet > 1) {

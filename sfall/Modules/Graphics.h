@@ -27,6 +27,29 @@
 namespace sfall
 {
 
+extern IDirect3D9* d3d9;
+extern IDirect3DDevice9* d3d9Device;
+extern IDirectDrawSurface* primaryDDSurface;
+extern bool DeviceLost;
+
+/*
+static void DDSurfaceToDXTexture(BYTE* src, long width, long height, long src_width, DWORD* dst, long dst_width) {
+	if (width <= 0 || height <= 0) return;
+
+	dst_width /= 4;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	while (height--) {
+		while (width--) {
+			*dst++ = *src++ << 24; // write palette color index to texture alpha channel
+		}
+		dst += d_pitch;
+		src += s_pitch;
+	}
+}
+*/
+
 class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }
@@ -36,8 +59,11 @@ public:
 	static DWORD mode;
 	static DWORD GPUBlt;
 
+	static HWND GetFalloutWindowInfo(RECT* rect);
 	static long GetGameWidthRes();
 	static long GetGameHeightRes();
+
+	static int __stdcall GetShaderVersion();
 
 	static const float* rcpresGet();
 
@@ -56,13 +82,39 @@ public:
 	static bool AviMovieWidthFit;
 
 	static void RefreshGraphics();
+
+	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+		long x = rect->left;
+		long y = rect->top;
+		if (Graphics::mode == 0) {
+			__asm {
+				xor  eax, eax;
+				push y;
+				push x;
+				push height;
+				push width;
+				push eax; // yFrom
+				push eax; // xFrom
+				push eax; // heightFrom
+				push widthFrom;
+				push surface;
+				call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
+				add  esp, 9*4;
+			}
+			return;
+		}
+		if (!DeviceLost) {
+			DDSURFACEDESC desc;
+			RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
+
+			primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+
+			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
+			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
+
+			primaryDDSurface->Unlock(desc.lpSurface);
+		}
+	}
 };
-
-extern IDirect3D9* d3d9;
-extern IDirect3DDevice9* d3d9Device;
-
-int __stdcall GetShaderVersion();
-
-HWND GetFalloutWindowInfo(RECT* rect);
 
 }

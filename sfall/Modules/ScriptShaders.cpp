@@ -94,6 +94,7 @@ int __stdcall LoadShader(const char* file) {
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
 		sprintf_s(buf, "%s\\art\\stex\\%s", fo::var::master_db_handle->path, name); // fo::var::patches
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
+
 		sprintf(buf, "tex%d", i);
 		shader.Effect->SetTexture(buf, tex);
 		shaderTextures.push_back(tex);

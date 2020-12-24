@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include <unordered_map>
+#include <unordered_map>
 #include <algorithm>
 #include <dshow.h>
 
@@ -66,7 +66,9 @@ struct sDSSound {
 static std::vector<sDSSound*> playingSounds;
 static std::vector<sDSSound*> loopingSounds;
 
-//static std::unordered_map<std::string, std::wstring> sfxSoundsFiles;
+static fo::ACMSoundData* acmSoundData = nullptr; // currently loaded ACM file
+
+static std::unordered_map<std::string, std::wstring> soundsFiles;
 
 DWORD playID = 0;
 DWORD loopID = 0;
@@ -75,7 +77,6 @@ static HWND soundwindow = 0;
 
 static sDSSound* speechSound = nullptr;     // currently playing sfall speech sound
 static sDSSound* backgroundMusic = nullptr; // currently playing sfall background music
-//static char playingMusicFile[256];
 
 static bool deathSceneSpeech = false;
 static bool lipsPlaying = false;
@@ -250,6 +251,8 @@ static bool IsMute(SoundMode mode) {
 	loop_play:   mode 1 - loop sound playback (with sound overlay)
 	music_play:  mode 2 - loop sound playback with the background game music turned off
 	speech_play: mode 3 -
+
+	Note: when playing via DirectShow there is a small delay of ~100 ms
 */
 static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adjustVolume = 0, bool isPaused = false) {
 	if (!soundwindow) CreateSndWnd();
@@ -322,55 +325,7 @@ enum PlayType : signed char {
 	slides = 4 // speech for endgame slideshow
 };
 
-static const wchar_t *SoundExtensions[] = { L"wav", L"mp3", L"wma" };
-
-/*
-	TODO: For sfx sounds in wav format, playback must be performed using the game functions (DirectSound)
-	because there is a small delay (~50-100ms) when using DirectShow
-	sfx - environment effects must set their volume relative to the location from the player (see gsound_compute_relative_volume_)
-*/
-static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
-	if (!path) return false;
-
-	/*if (playType == PlayType::sfx) {
-		auto it = sfxSoundsFiles.find(path);
-		if (it != sfxSoundsFiles.cend()) {
-			return (PlayingSound(it->second.c_str(), SoundMode::single_play) != nullptr);
-		}
-	}*/
-
-	int len = 0;
-	while (len < 4 && path[len] != '\0') len++; // X.acm0
-	if (len <= 3) return false;                 // 012345
-	len = 0;
-
-	wchar_t buf[MAX_PATH];
-	if (playType != PlayType::music) {
-		char* master_patches = fo::var::patches; // all sfx/speech sounds must be placed in patches folder
-		while (master_patches[len]) buf[len] = master_patches[len++];
-		buf[len++] = L'\\';
-	}
-
-	const char* _path = path - len;
-	while (len < MAX_PATH && _path[len]) buf[len] = _path[len++];
-	if (len >= MAX_PATH) return false;
-	buf[len] = L'\0';
-	len -= 3; // the position of the first character of the file extension
-
-	bool isExist = false;
-	for (int i = 0; i < 3; i++) {
-		int j = len;
-		buf[j++] = SoundExtensions[i][0];
-		buf[j++] = SoundExtensions[i][1];
-		buf[j]   = SoundExtensions[i][2];
-
-		if (GetFileAttributesW(buf) & FILE_ATTRIBUTE_DIRECTORY) continue; // also file not found
-		isExist = true;
-
-		//if (playType == PlayType::sfx) sfxSoundsFiles.emplace(path, buf);
-		break;
-	}
-
+static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool isExist) {
 	if (playType == PlayType::music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
 		Sound::StopSfallSound(backgroundMusic->id);
@@ -379,11 +334,10 @@ static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
 	if (!isExist) return false;
 
 	if (playType == PlayType::music) {
-		//strcpy_s(playingMusicFile, path);
-		backgroundMusic = PlayingSound(buf, SoundMode::engine_music_play); // background music loop
+		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music loop
 		if (!backgroundMusic) return false;
 	} else {
-		if (!PlayingSound(buf, ((playType >= PlayType::lips) ? SoundMode::speech_play : SoundMode::single_play), 0, (playType == PlayType::slides))) {
+		if (!PlayingSound(file, ((playType >= PlayType::lips) ? SoundMode::speech_play : SoundMode::single_play), 0, (playType == PlayType::slides))) {
 			return false;
 		}
 		if (playType == PlayType::lips) {
@@ -393,6 +347,52 @@ static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
 		deathSceneSpeech = false;
 	}
 	return true;
+}
+
+static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
+
+static bool SearchAlternativeFormats(const char* path, PlayType playType, std::string &pathFile) {
+	size_t len = 0;
+	wchar_t wPath[MAX_PATH];
+	if (playType != PlayType::music) {
+		char* master_patches = fo::var::patches; // all sfx/speech sounds must be placed in patches folder
+		while (master_patches[len]) wPath[len] = master_patches[len++];
+		wPath[len++] = L'\\';
+	}
+
+	const char* _path = path - len;
+	while (_path[len]) wPath[len] = _path[len++];
+	if (len >= MAX_PATH) return false;
+	wPath[len] = L'\0';
+	len -= 3; // the position of the first character of the file extension
+
+	bool isExist = false;
+	for (int i = 0; i < 3; i++) {
+		int j = len;
+		wPath[j++] = SoundExtensions[i][0];
+		wPath[j++] = SoundExtensions[i][1];
+		wPath[j]   = SoundExtensions[i][2];
+
+		if (GetFileAttributesW(wPath) & FILE_ATTRIBUTE_DIRECTORY) continue; // also file not found
+
+		isExist = true;
+		break;
+	}
+	soundsFiles.emplace(std::move(pathFile), (isExist) ? wPath : L"");
+
+	return PrePlaySoundFile(playType, wPath, isExist);
+}
+
+static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
+	if (!path) return false;
+	std::string pathFile = path;
+	if (pathFile.length() <= 4) return false;
+
+	auto it = soundsFiles.find(pathFile);
+	if (it != soundsFiles.cend()) {
+		return PrePlaySoundFile(playType, it->second.c_str(), (it->second.length() > 0));
+	}
+	return SearchAlternativeFormats(path, playType, pathFile);
 }
 
 static void __fastcall MakeMusicPath(const char* file) {
@@ -456,38 +456,42 @@ static void __fastcall ReleaseSound(sDSSound* sound) {
 	FreeSound(sound);
 }
 
-static void __declspec(naked) soundLoad_hack() {
-	static const DWORD SoundLoadHackRet = 0x4AD49E;
-	static const DWORD SoundLoadHackEnd = 0x4AD4B6;
+static void __declspec(naked) soundLoad_hack_A() {
+	static const DWORD SoundLoadHackEnd = 0x4AD4CC;
 	__asm {
-		push esi;
-		push edi;
-		push ebp;
-		mov  ebx, eax;
-		// end engine code
-		push ecx;
-		push edx; // path to file
-		mov  eax, [esp + 24];
-		cmp  eax, 0x450926 + 5; // called from gsound_background_play_
-		sete cl;                // PlayType::sfx / PlayType::music
-		je   skip;
-		cmp  eax, 0x47B6B5 + 5; // called from lips_make_speech_
-		je   jlips;
-		cmp  eax, 0x450EB4 + 5; // called from gsound_speech_play_
+		cmp  dword ptr [esp + 16 + 4 + 0x11C + 4], 0x45145F + 5; // called from gsound_load_sound_volume_
 		jne  skip;
-		cmp  dword ptr [esp + 24 + 0x114 + 4], 0x440200 + 5; // called from endgame_load_voiceover_
+		mov  acmSoundData, ebx;
+		retn; // exit for SFX sounds for which the volume must be set relative to the player's location (see gsound_compute_relative_volume_)
+skip:
+		mov  acmSoundData, 0;
+		mov  esi, [esp + 16 + 4];
+		cmp  esi, 0x46620D + 5; // called from soundStartInterpret_ (op_soundplay_)
+		je   playACM;
+		pushadc;
+		cmp  esi, 0x450926 + 5; // called from gsound_background_play_
+		sete cl;                // PlayType::sfx / PlayType::music
+		je   load;
+		cmp  esi, 0x47B6B5 + 5; // called from lips_make_speech_
+		je   jlips;
+		cmp  esi, 0x450EB4 + 5; // called from gsound_speech_play_
+		jne  load;
+		cmp  dword ptr [esp + 28 + 4 + 0x114 + 4], 0x440200 + 5; // called from endgame_load_voiceover_
 		sete cl;
 		inc  cl;
 jlips:
 		add  cl, 2; // PlayType::lips / PlayType::speech / PlayType::slides
-skip:
+load:
+		mov  edx, eax; // eax - path to file
 		call SoundFileLoad;
-		pop  edx;
-		pop  ecx;
 		test al, al;
-		jnz  playSfall;
-		jmp  SoundLoadHackRet; // play acm
-playSfall:
+		popadc;
+		jnz  playSfallSound;
+		mov  acmSoundData, ebx;
+playACM:
+		retn; // play acm
+playSfallSound:
+		add  esp, 4;
 		jmp  SoundLoadHackEnd; // don't play acm (force error)
 	}
 }
@@ -513,6 +517,59 @@ static void __declspec(naked) main_death_scene_hook() {
 playSfall:
 		xor  eax, eax;
 		retn;
+	}
+}
+
+static void __declspec(naked) soundLoad_hack_B() {
+	__asm {
+		xor  ebp, ebp;
+		cmp  dword ptr [esp + 16 + 4], 0x46620D + 5; // called from soundStartInterpret_ (op_soundplay_)
+		cmovne ebp, ebx;
+		mov  acmSoundData, ebp;
+		retn;
+	}
+}
+
+static fo::AudioDecode* __fastcall SoundFormatChange(fo::AudioDecode* decode/*, fo::AudioFile* audio*/) {
+	/*
+		example calculation
+		nBlockAlign = (nBitsPerSample / 8) * nChannels
+		nAvgBytesPerSec = nSamplesPerSec * nBlockAlign
+	*/
+	if (decode) {
+		bool recalc = false;
+		WAVEFORMATEX* wave = acmSoundData->lpwfxFormat;
+		// support stereo for SFX and speech sound files with 44.1 kHz
+		// this condition fixes the problem for mono sound files when the number of channels in the ACM file header is set to 2
+		if (decode->out_SampleRate == 44100 && decode->out_Channels != wave->nChannels) {
+			wave->nChannels = (WORD)decode->out_Channels;
+			wave->nBlockAlign = (wave->wBitsPerSample / 8) * wave->nChannels;
+			recalc = true;
+		}
+		if (decode->out_SampleRate != wave->nSamplesPerSec) {
+			wave->nSamplesPerSec = decode->out_SampleRate;
+			recalc = true;
+		}
+		if (recalc) wave->nAvgBytesPerSec = wave->nSamplesPerSec * wave->nBlockAlign;
+	}
+	return decode;
+}
+
+static void __declspec(naked) audioOpen_hook() {
+	static DWORD audioOpen_AddrRet;
+	__asm {
+		cmp  acmSoundData, 0;
+		je   skip;
+		pop  audioOpen_AddrRet;
+		push offset return;
+		jmp  fo::funcoffs::Create_AudioDecoder_;
+return:
+		//mov  edx, ebp; // audio
+		mov  ecx, eax;   // decode
+		push audioOpen_AddrRet;
+		jmp  SoundFormatChange;
+skip:
+		jmp  fo::funcoffs::Create_AudioDecoder_;
 	}
 }
 
@@ -839,12 +896,12 @@ rawFile:
 	}
 }
 
-//constexpr int SampleRate = 44100; // 44.1kHz
+constexpr int SampleRate = 44100; // 44.1kHz
 
 void Sound::init() {
-	// Set the sample rate for the primary sound buffer
-	//SafeWrite32(0x44FDBC, SampleRate);
-	//LoadGameHook::OnAfterGameInit() += []() { fo::var::sampleRate = SampleRate / 2; }; // Revert to 22kHz for secondary sound buffers
+	// Set the 44.1kHz sample rate for the primary sound buffer
+	SafeWrite32(0x44FDBC, SampleRate);
+	LoadGameHook::OnAfterGameInit() += []() { fo::var::sampleRate = SampleRate / 2; }; // Revert to 22kHz for secondary sound buffers
 
 	LoadGameHook::OnGameReset() += WipeSounds;
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
@@ -855,9 +912,11 @@ void Sound::init() {
 	MakeCall(0x4503CA, gsound_master_volume_set_hack, 1);
 	MakeCall(0x45042C, gsound_set_sfx_volume_hack);
 
+	void* soundLoad_func;
+
 	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
-		MakeJump(0x4AD499, soundLoad_hack); // main hook
+		soundLoad_func = soundLoad_hack_A; // main hook
 
 		HookCalls(gmovie_play_hook_stop, {0x44E80A, 0x445280}); // only play looping music
 		if (allowDShowSound > 1) {
@@ -881,7 +940,16 @@ void Sound::init() {
 		MakeCall(0x4450C5, gdialogFreeSpeech_hack, 2);
 
 		CreateSndWnd();
+	} else {
+		soundLoad_func = soundLoad_hack_B;
 	}
+	// Support 44.1kHz sample rate for ACM files
+	MakeCall(0x4AD4D6, soundLoad_func, 1);
+	HookCalls(audioOpen_hook, {
+		0x41AA3A, // audiofOpen_
+		0x41A4A4, // audioOpen_
+		0x4A96CC  // sfxc_decode_
+	});
 
 	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
 	if (sBuff > 0) {

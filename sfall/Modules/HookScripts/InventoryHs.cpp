@@ -49,17 +49,21 @@ static void __declspec(naked) MoveCostHook() {
 		mov  args[4], edx;
 		call fo::funcoffs::critter_compute_ap_from_distance_;
 		mov  args[8], eax;
-		pushadc;
+		push ebx;
+		push ecx;
+		mov  ebx, eax;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
-		popadc;
-		cmp cRet, 1;
-		cmovge eax, rets[0];
-		HookEnd;
+		cmp  cRet, 1;
+		cmovge ebx, rets[0];
+		call EndHook;
+		mov  eax, ebx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -402,7 +406,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		HookBegin;
 		mov args[0], eax; // critter
 		mov args[8], edx; // slot
-		pushad;
+		pushadc;
 	}
 
 	// set slot
@@ -417,7 +421,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 
 	__asm {
 		test al, al;
-		popad;
+		popadc;
 		jz   skip;
 		jmp  fo::funcoffs::invenUnwieldFunc_;
 skip:

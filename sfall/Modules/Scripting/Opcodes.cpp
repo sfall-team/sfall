@@ -228,11 +228,14 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x279, "sfall_func3", HandleMetarule, 4, true},
 	{0x27a, "sfall_func4", HandleMetarule, 5, true},
 	{0x27b, "sfall_func5", HandleMetarule, 6, true},
-	{0x27c, "sfall_func6", HandleMetarule, 7, true}, // if you need more arguments - use arrays
+	{0x27c, "sfall_func6", HandleMetarule, 7, true},
 
 	{0x27d, "register_hook_proc_spec",    op_register_hook,             2, false,  0, {ARG_INT, ARG_INT}},
 	{0x27e, "reg_anim_callback",          op_reg_anim_callback,         1, false,  0, {ARG_INT}},
 	{0x27f, "div",                        op_div,                       2, true,   0, {ARG_NUMBER, ARG_NUMBER}}, // div operator
+
+	{0x280, "sfall_func7", HandleMetarule, 8, true},
+	{0x281, "sfall_func8", HandleMetarule, 9, true}, // if you need more arguments - use arrays
 };
 
 // An array for opcode info, indexed by opcode.

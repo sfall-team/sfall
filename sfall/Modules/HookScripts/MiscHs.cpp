@@ -180,14 +180,14 @@ static void __declspec(naked) UseSkillHook() {
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // skill id
 		mov args[12], ecx; // skill bonus
-		pushad;
+		pushadc;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_USESKILL);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;

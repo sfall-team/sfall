@@ -42,70 +42,71 @@ void dev_printf(...) {}
 	__asm call fo::funcoffs::offs
 
 #define WRAP_WATCOM_CALL1(offs, arg1) \
-	__asm mov eax, arg1				\
+	__asm mov eax, arg1               \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_CALL2(offs, arg1, arg2) \
-	__asm mov edx, arg2				\
+	__asm mov edx, arg2                     \
 	WRAP_WATCOM_CALL1(offs, arg1)
 
 #define WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				\
+	__asm mov ebx, arg3                           \
 	WRAP_WATCOM_CALL2(offs, arg1, arg2)
 
 #define WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov ecx, arg4				\
+	__asm mov ecx, arg4                                 \
 	WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3)
 
 #define WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	__asm push arg5				\
+	__asm push arg5                                           \
 	WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	__asm push arg6				\
+	__asm push arg6                                                 \
 	WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	__asm push arg7				\
+	__asm push arg7                                                       \
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 // defines wrappers for __fastcall
 #define WRAP_WATCOM_FCALL1(offs, arg1) \
-	__asm mov eax, ecx				\
+	__asm mov eax, ecx                 \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_FCALL2(offs, arg1, arg2) \
 	WRAP_WATCOM_FCALL1(offs, arg1)
 
 #define WRAP_WATCOM_FCALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				\
+	__asm mov ebx, arg3                            \
 	WRAP_WATCOM_FCALL1(offs, arg1)
 
 #define WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov eax, ecx				\
-	__asm mov ebx, arg3				\
-	__asm mov ecx, arg4				\
+	__asm mov eax, ecx     \
+	__asm mov ebx, arg3    \
+	__asm mov ecx, arg4    \
 	WRAP_WATCOM_CALL0(offs)
 
 #define WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	__asm push arg5				\
+	__asm push arg5                                            \
 	WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	__asm push arg6				\
+	__asm push arg6                                                  \
 	WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	__asm push arg7				\
+	__asm push arg7                                                        \
 	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 #define WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
-	__asm push arg8				\
+	__asm push arg8                                                              \
 	WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 
 #define WRAP_WATCOM_FCALL9(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
-	__asm push arg9				\
+	__asm push arg9                                                                    \
 	WRAP_WATCOM_FCALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
 
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
@@ -286,8 +287,8 @@ void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE
 
 	size_t blockCount = width / 64; // 64 bytes
 	size_t remainder = width % 64;
-	size_t remainderD = remainder / 4;
-	size_t remainderB = remainder % 4;
+	size_t sizeD = remainder >> 2;
+	size_t sizeB = remainder & 3;
 	size_t s_pitch = src_width - width;
 	size_t d_pitch = dst_width - width;
 
@@ -323,9 +324,9 @@ void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE
 		dec  ecx; // blockCount
 		jnz  copyBlock;
 		// copies the remaining bytes
-		mov  ecx, remainderD;
+		mov  ecx, sizeD;
 		rep  movsd;
-		mov  ecx, remainderB;
+		mov  ecx, sizeB;
 		rep  movsb;
 		add  esi, ebx; // s_pitch
 		add  edi, edx; // d_pitch
@@ -334,9 +335,9 @@ void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE
 		emms;
 		jmp  end;
 	copySmall: // copies the small size data
-		mov  ecx, remainderD;
+		mov  ecx, sizeD;
 		rep  movsd;
-		mov  ecx, remainderB;
+		mov  ecx, sizeB;
 		rep  movsb;
 		add  esi, ebx; // s_pitch
 		add  edi, edx; // d_pitch
@@ -350,31 +351,26 @@ end:
 void __cdecl trans_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
-	size_t blockCount = width / 8;
-	size_t lastBytes  = width % 8;
+	size_t blockCount = width >> 3;
+	size_t lastBytes  = width & 7;
 	size_t s_pitch = src_width - width;
 	size_t d_pitch = dst_width - width;
 
-	__asm {
-		mov  esi, src;
-		mov  edi, dst;
-		pxor mm3, mm3;
-	}
+	__asm mov esi, src;
+	__asm mov edi, dst;
 	do {
 		size_t count = blockCount;
 		while (count--) {
 			__asm {
-				movq  mm0, qword ptr [esi]; // 8 bytes
-				movq  mm1, qword ptr [edi];
-				movq  mm2, mm0;             // src copy to mm2
-				pcmpeqb mm2, mm3;           // mm2 = (src == 0) ? 1 : 0;
-				lea   esi, [esi + 8];
-				movq  mm4, mm2;
-				pandn mm2, mm0;             // mm2 = mm2 AND (NOT mm0)
-				pand  mm4, mm1;
-				por   mm2, mm4;
-				movq  qword ptr [edi], mm2;
-				lea   edi, [edi + 8];
+				pxor mm2, mm2;
+				movq mm0, qword ptr [esi]; // 8 bytes
+				movq mm1, qword ptr [edi];
+				pcmpeqb mm2, mm0;          // mm2 = (src == 0) ? 1 : 0;
+				lea  esi, [esi + 8];
+				pand mm2, mm1;
+				por  mm0, mm2;
+				movq qword ptr [edi], mm0; // src or dst
+				lea  edi, [edi + 8];
 			}
 		}
 		size_t bytes = lastBytes;
@@ -389,12 +385,27 @@ void __cdecl trans_buf_to_buf(BYTE* src, long width, long height, long src_width
 				lea  edi, [edi + 1];
 			}
 		}
-		__asm {
-			add esi, s_pitch;
-			add edi, d_pitch;
-		}
+		__asm add esi, s_pitch;
+		__asm add edi, d_pitch;
 	} while (--height);
 	__asm emms;
+}
+
+BYTE* __fastcall loadPCX(const char* file, long* width, long* height) {
+	__asm {
+		mov  eax, ecx;
+		mov  ebx, height;
+		mov  ecx, FO_VAR_pal;
+		call fo::funcoffs::loadPCX_;
+		push eax;
+		mov  ebx, [width];
+		mov  edx, FO_VAR_pal;
+		mov  ecx, [height];
+		mov  ebx, [ebx];
+		mov  ecx, [ecx];
+		call fo::funcoffs::datafileConvertData_;
+		pop  eax;
+	}
 }
 
 long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {

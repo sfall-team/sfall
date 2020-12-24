@@ -48,8 +48,8 @@ public:
 	static const char* GetCurrentTerrainName();
 
 	static bool AreaTitlesIsEmpty();
-	static const char* GetCustomAreaTitle(long areaId);
-	static void SetCustomAreaTitle(long areaId, const char* msg);
+	static const char* GetCustomAreaTitle(long areaID);
+	static void SetCustomAreaTitle(long areaID, const char* msg);
 
 	static long AreaMarkStateIsNoRadius();
 	static void SetMapMulti(float value);

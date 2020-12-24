@@ -26,7 +26,7 @@ ArrayKeysMap savedArrays;
 
 // auto-incremented ID
 DWORD nextArrayID = 1;
-// special array ID for array expressions
+// special array ID for array expressions, contains the ID number of the currently created array
 DWORD stackArrayId;
 
 static char get_all_arrays_special_key[] = "...all_arrays...";
@@ -271,7 +271,7 @@ long LoadArrays(HANDLE h) {
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
-		while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+		while (ArrayExist(nextArrayID)) nextArrayID++;
 		if (nextArrayID == 0) nextArrayID++;
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
@@ -302,7 +302,7 @@ void SaveArrays(HANDLE h) {
 	for (it = savedArrays.begin(); it != savedArrays.end(); ++it) {
 		arrayIt = arrays.find(it->second);
 		if (arrayIt != arrays.end()) {
-			sArrayVar &var = arrays[it->second];
+			sArrayVar &var = arrayIt->second; //arrays[it->second];
 			SaveArrayElement(&var.key, h); // type, key/length of key and string of key
 			WriteFile(h, &var.flags, 4, &unused, 0);
 			elCount = var.val.size();
@@ -316,6 +316,10 @@ void SaveArrays(HANDLE h) {
 
 int GetNumArrays() {
 	return arrays.size();
+}
+
+bool ArrayExist(DWORD id) {
+	return (arrays.find(id) != arrays.end());
 }
 
 void GetArrays(int* _arrays) {
@@ -381,18 +385,19 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 */
 
 DWORD CreateArray(int len, DWORD flags) {
-	sArrayVar var;
-	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit
+	flags = (flags & ~1); // reset 1 bit
 	if (len < 0) {
-		var.flags |= ARRAYFLAG_ASSOC;
+		flags |= ARRAYFLAG_ASSOC;
 	} else if (len > ARRAY_MAX_SIZE) {
 		len = ARRAY_MAX_SIZE; // safecheck
 	}
-	if (!var.isAssoc()) {
+	sArrayVar var(len, flags);
+
+	if (!var.isAssoc() && len) {
 		var.val.resize(len);
 	}
 
-	while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+	while (ArrayExist(nextArrayID)) nextArrayID++;
 	if (nextArrayID == 0) nextArrayID++;
 
 	if (arraysBehavior == 0) {
@@ -404,7 +409,7 @@ DWORD CreateArray(int len, DWORD flags) {
 	return nextArrayID++;
 }
 
-DWORD TempArray(DWORD len, DWORD flags) {
+DWORD CreateTempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
 	temporaryArrays.insert(id);
 	return id;
@@ -429,7 +434,7 @@ void DeleteAllTempArrays() {
 }
 
 ScriptValue GetArrayKey(DWORD id, int index) {
-	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
+	if (!ArrayExist(id) || index < -1 || index > arrays[id].size()) {
 		return ScriptValue(0);
 	}
 	if (index == -1) { // special index to indicate if array is associative
@@ -456,9 +461,8 @@ ScriptValue GetArrayKey(DWORD id, int index) {
 }
 
 ScriptValue GetArray(DWORD id, const ScriptValue& key) {
-	if (arrays.find(id) == arrays.end()) {
-		return 0;
-	}
+	if (!ArrayExist(id)) return 0;
+
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
@@ -487,16 +491,12 @@ ScriptValue GetArray(DWORD id, const ScriptValue& key) {
 	return ScriptValue(0);
 }
 
-void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
-	if (arrays.find(id) == arrays.end()) {
-		return;
-	}
-	int el;
+void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
 	sArrayVar &arr = arrays[id];
-	if (arrays[id].isAssoc()) {
+	if (arr.isAssoc()) {
 		sArrayElement sEl(key.rawValue(), key.type());
 		ArrayKeysMap::iterator elIter = arr.keyHash.find(sEl);
-		el = (elIter != arr.keyHash.end())
+		int el = (elIter != arr.keyHash.end())
 			? elIter->second
 			: -1;
 
@@ -527,24 +527,23 @@ void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 				arr.val[el].setByType(key.rawValue(), key.type()); // copy data
 				arr.keyHash[arr.val[el]] = el;
 			}
-			arr.val[el+1].setByType(val.rawValue(), val.type());
+			arr.val[el + 1].setByType(val.rawValue(), val.type());
 		}
-	} else {
-		// only update normal array if key is an integer and within array size
-		el = key.asInt();
-		if (key.isInt() && arr.size() > el) {
-			arr.val[el].setByType(val.rawValue(), val.type());
+	} else if (key.isInt()) { // only update normal array if key is an integer and within array size
+		size_t index = key.rawValue();
+		if (arr.val.size() > index) {
+			arr.val[index].setByType(val.rawValue(), val.type());
 		}
 	}
+}
+
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
+	if (ArrayExist(id)) setArray(id, key, val, allowUnset);
 }
 
 int LenArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	return (it != arrays.end()) ? it->second.size() : -1;
-}
-
-bool ArrayExist(DWORD id) {
-	return (arrays.find(id) != arrays.end());
 }
 
 template <class T>
@@ -604,7 +603,7 @@ static void MapSort(sArrayVar& arr, int type) {
 }
 
 long ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || arrays.find(id) == arrays.end()) return 0;
+	if (newlen == -1 || !ArrayExist(id)) return 0;
 
 	sArrayVar &arr = arrays[id];
 	int arrSize = arr.size();
@@ -651,7 +650,7 @@ void FixArray(DWORD id) {
 }
 
 ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
-	if (arrays.find(id) == arrays.end()) {
+	if (!ArrayExist(id)) {
 		return ScriptValue(-1);
 	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
@@ -679,7 +678,7 @@ DWORD LoadArray(const ScriptValue& key) {
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 
 		if (keyEl.type == DataType::STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
-			DWORD tmpArrId = TempArray(savedArrays.size(), 0);
+			DWORD tmpArrId = CreateTempArray(savedArrays.size(), 0);
 			if (tmpArrId > 0) {
 				std::vector<sArrayElement>::iterator elIt;
 				ArrayKeysMap::iterator it;
@@ -738,15 +737,14 @@ void SaveArray(const ScriptValue& key, DWORD id) {
 	Should always return 0!
 */
 long StackArray(const ScriptValue& key, const ScriptValue& val) {
-	DWORD id = stackArrayId;
-	if (id == 0 || arrays.find(id) == arrays.end()) {
-		return 0;
+	if (stackArrayId == 0 || !ArrayExist(stackArrayId)) return 0;
+
+	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
+		size_t size = arrays[stackArrayId].val.size();
+		if (size >= ARRAY_MAX_SIZE) return 0;
+		if (key.rawValue() >= size) arrays[stackArrayId].val.resize(size + 1);
 	}
-	if (!arrays[id].isAssoc()) {
-		// automatically resize array to fit one new element
-		ResizeArray(id, arrays[id].size() + 1);
-	}
-	SetArray(id, key, val, false);
+	setArray(stackArrayId, key, val, false);
 	return 0;
 }
 

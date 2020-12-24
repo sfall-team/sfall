@@ -89,6 +89,7 @@ struct sArrayVarOld
 
 #define ARRAYFLAG_ASSOC		(1) // is map
 #define ARRAYFLAG_CONSTVAL	(2) // don't update value of key if the key exists in map
+#define ARRAYFLAG_RESERVED	(4)
 
 typedef std::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sArrayElement_EqualFunc> ArrayKeysMap;
 
@@ -108,6 +109,11 @@ public:
 	std::vector<sArrayElement> val; // list of values or key=>value pairs (even - keys, odd - values)
 
 	sArrayVar() : flags(0), key() {}
+
+	sArrayVar(int len, int flag) : flags(flag), key() {
+		if (len == 0) val.reserve((flag & 0x7FFF0000) >> 16);
+		if (len < 0) val.reserve(20); // for assoc
+	}
 
 	bool isAssoc() const {
 		return (flags & ARRAYFLAG_ASSOC);
@@ -154,6 +160,7 @@ extern ArrayKeysMap savedArrays;
 long LoadArrays(HANDLE h);
 void SaveArrays(HANDLE h);
 int GetNumArrays();
+bool ArrayExist(DWORD id);
 void GetArrays(int* arrays);
 
 void DEGetArray(int id, DWORD* types, char* data);
@@ -163,7 +170,7 @@ void DESetArray(int id, const DWORD* types, const char* data);
 DWORD CreateArray(int len, DWORD flags);
 
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
-DWORD TempArray(DWORD len, DWORD flags);
+DWORD CreateTempArray(DWORD len, DWORD flags);
 
 // destroys array
 void FreeArray(DWORD id);
@@ -179,13 +186,14 @@ ScriptValue GetArrayKey(DWORD id, int index);
 // get array element by index (list) or key (map)
 ScriptValue GetArray(DWORD id, const ScriptValue& key);
 
-// set array element by index or key
+// set array element by index or key (with checking the existence of the array ID)
 void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
+
+// set array element by index or key
+void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // number of elements in list or pairs in map
 int LenArray(DWORD id);
-
-bool ArrayExist(DWORD id);
 
 // change array size (only works with list)
 long ResizeArray(DWORD id, int newlen);

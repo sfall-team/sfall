@@ -42,6 +42,18 @@ const char* MessageSearch(const MessageList* fileAddr, long messageId) {
 	return nullptr;
 }
 
+Queue* QueueFind(GameObject* object, long type) {
+	if (fo::var::queue) {
+		Queue* queue = fo::var::queue;
+		while (queue->object != object && queue->type != type) {
+			queue = queue->next;
+			if (!queue) break;
+		}
+		return queue;
+	}
+	return nullptr;
+}
+
 long AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
 		Proto* proto = GetProto(weapon->protoId);
@@ -150,6 +162,14 @@ long __fastcall IsRadInfluence() {
 		queue = (fo::QueueRadiation*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
 	}
 	return 0;
+}
+
+bool IsNpcFlag(fo::GameObject* npc, long flag) {
+	Proto* protoPtr;
+	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
+		return (protoPtr->critter.critterFlags & (1 << flag)) != 0;
+	}
+	return false;
 }
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
@@ -346,14 +366,24 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-// Fills the specified non-scripted interface window with index color 0 (black color)
+// Fills the specified interface window with index color
+void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
+	fo::Window* win = fo::func::GNW_find(winID);
+	BYTE* surf = win->surface + (win->width * y) + x;
+	long pitch = win->width - width;
+	while (height--) {
+		long w = width;
+		while (w--) *surf++ = indexColor;
+		surf += pitch;
+	};
+}
+
+// Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	fo::Window* win = fo::func::GNW_find(winID);
-	for (long i = 0; i < win->height; i++) {
-		std::memset(win->surface, 0, win->width);
-	}
+	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
-		fo::func::GNW_win_refresh(win, &win->rect, 0);
+		fo::func::GNW_win_refresh(win, &win->rect, nullptr);
 	}
 }
 

@@ -172,7 +172,7 @@ VARA(proto_msg_files,            fo::MessageList, 6)  // array of 6 elements
 VAR_(proto_main_msg_file,        fo::MessageList)
 VAR_(ptable,                     DWORD)
 VAR_(pud,                        DWORD)
-VAR_(queue,                      DWORD)
+VAR_(queue,                      fo::Queue*)
 VAR_(quick_done,                 DWORD)
 VAR_(read_callback,              DWORD)
 VAR_(rectList,                   fo::RectList*) 

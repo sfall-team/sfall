@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2012  The sfall team
+ *    Copyright (C) 2008-2020  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,15 +18,18 @@
 
 #pragma once
 
-#include "Module.h"
-
 namespace sfall
 {
 
-class MainMenu : public Module {
+class GameRender {
 public:
-	const char* name() { return "MainMenu"; }
-	void init();
+	static void init();
+
+	static void CreateOverlaySurface(fo::Window* win, long winType);
+//	static void DestroyOverlaySurface(long winType);
+	static void ClearOverlay(fo::Window* win);
+	static void ClearOverlay(fo::Window* win, Rectangle &rect);
+	static BYTE* GetOverlaySurface(fo::Window* win);
 };
 
 }

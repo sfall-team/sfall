@@ -151,5 +151,7 @@ void mf_get_ini_section(OpcodeContext&);
 
 void mf_npc_engine_level_up(OpcodeContext&);
 
+void mf_combat_data(OpcodeContext&);
+
 }
 }

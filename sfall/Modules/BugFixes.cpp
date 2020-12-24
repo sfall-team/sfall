@@ -407,7 +407,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   noArmor;
-		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
+		and  byte ptr [eax][flags + 3], ~(Worn >> 24); // Unset flag of equipped armor
 		jmp  nextArmor;
 noArmor:
 		mov  eax, esi;
@@ -423,7 +423,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   end;
-		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
+		and  byte ptr [eax][flags + 3], ~(Worn >> 24); // Unset flag of equipped armor
 		jmp  nextArmor;
 end:
 		retn;
@@ -3243,7 +3243,7 @@ void BugFixes::init()
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
-	// Fix broken op_obj_can_hear_obj_ function
+	// Fix broken obj_can_hear_obj function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
@@ -3570,6 +3570,9 @@ void BugFixes::init()
 	// when calculating the hit chance penalty of ranged attacks in determine_to_hit_func_ engine function
 	SafeWriteBatch<BYTE>(0x41, {0x426D46, 0x426D4E}); // edi > ecx (replace target with object critter)
 	SafeWrite8(0x426D48, fo::DAM_DEAD | fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
+
+	// Fix broken Print() script function
+	HookCall(0x461AD4, (void*)fo::funcoffs::windowOutput_);
 }
 
 }

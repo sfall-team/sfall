@@ -87,7 +87,7 @@ static void TimerReset() {
 	addedYears += 13;
 
 	// fix queue time
-	fo::Queue* queue = (fo::Queue*)fo::var::queue;
+	fo::Queue* queue = fo::var::queue;
 	while (queue) {
 		if (queue->time > time) {
 			queue->time -= time;
