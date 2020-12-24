@@ -689,7 +689,7 @@
     opcode: 0x8236
   - name: party_member_list
     detail: array party_member_list(int includeHidden)
-    doc: Returns array of all current party members. 0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.
+    doc: Returns an array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
     opcode: 0x8271
 
 - name: Explosions
@@ -736,7 +736,7 @@
 
   - name: get_explosion_damage
     detail: array get_explosion_damage(itemPid)
-    doc: Returns array of the minimum and maximum damage of the explosive item.
+    doc: Returns an array of the minimum and maximum damage of the explosive item.
     macro: sfall.h
 
   - name: set_explosion_max_targets
@@ -1302,6 +1302,14 @@
     detail: any sfall_func6(char* funcName, arg1, arg2, arg3, arg4, arg5, arg6)
     doc: Calls scripting function with given name and 6 arguments
     opcode: 0x827c
+  - name: sfall_func7
+    detail: any sfall_func7(string funcName, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+    doc: Calls scripting function with given name and 7 arguments
+    opcode: 0x8280
+  - name: sfall_func8
+    detail: any sfall_func8(string funcName, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+    doc: Calls scripting function with given name and 8 arguments
+    opcode: 0x8281
 
 - name: Sfall funcX macros
   items:
@@ -1490,6 +1498,12 @@
     detail: int get_bodypart_hit_modifier(int bodypart)
     opcode: 0x81df
     doc: Gets the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8.
+  - name: combat_data
+    detail: mixed combat_data
+    doc: |
+      - returns a pointer to the `C_ATTACK_*` data for the current combat attack process (see defined constants in `define_extra.h`)
+      - can be used in conjunction with the `get_object_data` and `set_object_data` functions
+        example: `sfall_func3("set_object_data", sfall_func0("combat_data"), C_ATTACK_UNUSED, 255);`
   - name: set_bodypart_hit_modifier
     detail: void set_bodypart_hit_modifier(int bodypart, int value)
     opcode: 0x81e0
@@ -1538,11 +1552,16 @@
     doc: Changes the current town index for the player's car.
   - name: car_gas_amount
     detail: int car_gas_amount()
-    doc: "Returns current amount of fuel in player's car (between 0 and 80000). Note: To change fuel amount, use vanilla function: `metarule(METARULE_GIVE_CAR_GAS, amount)` - `amount` can be positive or negative."
+    doc: |
+      Returns the current amount of fuel in player's car (between 0 and 80000).
+      To change fuel amount, use vanilla function: `metarule(METARULE_GIVE_CAR_GAS, amount)` - `amount` can be positive or negative.
     macro: sfall.h
   - name: set_car_intface_art
     detail: void set_car_intface_art(int artIndex)
-    doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Should be called before going to worldmap. Vanilla art index is 0x1B1.'
+    doc: |
+      - Changes the interface art (index in `intrface.lst`) for the car image on the world map interface
+      - Should be called before going to the world map
+      - Vanilla art index is 433
     macro: sfall.h
 
 - name: Windows and images
@@ -1556,9 +1575,9 @@
         int sfall_func5("interface_art_draw", int winType, string artFile/int artID, int x, int y, int frame)
         int sfall_func6("interface_art_draw", int winType, string artFile/int artID, int x, int y, int frame, array param)
         ```
-        - draws the specified PCX or FRM image in the game interface window, returns -1 in case of any error
+        - draws the specified PCX or FRM image in the game interface window, returns -1 on any error
         - `winType`: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`)
-          this also takes the value of the flag (0x10000) to prevent immediate redrawing of the interface window
+          this also takes the value of the flag (0x1000000) to prevent immediate redrawing of the interface window
         - `artFile/artId`: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
         - `x/y`: offset relative to the top-left corner of the window
 
@@ -1568,22 +1587,24 @@
           index 0 - sprite direction for multi-directional FRM
           index 1/index 2 - the new width/height to scale the image to. Pass -1 to use the original width/height
 
-    - name: print_text
-      detail: int sfall_func5("print_text", string text, int winType, int x, int y, int color)
+    - name: interface_print
+      detail: int sfall_func5("interface_print", string text, int winType, int x, int y, int color)
       doc: |
         ```c++
-        int sfall_func5("print_text", string text, int winType, int x, int y, int color)
-        int sfall_func6("print_text", string text, int winType, int x, int y, int color, int width)
+        int sfall_func5("interface_print", string text, int winType, int x, int y, int color)
+        int sfall_func6("interface_print", string text, int winType, int x, int y, int color, int width)
         ```
         - displays the text in the specified interface window with the current font. Use vanilla `SetFont` function to set the font
+        - returns the count of lines printed, or -1 on any error
         - `text`: the text to be printed. Use the `\n` control character to move text to a new line (example: "Hello\nWorld!")
         - `winType`: the type number of the interface window (see `WINTYPE_*` constants in sfall.h)
         - `x/y`: offset relative to the top-left corner of the window
-        - `color`: the color index in Fallout palette. Pass 0 if the text color was previously set by vanilla SetTextColor function
-          it can also take additional flags (via `bwor`) for displaying text:
-          `0x0010000` - adds a shadow to the text, the 'textshadow' compiler constant
-          `0x2000000` - fills the background of the text with black color, the 'textnofill' compiler constant (works the other way around)
-        - `width`: the maximum width of the text. The text will be wrapped to fit within the specified width
+        - `color`: the color index in the game palette. Pass 0 if the text color was previously set by vanilla `SetTextColor` function
+          It can also take additional flags (via `bwor`) for displaying text:
+          - `0x0010000` - adds a shadow to the text, the 'textshadow' compiler constant
+          - `0x1000000` - prevents immediate redrawing of the interface window, the `textdirect` compiler constant (works the other way around)
+          - `0x2000000` - fills the background of the text with black color, the `textnofill` compiler constant (works the other way around)
+        - `width` (optional): the maximum width of the text. The text will be wrapped to fit within the specified width
 
     - name: draw_image
       detail: void draw_image(string/int artFile/artId, int frame, int x, int y, bool noTransparent)
@@ -1622,22 +1643,23 @@
       detail: int sfall_func1("get_window_attribute", int winType)
       doc: |
         Alternative form: `int sfall_func2("get_window_attribute", int winType, int attrType)`
-        Returns the attribute of the specified interface window by the attrType argument.
-        ```
-        - winType: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`)
-        - attrType: 0 - checks and returns a value of 1 if the specified interface window is created by the game (same as without the argument)
-                    1 - X position, 2 - Y position (relative to the top-left corner of the game screen)
+        Returns the attribute of the specified interface window by the `attrType` argument.
+        - `winType`: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`)
+        - `attrType`: `0` - checks and returns a value of 1 if the specified interface window is created by the game (same as without the argument)
+                      `1` - X position, `2` - Y position (relative to the top-left corner of the game screen)
+                      `3` - interface width size, `4` - interface height size
+                      `-1` - returns an associative array of keys (left, top, right, bottom) and values that define the position of the window rectangle
+                      (use standard syntax to access array values, e.g. `winRect.top`, `winRect.bottom`)
         - returns -1 if the specified attribute cannot be obtained
-        ```
     - name: message_box
       detail: int sfall_func4("message_box", string message, int flags, int color1, int color2)
       doc: |
         Creates a dialog box with text and returns the result of pressing the button: 0 - No (Escape), 1 - Yes/Done (Enter). Returns -1 if for some reason the dialog box cannot be created.
         ```
-        - message: the text in the dialog box. Use the \n control character to move text to a new line (example: "Hello\nWorld!")
+        - message: the text in the dialog box. Use the `\n` control character to move text to a new line (example: "Hello\nWorld!")
         optional arguments:
         - flags: mode flags (see `MSGBOX_*` constants in define_extra.h). Pass -1 to skip setting the flags (default flags are NORMAL and YESNO)
-        - color1/color2: the color index in Fallout palette. color1 sets the text color for the first line, and color2 for all subsequent lines of text (default color is 145)
+        - color1/color2: the color index in the game palette. `color1` sets the text color for the first line, and `color2` for all subsequent lines of text (default color is 145)
         ```
     - name: set_window_flag
       detail: void set_window_flag(string winName/int winID, int flag, bool value)
@@ -1648,6 +1670,12 @@
         - flag: the flag to change (see `WIN_FLAG_*` constants in `define_extra.h`)
         - value: `true` - set the flag, `false` - unset the flag
       macro: sfall.h
+
+    - name: win_fill_color
+      detail: int win_fill_color(int x, int y, int width, int height, int color)
+      doc: |
+        Fills the rectangle area of the currently selected script window with the specified color, or clears the window with transparent (index 0) color (call the function without arguments).
+        - `color`: the color index in the game palette (from 0 to 255)
 
 - name: Outline
   parent: Interface
