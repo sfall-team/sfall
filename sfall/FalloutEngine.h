@@ -1376,7 +1376,7 @@ DWORD __stdcall GetMaxCharWidth();
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(TGameObj* obj);
 
-// Redraws all interface windows
-void RefreshGNW(size_t from = 0);
+// Redraws all windows
+void RefreshGNW(bool skipOwner = false);
 
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);

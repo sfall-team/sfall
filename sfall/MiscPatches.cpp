@@ -551,12 +551,33 @@ static void AlwaysReloadMsgs() {
 	}
 }
 
-static void RemoveWindowRoundingPatch() {
+static void InterfaceWindowPatch() {
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
 		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, windowRoundingAddr);
-		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
 	}
+
+	dlog("Applying flags patch for interface windows.", DL_INIT);
+
+	// Remove MoveOnTop flag for interfaces
+	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
+	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ WinFlags::MoveOnTop); // Automap
+
+	// Set OwnerFlag flag
+	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | WinFlags::OwnerFlag); // _display_win (map win)
+	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | WinFlags::OwnerFlag); // gmovie_play_ (movie win)
+
+	// Remove OwnerFlag flag
+	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ WinFlags::OwnerFlag); // createWindow_
+	// Remove OwnerFlag and Transparent flags
+	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (WinFlags::Transparent | WinFlags::OwnerFlag)); // addWindow_
+
+	dlogr(" Done", DL_INIT);
+
+	// Disable unused code for the RandX and RandY window structure fields (these fields can now be used for other purposes)
+	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
+	SafeWrite8(0x4D6310, 0x90);
+	BlockCall(0x4D6319);
 }
 
 static void InventoryCharacterRotationSpeedPatch() {
@@ -633,15 +654,6 @@ static void SkipLoadingGameSettingsPatch() {
 		SafeWriteBatch<CodeData>(patchData, settingsAddr);
 		dlogr(" Done", DL_INIT);
 	}
-}
-
-static void InterfaceDontMoveOnTopPatch() {
-	//if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
-		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
-		SafeWrite8(0x46ECE9, WinFlags::Exclusive); // Player Inventory/Loot/UseOn
-		SafeWrite8(0x41B966, WinFlags::Exclusive); // Automap
-		dlogr(" Done", DL_INIT);
-	//}
 }
 
 static void UseWalkDistancePatch() {
@@ -790,7 +802,7 @@ void MiscPatches_Init() {
 	PlayIdleAnimOnReloadPatch();
 
 	SkilldexImagesPatch();
-	RemoveWindowRoundingPatch();
+	InterfaceWindowPatch();
 
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
@@ -814,7 +826,6 @@ void MiscPatches_Init() {
 	KeepWeaponSelectModePatch();
 
 	SkipLoadingGameSettingsPatch();
-	InterfaceDontMoveOnTopPatch();
 
 	UseWalkDistancePatch();
 }

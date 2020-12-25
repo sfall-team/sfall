@@ -20,6 +20,13 @@
 
 #include <Windows.h>
 
+struct sRectangle {
+	long x, y, width, height;
+
+	long right() { return x + (width - 1); }
+	long bottom() { return y + (height - 1); }
+};
+
 /******************************************************************************/
 /* FALLOUT2.EXE structs should be placed here  */
 /******************************************************************************/

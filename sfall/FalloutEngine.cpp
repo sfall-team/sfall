@@ -1707,10 +1707,11 @@ void RedrawObject(TGameObj* obj) {
 	TileRefreshRect(&rect, obj->elevation);
 }
 
-// Redraws all interface windows
-void RefreshGNW(size_t from) {
+// Redraws all windows
+void RefreshGNW(bool skipOwner) {
 	*(DWORD*)_doing_refresh_all = 1;
-	for (size_t i = from; i < *ptr_num_windows; i++) {
+	for (size_t i = 0; i < *ptr_num_windows; i++) {
+		if (skipOwner && ptr_window[i]->flags & WinFlags::OwnerFlag) continue;
 		GNWWinRefresh(ptr_window[i], ptr_scr_size, 0);
 	}
 	*(DWORD*)_doing_refresh_all = 0;

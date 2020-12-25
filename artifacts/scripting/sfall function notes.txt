@@ -402,9 +402,9 @@ Some utility/math functions are available:
 - works just like vanilla critter_inven_obj, but correctly reports item in player's inactive hand slot
 
 > void sfall_func0("intface_redraw")
-> void sfall_func1("intface_redraw", bool eachWin)
+> void sfall_func1("intface_redraw", int winType)
 - redraws main game interface, useful to reflect changes after directly changing current player weapons or stats
-- eachWin: pass True to redraw all interface windows
+- winType: the type number of the interface window (see WINTYPE_* constants in sfall.h). Pass -1 to redraw all interface windows
 
 > void sfall_func0("intface_hide")
 - hides main interface
@@ -727,6 +727,14 @@ optional arguments:
 > int sfall_func5("win_fill_color", int x, int y, int width, int height, int color)
 - fills the rectangle area of the currently selected script window with the specified color, or clears the window with transparent (index 0) color (call the function without arguments)
 - color: the color index in the game palette (from 0 to 255)
+
+> int sfall_func2("interface_overlay", int winType, int mode)
+> int sfall_func6("interface_overlay", int winType, 2, int x, int y, int width, int height)
+- creates an additional drawing surface above the graphic layer of the specified interface window. All subsequent calls of interface_art_draw and interface_print functions will draw on it
+- winType: the type number of the interface window (see WINTYPE_* constants in sfall.h)
+- mode: 1 - creates a new overlay surface
+        2 - clears the overlay area or the specified rectangle defined by the x, y, width, height arguments
+        0 - destroys the created overlay surface (frees up the memory allocated to the surface)
 
 ------------------------
 ------ MORE INFO -------

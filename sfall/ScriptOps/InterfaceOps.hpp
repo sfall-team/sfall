@@ -341,10 +341,17 @@ static void __declspec(naked) op_is_iface_tag_active() {
 }
 
 static void mf_intface_redraw() {
-	if (opHandler.arg(0).rawValue() == 0) {
+	if (opHandler.numArgs() == 0) {
 		IntfaceRedraw();
 	} else {
-		RefreshGNW(2); // fake redraw all interfaces (TODO: need a real redraw of interfaces)
+		// fake redraw interfaces (TODO: need a real redraw of interface?)
+		long winType = opHandler.arg(0).rawValue();
+		if (winType == -1) {
+			RefreshGNW(true); 
+		} else {
+			WINinfo* win = Interface_GetWindow(winType);
+			if (win && (int)win != -1) GNWWinRefresh(win, &win->rect, 0);
+		}
 	}
 }
 
@@ -701,7 +708,7 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 	            surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
-	if (!(opHandler.arg(0).rawValue() & 0x1000000)) {
+	if (!(opHandler.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
 		GNWWinRefresh(ifaceWin, &ifaceWin->rect, 0);
 	}
 
@@ -893,15 +900,15 @@ static void mf_win_fill_color() {
 }
 
 static void mf_interface_overlay() {
-	WINinfo* win = nullptr;
 	long winType = opHandler.arg(0).rawValue();
 
-	if (opHandler.arg(1).rawValue()) {
-		win = Interface_GetWindow(winType);
-		if (!win || (int)win == -1) return;
-	}
+	WINinfo* win = Interface_GetWindow(winType);
+	if (!win || (int)win == -1) return;
 
 	switch (opHandler.arg(1).rawValue()) {
+	case 0:
+		GameRender_DestroyOverlaySurface(win);
+		break;
 	case 1:
 		GameRender_CreateOverlaySurface(win, winType);
 		break;
@@ -921,7 +928,5 @@ static void mf_interface_overlay() {
 			GameRender_ClearOverlay(win);
 		}
 		break;
-	//case 0: // unused (reserved)
-	//	GameRender_DestroyOverlaySurface(winType);
 	}
 }
