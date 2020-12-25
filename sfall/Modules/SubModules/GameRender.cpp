@@ -25,6 +25,8 @@
 namespace sfall
 {
 
+static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE* toBuffer);
+
 class OverlaySurface
 {
 private:
@@ -34,12 +36,12 @@ private:
 	BYTE* surface = nullptr;
 
 public:
-	//long winType = -1;
+	long winType = -1;
 
 	BYTE* Surface() { return surface; }
 
 	void CreateSurface(fo::Window* win, long winType) {
-		//this->winType = winType;
+		this->winType = winType;
 		this->surfWidth = win->width;
 		this->size = win->height * win->width;
 
@@ -66,26 +68,28 @@ public:
 
 			size_t sizeD = rect.width >> 2;
 			size_t sizeB = rect.width & 3;
-			size_t stride = sizeD << 2;
+			size_t strideD = sizeD << 2;
+			size_t stride = surfWidth - rect.width;
 
 			long height = rect.height;
 			while (height--) {
 				if (sizeD) {
 					__stosd((DWORD*)surf, 0, sizeD);
-					surf += stride;
+					surf += strideD;
 				}
 				if (sizeB) {
 					__stosb(surf, 0, sizeB);
 					surf += sizeB;
 				}
+				surf += stride;
 			};
 		}
 	}
 
-	/*void DestroySurface() {
+	void DestroySurface() {
 		delete[] surface;
 		surface = nullptr;
-	}*/
+	}
 
 	~OverlaySurface() {
 		delete[] surface;
@@ -95,32 +99,45 @@ public:
 static long indexPosition = 0;
 
 void GameRender::CreateOverlaySurface(fo::Window* win, long winType) {
-	overlaySurfaces[indexPosition].CreateSurface(win, winType);
+	if (win->randY) return;
+	if (overlaySurfaces[indexPosition].winType == winType) {
+		overlaySurfaces[indexPosition].ClearSurface();
+	} else {
+		if (++indexPosition == 5) indexPosition = 0;
+		overlaySurfaces[indexPosition].CreateSurface(win, winType);
+	}
 	win->randY = reinterpret_cast<long*>(&overlaySurfaces[indexPosition]);
-	if (++indexPosition == 5) indexPosition = 0;
-};
+}
 
 BYTE* GameRender::GetOverlaySurface(fo::Window* win) {
 	return reinterpret_cast<OverlaySurface*>(win->randY)->Surface();
-};
+}
 
 void GameRender::ClearOverlay(fo::Window* win) {
 	if (win->randY) reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface();
-};
+}
 
 void GameRender::ClearOverlay(fo::Window* win, Rectangle &rect) {
-	if (win->randY) reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface(rect);
-};
-
-/*void GameRender::DestroyOverlaySurface(long winType) {
-	for (size_t i = 0; i < 5; i++) {
-		if (overlaySurfaces[i].winType == winType) {
-			overlaySurfaces[i].DestroySurface();
-			overlaySurfaces[i].winType = -1;
-			//break;
-		}
+	if (win->randY) {
+		reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface(rect);
+		fo::BoundRect updateRect = rect;
+		updateRect.x += win->rect.x;
+		updateRect.y += win->rect.y;
+		updateRect.offx += win->rect.x;
+		updateRect.offy += win->rect.y;
+		sf_GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
 	}
-};*/
+}
+
+void GameRender::DestroyOverlaySurface(fo::Window* win) {
+	if (win->randY) {
+		auto overlay = reinterpret_cast<OverlaySurface*>(win->randY);
+		win->randY = nullptr;
+		overlay->winType = -1;
+		overlay->DestroySurface();
+		sf_GNW_win_refresh(win, &win->wRect, 0);
+	}
+}
 
 static BYTE* GetBuffer() {
 	return (BYTE*)*(DWORD*)FO_VAR_screen_buffer;
@@ -202,7 +219,7 @@ static void __fastcall sf_GNW_win_refresh(fo::Window* win, RECT* updateRect, BYT
 	__asm mov  rects, eax;
 	if (!rects) return;
 
-	rects->rect = { updateRect->left, updateRect->top, updateRect->right, updateRect->bottom };
+	rects->rect = updateRect;
 	rects->nextRect = nullptr;
 
 	/*
@@ -312,17 +329,11 @@ void GameRender::init() {
 		0x4D5D46, // win_init_ (create screen_buffer)
 		0x4D75E6  // win_clip_ (remove _buffering checking)
 	});
-	SafeWrite8(0x42F869, fo::WinFlags::MoveOnTop | fo::WinFlags::OwnerFlag); // addWindow_ (remove Transparent flag)
 
 	// Custom implementation of the GNW_win_refresh function
 	MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
 	// Replace _screendump_buf with _screen_buffer for creating screenshots
 	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, {0x4C8FD1, 0x4C900D});
-
-	// Disable unused code for the RandX and RandY window structure fields (these fields can now be used for other purposes)
-	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
-	SafeWrite8(0x4D6310, 0x90);
-	BlockCall(0x4D6319);
 }
 
 }

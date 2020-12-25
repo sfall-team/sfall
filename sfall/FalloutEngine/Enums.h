@@ -789,16 +789,16 @@ namespace Fields {
 namespace WinFlags {
 	enum WinButtonFlags : long
 	{
-		OwnerFlag             = 0x1,
-		DontMoveTop           = 0x2,
-		MoveOnTop             = 0x4,
-		Hidden                = 0x8,
-		Exclusive             = 0x10,
-		Transparent           = 0x20,
-		UnknownFlag40         = 0x40,
-		UnknownFlag80         = 0x80,
-		ScriptWindow          = 0x100,
-		itsButton             = 0x10000,
+		OwnerFlag         = 0x000001, // sfall Render flag, indicates that the window surface is used for rendering the game scene
+		DontMoveTop       = 0x000002, // does not move the window to top when the mouse is clicked in the window area or when it is showing
+		MoveOnTop         = 0x000004, // places the window on top when it is created
+		Hidden            = 0x000008,
+		Exclusive         = 0x000010,
+		Transparent       = 0x000020,
+		UnknownFlag40     = 0x000040,
+		UnknownFlag80     = 0x000080,
+		ScriptWindow      = 0x000100,
+		itsButton         = 0x010000,
 	};
 }
 

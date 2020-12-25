@@ -268,10 +268,17 @@ void op_is_iface_tag_active(OpcodeContext &ctx) {
 }
 
 void mf_intface_redraw(OpcodeContext& ctx) {
-	if (ctx.arg(0).rawValue() == 0) {
+	if (ctx.numArgs() == 0) {
 		fo::func::intface_redraw();
 	} else {
-		fo::func::RefreshGNW(2); // fake redraw all interfaces (TODO: need a real redraw of interfaces)
+		// fake redraw interfaces (TODO: need a real redraw of interface?)
+		long winType = ctx.arg(0).rawValue();
+		if (winType == -1) {
+			fo::func::RefreshGNW(true);
+		} else {
+			fo::Window* win = Interface::GetWindow(winType);
+			if (win && (int)win != -1) fo::func::GNW_win_refresh(win, &win->rect, 0);
+		}
 	}
 }
 
@@ -636,7 +643,7 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	                       surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
-	if (!(ctx.arg(0).rawValue() & 0x1000000)) {
+	if (!(ctx.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
 		fo::func::GNW_win_refresh(ifaceWin, &ifaceWin->rect, 0);
 	}
 
@@ -828,15 +835,15 @@ void mf_win_fill_color(OpcodeContext& ctx) {
 }
 
 void mf_interface_overlay(OpcodeContext& ctx) {
-	fo::Window* win = nullptr;
 	long winType = ctx.arg(0).rawValue();
 
-	if (ctx.arg(1).rawValue()) {
-		win = Interface::GetWindow(winType);
-		if (!win || (int)win == -1) return;
-	}
+	fo::Window* win = Interface::GetWindow(winType);
+	if (!win || (int)win == -1) return;
 
 	switch (ctx.arg(1).rawValue()) {
+	case 0:
+		GameRender::DestroyOverlaySurface(win);
+		break;
 	case 1:
 		GameRender::CreateOverlaySurface(win, winType);
 		break;
@@ -856,8 +863,6 @@ void mf_interface_overlay(OpcodeContext& ctx) {
 			GameRender::ClearOverlay(win);
 		}
 		break;
-	//case 0: // unused (reserved)
-	//	GameRender::DestroyOverlaySurface(winType);
 	}
 }
 

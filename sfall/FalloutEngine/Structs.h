@@ -22,6 +22,18 @@
 
 #include "Enums.h"
 
+namespace sfall
+{
+
+struct Rectangle {
+	long x, y, width, height;
+
+	long right() { return x + (width - 1); }
+	long bottom() { return y + (height - 1); }
+};
+
+}
+
 namespace fo
 {
 
@@ -74,6 +86,22 @@ struct BoundRect {
 	long y;
 	long offx; // right
 	long offy; // bottom
+
+	BoundRect() {};
+
+	BoundRect(sfall::Rectangle rect) {
+		x = rect.x;
+		y = rect.y;
+		offx = rect.right();
+		offy = rect.bottom();
+	}
+
+	BoundRect(RECT* rect) {
+		x = rect->left;
+		y = rect->top;
+		offx = rect->right;
+		offy = rect->bottom;
+	}
 };
 
 struct RectList {
