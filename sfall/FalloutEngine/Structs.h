@@ -19,6 +19,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <dsound.h>
 
 #include "Enums.h"
 
@@ -922,7 +923,7 @@ struct ACMSoundData {
 	void* FileSizeFunc;
 	long  openAudioIndex;
 	long  memData;
-	long  soundBuffer;
+	IDirectSoundBuffer* soundBuffer;
 	long  dwSize;              // begin DSBUFFERDESC structure
 	long  dwFlags;
 	long  dwBufferBytes;
