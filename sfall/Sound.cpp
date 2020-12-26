@@ -908,6 +908,43 @@ rawFile:
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+static TGameObj* relativeObject;
+static long relativeDistance = 0;
+
+static void __declspec(naked) gsound_compute_relative_volume_hook() {
+	__asm {
+		call obj_dist_;
+		mov  relativeDistance, eax;
+		mov  relativeObject, ecx;
+		retn;
+	}
+}
+
+static void __fastcall SetPanPosition(ACMSoundData* sound) {
+	if (relativeDistance <= 5) return;
+
+	long direction = TileDir((*ptr_obj_dude)->tile, relativeObject->tile);
+	bool isRightSide = (direction <= 2);
+
+	long panValue = (relativeDistance / 2) * 1000;
+	if (panValue > 10000) panValue = 10000;
+
+	if (!isRightSide) panValue = -panValue; // left mute 10000 ... -10000 right mute
+	sound->soundBuffer->SetPan(panValue);
+
+	relativeDistance = 0;
+}
+
+static void __declspec(naked) gsound_load_sound_volume_hook() {
+	__asm {
+		call soundVolume_;
+		mov  ecx, ebx; // sound
+		jmp  SetPanPosition;
+	}
+}
+
 static const int SampleRate = 44100; // 44.1kHz
 
 void Sound_OnAfterGameInit() {
@@ -918,6 +955,11 @@ void Sound_Init() {
 	// Set the 44.1kHz sample rate for the primary sound buffer
 	SafeWrite32(0x44FDBC, SampleRate);
 	// Sound_OnAfterGameInit will be run after game initialization
+
+	// Enable support for panning sfx sounds
+	SafeWrite8(0x45237E, (*(BYTE*)0x45237E) | 4); // set mode for DSBCAPS_CTRLPAN
+	HookCall(0x4515AC, gsound_compute_relative_volume_hook);
+	HookCall(0x451483, gsound_load_sound_volume_hook);
 
 	HookCall(0x44E816, gmovie_play_hook_pause);
 	HookCall(0x44EA84, gmovie_play_hook_unpause);
@@ -967,7 +1009,7 @@ void Sound_Init() {
 	HookCalls(audioOpen_hook, audioOpenAddr);
 
 	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
-	if (sBuff > 0) {
+	if (sBuff > 4) {
 		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 	}
 

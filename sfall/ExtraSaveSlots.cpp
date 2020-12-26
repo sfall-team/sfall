@@ -481,31 +481,6 @@ static void __declspec(naked) SaveGame_hack1() {
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-static void __fastcall SetSaveComment(char* comment) {
-	int i = 0;
-	const char* mapName = MapGetShortName(*ptr_map_number);
-	do {
-		comment[i] = mapName[i];
-	} while (++i < 20 && mapName[i]);
-	comment[i++] = ':';
-	comment[i] = '\0';
-}
-
-static void __declspec(naked) GetComment_hack() {
-	__asm {
-		cmp [ecx], 0;
-		jne notEmpty;
-		pushadc;
-		call SetSaveComment;
-		popadc;
-notEmpty:
-		push 0x47F031;
-		jmp  get_input_str2_;
-	}
-}
-
 void ExtraSaveSlots_Init() {
 	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
@@ -533,9 +508,6 @@ void ExtraSaveSlots_Init() {
 		MakeJump(0x47B984, SaveGame_hack0);
 		dlogr(" Done", DL_INIT);
 	}
-
-	// Adds the city name in the description for empty save slots
-	MakeJump(0x47F02C, GetComment_hack);
 }
 
 void ExtraSaveSlots_Exit() {
