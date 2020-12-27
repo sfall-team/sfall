@@ -18,6 +18,7 @@
 
 #include <unordered_map>
 #include <algorithm>
+#include <dsound.h>
 #include <dshow.h>
 
 #include "main.h"
@@ -363,6 +364,7 @@ static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, b
 
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
 
+// TODO: Add DirectSound support for wav format
 static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playType, std::string &pathFile) {
 	size_t len = 0;
 	wchar_t wPath[MAX_PATH];
@@ -911,30 +913,28 @@ rawFile:
 ///////////////////////////////////////////////////////////////////////////////
 
 static TGameObj* relativeObject;
-static long relativeDistance = 0;
 
 static void __declspec(naked) gsound_compute_relative_volume_hook() {
 	__asm {
-		call obj_dist_;
-		mov  relativeDistance, eax;
-		mov  relativeObject, ecx;
-		retn;
+		mov relativeObject, ecx;
+		jmp win_get_rect_;
 	}
 }
 
 static void __fastcall SetPanPosition(ACMSoundData* sound) {
-	if (relativeDistance <= 5) return;
+	if (!relativeObject) return;
 
-	long direction = TileDir((*ptr_obj_dude)->tile, relativeObject->tile);
-	bool isRightSide = (direction <= 2);
+	long distance = ObjDist(*ptr_obj_dude, relativeObject);
+	if (distance > 5) {
+		long direction = TileDir((*ptr_obj_dude)->tile, relativeObject->tile);
+		bool isRightSide = (direction <= 2);
 
-	long panValue = (relativeDistance / 2) * 1000;
-	if (panValue > 10000) panValue = 10000;
+		long panValue = (distance - 5) * 100;
+		if (panValue > 10000) panValue = 10000;
 
-	if (!isRightSide) panValue = -panValue; // left mute 10000 ... -10000 right mute
-	sound->soundBuffer->SetPan(panValue);
-
-	relativeDistance = 0;
+		sound->soundBuffer->SetPan((isRightSide) ? panValue : -panValue); // left mute 10000 ... -10000 right mute
+	}
+	relativeObject = nullptr; // just in case
 }
 
 static void __declspec(naked) gsound_load_sound_volume_hook() {
@@ -958,7 +958,7 @@ void Sound_Init() {
 
 	// Enable support for panning sfx sounds
 	SafeWrite8(0x45237E, (*(BYTE*)0x45237E) | 4); // set mode for DSBCAPS_CTRLPAN
-	HookCall(0x4515AC, gsound_compute_relative_volume_hook);
+	HookCall(0x45158D, gsound_compute_relative_volume_hook);
 	HookCall(0x451483, gsound_load_sound_volume_hook);
 
 	HookCall(0x44E816, gmovie_play_hook_pause);

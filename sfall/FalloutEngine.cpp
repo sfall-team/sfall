@@ -790,6 +790,7 @@ const DWORD win_draw_rect_ = 0x4D6F80;
 const DWORD win_enable_button_ = 0x4D9474;
 const DWORD win_fill_ = 0x4D6CC8;
 const DWORD win_get_buf_ = 0x4D78B0;
+const DWORD win_get_rect_ = 0x4D7950;
 const DWORD win_get_top_win_ = 0x4D78CC;
 const DWORD win_height_ = 0x4D7934;
 const DWORD win_hide_ = 0x4D6E64;

@@ -1087,6 +1087,7 @@ extern const DWORD win_draw_rect_;
 extern const DWORD win_enable_button_;
 extern const DWORD win_fill_;
 extern const DWORD win_get_buf_;
+extern const DWORD win_get_rect_;
 extern const DWORD win_get_top_win_;
 extern const DWORD win_height_;
 extern const DWORD win_hide_;
