@@ -1,6 +1,7 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"
+#include "..\CritterPoison.h"
 #include "Common.h"
 
 #include "ObjectHs.h"
@@ -302,6 +303,36 @@ skip:
 	}
 }
 
+static DWORD __fastcall AdjustPoison_Script(DWORD critter, long amount, DWORD addr) {
+	BeginHook();
+	argCount = 3;
+
+	bool checkPoison = (addr == (0x42D32C + 5)); // from critter_check_poison_
+
+	args[0] = critter;
+	args[1] = amount;
+	args[2] = (checkPoison) ? CritterPoison::adjustPoisonHP_Default : 0;
+
+	RunHookScript(HOOK_ADJUSTPOISON);
+
+	if (cRet > 0) amount = rets[0];
+	if (cRet > 1 && checkPoison && (long)rets[1] < 0) CritterPoison::adjustPoisonHP = rets[1];
+
+	EndHook();
+	return amount;
+}
+
+static void __declspec(naked) critter_adjust_poison_hack() {
+	__asm {
+		push [esp + 0x24 + 4];    // called from
+		mov  ecx, eax;            // critter
+		call AdjustPoison_Script; // edx - amount
+		mov  esi, eax;            // old/new amount
+		mov  eax, edi;            // restore eax value
+		jmp  critter_adjust_poison_hack_fix; // in CritterPoison
+	}
+}
+
 void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
@@ -310,7 +341,7 @@ void Inject_UseObjOnHook() {
 		0x4285DF, // ai_check_drugs
 		0x4286F8, // ai_check_drugs
 		0x4287F8, // ai_check_drugs
-		0x473573 // inven_action_cursor
+		0x473573  // inven_action_cursor
 	});
 }
 
@@ -339,6 +370,10 @@ void Inject_ScriptProcedureHook2() {
 	HookCall(0x4A49A7, After_ScriptStdProcedureHook);
 }
 
+void Inject_AdjustPoisonHook() {
+	MakeCall(0x42D21C, critter_adjust_poison_hack, 1);
+}
+
 void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
@@ -347,6 +382,7 @@ void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
 	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
 	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
+	HookScripts::LoadHookScript("hs_adjustpoison", HOOK_ADJUSTPOISON);
 }
 
 }

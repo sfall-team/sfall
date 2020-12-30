@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2018  The sfall team
+ *    Copyright (C) 2008-2021  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,13 +18,22 @@
 
 #pragma once
 
-#define TARGETVERSION "Fallout 2 v1.02 US"
+#include "Module.h"
 
-#define LEGAL_COPYRIGHT "Copyright (C) 2006-2021, sfall team"
+namespace sfall
+{
 
-#define VERSION_MAJOR 4
-#define VERSION_MINOR 2
-#define VERSION_BUILD 9
-#define VERSION_REV 0
+class CritterPoison : public Module {
+public:
+	const char* name() { return "CritterPoison"; }
+	void init();
 
-#define VERSION_STRING "4.2.9"
+	static long adjustPoisonHP_Default;
+	static long adjustPoisonHP; // temp value from HOOK_ADJUSTPOISON
+
+	static void SetDefaultAdjustPoisonHP(long value);
+};
+
+void critter_adjust_poison_hack_fix();
+
+}

@@ -11,4 +11,5 @@ namespace sfall
 	void Inject_SetLightingHook();
 	void Inject_ScriptProcedureHook();
 	void Inject_ScriptProcedureHook2();
+	void Inject_AdjustPoisonHook();
 }

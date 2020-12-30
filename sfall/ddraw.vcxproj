@@ -291,6 +291,7 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
     <ClInclude Include="Modules\Interface.h" />
     <ClInclude Include="Modules\Drugs.h" />
@@ -388,6 +389,7 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
     <ClCompile Include="Modules\Drugs.cpp" />

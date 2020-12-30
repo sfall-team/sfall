@@ -205,6 +205,7 @@ WRAP_WATCOM_FUNC0(void, process_bk)
 WRAP_WATCOM_FUNC0(void, proto_dude_update_gender)
 // Places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
 WRAP_WATCOM_FUNC2(long, proto_ptr, long, pid, Proto**, ptrPtr)
+WRAP_WATCOM_FUNC2(void, queue_clear_type, long, qType, void*, func)
 WRAP_WATCOM_FUNC2(void*, queue_find_first, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC2(void*, queue_find_next, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC2(void, queue_remove_this, GameObject*, object, long, qType)
