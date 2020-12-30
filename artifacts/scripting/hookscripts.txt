@@ -368,7 +368,7 @@ int     ret0 - overrides the pressed key (a new key DX scancode or 0 for no over
 
 HOOK_MOUSECLICK (hs_mouseclick.int)
 
-Runs once every time when a mouse button was pressed or release.
+Runs once every time when a mouse button was pressed or released.
 
 int     arg0 - event type: 1 - pressed, 0 - released
 int     arg1 - button number (0 - left, 1 - right, up to 7)

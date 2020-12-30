@@ -176,6 +176,7 @@ WRAP_WATCOM_FUNC2(long, PerkLevel, perk_level_, TGameObj*, critter, long, perkId
 WRAP_WATCOM_FUNC6(long, PickDeath, pick_death_, TGameObj*, attacker, TGameObj*, target, TGameObj*, weapon, long, amount, long, anim, long, hitFromBack)
 WRAP_WATCOM_FUNC0(void, ProcessBk, process_bk_)
 WRAP_WATCOM_FUNC0(void, ProtoDudeUpdateGender, proto_dude_update_gender_)
+WRAP_WATCOM_FUNC2(void, QueueClearType, queue_clear_type_, long, qType, void*, func)
 WRAP_WATCOM_FUNC2(void*, QueueFindFirst, queue_find_first_, TGameObj*, object, long, qType)
 WRAP_WATCOM_FUNC2(void*, QueueFindNext, queue_find_next_, TGameObj*, object, long, qType)
 WRAP_WATCOM_FUNC2(void, QueueRemoveThis, queue_remove_this_, TGameObj*, object, long, qType)

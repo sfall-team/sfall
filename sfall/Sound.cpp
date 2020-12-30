@@ -928,10 +928,7 @@ static void __fastcall SetPanPosition(ACMSoundData* sound) {
 	if (distance > 5) {
 		long direction = TileDir((*ptr_obj_dude)->tile, relativeObject->tile);
 		bool isRightSide = (direction <= 2);
-
-		long panValue = (distance - 5) * 100;
-		if (panValue > 10000) panValue = 10000;
-
+		long panValue = (distance < 55) ? (distance - 5) * 200 : 10000;
 		sound->soundBuffer->SetPan((isRightSide) ? panValue : -panValue); // left mute 10000 ... -10000 right mute
 	}
 	relativeObject = nullptr; // just in case

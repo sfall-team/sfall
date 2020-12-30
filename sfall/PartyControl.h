@@ -26,7 +26,7 @@ void PartyControl_OnGameLoad();
 
 int __fastcall PartyControl_SwitchHandHook(TGameObj* item);
 
-bool IsNpcControlled();
+bool PartyControl_IsNpcControlled();
 
 // Returns pointer to "real" dude, which is different from "dude_obj" when controlling another critter
-TGameObj* RealDudeObject();
+TGameObj* PartyControl_RealDudeObject();

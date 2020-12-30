@@ -393,11 +393,11 @@ static void PartyControlReset() {
 	realDude.obj_dude = nullptr;
 }
 
-bool IsNpcControlled() {
+bool PartyControl_IsNpcControlled() {
 	return isControllingNPC;
 }
 
-TGameObj* RealDudeObject() {
+TGameObj* PartyControl_RealDudeObject() {
 	return realDude.obj_dude != nullptr
 		? realDude.obj_dude
 		: *ptr_obj_dude;

@@ -164,9 +164,9 @@ errorSave:
 static char saveFailMsg[128];
 
 static DWORD __stdcall CombatSaveTest() {
-	if (!saveInCombatFix && !IsNpcControlled()) return 1;
+	if (!saveInCombatFix && !PartyControl_IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
-		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
+		if (saveInCombatFix == 2 || PartyControl_IsNpcControlled() || !(inLoop & PCOMBAT)) {
 			DisplayPrint(saveFailMsg);
 			return 0;
 		}

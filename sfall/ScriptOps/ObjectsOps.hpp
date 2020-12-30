@@ -491,7 +491,7 @@ static void mf_item_weight() {
 }
 
 static void mf_real_dude_obj() {
-	opHandler.setReturn(RealDudeObject());
+	opHandler.setReturn(PartyControl_RealDudeObject());
 }
 
 static void mf_car_gas_amount() {
