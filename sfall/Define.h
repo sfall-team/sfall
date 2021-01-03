@@ -596,6 +596,15 @@ enum AttackType : long
 	ATKTYPE_PIERCINGKICK      = 19
 };
 
+enum AttackSubType : long
+{
+	ATKSUBTYPE_NONE           = 0,
+	ATKSUBTYPE_UNARMED        = 1,
+	ATKSUBTYPE_MELEE          = 2,
+	ATKSUBTYPE_THROWING       = 3,
+	ATKSUBTYPE_GUNS           = 4
+};
+
 enum KillType : long
 {
 	KILL_TYPE_men             = 0,

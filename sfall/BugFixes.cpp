@@ -2133,7 +2133,7 @@ static void __declspec(naked) JesseContainerFid() {
 static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
 		call item_w_subtype_;
-		cmp  eax, 3; // check if subtype == THROWING
+		cmp  eax, ATKSUBTYPE_THROWING;
 		jne  fix;
 		retn;
 fix:
@@ -2141,7 +2141,7 @@ fix:
 		mov  edx, [esi + ammoPid];
 		test edx, edx;
 		js   skip;
-		mov  eax, 4; // set GUNS if has ammo pid
+		mov  eax, ATKSUBTYPE_GUNS; // set GUNS if has ammo pid
 skip:
 		retn;
 	}

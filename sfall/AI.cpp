@@ -195,6 +195,43 @@ isNotDead:
 	}
 }
 
+static long __fastcall sf_ai_check_weapon_switch(TGameObj* target, long &hitMode, TGameObj* source, TGameObj* weapon) {
+	if (source->critter.movePoints <= 0) return -1;
+	if (!weapon) return 1; // no weapon in hand slots
+
+	long _hitMode;
+	if ((_hitMode = AIPickHitMode(source, weapon, target)) != hitMode) {
+		hitMode = _hitMode;
+		return 0; // change hit mode
+	}
+
+	TGameObj* item = AISearchInvenWeap(source, 1, target);
+	if (!item) return 1; // no weapon in inventory, true to allow to continue searching for weapons on the map
+
+	long wType = ItemWSubtype(item, ATKTYPE_RWEAPON_PRIMARY);
+	if (wType <= ATKSUBTYPE_MELEE) { // unarmed and melee weapons, check the distance before switching
+		if (ObjDist(source, target) > 2) return -1;
+	}
+	return 1;
+}
+
+static void __declspec(naked) ai_try_attack_hook_switch_fix() {
+	__asm {
+		push edx;
+		push [ebx];//push dword ptr [esp + 0x364 - 0x3C + 8]; // weapon
+		push esi;                                // source
+		call sf_ai_check_weapon_switch;          // edx - hit mode
+		pop  edx;
+		test eax, eax;
+		jle  noSwitch; // <= 0
+		mov  ecx, ebp;
+		mov  eax, esi;
+		jmp  ai_switch_weapons_;
+noSwitch:
+		retn; // -1 - for exit from ai_try_attack_
+	}
+}
+
 static long RetryCombatMinAP;
 
 static void __declspec(naked) RetryCombatHook() {
@@ -375,7 +412,7 @@ static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() 
 		popadc;
 		jmp  combat_ctd_init_;
 friendly:
-		lea  esp, [esp + 8 + 3 * 4];
+		lea  esp, [esp + 8 + 3*4];
 		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
 	}
 }
@@ -434,6 +471,9 @@ void AI_Init() {
 	// Fix to reduce friendly fire in burst attacks
 	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
+
+	// Fix AI weapon switching when not having enough action points
+	HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 
 	// Fix for duplicate critters being added to the list of potential targets for AI
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);

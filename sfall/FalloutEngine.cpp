@@ -260,8 +260,11 @@ BYTE*  ptr_YellowColor                  = reinterpret_cast<BYTE*>(_YellowColor);
 const DWORD ai_can_use_weapon_ = 0x4298EC;  // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
 const DWORD ai_cap_ = 0x4280B4;
 const DWORD ai_check_drugs_ = 0x428480;
+const DWORD ai_pick_hit_mode_ = 0x429DB4;
 const DWORD ai_run_away_ = 0x428868;
 const DWORD ai_search_inven_armor_ = 0x429A6C;
+const DWORD ai_search_inven_weap_ = 0x4299A0;
+const DWORD ai_switch_weapons_ = 0x42A5B8;
 const DWORD ai_try_attack_ = 0x42A7D8;
 
 // UI FUNCTIONS
@@ -812,6 +815,7 @@ const DWORD windowWidth_ = 0x4B7734;
 const DWORD windowWrapLineWithSpacing_ = 0x4B8854;
 const DWORD wmDrawCursorStopped_ = 0x4C41EC;
 const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
+const DWORD wmInterfaceDrawSubTileRectFogged_ = 0x4C40A8;
 const DWORD wmInterfaceInit_ = 0x4C2324;
 const DWORD wmInterfaceRefresh_ = 0x4C3830;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;

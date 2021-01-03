@@ -1011,7 +1011,7 @@ static void __declspec(naked) item_w_called_shot_hack() {
 		call item_hit_with_;               // get pointer to weapon
 		mov  edx, ecx;
 		call item_w_subtype_;
-		cmp  eax, 3;                       // is weapon type GUNS or THROWING?
+		cmp  eax, ATKSUBTYPE_THROWING;       // is weapon type GUNS or THROWING?
 		jge  checkRange;                   // yes
 		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
 checkRange:

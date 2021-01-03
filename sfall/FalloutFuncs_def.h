@@ -20,6 +20,8 @@
 	because the compiler builds the better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, WordWrap, _word_wrap_, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC3(long, AIPickHitMode, ai_pick_hit_mode_, TGameObj*, source, TGameObj*, item, TGameObj*, target)
+WRAP_WATCOM_FFUNC3(TGameObj*, AISearchInvenWeap, ai_search_inven_weap_, TGameObj*, source, long, apCheck, TGameObj*, target)
 WRAP_WATCOM_FFUNC3(void, CheckForDeath, check_for_death_, TGameObj*, critter, long, amountDamage, long*, flags)
 WRAP_WATCOM_FFUNC3(void, CorrectFidForRemovedItem, correctFidForRemovedItem_, TGameObj*, critter, TGameObj*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, CreateWindowFunc, createWindow_, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
@@ -47,6 +49,7 @@ WRAP_WATCOM_FFUNC3(long, TileNumInDirection, tile_num_in_direction_, long, tile,
 WRAP_WATCOM_FFUNC8(void, TransCscale, trans_cscale_, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, WinClip, win_clip_, WINinfo*, window, RectList**, rects, void*, buffer)
 WRAP_WATCOM_FFUNC9(long, WindowWrapLineWithSpacing, windowWrapLineWithSpacing_, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
+WRAP_WATCOM_FFUNC4(void, WMInterfaceDrawSubTileRectFogged, wmInterfaceDrawSubTileRectFogged_, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 
 WRAP_WATCOM_FFUNC3(const char*, InterpretGetString, interpretGetString_, TProgram*, scriptPtr, DWORD, dataType, DWORD, strId)
 
@@ -142,6 +145,7 @@ WRAP_WATCOM_FUNC1(long, ItemWMaxAmmo, item_w_max_ammo_, TGameObj*, item)
 WRAP_WATCOM_FUNC2(long, ItemWRange, item_w_range_, TGameObj*, critter, long, hitMode)
 WRAP_WATCOM_FUNC2(long, ItemWReload, item_w_reload_, TGameObj*, weapon, TGameObj*, ammo)
 WRAP_WATCOM_FUNC1(long, ItemWRounds, item_w_rounds_, TGameObj*, item)
+WRAP_WATCOM_FUNC2(long, ItemWSubtype, item_w_subtype_, TGameObj*, item, long, hitMode)
 WRAP_WATCOM_FUNC1(long, ItemWeight, item_weight_, TGameObj*, item)
 WRAP_WATCOM_FUNC2(long, LightGetTile, light_get_tile_, long, elevation, long, tileNum) // Returns light level at given tile
 WRAP_WATCOM_FUNC2(long, LoadFrame, load_frame_, const char*, filename, FrmFile**, frmPtr)
@@ -176,7 +180,7 @@ WRAP_WATCOM_FUNC2(long, PerkLevel, perk_level_, TGameObj*, critter, long, perkId
 WRAP_WATCOM_FUNC6(long, PickDeath, pick_death_, TGameObj*, attacker, TGameObj*, target, TGameObj*, weapon, long, amount, long, anim, long, hitFromBack)
 WRAP_WATCOM_FUNC0(void, ProcessBk, process_bk_)
 WRAP_WATCOM_FUNC0(void, ProtoDudeUpdateGender, proto_dude_update_gender_)
-WRAP_WATCOM_FUNC2(void, QueueClearType, queue_clear_type_, long, qType, void*, func)
+WRAP_WATCOM_FUNC2(void, QueueClearType, queue_clear_type_, long, qType, void*, func) // removes all events of the given type and performs func before removal
 WRAP_WATCOM_FUNC2(void*, QueueFindFirst, queue_find_first_, TGameObj*, object, long, qType)
 WRAP_WATCOM_FUNC2(void*, QueueFindNext, queue_find_next_, TGameObj*, object, long, qType)
 WRAP_WATCOM_FUNC2(void, QueueRemoveThis, queue_remove_this_, TGameObj*, object, long, qType)
