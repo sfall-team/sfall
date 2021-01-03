@@ -21,6 +21,8 @@ using namespace fo;
 	because the compiler builds the better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, GameObject*, source, GameObject*, item, GameObject*, target)
+WRAP_WATCOM_FFUNC3(GameObject*, ai_search_inven_weap, GameObject*, source, long, apCheck, GameObject*, target)
 WRAP_WATCOM_FFUNC3(void, check_for_death, GameObject*, critter, long, amountDamage, long*, flags)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
@@ -51,6 +53,7 @@ WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation,long,
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, Window*, window, RectList**, rects, void*, buffer)
 WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
+WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, Program*, scriptPtr, DWORD, dataType, DWORD, strId)
 
@@ -205,7 +208,7 @@ WRAP_WATCOM_FUNC0(void, process_bk)
 WRAP_WATCOM_FUNC0(void, proto_dude_update_gender)
 // Places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
 WRAP_WATCOM_FUNC2(long, proto_ptr, long, pid, Proto**, ptrPtr)
-WRAP_WATCOM_FUNC2(void, queue_clear_type, long, qType, void*, func)
+WRAP_WATCOM_FUNC2(void, queue_clear_type, long, qType, void*, func) // removes all events of the given type and performs func before removal
 WRAP_WATCOM_FUNC2(void*, queue_find_first, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC2(void*, queue_find_next, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC2(void, queue_remove_this, GameObject*, object, long, qType)

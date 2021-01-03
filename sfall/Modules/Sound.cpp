@@ -909,8 +909,8 @@ static void __declspec(naked) gsound_compute_relative_volume_hook() {
 	}
 }
 
-static void __fastcall SetPanPosition(fo::ACMSoundData* sound) {
-	if (!relativeObject) return;
+static long __fastcall SetVolumeAndPan(long volume, fo::ACMSoundData* sound) {
+	//if (!relativeObject) return volume;
 
 	long distance = fo::func::obj_dist(fo::var::obj_dude, relativeObject);
 	if (distance > 5) {
@@ -919,14 +919,22 @@ static void __fastcall SetPanPosition(fo::ACMSoundData* sound) {
 		long panValue = (distance < 55) ? (distance - 5) * 200 : 10000;
 		sound->soundBuffer->SetPan((isRightSide) ? panValue : -panValue); // left mute 10000 ... -10000 right mute
 	}
-	relativeObject = nullptr; // just in case
+	if (relativeObject->elevation != fo::var::obj_dude->elevation) volume = (32767 / 4); // set volume to 1/4
+
+	relativeObject = nullptr;
+	return volume;
 }
 
-static void __declspec(naked) gsound_load_sound_volume_hook() {
+static void __declspec(naked) gsound_load_sound_volume_hack() {
 	__asm {
-		call fo::funcoffs::soundVolume_;
-		mov  ecx, ebx; // sound
-		jmp  SetPanPosition;
+		cmp  relativeObject, 0;
+		je   skip;
+		mov  edx, ebx;        // sound
+		call SetVolumeAndPan; // ecx - volume
+		mov  ecx, eax;
+skip:
+		mov  edx, ds:[FO_VAR_sndfx_volume];
+		retn;
 	}
 }
 
@@ -940,10 +948,10 @@ void Sound::init() {
 	LoadGameHook::OnGameReset() += WipeSounds;
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
 
-	// Enable support for panning sfx sounds
+	// Enable support for panning sfx sounds and reduce the sound volume for an object located on a different elevation of the map
 	SafeWrite8(0x45237E, (*(BYTE*)0x45237E) | 4); // set mode for DSBCAPS_CTRLPAN
 	HookCall(0x45158D, gsound_compute_relative_volume_hook);
-	HookCall(0x451483, gsound_load_sound_volume_hook);
+	MakeCall(0x45146A, gsound_load_sound_volume_hack, 1);
 
 	HookCall(0x44E816, gmovie_play_hook_pause);
 	HookCall(0x44EA84, gmovie_play_hook_unpause);
