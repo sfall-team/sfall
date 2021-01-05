@@ -473,6 +473,7 @@ void AI::init() {
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
 
 	// Fix AI weapon switching when not having enough action points
+	// AI will try to change attack mode before deciding to switch weapon
 	HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 
 	// Fix for duplicate critters being added to the list of potential targets for AI

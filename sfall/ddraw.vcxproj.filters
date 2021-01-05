@@ -307,6 +307,9 @@
     <ClInclude Include="Modules\CritterPoison.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\SubModules\EnginePerks.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -567,6 +570,9 @@
     </ClCompile>
     <ClCompile Include="Modules\CritterPoison.cpp">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\EnginePerks.cpp">
+      <Filter>Modules\SubModules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

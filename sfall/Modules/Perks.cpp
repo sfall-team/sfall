@@ -23,6 +23,8 @@
 #include "LoadGameHook.h"
 #include "PartyControl.h"
 
+#include "SubModules\EnginePerks.h"
+
 #include "Perks.h"
 
 namespace sfall
@@ -820,6 +822,8 @@ void __stdcall ApplyHeaveHoFix() { // not really a fix
 }
 
 static void PerkEngineInit() {
+	perk::EnginePerkBonusInit();
+
 	// Character screen (list_perks_)
 	HookCall(0x434256, PlayerHasTraitHook); // jz func
 	MakeJump(0x43436B, PlayerHasPerkHack);
@@ -1519,26 +1523,7 @@ void Perks::init() {
 		}
 
 		// Engine perks settings
-		long enginePerkMod = iniGetInt("PerksTweak", "WeaponScopeRangePenalty", -1, perksFile);
-		if (enginePerkMod >= 0 && enginePerkMod != 8) SafeWrite32(0x42448E, enginePerkMod);
-		enginePerkMod = iniGetInt("PerksTweak", "WeaponScopeRangeBonus", -1, perksFile);
-		if (enginePerkMod >= 2 && enginePerkMod != 5) SafeWrite32(0x424489, enginePerkMod);
-
-		enginePerkMod = iniGetInt("PerksTweak", "WeaponLongRangeBonus", -1, perksFile);
-		if (enginePerkMod >= 2 && enginePerkMod != 4) SafeWrite32(0x424474, enginePerkMod);
-
-		enginePerkMod = iniGetInt("PerksTweak", "WeaponAccurateBonus", -1, perksFile);
-		if (enginePerkMod >= 0 && enginePerkMod != 20) {
-			if (enginePerkMod > 200) enginePerkMod = 200;
-			SafeWrite8(0x42465D, static_cast<BYTE>(enginePerkMod));
-		}
-
-		enginePerkMod = iniGetInt("PerksTweak", "WeaponHandlingBonus", -1, perksFile);
-		if (enginePerkMod >= 0 && enginePerkMod != 3) {
-			if (enginePerkMod > 10) enginePerkMod = 10;
-			SafeWrite8(0x424636, static_cast<char>(enginePerkMod));
-			SafeWrite8(0x4251CE, static_cast<signed char>(-enginePerkMod));
-		}
+		perk::ReadPerksBonuses(perksFile);
 	}
 }
 
