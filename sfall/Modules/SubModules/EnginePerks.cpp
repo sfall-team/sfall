@@ -91,8 +91,7 @@ public:
 	void setSalesmanBonus(long value) {
 		if (value < 0) return;
 		SalesmanBonus = value;
-		if (SalesmanBonus > 125) SalesmanBonus = 125;
-		SafeWrite8(0x496F60, static_cast<BYTE>(SalesmanBonus));
+		if (SalesmanBonus > 999) SalesmanBonus = 999;
 	}
 
 	void setLivingAnatomyBonus(long value) {
@@ -119,6 +118,7 @@ public:
 	void setDemolitionExpertBonus(long value) {
 		if (value < 0) return;
 		DemolitionExpertBonus = value;
+		if (DemolitionExpertBonus > 999) DemolitionExpertBonus = 999;
 	}
 
 	void setVaultCityInoculationsPoisonBonus(long value) {
@@ -167,14 +167,14 @@ void ReadPerksBonuses(const char* perksFile) {
 	wScopeRangeMod = iniGetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
 	if (wScopeRangeMod != 5) perks.setWeaponScopeRangeBonus(wScopeRangeMod);
 
-	int enginePerkMod = iniGetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
-	if (enginePerkMod != 4) perks.setWeaponLongRangeBonus(enginePerkMod);
+	int wLongRangeBonus = iniGetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
+	if (wLongRangeBonus != 4) perks.setWeaponLongRangeBonus(wLongRangeBonus);
 
-	enginePerkMod = iniGetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
-	if (enginePerkMod != 20) perks.setWeaponAccurateBonus(enginePerkMod);
+	int wAccurateBonus = iniGetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
+	if (wAccurateBonus != 20) perks.setWeaponAccurateBonus(wAccurateBonus);
 
-	enginePerkMod = iniGetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
-	if (enginePerkMod != 3) perks.setWeaponHandlingBonus(enginePerkMod);
+	int wHandlingBonus = iniGetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
+	if (wHandlingBonus != 3) perks.setWeaponHandlingBonus(wHandlingBonus);
 
 	int masterTraderBonus = iniGetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
 	if (masterTraderBonus != 25) perks.setMasterTraderBonus(masterTraderBonus);

@@ -407,6 +407,9 @@ void Skills::init() {
 
 		basedOnPoints = iniGetInt("Skills", "BasedOnPoints", 0, file);
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)fo::funcoffs::skill_points_); // skill_dec_point_
+
+		int tagBonus = iniGetInt("Skills", "TagSkillBonus", 20, file);
+		if (tagBonus != 20 && tagBonus >=0 && tagBonus <= 100) SafeWrite8(0x4AA61E, static_cast<BYTE>(tagBonus));
 	}
 }
 
