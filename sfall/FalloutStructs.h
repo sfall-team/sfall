@@ -171,8 +171,8 @@ struct TScript {
 	long flags;
 	long scriptIdx;
 	TProgram *program;
-	long selfObjectId;
-	long localVarOffset;
+	long ownerObjectId;
+	long localVarOffset; // data
 	long numLocalVars;
 	long returnValue;
 	long action;
@@ -186,6 +186,7 @@ struct TScript {
 	long howMuch;
 	long field_50;
 	long procedureTable[28];
+	long gap[7];
 };
 
 // Script run-time data
