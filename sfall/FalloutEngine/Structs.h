@@ -222,8 +222,8 @@ struct ScriptInstance {
 	long flags;
 	long scriptIdx;
 	Program *program;
-	long selfObjectId;
-	long localVarOffset;
+	long ownerObjectId;
+	long localVarOffset; // data
 	long numLocalVars;
 	long returnValue;
 	long action;
@@ -237,6 +237,7 @@ struct ScriptInstance {
 	long howMuch;
 	long field_50;
 	long procedureTable[28];
+	long gap[7];
 };
 
 // Script run-time data

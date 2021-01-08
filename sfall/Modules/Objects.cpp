@@ -30,6 +30,13 @@ static int maxCountLoadProto = 512;
 
 long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
+static void SetScriptObjectID(fo::GameObject* obj) {
+	fo::ScriptInstance* script;
+	if (fo::func::scr_ptr(obj->scriptId, &script) != -1) {
+		script->ownerObjectId = obj->id;
+	}
+}
+
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
@@ -39,6 +46,7 @@ long __fastcall Objects::SetObjectUniqueID(fo::GameObject* obj) {
 
 	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;
+	SetScriptObjectID(obj);
 	return uniqueID;
 }
 
@@ -50,12 +58,14 @@ long __fastcall Objects::SetSpecialID(fo::GameObject* obj) {
 	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
 	id = -9 - (++uniqueID - UniqueID::Start);
 	obj->id = id;
+	SetScriptObjectID(obj);
 	return id;
 }
 
 void Objects::SetNewEngineID(fo::GameObject* obj) {
 	if (obj->id > UniqueID::Start) return;
 	obj->id = fo::func::new_obj_id();
+	SetScriptObjectID(obj);
 }
 
 static void __declspec(naked) item_identical_hack() {
@@ -90,6 +100,7 @@ static void map_fix_critter_id() {
 	while (obj) {
 		if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->id < fo::PLAYER_ID) {
 			obj->id = npcStartID++;
+			SetScriptObjectID(obj);
 		}
 		obj = fo::func::obj_find_next();
 	}
@@ -243,6 +254,10 @@ void Objects::init() {
 
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, CodeType::Nop); // fix ID increment
+
+	// Fix the ID range check for item objects with IDs in the negative range
+	// Special ID values are assigned in the negative range
+	SafeWrite8(0x495273, 0x73); // jge > jae
 
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 
