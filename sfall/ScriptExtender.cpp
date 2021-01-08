@@ -452,7 +452,7 @@ bool isGameLoading;
 bool alwaysFindScripts;
 bool displayWinUpdateState = false;
 
-TScript overrideScriptStruct = {0};
+TScript overrideScript = {0};
 
 //eax contains the script pointer, edx contains the opcode*4
 
@@ -902,107 +902,102 @@ static void InitOpcodeMetaTable() {
 //END OF SCRIPT FUNCTIONS
 
 long GetScriptReturnValue() {
-	return overrideScriptStruct.returnValue;
+	return overrideScript.returnValue;
 }
 
 long GetResetScriptReturnValue() {
 	long val = GetScriptReturnValue();
-	overrideScriptStruct.returnValue = 0;
+	overrideScript.returnValue = 0;
 	return val;
 }
 
-static DWORD __stdcall FindSid(TProgram* script) {
-	std::tr1::unordered_map<TProgram*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
+static long __stdcall FindOverrideSub(TProgram* program) {
+	std::tr1::unordered_map<TProgram*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(program);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
-		overrideScriptStruct.id = scriptId;
+		overrideScript.id = scriptId;
 		if (scriptId != -1) {
 			if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		overrideScriptStruct.selfObject = overrideIt->second.object;
-		overrideScriptStruct.targetObject = overrideIt->second.object;
+		overrideScript.selfObject = overrideIt->second.object;
+		overrideScript.targetObject = overrideIt->second.object;
 		if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
-	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
-		if (timedEvent && timedEvent->script->ptr == script) {
-			overrideScriptStruct.fixedParam = timedEvent->fixed_param;
+	if (sfallProgsMap.find(program) != sfallProgsMap.end()) {
+		if (timedEvent && timedEvent->script->ptr == program) {
+			overrideScript.fixedParam = timedEvent->fixed_param;
 		} else {
-			overrideScriptStruct.fixedParam = 0;
+			overrideScript.fixedParam = 0;
 		}
-		overrideScriptStruct.targetObject = 0;
-		overrideScriptStruct.selfObject = 0;
-		overrideScriptStruct.returnValue = 0;
+		overrideScript.targetObject = 0;
+		overrideScript.selfObject = 0;
+		overrideScript.returnValue = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
 }
 
-static const DWORD scr_ptr_back = scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program = scr_find_sid_from_program_ + 5;
-//static const DWORD scr_find_obj_from_program = scr_find_obj_from_program_ + 7;
+static long __fastcall FindOverride(TProgram* program, TScript* &script) {
+	long result = FindOverrideSub(program);
+	if (result == -2) {
+		if (script) {
+			script = &overrideScript; // unsafe method! script may contain an incorrect address value in some engine functions
+		} else {
+			result--; // set -3
+		}
+	}
+	return result;
+}
 
-static void __declspec(naked) FindSidHack() {
+static const DWORD scr_ptr_back = scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program_back = scr_find_sid_from_program_ + 5;
+
+static void __declspec(naked) scr_find_sid_from_program_hack() {
 	__asm {
-		push eax;
-		push edx;
-		push ecx;
-		push eax;
-		call FindSid;
+		pushadc;
+		mov  ecx, eax;     // program
+		call FindOverride; // edx - ref to script
 		pop  ecx;
 		pop  edx;
-		cmp  eax, -1;  // eax = scriptId
-		jz   end;
-		cmp  eax, -2;
-		jz   override_script;
-		add  esp, 4;
-		retn;
-override_script:
-		test edx, edx;
-		jz   skip;
-		add  esp, 4;
-		lea  eax, overrideScriptStruct;
-		mov  [edx], eax;
-		mov  eax, -2;
-		retn;
-skip:
-		add  esp, 4;
-		dec  eax; // set -3;
-		retn;
-end:
-		pop  eax;
+		cmp  eax, -1;
+		je   normal;
+		add  esp, 4; // destroy push eax
+		retn; // exit from scr_find_sid_from_program_, eax = scriptId or -2, -3
+normal:
+		pop  eax; // restore
 		push ebx;
 		push ecx;
 		push edx;
 		push esi;
 		push ebp;
-		jmp  scr_find_sid_from_program;
+		jmp  scr_find_sid_from_program_back;
 	}
 }
 
-static void __declspec(naked) ScrPtrHack() {
+static void __declspec(naked) scr_ptr_hack() {
 	__asm {
-		cmp  eax, -2;
-		jnz  skip;
+		cmp  eax, -2; // value from FindOverride
+		jne  skip;
 		xor  eax, eax;
 		retn;
 skip:
 		cmp  eax, -3;
-		jne  end;
-		lea  eax, overrideScriptStruct;
-		mov  [edx], eax;
-		mov  esi, [eax]; // script.id
-		xor  eax, eax;
-		retn;
-end:
+		je   override;
 		push ebx;
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
 		jmp  scr_ptr_back;
+override: // for scr_find_obj_from_program_
+		lea  eax, overrideScript;
+		mov  [edx], eax;
+		mov  esi, [eax]; // script.id
+		xor  eax, eax;
+		retn;
 	}
 }
 
@@ -1749,8 +1744,8 @@ void ScriptExtender_Init() {
 	HookCall(0x422845, CombatLoopHook);   // hook the combat loop
 	MakeCall(0x4230D5, AfterCombatAttackHook);
 
-	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
-	MakeJump(0x4A5E34, ScrPtrHack);
+	MakeJump(0x4A390C, scr_find_sid_from_program_hack);
+	MakeJump(0x4A5E34, scr_ptr_hack);
 
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
