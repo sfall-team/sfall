@@ -1585,7 +1585,25 @@ long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item,
 	if (result) CorrectFidForRemovedItem(critter, item, flags);
 	return result;
 }
+
+// 4.x backport
+static unsigned long previousGameMode = 0;
+
+void __stdcall GameModeChangeHook(DWORD exit) {
+	BeginHook();
+	argCount = 2;
+	args[0] = exit;
+	args[1] = previousGameMode;
+	RunHookScript(HOOK_GAMEMODECHANGE);
+	EndHook();
+
+	previousGameMode = GetLoopFlags();
+}
 // END HOOKS
+
+static void HookCommon_Reset() {
+	previousGameMode = 0;
+}
 
 DWORD __stdcall GetHSArgCount() {
 	return argCount;
@@ -1617,7 +1635,7 @@ void __stdcall SetHSReturn(DWORD value) {
 }
 
 void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg) {
-	if (id >= numHooks) return;
+	if (id >= numHooks || (id > HOOK_INVENWIELD && id < HOOK_GAMEMODECHANGE)) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
 			if (procNum == 0) hooks[id].erase(it); // unregister
@@ -1855,6 +1873,8 @@ static void HookScriptInit() {
 	HookCall(0x45C4F6, op_move_obj_inven_to_obj_hook);
 	MakeCall(0x4778AF, item_drop_all_hack, 3);
 
+	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+
 	DbFreeFileList(&filenames, 0);
 
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
@@ -1865,6 +1885,7 @@ void HookScriptClear() {
 		hooks[i].clear();
 	}
 	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
+	HookCommon_Reset();
 }
 
 void LoadHookScripts() {
@@ -1889,4 +1910,3 @@ void __stdcall RunHookScriptsAtProc(DWORD procId) {
 		}
 	}
 }
-

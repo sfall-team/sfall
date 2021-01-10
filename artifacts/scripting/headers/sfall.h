@@ -22,6 +22,7 @@
 #define HEROWIN     (0x40000)
 #define DIALOGVIEW  (0x80000)
 #define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
+#define SPECIAL     (0x80000000)
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
@@ -50,6 +51,7 @@
 #define HOOK_WITHINPERCEPTION (23)
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
+#define HOOK_GAMEMODECHANGE   (31)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

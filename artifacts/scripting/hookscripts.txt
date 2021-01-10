@@ -462,3 +462,12 @@ int     arg3 - 1 when wielding, 0 when unwielding
 int     arg4 - 1 when removing an equipped item from inventory, 0 otherwise
 
 int     ret0 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
+
+-------------------------------------------
+
+HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
+
+Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
+
+int     arg0 - event type: 1 - when the player exits the game, 0 - otherwise
+int     arg1 - the previous game mode

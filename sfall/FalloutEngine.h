@@ -722,6 +722,8 @@ extern const DWORD game_time_date_;
 extern const DWORD gdDestroyHeadWindow_;
 extern const DWORD gdialog_barter_cleanup_tables_;
 extern const DWORD gdialog_barter_pressed_;
+extern const DWORD gdialog_window_create_;
+extern const DWORD gdialog_window_destroy_;
 extern const DWORD gdialogActive_;
 extern const DWORD gdialogDisplayMsg_;
 extern const DWORD gdialogFreeSpeech_;
@@ -867,6 +869,7 @@ extern const DWORD make_straight_path_;
 extern const DWORD make_straight_path_func_; // (TGameObj *aObj<eax>, int aTileFrom<edx>, int a3<ecx>, signed int aTileTo<ebx>, TGameObj **aObjResult, int a5, int (*a6)(void))
 extern const DWORD map_disable_bk_processes_;
 extern const DWORD map_enable_bk_processes_;
+extern const DWORD map_exit_;
 extern const DWORD map_get_short_name_;
 extern const DWORD map_load_idx_;
 extern const DWORD MapDirErase_;

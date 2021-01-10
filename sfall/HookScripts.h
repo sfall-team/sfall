@@ -46,6 +46,7 @@ enum HookType
 	HOOK_WITHINPERCEPTION = 23,
 	HOOK_INVENTORYMOVE    = 24,
 	HOOK_INVENWIELD       = 25,
+	HOOK_GAMEMODECHANGE   = 31, // 4.x backport
 	HOOK_COUNT
 };
 
@@ -67,6 +68,7 @@ extern DWORD initingHookScripts;
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 void __stdcall RunHookScriptsAtProc(DWORD procId);
 
+void __stdcall GameModeChangeHook(DWORD exit);
 void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 void __stdcall MouseClickHook(DWORD button, bool pressed);
 

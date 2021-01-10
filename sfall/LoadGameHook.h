@@ -54,7 +54,7 @@ enum LoopFlag : unsigned long {
 	DIALOGVIEW  = 1 << 19,  // 0x80000
 	COUNTERWIN  = 1 << 20,  // 0x100000 Counter window for moving multiple items or setting a timer
 
-//	SPECIAL     = 1UL << 31 // 0x80000000 Additional special flag for all modes
+	SPECIAL     = 1UL << 31 // 0x80000000 Additional special flag for all modes
 };
 
 DWORD GetLoopFlags();

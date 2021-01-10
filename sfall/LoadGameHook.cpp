@@ -30,10 +30,10 @@
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
+#include "HookScripts.h"
 #include "InputFuncs.h"
 #include "Interface.h"
 #include "Inventory.h"
-#include "LoadGameHook.h"
 #include "LoadOrder.h"
 #include "Logging.h"
 #include "Message.h"
@@ -49,6 +49,19 @@
 #include "TalkingHeads.h"
 #include "version.h"
 #include "Worldmap.h"
+
+#include "LoadGameHook.h"
+
+#define _InLoop2(type, flag) __asm { \
+	__asm push flag                  \
+	__asm push type                  \
+	__asm call SetInLoop             \
+}
+#define _InLoop(type, flag) __asm {  \
+	pushadc                          \
+	_InLoop2(type, flag)             \
+	popadc                           \
+}
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -85,6 +98,20 @@ void SetLoopFlag(LoopFlag flag) {
 
 void ClearLoopFlag(LoopFlag flag) {
 	inLoop &= ~flag;
+}
+
+static void __stdcall GameModeChange(DWORD state) { // OnGameModeChange
+	GameModeChangeHook(state);
+}
+
+void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
+	unsigned long _inLoop = inLoop;
+	if (mode) {
+		SetLoopFlag(flag);
+	} else {
+		ClearLoopFlag(flag);
+	}
+	if (_inLoop ^ inLoop) GameModeChange(0);
 }
 
 static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameStart
@@ -189,10 +216,13 @@ static void __declspec(naked) SaveGame_hook() {
 		test eax, eax;
 		pop  edx; // recall Mode parameter (pop eax)
 		jz   end;
-		mov  eax, edx;
-		or inLoop, SAVEGAME;
+		push edx;
+		_InLoop2(1, SAVEGAME);
+		pop  eax;
 		call SaveGame_;
-		and inLoop, (-1 ^ SAVEGAME);
+		push eax;
+		_InLoop2(0, SAVEGAME);
+		pop  eax;
 		cmp  eax, 1;
 		jne  end;
 		call SaveGame2; // save sfall.sav
@@ -262,9 +292,9 @@ errorLoad:
 
 static void __declspec(naked) LoadGame_hook() {
 	__asm {
-		or inLoop, LOADGAME;
+		_InLoop(1, LOADGAME);
 		call LoadGame_;
-		and inLoop, (-1 ^ LOADGAME);
+		_InLoop(0, LOADGAME);
 		cmp  eax, 1;
 		jne  end;
 		// Invoked
@@ -284,42 +314,6 @@ static void __declspec(naked) EndLoadHook() {
 		call EndLoad_;
 		pushadc;
 		call LoadHeroAppearance;
-		popadc;
-		retn;
-	}
-}
-
-static void __stdcall GameInitialization() { // OnBeforeGameInit
-	BugFixes_Initialization();
-	Interface_OnBeforeGameInit();
-}
-
-static void __stdcall game_init_hook() { // OnGameInit
-	FallbackEnglishLoadMsgFiles();
-}
-
-static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
-	#ifdef NDEBUG
-	if (!initResult) {
-		MessageBoxA(0, "Game initialization failed!", "Error", MB_TASKMODAL | MB_ICONERROR);
-		return;
-	}
-	#endif
-	RemoveSavFiles();
-	Sound_OnAfterGameInit();
-	BarBoxes_SetMaxSlots();
-	if (Use32BitTalkingHeads) TalkingHeadsSetup();
-}
-
-static void __declspec(naked) main_init_system_hook() {
-	__asm {
-		pushadc;
-		call GameInitialization;
-		popadc;
-		call main_init_system_;
-		pushadc;
-		push eax;
-		call GameInitialized;
 		popadc;
 		retn;
 	}
@@ -348,6 +342,47 @@ static void __declspec(naked) NewGame() {
 	}
 }
 
+static void __stdcall GameInitialization() { // OnBeforeGameInit
+	BugFixes_Initialization();
+	Interface_OnBeforeGameInit();
+}
+
+static void __stdcall game_init_hook() { // OnGameInit
+	FallbackEnglishLoadMsgFiles();
+}
+
+static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
+	#ifdef NDEBUG
+	if (!initResult) {
+		MessageBoxA(0, "Game initialization failed!", "Error", MB_TASKMODAL | MB_ICONERROR);
+		return;
+	}
+	#endif
+	RemoveSavFiles();
+	Sound_OnAfterGameInit();
+	BarBoxes_SetMaxSlots();
+	if (Use32BitTalkingHeads) TalkingHeadsSetup();
+}
+
+static void __stdcall GameClose() { // OnBeforeGameClose
+	WipeSounds();
+	ClearReadExtraGameMsgFiles();
+}
+
+static void __declspec(naked) main_init_system_hook() {
+	__asm {
+		pushadc;
+		call GameInitialization;
+		popadc;
+		call main_init_system_;
+		pushadc;
+		push eax;
+		call GameInitialized;
+		popadc;
+		retn;
+	}
+}
+
 static void __declspec(naked) MainMenuHook() {
 	__asm {
 		pushad;
@@ -361,9 +396,14 @@ static void __declspec(naked) MainMenuHook() {
 	}
 }
 
-static void __stdcall GameClose() { // OnBeforeGameClose
-	WipeSounds();
-	ClearReadExtraGameMsgFiles();
+static void __declspec(naked) before_game_exit_hook() {
+	__asm {
+		pushadc;
+		push 1;
+		call GameModeChange;
+		popadc;
+		jmp map_exit_;
+	}
 }
 
 static void __declspec(naked) game_close_hook() {
@@ -381,7 +421,7 @@ static void __declspec(naked) WorldMapHook_Start() {
 		test eax, eax;
 		jl   skip;
 		push eax;
-		or inLoop, WORLDMAP;
+		_InLoop2(1, WORLDMAP);
 		pop  eax;
 skip:
 		retn;
@@ -391,7 +431,7 @@ skip:
 static void __declspec(naked) WorldMapHook_End() {
 	__asm {
 		push eax;
-		and inLoop, (-1 ^ WORLDMAP);
+		_InLoop2(0, WORLDMAP);
 		pop  eax;
 		jmp  remove_bk_process_;
 	}
@@ -401,12 +441,12 @@ static void __declspec(naked) CombatHook() {
 	__asm {
 		pushadc;
 		call AICombatStart;
-		or inLoop, COMBAT;
+		_InLoop2(1, COMBAT);
 		popadc;
 		call combat_;
 		pushadc;
 		call AICombatEnd;
-		and inLoop, (-1 ^ COMBAT);
+		_InLoop2(0, COMBAT);
 		popadc;
 		retn;
 	}
@@ -414,45 +454,45 @@ static void __declspec(naked) CombatHook() {
 
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
-		or inLoop, PCOMBAT;
+		_InLoop(1, PCOMBAT);
 		call combat_input_;
-		and inLoop, (-1 ^ PCOMBAT);
+		_InLoop(0, PCOMBAT);
 		retn;
 	}
 }
 
 static void __declspec(naked) EscMenuHook() {
 	__asm {
-		or inLoop, ESCMENU;
+		_InLoop(1, ESCMENU);
 		call do_optionsFunc_;
-		and inLoop, (-1 ^ ESCMENU);
+		_InLoop(0, ESCMENU);
 		retn;
 	}
 }
 
 static void __declspec(naked) EscMenuHook2() {
 	__asm {
-		or inLoop, ESCMENU;
+		_InLoop(1, ESCMENU);
 		call do_options_;
-		and inLoop, (-1 ^ ESCMENU);
+		_InLoop(0, ESCMENU);
 		retn;
 	}
 }
 
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
-		or inLoop, OPTIONS;
+		_InLoop(1, OPTIONS);
 		call do_prefscreen_;
-		and inLoop, (-1 ^ OPTIONS);
+		_InLoop(0, OPTIONS);
 		retn;
 	}
 }
 
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
-		or inLoop, HELP;
+		_InLoop(1, HELP);
 		call game_help_;
-		and inLoop, (-1 ^ HELP);
+		_InLoop(0, HELP);
 		retn;
 	}
 }
@@ -460,7 +500,7 @@ static void __declspec(naked) HelpMenuHook() {
 static void __declspec(naked) CharacterHook() {
 	__asm {
 		push edx;
-		or inLoop, CHARSCREEN;
+		_InLoop2(1, CHARSCREEN);
 		call PerksEnterCharScreen;
 		xor  eax, eax;
 		call editor_design_;
@@ -471,7 +511,7 @@ static void __declspec(naked) CharacterHook() {
 success:
 		call PerksAcceptCharScreen;
 end:
-		and inLoop, (-1 ^ CHARSCREEN);
+		_InLoop2(0, CHARSCREEN);
 		mov  tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
 		pop  edx;
 		retn;
@@ -480,7 +520,7 @@ end:
 
 static void __declspec(naked) DialogHook_Start() {
 	__asm {
-		or inLoop, DIALOG;
+		_InLoop2(1, DIALOG);
 		mov ebx, 1;
 		retn;
 	}
@@ -488,15 +528,18 @@ static void __declspec(naked) DialogHook_Start() {
 
 static void __declspec(naked) DialogHook_End() {
 	__asm {
-		and inLoop, (-1 ^ DIALOG);
-		jmp gdDestroyHeadWindow_;
+		and inLoop, ~DIALOG;  // unset flag
+		_InLoop2(1, SPECIAL); // set the flag before animating the panel when exiting the dialog
+		call gdDestroyHeadWindow_;
+		_InLoop2(0, SPECIAL);
+		retn;
 	}
 }
 
 static void __declspec(naked) PipboyHook_Start() {
 	__asm {
 		push eax;
-		or inLoop, PIPBOY;
+		_InLoop2(1, PIPBOY);
 		pop  eax;
 		jmp  win_draw_;
 	}
@@ -505,7 +548,7 @@ static void __declspec(naked) PipboyHook_Start() {
 static void __declspec(naked) PipboyHook_End() {
 	__asm {
 		push eax;
-		and inLoop, (-1 ^ PIPBOY);
+		_InLoop2(0, PIPBOY);
 		pop  eax;
 		jmp  win_delete_;
 	}
@@ -513,16 +556,16 @@ static void __declspec(naked) PipboyHook_End() {
 
 static void __declspec(naked) SkilldexHook() {
 	__asm {
-		or inLoop, SKILLDEX;
+		_InLoop(1, SKILLDEX);
 		call skilldex_select_;
-		and inLoop, (-1 ^ SKILLDEX);
+		_InLoop(0, SKILLDEX);
 		retn;
 	}
 }
 
 static void __declspec(naked) HandleInventoryHook_Start() {
 	__asm {
-		or inLoop, INVENTORY;
+		_InLoop2(1, INVENTORY);
 		xor eax, eax;
 		jmp inven_set_mouse_;
 	}
@@ -530,7 +573,7 @@ static void __declspec(naked) HandleInventoryHook_Start() {
 
 static void __declspec(naked) HandleInventoryHook_End() {
 	__asm {
-		and inLoop, (-1 ^ INVENTORY);
+		_InLoop2(0, INVENTORY);
 		mov eax, esi;
 		jmp exit_inventory_;
 	}
@@ -538,7 +581,7 @@ static void __declspec(naked) HandleInventoryHook_End() {
 
 static void __declspec(naked) UseInventoryOnHook_Start() {
 	__asm {
-		or inLoop, INTFACEUSE;
+		_InLoop2(1, INTFACEUSE);
 		xor eax, eax;
 		jmp inven_set_mouse_;
 	}
@@ -546,7 +589,7 @@ static void __declspec(naked) UseInventoryOnHook_Start() {
 
 static void __declspec(naked) UseInventoryOnHook_End() {
 	__asm {
-		and inLoop, (-1 ^ INTFACEUSE);
+		_InLoop2(0, INTFACEUSE);
 		mov eax, edi;
 		jmp exit_inventory_;
 	}
@@ -554,7 +597,7 @@ static void __declspec(naked) UseInventoryOnHook_End() {
 
 static void __declspec(naked) LootContainerHook_Start() {
 	__asm {
-		or inLoop, INTFACELOOT;
+		_InLoop2(1, INTFACELOOT);
 		xor eax, eax;
 		jmp inven_set_mouse_;
 	}
@@ -564,7 +607,7 @@ static void __declspec(naked) LootContainerHook_End() {
 	__asm {
 		cmp  dword ptr [esp + 0x150 - 0x58 + 4], 0; // JESSE_CONTAINER
 		jz   skip; // container is not created
-		and inLoop, (-1 ^ INTFACELOOT);
+		_InLoop2(0, INTFACELOOT);
 		xor  eax,eax;
 skip:
 		call ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
@@ -574,10 +617,11 @@ skip:
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
-		or inLoop, BARTER;
+		and inLoop, ~SPECIAL; // unset flag after animating the dialog panel
+		_InLoop(1, BARTER);
 		push [esp + 4];
 		call barter_inventory_;
-		and inLoop, (-1 ^ BARTER);
+		_InLoop(0, BARTER);
 		call ResetBodyState;
 		retn 4;
 	}
@@ -589,7 +633,7 @@ static void __declspec(naked) AutomapHook_Start() {
 		test edx, edx;
 		jnz  skip;
 		mov  LoadGameHook_interfaceWID, ebp;
-		or inLoop, AUTOMAP;
+		_InLoop(1, AUTOMAP);
 skip:
 		retn;
 	}
@@ -597,7 +641,7 @@ skip:
 
 static void __declspec(naked) AutomapHook_End() {
 	__asm {
-		and inLoop, (-1 ^ AUTOMAP);
+		_InLoop(0, AUTOMAP);
 		mov LoadGameHook_interfaceWID, -1
 		jmp win_delete_;
 	}
@@ -608,7 +652,9 @@ static void __declspec(naked) DialogReviewInitHook() {
 		call gdReviewInit_;
 		test eax, eax;
 		jnz  error;
-		or inLoop, DIALOGVIEW;
+		push ecx;
+		_InLoop2(1, DIALOGVIEW);
+		pop ecx;
 		xor eax, eax;
 error:
 		retn;
@@ -617,22 +663,52 @@ error:
 
 static void __declspec(naked) DialogReviewExitHook() {
 	__asm {
-		and inLoop, (-1 ^ DIALOGVIEW);
+		push ecx;
+		push eax;
+		_InLoop2(0, DIALOGVIEW);
+		pop eax;
+		pop ecx;
 		jmp gdReviewExit_;
 	}
 }
 
 static void __declspec(naked) setup_move_timer_win_Hook() {
 	__asm {
-		or inLoop, COUNTERWIN;
+		_InLoop2(1, COUNTERWIN);
 		jmp text_curr_;
 	}
 }
 
 static void __declspec(naked) exit_move_timer_win_Hook() {
 	__asm {
-		and inLoop, (-1 ^ COUNTERWIN);
+		push eax;
+		_InLoop2(0, COUNTERWIN);
+		pop  eax;
 		jmp  win_delete_;
+	}
+}
+
+static void __declspec(naked) gdialog_bk_hook() {
+	__asm {
+		_InLoop2(1, SPECIAL); // set the flag before switching from dialog mode to barter
+		jmp gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
+	__asm {
+		push edx;
+		_InLoop2(1, SPECIAL); // set the flag before animating the dialog panel when a party member joins/leaves
+		pop  edx;
+		jmp  gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
+	__asm {
+		call gdialog_window_create_;
+		_InLoop2(0, SPECIAL); // unset the flag when entering the party member control panel
+		retn;
 	}
 }
 
@@ -660,6 +736,7 @@ void LoadGameHook_Init() {
 	HookCall(0x4426A6, game_init_hook);
 
 	HookCall(0x480AB3, NewGame);
+
 	const DWORD loadSlotAddr[] = {0x47C72C, 0x47D1C9};
 	HookCalls(LoadSlot, loadSlotAddr);
 	const DWORD loadGameAddr[] = {0x443AE4, 0x443B89, 0x480B77, 0x48FD35};
@@ -669,7 +746,10 @@ void LoadGameHook_Init() {
 	HookCalls(SaveGame_hook, saveGameAddr);
 
 	HookCall(0x480A28, MainMenuHook);
+
 	// 4.x backport
+	const DWORD beforeGameExitAddr[] = {0x480ACE, 0x480BC7}; // gnw_main_
+	HookCalls(before_game_exit_hook, beforeGameExitAddr);
 	HookCall(0x480CA7, game_close_hook); // gnw_main_
 	//HookCall(0x480D45, game_close_hook); // main_exit_system_ (never called)
 
@@ -717,4 +797,9 @@ void LoadGameHook_Init() {
 
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
+
+	// Set and unset the Special flag of game mode when animating the dialog interface panel
+	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
+	HookCall(0x4457B1, gdialogUpdatePartyStatus_hook1); // set when a party member joins/leaves
+	HookCall(0x4457BC, gdialogUpdatePartyStatus_hook0); // unset
 }
