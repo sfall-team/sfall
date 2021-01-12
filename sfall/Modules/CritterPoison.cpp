@@ -104,6 +104,17 @@ void __declspec(naked) critter_adjust_poison_hack_fix() { // can also be called 
 	}
 }
 
+static void __declspec(naked) critter_check_rads_hack() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  edx, ds:[FO_VAR_obj_dude];
+		mov  eax, [eax + protoId]; // critter.pid
+		mov  ecx, PID_Player;
+		retn;
+	}
+}
+
 void CritterPoison::init() {
 	// Allow changing the poison level for critters
 	MakeCall(0x42D226, critter_adjust_poison_hack);
@@ -117,6 +128,9 @@ void CritterPoison::init() {
 	MakeCall(0x42D31F, critter_check_poison_hack_fix, 1);
 	MakeCall(0x42D21C, critter_adjust_poison_hack_fix, 1);
 	SafeWrite8(0x42D223, 0xCB); // cmp eax, edx > cmp ebx, ecx
+	// also rads
+	MakeCall(0x42D4FE, critter_check_rads_hack, 1);
+	SafeWrite8(0x42D505, 0xC8); // cmp eax, edx > cmp eax, ecx
 }
 
 }

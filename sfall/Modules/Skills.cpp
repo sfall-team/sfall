@@ -213,9 +213,8 @@ static void __declspec(naked) skill_level_hack_bonus() {
 static void __declspec(naked) skill_inc_point_hack_cost() {
 	static const DWORD SkillIncCostRet = 0x4AA7C1;
 	__asm { // eax - current skill level, ebx - current skill, ecx - num free skill points
-		mov  edx, basedOnPoints;
-		test edx, edx;
-		jz   next;
+		cmp  basedOnPoints, 0;
+		je   next;
 		mov  edx, ebx;
 		mov  eax, esi;
 		call fo::funcoffs::skill_points_;
@@ -234,9 +233,8 @@ skip:
 static void __declspec(naked) skill_dec_point_hack_cost() {
 	static const DWORD SkillDecCostRet = 0x4AA98D;
 	__asm { // ecx - current skill level, ebx - current skill, esi - num free skill points
-		mov  edx, basedOnPoints;
-		test edx, edx;
-		jz   next;
+		cmp  basedOnPoints, 0;
+		je   next;
 		mov  edx, ebx;
 		mov  eax, edi;
 		call fo::funcoffs::skill_points_;
@@ -410,6 +408,10 @@ void Skills::init() {
 
 		int tagBonus = iniGetInt("Skills", "TagSkillBonus", 20, file);
 		if (tagBonus != 20 && tagBonus >=0 && tagBonus <= 100) SafeWrite8(0x4AA61E, static_cast<BYTE>(tagBonus));
+
+		int tagMode = iniGetInt("Skills", "TagSkillMode", 0, file);
+		if (tagMode & 1) SafeWrite8(0x4AA612, 0xEB);    // 4th tag skill can have initial skill bonus (jz > jmp)
+		if (tagMode & 2) SafeWrite16(0x4AA60E, 0x9090); // skill_level_ disables 2x skill points bonus for tag skills
 	}
 }
 

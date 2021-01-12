@@ -775,7 +775,7 @@ public:
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (DeviceLost) return DDERR_SURFACELOST;
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
 		if (isPrimary) {
 			lockRect = a;
 			if (Graphics::GPUBlt) {
@@ -806,11 +806,10 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			if (Graphics::GPUBlt) SetGPUPalette(); // restote palette
-			fo::RefreshGNW();
-			dlogr("D3D9 Device restored.", DL_MAIN);
+			if (Graphics::GPUBlt) SetGPUPalette(); // restore palette
+			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
-		return !DeviceLost;
+		return DeviceLost;
 	}
 
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
@@ -854,7 +853,7 @@ public:
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		//dlog("\nUnlock", DL_INIT);
-		if ((DeviceLost && Restore() == DD_FALSE) || !isPrimary) return DD_OK;
+		if (!isPrimary) return DD_OK;
 		//dlog("\nUnlock -> primary", DL_INIT);
 
 		if (Graphics::GPUBlt == 0) {
