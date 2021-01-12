@@ -889,7 +889,7 @@ public:
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (DeviceLost) return DDERR_SURFACELOST;
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
 		if (isPrimary) {
 			lockRect = a;
 			if (GPUBlt) {
@@ -920,11 +920,10 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			if (GPUBlt) SetGPUPalette(); // restote palette
-			RefreshGNW();
-			dlogr("D3D9 Device restored.", DL_MAIN);
+			if (GPUBlt) SetGPUPalette(); // restore palette
+			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
-		return !DeviceLost;
+		return DeviceLost;
 	}
 
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
@@ -968,7 +967,7 @@ public:
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		//dlog("\nUnlock", DL_INIT);
-		if ((DeviceLost && Restore() == DD_FALSE) || !isPrimary) return DD_OK;
+		if (!isPrimary) return DD_OK;
 		//dlog("\nUnlock -> primary", DL_INIT);
 
 		if (GPUBlt == 0) {
@@ -1320,13 +1319,11 @@ static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, 
 			call ds:[_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
 			add  esp, 9*4;
 		}
-		return;
-	}
-	if (!DeviceLost) {
+	} else {
 		DDSURFACEDESC desc;
 		RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
 
-		primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+		if (primaryDDSurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
 
 		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
 		BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
