@@ -72,6 +72,7 @@ enum HookType
 	HOOK_ENCOUNTER        = 43,
 	HOOK_ADJUSTPOISON     = 44,
 	HOOK_ADJUSTRADS       = 45,
+	HOOK_ROLLCHECK        = 46,
 	HOOK_COUNT
 };
 

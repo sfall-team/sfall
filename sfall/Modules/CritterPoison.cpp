@@ -116,7 +116,7 @@ static void __declspec(naked) critter_check_rads_hack() {
 }
 
 void CritterPoison::init() {
-	// Allow changing the poison level for critters
+	// Allow changing the poison level for NPCs
 	MakeCall(0x42D226, critter_adjust_poison_hack);
 	SafeWrite8(0x42D22C, 0xDA); // jmp 0x42D30A
 

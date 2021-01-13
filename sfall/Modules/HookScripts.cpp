@@ -107,10 +107,11 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_ENCOUNTER,        Inject_EncounterHook,        0},
 	{HOOK_ADJUSTPOISON,     Inject_AdjustPoisonHook,     0},
 	{HOOK_ADJUSTRADS,       Inject_AdjustRadsHook,       1},  // always embedded for party control fix
+	{HOOK_ROLLCHECK,        Inject_RollCheckHook,        0},
 };
 
 void HookScripts::InjectingHook(int hookId) {
-	if (!IsInjectHook(hookId) && injectHooks[hookId].id == hookId) {
+	if (IsInjectHook(hookId) == false && injectHooks[hookId].id == hookId) {
 		injectHooks[hookId].injectState = 2;
 		injectHooks[hookId].inject();
 		devlog_f("Inject hook ID: %d\n", DL_INIT, hookId);
