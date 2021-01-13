@@ -911,7 +911,7 @@ long GetResetScriptReturnValue() {
 	return val;
 }
 
-static long __stdcall FindOverrideSub(TProgram* program) {
+static __forceinline long __stdcall FindProgram(TProgram* program) {
 	std::tr1::unordered_map<TProgram*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(program);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
@@ -940,11 +940,11 @@ static long __stdcall FindOverrideSub(TProgram* program) {
 	return -1; // change nothing
 }
 
-static long __fastcall FindOverride(TProgram* program, TScript* &script) {
-	long result = FindOverrideSub(program);
+static long __fastcall FindOverride(TProgram* program, TScript** script) {
+	long result = FindProgram(program);
 	if (result == -2) {
 		if (script) {
-			script = &overrideScript; // unsafe method! script may contain an incorrect address value in some engine functions
+			*script = &overrideScript; // unsafe method! script may contain an incorrect address value in some engine functions
 		} else {
 			result--; // set -3
 		}
