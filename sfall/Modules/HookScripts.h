@@ -71,6 +71,7 @@ enum HookType
 	HOOK_TARGETOBJECT     = 42,
 	HOOK_ENCOUNTER        = 43,
 	HOOK_ADJUSTPOISON     = 44,
+	HOOK_ADJUSTRADS       = 45,
 	HOOK_COUNT
 };
 
@@ -97,7 +98,6 @@ public:
 
 	static bool HookHasScript(int hookId);
 
-	static bool injectAllHooks;
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);
 
