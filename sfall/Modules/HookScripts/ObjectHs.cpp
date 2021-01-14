@@ -134,7 +134,7 @@ end:
 	}
 }
 
-static DWORD __stdcall DescriptionObjHook_Script(DWORD object) {
+static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
 	BeginHook();
 	argCount = 1;
 
@@ -150,20 +150,18 @@ static DWORD __stdcall DescriptionObjHook_Script(DWORD object) {
 
 static void __declspec(naked) DescriptionObjHook() {
 	__asm {
-		push eax;
-		push edx;
 		push ecx;
-		push eax;          // object
+		push edx;
+		mov  ecx, eax; // object
 		call DescriptionObjHook_Script;
-		pop  ecx;
 		pop  edx;
-		test eax, eax;     // pointer to text
-		jz   skip;
-		add  esp, 4;       // destroy push eax
-		retn;
+		pop  ecx;
+		test eax, eax; // pointer to text
+		jnz  skip;
+		mov  eax, ebp;
+		jmp  fo::funcoffs::object_description_;
 skip:
-		pop  eax;
-		jmp  fo::funcoffs::item_description_;
+		retn;
 	}
 }
 
@@ -387,7 +385,7 @@ void Inject_UseAnimateObjHook() {
 }
 
 void Inject_DescriptionObjHook() {
-	HookCall(0x48C925, DescriptionObjHook);
+	HookCall(0x49AE28, DescriptionObjHook);
 }
 
 void Inject_SetLightingHook() {

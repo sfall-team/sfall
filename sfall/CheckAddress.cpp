@@ -11,7 +11,7 @@ std::multimap<long, long> writeAddress;
 
 static std::vector<long> excludeWarning = {
 	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x44E932, // from movies.cpp
-	0x42D21C,                               // CritterPoison.cpp
+	0x42D21C,                                         // CritterPoison.cpp
 };
 
 static std::vector<long> excludeConflict = {
@@ -107,6 +107,7 @@ static std::vector<HackPair> hackAddr = {
 	// module: Skills
 	{0x4AA59D, 5}, {0x4AA738, 5}, {0x4AA940, 5},
 	{0x4AA9E1, 1}, {0x4AA9E2, 4}, {0x4AA9F1, 1}, {0x4AA9F2, 4}, {0x4AA9EC, 1}, {0x4AA9ED, 4}, // hookcalls
+	{0x4AA60E, 2}, {0x4AA612, 1},
 	// module: Stats
 	{0x4AF6FC, 5},
 	// module: Worldmap
@@ -116,6 +117,10 @@ static std::vector<HackPair> hackAddr = {
 	{0x49952C, 1}, {0x497557, 1}, {0x42E587, 1}, {0x42E588, 4}, {0x499FD4, 2}, {0x499E93, 2},
 	// module: MiscPatches
 	{0x41276A, 1}, {0x480AAA, 4}, {0x444BA5, 4}, {0x444BCA, 4},
+
+	// Called from engine
+	// MiscHS.cpp (HOOK_ROLLCHECK)
+	{0x42388E, 5}, {0x4234D1, 5}, {0x42356C, 5}, {0x4AAB29, 5}, {0x4AB3B6, 5}, {0x4AB8B5, 5}, {0x4ABC9F, 5}, {0x4ABCE6, 5},
 };
 
 //static std::vector<long> jumpAddr = {

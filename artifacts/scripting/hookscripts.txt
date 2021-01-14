@@ -563,10 +563,11 @@ int     ret1 - overrides the result of engine calculation: 0/1 - failure, 2/3 - 
 
 HOOK_DESCRIPTIONOBJ (hs_descriptionobj.int)
 
-Runs when using the examine action icon to display item description. You can override the description of the item.
+Runs when using the examine action icon to display the description of an object. You can override the description text.
 An example usage would be to add an additional description to the item based on player's stats/skills.
+Does not run if the script of the object overrides the description.
 
-Obj     arg0 - the item
+Obj     arg0 - the object
 
 int     ret0 - a pointer to the new text received by using "get_string_pointer" function
 
@@ -731,7 +732,7 @@ int     arg0 - event type:
                3 - checks the chance when using skills (not listed below)
                4 - check the chance of using Repair skill
                5 - check the chance of using Doctor skill
-               6 - check the chance of using Steal skill for the thief
+               6 - check the chance of using Steal skill for the thief (usually the player)
                7 - the second Steal skill chance check for the target to catch the thief, in which the target's failure is the thief's success result
 int     arg1 - the value of roll result (see ROLL_* constants), which is calculated as:
                for ROLL_CRITICAL_SUCCESS: random(1, 100) <= (random_chance / 10) + bonus
