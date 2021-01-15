@@ -2811,6 +2811,30 @@ static void __declspec(naked) action_knockback_hack() {
 	}
 }
 
+static void __declspec(naked) check_door_state_hack_close() {
+	__asm {
+		mov  eax, esi;
+		call obj_is_a_portal_;
+		test eax, eax;
+		jz   skip;
+		and  dword ptr [esi + flags], ~(NoBlock | LightThru | ShootThru);
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) check_door_state_hack_open() {
+	__asm {
+		mov  eax, esi;
+		call obj_is_a_portal_;
+		test eax, eax;
+		jz   skip;
+		or   ecx, (NoBlock | LightThru | ShootThru);
+skip:
+		retn;
+	}
+}
+
 void BugFixes_OnGameLoad() {
 	dudeIsAnimDeath = false;
 }
@@ -3568,4 +3592,8 @@ void BugFixes_Init()
 
 	// Fix broken Print() script function
 	HookCall(0x461AD4, (void*)windowOutput_);
+
+	// Fix obj_close/open functions setting/unsetting incorrect flags for non-door objects
+	MakeCall(0x49CBF7, check_door_state_hack_close, 2);
+	MakeCall(0x49CB30, check_door_state_hack_open, 1);
 }

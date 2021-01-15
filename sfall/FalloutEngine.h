@@ -915,6 +915,7 @@ extern const DWORD obj_find_first_at_tile_; // <eax>(int elevation<eax>, int til
 extern const DWORD obj_find_next_;
 extern const DWORD obj_find_next_at_;
 extern const DWORD obj_find_next_at_tile_; // no args
+extern const DWORD obj_is_a_portal_;
 extern const DWORD obj_lock_is_jammed_;
 extern const DWORD obj_move_to_tile_;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
 extern const DWORD obj_new_;  // int aObj*<eax>, int aPid<ebx>

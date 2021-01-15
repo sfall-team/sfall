@@ -213,31 +213,6 @@ allow:
 
 //////////////////////////////// CRITTER POISON ////////////////////////////////
 
-void __fastcall sf_critter_adjust_poison(TGameObj* critter, long amount) {
-	if (amount == 0) return;
-	if (amount > 0) {
-		amount -= StatLevel(critter, STAT_poison_resist) * amount / 100;
-	} else if (critter->critter.poison == 0) {
-		return;
-	}
-	critter->critter.poison += amount;
-	if (critter->critter.poison < 0) {
-		critter->critter.poison = 0; // level can't be negative
-	} else {
-		// set uID for saving queue
-		//Objects_SetObjectUniqueID(critter);
-		//QueueAdd(10 * (505 - 5 * critter->critter.poison), critter, nullptr, poison_event);
-	}
-}
-
-static void __declspec(naked) critter_adjust_poison_hack() {
-	__asm {
-		mov  edx, esi;
-		mov  ecx, edi;
-		jmp  sf_critter_adjust_poison;
-	}
-}
-
 void __fastcall critter_check_poison_fix() {
 	if (PartyControl_IsNpcControlled()) {
 		// since another critter is being controlled, we can't apply the poison effect to it
@@ -282,6 +257,19 @@ static void __declspec(naked) critter_check_rads_hack() {
 	}
 }
 
+// reduced code from 4.x HOOK_ADJUSTRADS
+void __declspec(naked) critter_adjust_rads_hack() {
+	using namespace Fields;
+	__asm {
+		cmp  dword ptr [eax + protoId], PID_Player; // critter.pid
+		jne  notDude;
+		mov  edx, ds:[_obj_dude];
+		xor  eax, eax; // for continue func
+notDude:
+		retn;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static void StatsReset() {
@@ -317,10 +305,6 @@ void Stats_Init() {
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
-	// Allow changing the poison level for critters
-	MakeCall(0x42D226, critter_adjust_poison_hack);
-	SafeWrite8(0x42D22C, 0xDA); // jmp 0x42D30A
-
 	// Fix/tweak for party control
 	MakeCall(0x42D31F, critter_check_poison_hack_fix, 1);
 	MakeCall(0x42D21C, critter_adjust_poison_hack_fix, 1);
@@ -328,6 +312,8 @@ void Stats_Init() {
 	// also rads
 	MakeCall(0x42D4FE, critter_check_rads_hack, 1);
 	SafeWrite8(0x42D505, 0xC8); // cmp eax, edx > cmp eax, ecx
+	MakeCall(0x42D3B0, critter_adjust_rads_hack, 1);
+	SafeWrite16(0x42D3B6, 0xC085); // test eax, eax
 
 	std::vector<std::string> xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();
