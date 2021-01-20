@@ -59,6 +59,7 @@ WRAP_WATCOM_FFUNC3(const char*, interpretGetString, Program*, scriptPtr, DWORD, 
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(AIcap*, ai_cap, GameObject*, critter)
+WRAP_WATCOM_FUNC2(void, ai_print_msg, GameObject*, object, long, mode)
 WRAP_WATCOM_FUNC1(Program*, allocateProgram, const char*, filePath)
 WRAP_WATCOM_FUNC1(bool, art_exists, long, artFid)
 WRAP_WATCOM_FUNC0(void, art_flush)

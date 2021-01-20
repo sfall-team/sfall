@@ -17,6 +17,7 @@
 #define FO_VAR_aTextSCuts                 0x501A8C
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
+#define FO_VAR_attack_str                 0x56D624
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
@@ -99,6 +100,8 @@
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
 #define FO_VAR_glblmode                   0x5709D0
+#define FO_VAR_gmouse_3d_action_nums      0x518D1E
+#define FO_VAR_gmouse_3d_current_mode     0x518D38
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
@@ -159,6 +162,7 @@
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
 #define FO_VAR_Move_on_Car                0x672E64
+#define FO_VAR_mouse_buttons              0x6AC7B0
 #define FO_VAR_mouse_hotx                 0x6AC7D0
 #define FO_VAR_mouse_hoty                 0x6AC7CC
 #define FO_VAR_mouse_is_hidden            0x6AC790
@@ -275,6 +279,7 @@
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_window                     0x6ADE58
+#define FO_VAR_window_index               0x6ADD90
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmBkWin                    0x51DE14
 #define FO_VAR_wmBkWinBuf                 0x51DE24

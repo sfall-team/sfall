@@ -3598,7 +3598,7 @@ void BugFixes::init()
 	// Fix broken Print() script function
 	HookCall(0x461AD4, (void*)fo::funcoffs::windowOutput_);
 
-	// Fix obj_close/open functions setting/unsetting incorrect flags for non-door objects
+	// Fix for the flags of non-door objects being set/unset when opening/closing objects (e.g. using obj_close/open functions)
 	MakeCall(0x49CBF7, check_door_state_hack_close, 2);
 	MakeCall(0x49CB30, check_door_state_hack_open, 1);
 }
