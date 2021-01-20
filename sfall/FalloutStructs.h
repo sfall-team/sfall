@@ -70,7 +70,7 @@ struct TGameObj {
 	long y;
 	long sx;
 	long sy;
-	long frm;
+	long frm; // current frame
 	long rotation;
 	long artFid;
 	long flags;
@@ -84,15 +84,15 @@ struct TGameObj {
 
 	union {
 		struct {
-			char updatedFlags[4];
+			long updatedFlags;
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
 			long ammoPid;
-			char gap_44[32];
+			long unused[8]; // offset 0x44
 		} item;
 		struct {
-			long reaction;
+			long reaction; // unused?
 			// 1 - combat, 2 - enemies out of sight, 4 - running away
 			long combatState;
 			// aka action points
@@ -105,14 +105,27 @@ struct TGameObj {
 			long health;
 			long rads;
 			long poison;
+
+			inline bool IsDead() {
+				return ((damageFlags & DAM_DEAD) != 0);
+			}
+			inline bool IsNotDead() {
+				return ((damageFlags & DAM_DEAD) == 0);
+			}
+			inline bool IsActive() {
+				return ((damageFlags & (DAM_KNOCKED_OUT | DAM_LOSE_TURN)) == 0);
+			}
+			inline bool IsNotActive() {
+				return ((damageFlags & (DAM_KNOCKED_OUT | DAM_LOSE_TURN)) != 0);
+			}
 		} critter;
 	};
-	DWORD protoId;
-	long cid;
+	DWORD protoId; // object PID
+	long cid; // combat ID
 	long lightDistance;
 	long lightIntensity;
 	DWORD outline;
-	long scriptId;
+	long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - index in scripts.lst; 0xFFFFFFFF no attached script
 	TGameObj* owner;
 	long scriptIndex;
 
@@ -121,6 +134,13 @@ struct TGameObj {
 	}
 	inline char TypeFid() {
 		return ((artFid >> 24) & 0x0F);
+	}
+
+	inline bool IsItem() {
+		return (Type() == OBJ_TYPE_ITEM);
+	}
+	inline bool IsCritter() {
+		return (Type() == OBJ_TYPE_CRITTER);
 	}
 };
 
@@ -664,7 +684,7 @@ struct AudioFile {
 	long  length;
 	long  sample_rate;
 	long  channels;
-	long  tell;
+	long  position;
 };
 
 #pragma pack(pop)

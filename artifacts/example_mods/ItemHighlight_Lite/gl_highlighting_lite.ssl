@@ -100,8 +100,16 @@ procedure KeyPressHandler begin
    end
 end
 
+// visual glitch fix - for 3.8.29+
+procedure GameModeChangeHandler begin
+   if isHighlight and (get_game_mode bwand (INTFACELOOT bwor BARTER)) then begin
+      isHighlight := false;
+      call ToggleHighlight(false);
+   end
+end
+
 procedure InventoryMoveHandler begin
-   // remove item outline when player picks up the item
+   // remove item outline when player picks up the item - for 3.8.18+
    if (isHighlight and get_sfall_arg == 7) then set_outline(get_sfall_arg, 0);
 end
 
@@ -121,6 +129,7 @@ procedure start begin
       highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
+      register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChangeHandler);
       register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
    end
 end
