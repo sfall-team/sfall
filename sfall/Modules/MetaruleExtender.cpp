@@ -19,6 +19,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
+#include "PartyControl.h"
 
 #include "MetaruleExtender.h"
 
@@ -35,6 +36,7 @@ static bool HorriganEncounterDisabled = false;
 enum class MetaruleFunction : long {
 	SET_HORRIGAN_ENCOUNTER = 200, // sets the number of days for the Frank Horrigan encounter or disable encounter
 	CLEAR_KEYBOARD_BUFFER  = 201, // clears the keyboard input buffer, should be used in the HOOK_KEYPRESS hook to clear keyboard events in some cases
+	EXT_PARTY_ORDER_ATTACK = 999
 };
 
 /*
@@ -60,6 +62,9 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 		}
 		case MetaruleFunction::CLEAR_KEYBOARD_BUFFER:
 			__asm call fo::funcoffs::kb_clear_;
+			break;
+		case MetaruleFunction::EXT_PARTY_ORDER_ATTACK:
+			PartyControl::MemberOrderAttackPatch();
 			break;
 		default:
 			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",

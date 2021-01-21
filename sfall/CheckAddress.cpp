@@ -86,6 +86,7 @@ static std::vector<HackPair> hackAddr = {
 	// module: PartyControl
 	{0x422BDE, 1}, {0x4229EC, 1},
 	{0x49EB09, 1}, {0x49EB0A, 4}, {0x458242, 1}, {0x458243, 4}, {0x458326, 1}, {0x458327, 4}, {0x42E25B, 1}, {0x42E25C, 4}, // hookcalls
+	{0x44C4A7, 1}, {0x44C4A8, 4}, {0x44C75F, 1}, {0x44C760, 4}, {0x44C69A, 1}, {0x44C69B, 4}, {0x44B830, 1}, {0x44B831, 4}, // hookcalls for party order attack
 	// module: Perks
 	{0x43C77C, 1}, {0x43C77D, 4}, // hookcall
 	{0x478AC4, 1}, {0x478AC5, 4}, {0x496823, 5},

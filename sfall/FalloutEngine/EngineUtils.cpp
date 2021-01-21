@@ -186,10 +186,10 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 
 // Returns the position of party member in the existing table (begins from 1)
 long IsPartyMemberByPid(long pid) {
-	size_t patryCount = fo::var::partyMemberMaxCount;
-	if (patryCount) {
+	size_t partyCount = fo::var::partyMemberMaxCount;
+	if (partyCount) {
 		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
-		for (size_t i = 0; i < patryCount; i++) {
+		for (size_t i = 0; i < partyCount; i++) {
 			if (memberPids[i] == pid) return i + 1;
 		}
 	}
