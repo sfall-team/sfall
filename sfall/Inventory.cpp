@@ -397,7 +397,7 @@ static void __declspec(naked) item_add_mult_hook() {
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  eax, ds:[_i_wid];
+		mov  eax, ds:[FO_VAR_i_wid];
 		call GNW_find_;
 		mov  ebx, [eax + 8 + 0];                  // ebx = _i_wid.rect.x
 		mov  ecx, [eax + 8 + 4];                  // ecx = _i_wid.rect.y
@@ -416,7 +416,7 @@ static void __declspec(naked) loot_container_hack_scroll() {
 		cmp  esi, 0x148;                          // source_up
 		jne  end;
 scroll:
-		mov  eax, ds:[_i_wid];
+		mov  eax, ds:[FO_VAR_i_wid];
 		call GNW_find_;
 		push edx;
 		push ecx;
@@ -440,7 +440,7 @@ scroll:
 targetDown:
 		mov  esi, 0x191;                          // target_down
 end:
-		mov  eax, ds:[_curr_stack];
+		mov  eax, ds:[FO_VAR_curr_stack];
 		retn;
 	}
 }
@@ -453,7 +453,7 @@ static void __declspec(naked) barter_inventory_hack_scroll() {
 		cmp  esi, 0x148;                          // source_up
 		jne  skip;
 scroll:
-		mov  eax, ds:[_i_wid];
+		mov  eax, ds:[FO_VAR_i_wid];
 		call GNW_find_;
 		push edx;
 		push ecx;
@@ -541,7 +541,7 @@ end:
 skip:
 		call inven_unwield_;
 		// update interface slot
-		cmp  ebx, ds:[_obj_dude];
+		cmp  ebx, ds:[FO_VAR_obj_dude];
 		jne  end;
 		xor  eax, eax; // no animate
 		mov  ebx, eax;
@@ -729,7 +729,7 @@ void Inventory_Init() {
 	MakeCall(0x471452, inven_pickup_hack);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
-	SafeWrite32(0x475CF2, _stack);
+	SafeWrite32(0x475CF2, FO_VAR_stack);
 
 	// Enable mouse scroll control in barter and loot screens when the cursor is hovering over other lists
 	if (useScrollWheel) {

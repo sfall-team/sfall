@@ -532,7 +532,7 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 			}
 		}
 	/*} else if (type == 4) {
-		DWORD** squares=(DWORD**)_squares;
+		DWORD** squares=(DWORD**)FO_VAR_squares;
 		for(int elv=0;elv<2;elv++) {
 			DWORD* esquares=squares[elv];
 			for(int tile=0;tile<10000;tile++) {

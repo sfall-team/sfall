@@ -80,11 +80,11 @@ notIdentical:
 static void __declspec(naked) new_obj_id_hook() {
 	__asm {
 		mov  eax, 83535;
-		cmp  dword ptr ds:[_cur_id], eax;
+		cmp  dword ptr ds:[FO_VAR_cur_id], eax;
 		jle  pickNewID;
 		retn;
 pickNewID: // skip PM range (18000 - 83535)
-		mov  ds:[_cur_id], eax;
+		mov  ds:[FO_VAR_cur_id], eax;
 		jmp  new_obj_id_;
 	}
 }
@@ -128,7 +128,7 @@ static void __declspec(naked) queue_add_hack() {
 		mov  [edx + 8], edi; // queue.object
 		mov  [edx], esi;     // queue.time
 		//---
-		cmp  ds:[_loadingGame], 1; // don't change the object ID when loading a saved game (e.g. fix: NPC turns into a container)
+		cmp  ds:[FO_VAR_loadingGame], 1; // don't change the object ID when loading a saved game (e.g. fix: NPC turns into a container)
 		je   skip;
 		test edi, edi;
 		jnz  fix;

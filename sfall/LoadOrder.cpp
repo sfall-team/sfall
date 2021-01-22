@@ -49,7 +49,7 @@ static void __declspec(naked) game_init_databases_hack1() {
 		mov  ecx, [esp + 0x104 + 4]; // path_patches
 		call RemoveDatabase;
 skip:
-		mov  ds:[_master_db_handle], eax;         // the pointer of master_patches node will be saved here
+		mov  ds:[FO_VAR_master_db_handle], eax;         // the pointer of master_patches node will be saved here
 		retn;
 	}
 }
@@ -59,7 +59,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1;
 		je   end;
-		mov  eax, ds:[_master_db_handle];         // pointer to master_patches node
+		mov  eax, ds:[FO_VAR_master_db_handle];         // pointer to master_patches node
 		mov  eax, [eax];                          // eax = master_patches.path
 		call xremovepath_;
 		dec  eax;                                 // remove path (critter_patches == master_patches)?
@@ -67,7 +67,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		mov  ecx, [esp + 0x104 + 4];              // path_patches
 		call RemoveDatabase;
 end:
-		mov  ds:[_critter_db_handle], eax;        // the pointer of critter_patches node will be saved here
+		mov  ds:[FO_VAR_critter_db_handle], eax;        // the pointer of critter_patches node will be saved here
 		retn;
 	}
 }
@@ -87,7 +87,7 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
-	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)_gconfig_file_name);
+	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
 	PathNode* node = *ptr_paths;
 	while (node->next) {
@@ -264,7 +264,7 @@ skip:
 void __declspec(naked) LoadOrder_art_get_name_hack() {
 	static const DWORD art_get_name_Alias = 0x41944A;
 	__asm {
-		mov  eax, _art_name;
+		mov  eax, FO_VAR_art_name;
 		cmp  aliasFID, -1;
 		jne  artHasAlias;
 		retn;
@@ -273,7 +273,7 @@ artHasAlias:
 		test eax, eax;
 		jz   artNotExist;
 		mov  aliasFID, -1;
-		mov  eax, _art_name;
+		mov  eax, FO_VAR_art_name;
 		retn;
 artNotExist:
 		dec  eax; // -1

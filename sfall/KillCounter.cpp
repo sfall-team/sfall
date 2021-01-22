@@ -24,7 +24,7 @@ static bool usingExtraKillTypes = false;
 
 static DWORD __declspec(naked) ReadKillCounter() {
 	__asm {
-		movzx eax, word ptr ds:[_pc_kill_counts][eax * 2];
+		movzx eax, word ptr ds:[FO_VAR_pc_kill_counts][eax * 2];
 		retn;
 	}
 }
@@ -32,7 +32,7 @@ static DWORD __declspec(naked) ReadKillCounter() {
 static void __declspec(naked) IncKillCounter() {
 	__asm {
 		inc  bx;
-		mov  word ptr ds:[_pc_kill_counts][edx], bx;
+		mov  word ptr ds:[FO_VAR_pc_kill_counts][edx], bx;
 		retn;
 	}
 }

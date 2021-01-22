@@ -37,7 +37,7 @@ DWORD ForceEncounterRestore() {
 
 static void ForceEncounterEffects() {
 	if (ForceEncounterFlags & 0x10) { // _FadeOut flag
-		__asm mov  eax, _black_palette;
+		__asm mov  eax, FO_VAR_black_palette;
 		__asm call palette_fade_to_;
 		return;
 	};
@@ -46,25 +46,25 @@ static void ForceEncounterEffects() {
 	if (ForceEncounterFlags & 4) return; // _NoIcon flag
 	long iconType = (ForceEncounterFlags & 8) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
 
-	*(DWORD*)_wmEncounterIconShow = 1;
-	*(DWORD*)_wmRndCursorFid = 0;
+	*(DWORD*)FO_VAR_wmEncounterIconShow = 1;
+	*(DWORD*)FO_VAR_wmRndCursorFid = 0;
 
 	for (size_t n = 8; n > 0; --n) {
-		long iconFidIndex = iconType - *(DWORD*)_wmRndCursorFid;
-		*(DWORD*)_wmRndCursorFid = iconFidIndex;
+		long iconFidIndex = iconType - *(DWORD*)FO_VAR_wmRndCursorFid;
+		*(DWORD*)FO_VAR_wmRndCursorFid = iconFidIndex;
 		__asm call wmInterfaceRefresh_;
 		BlockForTocks(200);
 	}
-	*(DWORD*)_wmEncounterIconShow = 0;
+	*(DWORD*)FO_VAR_wmEncounterIconShow = 0;
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
 		test ForceEncounterFlags, 0x1; // _NoCar flag
 		jnz  noCar;
-		cmp  ds:[_Move_on_Car], 0;
+		cmp  ds:[FO_VAR_Move_on_Car], 0;
 		jz   noCar;
-		mov  edx, _carCurrentArea;
+		mov  edx, FO_VAR_carCurrentArea;
 		mov  eax, ForceEncounterMapID;
 		call wmMatchAreaContainingMapIdx_;
 noCar:
@@ -141,7 +141,7 @@ static void __declspec(naked) op_get_game_mode() {
 
 static void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
-		mov  edx, ds:[_world_xpos];
+		mov  edx, ds:[FO_VAR_world_xpos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}
@@ -149,7 +149,7 @@ static void __declspec(naked) op_get_world_map_x_pos() {
 
 static void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
-		mov  edx, ds:[_world_ypos];
+		mov  edx, ds:[FO_VAR_world_ypos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}
@@ -163,8 +163,8 @@ static void __declspec(naked) op_set_world_map_pos() {
 		_GET_ARG_INT(end);  // get x value
 		cmp  si, VAR_TYPE_INT;
 		jne  end;
-		mov  ds:[_world_xpos], eax;
-		mov  ds:[_world_ypos], ecx;
+		mov  ds:[FO_VAR_world_xpos], eax;
+		mov  ds:[FO_VAR_world_ypos], ecx;
 end:
 		pop  ecx;
 		retn;

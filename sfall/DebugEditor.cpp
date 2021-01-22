@@ -97,7 +97,7 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 }
 
 static void RunEditorInternal(SOCKET &s) {
-	*(DWORD*)_script_engine_running = 0;
+	*(DWORD*)FO_VAR_script_engine_running = 0;
 
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
@@ -230,7 +230,7 @@ static void RunEditorInternal(SOCKET &s) {
 	delete[] arrays;
 
 	FlushInputBuffer();
-	*(DWORD*)_script_engine_running = 1;
+	*(DWORD*)FO_VAR_script_engine_running = 1;
 }
 
 void RunDebugEditor() {
@@ -354,7 +354,7 @@ static void __declspec(naked) win_debug_hook() {
 	__asm {
 		call debug_log_;
 		xor  eax, eax;
-		cmp  ds:[_GNW_win_init_flag], eax;
+		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
 		retn;
 	}
 }
@@ -374,7 +374,7 @@ const char* scrNameFmt = "\nScript: %s ";
 
 static void __declspec(naked) debugMsg() {
 	__asm {
-		mov  edx, ds:[_currentProgram];
+		mov  edx, ds:[FO_VAR_currentProgram];
 		push [edx]; // script name
 		push scrNameFmt;
 		call debug_printf_;

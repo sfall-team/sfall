@@ -336,7 +336,7 @@ static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 		shl  eax, 1;                                   // Multiply by 2
 		sub  ecx, eax;                                 // Subtract from Melee Damage
 		mov  edx, STAT_melee_dmg;
-		mov  eax, ds:[_obj_dude];                      // Get pointer to PC
+		mov  eax, ds:[FO_VAR_obj_dude];                // Get pointer to PC
 		call stat_get_base_;                           // Get Melee Damage w/o bonuses
 		cmp  ecx, eax;                                 // HtH Damage vs Base Melee Damage
 		cmovg eax, ecx;                                // Move back to eax in preparation of push
@@ -355,7 +355,7 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 		shl  eax, 1;                                   // Multiply by 2
 		sub  ebx, eax;                                 // Subtract from Melee Damage
 		mov  edx, STAT_melee_dmg;
-		mov  eax, ds:[_stack];
+		mov  eax, ds:[FO_VAR_stack];
 		call stat_get_base_;                           // Get Melee Damage w/o bonuses
 		cmp  ebx, eax;                                 // HtH Damage vs Base Melee Damage
 		cmovg eax, ebx;                                // Move back to eax in preparation of push
@@ -365,7 +365,7 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 
 static __declspec(naked) void HtHDamageFix1a_hack() {
 	__asm {
-		cmp  ecx, dword ptr ds:[_obj_dude];            // Is the critter == PC?
+		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
 		je   fix;                                      // Skip if no
 		mov  edx, 1;                                   // Min_Damage = 1
 		retn;
@@ -382,7 +382,7 @@ fix:
 static __declspec(naked) void HtHDamageFix1b_hook() {
 	__asm {
 		call stat_level_;                              // Get Total_Melee_Damage
-		cmp  ecx, dword ptr ds:[_obj_dude];            // Is the critter == PC?
+		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
 		je   fix;                                      // Skip to exit if no
 		retn;
 fix:
@@ -400,7 +400,7 @@ fix:
 static void __declspec(naked) DisplayBonusRangedDmg_hook() {
 	__asm {
 		mov  edx, PERK_bonus_ranged_damage;
-		mov  eax, dword ptr ds:[_stack];
+		mov  eax, dword ptr ds:[FO_VAR_stack];
 		call perk_level_;
 		shl  eax, 1;                                   // Multiply by 2
 		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus
@@ -412,7 +412,7 @@ static void __declspec(naked) DisplayBonusRangedDmg_hook() {
 static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 	__asm {
 		mov  edx, PERK_bonus_hth_damage;
-		mov  eax, dword ptr ds:[_stack];
+		mov  eax, dword ptr ds:[FO_VAR_stack];
 		call perk_level_;
 		shl  eax, 1;                                   // Multiply by 2
 		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus

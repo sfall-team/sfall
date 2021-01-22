@@ -57,10 +57,10 @@ static void __declspec(naked) PipStatus_hook_printfix() {
 		movzx eax, word ptr [esp + 0x49C + 8];
 		dec  eax;
 		shl  eax, 1;
-		add  eax, dword ptr ds:[_cursor_line];
-		cmp  eax, dword ptr ds:[_bottom_line]; // check max
+		add  eax, dword ptr ds:[FO_VAR_cursor_line];
+		cmp  eax, dword ptr ds:[FO_VAR_bottom_line]; // check max
 		jb   skip;
-		mov  eax, dword ptr ds:[_quest_count];
+		mov  eax, dword ptr ds:[FO_VAR_quest_count];
 		sub  eax, 2;
 		mov  dword ptr [esp + 0x4BC - 0x24 + 8], eax; // set last counter
 		mov  outRangeFlag, 1;
@@ -118,7 +118,7 @@ skip:
 		mov  calledflag, 1;
 		mov  called_quest_number, ebx
 		// engine
-		mov  edx, dword ptr ds:[_crnt_func];
+		mov  edx, dword ptr ds:[FO_VAR_crnt_func];
 		retn;
 	}
 }
@@ -249,8 +249,8 @@ static void __declspec(naked) PrintPages() {
 		push eax;
 		// text 'of'
 		mov  ebx, 212;                      // message
-		mov  edx, _pipmesg;
-		mov  eax, _pipboy_message_file;
+		mov  edx, FO_VAR_pipmesg;
+		mov  eax, FO_VAR_pipboy_message_file;
 		call getmsg_;
 		push eax;
 		// current page
@@ -259,8 +259,8 @@ static void __declspec(naked) PrintPages() {
 		push eax;
 		// text 'Page'
 		mov  ebx, 213;                      // message
-		mov  edx, _pipmesg;
-		mov  eax, _pipboy_message_file;
+		mov  edx, FO_VAR_pipmesg;
+		mov  eax, FO_VAR_pipboy_message_file;
 		call getmsg_;
 		push eax;
 
@@ -271,8 +271,8 @@ static void __declspec(naked) PrintPages() {
 		add  esp, 0x18;
 
 		mov  ebx, 1;
-		mov  dword ptr ds:[_cursor_line], ebx;
-		mov  bl, byte ptr ds:[_GreenColor];
+		mov  dword ptr ds:[FO_VAR_cursor_line], ebx;
+		mov  bl, byte ptr ds:[FO_VAR_GreenColor];
 		mov  edx, 0x21;
 		lea  eax, [bufPage];
 		jmp  pip_print_;
@@ -404,11 +404,11 @@ static void __declspec(naked) StartPipboy_hack() {
 	// Load new texture for first (up) button. I used memory address for texture from buttons at chracter screen.
 	// Everything fine, because this buttons can't use in one time, and they everytime recreating.
 	// Down
-	ArtButtonFunc(_optionsButtonUpKey,   _optionsButtonUp,   indexUpArt0);
-	ArtButtonFunc(_optionsButtonDownKey, _optionsButtonDown, indexDownArt0);
+	ArtButtonFunc(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp,   indexUpArt0);
+	ArtButtonFunc(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown, indexDownArt0);
 	// Up
-	ArtButtonFunc(_optionsButtonUpKey,   _optionsButtonUp1,   indexUpArt1);
-	ArtButtonFunc(_optionsButtonDownKey, _optionsButtonDown1, indexDownArt1);
+	ArtButtonFunc(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp1,   indexUpArt1);
+	ArtButtonFunc(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown1, indexDownArt1);
 
 	xPos = questsScrollButtonsX;
 	yPos = questsScrollButtonsY;

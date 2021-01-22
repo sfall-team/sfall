@@ -183,11 +183,11 @@ static int __stdcall ArtInitHook() {
 
 static void __declspec(naked) iso_init_hook() {
 	__asm {
-		mov  ebx, dword ptr ds:[_read_callback];
+		mov  ebx, dword ptr ds:[FO_VAR_read_callback];
 		xor  eax, eax;
-		mov  dword ptr ds:[_read_callback], eax;
+		mov  dword ptr ds:[FO_VAR_read_callback], eax;
 		call ArtInitHook;
-		mov  dword ptr ds:[_read_callback], ebx;
+		mov  dword ptr ds:[FO_VAR_read_callback], ebx;
 		retn;
 	}
 }

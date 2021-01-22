@@ -46,7 +46,7 @@ static void __declspec(naked) save_page_offsets(void) {
 		// save last slot position values to file
 		call SavePageOffsets;
 		// restore original code
-		mov  eax, dword ptr ds:[_lsgwin];
+		mov  eax, dword ptr ds:[FO_VAR_lsgwin];
 		retn;
 	}
 }
@@ -337,7 +337,7 @@ static void __declspec(naked) draw_page_text(void) {
 // add page num offset when reading and writing various save data files
 static void __declspec(naked) AddPageOffset01(void) {
 	__asm {
-		mov  eax, dword ptr ds:[_slot_cursor]; // list position 0-9
+		mov  eax, dword ptr ds:[FO_VAR_slot_cursor]; // list position 0-9
 		add  eax, LSPageOffset; // add page num offset
 		retn;
 	}
@@ -453,7 +453,7 @@ static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
 
 	// Save to slot
 	*ptr_slot_cursor = currSlot;
-	LSData* saveData = (LSData*)_LSData;
+	LSData* saveData = (LSData*)FO_VAR_LSData;
 	CreateSaveComment(saveData[currSlot].comment);
 	*ptr_quick_done = 1;
 
@@ -462,7 +462,7 @@ static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
 
 static void __declspec(naked) SaveGame_hack0() {
 	__asm {
-		mov  ds:[_flptr], eax;
+		mov  ds:[FO_VAR_flptr], eax;
 		push ecx;
 		push edi;
 		push eax;
@@ -474,7 +474,7 @@ static void __declspec(naked) SaveGame_hack0() {
 
 static void __declspec(naked) SaveGame_hack1() {
 	__asm {
-		mov ds:[_slot_cursor], 0;
+		mov ds:[FO_VAR_slot_cursor], 0;
 		mov eax, quickSavePage;
 		mov LSPageOffset, eax;
 		retn;

@@ -217,7 +217,7 @@ static void StopMovie() {
 	aviPlayState = AVISTATE_Stop;
 	Gfx_SetMovieTexture(false);
 	movieInterface.pControl->Stop();
-	if (*(DWORD*)_subtitles == 0) RefreshGNW(); // Note: it is only necessary when in the game
+	if (*(DWORD*)FO_VAR_subtitles == 0) RefreshGNW(); // Note: it is only necessary when in the game
 }
 
 DWORD FreeMovie(sDSTexture* movie) {
@@ -306,11 +306,11 @@ static DWORD __fastcall PlayMovieLoop() {
 		return 0;
 	}
 
-	if (*(DWORD*)_subtitles && *ptr_subtitleList) {
+	if (*(DWORD*)FO_VAR_subtitles && *ptr_subtitleList) {
 		__asm call movieUpdate_; // for reading subtitles when playing mve
 		if (!onlyOnce) {
 			onlyOnce = true;
-			ClearWindow(*(DWORD*)_GNWWin);
+			ClearWindow(*(DWORD*)FO_VAR_GNWWin);
 		}
 	}
 
@@ -333,7 +333,7 @@ static void __declspec(naked) gmovie_play_hook() {
 	__asm {
 		push ecx;
 		call GNW95_process_message_; // windows message pump
-		cmp  ds:[_GNW95_isActive], 0;
+		cmp  ds:[FO_VAR_GNW95_isActive], 0;
 		jnz  skip;
 		call GNW95_lost_focus_;
 skip:
@@ -353,7 +353,7 @@ static void __declspec(naked) gmovie_play_hook_input() {
 
 static void __stdcall PreparePlayMovie() {
 	// if subtitles are disabled then mve videos will not be played
-	if (*(DWORD*)_subtitles || !*ptr_subtitleList) {
+	if (*(DWORD*)FO_VAR_subtitles || !*ptr_subtitleList) {
 		// patching MVE_rmStepMovie_ for game subtitles
 		SafeWrite8(0x4F5F40, CODETYPE_Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
 
@@ -432,7 +432,7 @@ static void __stdcall PlayMovieRestore() {
 	SafeWrite32(0x44E938, 0x3934C); // call moviePlaying_
 	SafeWrite32(0x44E94A, 0x7A22A); // call get_input_
 
-	if (*(DWORD*)_subtitles || !*ptr_subtitleList) {
+	if (*(DWORD*)FO_VAR_subtitles || !*ptr_subtitleList) {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
 		if (backgroundVolume) backgroundVolume = GsoundBackgroundVolumeGetSet(backgroundVolume); // restore volume
 	}

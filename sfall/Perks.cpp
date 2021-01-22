@@ -110,16 +110,16 @@ static void __declspec(naked) LevelUpHack() {
 notSkilled:
 		mov  ecx, 3;
 afterSkilled:
-		mov  eax, ds:[_Level_]; // Get player's level
+		mov  eax, ds:[FO_VAR_Level_]; // Get player's level
 		inc  eax;
 		xor  edx, edx;
 		div  ecx;
 		test edx, edx;
 		jnz  end;
-		inc  byte ptr ds:[_free_perk]; // Increment the number of perks owed
+		inc  byte ptr ds:[FO_VAR_free_perk]; // Increment the number of perks owed
 end:
 		pop  ecx;
-		mov  edx, ds:[_Level_];
+		mov  edx, ds:[FO_VAR_Level_];
 		retn;
 	}
 }
@@ -347,7 +347,7 @@ static void __declspec(naked) PlayerHasPerkHack() {
 		mov  ecx, eax;
 		xor  ebx, ebx;
 oloop:
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, ebx;
 		call perk_level_;
 		test eax, eax;
@@ -586,7 +586,7 @@ normalPerk:
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
 		jg   end;
-		inc  ds:[edx * 4 + (_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
+		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
 end:
 		retn;
 	}
@@ -882,7 +882,7 @@ static void PerkSetup() {
 		SafeWrite32(0x496BF5, (DWORD)&perks[0].image);
 		SafeWrite32(0x496AD4, (DWORD)&perks[0].ranks);
 	}
-	memcpy(perks, (void*)_perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
+	memcpy(perks, (void*)FO_VAR_perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
 
 	if (perksEnable) {
 		char num[4];
@@ -1077,7 +1077,7 @@ static void TraitSetup() {
 	MakeJump(0x4B3C7C, TraitAdjustStatHack);  // trait_adjust_stat_
 	MakeJump(0x4B40FC, TraitAdjustSkillHack); // trait_adjust_skill_
 
-	memcpy(traits, (void*)_trait_data, sizeof(TraitInfo) * TRAIT_count);
+	memcpy(traits, (void*)FO_VAR_trait_data, sizeof(TraitInfo) * TRAIT_count);
 
 	// _trait_data
 	const DWORD traitDataAddr[] = {0x4B3A81, 0x4B3B80};

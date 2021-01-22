@@ -77,9 +77,9 @@ static void TimerReset() {
 
 static __declspec(naked) void script_chk_timed_events_hack() {
 	__asm {
-		mov  eax, dword ptr ds:[_fallout_game_time];
+		mov  eax, dword ptr ds:[FO_VAR_fallout_game_time];
 		inc  eax;
-		mov  dword ptr ds:[_fallout_game_time], eax;
+		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
 		cmp  eax, ONE_GAME_YEAR * 13;
 		jae  reset;
 		retn;
@@ -90,7 +90,7 @@ reset:
 
 static __declspec(naked) void set_game_time_hack() {
 	__asm {
-		mov  dword ptr ds:[_fallout_game_time], eax;
+		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
 		mov  edx, eax;
 		call IsGameLoaded;
 		test al, al;
@@ -106,7 +106,7 @@ end:
 
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
-		push dword ptr ds:[_last_buttons];
+		push dword ptr ds:[FO_VAR_last_buttons];
 		push dword ptr ds:[0x6AC7B0]; // _mouse_buttons
 		mov  esi, worldMapTicks;
 		mov  ebx, esi;                // previous ticks
@@ -125,7 +125,7 @@ subLoop:
 		jb   loopDelay;    // elapsed < worldMapDelay
 
 		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
-		pop  dword ptr ds:[_last_buttons];
+		pop  dword ptr ds:[FO_VAR_last_buttons];
 		call ds:[sf_GetTickCount];
 		mov  worldMapTicks, eax;
 		jmp  get_input_;
@@ -166,7 +166,7 @@ static void __declspec(naked) wmWorldMap_hook() {
 
 static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
-		inc  dword ptr ds:[_wmLastRndTime];
+		inc  dword ptr ds:[FO_VAR_wmLastRndTime];
 		jmp  wmPartyWalkingStep_;
 	}
 }
@@ -183,9 +183,9 @@ static void __declspec(naked) ViewportHook() {
 	__asm {
 		call wmWorldMapLoadTempData_;
 		mov  eax, ViewportX;
-		mov  ds:[_wmWorldOffsetX], eax;
+		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 		mov  eax, ViewportY;
-		mov  ds:[_wmWorldOffsetY], eax;
+		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 		retn;
 	}
 }
@@ -213,7 +213,7 @@ static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 static __declspec(naked) void PathfinderFix() {
 	__asm {
 		push eax; // ticks
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, PERK_pathfinder;
 		call perk_level_;
 		push eax;
@@ -236,7 +236,7 @@ static void __declspec(naked) wmMapInit_hack() {
 		test eax, eax;
 		jz   end;
 		mov  ecx, 2;                             // max index
-		mov  ebx, _wmYesNoStrs;
+		mov  ebx, FO_VAR_wmYesNoStrs;
 		lea  eax, [esp + 0xA0 - 0x24 + 4];       // key value
 		sub  esp, 4;
 		mov  edx, esp;                           // index buf
@@ -259,19 +259,19 @@ static void __declspec(naked) wmRndEncounterOccurred_hook() {
 	__asm {
 		push eax;
 		mov  edx, 1;
-		mov  dword ptr ds:[_wmRndCursorFid], 0;
-		mov  ds:[_wmEncounterIconShow], edx;
+		mov  dword ptr ds:[FO_VAR_wmRndCursorFid], 0;
+		mov  ds:[FO_VAR_wmEncounterIconShow], edx;
 		mov  ecx, 7;
 jLoop:
 		mov  eax, edx;
-		sub  eax, ds:[_wmRndCursorFid];
-		mov  ds:[_wmRndCursorFid], eax;
+		sub  eax, ds:[FO_VAR_wmRndCursorFid];
+		mov  ds:[FO_VAR_wmRndCursorFid], eax;
 		call wmInterfaceRefresh_;
 		mov  eax, 200;
 		call block_for_tocks_;
 		dec  ecx;
 		jnz  jLoop;
-		mov  ds:[_wmEncounterIconShow], ecx;
+		mov  ds:[FO_VAR_wmEncounterIconShow], ecx;
 		pop  eax; // map id
 		jmp  map_load_idx_;
 	}
@@ -430,13 +430,13 @@ static void StartingStatePatches() {
 	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
-		SafeWrite32(_wmWorldOffsetX, ViewportX);
+		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
 		dlogr(" Done", DL_INIT);
 	}
 	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
-		SafeWrite32(_wmWorldOffsetY, ViewportY);
+		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
 		dlogr(" Done", DL_INIT);
 	}
 	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
@@ -446,7 +446,7 @@ static void PipBoyAutomapsPatch() {
 	dlog("Applying Pip-Boy automaps patch.", DL_INIT);
 	MakeCall(0x4BF931, wmMapInit_hack, 2);
 	SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
-	memcpy(AutomapPipboyList, (void*)_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
+	memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
 	dlogr(" Done", DL_INIT);
 }
 

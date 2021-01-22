@@ -37,7 +37,7 @@ static void __stdcall op_set_pc_base_stat2() {
 	if (statArg.isInt() && valArg.isInt()) {
 		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
-			((long*)_pc_proto)[9 + stat] = valArg.rawValue();
+			((long*)FO_VAR_pc_proto)[9 + stat] = valArg.rawValue();
 		} else {
 			opHandler.printOpcodeError(invalidStat, "set_pc_base_stat");
 		}
@@ -57,7 +57,7 @@ static void __stdcall op_set_pc_extra_stat2() {
 	if (statArg.isInt() && valArg.isInt()) {
 		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
-			((long*)_pc_proto)[44 + stat] = valArg.rawValue();
+			((long*)FO_VAR_pc_proto)[44 + stat] = valArg.rawValue();
 		} else {
 			opHandler.printOpcodeError(invalidStat, "set_pc_extra_stat");
 		}
@@ -77,7 +77,7 @@ static void __stdcall op_get_pc_base_stat2() {
 	if (statArg.isInt()) {
 		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
-			value = ((long*)_pc_proto)[9 + stat];
+			value = ((long*)FO_VAR_pc_proto)[9 + stat];
 		} else {
 			opHandler.printOpcodeError(invalidStat, "get_pc_base_stat");
 		}
@@ -99,7 +99,7 @@ static void __stdcall op_get_pc_extra_stat2() {
 	if (statArg.isInt()) {
 		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
-			value = ((long*)_pc_proto)[44 + stat];
+			value = ((long*)FO_VAR_pc_proto)[44 + stat];
 		} else {
 			opHandler.printOpcodeError(invalidStat, "get_pc_extra_stat");
 		}
@@ -333,7 +333,7 @@ end:
 
 static void __declspec(naked) op_get_available_skill_points() {
 	__asm {
-		mov  edx, dword ptr ds:[_curr_pc_stat];
+		mov  edx, dword ptr ds:[FO_VAR_curr_pc_stat];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

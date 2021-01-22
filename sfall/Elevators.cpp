@@ -103,9 +103,9 @@ static void ResetElevators() {
 static void LoadElevators(const char* elevFile) {
 	//ResetElevators();
 
-	memcpy(elevatorExits, (void*)_retvals, sizeof(sElevatorExit) * vanillaElevatorCount * exitsPerElevator);
-	memcpy(elevatorsFrms, (void*)_intotal, sizeof(sElevatorFrms) * vanillaElevatorCount);
-	memcpy(elevatorsBtnCount, (void*)_btncnt, sizeof(DWORD) * vanillaElevatorCount);
+	memcpy(elevatorExits, (void*)FO_VAR_retvals, sizeof(sElevatorExit) * vanillaElevatorCount * exitsPerElevator);
+	memcpy(elevatorsFrms, (void*)FO_VAR_intotal, sizeof(sElevatorFrms) * vanillaElevatorCount);
+	memcpy(elevatorsBtnCount, (void*)FO_VAR_btncnt, sizeof(DWORD) * vanillaElevatorCount);
 
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
 

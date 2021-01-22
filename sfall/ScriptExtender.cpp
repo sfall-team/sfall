@@ -1169,12 +1169,12 @@ static void __declspec(naked) obj_outline_all_items_on() {
 	using namespace Fields;
 	__asm {
 		pushadc;
-		mov  eax, ds:[_map_elevation];
+		mov  eax, ds:[FO_VAR_map_elevation];
 		call obj_find_first_at_;
 loopObject:
 		test eax, eax;
 		jz   end;
-		cmp  eax, ds:[_outlined_object];
+		cmp  eax, ds:[FO_VAR_outlined_object];
 		je   nextObject;
 		xchg ecx, eax;
 		mov  eax, [ecx + artFid];
@@ -1219,12 +1219,12 @@ static void __declspec(naked) obj_outline_all_items_off() {
 	using namespace Fields;
 	__asm {
 		pushadc;
-		mov  eax, ds:[_map_elevation];
+		mov  eax, ds:[FO_VAR_map_elevation];
 		call obj_find_first_at_;
 loopObject:
 		test eax, eax;
 		jz   end;
-		cmp  eax, ds:[_outlined_object];
+		cmp  eax, ds:[FO_VAR_outlined_object];
 		je   nextObject;
 		xchg ecx, eax;
 		mov  eax, [ecx + artFid];
@@ -1257,7 +1257,7 @@ static void __declspec(naked) obj_remove_outline_hook() {
 		jnz  end;
 		cmp  highlightingToggled, 1;
 		jne  end;
-		mov  ds:[_outlined_object], eax;
+		mov  ds:[FO_VAR_outlined_object], eax;
 		call obj_outline_all_items_on;
 end:
 		retn;

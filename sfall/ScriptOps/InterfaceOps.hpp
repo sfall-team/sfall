@@ -84,8 +84,8 @@ end:
 //// *** From helios *** ////
 static void __declspec(naked) op_get_mouse_x() {
 	__asm {
-		mov  edx, ds:[_mouse_x_];
-		add  edx, ds:[_mouse_hotx];
+		mov  edx, ds:[FO_VAR_mouse_x_];
+		add  edx, ds:[FO_VAR_mouse_hotx];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -93,8 +93,8 @@ static void __declspec(naked) op_get_mouse_x() {
 //Return mouse y position
 static void __declspec(naked) op_get_mouse_y() {
 	__asm {
-		mov  edx, ds:[_mouse_y_];
-		add  edx, ds:[_mouse_hoty];
+		mov  edx, ds:[FO_VAR_mouse_y_];
+		add  edx, ds:[FO_VAR_mouse_hoty];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -104,7 +104,7 @@ static void __declspec(naked) op_get_mouse_buttons() {
 	__asm {
 		push ecx;
 		push edx;
-		mov edx, ds:[_last_buttons];
+		mov edx, ds:[FO_VAR_last_buttons];
 		test edx, edx;
 		jnz skip;
 		cmp byte ptr middleMouseDown, 0;
@@ -125,7 +125,7 @@ skip:
 //Return the window number under the mous
 static void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
-		mov  edx, ds:[_last_button_winID];
+		mov  edx, ds:[FO_VAR_last_button_winID];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -133,8 +133,8 @@ static void __declspec(naked) op_get_window_under_mouse() {
 //Return screen width
 static void __declspec(naked) op_get_screen_width() {
 	__asm {
-		mov  edx, ds:[_scr_size + 8]; // _scr_size.offx
-		sub  edx, ds:[_scr_size];     // _scr_size.x
+		mov  edx, ds:[FO_VAR_scr_size + 8]; // _scr_size.offx
+		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
@@ -143,8 +143,8 @@ static void __declspec(naked) op_get_screen_width() {
 //Return screen height
 static void __declspec(naked) op_get_screen_height() {
 	__asm {
-		mov  edx, ds:[_scr_size + 12]; // _scr_size.offy
-		sub  edx, ds:[_scr_size + 4];  // _scr_size.y
+		mov  edx, ds:[FO_VAR_scr_size + 12]; // _scr_size.offy
+		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
@@ -221,23 +221,23 @@ static void mf_message_box() {
 		colors |= (opHandler.arg(3).rawValue() & 0xFF) << 8;
 	}
 	dialogShowCount++;
-	*(DWORD*)_script_engine_running = 0;
+	*(DWORD*)FO_VAR_script_engine_running = 0;
 	long result = DialogOutEx(gTextBuffer, str_ptr, lines, flags, colors);
-	if (--dialogShowCount == 0) *(DWORD*)_script_engine_running = 1;
+	if (--dialogShowCount == 0) *(DWORD*)FO_VAR_script_engine_running = 1;
 
 	opHandler.setReturn(result);
 }
 
 static void __declspec(naked) op_get_viewport_x() {
 	__asm {
-		mov  edx, ds:[_wmWorldOffsetX];
+		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
 static void __declspec(naked) op_get_viewport_y() {
 	__asm {
-		mov  edx, ds:[_wmWorldOffsetY];
+		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -245,7 +245,7 @@ static void __declspec(naked) op_get_viewport_y() {
 static void __declspec(naked) op_set_viewport_x() {
 	__asm {
 		_GET_ARG_INT(end);
-		mov  ds:[_wmWorldOffsetX], eax;
+		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
 		retn;
 	}
@@ -254,7 +254,7 @@ end:
 static void __declspec(naked) op_set_viewport_y() {
 	__asm {
 		_GET_ARG_INT(end);
-		mov  ds:[_wmWorldOffsetY], eax;
+		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 end:
 		retn;
 	}
@@ -312,7 +312,7 @@ static void __stdcall op_is_iface_tag_active2() {
 		if (tag >= 0 && tag < 5) {
 			if (tag == 1 || tag == 2) { // Poison/Radiation
 				tag += 2;
-				int* boxslot = (int*)_bboxslot;
+				int* boxslot = (int*)FO_VAR_bboxslot;
 				for (int i = 0; i < 6; i++) {
 					int value = boxslot[i];
 					if (value == tag || value == -1) {
@@ -385,10 +385,10 @@ static void mf_display_stats() {
 		DisplayStats(); // calling the function outside of inventory screen will crash the game
 	} else if (flags & CHARSCREEN) {
 		__asm {
-			mov  eax, ds:[_obj_dude];
+			mov  eax, ds:[FO_VAR_obj_dude];
 			call stat_recalc_derived_;
 			xor  edx, edx;
-			mov  eax, ds:[_obj_dude];
+			mov  eax, ds:[FO_VAR_obj_dude];
 			call critter_adjust_hits_;
 			push ebx;
 			mov  eax, 7;
@@ -536,7 +536,7 @@ static void __fastcall FreeArtFile(FrmFile* frmPtr) {
 	if (frmPtr->id == 'PCX') {
 		__asm mov  eax, frmPtr;
 		__asm mov  eax, [eax]frmPtr.pixelData;
-		__asm call ds:[_freePtr];
+		__asm call ds:[FO_VAR_freePtr];
 		delete[] frmPtr;
 	} else {
 		__asm mov  eax, frmPtr;
@@ -585,7 +585,7 @@ static long __stdcall GetArtFIDFile(long fid, const char* &file) {
 }
 
 static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const char* metaruleName) {
-	if (!SelectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)_currentWindow == -1) {
+	if (!SelectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
 		opHandler.printOpcodeError("%s() - no created or selected window.", metaruleName);
 		return 0;
 	}
@@ -755,10 +755,10 @@ static void mf_unwield_slot() {
 			long* itemRef = nullptr;
 			if (slot == INVEN_TYPE_LEFT_HAND) {
 				item = *ptr_i_lhand;
-				itemRef = (long*)_i_lhand;
+				itemRef = (long*)FO_VAR_i_lhand;
 			} else {
 				item = *ptr_i_rhand;
-				itemRef = (long*)_i_rhand;
+				itemRef = (long*)FO_VAR_i_rhand;
 			}
 			if (item) {
 				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? ObjectFlag::Left_Hand : ObjectFlag::Right_Hand)) {
@@ -882,7 +882,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 
 static void mf_win_fill_color() {
 	long result = SelectWindowID(opHandler.program()->currentScriptWin);
-	long iWin = *(DWORD*)_currentWindow;
+	long iWin = *(DWORD*)FO_VAR_currentWindow;
 	if (!result || iWin == -1) {
 		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");
 		opHandler.setReturn(-1);

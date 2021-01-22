@@ -904,8 +904,8 @@ public:
 				b->lpSurface = lockTarget;
 			}
 		} else {
-			mveDesc.lPitch = *(DWORD*)_lastMovieW;
-			mveDesc.dwHeight = *(DWORD*)_lastMovieH;
+			mveDesc.lPitch = *(DWORD*)FO_VAR_lastMovieW;
+			mveDesc.dwHeight = *(DWORD*)FO_VAR_lastMovieH;
 			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 			*b = mveDesc;
 			b->lpSurface = lockTarget;
@@ -1316,7 +1316,7 @@ static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, 
 			push eax; // heightFrom
 			push widthFrom;
 			push surface;
-			call ds:[_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
+			call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
 			add  esp, 9*4;
 		}
 	} else {
@@ -1449,7 +1449,7 @@ void GameRender_DestroyOverlaySurface(WINinfo* win) {
 }
 
 static BYTE* GetBuffer() {
-	return (BYTE*)*(DWORD*)_screen_buffer;
+	return (BYTE*)*(DWORD*)FO_VAR_screen_buffer;
 }
 
 static void Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
@@ -1474,10 +1474,10 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 	if (win->flags & WinFlags::Hidden) return;
 	RectList* rects;
 
-	if (win->flags & WinFlags::Transparent && !*(DWORD*)_doing_refresh_all) {
+	if (win->flags & WinFlags::Transparent && !*(DWORD*)FO_VAR_doing_refresh_all) {
 		__asm {
 			mov  eax, updateRect;
-			mov  edx, ds:[_screen_buffer];
+			mov  edx, ds:[FO_VAR_screen_buffer];
 			call refresh_all_;
 		}
 		int w = (updateRect->right - updateRect->left) + 1;
@@ -1592,7 +1592,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 		rects = next;
 	}
 
-	if (!toBuffer && !*(DWORD*)_doing_refresh_all && !*ptr_mouse_is_hidden && MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+	if (!toBuffer && !*(DWORD*)FO_VAR_doing_refresh_all && !*ptr_mouse_is_hidden && MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 		MouseShow();
 	}
 }
@@ -1689,7 +1689,7 @@ void Graphics_Init() {
 	MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
 	// Replace _screendump_buf with _screen_buffer for creating screenshots
 	const DWORD scrdumpBufAddr[] = {0x4C8FD1, 0x4C900D};
-	SafeWriteBatch<DWORD>(_screen_buffer, scrdumpBufAddr);
+	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
 }
 
 void Graphics_Exit() {

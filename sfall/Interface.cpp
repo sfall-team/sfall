@@ -200,7 +200,7 @@ static void AddNewDot() {
 	dot_xpos = *ptr_world_xpos;
 	dot_ypos = *ptr_world_ypos;
 
-	long* terrain = *(long**)_world_subtile;
+	long* terrain = *(long**)FO_VAR_world_subtile;
 	size_t id = (terrain) ? *terrain : 0;
 
 	// Reinitialize if current terrain has smaller values than previous
@@ -357,9 +357,9 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
-		cmp  ds:[_In_WorldMap], 1; // player is moving
+		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
-		mov  eax, dword ptr ds:[_wmWorldOffsetY]; // overwritten code
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
 		retn;
 checkHover:
 		cmp  esi, 328;
@@ -375,12 +375,12 @@ checkHover:
 		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
 		call wmDetectHotspotHover;
 		pop  ecx;
-		mov  eax, dword ptr ds:[_wmWorldOffsetY];
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 isScroll:
 		mov  isHoveringHotspot, 0;
 		mov  backImageIsCopy, 0;
-		mov  eax, dword ptr ds:[_wmWorldOffsetY];
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 	}
 }
@@ -544,7 +544,7 @@ static long gmouse_handle_event_hook() {
 	}
 	if (IFACE_BAR_MODE) return 1;
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
-	win = GNWFind(*(DWORD*)_display_win);
+	win = GNWFind(*(DWORD*)FO_VAR_display_win);
 	RECT *rect = &win->wRect;
 	return MouseClickIn(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }

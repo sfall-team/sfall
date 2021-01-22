@@ -241,7 +241,7 @@ static void __declspec(naked) RetryCombatHook() {
 retry:
 		call combat_ai_;
 process:
-		cmp  dword ptr ds:[_combat_turn_running], 0;
+		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
 		jle  next;
 		call process_bk_;
 		jmp  process;

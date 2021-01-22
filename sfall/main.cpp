@@ -484,7 +484,7 @@ defaultIni:
 				}
 			}
 		}
-		std::srand(GetTickCount());
+		//std::srand(GetTickCount());
 
 		DllMain2();
 	}

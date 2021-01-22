@@ -389,7 +389,7 @@ static void __declspec(naked) MainMenuHook() {
 		push 0;
 		call ResetState;
 		mov  al, pipBoyAvailableAtGameStart;
-		mov  byte ptr ds:[_gmovie_played_list + 3], al;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list + 3], al;
 		call ReadExtraGameMsgFiles;
 		popad;
 		jmp  main_menu_loop_;

@@ -230,7 +230,7 @@ static void __declspec(naked) LoadNewHeroArt() {
 		mov ecx, dword ptr ds:[ecx]; // set app path
 		retn;
 isNotReading:
-		mov ecx, _paths;
+		mov ecx, FO_VAR_paths;
 		mov ecx, dword ptr ds:[ecx];
 		retn;
 	}
@@ -242,11 +242,11 @@ static void __declspec(naked) CheckHeroExist() {
 		jg   checkArt;
 		jmp  LoadOrder_art_get_name_hack;
 checkArt:
-		mov  eax, _art_name;              // critter art file name address (file name)
+		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
 		call db_access_;                  // check art file exists
 		test eax, eax;
 		jz   notExists;
-		mov  eax, _art_name;
+		mov  eax, FO_VAR_art_name;
 		retn;
 notExists: // if file not found load regular critter art instead
 		sub  esi, critterArraySize;
@@ -260,7 +260,7 @@ notExists: // if file not found load regular critter art instead
 static void __declspec(naked) AdjustHeroBaseArt() {
 	__asm {
 		add eax, critterListSize;
-		mov dword ptr ds:[_art_vault_guy_num], eax;
+		mov dword ptr ds:[FO_VAR_art_vault_guy_num], eax;
 		retn;
 	}
 }
@@ -279,7 +279,7 @@ static void __declspec(naked) AdjustHeroArmorArt() {
 		jg   endFunc;
 		add  eax, critterListSize;    // shift critter art index up into hero range
 endFunc:
-		//mov dword ptr ds:[_i_fid], eax;
+		//mov dword ptr ds:[FO_VAR_i_fid], eax;
 		retn;
 	}
 }
@@ -356,7 +356,7 @@ static long __stdcall AddHeroCritNames() { // art_init_
 }
 
 static void DoubleArtAlias() {
-	DWORD* crittersAliasData = *(DWORD**)_anon_alias;
+	DWORD* crittersAliasData = *(DWORD**)FO_VAR_anon_alias;
 	std::memcpy(crittersAliasData + critterListSize, crittersAliasData, critterListSize * 4);
 }
 
@@ -371,24 +371,24 @@ void __stdcall RefreshPCArt() {
 	__asm {
 		call proto_dude_update_gender_;         // refresh PC base model art
 
-		push dword ptr ds:[_inven_dude];
-		push dword ptr ds:[_i_rhand]; // item2
-		push dword ptr ds:[_i_lhand]; // item1
-		push dword ptr ds:[_i_worn];  // armor
+		push dword ptr ds:[FO_VAR_inven_dude];
+		push dword ptr ds:[FO_VAR_i_rhand]; // item2
+		push dword ptr ds:[FO_VAR_i_lhand]; // item1
+		push dword ptr ds:[FO_VAR_i_worn];  // armor
 
-		mov  eax, dword ptr ds:[_obj_dude];     // PC state struct
-		mov  dword ptr ds:[_inven_dude], eax;   // inventory temp pointer to PC state struct
-		mov  eax, dword ptr ds:[_inven_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];     // PC state struct
+		mov  dword ptr ds:[FO_VAR_inven_dude], eax;   // inventory temp pointer to PC state struct
+		mov  eax, dword ptr ds:[FO_VAR_inven_dude];
 		lea  edx, dword ptr ds:[eax + 0x2C];
-		mov  dword ptr ds:[_pud], edx;          // PC inventory
+		mov  dword ptr ds:[FO_VAR_pud], edx;          // PC inventory
 
 		xor  eax, eax;
 		xor  edx, edx; // itemListOffset
 		xor  ebx, ebx; // itemNum
 
-		mov  dword ptr ds:[_i_rhand], eax; // item2
-		mov  dword ptr ds:[_i_lhand], eax; // item1
-		mov  dword ptr ds:[_i_worn], eax;  // armor
+		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // item2
+		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // item1
+		mov  dword ptr ds:[FO_VAR_i_worn], eax;  // armor
 		jmp  LoopStart;
 
 CheckNextItem:
@@ -404,22 +404,22 @@ CheckNextItem:
 		jmp  SetNextItem;
 
 IsItem1:
-		mov  dword ptr ds:[_i_lhand], eax; // set item1
+		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // set item1
 		test byte ptr ds:[eax + 0x27], 2;  // check if same item type also in item2 slot
 		jz   SetNextItem;
 
 IsItem2:
-		mov  dword ptr ds:[_i_rhand], eax; // set item2
+		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // set item2
 		jmp  SetNextItem;
 
 IsArmor:
-		mov  dword ptr ds:[_i_worn], eax; // set armor
+		mov  dword ptr ds:[FO_VAR_i_worn], eax; // set armor
 
 SetNextItem:
 		inc  ebx;    // itemNum++
 		add  edx, 8; // itemListOffset + itemsize
 LoopStart:
-		mov  eax, dword ptr ds:[_pud]; // PC inventory
+		mov  eax, dword ptr ds:[FO_VAR_pud]; // PC inventory
 		cmp  ebx, dword ptr ds:[eax];  // size of item list
 		jl   CheckNextItem;
 
@@ -427,15 +427,15 @@ LoopStart:
 		call adjust_fid_;
 
 		// copy new FrmID to hero state struct
-		mov  edx, dword ptr ds:[_i_fid];
-		mov  eax, dword ptr ds:[_inven_dude];
+		mov  edx, dword ptr ds:[FO_VAR_i_fid];
+		mov  eax, dword ptr ds:[FO_VAR_inven_dude];
 		mov  dword ptr ds:[eax + 0x20], edx;
 		//call obj_change_fid_;
 
-		pop  dword ptr ds:[_i_worn];  // armor
-		pop  dword ptr ds:[_i_lhand]; // item1
-		pop  dword ptr ds:[_i_rhand]; // item2
-		pop  dword ptr ds:[_inven_dude];
+		pop  dword ptr ds:[FO_VAR_i_worn];  // armor
+		pop  dword ptr ds:[FO_VAR_i_lhand]; // item1
+		pop  dword ptr ds:[FO_VAR_i_rhand]; // item2
+		pop  dword ptr ds:[FO_VAR_inven_dude];
 	}
 	DrawPC();
 }
@@ -594,10 +594,10 @@ static void DrawPCConsole() {
 /*
 void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message) {
 	__asm {
-		mov  ecx, message      //dword ptr ds:[_folder_card_desc]
-		mov  ebx, alttitletxt  //dword ptr ds:[_folder_card_title2]
-		mov  edx, titletxt     //dword ptr ds:[_folder_card_title]
-		mov  eax, lstnum       //dword ptr ds:[_folder_card_fid]
+		mov  ecx, message      //dword ptr ds:[FO_VAR_folder_card_desc]
+		mov  ebx, alttitletxt  //dword ptr ds:[FO_VAR_folder_card_title2]
+		mov  edx, titletxt     //dword ptr ds:[FO_VAR_folder_card_title]
+		mov  eax, lstnum       //dword ptr ds:[FO_VAR_folder_card_fid]
 		call drawcard_
 	}
 }
@@ -630,7 +630,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	SetFont(0x66);           // set font for title
 
 	DWORD textHeight;
-	BYTE colour = *(BYTE*)_colorTable; // black color
+	BYTE colour = *(BYTE*)FO_VAR_colorTable; // black color
 
 	if (TitleMsg != nullptr) {
 		textHeight = GetTextHeight();
@@ -674,7 +674,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	SetFont(oldFont); // restore previous font
 	MessageExit(&MsgList);
 
-	*(long*)_card_old_fid1 = -1; // reset fid
+	*(long*)FO_VAR_card_old_fid1 = -1; // reset fid
 
 	DeleteWordWrapList(StartLine);
 	delete[] PadSurface;
@@ -905,7 +905,7 @@ static int __stdcall CheckCharButtons() {
 	int infoLine = *ptr_info_line;
 	if (infoLine == 0x503 || infoLine == 0x504) {
 		*ptr_info_line -= 2;
-		*(DWORD*)_frstc_draw1 = 1;
+		*(DWORD*)FO_VAR_frstc_draw1 = 1;
 		DrawCharNoteNewChar(infoLine != 0x503);
 	} else if (infoLine == 0x501 || infoLine == 0x502) {
 		switch (button) {
@@ -1082,17 +1082,17 @@ static void __declspec(naked) SexScrnEnd() {
 	__asm {
 		push edx;
 		mov  edx, STAT_gender;
-		mov  eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call stat_level_;               // get PC stat current gender
 		mov  ecx, eax;                  // gender
 		call SexWindow_;                // call gender selection window
 /*
 		xor  ebx, ebx;
-		cmp byte ptr ds:[_gmovie_played_list + 0x3], 1 // check if wearing vault suit
+		cmp byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], 1 // check if wearing vault suit
 		jne NoVaultSuit
 		mov ebx, 0x8
 NoVaultSuit:
-		mov  eax, dword ptr ds:[ebx + _art_vault_person_nums]; // base male model
+		mov  eax, dword ptr ds:[ebx + FO_VAR_art_vault_person_nums]; // base male model
 */
 		call HeroGenderChange;
 		pop  edx;
@@ -1160,8 +1160,8 @@ static void __declspec(naked) AddCharScrnButtons() {
 // Loading or creating a background image for the character creation/editing interface
 static void __declspec(naked) FixCharScrnBack() {
 	__asm {
-		mov  dword ptr ds:[_bckgnd], eax; // surface ptr for char scrn back
-		test eax, eax;                    // check if frm loaded ok
+		mov  dword ptr ds:[FO_VAR_bckgnd], eax; // surface ptr for char scrn back
+		test eax, eax;                          // check if frm loaded ok
 		je   endFunc;
 		// prolog
 		pushad;
@@ -1285,7 +1285,7 @@ static void __declspec(naked) CharScrnEnd() {
 		push eax;
 		call DeleteCharSurfaces;
 		pop  eax;
-		mov  ebp, dword ptr ds:[_info_line];
+		mov  ebp, dword ptr ds:[FO_VAR_info_line];
 		retn;
 	}
 }
@@ -1301,7 +1301,7 @@ static void __declspec(naked) FixPcSFX() {
 endFunc:
 		// restore original code
 		mov eax, ebx;
-		cmp dword ptr ds:[_gsound_initialized], 0;
+		cmp dword ptr ds:[FO_VAR_gsound_initialized], 0;
 		retn;
 	}
 }
@@ -1356,7 +1356,7 @@ static void __declspec(naked) op_metarule3_hook() {
 	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 0x4C - 0x44 + 8]; // source
-		cmp  edi, ds:[_obj_dude];
+		cmp  edi, ds:[FO_VAR_obj_dude];
 		jne  skip;
 		mov  edi, [edi + protoId];
 		cmp  edi, PID_Player;

@@ -682,8 +682,8 @@ static void __declspec(naked) PC_BarterPriceHook() {
 		push ecx;
 		//-------
 		push -1;                                 // address on call stack
-		mov  ecx, dword ptr ds:[_obj_dude];      // source
-		mov  edx, dword ptr ds:[_target_stack];  // target
+		mov  ecx, dword ptr ds:[FO_VAR_obj_dude];      // source
+		mov  edx, dword ptr ds:[FO_VAR_target_stack];  // target
 		call BarterPriceHook_Script;
 		pop  ecx;
 		pop  edx;
@@ -1137,7 +1137,7 @@ static void __declspec(naked) UseArmorHack() {
 	static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
 	static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 	__asm {
-		mov  ecx, ds:[_i_worn];             // replacement item (override code)
+		mov  ecx, ds:[FO_VAR_i_worn];             // replacement item (override code)
 		mov  edx, [esp + 0x58 - 0x40];      // item
 		push ecx;
 		push 3;                             // event: armor slot
@@ -1156,7 +1156,7 @@ static void __declspec(naked) MoveInventoryHook() {
 		pushadc;
 		xor eax, eax;
 		mov ecx, eax;                    // no item replace
-		cmp dword ptr ds:[_curr_stack], 0;
+		cmp dword ptr ds:[FO_VAR_curr_stack], 0;
 		jle noCont;
 		mov ecx, eax;                    // contaner ptr
 		mov eax, 5;
@@ -1223,7 +1223,7 @@ static void __declspec(naked) InvenActionExplosiveDropHack() {
 		cmp  eax, -1;                        // ret value
 		popadc;
 		jnz  noDrop;
-		mov  dword ptr ds:[_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
+		mov  dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
 		mov  nextHookDropSkip, ebp;
 		retn;
 noDrop:
@@ -1294,7 +1294,7 @@ donothing:
 
 static void __declspec(naked) PickupObjectHack() {
 	__asm {
-		cmp  edi, ds:[_obj_dude];
+		cmp  edi, ds:[FO_VAR_obj_dude];
 		je   runHook;
 		xor  edx, edx; // engine handler
 		retn;
@@ -1320,7 +1320,7 @@ static void __declspec(naked) InvenPickupHook() {
 		jnz  runHook;
 		retn;
 runHook:
-		cmp  dword ptr ds:[_curr_stack], 0;
+		cmp  dword ptr ds:[FO_VAR_curr_stack], 0;
 		jnz  skip;
 		mov  edx, [esp + 0x58 - 0x40 + 4]; // item
 		xor  ecx, ecx;                     // no itemReplace
@@ -1526,14 +1526,14 @@ void __declspec(naked) InvenUnwield_HookMove() { // eax - item, edx - critter
 // called when unwelding dude weapon and armor
 static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
 	__asm {
-		cmp  eax, ds:[_obj_dude];
+		cmp  eax, ds:[FO_VAR_obj_dude];
 		je   runHook;
 		jmp  item_move_all_;
 runHook:
 		push eax;
 		push edx;
 		mov  ecx, eax; // keep source
-		mov  edx, ds:[_itemCurrentItem]; // get player's active slot
+		mov  edx, ds:[FO_VAR_itemCurrentItem]; // get player's active slot
 		test edx, edx;
 		jz   left;
 		call inven_right_hand_;

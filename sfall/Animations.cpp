@@ -31,8 +31,8 @@ static int animationLimit = 32;
 static BYTE *anim_set;
 static BYTE *sad;
 
-static DWORD animSetAddr = _anim_set;
-static DWORD sadAddr = _sad;
+static DWORD animSetAddr = FO_VAR_anim_set;
+static DWORD sadAddr = FO_VAR_sad;
 
 static const DWORD animPCMove[] = {
 	0x416E11, 0x416F64, 0x417143, 0x41725C, 0x4179CC,
@@ -210,7 +210,7 @@ static void __declspec(naked) action_climb_ladder_hook() {
 		cmp  dword ptr [edi + 0x3C], 0;     // DestMap
 		je   reset;
 		push edx;
-		mov  edx, ds:[_map_number];
+		mov  edx, ds:[FO_VAR_map_number];
 		cmp  dword ptr [edi + 0x3C], edx;
 		pop  edx;
 		jne  skip;

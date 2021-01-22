@@ -73,7 +73,7 @@ static void __declspec(naked) register_object_take_out_hack() {
 
 static void __declspec(naked) gdAddOptionStr_hack() {
 	__asm {
-		mov  ecx, ds:[_gdNumOptions];
+		mov  ecx, ds:[FO_VAR_gdNumOptions];
 		add  ecx, '1';
 		push ecx;
 		mov  ecx, 0x4458FA;
@@ -83,7 +83,7 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 
 static void __declspec(naked) action_use_skill_on_hook_science() {
 	__asm {
-		cmp esi, ds:[_obj_dude];
+		cmp esi, ds:[FO_VAR_obj_dude];
 		jne end;
 		mov eax, KILL_TYPE_robot;
 		retn;
@@ -95,13 +95,13 @@ end:
 static void __declspec(naked) intface_item_reload_hook() {
 	__asm {
 		push eax;
-		mov  eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call register_clear_;
 		xor  edx, edx;       // ANIM_stand
 		xor  ebx, ebx;       // delay (unused)
 		lea  eax, [edx + 1]; // RB_UNRESERVED
 		call register_begin_;
-		mov  eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call register_object_animate_;
 		call register_end_;
 		pop  eax;
@@ -113,7 +113,7 @@ static void __declspec(naked) automap_hack() {
 	static const DWORD ScannerHookRet  = 0x41BC1D;
 	static const DWORD ScannerHookFail = 0x41BC65;
 	__asm {
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, PID_MOTION_SENSOR;
 		call inven_pid_is_carried_ptr_;
 		test eax, eax;
@@ -219,7 +219,7 @@ static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
 	if (toSlot == nullptr) { // copy to slot
 		ItemButtonItem* slot;
 		ItemButtonItem item[1];
-		if ((int)&toSlot == _i_lhand) {
+		if ((int)&toSlot == FO_VAR_i_lhand) {
 			std::memcpy(item, rightSlot, 0x14);
 			item[0].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
 			item[0].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
@@ -288,11 +288,11 @@ static void __declspec(naked) ListDrvdStats_hook() {
 		call IsRadInfluence;
 		test eax, eax;
 		jnz  influence;
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		jmp  critter_get_rads_;
 influence:
 		xor  ecx, ecx;
-		mov  cl, ds:[_RedColor];
+		mov  cl, ds:[FO_VAR_RedColor];
 		cmp  dword ptr [esp], 0x4354BE + 5;
 		jne  skip;
 		mov  cl, 131; // color index for selected
@@ -306,7 +306,7 @@ static void __declspec(naked) obj_render_outline_hack() {
 	__asm {
 		test eax, 0xFF00;
 		jnz  palColor;
-		mov  al, ds:[_GoodColor];
+		mov  al, ds:[FO_VAR_GoodColor];
 		retn;
 palColor:
 		mov  al, ah;
@@ -334,7 +334,7 @@ static void __declspec(naked) obj_move_to_tile_hook() {
 	__asm {
 		mov  ecx, eax;
 		call RemoveAllFloatTextObjects;
-		mov  eax, ds:[_display_win];
+		mov  eax, ds:[FO_VAR_display_win];
 		jmp  win_draw_; // update black edges
 	}
 }
@@ -679,7 +679,7 @@ static void F1EngineBehaviorPatch() {
 
 static void __declspec(naked) op_display_msg_hook() {
 	__asm {
-		cmp  dword ptr ds:_debug_func, 0;
+		cmp  dword ptr ds:FO_VAR_debug_func, 0;
 		jne  debug;
 		retn;
 debug:

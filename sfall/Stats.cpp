@@ -81,7 +81,7 @@ static void __declspec(naked) stat_set_base_hack_check() {
 	static const DWORD StatSetBaseHack_RetMax = 0x4AF591;
 	static const DWORD StatSetBaseHack_Ret    = 0x4AF59C;
 	__asm {
-		cmp esi, dword ptr ds:[_obj_dude];
+		cmp esi, dword ptr ds:[FO_VAR_obj_dude];
 		jz  pc;
 		cmp ebx, statMinimumsNPC[eax];
 		jl  failMin;
@@ -111,7 +111,7 @@ static void __declspec(naked) GetLevelXPHook() {
 
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
-		mov eax, ds:[_Level_];
+		mov eax, ds:[FO_VAR_Level_];
 		jmp GetLevelXPHook;
 	}
 }
@@ -126,7 +126,7 @@ static void __declspec(naked) CalcApToAcBonus() {
 		cmp  [esp + 0x1C - 0x18 + 4], 2; // pc have perk h2hEvade (2 - vanilla bonus)
 		jb   standard;
 		mov  edx, PERK_hth_evade_perk;
-		mov  eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call perk_level_;
 		imul eax, ExtraApAcBonus;        // bonus = perkLvl * ExtraApBonus
 		imul eax, edi;                   // perkBonus = bonus * curAP
@@ -240,7 +240,7 @@ notDude:
 void __declspec(naked) critter_adjust_poison_hack_fix() {
 	using namespace Fields;
 	__asm {
-		mov  edx, ds:[_obj_dude];
+		mov  edx, ds:[FO_VAR_obj_dude];
 		mov  ebx, [eax + protoId]; // critter.pid
 		mov  ecx, PID_Player;
 		retn;
@@ -250,7 +250,7 @@ void __declspec(naked) critter_adjust_poison_hack_fix() {
 static void __declspec(naked) critter_check_rads_hack() {
 	using namespace Fields;
 	__asm {
-		mov  edx, ds:[_obj_dude];
+		mov  edx, ds:[FO_VAR_obj_dude];
 		mov  eax, [eax + protoId]; // critter.pid
 		mov  ecx, PID_Player;
 		retn;
@@ -263,7 +263,7 @@ void __declspec(naked) critter_adjust_rads_hack() {
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_Player; // critter.pid
 		jne  notDude;
-		mov  edx, ds:[_obj_dude];
+		mov  edx, ds:[FO_VAR_obj_dude];
 		xor  eax, eax; // for continue func
 notDude:
 		retn;
@@ -274,8 +274,8 @@ notDude:
 
 static void StatsReset() {
 	for (size_t i = 0; i < STAT_max_stat; i++) {
-		statMaximumsPC[i] = statMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
-		statMinimumsPC[i] = statMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i * 24);
+		statMaximumsPC[i] = statMaximumsNPC[i] = *(DWORD*)(FO_VAR_stat_data + 16 + i * 24);
+		statMinimumsPC[i] = statMinimumsNPC[i] = *(DWORD*)(FO_VAR_stat_data + 12 + i * 24);
 	}
 }
 

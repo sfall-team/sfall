@@ -45,7 +45,7 @@ static void __declspec(naked) MainMenuButtonYHook() {
 static void __declspec(naked) MainMenuTextYHook() {
 	__asm {
 		add eax, MainMenuTextOffset;
-		jmp dword ptr ds:[_text_to_buf];
+		jmp dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
@@ -78,18 +78,18 @@ static void __declspec(naked) MainMenuTextHook() {
 		call win_print_;
 		// sfall print
 		mov  eax, esi;
-		call ds:[_text_width];
+		call ds:[FO_VAR_text_width];
 		add  ebp, eax;               // xpos shift (right align)
 		call FontColour;
 		push eax;                    // colour
 		mov  edx, VerString1;        // msg
 		mov  eax, edx;
-		call ds:[_text_width];
+		call ds:[FO_VAR_text_width];
 		mov  ecx, ebp;               // xpos
 		sub  ecx, eax;               // left shift position
 		push edi;                    // ypos
 		xor  ebx, ebx;               // font
-		mov  eax, dword ptr ds:[_main_window]; // winptr
+		mov  eax, dword ptr ds:[FO_VAR_main_window]; // winptr
 		call win_print_;
 		jmp  MainMenuTextRet;
 	}

@@ -84,12 +84,12 @@ bool Use32BitTalkingHeads = false;
 */
 
 static bool GetHeadFrmName(char* name) {
-	int headFid = (*(DWORD*)_lips_draw_head)
+	int headFid = (*(DWORD*)FO_VAR_lips_draw_head)
 				? *ptr_lipsFID
 				: *ptr_fidgetFID;
 	int index = headFid & 0xFFF;
 	if (index >= ptr_art[OBJ_TYPE_HEAD].total) return true;
-	int ID2 = (*(DWORD*)_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;
+	int ID2 = (*(DWORD*)FO_VAR_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;
 	if (ID2 > 11) return true;
 	int ID1 = (ID2 == 1 || ID2 == 4 || ID2 == 7) ? (headFid & 0xF000) >> 12 : -1;
 	//if (ID1 > 3) ID1 = 3;
@@ -113,7 +113,7 @@ static bool LoadFrm(Frm* frm) {
 	tex_citr itr = texMap.find(frm->key);
 	if (itr == texMap.end()) {
 		// Loading head frames textures
-		*(DWORD*)_bk_disabled = 1;
+		*(DWORD*)FO_VAR_bk_disabled = 1;
 		char buf[MAX_PATH];
 		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *ptr_patches, frm->path);
 		if (pathLen > 250) return false;
@@ -129,7 +129,7 @@ static bool LoadFrm(Frm* frm) {
 				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;
 				frm->broken = 1;
-				*(DWORD*)_bk_disabled = 0;
+				*(DWORD*)FO_VAR_bk_disabled = 0;
 				return false;
 			}
 			ProcessBk(); // eliminate lag when loading textures
@@ -142,7 +142,7 @@ static bool LoadFrm(Frm* frm) {
 		}
 		frm->textures = textures;
 		texMap.insert(std::make_pair(frm->key, TextureData(textures, frm->showHighlights, frm->bakedBackground, frm->frames)));
-		*(DWORD*)_bk_disabled = 0;
+		*(DWORD*)FO_VAR_bk_disabled = 0;
 	} else {
 		// Use preloaded textures
 		frm->textures = itr->second.textures;
@@ -243,7 +243,7 @@ static void __declspec(naked) gdPlayTransition_hook() {
 
 static void __declspec(naked) gdialogInitFromScript_hook() {
 	__asm {
-		cmp dword ptr ds:[_dialogue_head], -1;
+		cmp dword ptr ds:[FO_VAR_dialogue_head], -1;
 		jnz noScroll;
 		jmp tile_scroll_to_;
 noScroll:
@@ -254,7 +254,7 @@ noScroll:
 void TalkingHeadsSetup() {
 	if (!GPUBlt) return;
 
-	*(DWORD*)_lips_draw_head = 0; // fix for non-speaking heads
+	*(DWORD*)FO_VAR_lips_draw_head = 0; // fix for non-speaking heads
 	const DWORD transTalkAddr[] = {0x44AFB4, 0x44B00B};
 	HookCalls(TransTalkHook, transTalkAddr);
 	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm

@@ -599,7 +599,7 @@ skip:
 		call GetSpeechDurationTime;
 		push eax;
 		fild dword ptr [esp];
-		fild dword ptr ds:[_endgame_subtitle_characters];
+		fild dword ptr ds:[FO_VAR_endgame_subtitle_characters];
 		add  esp, 4;
 		fdivp st(1), st;
 		fstp qword ptr [esp + 0x118 - 0x8 + 4];
@@ -612,7 +612,7 @@ static void __declspec(naked) endgame_pan_desert_hack() {
 		mov  ecx, speechSound;
 		test ecx, ecx;
 		jnz  skip;
-		mov  ecx, dword ptr ds:[_endgame_voiceover_loaded];
+		mov  ecx, dword ptr ds:[FO_VAR_endgame_voiceover_loaded];
 skip:
 		retn;
 	}
@@ -630,7 +630,7 @@ static void __declspec(naked) endgame_display_image_hack() {
 	__asm {
 		mov  ecx, speechSound;
 		call ResumeSfallSound;
-		mov  edx, dword ptr ds:[_endgame_voiceover_loaded];
+		mov  edx, dword ptr ds:[FO_VAR_endgame_voiceover_loaded];
 		retn;
 	}
 }
@@ -639,7 +639,7 @@ static void __declspec(naked) endgame_pan_desert_hack_play() {
 	__asm {
 		mov  ecx, speechSound;
 		call ResumeSfallSound;
-		mov  eax, dword ptr ds:[_endgame_voiceover_loaded];
+		mov  eax, dword ptr ds:[FO_VAR_endgame_voiceover_loaded];
 		xor  ecx, ecx;
 		retn;
 	}
@@ -692,7 +692,7 @@ static void __declspec(naked) gdialogFreeSpeech_hack() {
 		pop  edx;
 		pop  ecx;
 skip:
-		cmp  ds:[_gdialog_speech_playing], 0;
+		cmp  ds:[FO_VAR_gdialog_speech_playing], 0;
 		retn;
 	}
 }
@@ -709,7 +709,7 @@ static void __declspec(naked) gsound_speech_stop_hack() {
 		mov  speechSound, 0;
 		pop  edx;
 skip:
-		mov  ecx, dword ptr ds:[_gsound_speech_tag];
+		mov  ecx, dword ptr ds:[FO_VAR_gsound_speech_tag];
 		retn;
 	}
 }
@@ -766,7 +766,7 @@ skip:
 
 static void __declspec(naked) gsound_background_volume_set_hack() {
 	__asm {
-		mov  dword ptr ds:[_background_volume], eax;
+		mov  dword ptr ds:[FO_VAR_background_volume], eax;
 		push ecx;
 		mov  ecx, backgroundMusic;
 		test ecx, ecx;
@@ -787,11 +787,11 @@ skip:
 
 static void __declspec(naked) gsound_master_volume_set_hack() {
 	__asm {
-		mov  dword ptr ds:[_master_volume], edx;
+		mov  dword ptr ds:[FO_VAR_master_volume], edx;
 		push eax;
 		push ecx;
 		push edx;
-		push dword ptr ds:[_background_volume];
+		push dword ptr ds:[FO_VAR_background_volume];
 		push 3; // SNDTYPE_game_master
 		push 0; // set volume for all sounds
 		call SetSoundVolume;
@@ -807,7 +807,7 @@ static void __declspec(naked) gsound_set_sfx_volume_hack() {
 	__asm {
 		push ecx;
 		push edx;
-		mov  dword ptr ds:[_sndfx_volume], eax;
+		mov  dword ptr ds:[FO_VAR_sndfx_volume], eax;
 		push eax;
 		push 2; // SNDTYPE_game_sfx
 		push 0; // set volume for all sounds
@@ -838,7 +838,7 @@ static void __declspec(naked) combatai_msg_hook() {
 	__asm {
 		mov  edi, [esp + 0xC]; // lip file from msg
 		push eax;
-		cmp  eax, _target_str;
+		cmp  eax, FO_VAR_target_str;
 		jne  attacker;
 		lea  eax, targetSnd;
 		jmp  skip;
@@ -860,7 +860,7 @@ skip:
 static void __declspec(naked) ai_print_msg_hook() {
 	__asm {
 		push eax;
-		cmp  edx, _target_str;
+		cmp  edx, FO_VAR_target_str;
 		jne  attacker;
 		lea  eax, targetSnd;
 		jmp  skip;
@@ -902,7 +902,7 @@ static void __declspec(naked) soundStartInterpret_hook() {
 		and  bx, ~0x8000;
 rawFile:
 		xor  edx, edx;
-		mov  eax, ds:[_sndfx_volume];
+		mov  eax, ds:[FO_VAR_sndfx_volume];
 		sub  ax, bx;    // reduce volume
 		cmovg edx, eax; // volume > 0
 		mov  eax, ebp;
@@ -945,7 +945,7 @@ static void __declspec(naked) gsound_load_sound_volume_hack() {
 		call SetVolumeAndPan; // ecx - volume
 		mov  ecx, eax;
 skip:
-		mov  edx, ds:[_sndfx_volume];
+		mov  edx, ds:[FO_VAR_sndfx_volume];
 		retn;
 	}
 }

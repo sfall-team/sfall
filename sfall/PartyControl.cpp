@@ -314,7 +314,7 @@ static void __declspec(naked) combat_add_noncoms_hook() {
 		call CombatWrapper_v2;
 		inc  eax;
 		jnz  end; // jump if return value != -1
-		mov  ds:[_list_com], eax; // eax = 0
+		mov  ds:[FO_VAR_list_com], eax; // eax = 0
 		mov  ecx, [esp + 4]; // list
 end:
 		retn;
@@ -364,8 +364,8 @@ static void __declspec(naked) intface_toggle_items_hack() {
 		retn;
 noArt:
 		mov  eax, 1;
-		sub  eax, ds:[_itemCurrentItem];
-		mov  ds:[_itemCurrentItem], eax; // revert
+		sub  eax, ds:[FO_VAR_itemCurrentItem];
+		mov  ds:[FO_VAR_itemCurrentItem], eax; // revert
 		call DisplayCantDoThat;
 		add  esp, 4; // destroy return addr
 		pop  edx;

@@ -134,7 +134,7 @@ end:
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call stat_level_                          // Perception
-		cmp  edi, dword ptr ds:[_obj_dude]
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude]
 		jne  end
 		xchg ecx, eax
 		mov  eax, edi                             // _obj_dude
@@ -151,18 +151,18 @@ static void __declspec(naked) pipboy_hack() {
 	__asm {
 		cmp  ebx, 0x210                           // Back button?
 		je   end
-		cmp  byte ptr ds:[_holo_flag], 0
+		cmp  byte ptr ds:[FO_VAR_holo_flag], 0
 		jne  end
 		xor  ebx, ebx                             // No man, no problem (c) :-p
 end:
-		mov  eax, ds:[_crnt_func]
+		mov  eax, ds:[FO_VAR_crnt_func]
 		retn
 	}
 }
 
 static void __declspec(naked) PipAlarm_hack() {
 	__asm {
-		mov  ds:[_crnt_func], eax
+		mov  ds:[FO_VAR_crnt_func], eax
 		mov  eax, 0x400
 		call PipStatus_
 		mov  eax, 0x50CC04                        // 'iisxxxx1'
@@ -173,7 +173,7 @@ static void __declspec(naked) PipAlarm_hack() {
 static void __declspec(naked) PipStatus_hook() {
 	__asm {
 		call ListHoloDiskTitles_;
-		mov  dword ptr ds:[_holodisk], ebx;
+		mov  dword ptr ds:[FO_VAR_holodisk], ebx;
 		retn;
 	}
 }
@@ -243,7 +243,7 @@ static void __declspec(naked) item_d_check_addict_hack() { // replace engine fun
 		mov  edx, 2;                              // type = addiction
 		cmp  eax, -1;                             // Has drug_pid?
 		jne  skip;                                // No
-		mov  eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		jmp  queue_find_first_;                   // return player addiction
 skip:
 		mov  ebx, eax;                            // ebx = drug_pid
@@ -265,7 +265,7 @@ end:
 
 static void __declspec(naked) RemoveJetAddictFunc() {
 	__asm {
-		cmp  eax, dword ptr ds:[_wd_obj];
+		cmp  eax, dword ptr ds:[FO_VAR_wd_obj];
 		jne  end;
 		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
@@ -283,7 +283,7 @@ static void __declspec(naked) item_d_take_drug_hack() {
 		mov  eax, esi;
 		call perform_withdrawal_end_;
 skip:
-		mov  dword ptr ds:[_wd_obj], esi;
+		mov  dword ptr ds:[FO_VAR_wd_obj], esi;
 		mov  eax, 2;                              // type = addiction
 		mov  edx, offset RemoveJetAddictFunc;
 		call queue_clear_type_;
@@ -297,7 +297,7 @@ static void __declspec(naked) item_d_load_subfix() {
 		sub  esp, 4;                              // proto buf
 //		mov  [ebp], edi;                          // edi->queue_drug
 		mov  ecx, 9;                              // vanilla count
-		mov  esi, _drugInfoList;
+		mov  esi, FO_VAR_drugInfoList;
 loopDrug:
 		cmp  dword ptr [esi + 8], 0;              // drugInfoList.numeffects
 		je   nextDrug;
@@ -489,7 +489,7 @@ static void __declspec(naked) partyMemberIncLevels_hook() {
 		push edi;
 		push esi;
 		mov  ecx, 8;
-		mov  edi, _drugInfoList;
+		mov  edi, FO_VAR_drugInfoList;
 		mov  esi, ebx;                            // pointer for fixed item_d_check_addict_
 loopAddict:
 		mov  eax, dword ptr [edi];                // eax = drug pid
@@ -516,7 +516,7 @@ end:
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
 		lea  edx, [eax - 2];
-		cmp  edx, dword ptr ds:[_optionRect + 0xC]; // _optionRect.offy
+		cmp  edx, dword ptr ds:[FO_VAR_optionRect + 0xC]; // _optionRect.offy
 		jl   skip;
 		mov  eax, edx;
 skip:
@@ -602,7 +602,7 @@ static void __declspec(naked) StatButtonUp_hook() {
 		jl   end
 		test ebx, ebx
 		jge  end
-		sub  ds:[_character_points], esi
+		sub  ds:[FO_VAR_character_points], esi
 		dec  esi
 		mov  [esp+0xC+0x4], esi
 end:
@@ -693,7 +693,7 @@ noArmor:
 		mov  esi, [esp + 0x1C + 8];                    // weapon
 		test esi, esi;
 		jnz  haveWeapon;
-		cmp  ds:[_dialog_target_is_party], esi;        // esi = 0
+		cmp  ds:[FO_VAR_dialog_target_is_party], esi;  // esi = 0
 		jne  skip;                                     // This is a party member
 		mov  eax, [esp + 0x18 + 8];                    // item_weapon
 		test eax, eax;
@@ -725,7 +725,7 @@ static void __declspec(naked) item_total_weight_hack() {
 		mov ebx, [edi];                          // Inventory.inv_size
 		xor esi, esi;
 		//------
-		cmp eax, dword ptr ds:[_obj_dude];       // eax - source
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
 		jz  skip;
 		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
 		cmovz esi, weightOnBody;                 // take the weight of target's equipped items into account
@@ -741,7 +741,7 @@ static void __declspec(naked) item_c_curr_size_hack() {
 		mov edx, [ecx];                          // Inventory.inv_size
 		xor edi, edi;
 		//------
-		cmp eax, dword ptr ds:[_obj_dude];       // eax - source
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
 		jz  skip;
 		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
 		cmovz edi, sizeOnBody;                   // take the size of target's equipped items into account
@@ -752,7 +752,7 @@ skip:
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  edx, ds:[_pud];
+		mov  edx, ds:[FO_VAR_pud];
 		mov  edx, [edx];                          // itemsCount
 		dec  edx;
 		sub  edx, eax;
@@ -765,7 +765,7 @@ static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
 		test eax, eax
 		jz   end
-		mov  eax, ds:[_i_wid]
+		mov  eax, ds:[FO_VAR_i_wid]
 		call GNW_find_
 		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
 		mov  eax, [eax+0x8+0x0]                   // eax = _i_wid.rect.x
@@ -799,7 +799,7 @@ end:
 found:
 		mov  ebx, 0x4711DF
 		add  edx, [esp+0x40]                      // inventory_offset
-		mov  eax, ds:[_pud]
+		mov  eax, ds:[FO_VAR_pud]
 		mov  ecx, [eax]                           // itemsCount
 		test ecx, ecx
 		jz   skip
@@ -860,7 +860,7 @@ static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	__asm {
 		call AddHotLines_
 		xor  eax, eax
-		mov  dword ptr ds:[_hot_line_count], eax
+		mov  dword ptr ds:[FO_VAR_hot_line_count], eax
 		retn
 	}
 }
@@ -897,7 +897,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 	static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 	__asm {
 		imul edx, 204;                      // multiply record size 204 bytes by NPC number as listed in party.txt
-		mov  eax, dword ptr ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
+		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
 		jmp  partyMemberGetAIOptions_End;   // eax + edx = offset of specific NPC record
 	}
 }
@@ -1133,7 +1133,7 @@ end:
 static void __declspec(naked) obj_save_hack() {
 	__asm { // edx - combat_data
 		mov  eax, [eax + cid];                     // pobj.who_hit_me.cid
-		test byte ptr ds:[_combat_state], 1;       // in combat?
+		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
 		jz   clear;                                // No
 		cmp  dword ptr [edx], 0;                   // in combat?
 		jne  skip;                                 // Yes
@@ -1209,7 +1209,7 @@ static void __declspec(naked) combat_hack() {
 		push eax
 		mov  edx, STAT_max_move_points
 		call stat_level_
-		mov  edx, ds:[_gcsd]
+		mov  edx, ds:[FO_VAR_gcsd]
 		test edx, edx
 		jz   skip
 		add  eax, [edx+0x8]                       // gcsd.free_move
@@ -1217,13 +1217,13 @@ skip:
 		pop  edx
 		xchg edx, eax                             // eax = source, edx = Max action points
 		mov  [eax + movePoints], edx              // pobj.curr_mp
-		test byte ptr ds:[_combat_state], 1       // in combat?
+		test byte ptr ds:[FO_VAR_combat_state], 1 // in combat?
 		jz   end                                  // No
 		mov  edx, [eax + cid]                     // pobj.cid
 		cmp  edx, -1
 		je   end
 		push eax
-		mov  eax, ds:[_aiInfoList]
+		mov  eax, ds:[FO_VAR_aiInfoList]
 		shl  edx, 4
 		mov  dword ptr [edx+eax+0xC], 0           // aiInfo.lastMove
 		pop  eax
@@ -1286,9 +1286,9 @@ end:
 static void __declspec(naked) gdActivateBarter_hook() {
 	__asm {
 		call gdialog_barter_pressed_
-		cmp  ds:[_dialogue_state], ecx
+		cmp  ds:[FO_VAR_dialogue_state], ecx
 		jne  skip
-		cmp  ds:[_dialogue_switch_mode], esi
+		cmp  ds:[FO_VAR_dialogue_switch_mode], esi
 		je   end
 skip:
 		push ecx
@@ -1304,7 +1304,7 @@ end:
 
 static void __declspec(naked) switch_hand_hack() {
 	__asm {
-		mov  eax, ds:[_inven_dude]
+		mov  eax, ds:[FO_VAR_inven_dude]
 		push eax
 		mov  [edi], ebp
 		inc  ecx                                   // if ecx == -1
@@ -1330,7 +1330,7 @@ end:
 
 static void __declspec(naked) inven_item_wearing() {
 	__asm {
-		mov  esi, ds:[_inven_dude]
+		mov  esi, ds:[FO_VAR_inven_dude]
 		xchg ebx, eax                             // ebx = source
 		mov  eax, [esi + artFid]
 		and  eax, 0xF000000
@@ -1364,9 +1364,9 @@ static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
 		cmp  dword ptr [esp+0x44+0x4], item_type_container
 		jne  end
-		cmp  eax, ds:[_stack]
+		cmp  eax, ds:[FO_VAR_stack]
 		je   end
-		cmp  eax, ds:[_target_stack]
+		cmp  eax, ds:[FO_VAR_target_stack]
 end:
 		retn
 	}
@@ -1426,11 +1426,11 @@ static void __declspec(naked) combat_load_hook() {
 		jnz  end;                                 // No
 		push PERK_bonus_move;
 		pop  edx;
-		mov  eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call perk_level_;
 		test eax, eax;                            // Have the perk?
 		jz   end;                                 // No
-		mov  eax, ds:[_combat_free_move];         // eax = real value
+		mov  eax, ds:[FO_VAR_combat_free_move];   // eax = real value
 		mov  combatFreeMoveTmp, eax;              // Save to the temp
 		xor  eax, eax;
 end:
@@ -1446,7 +1446,7 @@ static void __declspec(naked) combat_turn_hack() {
 		mov  combatFreeMoveTmp, 0xFFFFFFFF;
 		xchg edx, eax;
 end:
-		mov  ds:[_combat_free_move], eax;
+		mov  ds:[FO_VAR_combat_free_move], eax;
 		retn;
 	}
 }
@@ -1494,7 +1494,7 @@ end:
 static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
-		mov  edi, dword ptr ds:[_partyMemberMaxCount];
+		mov  edi, dword ptr ds:[FO_VAR_partyMemberMaxCount];
 		retn;
 	}
 }
@@ -1511,9 +1511,9 @@ static void __declspec(naked) ResetPlayer_hook() {
 static void __declspec(naked) obj_move_to_tile_hack() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
-		cmp  ds:[_loadingGame], 0; // prevents leaving the map after loading a saved game if the player died
-		jnz  skip;                 // on the world map from radiation (or in some cases on another map)
-		cmp  dword ptr ds:[_map_state], 0; // map number, -1 exit to worldmap
+		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after loading a saved game if the player died
+		jnz  skip;                       // on the world map from radiation (or in some cases on another map)
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jz   mapLeave;
 skip:
 		add  esp, 4;
@@ -1526,15 +1526,15 @@ mapLeave:
 
 static void __declspec(naked) obj_move_to_tile_hack_seen() {
 	__asm {
-		cmp  ds:[_loadingGame], 0;         // loading saved game
+		cmp  ds:[FO_VAR_loadingGame], 0;         // loading saved game
 		jnz  end; // fix
 		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
-		cmp  dword ptr ds:[_map_state], 0; // map number, -1 exit to worldmap
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jle  skip;
-		cmp  dword ptr ds:[_mapEntranceTileNum], -1;
+		cmp  dword ptr ds:[FO_VAR_mapEntranceTileNum], -1;
 		jne  end; // fix
 skip:
-		or   byte ptr ds:[_obj_seen][eax], dl;
+		or   byte ptr ds:[FO_VAR_obj_seen][eax], dl;
 end:
 		retn;
 	}
@@ -1652,7 +1652,7 @@ static DWORD expSwiftLearner; // experience points for print
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
 		mov  expSwiftLearner, edi;
-		mov  eax, dword ptr ds:[_Experience_];
+		mov  eax, dword ptr ds:[FO_VAR_Experience_];
 		retn;
 	}
 }
@@ -1782,7 +1782,7 @@ static void __declspec(naked) SliderBtn_hook_down() {
 		jnz  fix;
 		retn;
 fix:
-		cmp  ds:[_tag_skill + 3 * 4], ebx;  // _tag_skill4, ebx = _skill_cursor
+		cmp  ds:[FO_VAR_tag_skill + 3 * 4], ebx;  // _tag_skill4, ebx = _skill_cursor
 		jnz  skip;
 		cmp  eax, tagSkill4LevelBase;             // curr > x2
 		jg   skip;
@@ -1796,7 +1796,7 @@ static void __declspec(naked) Add4thTagSkill_hook() {
 	__asm {
 		mov  edi, eax;
 		call skill_set_tags_;
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, dword ptr ds:[edi + 3 * 4];    // _temp_tag_skill4
 		call skill_level_;
 		mov  tagSkill4LevelBase, eax;            // x2
@@ -1907,10 +1907,10 @@ static void __declspec(naked) process_rads_hook_msg() {
 		mov  eax, 1;
 		call gmouse_set_cursor_;
 skip:
-		mov  ebx, dword ptr ds:[_game_user_wants_to_quit];
-		mov  dword ptr ds:[_game_user_wants_to_quit], 0;
+		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
 		call DialogOut;
-		mov  dword ptr ds:[_game_user_wants_to_quit], ebx;
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], ebx;
 		retn;
 	}
 }
@@ -2115,7 +2115,7 @@ static void __declspec(naked) combat_hack_load() {
 		retn;
 skip:
 		add  esp, 4; // destroy addr
-		cmp  ds:[_combat_end_due_to_load], 0;
+		cmp  ds:[FO_VAR_combat_end_due_to_load], 0;
 		jnz  isLoad;
 		jmp  combat_End;
 isLoad:
@@ -2174,7 +2174,7 @@ skip:
 
 static void __declspec(naked) PrintAutoMapList() {
 	__asm {
-		mov  eax, ds:[_wmMaxMapNum];
+		mov  eax, ds:[FO_VAR_wmMaxMapNum];
 		cmp  eax, AUTOMAP_MAX;
 		jb   skip;
 		mov  eax, AUTOMAP_MAX;
@@ -2185,7 +2185,7 @@ skip:
 
 static void __declspec(naked) automap_pip_save_hook() {
 	__asm {
-		mov  eax, ds:[_map_number];
+		mov  eax, ds:[FO_VAR_map_number];
 		cmp  eax, AUTOMAP_MAX;
 		jb   skip;
 		xor  eax, eax;
@@ -2197,7 +2197,7 @@ skip:
 static DWORD dudeScriptID;
 static void __declspec(naked) obj_load_dude_hook0() {
 	__asm {
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  eax, [eax + scriptId];
 		mov  dudeScriptID, eax;
 		retn;
@@ -2262,9 +2262,9 @@ bad:
 
 static void __declspec(naked) obj_pickup_hook() {
 	__asm {
-		cmp  edi, dword ptr ds:[_obj_dude];
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
 		je   dude;
-		test byte ptr ds:[_combat_state], 1; // in combat?
+		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
 		jz   dude;
 		jmp  item_add_force_;
 dude:
@@ -2283,7 +2283,7 @@ static const char* __fastcall GetPickupMessage(const char* name) {
 
 static void __declspec(naked) obj_pickup_hook_message() {
 	__asm {
-		cmp  edi, dword ptr ds:[_obj_dude];
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
 		je   dude;
 		mov  eax, edi;
 		call critter_name_;
@@ -2303,7 +2303,7 @@ static void __declspec(naked) anim_move_to_tile_hook() {
 	__asm {
 		call obj_blocking_at_;
 		mov  blockingTileObj, eax;
-		cmp  edi, ds:[_obj_dude];
+		cmp  edi, ds:[FO_VAR_obj_dude];
 		je   isDude;
 		retn;
 isDude:
@@ -2312,7 +2312,7 @@ isDude:
 		mov  ebx, dword ptr [esp + 0x18 - 0x10 + 4]; // distance
 		test ebx, ebx;
 		jl   skip; // dist < 0
-		sub  ebx, ds:[_combat_free_move];
+		sub  ebx, ds:[FO_VAR_combat_free_move];
 		cmp  ebx, [edi + movePoints];
 		jge  skip; // dist >= source.curr_mp
 		test eax, eax;
@@ -2336,7 +2336,7 @@ getTile:
 
 static void __declspec(naked) action_use_an_item_on_object_hack() {
 	__asm {
-		add  ebx, ds:[_combat_free_move];
+		add  ebx, ds:[FO_VAR_combat_free_move];
 		mov  eax, 2; // RB_RESERVED
 		retn;
 	}
@@ -2344,7 +2344,7 @@ static void __declspec(naked) action_use_an_item_on_object_hack() {
 
 static void __declspec(naked) action_climb_ladder_hack() {
 	__asm {
-		add  ecx, ds:[_combat_free_move];
+		add  ecx, ds:[FO_VAR_combat_free_move];
 		mov  eax, 2; // RB_RESERVED
 		retn;
 	}
@@ -2354,11 +2354,11 @@ static void __declspec(naked) wmTeleportToArea_hack() {
 	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
 	__asm {
 		xor  ecx, ecx;
-		cmp  ebx, ds:[_WorldMapCurrArea];
+		cmp  ebx, ds:[FO_VAR_WorldMapCurrArea];
 		je   end;
-		mov  ds:[_WorldMapCurrArea], ebx;
+		mov  ds:[FO_VAR_WorldMapCurrArea], ebx;
 		sub  eax, edx;
-		add  eax, ds:[_wmAreaInfoList];
+		add  eax, ds:[FO_VAR_wmAreaInfoList];
 		cmp  dword ptr [eax + 0x34], 1;           // wmAreaInfoList.size
 		mov  edx, [eax + 0x30];                   // wmAreaInfoList.world_posy
 		mov  eax, [eax + 0x2C];                   // wmAreaInfoList.world_posx
@@ -2376,12 +2376,12 @@ mediumLoc:
 		test  edx, edx;
 		cmovl edx, ecx;
 largeLoc:
-		mov  ds:[_world_ypos], edx;
-		mov  ds:[_world_xpos], eax;
+		mov  ds:[FO_VAR_world_ypos], edx;
+		mov  ds:[FO_VAR_world_xpos], eax;
 end:
-		mov  ds:[_target_xpos], ecx;
-		mov  ds:[_target_ypos], ecx;
-		mov  ds:[_In_WorldMap], ecx;
+		mov  ds:[FO_VAR_target_xpos], ecx;
+		mov  ds:[FO_VAR_target_ypos], ecx;
+		mov  ds:[FO_VAR_In_WorldMap], ecx;
 		jmp  wmTeleportToArea_Ret;
 	}
 }
@@ -2514,9 +2514,9 @@ break:
 static void __declspec(naked) wmInterfaceInit_hack() {
 	__asm {
 		mov  eax, GVAR_CAR_PLACED_TILE;
-		cmp  eax, dword ptr ds:[_num_game_global_vars];
+		cmp  eax, dword ptr ds:[FO_VAR_num_game_global_vars];
 		jge  skip;
-		mov  edx, ds:[_game_global_vars];
+		mov  edx, ds:[FO_VAR_game_global_vars];
 		lea  edx, [edx + eax * 4];
 		mov  dword ptr [edx], -1; // set gvar
 skip:
@@ -2544,7 +2544,7 @@ static void __declspec(naked) map_check_state_hook() {
 		mov  edx, eax; // tile
 		// restore
 		mov  ebx, esi; // elev
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		xor  ecx, ecx;
 		jmp  obj_move_to_tile_;
 	}
@@ -2659,14 +2659,14 @@ look:
 
 static void FixCreateBarterButton() {
 	const long artID = OBJ_TYPE_INTRFACE << 24;
-	*(BYTE**)_dialog_red_button_up_buf = ArtPtrLockData(artID | 96, 0 ,0, (DWORD*)_dialog_red_button_up_key);
-	*(BYTE**)_dialog_red_button_down_buf = ArtPtrLockData(artID | 95, 0 ,0, (DWORD*)_dialog_red_button_down_key);
+	*(BYTE**)FO_VAR_dialog_red_button_up_buf = ArtPtrLockData(artID | 96, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_up_key);
+	*(BYTE**)FO_VAR_dialog_red_button_down_buf = ArtPtrLockData(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
 }
 
 static void __declspec(naked) gdialog_window_create_hook() {
 	__asm {
 		call art_ptr_unlock_;
-		cmp  dword ptr ds:[_dialog_red_button_down_buf], 0;
+		cmp  dword ptr ds:[FO_VAR_dialog_red_button_down_buf], 0;
 		jz   FixCreateBarterButton;
 		retn;
 	}
@@ -2675,14 +2675,14 @@ static void __declspec(naked) gdialog_window_create_hook() {
 static void __declspec(naked) gdialog_bk_hook() {
 	__asm {
 		xor  ebp, ebp;
-		mov  eax, ds:[_curr_font_num];
+		mov  eax, ds:[FO_VAR_curr_font_num];
 		cmp  eax, 101;
 		je   skip0;
 		mov  ebp, eax;
 		mov  eax, 101; // set font
 		call text_font_;
 skip0:
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		call item_caps_total_;
 		push eax;      // caps
 		push 0x502B1C; // fmt: $%d
@@ -2691,12 +2691,12 @@ skip0:
 		call sprintf_;
 		add  esp, 3 * 4;
 		lea  eax, tempBuffer;
-		call ds:[_text_width];
+		call ds:[FO_VAR_text_width];
 		mov  edx, 60;  // max width
 		mov  ebx, eax; // ebx - textWidth
 		cmp  eax, edx;
 		cmova ebx, edx;
-		movzx eax, ds:[_GreenColor];
+		movzx eax, ds:[FO_VAR_GreenColor];
 		or   eax, 0x7000000; // print flags
 		push eax;
 		mov  eax, ebx;
@@ -2705,7 +2705,7 @@ skip0:
 		sar  eax, 1;
 		sub  ecx, eax; // x shift
 		lea  edx, tempBuffer;
-		mov  eax, ds:[_dialogueWindow];
+		mov  eax, ds:[FO_VAR_dialogueWindow];
 		call win_print_;
 		test ebp, ebp;
 		jz   skip1;
@@ -2722,9 +2722,9 @@ static void __declspec(naked) combat_ai_hook() {
 		call combat_should_end_;
 		test eax, eax;
 		jnz  skip;
-		cmp  ds:[_game_user_wants_to_quit], 2;
+		cmp  ds:[FO_VAR_game_user_wants_to_quit], 2;
 		je   skip;
-		//cmp  ds:[_script_engine_running], 1;
+		//cmp  ds:[FO_VAR_script_engine_running], 1;
 		//jne  skip;
 		call GNW_do_bk_process_;
 		call combat_turn_run_;
@@ -2751,7 +2751,7 @@ jback:
 		dec  dword ptr [esp + 0x1C - 0x14]; // subtract one tile from the left
 		jmp  wmSubTileMarkRadiusVisited_Ret;
 checkTiles:
-		mov  eax, ds:[_world_xpos]; // player's X position
+		mov  eax, ds:[FO_VAR_world_xpos]; // player's X position
 		mov  ecx, 350;
 		xor  edx, edx;
 		div  ecx; // eax: count of tiles on the left of the player's position
@@ -2782,7 +2782,7 @@ static void __declspec(naked) show_damage_to_object_hack() {
 		add  esp, 4;
 		jmp  show_damage_to_object_Ret;
 isDeath:
-		cmp  esi, ds:[_obj_dude];
+		cmp  esi, ds:[FO_VAR_obj_dude];
 		sete dudeIsAnimDeath;
 		retn;
 	}
@@ -3530,7 +3530,7 @@ void BugFixes_Init()
 	BlockCall(0x4123F3);
 
 	// Fix the music volume when entering the dialog
-	SafeWrite32(0x44525D, (DWORD)_background_volume);
+	SafeWrite32(0x44525D, (DWORD)FO_VAR_background_volume);
 
 	// Fix for the barter button on the dialog window not animating until after leaving the barter screen
 	HookCall(0x44A77C, gdialog_window_create_hook);

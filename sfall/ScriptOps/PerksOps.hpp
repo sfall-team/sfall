@@ -24,7 +24,7 @@
 
 static void __declspec(naked) op_get_perk_owed() {
 	__asm {
-		movzx edx, byte ptr ds:[_free_perk];
+		movzx edx, byte ptr ds:[FO_VAR_free_perk];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}
@@ -36,7 +36,7 @@ static void __declspec(naked) op_set_perk_owed() {
 		and  eax, 0xFF;
 		cmp  eax, 250;
 		jg   end;
-		mov  byte ptr ds:[_free_perk], al;
+		mov  byte ptr ds:[FO_VAR_free_perk], al;
 end:
 		retn;
 	}
@@ -315,16 +315,16 @@ static void __declspec(naked) op_remove_trait() {
 		test eax, eax;
 		jl   end;
 		mov  edx, -1;
-		cmp  eax, ds:[_pc_trait];
+		cmp  eax, ds:[FO_VAR_pc_trait];
 		jne  next;
-		mov  esi, ds:[_pc_trait2];
-		mov  ds:[_pc_trait], esi;
-		mov  ds:[_pc_trait2], edx;
+		mov  esi, ds:[FO_VAR_pc_trait2];
+		mov  ds:[FO_VAR_pc_trait], esi;
+		mov  ds:[FO_VAR_pc_trait2], edx;
 		retn;
 next:
-		cmp  eax, ds:[_pc_trait2];
+		cmp  eax, ds:[FO_VAR_pc_trait2];
 		jne  end;
-		mov  ds:[_pc_trait2], edx;
+		mov  ds:[FO_VAR_pc_trait2], edx;
 end:
 		retn;
 	}

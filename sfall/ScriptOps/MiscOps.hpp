@@ -148,7 +148,7 @@ static void __declspec(naked) op_set_pipboy_available() {
 		jl   end;
 		cmp  eax, 1;
 		jg   end;
-		mov  byte ptr ds:[_gmovie_played_list][0x3], al;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
 end:
 		retn;
 	}
@@ -165,12 +165,12 @@ static void __declspec(naked) op_get_kill_counter() {
 		jne  skip;
 		cmp  eax, 38;
 		jae  fail;
-		movzx edx, word ptr ds:[_pc_kill_counts][eax * 2];
+		movzx edx, word ptr ds:[FO_VAR_pc_kill_counts][eax * 2];
 		jmp  end;
 skip:
 		cmp  eax, 19;
 		jae  fail;
-		mov  edx, ds:[_pc_kill_counts][eax * 4];
+		mov  edx, ds:[FO_VAR_pc_kill_counts][eax * 4];
 end:
 		mov  eax, ebx; // script
 		_RET_VAL_INT;
@@ -193,13 +193,13 @@ static void __declspec(naked) op_mod_kill_counter() {
 		je   skip;
 		cmp  eax, 19;
 		jae  end;
-		add  ds:[_pc_kill_counts][eax * 4], ecx;
+		add  ds:[FO_VAR_pc_kill_counts][eax * 4], ecx;
 		pop  ecx;
 		retn;
 skip:
 		cmp  eax, 38;
 		jae  end;
-		add  word ptr ds:[_pc_kill_counts][eax * 2], cx;
+		add  word ptr ds:[FO_VAR_pc_kill_counts][eax * 2], cx;
 end:
 		pop  ecx;
 		retn;
@@ -321,7 +321,7 @@ static void __declspec(naked) op_remove_attacker_knockback() {
 
 static void __declspec(naked) op_active_hand() {
 	__asm {
-		mov  edx, dword ptr ds:[_itemCurrentItem];
+		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}
@@ -601,7 +601,7 @@ static void __declspec(naked) op_get_uptime() {
 static void __declspec(naked) op_set_car_current_town() {
 	__asm {
 		_GET_ARG_INT(end);
-		mov  ds:[_carCurrentArea], eax;
+		mov  ds:[FO_VAR_carCurrentArea], eax;
 end:
 		retn;
 	}
@@ -625,7 +625,7 @@ static void __declspec(naked) op_get_bodypart_hit_modifier() {
 		_GET_ARG_INT(fail); // get body value
 		cmp  eax, 8; // Body_Head - Body_Uncalled
 		ja   fail;
-		mov  edx, ds:[_hit_location_penalty][eax * 4];
+		mov  edx, ds:[FO_VAR_hit_location_penalty][eax * 4];
 end:
 		mov  eax, ebx; // script
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -645,7 +645,7 @@ static void __declspec(naked) op_set_bodypart_hit_modifier() {
 		jnz  end;
 		cmp  eax, 8; // Body_Head - Body_Uncalled
 		ja   end;
-		mov  ds:[_hit_location_penalty][eax * 4], ecx;
+		mov  ds:[FO_VAR_hit_location_penalty][eax * 4], ecx;
 end:
 		pop  ecx;
 		retn;
@@ -787,7 +787,7 @@ next:
 		mov eax, ecx;
 		call interpretGetString_;
 		call loadColorTable_;
-		mov eax, _cmap;
+		mov eax, FO_VAR_cmap;
 		call palette_set_to_;
 end:
 		pop edx;
@@ -840,7 +840,7 @@ fail:
 
 static void __declspec(naked) op_get_light_level() {
 	__asm {
-		mov  edx, ds:[_ambient_light];
+		mov  edx, ds:[FO_VAR_ambient_light];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}
@@ -876,11 +876,11 @@ static void __declspec(naked) op_get_attack_type() {
 		test eax, eax;
 		jz skip;
 		// get reload
-		cmp ds:[_interfaceWindow], eax;
+		cmp ds:[FO_VAR_interfaceWindow], eax;
 		jz end;
-		mov ecx, ds:[_itemCurrentItem];         // 0 - left, 1 - right
+		mov ecx, ds:[FO_VAR_itemCurrentItem];         // 0 - left, 1 - right
 		imul edx, ecx, 0x18;
-		cmp ds:[_itemButtonItems + 5 + edx], 1; // .itsWeapon
+		cmp ds:[FO_VAR_itemButtonItems + 5 + edx], 1; // .itsWeapon
 		jnz end;
 		lea eax, [ecx + 6];
 end:
@@ -942,7 +942,7 @@ static void __declspec(naked) op_get_tile_fid() {
 		pop  eax; // x
 		pop  edx; // y
 		call square_num_;
-		mov  edx, ds:[_square];
+		mov  edx, ds:[FO_VAR_square];
 		movzx edx, word ptr ds:[edx + eax * 4];
 		mov  ebx, esi; // script
 end:
@@ -995,7 +995,7 @@ static void __declspec(naked) op_mark_movie_played() {
 		jl   end;
 		cmp  eax, 17;
 		jge  end;
-		mov  byte ptr ds:[eax + _gmovie_played_list], 1;
+		mov  byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
 end:
 		retn;
 	}
@@ -1067,7 +1067,7 @@ static void __declspec(naked) op_tile_under_cursor() {
 
 static void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
-		mov  edx, dword ptr ds:[_gdBarterMod];
+		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}

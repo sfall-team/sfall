@@ -102,7 +102,7 @@ block:
 
 static void __declspec(naked) game_handle_input_hook() {
 	__asm {
-		mov  eax, dword ptr ds:[_intfaceEnabled];
+		mov  eax, dword ptr ds:[FO_VAR_intfaceEnabled];
 		test eax, eax;
 		jz   end;
 		cmp  combatDisabled, 0; // eax = 1

@@ -22,235 +22,235 @@
 #include "Logging.h"
 
 // global variables
-long* ptr_pc_traits                     = reinterpret_cast<long*>(_pc_trait); // 2 of them
+long* ptr_pc_traits                     = reinterpret_cast<long*>(FO_VAR_pc_trait); // 2 of them
 
-DWORD* ptr_aiInfoList                   = reinterpret_cast<DWORD*>(_aiInfoList);
-DWORD* ptr_ambient_light                = reinterpret_cast<DWORD*>(_ambient_light);
-sArt*  ptr_art                          = reinterpret_cast<sArt*>(_art); // array of 11 sArt
-DWORD* ptr_art_name                     = reinterpret_cast<DWORD*>(_art_name);
-DWORD* ptr_art_vault_guy_num            = reinterpret_cast<DWORD*>(_art_vault_guy_num);
-DWORD* ptr_art_vault_person_nums        = reinterpret_cast<DWORD*>(_art_vault_person_nums);
-DWORD* ptr_background_volume            = reinterpret_cast<DWORD*>(_background_volume);
-BYTE** ptr_bckgnd                       = reinterpret_cast<BYTE**>(_bckgnd);
-DWORD* ptr_black_palette                = reinterpret_cast<DWORD*>(_black_palette);
-BYTE*  ptr_BlueColor                    = reinterpret_cast<BYTE*>(_BlueColor);
-DWORD* ptr_bottom_line                  = reinterpret_cast<DWORD*>(_bottom_line);
-DWORD* ptr_btable                       = reinterpret_cast<DWORD*>(_btable);
-DWORD* ptr_btncnt                       = reinterpret_cast<DWORD*>(_btncnt);
-DWORD* ptr_carCurrentArea               = reinterpret_cast<DWORD*>(_carCurrentArea);
-long*  ptr_carGasAmount                 = reinterpret_cast<long*>(_carGasAmount); // from 0 to 80000
-DWORD* ptr_cmap                         = reinterpret_cast<DWORD*>(_cmap);
-DWORD* ptr_colorTable                   = reinterpret_cast<DWORD*>(_colorTable);
-DWORD* ptr_combat_free_move             = reinterpret_cast<DWORD*>(_combat_free_move);
-DWORD* ptr_combat_list                  = reinterpret_cast<DWORD*>(_combat_list);
-DWORD* ptr_combat_state                 = reinterpret_cast<DWORD*>(_combat_state);
-DWORD* ptr_combat_turn_running          = reinterpret_cast<DWORD*>(_combat_turn_running);
-DWORD* ptr_combatNumTurns               = reinterpret_cast<DWORD*>(_combatNumTurns);
-CritInfo* ptr_crit_succ_eff             = reinterpret_cast<CritInfo*>(_crit_succ_eff); // array: 20 critters with 9 body parts and 6 effects each
-PathNode** ptr_critter_db_handle        = reinterpret_cast<PathNode**>(_critter_db_handle);
-DWORD* ptr_critterClearObj              = reinterpret_cast<DWORD*>(_critterClearObj);
-DWORD* ptr_crnt_func                    = reinterpret_cast<DWORD*>(_crnt_func);
-DWORD* ptr_curr_font_num                = reinterpret_cast<DWORD*>(_curr_font_num);
-DWORD* ptr_curr_pc_stat                 = reinterpret_cast<DWORD*>(_curr_pc_stat);
-DWORD* ptr_curr_stack                   = reinterpret_cast<DWORD*>(_curr_stack);
-TProgram** ptr_currentProgram           = reinterpret_cast<TProgram**>(_currentProgram);
-DWORD* ptr_cursor_line                  = reinterpret_cast<DWORD*>(_cursor_line);
-BYTE*  ptr_DARK_GREY_Color              = reinterpret_cast<BYTE*>(_DARK_GREY_Color);
-BYTE*  ptr_DarkGreenColor               = reinterpret_cast<BYTE*>(_DarkGreenColor);
-BYTE*  ptr_DarkGreenGreyColor           = reinterpret_cast<BYTE*>(_DarkGreenGreyColor);
-TGameObj** ptr_dialog_target            = reinterpret_cast<TGameObj**>(_dialog_target);
-DWORD* ptr_dialog_target_is_party       = reinterpret_cast<DWORD*>(_dialog_target_is_party);
-const DWORD* ptr_dialogueBackWindow     = reinterpret_cast<DWORD*>(_dialogueBackWindow);
-DWORD* ptr_drugInfoList                 = reinterpret_cast<DWORD*>(_drugInfoList);
-BYTE*  ptr_DullPinkColor                = reinterpret_cast<BYTE*>(_DullPinkColor);
-const DWORD* ptr_edit_win               = reinterpret_cast<DWORD*>(_edit_win);
-DWORD* ptr_Educated                     = reinterpret_cast<DWORD*>(_Educated);
-DWORD* ptr_elevation                    = reinterpret_cast<DWORD*>(_elevation);
-DWORD* ptr_endgame_subtitle_done        = reinterpret_cast<DWORD*>(_endgame_subtitle_done);
-DWORD* ptr_Experience_                  = reinterpret_cast<DWORD*>(_Experience_);
-DWORD* ptr_fallout_game_time            = reinterpret_cast<DWORD*>(_fallout_game_time);
-DWORD* ptr_fidgetFID                    = reinterpret_cast<DWORD*>(_fidgetFID);
-DWORD* ptr_flptr                        = reinterpret_cast<DWORD*>(_flptr);
-DWORD* ptr_folder_card_desc             = reinterpret_cast<DWORD*>(_folder_card_desc);
-DWORD* ptr_folder_card_fid              = reinterpret_cast<DWORD*>(_folder_card_fid);
-DWORD* ptr_folder_card_title            = reinterpret_cast<DWORD*>(_folder_card_title);
-DWORD* ptr_folder_card_title2           = reinterpret_cast<DWORD*>(_folder_card_title2);
-DWORD* ptr_frame_time                   = reinterpret_cast<DWORD*>(_frame_time);
-char*  ptr_free_perk                    = reinterpret_cast<char*>(_free_perk);
-long** ptr_game_global_vars             = reinterpret_cast<long**>(_game_global_vars); // dynamic array of size == num_game_global_vars
-DWORD* ptr_game_user_wants_to_quit      = reinterpret_cast<DWORD*>(_game_user_wants_to_quit);
-CombatGcsd** ptr_gcsd                   = reinterpret_cast<CombatGcsd**>(_gcsd);
-DWORD* ptr_gdBarterMod                  = reinterpret_cast<DWORD*>(_gdBarterMod);
-DWORD* ptr_gdNumOptions                 = reinterpret_cast<DWORD*>(_gdNumOptions);
-DWORD* ptr_gIsSteal                     = reinterpret_cast<DWORD*>(_gIsSteal);
-DWORD* ptr_glblmode                     = reinterpret_cast<DWORD*>(_glblmode);
-long*  ptr_gmouse_current_cursor        = reinterpret_cast<long*>(_gmouse_current_cursor);
-DWORD* ptr_gmovie_played_list           = reinterpret_cast<DWORD*>(_gmovie_played_list);
-BYTE*  ptr_GoodColor                    = reinterpret_cast<BYTE*>(_GoodColor);
-BYTE*  ptr_GreenColor                   = reinterpret_cast<BYTE*>(_GreenColor);
-DWORD* ptr_gsound_initialized           = reinterpret_cast<DWORD*>(_gsound_initialized);
-long*  ptr_hit_location_penalty         = reinterpret_cast<long*>(_hit_location_penalty);
-DWORD* ptr_holo_flag                    = reinterpret_cast<DWORD*>(_holo_flag);
-DWORD* ptr_holopages                    = reinterpret_cast<DWORD*>(_holopages);
-DWORD* ptr_hot_line_count               = reinterpret_cast<DWORD*>(_hot_line_count);
-DWORD* ptr_i_fid                        = reinterpret_cast<DWORD*>(_i_fid);
-TGameObj** ptr_i_lhand                  = reinterpret_cast<TGameObj**>(_i_lhand);
-TGameObj** ptr_i_rhand                  = reinterpret_cast<TGameObj**>(_i_rhand);
-const DWORD* ptr_i_wid                  = reinterpret_cast<DWORD*>(_i_wid);
-TGameObj** ptr_i_worn                   = reinterpret_cast<TGameObj**>(_i_worn);
-void** ptr_idle_func                    = reinterpret_cast<void**>(_idle_func);
-DWORD* ptr_In_WorldMap                  = reinterpret_cast<DWORD*>(_In_WorldMap); // moving in WorldMap
-DWORD* ptr_info_line                    = reinterpret_cast<DWORD*>(_info_line);
-const DWORD* ptr_interfaceWindow        = reinterpret_cast<DWORD*>(_interfaceWindow);
-DWORD* ptr_intfaceEnabled               = reinterpret_cast<DWORD*>(_intfaceEnabled);
-DWORD* ptr_intotal                      = reinterpret_cast<DWORD*>(_intotal);
-TGameObj** ptr_inven_dude               = reinterpret_cast<TGameObj**>(_inven_dude);
-DWORD* ptr_inven_pid                    = reinterpret_cast<DWORD*>(_inven_pid);
-DWORD* ptr_inven_scroll_dn_bid          = reinterpret_cast<DWORD*>(_inven_scroll_dn_bid);
-DWORD* ptr_inven_scroll_up_bid          = reinterpret_cast<DWORD*>(_inven_scroll_up_bid);
-MSGList* ptr_inventry_message_file      = reinterpret_cast<MSGList*>(_inventry_message_file);
-ItemButtonItem* ptr_itemButtonItems     = reinterpret_cast<ItemButtonItem*>(_itemButtonItems); // array of 2 ItemButtonItem
-long*  ptr_itemCurrentItem              = reinterpret_cast<long*>(_itemCurrentItem); // 0 - left, 1 - right
-DWORD* ptr_kb_lock_flags                = reinterpret_cast<DWORD*>(_kb_lock_flags);
-DWORD* ptr_last_buttons                 = reinterpret_cast<DWORD*>(_last_buttons);
-DWORD* ptr_last_button_winID            = reinterpret_cast<DWORD*>(_last_button_winID);
-DWORD* ptr_last_level                   = reinterpret_cast<DWORD*>(_last_level);
-DWORD* ptr_Level_                       = reinterpret_cast<DWORD*>(_Level_);
-DWORD* ptr_Lifegiver                    = reinterpret_cast<DWORD*>(_Lifegiver);
-BYTE*  ptr_LIGHT_GREY_Color             = reinterpret_cast<BYTE*>(_LIGHT_GREY_Color);
-DWORD* ptr_lipsFID                      = reinterpret_cast<DWORD*>(_lipsFID);
-DWORD* ptr_list_com                     = reinterpret_cast<DWORD*>(_list_com);
-DWORD* ptr_list_total                   = reinterpret_cast<DWORD*>(_list_total);
-DWORD* ptr_loadingGame                  = reinterpret_cast<DWORD*>(_loadingGame);
-DWORD* ptr_LSData                       = reinterpret_cast<DWORD*>(_LSData);
-DWORD* ptr_lsgwin                       = reinterpret_cast<DWORD*>(_lsgwin);
-TComputeAttack* ptr_main_ctd            = reinterpret_cast<TComputeAttack*>(_main_ctd);
-DWORD* ptr_main_death_voiceover_done    = reinterpret_cast<DWORD*>(_main_death_voiceover_done);
-DWORD* ptr_main_window                  = reinterpret_cast<DWORD*>(_main_window);
-DWORD* ptr_map_elevation                = reinterpret_cast<DWORD*>(_map_elevation);
-long** ptr_map_global_vars              = reinterpret_cast<long**>(_map_global_vars); // array
-DWORD* ptr_map_number                   = reinterpret_cast<DWORD*>(_map_number);
-PathNode** ptr_master_db_handle         = reinterpret_cast<PathNode**>(_master_db_handle);
-DWORD* ptr_master_volume                = reinterpret_cast<DWORD*>(_master_volume);
-DWORD* ptr_max                          = reinterpret_cast<DWORD*>(_max);
-long*  ptr_maxScriptNum                 = reinterpret_cast<long*>(_maxScriptNum);
-bool*  ptr_Meet_Frank_Horrigan          = reinterpret_cast<bool*>(_Meet_Frank_Horrigan);
-const char** ptr_movie_list             = reinterpret_cast<const char**>(_movie_list); // array of 17 char*
-DWORD* ptr_mouse_buttons                = reinterpret_cast<DWORD*>(_mouse_buttons);
-DWORD* ptr_mouse_hotx                   = reinterpret_cast<DWORD*>(_mouse_hotx);
-DWORD* ptr_mouse_hoty                   = reinterpret_cast<DWORD*>(_mouse_hoty);
-DWORD* ptr_mouse_is_hidden              = reinterpret_cast<DWORD*>(_mouse_is_hidden);
-DWORD* ptr_mouse_x_                     = reinterpret_cast<DWORD*>(_mouse_x_);
-DWORD* ptr_mouse_y                      = reinterpret_cast<DWORD*>(_mouse_y);
-DWORD* ptr_mouse_y_                     = reinterpret_cast<DWORD*>(_mouse_y_);
-DWORD* ptr_Mutate_                      = reinterpret_cast<DWORD*>(_Mutate_);
-DWORD* ptr_name_color                   = reinterpret_cast<DWORD*>(_name_color);
-DWORD* ptr_name_font                    = reinterpret_cast<DWORD*>(_name_font);
-DWORD* ptr_name_sort_list               = reinterpret_cast<DWORD*>(_name_sort_list);
-DWORD* ptr_num_game_global_vars         = reinterpret_cast<DWORD*>(_num_game_global_vars);
-DWORD* ptr_num_map_global_vars          = reinterpret_cast<DWORD*>(_num_map_global_vars);
-DWORD* ptr_num_windows                  = reinterpret_cast<DWORD*>(_num_windows);
-TGameObj** ptr_obj_dude                 = reinterpret_cast<TGameObj**>(_obj_dude);
-DWORD* ptr_objectTable                  = reinterpret_cast<DWORD*>(_objectTable);
-DWORD* ptr_objItemOutlineState          = reinterpret_cast<DWORD*>(_objItemOutlineState);
-DWORD* ptr_optionRect                   = reinterpret_cast<DWORD*>(_optionRect);
-DWORD* ptr_optionsButtonDown            = reinterpret_cast<DWORD*>(_optionsButtonDown);
-DWORD* ptr_optionsButtonDown1           = reinterpret_cast<DWORD*>(_optionsButtonDown1);
-DWORD* ptr_optionsButtonDownKey         = reinterpret_cast<DWORD*>(_optionsButtonDownKey);
-DWORD* ptr_optionsButtonUp              = reinterpret_cast<DWORD*>(_optionsButtonUp);
-DWORD* ptr_optionsButtonUp1             = reinterpret_cast<DWORD*>(_optionsButtonUp1);
-DWORD* ptr_optionsButtonUpKey           = reinterpret_cast<DWORD*>(_optionsButtonUpKey);
-const DWORD* ptr_optnwin                = reinterpret_cast<DWORD*>(_optnwin);
-DWORD* ptr_outlined_object              = reinterpret_cast<DWORD*>(_outlined_object);
-DWORD* ptr_partyMemberAIOptions         = reinterpret_cast<DWORD*>(_partyMemberAIOptions);
-DWORD* ptr_partyMemberCount             = reinterpret_cast<DWORD*>(_partyMemberCount);
-DWORD** ptr_partyMemberLevelUpInfoList  = reinterpret_cast<DWORD**>(_partyMemberLevelUpInfoList);
-DWORD** ptr_partyMemberList             = reinterpret_cast<DWORD**>(_partyMemberList); // each struct - 4 integers, first integer - objPtr
-DWORD* ptr_partyMemberMaxCount          = reinterpret_cast<DWORD*>(_partyMemberMaxCount);
-DWORD** ptr_partyMemberPidList          = reinterpret_cast<DWORD**>(_partyMemberPidList);
-char** ptr_patches                      = reinterpret_cast<char**>(_patches);
-PathNode** ptr_paths                    = reinterpret_cast<PathNode**>(_paths); // array
-CritInfo* ptr_pc_crit_succ_eff          = reinterpret_cast<CritInfo*>(_pc_crit_succ_eff); // array: 9 body parts, 6 effects
-DWORD* ptr_pc_kill_counts               = reinterpret_cast<DWORD*>(_pc_kill_counts);
-char*  ptr_pc_name                      = reinterpret_cast<char*>(_pc_name);
-DWORD* ptr_pc_proto                     = reinterpret_cast<DWORD*>(_pc_proto);
-BYTE*  ptr_PeanutButter                 = reinterpret_cast<BYTE*>(_PeanutButter);
-DWORD* ptr_perk_data                    = reinterpret_cast<DWORD*>(_perk_data);
-long** ptr_perkLevelDataList            = reinterpret_cast<long**>(_perkLevelDataList); // dynamic array, limited to PERK_Count
-const DWORD* ptr_pip_win                = reinterpret_cast<DWORD*>(_pip_win);
-DWORD* ptr_pipboy_message_file          = reinterpret_cast<DWORD*>(_pipboy_message_file);
-DWORD* ptr_pipmesg                      = reinterpret_cast<DWORD*>(_pipmesg);
-DWORD* ptr_preload_list_index           = reinterpret_cast<DWORD*>(_preload_list_index);
-const char** ptr_procTableStrs          = reinterpret_cast<const char**>(_procTableStrs);  // table of procId (from define.h) => procName map
-MSGList* ptr_proto_main_msg_file        = reinterpret_cast<MSGList*>(_proto_main_msg_file);
-MSGList* ptr_proto_msg_files            = reinterpret_cast<MSGList*>(_proto_msg_files); // array of 6 elements
-DWORD* ptr_ptable                       = reinterpret_cast<DWORD*>(_ptable);
-DWORD* ptr_pud                          = reinterpret_cast<DWORD*>(_pud);
-Queue** ptr_queue                       = reinterpret_cast<Queue**>(_queue);
-DWORD* ptr_quick_done                   = reinterpret_cast<DWORD*>(_quick_done);
-DWORD* ptr_read_callback                = reinterpret_cast<DWORD*>(_read_callback);
-RectList** ptr_rectList                 = reinterpret_cast<RectList**>(_rectList);
-BYTE*  ptr_RedColor                     = reinterpret_cast<BYTE*>(_RedColor);
-DWORD* ptr_retvals                      = reinterpret_cast<DWORD*>(_retvals);
-DWORD* ptr_rotation                     = reinterpret_cast<DWORD*>(_rotation);
-DWORD* ptr_sampleRate                   = reinterpret_cast<DWORD*>(_sampleRate);
-BoundRect* ptr_scr_size                 = reinterpret_cast<BoundRect*>(_scr_size);
-ScriptListInfoItem** ptr_scriptListInfo = reinterpret_cast<ScriptListInfoItem**>(_scriptListInfo); // dynamic array
-DWORD* ptr_skill_data                   = reinterpret_cast<DWORD*>(_skill_data);
-const DWORD* ptr_skldxwin               = reinterpret_cast<DWORD*>(_skldxwin);
-DWORD* ptr_slot_cursor                  = reinterpret_cast<DWORD*>(_slot_cursor);
-DWORD* ptr_sndfx_volume                 = reinterpret_cast<DWORD*>(_sndfx_volume);
-DWORD* ptr_sneak_working                = reinterpret_cast<DWORD*>(_sneak_working); // DWORD var
-char** ptr_sound_music_path1            = reinterpret_cast<char**>(_sound_music_path1);
-char** ptr_sound_music_path2            = reinterpret_cast<char**>(_sound_music_path2);
-DWORD* ptr_speech_volume                = reinterpret_cast<DWORD*>(_speech_volume);
-DWORD* ptr_square                       = reinterpret_cast<DWORD*>(_square);
-DWORD* ptr_squares                      = reinterpret_cast<DWORD*>(_squares);
-DWORD* ptr_stack                        = reinterpret_cast<DWORD*>(_stack);
-DWORD* ptr_stack_offset                 = reinterpret_cast<DWORD*>(_stack_offset);
-DWORD* ptr_stat_data                    = reinterpret_cast<DWORD*>(_stat_data);
-DWORD* ptr_stat_flag                    = reinterpret_cast<DWORD*>(_stat_flag);
-SubTitleList** ptr_subtitleList         = reinterpret_cast<SubTitleList**>(_subtitleList);
-sWindow* ptr_sWindows                   = reinterpret_cast<sWindow*>(_sWindows); // array of 16 sWindow
-DWORD* ptr_Tag_                         = reinterpret_cast<DWORD*>(_Tag_);
-DWORD* ptr_tag_skill                    = reinterpret_cast<DWORD*>(_tag_skill);
-DWORD* ptr_target_curr_stack            = reinterpret_cast<DWORD*>(_target_curr_stack);
-DWORD** ptr_target_pud                  = reinterpret_cast<DWORD**>(_target_pud);
-DWORD* ptr_target_stack                 = reinterpret_cast<DWORD*>(_target_stack); // array of 10 DWORD
-DWORD* ptr_target_stack_offset          = reinterpret_cast<DWORD*>(_target_stack_offset); // array of 10 DWORD
-DWORD* ptr_target_str                   = reinterpret_cast<DWORD*>(_target_str);
-DWORD* ptr_target_xpos                  = reinterpret_cast<DWORD*>(_target_xpos);
-DWORD* ptr_target_ypos                  = reinterpret_cast<DWORD*>(_target_ypos);
-DWORD* ptr_text_char_width              = reinterpret_cast<DWORD*>(_text_char_width);
-DWORD* ptr_text_height                  = reinterpret_cast<DWORD*>(_text_height);
-DWORD* ptr_text_max                     = reinterpret_cast<DWORD*>(_text_max);
-DWORD* ptr_text_mono_width              = reinterpret_cast<DWORD*>(_text_mono_width);
-DWORD* ptr_text_object_index            = reinterpret_cast<DWORD*>(_text_object_index);
-FloatText** ptr_text_object_list        = reinterpret_cast<FloatText**>(_text_object_list); // array of 20 FloatText*
-DWORD* ptr_text_spacing                 = reinterpret_cast<DWORD*>(_text_spacing);
-DWORD* ptr_text_to_buf                  = reinterpret_cast<DWORD*>(_text_to_buf);
-DWORD* ptr_text_width                   = reinterpret_cast<DWORD*>(_text_width);
-DWORD* ptr_tile                         = reinterpret_cast<DWORD*>(_tile);
-DWORD* ptr_title_color                  = reinterpret_cast<DWORD*>(_title_color);
-DWORD* ptr_title_font                   = reinterpret_cast<DWORD*>(_title_font);
-DWORD* ptr_trait_data                   = reinterpret_cast<DWORD*>(_trait_data);
-DWORD* ptr_view_page                    = reinterpret_cast<DWORD*>(_view_page);
-DWORD* ptr_wd_obj                       = reinterpret_cast<DWORD*>(_wd_obj);
-WINinfo** ptr_window                    = reinterpret_cast<WINinfo**>(_window); // array of 50 WINinfo*
-DWORD* ptr_window_index                 = reinterpret_cast<DWORD*>(_window_index); // array of 50 DWORD
-BYTE*  ptr_WhiteColor                   = reinterpret_cast<BYTE*>(_WhiteColor);
-DWORD* ptr_wmAreaInfoList               = reinterpret_cast<DWORD*>(_wmAreaInfoList);
-const DWORD* ptr_wmBkWin                = reinterpret_cast<DWORD*>(_wmBkWin);
-BYTE** ptr_wmBkWinBuf                   = reinterpret_cast<BYTE**>(_wmBkWinBuf);
-DWORD* ptr_wmLastRndTime                = reinterpret_cast<DWORD*>(_wmLastRndTime);
-MSGList* ptr_wmMsgFile                  = reinterpret_cast<MSGList*>(_wmMsgFile);
-DWORD* ptr_wmNumHorizontalTiles         = reinterpret_cast<DWORD*>(_wmNumHorizontalTiles);
-long*  ptr_wmWorldOffsetX               = reinterpret_cast<long*>(_wmWorldOffsetX);
-long*  ptr_wmWorldOffsetY               = reinterpret_cast<long*>(_wmWorldOffsetY);
-DWORD* ptr_world_xpos                   = reinterpret_cast<DWORD*>(_world_xpos);
-DWORD* ptr_world_ypos                   = reinterpret_cast<DWORD*>(_world_ypos);
-DWORD* ptr_WorldMapCurrArea             = reinterpret_cast<DWORD*>(_WorldMapCurrArea);
-BYTE*  ptr_YellowColor                  = reinterpret_cast<BYTE*>(_YellowColor);
+DWORD* ptr_aiInfoList                   = reinterpret_cast<DWORD*>(FO_VAR_aiInfoList);
+DWORD* ptr_ambient_light                = reinterpret_cast<DWORD*>(FO_VAR_ambient_light);
+sArt*  ptr_art                          = reinterpret_cast<sArt*>(FO_VAR_art); // array of 11 sArt
+DWORD* ptr_art_name                     = reinterpret_cast<DWORD*>(FO_VAR_art_name);
+DWORD* ptr_art_vault_guy_num            = reinterpret_cast<DWORD*>(FO_VAR_art_vault_guy_num);
+DWORD* ptr_art_vault_person_nums        = reinterpret_cast<DWORD*>(FO_VAR_art_vault_person_nums);
+DWORD* ptr_background_volume            = reinterpret_cast<DWORD*>(FO_VAR_background_volume);
+BYTE** ptr_bckgnd                       = reinterpret_cast<BYTE**>(FO_VAR_bckgnd);
+DWORD* ptr_black_palette                = reinterpret_cast<DWORD*>(FO_VAR_black_palette);
+BYTE*  ptr_BlueColor                    = reinterpret_cast<BYTE*>(FO_VAR_BlueColor);
+DWORD* ptr_bottom_line                  = reinterpret_cast<DWORD*>(FO_VAR_bottom_line);
+DWORD* ptr_btable                       = reinterpret_cast<DWORD*>(FO_VAR_btable);
+DWORD* ptr_btncnt                       = reinterpret_cast<DWORD*>(FO_VAR_btncnt);
+DWORD* ptr_carCurrentArea               = reinterpret_cast<DWORD*>(FO_VAR_carCurrentArea);
+long*  ptr_carGasAmount                 = reinterpret_cast<long*>(FO_VAR_carGasAmount); // from 0 to 80000
+DWORD* ptr_cmap                         = reinterpret_cast<DWORD*>(FO_VAR_cmap);
+DWORD* ptr_colorTable                   = reinterpret_cast<DWORD*>(FO_VAR_colorTable);
+DWORD* ptr_combat_free_move             = reinterpret_cast<DWORD*>(FO_VAR_combat_free_move);
+DWORD* ptr_combat_list                  = reinterpret_cast<DWORD*>(FO_VAR_combat_list);
+DWORD* ptr_combat_state                 = reinterpret_cast<DWORD*>(FO_VAR_combat_state);
+DWORD* ptr_combat_turn_running          = reinterpret_cast<DWORD*>(FO_VAR_combat_turn_running);
+DWORD* ptr_combatNumTurns               = reinterpret_cast<DWORD*>(FO_VAR_combatNumTurns);
+CritInfo* ptr_crit_succ_eff             = reinterpret_cast<CritInfo*>(FO_VAR_crit_succ_eff); // array: 20 critters with 9 body parts and 6 effects each
+PathNode** ptr_critter_db_handle        = reinterpret_cast<PathNode**>(FO_VAR_critter_db_handle);
+DWORD* ptr_critterClearObj              = reinterpret_cast<DWORD*>(FO_VAR_critterClearObj);
+DWORD* ptr_crnt_func                    = reinterpret_cast<DWORD*>(FO_VAR_crnt_func);
+DWORD* ptr_curr_font_num                = reinterpret_cast<DWORD*>(FO_VAR_curr_font_num);
+DWORD* ptr_curr_pc_stat                 = reinterpret_cast<DWORD*>(FO_VAR_curr_pc_stat);
+DWORD* ptr_curr_stack                   = reinterpret_cast<DWORD*>(FO_VAR_curr_stack);
+TProgram** ptr_currentProgram           = reinterpret_cast<TProgram**>(FO_VAR_currentProgram);
+DWORD* ptr_cursor_line                  = reinterpret_cast<DWORD*>(FO_VAR_cursor_line);
+BYTE*  ptr_DARK_GREY_Color              = reinterpret_cast<BYTE*>(FO_VAR_DARK_GREY_Color);
+BYTE*  ptr_DarkGreenColor               = reinterpret_cast<BYTE*>(FO_VAR_DarkGreenColor);
+BYTE*  ptr_DarkGreenGreyColor           = reinterpret_cast<BYTE*>(FO_VAR_DarkGreenGreyColor);
+TGameObj** ptr_dialog_target            = reinterpret_cast<TGameObj**>(FO_VAR_dialog_target);
+DWORD* ptr_dialog_target_is_party       = reinterpret_cast<DWORD*>(FO_VAR_dialog_target_is_party);
+const DWORD* ptr_dialogueBackWindow     = reinterpret_cast<DWORD*>(FO_VAR_dialogueBackWindow);
+DWORD* ptr_drugInfoList                 = reinterpret_cast<DWORD*>(FO_VAR_drugInfoList);
+BYTE*  ptr_DullPinkColor                = reinterpret_cast<BYTE*>(FO_VAR_DullPinkColor);
+const DWORD* ptr_edit_win               = reinterpret_cast<DWORD*>(FO_VAR_edit_win);
+DWORD* ptr_Educated                     = reinterpret_cast<DWORD*>(FO_VAR_Educated);
+DWORD* ptr_elevation                    = reinterpret_cast<DWORD*>(FO_VAR_elevation);
+DWORD* ptr_endgame_subtitle_done        = reinterpret_cast<DWORD*>(FO_VAR_endgame_subtitle_done);
+DWORD* ptr_Experience_                  = reinterpret_cast<DWORD*>(FO_VAR_Experience_);
+DWORD* ptr_fallout_game_time            = reinterpret_cast<DWORD*>(FO_VAR_fallout_game_time);
+DWORD* ptr_fidgetFID                    = reinterpret_cast<DWORD*>(FO_VAR_fidgetFID);
+DWORD* ptr_flptr                        = reinterpret_cast<DWORD*>(FO_VAR_flptr);
+DWORD* ptr_folder_card_desc             = reinterpret_cast<DWORD*>(FO_VAR_folder_card_desc);
+DWORD* ptr_folder_card_fid              = reinterpret_cast<DWORD*>(FO_VAR_folder_card_fid);
+DWORD* ptr_folder_card_title            = reinterpret_cast<DWORD*>(FO_VAR_folder_card_title);
+DWORD* ptr_folder_card_title2           = reinterpret_cast<DWORD*>(FO_VAR_folder_card_title2);
+DWORD* ptr_frame_time                   = reinterpret_cast<DWORD*>(FO_VAR_frame_time);
+char*  ptr_free_perk                    = reinterpret_cast<char*>(FO_VAR_free_perk);
+long** ptr_game_global_vars             = reinterpret_cast<long**>(FO_VAR_game_global_vars); // dynamic array of size == num_game_global_vars
+DWORD* ptr_game_user_wants_to_quit      = reinterpret_cast<DWORD*>(FO_VAR_game_user_wants_to_quit);
+CombatGcsd** ptr_gcsd                   = reinterpret_cast<CombatGcsd**>(FO_VAR_gcsd);
+DWORD* ptr_gdBarterMod                  = reinterpret_cast<DWORD*>(FO_VAR_gdBarterMod);
+DWORD* ptr_gdNumOptions                 = reinterpret_cast<DWORD*>(FO_VAR_gdNumOptions);
+DWORD* ptr_gIsSteal                     = reinterpret_cast<DWORD*>(FO_VAR_gIsSteal);
+DWORD* ptr_glblmode                     = reinterpret_cast<DWORD*>(FO_VAR_glblmode);
+long*  ptr_gmouse_current_cursor        = reinterpret_cast<long*>(FO_VAR_gmouse_current_cursor);
+DWORD* ptr_gmovie_played_list           = reinterpret_cast<DWORD*>(FO_VAR_gmovie_played_list);
+BYTE*  ptr_GoodColor                    = reinterpret_cast<BYTE*>(FO_VAR_GoodColor);
+BYTE*  ptr_GreenColor                   = reinterpret_cast<BYTE*>(FO_VAR_GreenColor);
+DWORD* ptr_gsound_initialized           = reinterpret_cast<DWORD*>(FO_VAR_gsound_initialized);
+long*  ptr_hit_location_penalty         = reinterpret_cast<long*>(FO_VAR_hit_location_penalty);
+DWORD* ptr_holo_flag                    = reinterpret_cast<DWORD*>(FO_VAR_holo_flag);
+DWORD* ptr_holopages                    = reinterpret_cast<DWORD*>(FO_VAR_holopages);
+DWORD* ptr_hot_line_count               = reinterpret_cast<DWORD*>(FO_VAR_hot_line_count);
+DWORD* ptr_i_fid                        = reinterpret_cast<DWORD*>(FO_VAR_i_fid);
+TGameObj** ptr_i_lhand                  = reinterpret_cast<TGameObj**>(FO_VAR_i_lhand);
+TGameObj** ptr_i_rhand                  = reinterpret_cast<TGameObj**>(FO_VAR_i_rhand);
+const DWORD* ptr_i_wid                  = reinterpret_cast<DWORD*>(FO_VAR_i_wid);
+TGameObj** ptr_i_worn                   = reinterpret_cast<TGameObj**>(FO_VAR_i_worn);
+void** ptr_idle_func                    = reinterpret_cast<void**>(FO_VAR_idle_func);
+DWORD* ptr_In_WorldMap                  = reinterpret_cast<DWORD*>(FO_VAR_In_WorldMap); // moving in WorldMap
+DWORD* ptr_info_line                    = reinterpret_cast<DWORD*>(FO_VAR_info_line);
+const DWORD* ptr_interfaceWindow        = reinterpret_cast<DWORD*>(FO_VAR_interfaceWindow);
+DWORD* ptr_intfaceEnabled               = reinterpret_cast<DWORD*>(FO_VAR_intfaceEnabled);
+DWORD* ptr_intotal                      = reinterpret_cast<DWORD*>(FO_VAR_intotal);
+TGameObj** ptr_inven_dude               = reinterpret_cast<TGameObj**>(FO_VAR_inven_dude);
+DWORD* ptr_inven_pid                    = reinterpret_cast<DWORD*>(FO_VAR_inven_pid);
+DWORD* ptr_inven_scroll_dn_bid          = reinterpret_cast<DWORD*>(FO_VAR_inven_scroll_dn_bid);
+DWORD* ptr_inven_scroll_up_bid          = reinterpret_cast<DWORD*>(FO_VAR_inven_scroll_up_bid);
+MSGList* ptr_inventry_message_file      = reinterpret_cast<MSGList*>(FO_VAR_inventry_message_file);
+ItemButtonItem* ptr_itemButtonItems     = reinterpret_cast<ItemButtonItem*>(FO_VAR_itemButtonItems); // array of 2 ItemButtonItem
+long*  ptr_itemCurrentItem              = reinterpret_cast<long*>(FO_VAR_itemCurrentItem); // 0 - left, 1 - right
+DWORD* ptr_kb_lock_flags                = reinterpret_cast<DWORD*>(FO_VAR_kb_lock_flags);
+DWORD* ptr_last_buttons                 = reinterpret_cast<DWORD*>(FO_VAR_last_buttons);
+DWORD* ptr_last_button_winID            = reinterpret_cast<DWORD*>(FO_VAR_last_button_winID);
+DWORD* ptr_last_level                   = reinterpret_cast<DWORD*>(FO_VAR_last_level);
+DWORD* ptr_Level_                       = reinterpret_cast<DWORD*>(FO_VAR_Level_);
+DWORD* ptr_Lifegiver                    = reinterpret_cast<DWORD*>(FO_VAR_Lifegiver);
+BYTE*  ptr_LIGHT_GREY_Color             = reinterpret_cast<BYTE*>(FO_VAR_LIGHT_GREY_Color);
+DWORD* ptr_lipsFID                      = reinterpret_cast<DWORD*>(FO_VAR_lipsFID);
+DWORD* ptr_list_com                     = reinterpret_cast<DWORD*>(FO_VAR_list_com);
+DWORD* ptr_list_total                   = reinterpret_cast<DWORD*>(FO_VAR_list_total);
+DWORD* ptr_loadingGame                  = reinterpret_cast<DWORD*>(FO_VAR_loadingGame);
+DWORD* ptr_LSData                       = reinterpret_cast<DWORD*>(FO_VAR_LSData);
+DWORD* ptr_lsgwin                       = reinterpret_cast<DWORD*>(FO_VAR_lsgwin);
+TComputeAttack* ptr_main_ctd            = reinterpret_cast<TComputeAttack*>(FO_VAR_main_ctd);
+DWORD* ptr_main_death_voiceover_done    = reinterpret_cast<DWORD*>(FO_VAR_main_death_voiceover_done);
+DWORD* ptr_main_window                  = reinterpret_cast<DWORD*>(FO_VAR_main_window);
+DWORD* ptr_map_elevation                = reinterpret_cast<DWORD*>(FO_VAR_map_elevation);
+long** ptr_map_global_vars              = reinterpret_cast<long**>(FO_VAR_map_global_vars); // array
+DWORD* ptr_map_number                   = reinterpret_cast<DWORD*>(FO_VAR_map_number);
+PathNode** ptr_master_db_handle         = reinterpret_cast<PathNode**>(FO_VAR_master_db_handle);
+DWORD* ptr_master_volume                = reinterpret_cast<DWORD*>(FO_VAR_master_volume);
+DWORD* ptr_max                          = reinterpret_cast<DWORD*>(FO_VAR_max);
+long*  ptr_maxScriptNum                 = reinterpret_cast<long*>(FO_VAR_maxScriptNum);
+bool*  ptr_Meet_Frank_Horrigan          = reinterpret_cast<bool*>(FO_VAR_Meet_Frank_Horrigan);
+const char** ptr_movie_list             = reinterpret_cast<const char**>(FO_VAR_movie_list); // array of 17 char*
+DWORD* ptr_mouse_buttons                = reinterpret_cast<DWORD*>(FO_VAR_mouse_buttons);
+DWORD* ptr_mouse_hotx                   = reinterpret_cast<DWORD*>(FO_VAR_mouse_hotx);
+DWORD* ptr_mouse_hoty                   = reinterpret_cast<DWORD*>(FO_VAR_mouse_hoty);
+DWORD* ptr_mouse_is_hidden              = reinterpret_cast<DWORD*>(FO_VAR_mouse_is_hidden);
+DWORD* ptr_mouse_x_                     = reinterpret_cast<DWORD*>(FO_VAR_mouse_x_);
+DWORD* ptr_mouse_y                      = reinterpret_cast<DWORD*>(FO_VAR_mouse_y);
+DWORD* ptr_mouse_y_                     = reinterpret_cast<DWORD*>(FO_VAR_mouse_y_);
+DWORD* ptr_Mutate_                      = reinterpret_cast<DWORD*>(FO_VAR_Mutate_);
+DWORD* ptr_name_color                   = reinterpret_cast<DWORD*>(FO_VAR_name_color);
+DWORD* ptr_name_font                    = reinterpret_cast<DWORD*>(FO_VAR_name_font);
+DWORD* ptr_name_sort_list               = reinterpret_cast<DWORD*>(FO_VAR_name_sort_list);
+DWORD* ptr_num_game_global_vars         = reinterpret_cast<DWORD*>(FO_VAR_num_game_global_vars);
+DWORD* ptr_num_map_global_vars          = reinterpret_cast<DWORD*>(FO_VAR_num_map_global_vars);
+DWORD* ptr_num_windows                  = reinterpret_cast<DWORD*>(FO_VAR_num_windows);
+TGameObj** ptr_obj_dude                 = reinterpret_cast<TGameObj**>(FO_VAR_obj_dude);
+DWORD* ptr_objectTable                  = reinterpret_cast<DWORD*>(FO_VAR_objectTable);
+DWORD* ptr_objItemOutlineState          = reinterpret_cast<DWORD*>(FO_VAR_objItemOutlineState);
+DWORD* ptr_optionRect                   = reinterpret_cast<DWORD*>(FO_VAR_optionRect);
+DWORD* ptr_optionsButtonDown            = reinterpret_cast<DWORD*>(FO_VAR_optionsButtonDown);
+DWORD* ptr_optionsButtonDown1           = reinterpret_cast<DWORD*>(FO_VAR_optionsButtonDown1);
+DWORD* ptr_optionsButtonDownKey         = reinterpret_cast<DWORD*>(FO_VAR_optionsButtonDownKey);
+DWORD* ptr_optionsButtonUp              = reinterpret_cast<DWORD*>(FO_VAR_optionsButtonUp);
+DWORD* ptr_optionsButtonUp1             = reinterpret_cast<DWORD*>(FO_VAR_optionsButtonUp1);
+DWORD* ptr_optionsButtonUpKey           = reinterpret_cast<DWORD*>(FO_VAR_optionsButtonUpKey);
+const DWORD* ptr_optnwin                = reinterpret_cast<DWORD*>(FO_VAR_optnwin);
+DWORD* ptr_outlined_object              = reinterpret_cast<DWORD*>(FO_VAR_outlined_object);
+DWORD* ptr_partyMemberAIOptions         = reinterpret_cast<DWORD*>(FO_VAR_partyMemberAIOptions);
+DWORD* ptr_partyMemberCount             = reinterpret_cast<DWORD*>(FO_VAR_partyMemberCount);
+DWORD** ptr_partyMemberLevelUpInfoList  = reinterpret_cast<DWORD**>(FO_VAR_partyMemberLevelUpInfoList);
+DWORD** ptr_partyMemberList             = reinterpret_cast<DWORD**>(FO_VAR_partyMemberList); // each struct - 4 integers, first integer - objPtr
+DWORD* ptr_partyMemberMaxCount          = reinterpret_cast<DWORD*>(FO_VAR_partyMemberMaxCount);
+DWORD** ptr_partyMemberPidList          = reinterpret_cast<DWORD**>(FO_VAR_partyMemberPidList);
+char** ptr_patches                      = reinterpret_cast<char**>(FO_VAR_patches);
+PathNode** ptr_paths                    = reinterpret_cast<PathNode**>(FO_VAR_paths); // array
+CritInfo* ptr_pc_crit_succ_eff          = reinterpret_cast<CritInfo*>(FO_VAR_pc_crit_succ_eff); // array: 9 body parts, 6 effects
+DWORD* ptr_pc_kill_counts               = reinterpret_cast<DWORD*>(FO_VAR_pc_kill_counts);
+char*  ptr_pc_name                      = reinterpret_cast<char*>(FO_VAR_pc_name);
+DWORD* ptr_pc_proto                     = reinterpret_cast<DWORD*>(FO_VAR_pc_proto);
+BYTE*  ptr_PeanutButter                 = reinterpret_cast<BYTE*>(FO_VAR_PeanutButter);
+DWORD* ptr_perk_data                    = reinterpret_cast<DWORD*>(FO_VAR_perk_data);
+long** ptr_perkLevelDataList            = reinterpret_cast<long**>(FO_VAR_perkLevelDataList); // dynamic array, limited to PERK_Count
+const DWORD* ptr_pip_win                = reinterpret_cast<DWORD*>(FO_VAR_pip_win);
+DWORD* ptr_pipboy_message_file          = reinterpret_cast<DWORD*>(FO_VAR_pipboy_message_file);
+DWORD* ptr_pipmesg                      = reinterpret_cast<DWORD*>(FO_VAR_pipmesg);
+DWORD* ptr_preload_list_index           = reinterpret_cast<DWORD*>(FO_VAR_preload_list_index);
+const char** ptr_procTableStrs          = reinterpret_cast<const char**>(FO_VAR_procTableStrs);  // table of procId (from define.h) => procName map
+MSGList* ptr_proto_main_msg_file        = reinterpret_cast<MSGList*>(FO_VAR_proto_main_msg_file);
+MSGList* ptr_proto_msg_files            = reinterpret_cast<MSGList*>(FO_VAR_proto_msg_files); // array of 6 elements
+DWORD* ptr_ptable                       = reinterpret_cast<DWORD*>(FO_VAR_ptable);
+DWORD* ptr_pud                          = reinterpret_cast<DWORD*>(FO_VAR_pud);
+Queue** ptr_queue                       = reinterpret_cast<Queue**>(FO_VAR_queue);
+DWORD* ptr_quick_done                   = reinterpret_cast<DWORD*>(FO_VAR_quick_done);
+DWORD* ptr_read_callback                = reinterpret_cast<DWORD*>(FO_VAR_read_callback);
+RectList** ptr_rectList                 = reinterpret_cast<RectList**>(FO_VAR_rectList);
+BYTE*  ptr_RedColor                     = reinterpret_cast<BYTE*>(FO_VAR_RedColor);
+DWORD* ptr_retvals                      = reinterpret_cast<DWORD*>(FO_VAR_retvals);
+DWORD* ptr_rotation                     = reinterpret_cast<DWORD*>(FO_VAR_rotation);
+DWORD* ptr_sampleRate                   = reinterpret_cast<DWORD*>(FO_VAR_sampleRate);
+BoundRect* ptr_scr_size                 = reinterpret_cast<BoundRect*>(FO_VAR_scr_size);
+ScriptListInfoItem** ptr_scriptListInfo = reinterpret_cast<ScriptListInfoItem**>(FO_VAR_scriptListInfo); // dynamic array
+DWORD* ptr_skill_data                   = reinterpret_cast<DWORD*>(FO_VAR_skill_data);
+const DWORD* ptr_skldxwin               = reinterpret_cast<DWORD*>(FO_VAR_skldxwin);
+DWORD* ptr_slot_cursor                  = reinterpret_cast<DWORD*>(FO_VAR_slot_cursor);
+DWORD* ptr_sndfx_volume                 = reinterpret_cast<DWORD*>(FO_VAR_sndfx_volume);
+DWORD* ptr_sneak_working                = reinterpret_cast<DWORD*>(FO_VAR_sneak_working); // DWORD var
+char** ptr_sound_music_path1            = reinterpret_cast<char**>(FO_VAR_sound_music_path1);
+char** ptr_sound_music_path2            = reinterpret_cast<char**>(FO_VAR_sound_music_path2);
+DWORD* ptr_speech_volume                = reinterpret_cast<DWORD*>(FO_VAR_speech_volume);
+DWORD* ptr_square                       = reinterpret_cast<DWORD*>(FO_VAR_square);
+DWORD* ptr_squares                      = reinterpret_cast<DWORD*>(FO_VAR_squares);
+DWORD* ptr_stack                        = reinterpret_cast<DWORD*>(FO_VAR_stack);
+DWORD* ptr_stack_offset                 = reinterpret_cast<DWORD*>(FO_VAR_stack_offset);
+DWORD* ptr_stat_data                    = reinterpret_cast<DWORD*>(FO_VAR_stat_data);
+DWORD* ptr_stat_flag                    = reinterpret_cast<DWORD*>(FO_VAR_stat_flag);
+SubTitleList** ptr_subtitleList         = reinterpret_cast<SubTitleList**>(FO_VAR_subtitleList);
+sWindow* ptr_sWindows                   = reinterpret_cast<sWindow*>(FO_VAR_sWindows); // array of 16 sWindow
+DWORD* ptr_Tag_                         = reinterpret_cast<DWORD*>(FO_VAR_Tag_);
+DWORD* ptr_tag_skill                    = reinterpret_cast<DWORD*>(FO_VAR_tag_skill);
+DWORD* ptr_target_curr_stack            = reinterpret_cast<DWORD*>(FO_VAR_target_curr_stack);
+DWORD** ptr_target_pud                  = reinterpret_cast<DWORD**>(FO_VAR_target_pud);
+DWORD* ptr_target_stack                 = reinterpret_cast<DWORD*>(FO_VAR_target_stack); // array of 10 DWORD
+DWORD* ptr_target_stack_offset          = reinterpret_cast<DWORD*>(FO_VAR_target_stack_offset); // array of 10 DWORD
+DWORD* ptr_target_str                   = reinterpret_cast<DWORD*>(FO_VAR_target_str);
+DWORD* ptr_target_xpos                  = reinterpret_cast<DWORD*>(FO_VAR_target_xpos);
+DWORD* ptr_target_ypos                  = reinterpret_cast<DWORD*>(FO_VAR_target_ypos);
+DWORD* ptr_text_char_width              = reinterpret_cast<DWORD*>(FO_VAR_text_char_width);
+DWORD* ptr_text_height                  = reinterpret_cast<DWORD*>(FO_VAR_text_height);
+DWORD* ptr_text_max                     = reinterpret_cast<DWORD*>(FO_VAR_text_max);
+DWORD* ptr_text_mono_width              = reinterpret_cast<DWORD*>(FO_VAR_text_mono_width);
+DWORD* ptr_text_object_index            = reinterpret_cast<DWORD*>(FO_VAR_text_object_index);
+FloatText** ptr_text_object_list        = reinterpret_cast<FloatText**>(FO_VAR_text_object_list); // array of 20 FloatText*
+DWORD* ptr_text_spacing                 = reinterpret_cast<DWORD*>(FO_VAR_text_spacing);
+DWORD* ptr_text_to_buf                  = reinterpret_cast<DWORD*>(FO_VAR_text_to_buf);
+DWORD* ptr_text_width                   = reinterpret_cast<DWORD*>(FO_VAR_text_width);
+DWORD* ptr_tile                         = reinterpret_cast<DWORD*>(FO_VAR_tile);
+DWORD* ptr_title_color                  = reinterpret_cast<DWORD*>(FO_VAR_title_color);
+DWORD* ptr_title_font                   = reinterpret_cast<DWORD*>(FO_VAR_title_font);
+DWORD* ptr_trait_data                   = reinterpret_cast<DWORD*>(FO_VAR_trait_data);
+DWORD* ptr_view_page                    = reinterpret_cast<DWORD*>(FO_VAR_view_page);
+DWORD* ptr_wd_obj                       = reinterpret_cast<DWORD*>(FO_VAR_wd_obj);
+WINinfo** ptr_window                    = reinterpret_cast<WINinfo**>(FO_VAR_window); // array of 50 WINinfo*
+DWORD* ptr_window_index                 = reinterpret_cast<DWORD*>(FO_VAR_window_index); // array of 50 DWORD
+BYTE*  ptr_WhiteColor                   = reinterpret_cast<BYTE*>(FO_VAR_WhiteColor);
+DWORD* ptr_wmAreaInfoList               = reinterpret_cast<DWORD*>(FO_VAR_wmAreaInfoList);
+const DWORD* ptr_wmBkWin                = reinterpret_cast<DWORD*>(FO_VAR_wmBkWin);
+BYTE** ptr_wmBkWinBuf                   = reinterpret_cast<BYTE**>(FO_VAR_wmBkWinBuf);
+DWORD* ptr_wmLastRndTime                = reinterpret_cast<DWORD*>(FO_VAR_wmLastRndTime);
+MSGList* ptr_wmMsgFile                  = reinterpret_cast<MSGList*>(FO_VAR_wmMsgFile);
+DWORD* ptr_wmNumHorizontalTiles         = reinterpret_cast<DWORD*>(FO_VAR_wmNumHorizontalTiles);
+long*  ptr_wmWorldOffsetX               = reinterpret_cast<long*>(FO_VAR_wmWorldOffsetX);
+long*  ptr_wmWorldOffsetY               = reinterpret_cast<long*>(FO_VAR_wmWorldOffsetY);
+DWORD* ptr_world_xpos                   = reinterpret_cast<DWORD*>(FO_VAR_world_xpos);
+DWORD* ptr_world_ypos                   = reinterpret_cast<DWORD*>(FO_VAR_world_ypos);
+DWORD* ptr_WorldMapCurrArea             = reinterpret_cast<DWORD*>(FO_VAR_WorldMapCurrArea);
+BYTE*  ptr_YellowColor                  = reinterpret_cast<BYTE*>(FO_VAR_YellowColor);
 
 
 /**
@@ -1208,11 +1208,11 @@ BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height) {
 	__asm {
 		mov  eax, ecx;
 		mov  ebx, height;
-		mov  ecx, _pal;
+		mov  ecx, FO_VAR_pal;
 		call loadPCX_;
 		push eax;
 		mov  ebx, [width];
-		mov  edx, _pal;
+		mov  edx, FO_VAR_pal;
 		mov  ecx, [height];
 		mov  ebx, [ebx];
 		mov  ecx, [ecx];
@@ -1224,7 +1224,7 @@ BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height) {
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
 	__asm {
 		mov  ebx, param;
-		mov  eax, _game_config;
+		mov  eax, FO_VAR_game_config;
 		call config_get_string_; // section<edx>, outValue<ecx>
 	}
 }
@@ -1513,12 +1513,12 @@ TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile) {
 
 // Returns the type of the terrain sub tile at the the player's position on the world map
 long wmGetCurrentTerrainType() {
-	long* terrainId = *(long**)_world_subtile;
+	long* terrainId = *(long**)FO_VAR_world_subtile;
 	if (terrainId == nullptr) {
 		__asm {
 			lea  ebx, terrainId;
-			mov  edx, dword ptr ds:[_world_ypos];
-			mov  eax, dword ptr ds:[_world_xpos];
+			mov  edx, dword ptr ds:[FO_VAR_world_ypos];
+			mov  eax, dword ptr ds:[FO_VAR_world_xpos];
 			call wmFindCurSubTileFromPos_;
 		}
 	}
@@ -1631,7 +1631,7 @@ void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD y
 		mov  eax, toSurface;
 		mov  ecx, toWidth;
 		add  eax, posOffset;
-		call dword ptr ds:[_text_to_buf];
+		call dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
@@ -1655,7 +1655,7 @@ void __stdcall PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos,
 DWORD __stdcall GetTextHeight() {
 //	DWORD TxtHeight;
 	__asm {
-		call dword ptr ds:[_text_height]; //get text height
+		call dword ptr ds:[FO_VAR_text_height]; //get text height
 //		mov  TxtHeight, eax;
 	}
 //	return TxtHeight;
@@ -1666,7 +1666,7 @@ DWORD __stdcall GetTextHeight() {
 DWORD __stdcall GetTextWidth(const char* TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
-		call dword ptr ds:[_text_width]; //get text width
+		call dword ptr ds:[FO_VAR_text_width]; //get text width
 	}
 }
 
@@ -1679,7 +1679,7 @@ DWORD __stdcall GetTextWidthFM(const char* TextMsg) {
 DWORD __stdcall GetCharWidth(char charVal) {
 	__asm {
 		mov  al, charVal;
-		call dword ptr ds:[_text_char_width];
+		call dword ptr ds:[FO_VAR_text_char_width];
 	}
 }
 
@@ -1696,7 +1696,7 @@ DWORD __stdcall GetMaxTextWidth(const char* TextMsg) {
 //	DWORD msgWidth;
 	__asm {
 		mov  eax, TextMsg;
-		call dword ptr ds:[_text_mono_width];
+		call dword ptr ds:[FO_VAR_text_mono_width];
 //		mov  msgWidth, eax;
 	}
 //	return msgWidth;
@@ -1707,7 +1707,7 @@ DWORD __stdcall GetMaxTextWidth(const char* TextMsg) {
 DWORD __stdcall GetCharGapWidth() {
 //	DWORD gapWidth;
 	__asm {
-		call dword ptr ds:[_text_spacing];
+		call dword ptr ds:[FO_VAR_text_spacing];
 //		mov  gapWidth, eax;
 	}
 //	return gapWidth;
@@ -1718,7 +1718,7 @@ DWORD __stdcall GetCharGapWidth() {
 DWORD __stdcall GetMaxCharWidth() {
 //	DWORD charWidth = 0;
 	__asm {
-		call dword ptr ds:[_text_max];
+		call dword ptr ds:[FO_VAR_text_max];
 //		mov  charWidth, eax;
 	}
 //	return charWidth;
@@ -1732,12 +1732,12 @@ void RedrawObject(TGameObj* obj) {
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner) {
-	*(DWORD*)_doing_refresh_all = 1;
+	*(DWORD*)FO_VAR_doing_refresh_all = 1;
 	for (size_t i = 0; i < *ptr_num_windows; i++) {
 		if (skipOwner && ptr_window[i]->flags & WinFlags::OwnerFlag) continue;
 		GNWWinRefresh(ptr_window[i], ptr_scr_size, 0);
 	}
-	*(DWORD*)_doing_refresh_all = 0;
+	*(DWORD*)FO_VAR_doing_refresh_all = 0;
 }
 
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
