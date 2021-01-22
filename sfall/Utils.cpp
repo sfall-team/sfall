@@ -65,3 +65,8 @@ void StrNormalizePath(char* path) {
 		if (*path == '/') *path = '\\';
 	} while (*(++path) != 0);
 }
+
+// max range 0-32767
+long GetRandom(long min, long max) {
+	return (min + (std::rand() % (max - (min - 1))));
+}

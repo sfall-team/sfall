@@ -45,6 +45,7 @@ WRAP_WATCOM_FFUNC4(long, QueueAdd, queue_add_, long, time, TGameObj*, object, vo
 WRAP_WATCOM_FFUNC4(void, RegisterObjectCall, register_object_call_, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FFUNC3(long, ScrGetLocalVar, scr_get_local_var_, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, ScrSetLocalVar, scr_set_local_var_, long, sid, long, varId, long, value)
+WRAP_WATCOM_FFUNC6(long, TextObjectCreate, text_object_create_, TGameObj*, object, const char*, text, long, font, long, colorText, long, colorOutline, BoundRect*, rect)
 WRAP_WATCOM_FFUNC3(long, TileNumInDirection, tile_num_in_direction_, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, TransCscale, trans_cscale_, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, WinClip, win_clip_, WINinfo*, window, RectList**, rects, void*, buffer)
@@ -97,6 +98,7 @@ WRAP_WATCOM_FUNC1(void, DbaseClose, dbase_close_, void*, dbPtr)
 ////////////////////////
 WRAP_WATCOM_FUNC1(void, DisplayPrint, display_print_, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, DisplayStats, display_stats_)
+WRAP_WATCOM_FUNC1(long, CritterBodyType, critter_body_type_, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(long, CritterIsDead, critter_is_dead_, TGameObj*, critter)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, ExecuteProcedure, executeProcedure_, TProgram*, sptr, long, procNum)

@@ -136,6 +136,7 @@ DWORD* ptr_max                          = reinterpret_cast<DWORD*>(_max);
 long*  ptr_maxScriptNum                 = reinterpret_cast<long*>(_maxScriptNum);
 bool*  ptr_Meet_Frank_Horrigan          = reinterpret_cast<bool*>(_Meet_Frank_Horrigan);
 const char** ptr_movie_list             = reinterpret_cast<const char**>(_movie_list); // array of 17 char*
+DWORD* ptr_mouse_buttons                = reinterpret_cast<DWORD*>(_mouse_buttons);
 DWORD* ptr_mouse_hotx                   = reinterpret_cast<DWORD*>(_mouse_hotx);
 DWORD* ptr_mouse_hoty                   = reinterpret_cast<DWORD*>(_mouse_hoty);
 DWORD* ptr_mouse_is_hidden              = reinterpret_cast<DWORD*>(_mouse_is_hidden);
@@ -236,6 +237,7 @@ DWORD* ptr_trait_data                   = reinterpret_cast<DWORD*>(_trait_data);
 DWORD* ptr_view_page                    = reinterpret_cast<DWORD*>(_view_page);
 DWORD* ptr_wd_obj                       = reinterpret_cast<DWORD*>(_wd_obj);
 WINinfo** ptr_window                    = reinterpret_cast<WINinfo**>(_window); // array of 50 WINinfo*
+DWORD* ptr_window_index                 = reinterpret_cast<DWORD*>(_window_index); // array of 50 DWORD
 BYTE*  ptr_WhiteColor                   = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList               = reinterpret_cast<DWORD*>(_wmAreaInfoList);
 const DWORD* ptr_wmBkWin                = reinterpret_cast<DWORD*>(_wmBkWin);
@@ -1583,6 +1585,11 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
+//void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
+//	BYTE* surf = surface + (y * surfWidth) + x;
+//	WMInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
+//}
+
 // Fills the specified interface window with index color
 void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	WINinfo* win = GNWFind(winID);
@@ -1605,6 +1612,13 @@ void ClearWindow(long winID, bool refresh) {
 }
 
 //---------------------------------------------------------
+void PrintFloatText(TGameObj* object, const char* text, long colorText, long colorOutline, long font) {
+	BoundRect rect;
+	if (!TextObjectCreate(object, text, font, colorText, colorOutline, &rect)) {
+		TileRefreshRect(&rect, object->elevation);
+	}
+}
+
 // print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;

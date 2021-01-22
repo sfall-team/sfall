@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2010  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -99,6 +99,8 @@ size_t GetConfigString(const char* section, const char* setting, const char* def
 
 // Parses the comma-separated list from the settings from Sfall configuration INI file.
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
 
 // Translates given string using Sfall translation INI file.
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);

@@ -180,13 +180,14 @@
 #define _maxScriptNum               0x51C7CC
 #define _Meet_Frank_Horrigan        0x672E04
 #define _Move_on_Car                0x672E64
-#define _movie_list                 0x518DA0
+#define _mouse_buttons              0x6AC7B0
 #define _mouse_hotx                 0x6AC7D0
 #define _mouse_hoty                 0x6AC7CC
 #define _mouse_is_hidden            0x6AC790
 #define _mouse_x_                   0x6AC7A8
 #define _mouse_y                    0x664450
 #define _mouse_y_                   0x6AC7A4
+#define _movie_list                 0x518DA0
 #define _Mutate_                    0x5708B4
 #define _name_color                 0x56D744
 #define _name_font                  0x56D74C
@@ -290,6 +291,7 @@
 #define _view_page                  0x664520
 #define _wd_obj                     0x59E98C
 #define _window                     0x6ADE58
+#define _window_index               0x6ADD90
 #define _wmAreaInfoList             0x51DDF8
 #define _wmBkWin                    0x51DE14
 #define _wmBkWinBuf                 0x51DE24
@@ -441,6 +443,7 @@ extern DWORD* ptr_max;
 extern long*  ptr_maxScriptNum;
 extern bool*  ptr_Meet_Frank_Horrigan;
 extern const char** ptr_movie_list; // array of 17 char*
+extern DWORD* ptr_mouse_buttons;
 extern DWORD* ptr_mouse_hotx;
 extern DWORD* ptr_mouse_hoty;
 extern DWORD* ptr_mouse_is_hidden;
@@ -541,6 +544,7 @@ extern DWORD* ptr_trait_data;
 extern DWORD* ptr_view_page;
 extern DWORD* ptr_wd_obj;
 extern WINinfo** ptr_window; // array of 50 WINinfo*
+extern DWORD* ptr_window_index; // array of 50 DWORD
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
 extern const DWORD* ptr_wmBkWin;
@@ -1357,6 +1361,8 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);
+
+void PrintFloatText(TGameObj* object, const char* text, long colorText, long colorOutline = 207, long font = 101);
 
 // Print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
