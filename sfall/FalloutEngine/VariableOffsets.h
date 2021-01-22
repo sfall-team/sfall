@@ -28,6 +28,7 @@
 #define FO_VAR_btncnt                     0x43EA1C
 #define FO_VAR_carCurrentArea             0x672E68
 #define FO_VAR_carGasAmount               0x672E6C
+#define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_character_points           0x518538
 #define FO_VAR_cmap                       0x51DF34
 #define FO_VAR_colorTable                 0x6A38D0
@@ -178,7 +179,6 @@
 #define FO_VAR_num_game_global_vars       0x5186C4
 #define FO_VAR_num_map_global_vars        0x519574
 #define FO_VAR_num_windows                0x6ADF24
-#define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
 #define FO_VAR_obj_seen                   0x662445
 #define FO_VAR_obj_seen_check             0x6610BC
@@ -217,8 +217,8 @@
 #define FO_VAR_pipmesg                    0x664338
 #define FO_VAR_preload_list_index         0x519640
 #define FO_VAR_procTableStrs              0x51C758  // table of procId (from define.h) => procName map
-#define FO_VAR_proto_msg_files            0x6647AC
 #define FO_VAR_proto_main_msg_file        0x6647FC
+#define FO_VAR_proto_msg_files            0x6647AC
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C

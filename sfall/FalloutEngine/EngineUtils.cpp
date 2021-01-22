@@ -366,6 +366,11 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
+//void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
+//	BYTE* surf = surface + (y * surfWidth) + x;
+//	fo::func::wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
+//}
+
 // Fills the specified interface window with index color
 void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
@@ -388,6 +393,13 @@ void ClearWindow(long winID, bool refresh) {
 }
 
 //---------------------------------------------------------
+void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline, long font) {
+	fo::BoundRect rect;
+	if (!fo::func::text_object_create(object, text, font, colorText, colorOutline, &rect)) {
+		fo::func::tile_refresh_rect(&rect, object->elevation);
+	}
+}
+
 // print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;

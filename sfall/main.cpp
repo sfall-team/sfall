@@ -149,6 +149,10 @@ std::vector<std::string> GetConfigList(const char* section, const char* setting,
 	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
 }
 
+std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
+	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
+}
+
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
 }
@@ -346,6 +350,7 @@ defaultIni:
 			}
 		}
 	}
+	std::srand(GetTickCount());
 
 	InitModules();
 }

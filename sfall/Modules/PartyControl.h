@@ -38,7 +38,7 @@ public:
 	// Returns pointer to "real" dude, which is different from "dude_obj" when controlling another critter
 	static fo::GameObject* RealDudeObject();
 
-	static void MemberOrderAttackPatch();
+	static void OrderAttackPatch();
 };
 
 extern bool npcAutoLevelEnabled;

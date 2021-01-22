@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Utils.h"
 #include "HookScripts\InventoryHs.h"
 #include "Drugs.h"
 #include "HookScripts.h"
@@ -627,7 +628,7 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 }
 
 static bool partyOrderPickTargetLoop;
-static char partyOrderAttackMsg[33];
+static std::vector<std::string> partyOrderAttackMsg;
 
 // disables the display of the hit chance value when picking a target
 static void __declspec(naked) gmouse_bk_process_hack() {
@@ -670,22 +671,22 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			if (underObject->critter.IsNotDead()) {
 				outlineColor = underObject->outline;
 
-				if (underObject->critter.combatState) {
-					underObject->outline = 254 << 8;
+				if (fo::var::combatNumTurns || underObject->critter.combatState) {
+					underObject->outline = 254 << 8; // flashing red
 					validTarget = underObject;
 				} else {
-					underObject->outline = 10 << 8;
+					underObject->outline = 10 << 8; // grey
 				}
 				fo::func::obj_bound(underObject, &rect);
 				fo::func::tile_refresh_rect(&rect, fo::var::map_elevation);
 				targetObject = underObject;
 			}
 		}
-		if (validTarget && *(DWORD*)FO_VAR_mouse_buttons == 1) break; // left mouse button
+		if (validTarget && fo::var::mouse_buttons == 1) break; // left mouse button
 
-	} while (*(DWORD*)FO_VAR_mouse_buttons != 2 && fo::func::get_input() != 27); // 27 - escape code
+	} while (fo::var::mouse_buttons != 2 && fo::func::get_input() != 27); // 27 - escape code
 
-	if (validTarget && *(DWORD*)FO_VAR_mouse_buttons == 1) {
+	if (validTarget && fo::var::mouse_buttons == 1) {
 		partyMember->critter.whoHitMe = validTarget;
 		validTarget->outline = outlineColor;
 
@@ -693,12 +694,26 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 		if (cap->disposition == fo::AIpref::disposition::custom) {
 			cap->attack_who = (long)fo::AIpref::attack_who::whomever;
 		}
-		std::strcpy((char*)FO_VAR_attack_str, partyOrderAttackMsg);
-		fo::func::ai_print_msg(partyMember, 0); // float message
+
+		// floating text messages
+		const char* message;
+		switch (fo::func::critter_body_type(partyMember)) {
+		case fo::BodyType::Quadruped: // creatures
+			message = partyOrderAttackMsg[0].c_str();
+			break;
+		case fo::BodyType::Robotic:
+			message = partyOrderAttackMsg[1].c_str();
+			break;
+		default: // biped
+			long max = partyOrderAttackMsg.size() - 1;
+			long rnd = (max > 2) ? GetRandom(2, max) : 2;
+			message = partyOrderAttackMsg[rnd].c_str();
+		}
+		fo::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
 	}
 
 	partyOrderPickTargetLoop = false;
-	//*(DWORD*)FO_VAR_mouse_buttons = 0;
+	fo::var::mouse_buttons = 0;
 
 	fo::func::gmouse_set_cursor(0);
 	fo::func::gmouse_3d_set_mode(1);
@@ -739,7 +754,7 @@ static void __declspec(naked) gmouse_handle_event_hook_restore() {
 	}
 }
 
-void PartyControl::MemberOrderAttackPatch() {
+void PartyControl::OrderAttackPatch() {
 	MakeCall(0x44C4A7, gmouse_handle_event_hack, 2);
 	HookCall(0x44C75F, gmouse_handle_event_hook);
 	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
@@ -788,7 +803,10 @@ void PartyControl::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	Translate("sfall", "PartyOrderAttack", "I'll take care of it.", partyOrderAttackMsg, 33);
+	partyOrderAttackMsg.push_back(std::move(Translate("sfall", "PartyOrderAttackCreature", "::Growl::", 33)));
+	partyOrderAttackMsg.push_back(std::move(Translate("sfall", "PartyOrderAttackRobot", "::Beep::", 33)));
+	auto msgs = TranslateList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
+	partyOrderAttackMsg.insert(partyOrderAttackMsg.cend(), msgs.cbegin(), msgs.cend());
 }
 
 void PartyControl::exit() {

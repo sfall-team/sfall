@@ -49,6 +49,7 @@ WRAP_WATCOM_FFUNC4(long, register_object_move_to_object, GameObject*, source, Ga
 WRAP_WATCOM_FFUNC4(long, register_object_run_to_object, GameObject*, source, GameObject*, target, long, distance, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
+WRAP_WATCOM_FFUNC6(long, text_object_create, GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, BoundRect*, rect)
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation,long, distance)
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, Window*, window, RectList**, rects, void*, buffer)
@@ -105,6 +106,7 @@ WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn) // Perform combat turn for a given critter
+WRAP_WATCOM_FUNC1(long, critter_body_type, GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, EndLoad, DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)

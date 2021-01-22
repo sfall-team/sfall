@@ -64,7 +64,7 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			__asm call fo::funcoffs::kb_clear_;
 			break;
 		case MetaruleFunction::EXT_PARTY_ORDER_ATTACK:
-			PartyControl::MemberOrderAttackPatch();
+			PartyControl::OrderAttackPatch();
 			break;
 		default:
 			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
