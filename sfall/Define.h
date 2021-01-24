@@ -187,6 +187,19 @@ enum GlobalVar : long
 	GVAR_CAR_PLACED_TILE = 633,
 };
 
+// Physical material type, used for items and tiles.
+enum Material : long
+{
+	MAT_Glass = 0x0,
+	MAT_Metal = 0x1,
+	MAT_Plastic = 0x2,
+	MAT_Wood = 0x3,
+	MAT_Dirt = 0x4,
+	MAT_Stone = 0x5,
+	MAT_Cement = 0x6,
+	MAT_Leather = 0x7
+};
+
 namespace ObjectFlag {
 	enum ObjectFlag : DWORD {
 		Mouse_3d = 0x1,
@@ -409,6 +422,16 @@ enum Trait : long
 	TRAIT_skilled = 14,
 	TRAIT_gifted = 15,
 	TRAIT_count = 16,
+};
+
+enum ScenerySubType : long
+{
+	SCENTYPE_DOOR = 0,
+	SCENTYPE_STAIRS = 1,
+	SCENTYPE_ELEVATOR = 2,
+	SCENTYPE_LADDER_BOTTOM = 3,
+	SCENTYPE_LADDER_TOP = 4,
+	SCENTYPE_GENERIC = 5
 };
 
 // proto.h: stats //

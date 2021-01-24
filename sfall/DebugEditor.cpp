@@ -104,7 +104,7 @@ static void RunEditorInternal(SOCKET &s) {
 		for (int tile = 0; tile < 40000; tile++) {
 			TGameObj* obj = ObjFindFirstAtTile(elv, tile);
 			while (obj) {
-				if (obj->Type() == OBJ_TYPE_CRITTER) {
+				if (obj->IsCritter()) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
 				obj = ObjFindNextAtTile();

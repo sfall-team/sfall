@@ -1387,7 +1387,7 @@ end:
 static int __stdcall ItemCountFix(TGameObj* who, TGameObj* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenSize; i++) {
-		TGameObj::TInvenRec* tableItem = &who->invenTable[i];
+		TGameObj::InvenItem* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (ItemGetType(tableItem->object) == item_type_container) {
@@ -2058,7 +2058,7 @@ static void __stdcall combat_attack_gcsd() {
 		if ((*ptr_main_ctd).targetDamage > (*ptr_gcsd)->maxDamage) {
 			(*ptr_main_ctd).targetDamage = (*ptr_gcsd)->maxDamage;
 		}
-		if (damage > (*ptr_main_ctd).targetDamage && (*ptr_main_ctd).target->Type() == OBJ_TYPE_CRITTER) {
+		if (damage > (*ptr_main_ctd).targetDamage && (*ptr_main_ctd).target->IsCritter()) {
 			long cHP = (*ptr_main_ctd).target->critter.health;
 			if (cHP > (*ptr_gcsd)->maxDamage && cHP <= damage) {
 				(*ptr_main_ctd).targetFlags &= ~DAM_DEAD; // unset

@@ -119,7 +119,7 @@ static void __stdcall op_set_critter_base_stat2() {
 					  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->protoId);
@@ -145,7 +145,7 @@ static void __stdcall op_set_critter_extra_stat2() {
 					  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->protoId);
@@ -171,7 +171,7 @@ static void __stdcall op_get_critter_base_stat2() {
 	const ScriptValue &statArg = opHandler.arg(1);
 
 	if (obj && statArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->protoId);
@@ -198,7 +198,7 @@ static void __stdcall op_get_critter_extra_stat2() {
 	const ScriptValue &statArg = opHandler.arg(1);
 
 	if (obj && statArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->protoId);
@@ -383,7 +383,7 @@ static void __stdcall op_set_critter_current_ap2() {
 	const ScriptValue &apArg = opHandler.arg(1);
 
 	if (obj && apArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			long ap = apArg.rawValue();
 			if (ap < 0) ap = 0;
 			obj->critter.movePoints = ap;
@@ -447,7 +447,7 @@ static void __stdcall op_set_critter_hit_chance_mod2() {
 					  &modArg = opHandler.arg(2);
 
 	if (obj && maxArg.isInt() && modArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			SetHitChanceMax(obj, maxArg.rawValue(), modArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_hit_chance_mod");
@@ -485,7 +485,7 @@ static void __stdcall op_set_critter_pickpocket_mod2() {
 					  &modArg = opHandler.arg(2);
 
 	if (obj && maxArg.isInt() && modArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			SetPickpocketMax(obj, maxArg.rawValue(), modArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_pickpocket_mod");
@@ -522,7 +522,7 @@ static void __stdcall op_set_critter_skill_mod2() {
 	const ScriptValue &maxArg = opHandler.arg(1);
 
 	if (obj && maxArg.isInt()) {
-		if (obj->Type() == OBJ_TYPE_CRITTER) {
+		if (obj->IsCritter()) {
 			SetSkillMax(obj, maxArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_skill_mod");

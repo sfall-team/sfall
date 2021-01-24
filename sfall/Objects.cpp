@@ -18,6 +18,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "Stats.h"
 
 #include "Objects.h"
 
@@ -89,14 +90,17 @@ pickNewID: // skip PM range (18000 - 83535)
 	}
 }
 
-// Reassigns object IDs to all critters upon first loading a map
+// Reassigns object IDs to all critters upon first loading a map and updates their max HP stat
 static void map_fix_critter_id() {
 	long npcStartID = 4096;
 	TGameObj* obj = ObjFindFirst();
 	while (obj) {
-		if (obj->Type() == OBJ_TYPE_CRITTER && obj->id < PLAYER_ID) {
-			obj->id = npcStartID++;
-			SetScriptObjectID(obj);
+		if (obj->IsCritter()) {
+			if (obj->id < PLAYER_ID) {
+				obj->id = npcStartID++;
+				SetScriptObjectID(obj);
+			}
+			Stats_UpdateHPStat(obj);
 		}
 		obj = ObjFindNext();
 	}

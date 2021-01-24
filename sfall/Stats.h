@@ -20,6 +20,7 @@
 
 void Stats_Init();
 void Stats_OnGameLoad();
+void Stats_UpdateHPStat(TGameObj* critter);
 
 long __stdcall GetStatMax(int stat, int isNPC);
 long __stdcall GetStatMin(int stat, int isNPC);

@@ -22,14 +22,14 @@
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
 
-static const int animRecordSize = 2656;
+static const int animRecordSize = sizeof(AnimationSet);
 static const int sadSize = 3240;
 
 static int animationLimit = 32;
 
 //pointers to new animation struct arrays
-static BYTE *anim_set;
-static BYTE *sad;
+static std::vector<AnimationSet> new_anim_set;
+static std::vector<BYTE> new_sad;
 
 static DWORD animSetAddr = FO_VAR_anim_set;
 static DWORD sadAddr = FO_VAR_sad;
@@ -241,11 +241,11 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
 
 	//allocate memory to store larger animation struct arrays
-	anim_set = new BYTE[animRecordSize * (aniMax + 1)];
-	sad = new BYTE[sadSize * (aniMax + 1)];
+	new_anim_set.resize(aniMax + 1);
+	new_sad.resize(sadSize * (aniMax + 1));
 
-	animSetAddr = reinterpret_cast<DWORD>(anim_set);
-	sadAddr = reinterpret_cast<DWORD>(sad);
+	animSetAddr = reinterpret_cast<DWORD>(new_anim_set.data());
+	sadAddr = reinterpret_cast<DWORD>(new_sad.data());
 
 	//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
 	SafeWrite8(0x413C07, aniMax - 12);
@@ -362,7 +362,4 @@ void Animations_Init() {
 }
 
 void Animations_Exit() {
-	if (animationLimit <= 32) return;
-	delete[] anim_set;
-	delete[] sad;
 }

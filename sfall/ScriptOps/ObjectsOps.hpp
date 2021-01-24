@@ -69,7 +69,7 @@ static void __stdcall op_set_script2() {
 			ScrRemove(object->scriptId);
 			object->scriptId = 0xFFFFFFFF;
 		}
-		if (object->Type() == OBJ_TYPE_CRITTER) {
+		if (object->IsCritter()) {
 			scriptType = Scripts::SCRIPT_CRITTER;
 		} else {
 			scriptType = Scripts::SCRIPT_ITEM;
@@ -283,7 +283,7 @@ static void __stdcall op_make_path2() {
 			  func = getBlockingFunc(type);
 
 		// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
-		long checkFlag = (objFrom->Type() == OBJ_TYPE_CRITTER);
+		long checkFlag = (objFrom->IsCritter());
 
 		char pathData[800];
 		long pathLength = MakePathFunc(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
@@ -362,7 +362,7 @@ static void __stdcall op_get_party_members2() {
 		DWORD* partyMemberList = *ptr_partyMemberList;
 		for (int i = 0; i < actualCount; i++) {
 			TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
-			if (includeHidden || (obj->Type() == OBJ_TYPE_CRITTER && !CritterIsDead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
+			if (includeHidden || (obj->IsCritter() && !CritterIsDead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
 				arrays[arrayId].push_back((long)obj);
 			}
 		}

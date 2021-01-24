@@ -22,6 +22,9 @@
 
 #include "Stats.h"
 
+static bool engineDerivedStats = true;
+static bool derivedHPwBonus = false; // recalculate the hit points with bonus stat values
+
 static DWORD statMaximumsPC[STAT_max_stat];
 static DWORD statMinimumsPC[STAT_max_stat];
 static DWORD statMaximumsNPC[STAT_max_stat];
@@ -139,32 +142,31 @@ end:
 	}
 }
 
-static void __declspec(naked) __stdcall ProtoPtr(DWORD pid, int** proto) {
-	__asm {
-		mov eax, [esp + 4];
-		mov edx, [esp + 8];
-		call proto_ptr_;
-		retn 8;
+static long __stdcall RecalcStat(int stat, int statsValue[]) {
+	double sum = 0;
+	for (int i = STAT_st; i <= STAT_lu; i++) {
+		sum += (statsValue[i] + statFormulas[stat].shift[i]) * statFormulas[stat].multi[i];
 	}
+	long calcStatValue = statFormulas[stat].base + (int)floor(sum);
+	return (calcStatValue < statFormulas[stat].min) ? statFormulas[stat].min : calcStatValue;
 }
 
 static void __stdcall StatRecalcDerived(TGameObj* critter) {
-	int baseStats[7];
-	for (int stat = STAT_st; stat <= STAT_lu; stat++) baseStats[stat] = StatLevel(critter, stat);
+	long* proto;
+	if (ProtoPtr(critter->protoId, (sProto**)&proto) == -1) return;
 
-	int* proto;
-	ProtoPtr(critter->protoId, &proto);
+	int baseStats[7], levelStats[7];
+	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
+		levelStats[stat] = StatLevel(critter, stat);
+		if (!derivedHPwBonus) baseStats[stat] = StatGetBase(critter, stat);
+	}
 
-	for (int i = STAT_max_hit_points; i <= STAT_poison_resist; i++) {
-		if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
+	((sProto*)proto)->critter.base.health = RecalcStat(STAT_max_hit_points, (derivedHPwBonus) ? levelStats : baseStats);
 
-		double sum = 0;
-		for (int stat = STAT_st; stat <= STAT_lu; stat++) {
-			sum += (baseStats[stat] + statFormulas[i].shift[stat]) * statFormulas[i].multi[stat];
-		}
-		long calcStat = statFormulas[i].base + (int)floor(sum);
-		if (calcStat < statFormulas[i].min) calcStat = statFormulas[i].min;
-		proto[9 + i] = calcStat; // offset from base_stat_srength
+	for (int stat = STAT_max_move_points; stat <= STAT_poison_resist; stat++) {
+		if (stat >= STAT_dmg_thresh && stat <= STAT_dmg_resist_explosion) continue;
+		// offset from base_stat_srength
+		proto[9 + stat] = RecalcStat(stat, levelStats);
 	}
 }
 
@@ -178,6 +180,29 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 		pop  edx;
 		retn;
 	}
+}
+
+void Stats_UpdateHPStat(TGameObj* critter) {
+	if (engineDerivedStats) return;
+
+	sProto* proto;
+	if (ProtoPtr(critter->protoId, &proto) == -1) return;
+
+	auto getStatFunc = (derivedHPwBonus) ? StatLevel : StatGetBase;
+
+	double sum = 0;
+	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
+		sum += (getStatFunc(critter, stat) + statFormulas[STAT_max_hit_points].shift[stat]) * statFormulas[STAT_max_hit_points].multi[stat];
+	}
+	long calcStatValue = statFormulas[STAT_max_hit_points].base + (int)floor(sum);
+	if (calcStatValue < statFormulas[STAT_max_hit_points].min) calcStatValue = statFormulas[STAT_max_hit_points].min;
+
+	if (proto->critter.base.health != calcStatValue) {
+		DebugPrintf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value %d (must be %d) of the max HP stat.",
+					critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+	}
+	proto->critter.base.health = calcStatValue;
+	critter->critter.health = calcStatValue + proto->critter.bonus.health;
 }
 
 static void __declspec(naked) stat_set_base_hack_allow() {
@@ -301,7 +326,7 @@ void Stats_Init() {
 
 	MakeCall(0x4AF09C, CalcApToAcBonus, 3); // stat_level_
 
-	// Allow set_critter_stat function to change STAT_unused and STAT_dmg_* stats for the player
+	// Allow set_critter_stat function to change the base stats of STAT_unused and STAT_dmg_* for the player
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
@@ -334,6 +359,7 @@ void Stats_Init() {
 
 	std::string statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
 	if (!statsFile.empty()) {
+		engineDerivedStats = false;
 		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 
 		// STAT_st + STAT_en * 2 + 15
@@ -364,9 +390,12 @@ void Stats_Init() {
 		// STAT_en * 5
 		statFormulas[STAT_poison_resist].multi[STAT_en]   = 5;  // poison resist
 
-		char key[6], buf2[256], buf3[256];
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(statFile) == INVALID_FILE_ATTRIBUTES) return;
+
+		derivedHPwBonus = (iniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+
+		char key[6], buf2[256], buf3[256];
 
 		for (int i = STAT_max_hit_points; i <= STAT_poison_resist; i++) {
 			if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
