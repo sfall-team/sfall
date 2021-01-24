@@ -69,7 +69,7 @@ void op_set_script(OpcodeContext& ctx) {
 		fo::func::scr_remove(object->scriptId);
 		object->scriptId = 0xFFFFFFFF;
 	}
-	if (object->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (object->IsCritter()) {
 		scriptType = fo::Scripts::ScriptTypes::SCRIPT_CRITTER;
 	} else {
 		scriptType = fo::Scripts::ScriptTypes::SCRIPT_ITEM;
@@ -182,7 +182,7 @@ void op_make_path(OpcodeContext& ctx) {
 	auto func = getBlockingFunc(type);
 
 	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
-	long checkFlag = (objFrom->Type() == fo::OBJ_TYPE_CRITTER);
+	long checkFlag = (objFrom->IsCritter());
 
 	char pathData[800];
 	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
@@ -225,7 +225,7 @@ void op_get_party_members(OpcodeContext& ctx) {
 	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
 		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
-		if (includeHidden || (obj->Type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}
@@ -307,7 +307,7 @@ void mf_item_weight(OpcodeContext& ctx) {
 
 void mf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	if (obj == nullptr || obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (obj == nullptr || obj->IsCritter()) {
 		//if (!InCombat && obj && obj != PartyControl::RealDudeObject()) {
 		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
 		//} else {

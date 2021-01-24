@@ -36,7 +36,7 @@ static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 
 // Returns the friendly critter or any blocking object in the line of fire
 fo::GameObject* AI::CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team) {
-	if (object && object->Type() == ObjType::OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // is not friendly fire
+	if (object && object->IsCritter() && object->critter.teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
 

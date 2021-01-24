@@ -2075,7 +2075,7 @@ static void __stdcall combat_attack_gcsd() {
 		if (fo::var::main_ctd.targetDamage > fo::var::gcsd->maxDamage) {
 			fo::var::main_ctd.targetDamage = fo::var::gcsd->maxDamage;
 		}
-		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->IsCritter()) {
 			long cHP = fo::var::main_ctd.target->critter.health;
 			if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
 				fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset

@@ -19,6 +19,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
+#include "Stats.h"
 
 #include "Objects.h"
 
@@ -93,14 +94,17 @@ pickNewID: // skip PM range (18000 - 83535)
 	}
 }
 
-// Reassigns object IDs to all critters upon first loading a map
+// Reassigns object IDs to all critters upon first loading a map and updates HP stats
 static void map_fix_critter_id() {
 	long npcStartID = 4096;
 	fo::GameObject* obj = fo::func::obj_find_first();
 	while (obj) {
-		if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->id < fo::PLAYER_ID) {
-			obj->id = npcStartID++;
-			SetScriptObjectID(obj);
+		if (obj->IsCritter()) {
+			if (obj->id < fo::PLAYER_ID) {
+				obj->id = npcStartID++;
+				SetScriptObjectID(obj);
+			}
+			Stats::UpdateHPStat(obj);
 		}
 		obj = fo::func::obj_find_next();
 	}
