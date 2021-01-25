@@ -56,6 +56,8 @@ char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for s
 
 std::string ScriptExtender::iniConfigFolder;
 
+static std::vector<long> scriptsIndexList;
+
 struct GlobalScript {
 	ScriptProgram prog;
 	int startProc; // position of the 'start' procedure in the script
@@ -462,12 +464,22 @@ ScriptProgram* ScriptExtender::GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool IsGameScript(const char* filename) {
-	for (int i = 0; filename[i]; ++i) if (i > 8) return false;
-	// TODO: write better solution (binary search)
-	for (int i = 0; i < fo::var::maxScriptNum; i++) {
-		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
+	for (int i = 1; filename[i]; ++i) if (i > 7) return false; // script name is more than 8 characters
+	// script name is 8 characters, try to find this name in the array of game scripts
+	long mid, left = 0, right = fo::var::maxScriptNum;
+	if (right > 0) {
+		do {
+			mid = (left + right) / 2;
+			int result = std::strcmp(filename, fo::var::scriptListInfo[scriptsIndexList[mid]].fileName);
+			if (result == 0) return true;
+			if (result > 0) {
+				left = mid + 1;
+			} else {
+				right = mid - 1;
+			}
+		} while (left <= right);
 	}
-	return false;
+	return false; // script name was not found in scripts.lst
 }
 
 static void LoadGlobalScriptsList() {
@@ -835,7 +847,33 @@ static void ClearEventsOnMapExit() {
 	}
 }
 
+// Creates an list of indexes arranged in sorted order relative to the script names
+static void BuildSortedIndexList() {
+	scriptsIndexList.reserve(fo::var::maxScriptNum);
+	scriptsIndexList.push_back(0);
+
+	for (long index = 1; index < fo::var::maxScriptNum; index++) {
+		size_t size = scriptsIndexList.size();
+		size_t lastPos = size - 1;
+		for (size_t posIndex = 0; posIndex < size; posIndex++) {
+			if (std::strcmp(fo::var::scriptListInfo[index].fileName, fo::var::scriptListInfo[scriptsIndexList[posIndex]].fileName) > 0) {
+				if (posIndex < lastPos) continue;  // if this is not the end of the array, then go to the next name
+				scriptsIndexList.push_back(index); // otherwise insert at the end of the array
+			} else {
+				scriptsIndexList.insert(scriptsIndexList.cbegin() + posIndex, index); // insert before if the comparison result is less than or equal to
+			}
+			break;
+		}
+	}
+	// preview the sorted list
+	//for (size_t i = 0; i < scriptsIndexList.size(); i++) {
+	//	devlog_f("\nName: %s, i: %d", DL_MAIN, fo::var::scriptListInfo[scriptsIndexList[i]].fileName, scriptsIndexList[i]);
+	//}
+	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
+}
+
 void ScriptExtender::init() {
+	LoadGameHook::OnAfterGameInit() += BuildSortedIndexList;
 	LoadGameHook::OnAfterGameStarted() += LoadGlobalScripts;
 	LoadGameHook::OnGameReset() += [] () {
 		ClearGlobalScripts();
