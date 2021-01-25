@@ -21,9 +21,7 @@
 #include "FalloutEngine.h"
 #include "Logging.h"
 
-// global variables
-long* ptr_pc_traits                     = reinterpret_cast<long*>(FO_VAR_pc_trait); // 2 of them
-
+// Pointers to engine global variables
 DWORD* ptr_aiInfoList                   = reinterpret_cast<DWORD*>(FO_VAR_aiInfoList);
 DWORD* ptr_ambient_light                = reinterpret_cast<DWORD*>(FO_VAR_ambient_light);
 sArt*  ptr_art                          = reinterpret_cast<sArt*>(FO_VAR_art); // array of 11 sArt
@@ -84,6 +82,7 @@ DWORD* ptr_gdBarterMod                  = reinterpret_cast<DWORD*>(FO_VAR_gdBart
 DWORD* ptr_gdNumOptions                 = reinterpret_cast<DWORD*>(FO_VAR_gdNumOptions);
 DWORD* ptr_gIsSteal                     = reinterpret_cast<DWORD*>(FO_VAR_gIsSteal);
 DWORD* ptr_glblmode                     = reinterpret_cast<DWORD*>(FO_VAR_glblmode);
+long*  ptr_gmouse_3d_current_mode       = reinterpret_cast<long*>(FO_VAR_gmouse_3d_current_mode);
 long*  ptr_gmouse_current_cursor        = reinterpret_cast<long*>(FO_VAR_gmouse_current_cursor);
 DWORD* ptr_gmovie_played_list           = reinterpret_cast<DWORD*>(FO_VAR_gmovie_played_list);
 BYTE*  ptr_GoodColor                    = reinterpret_cast<BYTE*>(FO_VAR_GoodColor);
@@ -173,7 +172,8 @@ PathNode** ptr_paths                    = reinterpret_cast<PathNode**>(FO_VAR_pa
 CritInfo* ptr_pc_crit_succ_eff          = reinterpret_cast<CritInfo*>(FO_VAR_pc_crit_succ_eff); // array: 9 body parts, 6 effects
 DWORD* ptr_pc_kill_counts               = reinterpret_cast<DWORD*>(FO_VAR_pc_kill_counts);
 char*  ptr_pc_name                      = reinterpret_cast<char*>(FO_VAR_pc_name);
-DWORD* ptr_pc_proto                     = reinterpret_cast<DWORD*>(FO_VAR_pc_proto);
+sProto* ptr_pc_proto                    = reinterpret_cast<sProto*>(FO_VAR_pc_proto);
+long*  ptr_pc_traits                    = reinterpret_cast<long*>(FO_VAR_pc_trait); // 2 of them
 BYTE*  ptr_PeanutButter                 = reinterpret_cast<BYTE*>(FO_VAR_PeanutButter);
 DWORD* ptr_perk_data                    = reinterpret_cast<DWORD*>(FO_VAR_perk_data);
 long** ptr_perkLevelDataList            = reinterpret_cast<long**>(FO_VAR_perkLevelDataList); // dynamic array, limited to PERK_Count
@@ -449,7 +449,7 @@ const DWORD get_input_ = 0x4C8B78;
 const DWORD get_input_str2_ = 0x47F084;
 const DWORD get_time_ = 0x4C9370;
 const DWORD getmsg_ = 0x48504C; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
-const DWORD gmouse_3d_get_mode_ = 0x44CB6C;
+//const DWORD gmouse_3d_get_mode_ = 0x44CB6C;
 const DWORD gmouse_3d_set_mode_ = 0x44CA18;
 const DWORD gmouse_is_scrolling_ = 0x44B54C;
 const DWORD gmouse_set_cursor_ = 0x44C840;

@@ -108,7 +108,6 @@ WRAP_WATCOM_FUNC1(long, FMtextWidth, FMtext_width_, const char*, text)
 WRAP_WATCOM_FUNC0(long, GetInputBtn, get_input_)
 // Searches for message ID in given message file and places result in result argument
 WRAP_WATCOM_FUNC3(const char*, Getmsg, getmsg_, const MSGList*, fileAddr, MSGNode*, result, long, messageId)
-WRAP_WATCOM_FUNC0(long, Gmouse3dGetMode, gmouse_3d_get_mode_)
 WRAP_WATCOM_FUNC1(void, Gmouse3dSetMode, gmouse_3d_set_mode_, long, mode)
 WRAP_WATCOM_FUNC1(long, GmouseSetCursor, gmouse_set_cursor_, long, picNum)
 WRAP_WATCOM_FUNC1(long, GsoundBackgroundVolumeGetSet, gsound_background_volume_get_set_, long, setVolume)

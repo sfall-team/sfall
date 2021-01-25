@@ -120,6 +120,7 @@
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
 #define FO_VAR_glblmode                   0x5709D0
+#define FO_VAR_gmouse_3d_current_mode     0x518D38
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
@@ -329,8 +330,6 @@
 // variables
 // TODO: move to separate namespace
 
-extern long* ptr_pc_traits; // 2 of them
-
 extern DWORD* ptr_aiInfoList;
 extern DWORD* ptr_ambient_light;
 extern sArt*  ptr_art;
@@ -391,6 +390,7 @@ extern DWORD* ptr_gdBarterMod;
 extern DWORD* ptr_gdNumOptions;
 extern DWORD* ptr_gIsSteal;
 extern DWORD* ptr_glblmode;
+extern long*  ptr_gmouse_3d_current_mode;
 extern long*  ptr_gmouse_current_cursor;
 extern DWORD* ptr_gmovie_played_list;
 extern BYTE*  ptr_GoodColor;
@@ -480,7 +480,8 @@ extern PathNode** ptr_paths;
 extern CritInfo* ptr_pc_crit_succ_eff; // array: 9 body parts, 6 effects
 extern DWORD* ptr_pc_kill_counts;
 extern char*  ptr_pc_name;
-extern DWORD* ptr_pc_proto;
+extern sProto* ptr_pc_proto;
+extern long*  ptr_pc_traits; // 2 of them
 extern BYTE*  ptr_PeanutButter;
 extern DWORD* ptr_perk_data;
 extern long** ptr_perkLevelDataList; // dynamic array, limited to PERK_Count
@@ -739,7 +740,7 @@ extern const DWORD get_input_;
 extern const DWORD get_input_str2_;
 extern const DWORD get_time_;
 extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
-extern const DWORD gmouse_3d_get_mode_;
+//extern const DWORD gmouse_3d_get_mode_;
 extern const DWORD gmouse_3d_set_mode_;
 extern const DWORD gmouse_is_scrolling_;
 extern const DWORD gmouse_set_cursor_;

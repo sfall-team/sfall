@@ -372,7 +372,7 @@ static void mf_tile_refresh_display() {
 }
 
 static void mf_get_cursor_mode() {
-	opHandler.setReturn(Gmouse3dGetMode());
+	opHandler.setReturn(*ptr_gmouse_3d_current_mode);
 }
 
 static void mf_set_cursor_mode() {
