@@ -40,11 +40,6 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId);
 static void RunGlobalScripts1();
 static void ClearEventsOnMapExit();
 
-static char gTextBuffer[5120]; // used as global temp text buffer for script functions
-
-// returns the size of the global text buffer
-inline static const long GlblTextBufferSize() { return sizeof(gTextBuffer); }
-
 // variables for new opcodes
 #define OP_MAX_ARGUMENTS	(8)
 
@@ -372,15 +367,23 @@ static void OpcodeInvalidArgs(const char* opcodeName) {
 	opHandler.printOpcodeError("%s() - invalid arguments.", opcodeName);
 }
 
+static DWORD toggleHighlightsKey;
 static DWORD highlightingToggled = 0;
-static DWORD motionScanner;
-static BYTE toggleHighlightsKey;
 static DWORD highlightContainers = 0;
 static DWORD highlightCorpses = 0;
+static DWORD motionScanner;
 static int outlineColor = 0x10;
-static int idle;
 static char highlightFail1[128];
 static char highlightFail2[128];
+
+static int idle;
+
+static char gTextBuffer[5120]; // used as global temp text buffer for script functions
+
+// returns the size of the global text buffer
+inline static const long GlblTextBufferSize() { return sizeof(gTextBuffer); }
+
+static std::vector<long> scriptsIndexList;
 
 struct sGlobalScript {
 	sScriptProgram prog;
@@ -1299,11 +1302,22 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
 }
 
 bool __stdcall IsGameScript(const char* filename) {
-	for (int i = 0; filename[i]; ++i) if (i > 8) return false;
-	for (int i = 0; i < *ptr_maxScriptNum; i++) {
-		if (strcmp(filename, (*ptr_scriptListInfo)[i].fileName) == 0) return true;
+	for (int i = 1; filename[i]; ++i) if (i > 7) return false; // script name is more than 8 characters
+	// script name is 8 characters, try to find this name in the array of game scripts
+	long mid, left = 0, right = *ptr_maxScriptNum;
+	if (right > 0) {
+		do {
+			mid = (left + right) / 2;
+			int result = std::strcmp(filename, (*ptr_scriptListInfo)[scriptsIndexList[mid]].fileName);
+			if (result == 0) return true;
+			if (result > 0) {
+				left = mid + 1;
+			} else {
+				right = mid - 1;
+			}
+		} while (left <= right);
 	}
-	return false;
+	return false; // script name was not found in scripts.lst
 }
 
 static void LoadGlobalScriptsList() {
@@ -1698,6 +1712,31 @@ static void ClearEventsOnMapExit() {
 		mov  edx, queue_explode_exit_;
 		call queue_clear_type_;
 	}
+}
+
+// Creates an list of indexes arranged in sorted order relative to the script names
+void BuildSortedIndexList() {
+	scriptsIndexList.reserve(*ptr_maxScriptNum);
+	scriptsIndexList.push_back(0);
+
+	for (long index = 1; index < *ptr_maxScriptNum; index++) {
+		size_t size = scriptsIndexList.size();
+		size_t lastPos = size - 1;
+		for (size_t posIndex = 0; posIndex < size; posIndex++) {
+			if (std::strcmp((*ptr_scriptListInfo)[index].fileName, (*ptr_scriptListInfo)[scriptsIndexList[posIndex]].fileName) > 0) {
+				if (posIndex < lastPos) continue;  // if this is not the end of the array, then go to the next name
+				scriptsIndexList.push_back(index); // otherwise insert at the end of the array
+			} else {
+				scriptsIndexList.insert(scriptsIndexList.cbegin() + posIndex, index); // insert before if the comparison result is less than or equal to
+			}
+			break;
+		}
+	}
+	// preview the sorted list
+	//for (size_t i = 0; i < scriptsIndexList.size(); i++) {
+	//	devlog_f("\nName: %s, i: %d", DL_MAIN, (*ptr_scriptListInfo)[scriptsIndexList[i]].fileName, scriptsIndexList[i]);
+	//}
+	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
 }
 
 void ScriptExtender_OnGameLoad() {

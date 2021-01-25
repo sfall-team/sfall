@@ -362,6 +362,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	Sound_OnAfterGameInit();
 	BarBoxes_SetMaxSlots();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
+	BuildSortedIndexList();
 }
 
 static void __stdcall GameClose() { // OnBeforeGameClose

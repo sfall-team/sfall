@@ -45,8 +45,9 @@ struct sGlobalVar {
 
 void ScriptExtender_Init();
 void ScriptExtender_OnGameLoad();
-bool __stdcall IsGameScript(const char* filename);
+void BuildSortedIndexList();
 void LoadGlobalScripts();
+bool __stdcall IsGameScript(const char* filename);
 
 void RunGlobalScripts2();
 void RunGlobalScripts3();
