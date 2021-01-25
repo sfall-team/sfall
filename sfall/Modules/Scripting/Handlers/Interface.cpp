@@ -299,7 +299,7 @@ void mf_tile_refresh_display(OpcodeContext& ctx) {
 }
 
 void mf_get_cursor_mode(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::gmouse_3d_get_mode());
+	ctx.setReturn(fo::var::gmouse_3d_current_mode);
 }
 
 void mf_set_cursor_mode(OpcodeContext& ctx) {

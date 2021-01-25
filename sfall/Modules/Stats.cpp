@@ -26,8 +26,8 @@
 namespace sfall
 {
 
-bool engineDerivedStats = true;
-bool derivedHPwBonus = false; // recalculate the hit points with bonus stat values
+static bool engineDerivedStats = true;
+static bool derivedHPwBonus = false; // recalculate the hit points with bonus stat values
 
 static DWORD statMaximumsPC[fo::STAT_max_stat];
 static DWORD statMinimumsPC[fo::STAT_max_stat];
@@ -203,11 +203,12 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 	if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
 
 	if (proto->critter.base.health != calcStatValue) {
-		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value %d (must be %d) of the max HP stat.",
+		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
 							   critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+
+		proto->critter.base.health = calcStatValue;
+		critter->critter.health = calcStatValue + proto->critter.bonus.health;
 	}
-	proto->critter.base.health = calcStatValue;
-	critter->critter.health = calcStatValue + proto->critter.bonus.health;
 }
 
 static void __declspec(naked) stat_set_base_hack_allow() {
@@ -297,61 +298,62 @@ void Stats::init() {
 
 	auto statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
 	if (!statsFile.empty()) {
-		engineDerivedStats = false;
-		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
-
-		// STAT_st + STAT_en * 2 + 15
-		statFormulas[STAT_max_hit_points].base            = 15; // max hp
-		statFormulas[STAT_max_hit_points].multi[STAT_st]  = 1;
-		statFormulas[STAT_max_hit_points].multi[STAT_en]  = 2;
-		// STAT_ag / 2 + 5
-		statFormulas[STAT_max_move_points].base           = 5;  // max ap
-		statFormulas[STAT_max_move_points].multi[STAT_ag] = 0.5;
-
-		statFormulas[STAT_ac].multi[STAT_ag]              = 1;  // ac
-		// STAT_st - 5
-		statFormulas[STAT_melee_dmg].min                  = 1;  // melee damage
-		statFormulas[STAT_melee_dmg].shift[STAT_st]       = -5;
-		statFormulas[STAT_melee_dmg].multi[STAT_st]       = 1;
-		// STAT_st * 25 + 25
-		statFormulas[STAT_carry_amt].base                 = 25; // carry weight
-		statFormulas[STAT_carry_amt].multi[STAT_st]       = 25;
-		// STAT_pe * 2
-		statFormulas[STAT_sequence].multi[STAT_pe]        = 2;  // sequence
-		// STAT_en / 3
-		statFormulas[STAT_heal_rate].min                  = 1;  // heal rate
-		statFormulas[STAT_heal_rate].multi[STAT_en]       = 1.0 / 3.0;
-
-		statFormulas[STAT_crit_chance].multi[STAT_lu]     = 1;  // critical chance
-		// STAT_en * 2
-		statFormulas[STAT_rad_resist].multi[STAT_en]      = 2;  // rad resist
-		// STAT_en * 5
-		statFormulas[STAT_poison_resist].multi[STAT_en]   = 5;  // poison resist
-
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(statFile) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
+			derivedHPwBonus = (iniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+			engineDerivedStats = false;
 
-		derivedHPwBonus = (iniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+			// STAT_st + STAT_en * 2 + 15
+			statFormulas[STAT_max_hit_points].base            = 15; // max hp
+			statFormulas[STAT_max_hit_points].multi[STAT_st]  = 1;
+			statFormulas[STAT_max_hit_points].multi[STAT_en]  = 2;
+			// STAT_ag / 2 + 5
+			statFormulas[STAT_max_move_points].base           = 5;  // max ap
+			statFormulas[STAT_max_move_points].multi[STAT_ag] = 0.5;
 
-		char key[6], buf2[256], buf3[256];
+			statFormulas[STAT_ac].multi[STAT_ag]              = 1;  // ac
+			// STAT_st - 5
+			statFormulas[STAT_melee_dmg].min                  = 1;  // melee damage
+			statFormulas[STAT_melee_dmg].shift[STAT_st]       = -5;
+			statFormulas[STAT_melee_dmg].multi[STAT_st]       = 1;
+			// STAT_st * 25 + 25
+			statFormulas[STAT_carry_amt].base                 = 25; // carry weight
+			statFormulas[STAT_carry_amt].multi[STAT_st]       = 25;
+			// STAT_pe * 2
+			statFormulas[STAT_sequence].multi[STAT_pe]        = 2;  // sequence
+			// STAT_en / 3
+			statFormulas[STAT_heal_rate].min                  = 1;  // heal rate
+			statFormulas[STAT_heal_rate].multi[STAT_en]       = 1.0 / 3.0;
 
-		for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
-			if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
+			statFormulas[STAT_crit_chance].multi[STAT_lu]     = 1;  // critical chance
+			// STAT_en * 2
+			statFormulas[STAT_rad_resist].multi[STAT_en]      = 2;  // rad resist
+			// STAT_en * 5
+			statFormulas[STAT_poison_resist].multi[STAT_en]   = 5;  // poison resist
 
-			_itoa(i, key, 10);
-			statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
-			statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
-			for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
-				sprintf(buf2, "shift%d", j);
-				statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
-				sprintf(buf2, "multi%d", j);
-				_gcvt(statFormulas[i].multi[j], 16, buf3);
-				iniGetString(key, buf2, buf3, buf2, 256, statFile);
-				statFormulas[i].multi[j] = atof(buf2);
+			char key[6], buf2[256], buf3[256];
+
+			for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
+				if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
+
+				_itoa(i, key, 10);
+				statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
+				statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
+				for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
+					sprintf(buf2, "shift%d", j);
+					statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
+					sprintf(buf2, "multi%d", j);
+					_gcvt(statFormulas[i].multi[j], 16, buf3);
+					iniGetString(key, buf2, buf3, buf2, 256, statFile);
+					statFormulas[i].multi[j] = atof(buf2);
+				}
 			}
 		}
-	} else {
+	}
+	if (engineDerivedStats) {
 		CritterStats::RecalcDerivedHook();
+	} else {
+		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 	}
 }
 
