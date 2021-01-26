@@ -1,29 +1,29 @@
 /*
-* sfall
-* Copyright (C) 2008-2016 The sfall team
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #pragma once
 
 /*
-* FALLOUT2.EXE structs, function offsets and wrappers should be placed here
-*
-* only place functions and variables here which are likely to be used in more than one module
-*
-*/
+ * FALLOUT2.EXE structs, function offsets and wrappers should be placed here
+ *
+ * only place functions and variables here which are likely to be used in more than one module
+ *
+ */
 
 #include <stdint.h>
 
@@ -327,238 +327,15 @@
 #define FO_VAR_WhiteColor                 0x6AB8CF
 #define FO_VAR_YellowColor                0x6AB8BB // Light
 
-// variables
+// Global variable pointers
 // TODO: move to separate namespace
 
-extern DWORD* ptr_aiInfoList;
-extern DWORD* ptr_ambient_light;
-extern sArt*  ptr_art;
-extern DWORD* ptr_art_name;
-extern DWORD* ptr_art_vault_guy_num;
-extern DWORD* ptr_art_vault_person_nums;
-extern DWORD* ptr_background_volume;
-extern BYTE** ptr_bckgnd;
-extern DWORD* ptr_black_palette;
-extern BYTE*  ptr_BlueColor;
-extern DWORD* ptr_bottom_line;
-extern DWORD* ptr_btable;
-extern DWORD* ptr_btncnt;
-extern DWORD* ptr_carCurrentArea;
-extern long*  ptr_carGasAmount; // from 0 to 80000
-extern DWORD* ptr_cmap;
-extern DWORD* ptr_colorTable;
-extern DWORD* ptr_combat_free_move;
-extern DWORD* ptr_combat_list;
-extern DWORD* ptr_combat_state;
-extern DWORD* ptr_combat_turn_running;
-extern DWORD* ptr_combatNumTurns;
-extern CritInfo* ptr_crit_succ_eff; // array: 20 critters with 9 body parts and 6 effects each
-extern PathNode** ptr_critter_db_handle;
-extern DWORD* ptr_critterClearObj;
-extern DWORD* ptr_crnt_func;
-extern DWORD* ptr_curr_font_num;
-extern DWORD* ptr_curr_pc_stat;
-extern DWORD* ptr_curr_stack;
-extern TProgram** ptr_currentProgram;
-extern DWORD* ptr_cursor_line;
-extern BYTE*  ptr_DARK_GREY_Color;
-extern BYTE*  ptr_DarkGreenColor;
-extern BYTE*  ptr_DarkGreenGreyColor;
-extern TGameObj** ptr_dialog_target;
-extern DWORD* ptr_dialog_target_is_party;
-extern const DWORD* ptr_dialogueBackWindow;
-extern DWORD* ptr_drugInfoList;
-extern BYTE*  ptr_DullPinkColor;
-extern const DWORD* ptr_edit_win;
-extern DWORD* ptr_Educated;
-extern DWORD* ptr_elevation;
-extern DWORD* ptr_endgame_subtitle_done;
-extern DWORD* ptr_Experience_;
-extern DWORD* ptr_fallout_game_time;
-extern DWORD* ptr_fidgetFID;
-extern DWORD* ptr_flptr;
-extern DWORD* ptr_folder_card_desc;
-extern DWORD* ptr_folder_card_fid;
-extern DWORD* ptr_folder_card_title;
-extern DWORD* ptr_folder_card_title2;
-extern DWORD* ptr_frame_time;
-extern char*  ptr_free_perk;
-extern long** ptr_game_global_vars; // dynamic array of size == num_game_global_vars
-extern DWORD* ptr_game_user_wants_to_quit;
-extern CombatGcsd** ptr_gcsd;
-extern DWORD* ptr_gdBarterMod;
-extern DWORD* ptr_gdNumOptions;
-extern DWORD* ptr_gIsSteal;
-extern DWORD* ptr_glblmode;
-extern long*  ptr_gmouse_3d_current_mode;
-extern long*  ptr_gmouse_current_cursor;
-extern DWORD* ptr_gmovie_played_list;
-extern BYTE*  ptr_GoodColor;
-extern BYTE*  ptr_GreenColor;
-extern DWORD* ptr_gsound_initialized;
-extern long*  ptr_hit_location_penalty;
-extern DWORD* ptr_holo_flag;
-extern DWORD* ptr_holopages;
-extern DWORD* ptr_hot_line_count;
-extern DWORD* ptr_i_fid;
-extern TGameObj** ptr_i_lhand;
-extern TGameObj** ptr_i_rhand;
-extern const DWORD* ptr_i_wid;
-extern TGameObj** ptr_i_worn;
-extern void** ptr_idle_func;
-extern DWORD* ptr_In_WorldMap;
-extern DWORD* ptr_info_line;
-extern const DWORD* ptr_interfaceWindow;
-extern DWORD* ptr_intfaceEnabled;
-extern DWORD* ptr_intotal;
-extern TGameObj** ptr_inven_dude;
-extern DWORD* ptr_inven_pid;
-extern DWORD* ptr_inven_scroll_dn_bid;
-extern DWORD* ptr_inven_scroll_up_bid;
-extern MSGList* ptr_inventry_message_file;
-extern ItemButtonItem* ptr_itemButtonItems; // array of 2 ItemButtonItem
-extern long*  ptr_itemCurrentItem; // 0 - left, 1 - right
-extern DWORD* ptr_kb_lock_flags;
-extern DWORD* ptr_last_buttons;
-extern DWORD* ptr_last_button_winID;
-extern DWORD* ptr_last_level;
-extern DWORD* ptr_Level_;
-extern DWORD* ptr_Lifegiver;
-extern BYTE*  ptr_LIGHT_GREY_Color;
-extern DWORD* ptr_lipsFID;
-extern DWORD* ptr_list_com;
-extern DWORD* ptr_list_total;
-extern DWORD* ptr_loadingGame;
-extern DWORD* ptr_LSData;
-extern DWORD* ptr_lsgwin;
-extern TComputeAttack* ptr_main_ctd;
-extern DWORD* ptr_main_death_voiceover_done;
-extern DWORD* ptr_main_window;
-extern DWORD* ptr_map_elevation;
-extern long** ptr_map_global_vars; // array
-extern DWORD* ptr_map_number;
-extern PathNode** ptr_master_db_handle;
-extern DWORD* ptr_master_volume;
-extern DWORD* ptr_max;
-extern long*  ptr_maxScriptNum;
-extern bool*  ptr_Meet_Frank_Horrigan;
-extern const char** ptr_movie_list; // array of 17 char*
-extern DWORD* ptr_mouse_buttons;
-extern DWORD* ptr_mouse_hotx;
-extern DWORD* ptr_mouse_hoty;
-extern DWORD* ptr_mouse_is_hidden;
-extern DWORD* ptr_mouse_x_;
-extern DWORD* ptr_mouse_y;
-extern DWORD* ptr_mouse_y_;
-extern DWORD* ptr_Mutate_;
-extern DWORD* ptr_name_color;
-extern DWORD* ptr_name_font;
-extern DWORD* ptr_name_sort_list;
-extern DWORD* ptr_num_game_global_vars;
-extern DWORD* ptr_num_map_global_vars;
-extern DWORD* ptr_num_windows;
-extern TGameObj** ptr_obj_dude;
-extern DWORD* ptr_objectTable;
-extern DWORD* ptr_objItemOutlineState;
-extern DWORD* ptr_optionRect;
-extern DWORD* ptr_optionsButtonDown;
-extern DWORD* ptr_optionsButtonDown1;
-extern DWORD* ptr_optionsButtonDownKey;
-extern DWORD* ptr_optionsButtonUp;
-extern DWORD* ptr_optionsButtonUp1;
-extern DWORD* ptr_optionsButtonUpKey;
-extern const DWORD* ptr_optnwin;
-extern DWORD* ptr_outlined_object;
-extern DWORD* ptr_partyMemberAIOptions;
-extern DWORD* ptr_partyMemberCount;
-extern DWORD** ptr_partyMemberLevelUpInfoList;
-extern DWORD** ptr_partyMemberList; // each struct - 4 integers, first integer - objPtr
-extern DWORD* ptr_partyMemberMaxCount;
-extern DWORD** ptr_partyMemberPidList;
-extern char** ptr_patches;
-extern PathNode** ptr_paths;
-extern CritInfo* ptr_pc_crit_succ_eff; // array: 9 body parts, 6 effects
-extern DWORD* ptr_pc_kill_counts;
-extern char*  ptr_pc_name;
-extern sProto* ptr_pc_proto;
-extern long*  ptr_pc_trait; // 2 of them
-extern BYTE*  ptr_PeanutButter;
-extern DWORD* ptr_perk_data;
-extern long** ptr_perkLevelDataList; // dynamic array, limited to PERK_Count
-extern const DWORD* ptr_pip_win;
-extern DWORD* ptr_pipboy_message_file;
-extern DWORD* ptr_pipmesg;
-extern DWORD* ptr_preload_list_index;
-extern const char** ptr_procTableStrs;  // table of procId (from define.h) => procName map
-extern MSGList* ptr_proto_main_msg_file;
-extern MSGList* ptr_proto_msg_files; // array of 6 elements
-extern DWORD* ptr_ptable;
-extern DWORD* ptr_pud;
-extern Queue** ptr_queue;
-extern DWORD* ptr_quick_done;
-extern DWORD* ptr_read_callback;
-extern RectList** ptr_rectList;
-extern BYTE*  ptr_RedColor;
-extern DWORD* ptr_retvals;
-extern DWORD* ptr_rotation;
-extern DWORD* ptr_sampleRate;
-extern BoundRect* ptr_scr_size;
-extern ScriptListInfoItem** ptr_scriptListInfo; // dynamic array
-extern DWORD* ptr_skill_data;
-extern const DWORD* ptr_skldxwin;
-extern DWORD* ptr_slot_cursor;
-extern DWORD* ptr_sndfx_volume;
-extern DWORD* ptr_sneak_working; // DWORD var
-extern char** ptr_sound_music_path1;
-extern char** ptr_sound_music_path2;
-extern DWORD* ptr_speech_volume;
-extern DWORD* ptr_square;
-extern DWORD* ptr_squares;
-extern DWORD* ptr_stack;
-extern DWORD* ptr_stack_offset;
-extern DWORD* ptr_stat_data;
-extern DWORD* ptr_stat_flag;
-extern SubTitleList** ptr_subtitleList;
-extern sWindow* ptr_sWindows; // array of 16 sWindow
-extern DWORD* ptr_Tag_;
-extern DWORD* ptr_tag_skill;
-extern DWORD* ptr_target_curr_stack;
-extern DWORD** ptr_target_pud;
-extern DWORD* ptr_target_stack; // array of 10 DWORD
-extern DWORD* ptr_target_stack_offset; // array of 10 DWORD
-extern DWORD* ptr_target_str;
-extern DWORD* ptr_target_xpos;
-extern DWORD* ptr_target_ypos;
-extern DWORD* ptr_text_char_width;
-extern DWORD* ptr_text_height;
-extern DWORD* ptr_text_max;
-extern DWORD* ptr_text_mono_width;
-extern DWORD* ptr_text_object_index;
-extern FloatText** ptr_text_object_list; // array of 20 FloatText*
-extern DWORD* ptr_text_spacing;
-extern DWORD* ptr_text_to_buf;
-extern DWORD* ptr_text_width;
-extern DWORD* ptr_tile;
-extern DWORD* ptr_title_color;
-extern DWORD* ptr_title_font;
-extern DWORD* ptr_trait_data;
-extern DWORD* ptr_view_page;
-extern DWORD* ptr_wd_obj;
-extern WINinfo** ptr_window; // array of 50 WINinfo*
-extern DWORD* ptr_window_index; // array of 50 DWORD
-extern BYTE*  ptr_WhiteColor;
-extern DWORD* ptr_wmAreaInfoList;
-extern const DWORD* ptr_wmBkWin;
-extern BYTE** ptr_wmBkWinBuf;
-extern DWORD* ptr_wmLastRndTime;
-extern MSGList* ptr_wmMsgFile;
-extern DWORD* ptr_wmNumHorizontalTiles;
-extern long*  ptr_wmWorldOffsetX;
-extern long*  ptr_wmWorldOffsetY;
-extern DWORD* ptr_world_xpos;
-extern DWORD* ptr_world_ypos;
-extern DWORD* ptr_WorldMapCurrArea;
-extern BYTE*  ptr_YellowColor;
+// defines pointer to an engine variable
+#define PTR_(name, type)	\
+	extern type* ptr_##name;
+
+// X-Macros pattern
+#include "FalloutVars_def.h"
 
 // engine function offsets
 // TODO: move to separate namespace

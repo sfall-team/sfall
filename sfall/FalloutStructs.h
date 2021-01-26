@@ -512,6 +512,15 @@ struct SkillInfo {
 	long f;
 };
 
+struct StatInfo {
+	const char* name;
+	const char* description;
+	long image;
+	long minValue;
+	long maxValue;
+	long defaultValue;
+};
+
 struct TraitInfo {
 	const char* name;
 	const char* description;
