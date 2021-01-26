@@ -132,7 +132,7 @@ static bool LoadFrm(Frm* frm) {
 				*(DWORD*)FO_VAR_bk_disabled = 0;
 				return false;
 			}
-			ProcessBk(); // eliminate lag when loading textures
+			fo_process_bk(); // eliminate lag when loading textures
 		}
 		if (frm->magic != 0xABCD) { // frm file not patched
 			StrAppend(buf, "highlight.off", pathLen);
@@ -151,7 +151,7 @@ static bool LoadFrm(Frm* frm) {
 	}
 	// make mask image
 	for (int i = 0; i < frm->frames; i++) {
-		FrmFrameData* frame = FramePtr((FrmHeaderData*)frm, i, 0);
+		FrmFrameData* frame = fo_frame_ptr((FrmHeaderData*)frm, i, 0);
 		if (frm->bakedBackground) {
 			memset(frame->data, 255, frame->size);
 		} else {
@@ -174,10 +174,10 @@ static struct DialogWinPos {
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
-		FrmFrameData* frame = FramePtr((FrmHeaderData*)frm, frameno, 0);
+		FrmFrameData* frame = fo_frame_ptr((FrmHeaderData*)frm, frameno, 0);
 
 		if (dialogWinPos.x == -1) {
-			WINinfo* dialogWin = GNWFind(*ptr_dialogueBackWindow);
+			WINinfo* dialogWin = fo_GNW_find(*ptr_dialogueBackWindow);
 			dialogWinPos.x = dialogWin->rect.x;
 			dialogWinPos.y = dialogWin->rect.y;
 		}

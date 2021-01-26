@@ -240,7 +240,7 @@ end:
 #define _F_PROTO_CRITTERS (const char*)0x50A490
 
 void RemoveSavFiles() {
-	MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
+	fo_MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
 
 static DWORD aliasFID = -1;

@@ -39,13 +39,13 @@ TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile
 		if (objTile == targetTile) return nullptr;
 
 		if (object->flags & ObjectFlag::MultiHex) {
-			long dir = TileDir(objTile, targetTile);
-			objTile = TileNumInDirection(objTile, dir, 1);
+			long dir = fo_tile_dir(objTile, targetTile);
+			objTile = fo_tile_num_in_direction(objTile, dir, 1);
 			if (objTile == targetTile) return nullptr; // just in case
 		}
 		// continue checking the line of fire from object tile to targetTile
 		TGameObj* obj = object; // for ignoring the object (multihex) when building the path
-		MakeStraightPathFunc(object, objTile, targetTile, 0, (DWORD*)&obj, 32, (void*)obj_shoot_blocking_at_);
+		fo_make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 32, (void*)obj_shoot_blocking_at_);
 		if (!AI_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team)) return nullptr;
 	}
 	return object;
@@ -54,14 +54,14 @@ TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile
 // Returns the friendly critter in the line of fire
 TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
-	MakeStraightPathFunc(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
+	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
 	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
 	return (!object || object->TypeFid() == OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
 }
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
-		or   byte ptr [esi + 0x3C], 8; // set new 'ReTarget' flag
+		or   byte ptr [esi + combatState], 8; // set new 'ReTarget' flag
 		jmp  ai_run_away_;
 	}
 }
@@ -200,17 +200,17 @@ static long __fastcall sf_ai_check_weapon_switch(TGameObj* target, long &hitMode
 	if (!weapon) return 1; // no weapon in hand slots
 
 	long _hitMode;
-	if ((_hitMode = AIPickHitMode(source, weapon, target)) != hitMode) {
+	if ((_hitMode = fo_ai_pick_hit_mode(source, weapon, target)) != hitMode) {
 		hitMode = _hitMode;
 		return 0; // change hit mode
 	}
 
-	TGameObj* item = AISearchInvenWeap(source, 1, target);
+	TGameObj* item = fo_ai_search_inven_weap(source, 1, target);
 	if (!item) return 1; // no weapon in inventory, true to allow to continue searching for weapons on the map
 
-	long wType = ItemWSubtype(item, ATKTYPE_RWEAPON_PRIMARY);
+	long wType = fo_item_w_subtype(item, ATKTYPE_RWEAPON_PRIMARY);
 	if (wType <= ATKSUBTYPE_MELEE) { // unarmed and melee weapons, check the distance before switching
-		if (ObjDist(source, target) > 2) return -1;
+		if (fo_obj_dist(source, target) > 2) return -1;
 	}
 	return 1;
 }
@@ -268,7 +268,7 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 	TGameObj* _ammo = ammo;
 
 	while (ammo) {
-		result = ItemWReload(weapon, ammo);
+		result = fo_item_w_reload(weapon, ammo);
 		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
@@ -278,11 +278,11 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 		if (weapon->item.charges >= maxAmmo) break; // magazine is full
 
 		long pidAmmo = ammo->protoId;
-		ObjDestroy(ammo);
+		fo_obj_destroy(ammo);
 		ammo = nullptr;
 
 		DWORD currentSlot = -1; // begin find at first slot
-		while (TGameObj* ammoFind = InvenFindType(critter, item_type_ammo, &currentSlot)) {
+		while (TGameObj* ammoFind = fo_inven_find_type(critter, item_type_ammo, &currentSlot)) {
 			if (ammoFind->protoId == pidAmmo) {
 				ammo = ammoFind;
 				break;
@@ -290,7 +290,7 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 		}
 	}
 	if (_ammo != ammo) {
-		ObjDestroy(ammo);
+		fo_obj_destroy(ammo);
 		return 1; // notifies the engine that the ammo has already been destroyed
 	}
 	return result;
@@ -312,8 +312,8 @@ skip:
 }
 
 static long __fastcall CheckWeaponRangeAndApCost(TGameObj* source, TGameObj* target) {
-	long weaponRange = ItemWRange(source, ATKTYPE_RWEAPON_SECONDARY);
-	long targetDist  = ObjDist(source, target);
+	long weaponRange = fo_item_w_range(source, ATKTYPE_RWEAPON_SECONDARY);
+	long targetDist  = fo_obj_dist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
 	return (source->critter.movePoints >= sf_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
@@ -395,8 +395,8 @@ fix:
 
 static long __fastcall RollFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	if (AI_CheckFriendlyFire(target, attacker)) {
-		long dice = RollRandom(1, 10);
-		return (StatLevel(attacker, STAT_iq) >= dice); // 1 - is friendly
+		long dice = fo_roll_random(1, 10);
+		return (fo_stat_level(attacker, STAT_iq) >= dice); // 1 - is friendly
 	}
 	return 0;
 }

@@ -35,7 +35,7 @@ static void __stdcall op_remove_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
 		if (object->scriptId != 0xFFFFFFFF) {
-			ScrRemove(object->scriptId);
+			fo_scr_remove(object->scriptId);
 			object->scriptId = 0xFFFFFFFF;
 		}
 	} else {
@@ -66,7 +66,7 @@ static void __stdcall op_set_script2() {
 		scriptIndex--;
 	
 		if (object->scriptId != 0xFFFFFFFF) {
-			ScrRemove(object->scriptId);
+			fo_scr_remove(object->scriptId);
 			object->scriptId = 0xFFFFFFFF;
 		}
 		if (object->IsCritter()) {
@@ -74,7 +74,7 @@ static void __stdcall op_set_script2() {
 		} else {
 			scriptType = Scripts::SCRIPT_ITEM;
 		}
-		ObjNewSidInst(object, scriptType, scriptIndex);
+		fo_obj_new_sid_inst(object, scriptType, scriptIndex);
 	
 		long scriptId = object->scriptId;
 		exec_script_proc(scriptId, start);
@@ -104,7 +104,7 @@ static void __stdcall op_create_spatial2() {
 
 		long scriptId;
 		TScript* scriptPtr;
-		if (ScrNew(&scriptId, Scripts::SCRIPT_SPATIAL) == -1 || ScrPtr(scriptId, &scriptPtr) == -1) return;
+		if (fo_scr_new(&scriptId, Scripts::SCRIPT_SPATIAL) == -1 || fo_scr_ptr(scriptId, &scriptPtr) == -1) return;
 
 		// set spatial script properties:
 		scriptPtr->scriptIdx = scriptIndex - 1;
@@ -114,7 +114,7 @@ static void __stdcall op_create_spatial2() {
 		// this will load appropriate script program and link it to the script instance we just created:
 		exec_script_proc(scriptId, start);
 
-		opHandler.setReturn(ScrFindObjFromProgram(scriptPtr->program));
+		opHandler.setReturn(fo_scr_find_obj_from_program(scriptPtr->program));
 	} else {
 		OpcodeInvalidArgs("create_spatial");
 		opHandler.setReturn(0);
@@ -129,7 +129,7 @@ static void mf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	if (spatialObj) {
 		TScript* script;
-		if (ScrPtr(spatialObj->scriptId, &script) != -1) {
+		if (fo_scr_ptr(spatialObj->scriptId, &script) != -1) {
 			opHandler.setReturn(script->spatialRadius);
 		}
 	} else {
@@ -260,7 +260,7 @@ static void __stdcall op_make_straight_path2() {
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 		DWORD resultObj = 0;
-		MakeStraightPathFunc(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
+		fo_make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
 		opHandler.setReturn(resultObj);
 	} else {
 		OpcodeInvalidArgs("obj_blocking_line");
@@ -286,7 +286,7 @@ static void __stdcall op_make_path2() {
 		long checkFlag = (objFrom->IsCritter());
 
 		char pathData[800];
-		long pathLength = MakePathFunc(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
+		long pathLength = fo_make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
 		DWORD arrayId = CreateTempArray(pathLength, 0);
 		for (int i = 0; i < pathLength; i++) {
 			arrays[arrayId].val[i].set((long)pathData[i]);
@@ -336,10 +336,10 @@ static void __stdcall op_tile_get_objects2() {
 		DWORD tile = tileArg.rawValue(),
 			elevation = elevArg.rawValue();
 		DWORD arrayId = CreateTempArray(0, 4);
-		TGameObj* obj = ObjFindFirstAtTile(elevation, tile);
+		TGameObj* obj = fo_obj_find_first_at_tile(elevation, tile);
 		while (obj) {
 			arrays[arrayId].push_back(reinterpret_cast<long>(obj));
-			obj = ObjFindNextAtTile();
+			obj = fo_obj_find_next_at_tile();
 		}
 		opHandler.setReturn(arrayId);
 	} else {
@@ -362,7 +362,7 @@ static void __stdcall op_get_party_members2() {
 		DWORD* partyMemberList = *ptr_partyMemberList;
 		for (int i = 0; i < actualCount; i++) {
 			TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
-			if (includeHidden || (obj->IsCritter() && !CritterIsDead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
+			if (includeHidden || (obj->IsCritter() && !fo_critter_is_dead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
 				arrays[arrayId].push_back((long)obj);
 			}
 		}
@@ -423,13 +423,13 @@ static void mf_critter_inven_obj2() {
 		int slot = slotArg.rawValue();
 		switch (slot) {
 		case 0:
-			opHandler.setReturn(InvenWorn(critter));
+			opHandler.setReturn(fo_inven_worn(critter));
 			break;
 		case 1:
-			opHandler.setReturn(InvenRightHand(critter));
+			opHandler.setReturn(fo_inven_right_hand(critter));
 			break;
 		case 2:
-			opHandler.setReturn(InvenLeftHand(critter));
+			opHandler.setReturn(fo_inven_left_hand(critter));
 			break;
 		case -2:
 			opHandler.setReturn(critter->invenSize);
@@ -481,13 +481,12 @@ static void mf_outlined_object() {
 
 static void mf_item_weight() {
 	TGameObj* item = opHandler.arg(0).asObject();
-	int weight = 0;
 	if (item) {
-		weight = ItemWeight(item);
+		opHandler.setReturn(fo_item_weight(item));
 	} else {
 		OpcodeInvalidArgs("item_weight");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(weight);
 }
 
 static void mf_real_dude_obj() {
@@ -501,7 +500,7 @@ static void mf_car_gas_amount() {
 static void mf_lock_is_jammed() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(ObjLockIsJammed(obj));
+		opHandler.setReturn(fo_obj_lock_is_jammed(obj));
 	} else {
 		OpcodeInvalidArgs("lock_is_jammed");
 		opHandler.setReturn(0);
@@ -509,7 +508,7 @@ static void mf_lock_is_jammed() {
 }
 
 static void mf_unjam_lock() {
-	ObjUnjamLock(opHandler.arg(0).object());
+	fo_obj_unjam_lock(opHandler.arg(0).object());
 }
 
 static void mf_set_unjam_locks_time() {
@@ -542,7 +541,7 @@ static void mf_obj_under_cursor() {
 
 	if (crSwitchArg.isInt() && inclDudeArg.isInt()) {
 		opHandler.setReturn((*ptr_gmouse_3d_current_mode != 0)
-							? ObjectUnderMouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
+							? fo_object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
 							: 0);
 	} else {
 		OpcodeInvalidArgs("obj_under_cursor");
@@ -642,7 +641,7 @@ static void mf_set_unique_id() {
 	TGameObj* obj = opHandler.arg(0).object();
 	long id;
 	if (opHandler.arg(1).rawValue() == -1) {
-		id = NewObjId();
+		id = fo_new_obj_id();
 		obj->id = id;
 	} else {
 		id = Objects_SetObjectUniqueID(obj);

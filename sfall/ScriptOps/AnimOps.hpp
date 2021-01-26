@@ -58,7 +58,7 @@ static void __stdcall op_reg_anim_destroy2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		if (!checkCombatMode()) {
-			RegisterObjectMustErase(obj);
+			fo_register_object_must_erase(obj);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_destroy");
@@ -79,7 +79,7 @@ static void __stdcall op_reg_anim_animate_and_hide2() {
 			int animId = animIdArg.rawValue(),
 				delay = delayArg.rawValue();
 
-			RegisterObjectAnimateAndHide(obj, animId, delay);
+			fo_register_object_animate_and_hide(obj, animId, delay);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_animate_and_hide");
@@ -105,7 +105,7 @@ static void __stdcall op_reg_anim_light2() {
 			} else if (radius > 8) {
 				radius = 8;
 			}
-			RegisterObjectLight(obj, radius, delay);
+			fo_register_object_light(obj, radius, delay);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_light");
@@ -126,7 +126,7 @@ static void __stdcall op_reg_anim_change_fid2() {
 			int fid = fidArg.rawValue(),
 				delay = delayArg.rawValue();
 
-			RegisterObjectChangeFid(obj, fid, delay);
+			fo_register_object_change_fid(obj, fid, delay);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_change_fid");
@@ -147,7 +147,7 @@ static void __stdcall op_reg_anim_take_out2() {
 			int holdFrame = holdFrameArg.rawValue(),
 				nothing = nothingArg.rawValue(); // not used by engine
 
-			RegisterObjectTakeOut(obj, holdFrame, nothing);
+			fo_register_object_take_out(obj, holdFrame, nothing);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_take_out");
@@ -168,7 +168,7 @@ static void __stdcall op_reg_anim_turn_towards2() {
 			int tile = tileArg.rawValue(),
 				nothing = nothingArg.rawValue(); // not used by engine
 
-			RegisterObjectTurnTowards(obj, tile, nothing);
+			fo_register_object_turn_towards(obj, tile, nothing);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_turn_towards");
@@ -190,7 +190,7 @@ static void __stdcall op_reg_anim_callback2() {
 	const ScriptValue &procArg = opHandler.arg(0);
 
 	if (procArg.isInt()) {
-		RegisterObjectCall(
+		fo_register_object_call(
 			reinterpret_cast<long*>(opHandler.program()),
 			reinterpret_cast<long*>(procArg.rawValue()), // callback procedure
 			reinterpret_cast<void*>(ExecuteCallback),

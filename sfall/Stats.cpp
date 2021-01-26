@@ -153,12 +153,12 @@ static long __stdcall RecalcStat(int stat, int statsValue[]) {
 
 static void __stdcall StatRecalcDerived(TGameObj* critter) {
 	long* proto;
-	if (ProtoPtr(critter->protoId, (sProto**)&proto) == -1) return;
+	if (fo_proto_ptr(critter->protoId, (sProto**)&proto) == -1) return;
 
 	int baseStats[7], levelStats[7];
 	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
-		levelStats[stat] = StatLevel(critter, stat);
-		if (!derivedHPwBonus) baseStats[stat] = StatGetBase(critter, stat);
+		levelStats[stat] = fo_stat_level(critter, stat);
+		if (!derivedHPwBonus) baseStats[stat] = fo_stat_get_base(critter, stat);
 	}
 
 	((sProto*)proto)->critter.base.health = RecalcStat(STAT_max_hit_points, (derivedHPwBonus) ? levelStats : baseStats);
@@ -186,9 +186,9 @@ void Stats_UpdateHPStat(TGameObj* critter) {
 	if (engineDerivedStats) return;
 
 	sProto* proto;
-	if (ProtoPtr(critter->protoId, &proto) == -1) return;
+	if (fo_proto_ptr(critter->protoId, &proto) == -1) return;
 
-	auto getStatFunc = (derivedHPwBonus) ? StatLevel : StatGetBase;
+	auto getStatFunc = (derivedHPwBonus) ? fo_stat_level : fo_stat_get_base;
 
 	double sum = 0;
 	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
@@ -198,7 +198,7 @@ void Stats_UpdateHPStat(TGameObj* critter) {
 	if (calcStatValue < statFormulas[STAT_max_hit_points].min) calcStatValue = statFormulas[STAT_max_hit_points].min;
 
 	if (proto->critter.base.health != calcStatValue) {
-		DebugPrintf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
+		fo_debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
 					critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
 
 		proto->critter.base.health = calcStatValue;
@@ -243,9 +243,9 @@ void __fastcall critter_check_poison_fix() {
 	if (PartyControl_IsNpcControlled()) {
 		// since another critter is being controlled, we can't apply the poison effect to it
 		// instead, we add the "poison" event to dude again, which will be triggered when dude returns to the player's control
-		QueueClearType(poison_event, nullptr);
+		fo_queue_clear_type(poison_event, nullptr);
 		TGameObj* dude = PartyControl_RealDudeObject();
-		QueueAdd(10, dude, nullptr, poison_event);
+		fo_queue_add(10, dude, nullptr, poison_event);
 	}
 }
 

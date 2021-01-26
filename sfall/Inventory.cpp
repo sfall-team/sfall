@@ -36,23 +36,23 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 		TGameObj* item = GetActiveItem();
 		if (!item) return;
 
-		if (ItemGetType(item) == item_type_weapon) {
-			long maxAmmo = ItemWMaxAmmo(item);
-			long curAmmo = ItemWCurrAmmo(item);
+		if (fo_item_get_type(item) == item_type_weapon) {
+			long maxAmmo = fo_item_w_max_ammo(item);
+			long curAmmo = fo_item_w_curr_ammo(item);
 			if (maxAmmo != curAmmo) {
 				long &currentMode = GetActiveItemMode();
 				long previusMode = currentMode;
 				currentMode = 5; // reload mode
-				IntfaceUseItem();
+				fo_intface_use_item();
 				if (previusMode != 5) {
 					// return to previous active item mode (if it wasn't "reload")
 					currentMode = previusMode - 1;
 					if (currentMode < 0) currentMode = 4;
-					IntfaceToggleItemState();
+					fo_intface_toggle_item_state();
 				}
 			}
 		} else {
-			IntfaceUseItem();
+			fo_intface_use_item();
 		}
 	}
 }
@@ -60,22 +60,22 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 /////////////////////////////////////////////////////////////////
 
 DWORD __stdcall sf_item_total_size(TGameObj* critter) {
-	int totalSize = ItemCCurrSize(critter);
+	int totalSize = fo_item_c_curr_size(critter);
 
 	if (critter->TypeFid() == OBJ_TYPE_CRITTER) {
-		TGameObj* item = InvenRightHand(critter);
+		TGameObj* item = fo_inven_right_hand(critter);
 		if (item && !(item->flags & ObjectFlag::Right_Hand)) {
-			totalSize += ItemSize(item);
+			totalSize += fo_item_size(item);
 		}
 
-		TGameObj* itemL = InvenLeftHand(critter);
+		TGameObj* itemL = fo_inven_left_hand(critter);
 		if (itemL && item != itemL && !(itemL->flags & ObjectFlag::Left_Hand)) {
-			totalSize += ItemSize(itemL);
+			totalSize += fo_item_size(itemL);
 		}
 
-		item = InvenWorn(critter);
+		item = fo_inven_worn(critter);
 		if (item && !(item->flags & ObjectFlag::Worn)) {
-			totalSize += ItemSize(item);
+			totalSize += fo_item_size(item);
 		}
 	}
 	return totalSize;
@@ -85,7 +85,7 @@ static int __stdcall CritterGetMaxSize(TGameObj* critter) {
 	if (critter == *ptr_obj_dude) return invSizeMaxLimit;
 
 	if (sizeLimitMode != 3) { // selected mode 1 or 2
-		if (!(sizeLimitMode & 2) || !(IsPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0
+		if (!(sizeLimitMode & 2) || !(fo_isPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0
 	}
 
 	int statSize = 0;
@@ -121,7 +121,7 @@ end:
 static int __fastcall CanAddedItems(TGameObj* critter, TGameObj* item, int count) {
 	int sizeMax = CritterGetMaxSize(critter);
 	if (sizeMax > 0) {
-		int itemsSize = ItemSize(item) * count;
+		int itemsSize = fo_item_size(item) * count;
 		if (itemsSize + (int)sf_item_total_size(critter) > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
 	}
 	return 0;
@@ -273,7 +273,7 @@ static __declspec(naked) void display_stats_hack() {
 
 static char SizeMsgBuf[32];
 static const char* __stdcall SizeInfoMessage(TGameObj* item) {
-	int size = ItemSize(item);
+	int size = fo_item_size(item);
 	if (size == 1) {
 		const char* message = MsgSearch(ptr_proto_main_msg_file, 543);
 		if (message == nullptr)
@@ -326,11 +326,11 @@ static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
 		return 0;
 	}
 
-	long curr_hp = StatLevel(target, STAT_current_hp);
-	long max_hp = StatLevel(target, STAT_max_hit_points);
+	long curr_hp = fo_stat_level(target, STAT_current_hp);
+	long max_hp = fo_stat_level(target, STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
 
-	DisplayPrint(superStimMsg);
+	fo_display_print(superStimMsg);
 	return -1;
 }
 
@@ -625,7 +625,7 @@ void __fastcall SetInvenApCost(int cost) {
 }
 
 long __stdcall GetInvenApCost() {
-	long perkLevel = PerkLevel(*ptr_obj_dude, PERK_quick_pockets);
+	long perkLevel = fo_perk_level(*ptr_obj_dude, PERK_quick_pockets);
 	return invenApCost - (invenApQPReduction * perkLevel);
 }
 

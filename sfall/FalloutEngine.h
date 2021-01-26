@@ -481,7 +481,7 @@ extern CritInfo* ptr_pc_crit_succ_eff; // array: 9 body parts, 6 effects
 extern DWORD* ptr_pc_kill_counts;
 extern char*  ptr_pc_name;
 extern sProto* ptr_pc_proto;
-extern long*  ptr_pc_traits; // 2 of them
+extern long*  ptr_pc_trait; // 2 of them
 extern BYTE*  ptr_PeanutButter;
 extern DWORD* ptr_perk_data;
 extern long** ptr_perkLevelDataList; // dynamic array, limited to PERK_Count
@@ -1169,9 +1169,9 @@ extern const DWORD xvfprintf_;
 
 #ifndef NDEBUG
 // Prints debug message to game debug.log file for develop build
-void DevPrintf(const char* fmt, ...);
+void dev_printf(const char* fmt, ...);
 #else
-void DevPrintf(...);
+void dev_printf(...);
 #endif
 
 /*
@@ -1180,95 +1180,95 @@ void DevPrintf(...);
 */
 
 // prints message to debug.log file
-void __declspec() DebugPrintf(const char* fmt, ...);
+void __declspec() fo_debug_printf(const char* fmt, ...);
 
-void __stdcall InterpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType);
+void __stdcall fo_interpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
-void __declspec() InterpretError(const char* fmt, ...);
+void __declspec() fo_interpretError(const char* fmt, ...);
 
-long __fastcall TileNum(long x, long y);
+long __fastcall fo_tile_num(long x, long y);
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
 
 // Creates a button on a given window
 // buttonType: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click
 // pictureUp/pictureDown - pointers to a surface
-long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
+long __stdcall fo_win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
-void __stdcall DialogOut(const char* text);;
+void __stdcall DialogOut(const char* text);
 
 long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors = 0);
 
 // draws an image to the buffer without scaling and with transparency display toggle
-void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
+void __fastcall fo_windowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
 
 // draws an image in the window and scales it to fit the window
-void __fastcall DisplayInWindow(long w_here, long width, long height, void* data);
+void __fastcall fo_displayInWindow(long w_here, long width, long height, void* data);
 
 // draws an image to the buffer of the active script window
-void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
+void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
 // buf_to_buf_ function with pure MMX implementation
-void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
+void __cdecl fo_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
 
 // trans_buf_to_buf_ function implementation
-void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
+void __cdecl fo_trans_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width);
 
-BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height);
+BYTE* __fastcall fo_loadPCX(const char* file, long* width, long* height);
 
-long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
+long __fastcall fo_get_game_config_string(const char* outValue, const char* section, const char* param);
 
 // X-Macro for wrapper functions.
-#define WRAP_WATCOM_FUNC0(retType, name, funcoff) \
-	retType __stdcall name();
+#define WRAP_WATCOM_FUNC0(retType, name) \
+	retType __stdcall fo_##name();
 
-#define WRAP_WATCOM_FUNC1(retType, name, funcoff, arg1t, arg1) \
-	retType __stdcall name(arg1t arg1);
+#define WRAP_WATCOM_FUNC1(retType, name, arg1t, arg1) \
+	retType __stdcall fo_##name(arg1t arg1);
 
-#define WRAP_WATCOM_FUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
-	retType __stdcall name(arg1t arg1, arg2t arg2);
+#define WRAP_WATCOM_FUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2);
 
-#define WRAP_WATCOM_FUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3);
+#define WRAP_WATCOM_FUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3);
 
-#define WRAP_WATCOM_FUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
+#define WRAP_WATCOM_FUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
 
-#define WRAP_WATCOM_FUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
+#define WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
 
-#define WRAP_WATCOM_FUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
+#define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
 
 
-#define WRAP_WATCOM_FFUNC1(retType, name, funcoff, arg1t, arg1) \
-	retType __fastcall name(arg1t arg1);
+#define WRAP_WATCOM_FFUNC1(retType, name, arg1t, arg1) \
+	retType __fastcall fo_##name(arg1t arg1);
 
-#define WRAP_WATCOM_FFUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
-	retType __fastcall name(arg1t arg1, arg2t arg2);
+#define WRAP_WATCOM_FFUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2);
 
-#define WRAP_WATCOM_FFUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3);
+#define WRAP_WATCOM_FFUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3);
 
-#define WRAP_WATCOM_FFUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
+#define WRAP_WATCOM_FFUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
 
-#define WRAP_WATCOM_FFUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
+#define WRAP_WATCOM_FFUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
 
-#define WRAP_WATCOM_FFUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
+#define WRAP_WATCOM_FFUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
 
-#define WRAP_WATCOM_FFUNC7(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
+#define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
 
-#define WRAP_WATCOM_FFUNC8(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
+#define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
 
-#define WRAP_WATCOM_FFUNC9(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9);
+#define WRAP_WATCOM_FFUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9);
 
 #include "FalloutFuncs_def.h"
 

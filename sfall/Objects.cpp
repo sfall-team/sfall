@@ -29,7 +29,7 @@ long Objects_uniqueID = UID_START; // current counter id, saving to sfallgv.sav
 
 static void SetScriptObjectID(TGameObj* obj) {
 	TScript* script;
-	if (ScrPtr(obj->scriptId, &script) != -1) {
+	if (fo_scr_ptr(obj->scriptId, &script) != -1) {
 		script->ownerObjectId = obj->id;
 	}
 }
@@ -61,7 +61,7 @@ long __fastcall Objects_SetSpecialID(TGameObj* obj) {
 
 void Objects_SetNewEngineID(TGameObj* obj) {
 	if (obj->id > UID_START) return;
-	obj->id = NewObjId();
+	obj->id = fo_new_obj_id();
 	SetScriptObjectID(obj);
 }
 
@@ -93,7 +93,7 @@ pickNewID: // skip PM range (18000 - 83535)
 // Reassigns object IDs to all critters upon first loading a map and updates their max HP stat
 static void map_fix_critter_id() {
 	long npcStartID = 4096;
-	TGameObj* obj = ObjFindFirst();
+	TGameObj* obj = fo_obj_find_first();
 	while (obj) {
 		if (obj->IsCritter()) {
 			if (obj->id < PLAYER_ID) {
@@ -102,7 +102,7 @@ static void map_fix_critter_id() {
 			}
 			Stats_UpdateHPStat(obj);
 		}
-		obj = ObjFindNext();
+		obj = fo_obj_find_next();
 	}
 }
 

@@ -835,7 +835,7 @@ public:
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 
 		if (GPUBlt) {
-			BufToBuf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
+			fo_buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
 			//char* pBits = (char*)dRect.pBits;
 			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
@@ -1326,7 +1326,7 @@ static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, 
 		if (primaryDDSurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
 
 		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
-		BufToBuf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
+		fo_buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
 		primaryDDSurface->Unlock(desc.lpSurface);
 	}
@@ -1453,7 +1453,7 @@ static BYTE* GetBuffer() {
 }
 
 static void Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
-	auto drawFunc = (win->flags & WinFlags::Transparent && win->wID) ? TransBufToBuf : BufToBuf;
+	auto drawFunc = (win->flags & WinFlags::Transparent && win->wID) ? fo_trans_buf_to_buf : fo_buf_to_buf;
 	if (toBuffer) {
 		drawFunc(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
 	} else {
@@ -1464,9 +1464,9 @@ static void Draw(WINinfo* win, BYTE* surface, long width, long height, long widt
 	surface = &GameRender_GetOverlaySurface(win)[rect.left - win->rect.x] + ((rect.top - win->rect.y) * win->width);
 
 	if (toBuffer) {
-		TransBufToBuf(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
+		fo_trans_buf_to_buf(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
 	} else {
-		TransBufToBuf(surface, width, height, widthFrom, &GetBuffer()[rect.left] + (rect.top * toWidth), toWidth);
+		fo_trans_buf_to_buf(surface, width, height, widthFrom, &GetBuffer()[rect.left] + (rect.top * toWidth), toWidth);
 	}
 }
 
@@ -1482,7 +1482,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 		}
 		int w = (updateRect->right - updateRect->left) + 1;
 
-		if (*ptr_mouse_is_hidden || !MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+		if (*ptr_mouse_is_hidden || !fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 			/*__asm {
 				mov  eax, win;
 				mov  edx, updateRect;
@@ -1493,7 +1493,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 			UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
 
 		} else {
-			MouseShow(); // for updating background cursor area
+			fo_mouse_show(); // for updating background cursor area
 			RECT mouseRect;
 			__asm {
 				lea  eax, mouseRect;
@@ -1551,7 +1551,7 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 	int widthFrom = win->width;
 	int toWidth = (toBuffer) ? (updateRect->right - updateRect->left) + 1 : Gfx_GetGameWidthRes();
 
-	WinClip(win, &rects, toBuffer);
+	fo_win_clip(win, &rects, toBuffer);
 
 	RectList* currRect = rects;
 	while (currRect) {
@@ -1592,8 +1592,8 @@ static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* 
 		rects = next;
 	}
 
-	if (!toBuffer && !*(DWORD*)FO_VAR_doing_refresh_all && !*ptr_mouse_is_hidden && MouseIn(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
-		MouseShow();
+	if (!toBuffer && !*(DWORD*)FO_VAR_doing_refresh_all && !*ptr_mouse_is_hidden && fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+		fo_mouse_show();
 	}
 }
 
@@ -1674,9 +1674,9 @@ void Graphics_Init() {
 	}
 
 	// Replace the srcCopy_ function with a pure MMX implementation
-	MakeJump(0x4D36D4, BufToBuf); // buf_to_buf_
+	MakeJump(0x4D36D4, fo_buf_to_buf); // buf_to_buf_
 	// Replace the transSrcCopy_ function
-	MakeJump(0x4D3704, TransBufToBuf); // trans_buf_to_buf_
+	MakeJump(0x4D3704, fo_trans_buf_to_buf); // trans_buf_to_buf_
 
 	// Enable support for transparent interface windows
 	const DWORD winBufferAddr [] = {

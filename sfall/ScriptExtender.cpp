@@ -271,8 +271,8 @@ public:
 		vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
 		va_end(args);
 
-		const char* procName = FindCurrentProc(_program);
-		DebugPrintf("\nOPCODE ERROR: %s\n > Script: %s, procedure %s.", msg, _program->fileName, procName);
+		const char* procName = fo_findCurrentProc(_program);
+		fo_debug_printf("\nOPCODE ERROR: %s\n > Script: %s, procedure %s.", msg, _program->fileName, procName);
 	}
 
 	// Validate opcode arguments against type masks
@@ -314,13 +314,13 @@ public:
 		// process arguments on stack (reverse order)
 		for (int i = argNum - 1; i >= 0; i--) {
 			// get argument from stack
-			DWORD rawValueType = InterpretPopShort(program);
-			DWORD rawValue = InterpretPopLong(program);
+			DWORD rawValueType = fo_interpretPopShort(program);
+			DWORD rawValue = fo_interpretPopLong(program);
 			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args[i] = InterpretGetString(program, rawValueType, rawValue);
+				_args[i] = fo_interpretGetString(program, rawValueType, rawValue);
 			} else {
 				_args[i] = ScriptValue(type, rawValue);
 			}
@@ -347,7 +347,7 @@ public:
 			if (_ret.type() == DATATYPE_NONE) {
 				_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 			}
-			InterpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type())); // 4.x backport
+			fo_interpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type())); // 4.x backport
 		}
 	}
 
@@ -1269,14 +1269,14 @@ end:
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
-	TProgram* scriptPtr = LoadProgram(fileName);
+	TProgram* scriptPtr = fo_loadProgram(fileName);
 
 	if (scriptPtr) {
 		const char** procTable = ptr_procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
 		for (int i = 0; i < Scripts::count; ++i) {
-			prog.procLookup[i] = InterpretFindProcedure(prog.ptr, procTable[i]);
+			prog.procLookup[i] = fo_interpretFindProcedure(prog.ptr, procTable[i]);
 		}
 		prog.initialized = 0;
 	} else {
@@ -1286,8 +1286,8 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 
 void InitScriptProgram(sScriptProgram &prog) {
 	if (prog.initialized == 0) {
-		RunProgram(prog.ptr);
-		Interpret(prog.ptr, -1);
+		fo_runProgram(prog.ptr);
+		fo_interpret(prog.ptr, -1);
 		prog.initialized = 1;
 	}
 }
@@ -1348,7 +1348,7 @@ static void PrepareGlobalScriptsList() {
 
 	char* name = "scripts\\gl*.int";
 	char** filenames;
-	int count = DbGetFileList(name, &filenames);
+	int count = fo_db_get_file_list(name, &filenames);
 
 	for (int i = 0; i < count; i++) {
 		name = _strlwr(filenames[i]); // name of the script in lower case
@@ -1363,7 +1363,7 @@ static void PrepareGlobalScriptsList() {
 			globalScriptFilesList.push_back(baseName);
 		}
 	}
-	DbFreeFileList(&filenames, 0);
+	fo_db_free_file_list(&filenames, 0);
 }
 
 // this runs after the game was loaded/started
@@ -1409,9 +1409,9 @@ static void ClearGlobalScripts() {
 
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
 	TProgram* sptr = prog->ptr;
-	int procNum = InterpretFindProcedure(sptr, procName);
+	int procNum = fo_interpretFindProcedure(sptr, procName);
 	if (procNum != -1) {
-		ExecuteProcedure(sptr, procNum);
+		fo_executeProcedure(sptr, procNum);
 	}
 }
 
@@ -1419,7 +1419,7 @@ void RunScriptProc(sScriptProgram* prog, long procId) {
 	if (procId > 0 && procId < Scripts::count) {
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
-			ExecuteProcedure(prog->ptr, procNum);
+			fo_executeProcedure(prog->ptr, procNum);
 		}
 	}
 }
@@ -1427,7 +1427,7 @@ void RunScriptProc(sScriptProgram* prog, long procId) {
 int RunScriptStartProc(sScriptProgram* prog) {
 	int procNum = prog->procLookup[Scripts::start];
 	if (procNum != -1) {
-		ExecuteProcedure(prog->ptr, procNum);
+		fo_executeProcedure(prog->ptr, procNum);
 	}
 	return procNum;
 }
@@ -1435,7 +1435,7 @@ int RunScriptStartProc(sScriptProgram* prog) {
 static void RunScript(sGlobalScript* script) {
 	script->count = 0;
 	if (script->startProc != -1) {
-		ExecuteProcedure(script->prog.ptr, script->startProc); // run "start"
+		fo_executeProcedure(script->prog.ptr, script->startProc); // run "start"
 	}
 }
 
@@ -1457,15 +1457,15 @@ static void RunGlobalScripts1() {
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (motionScanner & 4) {
-					TGameObj* scanner = InvenPidIsCarriedPtr(*ptr_obj_dude, PID_MOTION_SENSOR);
+					TGameObj* scanner = fo_inven_pid_is_carried_ptr(*ptr_obj_dude, PID_MOTION_SENSOR);
 					if (scanner) {
 						if (!(motionScanner & 2)) {
-							highlightingToggled = ItemMDecCharges(scanner) + 1;
-							IntfaceRedraw();
-							if (!highlightingToggled) DisplayPrint(highlightFail2);
+							highlightingToggled = fo_item_m_dec_charges(scanner) + 1;
+							fo_intface_redraw();
+							if (!highlightingToggled) fo_display_print(highlightFail2);
 						} else highlightingToggled = 1;
 					} else {
-						DisplayPrint(highlightFail1);
+						fo_display_print(highlightFail1);
 					}
 				} else highlightingToggled = 1;
 				if (highlightingToggled) obj_outline_all_items_on();
@@ -1518,7 +1518,7 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == Scripts::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
-			RunProgram(it->prog.ptr);
+			fo_runProgram(it->prog.ptr);
 		}
 	} else if (procId == Scripts::map_exit_p_proc) {
 		ClearEventsOnMapExit(); // for reordering the execution of functions before exiting the map
@@ -1536,9 +1536,9 @@ static DWORD HandleTimedEventScripts() {
 
 	executeTimedEventDepth++;
 
-	DevPrintf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+	dev_printf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
 	for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend(); ++it) {
-		DevPrintf("\n[TimedEventScripts] Event: %d", it->time);
+		dev_printf("\n[TimedEventScripts] Event: %d", it->time);
 	}
 
 	bool eventWasRunning = false;
@@ -1550,9 +1550,9 @@ static DWORD HandleTimedEventScripts() {
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
 			timedEvent->isActive = false;
 
-			DevPrintf("\n[TimedEventScripts] Run event: %d", timerIt->time);
+			dev_printf("\n[TimedEventScripts] Run event: %d", timerIt->time);
 			RunScriptProc(timerIt->script, Scripts::timed_event_p_proc);
-			DevPrintf("\n[TimedEventScripts] Event done: %d", timerIt->time);
+			dev_printf("\n[TimedEventScripts] Event done: %d", timerIt->time);
 
 			timedEvent = nullptr;
 			if (!executeTimedEvents.empty()) {
@@ -1571,7 +1571,7 @@ static DWORD HandleTimedEventScripts() {
 		// delete all previously executed events
 		for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
 			if (it->isActive == false) {
-				DevPrintf("\n[TimedEventScripts] Remove event: %d", it->time);
+				dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
 				it = timerEventScripts.erase(it);
 			} else {
 				++it;

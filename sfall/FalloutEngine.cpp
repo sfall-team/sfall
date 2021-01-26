@@ -173,7 +173,7 @@ CritInfo* ptr_pc_crit_succ_eff          = reinterpret_cast<CritInfo*>(FO_VAR_pc_
 DWORD* ptr_pc_kill_counts               = reinterpret_cast<DWORD*>(FO_VAR_pc_kill_counts);
 char*  ptr_pc_name                      = reinterpret_cast<char*>(FO_VAR_pc_name);
 sProto* ptr_pc_proto                    = reinterpret_cast<sProto*>(FO_VAR_pc_proto);
-long*  ptr_pc_traits                    = reinterpret_cast<long*>(FO_VAR_pc_trait); // 2 of them
+long*  ptr_pc_trait                     = reinterpret_cast<long*>(FO_VAR_pc_trait); // 2 of them
 BYTE*  ptr_PeanutButter                 = reinterpret_cast<BYTE*>(FO_VAR_PeanutButter);
 DWORD* ptr_perk_data                    = reinterpret_cast<DWORD*>(FO_VAR_perk_data);
 long** ptr_perkLevelDataList            = reinterpret_cast<long**>(FO_VAR_perkLevelDataList); // dynamic array, limited to PERK_Count
@@ -854,15 +854,14 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 
 
 // WRAPPERS
-// please, use CamelCase for those
 
 // Prints debug message to game debug.log file for develop build
 #ifndef NDEBUG
-void __declspec(naked) DevPrintf(const char* fmt, ...) {
+void __declspec(naked) dev_printf(const char* fmt, ...) {
 	__asm jmp debug_printf_;
 }
 #else
-void DevPrintf(...) {}
+void dev_printf(...) {}
 #endif
 
 // Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.
@@ -939,11 +938,11 @@ void DevPrintf(...) {}
 
 
 // prints message to debug.log file
-void __declspec(naked) DebugPrintf(const char* fmt, ...) {
+void __declspec(naked) fo_debug_printf(const char* fmt, ...) {
 	__asm jmp debug_printf_;
 }
 
-void __stdcall InterpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType) {
+void __stdcall fo_interpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType) {
 	__asm {
 		mov  esi, scriptPtr;
 		mov  edx, val;
@@ -963,11 +962,11 @@ isNotStr:
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
-void __declspec(naked) InterpretError(const char* fmt, ...) {
+void __declspec(naked) fo_interpretError(const char* fmt, ...) {
 	__asm jmp interpretError_;
 }
 
-long __fastcall TileNum(long x, long y) {
+long __fastcall fo_tile_num(long x, long y) {
 	__asm push ebx; // don't delete (bug in tile_num_)
 	WRAP_WATCOM_FCALL2(tile_num_, x, y)
 	__asm pop  ebx;
@@ -981,7 +980,7 @@ TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD el
 	}
 }
 
-long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
+long __stdcall fo_win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
 	__asm {
 		push buttonType;
 		push arg12;
@@ -1056,7 +1055,7 @@ void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD st
 }
 
 // draws an image to the buffer without scaling and with transparency display toggle
-void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
+void __fastcall fo_windowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
 	__asm {
 		push height;
 		push edx;       // from_width
@@ -1070,7 +1069,7 @@ void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* 
 }
 
 // draws an image in the window and scales it to fit the window
-void __fastcall DisplayInWindow(long w_here, long width, long height, void* data) {
+void __fastcall fo_displayInWindow(long w_here, long width, long height, void* data) {
 	__asm {
 		mov  ebx, height;
 		mov  eax, data;
@@ -1079,7 +1078,7 @@ void __fastcall DisplayInWindow(long w_here, long width, long height, void* data
 }
 
 // draws an image to the buffer of the active script window
-void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
 	__asm {
 		push w_width;
 		push s_height;
@@ -1095,7 +1094,7 @@ void __fastcall WindowTransCscale(long i_width, long i_height, long s_width, lon
 }
 
 // buf_to_buf_ function with pure MMX implementation
-void __cdecl BufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
+void __cdecl fo_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
 	size_t blockCount = width / 64; // 64 bytes
@@ -1161,7 +1160,7 @@ end:
 }
 
 // trans_buf_to_buf_ function implementation
-void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
+void __cdecl fo_trans_buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
 	size_t blockCount = width >> 3;
@@ -1204,7 +1203,7 @@ void __cdecl TransBufToBuf(BYTE* src, long width, long height, long src_width, B
 	__asm emms;
 }
 
-BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height) {
+BYTE* __fastcall fo_loadPCX(const char* file, long* width, long* height) {
 	__asm {
 		mov  eax, ecx;
 		mov  ebx, height;
@@ -1221,7 +1220,7 @@ BYTE* __fastcall LoadPCXData(const char* file, long* width, long* height) {
 	}
 }
 
-long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
+long __fastcall fo_get_game_config_string(const char* outValue, const char* section, const char* param) {
 	__asm {
 		mov  ebx, param;
 		mov  eax, FO_VAR_game_config;
@@ -1233,85 +1232,85 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 // X-Macro for wrapper functions. //
 ////////////////////////////////////
 
-#define WRAP_WATCOM_FUNC0(retType, name, funcoff) \
-	retType __stdcall name() { \
-		WRAP_WATCOM_CALL0(funcoff) \
+#define WRAP_WATCOM_FUNC0(retType, name) \
+	retType __stdcall fo_##name() { \
+		WRAP_WATCOM_CALL0(name##_) \
 	}
 
-#define WRAP_WATCOM_FUNC1(retType, name, funcoff, arg1t, arg1) \
-	retType __stdcall name(arg1t arg1) { \
-		WRAP_WATCOM_CALL1(funcoff, arg1) \
+#define WRAP_WATCOM_FUNC1(retType, name, arg1t, arg1) \
+	retType __stdcall fo_##name(arg1t arg1) { \
+		WRAP_WATCOM_CALL1(name##_, arg1) \
 	}
 
-#define WRAP_WATCOM_FUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
-	retType __stdcall name(arg1t arg1, arg2t arg2) { \
-		WRAP_WATCOM_CALL2(funcoff, arg1, arg2) \
+#define WRAP_WATCOM_FUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2) { \
+		WRAP_WATCOM_CALL2(name##_, arg1, arg2) \
 	}
 
-#define WRAP_WATCOM_FUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3) { \
-		WRAP_WATCOM_CALL3(funcoff, arg1, arg2, arg3) \
+#define WRAP_WATCOM_FUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3) { \
+		WRAP_WATCOM_CALL3(name##_, arg1, arg2, arg3) \
 	}
 
-#define WRAP_WATCOM_FUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
-		WRAP_WATCOM_CALL4(funcoff, arg1, arg2, arg3, arg4) \
+#define WRAP_WATCOM_FUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
+		WRAP_WATCOM_CALL4(name##_, arg1, arg2, arg3, arg4) \
 	}
 
-#define WRAP_WATCOM_FUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
-		WRAP_WATCOM_CALL5(funcoff, arg1, arg2, arg3, arg4, arg5) \
+#define WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
+		WRAP_WATCOM_CALL5(name##_, arg1, arg2, arg3, arg4, arg5) \
 	}
 
-#define WRAP_WATCOM_FUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
-		WRAP_WATCOM_CALL6(funcoff, arg1, arg2, arg3, arg4, arg5, arg6) \
+#define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __stdcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
+		WRAP_WATCOM_CALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
 	}
 
 
-#define WRAP_WATCOM_FFUNC1(retType, name, funcoff, arg1t, arg1) \
-	retType __fastcall name(arg1t arg1) { \
-		WRAP_WATCOM_FCALL1(funcoff, arg1) \
+#define WRAP_WATCOM_FFUNC1(retType, name, arg1t, arg1) \
+	retType __fastcall fo_##name(arg1t arg1) { \
+		WRAP_WATCOM_FCALL1(name##_, arg1) \
 	}
 
-#define WRAP_WATCOM_FFUNC2(retType, name, funcoff, arg1t, arg1, arg2t, arg2) \
-	retType __fastcall name(arg1t arg1, arg2t arg2) { \
-		WRAP_WATCOM_FCALL2(funcoff, arg1, arg2) \
+#define WRAP_WATCOM_FFUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2) { \
+		WRAP_WATCOM_FCALL2(name##_, arg1, arg2) \
 	}
 
-#define WRAP_WATCOM_FFUNC3(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3) { \
-		WRAP_WATCOM_FCALL3(funcoff, arg1, arg2, arg3) \
+#define WRAP_WATCOM_FFUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3) { \
+		WRAP_WATCOM_FCALL3(name##_, arg1, arg2, arg3) \
 	}
 
-#define WRAP_WATCOM_FFUNC4(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
-		WRAP_WATCOM_FCALL4(funcoff, arg1, arg2, arg3, arg4) \
+#define WRAP_WATCOM_FFUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
+		WRAP_WATCOM_FCALL4(name##_, arg1, arg2, arg3, arg4) \
 	}
 
-#define WRAP_WATCOM_FFUNC5(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
-		WRAP_WATCOM_FCALL5(funcoff, arg1, arg2, arg3, arg4, arg5) \
+#define WRAP_WATCOM_FFUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
+		WRAP_WATCOM_FCALL5(name##_, arg1, arg2, arg3, arg4, arg5) \
 	}
 
-#define WRAP_WATCOM_FFUNC6(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
-		WRAP_WATCOM_FCALL6(funcoff, arg1, arg2, arg3, arg4, arg5, arg6) \
+#define WRAP_WATCOM_FFUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
+		WRAP_WATCOM_FCALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
 	}
 
-#define WRAP_WATCOM_FFUNC7(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
-		WRAP_WATCOM_FCALL7(funcoff, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+#define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
+		WRAP_WATCOM_FCALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
 	}
 
-#define WRAP_WATCOM_FFUNC8(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
-		WRAP_WATCOM_FCALL8(funcoff, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+#define WRAP_WATCOM_FFUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
+		WRAP_WATCOM_FCALL8(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
 	}
 
-#define WRAP_WATCOM_FFUNC9(retType, name, funcoff, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
-	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9) { \
-		WRAP_WATCOM_FCALL9(funcoff, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+#define WRAP_WATCOM_FFUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __fastcall fo_##name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9) { \
+		WRAP_WATCOM_FCALL9(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
 	}
 
 #include "FalloutFuncs_def.h"
@@ -1321,12 +1320,12 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 static MSGNode messageBuf;
 
 const char* GetMessageStr(const MSGList* fileAddr, long messageId) {
-	return Getmsg(fileAddr, &messageBuf, messageId);
+	return fo_getmsg(fileAddr, &messageBuf, messageId);
 }
 
 const char* MsgSearch(const MSGList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
-	if (MessageSearch(fileAddr, &messageBuf) == 1) {
+	if (fo_message_search(fileAddr, &messageBuf) == 1) {
 		return messageBuf.message;
 	}
 	return nullptr;
@@ -1371,29 +1370,29 @@ long AnimCodeByWeapon(TGameObj* weapon) {
 
 void SkillGetTags(long* result, long num) {
 	if (num > 4) num = 4;
-	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
+	fo_skill_get_tags(result, num);
 }
 
 void SkillSetTags(long* tags, long num) {
 	if (num > 4) num = 4;
-	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
+	fo_skill_set_tags(tags, num);
 }
 
 long __fastcall GetItemType(TGameObj* item) {
-	return ItemGetType(item);
+	return fo_item_get_type(item);
 }
 
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot) {
 	TGameObj* itemPtr = nullptr;
 	switch (slot) {
 		case INVEN_TYPE_LEFT_HAND:
-			itemPtr = InvenLeftHand(critter);
+			itemPtr = fo_inven_left_hand(critter);
 			break;
 		case INVEN_TYPE_RIGHT_HAND:
-			itemPtr = InvenRightHand(critter);
+			itemPtr = fo_inven_right_hand(critter);
 			break;
 		case INVEN_TYPE_WORN:
-			itemPtr = InvenWorn(critter);
+			itemPtr = fo_inven_worn(critter);
 			break;
 	}
 	return itemPtr;
@@ -1408,15 +1407,15 @@ TGameObj* GetActiveItem() {
 }
 
 bool HeroIsFemale() {
-	return (StatLevel(*ptr_obj_dude, STAT_gender) == GENDER_FEMALE);
+	return (fo_stat_level(*ptr_obj_dude, STAT_gender) == GENDER_FEMALE);
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence() {
-	QueueRadiation* queue = (QueueRadiation*)QueueFindFirst(*ptr_obj_dude, radiation_event);
+	QueueRadiation* queue = (QueueRadiation*)fo_queue_find_first(*ptr_obj_dude, radiation_event);
 	while (queue) {
 		if (queue->init && queue->level >= 2) return 1;
-		queue = (QueueRadiation*)QueueFindNext(*ptr_obj_dude, radiation_event);
+		queue = (QueueRadiation*)fo_queue_find_next(*ptr_obj_dude, radiation_event);
 	}
 	return 0;
 }
@@ -1424,7 +1423,7 @@ long __fastcall IsRadInfluence() {
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid) {
 	TScript* script = nullptr;
-	ScrPtr(sid, &script);
+	fo_scr_ptr(sid, &script);
 	return (script) ? script->numLocalVars : 0;
 }
 
@@ -1460,15 +1459,15 @@ static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type) {
 	long endTile;
 	for (long tile = GetRangeTileNumbers(sourceTile, radius, endTile); tile < endTile; tile++) {
-		TGameObj* obj = ObjFindFirstAtTile(elev, tile);
+		TGameObj* obj = fo_obj_find_first_at_tile(elev, tile);
 		while (obj) {
 			if (type == -1 || type == obj->Type()) {
 				bool multiHex = (obj->flags & ObjectFlag::MultiHex) ? true : false;
-				if (TileDist(sourceTile, obj->tile) <= (radius + multiHex)) {
+				if (fo_tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
 					objs.push_back(obj);
 				}
 			}
-			obj = ObjFindNextAtTile();
+			obj = fo_obj_find_next_at_tile();
 		}
 	}
 }
@@ -1477,8 +1476,8 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile) {
 	long rotation = 5;
 	do {
-		long chkTile = TileNumInDirection(dstTile, rotation, 1);
-		TGameObj* obj = ObjBlockingAt(source, chkTile, source->elevation);
+		long chkTile = fo_tile_num_in_direction(dstTile, rotation, 1);
+		TGameObj* obj = fo_obj_blocking_at(source, chkTile, source->elevation);
 		if (obj) return obj;
 	} while (--rotation >= 0);
 
@@ -1486,26 +1485,26 @@ TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile) {
 }
 
 TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile) {
-	if (TileDist(source->tile, dstTile) > 1) {
+	if (fo_tile_dist(source->tile, dstTile) > 1) {
 		return CheckAroundBlockingTiles(source, dstTile);
 	}
 	// Checks the blocking arc of adjacent tiles
-	long dir = TileDir(source->tile, dstTile);
+	long dir = fo_tile_dir(source->tile, dstTile);
 
-	long chkTile = TileNumInDirection(dstTile, dir, 1);
-	TGameObj* obj = ObjBlockingAt(source, chkTile, source->elevation);
+	long chkTile = fo_tile_num_in_direction(dstTile, dir, 1);
+	TGameObj* obj = fo_obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	// +1 direction
 	long rotation = (dir + 1) % 6;
-	chkTile = TileNumInDirection(dstTile, rotation, 1);
-	obj = ObjBlockingAt(source, chkTile, source->elevation);
+	chkTile = fo_tile_num_in_direction(dstTile, rotation, 1);
+	obj = fo_obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	// -1 direction
 	rotation = (dir + 5) % 6;
-	chkTile = TileNumInDirection(dstTile, rotation, 1);
-	obj = ObjBlockingAt(source, chkTile, source->elevation);
+	chkTile = fo_tile_num_in_direction(dstTile, rotation, 1);
+	obj = fo_obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	return nullptr;
@@ -1587,12 +1586,12 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 //void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
 //	BYTE* surf = surface + (y * surfWidth) + x;
-//	WMInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
+//	fo_wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
 //}
 
 // Fills the specified interface window with index color
 void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
-	WINinfo* win = GNWFind(winID);
+	WINinfo* win = fo_GNW_find(winID);
 	BYTE* surf = win->surface + (win->width * y) + x;
 	long pitch = win->width - width;
 	while (height--) {
@@ -1604,18 +1603,18 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
-	WINinfo* win = GNWFind(winID);
+	WINinfo* win = fo_GNW_find(winID);
 	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
-		GNWWinRefresh(win, &win->rect, nullptr);
+		fo_GNW_win_refresh(win, &win->rect, nullptr);
 	}
 }
 
 //---------------------------------------------------------
 void PrintFloatText(TGameObj* object, const char* text, long colorText, long colorOutline, long font) {
 	BoundRect rect;
-	if (!TextObjectCreate(object, text, font, colorText, colorOutline, &rect)) {
-		TileRefreshRect(&rect, object->elevation);
+	if (!fo_text_object_create(object, text, font, colorText, colorOutline, &rect)) {
+		fo_tile_refresh_rect(&rect, object->elevation);
 	}
 }
 
@@ -1671,7 +1670,7 @@ DWORD __stdcall GetTextWidth(const char* TextMsg) {
 }
 
 DWORD __stdcall GetTextWidthFM(const char* TextMsg) {
-	return FMtextWidth(TextMsg); //get text width
+	return fo_FMtext_width(TextMsg); //get text width
 }
 
 //---------------------------------------------------------
@@ -1726,8 +1725,8 @@ DWORD __stdcall GetMaxCharWidth() {
 
 void RedrawObject(TGameObj* obj) {
 	BoundRect rect;
-	ObjBound(obj, &rect);
-	TileRefreshRect(&rect, obj->elevation);
+	fo_obj_bound(obj, &rect);
+	fo_tile_refresh_rect(&rect, obj->elevation);
 }
 
 // Redraws all windows
@@ -1735,7 +1734,7 @@ void RefreshGNW(bool skipOwner) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 1;
 	for (size_t i = 0; i < *ptr_num_windows; i++) {
 		if (skipOwner && ptr_window[i]->flags & WinFlags::OwnerFlag) continue;
-		GNWWinRefresh(ptr_window[i], ptr_scr_size, 0);
+		fo_GNW_win_refresh(ptr_window[i], ptr_scr_size, 0);
 	}
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;
 }
@@ -1743,21 +1742,21 @@ void RefreshGNW(bool skipOwner) {
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
 
 static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
-	if (DbFReadInt(frmStream, &frmHeader->version) == -1)
+	if (fo_db_freadInt(frmStream, &frmHeader->version) == -1)
 		return false;
-	else if (DbFReadShort(frmStream, &frmHeader->FPS) == -1)
+	else if (fo_db_freadShort(frmStream, &frmHeader->FPS) == -1)
 		return false;
-	else if (DbFReadShort(frmStream, &frmHeader->actionFrame) == -1)
+	else if (fo_db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
 		return false;
-	else if (DbFReadShort(frmStream, &frmHeader->numFrames) == -1)
+	else if (fo_db_freadShort(frmStream, &frmHeader->numFrames) == -1)
 		return false;
-	else if (DbFReadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
+	else if (fo_db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
 		return false;
-	else if (DbFReadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
+	else if (fo_db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
 		return false;
-	else if (DbFReadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
+	else if (fo_db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
 		return false;
-	else if (DbFReadInt(frmStream, &frmHeader->frameAreaSize) == -1)
+	else if (fo_db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
 		return false;
 
 	return true;
@@ -1767,19 +1766,19 @@ static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
-	if (DbFReadShort(frmStream, &frame->width) == -1)
+	if (fo_db_freadShort(frmStream, &frame->width) == -1)
 		return false;
-	else if (DbFReadShort(frmStream, &frame->height) == -1)
+	else if (fo_db_freadShort(frmStream, &frame->height) == -1)
 		return false;
-	else if (DbFReadInt(frmStream, &frame->size) == -1)
+	else if (fo_db_freadInt(frmStream, &frame->size) == -1)
 		return false;
-	else if (DbFReadShort(frmStream, &frame->x) == -1)
+	else if (fo_db_freadShort(frmStream, &frame->x) == -1)
 		return false;
-	else if (DbFReadShort(frmStream, &frame->y) == -1)
+	else if (fo_db_freadShort(frmStream, &frame->y) == -1)
 		return false;
 
 	frame->indexBuff = new BYTE[frame->size];
-	if (DbFRead(frame->indexBuff, frame->size, 1, frmStream) != 1)
+	if (fo_db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1)
 		return false;
 
 	return true;
@@ -1795,11 +1794,11 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 	UNLSTDfrm *frm = new UNLSTDfrm;
 
-	DbFile* frmStream = XFOpen(FrmPath, "rb");
+	DbFile* frmStream = fo_xfopen(FrmPath, "rb");
 
 	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {
-			DbFClose(frmStream);
+			fo_db_fclose(frmStream);
 			delete frm;
 			return nullptr;
 		}
@@ -1812,7 +1811,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 				frm->oriOffset[ori] = oriOffset_new;
 				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
 					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						DbFClose(frmStream);
+						fo_db_fclose(frmStream);
 						delete frm;
 						return nullptr;
 					}
@@ -1823,7 +1822,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 			}
 		}
 
-		DbFClose(frmStream);
+		fo_db_fclose(frmStream);
 	} else {
 		delete frm;
 		return nullptr;

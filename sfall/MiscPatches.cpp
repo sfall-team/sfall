@@ -126,10 +126,10 @@ fail:
 }
 
 static bool __fastcall SeeIsFront(TGameObj* source, TGameObj* target) {
-	long dir = source->rotation - TileDir(source->tile, target->tile);
+	long dir = source->rotation - fo_tile_dir(source->tile, target->tile);
 	if (dir < 0) dir = -dir;
 	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
-		return (ObjDist(source, target) <= (StatLevel(source, STAT_pe) * 3));
+		return (fo_obj_dist(source, target) <= (fo_stat_level(source, STAT_pe) * 3));
 	}
 	return (dir == 0); // is directly in front
 }
@@ -317,8 +317,8 @@ palColor:
 static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
 	if (*ptr_text_object_index > 0) {
 		for (size_t i = 0; i < *ptr_text_object_index; i++) {
-			MemFree(ptr_text_object_list[i]->unknown10);
-			MemFree(ptr_text_object_list[i]);
+			fo_mem_free(ptr_text_object_list[i]->unknown10);
+			fo_mem_free(ptr_text_object_list[i]);
 		}
 		*ptr_text_object_index = 0;
 	}

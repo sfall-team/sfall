@@ -108,7 +108,7 @@ static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
 		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
 		SkillInfo *skills = (SkillInfo*)FO_VAR_skill_data;
 		rawPoints *= skills[skill].skillPointMulti;
-		if (SkillIsTagged(skill)) rawPoints *= 2;
+		if (fo_skill_is_tagged(skill)) rawPoints *= 2;
 		base += rawPoints; // add the negative skill points after calculating the skill level
 		if (base < 0) return max(-999, base);
 	}
@@ -182,7 +182,7 @@ static void __declspec(naked) skill_inc_point_hack() {
 static int __fastcall GetStatBonus(TGameObj* critter, const SkillInfo* info, int skill, int points) {
 	double result = 0;
 	for (int i = 0; i < 7; i++) {
-		result += StatLevel(critter, i) * multipliers[skill * 7 + i];
+		result += fo_stat_level(critter, i) * multipliers[skill * 7 + i];
 	}
 	result += points * info->skillPointMulti;
 	result += info->base;

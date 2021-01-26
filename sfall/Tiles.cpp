@@ -70,10 +70,10 @@ static BYTE* mask;
 
 static void CreateMask() {
 	mask = new BYTE[80 * 36];
-	DbFile* file = DbFOpen("art\\tiles\\grid000.frm", "r");
-	DbFSeek(file, 0x4A, 0);
-	DbFReadByteCount(file, mask, 80 * 36);
-	DbFClose(file);
+	DbFile* file = fo_db_fopen("art\\tiles\\grid000.frm", "r");
+	fo_db_fseek(file, 0x4A, 0);
+	fo_db_freadByteCount(file, mask, 80 * 36);
+	fo_db_fclose(file);
 }
 
 static WORD ByteSwapW(WORD w) {
@@ -90,20 +90,20 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	strcpy_s(buf, "art\\tiles\\");
 	strcat_s(buf, &tiles->names[13 * tile]);
 
-	DbFile* art = DbFOpen(buf, "r");
+	DbFile* art = fo_db_fopen(buf, "r");
 	if (!art) return 0;
-	DbFSeek(art, 0x3E, 0);
+	fo_db_fseek(art, 0x3E, 0);
 	WORD width;
-	DbFReadShort(art, &width);  //80;
+	fo_db_freadShort(art, &width);  //80;
 	if (width == 80) {
-		DbFClose(art);
+		fo_db_fclose(art);
 		return 0;
 	}
 	WORD height;
-	DbFReadShort(art, &height); //36
-	DbFSeek(art, 0x4A, 0);
+	fo_db_freadShort(art, &height); //36
+	fo_db_fseek(art, 0x4A, 0);
 	BYTE* pixeldata = new BYTE[width * height];
-	DbFReadByteCount(art, pixeldata, width * height);
+	fo_db_freadByteCount(art, pixeldata, width * height);
 	DWORD listid = listpos - tiles->total;
 	float newwidth = (float)(width - width % 8);
 	float newheight = (float)(height - height % 12);
@@ -112,8 +112,8 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	for (int y = 0; y < ysize; y++) {
 		for (int x = 0; x < xsize; x++) {
 			FrmFile frame;
-			DbFSeek(art, 0, 0);
-			DbFReadByteCount(art, (BYTE*)&frame, 0x4a);
+			fo_db_fseek(art, 0, 0);
+			fo_db_freadByteCount(art, (BYTE*)&frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
 			frame.frameSize = ByteSwapD(80 * 36);
@@ -132,13 +132,13 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 
 			sprintf_s(buf, 32, "art\\tiles\\zzz%04d.frm", listid++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
-			DbFile* file = DbFOpen(buf, "w");
-			DbFWriteByteCount(file, (BYTE*)&frame, sizeof(frame));
-			DbFClose(file);
+			DbFile* file = fo_db_fopen(buf, "w");
+			fo_db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
+			fo_db_fclose(file);
 		}
 	}
 	overrides[tile] = new OverrideEntry(xsize, ysize, listpos);
-	DbFClose(art);
+	fo_db_fclose(art);
 	delete[] pixeldata;
 	return xsize * ysize;
 }
@@ -156,21 +156,21 @@ static int __stdcall ArtInitHook() {
 	ZeroMemory(overrides, 4 * (listpos - 1));
 
 	if (tileMode == 2) {
-		DbFile* file = DbFOpen("art\\tiles\\xltiles.lst", "rt");
+		DbFile* file = fo_db_fopen("art\\tiles\\xltiles.lst", "rt");
 		if (!file) return 0;
 		DWORD id;
 		char* comment;
-		while (DbFGets(buf, 31, file) > 0) {
+		while (fo_db_fgets(buf, 31, file) > 0) {
 			if (comment = strchr(buf, ';')) *comment = 0;
 			id = atoi(buf);
 			if (id > 1) listpos += ProcessTile(tiles, id, listpos);
 		}
-		DbFClose(file);
+		fo_db_fclose(file);
 	} else {
 		for (int i = 2; i < tiles->total; i++) listpos += ProcessTile(tiles, i, listpos);
 	}
 	if (listpos != tiles->total) {
-		tiles->names = (char*)MemRealloc(tiles->names, listpos * 13);
+		tiles->names = (char*)fo_mem_realloc(tiles->names, listpos * 13);
 		for (DWORD i = tiles->total; i < listpos; i++) {
 			sprintf_s(&tiles->names[i * 13], 12, "zzz%04d.frm", i - tiles->total);
 		}

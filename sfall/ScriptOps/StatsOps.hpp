@@ -388,7 +388,7 @@ static void __stdcall op_set_critter_current_ap2() {
 			if (ap < 0) ap = 0;
 			obj->critter.movePoints = ap;
 
-			if (obj == *ptr_obj_dude) IntfaceUpdateMovePoints(ap, *ptr_combat_free_move);
+			if (obj == *ptr_obj_dude) fo_intface_update_move_points(ap, *ptr_combat_free_move);
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_current_ap");
 		}

@@ -80,15 +80,15 @@ static void CreateButtons() {
 	DWORD winRef = *ptr_lsgwin;
 
 	// left button -10       | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
-	WinRegisterButton(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
+	fo_win_register_button(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
 	// left button -100
-	WinRegisterButton(winRef,  68, 60, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
+	fo_win_register_button(winRef,  68, 60, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
 	// right button +10
-	WinRegisterButton(winRef, 216, 60, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
+	fo_win_register_button(winRef, 216, 60, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
 	// right button +100
-	WinRegisterButton(winRef, 248, 60, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
+	fo_win_register_button(winRef, 248, 60, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
 	// Set Number button
-	WinRegisterButton(winRef, 140, 60, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
+	fo_win_register_button(winRef, 140, 60, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
 }
 
 static void __declspec(naked) create_page_buttons(void) {
@@ -104,7 +104,7 @@ void SetPageNum() {
 	if (winRef == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GNWFind(winRef);
+	WINinfo *SaveLoadWin = fo_GNW_find(winRef);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
@@ -158,10 +158,10 @@ void SetPageNum() {
 
 			PrintText(TempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 			PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
-			WinDraw(winRef);
+			fo_win_draw(winRef);
 		}
 
-		button = GetInputBtn();
+		button = fo_get_input();
 		if (button >= '0' && button <= '9') {
 			if (numpos < 4) {
 				Number[numpos] = button;
@@ -256,7 +256,7 @@ void DrawPageText() {
 	if (*ptr_lsgwin == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GNWFind(*ptr_lsgwin);
+	WINinfo *SaveLoadWin = fo_GNW_find(*ptr_lsgwin);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
@@ -431,7 +431,7 @@ static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
 	long currSlot = *ptr_slot_cursor;
 
 	if (file) { // This slot is not empty
-		DbFClose(file);
+		fo_db_fclose(file);
 
 		FILETIME ftCurrSlot;
 		GetSaveFileTime(filename, &ftCurrSlot);

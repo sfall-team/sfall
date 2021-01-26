@@ -103,7 +103,7 @@ static void __stdcall RunSpecificHookScript(sHookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
-		ExecuteProcedure(hook->prog.ptr, hook->callback);
+		fo_executeProcedure(hook->prog.ptr, hook->callback);
 	} else {
 		hook->callback = RunScriptStartProc(&hook->prog); // run start
 	}
@@ -113,7 +113,7 @@ static void __stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
 	if (!hooks[hook].empty()) {
 		if (callDepth > 8) {
-			DebugPrintf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
+			fo_debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
 			dlog_f("The hook %d cannot be executed due to exceeding depth limit\n", DL_MAIN, hook);
 			return;
 		}
@@ -234,7 +234,7 @@ static void __declspec(naked) AfterHitRollHook() {
 
 // Implementation of item_w_mp_cost_ engine function with the hook
 long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
-	long cost = ItemWMpCost(source, hitMode, isCalled);
+	long cost = fo_item_w_mp_cost(source, hitMode, isCalled);
 
 	BeginHook();
 	argCount = 4;
@@ -321,14 +321,14 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 		DWORD pid = rets[0];
 		args[0] = pid; // replace for HOOK_DEATHANIM2
 		TGameObj* object = nullptr;
-		if (ObjPidNew((TGameObj*)&object, pid) != -1) { // create new object
+		if (fo_obj_pid_new((TGameObj*)&object, pid) != -1) { // create new object
 			createNewObj = true;
 			weapon = object; // replace pointer with newly created weapon object
 		}
 		cRet = 0; // reset rets from HOOK_DEATHANIM1
 	}
 
-	DWORD animDeath = PickDeath(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
+	DWORD animDeath = fo_pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
 	args[4] = animDeath;
 	RunHookScript(HOOK_DEATHANIM2);
@@ -336,7 +336,7 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 	if (cRet > 0) animDeath = rets[0];
 	EndHook();
 
-	if (createNewObj) ObjEraseObject(weapon, 0); // delete created object
+	if (createNewObj) fo_obj_erase_object(weapon, 0); // delete created object
 
 	return animDeath;
 }
@@ -618,7 +618,7 @@ static void __declspec(naked) RemoveObjHook() {
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, register TGameObj* target, DWORD callAddr) {
 	bool barterIsParty = (*ptr_dialog_target_is_party != 0);
-	long computeCost = BarterComputeValue(source, target);
+	long computeCost = fo_barter_compute_value(source, target);
 
 	BeginHook();
 	argCount = 10;
@@ -629,8 +629,8 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 
 	TGameObj* bTable = (TGameObj*)*ptr_btable;
 	args[3] = (DWORD)bTable;
-	args[4] = ItemCapsTotal(bTable);
-	args[5] = ItemTotalCost(bTable);
+	args[4] = fo_item_caps_total(bTable);
+	args[5] = fo_item_total_cost(bTable);
 
 	TGameObj* pTable = (TGameObj*)*ptr_ptable;
 	args[6] = (DWORD)pTable;
@@ -638,9 +638,9 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 	long pcCost = 0;
 	if (barterIsParty) {
 		args[7] = pcCost;
-		pcCost = ItemTotalWeight(pTable);
+		pcCost = fo_item_total_weight(pTable);
 	} else {
-		args[7] = pcCost = ItemTotalCost(pTable);
+		args[7] = pcCost = fo_item_total_cost(pTable);
 	}
 
 	args[8] = (DWORD)(callAddr == 0x474D51); // offers button pressed
@@ -882,7 +882,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &roun
 	if (hookType == 2) {        // burst hook
 		rounds = 1;             // set default multiply for check burst attack
 	} else {
-		result = ItemWComputeAmmoCost(weapon, &rounds);
+		result = fo_item_w_compute_ammo_cost(weapon, &rounds);
 		if (result == -1) goto failed; // failed computed
 	}
 	args[2] = rounds;           // rounds as computed by game (cost)
@@ -996,7 +996,7 @@ defaultHandler:
 
 // 4.x backport
 static long __fastcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* target, int type) {
-	long result = IsWithinPerception(watcher, target);
+	long result = fo_is_within_perception(watcher, target);
 
 	BeginHook();
 	argCount = 4;
@@ -1582,7 +1582,7 @@ long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item,
 		}
 		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
 	}
-	if (result) CorrectFidForRemovedItem(critter, item, flags);
+	if (result) fo_correctFidForRemovedItem(critter, item, flags);
 	return result;
 }
 
@@ -1667,7 +1667,7 @@ static void LoadHookScript(const char* name, int id) {
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
 
-	if (DbAccess(filename)) {
+	if (fo_db_access(filename)) {
 		sScriptProgram prog;
 		dlog("> ", DL_HOOK);
 		dlog(name, DL_HOOK);
@@ -1691,7 +1691,7 @@ static void HookScriptInit() {
 
 	char* mask = "scripts\\hs_*.int";
 	char** filenames;
-	DbGetFileList(mask, &filenames);
+	fo_db_get_file_list(mask, &filenames);
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	const DWORD toHitHkAddr[] = {
@@ -1875,7 +1875,7 @@ static void HookScriptInit() {
 
 	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
-	DbFreeFileList(&filenames, 0);
+	fo_db_free_file_list(&filenames, 0);
 
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }

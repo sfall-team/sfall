@@ -137,7 +137,7 @@ static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameSt
 	ScriptExtender_OnGameLoad();
 	if (isDebug) {
 		char* str = (onLoad) ? "on Load" : "on Exit";
-		DebugPrintf("\n[SFALL: State reset %s]", str);
+		fo_debug_printf("\n[SFALL: State reset %s]", str);
 	}
 	inLoop = 0;
 	gameLoaded = false;
@@ -184,8 +184,8 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	DisplayPrint(saveSfallDataFailMsg);
-	GsoundPlaySfxFile("IISXXXX1");
+	fo_display_print(saveSfallDataFailMsg);
+	fo_gsound_play_sfx_file("IISXXXX1");
 }
 
 static char saveFailMsg[128];
@@ -194,13 +194,13 @@ static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl_IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl_IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			DisplayPrint(saveFailMsg);
+			fo_display_print(saveFailMsg);
 			return 0;
 		}
-		int ap = StatLevel(*ptr_obj_dude, STAT_max_move_points);
-		int bonusmove = PerkLevel(*ptr_obj_dude, PERK_bonus_move);
+		int ap = fo_stat_level(*ptr_obj_dude, STAT_max_move_points);
+		int bonusmove = fo_perk_level(*ptr_obj_dude, PERK_bonus_move);
 		if ((*ptr_obj_dude)->critter.movePoints != ap || bonusmove * 2 != *ptr_combat_free_move) {
-			DisplayPrint(saveFailMsg);
+			fo_display_print(saveFailMsg);
 			return 0;
 		}
 	}
@@ -265,7 +265,7 @@ static bool __stdcall LoadGame_Before() {
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
-	DebugPrintf("\n[SFALL] ERROR reading data: %s", buf);
+	fo_debug_printf("\n[SFALL] ERROR reading data: %s", buf);
 	return (true & !isDebug);
 }
 

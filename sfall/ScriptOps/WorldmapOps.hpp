@@ -53,7 +53,7 @@ static void ForceEncounterEffects() {
 		long iconFidIndex = iconType - *(DWORD*)FO_VAR_wmRndCursorFid;
 		*(DWORD*)FO_VAR_wmRndCursorFid = iconFidIndex;
 		__asm call wmInterfaceRefresh_;
-		BlockForTocks(200);
+		fo_block_for_tocks(200);
 	}
 	*(DWORD*)FO_VAR_wmEncounterIconShow = 0;
 }
@@ -230,7 +230,7 @@ static void mf_get_map_enter_position() {
 }
 
 static void mf_tile_by_position() {
-	opHandler.setReturn(TileNum(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
+	opHandler.setReturn(fo_tile_num(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
 }
 
 static void mf_set_terrain_name() {

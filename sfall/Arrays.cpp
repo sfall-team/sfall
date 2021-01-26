@@ -686,7 +686,7 @@ void __stdcall ResizeArray(DWORD id, int newlen) {
 	return;
 
 errorResize:
-	DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
+	fo_debug_printf("\nOPCODE ERROR: resize_array() - array sorting error.");
 }
 
 void __stdcall FixArray(DWORD id) {

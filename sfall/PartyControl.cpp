@@ -92,7 +92,7 @@ static void SaveRealDudeState() {
 	realDude.art_vault_guy_num = *ptr_art_vault_guy_num;
 	realDude.itemCurrentItem = *ptr_itemCurrentItem;
 	memcpy(realDude.itemButtonItems, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
-	memcpy(realDude.traits, ptr_pc_traits, sizeof(long) * 2);
+	memcpy(realDude.traits, ptr_pc_trait, sizeof(long) * 2);
 	memcpy(realDude.perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(realDude.pc_name, 32, ptr_pc_name);
 	realDude.Level = *ptr_Level_;
@@ -108,12 +108,12 @@ static void SaveRealDudeState() {
 		SafeWriteBatch<BYTE>(0, counterAnimAddr); // no animate
 	}
 
-	if (isDebug) DebugPrintf("\n[SFALL] Save dude state.");
+	if (isDebug) fo_debug_printf("\n[SFALL] Save dude state.");
 }
 
 // take control of the NPC
 static void TakeControlOfNPC(TGameObj* npc) {
-	if (isDebug) DebugPrintf("\n[SFALL] Take control of critter.");
+	if (isDebug) fo_debug_printf("\n[SFALL] Take control of critter.");
 
 	// remove skill tags
 	long tagSkill[4];
@@ -121,7 +121,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	SkillSetTags(tagSkill, 4);
 
 	// reset traits
-	ptr_pc_traits[0] = ptr_pc_traits[1] = -1;
+	ptr_pc_trait[0] = ptr_pc_trait[1] = -1;
 
 	// reset perks (except Awareness)
 	for (int i = 1; i < PERK_count; i++) {
@@ -129,15 +129,15 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	}
 
 	// change level
-	int level = IsPartyMember(npc)
-				? PartyMemberGetCurrentLevel(npc)
+	int level = fo_isPartyMember(npc)
+				? fo_partyMemberGetCurLevel(npc)
 				: 0;
 
 	*ptr_Level_ = level;
 	*ptr_last_level = level;
 
 	// change character name
-	CritterPcSetName(CritterName(npc));
+	fo_critter_pc_set_name(fo_critter_name(npc));
 
 	// reset other stats
 	*ptr_Experience_ = 0;
@@ -147,7 +147,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
-	if (AnimCodeByWeapon(InvenLeftHand(npc)) == critterAnim) { // definitely left hand
+	if (AnimCodeByWeapon(fo_inven_left_hand(npc)) == critterAnim) { // definitely left hand
 		*ptr_itemCurrentItem = 0;
 	} else {
 		*ptr_itemCurrentItem = 1;
@@ -163,7 +163,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	delayedExperience = 0;
 	SetInventoryCheck(true);
 
-	IntfaceRedraw();
+	fo_intface_redraw();
 }
 
 // restores the real dude state
@@ -179,7 +179,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 
 	*ptr_itemCurrentItem = realDude.itemCurrentItem;
 	memcpy(ptr_itemButtonItems, realDude.itemButtonItems, sizeof(ItemButtonItem) * 2);
-	memcpy(ptr_pc_traits, realDude.traits, sizeof(long) * 2);
+	memcpy(ptr_pc_trait, realDude.traits, sizeof(long) * 2);
 	memcpy(*ptr_perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(ptr_pc_name, 32, realDude.pc_name);
 	*ptr_Level_ = realDude.Level;
@@ -199,12 +199,12 @@ static void RestoreRealDudeState(bool redraw = true) {
 		SafeWriteBatch<BYTE>(1, counterAnimAddr); // restore
 	}
 
-	if (redraw) IntfaceRedraw();
+	if (redraw) fo_intface_redraw();
 
 	SetInventoryCheck(false);
 	isControllingNPC = false;
 
-	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.\n");
+	if (isDebug) fo_debug_printf("\n[SFALL] Restore control to dude.\n");
 }
 
 static long __stdcall CombatTurn(TGameObj* obj) {
@@ -216,7 +216,7 @@ static long __stdcall CombatTurn(TGameObj* obj) {
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static long __stdcall CombatWrapperInner(TGameObj* obj) {
-	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
+	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo_isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
@@ -253,17 +253,17 @@ skip:
 }
 
 static void __stdcall DisplayCantDoThat() {
-	DisplayPrint(GetMessageStr(ptr_proto_main_msg_file, 675)); // I Can't do that
+	fo_display_print(GetMessageStr(ptr_proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
 int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
 	// don't allow to use the weapon, if no art exist for it
-	if (/*isControllingNPC &&*/ ItemGetType(item) == item_type_weapon) {
+	if (/*isControllingNPC &&*/ fo_item_get_type(item) == item_type_weapon) {
 		int fId = *ptr_i_fid; //(*ptr_obj_dude)->artFid;
 		long weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
-		if (!ArtExists(fId)) {
+		if (!fo_art_exists(fId)) {
 			DisplayCantDoThat();
 			return 1;
 		}
@@ -275,14 +275,14 @@ static long __fastcall GetRealDudePerk(TGameObj* source, long perk) {
 	if (isControllingNPC && source == realDude.obj_dude) {
 		return realDude.perkLevelDataList[perk];
 	}
-	return PerkLevel(source, perk);
+	return fo_perk_level(source, perk);
 }
 
 static long __fastcall GetRealDudeTrait(TGameObj* source, long trait) {
 	if (isControllingNPC && source == realDude.obj_dude) {
 		return (trait == realDude.traits[0] || trait == realDude.traits[1]) ? 1 : 0;
 	}
-	return TraitLevel(trait);
+	return fo_trait_level(trait);
 }
 
 static void __declspec(naked) CombatWrapper_v2() {
@@ -412,20 +412,20 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	TGameObj* partyMember = *ptr_dialog_target;
 	int xPos = 350;
 
-	int level = PartyMemberGetCurrentLevel(partyMember);
+	int level = fo_partyMemberGetCurLevel(partyMember);
 	sprintf_s(lvlMsg, fmt, levelMsg, level);
 
 	BYTE color = *ptr_GreenColor;
 	int widthText = GetTextWidth(lvlMsg);
 	PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
 
-	int ac = StatLevel(partyMember, STAT_ac);
+	int ac = fo_stat_level(partyMember, STAT_ac);
 	sprintf_s(acMsg, fmt, armorClassMsg, ac);
 
 	xPos -= GetTextWidth(armorClassMsg) + 20;
 	PrintText(acMsg, color, xPos, 167, GetTextWidth(acMsg), toWidth, surface);
 
-	if (QueueFindFirst(partyMember, 2)) {
+	if (fo_queue_find_first(partyMember, 2)) {
 		color = *ptr_RedColor;
 		widthText = GetTextWidth(addictMsg);
 		PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);

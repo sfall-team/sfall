@@ -360,7 +360,7 @@ static void __stdcall PreparePlayMovie() {
 		// TODO
 
 		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
-		backgroundVolume = GsoundBackgroundVolumeGetSet(0);
+		backgroundVolume = fo_gsound_background_volume_get_set(0);
 		#endif
 	}
 }
@@ -434,7 +434,7 @@ static void __stdcall PlayMovieRestore() {
 
 	if (*(DWORD*)FO_VAR_subtitles || !*ptr_subtitleList) {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
-		if (backgroundVolume) backgroundVolume = GsoundBackgroundVolumeGetSet(backgroundVolume); // restore volume
+		if (backgroundVolume) backgroundVolume = fo_gsound_background_volume_get_set(backgroundVolume); // restore volume
 	}
 	aviPlayState = AVISTATE_Stop;
 	FreeMovie(&movieInterface);
@@ -566,7 +566,7 @@ void Movies_Init() {
 	//}
 
 	// Pause and resume movie/sound playback when the game loses focus
-	SetFocusFunc(LostFocus);
+	fo_set_focus_func(LostFocus);
 
 	char optName[8] = "Movie";
 	for (int i = 0; i < MaxMovies; i++) {

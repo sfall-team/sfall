@@ -67,7 +67,7 @@ static void __stdcall SetKarma(int value) {
 	} else {
 		sprintf_s(buf, karmaLossMsg, -value);
 	}
-	DisplayPrint(buf);
+	fo_display_print(buf);
 }
 
 static void __declspec(naked) SetGlobalVarWrapper() {

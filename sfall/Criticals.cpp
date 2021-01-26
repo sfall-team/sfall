@@ -51,7 +51,7 @@ static const char* errorTable = "\nError: %s - function requires enabling Overri
 
 void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) {
-		DebugPrintf(errorTable, "set_critical_table()");
+		fo_debug_printf(errorTable, "set_critical_table()");
 		return;
 	}
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = value;
@@ -59,7 +59,7 @@ void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, 
 
 DWORD GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
-		DebugPrintf(errorTable, "get_critical_table()");
+		fo_debug_printf(errorTable, "get_critical_table()");
 		return 0;
 	}
 	return critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
@@ -67,7 +67,7 @@ DWORD GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element)
 
 void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
-		DebugPrintf(errorTable, "reset_critical_table()");
+		fo_debug_printf(errorTable, "reset_critical_table()");
 		return;
 	}
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = baseCritTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];

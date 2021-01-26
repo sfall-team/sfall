@@ -924,9 +924,9 @@ static void __declspec(naked) gsound_compute_relative_volume_hook() {
 static long __fastcall SetVolumeAndPan(long volume, ACMSoundData* sound) {
 	//if (!relativeObject) return volume;
 
-	long distance = ObjDist(*ptr_obj_dude, relativeObject);
+	long distance = fo_obj_dist(*ptr_obj_dude, relativeObject);
 	if (distance > 5) {
-		long direction = TileDir((*ptr_obj_dude)->tile, relativeObject->tile);
+		long direction = fo_tile_dir((*ptr_obj_dude)->tile, relativeObject->tile);
 		bool isRightSide = (direction <= 2);
 		long panValue = (distance < 55) ? (distance - 5) * 200 : 10000;
 		sound->soundBuffer->SetPan((isRightSide) ? panValue : -panValue); // left mute 10000 ... -10000 right mute

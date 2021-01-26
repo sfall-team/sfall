@@ -61,7 +61,7 @@ static void __stdcall op_get_perk_available2() {
 	if (perkIdArg.isInt()) {
 		int perkId = perkIdArg.rawValue();
 		if (perkId >= 0 && perkId < PERK_count) {
-			result = PerkCanAdd(*ptr_obj_dude, perkId);
+			result = fo_perk_can_add(*ptr_obj_dude, perkId);
 		}
 	} else {
 		OpcodeInvalidArgs("get_perk_available");
@@ -407,10 +407,10 @@ static void mf_add_trait() {
 	}
 	long traitId = opHandler.arg(0).rawValue();
 	if (traitId >= TRAIT_fast_metabolism && traitId <= TRAIT_gifted) {
-		if (ptr_pc_traits[0] == -1) {
-			ptr_pc_traits[0] = traitId;
-		} else if (ptr_pc_traits[0] != traitId && ptr_pc_traits[1] == -1) {
-			ptr_pc_traits[1] = traitId;
+		if (ptr_pc_trait[0] == -1) {
+			ptr_pc_trait[0] = traitId;
+		} else if (ptr_pc_trait[0] != traitId && ptr_pc_trait[1] == -1) {
+			ptr_pc_trait[1] = traitId;
 		} else {
 			opHandler.printOpcodeError("add_trait() - cannot add the trait ID: %d", traitId);
 		}

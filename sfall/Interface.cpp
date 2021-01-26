@@ -73,7 +73,7 @@ WINinfo* Interface_GetWindow(long winType) {
 	default:
 		return (WINinfo*)(-1);
 	}
-	return (winID > 0) ? GNWFind(winID) : nullptr;
+	return (winID > 0) ? fo_GNW_find(winID) : nullptr;
 }
 
 static long costAP = -1;
@@ -293,7 +293,7 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 	PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, *ptr_wmBkWinBuf); // shadow
 	PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *ptr_wmBkWinBuf);
 
-	if (backgroundCopy) WmRefreshInterfaceOverlay(0); // prevent printing text over the interface
+	if (backgroundCopy) fo_wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
 	return true;
 }
 
@@ -351,7 +351,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		rect.left = x_offset;
 		rect.right = x + HVRIMG_width;
 		rect.bottom = y + HVRIMG_height;
-		WinDrawRect(*ptr_wmBkWin, &rect);
+		fo_win_draw_rect(*ptr_wmBkWin, &rect);
 	}
 }
 
@@ -539,14 +539,14 @@ static long gmouse_handle_event_hook() {
 		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check the script windows
 			&& !(win->flags & WinFlags::Hidden)) {
 			RECT *rect = &win->wRect;
-			if (MouseClickIn(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
+			if (fo_mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
 		}
 	}
 	if (IFACE_BAR_MODE) return 1;
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
-	win = GNWFind(*(DWORD*)FO_VAR_display_win);
+	win = fo_GNW_find(*(DWORD*)FO_VAR_display_win);
 	RECT *rect = &win->wRect;
-	return MouseClickIn(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
+	return fo_mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {

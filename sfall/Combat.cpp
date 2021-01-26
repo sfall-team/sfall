@@ -84,7 +84,7 @@ static bool combatDisabled;
 static char combatBlockedMessage[128];
 
 static void __stdcall CombatBlocked() {
-	DisplayPrint(combatBlockedMessage);
+	fo_display_print(combatBlockedMessage);
 }
 
 static void __declspec(naked) intface_use_item_hook() {
@@ -123,12 +123,12 @@ void __stdcall SetBlockCombat(long toggle) {
 DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
-	long anim = ItemWAnimWeap(weapon, hitMode);
+	long anim = fo_item_w_anim_weap(weapon, hitMode);
 	if (anim == ANIM_fire_burst || anim == ANIM_fire_continuous) {
-		rounds = ItemWRounds(weapon); // ammo in burst
+		rounds = fo_item_w_rounds(weapon); // ammo in burst
 	}
 	AmmoCostHook_Script(1, weapon, rounds); // get rounds cost from hook
-	long currAmmo = ItemWCurrAmmo(weapon);
+	long currAmmo = fo_item_w_curr_ammo(weapon);
 
 	long cost = 1; // default cost
 	if (currAmmo > 0) {
@@ -315,21 +315,21 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 	switch (mode) {
 	case 0:
 		if (object->Type() != OBJ_TYPE_ITEM) {
-			DebugPrintf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
+			fo_debug_printf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
 			return;
 		}
 		mods = &mWeapons;
 		break;
 	case 1:
 		if (object->Type() != OBJ_TYPE_CRITTER) {
-			DebugPrintf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
+			fo_debug_printf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
 			return;
 		}
 		mods = &mTargets;
 		break;
 	case 2:
 		if (object->Type() != OBJ_TYPE_CRITTER) {
-			DebugPrintf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
+			fo_debug_printf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
 			return;
 		}
 		mods = &mAttackers;

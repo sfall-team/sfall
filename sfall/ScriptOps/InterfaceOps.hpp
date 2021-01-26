@@ -342,7 +342,7 @@ static void __declspec(naked) op_is_iface_tag_active() {
 
 static void mf_intface_redraw() {
 	if (opHandler.numArgs() == 0) {
-		IntfaceRedraw();
+		fo_intface_redraw();
 	} else {
 		// fake redraw interfaces (TODO: need a real redraw of interface?)
 		long winType = opHandler.arg(0).rawValue();
@@ -350,7 +350,7 @@ static void mf_intface_redraw() {
 			RefreshGNW(true); 
 		} else {
 			WINinfo* win = Interface_GetWindow(winType);
-			if (win && (int)win != -1) GNWWinRefresh(win, &win->rect, 0);
+			if (win && (int)win != -1) fo_GNW_win_refresh(win, &win->rect, 0);
 		}
 	}
 }
@@ -364,11 +364,11 @@ static void mf_intface_hide() {
 }
 
 static void mf_intface_is_hidden() {
-	opHandler.setReturn(IntfaceIsHidden());
+	opHandler.setReturn(fo_intface_is_hidden());
 }
 
 static void mf_tile_refresh_display() {
-	TileRefreshDisplay();
+	fo_tile_refresh_display();
 }
 
 static void mf_get_cursor_mode() {
@@ -376,13 +376,13 @@ static void mf_get_cursor_mode() {
 }
 
 static void mf_set_cursor_mode() {
-	Gmouse3dSetMode(opHandler.arg(0).rawValue());
+	fo_gmouse_3d_set_mode(opHandler.arg(0).rawValue());
 }
 
 static void mf_display_stats() {
 	unsigned long flags = GetLoopFlags();
 	if (flags & INVENTORY) {
-		DisplayStats(); // calling the function outside of inventory screen will crash the game
+		fo_display_stats(); // calling the function outside of inventory screen will crash the game
 	} else if (flags & CHARSCREEN) {
 		__asm {
 			mov  eax, ds:[FO_VAR_obj_dude];
@@ -399,7 +399,7 @@ static void mf_display_stats() {
 			call ListDrvdStats_;
 			pop  ebx;
 		}
-		WinDraw(*ptr_edit_win);
+		fo_win_draw(*ptr_edit_win);
 	}
 }
 
@@ -437,12 +437,12 @@ static void mf_inventory_redraw() {
 	long redrawSide = (opHandler.numArgs() > 0) ? opHandler.arg(0).rawValue() : -1; // -1 - both
 	if (redrawSide <= 0) {
 		ptr_stack_offset[*ptr_curr_stack] = 0;
-		DisplayInventory(0, -1, mode);
+		fo_display_inventory(0, -1, mode);
 	}
 	if (redrawSide && mode >= 2) {
 		ptr_target_stack_offset[*ptr_target_curr_stack] = 0;
-		DisplayTargetInventory(0, -1, *ptr_target_pud, mode);
-		WinDraw(*ptr_i_wid);
+		fo_display_target_inventory(0, -1, *ptr_target_pud, mode);
+		fo_win_draw(*ptr_i_wid);
 	}
 }
 
@@ -451,7 +451,7 @@ static void mf_create_win() {
 		? opHandler.arg(5).rawValue()
 		: WinFlags::MoveOnTop;
 
-	if (CreateWindowFunc(opHandler.arg(0).strValue(),
+	if (fo_createWindow(opHandler.arg(0).strValue(),
 		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // x, y
 		opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
 		(flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
@@ -466,7 +466,7 @@ static void mf_show_window() {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
 			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
-				WinShow(ptr_sWindows[i].wID);
+				fo_win_show(ptr_sWindows[i].wID);
 				return;
 			}
 		}
@@ -481,7 +481,7 @@ static void mf_hide_window() {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
 			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
-				WinHide(ptr_sWindows[i].wID);
+				fo_win_hide(ptr_sWindows[i].wID);
 				return;
 			}
 		}
@@ -508,7 +508,7 @@ static void mf_set_window_flag() {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
 			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
-				WINinfo* win = GNWFind(ptr_sWindows[i].wID);
+				WINinfo* win = fo_GNW_find(ptr_sWindows[i].wID);
 				if (mode) {
 					ptr_sWindows[i].flags |= bitFlag;
 					win->flags |= bitFlag;
@@ -522,7 +522,7 @@ static void mf_set_window_flag() {
 		opHandler.printOpcodeError("set_window_flag() - window '%s' is not found.", name);
 	} else {
 		long wid = opHandler.arg(0).rawValue();
-		WINinfo* win = GNWFind((wid > 0) ? wid : *ptr_i_wid); // i_wid - set flag to current game interface window
+		WINinfo* win = fo_GNW_find((wid > 0) ? wid : *ptr_i_wid); // i_wid - set flag to current game interface window
 		if (win == nullptr) return;
 		if (mode) {
 			win->flags |= bitFlag;
@@ -550,7 +550,7 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 		const char* pos = strrchr(file, '.');
 		if (pos && _stricmp(++pos, "PCX") == 0) {
 			long w, h;
-			BYTE* data = LoadPCXData(file, &w, &h);
+			BYTE* data = fo_loadPCX(file, &w, &h);
 			if (!data) return nullptr;
 
 			frmPtr = reinterpret_cast<FrmFile*>(new BYTE[78]);
@@ -564,7 +564,7 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 			return frmPtr;
 		}
 	}
-	if (LoadFrame(file, &frmPtr)) {
+	if (fo_load_frame(file, &frmPtr)) {
 		return nullptr;
 	}
 	framePtr = frmPtr->GetFrameData(direction, frame);
@@ -574,18 +574,18 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 static long __stdcall GetArtFIDFile(long fid, const char* &file) {
 	long direction = 0;
 	long _fid = fid & 0xFFFFFFF;
-	file = ArtGetName(_fid); // .frm
+	file = fo_art_get_name(_fid); // .frm
 	if (_fid >> 24 == OBJ_TYPE_CRITTER) {
 		direction = (fid >> 28);
-		if (direction > 0 && !DbAccess(file)) {
-			file = ArtGetName(fid); // .fr#
+		if (direction > 0 && !fo_db_access(file)) {
+			file = fo_art_get_name(fid); // .fr#
 		}
 	}
 	return direction;
 }
 
 static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const char* metaruleName) {
-	if (!SelectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
+	if (!fo_selectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
 		opHandler.printOpcodeError("%s() - no created or selected window.", metaruleName);
 		return 0;
 	}
@@ -612,7 +612,7 @@ static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const c
 	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
 
 	if (isScaled && opHandler.numArgs() < 3) {
-		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
+		fo_displayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
 	} else {
 		int x = opHandler.arg(2).rawValue(), y = opHandler.arg(3).rawValue();
 		if (isScaled) { // draw to scale
@@ -635,11 +635,11 @@ static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const c
 				goto exit;
 			}
 
-			long w_width = WindowWidth();
+			long w_width = fo_windowWidth();
 			long xy_pos = (y * w_width) + x;
-			WindowTransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
+			window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
 		} else { // with x/y frame offsets
-			WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, opHandler.arg(4).rawValue());
+			fo_windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, opHandler.arg(4).rawValue());
 		}
 	}
 
@@ -704,12 +704,12 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 
 	BYTE* surface = (ifaceWin->randY) ? GameRender_GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
-	TransCscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
-	            surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
+	fo_trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
+	                surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
 	if (!(opHandler.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
-		GNWWinRefresh(ifaceWin, &ifaceWin->rect, 0);
+		fo_GNW_win_refresh(ifaceWin, &ifaceWin->rect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -743,7 +743,7 @@ static void mf_unwield_slot() {
 	bool isDude = (critter == *ptr_obj_dude);
 	bool update = false;
 	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
-		if (InvenUnwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
+		if (fo_inven_unwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
 			update = isDude;
 		}
 	} else {
@@ -771,7 +771,7 @@ static void mf_unwield_slot() {
 		} else {
 			if (isDude) item = *ptr_i_worn;
 			if (!item) {
-				item = InvenWorn(critter);
+				item = fo_inven_worn(critter);
 			} else {
 				*ptr_i_worn = nullptr;
 				forceAdd = true;
@@ -781,12 +781,12 @@ static void mf_unwield_slot() {
 					if (forceAdd) *ptr_i_worn = item;
 					return;
 				}
-				if (isDude) IntfaceUpdateAc(0);
+				if (isDude) fo_intface_update_ac(0);
 			}
 		}
-		if (forceAdd) ItemAddForce(critter, item, 1);
+		if (forceAdd) fo_item_add_force(critter, item, 1);
 	}
-	if (update) IntfaceUpdateItems(0, -1, -1);
+	if (update) fo_intface_update_items(0, -1, -1);
 }
 
 static void mf_get_window_attribute() {
@@ -869,19 +869,19 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	}
 
 	if (color & 0x10000) { // shadow (textshadow)
-		WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
+		fo_windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
 		color ^= 0x10000;
 	}
-	opHandler.setReturn(WindowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
+	opHandler.setReturn(fo_windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
 
 	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) GNWWinRefresh(win, &win->rect, 0);
+	if (!(color & 0x1000000)) fo_GNW_win_refresh(win, &win->rect, 0);
 }
 
 static void mf_win_fill_color() {
-	long result = SelectWindowID(opHandler.program()->currentScriptWin);
+	long result = fo_selectWindowID(opHandler.program()->currentScriptWin);
 	long iWin = *(DWORD*)FO_VAR_currentWindow;
 	if (!result || iWin == -1) {
 		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");

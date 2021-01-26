@@ -123,7 +123,7 @@ void ReadExtraGameMsgFiles() {
 			}
 			path += ".msg";
 			MSGList* list = new MSGList();
-			if (MessageLoad(list, path.c_str()) == 1) {
+			if (fo_message_load(list, path.c_str()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
@@ -143,10 +143,10 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 	std::string path("game\\");
 	path += msgName;
 	MSGList* list = new MSGList();
-	if (!MessageLoad(list, path.c_str())) {
+	if (!fo_message_load(list, path.c_str())) {
 		// change current language folder
 		//path.insert(0, "..\\english\\");
-		//if (!MessageLoad(list, path.c_str())) {
+		//if (!fo_message_load(list, path.c_str())) {
 			delete list;
 			return -2;
 		//}
@@ -159,7 +159,7 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 void ClearScriptAddedExtraGameMsg() {
 	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end();) {
 		if (it->first >= 0x3000 && it->first <= 0x3FFF) {
-			MessageExit(it->second);
+			fo_message_exit(it->second);
 			delete it->second;
 			it = gExtraGameMsgLists.erase(it);
 		} else {
@@ -171,14 +171,14 @@ void ClearScriptAddedExtraGameMsg() {
 
 void FallbackEnglishLoadMsgFiles() {
 	char value[128];
-	if (GetGameConfigString(value, "system", "language") && _stricmp(value, "english") != 0) {
+	if (fo_get_game_config_string(value, "system", "language") && _stricmp(value, "english") != 0) {
 		HookCall(0x484B18, message_load_hook);
 	}
 }
 
 void ClearReadExtraGameMsgFiles() {
 	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
-		MessageExit(it->second);
+		fo_message_exit(it->second);
 		delete it->second;
 	}
 }

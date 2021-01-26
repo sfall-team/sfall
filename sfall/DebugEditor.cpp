@@ -58,7 +58,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	if (GraphicsMode != 0) ProcessBk();
+	if (GraphicsMode != 0) fo_process_bk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
@@ -102,12 +102,12 @@ static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
-			TGameObj* obj = ObjFindFirstAtTile(elv, tile);
+			TGameObj* obj = fo_obj_find_first_at_tile(elv, tile);
 			while (obj) {
 				if (obj->IsCritter()) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
-				obj = ObjFindNextAtTile();
+				obj = fo_obj_find_next_at_tile();
 			}
 		}
 	}
@@ -203,7 +203,7 @@ static void RunEditorInternal(SOCKET &s) {
 					std::vector<int> values(val);
 					long varVal;
 					for (int i = 0; i < val; i++) {
-						ScrGetLocalVar(id, i, &varVal);
+						fo_scr_get_local_var(id, i, &varVal);
 						values[i] = varVal;
 					}
 					InternalSend(s, values.data(), val * 4);
@@ -217,7 +217,7 @@ static void RunEditorInternal(SOCKET &s) {
 				std::vector<int> values(val);
 				InternalRecv(s, values.data(), val * 4);
 				for (int i = 0; i < val; i++) {
-					ScrSetLocalVar(id, i, values[i]);
+					fo_scr_set_local_var(id, i, values[i]);
 				}
 			}
 			break;

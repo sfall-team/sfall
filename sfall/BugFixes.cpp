@@ -1390,7 +1390,7 @@ static int __stdcall ItemCountFix(TGameObj* who, TGameObj* item) {
 		TGameObj::InvenItem* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
-		} else if (ItemGetType(tableItem->object) == item_type_container) {
+		} else if (fo_item_get_type(tableItem->object) == item_type_container) {
 			count += ItemCountFix(tableItem->object, item);
 		}
 	}
@@ -2052,7 +2052,7 @@ static void __stdcall combat_attack_gcsd() {
 			(*ptr_main_ctd).targetDamage = (*ptr_gcsd)->minDamage;
 		}
 		if (damage < (*ptr_main_ctd).targetDamage) { // check the hit points and set the DAM_DEAD flag
-			CheckForDeath((*ptr_main_ctd).target, (*ptr_main_ctd).targetDamage, &(*ptr_main_ctd).targetFlags);
+			fo_check_for_death((*ptr_main_ctd).target, (*ptr_main_ctd).targetDamage, &(*ptr_main_ctd).targetFlags);
 		}
 
 		if ((*ptr_main_ctd).targetDamage > (*ptr_gcsd)->maxDamage) {
@@ -2529,8 +2529,8 @@ static long __fastcall GetFreeTilePlacement(long elev, long tile) {
 	long count = 0, dist = 1;
 	long checkTile = tile;
 	long rotation = *ptr_rotation;
-	while (ObjBlockingAt(0, checkTile, elev)) {
-		checkTile = TileNumInDirection(checkTile, rotation, dist);
+	while (fo_obj_blocking_at(0, checkTile, elev)) {
+		checkTile = fo_tile_num_in_direction(checkTile, rotation, dist);
 		if (++count > 5 && ++dist > 5) return tile;
 		if (++rotation > 5) rotation = 0;
 	}
@@ -2659,8 +2659,8 @@ look:
 
 static void FixCreateBarterButton() {
 	const long artID = OBJ_TYPE_INTRFACE << 24;
-	*(BYTE**)FO_VAR_dialog_red_button_up_buf = ArtPtrLockData(artID | 96, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_up_key);
-	*(BYTE**)FO_VAR_dialog_red_button_down_buf = ArtPtrLockData(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
+	*(BYTE**)FO_VAR_dialog_red_button_up_buf = fo_art_ptr_lock_data(artID | 96, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_up_key);
+	*(BYTE**)FO_VAR_dialog_red_button_down_buf = fo_art_ptr_lock_data(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
 }
 
 static void __declspec(naked) gdialog_window_create_hook() {

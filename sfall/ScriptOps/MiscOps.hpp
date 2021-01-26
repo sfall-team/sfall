@@ -356,7 +356,7 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 	}
 
 	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
-		DebugPrintf(fmt, name);
+		fo_debug_printf(fmt, name);
 
 		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
 
@@ -1091,7 +1091,7 @@ static void mf_get_inven_ap_cost() {
 
 static void mf_attack_is_aimed() {
 	DWORD isAimed, unused;
-	opHandler.setReturn(!IntfaceGetAttack(&unused, &isAimed) ? isAimed : 0);
+	opHandler.setReturn(!fo_intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
 static void __declspec(naked) op_sneak_success() {
@@ -1108,7 +1108,7 @@ static void __stdcall op_tile_light2() {
 					  &tileArg = opHandler.arg(1);
 
 	if (elevArg.isInt() && tileArg.isInt()) {
-		int lightLevel = LightGetTile(elevArg.rawValue(), tileArg.rawValue());
+		int lightLevel = fo_light_get_tile(elevArg.rawValue(), tileArg.rawValue());
 		opHandler.setReturn(lightLevel);
 	} else {
 		OpcodeInvalidArgs("tile_light");

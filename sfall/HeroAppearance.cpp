@@ -63,7 +63,7 @@ typedef struct LineNode {
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS//////////////////////////////////////////////////////////////////////
 
 static void SetFont(long ref) {
-	TextFont(ref);
+	fo_text_font(ref);
 }
 
 static long GetFont() {
@@ -126,11 +126,11 @@ static void DeleteWordWrapList(LineNode *CurrentLine) {
 /////////////////////////////////////////////////////////////////DAT FUNCTIONS///////////////////////////////////////////////////////////////////////
 
 static void* LoadDat(const char* fileName) {
-	return DbaseOpen(fileName);
+	return fo_dbase_open(fileName);
 }
 
 static void UnloadDat(void* dat) {
-	DbaseClose(dat);
+	fo_dbase_close(dat);
 }
 
 /////////////////////////////////////////////////////////////////OTHER FUNCTIONS/////////////////////////////////////////////////////////////////////
@@ -157,7 +157,7 @@ static void GetAppearanceGlobals(int *race, int *style) {
 }
 
 static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
-	if (flush) ArtFlush();
+	if (flush) fo_art_flush();
 
 	if (heroPathPtr[1]->pDat) { // unload previous Dats
 		UnloadDat(heroPathPtr[1]->pDat);
@@ -552,16 +552,16 @@ static void surface_draw(long width, long height, long fromWidth, long fromX, lo
 static void DrawBody(long critNum, BYTE* surface, long x, long y, long toWidth) {
 	DWORD critFrmLock;
 
-	FrmHeaderData *critFrm = ArtPtrLock(BuildFrmId(1, critNum), &critFrmLock);
-	DWORD critWidth = ArtFrameWidth(critFrm, 0, charRotOri);
-	DWORD critHeight = ArtFrameLength(critFrm, 0, charRotOri);
-	BYTE* critSurface = ArtFrameData(critFrm, 0, charRotOri);
+	FrmHeaderData *critFrm = fo_art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
+	DWORD critWidth = fo_art_frame_width(critFrm, 0, charRotOri);
+	DWORD critHeight = fo_art_frame_length(critFrm, 0, charRotOri);
+	BYTE* critSurface = fo_art_frame_data(critFrm, 0, charRotOri);
 
 	long xOffset = x + (35 - (critWidth / 2));
 	long yOffset = y + (51 - (critHeight / 2));
 	surface_draw(critWidth, critHeight, critWidth, 0, 0, critSurface, toWidth, xOffset, yOffset, surface, 0);
 
-	ArtPtrUnlock(critFrmLock);
+	fo_art_ptr_unlock(critFrmLock);
 }
 
 static void DrawPCConsole() {
@@ -579,7 +579,7 @@ static void DrawPCConsole() {
 		}
 
 		int WinRef = *ptr_edit_win; // char screen window ref
-		WINinfo *WinInfo = GNWFind(WinRef);
+		WINinfo *WinInfo = fo_GNW_find(WinRef);
 
 		//DWORD critNum = *ptr_art_vault_guy_num; // pointer to current base hero critter FrmId
 		DWORD critNum = (*ptr_obj_dude)->artFid; // pointer to current armored hero critter FrmId
@@ -587,7 +587,7 @@ static void DrawPCConsole() {
 		surface_draw(70, 102, 640, 338, 78, charScrnBackSurface, WinInfo->width, 338, 78, WinInfo->surface); // restore background image
 		DrawBody(critNum, WinInfo->surface, 338, 78, WinInfo->width);
 
-		WinDraw(WinRef);
+		fo_win_draw(WinRef);
 	}
 }
 
@@ -610,12 +610,12 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 
 	char *MsgFileName = (style) ? "game\\AppStyle.msg" : "game\\AppRace.msg";
 
-	if (MessageLoad(&MsgList, MsgFileName) == 1) {
+	if (fo_message_load(&MsgList, MsgFileName) == 1) {
 		TitleMsg = GetMsg(&MsgList, 100, 2);
 		InfoMsg = GetMsg(&MsgList, 101, 2);
 	}
 
-	WINinfo *winInfo = GNWFind(winRef);
+	WINinfo *winInfo = fo_GNW_find(winRef);
 
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
@@ -672,7 +672,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	surface_draw(280, 168, 280, 0, 0, PadSurface, winInfo->width, xPosWin, yPosWin, winInfo->surface);
 
 	SetFont(oldFont); // restore previous font
-	MessageExit(&MsgList);
+	fo_message_exit(&MsgList);
 
 	*(long*)FO_VAR_card_old_fid1 = -1; // reset fid
 
@@ -690,7 +690,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 
 	UNLSTDfrm *frm = LoadUnlistedFrm("AppHeroWin.frm", OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
-		DebugPrintf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
+		fo_debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
 	}
 
@@ -698,37 +698,37 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	DWORD resWidth = *(DWORD*)0x4CAD6B;
 	DWORD resHeight = *(DWORD*)0x4CAD66;
 
-	int winRef = WinAdd(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
+	int winRef = fo_win_add(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
 	if (winRef == -1) {
 		delete frm;
 		return;
 	}
 
 	int mouseWasHidden = *ptr_mouse_is_hidden;
-	if (mouseWasHidden) MouseShow();
+	if (mouseWasHidden) fo_mouse_show();
 	int oldMouse = *ptr_gmouse_current_cursor;
-	GmouseSetCursor(1);
+	fo_gmouse_set_cursor(1);
 
-	BYTE *winSurface = WinGetBuf(winRef);
+	BYTE *winSurface = fo_win_get_buf(winRef);
 	BYTE *mainSurface = new BYTE [484 * 230];
 
 	surface_draw(484, 230, 484, 0, 0, frm->frames[0].indexBuff, 484, 0, 0, mainSurface);
 	delete frm;
 
 	DWORD MenuUObj, MenuDObj;
-	BYTE *MenuUSurface = ArtPtrLockData(BuildFrmId(6, 299), 0, 0, &MenuUObj); // MENUUP Frm
-	BYTE *MenuDSurface = ArtPtrLockData(BuildFrmId(6, 300), 0, 0, &MenuDObj); // MENUDOWN Frm
-	WinRegisterButton(winRef, 115, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
+	BYTE *MenuUSurface = fo_art_ptr_lock_data(BuildFrmId(6, 299), 0, 0, &MenuUObj); // MENUUP Frm
+	BYTE *MenuDSurface = fo_art_ptr_lock_data(BuildFrmId(6, 300), 0, 0, &MenuDObj); // MENUDOWN Frm
+	fo_win_register_button(winRef, 115, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
 
 	DWORD DidownUObj, DidownDObj;
-	BYTE *DidownUSurface = ArtPtrLockData(BuildFrmId(6, 93), 0, 0, &DidownUObj); // MENUUP Frm
-	BYTE *DidownDSurface = ArtPtrLockData(BuildFrmId(6, 94), 0, 0, &DidownDObj); // MENUDOWN Frm
-	WinRegisterButton(winRef, 25, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
+	BYTE *DidownUSurface = fo_art_ptr_lock_data(BuildFrmId(6, 93), 0, 0, &DidownUObj); // MENUUP Frm
+	BYTE *DidownDSurface = fo_art_ptr_lock_data(BuildFrmId(6, 94), 0, 0, &DidownDObj); // MENUDOWN Frm
+	fo_win_register_button(winRef, 25, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
 
 	DWORD DiupUObj, DiupDObj;
-	BYTE *DiupUSurface = ArtPtrLockData(BuildFrmId(6, 100), 0, 0, &DiupUObj); // MENUUP Frm
-	BYTE *DiupDSurface = ArtPtrLockData(BuildFrmId(6, 101), 0, 0, &DiupDObj); // MENUDOWN Frm
-	WinRegisterButton(winRef, 25, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
+	BYTE *DiupUSurface = fo_art_ptr_lock_data(BuildFrmId(6, 100), 0, 0, &DiupUObj); // MENUUP Frm
+	BYTE *DiupDSurface = fo_art_ptr_lock_data(BuildFrmId(6, 101), 0, 0, &DiupDObj); // MENUDOWN Frm
+	fo_win_register_button(winRef, 25, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
 
 	int oldFont = GetFont();
 	SetFont(0x67);
@@ -750,7 +750,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	surface_draw(484, 230, 484, 0, 0, mainSurface, 484, 0, 0, winSurface);
-	WinShow(winRef);
+	fo_win_show(winRef);
 
 	SetFont(0x65);
 
@@ -792,12 +792,12 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 				DrawCharNote(isStyle, winRef, 190, 29, mainSurface, 190, 29, 484, 230);
 				drawFlag = false;
 			}
-			WinDraw(winRef);
+			fo_win_draw(winRef);
 		}
 
-		button = GetInputBtn();
+		button = fo_get_input();
 		if (button == 0x148) { // previous style/race - up arrow button pushed
-			GsoundPlaySfxFile("ib1p1xx1");
+			fo_gsound_play_sfx_file("ib1p1xx1");
 
 			if (isStyle) {
 				if (styleVal == 0) continue;
@@ -818,7 +818,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 				drawFlag = true;
 			}
 		} else if (button == 0x150) { // Next style/race - down arrow button pushed
-			GsoundPlaySfxFile("ib1p1xx1");
+			fo_gsound_play_sfx_file("ib1p1xx1");
 
 			if (isStyle) {
 				styleVal++;
@@ -839,7 +839,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 				}
 			}
 		} else if (button == 0x0D) { // save and exit - Enter button pushed
-			GsoundPlaySfxFile("ib1p1xx1");
+			fo_gsound_play_sfx_file("ib1p1xx1");
 			if (!isStyle && currentRaceVal == raceVal) { // return style to previous value if no race change
 				styleVal = currentStyleVal;
 			}
@@ -856,22 +856,22 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	LoadHeroDat(currentRaceVal, currentStyleVal, true);
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 
-	WinDelete(winRef);
+	fo_win_delete(winRef);
 	delete[] mainSurface;
 
-	ArtPtrUnlock(MenuUObj);
-	ArtPtrUnlock(MenuDObj);
+	fo_art_ptr_unlock(MenuUObj);
+	fo_art_ptr_unlock(MenuDObj);
 
-	ArtPtrUnlock(DidownUObj);
-	ArtPtrUnlock(DidownDObj);
+	fo_art_ptr_unlock(DidownUObj);
+	fo_art_ptr_unlock(DidownDObj);
 
-	ArtPtrUnlock(DiupUObj);
-	ArtPtrUnlock(DiupDObj);
+	fo_art_ptr_unlock(DiupUObj);
+	fo_art_ptr_unlock(DiupDObj);
 
 	SetFont(oldFont);
-	GmouseSetCursor(oldMouse);
+	fo_gmouse_set_cursor(oldMouse);
 
-	if (mouseWasHidden) MouseHide();
+	if (mouseWasHidden) fo_mouse_hide();
 }
 
 static void FixTextHighLight() {
@@ -898,7 +898,7 @@ static void FixTextHighLight() {
 }
 
 static int __stdcall CheckCharButtons() {
-	int button = GetInputBtn();
+	int button = fo_get_input();
 
 	int drawFlag = -1;
 
@@ -1018,15 +1018,15 @@ static int __stdcall CheckCharButtons() {
 		case 1:
 			*ptr_info_line = 0x501;
 		play:
-			GsoundPlaySfxFile("ib3p1xx1");
+			fo_gsound_play_sfx_file("ib3p1xx1");
 			break;
 		case 2:
 			style = true;
 		case 3:
-			GsoundPlaySfxFile("ISDXXXX1");
+			fo_gsound_play_sfx_file("ISDXXXX1");
 			break;
 		default:
-			GsoundPlaySfxFile("IB3LU1X1");
+			fo_gsound_play_sfx_file("IB3LU1X1");
 			return button;
 		}
 		FixTextHighLight();
@@ -1053,7 +1053,7 @@ endFunc:
 
 static void __fastcall HeroGenderChange(long gender) {
 	// get PC stat current gender
-	long newGender = StatLevel(*ptr_obj_dude, STAT_gender);
+	long newGender = fo_stat_level(*ptr_obj_dude, STAT_gender);
 	if (newGender == gender) return;      // check if gender has been changed
 
 	long baseModel = (newGender)          // check if male 0
@@ -1069,7 +1069,7 @@ static void __fastcall HeroGenderChange(long gender) {
 	currentStyleVal = 0;
 	LoadHeroDat(0, 0);
 
-	ProtoDudeUpdateGender();
+	fo_proto_dude_update_gender();
 
 	// Check If Race or Style selected to redraw info note
 	int infoLine = *ptr_info_line;
@@ -1112,8 +1112,8 @@ static void __declspec(naked) AddCharScrnButtons() {
 	WinRef = *ptr_edit_win; // char screen window ref
 
 	// race and style title buttons
-	WinRegisterButton(WinRef, 332,   0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
-	WinRegisterButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
+	fo_win_register_button(WinRef, 332,   0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
+	fo_win_register_button(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
 
 	if (*ptr_glblmode == 1 && (styleButtons || raceButtons)) { // equals 1 if new char screen - equals 0 if ingame char screen
 		if (newButtonSurface == nullptr) {
@@ -1122,29 +1122,29 @@ static void __declspec(naked) AddCharScrnButtons() {
 			DWORD frmLock; // frm objects for char screen Appearance button
 			BYTE* frmSurface;
 
-			frmSurface = ArtPtrLockData(BuildFrmId(6, 122), 0, 0, &frmLock); //SLUFrm
+			frmSurface = fo_art_ptr_lock_data(BuildFrmId(6, 122), 0, 0, &frmLock); //SLUFrm
 			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 0, newButtonSurface);
-			ArtPtrUnlock(frmLock);
+			fo_art_ptr_unlock(frmLock);
 
-			frmSurface = ArtPtrLockData(BuildFrmId(6, 123), 0, 0, &frmLock); //SLDFrm
+			frmSurface = fo_art_ptr_lock_data(BuildFrmId(6, 123), 0, 0, &frmLock); //SLDFrm
 			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 18, newButtonSurface);
-			ArtPtrUnlock(frmLock);
+			fo_art_ptr_unlock(frmLock);
 
-			frmSurface = ArtPtrLockData(BuildFrmId(6, 124), 0, 0, &frmLock); //SRUFrm
+			frmSurface = fo_art_ptr_lock_data(BuildFrmId(6, 124), 0, 0, &frmLock); //SRUFrm
 			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 18 * 2, newButtonSurface);
-			ArtPtrUnlock(frmLock);
+			fo_art_ptr_unlock(frmLock);
 
-			frmSurface = ArtPtrLockData(BuildFrmId(6, 125), 0, 0, &frmLock); //SRDFrm
+			frmSurface = fo_art_ptr_lock_data(BuildFrmId(6, 125), 0, 0, &frmLock); //SRDFrm
 			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 18 * 3, newButtonSurface);
-			ArtPtrUnlock(frmLock);
+			fo_art_ptr_unlock(frmLock);
 		}
 		if (raceButtons) { // race selection buttons
-			WinRegisterButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
-			WinRegisterButton(WinRef, 374, 37, 20, 18, -1, -1, -1, 0x513, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
+			fo_win_register_button(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
+			fo_win_register_button(WinRef, 374, 37, 20, 18, -1, -1, -1, 0x513, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
 		if (styleButtons) { // style selection buttons
-			WinRegisterButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
-			WinRegisterButton(WinRef, 374, 199, 20, 18, -1, -1, -1, 0x514, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
+			fo_win_register_button(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
+			fo_win_register_button(WinRef, 374, 199, 20, 18, -1, -1, -1, 0x514, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
 	}
 
@@ -1195,25 +1195,25 @@ static void __declspec(naked) FixCharScrnBack() {
 			DWORD FrmObj, FrmMaskObj; // frm objects for char screen Appearance button
 			BYTE *FrmSurface, *FrmMaskSurface;
 
-			FrmSurface = ArtPtrLockData(BuildFrmId(OBJ_TYPE_INTRFACE, 113), 0, 0, &FrmObj); // "Use Item On" window
+			FrmSurface = fo_art_ptr_lock_data(BuildFrmId(OBJ_TYPE_INTRFACE, 113), 0, 0, &FrmObj); // "Use Item On" window
 
 			surface_draw(81, 132, 292, 163, 20, FrmSurface, 640, 331, 63, charScrnBackSurface);  // char view win
 			surface_draw(79, 31, 292, 154, 228, FrmSurface, 640, 331, 32, charScrnBackSurface);  // upper  char view win
 			surface_draw(79, 30, 292, 158, 236, FrmSurface, 640, 331, 195, charScrnBackSurface); // lower  char view win
 
-			ArtPtrUnlock(FrmObj);
+			fo_art_ptr_unlock(FrmObj);
 
 			// Sexoff Frm
-			FrmSurface = ArtPtrLockData(BuildFrmId(OBJ_TYPE_INTRFACE, 188), 0, 0, &FrmObj);
+			FrmSurface = fo_art_ptr_lock_data(BuildFrmId(OBJ_TYPE_INTRFACE, 188), 0, 0, &FrmObj);
 			BYTE* newFrmSurface = new BYTE [80 * 32];
 			surface_draw(80, 32, 80, 0, 0, FrmSurface, 80, 0, 0, newFrmSurface);
-			ArtPtrUnlock(FrmObj);
+			fo_art_ptr_unlock(FrmObj);
 
 			// Sex button mask frm
-			FrmMaskSurface = ArtPtrLockData(BuildFrmId(OBJ_TYPE_INTRFACE, 187), 0, 0, &FrmMaskObj);
+			FrmMaskSurface = fo_art_ptr_lock_data(BuildFrmId(OBJ_TYPE_INTRFACE, 187), 0, 0, &FrmMaskObj);
 			// crop the Sexoff image by mask
 			surface_draw(80, 28, 80, 0, 0, FrmMaskSurface, 80, 0, 0, newFrmSurface, 0x39); // mask for style and race buttons
-			ArtPtrUnlock(FrmMaskObj);
+			fo_art_ptr_unlock(FrmMaskObj);
 
 			newFrmSurface[80 * 32 - 1] = 0;
 			newFrmSurface[80 * 31 - 1] = 0;
@@ -1237,10 +1237,10 @@ static void __declspec(naked) FixCharScrnBack() {
 
 			// frm background for char screen Appearance button
 			if (*ptr_glblmode && (styleButtons || raceButtons)) {
-				FrmSurface = ArtPtrLockData(BuildFrmId(OBJ_TYPE_INTRFACE, 174), 0, 0, &FrmObj); // Pickchar frm
+				FrmSurface = fo_art_ptr_lock_data(BuildFrmId(OBJ_TYPE_INTRFACE, 174), 0, 0, &FrmObj); // Pickchar frm
 				if (raceButtons)  surface_draw(69, 20, 640, 281, 319, FrmSurface, 640, 337,  36, charScrnBackSurface); // button backround top
 				if (styleButtons) surface_draw(69, 20, 640, 281, 319, FrmSurface, 640, 337, 198, charScrnBackSurface); // button backround bottom
-				ArtPtrUnlock(FrmObj);
+				fo_art_ptr_unlock(FrmObj);
 			}
 		}
 
@@ -1378,13 +1378,13 @@ static void __fastcall LoadGCDAppearance(DbFile* fileStream) {
 	currentRaceVal = 0;
 	currentStyleVal = 0;
 	DWORD temp;
-	if (DbFReadInt(fileStream, &temp) != -1 && temp < 100) {
+	if (fo_db_freadInt(fileStream, &temp) != -1 && temp < 100) {
 		currentRaceVal = (int)temp;
-		if (DbFReadInt(fileStream, &temp) != -1 && temp < 100) {
+		if (fo_db_freadInt(fileStream, &temp) != -1 && temp < 100) {
 			currentStyleVal = (int)temp;
 		}
 	}
-	DbFClose(fileStream);
+	fo_db_fclose(fileStream);
 
 	// load hero appearance
 	if (LoadHeroDat(currentRaceVal, currentStyleVal, true) != 0) { // if load fails
@@ -1394,15 +1394,15 @@ static void __fastcall LoadGCDAppearance(DbFile* fileStream) {
 			LoadHeroDat(currentRaceVal, currentStyleVal);
 		}
 	}
-	ProtoDudeUpdateGender();
+	fo_proto_dude_update_gender();
 }
 
 // Save Appearance data to GCD file
 static void __fastcall SaveGCDAppearance(DbFile *FileStream) {
-	if (DbFWriteInt(FileStream, (DWORD)currentRaceVal) != -1) {
-		DbFWriteInt(FileStream, (DWORD)currentStyleVal);
+	if (fo_db_fwriteInt(FileStream, (DWORD)currentRaceVal) != -1) {
+		fo_db_fwriteInt(FileStream, (DWORD)currentStyleVal);
 	}
-	DbFClose(FileStream);
+	fo_db_fclose(FileStream);
 }
 
 static void EnableHeroAppearanceMod() {

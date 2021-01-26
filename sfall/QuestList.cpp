@@ -179,7 +179,7 @@ static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE
 	if (outRangeFlag) {
 		if (pageFlag) return EXITCODE_Break; // pages are already counted
 		// count the number of pages
-		WordWrap(text, width, buf, count);
+		fo__word_wrap(text, width, buf, count);
 
 		// check whether the text of the quest leaves the current page
 		int lines = 2 * ((int)*count - 1); // number of lines of text
@@ -199,7 +199,7 @@ static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE
 		return EXITCODE_Break;           // exit from quests loop
 	}
 
-	if (WordWrap(text, width, buf, count) == -1) return EXITCODE_Error; // error wrap
+	if (fo__word_wrap(text, width, buf, count) == -1) return EXITCODE_Error; // error wrap
 
 	if (!pageFlag || last_quest_page == INT_MAX) {        // pages have not been calculated yet
 		// check whether the text of the quest leaves the current page
@@ -417,13 +417,13 @@ static void __declspec(naked) StartPipboy_hack() {
 	// creating new 2 buttons
 	picDown = (BYTE*)*ptr_optionsButtonDown1;
 	picUp   = (BYTE*)*ptr_optionsButtonUp1;
-	if (WinRegisterButton(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
+	if (fo_win_register_button(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
 		RegisterButtonSoundFunc0();
 	}
 
 	picDown = (BYTE*)*ptr_optionsButtonDown;
 	picUp   = (BYTE*)*ptr_optionsButtonUp;
-	if (WinRegisterButton(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
+	if (fo_win_register_button(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
 		RegisterButtonSoundFunc0();
 	}
 

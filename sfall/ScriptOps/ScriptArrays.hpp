@@ -520,15 +520,15 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 		TGameObj* self_obj;
 		TProgram* programPtr;
 		for (int elev = 0; elev <= 2; elev++) {
-			scriptPtr = ScrFindFirstAt(elev);
+			scriptPtr = fo_scr_find_first_at(elev);
 			while (scriptPtr != nullptr) {
 				self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
 					programPtr = scriptPtr->program;
-					self_obj = ScrFindObjFromProgram(programPtr);
+					self_obj = fo_scr_find_obj_from_program(programPtr);
 				}
 				vec.push_back(self_obj);
-				scriptPtr = ScrFindNextAt();
+				scriptPtr = fo_scr_find_next_at();
 			}
 		}
 	/*} else if (type == 4) {
@@ -542,13 +542,13 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	} else if (type != 4) {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
-				TGameObj* obj = ObjFindFirstAtTile(elv, tile);
+				TGameObj* obj = fo_obj_find_first_at_tile(elv, tile);
 				while (obj) {
 					DWORD otype = obj->Type();
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
 						vec.push_back(obj);
 					}
-					obj = ObjFindNextAtTile();
+					obj = fo_obj_find_next_at_tile();
 				}
 			}
 		}

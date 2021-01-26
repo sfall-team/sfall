@@ -37,7 +37,7 @@ static char tName[maxNameLen * TRAIT_count] = {0};
 static char tDesc[descLen * TRAIT_count] = {0};
 static char PerkBoxTitle[33];
 
-#define check_trait(id) !disableTraits[id] && (ptr_pc_traits[0] == id || ptr_pc_traits[1] == id)
+#define check_trait(id) !disableTraits[id] && (ptr_pc_trait[0] == id || ptr_pc_trait[1] == id)
 
 static DWORD addPerkMode = 2;
 
@@ -329,7 +329,7 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 
 static DWORD __stdcall HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
-		if (FolderPrintLine(fakeTraits[i].Name) && !isSelect) {
+		if (fo_folder_print_line(fakeTraits[i].Name) && !isSelect) {
 			isSelect = 1;
 			*ptr_folder_card_fid = fakeTraits[i].Image;
 			*ptr_folder_card_title = (DWORD)fakeTraits[i].Name;
@@ -949,15 +949,15 @@ static __declspec(naked) void PerkInitWrapper() {
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
 static int stat_get_base_direct(DWORD statID) {
-	return StatGetBaseDirect(*ptr_obj_dude, statID);
+	return fo_stat_get_base_direct(*ptr_obj_dude, statID);
 }
 
 static int __stdcall trait_adjust_stat_override(DWORD statID) {
 	if (statID > STAT_max_derived) return 0;
 
 	int result = 0;
-	if (ptr_pc_traits[0] != -1) result += TraitStatBonuses[statID * TRAIT_count + ptr_pc_traits[0]];
-	if (ptr_pc_traits[1] != -1) result += TraitStatBonuses[statID * TRAIT_count + ptr_pc_traits[1]];
+	if (ptr_pc_trait[0] != -1) result += TraitStatBonuses[statID * TRAIT_count + ptr_pc_trait[0]];
+	if (ptr_pc_trait[1] != -1) result += TraitStatBonuses[statID * TRAIT_count + ptr_pc_trait[1]];
 
 	switch (statID) {
 	case STAT_st:
@@ -1034,11 +1034,11 @@ static void __declspec(naked) TraitAdjustStatHack() {
 
 static int __stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
-	if (ptr_pc_traits[0] != -1) {
-		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_traits[0]];
+	if (ptr_pc_trait[0] != -1) {
+		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[0]];
 	}
-	if (ptr_pc_traits[1] != -1) {
-		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_traits[1]];
+	if (ptr_pc_trait[1] != -1) {
+		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[1]];
 	}
 	if (check_trait(TRAIT_gifted)) {
 		result -= 10;
