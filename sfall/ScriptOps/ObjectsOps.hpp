@@ -561,15 +561,9 @@ static void __stdcall op_get_proto_data2() {
 					  &offsetArg = opHandler.arg(1);
 
 	if (pidArg.isInt() && offsetArg.isInt()) {
-		char* protoPtr;
+		sProto* protoPtr;
 		int pid = pidArg.rawValue();
-		int result;
-		__asm {
-			lea  edx, protoPtr;
-			mov  eax, pid;
-			call proto_ptr_;
-			mov  result, eax;
-		}
+		int result = fo_proto_ptr(pid, &protoPtr);
 		if (result != -1) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.rawValue());
 		} else {
@@ -592,16 +586,9 @@ static void __stdcall op_set_proto_data2() {
 					  &valueArg = opHandler.arg(2);
 
 	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) {
-		char* protoPtr;
+		sProto* protoPtr;
 		int pid = pidArg.rawValue();
-		int result;
-		__asm {
-			lea  edx, protoPtr;
-			mov  eax, pid;
-			call proto_ptr_;
-			mov  result, eax;
-		}
-		if (result != -1) {
+		if (fo_proto_ptr(pid, &protoPtr) != -1) {
 			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
 			if (!protoMaxLimitPatch) {
 				Objects_LoadProtoAutoMaxLimit();

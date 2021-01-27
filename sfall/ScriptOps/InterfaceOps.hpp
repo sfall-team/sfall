@@ -322,9 +322,9 @@ static void __stdcall op_is_iface_tag_active2() {
 				}
 			} else { // Sneak/Level/Addict
 				TGameObj* obj = *ptr_obj_dude;
-				char* proto = GetProtoPtr(obj->protoId);
+				sProto* proto = GetProto(obj->protoId);
 				int flagBit = 1 << tag;
-				result = ((*(int*)(proto + 0x20) & flagBit) != 0);
+				result = ((proto->critter.critterFlags & flagBit) != 0);
 			}
 		} else {
 			result = BarBoxes_GetBox(tag);

@@ -122,7 +122,7 @@ static void __stdcall op_set_critter_base_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->protoId);
+				sProto* proto = GetProto(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_base_stat");
@@ -148,7 +148,7 @@ static void __stdcall op_set_critter_extra_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->protoId);
+				sProto* proto = GetProto(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_extra_stat");
@@ -174,7 +174,7 @@ static void __stdcall op_get_critter_base_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->protoId);
+				sProto* proto = GetProto(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[9 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_base_stat");
@@ -201,7 +201,7 @@ static void __stdcall op_get_critter_extra_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				char* proto = GetProtoPtr(obj->protoId);
+				sProto* proto = GetProto(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[44 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_extra_stat");

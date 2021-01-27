@@ -1120,29 +1120,22 @@ Queue* QueueFindUtil(TGameObj* object, long type) {
 	return nullptr;
 }
 
-char* GetProtoPtr(long pid) {
-	char* proto;
-	long result;
-	__asm {
-		mov  eax, pid;
-		lea  edx, proto;
-		call proto_ptr_;
-		mov  result, eax;
-	}
-	if (result != -1) {
-		return proto;
-	}
-	return nullptr;
-}
-
 long AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
-		char* proto = GetProtoPtr(weapon->protoId);
-		if (proto != nullptr && *(int*)(proto + 32) == item_type_weapon) {
-			return *(int*)(proto + 36);
+		sProto* proto = GetProto(weapon->protoId);
+		if (proto != nullptr && proto->item.type == item_type_weapon) {
+			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
+}
+
+sProto* GetProto(long pid) {
+	sProto* protoPtr;
+	if (fo_proto_ptr(pid, &protoPtr) != -1) {
+		return protoPtr;
+	}
+	return nullptr;
 }
 
 void SkillGetTags(long* result, long num) {

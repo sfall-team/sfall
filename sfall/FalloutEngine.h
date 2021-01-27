@@ -1085,11 +1085,11 @@ const char* MsgSearch(const MSGList* fileAddr, long messageId);
 
 Queue* QueueFindUtil(TGameObj* object, long type);
 
-// returns pointer to prototype by PID, or nullptr on failure
-char* GetProtoPtr(long pid);
-
 // returns weapon animation code
 long AnimCodeByWeapon(TGameObj* weapon);
+
+// returns pointer to prototype by PID, or nullptr on failure
+sProto* GetProto(long pid);
 
 // wrapper for skill_get_tags with bounds checking
 void SkillGetTags(long* result, long num);

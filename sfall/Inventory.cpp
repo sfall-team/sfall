@@ -90,9 +90,9 @@ static int __stdcall CritterGetMaxSize(TGameObj* critter) {
 	}
 
 	int statSize = 0;
-	char* proto = GetProtoPtr(critter->protoId);
+	sProto* proto = GetProto(critter->protoId);
 	if (proto != nullptr) {
-		statSize = *(int*)(proto + 76) + *(int*)(proto + 216); // The unused stat in the base + extra block
+		statSize = proto->critter.base.unarmedDamage + proto->critter.bonus.unarmedDamage; // The unused stat in the base + extra block
 	}
 	return (statSize > 0) ? statSize : 100; // 100 - default value, for all critters if not set stats
 }

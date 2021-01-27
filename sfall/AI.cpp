@@ -261,7 +261,7 @@ end:
 }
 
 static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGameObj* critter) {
-	char* proto = nullptr;
+	sProto* proto = nullptr;
 	long result = -1;
 	long maxAmmo;
 
@@ -272,8 +272,8 @@ static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGa
 		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
-			proto = GetProtoPtr(weapon->protoId);
-			maxAmmo = *(long*)(proto + 96); // item.weapon.maxAmmo
+			proto = GetProto(weapon->protoId);
+			maxAmmo = proto->item.weapon.maxAmmo;
 		}
 		if (weapon->item.charges >= maxAmmo) break; // magazine is full
 
