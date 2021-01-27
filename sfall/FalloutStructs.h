@@ -21,6 +21,8 @@
 #include <Windows.h>
 #include <dsound.h>
 
+#include "Define.h"
+
 struct sRectangle {
 	long x, y, width, height;
 
@@ -159,11 +161,17 @@ struct TGameObj {
 		return ((artFid >> 24) & 0x0F);
 	}
 
+	inline bool IsCritter() {
+		return (Type() == OBJ_TYPE_CRITTER);
+	}
+	inline bool IsNotCritter() {
+		return (Type() != OBJ_TYPE_CRITTER);
+	}
 	inline bool IsItem() {
 		return (Type() == OBJ_TYPE_ITEM);
 	}
-	inline bool IsCritter() {
-		return (Type() == OBJ_TYPE_CRITTER);
+	inline bool IsNotItem() {
+		return (Type() != OBJ_TYPE_ITEM);
 	}
 };
 

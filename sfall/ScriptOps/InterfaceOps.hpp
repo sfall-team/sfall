@@ -735,7 +735,7 @@ static void mf_unwield_slot() {
 		return;
 	}
 	TGameObj* critter = opHandler.arg(0).object();
-	if (critter->Type() != OBJ_TYPE_CRITTER) {
+	if (critter->IsNotCritter()) {
 		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
 		opHandler.setReturn(-1);
 		return;

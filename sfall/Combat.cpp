@@ -314,21 +314,21 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 	std::vector<KnockbackModifier>* mods;
 	switch (mode) {
 	case 0:
-		if (object->Type() != OBJ_TYPE_ITEM) {
+		if (object->IsNotItem()) {
 			fo_debug_printf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
 			return;
 		}
 		mods = &mWeapons;
 		break;
 	case 1:
-		if (object->Type() != OBJ_TYPE_CRITTER) {
+		if (object->IsNotCritter()) {
 			fo_debug_printf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
 			return;
 		}
 		mods = &mTargets;
 		break;
 	case 2:
-		if (object->Type() != OBJ_TYPE_CRITTER) {
+		if (object->IsNotCritter()) {
 			fo_debug_printf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
 			return;
 		}
@@ -382,7 +382,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		baseHitChance.mod = mod;
 		return;
 	}
-	if (critter->Type() != OBJ_TYPE_CRITTER) return;
+	if (critter->IsNotCritter()) return;
 	long id = Objects_SetObjectUniqueID(critter);
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
@@ -399,7 +399,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 }
 
 void __stdcall SetNoBurstMode(TGameObj* critter, bool on) {
-	if (critter == *ptr_obj_dude || critter->Type() != OBJ_TYPE_CRITTER) return;
+	if (critter == *ptr_obj_dude || critter->IsNotCritter()) return;
 
 	long id = Objects_SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {

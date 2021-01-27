@@ -21,8 +21,9 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "InputFuncs.h"
-#include "Inventory.h"
 #include "LoadGameHook.h"
+
+#include "Inventory.h"
 
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
@@ -322,13 +323,12 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 
 static char superStimMsg[128];
 static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
-	if (item->protoId != PID_SUPER_STIMPAK || !target || target->Type() != OBJ_TYPE_CRITTER) {
+	if (item->protoId != PID_SUPER_STIMPAK || !target || target->IsNotCritter()) {
 		return 0;
 	}
 
-	long curr_hp = fo_stat_level(target, STAT_current_hp);
 	long max_hp = fo_stat_level(target, STAT_max_hit_points);
-	if (curr_hp < max_hp) return 0;
+	if (target->critter.health < max_hp) return 0;
 
 	fo_display_print(superStimMsg);
 	return -1;
@@ -684,6 +684,7 @@ void Inventory_Init() {
 			SafeWrite8(0x449150, 0x10 + 0x08);
 		}
 	}
+
 	// Adjust the max text width of the total weight display on the inventory screen
 	SafeWrite32(0x472632, widthWeight);
 
