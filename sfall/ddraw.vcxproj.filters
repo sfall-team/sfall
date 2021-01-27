@@ -19,6 +19,9 @@
     <Filter Include="Modules\SubModules">
       <UniqueIdentifier>{023f674e-f534-4889-af91-c5f1ef3a8913}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{eb2be45d-bfdf-4a70-920d-4d616202a597}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -310,6 +313,13 @@
     <ClInclude Include="Modules\SubModules\EnginePerks.h">
       <Filter>Modules\SubModules</Filter>
     </ClInclude>
+    <ClInclude Include="Game\inventory.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\skills.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="ReplacementFuncs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -573,6 +583,12 @@
     </ClCompile>
     <ClCompile Include="Modules\SubModules\EnginePerks.cpp">
       <Filter>Modules\SubModules</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\inventory.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\skills.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

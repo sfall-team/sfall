@@ -28,6 +28,8 @@
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
+#include "..\Game\Inventory.h"
+
 #include "HeroAppearance.h"
 
 namespace sfall
@@ -392,7 +394,7 @@ void UpdateHeroArt() {
 	}
 
 	// inventory function - setup pc FrmID and store at address _i_fid
-	fo::var::obj_dude->artFid = Inventory::adjust_fid_replacement(); // adjust_fid_
+	fo::var::obj_dude->artFid = game::Inventory::adjust_fid(); // adjust_fid_
 
 	fo::var::inven_dude = iD;
 	fo::var::i_rhand = iR;

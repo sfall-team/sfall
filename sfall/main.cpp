@@ -82,6 +82,7 @@
 #include "CRC.h"
 #include "SimplePatch.h"
 #include "Logging.h"
+#include "ReplacementFuncs.h"
 #include "Utils.h"
 #include "Version.h"
 
@@ -167,6 +168,11 @@ int SetConfigInt(const char* section, const char* setting, int value) {
 	int result = WritePrivateProfileStringA(section, setting, buf, ini);
 	delete[] buf;
 	return result;
+}
+
+void InitReplacementHacks() {
+	game::Inventory::init();
+	game::Skills::init();
 }
 
 static void InitModules() {
@@ -352,6 +358,7 @@ defaultIni:
 	}
 	std::srand(GetTickCount());
 
+	InitReplacementHacks();
 	InitModules();
 }
 

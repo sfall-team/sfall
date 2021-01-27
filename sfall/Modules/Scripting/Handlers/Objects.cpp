@@ -21,13 +21,15 @@
 #include "..\..\CritterStats.h"
 #include "..\..\Drugs.h"
 #include "..\..\Explosions.h"
-#include "..\..\Inventory.h"
+//#include "..\..\Inventory.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
+
+#include "..\..\..\Game\inventory.h"
 
 #include "Objects.h"
 
@@ -365,7 +367,7 @@ void mf_item_make_explosive(OpcodeContext& ctx) {
 }
 
 void mf_get_current_inven_size(OpcodeContext& ctx) {
-	ctx.setReturn(sf_item_total_size(ctx.arg(0).object()));
+	ctx.setReturn(game::Inventory::item_total_size(ctx.arg(0).object()));
 }
 
 void mf_get_dialog_object(OpcodeContext& ctx) {
