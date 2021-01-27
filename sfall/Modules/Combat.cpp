@@ -345,7 +345,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 		baseHitChance.mod = mod;
 		return;
 	}
-	if (critter->Type() != fo::OBJ_TYPE_CRITTER) return;
+	if (critter->IsNotCritter()) return;
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
@@ -358,7 +358,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 }
 
 void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
-	if (critter == fo::var::obj_dude || critter->Type() != fo::OBJ_TYPE_CRITTER) return;
+	if (critter == fo::var::obj_dude || critter->IsNotCritter()) return;
 
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {

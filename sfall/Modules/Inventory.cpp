@@ -331,7 +331,7 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 
 static std::string superStimMsg;
 static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {
-	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || target->Type() != fo::OBJ_TYPE_CRITTER) {
+	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || target->IsNotCritter()) {
 		return 0;
 	}
 
@@ -759,6 +759,7 @@ void Inventory::init() {
 			SafeWrite8(0x449150, 0x10 + 0x08);
 		}
 	}
+
 	// Adjust the max text width of the total weight display on the inventory screen
 	SafeWrite32(0x472632, widthWeight);
 

@@ -187,11 +187,17 @@ struct GameObject {
 		return ((artFid >> 24) & 0x0F);
 	}
 
+	inline bool IsCritter() {
+		return (Type() == fo::ObjType::OBJ_TYPE_CRITTER);
+	}
+	inline bool IsNotCritter() {
+		return (Type() != fo::ObjType::OBJ_TYPE_CRITTER);
+	}
 	inline bool IsItem() {
 		return (Type() == fo::ObjType::OBJ_TYPE_ITEM);
 	}
-	inline bool IsCritter() {
-		return (Type() == fo::ObjType::OBJ_TYPE_CRITTER);
+	inline bool IsNotItem() {
+		return (Type() != fo::ObjType::OBJ_TYPE_ITEM);
 	}
 };
 
@@ -541,7 +547,7 @@ struct SkillInfo {
 };
 
 struct StatInfo {
-	const char* dame;
+	const char* name;
 	const char* description;
 	long image;
 	long minValue;

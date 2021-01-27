@@ -170,14 +170,14 @@ VAR_(pipboy_message_file,        fo::MessageList)
 VAR_(pipmesg,                    DWORD)
 VAR_(preload_list_index,         DWORD)
 VARA(procTableStrs,              const char*, (int)fo::Scripts::ScriptProc::count)  // table of procId (from define.h) => procName map
-VARA(proto_msg_files,            fo::MessageList, 6)  // array of 6 elements
 VAR_(proto_main_msg_file,        fo::MessageList)
+VARA(proto_msg_files,            fo::MessageList, 6)  // array of 6 elements
 VAR_(ptable,                     DWORD)
 VAR_(pud,                        DWORD)
 VAR_(queue,                      fo::Queue*)
 VAR_(quick_done,                 DWORD)
 VAR_(read_callback,              DWORD)
-VAR_(rectList,                   fo::RectList*) 
+VAR_(rectList,                   fo::RectList*)
 VAR_(RedColor,                   BYTE)
 VAR2(retvals,                    fo::ElevatorExit, 24, 4)  // 24 elevators, 4 exits each
 VAR_(rotation,                   DWORD)

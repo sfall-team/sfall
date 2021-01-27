@@ -670,7 +670,7 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 		return;
 	}
 	fo::GameObject* critter = ctx.arg(0).object();
-	if (critter->Type() != fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (critter->IsNotCritter()) {
 		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 		return;

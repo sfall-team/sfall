@@ -180,12 +180,12 @@ void op_set_object_knockback(OpcodeContext& ctx) {
 	}
 	fo::GameObject* object = ctx.arg(0).object();
 	if (mode) {
-		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
+		if (object->IsNotCritter()) {
 			ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getOpcodeName());
 			return;
 		}
 	} else {
-		if (object->Type() != fo::OBJ_TYPE_ITEM) {
+		if (object->IsNotItem()) {
 			ctx.printOpcodeError("%s() - the object is not an item.", ctx.getOpcodeName());
 			return;
 		}
