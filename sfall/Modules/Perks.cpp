@@ -50,6 +50,7 @@ static DWORD addPerkMode = 2;
 
 static bool perksReInit = false;
 static int perksEnable = 0;
+static int traitsEnable = 0;
 
 static PerkInfo perks[PERK_count];
 static TraitInfo traits[TRAIT_count];
@@ -978,18 +979,6 @@ static void PerkSetup() {
 	perksReInit = false;
 }
 
-static __declspec(naked) void PerkInitWrapper() {
-	__asm {
-		call fo::funcoffs::perk_init_;
-		push edx;
-		push ecx;
-		call PerkSetup;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
 bool Perks::IsTraitDisabled(int traitID) {
@@ -1011,7 +1000,11 @@ static void __declspec(naked) BlockedTrait() {
 	}
 }
 
-static void TraitSetup() {
+static void PerkAndTraitSetup() {
+	PerkSetup();
+
+	if (!traitsEnable) return;
+
 	std::memcpy(traits, var::trait_data, sizeof(TraitInfo) * TRAIT_count);
 
 	// _trait_data
@@ -1096,15 +1089,10 @@ static void TraitSetup() {
 	}
 }
 
-static __declspec(naked) void TraitInitWrapper() {
+static __declspec(naked) void game_init_hook() {
 	__asm {
 		call fo::funcoffs::trait_init_;
-		push edx;
-		push ecx;
-		call TraitSetup;
-		pop  ecx;
-		pop  edx;
-		retn;
+		jmp  PerkAndTraitSetup;
 	}
 }
 
@@ -1395,7 +1383,8 @@ void Perks::init() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	PerkEngineInit();
-	HookCall(0x442729, PerkInitWrapper); // game_init_
+	// Perk and Trait init
+	HookCall(0x44272E, game_init_hook);
 
 	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
@@ -1403,9 +1392,7 @@ void Perks::init() {
 		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		perksEnable = iniGetInt("Perks", "Enable", 1, perksFile);
-		if (iniGetInt("Traits", "Enable", 1, perksFile)) {
-			HookCall(0x44272E, TraitInitWrapper); // game_init_
-		}
+		traitsEnable = iniGetInt("Traits", "Enable", 1, perksFile);
 
 		// Engine perks settings
 		perk::ReadPerksBonuses(perksFile);
