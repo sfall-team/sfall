@@ -41,6 +41,7 @@ static DWORD addPerkMode = 2;
 
 static bool perksReInit = false;
 static int perksEnable = 0;
+static int traitsEnable = 0;
 
 static PerkInfo perks[PERK_count];
 static TraitInfo traits[TRAIT_count];
@@ -932,18 +933,6 @@ static void PerkSetup() {
 	perksReInit = false;
 }
 
-static __declspec(naked) void PerkInitWrapper() {
-	__asm {
-		call perk_init_;
-		push edx;
-		push ecx;
-		call PerkSetup;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
 static int __stdcall DudeGetBaseStat(DWORD statID) {
@@ -1074,7 +1063,11 @@ static void __declspec(naked) BlockedTrait() {
 	}
 }
 
-static void TraitSetup() {
+static void PerkAndTraitSetup() {
+	PerkSetup();
+
+	if (!traitsEnable) return;
+
 	// Replace functions
 	MakeJump(trait_adjust_stat_, trait_adjust_stat_hack);   // 0x4B3C7C
 	MakeJump(trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
@@ -1165,15 +1158,10 @@ static void TraitSetup() {
 	}
 }
 
-static __declspec(naked) void TraitInitWrapper() {
+static __declspec(naked) void game_init_hook() {
 	__asm {
 		call trait_init_;
-		push edx;
-		push ecx;
-		call TraitSetup;
-		pop  ecx;
-		pop  edx;
-		retn;
+		jmp  PerkAndTraitSetup;
 	}
 }
 
@@ -1430,7 +1418,8 @@ void Perks_Init() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	PerkEngineInit();
-	HookCall(0x442729, PerkInitWrapper); // game_init_
+	// Perk and Trait init
+	HookCall(0x44272E, game_init_hook);
 
 	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
@@ -1438,9 +1427,7 @@ void Perks_Init() {
 		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		perksEnable = iniGetInt("Perks", "Enable", 1, perksFile);
-		if (iniGetInt("Traits", "Enable", 1, perksFile)) {
-			HookCall(0x44272E, TraitInitWrapper); // game_init_
-		}
+		traitsEnable = iniGetInt("Traits", "Enable", 1, perksFile);
 
 		// Engine perks settings
 		ReadPerksBonuses(perksFile);
