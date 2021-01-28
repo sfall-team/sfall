@@ -18,6 +18,8 @@
 
 #pragma once
 
+extern long PerkLevelMod;
+
 void Perks_Init();
 void PerksReset();
 void PerksSave(HANDLE file);
@@ -30,21 +32,20 @@ void PerksAcceptCharScreen();
 void __stdcall ApplyHeaveHoFix();
 
 void __fastcall SetPerkValue(int id, int param, int value);
+void __fastcall SetPerkboxTitle(const char* name);
 void __stdcall SetPerkName(int id, const char* value);
 void __stdcall SetPerkDesc(int id, const char* value);
 
-void __fastcall SetPerkboxTitle(const char* name);
 void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
 void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
 void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
-void __stdcall IgnoreDefaultPerks();
-void __stdcall RestoreDefaultPerks();
 
-void __stdcall AddPerkMode(DWORD mode);
 DWORD __stdcall HasFakePerk(const char* name);
 DWORD __stdcall HasFakeTrait(const char* name);
+
+void __stdcall IgnoreDefaultPerks();
+void __stdcall RestoreDefaultPerks();
+void __stdcall AddPerkMode(DWORD mode);
 void __stdcall ClearSelectablePerks();
 
 void __stdcall SetPerkFreq(int i);
-
-extern long PerkLevelMod;

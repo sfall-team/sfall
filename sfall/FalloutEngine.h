@@ -339,11 +339,47 @@
 
 // engine function offsets
 // TODO: move to separate namespace
+extern const DWORD AddHotLines_;
+extern const DWORD Check4Keys_;
+extern const DWORD Create_AudioDecoder_;
+extern const DWORD DOSCmdLineDestroy_;
+extern const DWORD DrawCard_;
+extern const DWORD DrawFolder_;
+extern const DWORD DrawInfoWin_;
+extern const DWORD EndLoad_;
+extern const DWORD EndPipboy_;
+extern const DWORD FMtext_char_width_;
+extern const DWORD FMtext_to_buf_;
+extern const DWORD FMtext_width_;
+extern const DWORD GNW95_lost_focus_;
+extern const DWORD GNW95_process_message_;
+extern const DWORD GNW_button_refresh_;
+extern const DWORD GNW_do_bk_process_;
+extern const DWORD GNW_find_;
+extern const DWORD GNW_win_refresh_;
+extern const DWORD GetSlotList_;
+extern const DWORD ListDPerks_;
+extern const DWORD ListDrvdStats_;
+extern const DWORD ListHoloDiskTitles_;
+extern const DWORD ListSkills_;
+extern const DWORD ListTraits_;
+extern const DWORD LoadGame_;
+extern const DWORD LoadSlot_;
+extern const DWORD MapDirErase_;
+extern const DWORD NixHotLines_;
+extern const DWORD OptionWindow_;
+extern const DWORD PipStatus_;
+extern const DWORD PrintBasicStat_;
+extern const DWORD PrintLevelWin_;
+extern const DWORD RestorePlayer_;
+extern const DWORD SaveGame_;
+extern const DWORD SavePlayer_;
+extern const DWORD SexWindow_;
+extern const DWORD _word_wrap_;
 extern const DWORD action_get_an_object_;
 extern const DWORD action_loot_container_;
 extern const DWORD action_use_an_item_on_object_;
 extern const DWORD add_bar_box_;
-extern const DWORD AddHotLines_;
 extern const DWORD adjust_ac_;
 extern const DWORD adjust_fid_;
 extern const DWORD ai_can_use_weapon_; // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
@@ -382,12 +418,11 @@ extern const DWORD barter_compute_value_;
 extern const DWORD barter_inventory_;
 extern const DWORD block_for_tocks_;
 extern const DWORD buf_to_buf_;
-extern const DWORD cai_attempt_w_reload_;
 extern const DWORD caiHasWeapPrefType_;
+extern const DWORD cai_attempt_w_reload_;
 extern const DWORD can_see_;
 extern const DWORD check_death_;
 extern const DWORD check_for_death_;
-extern const DWORD Check4Keys_;
 extern const DWORD combat_;
 extern const DWORD combat_ai_;
 extern const DWORD combat_anim_finished_;
@@ -408,10 +443,11 @@ extern const DWORD config_set_value_;
 extern const DWORD construct_box_bar_win_;
 extern const DWORD container_exit_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
-extern const DWORD Create_AudioDecoder_;
 extern const DWORD createWindow_;
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
+extern const DWORD critterClearObjDrugs_;
+extern const DWORD critterIsOverloaded_;
 extern const DWORD critter_adjust_hits_;
 extern const DWORD critter_body_type_;
 extern const DWORD critter_can_obj_dude_rest_;
@@ -419,13 +455,11 @@ extern const DWORD critter_compute_ap_from_distance_;
 extern const DWORD critter_flag_check_;
 extern const DWORD critter_get_hits_;
 extern const DWORD critter_get_rads_;
-extern const DWORD critter_is_dead_; // eax - critter
+extern const DWORD critter_is_dead_;
 extern const DWORD critter_kill_;
 extern const DWORD critter_kill_count_type_;
 extern const DWORD critter_name_;
 extern const DWORD critter_pc_set_name_;
-extern const DWORD critterClearObjDrugs_;
-extern const DWORD critterIsOverloaded_;
 extern const DWORD datafileConvertData_;
 extern const DWORD db_access_;
 extern const DWORD db_dir_entry_;
@@ -433,17 +467,17 @@ extern const DWORD db_fclose_;
 extern const DWORD db_fgetc_;
 extern const DWORD db_fgets_;
 extern const DWORD db_fopen_;
-extern const DWORD db_fread_;
-extern const DWORD db_freadByte_;
 extern const DWORD db_freadByteCount_;
-extern const DWORD db_freadInt_;
+extern const DWORD db_freadByte_;
 extern const DWORD db_freadIntCount_;
-extern const DWORD db_freadShort_;
+extern const DWORD db_freadInt_;
 extern const DWORD db_freadShortCount_;
+extern const DWORD db_freadShort_;
+extern const DWORD db_fread_;
 extern const DWORD db_free_file_list_;
 extern const DWORD db_fseek_;
-extern const DWORD db_fwriteByte_;
 extern const DWORD db_fwriteByteCount_;
+extern const DWORD db_fwriteByte_;
 extern const DWORD db_fwriteInt_;
 extern const DWORD db_get_file_list_;
 extern const DWORD db_init_;
@@ -466,13 +500,9 @@ extern const DWORD display_scroll_up_;
 extern const DWORD display_stats_;
 extern const DWORD display_table_inventories_;
 extern const DWORD display_target_inventory_;
-extern const DWORD do_options_;
 extern const DWORD do_optionsFunc_;
+extern const DWORD do_options_;
 extern const DWORD do_prefscreen_;
-extern const DWORD DOSCmdLineDestroy_;
-extern const DWORD DrawCard_;
-extern const DWORD DrawFolder_;
-extern const DWORD DrawInfoWin_;
 extern const DWORD drop_into_container_;
 extern const DWORD dude_stand_;
 extern const DWORD dude_standup_;
@@ -481,17 +511,12 @@ extern const DWORD elapsed_time_;
 extern const DWORD elevator_end_;
 extern const DWORD elevator_start_;
 extern const DWORD endgame_slideshow_;
-extern const DWORD EndLoad_;
-extern const DWORD EndPipboy_;
 extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcId<edx>
 extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD exit_inventory_;
 extern const DWORD fadeSystemPalette_;
 extern const DWORD findCurrentProc_;
 extern const DWORD findVar_;
-extern const DWORD FMtext_char_width_;
-extern const DWORD FMtext_to_buf_;
-extern const DWORD FMtext_width_;
 extern const DWORD folder_print_line_;
 extern const DWORD fprintf_;
 extern const DWORD frame_ptr_;
@@ -502,17 +527,16 @@ extern const DWORD game_set_global_var_;
 extern const DWORD game_time_;
 extern const DWORD game_time_date_;
 extern const DWORD gdDestroyHeadWindow_;
+extern const DWORD gdProcess_;
+extern const DWORD gdReviewExit_;
+extern const DWORD gdReviewInit_;
+extern const DWORD gdialogActive_;
+extern const DWORD gdialogDisplayMsg_;
+extern const DWORD gdialogFreeSpeech_;
 extern const DWORD gdialog_barter_cleanup_tables_;
 extern const DWORD gdialog_barter_pressed_;
 extern const DWORD gdialog_window_create_;
 extern const DWORD gdialog_window_destroy_;
-extern const DWORD gdialogActive_;
-extern const DWORD gdialogDisplayMsg_;
-extern const DWORD gdialogFreeSpeech_;
-extern const DWORD gdProcess_;
-extern const DWORD gdReviewExit_;
-extern const DWORD gdReviewInit_;
-extern const DWORD GetSlotList_;
 extern const DWORD get_input_;
 extern const DWORD get_input_str2_;
 extern const DWORD get_time_;
@@ -521,14 +545,8 @@ extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[
 extern const DWORD gmouse_3d_set_mode_;
 extern const DWORD gmouse_is_scrolling_;
 extern const DWORD gmouse_set_cursor_;
-extern const DWORD gmovie_play_;
 extern const DWORD gmovieIsPlaying_;
-extern const DWORD GNW_button_refresh_;
-extern const DWORD GNW_do_bk_process_;
-extern const DWORD GNW_find_;
-extern const DWORD GNW_win_refresh_;
-extern const DWORD GNW95_lost_focus_;
-extern const DWORD GNW95_process_message_;
+extern const DWORD gmovie_play_;
 extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_background_pause_;
 extern const DWORD gsound_background_restart_last_;
@@ -544,51 +562,53 @@ extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
 extern const DWORD inc_stat_;
 extern const DWORD insert_withdrawal_;
-extern const DWORD interface_disable_;
-extern const DWORD interface_enable_;
-extern const DWORD interpret_; // <eax> - programPtr, <edx> - ??? (-1)
-extern const DWORD interpretAddString_;
+extern const DWORD interpretAddString_; // edx = ptr to string, eax = script
+extern const DWORD interpretError_;
 extern const DWORD interpretFindProcedure_; // get proc number (different for each script) by name: *<eax> - scriptPtr, char* <edx> - proc name
 extern const DWORD interpretFreeProgram_; // <eax> - program ptr, frees it from memory and from scripting engine
-extern const DWORD interpretGetString_;
+extern const DWORD interpretGetString_; // eax = script ptr, edx = var type, ebx = var
 extern const DWORD interpretPopLong_;
 extern const DWORD interpretPopShort_;
 extern const DWORD interpretPushLong_;
 extern const DWORD interpretPushShort_;
-extern const DWORD interpretError_;
+extern const DWORD interpret_;
+extern const DWORD intface_disable_;
+extern const DWORD intface_enable_;
 extern const DWORD intface_get_attack_;
 extern const DWORD intface_hide_;
 extern const DWORD intface_is_hidden_;
-extern const DWORD intface_item_reload_; // no args
-extern const DWORD intface_redraw_; // no args
+extern const DWORD intface_is_item_right_hand_;
+extern const DWORD intface_item_reload_;
+extern const DWORD intface_redraw_;
 extern const DWORD intface_show_;
-extern const DWORD intface_toggle_item_state_; // no args
+extern const DWORD intface_toggle_item_state_;
 extern const DWORD intface_toggle_items_;
 extern const DWORD intface_update_ac_;
 extern const DWORD intface_update_hit_points_;
 extern const DWORD intface_update_items_;
 extern const DWORD intface_update_move_points_;
-extern const DWORD intface_use_item_; // no args
+extern const DWORD intface_use_item_;
 extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
 extern const DWORD inven_find_id_;
 extern const DWORD inven_find_type_;
-extern const DWORD inven_left_hand_; // eax - object
+extern const DWORD inven_left_hand_;
 extern const DWORD inven_pid_is_carried_ptr_;
-extern const DWORD inven_right_hand_; // eax - object
+extern const DWORD inven_right_hand_;
 extern const DWORD inven_set_mouse_;
 extern const DWORD inven_unwield_;
 extern const DWORD inven_wield_;
 extern const DWORD inven_worn_;
+extern const DWORD isPartyMember_; // (<eax> - object) - bool result
 extern const DWORD is_pc_sneak_working_;
 extern const DWORD is_within_perception_;
-extern const DWORD isPartyMember_; // (<eax> - object) - bool result
 extern const DWORD item_add_force_;
 extern const DWORD item_add_mult_;
 extern const DWORD item_c_curr_size_;
 extern const DWORD item_c_max_size_;
 extern const DWORD item_caps_total_;
+extern const DWORD item_count_;
 extern const DWORD item_d_check_addict_;
 extern const DWORD item_d_take_drug_;
 extern const DWORD item_drop_all_;
@@ -609,13 +629,13 @@ extern const DWORD item_w_anim_code_;
 extern const DWORD item_w_anim_weap_;
 extern const DWORD item_w_can_reload_;
 extern const DWORD item_w_compute_ammo_cost_; // signed int aWeapon<eax>, int *aRoundsSpent<edx>
-extern const DWORD item_w_curr_ammo_; // eax - object
+extern const DWORD item_w_curr_ammo_;
 extern const DWORD item_w_dam_div_;
 extern const DWORD item_w_dam_mult_;
 extern const DWORD item_w_damage_;
 extern const DWORD item_w_damage_type_;
 extern const DWORD item_w_dr_adjust_;
-extern const DWORD item_w_max_ammo_; // eax - object
+extern const DWORD item_w_max_ammo_;
 extern const DWORD item_w_mp_cost_;
 extern const DWORD item_w_perk_;
 extern const DWORD item_w_range_;
@@ -627,16 +647,9 @@ extern const DWORD item_w_unload_;
 extern const DWORD item_weight_;
 extern const DWORD kb_clear_;
 extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
-extern const DWORD ListDPerks_;
-extern const DWORD ListDrvdStats_;
-extern const DWORD ListHoloDiskTitles_;
-extern const DWORD ListSkills_;
-extern const DWORD ListTraits_;
 extern const DWORD loadColorTable_;
-extern const DWORD LoadGame_;
 extern const DWORD loadPCX_;
 extern const DWORD loadProgram_; // loads script from scripts/ folder by file name and returns pointer to it: char* <eax> - file name (w/o extension)
-extern const DWORD LoadSlot_;
 extern const DWORD load_frame_;
 extern const DWORD loot_container_;
 extern const DWORD main_game_loop_;
@@ -654,7 +667,6 @@ extern const DWORD map_enable_bk_processes_;
 extern const DWORD map_exit_;
 extern const DWORD map_get_short_name_;
 extern const DWORD map_load_idx_;
-extern const DWORD MapDirErase_;
 extern const DWORD mem_free_;
 extern const DWORD mem_malloc_;
 extern const DWORD mem_realloc_;
@@ -678,7 +690,6 @@ extern const DWORD movieStop_;
 extern const DWORD movieUpdate_;
 extern const DWORD my_free_;
 extern const DWORD new_obj_id_;
-extern const DWORD NixHotLines_;
 extern const DWORD nrealloc_;
 extern const DWORD obj_ai_blocking_at_;
 extern const DWORD obj_blocking_at_; // <eax>(int aExcludeObject<eax> /* can be 0 */, signed int aTile<edx>, int aElevation<ebx>)
@@ -696,7 +707,7 @@ extern const DWORD obj_find_first_at_;
 extern const DWORD obj_find_first_at_tile_; // <eax>(int elevation<eax>, int tile<edx>)
 extern const DWORD obj_find_next_;
 extern const DWORD obj_find_next_at_;
-extern const DWORD obj_find_next_at_tile_; // no args
+extern const DWORD obj_find_next_at_tile_;
 extern const DWORD obj_is_a_portal_;
 extern const DWORD obj_lock_is_jammed_;
 extern const DWORD obj_move_to_tile_;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
@@ -717,7 +728,6 @@ extern const DWORD obj_unjam_lock_;
 extern const DWORD obj_use_book_;
 extern const DWORD obj_use_power_on_car_;
 extern const DWORD object_under_mouse_;
-extern const DWORD OptionWindow_;
 extern const DWORD palette_fade_to_;
 extern const DWORD palette_init_;
 extern const DWORD palette_set_to_;
@@ -734,6 +744,7 @@ extern const DWORD pc_flag_off_;
 extern const DWORD pc_flag_on_;
 extern const DWORD pc_flag_toggle_;
 extern const DWORD perform_withdrawal_end_;
+extern const DWORD perkGetLevelData_;
 extern const DWORD perk_add_;
 extern const DWORD perk_add_effect_;
 extern const DWORD perk_add_force_;
@@ -744,15 +755,11 @@ extern const DWORD perk_level_;
 extern const DWORD perk_make_list_;
 extern const DWORD perk_name_;
 extern const DWORD perk_skilldex_fid_;
-extern const DWORD perkGetLevelData_;
 extern const DWORD perks_dialog_;
 extern const DWORD pick_death_;
 extern const DWORD pip_back_;
 extern const DWORD pip_print_;
 extern const DWORD pipboy_;
-extern const DWORD PipStatus_;
-extern const DWORD PrintBasicStat_;
-extern const DWORD PrintLevelWin_;
 extern const DWORD process_bk_;
 extern const DWORD protinst_use_item_;
 extern const DWORD protinst_use_item_on_;
@@ -789,11 +796,8 @@ extern const DWORD register_object_turn_towards_; // int aObj<eax>, int aTile<ed
 extern const DWORD remove_bk_process_;
 extern const DWORD report_explosion_;
 extern const DWORD reset_box_bar_win_;
-extern const DWORD RestorePlayer_;
 extern const DWORD roll_random_;
 extern const DWORD runProgram_; // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
-extern const DWORD SaveGame_;
-extern const DWORD SavePlayer_;
 extern const DWORD scr_exec_map_exit_scripts_;
 extern const DWORD scr_exec_map_update_scripts_;
 extern const DWORD scr_find_first_at_; // eax - elevation, returns spatial scriptID
@@ -812,7 +816,6 @@ extern const DWORD selectWindowID_;
 extern const DWORD set_focus_func_;
 extern const DWORD set_game_time_;
 extern const DWORD setup_move_timer_win_;
-extern const DWORD SexWindow_;
 extern const DWORD skill_check_stealing_;
 extern const DWORD skill_dec_point_;
 extern const DWORD skill_get_tags_; // eax - pointer to array DWORD, edx - number of elements to read
@@ -835,16 +838,16 @@ extern const DWORD square_num_;
 extern const DWORD stat_get_base_;
 extern const DWORD stat_get_base_direct_;
 extern const DWORD stat_get_bonus_;
-extern const DWORD stat_level_;
-extern const DWORD stat_pc_add_experience_; // eax - amount to add
+extern const DWORD stat_level_; // &GetCurrentStat(void* critter, int statID)
+extern const DWORD stat_pc_add_experience_;
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
 extern const DWORD stat_recalc_derived_;
 extern const DWORD stat_set_bonus_;
 extern const DWORD stat_set_defaults_;
+extern const DWORD strParseStrFromList_;
 extern const DWORD stricmp_;
 extern const DWORD strncpy_;
-extern const DWORD strParseStrFromList_;
 extern const DWORD switch_hand_;
 extern const DWORD talk_to_critter_reacts_;
 extern const DWORD talk_to_translucent_trans_buf_to_buf_;
@@ -860,13 +863,14 @@ extern const DWORD tile_refresh_display_;
 extern const DWORD tile_refresh_rect_; // (int elevation<edx>, unkown<ecx>)
 extern const DWORD tile_scroll_to_;
 extern const DWORD tile_set_center_;
+extern const DWORD trait_adjust_skill_;
+extern const DWORD trait_adjust_stat_;
 extern const DWORD trait_get_;
 extern const DWORD trait_init_;
 extern const DWORD trait_level_;
 extern const DWORD trait_set_;
 extern const DWORD trans_cscale_;
 extern const DWORD use_inventory_on_;
-extern const DWORD _word_wrap_;
 extern const DWORD win_add_;
 extern const DWORD win_clip_;
 extern const DWORD win_delete_;
