@@ -232,6 +232,9 @@
     <ClInclude Include="FalloutVars_def.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutFuncOffs_def.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>

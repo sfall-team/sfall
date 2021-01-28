@@ -291,6 +291,7 @@
     <ClInclude Include="Elevators.h" />
     <ClInclude Include="Explosions.h" />
     <ClInclude Include="FalloutEngine.h" />
+    <ClInclude Include="FalloutFuncOffs_def.h" />
     <ClInclude Include="FalloutFuncs_def.h" />
     <ClInclude Include="FalloutStructs.h" />
     <ClInclude Include="FalloutVars_def.h" />
