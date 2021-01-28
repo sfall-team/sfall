@@ -88,7 +88,7 @@ DWORD __stdcall Inventory::adjust_fid() {
 	return fo::var::i_fid;
 }
 
-static void __declspec(naked) adjust_fid_hack_replacement() {
+static void __declspec(naked) adjust_fid_hack() {
 	__asm {
 		push ecx;
 		push edx;
@@ -100,7 +100,8 @@ static void __declspec(naked) adjust_fid_hack_replacement() {
 }
 
 void Inventory::init() {
-	sf::MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_hack_replacement);
+	// Replace functions
+	sf::MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_hack); // 0x4716E8
 }
 
 }

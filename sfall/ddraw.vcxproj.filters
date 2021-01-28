@@ -319,6 +319,9 @@
     <ClInclude Include="Game\skills.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Game\stats.h">
+      <Filter>Game</Filter>
+    </ClInclude>
     <ClInclude Include="ReplacementFuncs.h" />
   </ItemGroup>
   <ItemGroup>
@@ -588,6 +591,9 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Game\skills.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\stats.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>

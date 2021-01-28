@@ -293,6 +293,7 @@
     <ClInclude Include="FalloutEngine\Functions_def.h" />
     <ClInclude Include="Game\inventory.h" />
     <ClInclude Include="Game\skills.h" />
+    <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
     <ClInclude Include="Modules\Interface.h" />
@@ -395,6 +396,7 @@
     <ClCompile Include="FalloutEngine\Functions.cpp" />
     <ClCompile Include="Game\inventory.cpp" />
     <ClCompile Include="Game\skills.cpp" />
+    <ClCompile Include="Game\stats.cpp" />
     <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />

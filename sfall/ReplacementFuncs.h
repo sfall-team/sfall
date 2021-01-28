@@ -8,3 +8,4 @@
 
 #include "Game\inventory.h"
 #include "Game\skills.h"
+#include "Game\stats.h"

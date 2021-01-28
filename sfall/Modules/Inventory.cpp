@@ -21,7 +21,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
-#include "PartyControl.h"
 #include "LoadGameHook.h"
 
 #include "..\Game\inventory.h"
@@ -66,7 +65,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
 	if (critter == fo::var::obj_dude) return invSizeMaxLimit;
@@ -307,7 +306,8 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 		jmp  ControlUpdateInfoRet;
 	}
 }
-/////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
 
 static std::string superStimMsg;
 static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {

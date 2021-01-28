@@ -1432,7 +1432,7 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x49F9DA, AdjustHeroBaseArt);
 
 	// Adjust hero art index offset when changing armor (adjust_fid_)
-	HookCall(0x4717D1, AdjustHeroArmorArt);
+	/* HookCall(0x4717D1, AdjustHeroArmorArt); - the engine function is replaced by the sfall code */
 
 	// Hijack Save Hero State Structure fuction address 9CD54800
 	// Return hero art index offset back to normal before saving

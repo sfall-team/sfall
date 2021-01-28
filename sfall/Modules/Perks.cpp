@@ -45,8 +45,6 @@ static char tName[maxNameLen * TRAIT_count] = {0};
 static char tDesc[descLen * TRAIT_count] = {0};
 static char PerkBoxTitle[33];
 
-#define check_trait(id) !disableTraits[id] && (var::pc_trait[0] == id || var::pc_trait[1] == id)
-
 static const int startFakeID = 256;
 static DWORD addPerkMode = 2;
 
@@ -106,8 +104,8 @@ static long RemoveTraitID = -1;
 static std::list<int> RemovePerkID;
 static std::list<int> RemoveSelectableID;
 
-static DWORD TraitSkillBonuses[TRAIT_count * 18] = {0};
-static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)] = {0};
+static DWORD traitSkillBonuses[TRAIT_count * 18] = {0};
+static DWORD traitStatBonuses[TRAIT_count * (STAT_max_derived + 1)] = {0};
 
 static bool disableTraits[TRAIT_count];
 static DWORD IgnoringDefaultPerks = 0;
@@ -146,15 +144,11 @@ void __stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
-static bool IsTraitDisabled(int id) {
-	return disableTraits[id];
-}
-
 static long __stdcall LevelUp() {
 	int eachLevel = PerkFreqOverride;
 
 	if (!eachLevel) {
-		if (!IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) { // Check if the player has the skilled trait
+		if (!Perks::IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) { // Check if the player has the skilled trait
 			eachLevel = 4;
 		} else {
 			eachLevel = 3;
@@ -874,7 +868,7 @@ static void PerkSetup() {
 		SafeWrite32(0x496BF5, (DWORD)&perks[0].image);
 		SafeWrite32(0x496AD4, (DWORD)&perks[0].ranks);
 	}
-	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
+	std::memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
 
 	if (perksEnable) {
 		char num[4];
@@ -998,121 +992,16 @@ static __declspec(naked) void PerkInitWrapper() {
 
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
-static int stat_get_base_direct(DWORD statID) {
-	return fo::func::stat_get_base_direct(fo::var::obj_dude, statID);
+bool Perks::IsTraitDisabled(int traitID) {
+	return disableTraits[traitID];
 }
 
-static int __stdcall trait_adjust_stat_override(DWORD statID) {
-	if (statID > STAT_max_derived) return 0;
-
-	int result = 0;
-	if (var::pc_trait[0] != -1) result += TraitStatBonuses[statID * TRAIT_count + var::pc_trait[0]];
-	if (var::pc_trait[1] != -1) result += TraitStatBonuses[statID * TRAIT_count + var::pc_trait[1]];
-
-	switch (statID) {
-	case STAT_st:
-		if (check_trait(TRAIT_gifted)) result++;
-		if (check_trait(TRAIT_bruiser)) result += 2;
-		break;
-	case STAT_pe:
-		if (check_trait(TRAIT_gifted)) result++;
-		break;
-	case STAT_en:
-		if (check_trait(TRAIT_gifted)) result++;
-		break;
-	case STAT_ch:
-		if (check_trait(TRAIT_gifted)) result++;
-		break;
-	case STAT_iq:
-		if (check_trait(TRAIT_gifted)) result++;
-		break;
-	case STAT_ag:
-		if (check_trait(TRAIT_gifted)) result++;
-		if (check_trait(TRAIT_small_frame)) result++;
-		break;
-	case STAT_lu:
-		if (check_trait(TRAIT_gifted)) result++;
-		break;
-	case STAT_max_move_points:
-		if (check_trait(TRAIT_bruiser)) result -= 2;
-		break;
-	case STAT_ac:
-		if (check_trait(TRAIT_kamikaze)) return -stat_get_base_direct(STAT_ac);
-		break;
-	case STAT_melee_dmg:
-		if (check_trait(TRAIT_heavy_handed)) result += 4;
-		break;
-	case STAT_carry_amt:
-		if (check_trait(TRAIT_small_frame)) {
-			int str = stat_get_base_direct(STAT_st);
-			result -= str * 10;
-		}
-		break;
-	case STAT_sequence:
-		if (check_trait(TRAIT_kamikaze)) result += 5;
-		break;
-	case STAT_heal_rate:
-		if (check_trait(TRAIT_fast_metabolism)) result += 2;
-		break;
-	case STAT_crit_chance:
-		if (check_trait(TRAIT_finesse)) result += 10;
-		break;
-	case STAT_better_crit:
-		if (check_trait(TRAIT_heavy_handed)) result -= 30;
-		break;
-	case STAT_rad_resist:
-		if (check_trait(TRAIT_fast_metabolism)) return -stat_get_base_direct(STAT_rad_resist);
-		break;
-	case STAT_poison_resist:
-		if (check_trait(TRAIT_fast_metabolism)) return -stat_get_base_direct(STAT_poison_resist);
-		break;
-	}
-	return result;
+DWORD Perks::GetTraitStatBonus(int statID, int traitIndex) {
+	return traitStatBonuses[statID * fo::TRAIT_count + fo::var::pc_trait[traitIndex]];
 }
 
-static void __declspec(naked) TraitAdjustStatHack() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call trait_adjust_stat_override;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
-static int __stdcall trait_adjust_skill_override(DWORD skillID) {
-	int result = 0;
-	if (var::pc_trait[0] != -1) {
-		result += TraitSkillBonuses[skillID * TRAIT_count + var::pc_trait[0]];
-	}
-	if (var::pc_trait[1] != -1) {
-		result += TraitSkillBonuses[skillID * TRAIT_count + var::pc_trait[1]];
-	}
-	if (check_trait(TRAIT_gifted)) {
-		result -= 10;
-	}
-	if (check_trait(TRAIT_good_natured)) {
-		if (skillID <= SKILL_THROWING) {
-			result -= 10;
-		} else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) {
-			result += 15;
-		}
-	}
-	return result;
-}
-
-static void __declspec(naked) TraitAdjustSkillHack() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call trait_adjust_skill_override;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
+DWORD Perks::GetTraitSkillBonus(int skillID, int traitIndex) {
+	return traitSkillBonuses[skillID * fo::TRAIT_count + fo::var::pc_trait[traitIndex]];
 }
 
 static void __declspec(naked) BlockedTrait() {
@@ -1123,11 +1012,7 @@ static void __declspec(naked) BlockedTrait() {
 }
 
 static void TraitSetup() {
-	// Replace functions
-	MakeJump(0x4B3C7C, TraitAdjustStatHack);  // trait_adjust_stat_
-	MakeJump(0x4B40FC, TraitAdjustSkillHack); // trait_adjust_skill_
-
-	memcpy(traits, var::trait_data, sizeof(TraitInfo) * TRAIT_count);
+	std::memcpy(traits, var::trait_data, sizeof(TraitInfo) * TRAIT_count);
 
 	// _trait_data
 	SafeWriteBatch<DWORD>((DWORD)traits, {0x4B3A81, 0x4B3B80});
@@ -1154,7 +1039,7 @@ static void TraitSetup() {
 			mod = strtok(0, "|");
 			while (stat&&mod) {
 				int _stat = atoi(stat), _mod = atoi(mod);
-				if (_stat >= 0 && _stat <= STAT_max_derived) TraitStatBonuses[_stat * TRAIT_count + i] = _mod;
+				if (_stat >= 0 && _stat <= STAT_max_derived) traitStatBonuses[_stat * TRAIT_count + i] = _mod;
 				stat = strtok(0, "|");
 				mod = strtok(0, "|");
 			}
@@ -1166,7 +1051,7 @@ static void TraitSetup() {
 			mod = strtok(0, "|");
 			while (stat&&mod) {
 				int _stat = atoi(stat), _mod = atoi(mod);
-				if (_stat >= 0 && _stat < 18) TraitSkillBonuses[_stat * TRAIT_count + i] = _mod;
+				if (_stat >= 0 && _stat < 18) traitSkillBonuses[_stat * TRAIT_count + i] = _mod;
 				stat = strtok(0, "|");
 				mod = strtok(0, "|");
 			}
@@ -1176,35 +1061,35 @@ static void TraitSetup() {
 			disableTraits[i] = true;
 			switch (i) {
 			case TRAIT_one_hander:
-				HookCall(0x4245E0, BlockedTrait);
+				HookCall(0x4245E0, BlockedTrait); // determine_to_hit_func_
 				break;
 			case TRAIT_finesse:
-				HookCall(0x4248F9, BlockedTrait);
+				HookCall(0x4248F9, BlockedTrait); // compute_damage_
 				break;
 			case TRAIT_fast_shot:
-				HookCall(0x478C8A, BlockedTrait); // fast shot
-				HookCall(0x478E70, BlockedTrait);
+				HookCall(0x478C8A, BlockedTrait); // item_w_mp_cost_
+				HookCall(0x478E70, BlockedTrait); // item_w_called_shot_
 				break;
 			case TRAIT_bloody_mess:
-				HookCall(0x410707, BlockedTrait);
+				HookCall(0x410707, BlockedTrait); // pick_death_
 				break;
 			case TRAIT_jinxed:
-				HookCall(0x42389F, BlockedTrait);
+				HookCall(0x42389F, BlockedTrait); // compute_attack_
 				break;
 			case TRAIT_drug_addict:
-				HookCall(0x47A0CD, BlockedTrait);
-				HookCall(0x47A51A, BlockedTrait);
+				HookCall(0x47A0CD, BlockedTrait); // item_d_take_drug_
+				HookCall(0x47A51A, BlockedTrait); // perform_withdrawal_start_
 				break;
 			case TRAIT_drug_resistant:
-				HookCall(0x479BE1, BlockedTrait);
-				HookCall(0x47A0DD, BlockedTrait);
+				HookCall(0x479BE1, BlockedTrait); // insert_drug_effect_
+				HookCall(0x47A0DD, BlockedTrait); // item_d_take_drug_
 				break;
 			case TRAIT_skilled:
-				HookCall(0x43C295, BlockedTrait);
-				HookCall(0x43C2F3, BlockedTrait);
+				HookCall(0x43C295, BlockedTrait); // UpdateLevel_
+				HookCall(0x43C2F3, BlockedTrait); // UpdateLevel_
 				break;
 			case TRAIT_gifted:
-				HookCall(0x43C2A4, BlockedTrait);
+				HookCall(0x43C2A4, BlockedTrait); // UpdateLevel_
 				break;
 			}
 		}

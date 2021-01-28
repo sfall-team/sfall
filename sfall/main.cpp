@@ -173,6 +173,7 @@ int SetConfigInt(const char* section, const char* setting, int value) {
 void InitReplacementHacks() {
 	game::Inventory::init();
 	game::Skills::init();
+	game::Stats::init();
 }
 
 static void InitModules() {
