@@ -675,7 +675,7 @@ static DWORD HandleTimedEventScripts() {
 
 	bool eventWasRunning = false;
 	for (auto timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
-		if (timerIt->isActive == false) continue;
+		if (!timerIt->isActive) continue;
 		if (currentTime >= timerIt->time) {
 			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event
 
@@ -702,7 +702,7 @@ static DWORD HandleTimedEventScripts() {
 		timedEvent = nullptr;
 		// delete all previously executed events
 		for (auto it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
-			if (it->isActive == false) {
+			if (!it->isActive) {
 				fo::func::dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
 				it = timerEventScripts.erase(it);
 			} else {

@@ -16,11 +16,13 @@ namespace game
 
 namespace sf = sfall;
 
+static bool smallFrameTraitFix = false;
+
 static int DudeGetBaseStat(DWORD statID) {
 	return fo::func::stat_get_base_direct(fo::var::obj_dude, statID);
 }
 
-static bool CheckTrait(DWORD traitID) {
+static __forceinline bool CheckTrait(DWORD traitID) {
 	return (!sf::Perks::IsTraitDisabled(traitID) && (fo::var::pc_trait[0] == traitID || fo::var::pc_trait[1] == traitID));
 }
 
@@ -28,8 +30,10 @@ int __stdcall Stats::trait_adjust_stat(DWORD statID) {
 	if (statID > fo::STAT_max_derived) return 0;
 
 	int result = 0;
-	if (fo::var::pc_trait[0] != -1) result += sf::Perks::GetTraitStatBonus(statID, 0);
-	if (fo::var::pc_trait[1] != -1) result += sf::Perks::GetTraitStatBonus(statID, 1);
+	if (sf::Perks::TraitsModEnable()) {
+		if (fo::var::pc_trait[0] != -1) result += sf::Perks::GetTraitStatBonus(statID, 0);
+		if (fo::var::pc_trait[1] != -1) result += sf::Perks::GetTraitStatBonus(statID, 1);
+	}
 
 	switch (statID) {
 	case fo::STAT_st:
@@ -66,8 +70,13 @@ int __stdcall Stats::trait_adjust_stat(DWORD statID) {
 		break;
 	case fo::STAT_carry_amt:
 		if (CheckTrait(fo::TRAIT_small_frame)) {
-			int str = DudeGetBaseStat(fo::STAT_st);
-			result -= str * 10;
+			int st;
+			if (smallFrameTraitFix) {
+				st = fo::func::stat_level(fo::var::obj_dude, fo::STAT_st);
+			} else {
+				st = DudeGetBaseStat(fo::STAT_st);
+			}
+			result -= st * 10;
 		}
 		break;
 	case fo::STAT_sequence:
@@ -107,6 +116,9 @@ static void __declspec(naked) trait_adjust_stat_hack() {
 void Stats::init() {
 	// Replace functions
 	sf::MakeJump(fo::funcoffs::trait_adjust_stat_, trait_adjust_stat_hack); // 0x4B3C7C
+
+	// Fix the carry weight penalty of the Small Frame trait not being applied to bonus Strength points
+	smallFrameTraitFix = (sf::GetConfigInt("Misc", "SmallFrameFix", 0) != 0);
 }
 
 }

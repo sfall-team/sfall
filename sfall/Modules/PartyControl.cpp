@@ -555,7 +555,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
 	}
 	if (critter != nullptr && critter != PartyControl::RealDudeObject()) {
-		if (!isControllingNPC && realDude.isSaved == false) {
+		if (!isControllingNPC && !realDude.isSaved) {
 			SaveRealDudeState();
 		}
 		SetCurrentDude(critter);

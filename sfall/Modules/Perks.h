@@ -28,6 +28,8 @@ public:
 	const char* name() { return "Perks"; }
 	void init();
 
+	// Enable the modifications for traits by using the perks ini file
+	static int TraitsModEnable();
 	static bool IsTraitDisabled(int traitID);
 	static DWORD GetTraitStatBonus(int statID, int traitIndex);
 	static DWORD GetTraitSkillBonus(int skillID, int traitIndex);

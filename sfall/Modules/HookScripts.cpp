@@ -111,7 +111,7 @@ static HooksInjectInfo injectHooks[] = {
 };
 
 void HookScripts::InjectingHook(int hookId) {
-	if (IsInjectHook(hookId) == false && injectHooks[hookId].id == hookId) {
+	if (!IsInjectHook(hookId) && injectHooks[hookId].id == hookId) {
 		injectHooks[hookId].injectState = 2;
 		injectHooks[hookId].inject();
 		devlog_f("Inject hook ID: %d\n", DL_INIT, hookId);
@@ -123,7 +123,7 @@ bool HookScripts::IsInjectHook(int hookId) {
 }
 
 bool HookScripts::HookHasScript(int hookId) {
-	return (hooks[hookId].empty() == false);
+	return (!hooks[hookId].empty());
 }
 
 void HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {

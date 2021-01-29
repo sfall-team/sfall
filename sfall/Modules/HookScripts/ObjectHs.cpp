@@ -332,7 +332,7 @@ static void __declspec(naked) critter_adjust_poison_hack() {
 }
 
 static DWORD __fastcall AdjustRads_Script(DWORD critter, long amount) {
-	if (HookScripts::HookHasScript(HOOK_ADJUSTRADS) == false) return amount;
+	if (!HookScripts::HookHasScript(HOOK_ADJUSTRADS)) return amount;
 
 	BeginHook();
 	argCount = 2;
