@@ -935,11 +935,13 @@ static void PerkSetup() {
 
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
+static bool smallFrameTraitFix = false;
+
 static int __stdcall DudeGetBaseStat(DWORD statID) {
 	return fo_stat_get_base_direct(*ptr_obj_dude, statID);
 }
 
-static bool __stdcall CheckTrait(DWORD traitID) {
+static __forceinline bool __stdcall CheckTrait(DWORD traitID) {
 	return (!disableTraits[traitID] && (ptr_pc_trait[0] == traitID || ptr_pc_trait[1] == traitID));
 }
 
@@ -947,8 +949,10 @@ static int __stdcall trait_adjust_stat_override(DWORD statID) {
 	if (statID > STAT_max_derived) return 0;
 
 	int result = 0;
-	if (ptr_pc_trait[0] != -1) result += traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[0]];
-	if (ptr_pc_trait[1] != -1) result += traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[1]];
+	if (traitsEnable) {
+		if (ptr_pc_trait[0] != -1) result += traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[0]];
+		if (ptr_pc_trait[1] != -1) result += traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[1]];
+	}
 
 	switch (statID) {
 	case STAT_st:
@@ -985,8 +989,13 @@ static int __stdcall trait_adjust_stat_override(DWORD statID) {
 		break;
 	case STAT_carry_amt:
 		if (CheckTrait(TRAIT_small_frame)) {
-			int str = DudeGetBaseStat(STAT_st);
-			result -= str * 10;
+			int st;
+			if (smallFrameTraitFix) {
+				st = fo_stat_level(*ptr_obj_dude, STAT_st);
+			} else {
+				st = DudeGetBaseStat(STAT_st);
+			}
+			result -= st * 10;
 		}
 		break;
 	case STAT_sequence:
@@ -1025,15 +1034,13 @@ static void __declspec(naked) trait_adjust_stat_hack() {
 
 static int __stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
-	if (ptr_pc_trait[0] != -1) {
-		result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[0]];
+	if (traitsEnable) {
+		if (ptr_pc_trait[0] != -1) result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[0]];
+		if (ptr_pc_trait[1] != -1) result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[1]];
 	}
-	if (ptr_pc_trait[1] != -1) {
-		result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[1]];
-	}
-	if (CheckTrait(TRAIT_gifted)) {
-		result -= 10;
-	}
+
+	if (CheckTrait(TRAIT_gifted)) result -= 10;
+
 	if (CheckTrait(TRAIT_good_natured)) {
 		if (skillID <= SKILL_THROWING) {
 			result -= 10;
@@ -1067,10 +1074,6 @@ static void PerkAndTraitSetup() {
 	PerkSetup();
 
 	if (!traitsEnable) return;
-
-	// Replace functions
-	MakeJump(trait_adjust_stat_, trait_adjust_stat_hack);   // 0x4B3C7C
-	MakeJump(trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
 
 	std::memcpy(traits, (void*)FO_VAR_trait_data, sizeof(TraitInfo) * TRAIT_count);
 
@@ -1404,6 +1407,13 @@ void PerksAcceptCharScreen() {
 }
 
 void Perks_Init() {
+	// Replace functions
+	MakeJump(trait_adjust_stat_, trait_adjust_stat_hack);   // 0x4B3C7C
+	MakeJump(trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
+
+	// Fix the carry weight penalty of the Small Frame trait not being applied to bonus Strength points
+	smallFrameTraitFix = (GetConfigInt("Misc", "SmallFrameFix", 0) != 0);
+
 	FastShotTraitFix();
 
 	// Disable losing unused perks
