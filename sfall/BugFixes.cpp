@@ -2835,6 +2835,37 @@ skip:
 	}
 }
 
+static BYTE fixRegion = 0;
+
+static void __declspec(naked) checkAllRegions_hack() {
+	static const DWORD checkAllRegions_BackRet = 0x4B6C40;
+	static const DWORD checkAllRegions_FixRet = 0x4B6AAB;
+	__asm {
+		test eax, eax;
+		jnz  skip;
+		cmp  dword ptr ds:[FO_VAR_lastWin], -1;
+		je   skip;
+		mov  fixRegion, 1;
+		jmp  checkAllRegions_FixRet; // trigger the leave event for _lastWin
+skip:
+		add  esp, 0x10;
+		pop  ebp;
+		pop  edi;
+		jmp  checkAllRegions_BackRet;
+	}
+}
+
+static void __declspec(naked) checkAllRegions_hook() {
+	__asm {
+		test byte ptr fixRegion, 1;
+		jnz  skip;
+		jmp  windowCheckRegion_;
+skip:
+		mov  fixRegion, 0;
+		retn;
+	}
+}
+
 void BugFixes_OnGameLoad() {
 	dudeIsAnimDeath = false;
 }
@@ -3596,4 +3627,8 @@ void BugFixes_Init()
 	// Fix for the flags of non-door objects being set/unset when using obj_close/open functions
 	MakeCall(0x49CBF7, check_door_state_hack_close, 2);
 	MakeCall(0x49CB30, check_door_state_hack_open, 1);
+
+	// Fix the "Leave" event procedure of the window region not being triggered when the cursor moves to a non-scripted window
+	MakeJump(0x4B6C3B, checkAllRegions_hack);
+	HookCall(0x4B6C13, checkAllRegions_hook);
 }
