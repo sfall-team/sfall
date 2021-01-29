@@ -118,6 +118,7 @@ WRAP_WATCOM_FUNC2(long, interpretFindProcedure, TProgram*, scriptPtr, const char
 WRAP_WATCOM_FUNC1(DWORD, interpretPopShort, TProgram*, scriptPtr) // Pops value type from Data stack (must be followed by InterpretPopLong)
 WRAP_WATCOM_FUNC1(DWORD, interpretPopLong, TProgram*, scriptPtr)  // Pops value from Data stack (must be preceded by InterpretPopShort)
 WRAP_WATCOM_FUNC2(long, intface_get_attack, DWORD*, hitMode, DWORD*, isSecondary)
+WRAP_WATCOM_FUNC0(long, intface_is_item_right_hand)
 WRAP_WATCOM_FUNC0(long, intface_is_hidden)
 WRAP_WATCOM_FUNC0(void, intface_redraw) // Redraws the main game interface windows (useful after changing some data like active hand, etc.)
 WRAP_WATCOM_FUNC0(void, intface_toggle_item_state)

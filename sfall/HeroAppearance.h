@@ -18,8 +18,12 @@
 
 #pragma once
 
+extern bool appModEnabled;
+
 void HeroAppearance_Init();
 void HeroAppearance_Exit();
+
+void __stdcall AdjustHeroArmorArt(DWORD fid);
 
 void __stdcall HeroSelectWindow(int raceStyleFlag);
 void __stdcall SetHeroStyle(int newStyleVal);

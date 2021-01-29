@@ -20,8 +20,11 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "HeroAppearance.h"
+#include "HookScripts.h"
 #include "InputFuncs.h"
 #include "LoadGameHook.h"
+#include "PartyControl.h"
 
 #include "Inventory.h"
 
@@ -58,9 +61,9 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-DWORD __stdcall sf_item_total_size(TGameObj* critter) {
+DWORD __stdcall Inventory_item_total_size(TGameObj* critter) {
 	int totalSize = fo_item_c_curr_size(critter);
 
 	if (critter->TypeFid() == OBJ_TYPE_CRITTER) {
@@ -81,6 +84,70 @@ DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 	}
 	return totalSize;
 }
+
+// Reimplementation of adjust_fid engine function
+// Differences from vanilla:
+// - doesn't use art_vault_guy_num as default art, uses current critter FID instead
+// - calls AdjustFidHook that allows to hook into FID calculation
+DWORD __stdcall Inventory_adjust_fid() {
+	DWORD fid;
+	if ((*ptr_inven_dude)->TypeFid() == OBJ_TYPE_CRITTER) {
+		DWORD indexNum;
+		DWORD weaponAnimCode = 0;
+		if (PartyControl_IsNpcControlled()) {
+			// if NPC is under control, use current FID of critter
+			indexNum = (*ptr_inven_dude)->artFid & 0xFFF;
+		} else {
+			// vanilla logic:
+			indexNum = *ptr_art_vault_guy_num;
+			auto critterPro = GetProto(*ptr_inven_pid);
+			if (critterPro != nullptr) {
+				indexNum = critterPro->fid & 0xFFF;
+			}
+			if (*ptr_i_worn != nullptr) {
+				auto armorPro = GetProto((*ptr_i_worn)->protoId);
+				DWORD armorFid = fo_stat_level(*ptr_inven_dude, STAT_gender) == GENDER_FEMALE
+					? armorPro->item.armor.femaleFID
+					: armorPro->item.armor.maleFID;
+
+				if (armorFid != -1) {
+					indexNum = armorFid;
+				}
+			}
+		}
+		auto itemInHand = fo_intface_is_item_right_hand()
+			? *ptr_i_rhand
+			: *ptr_i_lhand;
+
+		if (itemInHand != nullptr) {
+			auto itemPro = GetProto(itemInHand->protoId);
+			if (itemPro->item.type == item_type_weapon) {
+				weaponAnimCode = itemPro->item.weapon.animationCode;
+			}
+		}
+		fid = fo_art_id(OBJ_TYPE_CRITTER, indexNum, 0, weaponAnimCode, 0);
+	} else {
+		fid = (*ptr_inven_dude)->artFid;
+	}
+	*ptr_i_fid = fid;
+	// OnAdjustFid
+	if (appModEnabled) AdjustHeroArmorArt(fid);
+	AdjustFidHook(fid); // should be called last
+	return *ptr_i_fid;
+}
+
+static void __declspec(naked) adjust_fid_hack() {
+	__asm {
+		push ecx;
+		push edx;
+		call Inventory_adjust_fid; // return fid
+		pop  edx;
+		pop  ecx;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 static int __stdcall CritterGetMaxSize(TGameObj* critter) {
 	if (critter == *ptr_obj_dude) return invSizeMaxLimit;
@@ -108,7 +175,7 @@ static __declspec(naked) void critterIsOverloaded_hack() {
 		jz   skip;
 		push ebx;
 		mov  ebx, eax;           // ebx = MaxSize
-		call sf_item_total_size;
+		call Inventory_item_total_size;
 		cmp  eax, ebx;
 		setg al;                 // if CurrSize > MaxSize
 		and  eax, 0xFF;
@@ -122,8 +189,8 @@ end:
 static int __fastcall CanAddedItems(TGameObj* critter, TGameObj* item, int count) {
 	int sizeMax = CritterGetMaxSize(critter);
 	if (sizeMax > 0) {
-		int itemsSize = fo_item_size(item) * count;
-		if (itemsSize + (int)sf_item_total_size(critter) > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
+		int totalSize = Inventory_item_total_size(critter) + (fo_item_size(item) * count);
+		if (totalSize > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
 	}
 	return 0;
 }
@@ -168,10 +235,10 @@ static int __fastcall BarterAttemptTransaction(TGameObj* critter, TGameObj* tabl
 	int size = CritterGetMaxSize(critter);
 	if (size == 0) return 1;
 
-	int sizeTable = sf_item_total_size(table);
+	int sizeTable = Inventory_item_total_size(table);
 	if (sizeTable == 0) return 1;
 
-	size -= sf_item_total_size(critter);
+	size -= Inventory_item_total_size(critter);
 	return (sizeTable <= size) ? 1 : 0;
 }
 
@@ -246,7 +313,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 	}
 
 	sizeMax = limitMax;
-	size = sf_item_total_size(critter);
+	size = Inventory_item_total_size(critter);
 
 	const char* msg = MsgSearch(ptr_inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
@@ -312,14 +379,15 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 		call CritterGetMaxSize;
 		push eax;               // sizeMax
 		push ebx;
-		call sf_item_total_size;
+		call Inventory_item_total_size;
 		push eax;               // size
 		mov  eax, ebx;
 		mov  edx, STAT_carry_amt;
 		jmp  ControlUpdateInfoRet;
 	}
 }
-/////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
 
 static char superStimMsg[128];
 static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
@@ -634,6 +702,9 @@ void InventoryReset() {
 }
 
 void Inventory_Init() {
+	// Replace adjust_fid_ function
+	MakeJump(adjust_fid_, adjust_fid_hack); // 0x4716E8
+
 	long widthWeight = 135;
 
 	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);

@@ -51,6 +51,7 @@
 #define HOOK_WITHINPERCEPTION (23)
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
+#define HOOK_ADJUSTFID        (26)
 #define HOOK_GAMEMODECHANGE   (31)
 
 //Valid arguments to list_begin

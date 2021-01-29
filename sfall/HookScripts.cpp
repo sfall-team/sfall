@@ -1587,6 +1587,21 @@ long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item,
 }
 
 // 4.x backport
+void __stdcall AdjustFidHook(DWORD vanillaFid) {
+	BeginHook();
+	argCount = 2;
+
+	args[0] = vanillaFid;
+	args[1] = *ptr_i_fid; // modified FID by sfall code
+	RunHookScript(HOOK_ADJUSTFID);
+
+	if (cRet > 0) {
+		*ptr_i_fid = rets[0];
+	}
+	EndHook();
+}
+
+// 4.x backport
 static unsigned long previousGameMode = 0;
 
 void __stdcall GameModeChangeHook(DWORD exit) {
@@ -1635,7 +1650,7 @@ void __stdcall SetHSReturn(DWORD value) {
 }
 
 void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg) {
-	if (id >= numHooks || (id > HOOK_INVENWIELD && id < HOOK_GAMEMODECHANGE)) return;
+	if (id >= numHooks || (id > HOOK_ADJUSTFID && id < HOOK_GAMEMODECHANGE)) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
 			if (procNum == 0) hooks[id].erase(it); // unregister
@@ -1873,6 +1888,7 @@ static void HookScriptInit() {
 	HookCall(0x45C4F6, op_move_obj_inven_to_obj_hook);
 	MakeCall(0x4778AF, item_drop_all_hack, 3);
 
+	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
 	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 	fo_db_free_file_list(&filenames, 0);

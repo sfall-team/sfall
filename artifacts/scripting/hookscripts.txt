@@ -465,6 +465,20 @@ int     ret0 - overrides hard-coded handler (-1 - use engine handler, any other 
 
 -------------------------------------------
 
+HOOK_ADJUSTFID (hs_adjustfid.int)
+
+Runs after calculating character figure FID on the inventory screen, whenever the game decides that character appearance might change.
+Also happens on other screens, like barter.
+
+NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
+
+int     arg0 - the vanilla FID calculated by the engine according to critter base FID and armor/weapon being used
+int     arg1 - the modified FID calculated by the internal sfall code (like Hero Appearance Mod)
+
+int     ret0 - overrides the calculated FID with provided value
+
+-------------------------------------------
+
 HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
 
 Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.

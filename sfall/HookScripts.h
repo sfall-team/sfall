@@ -46,6 +46,7 @@ enum HookType
 	HOOK_WITHINPERCEPTION = 23,
 	HOOK_INVENTORYMOVE    = 24,
 	HOOK_INVENWIELD       = 25,
+	HOOK_ADJUSTFID        = 26, // 4.x backport
 	HOOK_GAMEMODECHANGE   = 31, // 4.x backport
 	HOOK_COUNT
 };
@@ -65,16 +66,19 @@ void HookScriptClear();
 
 extern DWORD initingHookScripts;
 
-int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 void __stdcall RunHookScriptsAtProc(DWORD procId);
 
 void __stdcall GameModeChangeHook(DWORD exit);
 void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 void __stdcall MouseClickHook(DWORD button, bool pressed);
 
+int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
+
 long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
+
+void __stdcall AdjustFidHook(DWORD vanillaFid);
 
 // Implementation of item_w_mp_cost_ engine function with the hook
 long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);

@@ -524,7 +524,7 @@ static void mf_set_unjam_locks_time() {
 static void mf_get_current_inven_size() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(sf_item_total_size(obj));
+		opHandler.setReturn(Inventory_item_total_size(obj));
 	} else {
 		OpcodeInvalidArgs("get_current_inven_size");
 		opHandler.setReturn(0);

@@ -20,6 +20,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "Inventory.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 #include "Message.h"
@@ -266,21 +267,12 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 }
 
 // adjust armor art if num below hero art range
-static void __declspec(naked) AdjustHeroArmorArt() {
-	__asm {
-		pop  ebx;                     // get ret addr
-		mov  dword ptr ss:[esp], ebx; // reinsert ret addr in old (push 0)
-		xor  ebx, ebx;
-		push 0;
-		call art_id_;                 // call load frm func
-		mov  dx, ax;
-		and  dh, 0x0F;                // mask out current weapon flag
-		cmp  edx, critterListSize;    // check if critter art in PC range
-		jg   endFunc;
-		add  eax, critterListSize;    // shift critter art index up into hero range
-endFunc:
-		//mov dword ptr ds:[FO_VAR_i_fid], eax;
-		retn;
+void __stdcall AdjustHeroArmorArt(DWORD fid) {
+	if ((fid & 0xF000000) == (OBJ_TYPE_CRITTER << 24) && !PartyControl_IsNpcControlled()) {
+		DWORD fidBase = fid & 0xFFF;
+		if (fidBase <= critterListSize) {
+			*ptr_i_fid += critterListSize;
+		}
 	}
 }
 
@@ -367,76 +359,45 @@ static void DrawPC() {
 }
 
 // scan inventory items for armor and weapons currently being worn or wielded and setup matching FrmID for PC
-void __stdcall RefreshPCArt() {
-	__asm {
-		call proto_dude_update_gender_;         // refresh PC base model art
+void UpdateHeroArt() {
+	TGameObj* iD = *ptr_inven_dude;
+	TGameObj* iR = *ptr_i_rhand;
+	TGameObj* iL = *ptr_i_lhand;
+	TGameObj* iW = *ptr_i_worn;
 
-		push dword ptr ds:[FO_VAR_inven_dude];
-		push dword ptr ds:[FO_VAR_i_rhand]; // item2
-		push dword ptr ds:[FO_VAR_i_lhand]; // item1
-		push dword ptr ds:[FO_VAR_i_worn];  // armor
+	*ptr_i_rhand = 0;
+	*ptr_i_lhand = 0;
+	*ptr_i_worn = 0;
 
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];     // PC state struct
-		mov  dword ptr ds:[FO_VAR_inven_dude], eax;   // inventory temp pointer to PC state struct
-		mov  eax, dword ptr ds:[FO_VAR_inven_dude];
-		lea  edx, dword ptr ds:[eax + 0x2C];
-		mov  dword ptr ds:[FO_VAR_pud], edx;          // PC inventory
+	*ptr_inven_dude = *ptr_obj_dude;
+	int invenSize = (*ptr_obj_dude)->invenSize;
+	//*ptr_pud = invenSize;
 
-		xor  eax, eax;
-		xor  edx, edx; // itemListOffset
-		xor  ebx, ebx; // itemNum
+	for (int itemNum = 0; itemNum < invenSize; itemNum++) {
+		TGameObj* item = (*ptr_obj_dude)->invenTable[itemNum].object; // PC inventory item list + itemListOffset
 
-		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // item2
-		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // item1
-		mov  dword ptr ds:[FO_VAR_i_worn], eax;  // armor
-		jmp  LoopStart;
-
-CheckNextItem:
-		mov  eax, dword ptr ds:[eax + 0x8]; // PC inventory item list
-		mov  eax, dword ptr ds:[edx + eax]; // PC inventory item list + itemListOffset
-
-		test byte ptr ds:[eax + 0x27], 1; // if item in item1 slot
-		jnz  IsItem1;
-		test byte ptr ds:[eax + 0x27], 2; // if item in item2 slot
-		jnz  IsItem2;
-		test byte ptr ds:[eax + 0x27], 4; // if item in armor slot
-		jnz  IsArmor;
-		jmp  SetNextItem;
-
-IsItem1:
-		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // set item1
-		test byte ptr ds:[eax + 0x27], 2;  // check if same item type also in item2 slot
-		jz   SetNextItem;
-
-IsItem2:
-		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // set item2
-		jmp  SetNextItem;
-
-IsArmor:
-		mov  dword ptr ds:[FO_VAR_i_worn], eax; // set armor
-
-SetNextItem:
-		inc  ebx;    // itemNum++
-		add  edx, 8; // itemListOffset + itemsize
-LoopStart:
-		mov  eax, dword ptr ds:[FO_VAR_pud]; // PC inventory
-		cmp  ebx, dword ptr ds:[eax];  // size of item list
-		jl   CheckNextItem;
-
-		// inventory function - setup pc FrmID and store at address _i_fid
-		call adjust_fid_;
-
-		// copy new FrmID to hero state struct
-		mov  edx, dword ptr ds:[FO_VAR_i_fid];
-		mov  eax, dword ptr ds:[FO_VAR_inven_dude];
-		mov  dword ptr ds:[eax + 0x20], edx;
-		//call obj_change_fid_;
-
-		pop  dword ptr ds:[FO_VAR_i_worn];  // armor
-		pop  dword ptr ds:[FO_VAR_i_lhand]; // item1
-		pop  dword ptr ds:[FO_VAR_i_rhand]; // item2
-		pop  dword ptr ds:[FO_VAR_inven_dude];
+		if (item->flags & ObjectFlag::Right_Hand) {
+			*ptr_i_rhand = item;
+		} else if (item->flags & ObjectFlag::Left_Hand) {
+			*ptr_i_lhand = item;
+		} else if (item->flags & ObjectFlag::Worn) {
+			*ptr_i_worn = item;
+		}
 	}
+
+	// inventory function - setup pc FrmID and store at address _i_fid
+	(*ptr_obj_dude)->artFid = Inventory_adjust_fid(); // adjust_fid_
+
+	*ptr_inven_dude = iD;
+	*ptr_i_rhand = iR;
+	*ptr_i_lhand = iL;
+	*ptr_i_worn = iW;
+}
+
+void __stdcall RefreshPCArt() {
+	fo_proto_dude_update_gender(); // refresh PC base model art
+
+	UpdateHeroArt();
 	DrawPC();
 }
 
@@ -1462,7 +1423,7 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x49F9DA, AdjustHeroBaseArt);
 
 	// Adjust hero art index offset when changing armor (adjust_fid_)
-	HookCall(0x4717D1, AdjustHeroArmorArt);
+	/* HookCall(0x4717D1, AdjustHeroArmorArt); - the engine function is replaced by the sfall code */
 
 	// Hijack Save Hero State Structure fuction address 9CD54800
 	// Return hero art index offset back to normal before saving
