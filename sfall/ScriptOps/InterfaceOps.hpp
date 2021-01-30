@@ -350,7 +350,7 @@ static void mf_intface_redraw() {
 			RefreshGNW(true); 
 		} else {
 			WINinfo* win = Interface_GetWindow(winType);
-			if (win && (int)win != -1) fo_GNW_win_refresh(win, &win->rect, 0);
+			if (win && (int)win != -1) Render_GNW_win_refresh(win, &win->wRect, 0);
 		}
 	}
 }
@@ -702,14 +702,14 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 	int width  = (w >= 0) ? w : framePtr->width;
 	int height = (h >= 0) ? h : framePtr->height;
 
-	BYTE* surface = (ifaceWin->randY) ? GameRender_GetOverlaySurface(ifaceWin) : ifaceWin->surface;
+	BYTE* surface = (ifaceWin->randY) ? WinRender_GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
 	fo_trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
 	                surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
 	if (!(opHandler.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
-		fo_GNW_win_refresh(ifaceWin, &ifaceWin->rect, 0);
+		Render_GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -865,7 +865,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	BYTE* surface;
 	if (win->randY) { // if a surface was created, the engine will draw on it
 		surface = win->surface;
-		win->surface = GameRender_GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
+		win->surface = WinRender_GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
 	}
 
 	if (color & 0x10000) { // shadow (textshadow)
@@ -877,7 +877,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) fo_GNW_win_refresh(win, &win->rect, 0);
+	if (!(color & 0x1000000)) Render_GNW_win_refresh(win, &win->wRect, 0);
 }
 
 static void mf_win_fill_color() {
@@ -907,10 +907,10 @@ static void mf_interface_overlay() {
 
 	switch (opHandler.arg(1).rawValue()) {
 	case 0:
-		GameRender_DestroyOverlaySurface(win);
+		WinRender_DestroyOverlaySurface(win);
 		break;
 	case 1:
-		GameRender_CreateOverlaySurface(win, winType);
+		WinRender_CreateOverlaySurface(win, winType);
 		break;
 	case 2: // clear
 		if (opHandler.numArgs() > 2) {
@@ -923,9 +923,9 @@ static void mf_interface_overlay() {
 			if (x < 0 || y < 0) return;
 
 			sRectangle rect = { x, y, w, h };
-			GameRender_ClearOverlay(win, rect);
+			WinRender_ClearOverlay(win, rect);
 		} else {
-			GameRender_ClearOverlay(win);
+			WinRender_ClearOverlay(win);
 		}
 		break;
 	}

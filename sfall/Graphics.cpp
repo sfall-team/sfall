@@ -1299,7 +1299,7 @@ static __declspec(naked) void game_init_hook() {
 	}
 }
 
-///////////////////////////////// GAME RENDER //////////////////////////////////
+//////////////////////////////// WINDOW RENDER /////////////////////////////////
 
 static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
 	long x = rect->left;
@@ -1331,8 +1331,6 @@ static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, 
 		primaryDDSurface->Unlock(desc.lpSurface);
 	}
 }
-
-static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toBuffer);
 
 class OverlaySurface
 {
@@ -1407,7 +1405,7 @@ public:
 
 static long indexPosition = 0;
 
-void GameRender_CreateOverlaySurface(WINinfo* win, long winType) {
+void WinRender_CreateOverlaySurface(WINinfo* win, long winType) {
 	if (win->randY) return;
 	if (overlaySurfaces[indexPosition].winType == winType) {
 		overlaySurfaces[indexPosition].ClearSurface();
@@ -1418,15 +1416,15 @@ void GameRender_CreateOverlaySurface(WINinfo* win, long winType) {
 	win->randY = reinterpret_cast<long*>(&overlaySurfaces[indexPosition]);
 }
 
-BYTE* GameRender_GetOverlaySurface(WINinfo* win) {
+BYTE* WinRender_GetOverlaySurface(WINinfo* win) {
 	return reinterpret_cast<OverlaySurface*>(win->randY)->Surface();
 }
 
-void GameRender_ClearOverlay(WINinfo* win) {
+void WinRender_ClearOverlay(WINinfo* win) {
 	if (win->randY) reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface();
 }
 
-void GameRender_ClearOverlay(WINinfo* win, sRectangle &rect) {
+void WinRender_ClearOverlay(WINinfo* win, sRectangle &rect) {
 	if (win->randY) {
 		reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface(rect);
 		BoundRect updateRect = { rect.x, rect.y, rect.right(), rect.bottom() };
@@ -1434,25 +1432,27 @@ void GameRender_ClearOverlay(WINinfo* win, sRectangle &rect) {
 		updateRect.y += win->rect.y;
 		updateRect.offx += win->rect.x;
 		updateRect.offy += win->rect.y;
-		sf_GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
+		Render_GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
 	}
 }
 
-void GameRender_DestroyOverlaySurface(WINinfo* win) {
+void WinRender_DestroyOverlaySurface(WINinfo* win) {
 	if (win->randY) {
 		OverlaySurface* overlay = reinterpret_cast<OverlaySurface*>(win->randY);
 		win->randY = nullptr;
 		overlay->winType = -1;
 		overlay->DestroySurface();
-		sf_GNW_win_refresh(win, &win->wRect, 0);
+		Render_GNW_win_refresh(win, &win->wRect, 0);
 	}
 }
 
-static BYTE* GetBuffer() {
+//////////////////////////////////// RENDER ////////////////////////////////////
+
+static BYTE* __stdcall GetBuffer() {
 	return (BYTE*)*(DWORD*)FO_VAR_screen_buffer;
 }
 
-static void Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
+static void __stdcall Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
 	auto drawFunc = (win->flags & WinFlags::Transparent && win->wID) ? fo_trans_buf_to_buf : fo_buf_to_buf;
 	if (toBuffer) {
 		drawFunc(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
@@ -1461,7 +1461,7 @@ static void Draw(WINinfo* win, BYTE* surface, long width, long height, long widt
 	}
 
 	if (!win->randY) return;
-	surface = &GameRender_GetOverlaySurface(win)[rect.left - win->rect.x] + ((rect.top - win->rect.y) * win->width);
+	surface = &WinRender_GetOverlaySurface(win)[rect.left - win->rect.x] + ((rect.top - win->rect.y) * win->width);
 
 	if (toBuffer) {
 		fo_trans_buf_to_buf(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
@@ -1470,7 +1470,7 @@ static void Draw(WINinfo* win, BYTE* surface, long width, long height, long widt
 	}
 }
 
-static void __fastcall sf_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toBuffer) {
+void __fastcall Render_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toBuffer) {
 	if (win->flags & WinFlags::Hidden) return;
 	RectList* rects;
 
@@ -1601,7 +1601,7 @@ static __declspec(naked) void GNW_win_refresh_hack() {
 	__asm {
 		push ebx; // toBuffer
 		mov  ecx, eax;
-		call sf_GNW_win_refresh;
+		call Render_GNW_win_refresh;
 		pop  ecx;
 		retn;
 	}
@@ -1630,6 +1630,17 @@ void Graphics_OnGameLoad() { // ResetShaders
 }
 
 void Graphics_Init() {
+	// Replace the srcCopy_ function with a pure MMX implementation
+	MakeJump(buf_to_buf_, fo_buf_to_buf); // 0x4D36D4
+	// Replace the transSrcCopy_ function
+	MakeJump(trans_buf_to_buf_, fo_trans_buf_to_buf); // 0x4D3704
+
+	// Custom implementation of the GNW_win_refresh function
+	MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
+	// Replace _screendump_buf with _screen_buffer for creating screenshots
+	const DWORD scrdumpBufAddr[] = {0x4C8FD1, 0x4C900D};
+	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
+
 	GraphicsMode = GetConfigInt("Graphics", "Mode", 0);
 	if (GraphicsMode == 6) {
 		windowStyle = WS_OVERLAPPED;
@@ -1673,23 +1684,12 @@ void Graphics_Init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Replace the srcCopy_ function with a pure MMX implementation
-	MakeJump(0x4D36D4, fo_buf_to_buf); // buf_to_buf_
-	// Replace the transSrcCopy_ function
-	MakeJump(0x4D3704, fo_trans_buf_to_buf); // trans_buf_to_buf_
-
 	// Enable support for transparent interface windows
 	const DWORD winBufferAddr [] = {
 		0x4D5D46, // win_init_ (create screen_buffer)
 		0x4D75E6  // win_clip_ (remove _buffering checking)
 	};
 	SafeWriteBatch<WORD>(0x9090, winBufferAddr);
-
-	// Custom implementation of the GNW_win_refresh function
-	MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
-	// Replace _screendump_buf with _screen_buffer for creating screenshots
-	const DWORD scrdumpBufAddr[] = {0x4C8FD1, 0x4C900D};
-	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
 }
 
 void Graphics_Exit() {
