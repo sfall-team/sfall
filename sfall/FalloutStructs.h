@@ -766,6 +766,36 @@ struct ScriptListInfoItem {
 	long numLocalVars;
 };
 
+struct WinRegion { // sizeof = 0x88 (0x8C in the engine code)
+	char  name[32];
+	long  field_20;
+	long  field_24;
+	long  field_28;
+	long  field_2C;
+	long  field_30;
+	long  field_34;
+	long  field_38;
+	long  field_3C;
+	long  field_40;
+	TProgram* procScript;
+	long  proc_48;
+	long  proc_4C;
+	long  procEnter;
+	long  procLeave;
+	long  field_58;
+	long  field_5C;
+	long  field_60;
+	long  field_64;
+	long  flags_68;
+	long  field_6C;
+	long  field_70;
+	long  field_74;
+	void* func_78;
+	void* func_7C;
+	long  field_80;
+	long  field_84;
+};
+
 //for holding window info
 struct WINinfo {
 	long wID; // window position in the _window_index array
@@ -788,45 +818,45 @@ struct WINinfo {
 };
 
 struct sWindow {
-	char name[32];
-	long wID; // window position in the _window_index array
-	long width;
-	long height;
-	long region1;
-	long region2;
-	long region3;
-	long region4;
-	long *buttons;
-	long numButtons;
-	long setPositionX;
-	long setPositionY;
-	long clearColour;
-	long flags;
+	char  name[32];
+	long  wID; // window position in the _window_index array
+	long  width;
+	long  height;
+	WinRegion* regions;
+	long  region2;
+	long  countRegions;
+	long  region4;
+	long* buttons;
+	long  numButtons;
+	long  setPositionX;
+	long  setPositionY;
+	long  clearColour;
+	long  flags;
 	float randX;
 	float randY;
 };
 
 struct LSData {
-	char signature[24];
+	char  signature[24];
 	short majorVer;
 	short minorVer;
-	char charR;
-	char playerName[32];
-	char comment[30];
-	char unused1;
+	char  charR;
+	char  playerName[32];
+	char  comment[30];
+	char  unused1;
 	short realMonth;
 	short realDay;
 	short realYear;
 	short unused2;
-	long realTime;
+	long  realTime;
 	short gameMonth;
 	short gameDay;
 	short gameYear;
 	short unused3;
-	long gameTime;
+	long  gameTime;
 	short mapElev;
 	short mapNumber;
-	char mapName[16];
+	char  mapName[16];
 };
 
 struct Queue {

@@ -38,6 +38,12 @@ enum WinNameType {
 	WINTYPE_Skilldex  = 6,
 	WINTYPE_EscMenu   = 7, // escape menu
 	WINTYPE_Automap   = 8,
+
+	// Inventory types
+	WINTYPE_Inven     = 50, // player inventory
+	WINTYPE_Loot      = 51,
+	WINTYPE_Use       = 53,
+	WINTYPE_Barter    = 54
 };
 
 WINinfo* Interface_GetWindow(long winType) {
@@ -71,7 +77,7 @@ WINinfo* Interface_GetWindow(long winType) {
 		if (GetLoopFlags() & AUTOMAP) winID = Interface_ActiveInterfaceWID();
 		break;
 	default:
-		return (WINinfo*)(-1);
+		return (WINinfo*)(-1); // unsupported type
 	}
 	return (winID > 0) ? fo_GNW_find(winID) : nullptr;
 }
