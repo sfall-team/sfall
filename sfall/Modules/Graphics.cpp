@@ -21,7 +21,7 @@
 #include "..\InputFuncs.h"
 #include "ScriptShaders.h"
 
-#include "SubModules\GameRender.h"
+#include "SubModules\WindowRender.h"
 
 #include "Graphics.h"
 
@@ -1209,7 +1209,7 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	GameRender::init();
+	WindowRender::init();
 }
 
 void Graphics::exit() {

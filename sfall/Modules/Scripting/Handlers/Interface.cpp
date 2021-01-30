@@ -29,7 +29,8 @@
 
 #include "..\..\HookScripts\InventoryHs.h"
 
-#include "..\..\SubModules\GameRender.h"
+#include "..\..\SubModules\WindowRender.h"
+#include "..\..\..\Game\render.h"
 
 #include "Interface.h"
 
@@ -277,7 +278,7 @@ void mf_intface_redraw(OpcodeContext& ctx) {
 			fo::func::RefreshGNW(true);
 		} else {
 			fo::Window* win = Interface::GetWindow(winType);
-			if (win && (int)win != -1) fo::func::GNW_win_refresh(win, &win->rect, 0);
+			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
 		}
 	}
 }
@@ -637,14 +638,14 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	int width  = (w >= 0) ? w : framePtr->width;
 	int height = (h >= 0) ? h : framePtr->height;
 
-	BYTE* surface = (ifaceWin->randY) ? GameRender::GetOverlaySurface(ifaceWin) : ifaceWin->surface;
+	BYTE* surface = (ifaceWin->randY) ? WindowRender::GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
 	fo::func::trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
 	                       surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
 	if (!(ctx.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
-		fo::func::GNW_win_refresh(ifaceWin, &ifaceWin->rect, 0);
+		game::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -800,7 +801,7 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	BYTE* surface;
 	if (win->randY) { // if a surface was created, the engine will draw on it
 		surface = win->surface;
-		win->surface = GameRender::GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
+		win->surface = WindowRender::GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
 	}
 
 	if (color & 0x10000) { // shadow (textshadow)
@@ -812,7 +813,7 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) fo::func::GNW_win_refresh(win, &win->rect, 0);
+	if (!(color & 0x1000000)) game::Render::GNW_win_refresh(win, &win->wRect, 0);
 }
 
 void mf_win_fill_color(OpcodeContext& ctx) {
@@ -842,10 +843,10 @@ void mf_interface_overlay(OpcodeContext& ctx) {
 
 	switch (ctx.arg(1).rawValue()) {
 	case 0:
-		GameRender::DestroyOverlaySurface(win);
+		WindowRender::DestroyOverlaySurface(win);
 		break;
 	case 1:
-		GameRender::CreateOverlaySurface(win, winType);
+		WindowRender::CreateOverlaySurface(win, winType);
 		break;
 	case 2: // clear
 		if (ctx.numArgs() > 2) {
@@ -858,9 +859,9 @@ void mf_interface_overlay(OpcodeContext& ctx) {
 			if (x < 0 || y < 0) return;
 
 			Rectangle rect = { x, y, w, h };
-			GameRender::ClearOverlay(win, rect);
+			WindowRender::ClearOverlay(win, rect);
 		} else {
-			GameRender::ClearOverlay(win);
+			WindowRender::ClearOverlay(win);
 		}
 		break;
 	}

@@ -304,7 +304,7 @@
     <ClInclude Include="Modules\MetaruleExtender.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\SubModules\GameRender.h">
+    <ClInclude Include="Modules\SubModules\WindowRender.h">
       <Filter>Modules\SubModules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\CritterPoison.h">
@@ -320,6 +320,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\stats.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\render.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="ReplacementFuncs.h" />
@@ -578,7 +581,7 @@
     <ClCompile Include="Modules\MetaruleExtender.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\SubModules\GameRender.cpp">
+    <ClCompile Include="Modules\SubModules\WindowRender.cpp">
       <Filter>Modules\SubModules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\CritterPoison.cpp">
@@ -594,6 +597,9 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Game\stats.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\render.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
