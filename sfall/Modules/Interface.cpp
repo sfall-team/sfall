@@ -49,6 +49,12 @@ enum WinNameType {
 	DialogView,
 	DialogPanel,
 	MemberPanel,
+
+	// Inventory types
+	Inven     = 50, // player inventory
+	Loot      = 51,
+	Use       = 53,
+	Barter    = 54
 };
 
 fo::Window* Interface::GetWindow(long winType) {
@@ -82,7 +88,7 @@ fo::Window* Interface::GetWindow(long winType) {
 		if (GetLoopFlags() & AUTOMAP) winID = ActiveInterfaceWID();
 		break;
 	default:
-		return (fo::Window*)(-1);
+		return (fo::Window*)(-1); // unsupported type
 	}
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }

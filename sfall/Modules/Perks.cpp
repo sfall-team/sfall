@@ -145,8 +145,8 @@ void __stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
-static long __stdcall LevelUp() {
-	int eachLevel = PerkFreqOverride;
+static DWORD __stdcall LevelUp() {
+	DWORD eachLevel = PerkFreqOverride;
 
 	if (!eachLevel) {
 		if (!Perks::IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) { // Check if the player has the skilled trait
@@ -156,7 +156,7 @@ static long __stdcall LevelUp() {
 		}
 	}
 
-	int level = fo::var::Level_; // Get player's level
+	DWORD level = fo::var::Level_; // Get player's level
 	if (!((level + 1) % eachLevel)) fo::var::free_perk++; // Increment the number of perks owed
 	return level;
 }
