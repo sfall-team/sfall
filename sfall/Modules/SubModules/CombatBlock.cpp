@@ -60,11 +60,11 @@ end:
 	}
 }
 
-void __stdcall SetBlockCombat(long toggle) {
+void __stdcall CombatBlock::SetBlockCombat(long toggle) {
 	combatDisabled = toggle != 0;
 }
 
-void CombatBlockedInit() {
+void CombatBlock::init() {
 	HookCall(0x45F626, intface_use_item_hook); // jnz hook
 	HookCall(0x4432A6, game_handle_input_hook);
 

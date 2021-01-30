@@ -383,7 +383,7 @@ static void __declspec(naked) game_reset_hook() {
 		push 0;
 		call GameReset; // reset all sfall modules before resetting the game data
 		popadc;
-		jmp fo::funcoffs::game_reset_;
+		jmp  fo::funcoffs::game_reset_;
 	}
 }
 
@@ -395,7 +395,7 @@ static void __declspec(naked) game_reset_on_load_hook() {
 		test al, al;
 		popadc;
 		jnz  errorLoad;
-		jmp fo::funcoffs::game_reset_;
+		jmp  fo::funcoffs::game_reset_;
 errorLoad:
 		mov  eax, -1;
 		add  esp, 4;
@@ -410,7 +410,7 @@ static void __declspec(naked) before_game_exit_hook() {
 		push 1;
 		call GameModeChange;
 		popadc;
-		jmp fo::funcoffs::map_exit_;
+		jmp  fo::funcoffs::map_exit_;
 	}
 }
 
@@ -419,7 +419,7 @@ static void __declspec(naked) after_game_exit_hook() {
 		pushadc;
 		call GameExit;
 		popadc;
-		jmp fo::funcoffs::main_menu_create_;
+		jmp  fo::funcoffs::main_menu_create_;
 	}
 }
 
@@ -428,7 +428,7 @@ static void __declspec(naked) game_close_hook() {
 		pushadc;
 		call GameClose;
 		popadc;
-		jmp fo::funcoffs::game_exit_;
+		jmp  fo::funcoffs::game_exit_;
 	}
 }
 

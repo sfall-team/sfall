@@ -26,8 +26,7 @@
 namespace sfall
 {
 
-class OverlaySurface
-{
+class OverlaySurface {
 private:
 	long size = 0;
 	long surfWidth;
