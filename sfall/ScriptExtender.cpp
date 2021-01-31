@@ -390,10 +390,11 @@ struct sGlobalScript {
 	int startProc; // position of the 'start' procedure in the script
 	int count;
 	int repeat;
-	int mode; // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int mode;      // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int isLoading; // used for the return value of the game_loaded function
 
 	//sGlobalScript() {}
-	sGlobalScript(sScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0) {}
+	sGlobalScript(sScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0), isLoading(1) {}
 };
 
 struct sExportedVar {
@@ -430,7 +431,6 @@ static std::list<TimedEvent> timerEventScripts;
 
 static std::vector<std::string> globalScriptFilesList;
 
-static std::vector<TProgram*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
@@ -1364,6 +1364,7 @@ static void PrepareGlobalScriptsList() {
 		}
 	}
 	fo_db_free_file_list(&filenames, 0);
+	globalScripts.reserve(globalScriptFilesList.size());
 }
 
 // this runs after the game was loaded/started
@@ -1382,20 +1383,34 @@ void LoadGlobalScripts() {
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
-static bool __stdcall ScriptHasLoaded(TProgram* script) {
-	for (size_t i = 0; i < checkedScripts.size(); i++) {
-		if (checkedScripts[i] == script) {
-			return false;
+static struct {
+	TProgram* script;
+	long index;
+} lastProgram = {nullptr};
+
+static int __stdcall ScriptHasLoaded(TProgram* script) {
+	if (lastProgram.script == script) { // fast check
+		return globalScripts[lastProgram.index].isLoading;
+	}
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (globalScripts[i].prog.ptr == script) {
+			int loaded = globalScripts[i].isLoading;
+			if (loaded) globalScripts[i].isLoading = 0;
+
+			lastProgram.script = script;
+			lastProgram.index = i;
+
+			return loaded;
 		}
 	}
-	checkedScripts.push_back(script);
-	return true;
+	// error: global script not found
+	return 1;
 }
 
 // this runs before actually loading/starting the game
 static void ClearGlobalScripts() {
 	isGameLoading = true;
-	checkedScripts.clear();
+	lastProgram.script = nullptr;
 	sfallProgsMap.clear();
 	globalScripts.clear();
 	selfOverrideMap.clear();

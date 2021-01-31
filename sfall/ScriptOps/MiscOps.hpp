@@ -133,7 +133,7 @@ static void __declspec(naked) op_game_loaded() {
 		mov  esi, ecx;
 		push eax; // script
 		call ScriptHasLoaded;
-		movzx edx, al;
+		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
 		mov  ecx, esi;
