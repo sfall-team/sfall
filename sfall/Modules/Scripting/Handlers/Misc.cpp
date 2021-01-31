@@ -94,8 +94,8 @@ void __declspec(naked) op_game_loaded() {
 	__asm {
 		mov  esi, ecx;
 		push eax; // script
-		call ScriptHasLoaded;
-		movzx edx, al;
+		call ScriptExtender::ScriptHasLoaded;
+		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
 		mov  ecx, esi;

@@ -55,6 +55,8 @@ public:
 	static void RemoveTimerEventScripts(fo::Program* script, long param);
 	static void RemoveTimerEventScripts(fo::Program* script);
 
+	static int __stdcall ScriptHasLoaded(fo::Program* script);
+
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
 };
@@ -88,8 +90,6 @@ long GetGlobalVarInt(DWORD var);
 long GetGlobalVarInternal(__int64 val);
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
-
-bool __stdcall ScriptHasLoaded(fo::Program* script);
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
