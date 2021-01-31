@@ -79,6 +79,7 @@ static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
+///////////////////////////////// COMBAT BLOCK /////////////////////////////////
 
 static bool combatDisabled;
 static char combatBlockedMessage[128];
@@ -119,6 +120,8 @@ end:
 void __stdcall SetBlockCombat(long toggle) {
 	combatDisabled = toggle != 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
@@ -471,7 +474,7 @@ void __stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
-static void BodypartHitChances() {
+void BodypartHitChances() {
 	ptr_hit_location_penalty[0] = bodypartHit.Head;
 	ptr_hit_location_penalty[1] = bodypartHit.Left_Arm;
 	ptr_hit_location_penalty[2] = bodypartHit.Right_Arm;
@@ -531,8 +534,6 @@ void Combat_OnGameLoad() {
 	noBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
-
-	BodypartHitChances(); // was in ClearGlobalScripts()
 }
 
 void Combat_Init() {

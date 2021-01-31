@@ -65,9 +65,9 @@
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
-static bool gameLoaded = false;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
+static bool gameLoaded = false;
 
 long LoadGameHook_interfaceWID = -1;
 
@@ -114,33 +114,16 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 	if (_inLoop ^ inLoop) GameModeChange(0);
 }
 
-static void __stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameStart
-	BugFixes_OnGameLoad();
-	if (GraphicsMode > 3) Graphics_OnGameLoad();
-	ForceGraphicsRefresh(0); // disable refresh
-	LoadOrder_OnGameLoad();
-	Interface_OnGameLoad();
-	RestoreObjUnjamAllLocks();
-	Worldmap_OnGameLoad();
-	Stats_OnGameLoad();
-	PerksReset();
-	Combat_OnGameLoad();
-	Skills_OnGameLoad();
-	FileSystemReset();
-	WipeSounds();
-	InventoryReset();
-	PartyControl_OnGameLoad();
-	Explosions_OnGameLoad();
-	ClearScriptAddedExtraGameMsg();
-	BarBoxes_OnGameLoad();
-	MetaruleExtenderReset();
-	ScriptExtender_OnGameLoad();
-	if (isDebug) {
-		char* str = (onLoad) ? "on Load" : "on Exit";
-		fo_debug_printf("\n[SFALL: State reset %s]", str);
-	}
-	inLoop = 0;
-	gameLoaded = false;
+static void __stdcall RunOnBeforeGameStart() {
+	BodypartHitChances(); // set on start & load
+	CritLoad();
+	ReadExtraGameMsgFiles();
+	if (pipBoyAvailableAtGameStart) ptr_gmovie_played_list[3] = true; // PipBoy aquiring video
+}
+
+static void __stdcall RunOnAfterGameStarted() {
+	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
+	LoadGlobalScripts();
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -234,9 +217,9 @@ end:
 	}
 }
 
-// should be called before savegame is loaded
+// Called right before savegame slot is being loaded
 static bool __stdcall LoadGame_Before() {
-	ResetState(1);
+	RunOnBeforeGameStart();
 
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -269,25 +252,45 @@ errorLoad:
 	return (true & !isDebug);
 }
 
-static void __stdcall LoadGame_After() {
-	CritLoad();
-	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
-	LoadGlobalScripts();
-	gameLoaded = true;
+// called whenever game is being reset (prior to loading a save or when returning to main menu)
+static bool __stdcall GameReset(DWORD isGameLoad) {
+	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
+		// OnGameReset
+		BugFixes_OnGameLoad();
+		if (GraphicsMode > 3) Graphics_OnGameLoad();
+		ForceGraphicsRefresh(0); // disable refresh
+		LoadOrder_OnGameLoad();
+		Interface_OnGameLoad();
+		RestoreObjUnjamAllLocks();
+		Worldmap_OnGameLoad();
+		Stats_OnGameLoad();
+		PerksReset();
+		Combat_OnGameLoad();
+		Skills_OnGameLoad();
+		FileSystemReset();
+		WipeSounds();
+		InventoryReset();
+		PartyControl_OnGameLoad();
+		Explosions_OnGameLoad();
+		ClearScriptAddedExtraGameMsg();
+		BarBoxes_OnGameLoad();
+		MetaruleExtenderReset();
+		ScriptExtender_OnGameLoad();
+		if (isDebug) {
+			char* str = (isGameLoad) ? "on Load" : "on Exit";
+			fo_debug_printf("\n[SFALL: State reset %s]", str);
+		}
+	}
+	inLoop = 0;
+	gameLoaded = false;
+
+	return (isGameLoad) ? LoadGame_Before() : false;
 }
 
-static void __declspec(naked) LoadSlot() {
-	__asm {
-		pushad;
-		call LoadGame_Before;
-		test al, al;
-		popad;
-		jnz  errorLoad;
-		jmp  LoadSlot_;
-errorLoad:
-		mov  eax, -1;
-		retn;
-	}
+// Called after game was loaded from a save
+static void __stdcall LoadGame_After() {
+	RunOnAfterGameStarted();
+	gameLoaded = true;
 }
 
 static void __declspec(naked) LoadGame_hook() {
@@ -319,26 +322,31 @@ static void __declspec(naked) EndLoadHook() {
 	}
 }
 
-static void NewGame2() {
-	ResetState(0);
+static void __stdcall NewGame_Before() {
+	RunOnBeforeGameStart();
+}
 
-	CritLoad();
-	SetNewCharAppearanceGlobals();
-	LoadHeroAppearance();
-	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
-	LoadGlobalScripts();
+static void __stdcall NewGame_After() {
+	// OnAfterNewGame
+	if (appModEnabled) {
+		SetNewCharAppearanceGlobals();
+		LoadHeroAppearance();
+	}
+	RunOnAfterGameStarted();
 
 	dlogr("New Game started.", DL_MAIN);
 
 	gameLoaded = true;
 }
 
-static void __declspec(naked) NewGame() {
+static void __declspec(naked) main_load_new_hook() {
 	__asm {
-		pushad;
-		call NewGame2;
-		popad;
-		jmp  main_game_loop_;
+		push eax;
+		call NewGame_Before;
+		pop  eax;
+		call main_load_new_;
+		jmp  NewGame_After;
+		//retn;
 	}
 }
 
@@ -364,7 +372,11 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 	BuildSortedIndexList();
 }
-
+/*
+static void __stdcall GameExit() { // OnGameExit
+	// reserved
+}
+*/
 static void __stdcall GameClose() { // OnBeforeGameClose
 	WipeSounds();
 	ClearReadExtraGameMsgFiles();
@@ -384,16 +396,30 @@ static void __declspec(naked) main_init_system_hook() {
 	}
 }
 
-static void __declspec(naked) MainMenuHook() {
+static void __declspec(naked) game_reset_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		push 0;
-		call ResetState;
-		mov  al, pipBoyAvailableAtGameStart;
-		mov  byte ptr ds:[FO_VAR_gmovie_played_list + 3], al;
-		call ReadExtraGameMsgFiles;
-		popad;
-		jmp  main_menu_loop_;
+		call GameReset; // reset all sfall modules before resetting the game data
+		popadc;
+		jmp  game_reset_;
+	}
+}
+
+static void __declspec(naked) game_reset_on_load_hook() {
+	__asm {
+		pushadc;
+		push 1;
+		call GameReset; // reset all sfall modules before resetting the game data
+		test al, al;
+		popadc;
+		jnz  errorLoad;
+		jmp  game_reset_;
+errorLoad:
+		mov  eax, -1;
+		add  esp, 4;
+		pop  edx;
+		retn;
 	}
 }
 
@@ -403,10 +429,19 @@ static void __declspec(naked) before_game_exit_hook() {
 		push 1;
 		call GameModeChange;
 		popadc;
-		jmp map_exit_;
+		jmp  map_exit_;
 	}
 }
-
+/*
+static void __declspec(naked) after_game_exit_hook() {
+	__asm {
+		pushadc;
+		call GameExit;
+		popadc;
+		jmp  main_menu_create_;
+	}
+}
+*/
 static void __declspec(naked) game_close_hook() {
 	__asm {
 		pushadc;
@@ -717,7 +752,8 @@ void LoadGameHook_Init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	Translate("sfall", "SaveInCombat", "Cannot save at this time.", saveFailMsg);
-	Translate("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
+	Translate("sfall", "SaveSfallDataFail",
+		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
 
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
@@ -732,25 +768,32 @@ void LoadGameHook_Init() {
 		disableHorrigan = true;
 	}
 
-	// 4.x backport
 	HookCall(0x4809BA, main_init_system_hook);
 	HookCall(0x4426A6, game_init_hook);
-
-	HookCall(0x480AB3, NewGame);
-
-	const DWORD loadSlotAddr[] = {0x47C72C, 0x47D1C9};
-	HookCalls(LoadSlot, loadSlotAddr);
+	HookCall(0x480AAE, main_load_new_hook);
 	const DWORD loadGameAddr[] = {0x443AE4, 0x443B89, 0x480B77, 0x48FD35};
 	HookCalls(LoadGame_hook, loadGameAddr);
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	const DWORD saveGameAddr[] = {0x443AAC, 0x443B1C, 0x48FCFF};
 	HookCalls(SaveGame_hook, saveGameAddr);
-
-	HookCall(0x480A28, MainMenuHook);
-
-	// 4.x backport
+	const DWORD gameResetAddr[] = {
+		0x47DD6B, // LoadSlot_ (on load error)
+		0x47DDF3, // LoadSlot_ (on load error)
+		//0x480708, // RestoreLoad_ (never called)
+		0x480AD3, // gnw_main_ (game ended after playing via New Game)
+		0x480BCC, // gnw_main_ (game ended after playing via Load Game)
+		//0x480D0C, // main_reset_system_ (never called)
+		0x481028, // main_selfrun_record_
+		0x481062, // main_selfrun_record_
+		0x48110B, // main_selfrun_play_
+		0x481145 // main_selfrun_play_
+	};
+	HookCalls(game_reset_hook, gameResetAddr);
+	HookCall(0x47F491, game_reset_on_load_hook); // PrepLoad_ (the very first step during save game loading)
 	const DWORD beforeGameExitAddr[] = {0x480ACE, 0x480BC7}; // gnw_main_
 	HookCalls(before_game_exit_hook, beforeGameExitAddr);
+	//const DWORD afterGameExitAddr[] = {0x480AEB, 0x480BE4}; // gnw_main_
+	//HookCalls(after_game_exit_hook, afterGameExitAddr);
 	HookCall(0x480CA7, game_close_hook); // gnw_main_
 	//HookCall(0x480D45, game_close_hook); // main_exit_system_ (never called)
 

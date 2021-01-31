@@ -41,6 +41,7 @@ extern long Combat_determineHitChance;
 
 void Combat_Init();
 void Combat_OnGameLoad();
+void BodypartHitChances();
 
 void __stdcall SetBlockCombat(long toggle);
 DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode);
