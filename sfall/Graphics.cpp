@@ -1332,8 +1332,7 @@ static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, 
 	}
 }
 
-class OverlaySurface
-{
+class OverlaySurface {
 private:
 	long size;
 	long surfWidth;
