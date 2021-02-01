@@ -138,7 +138,7 @@ void HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool sp
 
 	ScriptProgram *prog = ScriptExtender::GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script: %08x registered as hook ID %d\n", DL_HOOK, script, id);
+		dlog_f("Script: %s registered as hook ID %d\n", DL_HOOK, script->fileName, id);
 		HookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -165,13 +165,15 @@ void HookScripts::RunHookScriptsAtProc(DWORD procId) {
 }
 
 void HookScripts::LoadHookScript(const char* name, int id) {
-	//if (id >= numHooks || IsGameScript(name)) return;
+	char filePath[MAX_PATH];
 
-	bool hookIsLoaded = HookScripts::LoadHookScriptFile(name, id);
-	if (hookIsLoaded || injectHooks[id].injectState == 1 || (injectAllHooks && id != HOOK_SUBCOMBATDAMAGE)) {
+	sprintf(filePath, "scripts\\%s.int", name);
+	bool hookHasScript = fo::func::db_access(filePath);
+
+	if (hookHasScript || injectHooks[id].injectState == 1 || (injectAllHooks && id != HOOK_SUBCOMBATDAMAGE)) {
 		HookScripts::InjectingHook(id); // inject hook to engine code
 
-		if (!hookIsLoaded) return; // only inject
+		if (!hookHasScript) return; // only inject
 
 		HookFile hookFile = { id, name };
 		HookScripts::hookScriptFilesList.push_back(hookFile);
@@ -179,30 +181,25 @@ void HookScripts::LoadHookScript(const char* name, int id) {
 }
 
 bool HookScripts::LoadHookScriptFile(const char* name, int id) {
-	char filename[MAX_PATH];
-	sprintf(filename, "scripts\\%s.int", name);
-
 	ScriptProgram prog;
-	if (fo::func::db_access(filename)) {
-		dlog("> ", DL_HOOK);
-		dlog(name, DL_HOOK);
-		LoadScriptProgram(prog, name);
-		if (prog.ptr) {
-			dlogr(" Done", DL_HOOK);
-			HookScript hook;
-			hook.prog = prog;
-			hook.callback = -1;
-			hook.isGlobalScript = false;
-			hooks[id].push_back(hook);
-			ScriptExtender::AddProgramToMap(prog);
-		} else {
-			dlogr(" Error!", DL_HOOK);
-		}
+	dlog("> ", DL_HOOK);
+	dlog(name, DL_HOOK);
+	LoadScriptProgram(prog, name);
+	if (prog.ptr) {
+		HookScript hook;
+		hook.prog = prog;
+		hook.callback = -1;
+		hook.isGlobalScript = false;
+		hooks[id].push_back(hook);
+		ScriptExtender::AddProgramToMap(prog);
+		dlogr(" Done", DL_HOOK);
+	} else {
+		dlogr(" Error!", DL_HOOK);
 	}
 	return (prog.ptr != nullptr);
 }
 
-static void HookScriptInit() {
+void HookScripts::LoadHookScripts() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	static bool hooksFilesLoaded = false;
@@ -221,17 +218,18 @@ static void HookScriptInit() {
 		HookScripts::LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 		hooksFilesLoaded = !alwaysFindScripts;
-	} else {
-		for (auto& hook : HookScripts::hookScriptFilesList) {
-			HookScripts::LoadHookScriptFile(hook.name.c_str(), hook.id);
-		}
 	}
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
-void HookScripts::LoadHookScripts() {
-	isGlobalScriptLoading = 1; // this should allow to register global exported variables
-	HookScriptInit();
+void HookScripts::InitHookScripts() {
+	// Note: here isGlobalScriptLoading must be already set, this should allow to register global exported variables
+	dlogr("Running hook scripts...", DL_HOOK);
+
+	for (auto& hook : HookScripts::hookScriptFilesList) {
+		HookScripts::LoadHookScriptFile(hook.name.c_str(), hook.id);
+	}
+
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
@@ -239,12 +237,11 @@ void HookScripts::LoadHookScripts() {
 			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
-	isGlobalScriptLoading = 0;
 	initingHookScripts = 0;
 }
 
 void HookScripts::HookScriptClear() {
-	for(int i = 0; i < numHooks; i++) {
+	for (int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
 	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));

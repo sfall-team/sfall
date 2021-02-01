@@ -318,11 +318,9 @@ static void __stdcall NewGame_Before() {
 }
 
 static void __stdcall NewGame_After() {
+	dlogr("New Game started.", DL_MAIN);
 	onAfterNewGame.invoke();
 	onAfterGameStarted.invoke();
-
-	dlogr("New Game started.", DL_MAIN);
-
 	gameLoaded = true;
 }
 
@@ -333,7 +331,6 @@ static void __declspec(naked) main_load_new_hook() {
 		pop  eax;
 		call fo::funcoffs::main_load_new_;
 		jmp  NewGame_After;
-		//retn;
 	}
 }
 
