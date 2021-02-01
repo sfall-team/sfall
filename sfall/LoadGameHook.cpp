@@ -119,11 +119,12 @@ static void __stdcall RunOnBeforeGameStart() {
 	CritLoad();
 	ReadExtraGameMsgFiles();
 	if (pipBoyAvailableAtGameStart) ptr_gmovie_played_list[3] = true; // PipBoy aquiring video
+	LoadGlobalScripts(); // loading sfall scripts
 }
 
 static void __stdcall RunOnAfterGameStarted() {
 	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
-	LoadGlobalScripts();
+	InitGlobalScripts(); // running sfall scripts
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -327,15 +328,13 @@ static void __stdcall NewGame_Before() {
 }
 
 static void __stdcall NewGame_After() {
+	dlogr("New Game started.", DL_MAIN);
 	// OnAfterNewGame
 	if (appModEnabled) {
 		SetNewCharAppearanceGlobals();
 		LoadHeroAppearance();
 	}
 	RunOnAfterGameStarted();
-
-	dlogr("New Game started.", DL_MAIN);
-
 	gameLoaded = true;
 }
 
@@ -346,7 +345,6 @@ static void __declspec(naked) main_load_new_hook() {
 		pop  eax;
 		call main_load_new_;
 		jmp  NewGame_After;
-		//retn;
 	}
 }
 

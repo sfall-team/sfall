@@ -32,10 +32,6 @@
 // Number of types of hooks
 static const int numHooks = HOOK_COUNT;
 
-static const int maxArgs = 16; // Maximum number of hook arguments
-static const int maxRets = 8;  // Maximum number of return values
-static const int maxDepth = 8; // Maximum recursion depth for hook calls
-
 // Struct for registered hook script
 struct sHookScript {
 	sScriptProgram prog;
@@ -44,6 +40,12 @@ struct sHookScript {
 };
 
 static std::vector<sHookScript> hooks[numHooks];
+
+DWORD initingHookScripts;
+
+static const int maxArgs = 16; // Maximum number of hook arguments
+static const int maxRets = 8;  // Maximum number of return values
+static const int maxDepth = 8; // Maximum recursion depth for hook calls
 
 struct {
 	DWORD hookID;
@@ -71,8 +73,6 @@ static struct HooksPositionInfo {
 //	long positionShift; // offset to the last script registered by register_hook
 	bool hasHsScript;
 } hooksInfo[numHooks];
-
-DWORD initingHookScripts;
 
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
@@ -1661,7 +1661,7 @@ void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg)
 
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script: %08x registered as hook ID %d\n", DL_HOOK, script, id);
+		dlog_f("Script: %s registered as hook ID %d\n", DL_HOOK, script->fileName, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -1676,32 +1676,39 @@ void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg)
 	}
 }
 
+// run specific event procedure for all hook scripts
+void __stdcall RunHookScriptsAtProc(DWORD procId) {
+	for (int i = 0; i < numHooks; i++) {
+		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
+			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int
+		}
+	}
+}
+
 static void LoadHookScript(const char* name, int id) {
-	//if (id >= numHooks || IsGameScript(name)) return;
+	char filePath[MAX_PATH];
+	sprintf(filePath, "scripts\\%s.int", name);
 
-	char filename[MAX_PATH];
-	sprintf(filename, "scripts\\%s.int", name);
-
-	if (fo_db_access(filename)) {
+	if (fo_db_access(filePath)) {
 		sScriptProgram prog;
 		dlog("> ", DL_HOOK);
 		dlog(name, DL_HOOK);
 		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
-			dlogr(" Done", DL_HOOK);
 			sHookScript hook;
 			hook.prog = prog;
 			hook.callback = -1;
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
+			dlogr(" Done", DL_HOOK);
 		} else {
 			dlogr(" Error!", DL_HOOK);
 		}
 	}
 }
 
-static void HookScriptInit() {
+static void LoadHookScripts() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	char* mask = "scripts\\hs_*.int";
@@ -1896,17 +1903,9 @@ static void HookScriptInit() {
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
-void HookScriptClear() {
-	for (int i = 0; i < numHooks; i++) {
-		hooks[i].clear();
-	}
-	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
-	HookCommon_Reset();
-}
-
-void LoadHookScripts() {
-	isGlobalScriptLoading = 1; // this should allow to register global exported variables
-	HookScriptInit();
+void InitHookScripts() {
+	// Note: here isGlobalScriptLoading must be already set, this should allow to register global exported variables
+	LoadHookScripts();
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
@@ -1914,15 +1913,13 @@ void LoadHookScripts() {
 			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
-	isGlobalScriptLoading = 0;
 	initingHookScripts = 0;
 }
 
-// run specific event procedure for all hook scripts
-void __stdcall RunHookScriptsAtProc(DWORD procId) {
+void HookScriptClear() {
 	for (int i = 0; i < numHooks; i++) {
-		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
-			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int
-		}
+		hooks[i].clear();
 	}
+	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
+	HookCommon_Reset();
 }

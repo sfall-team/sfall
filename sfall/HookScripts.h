@@ -61,12 +61,12 @@ void __stdcall SetHSReturn(DWORD d);
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg);
 
-void LoadHookScripts();
-void HookScriptClear();
+void __stdcall RunHookScriptsAtProc(DWORD procId);
 
 extern DWORD initingHookScripts;
 
-void __stdcall RunHookScriptsAtProc(DWORD procId);
+void InitHookScripts();
+void HookScriptClear();
 
 void __stdcall GameModeChangeHook(DWORD exit);
 void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);

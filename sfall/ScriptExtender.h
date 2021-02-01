@@ -47,6 +47,7 @@ void ScriptExtender_Init();
 void ScriptExtender_OnGameLoad();
 void BuildSortedIndexList();
 void LoadGlobalScripts();
+void InitGlobalScripts();
 bool __stdcall IsGameScript(const char* filename);
 
 void RunGlobalScripts2();
@@ -93,6 +94,5 @@ void __stdcall RemoveTimerEventScripts(TProgram* script, long param);
 void __stdcall RemoveTimerEventScripts(TProgram* script);
 
 // variables
-extern DWORD isGlobalScriptLoading;
 extern DWORD availableGlobalScriptTypes;
 extern bool displayWinUpdateState;
