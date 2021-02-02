@@ -1,0 +1,222 @@
+/*
+
+   NPC Armor Appearance mod
+
+   Used to replace the scripted part of B-Team mod.
+   Appropriate graphics are required for this mod to work.
+   Can be adopted to any mod by adjusting armor PIDs, allowed weapon anim codes, NPC PIDs and NPC FIDs in INI file.
+
+   NOTE: this script requires compiler from sfall modderspack with -s option
+   (short circuit evaluation)
+
+   version 1.1
+
+*/
+
+#include "main.h"
+
+#define IS_ARMOR(item)   (obj_type(item) == OBJ_TYPE_ITEM and obj_item_subtype(item) == item_type_armor)
+#define IS_WEAPON(item)  (obj_type(item) == OBJ_TYPE_ITEM and obj_item_subtype(item) == item_type_weapon)
+
+#define FID_OBJ_CRITTER  (0x01000000)
+
+procedure update_armor_apperance;
+
+variable
+   modIni := "npcarmor.ini",
+   defaultFids,
+   armorPidMap, // maps armor PID to it's "type" - leather armor, metal, power armor, etc.
+   npcMap,
+   altWeapon,
+   unWieldWeapon;
+
+/*
+   Returns the FID value set in the config settings for party member armor: Jacket, Leather, etc.
+*/
+procedure check_armor_change(variable critter, variable armor, variable isWield) begin
+   variable npc, armorType, fid;
+   npc := npcMap[obj_pid(critter)];
+   if (npc) then begin
+      if (isWield == false) then begin
+         // display_msg("No armor fid: " + npc["Default"]);
+         return npc["Default"];
+      end else if (armor) then begin
+         armorType := armorPidMap[obj_pid(armor)];
+         fid := npc[armorType] or defaultFids[armorType];
+         if (fid == 0 or fid == -1) then fid := npc["Default"];
+         // display_msg("Change fid: " + fid + ", npc: " + npc[armorType] + ", default:" + defaultFids[armorType]);
+         return fid;
+      end
+   end
+   return -1; // engine default
+end
+
+/*
+   Checks if a party member can use the offered weapon
+*/
+procedure check_weapon_change(variable critter, variable weapon, variable isWield) begin
+   variable npc, newWeaponAnim, weaponAnimList, i;
+   npc := npcMap[obj_pid(critter)];
+   if (npc) then begin
+      if (isWield) then begin
+         newWeaponAnim := get_proto_data(obj_pid(weapon), PROTO_WP_ANIM);
+         if newWeaponAnim then begin // anim code 0 - none/unarmed
+            weaponAnimList := npc["WeaponAnims"];
+            if (weaponAnimList != 0) then begin
+               foreach (i in string_split(weaponAnimList, ",")) begin
+                  if (newWeaponAnim == atoi(i)) then return -1; // can use (engine default)
+               end
+            end
+            return 0; // can't use
+         end
+      end else begin
+         unWieldWeapon := obj_pid(weapon);
+      end
+   end
+   return -1; // engine default
+end
+
+/*
+   Finds the first weapon which can be used by the party member in the inventory
+*/
+procedure search_alt_weapon(variable critter) begin
+   variable obj, res, i := 0;
+   obj := inven_ptr(critter, 0);
+   while (obj) do begin
+      if (obj_item_subtype(obj) == item_type_weapon) then begin
+         if (unWieldWeapon == 0 or unWieldWeapon != obj_pid(obj)) then begin
+            res := check_weapon_change(critter, obj, 1);
+            if (res == -1) then begin
+               altWeapon := obj;
+               wield_obj_critter(critter, obj);
+               altWeapon := 0;
+               break;
+            end
+         end
+      end
+      i++;
+      obj := inven_ptr(critter, i);
+   end
+   unWieldWeapon := 0;
+end
+
+// for NPCs when they change armor/weapon themselves
+procedure invenwield_handler begin
+   variable critter, item, fid, slot, isWield, canWield;
+   critter := get_sfall_arg;
+   item    := get_sfall_arg;
+   slot    := get_sfall_arg;
+   isWield := get_sfall_arg;
+
+   if (/*critter and*/ item and slot == INVEN_TYPE_WORN) then begin
+      fid := check_armor_change(critter, item, isWield);
+      if (fid != -1) then begin
+         if art_exists(fid) then begin
+            art_change_fid_num(critter, fid);
+         end else begin
+            debug_msg("[Error] NPC armor mod: Invenwield missing FID: " + fid);
+         end
+      end
+   end else if (/*critter and*/ item and slot == INVEN_TYPE_RIGHT_HAND) then begin
+      if (altWeapon == item) then return;
+      canWield := check_weapon_change(critter, item, isWield);
+      set_sfall_return(canWield);
+      if (canWield != -1) then begin
+         call search_alt_weapon(critter); // wield weapon by script
+      end
+   end
+end
+
+// when changing armor from inventory while controlling other NPCs
+procedure adjustfid_handler begin
+   variable fid, armor, weapAnim, currFid, newFid;
+   if (dude_obj != real_dude_obj) then begin
+      currFid := get_sfall_arg;
+      if ((currFid bwand 0x0F000000) != FID_OBJ_CRITTER) then return;
+      armor := critter_inven_obj(dude_obj, INVEN_TYPE_WORN);
+      fid := check_armor_change(dude_obj, armor, armor != 0);
+      if (fid != -1) then begin
+         weapAnim := currFid bwand 0xF000;
+         newFid := fid bwand 0xFFFF0FFF bwor weapAnim;
+         if art_exists(newFid) then begin
+            set_sfall_arg(0, newFid);
+            set_sfall_return(newFid);
+         end else begin
+            debug_msg("[Error] NPC armor mod: Adjust FID missing: " + newFid);
+         end
+      end
+   end
+end
+
+// when changing weapon from inventory while controlling other NPCs
+procedure inventorymove_handler begin
+   variable slot, item, canWield;
+   slot := get_sfall_arg;
+   item := get_sfall_arg;
+   if (dude_obj != real_dude_obj) then begin
+      if ((slot == INVEN_TYPE_RIGHT_HAND or slot == INVEN_TYPE_LEFT_HAND) and IS_WEAPON(item)) then begin
+         canWield := check_weapon_change(dude_obj, item, item != 0);
+         set_sfall_return(canWield);
+      end
+   end
+end
+
+procedure start begin
+   variable sect, sects, armorTypes, armorType, npc, pid, pids, i;
+   if game_loaded and (sfall_ver_major >= 4 or sfall_ver_build >= 29) then begin
+      armorTypes := get_ini_section(modIni, "ArmorTypes");
+      armorPidMap := create_array_map;
+      foreach (armorType: pids in armorTypes) begin
+         pids := string_split(pids, ",");
+         foreach (pid in pids) begin
+            armorPidMap[atoi(pid)] := armorType;
+         end
+      end
+
+      defaultFids := get_ini_section(modIni, "Default");
+      fix_array(defaultFids);
+      foreach (armorType: i in defaultFids) begin
+         defaultFids[armorType] := atoi(i);
+      end
+
+      npcMap := create_array_map;
+
+      i := 1;
+      sect := get_ini_section(modIni, ""+i);
+      while (sect.PID) do begin
+         npc := create_array_map;
+         npc["WeaponAnims"] := sect["WeaponAnims"];
+         npc["Default"] := atoi(sect["Default"]);
+         foreach (armorType: pids in armorTypes) begin
+            if (sect[armorType]) then begin
+               npc[armorType] := atoi(sect[armorType]);
+            end
+         end
+         npcMap[atoi(sect.PID)] := npc;
+
+         i += 1;
+         sect := get_ini_section(modIni, ""+i);
+      end
+
+      call update_armor_apperance;
+
+      register_hook_proc(HOOK_INVENWIELD, invenwield_handler);
+      register_hook_proc(HOOK_ADJUSTFID, adjustfid_handler);
+      register_hook_proc(HOOK_INVENTORYMOVE, inventorymove_handler);
+
+      debug_msg("NPC armor appearance mod: Done.");
+   end
+end
+
+procedure update_armor_apperance begin
+   variable npc, arItem, fid;
+   foreach (npc in party_member_list_critters) begin
+      if (npc == dude_obj) then continue;
+      arItem := critter_inven_obj(npc, INVEN_TYPE_WORN);
+      if (arItem) then begin
+         fid := check_armor_change(npc, arItem, true);
+         if (fid == -1 or art_exists(fid) == false) then continue;
+         art_change_fid_num(npc, fid);
+      end
+   end
+end
