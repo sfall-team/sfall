@@ -1066,9 +1066,9 @@ static void __declspec(naked) ExecMapScriptsHack() {
 }
 
 static sExportedVar* __fastcall GetGlobalExportedVarPtr(const char* name) {
+	devlog_f("Trying to find exported var %s\n", DL_MAIN, name);
 	std::string str(name);
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
-	//dlog_f("\n Trying to find exported var %s... ", DL_MAIN, name);
 	if (it != globalExportedVars.end()) {
 		sExportedVar *ptr = &it->second;
 		return ptr;
@@ -1076,8 +1076,8 @@ static sExportedVar* __fastcall GetGlobalExportedVarPtr(const char* name) {
 	return nullptr;
 }
 
-static void __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
-	//dlog_f("\nTrying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
+static void __fastcall CreateGlobalExportedVar(TProgram* script, const char* name) {
+	devlog_f("Trying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = sExportedVar(); // add new
 }
@@ -1094,7 +1094,7 @@ static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 	__asm {
 		push ecx;
 		push edx;
-		mov  ecx, edx;                 // varName
+		mov  ecx, edx;  // varName
 		call GetGlobalExportedVarPtr;
 		pop  edx;
 		pop  ecx;
@@ -1108,19 +1108,18 @@ proceedNormal:
 	}
 }
 
-static void __declspec(naked) Export_Export_FindVar_Hook() {
-	static const DWORD Export_Export_FindVar_back = 0x4414AE;
+static void __declspec(naked) exportExportVariable_hook() {
+	static const DWORD exportExportVariable_BackRet = 0x4414AE;
 	__asm {
 		cmp  isGlobalScriptLoading, 0;
 		jz   proceedNormal;
-		push edx; // var name
-		push ebp; // script ptr
-		call CreateGlobalExportedVar;
+		mov  ecx, ebp;                     // script ptr
+		call CreateGlobalExportedVar;      // edx - var name
 		xor  eax, eax;
-		add  esp, 4;                      // destroy return
-		jmp  Export_Export_FindVar_back;  // if sfall exported var, jump to the end of function
+		add  esp, 4;                       // destroy return
+		jmp  exportExportVariable_BackRet; // if sfall exported var, jump to the end of function
 proceedNormal:
-		jmp  findVar_;                    // else - proceed normal
+		jmp  findVar_;                     // else - proceed normal
 	}
 }
 
@@ -1268,7 +1267,7 @@ end:
 }
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
+void InitScriptProgram(sScriptProgram &prog, const char* fileName) {
 	TProgram* scriptPtr = fo_loadProgram(fileName);
 
 	if (scriptPtr) {
@@ -1278,17 +1277,17 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 		for (int i = 0; i < Scripts::count; ++i) {
 			prog.procLookup[i] = fo_interpretFindProcedure(prog.ptr, procTable[i]);
 		}
-		prog.initialized = 0;
+		prog.initialized = false;
 	} else {
 		prog.ptr = nullptr;
 	}
 }
 
-void InitScriptProgram(sScriptProgram &prog) {
-	if (prog.initialized == 0) {
+void RunScriptProgram(sScriptProgram &prog) {
+	if (!prog.initialized) {
 		fo_runProgram(prog.ptr);
 		fo_interpret(prog.ptr, -1);
-		prog.initialized = 1;
+		prog.initialized = true;
 	}
 }
 
@@ -1328,7 +1327,7 @@ static void LoadGlobalScriptsList() {
 		const std::string &scriptFile = *it;
 		dlog("> ", DL_SCRIPT);
 		dlog(scriptFile.c_str(), DL_SCRIPT);
-		LoadScriptProgram(prog, scriptFile.c_str());
+		InitScriptProgram(prog, scriptFile.c_str());
 		if (prog.ptr) {
 			sGlobalScript gscript = sGlobalScript(prog);
 			gscript.startProc = prog.procLookup[Scripts::start]; // get 'start' procedure position
@@ -1336,7 +1335,7 @@ static void LoadGlobalScriptsList() {
 			AddProgramToMap(prog);
 			dlogr(" Done", DL_SCRIPT);
 			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
-			InitScriptProgram(prog);
+			RunScriptProgram(prog);
 		} else {
 			dlogr(" Error!", DL_SCRIPT);
 		}
@@ -1368,7 +1367,7 @@ static void PrepareGlobalScriptsList() {
 		std::string baseName(name);
 		int lastDot = baseName.find_last_of('.');
 		if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
-		dlog_f("Found global script: %s\n", DL_INIT, name);
+		dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 
 		baseName = baseName.substr(0, lastDot); // script name without extension
 		if (!IsGameScript(baseName.c_str())) {
@@ -1823,10 +1822,10 @@ void ScriptExtender_Init() {
 	HookCall(0x4A3E08, script_chk_timed_events_hook);
 
 	// this patch makes it possible to export variables from sfall global scripts
-	HookCall(0x4414C8, Export_Export_FindVar_Hook);
+	HookCall(0x4414C8, exportExportVariable_hook);
 	const DWORD exportFindVarAddr[] = {
-		0x441285, // store
-		0x4413D9  // fetch
+		0x441285, // exportStoreVariable_
+		0x4413D9  // exportFetchVariable_
 	};
 	HookCalls(Export_FetchOrStore_FindVar_Hook, exportFindVarAddr);
 

@@ -1705,11 +1705,11 @@ void LoadHookScript(const char* name, int id) {
 	dlog_f("Found hook script: %s\n", DL_HOOK, name);
 }
 
-static void LoadHookScriptFile(const char* name, int id) {
+static void InitHookScriptFile(const char* name, int id) {
 	sScriptProgram prog;
 	dlog("> ", DL_HOOK);
 	dlog(name, DL_HOOK);
-	LoadScriptProgram(prog, name);
+	InitScriptProgram(prog, name);
 	if (prog.ptr) {
 		sHookScript hook;
 		hook.prog = prog;
@@ -1770,14 +1770,14 @@ void InitHookScripts() {
 	dlogr("Running hook scripts...", DL_HOOK);
 
 	for (std::vector<HookFile>::const_iterator it = hookScriptFilesList.begin(); it != hookScriptFilesList.end(); ++it) {
-		LoadHookScriptFile(it->name.c_str(), it->id);
+		InitHookScriptFile(it->name.c_str(), it->id);
 	}
 
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
 			hooksInfo[i].hasHsScript = true;
-			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
+			RunScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
 	initingHookScripts = 0;
