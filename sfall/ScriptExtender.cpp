@@ -1383,7 +1383,7 @@ static void PrepareGlobalScriptsList() {
 void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
 
-//	LoadHookScripts();
+	LoadHookScripts();
 
 	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once

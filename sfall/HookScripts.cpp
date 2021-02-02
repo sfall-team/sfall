@@ -68,6 +68,14 @@ static DWORD cArg;    // how many arguments were taken by current hook script
 static DWORD cRet;    // how many return values were set by current hook script
 static DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
+struct HookFile {
+	int id;
+//	std::string filePath;
+	std::string name;
+};
+
+static std::vector<HookFile> hookScriptFilesList;
+
 static struct HooksPositionInfo {
 	long hsPosition;    // index of the hs_* script, or the beginning of the position for registering scripts using register_hook
 //	long positionShift; // offset to the last script registered by register_hook
@@ -1685,37 +1693,107 @@ void __stdcall RunHookScriptsAtProc(DWORD procId) {
 	}
 }
 
-static void LoadHookScript(const char* name, int id) {
+void LoadHookScript(const char* name, int id) {
 	char filePath[MAX_PATH];
-	sprintf(filePath, "scripts\\%s.int", name);
 
-	if (fo_db_access(filePath)) {
-		sScriptProgram prog;
-		dlog("> ", DL_HOOK);
-		dlog(name, DL_HOOK);
-		LoadScriptProgram(prog, name);
-		if (prog.ptr) {
-			sHookScript hook;
-			hook.prog = prog;
-			hook.callback = -1;
-			hook.isGlobalScript = false;
-			hooks[id].push_back(hook);
-			AddProgramToMap(prog);
-			dlogr(" Done", DL_HOOK);
-		} else {
-			dlogr(" Error!", DL_HOOK);
-		}
-	}
+	sprintf(filePath, "scripts\\%s.int", name);
+	if (!fo_db_access(filePath)) return; // hook script not found
+
+	HookFile hookFile = {id, name};
+	hookScriptFilesList.push_back(hookFile);
+
+	dlog_f("Found hook script: %s\n", DL_HOOK, name);
 }
 
-static void LoadHookScripts() {
+static void LoadHookScriptFile(const char* name, int id) {
+	sScriptProgram prog;
+	dlog("> ", DL_HOOK);
+	dlog(name, DL_HOOK);
+	LoadScriptProgram(prog, name);
+	if (prog.ptr) {
+		sHookScript hook;
+		hook.prog = prog;
+		hook.callback = -1;
+		hook.isGlobalScript = false;
+		hooks[id].push_back(hook);
+		AddProgramToMap(prog);
+		dlogr(" Done", DL_HOOK);
+	} else {
+		dlogr(" Error!", DL_HOOK);
+	}
+	//return (prog.ptr != nullptr);
+}
+
+void LoadHookScripts() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
-	char* mask = "scripts\\hs_*.int";
-	char** filenames;
-	fo_db_get_file_list(mask, &filenames);
+	static bool hooksFilesLoaded = false;
+	if (!hooksFilesLoaded) { // hook files are already put in the list
+		hookScriptFilesList.clear();
 
-	LoadHookScript("hs_tohit", HOOK_TOHIT);
+		LoadHookScript("hs_tohit", HOOK_TOHIT);
+		LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+		LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+		LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
+		LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+		LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+		LoadHookScript("hs_ondeath", HOOK_ONDEATH);
+		LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+		LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+		LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+		LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+		LoadHookScript("hs_movecost", HOOK_MOVECOST);
+		LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
+		LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
+		LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
+		LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
+		LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+		LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+		LoadHookScript("hs_useobj", HOOK_USEOBJ);
+		LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+		LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+		LoadHookScript("hs_useskill", HOOK_USESKILL);
+		LoadHookScript("hs_steal", HOOK_STEAL);
+		LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+		LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+		LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+		LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+		LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+
+		hooksFilesLoaded = !alwaysFindScripts;
+	}
+	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
+}
+
+void InitHookScripts() {
+	// Note: here isGlobalScriptLoading must be already set, this should allow to register global exported variables
+	dlogr("Running hook scripts...", DL_HOOK);
+
+	for (std::vector<HookFile>::const_iterator it = hookScriptFilesList.begin(); it != hookScriptFilesList.end(); ++it) {
+		LoadHookScriptFile(it->name.c_str(), it->id);
+	}
+
+	initingHookScripts = 1;
+	for (int i = 0; i < numHooks; i++) {
+		if (!hooks[i].empty()) {
+			hooksInfo[i].hasHsScript = true;
+			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
+		}
+	}
+	initingHookScripts = 0;
+}
+
+void HookScriptClear() {
+	for (int i = 0; i < numHooks; i++) {
+		hooks[i].clear();
+	}
+	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
+	HookCommon_Reset();
+}
+
+void HookScripts_Init() {
+	dlogr("Injecting all game hooks.", DL_HOOK|DL_INIT);
+	// HOOK_TOHIT
 	const DWORD toHitHkAddr[] = {
 		0x421686, // combat_safety_invalidate_weapon_func_
 		0x4231D9, // check_ranged_miss_
@@ -1728,10 +1806,10 @@ static void LoadHookScripts() {
 	};
 	HookCalls(ToHitHook, toHitHkAddr);
 
-	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+	// HOOK_AFTERHITROLL
 	MakeCall(0x423893, AfterHitRollHook);
 
-	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+	// HOOK_CALCAPCOST
 	const DWORD calcApCostHkAddr[] = {
 		0x42307A,
 		0x42669F,
@@ -1747,8 +1825,7 @@ static void LoadHookScripts() {
 	HookCalls(CalcApCostHook, calcApCostHkAddr);
 	MakeCall(0x478083, CalcApCostHook2);
 
-	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
-	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+	// HOOK_DEATHANIM1, HOOK_DEATHANIM2
 	HookCall(0x4109DE, CalcDeathAnimHook);  // show_damage_to_object_
 	const DWORD calcDeathAnim2HkAddr[] = {
 		0x410981, // show_damage_to_object_
@@ -1757,7 +1834,7 @@ static void LoadHookScripts() {
 	};
 	HookCalls(CalcDeathAnim2Hook, calcDeathAnim2HkAddr);
 
-	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+	// HOOK_COMBATDAMAGE
 	const DWORD computeDamageHkAddr[] = {
 		0x42326C, // check_ranged_miss()
 		0x4233E3, // shoot_along_path() - for extra burst targets
@@ -1771,14 +1848,14 @@ static void LoadHookScripts() {
 	HookCalls(ComputeDamageHook, computeDamageHkAddr);
 	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
 
-	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
+	// HOOK_ONDEATH
 	MakeCall(0x42DA6D, OnDeathHook);  // critter_kill_
 	HookCall(0x425161, OnDeathHook2); // damage_object_
 
-	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+	// HOOK_FINDTARGET
 	HookCall(0x429143, FindTargetHook);
 
-	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+	// HOOK_USEOBJON
 	const DWORD useObjOnHkAddr[] = {0x49C606, 0x473619};
 	HookCalls(UseObjOnHook, useObjOnHkAddr);
 	// the following hooks allows to catch drug use of AI and from action cursor
@@ -1790,10 +1867,10 @@ static void LoadHookScripts() {
 	};
 	HookCalls(Drug_UseObjOnHook, drugUseObjOnHkAddr);
 
-	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+	// HOOK_REMOVEINVENOBJ
 	MakeJump(0x477492, RemoveObjHook); // old 0x477490
 
-	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+	// HOOK_BARTERPRICE
 	const DWORD barterPriceHkAddr[] = {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
 		0x475735, // display_table_inventories_ (for party members)
@@ -1804,42 +1881,36 @@ static void LoadHookScripts() {
 	HookCalls(PC_BarterPriceHook, pcBarterPriceHkAddr);
 	HookCall(0x474D3F, OverrideCost_BarterPriceHook); // barter_attempt_transaction_ (just overrides cost of offered goods)
 
-	LoadHookScript("hs_movecost", HOOK_MOVECOST);
+	// HOOK_MOVECOST
 	const DWORD moveCostHkAddr[] = {0x417665, 0x44B88A};
 	HookCalls(MoveCostHook, moveCostHkAddr);
 
-	LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
-	LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
-	LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
-	LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
+	// HOOK_HEXMOVEBLOCKING, HOOK_HEXAIBLOCKING, HOOK_HEXSHOOTBLOCKING, HOOK_HEXSIGHTBLOCKING
 	SafeWrite32(0x413979, (DWORD)&HexSightBlockingHook);
 	const DWORD shootBlockingAddr[] = {0x4C1A88, 0x423178, 0x4232D4, 0x423B4D, 0x426CF8, 0x42A570};
 	SafeWriteBatch<DWORD>((DWORD)&HexShootBlockingHook, shootBlockingAddr);
 	SafeWrite32(0x42A0A4, (DWORD)&HexAIBlockingHook);
 	MakeJump(0x48B848, HexMoveBlockingHook);
 
-	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+	// HOOK_ITEMDAMAGE
 	HookCall(0x478560, ItemDamageHook);
 
-	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+	// HOOK_AMMOCOST
 	HookCall(0x423A7C, AmmoCostHook);
 
-	LoadHookScript("hs_useobj", HOOK_USEOBJ);
+	// HOOK_USEOBJ
 	const DWORD useObjHkAddr[] = {0x42AEBF, 0x473607, 0x49C12E};
 	HookCalls(UseObjHook, useObjHkAddr);
 
-	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-
-	LoadHookScript("hs_useskill", HOOK_USESKILL);
+	// HOOK_USESKILL
 	const DWORD useSkillHkAddr[] = {0x49C48F, 0x49D12E};
 	HookCalls(UseSkillHook, useSkillHkAddr);
 
-	LoadHookScript("hs_steal", HOOK_STEAL);
+	// HOOK_STEAL
 	const DWORD stealCheckHkAddr[] = {0x4749A2, 0x474A69};
 	HookCalls(StealCheckHook, stealCheckHkAddr);
 
-	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+	// HOOK_WITHINPERCEPTION
 	const DWORD perceptionRngHkAddr[] = {
 		0x42B4ED,
 		0x42BC87,
@@ -1851,7 +1922,7 @@ static void LoadHookScripts() {
 	HookCall(0x456BA2, PerceptionRangeSeeHook);
 	HookCall(0x458403, PerceptionRangeHearHook);
 
-	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+	// HOOK_INVENTORYMOVE
 	const DWORD switchHandHkAddr[] = {
 		0x4712E3, // left slot
 		0x47136D  // right slot
@@ -1875,7 +1946,7 @@ static void LoadHookScripts() {
 	SafeWrite8(0x49B66E, 0xFE);        // cmp edi > cmp esi
 	HookCall(0x471457, InvenPickupHook);
 
-	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+	// HOOK_INVENWIELD
 	const DWORD invWieldFuncHkAddr[] = {
 		0x47275E, // inven_wield_
 		0x495FDF  // partyMemberCopyLevelInfo_
@@ -1894,32 +1965,4 @@ static void LoadHookScripts() {
 	HookCalls(CorrectFidForRemovedItemHook, fidRemovedItemHkAddr);
 	HookCall(0x45C4F6, op_move_obj_inven_to_obj_hook);
 	MakeCall(0x4778AF, item_drop_all_hack, 3);
-
-	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
-	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
-
-	fo_db_free_file_list(&filenames, 0);
-
-	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
-}
-
-void InitHookScripts() {
-	// Note: here isGlobalScriptLoading must be already set, this should allow to register global exported variables
-	LoadHookScripts();
-	initingHookScripts = 1;
-	for (int i = 0; i < numHooks; i++) {
-		if (!hooks[i].empty()) {
-			hooksInfo[i].hasHsScript = true;
-			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
-		}
-	}
-	initingHookScripts = 0;
-}
-
-void HookScriptClear() {
-	for (int i = 0; i < numHooks; i++) {
-		hooks[i].clear();
-	}
-	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
-	HookCommon_Reset();
 }

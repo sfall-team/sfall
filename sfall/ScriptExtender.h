@@ -95,4 +95,5 @@ void __stdcall RemoveTimerEventScripts(TProgram* script);
 
 // variables
 extern DWORD availableGlobalScriptTypes;
+extern bool alwaysFindScripts;
 extern bool displayWinUpdateState;

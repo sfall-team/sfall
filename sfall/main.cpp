@@ -45,6 +45,7 @@
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
+#include "HookScripts.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "Karma.h"
@@ -291,6 +292,9 @@ static void DllMain2() {
 	// most of modules should be initialized before running the script handlers
 	dlogr("Running MetaruleExtender_Init().", DL_INIT);
 	MetaruleExtender_Init();
+
+	dlogr("Running HookScripts_Init().", DL_INIT);
+	HookScripts_Init();
 
 	dlogr("Running ScriptExtender_Init().", DL_INIT);
 	ScriptExtender_Init();

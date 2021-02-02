@@ -65,6 +65,8 @@ void __stdcall RunHookScriptsAtProc(DWORD procId);
 
 extern DWORD initingHookScripts;
 
+void HookScripts_Init();
+void LoadHookScripts();
 void InitHookScripts();
 void HookScriptClear();
 
