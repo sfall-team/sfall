@@ -40,7 +40,7 @@ namespace sfall
 // Number of types of hooks
 static constexpr int numHooks = HOOK_COUNT;
 
-bool injectAllHooks;
+static bool injectAllHooks;
 
 DWORD HookScripts::initingHookScripts;
 
@@ -175,16 +175,18 @@ void HookScripts::LoadHookScript(const char* name, int id) {
 
 		if (!hookHasScript) return; // only inject
 
-		HookFile hookFile = { id, name };
+		HookFile hookFile = {id, name};
 		HookScripts::hookScriptFilesList.push_back(hookFile);
+
+		dlog_f("Found hook script: %s\n", DL_HOOK, name);
 	}
 }
 
-bool HookScripts::LoadHookScriptFile(const char* name, int id) {
+void HookScripts::InitHookScriptFile(const char* name, int id) {
 	ScriptProgram prog;
 	dlog("> ", DL_HOOK);
 	dlog(name, DL_HOOK);
-	LoadScriptProgram(prog, name);
+	InitScriptProgram(prog, name);
 	if (prog.ptr) {
 		HookScript hook;
 		hook.prog = prog;
@@ -196,7 +198,7 @@ bool HookScripts::LoadHookScriptFile(const char* name, int id) {
 	} else {
 		dlogr(" Error!", DL_HOOK);
 	}
-	return (prog.ptr != nullptr);
+	//return (prog.ptr != nullptr);
 }
 
 void HookScripts::LoadHookScripts() {
@@ -227,14 +229,14 @@ void HookScripts::InitHookScripts() {
 	dlogr("Running hook scripts...", DL_HOOK);
 
 	for (auto& hook : HookScripts::hookScriptFilesList) {
-		HookScripts::LoadHookScriptFile(hook.name.c_str(), hook.id);
+		HookScripts::InitHookScriptFile(hook.name.c_str(), hook.id);
 	}
 
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
 			hooksInfo[i].hasHsScript = true;
-			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
+			RunScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
 	initingHookScripts = 0;
@@ -254,7 +256,7 @@ void HookScripts::init() {
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
 	injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
-	if (injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK|DL_INIT);
+	if (injectAllHooks) dlogr("Injecting all game hooks.", DL_HOOK|DL_INIT);
 }
 
 }

@@ -93,7 +93,7 @@ public:
 	static std::vector<HookFile> hookScriptFilesList;
 
 	static void LoadHookScript(const char* name, int id);
-	static bool LoadHookScriptFile(const char* name, int id);
+	static void InitHookScriptFile(const char* name, int id);
 	static void LoadHookScripts();
 	static void InitHookScripts();
 	static void HookScriptClear();

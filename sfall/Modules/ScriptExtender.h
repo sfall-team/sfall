@@ -30,7 +30,7 @@ namespace sfall
 typedef struct {
 	fo::Program* ptr = nullptr;
 	int procLookup[fo::Scripts::ScriptProc::count];
-	char initialized;
+	bool initialized;
 } ScriptProgram;
 
 class ScriptExtender : public Module {
@@ -95,10 +95,10 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 // prog - reference to program structure
 // fileName - the script file name without extension (if fullPath is false) or a full file path (if fullPath is true)
 // fullPath - controls how fileName is used (see above)
-void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath = false);
+void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath = false);
 
 // init program after load, needs to be called once
-void InitScriptProgram(ScriptProgram &prog);
+void RunScriptProgram(ScriptProgram &prog);
 
 // execute script by specific proc name
 void RunScriptProc(ScriptProgram* prog, const char* procName);

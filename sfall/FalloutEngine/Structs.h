@@ -273,20 +273,20 @@ struct Program {
 	long field_8;
 	long field_C;
 	long *codePtr;
-	long field_14;
-	long field_18;
+	long field_14;      // unused?
+	long field_18;      // unused?
 	long *dStackPtr;
 	long *aStackPtr;
 	long *dStackOffs;
 	long *aStackOffs;
 	long field_2C;
 	long *stringRefPtr;
-	long field_34;      // procTablePtr
-	long *procTablePtr; // field_38
-	long regs[12];
-	long field_6C;
-	long field_70;
-	long field_74;
+	long *procTablePtr;
+	long field_38;      // same as codeStackPtr
+	long savedEnv[12];  // saved register values
+	long field_6C;      // unused?
+	long field_70;      // unused?
+	long field_74;      // unused?
 	long field_78;
 	long field_7C;
 	union {
@@ -303,6 +303,12 @@ struct Program {
 };
 
 static_assert(sizeof(Program) == 140, "Incorrect Program definition.");
+
+struct ProgramList {
+	Program* progPtr;
+	ProgramList* next;
+	ProgramList* prev;
+};
 
 struct ItemButtonItem {
 	GameObject* item;
