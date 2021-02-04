@@ -642,7 +642,7 @@ static void __declspec(naked) LootContainerHook_End() {
 		cmp  dword ptr [esp + 0x150 - 0x58 + 4], 0; // JESSE_CONTAINER
 		jz   skip; // container is not created
 		_InLoop2(0, INTFACELOOT);
-		xor  eax,eax;
+		xor  eax, eax;
 skip:
 		call ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
 		retn 0x13C;
