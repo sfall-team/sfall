@@ -680,8 +680,8 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		onMapExit.invoke();
 	}
 
-	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	HookScripts::RunHookScriptsAtProc(procId);   // all hs_ scripts
+	RunGlobalScriptsAtProc(procId);            // gl* scripts of types 0 and 3
+	HookScripts::RunHookScriptsAtProc(procId); // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
 }
