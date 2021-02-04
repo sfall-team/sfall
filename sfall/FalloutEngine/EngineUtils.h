@@ -121,6 +121,8 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);
 
+void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline = 207, long font = 101);
+
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
@@ -148,8 +150,8 @@ DWORD GetMaxCharWidth();
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(GameObject* obj);
 
-// Redraws all interface windows
-void RefreshGNW(size_t from = 0);
+// Redraws all windows
+void RefreshGNW(bool skipOwner = false);
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 

@@ -145,6 +145,10 @@ static void __stdcall SaveGame2() {
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
 		CritterStats::SaveStatData(h);
+
+		// last marker
+		data = 0xCC | VERSION_MAJOR << 8 | VERSION_MINOR << 16 | VERSION_BUILD << 24;
+		WriteFile(h, &data, 4, &size, 0);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -314,11 +318,9 @@ static void __stdcall NewGame_Before() {
 }
 
 static void __stdcall NewGame_After() {
+	dlogr("New Game started.", DL_MAIN);
 	onAfterNewGame.invoke();
 	onAfterGameStarted.invoke();
-
-	dlogr("New Game started.", DL_MAIN);
-
 	gameLoaded = true;
 }
 
@@ -329,7 +331,6 @@ static void __declspec(naked) main_load_new_hook() {
 		pop  eax;
 		call fo::funcoffs::main_load_new_;
 		jmp  NewGame_After;
-		//retn;
 	}
 }
 
@@ -379,7 +380,7 @@ static void __declspec(naked) game_reset_hook() {
 		push 0;
 		call GameReset; // reset all sfall modules before resetting the game data
 		popadc;
-		jmp fo::funcoffs::game_reset_;
+		jmp  fo::funcoffs::game_reset_;
 	}
 }
 
@@ -391,7 +392,7 @@ static void __declspec(naked) game_reset_on_load_hook() {
 		test al, al;
 		popadc;
 		jnz  errorLoad;
-		jmp fo::funcoffs::game_reset_;
+		jmp  fo::funcoffs::game_reset_;
 errorLoad:
 		mov  eax, -1;
 		add  esp, 4;
@@ -406,7 +407,7 @@ static void __declspec(naked) before_game_exit_hook() {
 		push 1;
 		call GameModeChange;
 		popadc;
-		jmp fo::funcoffs::map_exit_;
+		jmp  fo::funcoffs::map_exit_;
 	}
 }
 
@@ -415,7 +416,7 @@ static void __declspec(naked) after_game_exit_hook() {
 		pushadc;
 		call GameExit;
 		popadc;
-		jmp fo::funcoffs::main_menu_create_;
+		jmp  fo::funcoffs::main_menu_create_;
 	}
 }
 
@@ -424,7 +425,7 @@ static void __declspec(naked) game_close_hook() {
 		pushadc;
 		call GameClose;
 		popadc;
-		jmp fo::funcoffs::game_exit_;
+		jmp  fo::funcoffs::game_exit_;
 	}
 }
 
@@ -621,7 +622,7 @@ static void __declspec(naked) LootContainerHook_End() {
 		cmp  dword ptr [esp + 0x150 - 0x58 + 4], 0; // JESSE_CONTAINER
 		jz   skip; // container is not created
 		_InLoop2(0, INTFACELOOT);
-		xor  eax,eax;
+		xor  eax, eax;
 skip:
 		call ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
 		retn 0x13C;

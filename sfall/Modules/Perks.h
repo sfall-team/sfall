@@ -28,6 +28,12 @@ public:
 	const char* name() { return "Perks"; }
 	void init();
 
+	// Enable the modification of the stats/skills for traits by using the perks ini file
+	static int TraitsModEnable();
+	static bool IsTraitDisabled(int traitID);
+	static DWORD GetTraitStatBonus(int statID, int traitIndex);
+	static DWORD GetTraitSkillBonus(int skillID, int traitIndex);
+
 	static void save(HANDLE file);
 	static bool load(HANDLE file);
 
@@ -42,8 +48,8 @@ public:
 
 	static long PerkLevelMod;
 
-	static void __fastcall SetPerkboxTitle(const char* title);
 	static void __fastcall SetPerkValue(int id, int param, int value);
+	static void __fastcall SetPerkboxTitle(const char* name);
 	static void SetPerkName(int id, const char* value);
 	static void SetPerkDesc(int id, const char* value);
 };
@@ -57,8 +63,8 @@ void __stdcall ApplyHeaveHoFix();
 void __stdcall IgnoreDefaultPerks();
 void __stdcall RestoreDefaultPerks();
 void __stdcall AddPerkMode(DWORD mode);
-
 void __stdcall ClearSelectablePerks();
+
 void __stdcall SetPerkFreq(int i);
 
 }

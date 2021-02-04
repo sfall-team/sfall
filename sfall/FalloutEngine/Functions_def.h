@@ -21,6 +21,8 @@ using namespace fo;
 	because the compiler builds the better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, GameObject*, source, GameObject*, item, GameObject*, target)
+WRAP_WATCOM_FFUNC3(GameObject*, ai_search_inven_weap, GameObject*, source, long, apCheck, GameObject*, target)
 WRAP_WATCOM_FFUNC3(void, check_for_death, GameObject*, critter, long, amountDamage, long*, flags)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
@@ -29,7 +31,7 @@ WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visible
 WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
 WRAP_WATCOM_FFUNC3(FrmFrameData*, frame_ptr, FrmHeaderData*, frm, long, frame, long, direction)
 WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, Window*, win, BoundRect*, rect, long*, buffer)
-WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft,long, modeRight)
+WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
 WRAP_WATCOM_FFUNC3(GameObject*, inven_find_type, GameObject*, critter, long, itemType, DWORD*, buf)
 WRAP_WATCOM_FFUNC3(long, item_add_force, GameObject*, critter, GameObject*, item, long, count)
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, GameObject*, source, long, hitMode, long, isCalled)
@@ -47,15 +49,18 @@ WRAP_WATCOM_FFUNC4(long, register_object_move_to_object, GameObject*, source, Ga
 WRAP_WATCOM_FFUNC4(long, register_object_run_to_object, GameObject*, source, GameObject*, target, long, distance, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
-WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation,long, distance)
+WRAP_WATCOM_FFUNC6(long, text_object_create, GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, BoundRect*, rect)
+WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, Window*, window, RectList**, rects, void*, buffer)
 WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
+WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, Program*, scriptPtr, DWORD, dataType, DWORD, strId)
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(AIcap*, ai_cap, GameObject*, critter)
+WRAP_WATCOM_FUNC2(void, ai_print_msg, GameObject*, object, long, mode)
 WRAP_WATCOM_FUNC1(Program*, allocateProgram, const char*, filePath)
 WRAP_WATCOM_FUNC1(bool, art_exists, long, artFid)
 WRAP_WATCOM_FUNC0(void, art_flush)
@@ -101,6 +106,7 @@ WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn) // Perform combat turn for a given critter
+WRAP_WATCOM_FUNC1(long, critter_body_type, GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, EndLoad, DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
@@ -114,7 +120,6 @@ WRAP_WATCOM_FUNC0(long, get_input)
 // Searches for message ID in given message file and places result in result argument
 WRAP_WATCOM_FUNC3(const char*, getmsg, const MessageList*, fileAddr, MessageNode*, result, long, messageId)
 WRAP_WATCOM_FUNC1(void, gdialogDisplayMsg, const char*, message)
-WRAP_WATCOM_FUNC0(long, gmouse_3d_get_mode)
 WRAP_WATCOM_FUNC1(void, gmouse_3d_set_mode, long, mode)
 WRAP_WATCOM_FUNC1(long, gmouse_set_cursor, long, picNum)
 WRAP_WATCOM_FUNC1(long, gsound_background_volume_get_set, long, setVolume)
@@ -205,6 +210,7 @@ WRAP_WATCOM_FUNC0(void, process_bk)
 WRAP_WATCOM_FUNC0(void, proto_dude_update_gender)
 // Places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
 WRAP_WATCOM_FUNC2(long, proto_ptr, long, pid, Proto**, ptrPtr)
+WRAP_WATCOM_FUNC2(void, queue_clear_type, long, qType, void*, func) // removes all events of the given type and performs func before removal
 WRAP_WATCOM_FUNC2(void*, queue_find_first, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC2(void*, queue_find_next, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC2(void, queue_remove_this, GameObject*, object, long, qType)
@@ -247,6 +253,7 @@ WRAP_WATCOM_FUNC2(long, skill_dec_point_force, GameObject*, critter, long, skill
 WRAP_WATCOM_FUNC2(long, skill_inc_point_force, GameObject*, critter, long, skill)
 WRAP_WATCOM_FUNC1(long, skill_is_tagged, long, skill)
 WRAP_WATCOM_FUNC2(long, skill_level, GameObject*, critter, long, statID)
+WRAP_WATCOM_FUNC2(long, stat_get_base, GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_base_direct, GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_bonus, GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC3(long, stat_set_bonus, GameObject*, critter, long, statID, long, amount)

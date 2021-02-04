@@ -26,16 +26,8 @@
 namespace sfall
 {
 
-void __fastcall sf_critter_adjust_poison(fo::GameObject* critter, long amount) {
-	if (amount == 0) return;
-	if (amount > 0) {
-		amount -= fo::func::stat_level(critter, fo::STAT_poison_resist) * amount / 100;
-	} else if (critter->critter.poison == 0) {
-		return;
-	}
-	critter->critter.poison += amount;
-	if (critter->critter.poison < 0) critter->critter.poison = 0; // level can't be negative
-}
+static bool engineDerivedStats = true;
+static bool derivedHPwBonus = false; // recalculate the hit points with bonus stat values
 
 static DWORD statMaximumsPC[fo::STAT_max_stat];
 static DWORD statMinimumsPC[fo::STAT_max_stat];
@@ -155,23 +147,31 @@ end:
 	}
 }
 
+static long RecalcStat(int stat, int statsValue[]) {
+	double sum = 0;
+	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
+		sum += (statsValue[i] + statFormulas[stat].shift[i]) * statFormulas[stat].multi[i];
+	}
+	long calcStatValue = statFormulas[stat].base + (int)floor(sum);
+	return (calcStatValue < statFormulas[stat].min) ? statFormulas[stat].min : calcStatValue;
+}
+
 static void __stdcall StatRecalcDerived(fo::GameObject* critter) {
-	int baseStats[7];
-	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) baseStats[stat] = fo::func::stat_level(critter, stat);
-
 	long* proto = CritterStats::GetProto(critter);
-	if (!proto) fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto);
+	if (!proto && fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) == -1) return;
 
-	for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
-		if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
+	int baseStats[7], levelStats[7];
+	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
+		levelStats[stat] = fo::func::stat_level(critter, stat);
+		if (!derivedHPwBonus) baseStats[stat] = fo::func::stat_get_base(critter, stat);
+	}
 
-		double sum = 0;
-		for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
-			sum += (baseStats[stat] + statFormulas[i].shift[stat]) * statFormulas[i].multi[stat];
-		}
-		long calcStat = statFormulas[i].base + (int)floor(sum);
-		if (calcStat < statFormulas[i].min) calcStat = statFormulas[i].min;
-		proto[OffsetStat::base + i] = calcStat; // offset from base_stat_srength
+	((fo::Proto*)proto)->critter.base.health = RecalcStat(fo::Stat::STAT_max_hit_points, (derivedHPwBonus) ? levelStats : baseStats);
+
+	for (int stat = fo::Stat::STAT_max_move_points; stat <= fo::Stat::STAT_poison_resist; stat++) {
+		if (stat >= fo::Stat::STAT_dmg_thresh && stat <= fo::Stat::STAT_dmg_resist_explosion) continue;
+		// offset from base_stat_srength
+		proto[OffsetStat::base + stat] = RecalcStat(stat, levelStats);
 	}
 }
 
@@ -184,6 +184,30 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 		pop  ecx;
 		pop  edx;
 		retn;
+	}
+}
+
+void Stats::UpdateHPStat(fo::GameObject* critter) {
+	if (engineDerivedStats) return;
+
+	fo::Proto* proto;
+	if (fo::func::proto_ptr(critter->protoId, &proto) == -1) return;
+
+	auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
+
+	double sum = 0;
+	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
+		sum += (getStatFunc(critter, stat) + statFormulas[fo::Stat::STAT_max_hit_points].shift[stat]) * statFormulas[fo::Stat::STAT_max_hit_points].multi[stat];
+	}
+	long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
+	if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
+
+	if (proto->critter.base.health != calcStatValue) {
+		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
+							   critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+
+		proto->critter.base.health = calcStatValue;
+		critter->critter.health = calcStatValue + proto->critter.bonus.health;
 	}
 }
 
@@ -220,14 +244,6 @@ allow:
 	}
 }
 
-static void __declspec(naked) critter_adjust_poison_hack() {
-	__asm {
-		mov  edx, esi;
-		mov  ecx, edi;
-		jmp  sf_critter_adjust_poison;
-	}
-}
-
 static void StatsReset() {
 	for (size_t i = 0; i < fo::STAT_max_stat; i++) {
 		statMaximumsPC[i] = statMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
@@ -259,12 +275,9 @@ void Stats::init() {
 
 	MakeCall(0x4AF09C, CalcApToAcBonus, 3); // stat_level_
 
-	// Allow set_critter_stat function to change STAT_unused and STAT_dmg_* stats for the player
+	// Allow set_critter_stat function to change the base stats of STAT_unused and STAT_dmg_* for the player
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
-	// Allow changing the poison level for critters
-	MakeCall(0x42D226, critter_adjust_poison_hack);
-	SafeWrite8(0x42D22C, 0xDA); // jmp 0x42D30A
 
 	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();
@@ -285,57 +298,62 @@ void Stats::init() {
 
 	auto statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
 	if (!statsFile.empty()) {
-		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
-
-		// STAT_st + STAT_en * 2 + 15
-		statFormulas[STAT_max_hit_points].base            = 15; // max hp
-		statFormulas[STAT_max_hit_points].multi[STAT_st]  = 1;
-		statFormulas[STAT_max_hit_points].multi[STAT_en]  = 2;
-		// STAT_ag / 2 + 5
-		statFormulas[STAT_max_move_points].base           = 5;  // max ap
-		statFormulas[STAT_max_move_points].multi[STAT_ag] = 0.5;
-
-		statFormulas[STAT_ac].multi[STAT_ag]              = 1;  // ac
-		// STAT_st - 5
-		statFormulas[STAT_melee_dmg].min                  = 1;  // melee damage
-		statFormulas[STAT_melee_dmg].shift[STAT_st]       = -5;
-		statFormulas[STAT_melee_dmg].multi[STAT_st]       = 1;
-		// STAT_st * 25 + 25
-		statFormulas[STAT_carry_amt].base                 = 25; // carry weight
-		statFormulas[STAT_carry_amt].multi[STAT_st]       = 25;
-		// STAT_pe * 2
-		statFormulas[STAT_sequence].multi[STAT_pe]        = 2;  // sequence
-		// STAT_en / 3
-		statFormulas[STAT_heal_rate].min                  = 1;  // heal rate
-		statFormulas[STAT_heal_rate].multi[STAT_en]       = 1.0 / 3.0;
-
-		statFormulas[STAT_crit_chance].multi[STAT_lu]     = 1;  // critical chance
-		// STAT_en * 2
-		statFormulas[STAT_rad_resist].multi[STAT_en]      = 2;  // rad resist
-		// STAT_en * 5
-		statFormulas[STAT_poison_resist].multi[STAT_en]   = 5;  // poison resist
-
-		char key[6], buf2[256], buf3[256];
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(statFile) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
+			derivedHPwBonus = (iniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+			engineDerivedStats = false;
 
-		for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
-			if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
+			// STAT_st + STAT_en * 2 + 15
+			statFormulas[STAT_max_hit_points].base            = 15; // max hp
+			statFormulas[STAT_max_hit_points].multi[STAT_st]  = 1;
+			statFormulas[STAT_max_hit_points].multi[STAT_en]  = 2;
+			// STAT_ag / 2 + 5
+			statFormulas[STAT_max_move_points].base           = 5;  // max ap
+			statFormulas[STAT_max_move_points].multi[STAT_ag] = 0.5;
 
-			_itoa(i, key, 10);
-			statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
-			statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
-			for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
-				sprintf(buf2, "shift%d", j);
-				statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
-				sprintf(buf2, "multi%d", j);
-				_gcvt(statFormulas[i].multi[j], 16, buf3);
-				iniGetString(key, buf2, buf3, buf2, 256, statFile);
-				statFormulas[i].multi[j] = atof(buf2);
+			statFormulas[STAT_ac].multi[STAT_ag]              = 1;  // ac
+			// STAT_st - 5
+			statFormulas[STAT_melee_dmg].min                  = 1;  // melee damage
+			statFormulas[STAT_melee_dmg].shift[STAT_st]       = -5;
+			statFormulas[STAT_melee_dmg].multi[STAT_st]       = 1;
+			// STAT_st * 25 + 25
+			statFormulas[STAT_carry_amt].base                 = 25; // carry weight
+			statFormulas[STAT_carry_amt].multi[STAT_st]       = 25;
+			// STAT_pe * 2
+			statFormulas[STAT_sequence].multi[STAT_pe]        = 2;  // sequence
+			// STAT_en / 3
+			statFormulas[STAT_heal_rate].min                  = 1;  // heal rate
+			statFormulas[STAT_heal_rate].multi[STAT_en]       = 1.0 / 3.0;
+
+			statFormulas[STAT_crit_chance].multi[STAT_lu]     = 1;  // critical chance
+			// STAT_en * 2
+			statFormulas[STAT_rad_resist].multi[STAT_en]      = 2;  // rad resist
+			// STAT_en * 5
+			statFormulas[STAT_poison_resist].multi[STAT_en]   = 5;  // poison resist
+
+			char key[6], buf2[256], buf3[256];
+
+			for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
+				if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
+
+				_itoa(i, key, 10);
+				statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
+				statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
+				for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
+					sprintf(buf2, "shift%d", j);
+					statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
+					sprintf(buf2, "multi%d", j);
+					_gcvt(statFormulas[i].multi[j], 16, buf3);
+					iniGetString(key, buf2, buf3, buf2, 256, statFile);
+					statFormulas[i].multi[j] = atof(buf2);
+				}
 			}
 		}
-	} else {
+	}
+	if (engineDerivedStats) {
 		CritterStats::RecalcDerivedHook();
+	} else {
+		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 	}
 }
 

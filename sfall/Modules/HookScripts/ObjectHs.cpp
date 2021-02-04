@@ -1,6 +1,7 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"
+#include "..\CritterPoison.h"
 #include "Common.h"
 
 #include "ObjectHs.h"
@@ -15,14 +16,14 @@ static void __declspec(naked) UseObjOnHook() {
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
-		pushad;
+		pushadc;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
@@ -42,14 +43,14 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
-		pushad;
+		pushadc;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
@@ -68,14 +69,14 @@ static void __declspec(naked) UseObjHook() {
 		HookBegin;
 		mov args[0], eax; // user
 		mov args[4], edx; // object
-		pushad;
+		pushadc;
 	}
 
 	argCount = 2;
 	RunHookScript(HOOK_USEOBJ);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
@@ -133,7 +134,7 @@ end:
 	}
 }
 
-static DWORD __stdcall DescriptionObjHook_Script(DWORD object) {
+static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
 	BeginHook();
 	argCount = 1;
 
@@ -149,20 +150,18 @@ static DWORD __stdcall DescriptionObjHook_Script(DWORD object) {
 
 static void __declspec(naked) DescriptionObjHook() {
 	__asm {
-		push eax;
-		push edx;
 		push ecx;
-		push eax;          // object
+		push edx;
+		mov  ecx, eax; // object
 		call DescriptionObjHook_Script;
-		pop  ecx;
 		pop  edx;
-		test eax, eax;     // pointer to text
-		jz   skip;
-		add  esp, 4;       // destroy push eax
-		retn;
+		pop  ecx;
+		test eax, eax; // pointer to text
+		jnz  skip;
+		mov  eax, ebp;
+		jmp  fo::funcoffs::object_description_;
 skip:
-		pop  eax;
-		jmp  fo::funcoffs::item_description_;
+		retn;
 	}
 }
 
@@ -302,6 +301,69 @@ skip:
 	}
 }
 
+static DWORD __fastcall AdjustPoison_Script(DWORD critter, long amount, DWORD addr) {
+	BeginHook();
+	argCount = 3;
+
+	bool checkPoison = (addr == (0x42D32C + 5)); // from critter_check_poison_
+
+	args[0] = critter;
+	args[1] = amount;
+	args[2] = (checkPoison) ? CritterPoison::adjustPoisonHP_Default : 0;
+
+	RunHookScript(HOOK_ADJUSTPOISON);
+
+	if (cRet > 0) amount = rets[0];
+	if (cRet > 1 && checkPoison && (long)rets[1] < 0) CritterPoison::adjustPoisonHP = rets[1];
+
+	EndHook();
+	return amount;
+}
+
+static void __declspec(naked) critter_adjust_poison_hack() {
+	__asm {
+		push [esp + 0x24 + 4];    // called from
+		mov  ecx, eax;            // critter
+		call AdjustPoison_Script; // edx - amount
+		mov  esi, eax;            // old/new amount
+		mov  eax, edi;            // restore eax value
+		jmp  critter_adjust_poison_hack_fix; // in CritterPoison
+	}
+}
+
+static DWORD __fastcall AdjustRads_Script(DWORD critter, long amount) {
+	if (!HookScripts::HookHasScript(HOOK_ADJUSTRADS)) return amount;
+
+	BeginHook();
+	argCount = 2;
+
+	args[0] = critter; // always dude
+	args[1] = amount;
+
+	RunHookScript(HOOK_ADJUSTRADS);
+	if (cRet) amount = rets[0];
+
+	EndHook();
+	return amount;
+}
+
+void __declspec(naked) critter_adjust_rads_hack() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		cmp  dword ptr [eax + protoId], PID_Player; // critter.pid
+		jne  isNotDude;
+		push ecx;
+		call AdjustRads_Script; // ecx - critter, edx - amount
+		pop  ecx;
+		mov  ebx, eax;          // old/new amount
+		mov  edx, ds:[FO_VAR_obj_dude];
+		xor  eax, eax;          // for continue func
+isNotDude:
+		retn;
+	}
+}
+
 void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
@@ -310,7 +372,7 @@ void Inject_UseObjOnHook() {
 		0x4285DF, // ai_check_drugs
 		0x4286F8, // ai_check_drugs
 		0x4287F8, // ai_check_drugs
-		0x473573 // inven_action_cursor
+		0x473573  // inven_action_cursor
 	});
 }
 
@@ -323,7 +385,7 @@ void Inject_UseAnimateObjHook() {
 }
 
 void Inject_DescriptionObjHook() {
-	HookCall(0x48C925, DescriptionObjHook);
+	HookCall(0x49AE28, DescriptionObjHook);
 }
 
 void Inject_SetLightingHook() {
@@ -339,6 +401,15 @@ void Inject_ScriptProcedureHook2() {
 	HookCall(0x4A49A7, After_ScriptStdProcedureHook);
 }
 
+void Inject_AdjustPoisonHook() {
+	MakeCall(0x42D21C, critter_adjust_poison_hack, 1);
+}
+
+void Inject_AdjustRadsHook() {
+	MakeCall(0x42D3B0, critter_adjust_rads_hack, 1);
+	SafeWrite16(0x42D3B6, 0xC085); // test eax, eax
+}
+
 void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
@@ -347,6 +418,8 @@ void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
 	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
 	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
+	HookScripts::LoadHookScript("hs_adjustpoison", HOOK_ADJUSTPOISON);
+	HookScripts::LoadHookScript("hs_adjustrads", HOOK_ADJUSTRADS);
 }
 
 }

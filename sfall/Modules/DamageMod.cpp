@@ -399,9 +399,7 @@ void DamageMod::init() {
 		case 1:
 		case 2:
 		case 5:
-			if (!HookScripts::IsInjectHook(HOOK_SUBCOMBATDAMAGE)) {
-				HookScripts::InjectingHook(HOOK_SUBCOMBATDAMAGE);
-			}
+			HookScripts::InjectingHook(HOOK_SUBCOMBATDAMAGE);
 			break;
 		default:
 			formula = 0;

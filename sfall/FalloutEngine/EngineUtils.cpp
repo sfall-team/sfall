@@ -186,10 +186,10 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 
 // Returns the position of party member in the existing table (begins from 1)
 long IsPartyMemberByPid(long pid) {
-	size_t patryCount = fo::var::partyMemberMaxCount;
-	if (patryCount) {
+	size_t partyCount = fo::var::partyMemberMaxCount;
+	if (partyCount) {
 		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
-		for (size_t i = 0; i < patryCount; i++) {
+		for (size_t i = 0; i < partyCount; i++) {
 			if (memberPids[i] == pid) return i + 1;
 		}
 	}
@@ -366,6 +366,11 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
+//void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
+//	BYTE* surf = surface + (y * surfWidth) + x;
+//	fo::func::wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
+//}
+
 // Fills the specified interface window with index color
 void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
@@ -381,17 +386,20 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	fo::Window* win = fo::func::GNW_find(winID);
-	BYTE* surf = win->surface;
-	for (long i = 0; i < win->height; i++) {
-		std::memset(surf, 0, win->width);
-		surf += win->width;
-	}
+	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
-		fo::func::GNW_win_refresh(win, &win->rect, 0);
+		fo::func::GNW_win_refresh(win, &win->rect, nullptr);
 	}
 }
 
 //---------------------------------------------------------
+void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline, long font) {
+	fo::BoundRect rect;
+	if (!fo::func::text_object_create(object, text, font, colorText, colorOutline, &rect)) {
+		fo::func::tile_refresh_rect(&rect, object->elevation);
+	}
+}
+
 // print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
@@ -503,10 +511,11 @@ void RedrawObject(GameObject* obj) {
 	func::tile_refresh_rect(&rect, obj->elevation);
 }
 
-// Redraws all interface windows
-void RefreshGNW(size_t from) {
+// Redraws all windows
+void RefreshGNW(bool skipOwner) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 1;
-	for (size_t i = from; i < fo::var::num_windows; i++) {
+	for (size_t i = 0; i < fo::var::num_windows; i++) {
+		if (skipOwner && fo::var::window[i]->flags & fo::WinFlags::OwnerFlag) continue;
 		fo::func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
 	}
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;

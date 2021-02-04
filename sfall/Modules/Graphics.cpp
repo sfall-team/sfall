@@ -21,7 +21,7 @@
 #include "..\InputFuncs.h"
 #include "ScriptShaders.h"
 
-#include "SubModules\GameRender.h"
+#include "SubModules\WindowRender.h"
 
 #include "Graphics.h"
 
@@ -33,6 +33,96 @@ namespace sfall
 
 typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 //typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
+
+static const char* gpuEffectA8 =
+	"texture image;"
+	"texture palette;"
+	"texture head;"
+	"texture highlight;"
+	"sampler s0 = sampler_state { texture=<image>; };"
+	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
+	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"float2 size;"
+	"float2 corner;"
+	"float2 sizehl;"
+	"float2 cornerhl;"
+	"int showhl;"
+	// shader for displaying head textures
+	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float backdrop = tex2D(s0, Tex).a;"
+	  "float3 result;"
+	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
+	    "result = tex2D(s2, saturate((Tex - corner) / size));"
+	  "} else {"
+	    "result = tex1D(s1, backdrop).bgr;" // get color in palette and swap R <> B
+	  "}"
+	  // blend highlights
+	  "if (showhl) {"
+	    "float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
+	    "result = saturate(result + h);" // saturate(result * (1 - h.a) * h.rgb * h.a)"
+	  "}"
+	  "return float4(result, 1);"
+	"}"
+	"technique T1"
+	"{"
+	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	"}"
+
+	// main shader
+	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);" // get color in palette
+	  "return float4(result.bgr, 1);"                // swap R <> B
+	"}"
+	"technique T0"
+	"{"
+	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}";
+
+static const char* gpuEffectL8 =
+	"texture image;"
+	"texture palette;"
+	"texture head;"
+	"texture highlight;"
+	"sampler s0 = sampler_state { texture=<image>; };"
+	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
+	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"float2 size;"
+	"float2 corner;"
+	"float2 sizehl;"
+	"float2 cornerhl;"
+	"int showhl;"
+	// shader for displaying head textures
+	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float backdrop = tex2D(s0, Tex).r;"
+	  "float3 result;"
+	  "if (abs(backdrop - 1.0) < 0.001) {"
+	    "result = tex2D(s2, saturate((Tex - corner) / size));"
+	  "} else {"
+	    "result = tex1D(s1, backdrop).bgr;"
+	  "}"
+	  // blend highlights
+	  "if (showhl) {"
+	    "float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
+	    "result = saturate(result + h);"
+	  "}"
+	  "return float4(result, 1);"
+	"}"
+	"technique T1"
+	"{"
+	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	"}"
+
+	// main shader
+	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).r);"
+	  "return float4(result.bgr, 1);"
+	"}"
+	"technique T0"
+	"{"
+	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}";
 
 IDirectDrawSurface* primaryDDSurface = nullptr; // aka _GNW95_DDPrimarySurface
 
@@ -92,66 +182,18 @@ IDirect3DDevice9* d3d9Device = 0;
 static IDirect3DTexture9* mainTex = 0;
 static IDirect3DTexture9* sTex1 = 0;
 static IDirect3DTexture9* sTex2 = 0;
+static IDirect3DTexture9* movieTex;
 
 static IDirect3DSurface9* sSurf1 = 0;
 static IDirect3DSurface9* sSurf2 = 0;
 static IDirect3DSurface9* backBuffer = 0;
 
-static IDirect3DVertexBuffer9* vBuffer;
-static IDirect3DVertexBuffer9* vBuffer2;
-static IDirect3DVertexBuffer9* movieBuffer;
+static IDirect3DVertexBuffer9* vertexOrigRes;
+static IDirect3DVertexBuffer9* vertexSfallRes;
+static IDirect3DVertexBuffer9* vertexMovie;
 
 static IDirect3DTexture9* gpuPalette;
-static IDirect3DTexture9* movieTex;
-
 static ID3DXEffect* gpuBltEffect;
-static const char* gpuEffect =
-	"texture image;"
-	"texture palette;"
-	"texture head;"
-	"texture highlight;"
-	"sampler s0 = sampler_state { texture=<image>; };"
-	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
-	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"float2 size;"
-	"float2 corner;"
-	"float2 sizehl;"
-	"float2 cornerhl;"
-	"int showhl;"
-
-	// shader for displaying head textures
-	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float backdrop = tex2D(s0, Tex).a;"
-	  "float3 result;"
-	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
-	    "result = tex2D(s2, saturate((Tex - corner) / size));"
-	  "} else {"
-	    "result = tex1D(s1, backdrop);"
-	    "result = float3(result.b, result.g, result.r);"
-	  "}"
-	// blend highlights
-	"if (showhl) {"
-		"float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
-		"result = saturate(result + h);" // saturate(result * (1 - h.a) * h.rgb * h.a)"
-	"}"
-	  "return float4(result.r, result.g, result.b, 1);"
-	"}"
-
-	"technique T1"
-	"{"
-	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
-	"}"
-
-	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);"    // get color in palette
-	  "return float4(result.b, result.g, result.r, 1);" // swap R <> B
-	"}"
-
-	"technique T0"
-	"{"
-	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}";
 
 static D3DXHANDLE gpuBltMainTex;
 static D3DXHANDLE gpuBltPalette;
@@ -240,6 +282,9 @@ static void ResetDevice(bool createNew) {
 	if (!params.Windowed) params.FullScreen_RefreshRateInHz = dispMode.RefreshRate;
 
 	static bool software = false;
+	static D3DFORMAT textureFormat = D3DFMT_X8R8G8B8;
+	bool A8_IsSupport = false;
+
 	if (createNew) {
 		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
@@ -257,7 +302,11 @@ static void ResetDevice(bool createNew) {
 		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
 
 		if (Graphics::GPUBlt) {
-			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
+			A8_IsSupport = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8, D3DPOOL_DEFAULT, &mainTex, 0) == D3D_OK);
+			textureFormat = (A8_IsSupport) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
+
+			const char* shader = (A8_IsSupport) ? gpuEffectA8 : gpuEffectL8;
+			D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0);
 			gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
 			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
 			// for head textures
@@ -279,10 +328,11 @@ static void ResetDevice(bool createNew) {
 		mainTexLock = false;
 	}
 
-	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, Graphics::GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) {
+	if (!A8_IsSupport && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, textureFormat, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) {
 		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0);
 		Graphics::GPUBlt = 0;
-		MessageBoxA(window, "GPU does not support the D3DFMT_A8 texture format.\nNow CPU is used to convert the palette.",
+		textureFormat = D3DFMT_X8R8G8B8;
+		MessageBoxA(window, "GPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.",
 		                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
 	}
 
@@ -304,11 +354,11 @@ static void ResetDevice(bool createNew) {
 	ShaderVertices[3].y = ResHeight - 0.5f;
 	ShaderVertices[3].x = ResWidth - 0.5f;
 
-	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vBuffer, 0);
+	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vertexOrigRes, 0);
 	void* vertexPointer;
-	vBuffer->Lock(0, 0, &vertexPointer, 0);
+	vertexOrigRes->Lock(0, 0, &vertexPointer, 0);
 	CopyMemory(vertexPointer, ShaderVertices, sizeof(ShaderVertices));
-	vBuffer->Unlock();
+	vertexOrigRes->Unlock();
 
 	VertexFormat shaderVertices[4] = {
 		ShaderVertices[0],
@@ -322,16 +372,16 @@ static void ResetDevice(bool createNew) {
 	shaderVertices[3].y = (float)gHeight - 0.5f;
 	shaderVertices[3].x = (float)gWidth - 0.5f;
 
-	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vBuffer2, 0);
-	vBuffer2->Lock(0, 0, &vertexPointer, 0);
+	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vertexSfallRes, 0);
+	vertexSfallRes->Lock(0, 0, &vertexPointer, 0);
 	CopyMemory(vertexPointer, shaderVertices, sizeof(shaderVertices));
-	vBuffer2->Unlock();
+	vertexSfallRes->Unlock();
 
-	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &movieBuffer, 0);
+	d3d9Device->CreateVertexBuffer(4 * sizeof(VertexFormat), D3DUSAGE_WRITEONLY | (software ? D3DUSAGE_SOFTWAREPROCESSING : 0), _VERTEXFORMAT, D3DPOOL_DEFAULT, &vertexMovie, 0);
 
 	d3d9Device->SetFVF(_VERTEXFORMAT);
 	d3d9Device->SetTexture(0, mainTex);
-	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
+	d3d9Device->SetStreamSource(0, vertexOrigRes, 0, sizeof(VertexFormat));
 
 	//d3d9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, false); // default false
 	//d3d9Device->SetRenderState(D3DRS_ALPHATESTENABLE, false);  // default false
@@ -403,9 +453,9 @@ static void Present() {
 		SAFERELEASE(sSurf2);
 		SAFERELEASE(sTex1);
 		SAFERELEASE(sTex2);
-		SAFERELEASE(vBuffer);
-		SAFERELEASE(vBuffer2);
-		SAFERELEASE(movieBuffer);
+		SAFERELEASE(vertexOrigRes);
+		SAFERELEASE(vertexSfallRes);
+		SAFERELEASE(vertexMovie);
 		SAFERELEASE(gpuPalette);
 		Graphics::ReleaseMovieTexture();
 		if (gpuBltEffect) gpuBltEffect->OnLostDevice();
@@ -417,37 +467,32 @@ static void Refresh() {
 	if (DeviceLost) return;
 
 	d3d9Device->BeginScene();
-	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
+	d3d9Device->SetStreamSource(0, vertexOrigRes, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, sSurf1);
+	d3d9Device->SetTexture(0, mainTex);
 
 	UINT passes;
-	if ((textureFilter || ScriptShaders::Count()) && Graphics::GPUBlt) {
+	if (Graphics::GPUBlt) {
+		// converts the palette in mainTex to RGB colors on the target surface (sSurf1/sTex1)
 		gpuBltEffect->Begin(&passes, 0);
 		gpuBltEffect->BeginPass(0);
 		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 
-		d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy sSurf1 to sSurf2
-		d3d9Device->SetTexture(0, sTex2);
-	} else {
-		d3d9Device->SetTexture(0, mainTex);
+		if (ScriptShaders::Count()) {
+			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy sSurf1 to sSurf2
+			d3d9Device->SetTexture(0, sTex2);
+		} else {
+			d3d9Device->SetTexture(0, sTex1);
+		}
 	}
 	ScriptShaders::Refresh(sSurf1, sSurf2, sTex2);
 
-	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
+	d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backBuffer);
 
-	if (!textureFilter && !ScriptShaders::Count() && Graphics::GPUBlt) {
-		gpuBltEffect->Begin(&passes, 0);
-		gpuBltEffect->BeginPass(0);
-	}
-	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (!textureFilter && !ScriptShaders::Count() && Graphics::GPUBlt) {
-		gpuBltEffect->EndPass();
-		gpuBltEffect->End();
-	}
-
+	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2); // render square with a texture image (mainTex/sTex1/sTex2) to the backBuffer
 	d3d9Device->EndScene();
 	Present();
 }
@@ -530,9 +575,9 @@ void Graphics::SetMovieTexture(bool state) {
 	}
 
 	void* vertexPointer;
-	movieBuffer->Lock(0, 0, &vertexPointer, 0);
+	vertexMovie->Lock(0, 0, &vertexPointer, 0);
 	CopyMemory(vertexPointer, shaderVertices, sizeof(shaderVertices));
-	movieBuffer->Unlock();
+	vertexMovie->Unlock();
 
 	PlayAviMovie = true;
 }
@@ -550,7 +595,7 @@ void Graphics::ShowMovieFrame(IDirect3DTexture9* tex) {
 		} else {
 			d3d9Device->SetTexture(0, mainTex);
 		}
-		d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
+		d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
 
 		// for showing subtitles
 		if (Graphics::GPUBlt) {
@@ -566,7 +611,7 @@ void Graphics::ShowMovieFrame(IDirect3DTexture9* tex) {
 	}
 	// for avi movie
 	d3d9Device->SetTexture(0, movieTex);
-	d3d9Device->SetStreamSource(0, movieBuffer, 0, sizeof(VertexFormat));
+	d3d9Device->SetStreamSource(0, vertexMovie, 0, sizeof(VertexFormat));
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 
 	d3d9Device->EndScene();
@@ -608,6 +653,14 @@ void Graphics::SetHeadTechnique() {
 
 void Graphics::SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
+}
+
+static void SetGPUPalette() {
+	D3DLOCKED_RECT rect;
+	if (gpuPalette && !FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
+		CopyMemory(rect.pBits, palette, 256 * 4);
+		gpuPalette->UnlockRect(0);
+	}
 }
 
 class FakeDirectDrawSurface : IDirectDrawSurface {
@@ -690,38 +743,7 @@ public:
 		//mainTexLock = false;
 		//if (Graphics::PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
 
-		if (!DeviceLost) {
-			d3d9Device->SetTexture(0, mainTex);
-
-			d3d9Device->BeginScene();
-			UINT passes;
-			if (textureFilter && Graphics::GPUBlt) { // fixes color palette distortion of movie images when texture filtering and GPUBlt are enabled
-				d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
-				d3d9Device->SetRenderTarget(0, sSurf1);
-
-				gpuBltEffect->Begin(&passes, 0);
-				gpuBltEffect->BeginPass(0);
-				d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-				gpuBltEffect->EndPass();
-				gpuBltEffect->End();
-
-				d3d9Device->SetTexture(0, sTex1);
-				d3d9Device->SetRenderTarget(0, backBuffer);
-			}
-			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
-
-			if (!textureFilter && Graphics::GPUBlt) {
-				gpuBltEffect->Begin(&passes, 0);
-				gpuBltEffect->BeginPass(0);
-			}
-			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			if (!textureFilter && Graphics::GPUBlt) {
-				gpuBltEffect->EndPass();
-				gpuBltEffect->End();
-			}
-			d3d9Device->EndScene();
-			Present();
-		}
+		Refresh();
 		return DD_OK;
 	}
 
@@ -753,7 +775,7 @@ public:
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (DeviceLost) return DDERR_SURFACELOST;
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
 		if (isPrimary) {
 			lockRect = a;
 			if (Graphics::GPUBlt) {
@@ -784,9 +806,10 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			fo::RefreshGNW();
+			if (Graphics::GPUBlt) SetGPUPalette(); // restore palette
+			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
-		return !DeviceLost;
+		return DeviceLost;
 	}
 
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
@@ -799,12 +822,12 @@ public:
 		mainTexLock = true;
 
 		D3DLOCKED_RECT dRect;
-		mainTex->LockRect(0, &dRect, 0, 0);
+		mainTex->LockRect(0, &dRect, 0, D3DLOCK_DISCARD);
 
 		DWORD* pBits = (DWORD*)dRect.pBits;
 		int pitch = (dRect.Pitch / 4) - ResWidth;
-
 		BYTE* target = lockTarget;
+
 		int height = ResHeight;
 		while (height--) {
 			int width = ResWidth;
@@ -815,6 +838,7 @@ public:
 			}
 			pBits += pitch;
 		}
+
 		mainTex->UnlockRect(0);
 		mainTexLock = false;
 		return DD_OK;
@@ -829,14 +853,14 @@ public:
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		//dlog("\nUnlock", DL_INIT);
-		if ((DeviceLost && Restore() == DD_FALSE) || !isPrimary) return DD_OK;
+		if (!isPrimary) return DD_OK;
 		//dlog("\nUnlock -> primary", DL_INIT);
 
 		if (Graphics::GPUBlt == 0) {
 			mainTexLock = true;
 
 			D3DLOCKED_RECT dRect;
-			mainTex->LockRect(0, &dRect, lockRect, 0);
+			mainTex->LockRect(0, &dRect, lockRect, (lockRect) ? 0 : D3DLOCK_DISCARD);
 
 			DWORD* pBits = (DWORD*)dRect.pBits;
 			int pitch = dRect.Pitch / 4;
@@ -845,16 +869,20 @@ public:
 				BYTE* target = (BYTE*)lockSurface;
 				int width = (lockRect->right - lockRect->left);
 				int height = (lockRect->bottom - lockRect->top);
+
 				while (height--) {
 					int w = width;
 					while (w--) pBits[w] = palette[target[w]].xRGB;
 					pBits += pitch;
 					target += ResWidth;
 				}
+
+				lockRect = 0;
 			} else {
 				pitch -= ResWidth;
 				BYTE* target = lockTarget;
 				int height = ResHeight;
+
 				// slow copy method
 				while (height--) {
 					int width = ResWidth;
@@ -922,11 +950,7 @@ public:
 		__movsd((DWORD*)&palette[b], (DWORD*)destPal, c);
 
 		if (Graphics::GPUBlt) {
-			D3DLOCKED_RECT rect;
-			if (gpuPalette && !FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
-				CopyMemory(rect.pBits, palette, 256 * 4);
-				gpuPalette->UnlockRect(0);
-			}
+			SetGPUPalette();
 		} else {
 			// X8B8G8R8 format
 			for (size_t i = b; i < b + c; i++) { // swap color B <> R
@@ -934,7 +958,7 @@ public:
 				palette[i].B = palette[i].R;
 				palette[i].R = clr;
 			}
-			primaryDDSurface->SetPalette(0); // update
+			primaryDDSurface->SetPalette(0); // update texture
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
 		}
 		if (!Graphics::PlayAviMovie) {
@@ -969,13 +993,13 @@ public:
 			SAFERELEASE(mainTex);
 			SAFERELEASE(sTex1);
 			SAFERELEASE(sTex2);
-			SAFERELEASE(vBuffer);
-			SAFERELEASE(vBuffer2);
+			SAFERELEASE(vertexOrigRes);
+			SAFERELEASE(vertexSfallRes);
 			SAFERELEASE(d3d9Device);
 			SAFERELEASE(d3d9);
 			SAFERELEASE(gpuPalette);
 			SAFERELEASE(gpuBltEffect);
-			SAFERELEASE(movieBuffer);
+			SAFERELEASE(vertexMovie);
 
 			delete this;
 			return 0;
@@ -1185,7 +1209,7 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	GameRender::init();
+	WindowRender::init();
 }
 
 void Graphics::exit() {

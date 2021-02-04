@@ -32,6 +32,24 @@ extern IDirect3DDevice9* d3d9Device;
 extern IDirectDrawSurface* primaryDDSurface;
 extern bool DeviceLost;
 
+/*
+static void DDSurfaceToDXTexture(BYTE* src, long width, long height, long src_width, DWORD* dst, long dst_width) {
+	if (width <= 0 || height <= 0) return;
+
+	dst_width /= 4;
+	size_t s_pitch = src_width - width;
+	size_t d_pitch = dst_width - width;
+
+	while (height--) {
+		while (width--) {
+			*dst++ = *src++ << 24; // write palette color index to texture alpha channel
+		}
+		dst += d_pitch;
+		src += s_pitch;
+	}
+}
+*/
+
 class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }
@@ -66,13 +84,30 @@ public:
 	static void RefreshGraphics();
 
 	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
-		if (!DeviceLost) {
+		long x = rect->left;
+		long y = rect->top;
+		if (Graphics::mode == 0) {
+			__asm {
+				xor  eax, eax;
+				push y;
+				push x;
+				push height;
+				push width;
+				push eax; // yFrom
+				push eax; // xFrom
+				push eax; // heightFrom
+				push widthFrom;
+				push surface;
+				call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
+				add  esp, 9*4;
+			}
+		} else {
 			DDSURFACEDESC desc;
-			RECT lockRect = { rect->left, rect->top, rect->right + 1, rect->bottom + 1 };
+			RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
 
-			primaryDDSurface->Lock(&lockRect, &desc, 0, 0);
+			if (primaryDDSurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
 
-			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * rect->top) + rect->left;
+			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
 			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
 			primaryDDSurface->Unlock(desc.lpSurface);

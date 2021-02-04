@@ -28,6 +28,8 @@
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
+#include "..\Game\Inventory.h"
+
 #include "HeroAppearance.h"
 
 namespace sfall
@@ -392,7 +394,7 @@ void UpdateHeroArt() {
 	}
 
 	// inventory function - setup pc FrmID and store at address _i_fid
-	fo::var::obj_dude->artFid = Inventory::adjust_fid_replacement(); // adjust_fid_
+	fo::var::obj_dude->artFid = game::Inventory::adjust_fid(); // adjust_fid_
 
 	fo::var::inven_dude = iD;
 	fo::var::i_rhand = iR;
@@ -1430,7 +1432,7 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x49F9DA, AdjustHeroBaseArt);
 
 	// Adjust hero art index offset when changing armor (adjust_fid_)
-	HookCall(0x4717D1, AdjustHeroArmorArt);
+	/* HookCall(0x4717D1, AdjustHeroArmorArt); - the engine function is replaced by the sfall code */
 
 	// Hijack Save Hero State Structure fuction address 9CD54800
 	// Return hero art index offset back to normal before saving

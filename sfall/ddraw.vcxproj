@@ -291,6 +291,11 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Game\inventory.h" />
+    <ClInclude Include="Game\render.h" />
+    <ClInclude Include="Game\skills.h" />
+    <ClInclude Include="Game\stats.h" />
+    <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
     <ClInclude Include="Modules\Interface.h" />
     <ClInclude Include="Modules\Drugs.h" />
@@ -317,7 +322,8 @@
     <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\SubModules\CombatBlock.h" />
-    <ClInclude Include="Modules\SubModules\GameRender.h" />
+    <ClInclude Include="Modules\SubModules\EnginePerks.h" />
+    <ClInclude Include="Modules\SubModules\WindowRender.h" />
     <ClInclude Include="Modules\Worldmap.h" />
     <ClInclude Include="Modules\ScriptExtender.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
@@ -344,6 +350,7 @@
     <ClInclude Include="Modules\Scripting\Handlers\Stats.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h" />
     <ClInclude Include="Modules\ScriptShaders.h" />
+    <ClInclude Include="ReplacementFuncs.h" />
     <ClInclude Include="SimplePatch.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="Modules\Credits.h" />
@@ -388,6 +395,11 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Game\inventory.cpp" />
+    <ClCompile Include="Game\render.cpp" />
+    <ClCompile Include="Game\skills.cpp" />
+    <ClCompile Include="Game\stats.cpp" />
+    <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
     <ClCompile Include="Modules\Drugs.cpp" />
@@ -413,7 +425,8 @@
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\SubModules\CombatBlock.cpp" />
-    <ClCompile Include="Modules\SubModules\GameRender.cpp" />
+    <ClCompile Include="Modules\SubModules\EnginePerks.cpp" />
+    <ClCompile Include="Modules\SubModules\WindowRender.cpp" />
     <ClCompile Include="Modules\Worldmap.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />

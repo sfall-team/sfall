@@ -121,5 +121,7 @@ void mf_interface_print(OpcodeContext&);
 
 void mf_win_fill_color(OpcodeContext&);
 
+void mf_interface_overlay(OpcodeContext&);
+
 }
 }

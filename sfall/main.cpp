@@ -38,6 +38,7 @@
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
 #include "Modules\CritterStats.h"
+#include "Modules\CritterPoison.h"
 #include "Modules\DamageMod.h"
 #include "Modules\DebugEditor.h"
 #include "Modules\Drugs.h"
@@ -81,6 +82,7 @@
 #include "CRC.h"
 #include "SimplePatch.h"
 #include "Logging.h"
+#include "ReplacementFuncs.h"
 #include "Utils.h"
 #include "Version.h"
 
@@ -148,6 +150,10 @@ std::vector<std::string> GetConfigList(const char* section, const char* setting,
 	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
 }
 
+std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
+	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
+}
+
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
 }
@@ -162,6 +168,13 @@ int SetConfigInt(const char* section, const char* setting, int value) {
 	int result = WritePrivateProfileStringA(section, setting, buf, ini);
 	delete[] buf;
 	return result;
+}
+
+void InitReplacementHacks() {
+	game::Inventory::init();
+	game::Render::init();
+	game::Skills::init();
+	game::Stats::init();
 }
 
 static void InitModules() {
@@ -185,6 +198,7 @@ static void InitModules() {
 	manager.add<Worldmap>();
 	manager.add<Stats>();
 	manager.add<CritterStats>();
+	manager.add<CritterPoison>();
 	manager.add<Perks>();
 	manager.add<Combat>();
 	manager.add<Skills>();
@@ -344,7 +358,9 @@ defaultIni:
 			}
 		}
 	}
+	std::srand(GetTickCount());
 
+	InitReplacementHacks();
 	InitModules();
 }
 

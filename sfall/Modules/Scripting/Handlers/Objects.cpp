@@ -21,13 +21,15 @@
 #include "..\..\CritterStats.h"
 #include "..\..\Drugs.h"
 #include "..\..\Explosions.h"
-#include "..\..\Inventory.h"
+//#include "..\..\Inventory.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
+
+#include "..\..\..\Game\inventory.h"
 
 #include "Objects.h"
 
@@ -69,7 +71,7 @@ void op_set_script(OpcodeContext& ctx) {
 		fo::func::scr_remove(object->scriptId);
 		object->scriptId = 0xFFFFFFFF;
 	}
-	if (object->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (object->IsCritter()) {
 		scriptType = fo::Scripts::ScriptTypes::SCRIPT_CRITTER;
 	} else {
 		scriptType = fo::Scripts::ScriptTypes::SCRIPT_ITEM;
@@ -152,13 +154,13 @@ enum {
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
 	case BLOCKING_TYPE_BLOCK: default:
-		return fo::funcoffs::obj_blocking_at_;
+		return fo::funcoffs::obj_blocking_at_;       // with calling hook
 	case BLOCKING_TYPE_SHOOT:
-		return fo::funcoffs::obj_shoot_blocking_at_;
+		return fo::funcoffs::obj_shoot_blocking_at_; // w/o calling hook
 	case BLOCKING_TYPE_AI:
-		return fo::funcoffs::obj_ai_blocking_at_;
+		return fo::funcoffs::obj_ai_blocking_at_;    // w/o calling hook
 	case BLOCKING_TYPE_SIGHT:
-		return fo::funcoffs::obj_sight_blocking_at_;
+		return fo::funcoffs::obj_sight_blocking_at_; // w/o calling hook
 	//case 4:
 	//	return obj_scroll_blocking_at_;
 	}
@@ -182,7 +184,7 @@ void op_make_path(OpcodeContext& ctx) {
 	auto func = getBlockingFunc(type);
 
 	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
-	long checkFlag = (objFrom->Type() == fo::OBJ_TYPE_CRITTER);
+	long checkFlag = (objFrom->IsCritter());
 
 	char pathData[800];
 	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
@@ -225,7 +227,7 @@ void op_get_party_members(OpcodeContext& ctx) {
 	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
 		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
-		if (includeHidden || (obj->Type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}
@@ -307,7 +309,7 @@ void mf_item_weight(OpcodeContext& ctx) {
 
 void mf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	if (obj == nullptr || obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (obj == nullptr || obj->IsCritter()) {
 		//if (!InCombat && obj && obj != PartyControl::RealDudeObject()) {
 		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
 		//} else {
@@ -365,7 +367,7 @@ void mf_item_make_explosive(OpcodeContext& ctx) {
 }
 
 void mf_get_current_inven_size(OpcodeContext& ctx) {
-	ctx.setReturn(sf_item_total_size(ctx.arg(0).object()));
+	ctx.setReturn(game::Inventory::item_total_size(ctx.arg(0).object()));
 }
 
 void mf_get_dialog_object(OpcodeContext& ctx) {
@@ -373,7 +375,9 @@ void mf_get_dialog_object(OpcodeContext& ctx) {
 }
 
 void mf_obj_under_cursor(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
+	ctx.setReturn((fo::var::gmouse_3d_current_mode != 0)
+				  ? fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation)
+				  : 0);
 }
 
 void mf_get_loot_object(OpcodeContext& ctx) {

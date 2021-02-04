@@ -49,6 +49,12 @@ enum WinNameType {
 	DialogView,
 	DialogPanel,
 	MemberPanel,
+
+	// Inventory types
+	Inven     = 50, // player inventory
+	Loot      = 51,
+	Use       = 53,
+	Barter    = 54
 };
 
 fo::Window* Interface::GetWindow(long winType) {
@@ -82,7 +88,7 @@ fo::Window* Interface::GetWindow(long winType) {
 		if (GetLoopFlags() & AUTOMAP) winID = ActiveInterfaceWID();
 		break;
 	default:
-		return (fo::Window*)(-1);
+		return (fo::Window*)(-1); // unsupported type
 	}
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
@@ -981,8 +987,8 @@ void Interface::init() {
 	}
 
 	// Corrects the height of the black background for death screen subtitles
-	if (hrpIsEnabled == false) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-	if (hrpIsEnabled == false || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
+	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
 	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 
 	// Cosmetic fix for the background image of the character portrait on the player's inventory screen

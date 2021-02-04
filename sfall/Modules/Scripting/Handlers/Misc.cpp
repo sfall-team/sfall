@@ -94,8 +94,8 @@ void __declspec(naked) op_game_loaded() {
 	__asm {
 		mov  esi, ecx;
 		push eax; // script
-		call ScriptHasLoaded;
-		movzx edx, al;
+		call ScriptExtender::ScriptHasLoaded;
+		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
 		mov  ecx, esi;
@@ -180,12 +180,12 @@ void op_set_object_knockback(OpcodeContext& ctx) {
 	}
 	fo::GameObject* object = ctx.arg(0).object();
 	if (mode) {
-		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
+		if (object->IsNotCritter()) {
 			ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getOpcodeName());
 			return;
 		}
 	} else {
-		if (object->Type() != fo::OBJ_TYPE_ITEM) {
+		if (object->IsNotItem()) {
 			ctx.printOpcodeError("%s() - the object is not an item.", ctx.getOpcodeName());
 			return;
 		}
@@ -738,7 +738,7 @@ void __declspec(naked) op_block_combat() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call SetBlockCombat;
+		call CombatBlock::SetBlockCombat;
 end:
 		mov  ecx, esi;
 		retn;

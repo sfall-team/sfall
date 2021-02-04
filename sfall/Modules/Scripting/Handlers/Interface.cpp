@@ -29,6 +29,9 @@
 
 #include "..\..\HookScripts\InventoryHs.h"
 
+#include "..\..\SubModules\WindowRender.h"
+#include "..\..\..\Game\render.h"
+
 #include "Interface.h"
 
 namespace sfall
@@ -266,10 +269,17 @@ void op_is_iface_tag_active(OpcodeContext &ctx) {
 }
 
 void mf_intface_redraw(OpcodeContext& ctx) {
-	if (ctx.arg(0).rawValue() == 0) {
+	if (ctx.numArgs() == 0) {
 		fo::func::intface_redraw();
 	} else {
-		fo::func::RefreshGNW(2); // fake redraw all interfaces (TODO: need a real redraw of interfaces)
+		// fake redraw interfaces (TODO: need a real redraw of interface?)
+		long winType = ctx.arg(0).rawValue();
+		if (winType == -1) {
+			fo::func::RefreshGNW(true);
+		} else {
+			fo::Window* win = Interface::GetWindow(winType);
+			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
+		}
 	}
 }
 
@@ -290,7 +300,7 @@ void mf_tile_refresh_display(OpcodeContext& ctx) {
 }
 
 void mf_get_cursor_mode(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::gmouse_3d_get_mode());
+	ctx.setReturn(fo::var::gmouse_3d_current_mode);
 }
 
 void mf_set_cursor_mode(OpcodeContext& ctx) {
@@ -582,7 +592,7 @@ void mf_draw_image_scaled(OpcodeContext& ctx) {
 	ctx.setReturn(DrawImage(ctx, true));
 }
 
-static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
+static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	const char* file = nullptr;
 	bool useShift = false;
 	long direction = -1, w = -1, h = -1;
@@ -628,12 +638,14 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* interfaceWin) {
 	int width  = (w >= 0) ? w : framePtr->width;
 	int height = (h >= 0) ? h : framePtr->height;
 
+	BYTE* surface = (ifaceWin->randY) ? WindowRender::GetOverlaySurface(ifaceWin) : ifaceWin->surface;
+
 	fo::func::trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
-	                       interfaceWin->surface + (y * interfaceWin->width) + x, width, height, interfaceWin->width
+	                       surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
-	if (!(ctx.arg(0).rawValue() & 0x1000000)) {
-		fo::func::GNW_win_refresh(interfaceWin, &interfaceWin->rect, 0);
+	if (!(ctx.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
+		game::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -646,7 +658,7 @@ void mf_interface_art_draw(OpcodeContext& ctx) {
 	if (win && (int)win != -1) {
 		result = InterfaceDrawImage(ctx, win);
 	} else {
-		ctx.printOpcodeError("%s() - the game interface window is not created or invalid value for the interface.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - the game interface window is not created or invalid window type number.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(result);
 }
@@ -659,7 +671,7 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 		return;
 	}
 	fo::GameObject* critter = ctx.arg(0).object();
-	if (critter->Type() != fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (critter->IsNotCritter()) {
 		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 		return;
@@ -729,14 +741,27 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 	}
 	long result = 0;
 	switch (ctx.arg(1).rawValue()) {
+	case -1: // rectangle map.left map.top map.right map.bottom
+		result = CreateTempArray(-1, 0); // associative
+		setArray(result, ScriptValue("left"), ScriptValue(win->rect.x), false);
+		setArray(result, ScriptValue("top"), ScriptValue(win->rect.y), false);
+		setArray(result, ScriptValue("right"), ScriptValue(win->rect.offx), false);
+		setArray(result, ScriptValue("bottom"), ScriptValue(win->rect.offy), false);
+		break;
 	case 0: // check if window exists
 		result = 1;
 		break;
-	case 1: // x
+	case 1:
 		result = win->rect.x;
 		break;
-	case 2: // y
+	case 2:
 		result = win->rect.y;
+		break;
+	case 3:
+		result = win->width;
+		break;
+	case 4:
+		result = win->height;
 		break;
 	}
 	ctx.setReturn(result);
@@ -745,7 +770,7 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	fo::Window* win = Interface::GetWindow(ctx.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
-		ctx.printOpcodeError("%s() - the game interface window is not created or invalid value for the interface.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - the game interface window is not created or invalid window type number.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 		return;
 	}
@@ -772,14 +797,23 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 		__asm call fo::funcoffs::windowGetTextColor_; // set from SetTextColor
 		__asm mov  byte ptr color, al;
 	}
+
+	BYTE* surface;
+	if (win->randY) { // if a surface was created, the engine will draw on it
+		surface = win->surface;
+		win->surface = WindowRender::GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
+	}
+
 	if (color & 0x10000) { // shadow (textshadow)
 		fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
 		color ^= 0x10000;
 	}
 	ctx.setReturn(fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
 
+	if (win->randY) win->surface = surface;
+
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) fo::func::GNW_win_refresh(win, &win->rect, 0);
+	if (!(color & 0x1000000)) game::Render::GNW_win_refresh(win, &win->wRect, 0);
 }
 
 void mf_win_fill_color(OpcodeContext& ctx) {
@@ -798,6 +832,38 @@ void mf_win_fill_color(OpcodeContext& ctx) {
 		);
 	} else {
 		fo::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
+	}
+}
+
+void mf_interface_overlay(OpcodeContext& ctx) {
+	long winType = ctx.arg(0).rawValue();
+
+	fo::Window* win = Interface::GetWindow(winType);
+	if (!win || (int)win == -1) return;
+
+	switch (ctx.arg(1).rawValue()) {
+	case 0:
+		WindowRender::DestroyOverlaySurface(win);
+		break;
+	case 1:
+		WindowRender::CreateOverlaySurface(win, winType);
+		break;
+	case 2: // clear
+		if (ctx.numArgs() > 2) {
+			long w = ctx.arg(4).rawValue();
+			long h = ctx.arg(5).rawValue();
+			if (w <= 0 || h <= 0) return;
+
+			long x = ctx.arg(2).rawValue();
+			long y = ctx.arg(3).rawValue();
+			if (x < 0 || y < 0) return;
+
+			Rectangle rect = { x, y, w, h };
+			WindowRender::ClearOverlay(win, rect);
+		} else {
+			WindowRender::ClearOverlay(win);
+		}
+		break;
 	}
 }
 

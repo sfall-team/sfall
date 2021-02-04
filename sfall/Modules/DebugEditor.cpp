@@ -107,7 +107,7 @@ static void RunEditorInternal(SOCKET &s) {
 		for (int tile = 0; tile < 40000; tile++) {
 			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
-				if ((obj->Type()) == fo::OBJ_TYPE_CRITTER) {
+				if (obj->IsCritter()) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
 				obj = fo::func::obj_find_next_at_tile();
@@ -273,7 +273,7 @@ void RunDebugEditor() {
 
 	si.cb = sizeof(si);
 
-	if (!CreateProcessA("FalloutClient.exe", "FalloutClient.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
+	if (!CreateProcessA("FalloutDebug.exe", "FalloutDebug.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
 		closesocket(sock);
 		WSACleanup();
 		return;
@@ -290,6 +290,7 @@ void RunDebugEditor() {
 		return;
 	}
 
+	MouseDeviceUnacquire(true);
 	RunEditorInternal(client);
 
 	closesocket(client);
@@ -372,6 +373,21 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
+const char* scrNameFmt = "\nScript: %s ";
+
+static void __declspec(naked) debugMsg() {
+	__asm {
+		mov  edx, ds:[FO_VAR_currentProgram];
+		push [edx]; // script name
+		push scrNameFmt;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 8;
+		jmp  fo::funcoffs::debug_printf_;
+	}
+}
+
+//static const DWORD addrNewLine[] = {0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE}; // ERROR: attempt to reference * var out of range: %d
+
 static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode > 0) {
@@ -409,6 +425,18 @@ static void DebugModePatch() {
 		// replace calling debug_printf_ with _debug_func
 		__int64 data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
 		SafeWriteBytes(0x455419, (BYTE*)&data, 8); // op_display_msg_
+
+		// set the position of the debug window
+		SafeWrite8(0x4DC34D, 15);
+
+		// Fix the format of some debug messages
+		//SafeWriteBatch<BYTE>(0xA, addrNewLine);
+		HookCalls(debugMsg, {
+			0x482240, // map_set_global_var_
+			0x482274, // map_get_global_var_
+			0x4822A0, // map_set_local_var_
+			0x4822D4  // map_get_local_var_
+		});
 
 		dlogr(" Done", DL_INIT);
 	}

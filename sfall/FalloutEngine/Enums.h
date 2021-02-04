@@ -789,16 +789,89 @@ namespace Fields {
 namespace WinFlags {
 	enum WinButtonFlags : long
 	{
-		OwnerFlag             = 0x1,
-		DontMoveTop           = 0x2,
-		MoveOnTop             = 0x4,
-		Hidden                = 0x8,
-		Exclusive             = 0x10,
-		Transparent           = 0x20,
-		UnknownFlag40         = 0x40,
-		UnknownFlag80         = 0x80,
-		ScriptWindow          = 0x100,
-		itsButton             = 0x10000,
+		OwnerFlag         = 0x000001, // sfall Render flag, indicates that the window surface is used for rendering the game scene
+		DontMoveTop       = 0x000002, // does not move the window to top when the mouse is clicked in the window area or when it is showing
+		MoveOnTop         = 0x000004, // places the window on top when it is created
+		Hidden            = 0x000008,
+		Exclusive         = 0x000010,
+		Transparent       = 0x000020,
+		UnknownFlag40     = 0x000040,
+		UnknownFlag80     = 0x000080,
+		ScriptWindow      = 0x000100,
+		itsButton         = 0x010000,
+	};
+}
+
+namespace AIpref {
+	enum distance : long
+	{
+		stay_close            = 0,
+		charge                = 1,
+		snipe                 = 2,
+		on_your_own           = 3,
+		stay                  = 4
+	};
+
+	enum disposition : long
+	{
+		none                  = -1,
+		custom                = 0,
+		coward                = 1,
+		defensive             = 2,
+		aggressive            = 3,
+		berserk               = 4
+	};
+
+	enum class attack_who : long
+	{
+		whomever_attacking_me = 0,
+		strongest             = 1,
+		weakest               = 2,
+		whomever              = 3,
+		closest               = 4,
+	};
+
+	enum class run_away_mode : long
+	{
+		none                  = -1, // get the value from the cap.min_hp (in cai_get_min_hp_)
+		coward                = 0,  // 0%
+		finger_hurts          = 1,  // 25% of the lost amount of health
+		bleeding              = 2,  // 40% of the lost amount of health
+		not_feeling_good      = 3,  // 60% of the lost amount of health
+		tourniquet            = 4,  // 75% of the lost amount of health
+		never                 = 5   // 100%
+	};
+
+	enum class weapon_pref : long
+	{
+		no_pref               = 0,
+		melee                 = 1,
+		melee_over_ranged     = 2,
+		ranged_over_melee     = 3,
+		ranged                = 4,
+		unarmed               = 5,
+		unarmed_over_thrown   = 6, // not available in party member control panel
+		random                = 7  // not available in party member control panel
+	};
+
+	enum class area_attack_mode : long
+	{
+		no_pref               = -1, // special logic for NPC (not available in party member control panel)
+		always                = 0,
+		sometimes             = 1,  // use random value from cap.secondary_freq
+		be_sure               = 2,  // 85% hit chance
+		be_careful            = 3,  // 50% hit chance
+		be_absolutely_sure    = 4,  // 95% hit chance
+	};
+
+	enum class chem_use_mode : long
+	{
+		clean                  = 0,
+		stims_when_hurt_little = 1,
+		stims_when_hurt_lots   = 2,
+		sometimes              = 3,
+		anytime                = 4,
+		always                 = 5,
 	};
 }
 

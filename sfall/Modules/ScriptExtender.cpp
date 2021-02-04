@@ -56,15 +56,18 @@ char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for s
 
 std::string ScriptExtender::iniConfigFolder;
 
+static std::vector<long> scriptsIndexList;
+
 struct GlobalScript {
 	ScriptProgram prog;
 	int startProc; // position of the 'start' procedure in the script
 	int count;
 	int repeat;
-	int mode; // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int mode;      // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int isLoading; // used for the return value of the game_loaded function
 
 	//GlobalScript() {}
-	GlobalScript(ScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0) {}
+	GlobalScript(ScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0), isLoading(1) {}
 };
 
 struct ExportedVar {
@@ -104,7 +107,6 @@ static std::list<TimedEvent> timerEventScripts;
 static std::vector<std::string> globalScriptPathList;
 static std::map<std::string, std::string> globalScriptFilesList;
 
-static std::vector<fo::Program*> checkedScripts;
 static std::vector<GlobalScript> globalScripts;
 
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
@@ -122,114 +124,109 @@ typedef std::unordered_map<__int64, int>::iterator glob_itr;
 typedef std::unordered_map<__int64, int>::const_iterator glob_citr;
 
 DWORD availableGlobalScriptTypes = 0;
-DWORD isGlobalScriptLoading = 0;
-bool isGameLoading;
+static DWORD isGlobalScriptLoading = 0;
+static bool isGameReset;
 bool alwaysFindScripts;
 
-fo::ScriptInstance overrideScriptStruct = {0};
+fo::ScriptInstance overrideScript = {0};
 
 long ScriptExtender::GetScriptReturnValue() {
-	return overrideScriptStruct.returnValue;
+	return overrideScript.returnValue;
 }
 
 long ScriptExtender::GetResetScriptReturnValue() {
 	long val = GetScriptReturnValue();
-	overrideScriptStruct.returnValue = 0;
+	overrideScript.returnValue = 0;
 	return val;
 }
 
-static DWORD __stdcall FindSid(fo::Program* script) {
-	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
+static __forceinline long FindProgram(fo::Program* program) {
+	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(program);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
-		overrideScriptStruct.id = scriptId;
+		overrideScript.id = scriptId;
 		if (scriptId != -1) {
 			if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		overrideScriptStruct.selfObject = overrideIt->second.object;
-		overrideScriptStruct.targetObject = overrideIt->second.object;
+		overrideScript.selfObject = overrideIt->second.object;
+		overrideScript.targetObject = overrideIt->second.object;
 		if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
-	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
-		if (timedEvent && timedEvent->script->ptr == script) {
-			overrideScriptStruct.fixedParam = timedEvent->fixed_param;
+	if (sfallProgsMap.find(program) != sfallProgsMap.end()) {
+		if (timedEvent && timedEvent->script->ptr == program) {
+			overrideScript.fixedParam = timedEvent->fixed_param;
 		} else {
-			overrideScriptStruct.fixedParam = 0;
+			overrideScript.fixedParam = 0;
 		}
-		overrideScriptStruct.targetObject = 0;
-		overrideScriptStruct.selfObject = 0;
-		overrideScriptStruct.returnValue = 0;
+		overrideScript.targetObject = 0;
+		overrideScript.selfObject = 0;
+		overrideScript.returnValue = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
 }
 
-static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
-//static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
+static long __fastcall FindOverride(fo::Program* program, fo::ScriptInstance** script) {
+	long result = FindProgram(program);
+	if (result == -2) {
+		if (script) {
+			*script = &overrideScript; // unsafe method! script may contain an incorrect address value in some engine functions
+		} else {
+			result--; // set -3
+		}
+	}
+	return result;
+}
 
-static void __declspec(naked) FindSidHack() {
+static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program_back = fo::funcoffs::scr_find_sid_from_program_ + 5;
+
+static void __declspec(naked) scr_find_sid_from_program_hack() {
 	__asm {
-		push eax;
-		push edx;
-		push ecx;
-		push eax;
-		call FindSid;
+		pushadc;
+		mov  ecx, eax;     // program
+		call FindOverride; // edx - ref to script
 		pop  ecx;
 		pop  edx;
-		cmp  eax, -1;  // eax = scriptId
-		jz   end;
-		cmp  eax, -2;
-		jz   override_script;
-		add  esp, 4;
-		retn;
-override_script:
-		test edx, edx;
-		jz   skip;
-		add  esp, 4;
-		lea  eax, overrideScriptStruct;
-		mov  [edx], eax;
-		mov  eax, -2;
-		retn;
-skip:
-		add  esp, 4;
-		dec  eax; // set -3;
-		retn;
-end:
-		pop  eax;
+		cmp  eax, -1;
+		je   normal;
+		add  esp, 4; // destroy push eax
+		retn; // exit from scr_find_sid_from_program_, eax = scriptId or -2, -3
+normal:
+		pop  eax; // restore
 		push ebx;
 		push ecx;
 		push edx;
 		push esi;
 		push ebp;
-		jmp  scr_find_sid_from_program;
+		jmp  scr_find_sid_from_program_back;
 	}
 }
 
-static void __declspec(naked) ScrPtrHack() {
+static void __declspec(naked) scr_ptr_hack() {
 	__asm {
-		cmp  eax, -2;
-		jnz  skip;
+		cmp  eax, -2; // value from FindOverride
+		jne  skip;
 		xor  eax, eax;
 		retn;
 skip:
 		cmp  eax, -3;
-		jne  end;
-		lea  eax, overrideScriptStruct;
-		mov  [edx], eax;
-		mov  esi, [eax]; // script.id
-		xor  eax, eax;
-		retn;
-end:
+		je   override;
 		push ebx;
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
 		jmp  scr_ptr_back;
+override: // for scr_find_obj_from_program_
+		lea  eax, overrideScript;
+		mov  [edx], eax;
+		mov  esi, [eax]; // script.id
+		xor  eax, eax;
+		retn;
 	}
 }
 
@@ -247,9 +244,9 @@ static void __declspec(naked) ExecMapScriptsHack() {
 }
 
 static ExportedVar* __fastcall GetGlobalExportedVarPtr(const char* name) {
+	devlog_f("Trying to find exported var %s\n", DL_MAIN, name);
 	std::string str(name);
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
-	//dlog_f("\n Trying to find exported var %s... ", DL_MAIN, name);
 	if (it != globalExportedVars.end()) {
 		ExportedVar *ptr = &it->second;
 		return ptr;
@@ -257,8 +254,8 @@ static ExportedVar* __fastcall GetGlobalExportedVarPtr(const char* name) {
 	return nullptr;
 }
 
-static void __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
-	//dlog_f("\nTrying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
+static void __fastcall CreateGlobalExportedVar(fo::Program* script, const char* name) {
+	devlog_f("Trying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = ExportedVar(); // add new
 }
@@ -275,7 +272,7 @@ static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 	__asm {
 		push ecx;
 		push edx;
-		mov  ecx, edx;                 // varName
+		mov  ecx, edx;  // varName
 		call GetGlobalExportedVarPtr;
 		pop  edx;
 		pop  ecx;
@@ -289,25 +286,24 @@ proceedNormal:
 	}
 }
 
-static void __declspec(naked) Export_Export_FindVar_Hook() {
-	static const DWORD Export_Export_FindVar_back = 0x4414AE;
+static void __declspec(naked) exportExportVariable_hook() {
+	static const DWORD exportExportVariable_BackRet = 0x4414AE;
 	__asm {
 		cmp  isGlobalScriptLoading, 0;
 		jz   proceedNormal;
-		push edx; // var name
-		push ebp; // script ptr
-		call CreateGlobalExportedVar;
+		mov  ecx, ebp;                     // script ptr
+		call CreateGlobalExportedVar;      // edx - var name
 		xor  eax, eax;
-		add  esp, 4;                      // destroy return
-		jmp  Export_Export_FindVar_back;  // if sfall exported var, jump to the end of function
+		add  esp, 4;                       // destroy return
+		jmp  exportExportVariable_BackRet; // if sfall exported var, jump to the end of function
 proceedNormal:
-		jmp  fo::funcoffs::findVar_;      // else - proceed normal
+		jmp  fo::funcoffs::findVar_;       // else - proceed normal
 	}
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
 static void __stdcall FreeProgram(fo::Program* progPtr) {
-	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
+	if (isGameReset || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
 			call fo::funcoffs::interpretFreeProgram_;
@@ -379,7 +375,7 @@ static void SetGlobalVarInternal(__int64 var, int val) {
 		globalVars.emplace(var, val);
 	} else {
 		if (val == 0) {
-			globalVars.erase(itr);    // applies for both float 0.0 and integer 0
+			globalVars.erase(itr); // applies for both float 0.0 and integer 0
 		} else {
 			itr->second = val;
 		}
@@ -403,12 +399,12 @@ long GetGlobalVarInternal(__int64 val) {
 	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
-long GetGlobalVar(const char* var) {
-	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
-}
-
 long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(static_cast<__int64>(var));
+}
+
+long GetGlobalVar(const char* var) {
+	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
@@ -431,7 +427,7 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 }
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
+void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
 	fo::Program* scriptPtr = fullPath
 		? fo::func::allocateProgram(fileName)
 		: fo::func::loadProgram(fileName);
@@ -443,17 +439,17 @@ void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath)
 		for (int i = 0; i < fo::Scripts::ScriptProc::count; ++i) {
 			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
-		prog.initialized = 0;
+		prog.initialized = false;
 	} else {
 		prog.ptr = nullptr;
 	}
 }
 
-void InitScriptProgram(ScriptProgram &prog) {
-	if (prog.initialized == 0) {
+void RunScriptProgram(ScriptProgram &prog) {
+	if (!prog.initialized) {
 		fo::func::runProgram(prog.ptr);
 		fo::func::interpret(prog.ptr, -1);
-		prog.initialized = 1;
+		prog.initialized = true;
 	}
 }
 
@@ -467,34 +463,55 @@ ScriptProgram* ScriptExtender::GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool IsGameScript(const char* filename) {
-	for (int i = 0; filename[i]; ++i) if (i > 8) return false;
-	// TODO: write better solution (binary search)
-	for (int i = 0; i < fo::var::maxScriptNum; i++) {
-		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
+	for (int i = 1; filename[i]; ++i) if (i > 7) return false; // script name is more than 8 characters
+	// script name is 8 characters, try to find this name in the array of game scripts
+	long mid, left = 0, right = fo::var::maxScriptNum;
+	if (right > 0) {
+		do {
+			mid = (left + right) / 2;
+			int result = std::strcmp(filename, fo::var::scriptListInfo[scriptsIndexList[mid]].fileName);
+			if (result == 0) return true;
+			if (result > 0) {
+				left = mid + 1;
+			} else {
+				right = mid - 1;
+			}
+		} while (left <= right);
 	}
-	return false;
+	return false; // script name was not found in scripts.lst
 }
 
 static void LoadGlobalScriptsList() {
+	dlogr("Running global scripts...", DL_SCRIPT);
+
 	ScriptProgram prog;
 	for (auto& item : globalScriptFilesList) {
 		auto &scriptFile = item.second;
 		dlog("> " + scriptFile, DL_SCRIPT);
-		isGlobalScriptLoading = 1;
-		LoadScriptProgram(prog, scriptFile.c_str(), true);
+		InitScriptProgram(prog, scriptFile.c_str(), true);
 		if (prog.ptr) {
-			dlogr(" Done", DL_SCRIPT);
 			GlobalScript gscript = GlobalScript(prog);
 			gscript.startProc = prog.procLookup[fo::Scripts::ScriptProc::start]; // get 'start' procedure position
 			globalScripts.push_back(gscript);
 			ScriptExtender::AddProgramToMap(prog);
+			dlogr(" Done", DL_SCRIPT);
 			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
-			InitScriptProgram(prog);
+			RunScriptProgram(prog);
 		} else {
 			dlogr(" Error!", DL_SCRIPT);
 		}
-		isGlobalScriptLoading = 0;
 	}
+}
+
+// this runs after the game was loaded/started
+static void InitGlobalScripts() {
+	isGameReset = false;
+	isGlobalScriptLoading = 1; // this should allow to register global exported variables
+
+	HookScripts::InitHookScripts();
+	LoadGlobalScriptsList();
+
+	isGlobalScriptLoading = 0;
 }
 
 static void PrepareGlobalScriptsListByMask() {
@@ -511,6 +528,7 @@ static void PrepareGlobalScriptsListByMask() {
 			std::string baseName(name);
 			int lastDot = baseName.find_last_of('.');
 			if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
+			dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 
 			baseName = baseName.substr(0, lastDot); // script name without extension
 			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
@@ -525,13 +543,13 @@ static void PrepareGlobalScriptsListByMask() {
 			}
 		}
 		fo::func::db_free_file_list(&filenames, 0);
+		globalScripts.reserve(globalScriptFilesList.size());
 	}
 }
 
-// this runs after the game was loaded/started
+// this runs before the game was loaded/started
 static void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
-	isGameLoading = false;
 
 	HookScripts::LoadHookScripts();
 
@@ -541,24 +559,37 @@ static void LoadGlobalScripts() {
 		listIsPrepared = !alwaysFindScripts;
 		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
-	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
-bool __stdcall ScriptHasLoaded(fo::Program* script) {
-	for (size_t i = 0; i < checkedScripts.size(); i++) {
-		if (checkedScripts[i] == script) {
-			return false;
+static struct {
+	fo::Program* script = nullptr;
+	long index;
+} lastProgram;
+
+int __stdcall ScriptExtender::ScriptHasLoaded(fo::Program* script) {
+	if (lastProgram.script == script) { // fast check
+		return globalScripts[lastProgram.index].isLoading;
+	}
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (globalScripts[i].prog.ptr == script) {
+			int loaded = globalScripts[i].isLoading;
+			if (loaded) globalScripts[i].isLoading = 0;
+
+			lastProgram.script = script;
+			lastProgram.index = i;
+			return loaded;
 		}
 	}
-	checkedScripts.push_back(script);
-	return true;
+	// error: global script not found
+	return 1;
 }
 
 // this runs before actually loading/starting the game
 static void ClearGlobalScripts() {
-	isGameLoading = true;
-	checkedScripts.clear();
+	devlog_f("\nReset global scripts.", DL_MAIN);
+	isGameReset = true;
+	lastProgram.script = nullptr;
 	sfallProgsMap.clear();
 	globalScripts.clear();
 	selfOverrideMap.clear();
@@ -649,8 +680,8 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		onMapExit.invoke();
 	}
 
-	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	HookScripts::RunHookScriptsAtProc(procId);   // all hs_ scripts
+	RunGlobalScriptsAtProc(procId);            // gl* scripts of types 0 and 3
+	HookScripts::RunHookScriptsAtProc(procId); // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
 }
@@ -668,7 +699,7 @@ static DWORD HandleTimedEventScripts() {
 
 	bool eventWasRunning = false;
 	for (auto timerIt = timerEventScripts.cbegin(); timerIt != timerEventScripts.cend(); ++timerIt) {
-		if (timerIt->isActive == false) continue;
+		if (!timerIt->isActive) continue;
 		if (currentTime >= timerIt->time) {
 			if (timedEvent) executeTimedEvents.push(timedEvent); // store a pointer to the currently running event
 
@@ -695,7 +726,7 @@ static DWORD HandleTimedEventScripts() {
 		timedEvent = nullptr;
 		// delete all previously executed events
 		for (auto it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
-			if (it->isActive == false) {
+			if (!it->isActive) {
 				fo::func::dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
 				it = timerEventScripts.erase(it);
 			} else {
@@ -840,8 +871,35 @@ static void ClearEventsOnMapExit() {
 	}
 }
 
+// Creates an list of indexes arranged in sorted order relative to the script names
+static void BuildSortedIndexList() {
+	scriptsIndexList.reserve(fo::var::maxScriptNum);
+	scriptsIndexList.push_back(0);
+
+	for (long index = 1; index < fo::var::maxScriptNum; index++) {
+		size_t size = scriptsIndexList.size();
+		size_t lastPos = size - 1;
+		for (size_t posIndex = 0; posIndex < size; posIndex++) {
+			if (std::strcmp(fo::var::scriptListInfo[index].fileName, fo::var::scriptListInfo[scriptsIndexList[posIndex]].fileName) > 0) {
+				if (posIndex < lastPos) continue;  // if this is not the end of the array, then go to the next name
+				scriptsIndexList.push_back(index); // otherwise insert at the end of the array
+			} else {
+				scriptsIndexList.insert(scriptsIndexList.cbegin() + posIndex, index); // insert before if the comparison result is less than or equal to
+			}
+			break;
+		}
+	}
+	// preview the sorted list
+	//for (size_t i = 0; i < scriptsIndexList.size(); i++) {
+	//	devlog_f("\nName: %s, i: %d", DL_MAIN, fo::var::scriptListInfo[scriptsIndexList[i]].fileName, scriptsIndexList[i]);
+	//}
+	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
+}
+
 void ScriptExtender::init() {
-	LoadGameHook::OnAfterGameStarted() += LoadGlobalScripts;
+	LoadGameHook::OnAfterGameInit() += BuildSortedIndexList;
+	LoadGameHook::OnBeforeGameStart() += LoadGlobalScripts;  // loading sfall scripts
+	LoadGameHook::OnAfterGameStarted() += InitGlobalScripts; // running sfall scripts
 	LoadGameHook::OnGameReset() += [] () {
 		ClearGlobalScripts();
 		ClearGlobals();
@@ -881,7 +939,7 @@ void ScriptExtender::init() {
 		bool pathSeparator = (c == '\\' || c == '/');
 		if (len > 62 || (len == 62 && !pathSeparator)) {
 			iniConfigFolder.clear();
-			dlogr("Error: IniConfigFolder path is too long.", DL_INIT|DL_SCRIPT);
+			dlogr("Error: IniConfigFolder path is too long.", DL_MAIN);
 		} else if (!pathSeparator) {
 			iniConfigFolder += '\\';
 		}
@@ -890,8 +948,8 @@ void ScriptExtender::init() {
 	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global/hook scripts behavior enabled.", DL_SCRIPT);
 
-	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
-	MakeJump(0x4A5E34, ScrPtrHack);
+	MakeJump(0x4A390C, scr_find_sid_from_program_hack);
+	MakeJump(0x4A5E34, scr_ptr_hack);
 
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
@@ -904,10 +962,10 @@ void ScriptExtender::init() {
 	HookCall(0x4A3E08, script_chk_timed_events_hook);
 
 	// this patch makes it possible to export variables from sfall global scripts
-	HookCall(0x4414C8, Export_Export_FindVar_Hook);
+	HookCall(0x4414C8, exportExportVariable_hook);
 	HookCalls(Export_FetchOrStore_FindVar_Hook, {
-		0x441285, // store
-		0x4413D9  // fetch
+		0x441285, // exportStoreVariable_
+		0x4413D9  // exportFetchVariable_
 	});
 
 	HookCall(0x46E141, FreeProgramHook);

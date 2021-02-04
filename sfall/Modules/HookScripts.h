@@ -70,6 +70,9 @@ enum HookType
 	HOOK_STDPROCEDURE_END = 41,
 	HOOK_TARGETOBJECT     = 42,
 	HOOK_ENCOUNTER        = 43,
+	HOOK_ADJUSTPOISON     = 44,
+	HOOK_ADJUSTRADS       = 45,
+	HOOK_ROLLCHECK        = 46,
 	HOOK_COUNT
 };
 
@@ -90,13 +93,13 @@ public:
 	static std::vector<HookFile> hookScriptFilesList;
 
 	static void LoadHookScript(const char* name, int id);
-	static bool LoadHookScriptFile(const char* name, int id);
+	static void InitHookScriptFile(const char* name, int id);
 	static void LoadHookScripts();
+	static void InitHookScripts();
 	static void HookScriptClear();
 
 	static bool HookHasScript(int hookId);
 
-	static bool injectAllHooks;
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);
 
