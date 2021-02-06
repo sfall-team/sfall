@@ -21,7 +21,6 @@ void Inject_TargetObjectHook();
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
-// Implementation of item_w_mp_cost_ engine function with the hook
-long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled);
+long CalcApCostHook_CheckScript(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
 
 }

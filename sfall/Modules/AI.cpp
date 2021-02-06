@@ -22,7 +22,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
-#include "HookScripts\CombatHS.h"
+//#include "HookScripts\CombatHS.h"
+#include "..\Game\items.h"
 
 #include "AI.h"
 
@@ -321,7 +322,7 @@ static long __fastcall CheckWeaponRangeAndApCost(fo::GameObject* source, fo::Gam
 	long targetDist  = fo::func::obj_dist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
-	return (source->critter.movePoints >= sf_item_w_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
+	return (source->critter.movePoints >= game::Items::item_w_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
 static void __declspec(naked) ai_pick_hit_mode_hook() {
@@ -356,7 +357,7 @@ static void __declspec(naked) cai_perform_distance_prefs_hack() {
 		mov  ecx, esi;
 		push 0;        // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
-		call sf_item_w_mp_cost;
+		call game::Items::item_w_mp_cost;
 		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
 		jle  moveAway; // <= 0

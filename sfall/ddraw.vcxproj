@@ -292,6 +292,7 @@
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
     <ClInclude Include="Game\inventory.h" />
+    <ClInclude Include="Game\items.h" />
     <ClInclude Include="Game\render.h" />
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
@@ -396,6 +397,7 @@
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
     <ClCompile Include="Game\inventory.cpp" />
+    <ClCompile Include="Game\items.cpp" />
     <ClCompile Include="Game\render.cpp" />
     <ClCompile Include="Game\skills.cpp" />
     <ClCompile Include="Game\stats.cpp" />

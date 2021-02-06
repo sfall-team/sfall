@@ -25,9 +25,11 @@
 #include "LoadGameHook.h"
 #include "Objects.h"
 
-#include "SubModules\CombatBlock.h"
-
 #include "HookScripts\CombatHS.h"
+
+#include "..\Game\items.h"
+
+#include "SubModules\CombatBlock.h"
 
 #include "Combat.h"
 

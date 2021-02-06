@@ -313,6 +313,7 @@
     <ClInclude Include="Modules\SubModules\EnginePerks.h">
       <Filter>Modules\SubModules</Filter>
     </ClInclude>
+    <ClInclude Include="ReplacementFuncs.h" />
     <ClInclude Include="Game\inventory.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -325,7 +326,9 @@
     <ClInclude Include="Game\render.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="ReplacementFuncs.h" />
+    <ClInclude Include="Game\items.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -600,6 +603,9 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Game\render.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\items.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>

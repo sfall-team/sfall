@@ -169,6 +169,20 @@ struct GameObject {
 			inline bool IsNotActive() {
 				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
+			inline bool IsActiveNotDead() {
+				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
+			}
+			inline bool IsNotActiveAndDead() {
+				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
+			}
+
+			// Gets the current target or the attacker who dealt damage in the previous combat turn
+			inline GameObject* getHitTarget() {
+				return whoHitMe;
+			}
+			inline long getAP() {
+				return movePoints;
+			}
 		} critter;
 	};
 	DWORD protoId; // object PID
@@ -575,6 +589,11 @@ struct PathNode {
 	PathNode* next;
 };
 
+struct ObjectTable {
+	GameObject*  object;
+	ObjectTable* nextObject;
+};
+
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
@@ -607,6 +626,13 @@ struct Proto {
 			// shot sound ID
 			long soundId;
 			long gap_68;
+
+			inline bool AttackInRange(long dist) {
+				return (maxRange[0] >= dist || maxRange[1] >= dist);
+			}
+			inline bool AttackHaveEnoughAP(long ap) {
+				return (movePointCost[0] <= ap || movePointCost[1] <= ap);
+			}
 		};
 
 		struct Ammo {
@@ -918,6 +944,14 @@ struct AIcap {
 	long disposition;
 	long body_type;
 	long general_type;
+
+	inline AIpref::distance getDistance() {
+		return (AIpref::distance)distance;
+	}
+	inline AIpref::run_away_mode getRunAwayMode() {
+		return (AIpref::run_away_mode)run_away_mode;
+	}
+
 };
 
 struct Queue {
