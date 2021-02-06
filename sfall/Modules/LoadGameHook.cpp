@@ -23,7 +23,6 @@
 #include "..\Logging.h"
 #include "..\version.h"
 
-#include "AI.h"
 #include "BugFixes.h"
 #include "CritterStats.h"
 #include "ExtraSaveSlots.h"
@@ -63,6 +62,8 @@ static Delegate<> onAfterGameStarted;
 static Delegate<> onAfterNewGame;
 static Delegate<DWORD> onGameModeChange;
 static Delegate<> onBeforeGameClose;
+static Delegate<> onCombatStart;
+static Delegate<> onCombatEnd;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -451,17 +452,25 @@ static void __declspec(naked) WorldMapHook_End() {
 	}
 }
 
+static void __fastcall CombatInternal(fo::CombatGcsd* gcsd) {
+	onCombatStart.invoke();
+	SetInLoop(1, COMBAT);
+
+	__asm mov  eax, gcsd;
+	__asm call fo::funcoffs::combat_;
+
+	onCombatEnd.invoke();
+	SetInLoop(0, COMBAT);
+}
+
 static void __declspec(naked) CombatHook() {
 	__asm {
-		pushadc;
-		call AI::AICombatStart;
-		_InLoop2(1, COMBAT);
-		popadc;
-		call fo::funcoffs::combat_;
-		pushadc;
-		call AI::AICombatEnd;
-		_InLoop2(0, COMBAT);
-		popadc;
+		push ecx;
+		push edx;
+		mov  ecx, eax;
+		call CombatInternal;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -848,4 +857,11 @@ Delegate<>& LoadGameHook::OnBeforeGameClose() {
 	return onBeforeGameClose;
 }
 
+Delegate<>& LoadGameHook::OnCombatStart() {
+	return onCombatStart;
+}
+
+Delegate<>& LoadGameHook::OnCombatEnd() {
+	return onCombatEnd;
+}
 }

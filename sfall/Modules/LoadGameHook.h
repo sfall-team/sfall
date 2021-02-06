@@ -59,6 +59,9 @@ public:
 	// Invoked before the game exits to windows
 	static Delegate<>& OnBeforeGameClose();
 
+	static Delegate<>& OnCombatStart();
+	static Delegate<>& OnCombatEnd();
+
 	static long interfaceWID;
 };
 

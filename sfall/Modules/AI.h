@@ -33,10 +33,6 @@ public:
 	static fo::GameObject* CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
 	static fo::GameObject* CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
 
-	// TODO: use subscription instead
-	static void __stdcall AICombatStart();
-	static void __stdcall AICombatEnd();
-
 	static fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
 	static fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
 };

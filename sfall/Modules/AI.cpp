@@ -20,6 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 
 #include "HookScripts\CombatHS.h"
 
@@ -58,8 +59,10 @@ fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* at
 	fo::GameObject* object = nullptr;
 	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 	object = CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
-	return (!object || object->TypeFid() == fo::ObjType::OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
+	return (object && object->IsCritter()) ? object : nullptr; // 0 if there are no friendly critters
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
@@ -440,11 +443,18 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
+static void AICombatClear() {
+	targets.clear();
+	sources.clear();
+}
+
 void AI::init() {
 	HookCalls(combat_attack_hook, {
 		0x426A95, // combat_attack_this_
 		0x42A796  // ai_attack_
 	});
+	LoadGameHook::OnCombatStart() += AICombatClear;
+	LoadGameHook::OnCombatEnd() += AICombatClear;
 
 	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
@@ -520,16 +530,6 @@ fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
 fo::GameObject* __stdcall AI::AIGetLastTarget(fo::GameObject* source) {
 	const auto itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
-}
-
-void __stdcall AI::AICombatStart() {
-	targets.clear();
-	sources.clear();
-}
-
-void __stdcall AI::AICombatEnd() {
-	targets.clear();
-	sources.clear();
 }
 
 }
