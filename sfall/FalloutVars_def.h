@@ -129,7 +129,7 @@ PTR_(num_game_global_vars,       DWORD)
 PTR_(num_map_global_vars,        DWORD)
 PTR_(num_windows,                DWORD)
 PTR_(obj_dude,                   TGameObj*)
-PTR_(objectTable,                DWORD*) // array of 40000 pointers
+PTR_(objectTable,                ObjectTable*) // array of 40000 pointers
 PTR_(objItemOutlineState,        DWORD)
 PTR_(optionRect,                 DWORD)
 PTR_(optionsButtonDown,          DWORD)

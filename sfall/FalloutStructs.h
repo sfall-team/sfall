@@ -143,6 +143,20 @@ struct TGameObj {
 			inline bool IsNotActive() {
 				return ((damageFlags & (DAM_KNOCKED_OUT | DAM_LOSE_TURN)) != 0);
 			}
+			inline bool IsActiveNotDead() {
+				return ((damageFlags & (DAM_DEAD | DAM_KNOCKED_OUT | DAM_LOSE_TURN)) == 0);
+			}
+			inline bool IsNotActiveAndDead() {
+				return ((damageFlags & (DAM_DEAD | DAM_KNOCKED_OUT | DAM_LOSE_TURN)) != 0);
+			}
+
+			// Gets the current target or the attacker who dealt damage in the previous combat turn
+			inline TGameObj* getHitTarget() {
+				return whoHitMe;
+			}
+			inline long getAP() {
+				return movePoints;
+			}
 		} critter;
 	};
 	DWORD protoId; // object PID
@@ -549,6 +563,11 @@ struct PathNode {
 	PathNode* next;
 };
 
+struct ObjectTable {
+	TGameObj* object;
+	ObjectTable* nextObject;
+};
+
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
@@ -581,6 +600,13 @@ struct sProto {
 			// shot sound ID
 			long soundId;
 			long gap_68;
+
+			inline bool AttackInRange(long dist) {
+				return (maxRange[0] >= dist || maxRange[1] >= dist);
+			}
+			inline bool AttackHaveEnoughAP(long ap) {
+				return (movePointCost[0] <= ap || movePointCost[1] <= ap);
+			}
 		};
 
 		struct Ammo {

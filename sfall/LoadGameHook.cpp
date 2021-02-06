@@ -471,17 +471,27 @@ static void __declspec(naked) WorldMapHook_End() {
 	}
 }
 
+static void __fastcall CombatInternal(CombatGcsd* gcsd) {
+	// OnCombatStart
+	AICombatClear();
+	SetInLoop(1, COMBAT);
+
+	__asm mov  eax, gcsd;
+	__asm call combat_;
+
+	// OnCombatEnd
+	AICombatClear();
+	SetInLoop(0, COMBAT);
+}
+
 static void __declspec(naked) CombatHook() {
 	__asm {
-		pushadc;
-		call AICombatStart;
-		_InLoop2(1, COMBAT);
-		popadc;
-		call combat_;
-		pushadc;
-		call AICombatEnd;
-		_InLoop2(0, COMBAT);
-		popadc;
+		push ecx;
+		push edx;
+		mov  ecx, eax;
+		call CombatInternal;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

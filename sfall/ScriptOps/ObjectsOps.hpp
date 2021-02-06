@@ -259,8 +259,8 @@ static void __stdcall op_make_straight_path2() {
 			  type = typeArg.rawValue();
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
-		DWORD resultObj = 0;
-		fo_make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
+		TGameObj* resultObj = nullptr;
+		fo_make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, (DWORD*)&resultObj, flag, (void*)getBlockingFunc(type));
 		opHandler.setReturn(resultObj);
 	} else {
 		OpcodeInvalidArgs("obj_blocking_line");

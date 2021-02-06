@@ -251,7 +251,7 @@ void Objects_Init() {
 
 	// Fix the ID range check for item objects with IDs in the negative range
 	// Special ID values are assigned in the negative range
-	SafeWrite8(0x495273, 0x73); // jge > jae
+	SafeWrite8(0x495273, 0x73); // jge > jae (partyMemberItemSave_)
 
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 

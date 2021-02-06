@@ -56,8 +56,10 @@ TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
 	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
-	return (!object || object->TypeFid() == OBJ_TYPE_CRITTER) ? object : nullptr; // 0 if there are no friendly critters
+	return (object && object->IsCritter()) ? object : nullptr; // 0 if there are no friendly critters
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
@@ -438,6 +440,11 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
+void __stdcall AICombatClear() {
+	targets.clear();
+	sources.clear();
+}
+
 void AI_Init() {
 	const DWORD combatAttackAddr[] = {
 		0x426A95, // combat_attack_this_
@@ -522,14 +529,4 @@ TGameObj* __stdcall AIGetLastAttacker(TGameObj* target) {
 TGameObj* __stdcall AIGetLastTarget(TGameObj* source) {
 	iter itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
-}
-
-void __stdcall AICombatStart() {
-	targets.clear();
-	sources.clear();
-}
-
-void __stdcall AICombatEnd() {
-	targets.clear();
-	sources.clear();
 }
