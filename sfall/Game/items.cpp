@@ -16,7 +16,7 @@ namespace game
 
 namespace sf = sfall;
 
-// Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the hook
+// Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
 // returns -1 in case of an error
 long Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, long hitMode, long isCalled) {
 	long cost = -1;
@@ -40,7 +40,7 @@ long Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, 
 	return (cost != -1) ? sf::CalcApCostHook_CheckScript(source, hitMode, isCalled, cost, weapon) : cost;
 }
 
-// Implementation of item_w_mp_cost_ engine function with the hook
+// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
 long __fastcall Items::item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
 	long cost = fo::func::item_w_mp_cost(source, hitMode, isCalled);
 	return sf::CalcApCostHook_CheckScript(source, hitMode, isCalled, cost, nullptr);

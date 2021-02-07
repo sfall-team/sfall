@@ -10,12 +10,21 @@
 #include "..\Modules\Inventory.h"
 #include "..\Modules\PartyControl.h"
 
+#include "..\Modules\HookScripts\InventoryHs.h"
+
 #include "inventory.h"
 
 namespace game
 {
 
 namespace sf = sfall;
+
+// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
+long Inventory::correctFidForRemovedItem(fo::GameObject* critter, fo::GameObject* item, long flags) {
+	long result = sf::InvenWieldHook_ScriptCheck(critter, item, flags);
+	if (result) fo::func::correctFidForRemovedItem(critter, item, flags);
+	return result;
+}
 
 DWORD __stdcall Inventory::item_total_size(fo::GameObject* critter) {
 	int totalSize = fo::func::item_c_curr_size(critter);

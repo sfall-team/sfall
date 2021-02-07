@@ -19,12 +19,13 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Utils.h"
-#include "HookScripts\InventoryHs.h"
 #include "Drugs.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 //#include "Objects.h"
+
+#include "..\Game\inventory.h"
 
 #include "PartyControl.h"
 

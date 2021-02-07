@@ -27,10 +27,10 @@
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
-#include "..\..\HookScripts\InventoryHs.h"
+#include "..\..\..\Game\inventory.h"
+#include "..\..\..\Game\render.h"
 
 #include "..\..\SubModules\WindowRender.h"
-#include "..\..\..\Game\render.h"
 
 #include "Interface.h"
 
@@ -697,7 +697,7 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 				itemRef = (long*)FO_VAR_i_rhand;
 			}
 			if (item) {
-				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::ObjectFlag::Left_Hand : fo::ObjectFlag::Right_Hand)) {
+				if (!game::Inventory::correctFidForRemovedItem(critter, item, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::ObjectFlag::Left_Hand : fo::ObjectFlag::Right_Hand)) {
 					return;
 				}
 				*itemRef = 0;
@@ -713,7 +713,7 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 				forceAdd = true;
 			}
 			if (item) {
-				if (!CorrectFidForRemovedItem_wHook(critter, item, fo::ObjectFlag::Worn)) {
+				if (!game::Inventory::correctFidForRemovedItem(critter, item, fo::ObjectFlag::Worn)) {
 					if (forceAdd) fo::var::i_worn = item;
 					return;
 				}
