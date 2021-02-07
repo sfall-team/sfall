@@ -761,7 +761,7 @@ static void mf_unwield_slot() {
 				itemRef = (long*)FO_VAR_i_rhand;
 			}
 			if (item) {
-				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? ObjectFlag::Left_Hand : ObjectFlag::Right_Hand)) {
+				if (!sfgame_correctFidForRemovedItem(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? ObjectFlag::Left_Hand : ObjectFlag::Right_Hand)) {
 					return;
 				}
 				*itemRef = 0;
@@ -777,7 +777,7 @@ static void mf_unwield_slot() {
 				forceAdd = true;
 			}
 			if (item) {
-				if (!CorrectFidForRemovedItem_wHook(critter, item, ObjectFlag::Worn)) {
+				if (!sfgame_correctFidForRemovedItem(critter, item, ObjectFlag::Worn)) {
 					if (forceAdd) *ptr_i_worn = item;
 					return;
 				}

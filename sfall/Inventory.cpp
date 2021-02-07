@@ -63,7 +63,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-DWORD __stdcall Inventory_item_total_size(TGameObj* critter) {
+DWORD __stdcall sfgame_item_total_size(TGameObj* critter) {
 	int totalSize = fo_item_c_curr_size(critter);
 
 	if (critter->TypeFid() == OBJ_TYPE_CRITTER) {
@@ -89,7 +89,7 @@ DWORD __stdcall Inventory_item_total_size(TGameObj* critter) {
 // Differences from vanilla:
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - calls AdjustFidHook that allows to hook into FID calculation
-DWORD __stdcall Inventory_adjust_fid() {
+DWORD __stdcall sfgame_adjust_fid() {
 	DWORD fid;
 	if ((*ptr_inven_dude)->TypeFid() == OBJ_TYPE_CRITTER) {
 		DWORD indexNum;
@@ -140,7 +140,7 @@ static void __declspec(naked) adjust_fid_hack() {
 	__asm {
 		push ecx;
 		push edx;
-		call Inventory_adjust_fid; // return fid
+		call sfgame_adjust_fid; // return fid
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -175,7 +175,7 @@ static __declspec(naked) void critterIsOverloaded_hack() {
 		jz   skip;
 		push ebx;
 		mov  ebx, eax;           // ebx = MaxSize
-		call Inventory_item_total_size;
+		call sfgame_item_total_size;
 		cmp  eax, ebx;
 		setg al;                 // if CurrSize > MaxSize
 		and  eax, 0xFF;
@@ -189,7 +189,7 @@ end:
 static int __fastcall CanAddedItems(TGameObj* critter, TGameObj* item, int count) {
 	int sizeMax = CritterGetMaxSize(critter);
 	if (sizeMax > 0) {
-		int totalSize = Inventory_item_total_size(critter) + (fo_item_size(item) * count);
+		int totalSize = sfgame_item_total_size(critter) + (fo_item_size(item) * count);
 		if (totalSize > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
 	}
 	return 0;
@@ -235,10 +235,10 @@ static int __fastcall BarterAttemptTransaction(TGameObj* critter, TGameObj* tabl
 	int size = CritterGetMaxSize(critter);
 	if (size == 0) return 1;
 
-	int sizeTable = Inventory_item_total_size(table);
+	int sizeTable = sfgame_item_total_size(table);
 	if (sizeTable == 0) return 1;
 
-	size -= Inventory_item_total_size(critter);
+	size -= sfgame_item_total_size(critter);
 	return (sizeTable <= size) ? 1 : 0;
 }
 
@@ -313,7 +313,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 	}
 
 	sizeMax = limitMax;
-	size = Inventory_item_total_size(critter);
+	size = sfgame_item_total_size(critter);
 
 	const char* msg = MsgSearch(ptr_inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
@@ -379,7 +379,7 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 		call CritterGetMaxSize;
 		push eax;               // sizeMax
 		push ebx;
-		call Inventory_item_total_size;
+		call sfgame_item_total_size;
 		push eax;               // size
 		mov  eax, ebx;
 		mov  edx, STAT_carry_amt;

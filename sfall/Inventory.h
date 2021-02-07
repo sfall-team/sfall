@@ -28,10 +28,10 @@ void __fastcall SetInvenApCost(int cost);
 // This function returns the size of the occupied inventory space for the object or critter
 // - difference from the item_c_curr_size_ function: includes the size of equipped items for the critter
 // - does not return the size of nested items
-DWORD __stdcall Inventory_item_total_size(TGameObj* critter);
+DWORD __stdcall sfgame_item_total_size(TGameObj* critter);
 
 // Reimplementation of adjust_fid engine function
 // Differences from vanilla:
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - calls AdjustFidHook that allows to hook into FID calculation
-DWORD __stdcall Inventory_adjust_fid();
+DWORD __stdcall sfgame_adjust_fid();

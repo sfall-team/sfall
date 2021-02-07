@@ -747,6 +747,79 @@ namespace WinFlags {
 	};
 }
 
+namespace AIpref {
+	enum distance : long
+	{
+		DIST_stay_close              = 0,
+		DIST_charge                  = 1,
+		DIST_snipe                   = 2,
+		DIST_on_your_own             = 3,
+		DIST_stay                    = 4
+	};
+
+	enum disposition : long
+	{
+		DISP_none                    = -1,
+		DISP_custom                  = 0,
+		DISP_coward                  = 1,
+		DISP_defensive               = 2,
+		DISP_aggressive              = 3,
+		DISP_berserk                 = 4
+	};
+
+	enum attack_who : long
+	{
+		ATKWHO_whomever_attacking_me = 0,
+		ATKWHO_strongest             = 1,
+		ATKWHO_weakest               = 2,
+		ATKWHO_whomever              = 3,
+		ATKWHO_closest               = 4,
+	};
+
+	enum run_away_mode : long
+	{
+		AWAY_none                    = -1, // get the value from the cap.min_hp (in cai_get_min_hp_)
+		AWAY_coward                  = 0,  // 0%
+		AWAY_finger_hurts            = 1,  // 25% of the lost amount of health
+		AWAY_bleeding                = 2,  // 40% of the lost amount of health
+		AWAY_not_feeling_good        = 3,  // 60% of the lost amount of health
+		AWAY_tourniquet              = 4,  // 75% of the lost amount of health
+		AWAY_never                   = 5   // 100%
+	};
+
+	enum weapon_pref : long
+	{
+		WEAPON_no_pref               = 0,
+		WEAPON_melee                 = 1,
+		WEAPON_melee_over_ranged     = 2,
+		WEAPON_ranged_over_melee     = 3,
+		WEAPON_ranged                = 4,
+		WEAPON_unarmed               = 5,
+		WEAPON_unarmed_over_thrown   = 6, // not available in party member control panel
+		WEAPON_random                = 7  // not available in party member control panel
+	};
+
+	enum area_attack_mode : long
+	{
+		AREA_no_pref                 = -1, // special logic for NPC (not available in party member control panel)
+		AREA_always                  = 0,
+		AREA_sometimes               = 1,  // use random value from cap.secondary_freq
+		AREA_be_sure                 = 2,  // 85% hit chance
+		AREA_be_careful              = 3,  // 50% hit chance
+		AREA_be_absolutely_sure      = 4,  // 95% hit chance
+	};
+
+	enum chem_use_mode : long
+	{
+		CHEM_clean                   = 0,
+		CHEM_stims_when_hurt_little  = 1,
+		CHEM_stims_when_hurt_lots    = 2,
+		CHEM_sometimes               = 3,
+		CHEM_anytime                 = 4,
+		CHEM_always                  = 5,
+	};
+}
+
 enum QueueType : long
 {
 	drug_effect_event  = 0,  // critter use drug

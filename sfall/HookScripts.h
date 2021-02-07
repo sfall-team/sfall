@@ -70,20 +70,24 @@ void LoadHookScripts();
 void InitHookScripts();
 void HookScriptClear();
 
+bool __stdcall HookHasScript(int hookId);
+
 void __stdcall GameModeChangeHook(DWORD exit);
 void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 void __stdcall MouseClickHook(DWORD button, bool pressed);
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
 
-long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
 
 void __stdcall AdjustFidHook(DWORD vanillaFid);
 
-// Implementation of item_w_mp_cost_ engine function with the hook
-long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
+// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
+long __stdcall sfgame_correctFidForRemovedItem(TGameObj* critter, TGameObj* item, long flags);
 
-// Implementation of is_within_perception_ engine function with the hook
-long __fastcall sf_is_within_perception(TGameObj* watcher, TGameObj* target);
+// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
+long __fastcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
+
+// Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
+long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target);

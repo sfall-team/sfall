@@ -386,7 +386,7 @@ void UpdateHeroArt() {
 	}
 
 	// inventory function - setup pc FrmID and store at address _i_fid
-	(*ptr_obj_dude)->artFid = Inventory_adjust_fid(); // adjust_fid_
+	(*ptr_obj_dude)->artFid = sfgame_adjust_fid(); // adjust_fid_
 
 	*ptr_inven_dude = iD;
 	*ptr_i_rhand = iR;

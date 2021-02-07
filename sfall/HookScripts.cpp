@@ -240,8 +240,8 @@ static void __declspec(naked) AfterHitRollHook() {
 	}
 }
 
-// Implementation of item_w_mp_cost_ engine function with the hook
-long __fastcall sf_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
+// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
+long __fastcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
 	long cost = fo_item_w_mp_cost(source, hitMode, isCalled);
 
 	BeginHook();
@@ -921,7 +921,7 @@ skip:
 }
 
 void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!IsGameLoaded()) {
+	if (!IsGameLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}
 	BeginHook();
@@ -935,7 +935,7 @@ void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 }
 
 void __stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsGameLoaded()) {
+	if (!IsGameLoaded() || !HookHasScript(HOOK_MOUSECLICK)) {
 		return;
 	}
 	BeginHook();
@@ -1003,15 +1003,13 @@ defaultHandler:
 }
 
 // 4.x backport
-static long __fastcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* target, int type) {
-	long result = fo_is_within_perception(watcher, target);
-
+static __forceinline long __stdcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* target, int type, long result) {
 	BeginHook();
 	argCount = 4;
 
 	args[0] = (DWORD)watcher;
 	args[1] = (DWORD)target;
-	args[2] = result;
+	args[2] = result; // engine result
 	args[3] = type;
 
 	RunHookScript(HOOK_WITHINPERCEPTION);
@@ -1022,9 +1020,18 @@ static long __fastcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* t
 	return result;
 }
 
-// Implementation of is_within_perception_ engine function with the hook
-long __fastcall sf_is_within_perception(TGameObj* watcher, TGameObj* target) { // TODO: add type arg
-	return PerceptionRangeHook_Script(watcher, target, 0);
+static long __stdcall PerceptionRangeHook_ScriptCheck(TGameObj* watcher, TGameObj* target, long result) { // TODO: add type arg
+	if (!HookHasScript(HOOK_WITHINPERCEPTION)) return result;
+	return PerceptionRangeHook_Script(watcher, target, 0, result);
+}
+
+static long __fastcall PerceptionRange_Hook(TGameObj* watcher, TGameObj* target, int type) {
+	return PerceptionRangeHook_Script(watcher, target, type, fo_is_within_perception(watcher, target));
+}
+
+// Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
+long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target) { // TODO: add type arg
+	return PerceptionRangeHook_ScriptCheck(watcher, target, fo_is_within_perception(watcher, target));
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
@@ -1032,7 +1039,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		push ecx;
 		push 0;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -1043,7 +1050,7 @@ static void __declspec(naked) PerceptionRangeSeeHook() {
 		push ecx;
 		push 1;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		cmp  eax, 2;
 		jne  nevermind; // normal return
@@ -1060,7 +1067,7 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 		push ecx;
 		push 2;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -1071,7 +1078,7 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 		push ecx;
 		push 3;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -1468,6 +1475,22 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	}
 }
 
+// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
+long __stdcall sfgame_correctFidForRemovedItem(TGameObj* critter, TGameObj* item, long flags) {
+	long result = 1;
+	if (HookHasScript(HOOK_INVENWIELD)) {
+		long slot = INVEN_TYPE_WORN;
+		if (flags & ObjectFlag::Right_Hand) {       // right hand slot
+			slot = INVEN_TYPE_RIGHT_HAND;
+		} else if (flags & ObjectFlag::Left_Hand) { // left hand slot
+			slot = INVEN_TYPE_LEFT_HAND;
+		}
+		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
+	}
+	if (result) fo_correctFidForRemovedItem(critter, item, flags);
+	return result;
+}
+
 static void __declspec(naked) item_drop_all_hack() {
 	using namespace ObjectFlag;
 	__asm {
@@ -1578,22 +1601,6 @@ noArmor:
 	}
 }
 
-// internal function implementation with hook
-long __stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags) {
-	long result = 1;
-	if (!hooks[HOOK_INVENWIELD].empty()) {
-		long slot = INVEN_TYPE_WORN;
-		if (flags & ObjectFlag::Right_Hand) {       // right hand slot
-			slot = INVEN_TYPE_RIGHT_HAND;
-		} else if (flags & ObjectFlag::Left_Hand) { // left hand slot
-			slot = INVEN_TYPE_LEFT_HAND;
-		}
-		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
-	}
-	if (result) fo_correctFidForRemovedItem(critter, item, flags);
-	return result;
-}
-
 // 4.x backport
 void __stdcall AdjustFidHook(DWORD vanillaFid) {
 	BeginHook();
@@ -1613,13 +1620,14 @@ void __stdcall AdjustFidHook(DWORD vanillaFid) {
 static unsigned long previousGameMode = 0;
 
 void __stdcall GameModeChangeHook(DWORD exit) {
-	BeginHook();
-	argCount = 2;
-	args[0] = exit;
-	args[1] = previousGameMode;
-	RunHookScript(HOOK_GAMEMODECHANGE);
-	EndHook();
-
+	if (HookHasScript(HOOK_GAMEMODECHANGE)) {
+		BeginHook();
+		argCount = 2;
+		args[0] = exit;
+		args[1] = previousGameMode;
+		RunHookScript(HOOK_GAMEMODECHANGE);
+		EndHook();
+	}
 	previousGameMode = GetLoopFlags();
 }
 // END HOOKS
@@ -1655,6 +1663,10 @@ void __stdcall SetHSReturn(DWORD value) {
 	if (cRetTmp > cRet) {
 		cRet = cRetTmp;
 	}
+}
+
+bool __stdcall HookHasScript(int hookId) {
+	return (!hooks[hookId].empty());
 }
 
 void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg) {
