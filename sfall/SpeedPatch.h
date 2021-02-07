@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009  The sfall team
+ *    Copyright (C) 2008-2017  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,10 @@
 
 #pragma once
 
-extern DWORD sf_GetTickCount;
-
 void SpeedPatch_Init();
 void SpeedPatch_Exit();
+
+extern DWORD getTickCountOffs;
+
+// sfall implementation of the GetTickCount() function
+DWORD __stdcall SpeedPatch_getTickCount();

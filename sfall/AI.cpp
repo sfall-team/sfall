@@ -318,7 +318,7 @@ static long __fastcall CheckWeaponRangeAndApCost(TGameObj* source, TGameObj* tar
 	long targetDist  = fo_obj_dist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
-	return (source->critter.movePoints >= sf_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
+	return (source->critter.movePoints >= sfgame_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
 static void __declspec(naked) ai_pick_hit_mode_hook() {
@@ -353,7 +353,7 @@ static void __declspec(naked) cai_perform_distance_prefs_hack() {
 		mov  ecx, esi;
 		push 0;        // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
-		call sf_item_w_mp_cost;
+		call sfgame_item_w_mp_cost;
 		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
 		jle  moveAway; // <= 0
