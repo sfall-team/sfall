@@ -37,13 +37,13 @@ long Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, 
 		if (weapon) cost = 2; // default reload AP cost
 	}
 
-	return (cost != -1) ? sf::CalcApCostHook_CheckScript(source, hitMode, isCalled, cost, weapon) : cost;
+	return (cost != -1) ? sf::CalcApCostHook_ScriptCheck(source, hitMode, isCalled, cost, weapon) : cost;
 }
 
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
 long __fastcall Items::item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
 	long cost = fo::func::item_w_mp_cost(source, hitMode, isCalled);
-	return sf::CalcApCostHook_CheckScript(source, hitMode, isCalled, cost, nullptr);
+	return sf::CalcApCostHook_ScriptCheck(source, hitMode, isCalled, cost, nullptr);
 }
 
 void Items::init() {

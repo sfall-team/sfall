@@ -97,7 +97,7 @@ static long CalcApCostHook_Script(fo::GameObject* source, long hitMode, long isC
 	return cost;
 }
 
-long CalcApCostHook_CheckScript(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
+long CalcApCostHook_ScriptCheck(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
 	return (HookScripts::HookHasScript(HOOK_CALCAPCOST))
 			? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
 			: cost;

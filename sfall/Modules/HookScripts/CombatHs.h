@@ -21,6 +21,6 @@ void Inject_TargetObjectHook();
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
-long CalcApCostHook_CheckScript(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
+long CalcApCostHook_ScriptCheck(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
 
 }

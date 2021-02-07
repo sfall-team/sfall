@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2017  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2017  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <cmath>
 
@@ -39,8 +39,12 @@ static const DWORD offsets[] = {
 	0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6, // for mve
 };
 
-DWORD sf_GetTickCount = (DWORD)&GetTickCount;
-DWORD sf_GetLocalTime;
+static DWORD getLocalTimeOffs;
+DWORD SpeedPatch::getTickCountOffs = (DWORD)&GetTickCount;
+
+DWORD SpeedPatch::getTickCount() {
+	return ((DWORD (__stdcall*)())getTickCountOffs)();
+}
 
 static bool enabled = true;
 static bool toggled = false;
@@ -146,7 +150,7 @@ void TimerInit() {
 	char buf[2], spKey[10] = "SpeedKey#";
 	char spMulti[12] = "SpeedMulti#";
 	for (int i = 0; i < 10; i++) {
-		_itoa_s(i, buf, 10);
+		_itoa(i, buf, 10);
 		spKey[8] = spMulti[10] = buf[0];
 		speed[i].key = GetConfigInt("Input", spKey, 0);
 		speed[i].multiplier = GetConfigInt("Speed", spMulti, 0) / 100.0;
@@ -164,16 +168,16 @@ void SpeedPatch::init() {
 		multi = (double)init / 100.0;
 		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
 
-		sf_GetTickCount = (DWORD)&FakeGetTickCount;
-		sf_GetLocalTime = (DWORD)&FakeGetLocalTime;
+		getTickCountOffs = (DWORD)&FakeGetTickCount;
+		getLocalTimeOffs = (DWORD)&FakeGetLocalTime;
 
 		int size = sizeof(offsets) / 4;
 		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) size -= 4;
 
 		for (int i = 0; i < size; i++) {
-			SafeWrite32(offsets[i], (DWORD)&sf_GetTickCount);
+			SafeWrite32(offsets[i], (DWORD)&getTickCountOffs);
 		}
-		SafeWrite32(0x4FDF58, (DWORD)&sf_GetLocalTime);
+		SafeWrite32(0x4FDF58, (DWORD)&getLocalTimeOffs);
 		HookCall(0x4A433E, scripts_check_state_hook);
 
 		TimerInit();
