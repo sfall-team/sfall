@@ -51,7 +51,7 @@ static bool toggled = false;
 static bool slideShow = false;
 
 static double multi;
-static DWORD storedTickCount = 0;
+static DWORD sfallTickCount = 0;
 static DWORD lastTickCount;
 static double tickCountFraction = 0.0;
 
@@ -62,16 +62,12 @@ static struct SpeedCfg {
 	double multiplier;
 } *speed = nullptr;
 
-static int modKey;
+static int modKey[2];
 static int toggleKey;
 
 static DWORD __stdcall FakeGetTickCount() {
 	// Keyboard control
-	if (modKey && ((modKey > 0 && KeyDown(modKey))
-		|| (modKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
-		|| (modKey == -2 && (KeyDown(DIK_LMENU)    || KeyDown(DIK_RMENU)))
-		|| (modKey == -3 && (KeyDown(DIK_LSHIFT)   || KeyDown(DIK_RSHIFT)))))
-	{
+	if (modKey[0] && (KeyDown(modKey[0]) || (modKey[1] && KeyDown(modKey[1])))) {
 		if (toggleKey && KeyDown(toggleKey)) {
 			if (!toggled) {
 				toggled = true;
@@ -90,33 +86,30 @@ static DWORD __stdcall FakeGetTickCount() {
 	}
 
 	DWORD newTickCount = GetTickCount();
+	if (newTickCount == lastTickCount) return sfallTickCount;
+
 	// Just in case someone's been running their computer for 49 days straight
-	if (newTickCount < lastTickCount) {
-		newTickCount = lastTickCount;
-		return storedTickCount;
+	if (lastTickCount > newTickCount) {
+		lastTickCount = newTickCount;
+		return sfallTickCount;
 	}
 
 	double elapsed = (double)(newTickCount - lastTickCount);
 	lastTickCount = newTickCount;
 
 	// Multiply the tick count difference by the multiplier
-	if (enabled && !slideShow
-		&& !(GetLoopFlags() & (LoopFlag::INVENTORY | LoopFlag::INTFACEUSE | LoopFlag::INTFACELOOT | LoopFlag::DIALOG)))
-	{
+	if (enabled && !slideShow && !(GetLoopFlags() & (LoopFlag::INVENTORY | LoopFlag::INTFACEUSE | LoopFlag::INTFACELOOT | LoopFlag::DIALOG))) {
 		elapsed *= multi;
-		tickCountFraction += modf(elapsed, &elapsed);
+		elapsed += tickCountFraction;
+		tickCountFraction = modf(elapsed, &elapsed);
 	}
-	storedTickCount += (DWORD)elapsed;
+	sfallTickCount += (DWORD)elapsed;
 
-	if (tickCountFraction > 1.0) {
-		tickCountFraction -= 1.0;
-		storedTickCount++;
-	}
-	return storedTickCount;
+	return sfallTickCount;
 }
 
 void __stdcall FakeGetLocalTime(LPSYSTEMTIME time) {
-	__int64 currentTime = startTime + storedTickCount * 10000;
+	__int64 currentTime = startTime + sfallTickCount * 10000;
 	FileTimeToSystemTime((FILETIME*)&currentTime, time);
 }
 
@@ -159,11 +152,28 @@ void TimerInit() {
 
 void SpeedPatch::init() {
 	if (GetConfigInt("Speed", "Enable", 0)) {
-		modKey = GetConfigInt("Input", "SpeedModKey", 0);
+		modKey[0] = GetConfigInt("Input", "SpeedModKey", 0);
 		int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
-		if (init == 100 && !modKey) return;
+		if (init == 100 && !modKey[0]) return;
 
 		dlog("Applying speed patch.", DL_INIT);
+
+		switch (modKey[0]) {
+		case -1:
+			modKey[0] = DIK_LCONTROL;
+			modKey[1] = DIK_RCONTROL;
+			break;
+		case -2:
+			modKey[0] = DIK_LMENU;
+			modKey[1] = DIK_RMENU;
+			break;
+		case -3:
+			modKey[0] = DIK_LSHIFT;
+			modKey[1] = DIK_RSHIFT;
+			break;
+		default:
+			modKey[1] = 0;
+		}
 
 		multi = (double)init / 100.0;
 		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);

@@ -143,7 +143,7 @@ static void WorldMapFPS() {
 		while (true) {
 			tick = SpeedPatch::getTickCount();
 			// get elapsed time
-			if ((tick - prevTicks) >= 10) break; // delay 10 ms (GetTickCount returns a difference of 10-16 ms)
+			if ((tick - prevTicks) >= 10) break; // delay 10 ms (GetTickCount returns a difference of 14-16 ms)
 		}
 		prevTicks = tick;
 
@@ -177,10 +177,10 @@ static void __declspec(naked) wmWorldMap_hook() {
 		call ds:[SpeedPatch::getTickCountOffs]; // current ticks
 		mov  edx, eax;
 		sub  eax, worldMapTicks; // get elapsed time (cur.ticks - prev.ticks)
-		cmp  eax, 10;            // delay 10 ms (GetTickCount returns a difference of 10-16 ms)
+		cmp  eax, 10;            // delay 10 ms (GetTickCount returns a difference of 14-16 ms)
 		jb   skipHook;
 		mov  worldMapTicks, edx;
-		call WorldmapLoopHook;
+		call WorldmapLoopHook;   // hook is called every ~15 ms (not more often than 10 ms)
 skipHook:
 		jmp  fo::funcoffs::get_input_;
 	}
@@ -409,7 +409,7 @@ static void WorldmapFpsPatch() {
 	if (fpsPatchOK) {
 		void* func;
 		if (worldMapDelay == 0) {
-			func = wmWorldMap_hook;
+			func = wmWorldMap_hook; // only WorldmapLoop hook
 		} else if (worldMapDelay > 25) {
 			worldMapLongDelay = true;
 			func = wmWorldMap_hook_patch1;
