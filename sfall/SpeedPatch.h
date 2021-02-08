@@ -24,4 +24,4 @@ void SpeedPatch_Exit();
 extern DWORD getTickCountOffs;
 
 // sfall implementation of the GetTickCount() function
-DWORD __stdcall SpeedPatch_getTickCount();
+DWORD SpeedPatch_getTickCount();

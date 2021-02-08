@@ -383,7 +383,23 @@ static void __declspec(naked) debugMsg() {
 	}
 }
 
-//static const DWORD addrNewLine[] = {0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE}; // ERROR: attempt to reference * var out of range: %d
+// Shifts the string one character to the right and inserts a newline control character at the beginning
+static void MoveDebugString(char* messageAddr) {
+	int i = 0;
+	do {
+		messageAddr[i + 1] = messageAddr[i];
+		i--;
+	} while (messageAddr[i] != '\0');
+	messageAddr[i + 1] = '\n';
+}
+
+static const DWORD addrSpaceChar[] = {
+	0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE // "ERROR: attempt to reference * var out of range: %d"
+};
+
+static const DWORD addrNewLineChar[] = {
+	0x500A64, // "Friendly was in the way!"
+};
 
 static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ddrawIniDef);
@@ -427,7 +443,8 @@ static void DebugModePatch() {
 		SafeWrite8(0x4DC34D, 15);
 
 		// Fix the format of some debug messages
-		//SafeWriteBatch<BYTE>(0xA, addrNewLine);
+		SafeWriteBatch<BYTE>('\n', addrNewLineChar);
+		//SafeWriteBatch<BYTE>(' ', addrSpaceChar);
 		const DWORD mapVarErrorAddr[] = {
 			0x482240, // map_set_global_var_
 			0x482274, // map_get_global_var_
@@ -435,7 +452,9 @@ static void DebugModePatch() {
 			0x4822D4  // map_get_local_var_
 		};
 		HookCalls(debugMsg, mapVarErrorAddr);
-
+		if (dbgMode != 1) {
+			MoveDebugString((char*)0x500A9B); // "computing attack..."
+		}
 		dlogr(" Done", DL_INIT);
 	}
 }
