@@ -53,8 +53,15 @@ Queue* QueueFind(GameObject* object, long type);
 // returns weapon animation code
 long AnimCodeByWeapon(GameObject* weapon);
 
-// returns pointer to prototype by PID, or nullptr on failure
-Proto* GetProto(long pid);
+// returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
+bool GetProto(long pid, Proto* outProto);
+
+// returns pointer to prototype by PID, or nullptr on get failure
+// NOTE: not an efficient construction
+__forceinline Proto* GetProto(long pid) {
+	Proto* proto = nullptr;;
+	return GetProto(pid, proto) ? proto : nullptr;
+}
 
 bool CritterCopyProto(long pid, long* &proto_dst);
 

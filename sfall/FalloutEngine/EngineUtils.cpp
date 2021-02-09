@@ -56,31 +56,28 @@ Queue* QueueFind(GameObject* object, long type) {
 
 long AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
-		Proto* proto = GetProto(weapon->protoId);
-		if (proto != nullptr && proto->item.type == item_type_weapon) {
+		Proto* proto = nullptr;
+		if (GetProto(weapon->protoId, proto) && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
 }
 
-Proto* GetProto(long pid) {
-	Proto* protoPtr;
-	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
-		return protoPtr;
-	}
-	return nullptr;
+bool GetProto(long pid, Proto* outProto) {
+	return (fo::func::proto_ptr(pid, &outProto) != -1);
 }
 
 bool CritterCopyProto(long pid, long* &proto_dst) {
-	fo::Proto* protoPtr;
-	if (fo::func::proto_ptr(pid, &protoPtr) == -1) {
+	fo::Proto* proto = nullptr;
+	bool result = GetProto(pid, proto);
+	if (result) {
+		proto_dst = reinterpret_cast<long*>(new int32_t[104]);
+		std::memcpy(proto_dst, proto, 416);
+	} else {
 		proto_dst = nullptr;
-		return false;
 	}
-	proto_dst = reinterpret_cast<long*>(new long[104]);
-	memcpy(proto_dst, protoPtr, 416);
-	return true;
+	return result;
 }
 
 void SkillGetTags(long* result, long num) {
@@ -165,21 +162,21 @@ long __fastcall IsRadInfluence() {
 }
 
 bool IsNpcFlag(fo::GameObject* npc, long flag) {
-	Proto* protoPtr;
-	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
-		return (protoPtr->critter.critterFlags & (1 << flag)) != 0;
+	Proto* proto = nullptr;;
+	if (GetProto(npc->protoId, proto)) {
+		return (proto->critter.critterFlags & (1 << flag)) != 0;
 	}
 	return false;
 }
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
-	Proto* protoPtr;
-	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
+	Proto* proto = nullptr;;
+	if (GetProto(npc->protoId, proto)) {
 		long bit = (1 << flag);
 		if (set) {
-			protoPtr->critter.critterFlags |= bit;
+			proto->critter.critterFlags |= bit;
 		} else {
-			protoPtr->critter.critterFlags &= ~bit;
+			proto->critter.critterFlags &= ~bit;
 		}
 	}
 }

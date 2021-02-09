@@ -205,29 +205,29 @@ enum class Material : long
 
 namespace ObjectFlag {
 	enum ObjectFlag : DWORD {
-		Mouse_3d = 0x1,
-		WalkThru = 0x4,
-		Flat = 0x8,
-		NoBlock = 0x10,
-		Lighting = 0x20,
-		Temp = 0x400,
-		MultiHex = 0x800,
-		NoHighlight = 0x1000,
-		Used = 0x2000,
-		TransRed = 0x4000,
-		TransNone = 0x8000,
-		TransWall = 0x10000,
-		TransGlass = 0x20000,
-		TransSteam = 0x40000,
-		TransEnergy = 0x80000,
-		Left_Hand = 0x1000000,
-		Right_Hand = 0x2000000,
-		Worn = 0x4000000,
-		HiddenItem = 0x8000000,
+		Mouse_3d     = 0x1,
+		WalkThru     = 0x4,
+		Flat         = 0x8,
+		NoBlock      = 0x10,
+		Lighting     = 0x20,
+		Temp         = 0x400,
+		MultiHex     = 0x800,
+		NoHighlight  = 0x1000,
+		Used         = 0x2000,
+		TransRed     = 0x4000,
+		TransNone    = 0x8000,
+		TransWall    = 0x10000,
+		TransGlass   = 0x20000,
+		TransSteam   = 0x40000,
+		TransEnergy  = 0x80000,
+		Left_Hand    = 0x1000000,
+		Right_Hand   = 0x2000000,
+		Worn         = 0x4000000,
+		HiddenItem   = 0x8000000,
 		WallTransEnd = 0x10000000,
-		LightThru = 0x20000000,
-		Seen = 0x40000000,
-		ShootThru = 0x80000000,
+		LightThru    = 0x20000000,
+		Seen         = 0x40000000,
+		ShootThru    = 0x80000000,
 	};
 }
 
@@ -314,7 +314,7 @@ enum ProtoId : long
 //XXXXXXXXXXXXXXXXXXXXX
 
 // Trait defines //
-#define TRAIT_PERK  (0)
+#define TRAIT_PERK   (0)
 #define TRAIT_OBJECT (1)
 #define TRAIT_TRAIT  (2)
 
@@ -515,10 +515,10 @@ enum Stat : long
 	STAT_rad_resist = 31,
 	STAT_poison_resist = 32,
 	// poison_resist MUST be the last derived stat
-	// nonderived stats
+	// non-derived stats
 	STAT_age = 33,
 	STAT_gender = 34,
-	// gender MUST be the last nonderived stat
+	// gender MUST be the last non-derived stat
 	STAT_current_hp = 35,
 	STAT_current_poison = 36,
 	STAT_current_rad = 37,
@@ -738,6 +738,14 @@ enum RollResult
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
 
+enum CombatStateFlag : long
+{
+	InCombat        = 1,
+	EnemyOutOfRange = 2,
+	IsFleeing       = 4,
+	ReTarget        = 8 // sfall flag
+};
+
 namespace Fields {
 	enum CommonObj : long
 	{
@@ -805,13 +813,14 @@ namespace WinFlags {
 namespace AIpref {
 	enum distance : long
 	{
-		stay_close            = 0,
-		charge                = 1,
-		snipe                 = 2,
-		on_your_own           = 3,
-		stay                  = 4
+		stay_close            = 0, // the attacker will stay at a distance no more than 5 hexes from the player (defined in ai_move_steps_closer, cai_perform_distance_prefs)
+		charge                = 1, // AI will always try to get close to its target before or after attack
+		snipe                 = 2, // when the distance between the attacker and the target decreases, the attacker will try to move away from the target to a distance of up to 10 hexes
+		on_your_own           = 3, // no special behavior defined for this
+		stay                  = 4  // the attacker will, if possible, stay at the hex where the combat started (defined in ai_move_steps_closer, ai_move_away)
 	};
 
+	// presets for party members
 	enum disposition : long
 	{
 		none                  = -1,
@@ -824,11 +833,11 @@ namespace AIpref {
 
 	enum class attack_who : long
 	{
-		whomever_attacking_me = 0,
-		strongest             = 1,
-		weakest               = 2,
-		whomever              = 3,
-		closest               = 4,
+		whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
+		strongest             = 1, // attack stronger targets (will switch to stronger ones in combat)
+		weakest               = 2, // attack weaker targets
+		whomever              = 3, // anyone
+		closest               = 4, // only attack near targets
 	};
 
 	enum class run_away_mode : long
@@ -850,13 +859,13 @@ namespace AIpref {
 		ranged_over_melee     = 3,
 		ranged                = 4,
 		unarmed               = 5,
-		unarmed_over_thrown   = 6, // not available in party member control panel
-		random                = 7  // not available in party member control panel
+		unarmed_over_thrown   = 6, // not available for party member in control panel
+		random                = 7  // not available for party member in control panel
 	};
 
 	enum class area_attack_mode : long
 	{
-		no_pref               = -1, // special logic for NPC (not available in party member control panel)
+		no_pref               = -1, // special logic for NPC (not available for party member in control panel)
 		always                = 0,
 		sometimes             = 1,  // use random value from cap.secondary_freq
 		be_sure               = 2,  // 85% hit chance
