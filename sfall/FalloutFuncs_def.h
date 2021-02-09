@@ -31,6 +31,7 @@ WRAP_WATCOM_FFUNC3(FrmFrameData*, frame_ptr, FrmHeaderData*, frm, long, frame, l
 WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, WINinfo*, win, BoundRect*, rect, long*, buffer)
 WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
 WRAP_WATCOM_FFUNC3(TGameObj*, inven_find_type, TGameObj*, critter, long, itemType, DWORD*, buf)
+WRAP_WATCOM_FFUNC3(long, inven_wield, TGameObj*, critter, TGameObj*, item, long, slot)
 WRAP_WATCOM_FFUNC3(long, item_add_force, TGameObj*, critter, TGameObj*, item, long, count)
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, TGameObj*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
@@ -40,6 +41,7 @@ WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC3(TGameObj*, obj_blocking_at, TGameObj*, object, long, tile, long, elevation)
 WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, TGameObj*, object, long, sType, long, scriptIndex)
 WRAP_WATCOM_FFUNC3(TGameObj*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
+WRAP_WATCOM_FFUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, comp)
 WRAP_WATCOM_FFUNC4(long, queue_add, long, time, TGameObj*, object, void*, data, long, qType)
 WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
@@ -71,6 +73,7 @@ WRAP_WATCOM_FUNC1(long, critter_body_type, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, TGameObj*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
+WRAP_WATCOM_FUNC1(long, critterIsOverloaded, TGameObj*, critter)
 /* Database functions */
 WRAP_WATCOM_FUNC1(bool, db_access, const char*, fileName) // Checks if given file exists in DB
 WRAP_WATCOM_FUNC1(long, db_fclose, DbFile*, file)

@@ -393,7 +393,7 @@ static void MoveDebugString(char* messageAddr) {
 	messageAddr[i + 1] = '\n';
 }
 
-static const DWORD addrSpaceChar[] = {
+static const DWORD addrDotChar[] = {
 	0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE // "ERROR: attempt to reference * var out of range: %d"
 };
 
@@ -444,7 +444,7 @@ static void DebugModePatch() {
 
 		// Fix the format of some debug messages
 		SafeWriteBatch<BYTE>('\n', addrNewLineChar);
-		//SafeWriteBatch<BYTE>(' ', addrSpaceChar);
+		SafeWriteBatch<BYTE>('.', addrDotChar);
 		const DWORD mapVarErrorAddr[] = {
 			0x482240, // map_set_global_var_
 			0x482274, // map_get_global_var_
@@ -466,7 +466,26 @@ static void DontDeleteProtosPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 }
-
+/*
+void CheckTimerResolution() {
+	DWORD ticksList[50];
+	DWORD old_ticks = GetTickCount();
+	for (size_t i = 0; i < 50;) {
+		DWORD ticks = GetTickCount();
+		if (ticks != old_ticks) {
+			old_ticks = ticks;
+			ticksList[i++] = ticks;
+		}
+	}
+	int min = 100, max = 0;
+	for (size_t i = 0; i < 49; i++) {
+		int ms = ticksList[i + 1] - ticksList[i];
+		if (ms < min) min = ms;
+		if (ms > max) max = ms;
+	}
+	fo_debug_printf("System timer resolution: %d - %d ms.\n", min, max);
+}
+*/
 void DebugEditor_Init() {
 	DebugModePatch();
 
