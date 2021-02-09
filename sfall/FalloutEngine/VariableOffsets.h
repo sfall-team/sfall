@@ -14,6 +14,7 @@
 #define FO_VAR_art_name                   0x56C9E4
 #define FO_VAR_art_vault_guy_num          0x5108A4
 #define FO_VAR_art_vault_person_nums      0x5108A8
+#define FO_VAR_artCritterFidShouldRunData 0x56CAF0
 #define FO_VAR_aTextSCuts                 0x501A8C
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C

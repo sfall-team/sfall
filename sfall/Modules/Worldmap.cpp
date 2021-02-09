@@ -133,23 +133,20 @@ end:
 
 static void WorldMapFPS() {
 	DWORD prevTicks = worldMapTicks; // previous ticks
-	while (true) {
+	do {
 		WorldmapLoopHook();
 		if (worldMapLongDelay) {
 			__asm call fo::funcoffs::process_bk_;
 		}
 
 		DWORD tick; // current ticks
-		while (true) {
+		do {
 			tick = SpeedPatch::getTickCount();
-			// get elapsed time
-			if ((tick - prevTicks) >= 10) break; // delay 10 ms (GetTickCount returns a difference of 14-16 ms)
-		}
+		} while (tick == prevTicks); // delay ~15 ms
 		prevTicks = tick;
 
 		// get elapsed time
-		if ((tick - worldMapTicks) >= worldMapDelay) break;
-	}
+	} while ((prevTicks - worldMapTicks) < worldMapDelay);
 	worldMapTicks = prevTicks;
 }
 
@@ -175,12 +172,10 @@ static void __declspec(naked) wmWorldMap_hook_patch2() {
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
 		call ds:[SpeedPatch::getTickCountOffs]; // current ticks
-		mov  edx, eax;
-		sub  eax, worldMapTicks; // get elapsed time (cur.ticks - prev.ticks)
-		cmp  eax, 10;            // delay 10 ms (GetTickCount returns a difference of 14-16 ms)
-		jb   skipHook;
-		mov  worldMapTicks, edx;
-		call WorldmapLoopHook;   // hook is called every ~15 ms (not more often than 10 ms)
+		cmp  eax, worldMapTicks;
+		je   skipHook;
+		mov  worldMapTicks, eax;
+		call WorldmapLoopHook; // hook is called every ~15 ms (GetTickCount returns a difference of 14-16 ms)
 skipHook:
 		jmp  fo::funcoffs::get_input_;
 	}

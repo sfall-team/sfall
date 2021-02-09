@@ -33,6 +33,7 @@ WRAP_WATCOM_FFUNC3(FrmFrameData*, frame_ptr, FrmHeaderData*, frm, long, frame, l
 WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, Window*, win, BoundRect*, rect, long*, buffer)
 WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
 WRAP_WATCOM_FFUNC3(GameObject*, inven_find_type, GameObject*, critter, long, itemType, DWORD*, buf)
+WRAP_WATCOM_FFUNC3(long, inven_wield, GameObject*, critter, GameObject*, item, long, slot)
 WRAP_WATCOM_FFUNC3(long, item_add_force, GameObject*, critter, GameObject*, item, long, count)
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, GameObject*, source, long, hitMode, long, isCalled)
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
@@ -43,6 +44,7 @@ WRAP_WATCOM_FFUNC3(GameObject*, obj_blocking_at, GameObject*, object, long, tile
 WRAP_WATCOM_FFUNC4(long, obj_move_to_tile, GameObject*, object, long, tile, long, elevation, RECT*, rect)
 WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, GameObject*, object, long, sType, long, scriptIndex)
 WRAP_WATCOM_FFUNC3(GameObject*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
+WRAP_WATCOM_FFUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, comp)
 WRAP_WATCOM_FFUNC4(long, queue_add, long, time, GameObject*, object, void*, data, long, qType)
 WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FFUNC4(long, register_object_move_to_object, GameObject*, source, GameObject*, target, long, distance, long, delay)
@@ -75,8 +77,12 @@ WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut
 WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
 WRAP_WATCOM_FUNC2(long, barter_compute_value, GameObject*, source, GameObject*, target)
 WRAP_WATCOM_FUNC1(long, block_for_tocks, long, ticks)
+WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn) // Perform combat turn for a given critter
+WRAP_WATCOM_FUNC1(long, critter_body_type, GameObject*, critter)
+WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, GameObject*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
+WRAP_WATCOM_FUNC1(long, critterIsOverloaded, GameObject*, critter)
 /* Database functions */
 WRAP_WATCOM_FUNC1(bool, db_access, const char*, fileName) // Checks if given file exists in DB
 WRAP_WATCOM_FUNC1(long, db_fclose, DbFile*, file)
@@ -105,9 +111,6 @@ WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 ////////////////////////
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
-WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn) // Perform combat turn for a given critter
-WRAP_WATCOM_FUNC1(long, critter_body_type, GameObject*, critter)
-WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, EndLoad, DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, executeProcedure, Program*, sptr, long, procNum)
@@ -232,12 +235,10 @@ WRAP_WATCOM_FUNC1(long, register_object_inc_rotation, GameObject*, object)
 WRAP_WATCOM_FUNC3(long, register_object_light, GameObject*, object, long, lightRadius, long, delay)
 // WRAP_WATCOM_FUNC3(long, register_object_move_on_stairs_, GameObject*, object;
 // WRAP_WATCOM_FUNC3(long, register_object_move_straight_to_tile_, GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_move_to_tile_, GameObject*, object;
 // WRAP_WATCOM_FUNC3(long, register_object_must_call_, GameObject*, object;
 WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_outline_, GameObject*, object;
 // WRAP_WATCOM_FUNC3(long, register_object_play_sfx_, GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)

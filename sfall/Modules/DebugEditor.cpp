@@ -396,7 +396,7 @@ static void MoveDebugString(char* messageAddr) {
 	messageAddr[i + 1] = '\n';
 }
 
-static const DWORD addrSpaceChar[] = {
+static const DWORD addrDotChar[] = {
 	0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE // "ERROR: attempt to reference * var out of range: %d"
 };
 
@@ -404,7 +404,7 @@ static const DWORD addrNewLineChar[] = {
 	0x500A64, // "Friendly was in the way!"
 };
 
-static int DebugModePatch() {
+static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode > 0) {
 		dlog("Applying debugmode patch.", DL_INIT);
@@ -447,7 +447,7 @@ static int DebugModePatch() {
 
 		// Fix the format of some debug messages
 		SafeWriteBatch<BYTE>('\n', addrNewLineChar);
-		//SafeWriteBatch<BYTE>(' ', addrSpaceChar);
+		SafeWriteBatch<BYTE>('.', addrDotChar);
 		HookCalls(debugMsg, {
 			0x482240, // map_set_global_var_
 			0x482274, // map_get_global_var_
@@ -459,7 +459,6 @@ static int DebugModePatch() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
-	return dbgMode;
 }
 
 static void DontDeleteProtosPatch() {
@@ -469,29 +468,28 @@ static void DontDeleteProtosPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 }
-
-void DebugEditor::init() {
-	if (DebugModePatch() > 1) {
-		LoadGameHook::OnGameInit() += []() {
-			DWORD* ticksList = new DWORD[50];
-			DWORD old_ticks = GetTickCount();
-			for (size_t i = 0; i < 50;) {
-				DWORD ticks = GetTickCount();
-				if (ticks != old_ticks) {
-					old_ticks = ticks;
-					ticksList[i++] = ticks;
-				}
-			}
-			int min = 100, max = 0;
-			for (size_t i = 0; i < 49; i++) {
-				int ms = ticksList[i + 1] - ticksList[i];
-				if (ms < min) min = ms;
-				if (ms > max) max = ms;
-			}
-			delete[] ticksList;
-			fo::func::debug_printf("System timer resolution: min %d ms, max %d ms\n", min, max);
-		};
+/*
+void CheckTimerResolution() {
+	DWORD ticksList[50];
+	DWORD old_ticks = GetTickCount();
+	for (size_t i = 0; i < 50;) {
+		DWORD ticks = GetTickCount();
+		if (ticks != old_ticks) {
+			old_ticks = ticks;
+			ticksList[i++] = ticks;
+		}
 	}
+	int min = 100, max = 0;
+	for (size_t i = 0; i < 49; i++) {
+		int ms = ticksList[i + 1] - ticksList[i];
+		if (ms < min) min = ms;
+		if (ms > max) max = ms;
+	}
+	fo::func::debug_printf("System timer resolution: %d - %d ms.\n", min, max);
+}
+*/
+void DebugEditor::init() {
+	DebugModePatch();
 
 	// Notifies and prints a debug message about a corrupted proto file to debug.log
 	MakeCall(0x4A1D73, proto_load_pid_hack, 6);
