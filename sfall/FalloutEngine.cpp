@@ -512,7 +512,7 @@ const char* GetMessageStr(const MSGList* fileAddr, long messageId) {
 	return fo_getmsg(fileAddr, &messageBuf, messageId);
 }
 
-const char* MsgSearch(const MSGList* fileAddr, long messageId) {
+const char* MessageSearch(const MSGList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
 	if (fo_message_search(fileAddr, &messageBuf) == 1) {
 		return messageBuf.message;
@@ -520,7 +520,7 @@ const char* MsgSearch(const MSGList* fileAddr, long messageId) {
 	return nullptr;
 }
 
-Queue* QueueFindUtil(TGameObj* object, long type) {
+Queue* QueueFind(TGameObj* object, long type) {
 	if (*ptr_queue) {
 		Queue* queue = *ptr_queue;
 		while (queue->object != object && queue->type != type) {
@@ -534,20 +534,16 @@ Queue* QueueFindUtil(TGameObj* object, long type) {
 
 long AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
-		sProto* proto = GetProto(weapon->protoId);
-		if (proto != nullptr && proto->item.type == item_type_weapon) {
+		sProto* proto = nullptr;
+		if (GetProto(weapon->protoId, proto) && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
 }
 
-sProto* GetProto(long pid) {
-	sProto* protoPtr;
-	if (fo_proto_ptr(pid, &protoPtr) != -1) {
-		return protoPtr;
-	}
-	return nullptr;
+bool GetProto(long pid, sProto* outProto) {
+	return (fo_proto_ptr(pid, &outProto) != -1);
 }
 
 void SkillGetTags(long* result, long num) {

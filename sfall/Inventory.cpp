@@ -315,7 +315,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 	sizeMax = limitMax;
 	size = sfgame_item_total_size(critter);
 
-	const char* msg = MsgSearch(ptr_inventry_message_file, 35);
+	const char* msg = MessageSearch(ptr_inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
 
 	strcpy(InvenFmt, InvenFmt1);
@@ -343,13 +343,13 @@ static char SizeMsgBuf[32];
 static const char* __stdcall SizeInfoMessage(TGameObj* item) {
 	int size = fo_item_size(item);
 	if (size == 1) {
-		const char* message = MsgSearch(ptr_proto_main_msg_file, 543);
+		const char* message = MessageSearch(ptr_proto_main_msg_file, 543);
 		if (message == nullptr)
 			strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else
 			strncpy_s(SizeMsgBuf, message, _TRUNCATE);
 	} else {
-		const char* message = MsgSearch(ptr_proto_main_msg_file, 542);
+		const char* message = MessageSearch(ptr_proto_main_msg_file, 542);
 		if (message == nullptr)
 			sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else

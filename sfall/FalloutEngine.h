@@ -500,15 +500,22 @@ __forceinline void sf_rect_free(RectList* rect) {
 const char* GetMessageStr(const MSGList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* MsgSearch(const MSGList* fileAddr, long messageId);
+const char* MessageSearch(const MSGList* fileAddr, long messageId);
 
-Queue* QueueFindUtil(TGameObj* object, long type);
+Queue* QueueFind(TGameObj* object, long type);
 
 // returns weapon animation code
 long AnimCodeByWeapon(TGameObj* weapon);
 
-// returns pointer to prototype by PID, or nullptr on failure
-sProto* GetProto(long pid);
+// returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
+bool GetProto(long pid, sProto* outProto);
+
+// returns pointer to prototype by PID, or nullptr on get failure
+// NOTE: not an efficient construction
+__forceinline sProto* GetProto(long pid) {
+	sProto* proto = nullptr;
+	return GetProto(pid, proto) ? proto : nullptr;
+}
 
 // wrapper for skill_get_tags with bounds checking
 void SkillGetTags(long* result, long num);
