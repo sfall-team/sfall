@@ -54,7 +54,7 @@ Queue* QueueFind(GameObject* object, long type);
 long AnimCodeByWeapon(GameObject* weapon);
 
 // returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
-bool GetProto(long pid, Proto* outProto);
+bool GetProto(long pid, Proto** outProto);
 
 // returns pointer to prototype by PID, or nullptr on get failure
 // NOTE: not an efficient construction

@@ -56,21 +56,21 @@ Queue* QueueFind(GameObject* object, long type) {
 
 long AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
-		Proto* proto = nullptr;
-		if (GetProto(weapon->protoId, proto) && proto->item.type == item_type_weapon) {
+		Proto* proto;
+		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
 }
 
-bool GetProto(long pid, Proto* outProto) {
-	return (fo::func::proto_ptr(pid, &outProto) != -1);
+bool GetProto(long pid, Proto** outProto) {
+	return (fo::func::proto_ptr(pid, outProto) != -1);
 }
 
 bool CritterCopyProto(long pid, long* &proto_dst) {
-	fo::Proto* proto = nullptr;
-	bool result = GetProto(pid, proto);
+	fo::Proto* proto;
+	bool result = GetProto(pid, &proto);
 	if (result) {
 		proto_dst = reinterpret_cast<long*>(new int32_t[104]);
 		std::memcpy(proto_dst, proto, 416);
@@ -162,16 +162,16 @@ long __fastcall IsRadInfluence() {
 }
 
 bool IsNpcFlag(fo::GameObject* npc, long flag) {
-	Proto* proto = nullptr;;
-	if (GetProto(npc->protoId, proto)) {
+	Proto* proto;
+	if (GetProto(npc->protoId, &proto)) {
 		return (proto->critter.critterFlags & (1 << flag)) != 0;
 	}
 	return false;
 }
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
-	Proto* proto = nullptr;;
-	if (GetProto(npc->protoId, proto)) {
+	Proto* proto;
+	if (GetProto(npc->protoId, &proto)) {
 		long bit = (1 << flag);
 		if (set) {
 			proto->critter.critterFlags |= bit;
