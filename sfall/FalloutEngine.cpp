@@ -534,16 +534,16 @@ Queue* QueueFind(TGameObj* object, long type) {
 
 long AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
-		sProto* proto = nullptr;
-		if (GetProto(weapon->protoId, proto) && proto->item.type == item_type_weapon) {
+		sProto* proto;
+		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
 }
 
-bool GetProto(long pid, sProto* outProto) {
-	return (fo_proto_ptr(pid, &outProto) != -1);
+bool GetProto(long pid, sProto** outProto) {
+	return (fo_proto_ptr(pid, outProto) != -1);
 }
 
 void SkillGetTags(long* result, long num) {
