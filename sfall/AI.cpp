@@ -197,12 +197,43 @@ isNotDead:
 	}
 }
 
-static long __fastcall sf_ai_check_weapon_switch(TGameObj* target, long &hitMode, TGameObj* source, TGameObj* weapon) {
+static void __declspec(naked) ai_search_environ_hook() {
+	static const DWORD ai_search_environ_Ret = 0x429D3E;
+	__asm {
+		call obj_dist_;
+		cmp  [esp + 0x28 + 0x1C + 4], item_type_ammo;
+		je   end;
+		//
+		push edx;
+		push eax;
+		mov  edx, STAT_max_move_points;
+		mov  eax, esi;
+		call stat_level_;
+		mov  edx, [esi + movePoints];    // source current AP
+		cmp  edx, eax;                   // NPC already spent its AP?
+		pop  eax;
+		jge  skip;                       // No
+		// distance & AP check
+		sub  edx, 3;                     // pickup AP cost
+		cmp  edx, eax;                   // eax - distance to the object
+		jl   continue;
+skip:
+		pop  edx;
+end:
+		retn;
+continue:
+		pop  edx;
+		add  esp, 4;                     // destroy return
+		jmp  ai_search_environ_Ret;      // next object
+	}
+}
+
+static long __fastcall AI_Check_Weapon_Switch(TGameObj* target, long &hitMode, TGameObj* source, TGameObj* weapon) {
 	if (source->critter.movePoints <= 0) return -1;
 	if (!weapon) return 1; // no weapon in hand slots
 
-	long _hitMode;
-	if ((_hitMode = fo_ai_pick_hit_mode(source, weapon, target)) != hitMode) {
+	long _hitMode = fo_ai_pick_hit_mode(source, weapon, target);
+	if (_hitMode != hitMode) {
 		hitMode = _hitMode;
 		return 0; // change hit mode
 	}
@@ -214,15 +245,15 @@ static long __fastcall sf_ai_check_weapon_switch(TGameObj* target, long &hitMode
 	if (wType <= ATKSUBTYPE_MELEE) { // unarmed and melee weapons, check the distance before switching
 		if (fo_obj_dist(source, target) > 2) return -1;
 	}
-	return 1;
+	return 1; // execute vanilla behavior of ai_switch_weapons_ function
 }
 
 static void __declspec(naked) ai_try_attack_hook_switch_fix() {
 	__asm {
 		push edx;
-		push [ebx];//push dword ptr [esp + 0x364 - 0x3C + 8]; // weapon
-		push esi;                                // source
-		call sf_ai_check_weapon_switch;          // edx - hit mode
+		push [ebx];                  // weapon (push dword ptr [esp + 0x364 - 0x3C + 8];)
+		push esi;                    // source
+		call AI_Check_Weapon_Switch; // edx - hit mode
 		pop  edx;
 		test eax, eax;
 		jle  noSwitch; // <= 0
@@ -478,6 +509,12 @@ void AI_Init() {
 	// Fix to reduce friendly fire in burst attacks
 	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
+
+	// When NPC does not have enough AP to use the weapon, it begins searching the inventory for another weapon to use
+	// If no suitable weapon is found, then it searches the nearby objects (weapons) on the ground to pick them up
+	// This fix prevents picking up an object on the ground if NPC does not have the full amount of AP (i.e. the action occurs
+	// in the middle of its turn) or if there is not enough AP to pick it up. NPC will not waste its AP to pick up unreachable items
+	HookCall(0x429CAF, ai_search_environ_hook);
 
 	// Fix AI weapon switching when not having enough action points
 	// AI will try to change attack mode before deciding to switch weapon

@@ -513,8 +513,8 @@ bool GetProto(long pid, sProto* outProto);
 // returns pointer to prototype by PID, or nullptr on get failure
 // NOTE: not an efficient construction
 __forceinline sProto* GetProto(long pid) {
-	sProto* proto = nullptr;
-	return GetProto(pid, proto) ? proto : nullptr;
+	sProto* proto;
+	return (fo_proto_ptr(pid, &proto) != -1) ? proto : nullptr;
 }
 
 // wrapper for skill_get_tags with bounds checking

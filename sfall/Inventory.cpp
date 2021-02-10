@@ -100,12 +100,13 @@ DWORD __stdcall sfgame_adjust_fid() {
 		} else {
 			// vanilla logic:
 			indexNum = *ptr_art_vault_guy_num;
-			auto critterPro = GetProto(*ptr_inven_pid);
-			if (critterPro != nullptr) {
+			sProto* critterPro;
+			if (GetProto(*ptr_inven_pid, critterPro)) {
 				indexNum = critterPro->fid & 0xFFF;
 			}
 			if (*ptr_i_worn != nullptr) {
-				auto armorPro = GetProto((*ptr_i_worn)->protoId);
+				sProto* armorPro;
+				GetProto((*ptr_i_worn)->protoId, armorPro);
 				DWORD armorFid = fo_stat_level(*ptr_inven_dude, STAT_gender) == GENDER_FEMALE
 					? armorPro->item.armor.femaleFID
 					: armorPro->item.armor.maleFID;
@@ -120,8 +121,8 @@ DWORD __stdcall sfgame_adjust_fid() {
 			: *ptr_i_lhand;
 
 		if (itemInHand != nullptr) {
-			auto itemPro = GetProto(itemInHand->protoId);
-			if (itemPro->item.type == item_type_weapon) {
+			sProto* itemPro;
+			if (GetProto(itemInHand->protoId, itemPro) && itemPro->item.type == item_type_weapon) {
 				weaponAnimCode = itemPro->item.weapon.animationCode;
 			}
 		}
