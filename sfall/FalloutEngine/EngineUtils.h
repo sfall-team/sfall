@@ -59,8 +59,8 @@ bool GetProto(long pid, Proto* outProto);
 // returns pointer to prototype by PID, or nullptr on get failure
 // NOTE: not an efficient construction
 __forceinline Proto* GetProto(long pid) {
-	Proto* proto = nullptr;;
-	return GetProto(pid, proto) ? proto : nullptr;
+	Proto* proto;
+	return (fo::func::proto_ptr(pid, &proto) != -1) ? proto : nullptr;
 }
 
 bool CritterCopyProto(long pid, long* &proto_dst);
