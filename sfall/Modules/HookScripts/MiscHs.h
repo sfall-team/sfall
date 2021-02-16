@@ -18,5 +18,5 @@ namespace sfall
 	void Inject_EncounterHook();
 	void Inject_RollCheckHook();
 
-	long PerceptionRangeHook_ScriptCheck(fo::GameObject* watcher, fo::GameObject* target, long result);
+	long PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result);
 }

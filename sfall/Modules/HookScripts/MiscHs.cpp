@@ -272,9 +272,9 @@ static __forceinline long PerceptionRangeHook_Script(fo::GameObject* watcher, fo
 	return result;
 }
 
-long PerceptionRangeHook_ScriptCheck(fo::GameObject* watcher, fo::GameObject* target, long result) { // TODO: add type arg
+long PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result) {
 	if (!HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) return result;
-	return PerceptionRangeHook_Script(watcher, target, 0, result);
+	return PerceptionRangeHook_Script(watcher, target, type, result);
 }
 
 static long __fastcall PerceptionRange_Hook(fo::GameObject* watcher, fo::GameObject* target, int type) {

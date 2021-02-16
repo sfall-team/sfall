@@ -204,7 +204,7 @@ enum class Material : long
 };
 
 namespace ObjectFlag {
-	enum ObjectFlag : DWORD {
+	enum ObjectFlag : unsigned long {
 		Mouse_3d     = 0x1,
 		WalkThru     = 0x4,
 		Flat         = 0x8,
@@ -252,8 +252,9 @@ enum ArtType : char
 };
 
 // Some FO2 PIDs possibly used by engine
-enum ProtoId : long
+enum ProtoID : unsigned long
 {
+	PID_POWERED_ARMOR = 3,
 //	PID_ROCK = 19,
 	PID_SMALL_ENERGY_CELL = 38,
 	PID_MICRO_FUSION_CELL = 39,
@@ -293,17 +294,23 @@ enum ProtoId : long
 	PID_ACTIVE_PLASTIC_EXPLOSIVE = 209,
 	PID_ACTIVE_STEALTH_BOY = 210,
 	PID_TECHNICAL_MANUAL = 228,
+	PID_HARDENED_POWER_ARMOR = 232,
 	PID_CHEMISTRY_MANUAL = 237,
 	PID_JET = 259,
 	PID_JET_ANTIDOTE = 260,
 	PID_DECK_OF_TRAGIC_CARDS = 306,
+	PID_ADVANCED_POWER_ARMOR = 348,
+	PID_ADVANCED_POWER_ARMOR_MK2 = 349,
 //	PID_GECK = 366,
 	PID_SOLAR_SCORCHER = 390,
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,
 
-	PID_Player = 16777216,
-	PID_DRIVABLE_CAR = 33555441,
+	// critter
+	PID_Player = 0x01000000,
+
+	// scenery
+	PID_DRIVABLE_CAR = 0x020003F1, // index 1009
 
 	// misc type
 	PID_CORPSE_BLOOD = 0x05000004,
@@ -313,11 +320,12 @@ enum ProtoId : long
 //XX Critter defines XX
 //XXXXXXXXXXXXXXXXXXXXX
 
-// Trait defines //
-#define TRAIT_PERK   (0)
-#define TRAIT_OBJECT (1)
-#define TRAIT_TRAIT  (2)
-
+enum TraitType : long
+{
+	TRAIT_PERK = 0,
+	TRAIT_OBJECT = 1,
+	TRAIT_TRAIT = 2
+};
 
 enum Perk : long
 {
@@ -743,7 +751,7 @@ enum CombatStateFlag : long
 	InCombat        = 1,
 	EnemyOutOfRange = 2,
 	IsFleeing       = 4,
-	ReTarget        = 8 // sfall flag
+	ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
 };
 
 namespace Fields {
@@ -761,8 +769,9 @@ namespace Fields {
 		flags             = 0x24,
 		elevation         = 0x28,
 		inventory         = 0x2C,
+
 		protoId           = 0x64,
-		cid               = 0x68,
+		cid               = 0x68, // combatID, don't change while in combat
 		lightDistance     = 0x6C,
 		lightIntensity    = 0x70,
 		outline           = 0x74,
@@ -833,10 +842,11 @@ namespace AIpref {
 
 	enum class attack_who : long
 	{
+		no_attack_mode        = -1,
 		whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
-		strongest             = 1, // attack stronger targets (will switch to stronger ones in combat)
-		weakest               = 2, // attack weaker targets
-		whomever              = 3, // anyone
+		strongest             = 1, // attack stronger targets (will always switch to stronger ones in combat)
+		weakest               = 2, // attack weaker targets (will always switch to weaker ones in combat)
+		whomever              = 3, // anyone, will attack the chosen target until it dies, or until retaliation occurs (combatai_check_retalization_)
 		closest               = 4, // only attack near targets
 	};
 

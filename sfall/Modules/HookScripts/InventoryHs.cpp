@@ -458,7 +458,7 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	}
 }
 
-long InvenWieldHook_ScriptCheck(fo::GameObject* critter, fo::GameObject* item, long flags) {
+long InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long flags) {
 	if (!HookScripts::HookHasScript(HOOK_INVENWIELD)) return 1;
 
 	long slot = fo::INVEN_TYPE_WORN;

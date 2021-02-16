@@ -97,7 +97,7 @@ static long CalcApCostHook_Script(fo::GameObject* source, long hitMode, long isC
 	return cost;
 }
 
-long CalcApCostHook_ScriptCheck(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
+long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
 	return (HookScripts::HookHasScript(HOOK_CALCAPCOST))
 			? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
 			: cost;
@@ -261,11 +261,11 @@ static void __declspec(naked) SubComputeDamageHook() {
 	}
 }
 
-static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
+static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* attacker) {
 	BeginHook();
 	argCount = 5;
 
-	args[0] = attacker;
+	args[0] = (DWORD)attacker;
 	args[1] = target[0];
 	args[2] = target[1];
 	args[3] = target[2];
@@ -280,6 +280,10 @@ static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
 		if (cRet > 3 && rets[3] != -1) target[3] = rets[3];
 	}
 	EndHook();
+}
+
+void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker) {
+	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);;
 }
 
 static void __declspec(naked) FindTargetHook() {
@@ -605,7 +609,6 @@ void Inject_CalcApCostHook() {
 		0x47807B
 	});
 	MakeCall(0x478083, CalcApCostHook2);
-	//TODO: 00429A08   call    item_w_primary_mp_cost_
 }
 
 void Inject_CombatDamageHook() {
