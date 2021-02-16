@@ -201,7 +201,7 @@ enum Material : long
 };
 
 namespace ObjectFlag {
-	enum ObjectFlag : DWORD {
+	enum ObjectFlag : unsigned long {
 		Mouse_3d     = 0x1,
 		WalkThru     = 0x4,
 		Flat         = 0x8,
@@ -249,7 +249,7 @@ enum ArtType : char
 };
 
 // Some FO2 PIDs possibly used by engine
-enum ProtoId : long
+enum ProtoID : unsigned long
 {
 	PID_DYNAMITE = 51,
 	PID_MOTION_SENSOR = 59,
@@ -262,8 +262,11 @@ enum ProtoId : long
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,
 
-	PID_Player = 16777216,
-	PID_DRIVABLE_CAR = 33555441,
+	// critter
+	PID_Player = 0x01000000,
+
+	// scenery
+	PID_DRIVABLE_CAR = 0x020003F1, // index 1009
 
 	// misc type
 	PID_CORPSE_BLOOD = 0x05000004,
@@ -273,11 +276,12 @@ enum ProtoId : long
 //XX Critter defines XX
 //XXXXXXXXXXXXXXXXXXXXX
 
-// Trait defines //
-#define TRAIT_PERK   (0)
-#define TRAIT_OBJECT (1)
-#define TRAIT_TRAIT  (2)
-
+enum TraitType : long
+{
+	TRAIT_PERK = 0,
+	TRAIT_OBJECT = 1,
+	TRAIT_TRAIT = 2
+};
 
 enum Perk : long
 {
@@ -705,8 +709,9 @@ namespace Fields {
 		flags             = 0x24,
 		elevation         = 0x28,
 		inventory         = 0x2C,
+
 		protoId           = 0x64,
-		cid               = 0x68,
+		cid               = 0x68, // combatID, don't change while in combat
 		lightDistance     = 0x6C,
 		lightIntensity    = 0x70,
 		outline           = 0x74,
@@ -777,10 +782,11 @@ namespace AIpref {
 
 	enum attack_who : long
 	{
+		ATKWHO_no_attack_mode        = -1,
 		ATKWHO_whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
-		ATKWHO_strongest             = 1, // attack stronger targets (will switch to stronger ones in combat)
-		ATKWHO_weakest               = 2, // attack weaker targets
-		ATKWHO_whomever              = 3, // anyone
+		ATKWHO_strongest             = 1, // attack stronger targets (will always switch to stronger ones in combat)
+		ATKWHO_weakest               = 2, // attack weaker targets (will always switch to weaker ones in combat)
+		ATKWHO_whomever              = 3, // anyone, will attack the chosen target until it dies, or until retaliation occurs (combatai_check_retalization_)
 		ATKWHO_closest               = 4, // only attack near targets
 	};
 

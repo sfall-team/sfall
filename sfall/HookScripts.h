@@ -90,4 +90,4 @@ long __stdcall sfgame_correctFidForRemovedItem(TGameObj* critter, TGameObj* item
 long __fastcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
-long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target);
+long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType);

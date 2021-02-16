@@ -480,11 +480,11 @@ static void __declspec(naked) OnDeathHook2() {
 }
 
 // 4.x backport
-static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
+static void __fastcall FindTargetHook_Script(DWORD* target, TGameObj* attacker) {
 	BeginHook();
 	argCount = 5;
 
-	args[0] = attacker;
+	args[0] = (DWORD)attacker;
 	args[1] = target[0];
 	args[2] = target[1];
 	args[3] = target[2];
@@ -1020,9 +1020,9 @@ static __forceinline long __stdcall PerceptionRangeHook_Script(TGameObj* watcher
 	return result;
 }
 
-static long __stdcall PerceptionRangeHook_ScriptCheck(TGameObj* watcher, TGameObj* target, long result) { // TODO: add type arg
+static long __stdcall PerceptionRangeHook_Invoke(TGameObj* watcher, TGameObj* target, long type, long result) {
 	if (!HookHasScript(HOOK_WITHINPERCEPTION)) return result;
-	return PerceptionRangeHook_Script(watcher, target, 0, result);
+	return PerceptionRangeHook_Script(watcher, target, type, result);
 }
 
 static long __fastcall PerceptionRange_Hook(TGameObj* watcher, TGameObj* target, int type) {
@@ -1030,8 +1030,8 @@ static long __fastcall PerceptionRange_Hook(TGameObj* watcher, TGameObj* target,
 }
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
-long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target) { // TODO: add type arg
-	return PerceptionRangeHook_ScriptCheck(watcher, target, fo_is_within_perception(watcher, target));
+long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType) {
+	return PerceptionRangeHook_Invoke(watcher, target, hookType, fo_is_within_perception(watcher, target));
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
