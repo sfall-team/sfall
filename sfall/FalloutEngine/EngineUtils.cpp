@@ -138,6 +138,21 @@ long GetCurrentAttackMode() {
 	return hitMode;
 }
 
+AttackSubType GetWeaponType(long weaponFlag) {
+	static const AttackSubType weapon_types[9] = {
+		AttackSubType::NONE,
+		AttackSubType::UNARMED,
+		AttackSubType::UNARMED,
+		AttackSubType::MELEE,
+		AttackSubType::MELEE,
+		AttackSubType::THROWING,
+		AttackSubType::GUNS,
+		AttackSubType::GUNS,
+		AttackSubType::GUNS
+	};
+	return weapon_types[weaponFlag & 0xF];
+}
+
 bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }

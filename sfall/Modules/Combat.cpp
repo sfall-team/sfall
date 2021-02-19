@@ -92,7 +92,7 @@ static std::vector<DWORD> forcedAS;
 DWORD __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
-	long anim = fo::func::item_w_anim_weap(weapon, hitMode);
+	long anim = fo::func::item_w_anim_weap(weapon, (fo::AttackType)hitMode);
 	if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
 		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
 	}

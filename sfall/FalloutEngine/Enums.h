@@ -750,7 +750,7 @@ enum CombatStateFlag : long
 {
 	InCombat        = 1,
 	EnemyOutOfRange = 2,
-	IsFleeing       = 4,
+	InFlee          = 4,
 	ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
 };
 

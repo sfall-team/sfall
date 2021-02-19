@@ -56,11 +56,12 @@ long AnimCodeByWeapon(GameObject* weapon);
 // returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
 bool GetProto(long pid, Proto** outProto);
 
-// returns pointer to prototype by PID, or nullptr on get failure
-// NOTE: not an efficient construction
+// returns pointer to prototype by PID
+// Note: use this function if you need to get the proto immediately without extra checks
 __forceinline Proto* GetProto(long pid) {
 	Proto* proto;
-	return (fo::func::proto_ptr(pid, &proto) != -1) ? proto : nullptr;
+	fo::func::proto_ptr(pid, &proto);
+	return proto;
 }
 
 bool CritterCopyProto(long pid, long* &proto_dst);
@@ -80,6 +81,8 @@ long& GetActiveItemMode();
 GameObject* GetActiveItem();
 
 long GetCurrentAttackMode();
+
+AttackSubType GetWeaponType(long weaponFlag);
 
 bool HeroIsFemale();
 

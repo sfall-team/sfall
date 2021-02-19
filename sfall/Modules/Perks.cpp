@@ -149,7 +149,7 @@ static DWORD __stdcall LevelUp() {
 	DWORD eachLevel = PerkFreqOverride;
 
 	if (!eachLevel) {
-		if (!Perks::IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) { // Check if the player has the skilled trait
+		if (Perks::DudeHasTrait(TRAIT_skilled)) { // Check if the player has the skilled trait
 			eachLevel = 4;
 		} else {
 			eachLevel = 3;
@@ -810,6 +810,7 @@ lower:
 }
 
 static bool perkHeaveHoModFix = false;
+
 void __stdcall ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	perks[PERK_heave_ho].strengthMin = 0;

@@ -175,6 +175,9 @@ struct GameObject {
 			inline bool IsNotActiveAndDead() {
 				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
+			inline bool IsFleeing() {
+				return ((combatState & CombatStateFlag::InFlee) != 0);
+			}
 
 			// Gets the current target or the attacker who dealt damage in the previous combat turn
 			inline GameObject* getHitTarget() {
@@ -186,7 +189,7 @@ struct GameObject {
 		} critter;
 	};
 	DWORD protoId; // object PID
-	long cid; // combat ID
+	long cid; // combat ID (don't change while in combat)
 	long lightDistance;
 	long lightIntensity;
 	DWORD outline;
@@ -626,13 +629,6 @@ struct Proto {
 			// shot sound ID
 			long soundId;
 			long gap_68;
-
-			inline bool AttackInRange(long dist) {
-				return (maxRange[0] >= dist || maxRange[1] >= dist);
-			}
-			inline bool AttackHaveEnoughAP(long ap) {
-				return (movePointCost[0] <= ap || movePointCost[1] <= ap);
-			}
 		};
 
 		struct Ammo {

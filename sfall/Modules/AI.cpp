@@ -63,11 +63,16 @@ fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* at
 	return (object && object->IsCritter()) ? object : nullptr; // 0 if there are no friendly critters
 }
 
+bool AI::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance) {
+	if (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) >= distance) return true;
+	return (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) >= distance);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
-		or   byte ptr [esi + combatState], 8; // set new 'ReTarget' flag
+		or   byte ptr [esi + combatState], ReTarget; // set CombatStateFlag flag
 		jmp  fo::funcoffs::ai_run_away_;
 	}
 }
@@ -75,15 +80,24 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
 	__asm {
-		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
+		test byte ptr [ebp], ReTarget; // CombatStateFlag flag (critter.combat_state)
 		jnz  reTarget;
 		jmp  fo::funcoffs::critter_name_;
 reTarget:
-		and  byte ptr [ebp], ~(4 | 8); // unset Flee/ReTarget flags
+		and  byte ptr [ebp], ~(InFlee | ReTarget); // unset CombatStateFlag flags
 		xor  edi, edi;
 		mov  dword ptr [esi + whoHitMe], edi;
 		add  esp, 4;
 		jmp  combat_ai_hook_flee_Ret;
+	}
+}
+
+static void __declspec(naked) ai_try_attack_hook_runFix() {
+	__asm {
+		mov  ecx, [esi + combatState]; // save combat flags before ai_run_away
+		call fo::funcoffs::ai_run_away_;
+		mov  [esi + combatState], ecx; // restore combat flags
+		retn;
 	}
 }
 
@@ -115,6 +129,8 @@ static void __declspec(naked) ai_check_drugs_hook() {
 		retn;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall TargetExistInList(fo::GameObject* target, fo::GameObject** targetList) {
 	char i = 4;
@@ -185,7 +201,9 @@ skip:
 	}
 }
 
-static void __declspec(naked) ai_danger_source_hack_pm_newfind() {
+////////////////////////////////////////////////////////////////////////////////
+
+static void __declspec(naked) ai_danger_source_hack_pm_newFind() {
 	__asm {
 		mov  ecx, [ebp + 0x18]; // source combat_data.who_hit_me
 		test ecx, ecx;
@@ -234,25 +252,21 @@ continue:
 
 static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &hitMode, fo::GameObject* source, fo::GameObject* weapon) {
 	if (source->critter.movePoints <= 0) return -1; // exit from ai_try_attack_
-	//if (!weapon) return 1; // no weapon in hand slot, call ai_switch_weapons_
+	if (!weapon) return 1; // no weapon in hand slot, call ai_switch_weapons_
 
-	if (weapon) {
-		long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
-		if (_hitMode != hitMode) {
-			hitMode = _hitMode;
-			return 0; // change hit mode, continue attack cycle
-		}
+	long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
+	if (_hitMode != hitMode) {
+		hitMode = _hitMode;
+		return 0; // change hit mode, continue attack cycle
 	}
+
 	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
 	if (!item) return 1; // no weapon in inventory, continue searching for weapons on the map (call ai_switch_weapons_)
 
 	// is the weapon close range?
 	long wType = fo::func::item_w_subtype(item, AttackType::ATKTYPE_RWEAPON_PRIMARY);
 	if (wType <= AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
-		fo::Proto* wProto;
-		GetProto(item->protoId, &wProto);
-		long dist = fo::func::obj_dist(source, target);
-		if (wProto->item.weapon.AttackInRange(dist) == false) return -1; // target out of range, exit ai_try_attack_
+		if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
 	}
 	return 1; // execute vanilla behavior of ai_switch_weapons_ function
 }
@@ -260,8 +274,8 @@ static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &h
 static void __declspec(naked) ai_try_attack_hook_switch_weapon() {
 	__asm {
 		push edx;
-		push [ebx];                     // weapon (push dword ptr [esp + 0x364 - 0x3C + 8];)
-		push esi;                       // source
+		push [ebx]; // weapon (push dword ptr [esp + 0x364 - 0x3C + 8];)
+		push esi;   // source
 		call AICheckBeforeWeaponSwitch; // ecx - target, edx - hit mode
 		pop  edx;
 		test eax, eax;
@@ -302,7 +316,7 @@ end:
 	}
 }
 
-static long __fastcall sf_ai_weapon_reload(fo::GameObject* weapon, fo::GameObject* ammo, fo::GameObject* critter) {
+static long __fastcall ai_weapon_reload_fix(fo::GameObject* weapon, fo::GameObject* ammo, fo::GameObject* critter) {
 	fo::Proto* proto = nullptr;
 	long result = -1;
 	long maxAmmo;
@@ -345,7 +359,7 @@ static void __declspec(naked) item_w_reload_hook() {
 		push ecx;
 		push esi;      // source
 		mov  ecx, eax; // weapon
-		call sf_ai_weapon_reload; // edx - ammo
+		call ai_weapon_reload_fix; // edx - ammo
 		pop  ecx;
 		retn;
 skip:
@@ -536,7 +550,7 @@ void AI::init() {
 
 	// Tweak for finding new targets for party members
 	// Save the current target in the "target1" variable and find other potential targets
-	MakeCall(0x429074, ai_danger_source_hack_pm_newfind);
+	MakeCall(0x429074, ai_danger_source_hack_pm_newFind);
 	SafeWrite16(0x429074 + 5, 0x47EB); // jmp 0x4290C2
 
 	// Fix to allow fleeing NPC to use drugs
@@ -547,8 +561,9 @@ void AI::init() {
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
 	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
-	// Disable fleeing when NPC cannot move closer to target
-	BlockCall(0x42ADF6); // ai_try_attack_
+
+	// Restore combat flags after fleeing when NPC cannot move closer to target
+	HookCall(0x42ADF6, ai_try_attack_hook_runFix);
 
 	// Fix AI target selection for combat_check_bad_shot_ function returning a no_ammo result
 	HookCalls(ai_danger_source_hook, {0x42903A, 0x42918A});

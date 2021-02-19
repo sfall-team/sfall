@@ -18,10 +18,6 @@ namespace sf = sfall;
 
 // TODO: skill_level_, perk_adjust_skill_
 
-static __forceinline bool CheckTrait(DWORD traitID) {
-	return (!sf::Perks::IsTraitDisabled(traitID) && (fo::var::pc_trait[0] == traitID || fo::var::pc_trait[1] == traitID));
-}
-
 int __stdcall Skills::trait_adjust_skill(DWORD skillID) {
 	int result = 0;
 	if (sf::Perks::TraitsModEnable()) {
@@ -29,9 +25,9 @@ int __stdcall Skills::trait_adjust_skill(DWORD skillID) {
 		if (fo::var::pc_trait[1] != -1) result += sf::Perks::GetTraitSkillBonus(skillID, 1);
 	}
 
-	if (CheckTrait(fo::TRAIT_gifted)) result -= 10;
+	if (sf::Perks::DudeHasTrait(fo::TRAIT_gifted)) result -= 10;
 
-	if (CheckTrait(fo::TRAIT_good_natured)) {
+	if (sf::Perks::DudeHasTrait(fo::TRAIT_good_natured)) {
 		if (skillID <= fo::SKILL_THROWING) {
 			result -= 10;
 		} else if (skillID == fo::SKILL_FIRST_AID || skillID == fo::SKILL_DOCTOR || skillID == fo::SKILL_CONVERSANT || skillID == fo::SKILL_BARTER) {

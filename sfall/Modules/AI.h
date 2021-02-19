@@ -33,6 +33,8 @@ public:
 	static fo::GameObject* CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
 	static fo::GameObject* CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
 
+	static bool AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
+
 	static fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
 	static fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
 };
