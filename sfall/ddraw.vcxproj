@@ -303,6 +303,7 @@
     <ClInclude Include="MetaruleExtender.h" />
     <ClInclude Include="MiscPatches.h" />
     <ClInclude Include="PlayerModel.h" />
+    <ClInclude Include="ReplacementFuncs.h" />
     <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />
@@ -378,6 +379,7 @@
     <ClCompile Include="MetaruleExtender.cpp" />
     <ClCompile Include="MiscPatches.cpp" />
     <ClCompile Include="PlayerModel.cpp" />
+    <ClCompile Include="ReplacementFuncs.cpp" />
     <ClCompile Include="TalkingHeads.cpp" />
     <ClCompile Include="HeroAppearance.cpp" />
     <ClCompile Include="HookScripts.cpp" />

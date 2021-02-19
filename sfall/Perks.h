@@ -49,3 +49,12 @@ void __stdcall AddPerkMode(DWORD mode);
 void __stdcall ClearSelectablePerks();
 
 void __stdcall SetPerkFreq(int i);
+
+int __stdcall TraitsModEnable();
+bool __stdcall IsTraitDisabled(int traitID);
+DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex);
+DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex);
+
+__forceinline bool DudeHasTrait(DWORD traitID) {
+	return (!IsTraitDisabled(traitID) && (ptr_pc_trait[0] == traitID || ptr_pc_trait[1] == traitID));
+}

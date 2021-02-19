@@ -25,6 +25,7 @@
 #include "InputFuncs.h"
 #include "LoadGameHook.h"
 #include "PartyControl.h"
+#include "ReplacementFuncs.h"
 
 #include "Inventory.h"
 
@@ -59,117 +60,6 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 			fo_intface_use_item();
 		}
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-DWORD __stdcall sfgame_item_total_size(TGameObj* critter) {
-	int totalSize = fo_item_c_curr_size(critter);
-
-	if (critter->TypeFid() == OBJ_TYPE_CRITTER) {
-		TGameObj* item = fo_inven_right_hand(critter);
-		if (item && !(item->flags & ObjectFlag::Right_Hand)) {
-			totalSize += fo_item_size(item);
-		}
-
-		TGameObj* itemL = fo_inven_left_hand(critter);
-		if (itemL && item != itemL && !(itemL->flags & ObjectFlag::Left_Hand)) {
-			totalSize += fo_item_size(itemL);
-		}
-
-		item = fo_inven_worn(critter);
-		if (item && !(item->flags & ObjectFlag::Worn)) {
-			totalSize += fo_item_size(item);
-		}
-	}
-	return totalSize;
-}
-
-// Reimplementation of adjust_fid engine function
-// Differences from vanilla:
-// - doesn't use art_vault_guy_num as default art, uses current critter FID instead
-// - calls AdjustFidHook that allows to hook into FID calculation
-DWORD __stdcall sfgame_adjust_fid() {
-	DWORD fid;
-	if ((*ptr_inven_dude)->TypeFid() == OBJ_TYPE_CRITTER) {
-		DWORD indexNum;
-		DWORD weaponAnimCode = 0;
-		if (PartyControl_IsNpcControlled()) {
-			// if NPC is under control, use current FID of critter
-			indexNum = (*ptr_inven_dude)->artFid & 0xFFF;
-		} else {
-			// vanilla logic:
-			indexNum = *ptr_art_vault_guy_num;
-			sProto* critterPro;
-			if (GetProto(*ptr_inven_pid, &critterPro)) {
-				indexNum = critterPro->fid & 0xFFF;
-			}
-			if (*ptr_i_worn != nullptr) {
-				sProto* armorPro;
-				GetProto((*ptr_i_worn)->protoId, &armorPro);
-				DWORD armorFid = fo_stat_level(*ptr_inven_dude, STAT_gender) == GENDER_FEMALE
-					? armorPro->item.armor.femaleFID
-					: armorPro->item.armor.maleFID;
-
-				if (armorFid != -1) {
-					indexNum = armorFid;
-				}
-			}
-		}
-		auto itemInHand = fo_intface_is_item_right_hand()
-			? *ptr_i_rhand
-			: *ptr_i_lhand;
-
-		if (itemInHand != nullptr) {
-			sProto* itemPro;
-			if (GetProto(itemInHand->protoId, &itemPro) && itemPro->item.type == item_type_weapon) {
-				weaponAnimCode = itemPro->item.weapon.animationCode;
-			}
-		}
-		fid = fo_art_id(OBJ_TYPE_CRITTER, indexNum, 0, weaponAnimCode, 0);
-	} else {
-		fid = (*ptr_inven_dude)->artFid;
-	}
-	*ptr_i_fid = fid;
-	// OnAdjustFid
-	if (appModEnabled) AdjustHeroArmorArt(fid);
-	AdjustFidHook(fid); // should be called last
-	return *ptr_i_fid;
-}
-
-static void __declspec(naked) adjust_fid_hack() {
-	__asm {
-		push ecx;
-		push edx;
-		call sfgame_adjust_fid; // return fid
-		pop  edx;
-		pop  ecx;
-		retn;
-	}
-}
-
-long sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode) {
-	sProto* wProto;
-	GetProto(weapon->protoId, &wProto);
-
-	long isSecondMode = (hitMode && hitMode != ATKTYPE_RWEAPON_PRIMARY) ? 1 : 0;
-	long range = wProto->item.weapon.maxRange[isSecondMode];
-
-	long flagExt = wProto->item.flagsExt;
-	if (isSecondMode) flagExt = (flagExt >> 4);
-	long type = GetWeaponType(flagExt & 0xF);
-
-	if (type == ATKSUBTYPE_THROWING) {
-		// TODO: add perkHeaveHoModFix from perks.cpp
-		long heaveHoMod = fo_perk_level(source, PERK_heave_ho);
-		if (heaveHoMod > 0) heaveHoMod *= 2;
-
-		long stRange = (fo_stat_level(source, STAT_st) + heaveHoMod);
-		if (stRange > 10) stRange = 10; // fix for Heave Ho!
-		stRange *= 3;
-		if (stRange < range) range = stRange;
-	}
-	return range;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -727,9 +617,6 @@ void InventoryReset() {
 }
 
 void Inventory_Init() {
-	// Replace adjust_fid_ function
-	MakeJump(adjust_fid_, adjust_fid_hack); // 0x4716E8
-
 	long widthWeight = 135;
 
 	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);

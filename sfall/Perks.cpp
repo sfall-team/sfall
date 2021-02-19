@@ -86,10 +86,6 @@ void __stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
-static bool __stdcall IsTraitDisabled(int traitID) {
-	return disableTraits[traitID];
-}
-
 static void __declspec(naked) LevelUpHack() {
 	__asm {
 		push ecx;
@@ -936,132 +932,20 @@ static void PerkSetup() {
 
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
-static bool smallFrameTraitFix = false;
-
-static int __stdcall DudeGetBaseStat(DWORD statID) {
-	return fo_stat_get_base_direct(*ptr_obj_dude, statID);
+int __stdcall TraitsModEnable() {
+	return traitsEnable;
 }
 
-static __forceinline bool DudeHasTrait(DWORD traitID) {
-	return (!disableTraits[traitID] && (ptr_pc_trait[0] == traitID || ptr_pc_trait[1] == traitID));
+bool __stdcall IsTraitDisabled(int traitID) {
+	return disableTraits[traitID];
 }
 
-static int __stdcall trait_adjust_stat_override(DWORD statID) {
-	if (statID > STAT_max_derived) return 0;
-
-	int result = 0;
-	if (traitsEnable) {
-		if (ptr_pc_trait[0] != -1) result += traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[0]];
-		if (ptr_pc_trait[1] != -1) result += traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[1]];
-	}
-
-	switch (statID) {
-	case STAT_st:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		if (DudeHasTrait(TRAIT_bruiser)) result += 2;
-		break;
-	case STAT_pe:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		break;
-	case STAT_en:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		break;
-	case STAT_ch:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		break;
-	case STAT_iq:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		break;
-	case STAT_ag:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		if (DudeHasTrait(TRAIT_small_frame)) result++;
-		break;
-	case STAT_lu:
-		if (DudeHasTrait(TRAIT_gifted)) result++;
-		break;
-	case STAT_max_move_points:
-		if (DudeHasTrait(TRAIT_bruiser)) result -= 2;
-		break;
-	case STAT_ac:
-		if (DudeHasTrait(TRAIT_kamikaze)) return -DudeGetBaseStat(STAT_ac);
-		break;
-	case STAT_melee_dmg:
-		if (DudeHasTrait(TRAIT_heavy_handed)) result += 4;
-		break;
-	case STAT_carry_amt:
-		if (DudeHasTrait(TRAIT_small_frame)) {
-			int st;
-			if (smallFrameTraitFix) {
-				st = fo_stat_level(*ptr_obj_dude, STAT_st);
-			} else {
-				st = DudeGetBaseStat(STAT_st);
-			}
-			result -= st * 10;
-		}
-		break;
-	case STAT_sequence:
-		if (DudeHasTrait(TRAIT_kamikaze)) result += 5;
-		break;
-	case STAT_heal_rate:
-		if (DudeHasTrait(TRAIT_fast_metabolism)) result += 2;
-		break;
-	case STAT_crit_chance:
-		if (DudeHasTrait(TRAIT_finesse)) result += 10;
-		break;
-	case STAT_better_crit:
-		if (DudeHasTrait(TRAIT_heavy_handed)) result -= 30;
-		break;
-	case STAT_rad_resist:
-		if (DudeHasTrait(TRAIT_fast_metabolism)) return -DudeGetBaseStat(STAT_rad_resist);
-		break;
-	case STAT_poison_resist:
-		if (DudeHasTrait(TRAIT_fast_metabolism)) return -DudeGetBaseStat(STAT_poison_resist);
-		break;
-	}
-	return result;
+DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex) {
+	return traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[traitIndex]];
 }
 
-static void __declspec(naked) trait_adjust_stat_hack() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax; // statID
-		call trait_adjust_stat_override;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
-static int __stdcall trait_adjust_skill_override(DWORD skillID) {
-	int result = 0;
-	if (traitsEnable) {
-		if (ptr_pc_trait[0] != -1) result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[0]];
-		if (ptr_pc_trait[1] != -1) result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[1]];
-	}
-
-	if (DudeHasTrait(TRAIT_gifted)) result -= 10;
-
-	if (DudeHasTrait(TRAIT_good_natured)) {
-		if (skillID <= SKILL_THROWING) {
-			result -= 10;
-		} else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) {
-			result += 15;
-		}
-	}
-	return result;
-}
-
-static void __declspec(naked) trait_adjust_skill_hack() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax; // skillID
-		call trait_adjust_skill_override;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
+DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex) {
+	return traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[traitIndex]];
 }
 
 static void __declspec(naked) BlockedTrait() {
@@ -1408,13 +1292,6 @@ void PerksAcceptCharScreen() {
 }
 
 void Perks_Init() {
-	// Replace functions
-	MakeJump(trait_adjust_stat_, trait_adjust_stat_hack);   // 0x4B3C7C
-	MakeJump(trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
-
-	// Fix the carry weight penalty of the Small Frame trait not being applied to bonus Strength points
-	smallFrameTraitFix = (GetConfigInt("Misc", "SmallFrameFix", 0) != 0);
-
 	FastShotTraitFix();
 
 	// Disable losing unused perks

@@ -27,6 +27,7 @@ extern DWORD GPUBlt;
 
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
+extern IDirectDrawSurface* primaryDDSurface;
 
 extern bool Gfx_PlayAviMovie;
 extern bool Gfx_AviMovieWidthFit;
@@ -57,8 +58,6 @@ void WinRender_ClearOverlay(WINinfo* win);
 void WinRender_ClearOverlay(WINinfo* win, sRectangle &rect);
 BYTE* WinRender_GetOverlaySurface(WINinfo* win);
 
-void __fastcall Render_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toBuffer);
-
 int __stdcall GetShaderVersion();
 int __stdcall LoadShader(const char*);
 void __stdcall ActivateShader(DWORD);
@@ -72,3 +71,34 @@ void __stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, f
 
 int __stdcall GetShaderTexture(DWORD d, DWORD id);
 void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value);
+
+__forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+	long x = rect->left;
+	long y = rect->top;
+	if (GraphicsMode == 0) {
+		__asm {
+			xor  eax, eax;
+			push y;
+			push x;
+			push height;
+			push width;
+			push eax; // yFrom
+			push eax; // xFrom
+			push eax; // heightFrom
+			push widthFrom;
+			push surface;
+			call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
+			add  esp, 9*4;
+		}
+	} else {
+		DDSURFACEDESC desc;
+		RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
+
+		if (primaryDDSurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
+
+		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
+		fo_buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
+
+		primaryDDSurface->Unlock(desc.lpSurface);
+	}
+}

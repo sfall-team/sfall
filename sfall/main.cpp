@@ -64,6 +64,7 @@
 #include "PlayerModel.h"
 #include "Premade.h"
 #include "QuestList.h"
+#include "ReplacementFuncs.h"
 #include "Reputations.h"
 #include "ScriptExtender.h"
 #include "Skills.h"
@@ -155,8 +156,8 @@ int SetConfigInt(const char* section, const char* setting, int value) {
 	return result;
 }
 
-static void DllMain2() {
-	dlogr("In DllMain2", DL_MAIN);
+static void InitModules() {
+	dlogr("In InitModules", DL_MAIN);
 
 	// fixes should be applied at the beginning
 	dlogr("Running BugFixes_Init().", DL_INIT);
@@ -302,7 +303,7 @@ static void DllMain2() {
 	dlogr("Running DebugEditor_Init().", DL_INIT);
 	DebugEditor_Init();
 
-	dlogr("Leave DllMain2", DL_MAIN);
+	dlogr("Leave InitModules", DL_MAIN);
 }
 
 static void __stdcall OnExit() {
@@ -490,7 +491,8 @@ defaultIni:
 		}
 		//std::srand(GetTickCount());
 
-		DllMain2();
+		InitReplacementHacks();
+		InitModules();
 	}
 	return true;
 }

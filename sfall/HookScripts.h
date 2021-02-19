@@ -83,11 +83,6 @@ void InvenUnwield_HookMove();
 
 void __stdcall AdjustFidHook(DWORD vanillaFid);
 
-// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
-long __stdcall sfgame_correctFidForRemovedItem(TGameObj* critter, TGameObj* item, long flags);
-
-// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-long __fastcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
-
-// Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
-long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType);
+long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon);
+long __stdcall PerceptionRangeHook_Invoke(TGameObj* watcher, TGameObj* target, long type, long result);
+long __stdcall InvenWieldHook_Invoke(TGameObj* critter, TGameObj* item, long flags);

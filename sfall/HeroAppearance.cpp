@@ -25,6 +25,7 @@
 #include "LoadOrder.h"
 #include "Message.h"
 #include "PartyControl.h"
+#include "ReplacementFuncs.h"
 #include "ScriptExtender.h"
 
 #include "HeroAppearance.h"

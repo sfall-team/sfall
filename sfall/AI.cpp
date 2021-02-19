@@ -23,6 +23,7 @@
 
 #include "HookScripts.h"
 #include "Inventory.h"
+#include "ReplacementFuncs.h"
 
 #include "AI.h"
 

@@ -235,6 +235,9 @@
     <ClInclude Include="FalloutFuncOffs_def.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="ReplacementFuncs.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -398,6 +401,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="MetaruleExtender.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ReplacementFuncs.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
