@@ -584,6 +584,21 @@ TGameObj* GetActiveItem() {
 	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
 }
 
+AttackSubType GetWeaponType(long weaponFlag) {
+	static const AttackSubType weapon_types[9] = {
+		ATKSUBTYPE_NONE,
+		ATKSUBTYPE_UNARMED,
+		ATKSUBTYPE_UNARMED,
+		ATKSUBTYPE_MELEE,
+		ATKSUBTYPE_MELEE,
+		ATKSUBTYPE_THROWING,
+		ATKSUBTYPE_GUNS,
+		ATKSUBTYPE_GUNS,
+		ATKSUBTYPE_GUNS
+	};
+	return weapon_types[weaponFlag & 0xF];
+}
+
 bool HeroIsFemale() {
 	return (fo_stat_level(*ptr_obj_dude, STAT_gender) == GENDER_FEMALE);
 }

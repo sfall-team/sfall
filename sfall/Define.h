@@ -689,9 +689,10 @@ enum RollResult
 
 enum CombatStateFlag : long
 {
-	in_combat          = 1,
-	enemy_out_of_range = 2,
-	is_fleeing         = 4,
+	CBTFLG_InCombat        = 1,
+	CBTFLG_EnemyOutOfRange = 2,
+	CBTFLG_InFlee          = 4,
+	CBTFLG_ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
 };
 
 namespace Fields {

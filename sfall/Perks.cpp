@@ -616,6 +616,7 @@ lower:
 }
 
 static bool perkHeaveHoModFix = false;
+
 void __stdcall ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	perks[PERK_heave_ho].strengthMin = 0;
@@ -941,7 +942,7 @@ static int __stdcall DudeGetBaseStat(DWORD statID) {
 	return fo_stat_get_base_direct(*ptr_obj_dude, statID);
 }
 
-static __forceinline bool __stdcall CheckTrait(DWORD traitID) {
+static __forceinline bool DudeHasTrait(DWORD traitID) {
 	return (!disableTraits[traitID] && (ptr_pc_trait[0] == traitID || ptr_pc_trait[1] == traitID));
 }
 
@@ -956,39 +957,39 @@ static int __stdcall trait_adjust_stat_override(DWORD statID) {
 
 	switch (statID) {
 	case STAT_st:
-		if (CheckTrait(TRAIT_gifted)) result++;
-		if (CheckTrait(TRAIT_bruiser)) result += 2;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_bruiser)) result += 2;
 		break;
 	case STAT_pe:
-		if (CheckTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
 		break;
 	case STAT_en:
-		if (CheckTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
 		break;
 	case STAT_ch:
-		if (CheckTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
 		break;
 	case STAT_iq:
-		if (CheckTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
 		break;
 	case STAT_ag:
-		if (CheckTrait(TRAIT_gifted)) result++;
-		if (CheckTrait(TRAIT_small_frame)) result++;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_small_frame)) result++;
 		break;
 	case STAT_lu:
-		if (CheckTrait(TRAIT_gifted)) result++;
+		if (DudeHasTrait(TRAIT_gifted)) result++;
 		break;
 	case STAT_max_move_points:
-		if (CheckTrait(TRAIT_bruiser)) result -= 2;
+		if (DudeHasTrait(TRAIT_bruiser)) result -= 2;
 		break;
 	case STAT_ac:
-		if (CheckTrait(TRAIT_kamikaze)) return -DudeGetBaseStat(STAT_ac);
+		if (DudeHasTrait(TRAIT_kamikaze)) return -DudeGetBaseStat(STAT_ac);
 		break;
 	case STAT_melee_dmg:
-		if (CheckTrait(TRAIT_heavy_handed)) result += 4;
+		if (DudeHasTrait(TRAIT_heavy_handed)) result += 4;
 		break;
 	case STAT_carry_amt:
-		if (CheckTrait(TRAIT_small_frame)) {
+		if (DudeHasTrait(TRAIT_small_frame)) {
 			int st;
 			if (smallFrameTraitFix) {
 				st = fo_stat_level(*ptr_obj_dude, STAT_st);
@@ -999,22 +1000,22 @@ static int __stdcall trait_adjust_stat_override(DWORD statID) {
 		}
 		break;
 	case STAT_sequence:
-		if (CheckTrait(TRAIT_kamikaze)) result += 5;
+		if (DudeHasTrait(TRAIT_kamikaze)) result += 5;
 		break;
 	case STAT_heal_rate:
-		if (CheckTrait(TRAIT_fast_metabolism)) result += 2;
+		if (DudeHasTrait(TRAIT_fast_metabolism)) result += 2;
 		break;
 	case STAT_crit_chance:
-		if (CheckTrait(TRAIT_finesse)) result += 10;
+		if (DudeHasTrait(TRAIT_finesse)) result += 10;
 		break;
 	case STAT_better_crit:
-		if (CheckTrait(TRAIT_heavy_handed)) result -= 30;
+		if (DudeHasTrait(TRAIT_heavy_handed)) result -= 30;
 		break;
 	case STAT_rad_resist:
-		if (CheckTrait(TRAIT_fast_metabolism)) return -DudeGetBaseStat(STAT_rad_resist);
+		if (DudeHasTrait(TRAIT_fast_metabolism)) return -DudeGetBaseStat(STAT_rad_resist);
 		break;
 	case STAT_poison_resist:
-		if (CheckTrait(TRAIT_fast_metabolism)) return -DudeGetBaseStat(STAT_poison_resist);
+		if (DudeHasTrait(TRAIT_fast_metabolism)) return -DudeGetBaseStat(STAT_poison_resist);
 		break;
 	}
 	return result;
@@ -1039,9 +1040,9 @@ static int __stdcall trait_adjust_skill_override(DWORD skillID) {
 		if (ptr_pc_trait[1] != -1) result += traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[1]];
 	}
 
-	if (CheckTrait(TRAIT_gifted)) result -= 10;
+	if (DudeHasTrait(TRAIT_gifted)) result -= 10;
 
-	if (CheckTrait(TRAIT_good_natured)) {
+	if (DudeHasTrait(TRAIT_good_natured)) {
 		if (skillID <= SKILL_THROWING) {
 			result -= 10;
 		} else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) {

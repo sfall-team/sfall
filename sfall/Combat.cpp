@@ -126,7 +126,7 @@ void __stdcall SetBlockCombat(long toggle) {
 DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
-	long anim = fo_item_w_anim_weap(weapon, hitMode);
+	long anim = fo_item_w_anim_weap(weapon, (AttackType)hitMode);
 	if (anim == ANIM_fire_burst || anim == ANIM_fire_continuous) {
 		rounds = fo_item_w_rounds(weapon); // ammo in burst
 	}

@@ -35,3 +35,5 @@ DWORD __stdcall sfgame_item_total_size(TGameObj* critter);
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - calls AdjustFidHook that allows to hook into FID calculation
 DWORD __stdcall sfgame_adjust_fid();
+
+long sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode);

@@ -148,6 +148,30 @@ static void __declspec(naked) adjust_fid_hack() {
 	}
 }
 
+long sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode) {
+	sProto* wProto;
+	GetProto(weapon->protoId, &wProto);
+
+	long isSecondMode = (hitMode && hitMode != ATKTYPE_RWEAPON_PRIMARY) ? 1 : 0;
+	long range = wProto->item.weapon.maxRange[isSecondMode];
+
+	long flagExt = wProto->item.flagsExt;
+	if (isSecondMode) flagExt = (flagExt >> 4);
+	long type = GetWeaponType(flagExt & 0xF);
+
+	if (type == ATKSUBTYPE_THROWING) {
+		// TODO: add perkHeaveHoModFix from perks.cpp
+		long heaveHoMod = fo_perk_level(source, PERK_heave_ho);
+		if (heaveHoMod > 0) heaveHoMod *= 2;
+
+		long stRange = (fo_stat_level(source, STAT_st) + heaveHoMod);
+		if (stRange > 10) stRange = 10; // fix for Heave Ho!
+		stRange *= 3;
+		if (stRange < range) range = stRange;
+	}
+	return range;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static int __stdcall CritterGetMaxSize(TGameObj* critter) {

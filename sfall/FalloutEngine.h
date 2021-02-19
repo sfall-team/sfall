@@ -510,11 +510,12 @@ long AnimCodeByWeapon(TGameObj* weapon);
 // returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
 bool GetProto(long pid, sProto** outProto);
 
-// returns pointer to prototype by PID, or nullptr on get failure
-// NOTE: not an efficient construction
+// returns pointer to prototype by PID
+// Note: use this function if you need to get the proto immediately without extra checks
 __forceinline sProto* GetProto(long pid) {
 	sProto* proto;
-	return (fo_proto_ptr(pid, &proto) != -1) ? proto : nullptr;
+	fo_proto_ptr(pid, &proto);
+	return proto;
 }
 
 // wrapper for skill_get_tags with bounds checking
@@ -530,6 +531,8 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, Inven
 long& GetActiveItemMode();
 
 TGameObj* GetActiveItem();
+
+AttackSubType GetWeaponType(long weaponFlag);
 
 bool HeroIsFemale();
 
