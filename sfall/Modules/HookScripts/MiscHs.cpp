@@ -255,15 +255,13 @@ skip:
 	}
 }
 
-static long __fastcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type) {
-	long result = fo::func::is_within_perception(watcher, target);
-
+static __forceinline long PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type, long result) {
 	BeginHook();
 	argCount = 4;
 
 	args[0] = (DWORD)watcher;
 	args[1] = (DWORD)target;
-	args[2] = result;
+	args[2] = result; // engine result
 	args[3] = type;
 
 	RunHookScript(HOOK_WITHINPERCEPTION);
@@ -274,12 +272,13 @@ static long __fastcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::G
 	return result;
 }
 
-// Implementation of is_within_perception_ engine function with the hook
-long __fastcall sf_is_within_perception(fo::GameObject* watcher, fo::GameObject* target) { // TODO: add type arg
-	if (HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) {
-		return PerceptionRangeHook_Script(watcher, target, 0);
-	}
-	return fo::func::is_within_perception(watcher, target);
+long PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result) {
+	if (!HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) return result;
+	return PerceptionRangeHook_Script(watcher, target, type, result);
+}
+
+static long __fastcall PerceptionRange_Hook(fo::GameObject* watcher, fo::GameObject* target, int type) {
+	return PerceptionRangeHook_Script(watcher, target, type, fo::func::is_within_perception(watcher, target));
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
@@ -287,7 +286,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		push ecx;
 		push 0;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -298,7 +297,7 @@ static void __declspec(naked) PerceptionRangeSeeHook() {
 		push ecx;
 		push 1;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		cmp  eax, 2;
 		jne  nevermind; // normal return
@@ -315,7 +314,7 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 		push ecx;
 		push 2;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -326,7 +325,7 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 		push ecx;
 		push 3;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -631,6 +630,57 @@ cancelEnc:
 	}
 }
 
+static long __stdcall RollCheckHook_Script(long roll, long chance, long bonus, long randomChance, long calledFrom) {
+	long hookType;
+	switch (calledFrom - 5) {
+		case 0x42388E: // compute_attack_
+		// compute_spray_
+		case 0x4234D1: hookType = 1; break; // single and burst attack hit event
+		// compute_spray_
+		case 0x42356C: hookType = 2; break; // burst attack bullet hit event
+		// skill_result_
+		case 0x4AAB29: hookType = 3; break; // common skill check event
+		// skill_use_
+		case 0x4AB3B6: hookType = 4; break; // SKILL_REPAIR
+		case 0x4AB8B5: hookType = 5; break; // SKILL_DOCTOR
+		// skill_check_stealing_            // SKILL_STEAL
+		case 0x4ABC9F: hookType = 6; break; // source stealing check event
+		case 0x4ABCE6: hookType = 7; break; // target stealing check event (fail for success stealing)
+	default:
+		return roll; // unsupported hook
+	}
+
+	BeginHook();
+	argCount = 5;
+
+	args[0] = hookType;
+	args[1] = roll;
+	args[2] = chance;
+	args[3] = bonus;
+	args[4] = randomChance;
+
+	RunHookScript(HOOK_ROLLCHECK);
+	if (cRet) roll = rets[0];
+
+	EndHook();
+	return roll;
+}
+
+static void __declspec(naked) roll_check_hook() {
+	__asm {
+		push ecx;
+		push [esp + 0xC + 8]; // calledFrom
+		push ebx; // random chance value
+		push esi; // bonus
+		push edi; // chance value
+		call fo::funcoffs::roll_check_critical_;
+		push eax; // roll result
+		call RollCheckHook_Script;
+		pop  ecx;
+		retn;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
@@ -698,6 +748,10 @@ void Inject_EncounterHook() {
 	HookCall(0x4C095C, wmRndEncounterOccurred_hook);
 }
 
+void Inject_RollCheckHook() {
+	HookCall(0x4A3020, roll_check_hook);
+}
+
 void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookScripts::LoadHookScript("hs_useskillon", HOOK_USESKILLON);
@@ -710,6 +764,7 @@ void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	HookScripts::LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 	HookScripts::LoadHookScript("hs_encounter", HOOK_ENCOUNTER);
+	HookScripts::LoadHookScript("hs_rollcheck", HOOK_ROLLCHECK);
 }
 
 }

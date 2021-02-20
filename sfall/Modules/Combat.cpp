@@ -25,9 +25,11 @@
 #include "LoadGameHook.h"
 #include "Objects.h"
 
-#include "SubModules\CombatBlock.h"
-
 #include "HookScripts\CombatHS.h"
+
+#include "..\Game\items.h"
+
+#include "SubModules\CombatBlock.h"
 
 #include "Combat.h"
 
@@ -90,7 +92,7 @@ static std::vector<DWORD> forcedAS;
 DWORD __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
-	long anim = fo::func::item_w_anim_weap(weapon, hitMode);
+	long anim = fo::func::item_w_anim_weap(weapon, (fo::AttackType)hitMode);
 	if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
 		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
 	}
@@ -345,7 +347,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 		baseHitChance.mod = mod;
 		return;
 	}
-	if (critter->Type() != fo::OBJ_TYPE_CRITTER) return;
+	if (critter->IsNotCritter()) return;
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
@@ -358,7 +360,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 }
 
 void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
-	if (critter == fo::var::obj_dude || critter->Type() != fo::OBJ_TYPE_CRITTER) return;
+	if (critter == fo::var::obj_dude || critter->IsNotCritter()) return;
 
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
@@ -494,7 +496,7 @@ static void Combat_OnGameLoad() {
 }
 
 void Combat::init() {
-	CombatBlockedInit();
+	CombatBlock::init();
 	CombatProcFix();
 
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod

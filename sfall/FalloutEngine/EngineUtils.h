@@ -43,18 +43,26 @@ __forceinline void sf_rect_free(fo::RectList* rect) {
 }
 
 // returns message string from given file or "Error" when not found
-const char* GetMessageStr(const MessageList* fileAddr, long messageId);
+const char* GetMessageStr(const fo::MessageList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* MessageSearch(const MessageList* fileAddr, long messageId);
+const char* MessageSearch(const fo::MessageList* fileAddr, long messageId);
 
-Queue* QueueFind(GameObject* object, long type);
+fo::Queue* QueueFind(fo::GameObject* object, long type);
 
 // returns weapon animation code
-long AnimCodeByWeapon(GameObject* weapon);
+long AnimCodeByWeapon(fo::GameObject* weapon);
 
-// returns pointer to prototype by PID, or nullptr on failure
-Proto* GetProto(long pid);
+// returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
+bool GetProto(long pid, fo::Proto** outProto);
+
+// returns pointer to prototype by PID
+// Note: use this function if you need to get the proto immediately without extra checks
+__forceinline fo::Proto* GetProto(long pid) {
+	fo::Proto* proto;
+	fo::func::proto_ptr(pid, &proto);
+	return proto;
+}
 
 bool CritterCopyProto(long pid, long* &proto_dst);
 
@@ -64,15 +72,17 @@ void SkillGetTags(long* result, long num);
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(long* tags, long num);
 
-long __fastcall GetItemType(GameObject* item);
+long __fastcall GetItemType(fo::GameObject* item);
 
-__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
+__declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot);
 
 long& GetActiveItemMode();
 
-GameObject* GetActiveItem();
+fo::GameObject* GetActiveItem();
 
 long GetCurrentAttackMode();
+
+fo::AttackSubType GetWeaponType(DWORD weaponFlag);
 
 bool HeroIsFemale();
 
@@ -121,6 +131,8 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);
 
+void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline = 207, long font = 101);
+
 // Print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
@@ -146,11 +158,11 @@ DWORD GetCharGapWidth();
 DWORD GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
-void RedrawObject(GameObject* obj);
+void RedrawObject(fo::GameObject* obj);
 
-// Redraws all interface windows
-void RefreshGNW(size_t from = 0);
+// Redraws all windows
+void RefreshGNW(bool skipOwner = false);
 
-UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
+fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 
 }

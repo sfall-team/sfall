@@ -34,6 +34,8 @@ public:
 
 	static long GetStatMax(int stat, int isNPC);
 	static long GetStatMin(int stat, int isNPC);
+
+	static void UpdateHPStat(fo::GameObject* critter);
 };
 
 void __stdcall SetPCStatMax(int stat, int value);

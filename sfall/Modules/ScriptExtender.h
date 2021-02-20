@@ -30,7 +30,7 @@ namespace sfall
 typedef struct {
 	fo::Program* ptr = nullptr;
 	int procLookup[fo::Scripts::ScriptProc::count];
-	char initialized;
+	bool initialized;
 } ScriptProgram;
 
 class ScriptExtender : public Module {
@@ -54,6 +54,8 @@ public:
 	static void AddTimerEventScripts(fo::Program* script, long time, long param);
 	static void RemoveTimerEventScripts(fo::Program* script, long param);
 	static void RemoveTimerEventScripts(fo::Program* script);
+
+	static int __stdcall ScriptHasLoaded(fo::Program* script);
 
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
@@ -89,16 +91,14 @@ long GetGlobalVarInternal(__int64 val);
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
-bool __stdcall ScriptHasLoaded(fo::Program* script);
-
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
 // fileName - the script file name without extension (if fullPath is false) or a full file path (if fullPath is true)
 // fullPath - controls how fileName is used (see above)
-void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath = false);
+void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath = false);
 
 // init program after load, needs to be called once
-void InitScriptProgram(ScriptProgram &prog);
+void RunScriptProgram(ScriptProgram &prog);
 
 // execute script by specific proc name
 void RunScriptProc(ScriptProgram* prog, const char* procName);
@@ -109,7 +109,6 @@ void RunScriptProc(ScriptProgram* prog, long procId);
 int RunScriptStartProc(ScriptProgram* prog);
 
 // variables
-extern DWORD isGlobalScriptLoading;
 extern DWORD availableGlobalScriptTypes;
 extern bool alwaysFindScripts;
 

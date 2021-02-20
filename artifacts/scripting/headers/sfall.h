@@ -69,6 +69,9 @@
 #define HOOK_STDPROCEDURE_END (41)
 #define HOOK_TARGETOBJECT     (42)
 #define HOOK_ENCOUNTER        (43)
+#define HOOK_ADJUSTPOISON     (44)
+#define HOOK_ADJUSTRADS       (45)
+#define HOOK_ROLLCHECK        (46)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -338,7 +341,8 @@
 #define interface_art_draw_ex(winID, artID, x, y, frame, param) sfall_func6("interface_art_draw", winID, artID, x, y, frame, param)
 #define interface_print(text, winType, x, y, color)             sfall_func5("interface_print", text, winType, x, y, color)
 #define interface_print_width(text, winType, x, y, color, w)    sfall_func6("interface_print", text, winType, x, y, color, w)
-#define interface_redraw_all                                    sfall_func1("intface_redraw", 1)
+#define interface_redraw_all                                    sfall_func1("intface_redraw", -1)
+#define interface_redraw_win(winType)                           sfall_func1("intface_redraw", winType)
 #define intface_hide                                            sfall_func0("intface_hide")
 #define intface_is_hidden                                       sfall_func0("intface_is_hidden")
 #define intface_is_shown(winType)                               sfall_func1("get_window_attribute", winType)
@@ -358,6 +362,7 @@
 #define overlay_create(winType)                                 sfall_func2("interface_overlay", winType, 1)
 #define overlay_clear(winType)                                  sfall_func2("interface_overlay", winType, 2)
 #define overlay_clear_rectangle(winType, x, y, w, h)            sfall_func6("interface_overlay", winType, 2, x, y, w, h)
+#define overlay_destroy(winType)                                sfall_func2("interface_overlay", winType, 0)
 #define real_dude_obj                                           sfall_func0("real_dude_obj")
 #define remove_all_timer_events                                 sfall_func0("remove_timer_event")
 #define remove_timer_event(fixedParam)                          sfall_func1("remove_timer_event", fixedParam)

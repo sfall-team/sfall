@@ -107,7 +107,7 @@ static void RunEditorInternal(SOCKET &s) {
 		for (int tile = 0; tile < 40000; tile++) {
 			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
-				if ((obj->Type()) == fo::OBJ_TYPE_CRITTER) {
+				if (obj->IsCritter()) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
 				obj = fo::func::obj_find_next_at_tile();
@@ -373,6 +373,37 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
+const char* scrNameFmt = "\nScript: %s ";
+
+static void __declspec(naked) debugMsg() {
+	__asm {
+		mov  edx, ds:[FO_VAR_currentProgram];
+		push [edx]; // script name
+		push scrNameFmt;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 8;
+		jmp  fo::funcoffs::debug_printf_;
+	}
+}
+
+// Shifts the string one character to the right and inserts a newline control character at the beginning
+static void MoveDebugString(char* messageAddr) {
+	int i = 0;
+	do {
+		messageAddr[i + 1] = messageAddr[i];
+		i--;
+	} while (messageAddr[i] != '\0');
+	messageAddr[i + 1] = '\n';
+}
+
+static const DWORD addrDotChar[] = {
+	0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE // "ERROR: attempt to reference * var out of range: %d"
+};
+
+static const DWORD addrNewLineChar[] = {
+	0x500A64, // "Friendly was in the way!"
+};
+
 static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode > 0) {
@@ -411,6 +442,21 @@ static void DebugModePatch() {
 		__int64 data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
 		SafeWriteBytes(0x455419, (BYTE*)&data, 8); // op_display_msg_
 
+		// set the position of the debug window
+		SafeWrite8(0x4DC34D, 15);
+
+		// Fix the format of some debug messages
+		SafeWriteBatch<BYTE>('\n', addrNewLineChar);
+		SafeWriteBatch<BYTE>('.', addrDotChar);
+		HookCalls(debugMsg, {
+			0x482240, // map_set_global_var_
+			0x482274, // map_get_global_var_
+			0x4822A0, // map_set_local_var_
+			0x4822D4  // map_get_local_var_
+		});
+		if (dbgMode != 1) {
+			MoveDebugString((char*)0x500A9B); // "computing attack..."
+		}
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -422,7 +468,26 @@ static void DontDeleteProtosPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 }
-
+/*
+void CheckTimerResolution() {
+	DWORD ticksList[50];
+	DWORD old_ticks = GetTickCount();
+	for (size_t i = 0; i < 50;) {
+		DWORD ticks = GetTickCount();
+		if (ticks != old_ticks) {
+			old_ticks = ticks;
+			ticksList[i++] = ticks;
+		}
+	}
+	int min = 100, max = 0;
+	for (size_t i = 0; i < 49; i++) {
+		int ms = ticksList[i + 1] - ticksList[i];
+		if (ms < min) min = ms;
+		if (ms > max) max = ms;
+	}
+	fo::func::debug_printf("System timer resolution: %d - %d ms.\n", min, max);
+}
+*/
 void DebugEditor::init() {
 	DebugModePatch();
 

@@ -79,7 +79,7 @@ void op_get_pc_extra_stat(OpcodeContext& ctx) {
 
 void op_set_critter_base_stat(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			CritterStats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
@@ -93,7 +93,7 @@ void op_set_critter_base_stat(OpcodeContext& ctx) {
 
 void op_set_critter_extra_stat(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			CritterStats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
@@ -108,7 +108,7 @@ void op_set_critter_extra_stat(OpcodeContext& ctx) {
 void op_get_critter_base_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			result = CritterStats::GetStat(obj, stat, 9);
@@ -124,7 +124,7 @@ void op_get_critter_base_stat(OpcodeContext& ctx) {
 void op_get_critter_extra_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			result = CritterStats::GetStat(obj, stat, 44);
@@ -145,9 +145,9 @@ void op_set_critter_skill_points(OpcodeContext& ctx) {
 	}
 
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		if (proto) proto->critter.skills[skill] = ctx.arg(2).rawValue();
+	if (obj->IsCritter()) {
+		fo::Proto* proto;
+		if (fo::GetProto(obj->protoId, &proto)) proto->critter.skills[skill] = ctx.arg(2).rawValue();
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -161,9 +161,9 @@ void op_get_critter_skill_points(OpcodeContext& ctx) {
 	}
 
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		if (proto) ctx.setReturn(proto->critter.skills[skill]);
+	if (obj->IsCritter()) {
+		fo::Proto* proto;
+		if (fo::GetProto(obj->protoId, &proto)) ctx.setReturn(proto->critter.skills[skill]);
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -232,7 +232,7 @@ fail:
 
 void op_set_critter_current_ap(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj->IsCritter()) {
 		long ap = ctx.arg(1).rawValue();
 		if (ap < 0) ap = 0;
 		obj->critter.movePoints = ap;
@@ -285,7 +285,7 @@ end:
 
 void op_set_critter_hit_chance_mod(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj->IsCritter()) {
 		SetHitChanceMax(obj, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
@@ -312,7 +312,7 @@ end:
 
 void op_set_critter_pickpocket_mod(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj->IsCritter()) {
 		SetPickpocketMax(obj, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
@@ -339,7 +339,7 @@ end:
 
 void op_set_critter_skill_mod(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	if (obj->IsCritter()) {
 		SetSkillMax(obj, ctx.arg(1).rawValue());
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());

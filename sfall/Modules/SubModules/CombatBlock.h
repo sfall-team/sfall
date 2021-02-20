@@ -21,8 +21,11 @@
 namespace sfall
 {
 
-void CombatBlockedInit();
+class CombatBlock {
+public:
+	static void init();
 
-void __stdcall SetBlockCombat(long toggle);
+	static void __stdcall SetBlockCombat(long toggle);
+};
 
 }

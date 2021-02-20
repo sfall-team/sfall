@@ -52,6 +52,7 @@ static bool restMap;
 static bool restMode;
 static bool restTime;
 
+static bool worldMapLongDelay = false;
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
 
@@ -130,52 +131,39 @@ end:
 	}
 }
 
-static void __declspec(naked) WorldMapFpsPatch() {
+static void WorldMapFPS() {
+	DWORD prevTicks = worldMapTicks; // previous ticks
+	do {
+		WorldmapLoopHook();
+		if (worldMapLongDelay) {
+			__asm call fo::funcoffs::process_bk_;
+		}
+
+		DWORD tick; // current ticks
+		do {
+			tick = SpeedPatch::getTickCount();
+		} while (tick == prevTicks); // delay ~15 ms
+		prevTicks = tick;
+
+		// get elapsed time
+	} while ((prevTicks - worldMapTicks) < worldMapDelay);
+	worldMapTicks = prevTicks;
+}
+
+static void __declspec(naked) wmWorldMap_hook_patch1() {
 	__asm {
 		push dword ptr ds:[FO_VAR_last_buttons];
-		push dword ptr ds:[0x6AC7B0]; // _mouse_buttons
-		mov  esi, worldMapTicks;
-		mov  ebx, esi;                // previous ticks
-loopDelay:
-		call WorldmapLoopHook;
-		call fo::funcoffs::process_bk_;
-subLoop:
-		call ds:[sf_GetTickCount]; // current ticks
-		mov  edx, eax;
-		sub  eax, ebx;     // get elapsed time (cur.ticks - prev.ticks)
-		cmp  eax, 10;      // delay - GetTickCount returns minimum difference of 15 units
-		jb   subLoop;      // elapsed < invoke delay
-		mov  ebx, edx;
-		sub  edx, esi;     // get elapsed time (cur.ticks - worldMapTicks)
-		cmp  edx, worldMapDelay;
-		jb   loopDelay;    // elapsed < worldMapDelay
-
-		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
+		push dword ptr ds:[FO_VAR_mouse_buttons];
+		call WorldMapFPS;
+		pop  dword ptr ds:[FO_VAR_mouse_buttons];
 		pop  dword ptr ds:[FO_VAR_last_buttons];
-		call ds:[sf_GetTickCount];
-		mov  worldMapTicks, eax;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
 
-static void __declspec(naked) WorldMapFpsPatch2() {
+static void __declspec(naked) wmWorldMap_hook_patch2() {
 	__asm {
-		mov  esi, worldMapTicks;
-		mov  ebx, esi;
-loopDelay:
-		call WorldmapLoopHook;
-subLoop:
-		call ds:[sf_GetTickCount]; // current ticks
-		mov  edx, eax;
-		sub  eax, ebx;     // get elapsed time
-		jz   subLoop;
-		mov  ebx, edx;
-		sub  edx, esi;     // get elapsed time
-		cmp  edx, worldMapDelay;
-		jb   loopDelay;    // elapsed < worldMapDelay
-
-		call ds:[sf_GetTickCount];
-		mov  worldMapTicks, eax;
+		call WorldMapFPS;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -183,9 +171,12 @@ subLoop:
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		//pushadc;
-		call WorldmapLoopHook;
-		//popadc;
+		call ds:[SpeedPatch::getTickCountOffs]; // current ticks
+		cmp  eax, worldMapTicks;
+		je   skipHook;
+		mov  worldMapTicks, eax;
+		call WorldmapLoopHook; // hook is called every ~15 ms (GetTickCount returns a difference of 14-16 ms)
+skipHook:
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -268,6 +259,7 @@ skip:
 }
 
 static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
+
 static void __declspec(naked) wmMapInit_hack() {
 	__asm {
 		mov  esi, [esp + 0xA0 - 0x20 + 4];       // curent map number
@@ -401,24 +393,25 @@ static void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (!fpsPatchOK) {
-			dlogr(" Failed", DL_INIT);
-		} else {
+		if (fpsPatchOK) {
 			int delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
 			worldMapDelay = max(1, delay);
 			dlogr(" Done", DL_INIT);
+		} else {
+			dlogr(" Failed", DL_INIT);
 		}
 	}
 	if (fpsPatchOK) {
 		void* func;
 		if (worldMapDelay == 0) {
-			func = wmWorldMap_hook;
+			func = wmWorldMap_hook; // only WorldmapLoop hook
 		} else if (worldMapDelay > 25) {
-			func = WorldMapFpsPatch;
+			worldMapLongDelay = true;
+			func = wmWorldMap_hook_patch1;
 		} else {
-			func = WorldMapFpsPatch2;
+			func = wmWorldMap_hook_patch2;
 		}
-		HookCall(0x4BFE5D, func);
+		HookCall(0x4BFE5D, func); // wmWorldMap_
 		::sfall::availableGlobalScriptTypes |= 2;
 	}
 

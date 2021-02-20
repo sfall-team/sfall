@@ -11,11 +11,13 @@ std::multimap<long, long> writeAddress;
 
 static std::vector<long> excludeWarning = {
 	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x44E932, // from movies.cpp
+	0x42D21C,                                         // CritterPoison.cpp
 };
 
 static std::vector<long> excludeConflict = {
 	0x42A0F8,                               // bugfixes.cpp
 	0x461495,                               // BarBoxes.cpp
+	0x42D21C,                               // CritterPoison.cpp
 };
 
 struct HackPair {
@@ -84,6 +86,7 @@ static std::vector<HackPair> hackAddr = {
 	// module: PartyControl
 	{0x422BDE, 1}, {0x4229EC, 1},
 	{0x49EB09, 1}, {0x49EB0A, 4}, {0x458242, 1}, {0x458243, 4}, {0x458326, 1}, {0x458327, 4}, {0x42E25B, 1}, {0x42E25C, 4}, // hookcalls
+	{0x44C4A7, 1}, {0x44C4A8, 4}, {0x44C75F, 1}, {0x44C760, 4}, {0x44C69A, 1}, {0x44C69B, 4}, {0x44B830, 1}, {0x44B831, 4}, // hookcalls for party order attack
 	// module: Perks
 	{0x43C77C, 1}, {0x43C77D, 4}, // hookcall
 	{0x478AC4, 1}, {0x478AC5, 4}, {0x496823, 5},
@@ -93,9 +96,8 @@ static std::vector<HackPair> hackAddr = {
 	{0x478E70, 1}, {0x478E71, 4}, {0x410707, 1}, {0x410708, 4}, {0x42389F, 1}, {0x4238A0, 4},
 	{0x47A0CD, 1}, {0x47A0CE, 4}, {0x47A51A, 1}, {0x47A51B, 4}, {0x479BE1, 1}, {0x479BE2, 4},
 	{0x47A0DD, 1}, {0x47A0DE, 4}, {0x43C295, 1}, {0x43C296, 4}, {0x43C2F3, 1}, {0x43C2F4, 4},
-	{0x43C2A4, 1}, {0x43C2A5, 4}, {0x44272E, 1}, {0x44272F, 4},
+	{0x43C2A4, 1}, {0x43C2A5, 4},
 	// end
-	{0x4B3C7C, 5}, {0x4B40FC, 5},
 	{0x4B3A81, 4}, {0x4B3B80, 4}, {0x4B3AAE, 4}, {0x4B3BA0, 4}, {0x4B3BC0, 4},
 	{0x478E75, 5},
 	{0x42448E, 4}, {0x424489, 4}, {0x424474, 4},
@@ -105,6 +107,7 @@ static std::vector<HackPair> hackAddr = {
 	// module: Skills
 	{0x4AA59D, 5}, {0x4AA738, 5}, {0x4AA940, 5},
 	{0x4AA9E1, 1}, {0x4AA9E2, 4}, {0x4AA9F1, 1}, {0x4AA9F2, 4}, {0x4AA9EC, 1}, {0x4AA9ED, 4}, // hookcalls
+	{0x4AA60E, 2}, {0x4AA612, 1},
 	// module: Stats
 	{0x4AF6FC, 5},
 	// module: Worldmap
@@ -114,6 +117,10 @@ static std::vector<HackPair> hackAddr = {
 	{0x49952C, 1}, {0x497557, 1}, {0x42E587, 1}, {0x42E588, 4}, {0x499FD4, 2}, {0x499E93, 2},
 	// module: MiscPatches
 	{0x41276A, 1}, {0x480AAA, 4}, {0x444BA5, 4}, {0x444BCA, 4},
+
+	// Called from engine
+	// MiscHS.cpp (HOOK_ROLLCHECK)
+	{0x42388E, 5}, {0x4234D1, 5}, {0x42356C, 5}, {0x4AAB29, 5}, {0x4AB3B6, 5}, {0x4AB8B5, 5}, {0x4ABC9F, 5}, {0x4ABCE6, 5},
 };
 
 //static std::vector<long> jumpAddr = {

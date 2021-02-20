@@ -19,8 +19,21 @@
 #pragma once
 
 #include <Windows.h>
+#include <dsound.h>
 
 #include "Enums.h"
+
+namespace sfall
+{
+
+struct Rectangle {
+	long x, y, width, height;
+
+	long right() { return x + (width - 1); }
+	long bottom() { return y + (height - 1); }
+};
+
+}
 
 namespace fo
 {
@@ -74,6 +87,22 @@ struct BoundRect {
 	long y;
 	long offx; // right
 	long offy; // bottom
+
+	BoundRect() {};
+
+	BoundRect(sfall::Rectangle rect) {
+		x = rect.x;
+		y = rect.y;
+		offx = rect.right();
+		offy = rect.bottom();
+	}
+
+	BoundRect(RECT* rect) {
+		x = rect->left;
+		y = rect->top;
+		offx = rect->right;
+		offy = rect->bottom;
+	}
 };
 
 struct RectList {
@@ -92,7 +121,7 @@ struct GameObject {
 	long y;
 	long sx;
 	long sy;
-	long frm;
+	long frm; // current frame
 	long rotation;
 	long artFid;
 	long flags;
@@ -106,15 +135,15 @@ struct GameObject {
 
 	union {
 		struct {
-			char updatedFlags[4];
+			long updatedFlags;
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
 			long ammoPid;
-			char gap_44[32];
+			long unused[8]; // offset 0x44
 		} item;
 		struct {
-			long reaction;
+			long reaction; // unused?
 			// 1 - combat, 2 - enemies out of sight, 4 - running away
 			long combatState;
 			// aka action points
@@ -127,14 +156,44 @@ struct GameObject {
 			long health;
 			long rads;
 			long poison;
+
+			inline bool IsDead() {
+				return ((damageFlags & DamageFlag::DAM_DEAD) != 0);
+			}
+			inline bool IsNotDead() {
+				return ((damageFlags & DamageFlag::DAM_DEAD) == 0);
+			}
+			inline bool IsActive() {
+				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
+			}
+			inline bool IsNotActive() {
+				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
+			}
+			inline bool IsActiveNotDead() {
+				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
+			}
+			inline bool IsNotActiveAndDead() {
+				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
+			}
+			inline bool IsFleeing() {
+				return ((combatState & CombatStateFlag::InFlee) != 0);
+			}
+
+			// Gets the current target or the attacker who dealt damage in the previous combat turn
+			inline GameObject* getHitTarget() {
+				return whoHitMe;
+			}
+			inline long getAP() {
+				return movePoints;
+			}
 		} critter;
 	};
-	DWORD protoId;
-	long cid;
+	DWORD protoId; // object PID
+	long cid; // combat ID (don't change while in combat)
 	long lightDistance;
 	long lightIntensity;
 	DWORD outline;
-	long scriptId;
+	long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - index in scripts.lst; 0xFFFFFFFF no attached script
 	GameObject* owner;
 	long scriptIndex;
 
@@ -143,6 +202,19 @@ struct GameObject {
 	}
 	inline char TypeFid() {
 		return ((artFid >> 24) & 0x0F);
+	}
+
+	inline bool IsCritter() {
+		return (Type() == fo::ObjType::OBJ_TYPE_CRITTER);
+	}
+	inline bool IsNotCritter() {
+		return (Type() != fo::ObjType::OBJ_TYPE_CRITTER);
+	}
+	inline bool IsItem() {
+		return (Type() == fo::ObjType::OBJ_TYPE_ITEM);
+	}
+	inline bool IsNotItem() {
+		return (Type() != fo::ObjType::OBJ_TYPE_ITEM);
 	}
 };
 
@@ -193,8 +265,8 @@ struct ScriptInstance {
 	long flags;
 	long scriptIdx;
 	Program *program;
-	long selfObjectId;
-	long localVarOffset;
+	long ownerObjectId;
+	long localVarOffset; // data
 	long numLocalVars;
 	long returnValue;
 	long action;
@@ -208,6 +280,7 @@ struct ScriptInstance {
 	long howMuch;
 	long field_50;
 	long procedureTable[28];
+	long gap[7];
 };
 
 // Script run-time data
@@ -217,20 +290,20 @@ struct Program {
 	long field_8;
 	long field_C;
 	long *codePtr;
-	long field_14;
-	long field_18;
+	long field_14;      // unused?
+	long field_18;      // unused?
 	long *dStackPtr;
 	long *aStackPtr;
 	long *dStackOffs;
 	long *aStackOffs;
 	long field_2C;
 	long *stringRefPtr;
-	long field_34;      // procTablePtr
-	long *procTablePtr; // field_38
-	long regs[12];
-	long field_6C;
-	long field_70;
-	long field_74;
+	long *procTablePtr;
+	long field_38;      // same as codeStackPtr
+	long savedEnv[12];  // saved register values
+	long field_6C;      // unused?
+	long field_70;      // unused?
+	long field_74;      // unused?
 	long field_78;
 	long field_7C;
 	union {
@@ -247,6 +320,12 @@ struct Program {
 };
 
 static_assert(sizeof(Program) == 140, "Incorrect Program definition.");
+
+struct ProgramList {
+	Program* progPtr;
+	ProgramList* next;
+	ProgramList* prev;
+};
 
 struct ItemButtonItem {
 	GameObject* item;
@@ -491,7 +570,7 @@ struct SkillInfo {
 };
 
 struct StatInfo {
-	const char* dame;
+	const char* name;
 	const char* description;
 	long image;
 	long minValue;
@@ -511,6 +590,11 @@ struct PathNode {
 	void* pDat;
 	long isDat;
 	PathNode* next;
+};
+
+struct ObjectTable {
+	GameObject*  object;
+	ObjectTable* nextObject;
 };
 
 struct PremadeChar {
@@ -602,7 +686,7 @@ struct Proto {
 
 		long flags;
 		long flagsExt;
-		long scriptId; // 0x0Y00XXXX: Y - script type (0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter); XXXX - number in scripts.lst. -1 means no script.
+		long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - index in scripts.lst; 0xFFFFFFFF no attached script
 		ItemType type;
 
 		union {
@@ -736,6 +820,36 @@ struct ScriptListInfoItem {
 	long numLocalVars;
 };
 
+struct WinRegion { // sizeof = 0x88 (0x8C in the engine code)
+	char  name[32];
+	long  field_20;
+	long  field_24;
+	long  field_28;
+	long  field_2C;
+	long  field_30;
+	long  field_34;
+	long  field_38;
+	long  field_3C;
+	long  field_40;
+	Program* procScript;
+	long  proc_48;
+	long  proc_4C;
+	long  procEnter;
+	long  procLeave;
+	long  field_58;
+	long  field_5C;
+	long  field_60;
+	long  field_64;
+	long  flags_68;
+	long  field_6C;
+	long  field_70;
+	long  field_74;
+	void* func_78;
+	void* func_7C;
+	long  field_80;
+	long  field_84;
+};
+
 //for holding window info
 struct Window {
 	long wID; // window position in the _window_index array
@@ -758,45 +872,45 @@ struct Window {
 };
 
 struct sWindow {
-	char name[32];
-	long wID; // window position in the _window_index array
-	long width;
-	long height;
-	long region1;
-	long region2;
-	long region3;
-	long region4;
-	long *buttons;
-	long numButtons;
-	long setPositionX;
-	long setPositionY;
-	long clearColour;
-	long flags;
+	char  name[32];
+	long  wID; // window position in the _window_index array
+	long  width;
+	long  height;
+	WinRegion* regions;
+	long  region2;
+	long  countRegions;
+	long  region4;
+	long* buttons;
+	long  numButtons;
+	long  setPositionX;
+	long  setPositionY;
+	long  clearColour;
+	long  flags;
 	float randX;
 	float randY;
 };
 
 struct LSData {
-	char signature[24];
+	char  signature[24];
 	short majorVer;
 	short minorVer;
-	char charR;
-	char playerName[32];
-	char comment[30];
-	char unused1;
+	char  charR;
+	char  playerName[32];
+	char  comment[30];
+	char  unused1;
 	short realMonth;
 	short realDay;
 	short realYear;
 	short unused2;
-	long realTime;
+	long  realTime;
 	short gameMonth;
 	short gameDay;
 	short gameYear;
 	short unused3;
-	long gameTime;
+	long  gameTime;
 	short mapElev;
 	short mapNumber;
-	char mapName[16];
+	char  mapName[16];
 };
 
 struct AIcap {
@@ -826,6 +940,14 @@ struct AIcap {
 	long disposition;
 	long body_type;
 	long general_type;
+
+	inline AIpref::distance getDistance() {
+		return (AIpref::distance)distance;
+	}
+	inline AIpref::run_away_mode getRunAwayMode() {
+		return (AIpref::run_away_mode)run_away_mode;
+	}
+
 };
 
 struct Queue {
@@ -894,7 +1016,7 @@ struct ACMSoundData {
 	void* FileSizeFunc;
 	long  openAudioIndex;
 	long  memData;
-	long  soundBuffer;
+	IDirectSoundBuffer* soundBuffer;
 	long  dwSize;              // begin DSBUFFERDESC structure
 	long  dwFlags;
 	long  dwBufferBytes;
@@ -957,7 +1079,7 @@ struct AudioFile {
 	long  length;
 	long  sample_rate;
 	long  channels;
-	long  tell;
+	long  position;
 };
 
 #pragma pack(pop)

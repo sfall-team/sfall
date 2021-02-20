@@ -14,9 +14,11 @@
 #define FO_VAR_art_name                   0x56C9E4
 #define FO_VAR_art_vault_guy_num          0x5108A4
 #define FO_VAR_art_vault_person_nums      0x5108A8
+#define FO_VAR_artCritterFidShouldRunData 0x56CAF0
 #define FO_VAR_aTextSCuts                 0x501A8C
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
+#define FO_VAR_attack_str                 0x56D624
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
@@ -27,6 +29,7 @@
 #define FO_VAR_btncnt                     0x43EA1C
 #define FO_VAR_carCurrentArea             0x672E68
 #define FO_VAR_carGasAmount               0x672E6C
+#define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_character_points           0x518538
 #define FO_VAR_cmap                       0x51DF34
 #define FO_VAR_colorTable                 0x6A38D0
@@ -99,6 +102,8 @@
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
 #define FO_VAR_glblmode                   0x5709D0
+#define FO_VAR_gmouse_3d_action_nums      0x518D1E
+#define FO_VAR_gmouse_3d_current_mode     0x518D38
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
@@ -135,6 +140,7 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_lastMovieH                 0x638E64
 #define FO_VAR_lastMovieW                 0x638E68
+#define FO_VAR_lastWin                    0x51DD80
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
 #define FO_VAR_lips_draw_head             0x519248
@@ -159,6 +165,7 @@
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
 #define FO_VAR_Move_on_Car                0x672E64
+#define FO_VAR_mouse_buttons              0x6AC7B0
 #define FO_VAR_mouse_hotx                 0x6AC7D0
 #define FO_VAR_mouse_hoty                 0x6AC7CC
 #define FO_VAR_mouse_is_hidden            0x6AC790
@@ -174,7 +181,6 @@
 #define FO_VAR_num_game_global_vars       0x5186C4
 #define FO_VAR_num_map_global_vars        0x519574
 #define FO_VAR_num_windows                0x6ADF24
-#define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
 #define FO_VAR_obj_seen                   0x662445
 #define FO_VAR_obj_seen_check             0x6610BC
@@ -213,8 +219,8 @@
 #define FO_VAR_pipmesg                    0x664338
 #define FO_VAR_preload_list_index         0x519640
 #define FO_VAR_procTableStrs              0x51C758  // table of procId (from define.h) => procName map
-#define FO_VAR_proto_msg_files            0x6647AC
 #define FO_VAR_proto_main_msg_file        0x6647FC
+#define FO_VAR_proto_msg_files            0x6647AC
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C
@@ -275,6 +281,7 @@
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_window                     0x6ADE58
+#define FO_VAR_window_index               0x6ADD90
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmBkWin                    0x51DE14
 #define FO_VAR_wmBkWinBuf                 0x51DE24

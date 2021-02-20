@@ -51,7 +51,7 @@ struct ArrayWrapper {
 	}
 };
 
-// defines reference to an engine variable 
+// defines reference to an engine variable
 #define VAR_(name, type)	\
 	extern type& name;
 

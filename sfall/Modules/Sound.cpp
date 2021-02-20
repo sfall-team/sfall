@@ -18,6 +18,7 @@
 
 #include <unordered_map>
 #include <algorithm>
+#include <dsound.h>
 #include <dshow.h>
 
 #include "..\main.h"
@@ -351,6 +352,7 @@ static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool isExis
 
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
 
+// TODO: Add DirectSound support for wav format
 static bool SearchAlternativeFormats(const char* path, PlayType playType, std::string &pathFile) {
 	size_t len = 0;
 	wchar_t wPath[MAX_PATH];
@@ -896,6 +898,46 @@ rawFile:
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+static fo::GameObject* relativeObject;
+
+static void __declspec(naked) gsound_compute_relative_volume_hook() {
+	__asm {
+		mov relativeObject, ecx;
+		jmp fo::funcoffs::win_get_rect_;
+	}
+}
+
+static long __fastcall SetVolumeAndPan(long volume, fo::ACMSoundData* sound) {
+	//if (!relativeObject) return volume;
+
+	long distance = fo::func::obj_dist(fo::var::obj_dude, relativeObject);
+	if (distance > 5) {
+		long direction = fo::func::tile_dir(fo::var::obj_dude->tile, relativeObject->tile);
+		bool isRightSide = (direction <= 2);
+		long panValue = (distance < 55) ? (distance - 5) * 200 : 10000;
+		sound->soundBuffer->SetPan((isRightSide) ? panValue : -panValue); // left mute 10000 ... -10000 right mute
+	}
+	if (relativeObject->elevation != fo::var::obj_dude->elevation) volume = (32767 / 4); // set volume to 1/4
+
+	relativeObject = nullptr;
+	return volume;
+}
+
+static void __declspec(naked) gsound_load_sound_volume_hack() {
+	__asm {
+		cmp  relativeObject, 0;
+		je   skip;
+		mov  edx, ebx;        // sound
+		call SetVolumeAndPan; // ecx - volume
+		mov  ecx, eax;
+skip:
+		mov  edx, ds:[FO_VAR_sndfx_volume];
+		retn;
+	}
+}
+
 constexpr int SampleRate = 44100; // 44.1kHz
 
 void Sound::init() {
@@ -905,6 +947,11 @@ void Sound::init() {
 
 	LoadGameHook::OnGameReset() += WipeSounds;
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
+
+	// Enable support for panning sfx sounds and reduce the sound volume for an object located on a different elevation of the map
+	SafeWrite8(0x45237E, (*(BYTE*)0x45237E) | 4); // set mode for DSBCAPS_CTRLPAN
+	HookCall(0x45158D, gsound_compute_relative_volume_hook);
+	MakeCall(0x45146A, gsound_load_sound_volume_hack, 1);
 
 	HookCall(0x44E816, gmovie_play_hook_pause);
 	HookCall(0x44EA84, gmovie_play_hook_unpause);
@@ -952,7 +999,7 @@ void Sound::init() {
 	});
 
 	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
-	if (sBuff > 0) {
+	if (sBuff > 4) {
 		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 	}
 

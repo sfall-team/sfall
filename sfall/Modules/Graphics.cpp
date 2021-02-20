@@ -21,7 +21,7 @@
 #include "..\InputFuncs.h"
 #include "ScriptShaders.h"
 
-#include "SubModules\GameRender.h"
+#include "SubModules\WindowRender.h"
 
 #include "Graphics.h"
 
@@ -655,6 +655,14 @@ void Graphics::SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
 }
 
+static void SetGPUPalette() {
+	D3DLOCKED_RECT rect;
+	if (gpuPalette && !FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
+		CopyMemory(rect.pBits, palette, 256 * 4);
+		gpuPalette->UnlockRect(0);
+	}
+}
+
 class FakeDirectDrawSurface : IDirectDrawSurface {
 private:
 	ULONG Refs;
@@ -767,7 +775,7 @@ public:
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (DeviceLost) return DDERR_SURFACELOST;
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
 		if (isPrimary) {
 			lockRect = a;
 			if (Graphics::GPUBlt) {
@@ -798,9 +806,10 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			fo::RefreshGNW();
+			if (Graphics::GPUBlt) SetGPUPalette(); // restore palette
+			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
-		return !DeviceLost;
+		return DeviceLost;
 	}
 
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
@@ -844,7 +853,7 @@ public:
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		//dlog("\nUnlock", DL_INIT);
-		if ((DeviceLost && Restore() == DD_FALSE) || !isPrimary) return DD_OK;
+		if (!isPrimary) return DD_OK;
 		//dlog("\nUnlock -> primary", DL_INIT);
 
 		if (Graphics::GPUBlt == 0) {
@@ -941,11 +950,7 @@ public:
 		__movsd((DWORD*)&palette[b], (DWORD*)destPal, c);
 
 		if (Graphics::GPUBlt) {
-			D3DLOCKED_RECT rect;
-			if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
-				CopyMemory(rect.pBits, palette, 256 * 4);
-				gpuPalette->UnlockRect(0);
-			}
+			SetGPUPalette();
 		} else {
 			// X8B8G8R8 format
 			for (size_t i = b; i < b + c; i++) { // swap color B <> R
@@ -1204,7 +1209,7 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	GameRender::init();
+	WindowRender::init();
 }
 
 void Graphics::exit() {

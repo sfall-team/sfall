@@ -204,30 +204,30 @@ enum class Material : long
 };
 
 namespace ObjectFlag {
-	enum ObjectFlag : DWORD {
-		Mouse_3d = 0x1,
-		WalkThru = 0x4,
-		Flat = 0x8,
-		NoBlock = 0x10,
-		Lighting = 0x20,
-		Temp = 0x400,
-		MultiHex = 0x800,
-		NoHighlight = 0x1000,
-		Used = 0x2000,
-		TransRed = 0x4000,
-		TransNone = 0x8000,
-		TransWall = 0x10000,
-		TransGlass = 0x20000,
-		TransSteam = 0x40000,
-		TransEnergy = 0x80000,
-		Left_Hand = 0x1000000,
-		Right_Hand = 0x2000000,
-		Worn = 0x4000000,
-		HiddenItem = 0x8000000,
+	enum ObjectFlag : unsigned long {
+		Mouse_3d     = 0x1,
+		WalkThru     = 0x4,
+		Flat         = 0x8,
+		NoBlock      = 0x10,
+		Lighting     = 0x20,
+		Temp         = 0x400,
+		MultiHex     = 0x800,
+		NoHighlight  = 0x1000,
+		Used         = 0x2000,
+		TransRed     = 0x4000,
+		TransNone    = 0x8000,
+		TransWall    = 0x10000,
+		TransGlass   = 0x20000,
+		TransSteam   = 0x40000,
+		TransEnergy  = 0x80000,
+		Left_Hand    = 0x1000000,
+		Right_Hand   = 0x2000000,
+		Worn         = 0x4000000,
+		HiddenItem   = 0x8000000,
 		WallTransEnd = 0x10000000,
-		LightThru = 0x20000000,
-		Seen = 0x40000000,
-		ShootThru = 0x80000000,
+		LightThru    = 0x20000000,
+		Seen         = 0x40000000,
+		ShootThru    = 0x80000000,
 	};
 }
 
@@ -252,8 +252,9 @@ enum ArtType : char
 };
 
 // Some FO2 PIDs possibly used by engine
-enum ProtoId : long
+enum ProtoID : unsigned long
 {
+	PID_POWERED_ARMOR = 3,
 //	PID_ROCK = 19,
 	PID_SMALL_ENERGY_CELL = 38,
 	PID_MICRO_FUSION_CELL = 39,
@@ -293,17 +294,23 @@ enum ProtoId : long
 	PID_ACTIVE_PLASTIC_EXPLOSIVE = 209,
 	PID_ACTIVE_STEALTH_BOY = 210,
 	PID_TECHNICAL_MANUAL = 228,
+	PID_HARDENED_POWER_ARMOR = 232,
 	PID_CHEMISTRY_MANUAL = 237,
 	PID_JET = 259,
 	PID_JET_ANTIDOTE = 260,
 	PID_DECK_OF_TRAGIC_CARDS = 306,
+	PID_ADVANCED_POWER_ARMOR = 348,
+	PID_ADVANCED_POWER_ARMOR_MK2 = 349,
 //	PID_GECK = 366,
 	PID_SOLAR_SCORCHER = 390,
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,
 
-	PID_Player = 16777216,
-	PID_DRIVABLE_CAR = 33555441,
+	// critter
+	PID_Player = 0x01000000,
+
+	// scenery
+	PID_DRIVABLE_CAR = 0x020003F1, // index 1009
 
 	// misc type
 	PID_CORPSE_BLOOD = 0x05000004,
@@ -313,11 +320,12 @@ enum ProtoId : long
 //XX Critter defines XX
 //XXXXXXXXXXXXXXXXXXXXX
 
-// Trait defines //
-#define TRAIT_PERK  (0)
-#define TRAIT_OBJECT (1)
-#define TRAIT_TRAIT  (2)
-
+enum TraitType : long
+{
+	TRAIT_PERK = 0,
+	TRAIT_OBJECT = 1,
+	TRAIT_TRAIT = 2
+};
 
 enum Perk : long
 {
@@ -515,10 +523,10 @@ enum Stat : long
 	STAT_rad_resist = 31,
 	STAT_poison_resist = 32,
 	// poison_resist MUST be the last derived stat
-	// nonderived stats
+	// non-derived stats
 	STAT_age = 33,
 	STAT_gender = 34,
-	// gender MUST be the last nonderived stat
+	// gender MUST be the last non-derived stat
 	STAT_current_hp = 35,
 	STAT_current_poison = 36,
 	STAT_current_rad = 37,
@@ -738,6 +746,14 @@ enum RollResult
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
 
+enum CombatStateFlag : long
+{
+	InCombat        = 1,
+	EnemyOutOfRange = 2,
+	InFlee          = 4,
+	ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
+};
+
 namespace Fields {
 	enum CommonObj : long
 	{
@@ -753,8 +769,9 @@ namespace Fields {
 		flags             = 0x24,
 		elevation         = 0x28,
 		inventory         = 0x2C,
+
 		protoId           = 0x64,
-		cid               = 0x68,
+		cid               = 0x68, // combatID, don't change while in combat
 		lightDistance     = 0x6C,
 		lightIntensity    = 0x70,
 		outline           = 0x74,
@@ -789,16 +806,91 @@ namespace Fields {
 namespace WinFlags {
 	enum WinButtonFlags : long
 	{
-		OwnerFlag             = 0x1,
-		DontMoveTop           = 0x2,
-		MoveOnTop             = 0x4,
-		Hidden                = 0x8,
-		Exclusive             = 0x10,
-		Transparent           = 0x20,
-		UnknownFlag40         = 0x40,
-		UnknownFlag80         = 0x80,
-		ScriptWindow          = 0x100,
-		itsButton             = 0x10000,
+		OwnerFlag         = 0x000001, // sfall Render flag, indicates that the window surface is used for rendering the game scene
+		DontMoveTop       = 0x000002, // does not move the window to top when the mouse is clicked in the window area or when it is showing
+		MoveOnTop         = 0x000004, // places the window on top when it is created
+		Hidden            = 0x000008,
+		Exclusive         = 0x000010,
+		Transparent       = 0x000020,
+		UnknownFlag40     = 0x000040,
+		UnknownFlag80     = 0x000080,
+		ScriptWindow      = 0x000100,
+		itsButton         = 0x010000,
+	};
+}
+
+namespace AIpref {
+	enum distance : long
+	{
+		stay_close            = 0, // the attacker will stay at a distance no more than 5 hexes from the player (defined in ai_move_steps_closer, cai_perform_distance_prefs)
+		charge                = 1, // AI will always try to get close to its target before or after attack
+		snipe                 = 2, // when the distance between the attacker and the target decreases, the attacker will try to move away from the target to a distance of up to 10 hexes
+		on_your_own           = 3, // no special behavior defined for this
+		stay                  = 4  // the attacker will, if possible, stay at the hex where the combat started (defined in ai_move_steps_closer, ai_move_away)
+	};
+
+	// presets for party members
+	enum disposition : long
+	{
+		none                  = -1,
+		custom                = 0,
+		coward                = 1,
+		defensive             = 2,
+		aggressive            = 3,
+		berserk               = 4
+	};
+
+	enum class attack_who : long
+	{
+		no_attack_mode        = -1,
+		whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
+		strongest             = 1, // attack stronger targets (will always switch to stronger ones in combat)
+		weakest               = 2, // attack weaker targets (will always switch to weaker ones in combat)
+		whomever              = 3, // anyone, will attack the chosen target until it dies, or until retaliation occurs (combatai_check_retalization_)
+		closest               = 4, // only attack near targets
+	};
+
+	enum class run_away_mode : long
+	{
+		none                  = -1, // get the value from the cap.min_hp (in cai_get_min_hp_)
+		coward                = 0,  // 0%
+		finger_hurts          = 1,  // 25% of the lost amount of health
+		bleeding              = 2,  // 40% of the lost amount of health
+		not_feeling_good      = 3,  // 60% of the lost amount of health
+		tourniquet            = 4,  // 75% of the lost amount of health
+		never                 = 5   // 100%
+	};
+
+	enum class weapon_pref : long
+	{
+		no_pref               = 0,
+		melee                 = 1,
+		melee_over_ranged     = 2,
+		ranged_over_melee     = 3,
+		ranged                = 4,
+		unarmed               = 5,
+		unarmed_over_thrown   = 6, // not available for party member in control panel
+		random                = 7  // not available for party member in control panel
+	};
+
+	enum class area_attack_mode : long
+	{
+		no_pref               = -1, // special logic for NPC (not available for party member in control panel)
+		always                = 0,
+		sometimes             = 1,  // use random value from cap.secondary_freq
+		be_sure               = 2,  // 85% hit chance
+		be_careful            = 3,  // 50% hit chance
+		be_absolutely_sure    = 4,  // 95% hit chance
+	};
+
+	enum class chem_use_mode : long
+	{
+		clean                  = 0,
+		stims_when_hurt_little = 1,
+		stims_when_hurt_lots   = 2,
+		sometimes              = 3,
+		anytime                = 4,
+		always                 = 5,
 	};
 }
 

@@ -80,13 +80,6 @@ namespace sfall
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
-struct Rectangle {
-	long x, y, width, height;
-
-	long right() { return x + width; }
-	long bottom() { return y + height; }
-};
-
 // Gets the integer value from given INI file.
 int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
 
@@ -110,6 +103,8 @@ size_t GetConfigString(const char* section, const char* setting, const char* def
 
 // Parses the comma-separated list from the settings from Sfall configuration INI file.
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
 
 // Translates given string using Sfall translation INI file.
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);

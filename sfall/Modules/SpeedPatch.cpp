@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2017  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2017  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <cmath>
 
@@ -39,15 +39,19 @@ static const DWORD offsets[] = {
 	0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6, // for mve
 };
 
-DWORD sf_GetTickCount = (DWORD)&GetTickCount;
-DWORD sf_GetLocalTime;
+static DWORD getLocalTimeOffs;
+DWORD SpeedPatch::getTickCountOffs = (DWORD)&GetTickCount;
+
+DWORD SpeedPatch::getTickCount() {
+	return ((DWORD (__stdcall*)())getTickCountOffs)();
+}
 
 static bool enabled = true;
 static bool toggled = false;
 static bool slideShow = false;
 
 static double multi;
-static DWORD storedTickCount = 0;
+static DWORD sfallTickCount = 0;
 static DWORD lastTickCount;
 static double tickCountFraction = 0.0;
 
@@ -58,16 +62,12 @@ static struct SpeedCfg {
 	double multiplier;
 } *speed = nullptr;
 
-static int modKey;
+static int modKey[2];
 static int toggleKey;
 
 static DWORD __stdcall FakeGetTickCount() {
 	// Keyboard control
-	if (modKey && ((modKey > 0 && KeyDown(modKey))
-		|| (modKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
-		|| (modKey == -2 && (KeyDown(DIK_LMENU)    || KeyDown(DIK_RMENU)))
-		|| (modKey == -3 && (KeyDown(DIK_LSHIFT)   || KeyDown(DIK_RSHIFT)))))
-	{
+	if (modKey[0] && (KeyDown(modKey[0]) || (modKey[1] && KeyDown(modKey[1])))) {
 		if (toggleKey && KeyDown(toggleKey)) {
 			if (!toggled) {
 				toggled = true;
@@ -86,33 +86,30 @@ static DWORD __stdcall FakeGetTickCount() {
 	}
 
 	DWORD newTickCount = GetTickCount();
+	if (newTickCount == lastTickCount) return sfallTickCount;
+
 	// Just in case someone's been running their computer for 49 days straight
-	if (newTickCount < lastTickCount) {
-		newTickCount = lastTickCount;
-		return storedTickCount;
+	if (lastTickCount > newTickCount) {
+		lastTickCount = newTickCount;
+		return sfallTickCount;
 	}
 
 	double elapsed = (double)(newTickCount - lastTickCount);
 	lastTickCount = newTickCount;
 
 	// Multiply the tick count difference by the multiplier
-	if (enabled && !slideShow
-		&& !(GetLoopFlags() & (LoopFlag::INVENTORY | LoopFlag::INTFACEUSE | LoopFlag::INTFACELOOT | LoopFlag::DIALOG)))
-	{
+	if (enabled && !slideShow && !(GetLoopFlags() & (LoopFlag::INVENTORY | LoopFlag::INTFACEUSE | LoopFlag::INTFACELOOT | LoopFlag::DIALOG))) {
 		elapsed *= multi;
-		tickCountFraction += modf(elapsed, &elapsed);
+		elapsed += tickCountFraction;
+		tickCountFraction = modf(elapsed, &elapsed);
 	}
-	storedTickCount += (DWORD)elapsed;
+	sfallTickCount += (DWORD)elapsed;
 
-	if (tickCountFraction > 1.0) {
-		tickCountFraction -= 1.0;
-		storedTickCount++;
-	}
-	return storedTickCount;
+	return sfallTickCount;
 }
 
 void __stdcall FakeGetLocalTime(LPSYSTEMTIME time) {
-	__int64 currentTime = startTime + storedTickCount * 10000;
+	__int64 currentTime = startTime + sfallTickCount * 10000;
 	FileTimeToSystemTime((FILETIME*)&currentTime, time);
 }
 
@@ -146,7 +143,7 @@ void TimerInit() {
 	char buf[2], spKey[10] = "SpeedKey#";
 	char spMulti[12] = "SpeedMulti#";
 	for (int i = 0; i < 10; i++) {
-		_itoa_s(i, buf, 10);
+		_itoa(i, buf, 10);
 		spKey[8] = spMulti[10] = buf[0];
 		speed[i].key = GetConfigInt("Input", spKey, 0);
 		speed[i].multiplier = GetConfigInt("Speed", spMulti, 0) / 100.0;
@@ -155,25 +152,42 @@ void TimerInit() {
 
 void SpeedPatch::init() {
 	if (GetConfigInt("Speed", "Enable", 0)) {
-		modKey = GetConfigInt("Input", "SpeedModKey", 0);
+		modKey[0] = GetConfigInt("Input", "SpeedModKey", 0);
 		int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
-		if (init == 100 && !modKey) return;
+		if (init == 100 && !modKey[0]) return;
 
 		dlog("Applying speed patch.", DL_INIT);
+
+		switch (modKey[0]) {
+		case -1:
+			modKey[0] = DIK_LCONTROL;
+			modKey[1] = DIK_RCONTROL;
+			break;
+		case -2:
+			modKey[0] = DIK_LMENU;
+			modKey[1] = DIK_RMENU;
+			break;
+		case -3:
+			modKey[0] = DIK_LSHIFT;
+			modKey[1] = DIK_RSHIFT;
+			break;
+		default:
+			modKey[1] = 0;
+		}
 
 		multi = (double)init / 100.0;
 		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
 
-		sf_GetTickCount = (DWORD)&FakeGetTickCount;
-		sf_GetLocalTime = (DWORD)&FakeGetLocalTime;
+		getTickCountOffs = (DWORD)&FakeGetTickCount;
+		getLocalTimeOffs = (DWORD)&FakeGetLocalTime;
 
 		int size = sizeof(offsets) / 4;
 		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) size -= 4;
 
 		for (int i = 0; i < size; i++) {
-			SafeWrite32(offsets[i], (DWORD)&sf_GetTickCount);
+			SafeWrite32(offsets[i], (DWORD)&getTickCountOffs);
 		}
-		SafeWrite32(0x4FDF58, (DWORD)&sf_GetLocalTime);
+		SafeWrite32(0x4FDF58, (DWORD)&getLocalTimeOffs);
 		HookCall(0x4A433E, scripts_check_state_hook);
 
 		TimerInit();

@@ -2075,7 +2075,7 @@ static void __stdcall combat_attack_gcsd() {
 		if (fo::var::main_ctd.targetDamage > fo::var::gcsd->maxDamage) {
 			fo::var::main_ctd.targetDamage = fo::var::gcsd->maxDamage;
 		}
-		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+		if (damage > fo::var::main_ctd.targetDamage && fo::var::main_ctd.target->IsCritter()) {
 			long cHP = fo::var::main_ctd.target->critter.health;
 			if (cHP > fo::var::gcsd->maxDamage && cHP <= damage) {
 				fo::var::main_ctd.targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
@@ -2828,6 +2828,61 @@ static void __declspec(naked) action_knockback_hack() {
 	}
 }
 
+static void __declspec(naked) check_door_state_hack_close() {
+	__asm {
+		mov  eax, esi;
+		call fo::funcoffs::obj_is_a_portal_;
+		test eax, eax;
+		jz   skip;
+		and  dword ptr [esi + flags], ~(NoBlock | LightThru | ShootThru);
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) check_door_state_hack_open() {
+	__asm {
+		mov  eax, esi;
+		call fo::funcoffs::obj_is_a_portal_;
+		test eax, eax;
+		jz   skip;
+		or   ecx, (NoBlock | LightThru | ShootThru);
+skip:
+		retn;
+	}
+}
+
+static BYTE fixRegion = 0;
+
+static void __declspec(naked) checkAllRegions_hack() {
+	static const DWORD checkAllRegions_BackRet = 0x4B6C40;
+	static const DWORD checkAllRegions_FixRet = 0x4B6AAB;
+	__asm {
+		test eax, eax;
+		jnz  skip;
+		cmp  dword ptr ds:[FO_VAR_lastWin], -1;
+		je   skip;
+		mov  fixRegion, 1;
+		jmp  checkAllRegions_FixRet; // trigger the leave event for _lastWin
+skip:
+		add  esp, 0x10;
+		pop  ebp;
+		pop  edi;
+		jmp  checkAllRegions_BackRet;
+	}
+}
+
+static void __declspec(naked) checkAllRegions_hook() {
+	__asm {
+		test byte ptr fixRegion, 1;
+		jnz  skip;
+		jmp  fo::funcoffs::windowCheckRegion_;
+skip:
+		mov  fixRegion, 0;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -3573,6 +3628,14 @@ void BugFixes::init()
 
 	// Fix broken Print() script function
 	HookCall(0x461AD4, (void*)fo::funcoffs::windowOutput_);
+
+	// Fix for the flags of non-door objects being set/unset when using obj_close/open functions
+	MakeCall(0x49CBF7, check_door_state_hack_close, 2);
+	MakeCall(0x49CB30, check_door_state_hack_open, 1);
+
+	// Fix for the "Leave" event procedure of the window region not being triggered when the cursor moves to a non-scripted window
+	MakeJump(0x4B6C3B, checkAllRegions_hack);
+	HookCall(0x4B6C13, checkAllRegions_hook);
 }
 
 }

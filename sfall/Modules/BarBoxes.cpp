@@ -57,14 +57,6 @@ static struct tBox {
 
 static bool setCustomBoxText;
 
-static const DWORD bboxMemAddr[] = {
-	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
-};
-
-static const DWORD bboxSlotAddr[] = {
-	0x4616F7, 0x46170F, 0x461736, 0x4616B1, 0x46151D, 0x4615B3
-};
-
 static void __declspec(naked) DisplayBoxesHack() {
 	static const DWORD DisplayBoxesRet1 = 0x4615A8;
 	static const DWORD DisplayBoxesRet2 = 0x4615BE;
@@ -73,7 +65,7 @@ static void __declspec(naked) DisplayBoxesHack() {
 		xor  ebx, ebx;
 start:
 		imul eax, ebx, tSize;
-		mov  al, byte ptr [edx][eax + 3];   // .isActive
+		mov  al, byte ptr [edx + 3][eax];   // tBox.isActive
 		test al, al;
 		jz   next;
 		lea  eax, [ebx + 5];                // index box
@@ -98,20 +90,20 @@ static void __declspec(naked) BarBoxesTextHack() {
 		sub  ecx, 5;                        // subtract vanilla boxes
 		imul ecx, tSize;
 		mov  esi, [boxText];                // boxText addr
-		cmp  byte ptr [esi][ecx], 1;        // .hasText
+		cmp  byte ptr [esi][ecx], 1;        // tBox.hasText
 		je   customText;
 		add  esp, 4;
 		jmp  fo::funcoffs::getmsg_;
 customText:
 		// get color
-		movzx ebx, byte ptr [esi][ecx + 1]; // .color
+		movzx ebx, byte ptr [esi + 1][ecx]; // tBox.color
 		// set text
-		lea  eax, [esi + ecx + 4];          // .text
+		lea  eax, [esi + 4][ecx];           // tBox.text
 		// set color
 		pop  ecx;                           // restore BoxIndex
 		imul ecx, sSize;
 		mov  esi, [boxes];                  // boxes addr
-		cmp  dword ptr [esi][ecx + 4], 2;   // .colour
+		cmp  dword ptr [esi + 4][ecx], 2;   // sBox.colour
 		jb   skip;
 		mov  [esp + 0x440 - 0x20], ebx;     // set to Color
 skip:
@@ -144,13 +136,21 @@ exitLoop:
 static void ReconstructBarBoxes(int count) {
 	SafeWrite8(0x46140B, count);
 	__asm {
-		//call fo::funcoffs::refresh_box_bar_win_;
 		call fo::funcoffs::reset_box_bar_win_;
 		call fo::funcoffs::construct_box_bar_win_;
 	}
 }
 
+static const DWORD bboxMemAddr[] = {
+	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
+};
+
+static const DWORD bboxSlotAddr[] = {
+	0x4616F7, 0x46170F, 0x461736, 0x4616B1, 0x46151D, 0x4615B3
+};
+
 //static BYTE restoreData[] = {0x31, 0xD2, 0x89, 0x94, 0x24}; // xor edx, edx; mov...
+
 static void ResetBoxes() {
 	for (int i = 0; i < actualBoxCount; i++) {
 		boxText[i].isActive = false;

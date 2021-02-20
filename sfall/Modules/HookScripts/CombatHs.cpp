@@ -79,18 +79,15 @@ static void __declspec(naked) AfterHitRollHook() {
 	}
 }
 
-// Implementation of item_w_mp_cost_ engine function with the hook
-long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
-	long cost = fo::func::item_w_mp_cost(source, hitMode, isCalled);
-	if (!HookScripts::HookHasScript(HOOK_CALCAPCOST)) return cost;
-
+static long CalcApCostHook_Script(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
 	BeginHook();
-	argCount = 4;
+	argCount = 5;
 
 	args[0] = (DWORD)source;
 	args[1] = hitMode;
 	args[2] = isCalled;
 	args[3] = cost;
+	args[4] = (DWORD)weapon;
 
 	RunHookScript(HOOK_CALCAPCOST);
 
@@ -98,6 +95,12 @@ long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isC
 	EndHook();
 
 	return cost;
+}
+
+long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
+	return (HookScripts::HookHasScript(HOOK_CALCAPCOST))
+			? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
+			: cost;
 }
 
 static void __declspec(naked) CalcApCostHook() {
@@ -112,7 +115,9 @@ static void __declspec(naked) CalcApCostHook() {
 		push ecx;
 	}
 
-	argCount = 4;
+	argCount = 5;
+	args[4] = 0;
+
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -137,7 +142,9 @@ static void __declspec(naked) CalcApCostHook2() {
 		//push ecx;
 	}
 
-	argCount = 4;
+	argCount = 5;
+	args[4] = 0;
+
 	RunHookScript(HOOK_CALCAPCOST);
 
 	__asm {
@@ -254,11 +261,11 @@ static void __declspec(naked) SubComputeDamageHook() {
 	}
 }
 
-static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
+static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* attacker) {
 	BeginHook();
 	argCount = 5;
 
-	args[0] = attacker;
+	args[0] = (DWORD)attacker;
 	args[1] = target[0];
 	args[2] = target[1];
 	args[3] = target[2];
@@ -274,7 +281,11 @@ static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
 	}
 	EndHook();
 }
-
+/*
+void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker) {
+	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);
+}
+*/
 static void __declspec(naked) FindTargetHook() {
 	__asm {
 		push eax;
