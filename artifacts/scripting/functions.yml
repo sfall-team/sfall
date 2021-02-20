@@ -1676,6 +1676,16 @@
       doc: |
         Fills the rectangle area of the currently selected script window with the specified color, or clears the window with transparent (index 0) color (call the function without arguments).
         - `color`: the color index in the game palette (from 0 to 255)
+    - name: nterface_overlay
+      detail: sfall_func2("interface_overlay", int winType, int mode)
+      doc: |
+        Alternative form: `int sfall_func6("interface_overlay", int winType, 2, int x, int y, int width, int height)`.
+
+        Creates an additional drawing surface above the graphic layer of the specified interface window. All subsequent calls of `interface_art_draw` and `interface_print` functions will draw on it.
+        - `winType`: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`)
+        - `mode`: 1 - creates a new overlay surface
+                  2 - clears the overlay area or the specified rectangle defined by the `x`, `y`, `width`, `height` arguments
+                  0 - destroys the created overlay surface (frees up the memory allocated to the surface)
 
 - name: Outline
   parent: Interface
@@ -1704,12 +1714,12 @@
     macro: sfall.h
     doc: Returns 1 if interface is currently hidden, 0 otherwise.
   - name: intface_redraw
-    detail: void intface_redraw(bool eachWin)
+    detail: void intface_redraw(bool winType)
     macro: sfall.h
     doc: |
       Redraws main game interface. Useful after direct changes to current player weapons or stats to reflect changes.
       - redraws main game interface, useful to reflect changes after directly changing current player weapons or stats
-      - `eachWin`: pass True to redraw all interface windows
+      - `winType`: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`). Pass `-1` to redraw all interface windows.
   - name: intface_hide
     detail: void intface_hide()
     doc: Hides main interface.
@@ -1850,6 +1860,7 @@
         - True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.)
         - False - checks all objects (can't check critters under objects)
       - passing False to the includeDude argument will ignore dude_obj
+      **NOTE:** the function will always return 0 if the cursor is in movement mode (hexagon cursor).
     macro: sfall.h
 
   - name: get_object_data
