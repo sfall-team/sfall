@@ -30,8 +30,7 @@
 namespace sfall
 {
 
-using namespace fo;
-using namespace Fields;
+using namespace fo::Fields;
 
 static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
@@ -71,6 +70,7 @@ bool AI::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long dist
 ////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
+	using namespace fo;
 	__asm {
 		or   byte ptr [esi + combatState], ReTarget; // set CombatStateFlag flag
 		jmp  fo::funcoffs::ai_run_away_;
@@ -79,6 +79,7 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
+	using namespace fo;
 	__asm {
 		test byte ptr [ebp], ReTarget; // CombatStateFlag flag (critter.combat_state)
 		jnz  reTarget;
@@ -204,6 +205,7 @@ skip:
 ////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) ai_danger_source_hack_pm_newFind() {
+	using namespace fo;
 	__asm {
 		mov  ecx, [ebp + 0x18]; // source combat_data.who_hit_me
 		test ecx, ecx;
@@ -264,8 +266,8 @@ static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &h
 	if (!item) return 1; // no weapon in inventory, continue searching for weapons on the map (call ai_switch_weapons_)
 
 	// is the weapon close range?
-	long wType = fo::func::item_w_subtype(item, AttackType::ATKTYPE_RWEAPON_PRIMARY);
-	if (wType <= AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
+	long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
+	if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
 		if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
 	}
 	return 1; // execute vanilla behavior of ai_switch_weapons_ function
@@ -353,6 +355,7 @@ static long __fastcall ai_weapon_reload_fix(fo::GameObject* weapon, fo::GameObje
 }
 
 static void __declspec(naked) item_w_reload_hook() {
+	using namespace fo;
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
 		je   skip;
@@ -402,6 +405,7 @@ fix:	// check result
 }
 
 static void __declspec(naked) cai_perform_distance_prefs_hack() {
+	using namespace fo;
 	__asm {
 		mov  ebx, eax; // current distance to target
 		mov  ecx, esi;

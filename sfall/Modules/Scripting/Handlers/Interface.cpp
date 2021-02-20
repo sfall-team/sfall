@@ -275,7 +275,7 @@ void mf_intface_redraw(OpcodeContext& ctx) {
 		// fake redraw interfaces (TODO: need a real redraw of interface?)
 		long winType = ctx.arg(0).rawValue();
 		if (winType == -1) {
-			fo::func::RefreshGNW(true);
+			fo::RefreshGNW(true);
 		} else {
 			fo::Window* win = Interface::GetWindow(winType);
 			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);

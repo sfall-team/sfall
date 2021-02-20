@@ -28,13 +28,13 @@
 namespace fo
 {
 
-static MessageNode messageBuf;
+static fo::MessageNode messageBuf;
 
-const char* GetMessageStr(const MessageList* fileAddr, long messageId) {
+const char* GetMessageStr(const fo::MessageList* fileAddr, long messageId) {
 	return fo::func::getmsg(fileAddr, &messageBuf, messageId);
 }
 
-const char* MessageSearch(const MessageList* fileAddr, long messageId) {
+const char* MessageSearch(const fo::MessageList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
 	if (fo::func::message_search(fileAddr, &messageBuf) == 1) {
 		return messageBuf.message;
@@ -42,9 +42,9 @@ const char* MessageSearch(const MessageList* fileAddr, long messageId) {
 	return nullptr;
 }
 
-Queue* QueueFind(GameObject* object, long type) {
+fo::Queue* QueueFind(fo::GameObject* object, long type) {
 	if (fo::var::queue) {
-		Queue* queue = fo::var::queue;
+		fo::Queue* queue = fo::var::queue;
 		while (queue->object != object && queue->type != type) {
 			queue = queue->next;
 			if (!queue) break;
@@ -54,9 +54,9 @@ Queue* QueueFind(GameObject* object, long type) {
 	return nullptr;
 }
 
-long AnimCodeByWeapon(GameObject* weapon) {
+long AnimCodeByWeapon(fo::GameObject* weapon) {
 	if (weapon != nullptr) {
-		Proto* proto;
+		fo::Proto* proto;
 		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
@@ -64,7 +64,7 @@ long AnimCodeByWeapon(GameObject* weapon) {
 	return 0;
 }
 
-bool GetProto(long pid, Proto** outProto) {
+bool GetProto(long pid, fo::Proto** outProto) {
 	return (fo::func::proto_ptr(pid, outProto) != -1);
 }
 
@@ -90,20 +90,20 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-long __fastcall GetItemType(GameObject* item) {
+long __fastcall GetItemType(fo::GameObject* item) {
 	return fo::func::item_get_type(item);
 }
 
-__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
-	GameObject* itemPtr = nullptr;
+__declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
+	fo::GameObject* itemPtr = nullptr;
 	switch (slot) {
-		case fo::INVEN_TYPE_LEFT_HAND:
+		case fo::InvenType::INVEN_TYPE_LEFT_HAND:
 			itemPtr = fo::func::inven_left_hand(critter);
 			break;
-		case fo::INVEN_TYPE_RIGHT_HAND:
+		case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
 			itemPtr = fo::func::inven_right_hand(critter);
 			break;
-		case fo::INVEN_TYPE_WORN:
+		case fo::InvenType::INVEN_TYPE_WORN:
 			itemPtr = fo::func::inven_worn(critter);
 			break;
 	}
@@ -114,7 +114,7 @@ long& GetActiveItemMode() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
 }
 
-GameObject* GetActiveItem() {
+fo::GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
@@ -132,23 +132,23 @@ long GetCurrentAttackMode() {
 			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
 			break;
 		case 5: // reload mode
-			hitMode = fo::ATKTYPE_LWEAPON_RELOAD + activeHand;
+			hitMode = fo::AttackType::ATKTYPE_LWEAPON_RELOAD + activeHand;
 		}
 	}
 	return hitMode;
 }
 
-AttackSubType GetWeaponType(long weaponFlag) {
-	static const AttackSubType weapon_types[9] = {
-		AttackSubType::NONE,
-		AttackSubType::UNARMED,
-		AttackSubType::UNARMED,
-		AttackSubType::MELEE,
-		AttackSubType::MELEE,
-		AttackSubType::THROWING,
-		AttackSubType::GUNS,
-		AttackSubType::GUNS,
-		AttackSubType::GUNS
+fo::AttackSubType GetWeaponType(long weaponFlag) {
+	static const fo::AttackSubType weapon_types[9] = {
+		fo::AttackSubType::NONE,
+		fo::AttackSubType::UNARMED,
+		fo::AttackSubType::UNARMED,
+		fo::AttackSubType::MELEE,
+		fo::AttackSubType::MELEE,
+		fo::AttackSubType::THROWING,
+		fo::AttackSubType::GUNS,
+		fo::AttackSubType::GUNS,
+		fo::AttackSubType::GUNS
 	};
 	return weapon_types[weaponFlag & 0xF];
 }
@@ -177,7 +177,7 @@ long __fastcall IsRadInfluence() {
 }
 
 bool IsNpcFlag(fo::GameObject* npc, long flag) {
-	Proto* proto;
+	fo::Proto* proto;
 	if (GetProto(npc->protoId, &proto)) {
 		return (proto->critter.critterFlags & (1 << flag)) != 0;
 	}
@@ -185,7 +185,7 @@ bool IsNpcFlag(fo::GameObject* npc, long flag) {
 }
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
-	Proto* proto;
+	fo::Proto* proto;
 	if (GetProto(npc->protoId, &proto)) {
 		long bit = (1 << flag);
 		if (set) {
@@ -196,7 +196,7 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	}
 }
 
-// Returns the position of party member in the existing table (begins from 1)
+// Returns the position of party member in the existing table (1 is added to the index position)
 long IsPartyMemberByPid(long pid) {
 	size_t partyCount = fo::var::partyMemberMaxCount;
 	if (partyCount) {
@@ -517,10 +517,10 @@ DWORD GetMaxCharWidth() {
 //	return charWidth;
 }
 
-void RedrawObject(GameObject* obj) {
-	BoundRect rect;
-	func::obj_bound(obj, &rect);
-	func::tile_refresh_rect(&rect, obj->elevation);
+void RedrawObject(fo::GameObject* obj) {
+	fo::BoundRect rect;
+	fo::func::obj_bound(obj, &rect);
+	fo::func::tile_refresh_rect(&rect, obj->elevation);
 }
 
 // Redraws all windows
@@ -535,7 +535,7 @@ void RefreshGNW(bool skipOwner) {
 
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
 
-static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
+static bool LoadFrmHeader(fo::UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
 		return false;
 	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
@@ -556,7 +556,7 @@ static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	return true;
 }
 
-static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
+static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
@@ -578,7 +578,7 @@ static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	return true;
 }
 
-UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
 	char *artfolder = fo::var::art[folderRef].path; // address of art type name
@@ -586,7 +586,7 @@ UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 
-	UnlistedFrm *frm = new UnlistedFrm;
+	fo::UnlistedFrm *frm = new fo::UnlistedFrm;
 
 	auto frmStream = fo::func::xfopen(frmPath, "rb");
 
@@ -599,7 +599,7 @@ UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 		DWORD oriOffset_1st = frm->oriOffset[0];
 		DWORD oriOffset_new = 0;
-		frm->frames = new UnlistedFrm::Frame[6 * frm->numFrames];
+		frm->frames = new fo::UnlistedFrm::Frame[6 * frm->numFrames];
 		for (int ori = 0; ori < 6; ori++) {
 			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
 				frm->oriOffset[ori] = oriOffset_new;

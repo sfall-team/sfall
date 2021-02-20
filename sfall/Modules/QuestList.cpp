@@ -355,7 +355,7 @@ static void RegisterButtonSoundFunc0() {
 }
 
 static void __stdcall ArtButtonFunc(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) {
-using namespace fo;
+	using namespace fo;
 	__asm {
 		xor  ecx, ecx;
 		xor  ebx, ebx;

@@ -27,10 +27,8 @@
 
 namespace sfall
 {
-using namespace fo;
 
 typedef int (__stdcall *functype)();
-static const functype art_init = (functype)fo::funcoffs::art_init_;
 
 static const DWORD Tiles_0E[] = {
 	0x484255, 0x48429D, 0x484377, 0x484385, 0x48A897, 0x48A89A, 0x4B2231,
@@ -149,6 +147,8 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 	return xsize * ysize;
 }
 
+static const functype art_init = (functype)fo::funcoffs::art_init_;
+
 static int __stdcall ArtInitHook() {
 	if (art_init()) return -1;
 
@@ -232,6 +232,7 @@ end:
 }
 
 static void __declspec(naked) art_id_hack() {
+	using namespace fo;
 	__asm {
 		cmp  esi, (OBJ_TYPE_TILE << 24); // 0x4000000
 		jne  end;
@@ -244,6 +245,7 @@ end:
 }
 
 static void __declspec(naked) art_get_name_hack() {
+	using namespace fo;
 	__asm {
 		sar  eax, 24;
 		cmp  eax, OBJ_TYPE_TILE;

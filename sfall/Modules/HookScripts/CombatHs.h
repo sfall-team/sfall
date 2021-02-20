@@ -22,6 +22,6 @@ void Inject_TargetObjectHook();
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
 long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
-void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker);
+//void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker);
 
 }

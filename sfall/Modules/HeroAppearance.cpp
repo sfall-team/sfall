@@ -35,8 +35,6 @@
 namespace sfall
 {
 
-using namespace fo;
-
 bool HeroAppearance::appModEnabled = false; // check if Appearance mod enabled for script functions
 
 const char* appearancePathFmt = "Appearance\\h%cR%02dS%02d%s";
@@ -589,7 +587,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
-	UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
+	fo::UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
 	if (frm) {
 		fo::DrawToSurface(frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].width, frm->frames[0].indexBuff, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
@@ -657,7 +655,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
-	UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	fo::UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -1142,7 +1140,7 @@ static void __declspec(naked) FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		UnlistedFrm *frm = LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
+		fo::UnlistedFrm *frm = LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 
 		if (frm != nullptr) {
 			surface_draw(640, 480, 640, 0, 0, frm->frames[0].indexBuff, 640, 0, 0, charScrnBackSurface);
@@ -1306,6 +1304,7 @@ endFunc:
 
 static void __declspec(naked) op_obj_art_fid_hack() {
 	static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  esi, [edi + artFid];
@@ -1323,6 +1322,7 @@ skip:
 }
 
 static void __declspec(naked) op_metarule3_hook() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 0x4C - 0x44 + 8]; // source

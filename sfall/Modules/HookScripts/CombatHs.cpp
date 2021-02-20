@@ -281,11 +281,11 @@ static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* atta
 	}
 	EndHook();
 }
-
+/*
 void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker) {
-	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);;
+	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);
 }
-
+*/
 static void __declspec(naked) FindTargetHook() {
 	__asm {
 		push eax;
