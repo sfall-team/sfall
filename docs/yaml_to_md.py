@@ -100,11 +100,6 @@ with open(functions_yaml) as yf:
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
-        # macro note
-        if 'macro' in i:
-          text += "\nThis is a macro, you need to include `{}` to use it.\n".format(i['macro'])
-        # end separator
-        # text += '\n---\n'
 
     md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
