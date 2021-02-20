@@ -146,8 +146,8 @@ void op_set_critter_skill_points(OpcodeContext& ctx) {
 
 	fo::GameObject* obj = ctx.arg(0).object();
 	if (obj->IsCritter()) {
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		if (proto) proto->critter.skills[skill] = ctx.arg(2).rawValue();
+		fo::Proto* proto;
+		if (fo::GetProto(obj->protoId, &proto)) proto->critter.skills[skill] = ctx.arg(2).rawValue();
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -162,8 +162,8 @@ void op_get_critter_skill_points(OpcodeContext& ctx) {
 
 	fo::GameObject* obj = ctx.arg(0).object();
 	if (obj->IsCritter()) {
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		if (proto) ctx.setReturn(proto->critter.skills[skill]);
+		fo::Proto* proto;
+		if (fo::GetProto(obj->protoId, &proto)) ctx.setReturn(proto->critter.skills[skill]);
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}

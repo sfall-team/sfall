@@ -21,14 +21,14 @@ namespace sf = sfall;
 
 long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	fo::Proto* wProto;
-	GetProto(weapon->protoId, &wProto);
+	if (!GetProto(weapon->protoId, &wProto)) return 0;
 
 	long isSecondMode = (hitMode && hitMode != fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) ? 1 : 0;
 	long range = wProto->item.weapon.maxRange[isSecondMode];
 
 	long flagExt = wProto->item.flagsExt;
 	if (isSecondMode) flagExt = (flagExt >> 4);
-	long type = fo::GetWeaponType(flagExt & 0xF);
+	long type = fo::GetWeaponType(flagExt);
 
 	if (type == fo::AttackSubType::THROWING) {
 		// TODO: add perkHeaveHoModFix from perks.cpp
