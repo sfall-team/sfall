@@ -23,10 +23,10 @@
 void AI_Init();
 void AICombatClear();
 
-TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
-TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
+TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
+TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
 
-bool AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance);
+bool __stdcall AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance);
 
 TGameObj* __stdcall AIGetLastAttacker(TGameObj* target);
 TGameObj* __stdcall AIGetLastTarget(TGameObj* source);

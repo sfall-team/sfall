@@ -125,14 +125,14 @@ static void __declspec(naked) adjust_fid_hack() {
 
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode) {
 	sProto* wProto;
-	GetProto(weapon->protoId, &wProto);
+	if (!GetProto(weapon->protoId, &wProto)) return 0;
 
 	long isSecondMode = (hitMode && hitMode != ATKTYPE_RWEAPON_PRIMARY) ? 1 : 0;
 	long range = wProto->item.weapon.maxRange[isSecondMode];
 
 	long flagExt = wProto->item.flagsExt;
 	if (isSecondMode) flagExt = (flagExt >> 4);
-	long type = GetWeaponType(flagExt & 0xF);
+	long type = GetWeaponType(flagExt);
 
 	if (type == ATKSUBTYPE_THROWING) {
 		// TODO: add perkHeaveHoModFix from perks.cpp

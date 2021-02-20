@@ -259,6 +259,8 @@ static void __declspec(naked) op_set_critter_skill_points() {
 		mov eax, [eax + 0x64];
 		mov edx, esp;
 		call proto_ptr_;
+		test eax, eax;
+		js end;
 		mov eax, [esp];
 		mov [eax + 0x13C + esi * 4], edi;
 end:
@@ -300,6 +302,8 @@ static void __declspec(naked) op_get_critter_skill_points() {
 		mov eax, [eax + 0x64];
 		mov edx, esp;
 		call proto_ptr_;
+		test eax, eax;
+		js fail;
 		mov eax, [esp];
 		mov edx, [eax + 0x13C + esi * 4];
 		jmp end;

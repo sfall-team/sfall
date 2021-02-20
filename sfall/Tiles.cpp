@@ -24,7 +24,6 @@
 #include "FileSystem.h"
 
 typedef int (__stdcall *functype)();
-static const functype art_init = (functype)art_init_;
 
 static const DWORD Tiles_0E[] = {
 	0x484255, 0x48429D, 0x484377, 0x484385, 0x48A897, 0x48A89A, 0x4B2231,
@@ -142,6 +141,8 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	delete[] pixeldata;
 	return xsize * ysize;
 }
+
+static const functype art_init = (functype)art_init_;
 
 static int __stdcall ArtInitHook() {
 	if (art_init()) return -1;

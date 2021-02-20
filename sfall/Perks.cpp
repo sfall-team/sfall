@@ -1303,7 +1303,9 @@ void Perks_Init() {
 	HookCall(0x43C80B, perks_dialog_hook);
 
 	// Disable gain perks for bonus stats
-	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
+	for (int i = STAT_st; i <= STAT_lu; i++) {
+		SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
+	}
 
 	PerkEngineInit();
 	// Perk and Trait init

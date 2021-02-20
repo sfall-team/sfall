@@ -532,7 +532,7 @@ long& GetActiveItemMode();
 
 TGameObj* GetActiveItem();
 
-AttackSubType GetWeaponType(long weaponFlag);
+AttackSubType GetWeaponType(DWORD weaponFlag);
 
 bool HeroIsFemale();
 

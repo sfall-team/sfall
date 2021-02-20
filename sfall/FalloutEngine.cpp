@@ -584,7 +584,7 @@ TGameObj* GetActiveItem() {
 	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
 }
 
-AttackSubType GetWeaponType(long weaponFlag) {
+AttackSubType GetWeaponType(DWORD weaponFlag) {
 	static const AttackSubType weapon_types[9] = {
 		ATKSUBTYPE_NONE,
 		ATKSUBTYPE_UNARMED,
@@ -596,7 +596,8 @@ AttackSubType GetWeaponType(long weaponFlag) {
 		ATKSUBTYPE_GUNS,
 		ATKSUBTYPE_GUNS
 	};
-	return weapon_types[weaponFlag & 0xF];
+	DWORD type = weaponFlag & 0xF;
+	return (type < 9) ? weapon_types[type] : ATKSUBTYPE_NONE;
 }
 
 bool HeroIsFemale() {

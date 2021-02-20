@@ -35,7 +35,7 @@ static std::tr1::unordered_map<TGameObj*, TGameObj*> targets;
 static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
 // Returns the friendly critter or any blocking object in the line of fire
-TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
+TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
 	if (object && object->IsCritter() && object->critter.teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
@@ -54,14 +54,14 @@ TGameObj* AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile
 }
 
 // Returns the friendly critter in the line of fire
-TGameObj* AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
+TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
 	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
 	return (object && object->IsCritter()) ? object : nullptr; // 0 if there are no friendly critters
 }
 
-bool AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance) {
+bool __stdcall AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance) {
 	if (sfgame_item_weapon_range(source, weapon, ATKTYPE_RWEAPON_PRIMARY) >= distance) return true;
 	return (sfgame_item_weapon_range(source, weapon, ATKTYPE_RWEAPON_SECONDARY) >= distance);
 }
