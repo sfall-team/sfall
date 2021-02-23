@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt -y -qq install bundler python3-pip
-          sudo pip3 install ruamel.yaml
+          pip3 install ruamel.yaml --user
 
       - name: Build
         run: ./docs/generate.sh
