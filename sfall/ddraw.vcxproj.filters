@@ -238,6 +238,15 @@
     <ClInclude Include="ReplacementFuncs.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptOps\InventoryOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\CombatOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\CoreOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>

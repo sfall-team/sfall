@@ -18,20 +18,30 @@
 
 #pragma once
 
-#include "main.h"
-
+#include "BarBoxes.h"
 #include "Graphics.h"
 #include "InputFuncs.h"
 #include "Interface.h"
-#include "LoadGameHook.h"
 #include "ReplacementFuncs.h"
-#include "ScriptExtender.h"
 
 // input_functions
 static void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		mov  edx, 1; // They're always available from 2.9 on
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
+}
+
+static void __declspec(naked) op_set_pipboy_available() {
+	__asm {
+		_GET_ARG_INT(end);
+		cmp  eax, 0;
+		jl   end;
+		cmp  eax, 1;
+		jg   end;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
+end:
+		retn;
 	}
 }
 
@@ -110,7 +120,7 @@ static void __declspec(naked) op_get_mouse_buttons() {
 		jnz skip;
 		cmp byte ptr middleMouseDown, 0;
 		jz skip;
-		mov edx, 4;
+		mov edx, 4; // mouse middle button
 skip:
 		mov ecx, eax;
 		call interpretPushLong_;
@@ -148,20 +158,6 @@ static void __declspec(naked) op_get_screen_height() {
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
-//Stop game, the same effect as open charsscreen or inventory
-static void __declspec(naked) op_stop_game() {
-	__asm {
-		jmp map_disable_bk_processes_;
-	}
-}
-
-//Resume the game when it is stopped
-static void __declspec(naked) op_resume_game() {
-	__asm {
-		jmp map_enable_bk_processes_;
 	}
 }
 
@@ -726,68 +722,6 @@ static void mf_interface_art_draw() {
 		opHandler.printOpcodeError("interface_art_draw() - the game interface window is not created or invalid window type number.");
 	}
 	opHandler.setReturn(result);
-}
-
-static void mf_unwield_slot() {
-	InvenType slot = static_cast<InvenType>(opHandler.arg(1).rawValue());
-	if (slot < INVEN_TYPE_WORN || slot > INVEN_TYPE_LEFT_HAND) {
-		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
-		opHandler.setReturn(-1);
-		return;
-	}
-	TGameObj* critter = opHandler.arg(0).object();
-	if (critter->IsNotCritter()) {
-		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
-		opHandler.setReturn(-1);
-		return;
-	}
-	bool isDude = (critter == *ptr_obj_dude);
-	bool update = false;
-	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
-		if (fo_inven_unwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
-			update = isDude;
-		}
-	} else {
-		// force unwield for opened inventory
-		bool forceAdd = false;
-		TGameObj* item = nullptr;
-		if (slot != INVEN_TYPE_WORN) {
-			if (!isDude) return;
-			long* itemRef = nullptr;
-			if (slot == INVEN_TYPE_LEFT_HAND) {
-				item = *ptr_i_lhand;
-				itemRef = (long*)FO_VAR_i_lhand;
-			} else {
-				item = *ptr_i_rhand;
-				itemRef = (long*)FO_VAR_i_rhand;
-			}
-			if (item) {
-				if (!sfgame_correctFidForRemovedItem(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? ObjectFlag::Left_Hand : ObjectFlag::Right_Hand)) {
-					return;
-				}
-				*itemRef = 0;
-				forceAdd = true;
-				update = true;
-			}
-		} else {
-			if (isDude) item = *ptr_i_worn;
-			if (!item) {
-				item = fo_inven_worn(critter);
-			} else {
-				*ptr_i_worn = nullptr;
-				forceAdd = true;
-			}
-			if (item) {
-				if (!sfgame_correctFidForRemovedItem(critter, item, ObjectFlag::Worn)) {
-					if (forceAdd) *ptr_i_worn = item;
-					return;
-				}
-				if (isDude) fo_intface_update_ac(0);
-			}
-		}
-		if (forceAdd) fo_item_add_force(critter, item, 1);
-	}
-	if (update) fo_intface_update_items(0, -1, -1);
 }
 
 static void mf_get_window_attribute() {

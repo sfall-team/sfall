@@ -1289,7 +1289,6 @@ static void __declspec(naked) DropIntoContainerHandSlotHack() {
 }
 
 static void __declspec(naked) DropAmmoIntoWeaponHook() {
-	//static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 	static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
 	__asm {
 		pushadc;
@@ -1298,13 +1297,11 @@ static void __declspec(naked) DropAmmoIntoWeaponHook() {
 		push 4;                     // event: weapon reloading
 		call InventoryMoveHook_Script;
 		cmp  eax, -1;               // ret value
-		popadc;
 		jne  donothing;
+		popadc;
 		jmp  item_w_can_reload_;
-		//mov  ebx, 1;   // overwritten code
-		//jmp  DropAmmoIntoWeaponHack_back;
 donothing:
-		add  esp, 4;   // destroy return address
+		add  esp, 4*4; // destroy all pushed values and return address
 		xor  eax, eax; // result 0
 		jmp  DropAmmoIntoWeaponHack_return;
 	}

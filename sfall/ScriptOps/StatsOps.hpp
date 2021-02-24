@@ -18,16 +18,26 @@
 
 #pragma once
 
-#include "main.h"
-
 #include "Combat.h"
 #include "Criticals.h"
-#include "ScriptExtender.h"
 #include "Skills.h"
 #include "Stats.h"
 
 const char* invalidStat = "%s() - stat number out of range.";
 const char* objNotCritter = "%s() - the object is not a critter.";
+
+static void __declspec(naked) op_set_hp_per_level_mod() {
+	__asm {
+		mov  esi, ecx;
+		_GET_ARG_INT(end);
+		push eax; // allowed -/+127
+		push 0x4AFBC1;
+		call SafeWrite8;
+end:
+		mov  ecx, esi;
+		retn;
+	}
+}
 
 // stat_funcs
 static void __stdcall op_set_pc_base_stat2() {
@@ -359,6 +369,38 @@ static void __declspec(naked) op_mod_skill_points_per_level() {
 end:
 		mov  ecx, esi;
 		retn;
+	}
+}
+
+static void __declspec(naked) op_set_unspent_ap_bonus() {
+	__asm {
+		_GET_ARG_INT(end);
+		mov  StandardApAcBonus, eax;
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) op_get_unspent_ap_bonus() {
+	__asm {
+		mov  edx, StandardApAcBonus;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
+}
+
+static void __declspec(naked) op_set_unspent_ap_perk_bonus() {
+	__asm {
+		_GET_ARG_INT(end);
+		mov  ExtraApAcBonus, eax;
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
+	__asm {
+		mov  edx, ExtraApAcBonus;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 

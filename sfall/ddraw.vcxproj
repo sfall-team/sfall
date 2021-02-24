@@ -304,6 +304,9 @@
     <ClInclude Include="MiscPatches.h" />
     <ClInclude Include="PlayerModel.h" />
     <ClInclude Include="ReplacementFuncs.h" />
+    <ClInclude Include="ScriptOps\CombatOps.hpp" />
+    <ClInclude Include="ScriptOps\CoreOps.hpp" />
+    <ClInclude Include="ScriptOps\InventoryOps.hpp" />
     <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />

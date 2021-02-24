@@ -18,10 +18,6 @@
 
 #pragma once
 
-#include "main.h"
-
-#include "ScriptExtender.h"
-#include "Arrays.h"
 #include "Message.h"
 
 // compares strings case-insensitive with specifics for Fallout
@@ -156,14 +152,6 @@ static void __stdcall op_ord2() {
 
 static void __declspec(naked) op_ord() {
 	_WRAP_OPCODE(op_ord2, 1, 1)
-}
-
-static void __stdcall op_typeof2() {
-	opHandler.setReturn(static_cast<int>(opHandler.arg(0).type()));
-}
-
-static void __declspec(naked) op_typeof() {
-	_WRAP_OPCODE(op_typeof2, 1, 1)
 }
 
 static int __stdcall StringSplit(const char* str, const char* split) {

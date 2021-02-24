@@ -228,6 +228,20 @@ static void __declspec(naked) op_explosions_metarule() {
 	_WRAP_OPCODE(op_explosions_metarule2, 3, 1)
 }
 
+static void __declspec(naked) op_art_exists() {
+	__asm {
+		_GET_ARG_INT(fail);
+		call art_exists_;
+		mov  edx, eax;
+end:
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
+	}
+}
+
 static void mf_art_cache_flush() {
 	__asm call art_flush_;
 }

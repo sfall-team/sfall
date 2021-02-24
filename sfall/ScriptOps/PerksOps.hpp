@@ -18,9 +18,7 @@
 
 #pragma once
 
-#include "main.h"
 #include "Perks.h"
-#include "ScriptExtender.h"
 
 static void __declspec(naked) op_get_perk_owed() {
 	__asm {

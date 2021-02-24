@@ -18,9 +18,7 @@
 
 #pragma once
 
-#include "main.h"
 #include "FileSystem.h"
-#include "ScriptExtender.h"
 
 //file system functions
 static void __stdcall op_fs_create2() {

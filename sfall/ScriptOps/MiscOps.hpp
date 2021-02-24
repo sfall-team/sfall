@@ -22,24 +22,32 @@
 
 #include "main.h"
 
-#include "AI.h"
-#include "Combat.h"
 #include "Criticals.h"
 #include "HeroAppearance.h"
-#include "Inventory.h"
-#include "KillCounter.h"
 #include "Movies.h"
-#include "PartyControl.h"
 #include "PlayerModel.h"
 #include "ScriptExtender.h"
 #include "Sound.h"
-#include "Stats.h"
 
 /*
  *	Misc operators
  */
 
 const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
+
+//Stop game, the same effect as open charsscreen or inventory
+static void __declspec(naked) op_stop_game() {
+	__asm {
+		jmp map_disable_bk_processes_;
+	}
+}
+
+//Resume the game when it is stopped
+static void __declspec(naked) op_resume_game() {
+	__asm {
+		jmp map_enable_bk_processes_;
+	}
+}
 
 static void __stdcall op_set_dm_model2() {
 	const ScriptValue &modelArg = opHandler.arg(0);
@@ -128,331 +136,11 @@ static void __declspec(naked) op_get_year() {
 	}
 }
 
-static void __declspec(naked) op_game_loaded() {
-	__asm {
-		mov  esi, ecx;
-		push eax; // script
-		call ScriptHasLoaded;
-		mov  edx, eax;
-		mov  eax, ebx;
-		_RET_VAL_INT;
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_set_pipboy_available() {
-	__asm {
-		_GET_ARG_INT(end);
-		cmp  eax, 0;
-		jl   end;
-		cmp  eax, 1;
-		jg   end;
-		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
-end:
-		retn;
-	}
-}
-
-// Kill counters
-static bool extraKillCounter;
-static void SetExtraKillCounter(bool value) { extraKillCounter = value; }
-
-static void __declspec(naked) op_get_kill_counter() {
-	__asm {
-		_GET_ARG_INT(fail); // get kill type value
-		cmp  extraKillCounter, 1;
-		jne  skip;
-		cmp  eax, 38;
-		jae  fail;
-		movzx edx, word ptr ds:[FO_VAR_pc_kill_counts][eax * 2];
-		jmp  end;
-skip:
-		cmp  eax, 19;
-		jae  fail;
-		mov  edx, ds:[FO_VAR_pc_kill_counts][eax * 4];
-end:
-		mov  eax, ebx; // script
-		_RET_VAL_INT;
-		retn;
-fail:
-		xor  edx, edx; // return 0
-		jmp  end;
-	}
-}
-
-static void __declspec(naked) op_mod_kill_counter() {
-	__asm {
-		push ecx;
-		_GET_ARG(ecx, esi); // get mod value
-		mov  eax, ebx;
-		_GET_ARG_INT(end);  // get kill type value
-		cmp  si, VAR_TYPE_INT;
-		jnz  end;
-		cmp  extraKillCounter, 1;
-		je   skip;
-		cmp  eax, 19;
-		jae  end;
-		add  ds:[FO_VAR_pc_kill_counts][eax * 4], ecx;
-		pop  ecx;
-		retn;
-skip:
-		cmp  eax, 38;
-		jae  end;
-		add  word ptr ds:[FO_VAR_pc_kill_counts][eax * 2], cx;
-end:
-		pop  ecx;
-		retn;
-	}
-}
-
-//Knockback
-static void __declspec(naked) SetKnockback() {
-	__asm {
-		sub esp, 0xC;
-		mov ecx, eax;
-		//Get args
-		call interpretPopShort_; //First arg type
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;  //First arg
-		mov [esp + 8], eax;
-		mov eax, ecx;
-		call interpretPopShort_; //Second arg type
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;  //Second arg
-		mov [esp + 4], eax;
-		mov eax, ecx;
-		call interpretPopShort_; //Third arg type
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;  //Third arg
-		mov [esp], eax;
-		//Error check
-		cmp di, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		fild [esp + 8];
-		fstp [esp + 8];
-paramWasFloat:
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
-		call KnockbackSetMod;
-		jmp end;
-fail:
-		add esp, 0x10;
-end:
-		popaop;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_set_weapon_knockback() {
-	__asm {
-		pushaop;
-		push 0;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) op_set_target_knockback() {
-	__asm {
-		pushaop;
-		push 1;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) op_set_attacker_knockback() {
-	__asm {
-		pushaop;
-		push 2;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) RemoveKnockback() {
-	__asm {
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call KnockbackRemoveMod;
-		jmp end;
-fail:
-		add esp, 4;
-end:
-		popaop;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_remove_weapon_knockback() {
-	__asm {
-		pushaop;
-		push 0;
-		jmp RemoveKnockback;
-	}
-}
-
-static void __declspec(naked) op_remove_target_knockback() {
-	__asm {
-		pushaop;
-		push 1;
-		jmp RemoveKnockback;
-	}
-}
-
-static void __declspec(naked) op_remove_attacker_knockback() {
-	__asm {
-		pushaop;
-		push 2;
-		jmp RemoveKnockback;
-	}
-}
-
-static void __declspec(naked) op_active_hand() {
-	__asm {
-		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
-	}
-}
-
-static void __declspec(naked) op_toggle_active_hand() {
-	__asm {
-		mov eax, 1;
-		jmp intface_toggle_items_;
-	}
-}
-
 static void __declspec(naked) op_eax_available() {
 	__asm {
 		xor  edx, edx
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
-}
-
-static const char* nameNPCToInc;
-static long pidNPCToInc;
-static bool onceNpcLoop;
-
-static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
-	TGameObj* mObj;
-	__asm {
-		push edx;
-		mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
-		mov  edx, [eax];
-		mov  mObj, edx;
-	}
-
-	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
-		fo_debug_printf(fmt, name);
-
-		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
-
-		SafeMemSet(0x495C77, CODETYPE_Nop, 6);   // Check that the player is high enough for the npc to consider this level
-		//SafeMemSet(0x495C8C, CODETYPE_Nop, 6); // Check that the npc isn't already at its maximum level
-		SafeMemSet(0x495CEC, CODETYPE_Nop, 6);   // Check that the npc hasn't already levelled up recently
-		if (!npcAutoLevelEnabled) {
-			SafeWrite8(0x495CFB, CODETYPE_JumpShort); // Disable random element
-		}
-		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
-	} else {
-		if (!onceNpcLoop) {
-			SafeWrite32(0x495C50, 0x01FCE9); // set goto next member
-			onceNpcLoop = true;
-		}
-	}
-	__asm pop edx;
-}
-
-static void __stdcall op_inc_npc_level2() {
-	nameNPCToInc = opHandler.arg(0).asString();
-	pidNPCToInc = opHandler.arg(0).asInt(); // set to 0 if passing npc name
-	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
-
-	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
-	__asm call partyMemberIncLevels_;
-	onceNpcLoop = false;
-
-	// restore code
-	SafeWrite32(0x495C50, 0x01FB840F);
-	__int64 data = 0x01D48C0F;
-	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
-	//SafeWrite16(0x495C8C, 0x8D0F);
-	//SafeWrite32(0x495C8E, 0x000001BF);
-	data = 0x0130850F;
-	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
-	if (!npcAutoLevelEnabled) {
-		SafeWrite8(0x495CFB, CODETYPE_JumpZ);
-	}
-}
-
-static void __declspec(naked) op_inc_npc_level() {
-	_WRAP_OPCODE(op_inc_npc_level2, 1, 0)
-}
-
-static void __stdcall op_get_npc_level2() {
-	int level = -1;
-	const ScriptValue &npcArg = opHandler.arg(0);
-
-	if (!npcArg.isFloat()) {
-		DWORD findPid = npcArg.asInt(); // set to 0 if passing npc name
-		const char *critterName, *name = npcArg.asString();
-
-		if (findPid || name[0] != 0) {
-			DWORD pid = 0;
-			DWORD* members = *ptr_partyMemberList;
-			for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
-				if (!findPid) {
-					__asm {
-						mov  eax, members;
-						mov  eax, [eax];
-						call critter_name_;
-						mov  critterName, eax;
-					}
-					if (!_stricmp(name, critterName)) { // found npc
-						pid = ((TGameObj*)*members)->protoId;
-						break;
-					}
-				} else {
-					DWORD _pid = ((TGameObj*)*members)->protoId;
-					if (findPid == _pid) {
-						pid = _pid;
-						break;
-					}
-				}
-				members += 4;
-			}
-			if (pid) {
-				DWORD* pids = *ptr_partyMemberPidList;
-				DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
-				for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
-					if (pids[j] == pid) {
-						level = lvlUpInfo[j * 3];
-						break;
-					}
-				}
-			}
-		}
-	} else {
-		OpcodeInvalidArgs("get_npc_level");
-	}
-	opHandler.setReturn(level);
-}
-
-static void __declspec(naked) op_get_npc_level() {
-	_WRAP_OPCODE(op_get_npc_level2, 1, 1)
 }
 
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
@@ -482,7 +170,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 static DWORD __stdcall GetIniSetting(const char* str, DWORD isString) {
 	const char* key;
-	char section[33], file[67];
+	char section[33], file[128];
 
 	if (ParseIniSetting(str, key, section, file) < 0) {
 		return -1;
@@ -607,51 +295,6 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_hp_per_level_mod() {
-	__asm {
-		mov  esi, ecx;
-		_GET_ARG_INT(end);
-		push eax; // allowed -/+127
-		push 0x4AFBC1;
-		call SafeWrite8;
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_get_bodypart_hit_modifier() {
-	__asm {
-		_GET_ARG_INT(fail); // get body value
-		cmp  eax, 8; // Body_Head - Body_Uncalled
-		ja   fail;
-		mov  edx, ds:[FO_VAR_hit_location_penalty][eax * 4];
-end:
-		mov  eax, ebx; // script
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-fail:
-		xor  edx, edx; // return 0
-		jmp  end;
-	}
-}
-
-static void __declspec(naked) op_set_bodypart_hit_modifier() {
-	__asm {
-		push ecx;
-		_GET_ARG(ecx, esi); // get body value
-		mov  eax, ebx;
-		_GET_ARG_INT(end);  // get modifier value
-		cmp  si, VAR_TYPE_INT;
-		jnz  end;
-		cmp  eax, 8; // Body_Head - Body_Uncalled
-		ja   end;
-		mov  ds:[FO_VAR_hit_location_penalty][eax * 4], ecx;
-end:
-		pop  ecx;
-		retn;
-	}
-}
-
 static const char* valueOutRange = "%s() - argument values out of range.";
 
 static void op_set_critical_table2() {
@@ -734,40 +377,6 @@ static void __declspec(naked) op_reset_critical_table() {
 	_WRAP_OPCODE(op_reset_critical_table2, 4, 0)
 }
 
-static void __declspec(naked) op_set_unspent_ap_bonus() {
-	__asm {
-		_GET_ARG_INT(end);
-		mov  StandardApAcBonus, eax;
-end:
-		retn;
-	}
-}
-
-static void __declspec(naked) op_get_unspent_ap_bonus() {
-	__asm {
-		mov  edx, StandardApAcBonus;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
-	}
-}
-
-static void __declspec(naked) op_set_unspent_ap_perk_bonus() {
-	__asm {
-		_GET_ARG_INT(end);
-		mov  ExtraApAcBonus, eax;
-end:
-		retn;
-	}
-}
-
-static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
-	__asm {
-		mov  edx, ExtraApAcBonus;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
-	}
-}
-
 static void __declspec(naked) op_set_palette() {
 	__asm {
 		push ebx;
@@ -842,7 +451,6 @@ static void __declspec(naked) op_get_light_level() {
 	__asm {
 		mov  edx, ds:[FO_VAR_ambient_light];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -851,49 +459,6 @@ static void __declspec(naked) op_refresh_pc_art() {
 		mov  esi, ecx;
 		call RefreshPCArt;
 		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __stdcall intface_attack_type() {
-	__asm {
-		sub esp, 8;
-		lea edx, [esp];
-		lea eax, [esp + 4];
-		call intface_get_attack_;
-		pop edx; // is_secondary
-		pop ecx; // hit_mode
-	}
-}
-
-static void __declspec(naked) op_get_attack_type() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call intface_attack_type;
-		mov edx, ecx; // hit_mode
-		test eax, eax;
-		jz skip;
-		// get reload
-		cmp ds:[FO_VAR_interfaceWindow], eax;
-		jz end;
-		mov ecx, ds:[FO_VAR_itemCurrentItem];         // 0 - left, 1 - right
-		imul edx, ecx, 0x18;
-		cmp ds:[FO_VAR_itemButtonItems + 5 + edx], 1; // .itsWeapon
-		jnz end;
-		lea eax, [ecx + 6];
-end:
-		mov edx, eax; // result
-skip:
-		pop ecx;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop ecx;
-		pop edx;
 		retn;
 	}
 }
@@ -960,31 +525,6 @@ static void __declspec(naked) op_modified_ini() {
 	__asm {
 		mov  edx, modifiedIni;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
-	}
-}
-
-static void __declspec(naked) op_force_aimed_shots() {
-	__asm {
-		mov  esi, ecx;
-		_GET_ARG_INT(end);
-		push eax;
-		call ForceAimedShots;
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_disable_aimed_shots() {
-	__asm {
-		mov  esi, ecx;
-		_GET_ARG_INT(end);
-		push eax;
-		call DisableAimedShots;
-end:
-		mov  ecx, esi;
-		retn;
 	}
 }
 
@@ -997,52 +537,6 @@ static void __declspec(naked) op_mark_movie_played() {
 		jge  end;
 		mov  byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
 end:
-		retn;
-	}
-}
-
-static void __declspec(naked) op_get_last_attacker() {
-	__asm {
-		_GET_ARG_INT(fail);
-		mov  esi, ecx;
-		push eax;
-		call AIGetLastAttacker;
-		mov  edx, eax;
-		mov  ecx, esi;
-end:
-		mov  eax, ebx;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-fail:
-		xor  edx, edx; // return 0
-		jmp  end;
-	}
-}
-
-static void __declspec(naked) op_get_last_target() {
-	__asm {
-		_GET_ARG_INT(fail);
-		mov  esi, ecx;
-		push eax;
-		call AIGetLastTarget;
-		mov  edx, eax;
-		mov  ecx, esi;
-end:
-		mov  eax, ebx;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-fail:
-		xor  edx, edx; // return 0
-		jmp  end;
-	}
-}
-
-static void __declspec(naked) op_block_combat() {
-	__asm {
-		mov  esi, ecx;
-		_GET_ARG_INT(end);
-		push eax;
-		call SetBlockCombat;
-end:
-		mov  ecx, esi;
 		retn;
 	}
 }
@@ -1061,7 +555,6 @@ static void __declspec(naked) op_tile_under_cursor() {
 		mov  ebx, esi;
 		mov  eax, esi;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -1069,29 +562,7 @@ static void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
 		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
-}
-
-static void __declspec(naked) op_set_inven_ap_cost() {
-	__asm {
-		mov  esi, ecx;
-		_GET_ARG_INT(end);
-		mov  ecx, eax;
-		call SetInvenApCost;
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void mf_get_inven_ap_cost() {
-	opHandler.setReturn(GetInvenApCost());
-}
-
-static void mf_attack_is_aimed() {
-	DWORD isAimed, unused;
-	opHandler.setReturn(!fo_intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
 static void __declspec(naked) op_sneak_success() {
@@ -1135,7 +606,7 @@ static void mf_set_ini_setting() {
 		saveValue = argVal.strValue();
 	}
 	const char* key;
-	char section[33], file[67];
+	char section[33], file[128];
 	int result = ParseIniSetting(opHandler.arg(0).strValue(), key, section, file);
 	if (result > 0) {
 		result = WritePrivateProfileStringA(section, key, saveValue, file);
@@ -1201,22 +672,4 @@ static void mf_get_ini_section() {
 		}
 	}
 	opHandler.setReturn(arrayId);
-}
-
-static void mf_npc_engine_level_up() {
-	if (opHandler.arg(0).asBool()) {
-		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
-		npcEngineLevelUp = true;
-	} else {
-		if (npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0xE990);
-		npcEngineLevelUp = false;
-	}
-}
-
-static void mf_combat_data() {
-	TComputeAttack* ctd = nullptr;
-	if (*ptr_combat_state & 1) {
-		ctd = ptr_main_ctd;
-	}
-	opHandler.setReturn((DWORD)ctd, DATATYPE_INT);
 }

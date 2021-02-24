@@ -18,17 +18,123 @@
 
 #pragma once
 
-#include "main.h"
-
 #include "Combat.h"
-#include "Inventory.h"
 #include "Objects.h"
 #include "PartyControl.h"
 
-#define exec_script_proc(script, proc) __asm {  \
-	__asm mov  eax, script                      \
-	__asm mov  edx, proc                        \
-	__asm call exec_script_proc_                \
+static const char* protoFailedLoad = "%s() - failed to load a prototype ID: %d";
+
+static const char* nameNPCToInc;
+static long pidNPCToInc;
+static bool onceNpcLoop;
+
+static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
+	TGameObj* mObj;
+	__asm {
+		push edx;
+		mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
+		mov  edx, [eax];
+		mov  mObj, edx;
+	}
+
+	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
+		fo_debug_printf(fmt, name);
+
+		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
+
+		SafeMemSet(0x495C77, CODETYPE_Nop, 6);   // Check that the player is high enough for the npc to consider this level
+		//SafeMemSet(0x495C8C, CODETYPE_Nop, 6); // Check that the npc isn't already at its maximum level
+		SafeMemSet(0x495CEC, CODETYPE_Nop, 6);   // Check that the npc hasn't already levelled up recently
+		if (!npcAutoLevelEnabled) {
+			SafeWrite8(0x495CFB, CODETYPE_JumpShort); // Disable random element
+		}
+		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
+	} else {
+		if (!onceNpcLoop) {
+			SafeWrite32(0x495C50, 0x01FCE9); // set goto next member
+			onceNpcLoop = true;
+		}
+	}
+	__asm pop edx;
+}
+
+static void __stdcall op_inc_npc_level2() {
+	nameNPCToInc = opHandler.arg(0).asString();
+	pidNPCToInc = opHandler.arg(0).asInt(); // set to 0 if passing npc name
+	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
+
+	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
+	__asm call partyMemberIncLevels_;
+	onceNpcLoop = false;
+
+	// restore code
+	SafeWrite32(0x495C50, 0x01FB840F);
+	__int64 data = 0x01D48C0F;
+	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
+	//SafeWrite16(0x495C8C, 0x8D0F);
+	//SafeWrite32(0x495C8E, 0x000001BF);
+	data = 0x0130850F;
+	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
+	if (!npcAutoLevelEnabled) {
+		SafeWrite8(0x495CFB, CODETYPE_JumpZ);
+	}
+}
+
+static void __declspec(naked) op_inc_npc_level() {
+	_WRAP_OPCODE(op_inc_npc_level2, 1, 0)
+}
+
+static void __stdcall op_get_npc_level2() {
+	int level = -1;
+	const ScriptValue &npcArg = opHandler.arg(0);
+
+	if (!npcArg.isFloat()) {
+		DWORD findPid = npcArg.asInt(); // set to 0 if passing npc name
+		const char *critterName, *name = npcArg.asString();
+
+		if (findPid || name[0] != 0) {
+			DWORD pid = 0;
+			DWORD* members = *ptr_partyMemberList;
+			for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
+				if (!findPid) {
+					__asm {
+						mov  eax, members;
+						mov  eax, [eax];
+						call critter_name_;
+						mov  critterName, eax;
+					}
+					if (!_stricmp(name, critterName)) { // found npc
+						pid = ((TGameObj*)*members)->protoId;
+						break;
+					}
+				} else {
+					DWORD _pid = ((TGameObj*)*members)->protoId;
+					if (findPid == _pid) {
+						pid = _pid;
+						break;
+					}
+				}
+				members += 4;
+			}
+			if (pid) {
+				DWORD* pids = *ptr_partyMemberPidList;
+				DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
+				for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
+					if (pids[j] == pid) {
+						level = lvlUpInfo[j * 3];
+						break;
+					}
+				}
+			}
+		}
+	} else {
+		OpcodeInvalidArgs("get_npc_level");
+	}
+	opHandler.setReturn(level);
+}
+
+static void __declspec(naked) op_get_npc_level() {
+	_WRAP_OPCODE(op_get_npc_level2, 1, 1)
 }
 
 static void __stdcall op_remove_script2() {
@@ -45,6 +151,12 @@ static void __stdcall op_remove_script2() {
 
 static void __declspec(naked) op_remove_script() {
 	_WRAP_OPCODE(op_remove_script2, 1, 0)
+}
+
+#define exec_script_proc(script, proc) __asm {  \
+	__asm mov  eax, script                      \
+	__asm mov  edx, proc                        \
+	__asm call exec_script_proc_                \
 }
 
 static void __stdcall op_set_script2() {
@@ -124,6 +236,8 @@ static void __stdcall op_create_spatial2() {
 static void __declspec(naked) op_create_spatial() {
 	_WRAP_OPCODE(op_create_spatial2, 4, 1)
 }
+
+#undef exec_script_proc
 
 static void mf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
@@ -226,7 +340,7 @@ static void __declspec(naked) op_set_weapon_ammo_count() {
 	_WRAP_OPCODE(op_set_weapon_ammo_count2, 2, 0)
 }
 
-enum {
+enum BlockType {
 	BLOCKING_TYPE_BLOCK  = 0,
 	BLOCKING_TYPE_SHOOT  = 1,
 	BLOCKING_TYPE_AI     = 2,
@@ -234,7 +348,7 @@ enum {
 	BLOCKING_TYPE_SCROLL = 4
 };
 
-static DWORD getBlockingFunc(DWORD type) {
+static DWORD getBlockingFunc(BlockType type) {
 	switch (type) {
 		case BLOCKING_TYPE_BLOCK: default:
 			return obj_blocking_at_;       // with calling hook
@@ -255,8 +369,8 @@ static void __stdcall op_make_straight_path2() {
 					  &typeArg = opHandler.arg(2);
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
-		DWORD tileTo = tileToArg.rawValue(),
-			  type = typeArg.rawValue();
+		DWORD tileTo = tileToArg.rawValue();
+		BlockType type = (BlockType)typeArg.rawValue();
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 		TGameObj* resultObj = nullptr;
@@ -279,8 +393,7 @@ static void __stdcall op_make_path2() {
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
 		DWORD tileTo = tileToArg.rawValue(),
-			  type = typeArg.rawValue(),
-			  func = getBlockingFunc(type);
+			  func = getBlockingFunc((BlockType)typeArg.rawValue());
 
 		// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
 		long checkFlag = (objFrom->IsCritter());
@@ -309,8 +422,8 @@ static void __stdcall op_obj_blocking_at2() {
 
 	if (tileArg.isInt() && elevArg.isInt() && typeArg.isInt()) {
 		DWORD tile = tileArg.rawValue(),
-			  elevation = elevArg.rawValue(),
-			  type = typeArg.rawValue();
+			  elevation = elevArg.rawValue();
+		BlockType type = (BlockType)typeArg.rawValue();
 
 		TGameObj* resultObj = obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
 		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
@@ -377,72 +490,6 @@ static void __declspec(naked) op_get_party_members() {
 	_WRAP_OPCODE(op_get_party_members2, 1, 1)
 }
 
-static void __declspec(naked) op_art_exists() {
-	__asm {
-		_GET_ARG_INT(fail);
-		call art_exists_;
-		mov  edx, eax;
-end:
-		mov  eax, ebx;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-fail:
-		xor  edx, edx; // return 0
-		jmp  end;
-	}
-}
-
-static void __stdcall op_obj_is_carrying_obj2() {
-	int num = 0;
-	const ScriptValue &invenObjArg = opHandler.arg(0),
-					  &itemObjArg = opHandler.arg(1);
-
-	TGameObj *invenObj = invenObjArg.asObject(),
-			 *itemObj = itemObjArg.asObject();
-	if (invenObj != nullptr && itemObj != nullptr) {
-		for (int i = 0; i < invenObj->invenSize; i++) {
-			if (invenObj->invenTable[i].object == itemObj) {
-				num = invenObj->invenTable[i].count;
-				break;
-			}
-		}
-	} else {
-		OpcodeInvalidArgs("obj_is_carrying_obj");
-	}
-	opHandler.setReturn(num);
-}
-
-static void __declspec(naked) op_obj_is_carrying_obj() {
-	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
-}
-
-static void mf_critter_inven_obj2() {
-	TGameObj* critter = opHandler.arg(0).asObject();
-	const ScriptValue &slotArg = opHandler.arg(1);
-
-	if (critter && slotArg.isInt()) {
-		int slot = slotArg.rawValue();
-		switch (slot) {
-		case 0:
-			opHandler.setReturn(fo_inven_worn(critter));
-			break;
-		case 1:
-			opHandler.setReturn(fo_inven_right_hand(critter));
-			break;
-		case 2:
-			opHandler.setReturn(fo_inven_left_hand(critter));
-			break;
-		case -2:
-			opHandler.setReturn(critter->invenSize);
-			break;
-		default:
-			opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
-		}
-	} else {
-		OpcodeInvalidArgs("critter_inven_obj2");
-		opHandler.setReturn(0);
-	}
-}
-
 static void mf_set_outline() {
 	TGameObj* obj = opHandler.arg(0).object();
 	int color = opHandler.arg(1).rawValue();
@@ -479,16 +526,6 @@ static void mf_outlined_object() {
 	opHandler.setReturn(*ptr_outlined_object);
 }
 
-static void mf_item_weight() {
-	TGameObj* item = opHandler.arg(0).asObject();
-	if (item) {
-		opHandler.setReturn(fo_item_weight(item));
-	} else {
-		OpcodeInvalidArgs("item_weight");
-		opHandler.setReturn(0);
-	}
-}
-
 static void mf_real_dude_obj() {
 	opHandler.setReturn(PartyControl_RealDudeObject());
 }
@@ -521,16 +558,6 @@ static void mf_set_unjam_locks_time() {
 	}
 }
 
-static void mf_get_current_inven_size() {
-	TGameObj* obj = opHandler.arg(0).asObject();
-	if (obj) {
-		opHandler.setReturn(sfgame_item_total_size(obj));
-	} else {
-		OpcodeInvalidArgs("get_current_inven_size");
-		opHandler.setReturn(0);
-	}
-}
-
 static void mf_get_dialog_object() {
 	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0);
 }
@@ -553,7 +580,6 @@ static void mf_get_loot_object() {
 	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? ptr_target_stack[*ptr_target_curr_stack] : 0);
 }
 
-static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
 static void __stdcall op_get_proto_data2() {
@@ -567,7 +593,7 @@ static void __stdcall op_get_proto_data2() {
 		if (result != -1) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.rawValue());
 		} else {
-			opHandler.printOpcodeError(failedLoad, "get_proto_data", pid);
+			opHandler.printOpcodeError(protoFailedLoad, "get_proto_data", pid);
 		}
 		opHandler.setReturn(result);
 	} else {
@@ -595,7 +621,7 @@ static void __stdcall op_set_proto_data2() {
 				protoMaxLimitPatch = true;
 			}
 		} else {
-			opHandler.printOpcodeError(failedLoad, "set_proto_data", pid);
+			opHandler.printOpcodeError(protoFailedLoad, "set_proto_data", pid);
 		}
 	} else {
 		OpcodeInvalidArgs("set_proto_data");
@@ -667,4 +693,14 @@ invalidArgs:
 		OpcodeInvalidArgs("get_objects_at_radius");
 	}
 	opHandler.setReturn(id);
+}
+
+static void mf_npc_engine_level_up() {
+	if (opHandler.arg(0).asBool()) {
+		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
+		npcEngineLevelUp = true;
+	} else {
+		if (npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0xE990);
+		npcEngineLevelUp = false;
+	}
 }

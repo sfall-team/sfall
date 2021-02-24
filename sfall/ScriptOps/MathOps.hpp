@@ -20,10 +20,6 @@
 
 #include <cmath>
 
-#include "main.h"
-
-#include "ScriptExtender.h"
-
 static void __stdcall op_div2() {
 	const ScriptValue &dividend = opHandler.arg(0),
 					  &divisor = opHandler.arg(1);

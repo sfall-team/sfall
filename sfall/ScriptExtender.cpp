@@ -23,8 +23,6 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "Arrays.h"
-#include "BarBoxes.h"
-#include "Console.h"
 #include "Explosions.h"
 #include "HookScripts.h"
 #include "InputFuncs.h"
@@ -32,8 +30,6 @@
 #include "Logging.h"
 #include "ScriptExtender.h"
 #include "version.h"
-
-#include "ScriptOps\AsmMacros.h"
 
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId);
 
@@ -478,19 +474,6 @@ static void __fastcall SetGlobalScriptRepeat(TProgram* script, int frames) {
 	}
 }
 
-static void __declspec(naked) op_set_global_script_repeat() {
-	__asm {
-		mov  esi, ecx;
-		mov  ecx, eax;
-		_GET_ARG_INT(end);
-		mov  edx, eax;              // frames
-		call SetGlobalScriptRepeat; // ecx - script
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
 static void __fastcall SetGlobalScriptType(TProgram* script, int type) {
 	if (type <= 3) {
 		for (size_t i = 0; i < globalScripts.size(); i++) {
@@ -499,26 +482,6 @@ static void __fastcall SetGlobalScriptType(TProgram* script, int type) {
 				break;
 			}
 		}
-	}
-}
-
-static void __declspec(naked) op_set_global_script_type() {
-	__asm {
-		mov  esi, ecx;
-		mov  ecx, eax;
-		_GET_ARG_INT(end);
-		mov  edx, eax;            // type
-		call SetGlobalScriptType; // ecx - script
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_available_global_script_types() {
-	__asm {
-		mov  edx, availableGlobalScriptTypes;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
@@ -547,27 +510,6 @@ long __stdcall SetGlobalVar(const char* var, int val) {
 	return 0;
 }
 
-static void __stdcall op_set_sfall_global2() {
-	const ScriptValue &varArg = opHandler.arg(0),
-					  &valArg = opHandler.arg(1);
-
-	if (!varArg.isFloat() && !valArg.isString()) {
-		if (varArg.isString()) {
-			if (SetGlobalVar(varArg.strValue(), valArg.rawValue())) {
-				opHandler.printOpcodeError("set_sfall_global() - the name of the global variable must consist of 8 characters.");
-			}
-		} else {
-			SetGlobalVarInt(varArg.rawValue(), valArg.rawValue());
-		}
-	} else {
-		OpcodeInvalidArgs("set_sfall_global");
-	}
-}
-
-static void __declspec(naked) op_set_sfall_global() {
-	_WRAP_OPCODE(op_set_sfall_global2, 2, 0)
-}
-
 static long GetGlobalVarInternal(__int64 val) {
 	glob_citr itr = globalVars.find(val);
 	return (itr != globalVars.end()) ? itr->second : 0;
@@ -579,141 +521,6 @@ static long __stdcall GetGlobalVarInt(DWORD var) {
 
 long __stdcall GetGlobalVar(const char* var) {
 	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
-}
-
-static long __stdcall GetGlobalVarNameString(OpcodeHandler& opHandler, const char* opcodeName) {
-	const char* var = opHandler.arg(0).strValue();
-	if (strlen(var) != 8) {
-		opHandler.printOpcodeError("%s() - the name of the global variable must consist of 8 characters.", opcodeName);
-		return 0;
-	}
-	return GetGlobalVarInternal(*(__int64*)var);
-}
-
-static void __stdcall GetGlobalVarFunc(OpcodeHandler& opHandler, SfallDataType type, const char* opcodeName) {
-	long result;
-	if (opHandler.arg(0).isString()) {
-		result = GetGlobalVarNameString(opHandler, opcodeName);
-	} else {
-		result = GetGlobalVarInt(opHandler.arg(0).rawValue());
-	}
-	opHandler.setReturn(result, type);
-}
-
-static void __stdcall op_get_sfall_global_int2() {
-	const ScriptValue &varArg = opHandler.arg(0);
-
-	if (!varArg.isFloat()) {
-		GetGlobalVarFunc(opHandler, DATATYPE_INT, "get_sfall_global_int");
-	} else {
-		OpcodeInvalidArgs("get_sfall_global_int");
-		opHandler.setReturn(0);
-	}
-}
-
-static void __declspec(naked) op_get_sfall_global_int() {
-	_WRAP_OPCODE(op_get_sfall_global_int2, 1, 1)
-}
-
-static void __stdcall op_get_sfall_global_float2() {
-	const ScriptValue &varArg = opHandler.arg(0);
-
-	if (!varArg.isFloat()) {
-		GetGlobalVarFunc(opHandler, DATATYPE_FLOAT, "get_sfall_global_float");
-	} else {
-		OpcodeInvalidArgs("get_sfall_global_float");
-		opHandler.setReturn(0);
-	}
-}
-
-static void __declspec(naked) op_get_sfall_global_float() {
-	_WRAP_OPCODE(op_get_sfall_global_float2, 1, 1)
-}
-
-static void __declspec(naked) op_get_sfall_arg() {
-	__asm {
-		mov  esi, ecx;
-		call GetHSArg;
-		mov  edx, eax;
-		mov  eax, ebx;
-		_RET_VAL_INT;
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void mf_get_sfall_arg_at() {
-	const ScriptValue &idArg = opHandler.arg(0);
-
-	if (idArg.isInt()) {
-		long argVal = 0;
-		long id = idArg.rawValue();
-		if (id >= static_cast<long>(GetHSArgCount()) || id < 0) {
-			opHandler.printOpcodeError("get_sfall_arg_at() - invalid value for argument.");
-		} else {
-			argVal = GetHSArgAt(id);
-		}
-		opHandler.setReturn(argVal);
-	} else {
-		OpcodeInvalidArgs("get_sfall_arg_at");
-		opHandler.setReturn(0);
-	}
-}
-
-static DWORD __stdcall GetSfallArgs() {
-	DWORD argCount = GetHSArgCount();
-	DWORD id = CreateTempArray(argCount, 0);
-	DWORD* args = GetHSArgs();
-	for (DWORD i = 0; i < argCount; i++) {
-		arrays[id].val[i].set(*(long*)&args[i]);
-	}
-	return id;
-}
-
-static void __declspec(naked) op_get_sfall_args() {
-	__asm {
-		mov  esi, ecx;
-		call GetSfallArgs;
-		mov  edx, eax;
-		mov  eax, ebx;
-		_RET_VAL_INT;
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __stdcall op_set_sfall_arg2() {
-	const ScriptValue &argNumArg = opHandler.arg(0),
-					  &valArg = opHandler.arg(1);
-
-	if (argNumArg.isInt() && valArg.isInt()) {
-		SetHSArg(argNumArg.rawValue(), valArg.rawValue());
-	} else {
-		OpcodeInvalidArgs("set_sfall_arg");
-	}
-}
-
-static void __declspec(naked) op_set_sfall_arg() {
-	_WRAP_OPCODE(op_set_sfall_arg2, 2, 0)
-}
-
-static void __declspec(naked) op_set_sfall_return() {
-	__asm {
-		mov  esi, ecx;
-		_GET_ARG_INT(end);
-		push eax;
-		call SetHSReturn;
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_init_hook() {
-	__asm {
-		mov  edx, initingHookScripts;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
 }
 
 static void __fastcall SetSelfObject(TProgram* script, TGameObj* obj) {
@@ -738,103 +545,17 @@ static void __fastcall SetSelfObject(TProgram* script, TGameObj* obj) {
 	}
 }
 
-static void __declspec(naked) op_set_self() {
-	__asm {
-		mov  esi, ecx;
-		mov  ecx, eax;
-		_GET_ARG_INT(end);
-		mov  edx, eax;      // object
-		call SetSelfObject; // ecx - script
-end:
-		mov  ecx, esi;
-		retn;
-	}
-}
-
-static void __stdcall op_register_hook2() {
-	const ScriptValue &idArg = opHandler.arg(0);
-
-	if (idArg.isInt()) {
-		RegisterHook(opHandler.program(), idArg.rawValue(), -1, false);
-	} else {
-		OpcodeInvalidArgs("register_hook");
-	}
-}
-
-static void __declspec(naked) op_register_hook() {
-	_WRAP_OPCODE(op_register_hook2, 1, 0)
-}
-
-static void __stdcall op_register_hook_proc2() {
-	const ScriptValue &idArg = opHandler.arg(0),
-					  &procArg = opHandler.arg(1);
-
-	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
-	} else {
-		OpcodeInvalidArgs("register_hook_proc");
-	}
-}
-
-static void __declspec(naked) op_register_hook_proc() {
-	_WRAP_OPCODE(op_register_hook_proc2, 2, 0)
-}
-
-static void __stdcall op_register_hook_proc_spec2() {
-	const ScriptValue &idArg = opHandler.arg(0),
-					  &procArg = opHandler.arg(1);
-
-	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);
-	} else {
-		OpcodeInvalidArgs("register_hook_proc_spec");
-	}
-}
-
-static void __declspec(naked) op_register_hook_proc_spec() {
-	_WRAP_OPCODE(op_register_hook_proc_spec2, 2, 0)
-}
-
-static void mf_add_g_timer_event() {
-	AddTimerEventScripts(opHandler.program(), opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
-}
-
-static void mf_remove_timer_event() {
-	if (opHandler.numArgs() > 0) {
-		RemoveTimerEventScripts(opHandler.program(), opHandler.arg(0).rawValue());
-	} else {
-		RemoveTimerEventScripts(opHandler.program()); // remove all
-	}
-}
-
-static void __declspec(naked) op_sfall_ver_major() {
-	__asm {
-		mov  edx, VERSION_MAJOR;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
-static void __declspec(naked) op_sfall_ver_minor() {
-	__asm {
-		mov  edx, VERSION_MINOR;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
-static void __declspec(naked) op_sfall_ver_build() {
-	__asm {
-		mov  edx, VERSION_BUILD;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
+#include "ScriptOps\AsmMacros.h"
+#include "ScriptOps\CoreOps.hpp"
 #include "ScriptOps\ScriptArrays.hpp"
 #include "ScriptOps\ScriptUtils.hpp"
 
 #include "ScriptOps\AnimOps.hpp"
+#include "ScriptOps\CombatOps.hpp"
 #include "ScriptOps\FileSystemOps.hpp"
 #include "ScriptOps\GraphicsOps.hpp"
 #include "ScriptOps\InterfaceOps.hpp"
+#include "ScriptOps\InventoryOps.hpp"
 #include "ScriptOps\MathOps.hpp"
 #include "ScriptOps\MemoryOps.hpp"
 #include "ScriptOps\MiscOps.hpp"
@@ -892,7 +613,6 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	#ifndef NDEBUG
 	{mf_test,                   "validate_test",          {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
 	#endif
-	//{op_message_str_game, {}}
 };
 
 static void InitOpcodeMetaTable() {
@@ -1397,7 +1117,7 @@ static struct {
 	long index;
 } lastProgram = {nullptr};
 
-static int __stdcall ScriptHasLoaded(TProgram* script) {
+int __stdcall ScriptHasLoaded(TProgram* script) {
 	if (lastProgram.script == script) { // fast check
 		return globalScripts[lastProgram.index].isLoading;
 	}

@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "main.h"
-
 #define START_VALID_ADDR    0x410000
 #define END_VALID_ADDR      0x6B403F
 

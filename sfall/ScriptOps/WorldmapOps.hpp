@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "main.h"
-#include "ScriptExtender.h"
 #include "Worldmap.h"
 
 static DWORD ForceEncounterMapID = -1;

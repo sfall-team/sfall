@@ -18,10 +18,8 @@
 
 #pragma once
 
-#include "main.h"
 #include "Graphics.h"
 #include "InputFuncs.h"
-#include "ScriptExtender.h"
 
 // graphics_functions
 static void __declspec(naked) op_graphics_funcs_available() {
