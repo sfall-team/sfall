@@ -223,22 +223,40 @@ void op_set_critter_burst_disable(OpcodeContext& ctx) {
 
 void op_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	ctx.setReturn(obj->item.ammoPid);
+	long pid = -1;
+	fo::Proto* proto;
+	if (obj->IsItem() && GetProto(obj->protoId, &proto)) {
+		long type = proto->item.type;
+		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
+			pid = obj->item.ammoPid;
+		}
+	}
+	ctx.setReturn(pid);
 }
 
 void op_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	obj->item.ammoPid = ctx.arg(1).rawValue();
+	if (obj->IsNotItem()) return;
+
+	fo::Proto* proto;
+	if (GetProto(obj->protoId, &proto)) {
+		long type = proto->item.type;
+		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
+			obj->item.ammoPid = ctx.arg(1).rawValue();
+		}
+	} else {
+		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), obj->protoId);
+	}
 }
 
 void op_get_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	ctx.setReturn(obj->item.charges);
+	ctx.setReturn((obj->IsItem()) ? obj->item.charges : 0);
 }
 
 void op_set_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	obj->item.charges = ctx.arg(1).rawValue();
+	if (obj->IsItem()) obj->item.charges = ctx.arg(1).rawValue();
 }
 
 enum class BlockType {
