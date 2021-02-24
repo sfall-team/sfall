@@ -332,6 +332,12 @@
     <ClInclude Include="Game\objects.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Scripting\Handlers\Inventory.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\Handlers\Combat.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -613,6 +619,12 @@
     </ClCompile>
     <ClCompile Include="Game\objects.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

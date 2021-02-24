@@ -17,10 +17,8 @@
  */
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
-#include "..\..\..\SafeWrite.h"
 #include "..\..\Explosions.h"
 #include "..\..\ScriptExtender.h"
-#include "..\OpcodeContext.h"
 
 #include "Anims.h"
 
@@ -141,6 +139,10 @@ void op_explosions_metarule(OpcodeContext& ctx) {
 		ctx.printOpcodeError("%s() - mode (%d) is not supported for the function.", ctx.getOpcodeName(), mode);
 	}
 	ctx.setReturn(result);
+}
+
+void op_art_exists(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::art_exists(ctx.arg(0).rawValue()));
 }
 
 void mf_art_cache_flush(OpcodeContext& ctx) {

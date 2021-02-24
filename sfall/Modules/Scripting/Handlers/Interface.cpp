@@ -25,9 +25,7 @@
 #include "..\..\ScriptExtender.h"
 #include "..\..\Interface.h"
 #include "..\Arrays.h"
-#include "..\OpcodeContext.h"
 
-#include "..\..\..\Game\inventory.h"
 #include "..\..\..\Game\render.h"
 
 #include "..\..\SubModules\WindowRender.h"
@@ -43,6 +41,19 @@ void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		mov  edx, 1; // They're always available from 2.9 on
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
+}
+
+void __declspec(naked) op_set_pipboy_available() {
+	__asm {
+		_GET_ARG_INT(end);
+		cmp  eax, 0;
+		jl   end;
+		cmp  eax, 1;
+		jg   end;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
+end:
+		retn;
 	}
 }
 
@@ -114,18 +125,6 @@ void __declspec(naked) op_get_screen_height() {
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
-void __declspec(naked) op_stop_game() {
-	__asm {
-		jmp fo::funcoffs::map_disable_bk_processes_;
-	}
-}
-
-void __declspec(naked) op_resume_game() {
-	__asm {
-		jmp fo::funcoffs::map_enable_bk_processes_;
 	}
 }
 
@@ -661,68 +660,6 @@ void mf_interface_art_draw(OpcodeContext& ctx) {
 		ctx.printOpcodeError("%s() - the game interface window is not created or invalid window type number.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(result);
-}
-
-void mf_unwield_slot(OpcodeContext& ctx) {
-	fo::InvenType slot = static_cast<fo::InvenType>(ctx.arg(1).rawValue());
-	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
-		ctx.printOpcodeError("%s() - incorrect slot number.", ctx.getMetaruleName());
-		ctx.setReturn(-1);
-		return;
-	}
-	fo::GameObject* critter = ctx.arg(0).object();
-	if (critter->IsNotCritter()) {
-		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
-		ctx.setReturn(-1);
-		return;
-	}
-	bool isDude = (critter == fo::var::obj_dude);
-	bool update = false;
-	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
-		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::Left : fo::Right) == 0) {
-			update = isDude;
-		}
-	} else {
-		// force unwield for opened inventory
-		bool forceAdd = false;
-		fo::GameObject* item = nullptr;
-		if (slot != fo::INVEN_TYPE_WORN) {
-			if (!isDude) return;
-			long* itemRef = nullptr;
-			if (slot == fo::INVEN_TYPE_LEFT_HAND) {
-				item = fo::var::i_lhand;
-				itemRef = (long*)FO_VAR_i_lhand;
-			} else {
-				item = fo::var::i_rhand;
-				itemRef = (long*)FO_VAR_i_rhand;
-			}
-			if (item) {
-				if (!game::Inventory::correctFidForRemovedItem(critter, item, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::ObjectFlag::Left_Hand : fo::ObjectFlag::Right_Hand)) {
-					return;
-				}
-				*itemRef = 0;
-				forceAdd = true;
-				update = true;
-			}
-		} else {
-			if (isDude) item = fo::var::i_worn;
-			if (!item) {
-				item = fo::func::inven_worn(critter);
-			} else {
-				fo::var::i_worn = nullptr;
-				forceAdd = true;
-			}
-			if (item) {
-				if (!game::Inventory::correctFidForRemovedItem(critter, item, fo::ObjectFlag::Worn)) {
-					if (forceAdd) fo::var::i_worn = item;
-					return;
-				}
-				if (isDude) fo::func::intface_update_ac(0);
-			}
-		}
-		if (forceAdd) fo::func::item_add_force(critter, item, 1);
-	}
-	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
 void mf_get_window_attribute(OpcodeContext& ctx) {

@@ -23,6 +23,8 @@ namespace sfall
 namespace script
 {
 
+void __declspec() op_set_hp_per_level_mod();
+
 // stat_funcs
 void op_set_pc_base_stat(OpcodeContext&);
 
@@ -49,6 +51,14 @@ void __declspec() op_set_available_skill_points();
 void __declspec() op_get_available_skill_points();
 
 void __declspec() op_mod_skill_points_per_level();
+
+void __declspec() op_set_unspent_ap_bonus();
+
+void __declspec() op_get_unspent_ap_bonus();
+
+void __declspec() op_set_unspent_ap_perk_bonus();
+
+void __declspec() op_get_unspent_ap_perk_bonus();
 
 void __declspec() op_get_critter_current_ap();
 

@@ -321,6 +321,8 @@
     <ClInclude Include="Modules\LoadOrder.h" />
     <ClInclude Include="Modules\Objects.h" />
     <ClInclude Include="Modules\PlayerModel.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Combat.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Inventory.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\SubModules\CombatBlock.h" />
@@ -426,6 +428,8 @@
     <ClCompile Include="Modules\LoadOrder.cpp" />
     <ClCompile Include="Modules\Objects.cpp" />
     <ClCompile Include="Modules\PlayerModel.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\SubModules\CombatBlock.cpp" />

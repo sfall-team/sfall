@@ -22,10 +22,12 @@
 
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
+#include "Handlers\Combat.h"
 #include "Handlers\Core.h"
 #include "Handlers\FileSystem.h"
 #include "Handlers\Graphics.h"
 #include "Handlers\Interface.h"
+#include "Handlers\Inventory.h"
 #include "Handlers\Math.h"
 #include "Handlers\Memory.h"
 #include "Handlers\Misc.h"

@@ -23,7 +23,6 @@
 #include "..\..\HookScripts\Common.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
-#include "..\OpcodeContext.h"
 
 #include "Core.h"
 
@@ -150,6 +149,19 @@ void __declspec(naked) op_set_sfall_return() {
 		push eax;
 		call HookCommon::SetHSReturn;
 end:
+		mov  ecx, esi;
+		retn;
+	}
+}
+
+void __declspec(naked) op_game_loaded() {
+	__asm {
+		mov  esi, ecx;
+		push eax; // script
+		call ScriptExtender::ScriptHasLoaded;
+		mov  edx, eax;
+		mov  eax, ebx;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}

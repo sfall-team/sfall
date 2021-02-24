@@ -69,6 +69,8 @@ static bool CheckRecursiveHooks(DWORD hook) {
 		case HOOK_SETGLOBALVAR:
 		case HOOK_SETLIGHTING:
 			return true;
+		default:
+			if (isDebug) fo::func::debug_printf("\nWARNING: A recursive hook with ID %d was running.", hook);
 		}
 	}
 	return false;

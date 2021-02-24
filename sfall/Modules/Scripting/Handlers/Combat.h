@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2021  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -25,26 +25,36 @@ namespace sfall
 namespace script
 {
 
-// new reg_anim functions (all using existing engine code)
+// Kill counters
+void SetExtraKillCounter(bool value);
 
-void RegAnimCombatCheck(DWORD newValue);
+void __declspec() op_get_kill_counter();
 
-class OpcodeContext;
+void __declspec() op_mod_kill_counter();
 
-void op_reg_anim_combat_check(OpcodeContext&);
-void op_reg_anim_destroy(OpcodeContext&);
-void op_reg_anim_animate_and_hide(OpcodeContext&);
-void op_reg_anim_light(OpcodeContext&);
-void op_reg_anim_change_fid(OpcodeContext&);
-void op_reg_anim_take_out(OpcodeContext&);
-void op_reg_anim_turn_towards(OpcodeContext&);
-void op_reg_anim_callback(OpcodeContext&);
+void op_set_object_knockback(OpcodeContext&);
 
-void op_explosions_metarule(OpcodeContext&);
+void op_remove_object_knockback(OpcodeContext&);
 
-void op_art_exists(OpcodeContext&);
+void __declspec() op_get_bodypart_hit_modifier();
 
-void mf_art_cache_flush(OpcodeContext&);
+void __declspec() op_set_bodypart_hit_modifier();
+
+void op_get_attack_type(OpcodeContext&);
+
+void __declspec() op_force_aimed_shots();
+
+void __declspec() op_disable_aimed_shots();
+
+void __declspec() op_get_last_attacker();
+
+void __declspec() op_get_last_target();
+
+void __declspec() op_block_combat();
+
+void mf_attack_is_aimed(OpcodeContext&);
+
+void mf_combat_data(OpcodeContext&);
 
 }
 }

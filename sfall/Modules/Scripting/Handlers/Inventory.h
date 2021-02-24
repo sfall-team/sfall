@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2021  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -25,26 +25,23 @@ namespace sfall
 namespace script
 {
 
-// new reg_anim functions (all using existing engine code)
+void __declspec() op_active_hand();
 
-void RegAnimCombatCheck(DWORD newValue);
+void __declspec() op_toggle_active_hand();
 
-class OpcodeContext;
+void __declspec() op_set_inven_ap_cost();
 
-void op_reg_anim_combat_check(OpcodeContext&);
-void op_reg_anim_destroy(OpcodeContext&);
-void op_reg_anim_animate_and_hide(OpcodeContext&);
-void op_reg_anim_light(OpcodeContext&);
-void op_reg_anim_change_fid(OpcodeContext&);
-void op_reg_anim_take_out(OpcodeContext&);
-void op_reg_anim_turn_towards(OpcodeContext&);
-void op_reg_anim_callback(OpcodeContext&);
+void mf_get_inven_ap_cost(OpcodeContext&);
 
-void op_explosions_metarule(OpcodeContext&);
+void op_obj_is_carrying_obj(OpcodeContext&);
 
-void op_art_exists(OpcodeContext&);
+void mf_critter_inven_obj2(OpcodeContext&);
 
-void mf_art_cache_flush(OpcodeContext&);
+void mf_item_weight(OpcodeContext&);
+
+void mf_get_current_inven_size(OpcodeContext&);
+
+void mf_unwield_slot(OpcodeContext&);
 
 }
 }
