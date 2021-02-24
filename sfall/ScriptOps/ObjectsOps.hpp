@@ -285,7 +285,15 @@ static void __declspec(naked) op_set_critter_burst_disable() {
 static void __stdcall op_get_weapon_ammo_pid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(obj->item.ammoPid);
+		long pid = -1;
+		sProto* proto;
+		if (obj->IsItem() && GetProto(obj->protoId, &proto)) {
+			long type = proto->item.type;
+			if (type == item_type_weapon || type == item_type_misc_item) {
+				pid = obj->item.ammoPid;
+			}
+		}
+		opHandler.setReturn(pid);
 	} else {
 		OpcodeInvalidArgs("get_weapon_ammo_pid");
 		opHandler.setReturn(-1);
@@ -301,7 +309,17 @@ static void __stdcall op_set_weapon_ammo_pid2() {
 	const ScriptValue &pidArg = opHandler.arg(1);
 
 	if (obj && pidArg.isInt()) {
-		obj->item.ammoPid = pidArg.rawValue();
+		if (obj->IsNotItem()) return;
+
+		sProto* proto;
+		if (GetProto(obj->protoId, &proto)) {
+			long type = proto->item.type;
+			if (type == item_type_weapon || type == item_type_misc_item) {
+				obj->item.ammoPid = pidArg.rawValue();
+			}
+		} else {
+			opHandler.printOpcodeError(protoFailedLoad, "set_weapon_ammo_pid", obj->protoId);
+		}
 	} else {
 		OpcodeInvalidArgs("set_weapon_ammo_pid");
 	}
@@ -314,7 +332,7 @@ static void __declspec(naked) op_set_weapon_ammo_pid() {
 static void __stdcall op_get_weapon_ammo_count2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(obj->item.charges);
+		opHandler.setReturn((obj->IsItem()) ? obj->item.charges : 0);
 	} else {
 		OpcodeInvalidArgs("get_weapon_ammo_count");
 		opHandler.setReturn(0);
@@ -330,7 +348,7 @@ static void __stdcall op_set_weapon_ammo_count2() {
 	const ScriptValue &countArg = opHandler.arg(1);
 
 	if (obj && countArg.isInt()) {
-		obj->item.charges = countArg.rawValue();
+		if (obj->IsItem()) obj->item.charges = countArg.rawValue();
 	} else {
 		OpcodeInvalidArgs("set_weapon_ammo_count");
 	}
