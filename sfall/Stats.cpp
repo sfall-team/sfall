@@ -300,8 +300,8 @@ notDude:
 
 static void StatsReset() {
 	for (size_t i = 0; i < STAT_max_stat; i++) {
-		statMaximumsPC[i] = statMaximumsNPC[i] = *(DWORD*)(FO_VAR_stat_data + 16 + i * 24);
-		statMinimumsPC[i] = statMinimumsNPC[i] = *(DWORD*)(FO_VAR_stat_data + 12 + i * 24);
+		statMaximumsPC[i] = statMaximumsNPC[i] = ptr_stat_data[i].maxValue;
+		statMinimumsPC[i] = statMinimumsNPC[i] = ptr_stat_data[i].minValue;
 	}
 }
 

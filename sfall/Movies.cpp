@@ -618,3 +618,6 @@ void Movies_Init() {
 
 	SkipOpeningMoviesPatch();
 }
+
+void Movies_Exit() {
+}

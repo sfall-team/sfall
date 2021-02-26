@@ -297,6 +297,7 @@
     <ClInclude Include="FalloutVars_def.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="Karma.h" />
     <ClInclude Include="LoadOrder.h" />
@@ -371,6 +372,7 @@
     <ClCompile Include="ddraw.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="DebugEditor.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Elevators.cpp" />
     <ClCompile Include="Explosions.cpp" />

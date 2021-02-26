@@ -46,6 +46,7 @@
 #include "Graphics.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
+#include "Input.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "Karma.h"
@@ -166,12 +167,8 @@ static void InitModules() {
 	dlogr("Running Graphics_Init().", DL_INIT);
 	Graphics_Init();
 
-	//if (GetConfigInt("Input", "Enable", 0)) {
-		dlog("Applying input patch.", DL_INIT);
-		SafeWriteStr(0x50FB70, "ddraw.dll");
-		availableGlobalScriptTypes |= 1;
-		dlogr(" Done", DL_INIT);
-	//}
+	dlogr("Running Input_Init().", DL_INIT);
+	Input_Init();
 
 	dlogr("Running LoadOrder_Init().", DL_INIT);
 	LoadOrder_Init();
@@ -308,6 +305,7 @@ static void InitModules() {
 
 static void __stdcall OnExit() {
 	Graphics_Exit();
+	Movies_Exit();
 	Interface_Exit();
 	SpeedPatch_Exit();
 	Skills_Exit();

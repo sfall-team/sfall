@@ -247,6 +247,9 @@
     <ClInclude Include="ScriptOps\CoreOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -413,6 +416,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="ReplacementFuncs.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

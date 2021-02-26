@@ -106,8 +106,7 @@ static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
 	int rawPoints = skillNegPoints;
 	if (rawPoints) {
 		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
-		SkillInfo *skills = (SkillInfo*)FO_VAR_skill_data;
-		rawPoints *= skills[skill].skillPointMulti;
+		rawPoints *= ptr_skill_data[skill].skillPointMulti;
 		if (fo_skill_is_tagged(skill)) rawPoints *= 2;
 		base += rawPoints; // add the negative skill points after calculating the skill level
 		if (base < 0) return max(-999, base);
@@ -334,7 +333,7 @@ void Skills_Init() {
 	char buf[512], key[16];
 	std::string skillsFile = GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
 	if (!skillsFile.empty()) {
-		SkillInfo *skills = (SkillInfo*)FO_VAR_skill_data;
+		SkillInfo *skills = ptr_skill_data;
 
 		const char* file = skillsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(file) == INVALID_FILE_ATTRIBUTES) return;
