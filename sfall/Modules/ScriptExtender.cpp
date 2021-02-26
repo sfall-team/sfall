@@ -27,8 +27,6 @@
 #include "..\Logging.h"
 #include "..\Version.h"
 #include "..\Utils.h"
-#include "BarBoxes.h"
-#include "Console.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"

@@ -221,37 +221,6 @@ isNotDead:
 	}
 }
 
-static void __declspec(naked) ai_search_environ_hook() {
-	static const DWORD ai_search_environ_Ret = 0x429D3E;
-	__asm {
-		call fo::funcoffs::obj_dist_;
-		cmp  [esp + 0x28 + 0x1C + 4], item_type_weapon;
-		jne  end;
-		//
-		push edx;
-		push eax;
-		mov  edx, STAT_max_move_points;
-		mov  eax, esi;
-		call fo::funcoffs::stat_level_;
-		mov  edx, [esi + movePoints];    // source current AP
-		cmp  edx, eax;                   // NPC already spent its AP?
-		pop  eax;
-		jge  skip;                       // No
-		// distance & AP check
-		sub  edx, 3;                     // pickup AP cost
-		cmp  edx, eax;                   // eax - distance to the object
-		jl   continue;
-skip:
-		pop  edx;
-end:
-		retn;
-continue:
-		pop  edx;
-		add  esp, 4;                     // destroy return
-		jmp  ai_search_environ_Ret;      // next object
-	}
-}
-
 static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &hitMode, fo::GameObject* source, fo::GameObject* weapon) {
 	if (source->critter.movePoints <= 0) return -1; // exit from ai_try_attack_
 	if (!weapon) return 1; // no weapon in hand slot, call ai_switch_weapons_
@@ -265,7 +234,7 @@ static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &h
 	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
 	if (!item) return 1; // no weapon in inventory, continue searching for weapons on the map (call ai_switch_weapons_)
 
-	// is the weapon close range?
+	// is using a close range weapon?
 	long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 	if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
 		if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
@@ -536,12 +505,6 @@ void AI::init() {
 	// Fix to reduce friendly fire in burst attacks
 	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
-
-	// When NPC does not have enough AP to use the weapon, it begins searching the inventory for another weapon to use
-	// If no suitable weapon is found, then it searches the nearby weapons on the ground to pick them up
-	// This fix prevents picking up a weapon on the ground if NPC does not have the full amount of AP (i.e. the action occurs
-	// in the middle of its turn) or enough AP to pick it up. NPC will not waste its AP to pick up unreachable weapons
-	HookCall(0x429CAF, ai_search_environ_hook);
 
 	// Fix AI weapon switching when not having enough action points
 	// AI will try to change attack mode before deciding to switch weapon
