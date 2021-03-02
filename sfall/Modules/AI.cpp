@@ -448,6 +448,13 @@ friendly:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static void __declspec(naked) ai_try_attack_hack_check_safe_weapon() {
+	__asm {
+		mov  ebx, [esp + 0x364 - 0x38 + 4]; // hit mode
+		retn;
+	}
+}
+
 static void __fastcall CombatAttackHook(fo::GameObject* source, fo::GameObject* target) {
 	sources[target] = source; // who attacked the 'target' from the last time
 	targets[source] = target; // who was attacked by the 'source' from the last time
@@ -545,6 +552,9 @@ void AI::init() {
 	// also patch combat_safety_invalidate_weapon_func_ for returning out_range argument in a negative value
 	SafeWrite8(0x421628, 0xD0);    // sub edx, eax > sub eax, edx
 	SafeWrite16(0x42162A, 0xFF40); // lea eax, [edx+1] > lea eax, [eax-1]
+
+	// Check the safety of weapons based on the selected attack mode instead of always the primary weapon hit mode
+	MakeCall(0x42A8D9, ai_try_attack_hack_check_safe_weapon);
 }
 
 fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
