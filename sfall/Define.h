@@ -96,6 +96,18 @@ enum AnimCommand : long
 	RB_END_ANIM   = 0x200
 };
 
+enum BodyParts : long {
+	BODY_Head     = 0,
+	BODY_LeftArm  = 1,
+	BODY_RightArm = 2,
+	BODY_Torso    = 3,
+	BODY_RightLeg = 4,
+	BODY_LeftLeg  = 5,
+	BODY_Eyes     = 6,
+	BODY_Groin    = 7,
+	BODY_Uncalled = 8
+};
+
 enum CritterFlags : long
 {
 	CFLG_Sneak        = 0x01,   // Can sneak ?
