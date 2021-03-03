@@ -138,18 +138,6 @@ static int CritTableLoad() {
 	return 0;
 }
 
-enum BodyPart {
-	Head,
-	ArmLeft,
-	ArmRight,
-	Torso,
-	LegRight,
-	LegLeft,
-	Eyes,
-	Groin,
-	Uncalled
-};
-
 enum CritParam {
 	DmgMult,
 	Flags,
@@ -169,6 +157,8 @@ static void CriticalTableOverride() {
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
 	if (mode == 2 || mode == 3) { // bug fixes
+		using namespace fo;
+
 		// Children
 		SetEntry(2, LegRight, 1, FlagsFail, 0);
 		SetEntry(2, LegRight, 1, Message,   5216);

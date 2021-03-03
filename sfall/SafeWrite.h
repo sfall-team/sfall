@@ -49,14 +49,14 @@ void __stdcall SafeWrite16(DWORD addr, WORD data);
 void __stdcall SafeWrite32(DWORD addr, DWORD data);
 void __stdcall SafeWriteStr(DWORD addr, const char* data);
 
-void SafeMemSet(DWORD addr, BYTE val, int len);
-void SafeWriteBytes(DWORD addr, BYTE* data, int count);
+void SafeMemSet(DWORD addr, BYTE val, size_t len);
+void SafeWriteBytes(DWORD addr, BYTE* data, size_t count);
 
 void HookCall(DWORD addr, void* func);
 void MakeCall(DWORD addr, void* func);
-void MakeCall(DWORD addr, void* func, int len);
+void MakeCall(DWORD addr, void* func, size_t len);
 void MakeJump(DWORD addr, void* func);
-void MakeJump(DWORD addr, void* func, int len);
+void MakeJump(DWORD addr, void* func, size_t len);
 void BlockCall(DWORD addr);
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs);

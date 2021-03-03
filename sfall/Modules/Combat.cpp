@@ -523,8 +523,8 @@ void Combat::init() {
 	// Remove the dependency of Body_Torso from Body_Uncalled
 	SafeWrite8(0x423830, CodeType::JumpShort); // compute_attack_
 	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
-	SafeWrite8(0x42A713, 7); // Body_Uncalled > Body_Groin (ai_called_shot_)
-	SafeWriteBatch<BYTE>(fo::BodyParts::Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
+	SafeWrite8(0x42A713, fo::BodyPart::Groin); // Body_Uncalled > Body_Groin (ai_called_shot_)
+	SafeWriteBatch<BYTE>(fo::BodyPart::Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
 	HookCalls(ai_pick_hit_mode_hook_bodypart, {0x429E8C, 0x429ECC, 0x429F09});
 
 	LoadGameHook::OnGameReset() += Combat_OnGameLoad;
