@@ -135,18 +135,6 @@ static int CritTableLoad() {
 	return 0;
 }
 
-enum BodyPart {
-	Head,
-	ArmLeft,
-	ArmRight,
-	Torso,
-	LegRight,
-	LegLeft,
-	Eyes,
-	Groin,
-	Uncalled
-};
-
 enum CritParam {
 	DmgMult,
 	Flags,
@@ -167,139 +155,139 @@ static void CriticalTableOverride() {
 
 	if (mode == 2 || mode == 3) { // bug fixes
 		// Children
-		SetEntry(2, LegRight, 1, FlagsFail, 0);
-		SetEntry(2, LegRight, 1, Message,   5216);
-		SetEntry(2, LegRight, 1, MsgFail,   5000);
+		SetEntry(2, BODY_LegRight, 1, FlagsFail, 0);
+		SetEntry(2, BODY_LegRight, 1, Message,   5216);
+		SetEntry(2, BODY_LegRight, 1, MsgFail,   5000);
 
-		SetEntry(2, LegRight, 2, FlagsFail, 0);
-		SetEntry(2, LegRight, 2, Message,   5216);
-		SetEntry(2, LegRight, 2, MsgFail,   5000);
+		SetEntry(2, BODY_LegRight, 2, FlagsFail, 0);
+		SetEntry(2, BODY_LegRight, 2, Message,   5216);
+		SetEntry(2, BODY_LegRight, 2, MsgFail,   5000);
 
-		SetEntry(2, LegLeft,  1, FlagsFail, 0);
-		SetEntry(2, LegLeft,  1, Message,   5216);
-		SetEntry(2, LegLeft,  1, MsgFail,   5000);
+		SetEntry(2, BODY_LegLeft,  1, FlagsFail, 0);
+		SetEntry(2, BODY_LegLeft,  1, Message,   5216);
+		SetEntry(2, BODY_LegLeft,  1, MsgFail,   5000);
 
-		SetEntry(2, LegLeft,  2, FlagsFail, 0);
-		SetEntry(2, LegLeft,  2, Message,   5216);
-		SetEntry(2, LegLeft,  2, MsgFail,   5000);
+		SetEntry(2, BODY_LegLeft,  2, FlagsFail, 0);
+		SetEntry(2, BODY_LegLeft,  2, Message,   5216);
+		SetEntry(2, BODY_LegLeft,  2, MsgFail,   5000);
 
 		// Super Mutants
-		SetEntry(3, LegLeft,  1, MsgFail,   5306);
+		SetEntry(3, BODY_LegLeft,  1, MsgFail,   5306);
 
 		// Ghouls
-		SetEntry(4, Head,     4, StatCheck, -1);
+		SetEntry(4, BODY_Head,     4, StatCheck, -1);
 
 		// Brahmin
-		SetEntry(5, Head,     4, StatCheck, -1);
+		SetEntry(5, BODY_Head,     4, StatCheck, -1);
 
 		// Radscorpions
-		SetEntry(6, LegRight, 1, FlagsFail, DAM_KNOCKED_DOWN);
+		SetEntry(6, BODY_LegRight, 1, FlagsFail, DAM_KNOCKED_DOWN);
 
-		SetEntry(6, LegLeft,  1, FlagsFail, DAM_KNOCKED_DOWN);
-		SetEntry(6, LegLeft,  2, MsgFail,   5608);
+		SetEntry(6, BODY_LegLeft,  1, FlagsFail, DAM_KNOCKED_DOWN);
+		SetEntry(6, BODY_LegLeft,  2, MsgFail,   5608);
 
 		// Centaurs
-		SetEntry(9, Torso,    3, FlagsFail, DAM_KNOCKED_DOWN);
+		SetEntry(9, BODY_Torso,    3, FlagsFail, DAM_KNOCKED_DOWN);
 
 		// Deathclaws
-		SetEntry(13, LegLeft, 1, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, LegLeft, 2, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, LegLeft, 3, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, LegLeft, 4, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, LegLeft, 5, FlagsFail, DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 1, FlagsFail, DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 2, FlagsFail, DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 3, FlagsFail, DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 4, FlagsFail, DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 5, FlagsFail, DAM_CRIP_LEG_LEFT);
 
 		// Big Bad Boss
-		SetEntry(18, Head,     0, Message,  5001);
-		SetEntry(18, Head,     1, Message,  5001);
-		SetEntry(18, Head,     2, Message,  5001);
-		SetEntry(18, Head,     3, Message,  7105);
-		SetEntry(18, Head,     4, Message,  7101);
-		SetEntry(18, Head,     4, MsgFail,  7104);
-		SetEntry(18, Head,     5, Message,  7101);
+		SetEntry(18, BODY_Head,     0, Message,  5001);
+		SetEntry(18, BODY_Head,     1, Message,  5001);
+		SetEntry(18, BODY_Head,     2, Message,  5001);
+		SetEntry(18, BODY_Head,     3, Message,  7105);
+		SetEntry(18, BODY_Head,     4, Message,  7101);
+		SetEntry(18, BODY_Head,     4, MsgFail,  7104);
+		SetEntry(18, BODY_Head,     5, Message,  7101);
 
-		SetEntry(18, ArmLeft,  0, Message,  5008);
-		SetEntry(18, ArmLeft,  1, Message,  5008);
-		SetEntry(18, ArmLeft,  2, Message,  5009);
-		SetEntry(18, ArmLeft,  3, Message,  5009);
-		SetEntry(18, ArmLeft,  4, Message,  7102);
-		SetEntry(18, ArmLeft,  5, Message,  7102);
+		SetEntry(18, BODY_ArmLeft,  0, Message,  5008);
+		SetEntry(18, BODY_ArmLeft,  1, Message,  5008);
+		SetEntry(18, BODY_ArmLeft,  2, Message,  5009);
+		SetEntry(18, BODY_ArmLeft,  3, Message,  5009);
+		SetEntry(18, BODY_ArmLeft,  4, Message,  7102);
+		SetEntry(18, BODY_ArmLeft,  5, Message,  7102);
 
-		SetEntry(18, ArmRight, 0, Message,  5008);
-		SetEntry(18, ArmRight, 1, Message,  5008);
-		SetEntry(18, ArmRight, 2, Message,  5009);
-		SetEntry(18, ArmRight, 3, Message,  5009);
-		SetEntry(18, ArmRight, 4, Message,  7102);
-		SetEntry(18, ArmRight, 5, Message,  7102);
+		SetEntry(18, BODY_ArmRight, 0, Message,  5008);
+		SetEntry(18, BODY_ArmRight, 1, Message,  5008);
+		SetEntry(18, BODY_ArmRight, 2, Message,  5009);
+		SetEntry(18, BODY_ArmRight, 3, Message,  5009);
+		SetEntry(18, BODY_ArmRight, 4, Message,  7102);
+		SetEntry(18, BODY_ArmRight, 5, Message,  7102);
 
-		SetEntry(18, Torso,    4, Message,  7101);
-		SetEntry(18, Torso,    5, Message,  7101);
+		SetEntry(18, BODY_Torso,    4, Message,  7101);
+		SetEntry(18, BODY_Torso,    5, Message,  7101);
 
-		SetEntry(18, LegRight, 0, Message,  5023);
-		SetEntry(18, LegRight, 1, Message,  7101);
-		SetEntry(18, LegRight, 1, MsgFail,  7103);
-		SetEntry(18, LegRight, 2, Message,  7101);
-		SetEntry(18, LegRight, 2, MsgFail,  7103);
-		SetEntry(18, LegRight, 3, Message,  7103);
-		SetEntry(18, LegRight, 4, Message,  7103);
-		SetEntry(18, LegRight, 5, Message,  7103);
+		SetEntry(18, BODY_LegRight, 0, Message,  5023);
+		SetEntry(18, BODY_LegRight, 1, Message,  7101);
+		SetEntry(18, BODY_LegRight, 1, MsgFail,  7103);
+		SetEntry(18, BODY_LegRight, 2, Message,  7101);
+		SetEntry(18, BODY_LegRight, 2, MsgFail,  7103);
+		SetEntry(18, BODY_LegRight, 3, Message,  7103);
+		SetEntry(18, BODY_LegRight, 4, Message,  7103);
+		SetEntry(18, BODY_LegRight, 5, Message,  7103);
 
-		SetEntry(18, LegLeft,  0, Message,  5023);
-		SetEntry(18, LegLeft,  1, Message,  7101);
-		SetEntry(18, LegLeft,  1, MsgFail,  7103);
-		SetEntry(18, LegLeft,  2, Message,  7101);
-		SetEntry(18, LegLeft,  2, MsgFail,  7103);
-		SetEntry(18, LegLeft,  3, Message,  7103);
-		SetEntry(18, LegLeft,  4, Message,  7103);
-		SetEntry(18, LegLeft,  5, Message,  7103);
+		SetEntry(18, BODY_LegLeft,  0, Message,  5023);
+		SetEntry(18, BODY_LegLeft,  1, Message,  7101);
+		SetEntry(18, BODY_LegLeft,  1, MsgFail,  7103);
+		SetEntry(18, BODY_LegLeft,  2, Message,  7101);
+		SetEntry(18, BODY_LegLeft,  2, MsgFail,  7103);
+		SetEntry(18, BODY_LegLeft,  3, Message,  7103);
+		SetEntry(18, BODY_LegLeft,  4, Message,  7103);
+		SetEntry(18, BODY_LegLeft,  5, Message,  7103);
 
-		SetEntry(18, Eyes,     0, Message,  5027);
-		SetEntry(18, Eyes,     1, Message,  5027);
-		SetEntry(18, Eyes,     2, Message,  5027);
-		SetEntry(18, Eyes,     3, Message,  5027);
-		SetEntry(18, Eyes,     4, Message,  7104);
-		SetEntry(18, Eyes,     5, Message,  7104);
+		SetEntry(18, BODY_Eyes,     0, Message,  5027);
+		SetEntry(18, BODY_Eyes,     1, Message,  5027);
+		SetEntry(18, BODY_Eyes,     2, Message,  5027);
+		SetEntry(18, BODY_Eyes,     3, Message,  5027);
+		SetEntry(18, BODY_Eyes,     4, Message,  7104);
+		SetEntry(18, BODY_Eyes,     5, Message,  7104);
 
-		SetEntry(18, Groin,    0, Message,  5033);
-		SetEntry(18, Groin,    1, Message,  5027);
-		SetEntry(18, Groin,    1, MsgFail,  7101);
-		SetEntry(18, Groin,    2, Message,  7101);
-		SetEntry(18, Groin,    3, Message,  7101);
-		SetEntry(18, Groin,    4, Message,  7101);
-		SetEntry(18, Groin,    5, Message,  7101);
+		SetEntry(18, BODY_Groin,    0, Message,  5033);
+		SetEntry(18, BODY_Groin,    1, Message,  5027);
+		SetEntry(18, BODY_Groin,    1, MsgFail,  7101);
+		SetEntry(18, BODY_Groin,    2, Message,  7101);
+		SetEntry(18, BODY_Groin,    3, Message,  7101);
+		SetEntry(18, BODY_Groin,    4, Message,  7101);
+		SetEntry(18, BODY_Groin,    5, Message,  7101);
 
 		// Fixes for uncalled tables
 		// Men
-		SetEntry(0, Uncalled, 2, Flags,     DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
-		SetEntry(0, Uncalled, 2, Message,   5019); // 5018
+		SetEntry(0, BODY_Uncalled, 2, Flags,     DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(0, BODY_Uncalled, 2, Message,   5019); // 5018
 
 		// Children
-		SetEntry(2, Uncalled, 1, DmgMult,   4);    // 3
-		SetEntry(2, Uncalled, 2, Flags,     DAM_KNOCKED_DOWN | DAM_BYPASS); // DAM_BYPASS
-		SetEntry(2, Uncalled, 2, Message,   5212); // 5211
+		SetEntry(2, BODY_Uncalled, 1, DmgMult,   4);    // 3
+		SetEntry(2, BODY_Uncalled, 2, Flags,     DAM_KNOCKED_DOWN | DAM_BYPASS); // DAM_BYPASS
+		SetEntry(2, BODY_Uncalled, 2, Message,   5212); // 5211
 
 		// Centaurs
-		SetEntry(9, Uncalled, 3, FlagsFail, DAM_KNOCKED_DOWN); // 0
+		SetEntry(9, BODY_Uncalled, 3, FlagsFail, DAM_KNOCKED_DOWN); // 0
 
 		// Geckos
-		SetEntry(15, Uncalled, 0, Message,  6701); // 6700
-		SetEntry(15, Uncalled, 1, Message,  6701); // 6700
-		SetEntry(15, Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
-		SetEntry(15, Uncalled, 2, Message,  6704); // 6700
-		SetEntry(15, Uncalled, 3, Message,  6704); // 6700
-		SetEntry(15, Uncalled, 4, Message,  6704); // 6700
-		SetEntry(15, Uncalled, 5, Message,  6704); // 6700
+		SetEntry(15, BODY_Uncalled, 0, Message,  6701); // 6700
+		SetEntry(15, BODY_Uncalled, 1, Message,  6701); // 6700
+		SetEntry(15, BODY_Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(15, BODY_Uncalled, 2, Message,  6704); // 6700
+		SetEntry(15, BODY_Uncalled, 3, Message,  6704); // 6700
+		SetEntry(15, BODY_Uncalled, 4, Message,  6704); // 6700
+		SetEntry(15, BODY_Uncalled, 5, Message,  6704); // 6700
 
 		// Aliens
-		SetEntry(16, Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(16, BODY_Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
 
 		// Giant Ants
-		SetEntry(17, Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(17, BODY_Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
 
 		// Big Bad Boss
-		SetEntry(18, Uncalled, 2, DmgMult,  3);    // 4
-		SetEntry(18, Uncalled, 4, DmgMult,  4);    // 5
-		SetEntry(18, Uncalled, 4, Message,  7101); // 7106
-		SetEntry(18, Uncalled, 5, Message,  7101); // 7106
+		SetEntry(18, BODY_Uncalled, 2, DmgMult,  3);    // 4
+		SetEntry(18, BODY_Uncalled, 4, DmgMult,  4);    // 5
+		SetEntry(18, BODY_Uncalled, 4, Message,  7101); // 7106
+		SetEntry(18, BODY_Uncalled, 5, Message,  7101); // 7106
 	}
 
 	if (CritTableLoad()) {

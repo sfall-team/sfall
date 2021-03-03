@@ -566,7 +566,7 @@ void Combat_Init() {
 	// Remove the dependency of Body_Torso from Body_Uncalled
 	SafeWrite8(0x423830, CODETYPE_JumpShort); // compute_attack_
 	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
-	SafeWrite8(0x42A713, 7); // Body_Uncalled > Body_Groin (ai_called_shot_)
+	SafeWrite8(0x42A713, BODY_Groin); // Body_Uncalled > Body_Groin (ai_called_shot_)
 	SafeWriteBatch<BYTE>(BODY_Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
 	const DWORD pickHitBodypartAddr[] = {0x429E8C, 0x429ECC, 0x429F09};
 	HookCalls(ai_pick_hit_mode_hook_bodypart, pickHitBodypartAddr);

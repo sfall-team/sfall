@@ -96,13 +96,13 @@ enum AnimCommand : long
 	RB_END_ANIM   = 0x200
 };
 
-enum BodyParts : long {
+enum BodyPart : long {
 	BODY_Head     = 0,
-	BODY_LeftArm  = 1,
-	BODY_RightArm = 2,
+	BODY_ArmLeft  = 1,
+	BODY_ArmRight = 2,
 	BODY_Torso    = 3,
-	BODY_RightLeg = 4,
-	BODY_LeftLeg  = 5,
+	BODY_LegRight = 4,
+	BODY_LegLeft  = 5,
 	BODY_Eyes     = 6,
 	BODY_Groin    = 7,
 	BODY_Uncalled = 8

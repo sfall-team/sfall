@@ -9,7 +9,7 @@ static void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	VirtualProtect((void*)addr, 5, oldProtect, &oldProtect);
 }
 
-static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
+static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, size_t len) {
 	DWORD oldProtect,
 		protectLen = len + 5,
 		addrMem = addr + 5,
@@ -19,13 +19,13 @@ static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, 
 	*((BYTE*)addr) = code;
 	*((DWORD*)(addr + 1)) = data;
 
-	for (unsigned int i = 0; i < len; i++) {
+	for (size_t i = 0; i < len; i++) {
 		*((BYTE*)(addrMem + i)) = CODETYPE_Nop;
 	}
 	VirtualProtect((void*)addr, protectLen, oldProtect, &oldProtect);
 }
 
-void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
+void SafeWriteBytes(DWORD addr, BYTE* data, size_t count) {
 	DWORD oldProtect;
 
 	VirtualProtect((void*)addr, count, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -74,7 +74,7 @@ void MakeCall(DWORD addr, void* func) {
 	SafeWriteFunc(CODETYPE_Call, addr, func);
 }
 
-void MakeCall(DWORD addr, void* func, int len) {
+void MakeCall(DWORD addr, void* func, size_t len) {
 	SafeWriteFunc(CODETYPE_Call, addr, func, len);
 }
 
@@ -82,11 +82,11 @@ void MakeJump(DWORD addr, void* func) {
 	SafeWriteFunc(CODETYPE_Jump, addr, func);
 }
 
-void MakeJump(DWORD addr, void* func, int len) {
+void MakeJump(DWORD addr, void* func, size_t len) {
 	SafeWriteFunc(CODETYPE_Jump, addr, func, len);
 }
 
-void SafeMemSet(DWORD addr, BYTE val, int len) {
+void SafeMemSet(DWORD addr, BYTE val, size_t len) {
 	DWORD oldProtect;
 
 	VirtualProtect((void*)addr, len, PAGE_EXECUTE_READWRITE, &oldProtect);
