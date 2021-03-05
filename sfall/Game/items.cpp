@@ -4,7 +4,7 @@
  *
  */
 
-//#include "..\main.h"
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
 #include "..\Modules\HookScripts\CombatHs.h"
@@ -18,6 +18,8 @@ namespace game
 {
 
 namespace sf = sfall;
+
+static constexpr int reloadCostAP = 2; // engine default reload AP cost
 
 long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	fo::Proto* wProto;
@@ -43,10 +45,8 @@ long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, lo
 	return range;
 }
 
-// TODO: replace all item_w_primary_mp_cost/item_w_secondary_mp_cost in engine with item_weapon_mp_cost function
-
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
-long Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, long hitMode, long isCalled) {
+long __fastcall Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, long hitMode, long isCalled) {
 	long cost = 0;
 
 	switch (hitMode) {
@@ -60,16 +60,16 @@ long Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, 
 		break;
 	case fo::AttackType::ATKTYPE_LWEAPON_RELOAD:
 	case fo::AttackType::ATKTYPE_RWEAPON_RELOAD:
-		if (source->protoId != fo::ProtoID::PID_SOLAR_SCORCHER && weapon) {
-			cost = 2; // default reload AP cost
+		if (weapon && weapon->protoId != fo::ProtoID::PID_SOLAR_SCORCHER) { // Solar Scorcher has no reload AP cost
+			cost = reloadCostAP;
 			if (fo::GetProto(weapon->protoId)->item.weapon.perk == fo::Perk::PERK_weapon_fast_reload) {
 				cost--;
 			}
 		}
 	}
 	if (hitMode < fo::AttackType::ATKTYPE_LWEAPON_RELOAD) {
-		if (cost == -1) cost = 0;
 		if (isCalled) cost++;
+		if (cost < 0) cost = 0;
 
 		long type = fo::func::item_w_subtype(weapon, hitMode);
 
@@ -92,13 +92,26 @@ long Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, 
 }
 
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-long __fastcall Items::item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
+long Items::item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
 	long cost = fo::func::item_w_mp_cost(source, hitMode, isCalled);
 	return sf::CalcApCostHook_Invoke(source, hitMode, isCalled, cost, nullptr);
 }
 
-void Items::init() {
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	using namespace fo;
+	__asm {
+		push 0;        // no called
+		push ATKTYPE_RWEAPON_PRIMARY;
+		mov  edx, esi; // found weapon
+		mov  ecx, edi; // source
+		call Items::item_weapon_mp_cost;
+		retn;
+	}
+}
 
+void Items::init() {
+	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
+	sf::HookCall(0x429A08, ai_search_inven_weap_hook);
 }
 
 }

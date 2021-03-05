@@ -158,7 +158,6 @@ static void CriticalTableOverride() {
 
 	if (mode == 2 || mode == 3) { // bug fixes
 		using namespace fo;
-
 		// Children
 		SetEntry(2, LegRight, 1, FlagsFail, 0);
 		SetEntry(2, LegRight, 1, Message,   5216);
