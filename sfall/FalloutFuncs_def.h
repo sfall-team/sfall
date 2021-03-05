@@ -19,6 +19,7 @@
 	because the compiler builds the better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC3(long, ai_have_ammo, TGameObj*, critter, TGameObj*, item, TGameObj**, outAmmo)
 WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, TGameObj*, source, TGameObj*, item, TGameObj*, target)
 WRAP_WATCOM_FFUNC3(TGameObj*, ai_search_inven_weap, TGameObj*, source, long, apCheck, TGameObj*, target)
 WRAP_WATCOM_FFUNC3(void, check_for_death, TGameObj*, critter, long, amountDamage, long*, flags)
@@ -33,6 +34,7 @@ WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, lo
 WRAP_WATCOM_FFUNC3(TGameObj*, inven_find_type, TGameObj*, critter, long, itemType, DWORD*, slot)
 WRAP_WATCOM_FFUNC3(long, inven_wield, TGameObj*, critter, TGameObj*, item, long, slot)
 WRAP_WATCOM_FFUNC3(long, item_add_force, TGameObj*, critter, TGameObj*, item, long, count)
+WRAP_WATCOM_FFUNC3(long, item_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, TGameObj*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
 WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*, outBuf)

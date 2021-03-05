@@ -37,10 +37,12 @@ DWORD __stdcall sfgame_adjust_fid();
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode);
 
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
-long __stdcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled);
+// Note: Use only for weapons
+long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled);
 
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-long __fastcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
+// Note: Use the generic item_mp_cost function which has a hook call
+long __stdcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
 long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType);

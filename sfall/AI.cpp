@@ -283,6 +283,8 @@ end:
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static long __fastcall ai_weapon_reload_fix(TGameObj* weapon, TGameObj* ammo, TGameObj* critter) {
 	sProto* proto = nullptr;
 	long result = -1;
@@ -334,11 +336,59 @@ skip:
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static long tempReloadCost;
+
+static long __fastcall item_weapon_reload_cost_fix(TGameObj* source, TGameObj* weapon, TGameObj** outAmmo) {
+	long reloadCost = sfgame_item_weapon_mp_cost(source, weapon, ATKTYPE_RWEAPON_RELOAD, 0);
+	if (reloadCost > source->critter.movePoints) return -1; // no action points
+	tempReloadCost = reloadCost;
+
+	return fo_ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
+}
+
+static void __declspec(naked) ai_try_attack_hook_cost_reload() {
+	static const DWORD ai_try_attack_hook_unwield_Ret = 0x42AACD;
+	__asm {
+		push ebx;      // ammoObj ref
+		mov  ecx, eax; // source
+		call item_weapon_reload_cost_fix; // edx - weapon
+		cmp  eax, -1;
+		je   noAPs;
+		retn;
+noAPs:
+		add  esp, 4; // destroy ret
+		jmp  ai_try_attack_hook_unwield_Ret; // unwield weapon (default)
+	}
+}
+
+static void __declspec(naked) ai_try_attack_hook_cost1() {
+	__asm {
+		xor  ebx, ebx;
+		sub  edx, tempReloadCost; // curr.mp - reload cost
+		cmovg ebx, edx;           // if curr.mp > 0
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_try_attack_hook_cost2() {
+	__asm {
+		xor  ecx, ecx;
+		sub  ebx, tempReloadCost; // curr.mp - reload cost
+		cmovg ecx, ebx;           // if curr.mp > 0
+		retn;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
 static long __fastcall CheckWeaponRangeAndApCost(TGameObj* source, TGameObj* target) {
 	long weaponRange = fo_item_w_range(source, ATKTYPE_RWEAPON_SECONDARY);
 	long targetDist  = fo_obj_dist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
+	//return (source->critter.movePoints >= fo_item_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0));
 	return (source->critter.movePoints >= sfgame_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
@@ -370,15 +420,15 @@ fix:	// check result
 
 static void __declspec(naked) cai_perform_distance_prefs_hack() {
 	__asm {
-		mov  ebx, eax; // current distance to target
-		mov  ecx, esi;
-		push 0;        // no called shot
+		mov  ecx, eax; // current distance to target
+		xor  ebx, ebx; // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
-		call sfgame_item_w_mp_cost;
+		mov  eax, esi;
+		call item_mp_cost_;
 		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
 		jle  moveAway; // <= 0
-		lea  edx, [edx + ebx - 1];
+		lea  edx, [edx + ecx - 1];
 		cmp  edx, 5;   // minimum threshold distance
 		jge  skipMove; // distance >= 5?
 		// check combat rating
@@ -497,6 +547,11 @@ void AI_Init() {
 		0x42A970, 0x42AA56, // ai_try_attack_
 	};
 	HookCalls(item_w_reload_hook, itemWReloadAddr);
+
+	// Fix incorrect AP check and cost for AI when reloading a weapon
+	HookCall(0x42A955, ai_try_attack_hook_cost_reload);
+	MakeCall(0x42A9DE, ai_try_attack_hook_cost1);
+	MakeCall(0x42AABC, ai_try_attack_hook_cost2, 4);
 
 	// Adds a check for the weapon range and the AP cost when AI is choosing weapon attack modes
 	HookCall(0x429F6D, ai_pick_hit_mode_hook);

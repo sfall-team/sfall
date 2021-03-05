@@ -123,6 +123,8 @@ static void __declspec(naked) adjust_fid_hack() {
 
 //////////////////////////////////// ITEMS /////////////////////////////////////
 
+static const int reloadCostAP = 2; // engine default reload AP cost
+
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode) {
 	sProto* wProto;
 	if (!GetProto(weapon->protoId, &wProto)) return 0;
@@ -147,10 +149,8 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 	return range;
 }
 
-// TODO: replace all item_w_primary_mp_cost/item_w_secondary_mp_cost in engine with item_weapon_mp_cost function
-
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
-long __stdcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled) {
+long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled) {
 	long cost = 0;
 
 	switch (hitMode) {
@@ -164,16 +164,16 @@ long __stdcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, lo
 		break;
 	case ATKTYPE_LWEAPON_RELOAD:
 	case ATKTYPE_RWEAPON_RELOAD:
-		if (source->protoId != PID_SOLAR_SCORCHER && weapon) {
-			cost = 2; // default reload AP cost
+		if (weapon && weapon->protoId != PID_SOLAR_SCORCHER) { // Solar Scorcher has no reload AP cost
+			cost = reloadCostAP;
 			if (GetProto(weapon->protoId)->item.weapon.perk == PERK_weapon_fast_reload) {
 				cost--;
 			}
 		}
 	}
 	if (hitMode < ATKTYPE_LWEAPON_RELOAD) {
-		if (cost == -1) cost = 0;
 		if (isCalled) cost++;
+		if (cost < 0) cost = 0;
 
 		long type = fo_item_w_subtype(weapon, hitMode);
 
@@ -196,9 +196,20 @@ long __stdcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, lo
 }
 
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-long __fastcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
+long __stdcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
 	long cost = fo_item_w_mp_cost(source, hitMode, isCalled);
 	return CalcApCostHook_Invoke(source, hitMode, isCalled, cost, nullptr);
+}
+
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	__asm {
+		push 0;        // no called
+		push ATKTYPE_RWEAPON_PRIMARY;
+		mov  edx, esi; // found weapon
+		mov  ecx, edi; // source
+		call sfgame_item_weapon_mp_cost;
+		retn;
+	}
 }
 
 /////////////////////////////////// OBJECTS ////////////////////////////////////
@@ -506,6 +517,9 @@ static void __declspec(naked) trait_adjust_stat_hack() {
 void InitReplacementHacks() {
 	// Replace adjust_fid_ function
 	MakeJump(adjust_fid_, adjust_fid_hack); // 0x4716E8
+
+	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
+	HookCall(0x429A08, ai_search_inven_weap_hook);
 
 	// Replace the srcCopy_ function with a pure MMX implementation
 	MakeJump(buf_to_buf_, fo_buf_to_buf); // 0x4D36D4

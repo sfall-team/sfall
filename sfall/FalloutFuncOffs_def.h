@@ -46,6 +46,7 @@ FUNC(adjust_fid_,                     0x4716E8)
 FUNC(ai_can_use_weapon_,              0x4298EC) // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
 FUNC(ai_cap_,                         0x4280B4)
 FUNC(ai_check_drugs_,                 0x428480)
+FUNC(ai_have_ammo_,                   0x4292D4)
 FUNC(ai_pick_hit_mode_,               0x429DB4)
 FUNC(ai_run_away_,                    0x428868)
 FUNC(ai_search_inven_armor_,          0x429A6C)
