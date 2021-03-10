@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <math.h>
 
 #include "main.h"
@@ -163,7 +164,7 @@ static void __declspec(naked) wmWorldMapFunc_hook() {
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
-	__asm {
+	__asm { // edx - _wmLastRndTime
 		xor  ecx, ecx;
 		cmp  edx, WorldMapEncounterRate;
 		retn;

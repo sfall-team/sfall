@@ -126,6 +126,19 @@ enum CritterFlags : long
 	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
 };
 
+enum ItemFlags : long
+{
+	// Weapon Flags:
+	IFLG_BigGun       = 0x00000100,
+	IFLG_TwoHand      = 0x00000200,
+	IFLG_EnergyGun    = 0x00000400, // sfall flag
+
+	// Action Flags:
+	IFLG_Use          = 0x00000800, // object can be used
+
+	IFLG_HiddenItem   = 0x08000000  // item is hidden
+};
+
 enum DamageFlag : unsigned long
 {
 	DAM_KNOCKED_OUT     = 0x1,
@@ -214,25 +227,25 @@ enum Material : long
 
 namespace ObjectFlag {
 	enum ObjectFlag : unsigned long {
-		Mouse_3d     = 0x1,
-		WalkThru     = 0x4,
-		Flat         = 0x8,
-		NoBlock      = 0x10,
-		Lighting     = 0x20,
-		Temp         = 0x400,
-		MultiHex     = 0x800,
-		NoHighlight  = 0x1000,
-		Used         = 0x2000,
-		TransRed     = 0x4000,
-		TransNone    = 0x8000,
-		TransWall    = 0x10000,
-		TransGlass   = 0x20000,
-		TransSteam   = 0x40000,
-		TransEnergy  = 0x80000,
-		Left_Hand    = 0x1000000,
-		Right_Hand   = 0x2000000,
-		Worn         = 0x4000000,
-		HiddenItem   = 0x8000000,
+		Mouse_3d     = 0x00000001,
+		WalkThru     = 0x00000004,
+		Flat         = 0x00000008,
+		NoBlock      = 0x00000010,
+		Lighting     = 0x00000020,
+		Temp         = 0x00000400,
+		MultiHex     = 0x00000800,
+		NoHighlight  = 0x00001000,
+		Used         = 0x00002000,
+		TransRed     = 0x00004000,
+		TransNone    = 0x00008000,
+		TransWall    = 0x00010000,
+		TransGlass   = 0x00020000,
+		TransSteam   = 0x00040000,
+		TransEnergy  = 0x00080000,
+		Left_Hand    = 0x01000000,
+		Right_Hand   = 0x02000000,
+		Worn         = 0x04000000,
+		HiddenItem   = 0x08000000,
 		WallTransEnd = 0x10000000,
 		LightThru    = 0x20000000,
 		Seen         = 0x40000000,
@@ -775,11 +788,11 @@ namespace WinFlags {
 namespace AIpref {
 	enum distance : long
 	{
-		DIST_stay_close              = 0, // the attacker will stay at a distance no more than 5 hexes from the player (defined in ai_move_steps_closer, cai_perform_distance_prefs)
+		DIST_stay_close              = 0, // the attacker will stay at a distance no more than 5 hexes from the player (behavior only for party members, defined in ai_move_steps_closer, cai_perform_distance_prefs)
 		DIST_charge                  = 1, // AI will always try to get close to its target before or after attack
-		DIST_snipe                   = 2, // when the distance between the attacker and the target decreases, the attacker will try to move away from the target to a distance of up to 10 hexes
+		DIST_snipe                   = 2, // keep distance, when the distance between the attacker and the target decreases, the attacker will try to move away from the target to a distance of up to 10 hexes
 		DIST_on_your_own             = 3, // no special behavior defined for this
-		DIST_stay                    = 4  // the attacker will, if possible, stay at the hex where the combat started (defined in ai_move_steps_closer, ai_move_away)
+		DIST_stay                    = 4  // the attacker will, if possible, stay at the hex where the combat started (behavior defined in ai_move_steps_closer, ai_move_away)
 	};
 
 	// presets for party members

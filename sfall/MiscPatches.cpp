@@ -611,7 +611,7 @@ static void MusicInDialoguePatch() {
 }
 
 static void DisplaySecondWeaponRangePatch() {
-	// Display the range of the second attack mode in the inventory when you switch weapon modes in active item slots
+	// Display the range of the secondary attack mode in the inventory when you switch weapon modes in active item slots
 	//if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
