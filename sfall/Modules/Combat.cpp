@@ -27,7 +27,7 @@
 
 #include "HookScripts\CombatHS.h"
 
-#include "..\Game\items.h"
+//#include "..\Game\items.h"
 
 #include "SubModules\CombatBlock.h"
 
@@ -39,7 +39,7 @@ namespace sfall
 static const DWORD bodypartAddr[] = {
 	0x425562,                     // combat_display_
 	0x42A68F, 0x42A739,           // ai_called_shot_
-//	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_
+//	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_ (used for hit mode)
 	0x423231, 0x423268,           // check_ranged_miss_
 	0x4242D4,                     // attack_crit_failure_
 	// for combat_ctd_init_ func
@@ -56,7 +56,7 @@ static const DWORD bodypartAddr[] = {
 	0x49C00C,                     // protinstTestDroppedExplosive_
 };
 
-static struct BodyParts {
+static struct {
 	long Head;
 	long Left_Arm;
 	long Right_Arm;
@@ -66,7 +66,7 @@ static struct BodyParts {
 	long Eyes;
 	long Groin;
 	long Uncalled;
-} bodypartHit;
+} bodyPartHit;
 
 struct KnockbackModifier {
 	long id;
@@ -76,7 +76,7 @@ struct KnockbackModifier {
 
 long Combat::determineHitChance; // the value of hit chance w/o any cap
 
-static std::vector<long> noBursts; // object id
+static std::vector<long> noBursts; // critter id
 
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
@@ -263,26 +263,34 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 	}
 }
 
-static long __fastcall CheckDisableBurst(fo::GameObject* critter) {
+bool Combat::IsBurstDisabled(fo::GameObject* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter->id) {
-			return 10; // Disable Burst (area_attack_mode - non-existent value)
-		}
+		if (noBursts[i] == critter->id) return true;
+	}
+	return false;
+}
+
+static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject* weapon) {
+	if (fo::func::item_w_anim_weap(weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) == fo::Animation::ANIM_fire_burst &&
+		Combat::IsBurstDisabled(critter))
+	{
+		return 10; // Disable Burst (area_attack_mode - non-existent value)
 	}
 	return 0;
 }
 
-static void __declspec(naked) ai_pick_hit_mode_hack_noSecondary() {
+static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
 	__asm {
 		mov  ebx, [eax + 0x94]; // cap->area_attack_mode
-		push eax;
+		//push eax;
 		push ecx;
-		mov  ecx, esi;          // source
+		mov  edx, ebp; // weapon
+		mov  ecx, esi; // source
 		call CheckDisableBurst;
 		test eax, eax;
 		cmovnz ebx, eax;
 		pop  ecx;
-		pop  eax;
+		//pop  eax;
 		retn;
 	}
 }
@@ -388,7 +396,7 @@ static void __declspec(naked) item_w_called_shot_hook() {
 	static const DWORD aimedShotRet2 = 0x478EEA;
 	__asm {
 		push edx;
-		mov  ecx, edx;       // item
+		mov  ecx, edx; // item
 		call AimedShotTest;
 		test eax, eax;
 		jg   force;
@@ -434,35 +442,38 @@ void __stdcall ForceAimedShots(DWORD pid) {
 
 static void BodypartHitChances() {
 	using fo::var::hit_location_penalty;
-	hit_location_penalty[0] = bodypartHit.Head;
-	hit_location_penalty[1] = bodypartHit.Left_Arm;
-	hit_location_penalty[2] = bodypartHit.Right_Arm;
-	hit_location_penalty[3] = bodypartHit.Torso;
-	hit_location_penalty[4] = bodypartHit.Right_Leg;
-	hit_location_penalty[5] = bodypartHit.Left_Leg;
-	hit_location_penalty[6] = bodypartHit.Eyes;
-	hit_location_penalty[7] = bodypartHit.Groin;
-	hit_location_penalty[8] = bodypartHit.Uncalled;
+	hit_location_penalty[0] = bodyPartHit.Head;
+	hit_location_penalty[1] = bodyPartHit.Left_Arm;
+	hit_location_penalty[2] = bodyPartHit.Right_Arm;
+	hit_location_penalty[3] = bodyPartHit.Torso;
+	hit_location_penalty[4] = bodyPartHit.Right_Leg;
+	hit_location_penalty[5] = bodyPartHit.Left_Leg;
+	hit_location_penalty[6] = bodyPartHit.Eyes;
+	hit_location_penalty[7] = bodyPartHit.Groin;
+	hit_location_penalty[8] = bodyPartHit.Uncalled;
 }
 
 static void BodypartHitReadConfig() {
-	bodypartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
-	bodypartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
-	bodypartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
-	bodypartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso", 0));
-	bodypartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
-	bodypartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
-	bodypartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
-	bodypartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
-	bodypartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
+	bodyPartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head",          -40));
+	bodyPartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm",      -30));
+	bodyPartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm",     -30));
+	bodyPartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso",           0));
+	bodyPartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg",     -20));
+	bodyPartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg",      -20));
+	bodyPartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes",          -60));
+	bodyPartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin",         -30));
+	bodyPartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
 }
 
 static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
+	using fo::Uncalled;
 	__asm {
-		mov  ebx, 8; // replace Body_Torso with Body_Uncalled
+		mov  ebx, Uncalled; // replace Body_Torso with Body_Uncalled
 		jmp  fo::funcoffs::determine_to_hit_;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) apply_damage_hack() {
 	__asm {
@@ -476,8 +487,8 @@ end:
 	}
 }
 
-static void CombatProcFix() {
-	//Ray's combat_p_proc fix
+static void CombatProcPatch() {
+	// Ray's combat_p_proc fix
 	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
 	MakeCall(0x424DD9, apply_damage_hack);
 	SafeWrite16(0x424DC6, 0x9090);
@@ -497,7 +508,8 @@ static void Combat_OnGameLoad() {
 
 void Combat::init() {
 	CombatBlock::init();
-	CombatProcFix();
+
+	CombatProcPatch();
 
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
@@ -505,8 +517,8 @@ void Combat::init() {
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
 
-	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
-	MakeCall(0x429E44, ai_pick_hit_mode_hack_noSecondary, 1);   // NoBurst
+	// Disables secondary burst attacks for the critter
+	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
 		MakeCall(0x4234B3, compute_spray_hack, 1);

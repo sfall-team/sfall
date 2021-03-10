@@ -231,7 +231,7 @@ static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &h
 	}
 
 	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
-	if (!item) return 1; // no weapon in inventory, continue searching for weapons on the map (call ai_switch_weapons_)
+	if (!item) return 1; // no weapon in inventory, continue to search weapons on the map (call ai_switch_weapons_)
 
 	// is using a close range weapon?
 	long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
@@ -244,7 +244,7 @@ static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &h
 static void __declspec(naked) ai_try_attack_hook_switch_weapon() {
 	__asm {
 		push edx;
-		push [ebx]; // weapon (push dword ptr [esp + 0x364 - 0x3C + 8];)
+		push [ebx]; // weapon
 		push esi;   // source
 		call AICheckBeforeWeaponSwitch; // ecx - target, edx - hit mode
 		pop  edx;
@@ -392,7 +392,6 @@ static long __fastcall CheckWeaponRangeAndApCost(fo::GameObject* source, fo::Gam
 	long targetDist  = fo::func::obj_dist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
-	//return (source->critter.movePoints >= fo::func::item_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0));
 	return (source->critter.movePoints >= game::Items::item_w_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
@@ -547,13 +546,13 @@ void AI::init() {
 	if (iniGetInt("Debugging", "AIBugFixes", 1, ::sfall::ddrawIni) == 0) return;
 	#endif
 
-	// Fix for NPCs not fully reloading a weapon if it has more ammo capacity than a box of ammo
+	// Fix for NPCs not fully reloading a weapon if it has an ammo capacity more than a box of ammo
 	HookCalls(item_w_reload_hook, {
 		0x42AF15,           // cai_attempt_w_reload_
 		0x42A970, 0x42AA56, // ai_try_attack_
 	});
 
-	// Fix incorrect AP check and cost for AI when reloading a weapon
+	// Fix for the incorrect check and AP cost when AI reloads a weapon
 	HookCall(0x42A955, ai_try_attack_hook_cost_reload);
 	MakeCall(0x42A9DE, ai_try_attack_hook_cost1);
 	MakeCall(0x42AABC, ai_try_attack_hook_cost2, 4);
@@ -567,7 +566,7 @@ void AI::init() {
 	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
 
-	// Fix AI weapon switching when not having enough action points
+	// Fix AI weapon switching when not having enough AP to make an attack
 	// AI will try to change attack mode before deciding to switch weapon
 	HookCall(0x42AB57, ai_try_attack_hook_switch_weapon);
 

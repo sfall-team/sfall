@@ -23,16 +23,6 @@
 namespace sfall
 {
 
-class Combat : public Module {
-public:
-	const char* name() { return "Combat"; }
-	void init();
-
-	static long determineHitChance;
-
-	static DWORD __fastcall check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode);
-};
-
 struct ChanceModifier {
 	long id;
 	int maximum;
@@ -50,6 +40,18 @@ struct ChanceModifier {
 		maximum = 95;
 		mod = 0;
 	}
+};
+
+class Combat : public Module {
+public:
+	const char* name() { return "Combat"; }
+	void init();
+
+	static long determineHitChance;
+
+	static DWORD __fastcall check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode);
+
+	static bool IsBurstDisabled(fo::GameObject* critter);
 };
 
 void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);

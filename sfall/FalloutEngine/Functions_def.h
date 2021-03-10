@@ -49,6 +49,7 @@ WRAP_WATCOM_FFUNC4(long, queue_add, long, time, fo::GameObject*, object, void*, 
 WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FFUNC4(long, register_object_move_to_object, fo::GameObject*, source, fo::GameObject*, target, long, distance, long, delay)
 WRAP_WATCOM_FFUNC4(long, register_object_run_to_object, fo::GameObject*, source, fo::GameObject*, target, long, distance, long, delay)
+WRAP_WATCOM_FFUNC3(long, register_object_play_sfx, fo::GameObject*, object, const char*, sfxName, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
@@ -181,7 +182,7 @@ WRAP_WATCOM_FUNC1(const char*, map_get_short_name, long, mapID)
 WRAP_WATCOM_FUNC2(void, MapDirErase, const char*, folder, const char*, ext)
 WRAP_WATCOM_FUNC1(void, mem_free, void*, mem)
 WRAP_WATCOM_FUNC2(void*, mem_realloc, void*, lpmem, DWORD, msize)
-WRAP_WATCOM_FUNC2(long, message_add, fo::MessageList*, file, MessageNode*, msg)
+WRAP_WATCOM_FUNC2(long, message_add, fo::MessageList*, file, fo::MessageNode*, msg)
 WRAP_WATCOM_FUNC1(long, message_exit, fo::MessageList*, msgList) // Destroys message list
 WRAP_WATCOM_FUNC1(long, message_filter, fo::MessageList*, file)
 WRAP_WATCOM_FUNC2(long, message_load, fo::MessageList*, msgList, const char*, msgFilePath) // Loads MSG file into given MessageList
@@ -193,10 +194,10 @@ WRAP_WATCOM_FUNC0(void, mouse_hide)
 // Calculates path and returns it's length
 WRAP_WATCOM_FUNC6(long, make_path_func, fo::GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, arg5, void*, blockingFunc)
 WRAP_WATCOM_FUNC0(long, new_obj_id)
-WRAP_WATCOM_FUNC2(void, obj_bound, fo::GameObject*, object, BoundRect*, boundRect) // Calculates bounding box (rectangle) for a given object
+WRAP_WATCOM_FUNC2(void, obj_bound, fo::GameObject*, object, fo::BoundRect*, boundRect) // Calculates bounding box (rectangle) for a given object
 WRAP_WATCOM_FUNC1(long, obj_destroy, fo::GameObject*, object)
 WRAP_WATCOM_FUNC2(long, obj_dist, fo::GameObject*, obj_src, fo::GameObject*, obj_trg)
-WRAP_WATCOM_FUNC2(long, obj_erase_object, fo::GameObject*, object, BoundRect*, boundRect)
+WRAP_WATCOM_FUNC2(long, obj_erase_object, fo::GameObject*, object, fo::BoundRect*, boundRect)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_first)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_next)
 WRAP_WATCOM_FUNC2(fo::GameObject*, obj_find_first_at_tile, long, elevation, long, tileNum)
@@ -238,7 +239,6 @@ WRAP_WATCOM_FUNC3(long, register_object_light, fo::GameObject*, object, long, li
 // WRAP_WATCOM_FUNC3(long, register_object_must_call_, fo::GameObject*, object;
 WRAP_WATCOM_FUNC1(long, register_object_must_erase, fo::GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_outline_, fo::GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_play_sfx_, fo::GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, fo::GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, fo::GameObject*, object, long, tileNum, long, nothing)
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
