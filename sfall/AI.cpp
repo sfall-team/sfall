@@ -342,14 +342,14 @@ static long tempReloadCost;
 
 static long __fastcall item_weapon_reload_cost_fix(TGameObj* source, TGameObj* weapon, TGameObj** outAmmo) {
 	long reloadCost = sfgame_item_weapon_mp_cost(source, weapon, ATKTYPE_RWEAPON_RELOAD, 0);
-	if (reloadCost > source->critter.movePoints) return -1; // no action points
+	if (reloadCost > source->critter.movePoints) return -1; // not enough action points
 	tempReloadCost = reloadCost;
 
 	return fo_ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
 }
 
 static void __declspec(naked) ai_try_attack_hook_cost_reload() {
-	static const DWORD ai_try_attack_hook_unwield_Ret = 0x42AACD;
+	static const DWORD ai_try_attack_hook_goNext_Ret = 0x42A9F2;
 	__asm {
 		push ebx;      // ammoObj ref
 		mov  ecx, eax; // source
@@ -357,9 +357,10 @@ static void __declspec(naked) ai_try_attack_hook_cost_reload() {
 		cmp  eax, -1;
 		je   noAPs;
 		retn;
-noAPs:
+noAPs:  // not enough action points
 		add  esp, 4; // destroy ret
-		jmp  ai_try_attack_hook_unwield_Ret; // unwield weapon (default)
+		mov  edi, 10;
+		jmp  ai_try_attack_hook_goNext_Ret; // end ai_try_attack_
 	}
 }
 

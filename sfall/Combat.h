@@ -43,7 +43,7 @@ void Combat_Init();
 void Combat_OnGameLoad();
 void BodypartHitChances();
 
-DWORD __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, DWORD hitMode);
+long __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, AttackType hitMode);
 bool __stdcall Combat_IsBurstDisabled(TGameObj* critter);
 
 void __stdcall SetBlockCombat(long toggle);

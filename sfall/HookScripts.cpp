@@ -899,7 +899,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &roun
 		rounds = 1;             // set default multiply for check burst attack
 	} else {
 		result = fo_item_w_compute_ammo_cost(weapon, &rounds);
-		if (result == -1) goto failed; // failed computed
+		if (result == -1) goto failed; // computation failed
 	}
 	args[2] = rounds;           // rounds as computed by game (cost)
 
@@ -922,7 +922,7 @@ static void __declspec(naked) AmmoCostHook() {
 		mov  ecx, 3;               // hook type burst
 skip:
 		xchg eax, edx;
-		push eax;                  // rounds in attack
+		push eax;                  // rounds in attack ref
 		call AmmoCostHook_Script;  // edx - weapon
 		retn;
 	}
@@ -1904,7 +1904,7 @@ void HookScripts_Init() {
 	HookCall(0x478560, ItemDamageHook);
 
 	// HOOK_AMMOCOST
-	HookCall(0x423A7C, AmmoCostHook);
+	HookCall(0x423A7C, AmmoCostHook); // compute_attack_
 
 	// HOOK_USEOBJ
 	const DWORD useObjHkAddr[] = {0x42AEBF, 0x473607, 0x49C12E};
