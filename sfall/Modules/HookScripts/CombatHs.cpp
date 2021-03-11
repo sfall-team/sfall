@@ -343,7 +343,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD
 		rounds = 1;             // set default multiply for check burst attack
 	} else {
 		result = fo::func::item_w_compute_ammo_cost(weapon, &rounds);
-		if (result == -1) goto failed; // failed computed
+		if (result == -1) goto failed; // computation failed
 	}
 	args[2] = rounds;           // rounds as computed by game (cost)
 
@@ -367,7 +367,7 @@ static void __declspec(naked) AmmoCostHook() {
 		mov  ecx, 3;               // hook type burst
 skip:
 		xchg eax, edx;
-		push eax;                  // rounds in attack
+		push eax;                  // rounds in attack ref
 		call AmmoCostHook_Script;  // edx - weapon
 		retn;
 	}
@@ -634,7 +634,7 @@ void Inject_ItemDamageHook() {
 }
 
 void Inject_AmmoCostHook() {
-	HookCall(0x423A7C, AmmoCostHook);
+	HookCall(0x423A7C, AmmoCostHook); // compute_attack_
 }
 
 void Inject_CombatTurnHook() {

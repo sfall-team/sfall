@@ -49,7 +49,7 @@ public:
 
 	static long determineHitChance;
 
-	static DWORD __fastcall check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode);
+	static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode);
 
 	static bool IsBurstDisabled(fo::GameObject* critter);
 };

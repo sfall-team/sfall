@@ -349,6 +349,7 @@ int     arg2 - Ammo cost calculated by original function (this is basically 2 fo
 int     arg3 - Type of hook (0 - when subtracting ammo after single shot attack, 1 - when checking for "out of ammo" before attack, 2 - when calculating number of burst rounds, 3 - when subtracting ammo after burst attack)
 
 int     ret0 - new ammo cost value (set to 0 for unlimited ammo)
+               NOTE: for hook type 2, you should return the new cost value based on the original ammo cost instead of the number of bullets
 
 -------------------------------------------
 
