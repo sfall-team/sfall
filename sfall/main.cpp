@@ -83,7 +83,6 @@
 #include "SimplePatch.h"
 #include "Logging.h"
 #include "ReplacementFuncs.h"
-#include "Utils.h"
 #include "Version.h"
 
 #include "main.h"
@@ -98,76 +97,10 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
-const char ddrawIni[] = ".\\ddraw.ini";
-static char ini[65] = ".\\";
-static char translationIni[65];
-
-DWORD modifiedIni;
 DWORD hrpDLLBaseAddr = 0x10000000;
 
 DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
-}
-
-int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
-}
-
-size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
-}
-
-std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	char* buf = new char[bufSize];
-	iniGetString(section, setting, defaultValue, buf, bufSize, iniFile);
-	std::string str(buf);
-	delete[] buf;
-	return str;
-}
-
-std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	auto list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
-	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
-	return list;
-}
-
-/*
-	For ddraw.ini config
-*/
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return iniGetInt(section, setting, defaultValue, ini);
-}
-
-std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return trim(GetIniString(section, setting, defaultValue, bufSize, ini));
-}
-
-size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buf, bufSize, ini);
-}
-
-std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
-}
-
-std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
-}
-
-std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
-}
-
-size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
-}
-
-int SetConfigInt(const char* section, const char* setting, int value) {
-	char* buf = new char[33];
-	_itoa_s(value, buf, 33, 10);
-	int result = WritePrivateProfileStringA(section, setting, buf, ini);
-	delete[] buf;
-	return result;
 }
 
 void InitReplacementHacks() {
@@ -280,7 +213,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 
 inline void SfallInit() {
 	// enabling debugging features
-	isDebug = (iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
+	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 	if (isDebug) {
 		LoggingInit();
 		if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
@@ -291,7 +224,7 @@ inline void SfallInit() {
 
 	CRC(filepath);
 
-	if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
+	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -309,7 +242,7 @@ inline void SfallInit() {
 	// ini file override
 	bool cmdlineexists = false;
 	char* cmdline = GetCommandLineA();
-	if (iniGetInt("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
 		while (cmdline[0] == ' ') cmdline++;
 		bool InQuote = false;
 		int count = -1;
@@ -335,7 +268,7 @@ inline void SfallInit() {
 		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-			strcat_s(ini, cmdline);
+			IniReader::SetConfigFile(cmdline);
 		} else {
 			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
 						   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
@@ -343,11 +276,8 @@ inline void SfallInit() {
 		}
 	} else {
 defaultIni:
-		strcpy(&ini[2], &::sfall::ddrawIni[2]);
+		IniReader::SetDefaultConfigFile();
 	}
-
-	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
-	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
@@ -360,6 +290,8 @@ defaultIni:
 		}
 	}
 	std::srand(GetTickCount());
+
+	IniReader::init();
 
 	InitReplacementHacks();
 	InitModules();

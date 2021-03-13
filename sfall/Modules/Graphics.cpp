@@ -1216,7 +1216,7 @@ void Graphics::exit() {
 	if (Graphics::mode) {
 		if (Graphics::mode == 5) {
 			int data = windowTop | (windowLeft << 16);
-			if (data >= 0 && data != windowData) SetConfigInt("Graphics", "WindowData", data);
+			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
 		}
 		CoUninitialize();
 	}

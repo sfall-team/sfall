@@ -338,6 +338,7 @@
     <ClInclude Include="Modules\Scripting\Handlers\Combat.h">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
+    <ClInclude Include="IniReader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -626,6 +627,7 @@
     <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="IniReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

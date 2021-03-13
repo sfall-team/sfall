@@ -297,6 +297,7 @@
     <ClInclude Include="Game\render.h" />
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
+    <ClInclude Include="IniReader.h" />
     <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
     <ClInclude Include="Modules\Interface.h" />
@@ -405,6 +406,7 @@
     <ClCompile Include="Game\render.cpp" />
     <ClCompile Include="Game\skills.cpp" />
     <ClCompile Include="Game\stats.cpp" />
+    <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />

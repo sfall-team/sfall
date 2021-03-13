@@ -101,7 +101,7 @@ void __declspec(naked) op_eax_available() {
 }
 
 static bool IsSpecialIni(const char* str, const char* end) {
-	const char* pos = strfind(str, &::sfall::ddrawIni[2]);
+	const char* pos = strfind(str, &IniReader::GetConfigFile()[2]); // TODO test
 	if (pos && pos < end) return true;
 	pos = strfind(str, "f2_res.ini");
 	if (pos && pos < end) return true;
@@ -345,7 +345,7 @@ fail:
 
 void __declspec(naked) op_modified_ini() {
 	__asm {
-		mov  edx, modifiedIni;
+		mov  edx, IniReader::modifiedIni;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

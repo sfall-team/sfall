@@ -255,7 +255,7 @@ void HookScripts::init() {
 	LoadGameHook::OnGameModeChange() += HookCommon::GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
-	injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
+	injectAllHooks = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "InjectAllGameHooks", 0) != 0);
 	if (injectAllHooks) dlogr("Injecting all game hooks.", DL_HOOK|DL_INIT);
 }
 

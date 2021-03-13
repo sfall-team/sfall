@@ -18,7 +18,7 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
-static char tempBuffer[355];
+static char messageBuffer[355];
 
 /*
 	Saving a list of PIDs for saved drug effects
@@ -1594,27 +1594,27 @@ static bool showItemDescription = false;
 
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
-		strncpy_s(tempBuffer, desc, 161);
-		int len = strlen(tempBuffer);
+		strncpy_s(messageBuffer, desc, 161);
+		int len = strlen(messageBuffer);
 		if (len > 160) {
 			len = 158;
-			tempBuffer[len++] = '.';
-			tempBuffer[len++] = '.';
-			tempBuffer[len++] = '.';
+			messageBuffer[len++] = '.';
+			messageBuffer[len++] = '.';
+			messageBuffer[len++] = '.';
 		}
-		tempBuffer[len++] = ' ';
-		tempBuffer[len] = 0;
+		messageBuffer[len++] = ' ';
+		messageBuffer[len] = 0;
 		currDescLen = len;
 	} else if (currDescLen == 0) {
-		tempBuffer[0] = 0;
+		messageBuffer[0] = 0;
 	}
 
-	strncat(tempBuffer, text, 64);
+	strncat(messageBuffer, text, 64);
 	currDescLen += strlen(text);
 	if (currDescLen < 300) {
-		tempBuffer[currDescLen++] = '.';
-		tempBuffer[currDescLen++] = ' ';
-		tempBuffer[currDescLen] = 0;
+		messageBuffer[currDescLen++] = '.';
+		messageBuffer[currDescLen++] = ' ';
+		messageBuffer[currDescLen] = 0;
 	}
 }
 
@@ -1639,7 +1639,7 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		lea  eax, [tempBuffer];
+		lea  eax, [messageBuffer];
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1656,9 +1656,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		call AppendText;
 		mov  eax, currDescLen;
 		sub  eax, 2;
-		mov  byte ptr tempBuffer[eax], 0; // cutoff last character
+		mov  byte ptr messageBuffer[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		lea  eax, [tempBuffer];
+		lea  eax, [messageBuffer];
 skip:
 		jmp  ObjExamineFuncWeapon_Ret;
 	}
@@ -1762,7 +1762,7 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  edi, tempBuffer;
+		lea  edi, messageBuffer;
 		push edi;                  // buf
 		call fo::funcoffs::sprintf_;
 		add  esp, 16;
@@ -2289,13 +2289,11 @@ dude:
 	}
 }
 
-static char pickupMessageBuf[65] = {0};
+static char pickupMessage[65] = {0};
+
 static const char* __fastcall GetPickupMessage(const char* name) {
-	if (pickupMessageBuf[0] == 0) {
-		Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessageBuf, 64);
-	}
-	sprintf(tempBuffer, pickupMessageBuf, name);
-	return tempBuffer;
+	std::sprintf(messageBuffer, pickupMessage, name);
+	return messageBuffer;
 }
 
 static void __declspec(naked) obj_pickup_hook_message() {
@@ -2703,11 +2701,11 @@ skip0:
 		call fo::funcoffs::item_caps_total_;
 		push eax;      // caps
 		push 0x502B1C; // fmt: $%d
-		lea  eax, tempBuffer;
+		lea  eax, messageBuffer;
 		push eax;
 		call fo::funcoffs::sprintf_;
 		add  esp, 3 * 4;
-		lea  eax, tempBuffer;
+		lea  eax, messageBuffer;
 		call ds:[FO_VAR_text_width];
 		mov  edx, 60;  // max width
 		mov  ebx, eax; // ebx - textWidth
@@ -2721,7 +2719,7 @@ skip0:
 		push 36;       // y
 		sar  eax, 1;
 		sub  ecx, eax; // x shift
-		lea  edx, tempBuffer;
+		lea  edx, messageBuffer;
 		mov  eax, ds:[FO_VAR_dialogueWindow];
 		call fo::funcoffs::win_print_;
 		test ebp, ebp;
@@ -2887,7 +2885,7 @@ void BugFixes::init()
 {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
-	if (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0) return;
+	if (IniReader::GetIntDefaultConfig("Debugging", "BugFixes", 1) == 0) return;
 	#endif
 
 	// Missing game initialization
@@ -3495,6 +3493,7 @@ void BugFixes::init()
 	// up an item due to not enough space in the inventory
 	HookCall(0x49B6E7, obj_pickup_hook);
 	HookCall(0x49B71C, obj_pickup_hook_message);
+	IniReader::Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessage, 64);
 
 	// Fix for anim_move_to_tile_ engine function ignoring the distance argument for the player
 	HookCall(0x416D44, anim_move_to_tile_hook);

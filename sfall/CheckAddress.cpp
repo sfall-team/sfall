@@ -41,7 +41,7 @@ static std::vector<HackPair> hackAddr = {
 	{0x4C06D1, 5},
 
 	// module: AI
-	{0x4290B6, 5},
+	//{0x4290B6, 5},
 	// module: BarBoxes
 	{0x461342, 5}, {0x461243, 5},
 	{0x461493, 5}, //{0x461495, 1},
@@ -128,7 +128,7 @@ static std::vector<HackPair> hackAddr = {
 
 // Checking for conflicts requires all options in ddraw.ini to be enabled
 void PrintAddrList() {
-	long level = iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni);
+	long level = IniReader::GetIntDefaultConfig("Debugging", "Enable", 0);
 	if (level < 10) hackAddr.clear();
 
 	std::vector<HackPair> sortAddr(hackAddr);
