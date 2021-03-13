@@ -22,6 +22,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "SimplePatch.h"
 
 #include "Graphics.h"
 #include "Sound.h"

@@ -19,8 +19,8 @@
 #include <math.h>
 
 #include "main.h"
-
 #include "FalloutEngine.h"
+#include "SimplePatch.h"
 #include "HookScripts.h"
 #include "Objects.h"
 

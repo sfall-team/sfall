@@ -402,7 +402,7 @@ static const DWORD addrNewLineChar[] = {
 };
 
 static void DebugModePatch() {
-	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ddrawIniDef);
+	int dbgMode = GetIntDefaultConfig("Debugging", "DebugMode", 0);
 	if (dbgMode > 0) {
 		dlog("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -424,7 +424,7 @@ static void DebugModePatch() {
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
-		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ddrawIniDef)) {
+		if (GetIntDefaultConfig("Debugging", "HideObjIsNullMsg", 0)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
 		// prints a debug message about a missing critter art file to both debug.log and the message window in sfall debugging mode
@@ -460,7 +460,7 @@ static void DebugModePatch() {
 }
 
 static void DontDeleteProtosPatch() {
-	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ddrawIniDef)) {
+	if (GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, CODETYPE_JumpShort);
 		dlogr(" Done", DL_INIT);

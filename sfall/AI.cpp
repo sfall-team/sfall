@@ -538,7 +538,7 @@ void AI_Init() {
 	}
 
 	#ifndef NDEBUG
-	if (iniGetInt("Debugging", "AIBugFixes", 1, ddrawIniDef) == 0) return;
+	if (GetIntDefaultConfig("Debugging", "AIBugFixes", 1) == 0) return;
 	#endif
 
 	// Fix for NPCs not fully reloading a weapon if it has an ammo capacity more than a box of ammo

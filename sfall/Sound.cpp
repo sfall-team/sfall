@@ -1023,7 +1023,7 @@ void Sound_Init() {
 		HookCall(0x42B849, ai_print_msg_hook);
 
 		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-		if (isDebug && iniGetInt("Debugging", "Test_ForceFloats", 0, ddrawIniDef)) {
+		if (isDebug && GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
 			SafeWrite8(0x42B6F5, CODETYPE_JumpShort); // bypass chance
 		}
 	}

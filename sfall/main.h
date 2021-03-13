@@ -34,6 +34,7 @@
 
 #include "SafeWrite.h"
 #include "Logging.h"
+#include "IniReader.h"
 
 struct ddrawDll {
 	HMODULE dll;
@@ -70,78 +71,13 @@ struct ddrawDll {
 #endif
 
 // Trap for Debugger
-#define BREAKPOINT __asm int 3
+#define BREAKPOINT __debugbreak
 
 // Macros for quick replacement of assembler opcodes pushad/popad
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
-// Gets the integer value from given INI file.
-int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
-
-// Gets the string value from given INI file.
-size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile);
-
-// Gets the string value from given INI file.
-std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
-
-// Parses the comma-separated list setting from given INI file.
-std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
-
-// Gets the integer value from Sfall configuration INI file.
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
-
-// Gets the string value from Sfall configuration INI file with trim function.
-std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
-
-// Loads the string value from Sfall configuration INI file into the provided buffer.
-size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
-
-// Parses the comma-separated list from the settings from Sfall configuration INI file.
-std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
-
-std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
-
-// Translates given string using Sfall translation INI file.
-std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
-
-// Translates given string using Sfall translation INI file and puts the result into given buffer.
-size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
-
-int SetConfigInt(const char* section, const char* setting, int value);
-
 DWORD HRPAddress(DWORD addr);
-
-extern const char ddrawIniDef[];
-extern DWORD modifiedIni;
 
 extern bool hrpIsEnabled;
 extern bool hrpVersionValid;
-
-template<typename T> 
-T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
-{
-	return SimplePatch<T>(&addr, 1, iniSection, iniKey, defaultValue, minValue, maxValue);
-}
-
-template<typename T> 
-T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
-{
-	T value;
-	char msg[255];
-	value = (T)GetConfigInt(iniSection, iniKey, defaultValue);
-	if (value != defaultValue) {
-		if (value < minValue) {
-			value = minValue;
-		} else if (value > maxValue) {
-			value = maxValue;
-		}
-		_snprintf_s(msg, sizeof(msg), _TRUNCATE, "Applying patch: %s = %d.", iniKey, value);
-		dlog((const char*)msg, DL_INIT);
-		for (int i = 0; i < numAddrs; i++) {
-			SafeWrite<T>(addrs[i], (T)value);
-		}
-		dlogr(" Done", DL_INIT);
-	}
-	return value;
-}

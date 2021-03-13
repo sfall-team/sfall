@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <stdio.h>
 
 #include "main.h"
@@ -77,7 +78,7 @@ void CRC(const char* filepath) {
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (!sizeMatch && iniGetInt("Debugging", "SkipSizeCheck", 0, ddrawIniDef)) {
+	if (!sizeMatch && GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0)) {
 		sizeMatch = true;
 	}
 
@@ -93,14 +94,12 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	if (iniGetString("Debugging", "ExtraCRC", "", buf, 512, ddrawIniDef)) {
-		char *TestCRC;
-		TestCRC = strtok(buf, ",");
-		while (TestCRC) {
-			DWORD extraCRC = strtoul(TestCRC, 0, 16);
-			if (crc == extraCRC) matchedCRC = true;
-			TestCRC = strtok(0, ",");
-		}
+	std::vector<std::string> extraCrcList = GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
+	if (!extraCrcList.empty()) {
+		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) -> bool {
+			DWORD testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
+			return testedCrc && crc == testedCrc;
+		});
 	}
 
 	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {

@@ -1520,7 +1520,7 @@ void ScriptExtender_Init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ddrawIniDef) != 0);
+	alwaysFindScripts = isDebug && (GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
 	HookCall(0x480E7B, MainGameLoopHook); // hook the main game loop
@@ -1577,7 +1577,7 @@ void ScriptExtender_Init() {
 
 	SetExtraKillCounter(UsingExtraKillTypes());
 
-	if (int unsafe = iniGetInt("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
+	if (int unsafe = GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {
 		if (unsafe == 2) checkValidMemAddr = false;
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = op_write_byte;

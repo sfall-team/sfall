@@ -18,9 +18,8 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "SimplePatch.h"
 #include "ScriptExtender.h"
-
-#include "MiscPatches.h"
 
 static char mapName[65]       = {};
 static char configName[65]    = {};

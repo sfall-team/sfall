@@ -464,9 +464,8 @@ static const char* GetOverrideTerrainName(long x, long y) {
 	if (wmTerrainTypeNames.empty()) return nullptr;
 
 	long subTileID = x + y * (*ptr_wmNumHorizontalTiles * 7);
-	auto it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
-						  [=](const std::pair<long, std::string> &el)
-						  { return el.first == subTileID; }
+	std::vector<std::pair<long, std::string>>::const_reverse_iterator it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
+		[=](const std::pair<long, std::string> &el) { return el.first == subTileID; }
 	);
 	return (it != wmTerrainTypeNames.crend()) ? it->second.c_str() : nullptr;
 }
@@ -499,7 +498,7 @@ void Worldmap_SetCustomAreaTitle(long areaID, const char* msg) {
 
 const char* Worldmap_GetCustomAreaTitle(long areaID) {
 	if (Worldmap_AreaTitlesIsEmpty()) return nullptr;
-	const auto &it = wmAreaHotSpotTitle.find(areaID);
+	const std::tr1::unordered_map<long, std::string>::iterator &it = wmAreaHotSpotTitle.find(areaID);
 	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }
 

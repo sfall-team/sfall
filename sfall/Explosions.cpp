@@ -20,6 +20,7 @@
 
 #include "FalloutEngine.h"
 #include "Logging.h"
+#include "SimplePatch.h"
 #include "Arrays.h"
 #include "ScriptExtender.h"
 

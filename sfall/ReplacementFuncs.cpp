@@ -89,7 +89,7 @@ DWORD __stdcall sfgame_adjust_fid() {
 				}
 			}
 		}
-		auto itemInHand = fo_intface_is_item_right_hand()
+		TGameObj* itemInHand = fo_intface_is_item_right_hand()
 			? *ptr_i_rhand
 			: *ptr_i_lhand;
 

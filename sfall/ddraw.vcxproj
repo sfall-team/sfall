@@ -297,6 +297,7 @@
     <ClInclude Include="FalloutVars_def.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="IniReader.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="Karma.h" />
@@ -308,6 +309,7 @@
     <ClInclude Include="ScriptOps\CombatOps.hpp" />
     <ClInclude Include="ScriptOps\CoreOps.hpp" />
     <ClInclude Include="ScriptOps\InventoryOps.hpp" />
+    <ClInclude Include="SimplePatch.h" />
     <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />
@@ -372,6 +374,7 @@
     <ClCompile Include="ddraw.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="DebugEditor.cpp" />
+    <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Elevators.cpp" />
