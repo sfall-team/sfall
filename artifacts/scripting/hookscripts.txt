@@ -346,13 +346,14 @@ To add proper check for ammo before shooting and proper calculation of number of
 Item    arg0 - The weapon
 int     arg1 - Number of bullets in burst or 1 for single shots
 int     arg2 - The amount of ammo that will be consumed, calculated by the original ammo cost function (this is basically 2 for Super Cattle Prod and Mega Power Fist)
+               NOTE: for hook type 2, this value is the ammo cost per round (default is always 1)
 int     arg3 - Type of hook:
                0 - when subtracting ammo after single shot attack
                1 - when checking for "out of ammo" before attack
                2 - when calculating number of burst rounds
                3 - when subtracting ammo after burst attack
 
-int     ret0 - The new amount of ammo to be consumed, or ammo cost of each round for hook type 2 (set to 0 for unlimited ammo)
+int     ret0 - The new amount of ammo to be consumed, or ammo cost per round for hook type 2 (set to 0 for unlimited ammo)
 
 -------------------------------------------
 

@@ -690,8 +690,10 @@ static void EngineOptimizationPatches() {
 	// Speed up display_msg script function
 	HookCall(0x455404, op_display_msg_hook);
 
-	// Remove duplicate code from intface_redraw_ engine function
-	BlockCall(0x45EBBF);
+	// Remove redundant/duplicate code
+	BlockCall(0x45EBBF); // intface_redraw_
+	BlockCall(0x4A4859); // exec_script_proc_
+	SafeMemSet(0x455189, CODETYPE_Nop, 11); // op_create_object_sid_
 
 	// Improve performance of the data conversion of script interpreter
 	// mov eax, [edx+eax]; bswap eax; ret;
