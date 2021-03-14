@@ -616,8 +616,7 @@ static const char* GetOverrideTerrainName(long x, long y) {
 
 	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
 	auto it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
-						  [=](const std::pair<long, std::string> &el)
-						  { return el.first == subTileID; }
+		[=](const std::pair<long, std::string> &el) { return el.first == subTileID; }
 	);
 	return (it != wmTerrainTypeNames.crend()) ? it->second.c_str() : nullptr;
 }

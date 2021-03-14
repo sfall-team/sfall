@@ -27,9 +27,9 @@ public:
 
 	static DWORD IniReader::modifiedIni;
 
+	static const char* IniReader::GetConfigFile();
 	static void IniReader::SetDefaultConfigFile();
 	static void IniReader::SetConfigFile(const char* iniFile);
-	static const char* IniReader::GetConfigFile();
 
 	// Gets the integer value from the default config (i.e. ddraw.ini)
 	static int IniReader::GetIntDefaultConfig(const char* section, const char* setting, int defaultValue);

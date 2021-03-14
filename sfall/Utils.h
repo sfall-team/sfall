@@ -9,7 +9,7 @@ namespace sfall
 
 // splits a string by given delimiter
 // taken from: http://stackoverflow.com/a/236803/4331475
-template<typename T>
+template <typename T>
 void split(const std::string &s, char delim, T result, size_t limit = -1) {
 	std::stringstream ss;
 	ss.str(s);

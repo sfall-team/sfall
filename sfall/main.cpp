@@ -47,8 +47,8 @@
 #include "Modules\ExtraSaveSlots.h"
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
 #include "Modules\HeroAppearance.h"
+#include "Modules\HookScripts.h"
 #include "Modules\Input.h"
 #include "Modules\Interface.h"
 #include "Modules\Inventory.h"
@@ -80,7 +80,6 @@
 #include "Modules\Worldmap.h"
 
 #include "CRC.h"
-#include "SimplePatch.h"
 #include "Logging.h"
 #include "ReplacementFuncs.h"
 #include "Version.h"
