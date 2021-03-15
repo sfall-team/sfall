@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <math.h>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
@@ -483,20 +481,63 @@ static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static void __declspec(naked) apply_damage_hack_main() {
+	using namespace fo::Fields;
+	__asm {
+		mov  edx, [eax + teamNum]; // ctd.target.team_num
+		mov  ecx, [ebx + teamNum]; // ctd.source.team_num (attacker)
+		cmp  edx, ecx;
+		jnz  check;
+		retn; // skip combatai_check_retaliation_
+check:  // does the target belong to the player's team?
+		test edx, edx;
+		jz   dudeTeam;
+		retn; // call combatai_check_retaliation_
+dudeTeam: // check who the attacker was attacking
+		mov  ecx, [esi + ctdMainTarget]; // ctd.mainTarget
+		cmp  edx, [ecx + teamNum];       // dude.team_num == mainTarget.team_num?
+		jne  skipSetHitTarget;           // target is not main
+		or   edx, 1;
+		retn; // call combatai_check_retaliation_
+skipSetHitTarget:
+		xor  edx, edx;
+		retn;
+	}
+}
+
+static void __declspec(naked) apply_damage_hook_extra() {
+	using namespace fo::Fields;
+	__asm { // eax - target1-6
+		// does the target belong to the player's team?
+		test ebx, ebx; // target.team_num
+		jz   dudeTeam;
+default:
+		jmp  fo::funcoffs::combatai_check_retaliation_;
+dudeTeam: // check who the attacker was attacking
+		mov  ecx, [esi + ctdMainTarget]; // ctd.mainTarget
+		cmp  ebx, [ecx + teamNum];       // dude.team_num == mainTarget.team_num?
+		je   default;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Ray's combat_p_proc patch
 static void __declspec(naked) apply_damage_hack() {
+	using namespace fo::Fields;
 	__asm {
 		xor  edx, edx;
-		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
-		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
-		jz   end;              // no hit
-		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+		inc  edx;                          // 1 - COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + ctdAttackerFlags], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;                          // no hit
+		inc  edx;                          // 2 - COMBAT_SUBTYPE_HIT_SUCCEEDED
 end:
 		retn;
 	}
 }
 
 static void CombatProcPatch() {
-	// Ray's combat_p_proc fix
 	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
 	MakeCall(0x424DD9, apply_damage_hack);
 	SafeWrite16(0x424DC6, 0x9090);
@@ -518,6 +559,10 @@ void Combat::init() {
 	CombatBlock::init();
 
 	CombatProcPatch();
+
+	// Prevents NPC aggression when non-hostile NPCs accidentally hit the player or members of the player's team
+	MakeCall(0x424D6B, apply_damage_hack_main, 1);
+	HookCall(0x424E58, apply_damage_hook_extra);
 
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg

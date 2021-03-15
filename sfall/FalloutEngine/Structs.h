@@ -172,7 +172,7 @@ struct GameObject {
 			inline bool IsActiveNotDead() {
 				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
 			}
-			inline bool IsNotActiveAndDead() {
+			inline bool IsNotActiveOrDead() {
 				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
 			inline bool IsFleeing() {
