@@ -146,7 +146,7 @@ struct TGameObj {
 			inline bool IsActiveNotDead() {
 				return ((damageFlags & (DAM_DEAD | DAM_KNOCKED_OUT | DAM_LOSE_TURN)) == 0);
 			}
-			inline bool IsNotActiveAndDead() {
+			inline bool IsNotActiveOrDead() {
 				return ((damageFlags & (DAM_DEAD | DAM_KNOCKED_OUT | DAM_LOSE_TURN)) != 0);
 			}
 			inline bool IsFleeing() {

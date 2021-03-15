@@ -720,6 +720,7 @@ enum CombatStateFlag : long
 	CBTFLG_ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
 };
 
+// Names of structure offsets used in the assembler code
 namespace Fields {
 	enum CommonObj : long
 	{
@@ -766,6 +767,14 @@ namespace Fields {
 		updatedFlags      = 0x38,
 		charges           = 0x3C,
 		ammoPid           = 0x40,
+	};
+
+	enum ComputeAttack : long
+	{
+		ctdAttackerFlags  = 0x15, // flags2Source
+		ctdTarget         = 0x20,
+		ctdMainTarget     = 0x38,
+		ctdExtraTarget1   = 0x40,
 	};
 }
 
