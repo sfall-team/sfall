@@ -2865,11 +2865,15 @@ skip:
 }
 
 static void __declspec(naked) op_create_object_sid_hack() {
+	using Scripts::start;
 	__asm {
 		mov  ebx, [esp + 0x50 - 0x20 + 4]; // createObj
-		mov  edx, 1; // 'start' procedure
+		test ebx, ebx;
+		jz   noObject;
+		mov  edx, start; // procedure
 		mov  eax, [ebx + scriptId];
 		call exec_script_proc_;
+noObject:
 		mov  edx, ebx;
 		mov  eax, esi;
 		retn;
@@ -3643,6 +3647,6 @@ void BugFixes_Init()
 	MakeJump(0x4B6C3B, checkAllRegions_hack);
 	HookCall(0x4B6C13, checkAllRegions_hook);
 
-	// Fix for the script attached to an object not running upon object creation
+	// Fix for the script attached to an object not being initialized properly upon object creation
 	MakeCall(0x4551C0, op_create_object_sid_hack, 1);
 }
