@@ -2865,6 +2865,7 @@ skip:
 }
 
 static void __declspec(naked) op_create_object_sid_hack() {
+	static const char* proDbgMsg = "\nError: attempt to create object with PID of %d: %s!";
 	using Scripts::start;
 	__asm {
 		mov  ebx, [esp + 0x50 - 0x20 + 4]; // createObj
@@ -2873,10 +2874,17 @@ static void __declspec(naked) op_create_object_sid_hack() {
 		mov  edx, start; // procedure
 		mov  eax, [ebx + scriptId];
 		call exec_script_proc_;
-noObject:
+end:
 		mov  edx, ebx;
 		mov  eax, esi;
 		retn;
+noObject:
+		push [esi];
+		push [esp + 0x50 - 0x34 + 2*4]; // object pid
+		push proDbgMsg;
+		call debug_printf_;
+		add  esp, 3*4;
+		jmp  end;
 	}
 }
 
@@ -3649,4 +3657,6 @@ void BugFixes_Init()
 
 	// Fix for the script attached to an object not being initialized properly upon object creation
 	MakeCall(0x4551C0, op_create_object_sid_hack, 1);
+	// Fix the error handling in create_object_sid function to prevent a crash when the proto is missing
+	SafeWrite8(0x45507B, 0x51); // jz 0x4550CD
 }
