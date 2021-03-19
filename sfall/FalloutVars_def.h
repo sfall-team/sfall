@@ -143,9 +143,9 @@ PTR_(outlined_object,            TGameObj*)
 PTR_(partyMemberAIOptions,       DWORD)
 PTR_(partyMemberCount,           DWORD)
 PTR_(partyMemberLevelUpInfoList, DWORD*)
-PTR_(partyMemberList,            DWORD*) // each struct - 4 integers, first integer - objPtr
+PTR_(partyMemberList,            ObjectListData*) // dynamic array
 PTR_(partyMemberMaxCount,        DWORD)
-PTR_(partyMemberPidList,         DWORD*)
+PTR_(partyMemberPidList,         DWORD*) // dynamic array
 PTR_(patches,                    char*)
 PTR_(paths,                      PathNode*)  // array
 PTR_(pc_crit_succ_eff,           CritInfo) // array: 9 body parts, 6 effects
@@ -155,7 +155,7 @@ PTR_(pc_proto,                   sProto)
 PTR_(pc_trait,                   long) // 2 of them
 PTR_(PeanutButter,               BYTE)
 PTR_(perk_data,                  PerkInfo) // array of size == PERK_count
-PTR_(perkLevelDataList,          long*) // dynamic array, limited to PERK_Count
+PTR_(perkLevelDataList,          PartyMemberPerkListData*) // dynamic array, limited to (PERK_Count * partyMemberMaxCount)
 PTR_(pip_win,                    DWORD)
 PTR_(pipboy_message_file,        MSGList)
 PTR_(pipmesg,                    DWORD)
@@ -187,7 +187,7 @@ PTR_(square,                     DWORD)
 PTR_(squares,                    DWORD*)
 PTR_(stack,                      DWORD) // array of 10 DWORD
 PTR_(stack_offset,               DWORD) // array of 10 DWORD
-PTR_(stat_data,                  StatInfo) // dynamic array, limited to STAT_real_max_stat
+PTR_(stat_data,                  StatInfo) // array of size == STAT_real_max_stat
 PTR_(stat_flag,                  DWORD)
 PTR_(subtitleList,               SubTitleList*)
 PTR_(sWindows,                   sWindow) // array of 16 sWindow

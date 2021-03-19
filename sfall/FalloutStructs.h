@@ -1034,4 +1034,16 @@ struct AudioFile {
 	long  position;
 };
 
+// aka PartyMemberRecoveryList
+struct ObjectListData {
+	TGameObj* object;
+	TScript* script;
+	long* localVarData;
+	ObjectListData* nextSaveList; // _itemSaveListHead
+};
+
+struct PartyMemberPerkListData {
+	long perkData[PERK_count];
+};
+
 #pragma pack(pop)

@@ -94,7 +94,7 @@ static void __stdcall op_get_npc_level2() {
 
 		if (findPid || name[0] != 0) {
 			DWORD pid = 0;
-			DWORD* members = *ptr_partyMemberList;
+			ObjectListData* members = *ptr_partyMemberList;
 			for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
 				if (!findPid) {
 					__asm {
@@ -104,23 +104,22 @@ static void __stdcall op_get_npc_level2() {
 						mov  critterName, eax;
 					}
 					if (!_stricmp(name, critterName)) { // found npc
-						pid = ((TGameObj*)*members)->protoId;
+						pid = members[i].object->protoId;
 						break;
 					}
 				} else {
-					DWORD _pid = ((TGameObj*)*members)->protoId;
+					DWORD _pid = members[i].object->protoId;
 					if (findPid == _pid) {
 						pid = _pid;
 						break;
 					}
 				}
-				members += 4;
 			}
 			if (pid) {
-				DWORD* pids = *ptr_partyMemberPidList;
+				DWORD* pidList = *ptr_partyMemberPidList;
 				DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
 				for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
-					if (pids[j] == pid) {
+					if (pidList[j] == pid) {
 						level = lvlUpInfo[j * 3];
 						break;
 					}
@@ -490,9 +489,8 @@ static void __stdcall op_get_party_members2() {
 		DWORD includeHidden = modeArg.rawValue();
 		int actualCount = *ptr_partyMemberCount;
 		DWORD arrayId = CreateTempArray(0, 4);
-		DWORD* partyMemberList = *ptr_partyMemberList;
 		for (int i = 0; i < actualCount; i++) {
-			TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
+			TGameObj* obj = (*ptr_partyMemberList)[i].object;
 			if (includeHidden || (obj->IsCritter() && !fo_critter_is_dead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
 				arrays[arrayId].push_back((long)obj);
 			}

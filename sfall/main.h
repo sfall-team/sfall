@@ -71,7 +71,7 @@ struct ddrawDll {
 #endif
 
 // Trap for Debugger
-#define BREAKPOINT __debugbreak
+#define BREAKPOINT __asm int 3
 
 // Macros for quick replacement of assembler opcodes pushad/popad
 #define pushadc __asm push eax __asm push edx __asm push ecx

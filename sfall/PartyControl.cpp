@@ -91,9 +91,9 @@ static void SaveRealDudeState() {
 	realDude.obj_dude = *ptr_obj_dude;
 	realDude.art_vault_guy_num = *ptr_art_vault_guy_num;
 	realDude.itemCurrentItem = *ptr_itemCurrentItem;
-	memcpy(realDude.itemButtonItems, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
-	memcpy(realDude.traits, ptr_pc_trait, sizeof(long) * 2);
-	memcpy(realDude.perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	std::memcpy(realDude.itemButtonItems, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
+	std::memcpy(realDude.traits, ptr_pc_trait, sizeof(long) * 2);
+	std::memcpy(realDude.perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(realDude.pc_name, 32, ptr_pc_name);
 	realDude.Level = *ptr_Level_;
 	realDude.last_level = *ptr_last_level;
@@ -124,9 +124,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	ptr_pc_trait[0] = ptr_pc_trait[1] = -1;
 
 	// reset perks (except Awareness)
-	for (int i = 1; i < PERK_count; i++) {
-		(*ptr_perkLevelDataList)[i] = 0;
-	}
+	std::memset(&(*ptr_perkLevelDataList)[0].perkData[1], 0, sizeof(DWORD) * (PERK_count - 1));
 
 	// change level
 	int level = fo_isPartyMember(npc)
@@ -178,9 +176,9 @@ static void RestoreRealDudeState(bool redraw = true) {
 	*ptr_art_vault_guy_num = realDude.art_vault_guy_num;
 
 	*ptr_itemCurrentItem = realDude.itemCurrentItem;
-	memcpy(ptr_itemButtonItems, realDude.itemButtonItems, sizeof(ItemButtonItem) * 2);
-	memcpy(ptr_pc_trait, realDude.traits, sizeof(long) * 2);
-	memcpy(*ptr_perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * PERK_count);
+	std::memcpy(ptr_itemButtonItems, realDude.itemButtonItems, sizeof(ItemButtonItem) * 2);
+	std::memcpy(ptr_pc_trait, realDude.traits, sizeof(long) * 2);
+	std::memcpy(*ptr_perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(ptr_pc_name, 32, realDude.pc_name);
 	*ptr_Level_ = realDude.Level;
 	*ptr_last_level = realDude.last_level;
