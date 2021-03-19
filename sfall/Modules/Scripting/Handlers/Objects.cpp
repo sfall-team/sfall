@@ -99,7 +99,7 @@ void op_get_npc_level(OpcodeContext& ctx) {
 
 	if (findPid || name[0] != 0) {
 		DWORD pid = 0;
-		DWORD* members = fo::var::partyMemberList;
+		auto members = fo::var::partyMemberList;
 		for (DWORD i = 0; i < fo::var::partyMemberCount; i++) {
 			if (!findPid) {
 				__asm {
@@ -109,22 +109,21 @@ void op_get_npc_level(OpcodeContext& ctx) {
 					mov  critterName, eax;
 				}
 				if (!_stricmp(name, critterName)) { // found npc
-					pid = ((fo::GameObject*)*members)->protoId;
+					pid = members[i].object->protoId;
 					break;
 				}
 			} else {
-				DWORD _pid = ((fo::GameObject*)*members)->protoId;
+				DWORD _pid = members[i].object->protoId;
 				if (findPid == _pid) {
 					pid = _pid;
 					break;
 				}
 			}
-			members += 4;
 		}
 		if (pid) {
-			DWORD* pids = fo::var::partyMemberPidList;
+			DWORD* pidList = fo::var::partyMemberPidList;
 			for (DWORD j = 0; j < fo::var::partyMemberMaxCount; j++) {
-				if (pids[j] == pid) {
+				if (pidList[j] == pid) {
 					level = fo::var::partyMemberLevelUpInfoList[j * 3];
 					break;
 				}
@@ -339,9 +338,8 @@ void op_get_party_members(OpcodeContext& ctx) {
 	auto includeHidden = ctx.arg(0).rawValue();
 	int actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = CreateTempArray(0, 4);
-	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
-		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
+		fo::GameObject* obj = fo::var::partyMemberList[i].object;
 		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 			arrays[arrayId].push_back((long)obj);
 		}

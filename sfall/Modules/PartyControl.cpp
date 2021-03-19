@@ -129,9 +129,9 @@ static void SaveRealDudeState() {
 	realDude.obj_dude = fo::var::obj_dude;
 	realDude.art_vault_guy_num = fo::var::art_vault_guy_num;
 	realDude.itemCurrentItem = fo::var::itemCurrentItem;
-	memcpy(realDude.itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-	memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
-	memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
+	std::memcpy(realDude.itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
+	std::memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
+	std::memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(realDude.pc_name, sizeof(fo::var::pc_name), fo::var::pc_name);
 	realDude.Level = fo::var::Level_;
 	realDude.last_level = fo::var::last_level;
@@ -177,11 +177,9 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// copy existing party member perks or reset list for non-party member NPC
 	long isPartyMember = fo::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
-		memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList + (fo::PERK_count * (isPartyMember - 1)), sizeof(DWORD) * fo::PERK_count);
+		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::Perk::PERK_count);
 	} else {
-		for (int i = 0; i < fo::PERK_count; i++) {
-			fo::var::perkLevelDataList[i] = 0;
-		}
+		std::memset(fo::var::perkLevelDataList, 0, sizeof(DWORD) * fo::Perk::PERK_count);
 	}
 
 	// change level
@@ -216,7 +214,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 			if (weaponState[i].leftIsCopy) {
 				auto item = fo::func::inven_left_hand(npc);
 				if (item && item->protoId == weaponState[i].leftSlot.item->protoId) {
-					memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
+					std::memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
 					isMatch = true;
 				}
 				weaponState[i].leftIsCopy = false;
@@ -224,7 +222,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 			if (weaponState[i].rightIsCopy) {
 				auto item = fo::func::inven_right_hand(npc);
 				if (item && item->protoId == weaponState[i].rightSlot.item->protoId) {
-					memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
+					std::memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
 					isMatch = true;
 				}
 				weaponState[i].rightIsCopy = false;
@@ -292,9 +290,9 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::art_vault_guy_num = realDude.art_vault_guy_num;
 
 	fo::var::itemCurrentItem = realDude.itemCurrentItem;
-	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-	memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
-	memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
+	std::memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
+	std::memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
+	std::memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
 	fo::var::Level_ = realDude.Level;
 	fo::var::last_level = realDude.last_level;
@@ -471,11 +469,11 @@ bool PartyControl::IsNpcControlled() {
 static bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
 	bool isCopy = false;
 	if (fo::var::itemButtonItems[0 + isSwap].itsWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
-		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
+		std::memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
 		element.leftIsCopy = isCopy = true;
 	}
 	if (fo::var::itemButtonItems[1 - isSwap].itsWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
-		memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
+		std::memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
 		element.rightIsCopy = isCopy = true;
 	}
 	if (isSwap && isCopy) {

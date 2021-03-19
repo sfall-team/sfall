@@ -220,33 +220,39 @@ isNotDead:
 	}
 }
 
-static long __fastcall AICheckBeforeWeaponSwitch(fo::GameObject* target, long &hitMode, fo::GameObject* source, fo::GameObject* weapon) {
+////////////////////////////////////////////////////////////////////////////////
+
+static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hitMode, fo::GameObject* source, fo::GameObject* weapon) {
 	if (source->critter.movePoints <= 0) return -1; // exit from ai_try_attack_
-	if (!weapon) return 1; // no weapon in hand slot, call ai_switch_weapons_
-
-	long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
-	if (_hitMode != hitMode) {
-		hitMode = _hitMode;
-		return 0; // change hit mode, continue attack cycle
+	if (weapon) {
+		long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
+		if (_hitMode != hitMode) {
+			hitMode = _hitMode;
+			return 0; // change hit mode, continue attack cycle
+		}
 	}
 
+	// does the NPC have other weapons in inventory?
 	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
-	if (!item) return 1; // no weapon in inventory, continue to search weapons on the map (call ai_switch_weapons_)
-
-	// is using a close range weapon?
-	long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
-	if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
-		if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
+	if (item && weapon) {
+		// is using a close range weapon?
+		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
+		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
+			if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
+		}
+		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
-	return 1; // execute vanilla behavior of ai_switch_weapons_ function
+	// no other weapon in inventory
+	return (weapon) ? -1 // exit, NPC has a weapon in hand slot, so we don't look for another weapon on the map
+	                : 1; // no weapon in inventory or hand slot, continue to search weapons on the map (call ai_switch_weapons_)
 }
 
-static void __declspec(naked) ai_try_attack_hook_switch_weapon() {
+static void __declspec(naked) ai_try_attack_hook_switch_fix() {
 	__asm {
 		push edx;
 		push [ebx]; // weapon
 		push esi;   // source
-		call AICheckBeforeWeaponSwitch; // ecx - target, edx - hit mode
+		call ai_try_attack_switch_fix; // ecx - target, edx - hit mode
 		pop  edx;
 		test eax, eax;
 		jle  noSwitch; // <= 0
@@ -257,6 +263,8 @@ noSwitch:
 		retn; // -1 - for exit from ai_try_attack_
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static long RetryCombatMinAP;
 
@@ -543,6 +551,7 @@ void AI::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	/////////////////////// Combat behavior AI fixes ///////////////////////
 	#ifndef NDEBUG
 	if (IniReader::GetIntDefaultConfig("Debugging", "AIBugFixes", 1) == 0) return;
 	#endif
@@ -561,15 +570,13 @@ void AI::init() {
 	// Adds a check for the weapon range and the AP cost when AI is choosing weapon attack modes
 	HookCall(0x429F6D, ai_pick_hit_mode_hook);
 
-	/////////////////////// Combat AI behavior fixes ///////////////////////
+	// Fix AI weapon switching when not having enough AP to make an attack
+	// AI will try to change attack mode before deciding to switch weapon
+	HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 
 	// Fix to reduce friendly fire in burst attacks
 	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
-
-	// Fix AI weapon switching when not having enough AP to make an attack
-	// AI will try to change attack mode before deciding to switch weapon
-	HookCall(0x42AB57, ai_try_attack_hook_switch_weapon);
 
 	// Fix for duplicate critters being added to the list of potential targets for AI
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);

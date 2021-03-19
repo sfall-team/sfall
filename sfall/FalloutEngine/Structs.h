@@ -1082,6 +1082,18 @@ struct AudioFile {
 	long  position;
 };
 
+// aka PartyMemberRecoveryList
+struct ObjectListData {
+	GameObject* object;
+	fo::ScriptInstance* script;
+	long* localVarData;
+	ObjectListData* nextSaveList; // _itemSaveListHead
+};
+
+struct PartyMemberPerkListData {
+	long perkData[fo::Perk::PERK_count];
+};
+
 #pragma pack(pop)
 
 }

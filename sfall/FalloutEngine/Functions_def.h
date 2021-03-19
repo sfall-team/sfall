@@ -41,6 +41,7 @@ WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*,
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, obj_blocking_at, fo::GameObject*, object, long, tile, long, elevation)
+WRAP_WATCOM_FFUNC4(long, obj_dist_with_tile, fo::GameObject*, source, long, sourceTile, fo::GameObject*, target, long, targetTile)
 WRAP_WATCOM_FFUNC4(long, obj_move_to_tile, fo::GameObject*, object, long, tile, long, elevation, RECT*, rect)
 WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, fo::GameObject*, object, long, sType, long, scriptIndex)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
