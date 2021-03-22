@@ -1046,4 +1046,12 @@ struct PartyMemberPerkListData {
 	long perkData[PERK_count];
 };
 
+struct QuestData {
+	long location;
+	long description;
+	long gvarIndex;
+	long displayThreshold;
+	long completedThreshold;
+};
+
 #pragma pack(pop)

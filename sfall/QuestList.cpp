@@ -173,7 +173,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
+static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const char* text) {
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {
@@ -218,14 +218,11 @@ static void __declspec(naked) PipStatus_hack_print() {
 	static const DWORD PipStatus_BreakRet  = 0x4982A4;
 	__asm {
 		push ecx;
-		push ebx;
 		push edx;
-		push ecx;         // count
+		push eax;         // text
 		push ebx;         // buf
-		mov  ecx, eax;    // text
-		call QuestsPrint; // edx - width
+		call QuestsPrint; // ecx - count, edx - width
 		pop  edx;
-		pop  ebx;
 		pop  ecx;
 		cmp  eax, 0;
 		jl   jbreak;
@@ -297,7 +294,7 @@ skip:
 	}
 }
 
-static DWORD __fastcall ActionButtons(register DWORD key) {
+static DWORD __fastcall ActionButtons(DWORD key) {
 	buttonsPressed = false;
 	if (key == 0x300) { // up
 		if (curent_quest_page == 0) return -1;
@@ -450,6 +447,34 @@ skip:
 	}
 }
 
+static void __fastcall QuestListSort(QuestData* questList, size_t numElements) {
+	if (numElements <= 1) return;
+
+	QuestData* tmpList = new QuestData[numElements];
+	std::memcpy(tmpList, questList, numElements * sizeof(QuestData));
+
+	long locStart = 1500; // number from which the locations starting
+	for (size_t i = 0; i < numElements;) {
+		for (size_t j = 0; j < numElements; j++) {
+			if (tmpList[j].location && tmpList[j].location == locStart) {
+				// unsorted?
+				if (j != i) questList[i] = tmpList[j];
+				tmpList[j].location = 0;
+				if (++i >= numElements) break;
+			}
+		}
+		locStart++;
+	}
+	delete[] tmpList;
+}
+
+static void __declspec(naked) quest_init_hook() {
+	__asm {
+		mov  ecx, eax;      // questList (base)
+		jmp  QuestListSort; // edx - numElements
+	}
+}
+
 void QuestListPatch() {
 	MakeCall(0x4974E4, StartPipboy_hack);
 
@@ -485,4 +510,7 @@ void QuestList_Init() {
 	} else {
 		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of bounds" bug when printing a list of quests
 	}
+
+	// Replace the qsort_ unstable sorting function with a simple stable sorting algorithm
+	HookCall(0x49A7C2, quest_init_hook);
 }
