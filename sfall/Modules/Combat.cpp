@@ -288,7 +288,7 @@ static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject
 static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
 	__asm {
 		mov  ebx, [eax + 0x94]; // cap->area_attack_mode
-		//push eax;
+		push eax;
 		push ecx;
 		mov  edx, ebp; // weapon
 		mov  ecx, esi; // source
@@ -296,7 +296,7 @@ static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
 		test eax, eax;
 		cmovnz ebx, eax;
 		pop  ecx;
-		//pop  eax;
+		pop  eax;
 		retn;
 	}
 }

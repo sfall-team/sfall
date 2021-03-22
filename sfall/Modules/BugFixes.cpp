@@ -2732,6 +2732,17 @@ skip1:
 	}
 }
 
+static void __declspec(naked) gdReviewDisplay_hack() {
+	__asm {
+		mov  ebx, eax;
+		mov  eax, -3;
+		cmp  ebx, 407; // vertical position limit
+		cmovge ecx, eax;
+		cmp  ecx, eax;
+		retn;
+	}
+}
+
 static void __declspec(naked) combat_ai_hook() {
 	__asm {
 		call fo::funcoffs::combat_should_end_;
@@ -3597,6 +3608,10 @@ void BugFixes::init()
 
 	// Fix for the player's money not being displayed in the dialog window after leaving the barter/combat control interface
 	HookCall(0x447ACD, gdialog_bk_hook);
+
+	// Cosmetic fix to the dialog review interface
+	// to prevent the player name from being displayed at the bottom of the window when the text is longer than one screen
+	MakeCall(0x445ECC, gdReviewDisplay_hack);
 
 	// Fix crash or animation glitch of the critter in combat when an explosion from explosives
 	// and the AI attack animation are performed simultaneously
