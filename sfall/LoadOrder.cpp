@@ -106,7 +106,7 @@ static void MultiPatchesPatch() {
 	//}
 }
 
-////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
+///////////////////////// SAVE PARTY MEMBER PROTOTYPES /////////////////////////
 
 static void __fastcall AddSavPrototype(long pid) {
 	for (std::vector<int>::const_iterator it = savPrototypes.begin(); it != savPrototypes.end(); ++it) {
