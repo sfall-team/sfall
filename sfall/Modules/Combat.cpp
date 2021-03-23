@@ -275,26 +275,25 @@ bool Combat::IsBurstDisabled(fo::GameObject* critter) {
 	return false;
 }
 
-static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject* weapon) {
+static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject* weapon, fo::AIcap* cap) {
 	if (Combat::IsBurstDisabled(critter)) {
 		long anim = fo::func::item_w_anim_weap(weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY);
 		if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
-	return 0;
+	return cap->area_attack_mode; // default engine code
 }
 
 static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
 	__asm {
-		mov  ebx, [eax + 0x94]; // cap->area_attack_mode
 		push eax;
 		push ecx;
+		push eax;      // cap
 		mov  edx, ebp; // weapon
 		mov  ecx, esi; // source
 		call CheckDisableBurst;
-		test eax, eax;
-		cmovnz ebx, eax;
+		mov  ebx, eax;
 		pop  ecx;
 		pop  eax;
 		retn;
