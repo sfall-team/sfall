@@ -103,6 +103,8 @@ static void __declspec(naked) gnw_main_hack() {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	auto paths = fo::var::paths; // curr.node (beginning of the chain of paths)
 	auto _paths = paths;         // prev.node
@@ -252,7 +254,7 @@ static void MultiPatchesPatch() {
 	//}
 }
 
-////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
+///////////////////////// SAVE PARTY MEMBER PROTOTYPES /////////////////////////
 
 static void __fastcall AddSavPrototype(long pid) {
 	for (const auto& _pid : savPrototypes) {
@@ -431,10 +433,19 @@ artNotExist:
 	}
 }
 
-void LoadOrder::init() {
-	// Load external sfall resource file (load order is before patchXXX.dat)
-	patchFiles.push_back("sfall.dat");
+static void SfallResourceFile() {
+	WIN32_FIND_DATA findData;
+	HANDLE hFind = FindFirstFile("sfall_???.dat", &findData); // example: sfall_ru.dat, sfall_cht.dat
+	if (hFind != INVALID_HANDLE_VALUE) {
+		dlog_f("Loading a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
+		patchFiles.push_back(findData.cFileName);
+		FindClose(hFind);
+	}
+	if (patchFiles.empty()) patchFiles.push_back("sfall.dat");
+}
 
+void LoadOrder::init() {
+	SfallResourceFile(); // Load external sfall resource file (load order is before patchXXX.dat)
 	GetExtraPatches();
 	MultiPatchesPatch();
 
