@@ -27,6 +27,7 @@
 //#include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
 #include "..\..\PlayerModel.h"
+#include "..\..\QuestList.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Sound.h"
 
@@ -494,6 +495,10 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 		}
 	}
 	ctx.setReturn(arrayId);
+}
+
+void mf_set_quest_failure_value(OpcodeContext& ctx) {
+	QuestList::AddQuestFailureValue(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
 }

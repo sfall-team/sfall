@@ -197,11 +197,13 @@ static void __fastcall game_init_databases_hook1() {
 
 static bool NormalizePath(std::string &path) {
 	if (path.find(':') != std::string::npos) return false;
+
 	int pos = 0;
 	do { // replace all '/' char to '\'
 		pos = path.find('/', pos);
 		if (pos != std::string::npos) path[pos] = '\\';
 	} while (pos != std::string::npos);
+
 	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
 	while (path.front() == '\\') path.erase(0, 1); // remove firsts '\'
 	return true;
@@ -434,18 +436,20 @@ artNotExist:
 }
 
 static void SfallResourceFile() {
+	const char* sfallRes = "sfall.dat";
+
 	WIN32_FIND_DATA findData;
 	HANDLE hFind = FindFirstFile("sfall_???.dat", &findData); // example: sfall_ru.dat, sfall_cht.dat
 	if (hFind != INVALID_HANDLE_VALUE) {
-		dlog_f("Loading a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
-		patchFiles.push_back(findData.cFileName);
 		FindClose(hFind);
+		dlog_f("Loading a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
+		sfallRes = findData.cFileName;
 	}
-	if (patchFiles.empty()) patchFiles.push_back("sfall.dat");
+	patchFiles.push_back(sfallRes);
 }
 
 void LoadOrder::init() {
-	SfallResourceFile(); // Load external sfall resource file (load order is before patchXXX.dat)
+	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
 	GetExtraPatches();
 	MultiPatchesPatch();
 

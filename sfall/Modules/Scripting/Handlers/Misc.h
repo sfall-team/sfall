@@ -102,5 +102,7 @@ void mf_get_ini_sections(OpcodeContext&);
 
 void mf_get_ini_section(OpcodeContext&);
 
+void mf_set_quest_failure_value(OpcodeContext&);
+
 }
 }

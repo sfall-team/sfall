@@ -136,6 +136,7 @@ static const SfallMetarule metarules[] = {
 	{"set_map_enter_position",  mf_set_map_enter_position,  3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_object_data",         mf_set_object_data,         3, 3, -1, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{"set_outline",             mf_set_outline,             2, 2, -1, {ARG_OBJECT, ARG_INT}},
+	{"set_quest_failure_value", mf_set_quest_failure_value, 2, 2, -1, {ARG_INT, ARG_INT}},
 	{"set_rest_heal_time",      mf_set_rest_heal_time,      1, 1, -1, {ARG_INT}},
 	{"set_rest_mode",           mf_set_rest_mode,           1, 1, -1, {ARG_INT}},
 	{"set_selectable_perk_npc", mf_set_selectable_perk_npc, 5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
