@@ -174,6 +174,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"set_map_enter_position",  mf_set_map_enter_position,  3, 3},
 	{"set_object_data",         mf_set_object_data,         3, 3},
 	{"set_outline",             mf_set_outline,             2, 2},
+	{"set_quest_failure_value", mf_set_quest_failure_value, 2, 2},
 	{"set_terrain_name",        mf_set_terrain_name,        3, 3},
 	{"set_town_title",          mf_set_town_title,          2, 2},
 	{"set_unique_id",           mf_set_unique_id,           1, 2},

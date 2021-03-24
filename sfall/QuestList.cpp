@@ -58,7 +58,7 @@ static void __declspec(naked) PipStatus_hook_printfix() {
 		dec  eax;
 		shl  eax, 1;
 		add  eax, dword ptr ds:[FO_VAR_cursor_line];
-		cmp  eax, dword ptr ds:[FO_VAR_bottom_line]; // check max
+		cmp  eax, dword ptr ds:[FO_VAR_bottom_line];  // check max
 		jb   skip;
 		mov  eax, dword ptr ds:[FO_VAR_quest_count];
 		sub  eax, 2;
@@ -309,8 +309,8 @@ static DWORD __fastcall ActionButtons(DWORD key) {
 			curent_quest_page++;
 			first_quest_page = pageQuest[curent_quest_page];
 			last_quest_page  = ((pageQuest.size() - 1) > curent_quest_page)
-							? pageQuest[curent_quest_page + 1] - 1
-							: INT_MAX;
+			                 ? pageQuest[curent_quest_page + 1] - 1
+			                 : INT_MAX;
 			buttonsPressed = true;
 			return called_quest_number;
 		}
@@ -338,30 +338,17 @@ skip:
 	}
 }
 
-static void RegisterButtonSoundFunc0() {
+static void RegisterButtonSound() {
 	__asm {
 		mov  ebx, gsound_red_butt_release_;
 		mov  edx, gsound_red_butt_press_;
-		call win_register_button_sound_func_;
+		call win_register_button_sound_func_; // eax - register button
 	}
 }
 
-static void __stdcall ArtButtonFunc(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) {
-	__asm {
-		xor  ecx, ecx;
-		xor  ebx, ebx;
-		mov  edx, indexArt;          // index from intrface.lst
-		mov  eax, OBJ_TYPE_INTRFACE;
-		push ecx;
-		call art_id_;
-		//
-		mov  ecx, buttonKey;
-		xor  ebx, ebx;
-		xor  edx, edx;
-		call art_ptr_lock_data_;
-		mov  ecx, buttonMem;
-		mov  dword ptr [ecx], eax;   // first texture memory address
-	}
+static void LoadArtButton(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) { // indexArt - index from intrface.lst
+	long artId = fo_art_id(OBJ_TYPE_INTRFACE, indexArt, 0, 0, 0);
+	*(BYTE**)buttonMem = fo_art_ptr_lock_data(artId, 0, 0, (DWORD*)buttonKey); // first texture memory address
 }
 
 // Create buttons
@@ -401,11 +388,11 @@ static void __declspec(naked) StartPipboy_hack() {
 	// Load new texture for first (up) button. I used memory address for texture from buttons at chracter screen.
 	// Everything fine, because this buttons can't use in one time, and they everytime recreating.
 	// Down
-	ArtButtonFunc(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp,   indexUpArt0);
-	ArtButtonFunc(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown, indexDownArt0);
+	LoadArtButton(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp,   indexUpArt0);
+	LoadArtButton(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown, indexDownArt0);
 	// Up
-	ArtButtonFunc(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp1,   indexUpArt1);
-	ArtButtonFunc(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown1, indexDownArt1);
+	LoadArtButton(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp1,   indexUpArt1);
+	LoadArtButton(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown1, indexDownArt1);
 
 	xPos = questsScrollButtonsX;
 	yPos = questsScrollButtonsY;
@@ -415,13 +402,13 @@ static void __declspec(naked) StartPipboy_hack() {
 	picDown = (BYTE*)*ptr_optionsButtonDown1;
 	picUp   = (BYTE*)*ptr_optionsButtonUp1;
 	if (fo_win_register_button(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
-		RegisterButtonSoundFunc0();
+		RegisterButtonSound();
 	}
 
 	picDown = (BYTE*)*ptr_optionsButtonDown;
 	picUp   = (BYTE*)*ptr_optionsButtonUp;
 	if (fo_win_register_button(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
-		RegisterButtonSoundFunc0();
+		RegisterButtonSound();
 	}
 
 	__asm {
@@ -498,7 +485,63 @@ void QuestListPatch() {
 	MakeCall(0x497A7D, pip_print_hack);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+struct QuestFailure {
+	long gvarNum;
+	long failureVal;
+};
+
+std::vector<QuestFailure> questFailures;
+
+static long FindGVarQuestFailure(long globalVarNum) {
+	for (size_t i = 0; i < questFailures.size(); i++) {
+		if (questFailures[i].gvarNum == globalVarNum) return i;
+	}
+	return -1;
+}
+
+void __stdcall QuestList_AddQuestFailureValue(long globalVarNum, long failureThreshold) {
+	long index = FindGVarQuestFailure(globalVarNum);
+	if (index == -1) {
+		QuestFailure qf = { globalVarNum, failureThreshold };
+		questFailures.push_back(qf);
+	} else {
+		questFailures[index].failureVal = failureThreshold;
+	}
+}
+
+static BYTE __fastcall CheckQuestFailureState(QuestData* quest, BYTE completeColor) {
+	if (questFailures.empty()) return completeColor;
+
+	const BYTE failureColor = 137; // dark red
+
+	long index = FindGVarQuestFailure(quest->gvarIndex);
+	return (index != -1 && (*ptr_game_global_vars)[quest->gvarIndex] >= questFailures[index].failureVal) ? failureColor : completeColor;
+}
+
+static void __declspec(naked) PipStatus_hack() {
+	__asm {
+		push eax;
+		push ecx;
+		mov  dl, ds:[0x6A5B34]; // completeColor (dark green)
+		mov  ecx, ds:[FO_VAR_quests];
+		add  ecx, [esp + 0x4BC - 0x28 + 12];
+		call CheckQuestFailureState;
+		mov  bl, al;
+		pop  ecx;
+		pop  eax;
+		retn;
+	}
+}
+
+void ResetQuests() {
+	questFailures.clear();
+}
+
 void QuestList_Init() {
+	MakeCall(0x498222, PipStatus_hack, 1);
+
 	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
 		dlog("Applying quests list patch.", DL_INIT);

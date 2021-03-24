@@ -42,6 +42,7 @@
 #include "Objects.h"
 #include "PartyControl.h"
 #include "Perks.h"
+#include "QuestList.h"
 #include "ScriptExtender.h"
 #include "Skills.h"
 #include "Sound.h"
@@ -269,6 +270,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		Combat_OnGameLoad();
 		Skills_OnGameLoad();
 		FileSystemReset();
+		ResetQuests();
 		WipeSounds();
 		InventoryReset();
 		PartyControl_OnGameLoad();

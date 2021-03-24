@@ -238,6 +238,7 @@
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C
+#define FO_VAR_quests                     0x51C128
 #define FO_VAR_queue                      0x6648C0
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC

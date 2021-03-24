@@ -26,6 +26,7 @@
 #include "HeroAppearance.h"
 #include "Movies.h"
 #include "PlayerModel.h"
+#include "QuestList.h"
 #include "ScriptExtender.h"
 #include "Sound.h"
 
@@ -672,4 +673,8 @@ static void mf_get_ini_section() {
 		}
 	}
 	opHandler.setReturn(arrayId);
+}
+
+static void mf_set_quest_failure_value() {
+	QuestList_AddQuestFailureValue(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
 }
