@@ -46,7 +46,7 @@ static bool calledflag = false;
 static DWORD called_quest_number = 0;
 static DWORD total_quests_pages = 0;
 static DWORD curent_quest_page = 0;
-static DWORD look_quests = 0;         // check current quests
+static DWORD look_quests = 0; // check current quests
 
 static DWORD first_quest_page = 0;
 static DWORD last_quest_page = INT_MAX;
@@ -87,7 +87,7 @@ static void __declspec(naked) pip_print_hack() {
 	__asm {
 		test bh, 1;
 		jz   skip;
-		add  edx, 60;  // pixel offset
+		add  edx, 60; // pixel offset
 		jmp  end;
 skip:
 		test bh, 2;
@@ -244,6 +244,7 @@ jbreak:
 
 static char bufPage[16];
 static const char* format = "%s %d %s %d";
+
 static void __declspec(naked) PrintPages() {
 	__asm {
 		// total pages
@@ -333,7 +334,7 @@ static void __declspec(naked) pipboy_hack_action() {
 		mov  ecx, ebx;
 		call ActionButtons;
 		cmp  eax, -1;
-		cmovne ebx, eax;  // called_quest_number
+		cmovne ebx, eax; // called_quest_number
 		pop  edx;
 		pop  eax;
 		xor  ecx, ecx;
@@ -418,9 +419,9 @@ static void __declspec(naked) StartPipboy_hack() {
 	}
 
 	__asm {
-		mov  esp, ebp;    // epilog
+		mov  esp, ebp;   // epilog
 		pop  edi;
-		mov  ebp, 0x1F4;  // overwrite engine code
+		mov  ebp, 0x1F4; // overwrite engine code
 		retn;
 	}
 }
@@ -519,7 +520,7 @@ void QuestList::AddQuestFailureValue(long globalVarNum, long failureThreshold) {
 static BYTE __fastcall CheckQuestFailureState(fo::QuestData* quest, BYTE completeColor) {
 	if (questFailures.empty()) return completeColor;
 
-	const BYTE failureColor = 136; // dark red
+	const BYTE failureColor = 137; // dark red
 
 	long index = FindGVarQuestFailure(quest->gvarIndex);
 	return (index != -1 && fo::var::game_global_vars[quest->gvarIndex] >= questFailures[index].failureVal) ? failureColor : completeColor;

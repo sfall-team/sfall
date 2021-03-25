@@ -1004,7 +1004,29 @@ runToObject:
 	}
 }
 
-//checks if an attacked object is a critter before attempting dodge animation
+static void __declspec(naked) MultiHexAIMissHitFix() {
+	__asm {
+		mov  ecx, ebx;                      // distance weaponRange
+		call fo::funcoffs::tile_num_beyond_;
+		mov  ebx, [esi];                    // ctd.source
+		test [ebx + flags + 1], 0x08;       // is source multihex?
+		jnz  checkTile;
+		retn;
+checkTile:
+		mov  edx, [ebx + tile];             // source tile
+		call fo::funcoffs::tile_dist_;      // eax - tile form tile_num_beyond_
+		cmp  eax, 1;                        // if distance is less than or equal to 1, this is a self-hit
+		jle  fix;
+		retn;
+fix:	// get correct tile beyond
+		mov  eax, [ebx + tile];             // source tile
+		mov  edx, [ebx + rotation];         // source rotation
+		mov  ebx, ecx;                      // distance weaponRange
+		jmp  fo::funcoffs::tile_num_in_direction_; // return new tile for missed projectile
+	}
+}
+
+// checks if an attacked object is a critter before attempting dodge animation
 static void __declspec(naked) action_melee_hack() {
 	__asm {
 		mov  edx, 0x4113DC
@@ -2908,7 +2930,7 @@ end:
 		retn;
 noObject:
 		push [esi];
-		push [esp + 0x50 - 0x34 + 2*4]; // object pid
+		push [esp + 0x50 - 0x34 + 8]; // object pid
 		push proDbgMsg;
 		call fo::funcoffs::debug_printf_;
 		add  esp, 3*4;
@@ -3155,6 +3177,15 @@ void BugFixes::init()
 		// Check neighboring tiles to prevent critters from overlapping other object tiles when moving to the retargeted tile
 		SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
 		HookCall(0x42A3A8, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
+		dlogr(" Done", DL_INIT);
+	//}
+
+	// Fix for multihex critters hitting themselves when they miss an attack with ranged weapons
+	// Note: in fact, the bug is in tile_num_beyond_ and related functions. In case of a more comprehensive fix to them, this fix
+	// will need to be removed
+	//if (GetConfigInt("Misc", "MultiHexSelfHitFix", 1)) {
+		dlog("Applying multihex critter self-hit fix.", DL_INIT);
+		HookCalls(MultiHexAIMissHitFix, {0x423B44, 0x42315D});
 		dlogr(" Done", DL_INIT);
 	//}
 
