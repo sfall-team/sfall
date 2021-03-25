@@ -528,6 +528,7 @@ FUNC(tile_coord_,                     0x4B1674) // eax - tilenum, edx (int*) - x
 FUNC(tile_dir_,                       0x4B1ABC)
 FUNC(tile_dist_,                      0x4B185C)
 FUNC(tile_num_,                       0x4B1754)
+FUNC(tile_num_beyond_,                0x4B1B84)
 FUNC(tile_num_in_direction_,          0x4B1A6C)
 FUNC(tile_refresh_display_,           0x4B12D8)
 FUNC(tile_refresh_rect_,              0x4B12C0) // (int elevation<edx>, unkown<ecx>)

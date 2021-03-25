@@ -987,7 +987,29 @@ runToObject:
 	}
 }
 
-//checks if an attacked object is a critter before attempting dodge animation
+static void __declspec(naked) MultiHexAIMissHitFix() {
+	__asm {
+		mov  ecx, ebx;                      // distance weaponRange
+		call tile_num_beyond_;
+		mov  ebx, [esi];                    // ctd.source
+		test [ebx + flags + 1], 0x08;       // is source multihex?
+		jnz  checkTile;
+		retn;
+checkTile:
+		mov  edx, [ebx + tile];             // source tile
+		call tile_dist_;                    // eax - tile form tile_num_beyond_
+		cmp  eax, 1;                        // if distance is less than or equal to 1, this is a self-hit
+		jle  fix;
+		retn;
+fix:	// get correct tile beyond
+		mov  eax, [ebx + tile];             // source tile
+		mov  edx, [ebx + rotation];         // source rotation
+		mov  ebx, ecx;                      // distance weaponRange
+		jmp  tile_num_in_direction_;        // return new tile for missed projectile
+	}
+}
+
+// checks if an attacked object is a critter before attempting dodge animation
 static void __declspec(naked) action_melee_hack() {
 	__asm {
 		mov  edx, 0x4113DC
@@ -3132,8 +3154,8 @@ void BugFixes_Init()
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
-		//const DWORD multiHexFixAddr[] = {0x42901F, 0x429170};
-		//MakeCalls(MultiHexFix, multiHexFixAddr); // obsolete fix
+		//const DWORD multiHexPathAddr[] = {0x42901F, 0x429170};
+		//MakeCalls(MultiHexFix, multiHexPathAddr); // obsolete fix
 
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
@@ -3141,6 +3163,16 @@ void BugFixes_Init()
 		// Check neighboring tiles to prevent critters from overlapping other object tiles when moving to the retargeted tile
 		SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
 		HookCall(0x42A3A8, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
+		dlogr(" Done", DL_INIT);
+	//}
+
+	// Fix for multihex critters hitting themselves when they miss an attack with ranged weapons
+	// Note: in fact, the bug is in tile_num_beyond_ and related functions. In case of a more comprehensive fix to them, this fix
+	// will need to be removed
+	//if (GetConfigInt("Misc", "MultiHexSelfHitFix", 1)) {
+		dlog("Applying multihex critter self-hit fix.", DL_INIT);
+		const DWORD multiHexBeyondAddr[] = {0x423B44, 0x42315D};
+		HookCalls(MultiHexAIMissHitFix, multiHexBeyondAddr);
 		dlogr(" Done", DL_INIT);
 	//}
 
