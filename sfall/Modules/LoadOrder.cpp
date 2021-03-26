@@ -180,7 +180,7 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
 }
-
+/*
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
 	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
@@ -194,7 +194,7 @@ static void __fastcall game_init_databases_hook1() {
 
 	InitExtraPatches();
 }
-
+*/
 static bool NormalizePath(std::string &path) {
 	if (path.find(':') != std::string::npos) return false;
 
@@ -453,16 +453,16 @@ void LoadOrder::init() {
 	GetExtraPatches();
 	MultiPatchesPatch();
 
-	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
+	//if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
-	} else /*if (!patchFiles.empty())*/ {
-		HookCall(0x44436D, game_init_databases_hook1);
-	}
+	//} else /*if (!patchFiles.empty())*/ {
+	//	HookCall(0x44436D, game_init_databases_hook1);
+	//}
 
 	femaleMsgs = GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
