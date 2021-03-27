@@ -50,7 +50,7 @@ static void __declspec(naked) trait_adjust_skill_hack() {
 }
 
 void Skills::init() {
-	// Replace functions
+	// Replace trait_adjust_skill_ function
 	sf::MakeJump(fo::funcoffs::trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
 }
 

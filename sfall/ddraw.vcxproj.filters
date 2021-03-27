@@ -339,6 +339,9 @@
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
     <ClInclude Include="IniReader.h" />
+    <ClInclude Include="Game\tilemap.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -628,6 +631,9 @@
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClCompile>
     <ClCompile Include="IniReader.cpp" />
+    <ClCompile Include="Game\tilemap.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

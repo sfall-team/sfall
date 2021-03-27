@@ -110,7 +110,7 @@ static void __declspec(naked) adjust_fid_hack() {
 }
 
 void Inventory::init() {
-	// Replace functions
+	// Replace adjust_fid_ function
 	sf::MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_hack); // 0x4716E8
 }
 

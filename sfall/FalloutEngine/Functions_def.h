@@ -54,6 +54,7 @@ WRAP_WATCOM_FFUNC3(long, register_object_play_sfx, fo::GameObject*, object, cons
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
+WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, fo::Window*, window, fo::RectList**, rects, void*, buffer)
@@ -268,6 +269,7 @@ WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount) // Adds experience
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 WRAP_WATCOM_FUNC2(long, tile_dist, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_dir, long, scrTile, long, dstTile)
+WRAP_WATCOM_FUNC1(long, tile_on_edge, long, tile)
 WRAP_WATCOM_FUNC0(void, tile_refresh_display) // Redraws the whole screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, fo::BoundRect*, boundRect, long, elevation) // Redraws the given rectangle on screen
 WRAP_WATCOM_FUNC1(long, trait_level, long, traitID)
