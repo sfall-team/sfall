@@ -47,18 +47,19 @@ TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long 
 		}
 		// continue checking the line of fire from object tile to targetTile
 		TGameObj* obj = object; // for ignoring the object (multihex) when building the path
-		fo_make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 32, (void*)obj_shoot_blocking_at_);
-		if (!AI_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team)) return nullptr;
+		fo_make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)obj_shoot_blocking_at_);
+
+		object = AI_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
 	}
-	return object;
+	return object; // friendly critter, any object or null
 }
 
 // Returns the friendly critter in the line of fire
 TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
-	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 32, (void*)obj_shoot_blocking_at_);
+	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)obj_shoot_blocking_at_);
 	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
-	return (object && object->IsCritter()) ? object : nullptr; // 0 if there are no friendly critters
+	return (object && object->IsCritter()) ? object : nullptr; // 0 - if there are no friendly critters
 }
 
 bool __stdcall AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance) {

@@ -20,10 +20,6 @@
 
 #include <psapi.h>
 
-#include <algorithm>
-#include <math.h>
-#include <stdio.h>
-
 #include "main.h"
 #include "FalloutEngine.h"
 #include "AI.h"

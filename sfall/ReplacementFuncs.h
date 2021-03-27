@@ -54,3 +54,5 @@ int __stdcall sfgame_trait_adjust_skill(DWORD skillID);
 int __stdcall sfgame_trait_level(DWORD traitID);
 
 int __stdcall sfgame_trait_adjust_stat(DWORD statID);
+
+long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long maxRange);
