@@ -25,16 +25,15 @@ static bool TileExists(long tile) {
 long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long maxRange) {
 	if (maxRange <= 0 || sourceTile == targetTile) return sourceTile;
 
-	maxRange++;
-
 	if (buildLineTiles.empty()) {
-		buildLineTiles.reserve(50);
+		buildLineTiles.reserve(100);
 	} else {
 		buildLineTiles.clear();
 	}
 
 	long currentRange = fo::func::tile_dist(sourceTile, targetTile);
 	//fo::func::debug_printf("\ntile_dist: %d", currentRange);
+	if (currentRange == maxRange) maxRange++; // increase the range if the target is located at a distance equal to maxRange (fix range)
 
 	long lastTile = targetTile;
 	long source_X, source_Y, target_X, target_Y;
@@ -59,6 +58,9 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 	long diffX_x2 = 2 * std::abs(diffX);
 	long diffY_x2 = 2 * std::abs(diffY);
 
+	// Shift the starting point depending on the direction of the line building
+	// to reduce the inaccuracy when getting the tile from the x/y coordinates
+	// TODO: find a better way without having to shift the point
 	long direction = (source_X != target_X) ? fo::func::tile_dir(sourceTile, targetTile) : -1;
 	//fo::func::debug_printf("\ntile_dir: %d", direction);
 	switch (direction) {
@@ -85,12 +87,13 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 			target_Y -= 4;
 			break;
 	}
-	long step = 0;
+	const int step = 4;
+	long stepCounter = step - 1;
 
 	if (diffX_x2 > diffY_x2) {
 		long stepY = diffY_x2 - (diffX_x2 >> 1);
 		while (true) {
-			if (!(++step % 2)) {
+			if (++stepCounter == step) {
 				long tile = fo::func::tile_num(target_X, target_Y);
 				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
@@ -100,6 +103,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 					}
 					lastTile = tile;
 				}
+				stepCounter = 0;
 			}
 			if (stepY >= 0) {
 				stepY -= diffX_x2;
@@ -122,7 +126,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 	} else {
 		long stepX = diffX_x2 - (diffY_x2 >> 1);
 		while (true) {
-			if (!(++step % 2)) {
+			if (++stepCounter == step) {
 				long tile = fo::func::tile_num(target_X, target_Y);
 				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
@@ -132,6 +136,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 					}
 					lastTile = tile;
 				}
+				stepCounter = 0;
 			}
 			if (stepX >= 0) {
 				stepX -= diffY_x2;
@@ -149,7 +154,7 @@ static void __declspec(naked) tile_num_beyond_hack() {
 		push ebx;
 		mov  ecx, eax;
 		call Tilemap::tile_num_beyond;
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }
