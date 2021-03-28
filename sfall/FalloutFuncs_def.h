@@ -36,7 +36,7 @@ WRAP_WATCOM_FFUNC3(long, inven_wield, TGameObj*, critter, TGameObj*, item, long,
 WRAP_WATCOM_FFUNC3(long, item_add_force, TGameObj*, critter, TGameObj*, item, long, count)
 WRAP_WATCOM_FFUNC3(long, item_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
-WRAP_WATCOM_FFUNC7(void, make_straight_path_func, TGameObj*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
+WRAP_WATCOM_FFUNC7(long, make_straight_path_func, TGameObj*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, arrayPtr, DWORD*, outObject, long, flags, void*, func)
 WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*, outBuf)
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
