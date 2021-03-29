@@ -521,7 +521,8 @@ static bool __stdcall TileExists(long tile) {
 }
 
 // Fixed and improved implementation of tile_num_beyond_ engine function
-// compared to the original implementation, this function gets the hex (tile) from the constructed line more correctly
+// - correctly gets the tile from the constructed line
+// - fixed the range when the target tile was positioned at the maximum distance
 long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long maxRange) {
 	if (maxRange <= 0 || sourceTile == targetTile) return sourceTile;
 
@@ -558,35 +559,6 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 	long diffX_x2 = 2 * std::abs(diffX);
 	long diffY_x2 = 2 * std::abs(diffY);
 
-	// Shift the starting point depending on the direction of the line building
-	// to reduce the inaccuracy when getting the tile from the x/y coordinates
-	// TODO: find a better way without having to shift the point
-	long direction = (source_X != target_X) ? fo_tile_dir(sourceTile, targetTile) : -1;
-	//fo_debug_printf("\ntile_dir: %d", direction);
-	switch (direction) {
-		case 0:
-			target_X += 8;
-			target_Y -= 4;
-			break;
-		case 1:
-			target_X += 15;
-			break;
-		case 2:
-			target_X += 8;
-			target_Y += 4;
-			break;
-		case 3:
-			target_X -= 8;
-			target_Y += 4;
-			break;
-		case 4:
-			target_X -= 15;
-			break;
-		case 5:
-			target_X -= 8;
-			target_Y -= 4;
-			break;
-	}
 	const int step = 4;
 	long stepCounter = step - 1;
 
@@ -598,7 +570,8 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 				//fo_debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
 					if (!TileExists(tile)) {
-						if (++currentRange >= maxRange || fo_tile_on_edge(tile)) return tile;
+						long dist = fo_tile_dist(targetTile, tile);
+						if ((dist + currentRange) >= maxRange || fo_tile_on_edge(tile)) return tile;
 						buildLineTiles.push_back(tile);
 					}
 					lastTile = tile;
@@ -631,7 +604,8 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 				//fo_debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
 					if (!TileExists(tile)) {
-						if (++currentRange >= maxRange || fo_tile_on_edge(tile)) return tile;
+						long dist = fo_tile_dist(targetTile, tile);
+						if ((dist + currentRange) >= maxRange || fo_tile_on_edge(tile)) return tile;
 						buildLineTiles.push_back(tile);
 					}
 					lastTile = tile;
