@@ -1033,6 +1033,8 @@ static void __declspec(naked) set_new_results_hack() {
 	}
 }
 
+/////////////////////// "NPC turns into a container" bug ///////////////////////
+
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
 		jne  end;                                 // This is not a critter
@@ -1052,6 +1054,7 @@ end:
 	}
 }
 
+// when loading the game
 static void __declspec(naked) obj_load_func_hack() {
 	static const DWORD obj_load_func_Ret = 0x488F14;
 	__asm {
@@ -1072,13 +1075,13 @@ fix:
 		push eax;
 		xor  ecx, ecx;
 		mov  edx, eax; // object
-		mov  ebx, ecx; // extramem null
-		mov  eax, ecx; // time = 0
-		inc  ecx;      // type = 1
-		call queue_add_; // run stand up anim
+		xor  ebx, ebx; // extramem null
+		inc  ecx;      // type = 1 (knockout_event)
+		xor  eax, eax; // time = 0
+		call queue_add_; // critter_wake_up_ will be called (run stand up anim)
 		pop  eax;
 clear:
-		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
+		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN); // or DAM_KNOCKOUT_WOKE?
 skip:
 		add  esp, 4;
 		jmp  obj_load_func_Ret;
@@ -1095,25 +1098,31 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 static void __declspec(naked) combat_over_hack() {
 	__asm {
 		mov  [eax + combatState], edx;
-		and  word ptr [eax + damageFlags], ~DAM_LOSE_TURN;
+		and  dword ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKOUT_WOKE);
+		//
+		test [eax + damageFlags], DAM_DEAD or DAM_KNOCKED_OUT;
+		jnz  skip;
+		test [eax + damageFlags], DAM_KNOCKED_DOWN;
+		jnz  standup;
+		retn;
+standup:
+		push eax;
+		call dude_standup_;
+		pop  eax;
+skip:
 		retn;
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static void __declspec(naked) combat_over_hook() {
 	__asm {
 		test byte ptr [eax + damageFlags], DAM_DEAD;
-		jz   fix;
-		retn; // the dead cannot reload their weapons
-fix:
-		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN;
-		jz   skip;
-		push eax;
-		call dude_standup_;
-		pop  eax;
-		xor  edx, edx;
-skip:
+		jnz  fix;
 		jmp  cai_attempt_w_reload_;
+fix:
+		retn; // the dead cannot reload their weapons
 	}
 }
 
@@ -1203,33 +1212,31 @@ static void __declspec(naked) item_m_turn_off_hook() {
 
 static void __declspec(naked) combat_hack() {
 	__asm {
-		mov  eax, [ecx+eax]                       // eax = source
-		test eax, eax
-		jz   end
-		push eax
-		mov  edx, STAT_max_move_points
-		call stat_level_
-		mov  edx, ds:[FO_VAR_gcsd]
-		test edx, edx
-		jz   skip
-		add  eax, [edx+0x8]                       // gcsd.free_move
+		mov  eax, [ecx + eax];                     // eax = source combat turn
+		push eax;
+		mov  edx, STAT_max_move_points;
+		call stat_level_;
+		mov  edx, ds:[FO_VAR_gcsd];
+		test edx, edx;
+		jz   skip;
+		add  eax, [edx + 0x8];                     // gcsd.free_move
 skip:
-		pop  edx
-		xchg edx, eax                             // eax = source, edx = Max action points
-		mov  [eax + movePoints], edx              // pobj.curr_mp
-		test byte ptr ds:[FO_VAR_combat_state], 1 // in combat?
-		jz   end                                  // No
-		mov  edx, [eax + cid]                     // pobj.cid
-		cmp  edx, -1
-		je   end
-		push eax
-		mov  eax, ds:[FO_VAR_aiInfoList]
-		shl  edx, 4
-		mov  dword ptr [edx+eax+0xC], 0           // aiInfo.lastMove
-		pop  eax
+		pop  edx;                                  // source
+		xchg edx, eax;                             // eax = source, edx = Max action points
+		mov  [eax + movePoints], edx;              // pobj.curr_mp
+		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
+		jz   end;                                  // No
+		mov  edx, [eax + cid];                     // pobj.cid
+		cmp  edx, -1;
+		je   end;
+		mov  esi, ds:[FO_VAR_aiInfoList];
+		shl  edx, 4;
+		mov  dword ptr [edx + esi + 0xC], 0;       // aiInfo.lastMove
 end:
-		mov  edx, edi                             // dude_turn
-		retn
+		// remove the flag set by critter_wake_up_ function if critter was knocked out
+		and  dword ptr [eax + damageFlags], ~DAM_KNOCKOUT_WOKE;
+		mov  edx, edi;                             // dude_turn
+		retn;
 	}
 }
 
@@ -2493,19 +2500,37 @@ end:
 	}
 }
 
+static bool __fastcall combat_should_end_check_fix(long dudeTeam, TGameObj* critter, TGameObj* target) {
+	// target: the current target of the critter (does not need to be checked for null)
+
+	if (critter->critter.teamNum == dudeTeam) { // critter is in the player's team
+		// EnemyOutOfRange - set when the critter does not want (can't continue) combat or has left the combat due to exceeding the max distance
+		if ((target->critter.combatState & CBTFLG_EnemyOutOfRange) == false && target->critter.IsNotDead()) return false;
+	} else {
+		if (target->critter.teamNum == dudeTeam) return false; // don't end combat: target is from the player's team
+		// for other targets
+		if (target->critter.IsNotDead()) return false; // don't end combat: target is still alive
+		//if (critter->critter.combatState & CBTFLG_InCombat) return false; // critter is in combat
+	}
+	return true; // check next critter
+}
+
 static void __declspec(naked) combat_should_end_hack() {
 	static const DWORD combat_should_end_break = 0x422D00;
-	__asm { // ecx = dude.team_num
-		cmp  ecx, [ebp + teamNum];          // npc->combat_data.who_hit_me.team_num (engine code)
-		je   break;                         // attacker is in the player's team
-		test [ebp + damageFlags], DAM_DEAD; // npc->combat_data.who_hit_me.damageFlags
-		jz   break;                         // target is still alive
-		test byte ptr [edx], 1;             // npc->combat_data.combat_state
-		jnz  break;                         // npc is in combat
+	__asm { // ecx = dude.team_num; ebp = critter->who_hit_me
+		push eax;
+		push ecx;
+		sub  edx, 0x3C; // critter
+		push ebp;       // target
+		call combat_should_end_check_fix;
+		test al, al;
+		jz   break;
+		pop  ecx;
+		pop  eax;
 		retn; // check next critter
 break:
-		add  esp, 4;
-		jmp  combat_should_end_break;
+		add  esp, 8+4;
+		jmp  combat_should_end_break; // break check loop (don't end combat)
 	}
 }
 
@@ -2726,7 +2751,7 @@ static void __declspec(naked) gdReviewDisplay_hack() {
 	}
 }
 
-static void __declspec(naked) combat_ai_hook() {
+static void __declspec(naked) combat_hook() {
 	__asm {
 		call combat_should_end_;
 		test eax, eax;
@@ -2739,6 +2764,30 @@ static void __declspec(naked) combat_ai_hook() {
 		call combat_turn_run_;
 		xor  eax, eax;
 skip:
+		retn;
+	}
+}
+
+// if the combat ends before the turn passes to the critter, the DAM_KNOCKOUT_WOKE flag will remain set
+// therefore the flag for the critter is removed before the combat_turn_ execution, as well as when the combat ends in combat_over_
+static void __declspec(naked) critter_wake_up_hack() {
+	__asm {
+		or   byte ptr [eax], CBTFLG_InCombat; // combat_data.combat_state
+		test dl, DAM_KNOCKED_OUT;      // is critter knocked out?
+		jz   skip;                     // No
+		or   dword ptr [ebx + damageFlags], DAM_KNOCKOUT_WOKE; // game is in combat, set the flag
+skip:
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) op_critter_state_hack() {
+	__asm {
+		mov  ebx, 2;
+		test eax, DAM_KNOCKOUT_WOKE;
+		cmovnz esi, ebx;
+		and  eax, (DAM_CRIP_LEG_LEFT or DAM_CRIP_LEG_RIGHT or DAM_CRIP_ARM_LEFT or DAM_CRIP_ARM_RIGHT or DAM_BLIND);
 		retn;
 	}
 }
@@ -3157,13 +3206,14 @@ void BugFixes_Init()
 		MakeJump(0x42E46E, critter_wake_clear_hack);
 		MakeCall(0x488EF3, obj_load_func_hack, 1);
 		HookCall(0x4949B2, partyMemberPrepLoadInstance_hook);
+		// Fix for knocked down critters not playing stand up animation when the combat ends (when DAM_LOSE_TURN and DAM_KNOCKED_DOWN flags are set)
 		MakeCall(0x421F64, combat_over_hack, 1);
 		dlogr(" Done", DL_INIT);
 	//}
 	// Fix for multiple knockout events being added to the queue
 	HookCall(0x424F9A, set_new_results_hack);
-	// Fix for knocked down critters not playing stand up animation when the combat ends (when DAM_LOSE_TURN and DAM_KNOCKED_DOWN
-	// flags are set) and prevent dead NPCs from reloading their weapons
+
+	// Fix to prevent dead NPCs from reloading their weapons when the combat ends
 	HookCall(0x421F30, combat_over_hook);
 
 	dlog("Applying fix for explosives bugs.", DL_INIT);
@@ -3557,7 +3607,7 @@ void BugFixes_Init()
 
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
-	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
+	SafeWrite16(0x422CEA, 0x9090);
 
 	// Fix for the car being lost when entering a location via the Town/World button and then leaving on foot
 	// (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to the world map)
@@ -3607,10 +3657,15 @@ void BugFixes_Init()
 	// to prevent the player name from being displayed at the bottom of the window when the text is longer than one screen
 	MakeCall(0x445ECC, gdReviewDisplay_hack);
 
-	// Fix crash or animation glitch of the critter in combat when an explosion from explosives
-	// and the AI attack animation are performed simultaneously
+	// TODO: If a bug is found that leads to an animation glitch, then this fix can be removed
+	// Fix crash or animation glitch of the critter in combat when an explosion from explosives and the AI attack animation are
+	// performed simultaneously
 	// Note: all events in combat will occur before the AI (party member) attack
-	HookCall(0x422E5F, combat_ai_hook); // execute all events after the end of the combat sequence
+	HookCall(0x422E5F, combat_hook); // execute all events after the end of the combat sequence
+	// Additional fix for critter_state function when a critter in combat recovers from the knocked out state outside its turn
+	// DAM_KNOCKOUT_WOKE flag lets the function know that the critter was knocked out before it actually woke up (stand up)
+	MakeCall(0x45868E, op_critter_state_hack, 1);
+	MakeCall(0x42E44C, critter_wake_up_hack);
 
 	// Fix for the "Fill_W" flag in worldmap.txt not uncovering all tiles to the left edge of the world map
 	MakeJump(0x4C372B, wmSubTileMarkRadiusVisited_hack);

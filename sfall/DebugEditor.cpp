@@ -379,7 +379,7 @@ static void __declspec(naked) debugMsg() {
 		push scrNameFmt;
 		call debug_printf_;
 		add  esp, 8;
-		jmp  debug_printf_;
+		jmp  debug_printf_; // ERROR: attempt to reference...
 	}
 }
 
@@ -466,6 +466,7 @@ static void DontDeleteProtosPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 }
+
 /*
 void CheckTimerResolution() {
 	DWORD ticksList[50];
@@ -486,6 +487,7 @@ void CheckTimerResolution() {
 	fo_debug_printf("System timer resolution: %d - %d ms.\n", min, max);
 }
 */
+
 void DebugEditor_Init() {
 	DebugModePatch();
 
