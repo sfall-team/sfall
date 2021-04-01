@@ -382,7 +382,7 @@ static void __declspec(naked) debugMsg() {
 		push scrNameFmt;
 		call fo::funcoffs::debug_printf_;
 		add  esp, 8;
-		jmp  fo::funcoffs::debug_printf_;
+		jmp  fo::funcoffs::debug_printf_; // ERROR: attempt to reference...
 	}
 }
 
@@ -468,6 +468,7 @@ static void DontDeleteProtosPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 }
+
 /*
 void CheckTimerResolution() {
 	DWORD ticksList[50];
@@ -488,6 +489,7 @@ void CheckTimerResolution() {
 	fo::func::debug_printf("System timer resolution: %d - %d ms.\n", min, max);
 }
 */
+
 void DebugEditor::init() {
 	DebugModePatch();
 

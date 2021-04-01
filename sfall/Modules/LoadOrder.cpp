@@ -439,7 +439,7 @@ static void SfallResourceFile() {
 	const char* sfallRes = "sfall.dat";
 
 	WIN32_FIND_DATA findData;
-	HANDLE hFind = FindFirstFile("sfall_???.dat", &findData); // example: sfall_ru.dat, sfall_cht.dat
+	HANDLE hFind = FindFirstFile("sfall_??.dat", &findData); // example: sfall_ru.dat, sfall_zh.dat
 	if (hFind != INVALID_HANDLE_VALUE) {
 		FindClose(hFind);
 		dlog_f("Loading a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
