@@ -17,10 +17,11 @@
  */
 
 #define DL_MAIN      (0)
-#define DL_INIT      (1<<1)
-#define DL_HOOK      (1<<2)
-#define DL_SCRIPT    (1<<3)
-#define DL_CRITICALS (1<<4)
+#define DL_INIT      (0x1)
+#define DL_HOOK      (0x2)
+#define DL_SCRIPT    (0x4)
+#define DL_CRITICALS (0x8)
+#define DL_FIX       (0x10)
 
 #ifndef NO_SFALL_DEBUG
 #include <stdio.h>

@@ -990,33 +990,33 @@ runToObject:
 // checks if an attacked object is a critter before attempting dodge animation
 static void __declspec(naked) action_melee_hack() {
 	__asm {
-		mov  edx, 0x4113DC
-		mov  ebx, [eax + artFid]                  // objStruct->FID
-		and  ebx, 0x0F000000
-		cmp  ebx, OBJ_TYPE_CRITTER << 24          // check if object FID type flag is set to critter
-		jne  end                                  // if object not a critter leave jump condition flags
+		mov  edx, 0x4113DC;
+		mov  ebx, [eax + artFid];         // objStruct->FID
+		and  ebx, 0x0F000000;
+		cmp  ebx, OBJ_TYPE_CRITTER << 24; // check if object FID type flag is set to critter
+		jne  end;                         // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
-		jnz  end
-		mov  edx, 0x4113FE
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN; // (original code)
+		jnz  end;
+		mov  edx, 0x4113FE;
 end:
-		jmp  edx
+		jmp  edx;
 	}
 }
 
 static void __declspec(naked) action_ranged_hack() {
 	__asm {
-		mov  edx, 0x411B6D
-		mov  ebx, [eax + artFid]                  // objStruct->FID
-		and  ebx, 0x0F000000
-		cmp  ebx, OBJ_TYPE_CRITTER << 24          // check if object FID type flag is set to critter
-		jne  end                                  // if object not a critter leave jump condition flags
+		mov  edx, 0x411B6D;
+		mov  ebx, [eax + artFid];         // objStruct->FID
+		and  ebx, 0x0F000000;
+		cmp  ebx, OBJ_TYPE_CRITTER << 24; // check if object FID type flag is set to critter
+		jne  end;                         // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
-		jnz  end
-		mov  edx, 0x411BD2
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN; // (original code)
+		jnz  end;
+		mov  edx, 0x411BD2;
 end:
-		jmp  edx
+		jmp  edx;
 	}
 }
 
@@ -1035,6 +1035,7 @@ static void __declspec(naked) set_new_results_hack() {
 
 /////////////////////// "NPC turns into a container" bug ///////////////////////
 
+// called when leaving the map if the critter has a "knockout_event" event in the queue
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
 		jne  end;                                 // This is not a critter
@@ -2969,46 +2970,46 @@ void BugFixes_Init()
 	SafeWrite16(0x46A4E7, 0x04DB);
 	// Fix for vanilla division operator treating negative integers as unsigned
 	if (GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
-		dlog("Applying division operator fix.", DL_INIT);
+		dlog("Applying division operator fix.", DL_FIX);
 		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
-		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
+		dlog("Applying Special Unarmed Attacks fix.", DL_FIX);
 		MakeJump(0x42394D, compute_attack_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
-		dlog("Applying Sharpshooter patch.", DL_INIT);
-		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
+		dlog("Applying Sharpshooter patch.", DL_FIX);
+		// https://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
 		HookCall(0x4244AB, SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
 		// // removes this line by making unconditional jump:
 		// if ( who == obj_dude )
 		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
 		SafeWrite8(0x424527, CODETYPE_JumpShort); // in detemine_to_hit_func_()
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
-	dlog("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_INIT);
+	dlog("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_FIX);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
 	// Fix for clickability issue of holodisk list
 	HookCall(0x497E9F, PipStatus_hook);
 	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
 	SafeWrite32(0x497E8E, 0x90909090);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
 	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
-		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
+		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_FIX);
 		const DWORD writeScriptNodeAddr[] = {0x4A596A, 0x4A59C1};
 		HookCalls(scr_write_ScriptNode_hook, writeScriptNodeAddr);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for cells getting consumed even when the car is already fully charged
@@ -3016,27 +3017,27 @@ void BugFixes_Init()
 
 	// Fix for being able to charge the car by using cells on other scenery/critters
 	if (GetConfigInt("Misc", "CarChargingFix", 1)) {
-		dlog("Applying car charging fix.", DL_INIT);
+		dlog("Applying car charging fix.", DL_FIX);
 		MakeJump(0x49C36D, protinst_default_use_item_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
-	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
+	dlog("Applying fix for save-load unlimited drug use exploit.", DL_FIX);
 	MakeCall(0x47A25B, item_d_save_hack);
 	MakeCall(0x47A243, item_d_load_hack);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose
-	dlog("Applying fix for \"leaving the map while waiting for a super stimpak overdose death\" crash.", DL_INIT);
+	dlog("Applying fix for \"leaving the map while waiting for a super stimpak overdose death\" crash.", DL_FIX);
 	HookCall(0x4A27E7, queue_clear_type_mem_free_hook); // hooks mem_free_()
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
 	// The same happens if you just order NPC to remove the armor through dialogue.
 	//if (GetConfigInt("Misc", "ArmorCorruptsNPCStatsFix", 1)) {
-		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
+		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_FIX);
 		HookCall(0x495F3B, partyMemberCopyLevelInfo_hook_stat_level);
 		HookCall(0x45419B, correctFidForRemovedItem_hook_adjust_ac);
 		// Fix for move_obj_inven_to_obj function
@@ -3045,47 +3046,47 @@ void BugFixes_Init()
 		SafeWrite8(0x45C4A3, CODETYPE_JumpNZ); // jmp > jnz
 		// Fix for drop_obj function
 		HookCall(0x49B965, obj_drop_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
-	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
+	dlog("Applying fix for addicted party member level up bug.", DL_FIX);
 	HookCall(0x495D5C, partyMemberIncLevels_hook);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
 	//if (GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
-		dlog("Applying 9 dialog options patch.", DL_INIT);
+		dlog("Applying 9 dialog options patch.", DL_FIX);
 		MakeCall(0x447021, gdProcessUpdate_hack, 1);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for "Unlimited Ammo" exploit
-	dlog("Applying fix for Unlimited Ammo exploit.", DL_INIT);
+	dlog("Applying fix for Unlimited Ammo exploit.", DL_FIX);
 	HookCall(0x472957, invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for negative values in Skilldex window ("S")
-	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
+	dlog("Applying fix for negative values in Skilldex window.", DL_FIX);
 	SafeWrite8(0x4AC377, 0x7F); // jg
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for negative SPECIAL values in character creation
-	dlog("Applying fix for negative SPECIAL values in character creation.", DL_INIT);
+	dlog("Applying fix for negative SPECIAL values in character creation.", DL_FIX);
 	MakeCall(0x43DF6F, is_supper_bonus_hack);
 	MakeCall(0x434BFF, PrintBasicStat_hack);
 	HookCall(0x437AB4, StatButtonUp_hook);
 	HookCall(0x437B26, StatButtonDown_hook);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for not counting in the weight/size of equipped items on NPC when stealing or bartering
 	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
-		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
+		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_FIX);
 		MakeCall(0x473B4E, loot_container_hack);
 		HookCall(0x4758AB, barter_inventory_hook);
 		MakeCall(0x477EAB, item_total_weight_hack, 1);
 		MakeCall(0x479A2F, item_c_curr_size_hack, 1);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
@@ -3096,7 +3097,7 @@ void BugFixes_Init()
 	SafeWrite32(0x471E48, 140);
 
 	//if (GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
-		dlog("Applying inventory reverse order issues fix.", DL_INIT);
+		dlog("Applying inventory reverse order issues fix.", DL_FIX);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
 		MakeCall(0x470EC2, inven_pickup_hack, 2);
@@ -3105,81 +3106,81 @@ void BugFixes_Init()
 		MakeJump(0x47114A, inven_pickup_hack2);
 		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
 		HookCall(0x476598, drop_ammo_into_weapon_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Enable party members with level 6 protos to reach level 6
 	//if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
-		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
+		dlog("Applying NPC Stage 6 Fix.", DL_FIX);
 		MakeJump(0x493CE9, NPCStage6Fix1); // partyMember_init_
 		MakeJump(0x494224, NPCStage6Fix2); // partyMemberGetAIOptions_
 		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage (partyMember_init_)
 		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "NPCLevelFix", 1)) {
-		dlog("Applying NPC level fix.", DL_INIT);
+		dlog("Applying NPC level fix.", DL_FIX);
 		HookCall(0x495BC9, (void*)0x495E51); // jz 0x495E7F > jz 0x495E51
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "BlackSkilldexFix", 1)) {
-		dlog("Applying black Skilldex patch.", DL_INIT);
+		dlog("Applying black Skilldex patch.", DL_FIX);
 		HookCall(0x497D0F, PipStatus_AddHotLines_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "FixWithdrawalPerkDescCrash", 1)) {
-		dlog("Applying withdrawal perk description crash fix.", DL_INIT);
+		dlog("Applying withdrawal perk description crash fix.", DL_FIX);
 		HookCall(0x47A501, perform_withdrawal_start_display_print_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "JetAntidoteFix", 1)) {
-		dlog("Applying Jet Antidote fix.", DL_INIT);
+		dlog("Applying Jet Antidote fix.", DL_FIX);
 		// the original jet antidote fix
 		MakeJump(0x47A013, (void*)0x47A168);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "NPCDrugAddictionFix", 1)) {
-		dlog("Applying NPC's drug addiction fix.", DL_INIT);
+		dlog("Applying NPC's drug addiction fix.", DL_FIX);
 		// proper checks for NPC's addiction instead of always using global vars
 		MakeJump(0x47A644, item_d_check_addict_hack);
 		MakeJump(0x479FC5, item_d_take_drug_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
-		dlog("Applying shiv patch.", DL_INIT);
+		dlog("Applying shiv patch.", DL_FIX);
 		SafeWrite8(0x477B2B, CODETYPE_JumpShort);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "ImportedProcedureFix", 0)) {
-		dlog("Applying imported procedure patch.", DL_INIT);
+		dlog("Applying imported procedure patch.", DL_FIX);
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
 		SafeWrite32(0x46B35D, 0x90909090);
 		const DWORD execProcWarnAddr[] = {0x46DBF1, 0x46DDC4};
 		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, execProcWarnAddr); // Disable warnings
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 	// Fix for op_lookup_string_proc_ engine function not searching the last procedure in a script
 	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 
 	// Update the AC counter
 	//if (GetConfigInt("Misc", "WieldObjCritterFix", 1)) {
-		dlog("Applying wield_obj_critter fix.", DL_INIT);
+		dlog("Applying wield_obj_critter fix.", DL_FIX);
 		SafeWrite8(0x456912, 0x1E); // jnz 0x456931
 		HookCall(0x45697F, op_wield_obj_critter_adjust_ac_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
-		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
+		dlog("Applying MultiHex Pathing Fix.", DL_FIX);
 		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
 		//const DWORD multiHexPathAddr[] = {0x42901F, 0x429170};
 		//MakeCalls(MultiHexFix, multiHexPathAddr); // obsolete fix
@@ -3190,81 +3191,83 @@ void BugFixes_Init()
 		// Check neighboring tiles to prevent critters from overlapping other object tiles when moving to the retargeted tile
 		SafeWrite16(0x42A3A6, 0xE889); // xor eax, eax > mov eax, ebp (fix retargeting tile for multihex critters)
 		HookCall(0x42A3A8, MultiHexRetargetTileFix); // cai_retargetTileFromFriendlyFire_
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
-		dlog("Applying Dodgy Door Fix.", DL_INIT);
+		dlog("Applying Dodgy Door Fix.", DL_FIX);
 		MakeJump(0x4113D6, action_melee_hack);
 		MakeJump(0x411BCC, action_ranged_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
+	// Fix for multiple knockout events being added to the queue
+	HookCall(0x424F9A, set_new_results_hack);
+
 	// Fix for "NPC turns into a container" bug
+	// https://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-123#post-4065716
 	//if (GetConfigInt("Misc", "NPCTurnsIntoContainerFix", 1)) {
-		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
+		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_FIX);
 		MakeJump(0x42E46E, critter_wake_clear_hack);
 		MakeCall(0x488EF3, obj_load_func_hack, 1);
 		HookCall(0x4949B2, partyMemberPrepLoadInstance_hook);
 		// Fix for knocked down critters not playing stand up animation when the combat ends (when DAM_LOSE_TURN and DAM_KNOCKED_DOWN flags are set)
 		MakeCall(0x421F64, combat_over_hack, 1);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
-	// Fix for multiple knockout events being added to the queue
-	HookCall(0x424F9A, set_new_results_hack);
 
 	// Fix to prevent dead NPCs from reloading their weapons when the combat ends
 	HookCall(0x421F30, combat_over_hook);
 
-	dlog("Applying fix for explosives bugs.", DL_INIT);
+	dlog("Applying fix for explosives bugs.", DL_FIX);
 	// Fix crashes when killing critters with explosives
 	MakeJump(0x422F05, combat_ctd_init_hack);
 	MakeCall(0x48941C, obj_save_hack, 1);
 	// Fix for destroy_p_proc not being called if the critter is killed by explosives when you leave the map
 	MakeCall(0x4130C3, action_explode_hack);
 	MakeCall(0x4130E5, action_explode_hack1);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
-		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
+		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_FIX);
 		const DWORD itemQueuedAddr[] = {0x478115, 0x478138}; // item_queued_ (will return the found item)
 		SafeWriteBatch<BYTE>(0xBA, itemQueuedAddr);
 		MakeJump(0x474D22, barter_attempt_transaction_hack, 1);
 		HookCall(0x4798B1, item_m_turn_off_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for incorrect initialization of action points at the beginning of each turn
-	dlog("Applying Action Points initialization fix.", DL_INIT);
+	dlog("Applying Action Points initialization fix.", DL_FIX);
 	BlockCall(0x422E02);
 	MakeCall(0x422E1B, combat_hack);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for incorrect death animations being used when killing critters with kill_critter_type function
-	dlog("Applying kill_critter_type fix.", DL_INIT);
+	dlog("Applying kill_critter_type fix.", DL_FIX);
 	SafeWrite16(0x457E22, 0xDB31); // xor ebx, ebx
 	SafeWrite32(0x457C99, 0x30BE0075); // jnz loc_457C9B; mov esi, 48
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
 
 	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
-		dlog("Applying print to file fix.", DL_INIT);
+		dlog("Applying print to file fix.", DL_FIX);
 		MakeCall(0x4C67D4, db_get_file_list_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
 	//if (GetConfigInt("Misc", "gdBarterDispFix", 1)) {
-		dlog("Applying gdialog_mod_barter display fix.", DL_INIT);
+		dlog("Applying gdialog_mod_barter display fix.", DL_FIX);
 		HookCall(0x448250, gdActivateBarter_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	//if (GetConfigInt("Misc", "BagBackpackFix", 1)) {
-		dlog("Applying fix for bag/backpack bugs.", DL_INIT);
+		dlog("Applying fix for bag/backpack bugs.", DL_FIX);
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
 		HookCall(0x4764FC, (void*)item_add_force_);
@@ -3276,7 +3279,7 @@ void BugFixes_Init()
 		MakeCall(0x471C17, inven_item_wearing, 1); // inven_worn_
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, inven_action_cursor_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
@@ -3290,10 +3293,10 @@ void BugFixes_Init()
 
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
 	//if (GetConfigInt("Misc", "BonusMoveFix", 1)) {
-		dlog("Applying fix for Bonus Move exploit.", DL_INIT);
+		dlog("Applying fix for Bonus Move exploit.", DL_FIX);
 		HookCall(0x420E93, combat_load_hook);
 		MakeCall(0x422A06, combat_turn_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for the displayed message when the attack randomly hits a target that is not a critter and has a script attached
@@ -3305,10 +3308,10 @@ void BugFixes_Init()
 
 	// Fix for the double damage effect of Silent Death perk not being applied to critical hits
 	//if (GetConfigInt("Misc", "SilentDeathFix", 1)) {
-		dlog("Applying Silent Death patch.", DL_INIT);
+		dlog("Applying Silent Death patch.", DL_FIX);
 		SafeWrite8(0x4238DF, 0x8C); // jl loc_423A0D
 		HookCall(0x423A99, compute_attack_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
@@ -3320,8 +3323,8 @@ void BugFixes_Init()
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of the "count" argument is over 99999
 	SafeWrite32(0x45A2A0, 99999);
 
-	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
-	// some exit hex in destination map
+	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as some exit hex
+	// in destination map
 	MakeCall(0x48A704, obj_move_to_tile_hack);
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
@@ -3334,34 +3337,34 @@ void BugFixes_Init()
 	HookCalls(ai_combat_turn_run_hook, aiCombatTurnRunAddr);
 
 	// Fix instant death critical
-	dlog("Applying instant death fix.", DL_INIT);
+	dlog("Applying instant death fix.", DL_FIX);
 	MakeJump(0x424BA2, compute_damage_hack);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix missing AC/DR mod stats when examining ammo in the barter screen
-	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
+	dlog("Applying fix for displaying ammo stats in barter screen.", DL_FIX);
 	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0, 2);
 	MakeCall(0x49B504, obj_examine_func_hack_ammo0, 2);
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Display full item description for weapon/ammo in the barter screen
 	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
 	if (showItemDescription) {
-		dlog("Applying full item description in barter patch.", DL_INIT);
+		dlog("Applying full item description in barter patch.", DL_FIX);
 		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
 	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
-		dlog("Applying Swift Learner exp display patch.", DL_INIT);
+		dlog("Applying Swift Learner exp display patch.", DL_FIX);
 		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
 		HookCall(0x4221E2, combat_give_exps_hook);
 		MakeJump(0x4745AE, loot_container_exp_hack);
 		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
 		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
@@ -3371,24 +3374,24 @@ void BugFixes_Init()
 
 	// Fix broken obj_can_hear_obj function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
-		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
+		dlog("Applying obj_can_hear_obj fix.", DL_FIX);
 		SafeWrite8(0x4583D8, 0x3B);           // jz loc_458414
 		SafeWrite8(0x4583DE, CODETYPE_JumpZ); // jz loc_458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for AI not checking weapon perks properly when searching for the best weapon
 	int bestWeaponPerkFix = GetConfigInt("Misc", "AIBestWeaponFix", 0);
 	if (bestWeaponPerkFix > 0) {
-		dlog("Applying AI best weapon choice fix.", DL_INIT);
+		dlog("Applying AI best weapon choice fix.", DL_FIX);
 		HookCall(0x42954B, ai_best_weapon_hook);
 		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
 		if (bestWeaponPerkFix > 1) {
 			const DWORD aiBestWeaponAddr[] = {0x42955E, 0x4296E7};
 			SafeWriteBatch<BYTE>(0x55, aiBestWeaponAddr); // lea eax, [edx * 2];
 		}
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for the encounter description being displayed in two lines instead of one
@@ -3404,29 +3407,29 @@ void BugFixes_Init()
 	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
 
 	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
-	dlog("Applying fix for Tag! exploit.", DL_INIT);
+	dlog("Applying fix for Tag! exploit.", DL_FIX);
 	HookCall(0x43B463, SliderBtn_hook_down);
 	HookCall(0x43D7DD, Add4thTagSkill_hook);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
 	// with the same ID
-	dlog("Applying ai_retrieve_object engine function fix.", DL_INIT);
+	dlog("Applying ai_retrieve_object engine function fix.", DL_FIX);
 	HookCall(0x429D7B, ai_retrieve_object_hook);
 	MakeCall(0x472708, inven_find_id_hack);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
 	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
-		dlog("Applying start_gdialog argument fix.", DL_INIT);
+		dlog("Applying start_gdialog argument fix.", DL_FIX);
 		MakeCall(0x456F08, op_start_gdialog_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for Heave Ho! perk increasing Strength stat above 10 when determining the maximum range of thrown weapons
-	dlog("Applying Heave Ho! perk fix.", DL_INIT);
+	dlog("Applying Heave Ho! perk fix.", DL_FIX);
 	HookCall(0x478AD9, item_w_range_hook);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for determine_to_hit_func_ engine function taking distance into account when called from determine_to_hit_no_range_
 	HookCall(0x4244C3, determine_to_hit_func_hook);
@@ -3437,23 +3440,23 @@ void BugFixes_Init()
 	radEffectsMsgNum = GetConfigInt("Misc", "RadEffectsRemovalMsg", radEffectsMsgNum);
 	// Display messages about radiation for the active geiger counter
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
-		dlog("Applying active geiger counter messages patch.", DL_INIT);
+		dlog("Applying active geiger counter messages patch.", DL_FIX);
 		const DWORD activeGeigerAddr[] = {0x42D424, 0x42D444};
 		SafeWriteBatch<BYTE>(CODETYPE_JumpZ, activeGeigerAddr); // jnz > jz
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 	// Display a pop-up message box about death from radiation
 	HookCall(0x42D733, process_rads_hook_msg);
 
 	// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
 	if (GetConfigInt("Misc", "AIDrugUsePerfFix", 0)) {
-		dlog("Applying AI drug use preference fix.", DL_INIT);
+		dlog("Applying AI drug use preference fix.", DL_FIX);
 		MakeCall(0x42869D, ai_check_drugs_hack_break);
 		MakeCall(0x4286AB, ai_check_drugs_hack_check);
 		SafeWrite16(0x4286B0, 0x7490);         // jnz > jz
 		SafeWrite8(0x4286C5, CODETYPE_JumpNZ); // jz  > jnz
 		MakeCall(0x4286C7, ai_check_drugs_hack_use);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
@@ -3467,7 +3470,7 @@ void BugFixes_Init()
 	// called_shot - additional damage when hitting the target
 	// num_attacks - the number of free action points on the first turn only
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
-		dlog("Applying attack_complex arguments fix.", DL_INIT);
+		dlog("Applying attack_complex arguments fix.", DL_FIX);
 		HookCall(0x456D4A, op_attack_hook);
 		SafeWrite8(0x456D61, 0x74); // mov [gcsd.free_move], esi
 		SafeWrite8(0x456D92, 0x5C); // mov [gcsd.amount], ebx
@@ -3478,7 +3481,7 @@ void BugFixes_Init()
 		SafeWrite16(0x456DA7, 0x8489); // mov [gcsd.changeFlags], 1 > mov [gcsd.changeFlags], eax
 		SafeWrite8(0x456DAB, 0);
 		SafeWrite8(0x456DAE, CODETYPE_Nop);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	} else {
 		// Fix setting result flags argument for the target
 		SafeWrite16(0x456D95, 0xED85); // cmp eax, ebp > test ebp, ebp
@@ -3490,9 +3493,9 @@ void BugFixes_Init()
 	MakeJump(0x422FE5, combat_attack_hack, 1);
 
 	// Fix for critter_mod_skill taking a negative amount value as a positive
-	dlog("Applying critter_mod_skill fix.", DL_INIT);
+	dlog("Applying critter_mod_skill fix.", DL_FIX);
 	SafeWrite8(0x45B910, 0x7E); // jbe > jle
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
 	// also change the behavior of use_obj_on_obj function
@@ -3502,7 +3505,7 @@ void BugFixes_Init()
 
 	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
 	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
-	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_INIT);
+	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_FIX);
 	const DWORD scriptTargetAddr[] = {
 		0x456554, // op_pickup_obj_
 		0x456600, // op_drop_obj_
@@ -3510,7 +3513,7 @@ void BugFixes_Init()
 		0x456AA4  // op_use_obj_
 	};
 	SafeWriteBatch<BYTE>(0x34, scriptTargetAddr); // script.target > script.self
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for critters not attacking the player in combat when loading a game saved in combat mode
 	BlockCall(0x48D6F0); // obj_fix_combat_cid_for_dude_
@@ -3526,17 +3529,17 @@ void BugFixes_Init()
 	SafeWrite32(0x4AA56B, 0);
 
 	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
-	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
+	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_FIX);
 	HookCall(0x429A2B, ai_search_inven_weap_hook);
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
 	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
-	dlog("Applying fix for the self-healing of critters when entering the map.", DL_INIT);
+	dlog("Applying fix for the self-healing of critters when entering the map.", DL_FIX);
 	MakeCall(0x483356, map_age_dead_critters_hack);
 	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
 	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
-	dlogr(" Done", DL_INIT);
+	dlogr(" Done", DL_FIX);
 
 	// Fix for the removal of party member's corpse when loading the map
 	MakeCall(0x495769, partyFixMultipleMembers_hack, 1);
@@ -3584,9 +3587,9 @@ void BugFixes_Init()
 
 	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
 	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
-		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_INIT);
+		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_FIX);
 		MakeJump(0x4C5A41, wmTeleportToArea_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
@@ -3600,9 +3603,9 @@ void BugFixes_Init()
 
 	// Fix to prevent using number keys to enter unvisited areas on a town map
 	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
-		dlog("Applying town map hotkeys patch.", DL_INIT);
+		dlog("Applying town map hotkeys patch.", DL_FIX);
 		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Fix for combat not ending automatically when there are no hostile critters
@@ -3612,9 +3615,9 @@ void BugFixes_Init()
 	// Fix for the car being lost when entering a location via the Town/World button and then leaving on foot
 	// (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to the world map)
 	if (GetConfigInt("Misc", "CarPlacedTileFix", 1)) {
-		dlog("Applying car placed tile fix.", DL_INIT);
+		dlog("Applying car placed tile fix.", DL_FIX);
 		MakeCall(0x4C2367,  wmInterfaceInit_hack);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	}
 
 	// Place the player on a nearby empty tile if the entrance tile is blocked by another object when entering a map
@@ -3627,10 +3630,10 @@ void BugFixes_Init()
 
 	// Fix to prevent corpses from blocking line of fire
 	//if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
-		dlog("Applying fix for corpses blocking line of fire.", DL_INIT);
+		dlog("Applying fix for corpses blocking line of fire.", DL_FIX);
 		MakeJump(0x48B994, obj_shoot_blocking_at_hack0);
 		MakeJump(0x48BA04, obj_shoot_blocking_at_hack1);
-		dlogr(" Done", DL_INIT);
+		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for party member's equipped weapon being placed in the incorrect item slot after leveling up

@@ -83,6 +83,9 @@ void LoggingInit() {
 	if (GetIntDefaultConfig("Debugging", "Criticals", 0)) {
 		DebugTypes |= DL_CRITICALS;
 	}
+	if (GetIntDefaultConfig("Debugging", "Fixes", 0)) {
+		DebugTypes |= DL_FIX;
+	}
 }
 
 #endif
