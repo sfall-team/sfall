@@ -534,7 +534,7 @@ void RefreshGNW(bool skipOwner) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;
 }
 
-/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
+//////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////
 
 static bool LoadFrmHeader(fo::UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)

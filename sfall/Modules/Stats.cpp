@@ -204,7 +204,7 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 
 	if (proto->critter.base.health != calcStatValue) {
 		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
-							   critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+		                       critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
 
 		proto->critter.base.health = calcStatValue;
 		critter->critter.health = calcStatValue + proto->critter.bonus.health;

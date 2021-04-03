@@ -68,7 +68,7 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			break;
 		default:
 			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
-								   metafunc, fo::var::currentProgram->fileName, fo::func::findCurrentProc(fo::var::currentProgram));
+			                       metafunc, fo::var::currentProgram->fileName, fo::func::findCurrentProc(fo::var::currentProgram));
 			break;
 	}
 	return result;

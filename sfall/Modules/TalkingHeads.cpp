@@ -88,8 +88,8 @@ static long reactionID;
 
 static bool GetHeadFrmName(char* name) {
 	int headFid = (*(DWORD*)FO_VAR_lips_draw_head)
-				? fo::var::lipsFID
-				: fo::var::fidgetFID;
+	            ? fo::var::lipsFID
+	            : fo::var::fidgetFID;
 	int index = headFid & 0xFFF;
 	if (index >= fo::var::art[fo::OBJ_TYPE_HEAD].total) return true;
 	int ID2 = (*(DWORD*)FO_VAR_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;
@@ -149,7 +149,7 @@ static bool LoadFrm(Frm* frm) {
 		}
 		frm->textures = textures;
 		texMap.emplace(std::piecewise_construct, std::forward_as_tuple(frm->key),
-					   std::forward_as_tuple(textures, frm->showHighlights, frm->bakedBackground, frm->frames));
+		               std::forward_as_tuple(textures, frm->showHighlights, frm->bakedBackground, frm->frames));
 		*(DWORD*)FO_VAR_bk_disabled = 0;
 	} else {
 		// Use preloaded textures

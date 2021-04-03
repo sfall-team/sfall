@@ -160,7 +160,7 @@ extern ArrayKeysMap savedArrays;
 long LoadArrays(HANDLE h);
 void SaveArrays(HANDLE h);
 int GetNumArrays();
-bool ArrayExist(DWORD id);
+bool ArrayExists(DWORD id);
 void GetArrays(int* arrays);
 
 void DEGetArray(int id, DWORD* types, char* data);

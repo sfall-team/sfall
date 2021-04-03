@@ -69,7 +69,7 @@ void op_arctan(OpcodeContext& ctx) {
 
 void op_power(OpcodeContext& ctx) {
 	const ScriptValue &base = ctx.arg(0),
-					  &power = ctx.arg(1);
+	                  &power = ctx.arg(1);
 	float result = 0.0;
 	if (power.isFloat())
 		result = pow(base.asFloat(), power.floatValue());

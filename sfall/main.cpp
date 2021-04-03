@@ -195,9 +195,9 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					RegCloseKey(key);
 
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
-								   "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
-								   "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
+					               "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
+					               "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
+					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -267,7 +267,7 @@ inline void SfallInit() {
 			IniReader::SetConfigFile(cmdline);
 		} else {
 			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
-						   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
+			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}
 	} else {
