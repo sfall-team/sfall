@@ -395,7 +395,7 @@ bool __stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 				SetConfigFile(cmdline);
 			} else {
 				MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
-							   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
+				               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 				goto defaultIni;
 			}
 		} else {
