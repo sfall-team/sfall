@@ -188,7 +188,7 @@ static int __stdcall StringSplit(const char* str, const char* split) {
 
 static void __stdcall op_string_split2() {
 	const ScriptValue &strArg = opHandler.arg(0),
-					  &splitArg = opHandler.arg(1);
+	                  &splitArg = opHandler.arg(1);
 
 	if (strArg.isString() && splitArg.isString()) {
 		opHandler.setReturn(StringSplit(strArg.strValue(), splitArg.strValue()));
@@ -230,8 +230,8 @@ static char* __stdcall SubString(const char* str, int startPos, int length) {
 
 static void __stdcall op_substr2() {
 	const ScriptValue &strArg = opHandler.arg(0),
-					  &startArg = opHandler.arg(1),
-					  &lenArg = opHandler.arg(2);
+	                  &startArg = opHandler.arg(1),
+	                  &lenArg = opHandler.arg(2);
 
 	if (strArg.isString() && startArg.isInt() && lenArg.isInt()) {
 		const char* str = strArg.strValue();
@@ -249,7 +249,7 @@ static void __declspec(naked) op_substr() {
 
 static void mf_string_compare() {
 	const ScriptValue &str1Arg = opHandler.arg(0),
-					  &str2Arg = opHandler.arg(1);
+	                  &str2Arg = opHandler.arg(1);
 
 	if (str1Arg.isString() && str2Arg.isString()) {
 		if (opHandler.numArgs() < 3) {
@@ -474,7 +474,7 @@ static void mf_string_format() {
 static void __stdcall op_message_str_game2() {
 	const char* msg = nullptr;
 	const ScriptValue &fileIdArg = opHandler.arg(0),
-					  &msgIdArg = opHandler.arg(1);
+	                  &msgIdArg = opHandler.arg(1);
 
 	if (fileIdArg.isInt() && msgIdArg.isInt()) {
 		int fileId = fileIdArg.rawValue();

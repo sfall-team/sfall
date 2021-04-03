@@ -90,7 +90,7 @@ static void __declspec(naked) op_set_df_model() {
 
 static void __stdcall op_set_movie_path2() {
 	const ScriptValue &fileNameArg = opHandler.arg(0),
-					  &movieIdArg = opHandler.arg(1);
+	                  &movieIdArg = opHandler.arg(1);
 
 	if (fileNameArg.isString() && movieIdArg.isInt()) {
 		long movieID = movieIdArg.rawValue();
@@ -300,16 +300,16 @@ static const char* valueOutRange = "%s() - argument values out of range.";
 
 static void op_set_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
-					  &bodypartArg = opHandler.arg(1),
-					  &slotArg = opHandler.arg(2),
-					  &elementArg = opHandler.arg(3),
-					  &valueArg = opHandler.arg(4);
+	                  &bodypartArg = opHandler.arg(1),
+	                  &slotArg = opHandler.arg(2),
+	                  &elementArg = opHandler.arg(3),
+	                  &valueArg = opHandler.arg(4);
 
 	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt() && valueArg.isInt()) {
 		DWORD critter = critterArg.rawValue(),
-			bodypart  = bodypartArg.rawValue(),
-			slot      = slotArg.rawValue(),
-			element   = elementArg.rawValue();
+		      bodypart = bodypartArg.rawValue(),
+		      slot = slotArg.rawValue(),
+		      element = elementArg.rawValue();
 
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "set_critical_table");
@@ -327,15 +327,15 @@ static void __declspec(naked) op_set_critical_table() {
 
 static void op_get_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
-					  &bodypartArg = opHandler.arg(1),
-					  &slotArg = opHandler.arg(2),
-					  &elementArg = opHandler.arg(3);
+	                  &bodypartArg = opHandler.arg(1),
+	                  &slotArg = opHandler.arg(2),
+	                  &elementArg = opHandler.arg(3);
 
 	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt()) {
 		DWORD critter = critterArg.rawValue(),
-			bodypart  = bodypartArg.rawValue(),
-			slot      = slotArg.rawValue(),
-			element   = elementArg.rawValue();
+		      bodypart = bodypartArg.rawValue(),
+		      slot = slotArg.rawValue(),
+		      element = elementArg.rawValue();
 
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "get_critical_table");
@@ -354,15 +354,15 @@ static void __declspec(naked) op_get_critical_table() {
 
 static void op_reset_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
-					  &bodypartArg = opHandler.arg(1),
-					  &slotArg = opHandler.arg(2),
-					  &elementArg = opHandler.arg(3);
+	                  &bodypartArg = opHandler.arg(1),
+	                  &slotArg = opHandler.arg(2),
+	                  &elementArg = opHandler.arg(3);
 
 	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt()) {
 		DWORD critter = critterArg.rawValue(),
-			bodypart  = bodypartArg.rawValue(),
-			slot      = slotArg.rawValue(),
-			element   = elementArg.rawValue();
+		      bodypart = bodypartArg.rawValue(),
+		      slot = slotArg.rawValue(),
+		      element = elementArg.rawValue();
 
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "reset_critical_table");
@@ -466,7 +466,7 @@ static void __declspec(naked) op_refresh_pc_art() {
 
 static void __stdcall op_play_sfall_sound2() {
 	const ScriptValue &fileArg = opHandler.arg(0),
-					  &modeArg = opHandler.arg(1);
+	                  &modeArg = opHandler.arg(1);
 
 	if (fileArg.isString() && modeArg.isInt()) {
 		DWORD soundID = 0;
@@ -577,7 +577,7 @@ static void __declspec(naked) op_sneak_success() {
 
 static void __stdcall op_tile_light2() {
 	const ScriptValue &elevArg = opHandler.arg(0),
-					  &tileArg = opHandler.arg(1);
+	                  &tileArg = opHandler.arg(1);
 
 	if (elevArg.isInt() && tileArg.isInt()) {
 		int lightLevel = fo_light_get_tile(elevArg.rawValue(), tileArg.rawValue());

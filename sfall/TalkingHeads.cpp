@@ -85,8 +85,8 @@ bool Use32BitTalkingHeads = false;
 
 static bool GetHeadFrmName(char* name) {
 	int headFid = (*(DWORD*)FO_VAR_lips_draw_head)
-				? *ptr_lipsFID
-				: *ptr_fidgetFID;
+	            ? *ptr_lipsFID
+	            : *ptr_fidgetFID;
 	int index = headFid & 0xFFF;
 	if (index >= ptr_art[OBJ_TYPE_HEAD].total) return true;
 	int ID2 = (*(DWORD*)FO_VAR_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;

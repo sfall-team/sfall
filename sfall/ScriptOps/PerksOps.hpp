@@ -73,7 +73,7 @@ static void __declspec(naked) op_get_perk_available() {
 
 static void __stdcall op_set_perk_name2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0),
-					  &stringArg = opHandler.arg(1);
+	                  &stringArg = opHandler.arg(1);
 
 	if (perkIdArg.isInt() && stringArg.isString()) {
 		SetPerkName(perkIdArg.rawValue(), stringArg.strValue());
@@ -88,7 +88,7 @@ static void __declspec(naked) op_set_perk_name() {
 
 static void __stdcall op_set_perk_desc2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0),
-					  &stringArg = opHandler.arg(1);
+	                  &stringArg = opHandler.arg(1);
 
 	if (perkIdArg.isInt() && stringArg.isString()) {
 		SetPerkDesc(perkIdArg.rawValue(), stringArg.strValue());
@@ -125,9 +125,9 @@ end:
 
 static void __stdcall op_set_selectable_perk2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
-					  &activeArg = opHandler.arg(1),
-					  &imageArg = opHandler.arg(2),
-					  &descArg = opHandler.arg(3);
+	                  &activeArg = opHandler.arg(1),
+	                  &imageArg = opHandler.arg(2),
+	                  &descArg = opHandler.arg(3);
 
 	if (nameArg.isString() && activeArg.isInt() && imageArg.isInt() && descArg.isString()) {
 		SetSelectablePerk(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
@@ -142,9 +142,9 @@ static void __declspec(naked) op_set_selectable_perk() {
 
 static void __stdcall op_set_fake_perk2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
-					  &levelArg = opHandler.arg(1),
-					  &imageArg = opHandler.arg(2),
-					  &descArg = opHandler.arg(3);
+	                  &levelArg = opHandler.arg(1),
+	                  &imageArg = opHandler.arg(2),
+	                  &descArg = opHandler.arg(3);
 
 	if (nameArg.isString() && levelArg.isInt() && imageArg.isInt() && descArg.isString()) {
 		SetFakePerk(nameArg.strValue(), levelArg.rawValue(), imageArg.rawValue(), descArg.strValue());
@@ -159,9 +159,9 @@ static void __declspec(naked) op_set_fake_perk() {
 
 static void __stdcall op_set_fake_trait2() {
 	const ScriptValue &nameArg = opHandler.arg(0),
-					  &activeArg = opHandler.arg(1),
-					  &imageArg = opHandler.arg(2),
-					  &descArg = opHandler.arg(3);
+	                  &activeArg = opHandler.arg(1),
+	                  &imageArg = opHandler.arg(2),
+	                  &descArg = opHandler.arg(3);
 
 	if (nameArg.isString() && activeArg.isInt() && imageArg.isInt() && descArg.isString()) {
 		SetFakeTrait(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());

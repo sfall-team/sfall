@@ -23,7 +23,7 @@
 //file system functions
 static void __stdcall op_fs_create2() {
 	const ScriptValue &pathArg = opHandler.arg(0),
-					  &sizeArg = opHandler.arg(1);
+	                  &sizeArg = opHandler.arg(1);
 
 	if (pathArg.isString() && sizeArg.isInt()) {
 		opHandler.setReturn(FScreate(pathArg.strValue(), sizeArg.rawValue()));
@@ -39,7 +39,7 @@ static void __declspec(naked) op_fs_create() {
 
 static void __stdcall op_fs_copy2() {
 	const ScriptValue &pathArg = opHandler.arg(0),
-					  &srcArg = opHandler.arg(1);
+	                  &srcArg = opHandler.arg(1);
 
 	if (pathArg.isString() && srcArg.isString()) {
 		opHandler.setReturn(FScopy(pathArg.strValue(), srcArg.strValue()));
@@ -70,7 +70,7 @@ static void __declspec(naked) op_fs_find() {
 
 static void __stdcall op_fs_write_byte2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &dataArg = opHandler.arg(1);
+	                  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isInt()) {
 		FSwrite_byte(idArg.rawValue(), dataArg.rawValue());
@@ -85,7 +85,7 @@ static void __declspec(naked) op_fs_write_byte() {
 
 static void __stdcall op_fs_write_short2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &dataArg = opHandler.arg(1);
+	                  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isInt()) {
 		FSwrite_short(idArg.rawValue(), dataArg.rawValue());
@@ -100,7 +100,7 @@ static void __declspec(naked) op_fs_write_short() {
 
 static void __stdcall op_fs_write_int2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &dataArg = opHandler.arg(1);
+	                  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isInt()) {
 		FSwrite_int(idArg.rawValue(), dataArg.rawValue());
@@ -115,7 +115,7 @@ static void __declspec(naked) op_fs_write_int() {
 
 static void __stdcall op_fs_write_string2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &dataArg = opHandler.arg(1);
+	                  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isString()) {
 		FSwrite_string(idArg.rawValue(), dataArg.strValue());
@@ -130,7 +130,7 @@ static void __declspec(naked) op_fs_write_string() {
 
 static void __stdcall op_fs_write_bstring2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &dataArg = opHandler.arg(1);
+	                  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isString()) {
 		FSwrite_bstring(idArg.rawValue(), dataArg.strValue());
@@ -249,7 +249,7 @@ static void __declspec(naked) op_fs_pos() {
 
 static void __stdcall op_fs_seek2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &posArg = opHandler.arg(1);
+	                  &posArg = opHandler.arg(1);
 
 	if (idArg.isInt() && posArg.isInt()) {
 		FSseek(idArg.rawValue(), posArg.rawValue());
@@ -264,7 +264,7 @@ static void __declspec(naked) op_fs_seek() {
 
 static void __stdcall op_fs_resize2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &sizeArg = opHandler.arg(1);
+	                  &sizeArg = opHandler.arg(1);
 
 	if (idArg.isInt() && sizeArg.isInt()) {
 		FSresize(idArg.rawValue(), sizeArg.rawValue());

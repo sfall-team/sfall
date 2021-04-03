@@ -338,13 +338,13 @@ enum PlayType : signed char {
 	PLAYTYPE_slides = 4 // speech for endgame slideshow
 };
 
-static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, bool isExist) {
+static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFile) {
 	if (playType == PLAYTYPE_music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
 		StopSfallSound(backgroundMusic->id);
 		backgroundMusic = nullptr;
 	}
-	if (!isExist) return false;
+	if (!hasFile) return false;
 
 	if (playType == PLAYTYPE_music) {
 		backgroundMusic = PlayingSound(file, SNDMODE_engine_music_play); // background music loop
@@ -380,7 +380,7 @@ static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playTy
 	wPath[len] = L'\0';
 	len -= 3; // the position of the first character of the file extension
 
-	bool isExist = false;
+	bool hasFile = false;
 	for (int i = 0; i < 3; i++) {
 		int j = len;
 		wPath[j++] = SoundExtensions[i][0];
@@ -389,12 +389,12 @@ static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playTy
 
 		if (GetFileAttributesW(wPath) & FILE_ATTRIBUTE_DIRECTORY) continue; // also file not found
 
-		isExist = true;
+		hasFile = true;
 		break;
 	}
-	soundsFiles.insert(std::make_pair(std::move(pathFile), (isExist) ? wPath : L""));
+	soundsFiles.insert(std::make_pair(std::move(pathFile), (hasFile) ? wPath : L""));
 
-	return PrePlaySoundFile(playType, wPath, isExist);
+	return PrePlaySoundFile(playType, wPath, hasFile);
 }
 
 static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {

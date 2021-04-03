@@ -125,7 +125,7 @@ static void DeleteWordWrapList(LineNode *CurrentLine) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////DAT FUNCTIONS///////////////////////////////////////////////////////////////////////
+//////////////////////////////// DAT FUNCTIONS /////////////////////////////////
 
 static void* LoadDat(const char* fileName) {
 	return fo_dbase_open(fileName);
@@ -135,13 +135,13 @@ static void UnloadDat(void* dat) {
 	fo_dbase_close(dat);
 }
 
-/////////////////////////////////////////////////////////////////OTHER FUNCTIONS/////////////////////////////////////////////////////////////////////
+/////////////////////////////// OTHER FUNCTIONS ////////////////////////////////
 
 static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
 	return (lstRef << 24) | lstNum;
 }
 
-/////////////////////////////////////////////////////////////////APP MOD FUNCTIONS///////////////////////////////////////////////////////////////////
+////////////////////////////// APP MOD FUNCTIONS ///////////////////////////////
 
 static char GetSex() {
 	return (HeroIsFemale()) ? 'F' : 'M';
@@ -173,11 +173,11 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 	}
 
 	const char sex = GetSex();
-	bool folderIsExist = false, heroDatIsExist = false;
+	bool folderExists = false, heroDatExists = false;
 	// check if folder exists for selected appearance
 	sprintf_s(heroPathPtr[0]->path, 64, appearancePathFmt, sex, race, style, "");
 	if (GetFileAttributes(heroPathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
-		folderIsExist = true;
+		folderExists = true;
 	}
 	// check if Dat exists for selected appearance
 	sprintf_s(heroPathPtr[1]->path, 64, appearancePathFmt, sex, race, style, ".dat");
@@ -187,21 +187,21 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 			heroPathPtr[1]->pDat = LoadDat(heroPathPtr[1]->path);
 			heroPathPtr[1]->isDat = 1;
 		}
-		if (folderIsExist) heroPathPtr[0]->next = heroPathPtr[1];
-		heroDatIsExist = true;
-	} else if (!folderIsExist) {
+		if (folderExists) heroPathPtr[0]->next = heroPathPtr[1];
+		heroDatExists = true;
+	} else if (!folderExists) {
 		return -1; // no .dat files and folder
 	}
 
-	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
-	heroPathPtr[0 + heroDatIsExist]->next = ptr_paths[0]; // heroPathPtr[] >> foPaths
+	heroAppPaths = &heroPathPtr[1 - folderExists]; // set path for selected appearance
+	heroPathPtr[0 + heroDatExists]->next = ptr_paths[0]; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
-		bool raceDatIsExist = false, folderIsExist = false;
+		bool raceDatExists = false, folderExists = false;
 		// check if folder exists for selected race base appearance
 		sprintf_s(racePathPtr[0]->path, 64, appearancePathFmt, sex, race, 0, "");
 		if (GetFileAttributes(racePathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
-			folderIsExist = true;
+			folderExists = true;
 		}
 		// check if Dat (or folder) exists for selected race base appearance
 		sprintf_s(racePathPtr[1]->path, 64, appearancePathFmt, sex, race, 0, ".dat");
@@ -211,14 +211,14 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 				racePathPtr[1]->pDat = LoadDat(racePathPtr[1]->path);
 				racePathPtr[1]->isDat = 1;
 			}
-			if (folderIsExist) racePathPtr[0]->next = racePathPtr[1];
-			raceDatIsExist = true;
-		} else if (!folderIsExist) {
+			if (folderExists) racePathPtr[0]->next = racePathPtr[1];
+			raceDatExists = true;
+		} else if (!folderExists) {
 			return 0;
 		}
 
-		heroPathPtr[0 + heroDatIsExist]->next = racePathPtr[1 - folderIsExist]; // set path for selected race base appearance
-		racePathPtr[0 + raceDatIsExist]->next = ptr_paths[0]; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
+		heroPathPtr[0 + heroDatExists]->next = racePathPtr[1 - folderExists]; // set path for selected race base appearance
+		racePathPtr[0 + raceDatExists]->next = ptr_paths[0]; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
 	}
 	return 0;
 }
@@ -329,7 +329,7 @@ static long __stdcall AddHeroCritNames() { // art_init_
 	critterListSize = critterArt.total / 2;
 	if (critterListSize > 2048) {
 		MessageBoxA(0, "This mod cannot be used because the maximum limit of the FID count in the critters.lst is exceeded.\n"
-					   "Please disable the mod and restart the game.", "Hero Appearance mod", MB_TASKMODAL | MB_ICONERROR);
+		               "Please disable the mod and restart the game.", "Hero Appearance mod", MB_TASKMODAL | MB_ICONERROR);
 		ExitProcess(-1);
 	}
 	critterArraySize = critterListSize * 13;
@@ -353,7 +353,7 @@ static void DoubleArtAlias() {
 	std::memcpy(crittersAliasData + critterListSize, crittersAliasData, critterListSize * 4);
 }
 
-///////////////////////////////////////////////////////////////GRAPHICS HERO FUNCTIONS///////////////////////////////////////////////////////////////
+/////////////////////////// GRAPHICS HERO FUNCTIONS ////////////////////////////
 
 static void DrawPC() {
 	RedrawObject(*ptr_obj_dude);
@@ -481,7 +481,7 @@ endFunc:
 	}
 }
 
-/////////////////////////////////////////////////////////////////INTERFACE FUNCTIONS/////////////////////////////////////////////////////////////////
+///////////////////////////// INTERFACE FUNCTIONS //////////////////////////////
 
 static void surface_draw(long width, long height, long fromWidth, long fromX, long fromY, BYTE *fromBuff,
                          long toWidth, long toX, long toY, BYTE *toBuff, int maskRef)
@@ -1252,7 +1252,7 @@ static void __declspec(naked) CharScrnEnd() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////FIX FUNCTIONS//////////////////////////////////////////////////////////////////
+//////////////////////////////// FIX FUNCTIONS /////////////////////////////////
 
 // Adjust PC SFX acm name. Skip Underscore char at the start of PC frm file name
 static void __declspec(naked) FixPcSFX() {
@@ -1333,7 +1333,7 @@ skip:
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Load Appearance data from GCD file
 static void __fastcall LoadGCDAppearance(DbFile* fileStream) {

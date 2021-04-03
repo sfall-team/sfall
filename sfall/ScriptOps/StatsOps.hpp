@@ -42,7 +42,7 @@ end:
 // stat_funcs
 static void __stdcall op_set_pc_base_stat2() {
 	const ScriptValue &statArg = opHandler.arg(0),
-					  &valArg = opHandler.arg(1);
+	                  &valArg = opHandler.arg(1);
 
 	if (statArg.isInt() && valArg.isInt()) {
 		int stat = statArg.rawValue();
@@ -62,7 +62,7 @@ static void __declspec(naked) op_set_pc_base_stat() {
 
 static void __stdcall op_set_pc_extra_stat2() {
 	const ScriptValue &statArg = opHandler.arg(0),
-					  &valArg = opHandler.arg(1);
+	                  &valArg = opHandler.arg(1);
 
 	if (statArg.isInt() && valArg.isInt()) {
 		int stat = statArg.rawValue();
@@ -126,7 +126,7 @@ static void __declspec(naked) op_get_pc_extra_stat() {
 static void __stdcall op_set_critter_base_stat2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1),
-					  &valArg = opHandler.arg(2);
+	                  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
 		if (obj->IsCritter()) {
@@ -152,7 +152,7 @@ static void __declspec(naked) op_set_critter_base_stat() {
 static void __stdcall op_set_critter_extra_stat2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1),
-					  &valArg = opHandler.arg(2);
+	                  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
 		if (obj->IsCritter()) {
@@ -490,7 +490,7 @@ end:
 static void __stdcall op_set_critter_hit_chance_mod2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1),
-					  &modArg = opHandler.arg(2);
+	                  &modArg = opHandler.arg(2);
 
 	if (obj && maxArg.isInt() && modArg.isInt()) {
 		if (obj->IsCritter()) {
@@ -528,7 +528,7 @@ end:
 static void __stdcall op_set_critter_pickpocket_mod2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1),
-					  &modArg = opHandler.arg(2);
+	                  &modArg = opHandler.arg(2);
 
 	if (obj && maxArg.isInt() && modArg.isInt()) {
 		if (obj->IsCritter()) {

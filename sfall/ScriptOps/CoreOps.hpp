@@ -63,7 +63,7 @@ static void __declspec(naked) op_available_global_script_types() {
 
 static void __stdcall op_set_sfall_global2() {
 	const ScriptValue &varArg = opHandler.arg(0),
-					  &valArg = opHandler.arg(1);
+	                  &valArg = opHandler.arg(1);
 
 	if (!varArg.isFloat() && !valArg.isString()) {
 		if (varArg.isString()) {
@@ -185,7 +185,7 @@ static void __declspec(naked) op_get_sfall_args() {
 
 static void __stdcall op_set_sfall_arg2() {
 	const ScriptValue &argNumArg = opHandler.arg(0),
-					  &valArg = opHandler.arg(1);
+	                  &valArg = opHandler.arg(1);
 
 	if (argNumArg.isInt() && valArg.isInt()) {
 		SetHSArg(argNumArg.rawValue(), valArg.rawValue());
@@ -259,7 +259,7 @@ static void __declspec(naked) op_register_hook() {
 
 static void __stdcall op_register_hook_proc2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &procArg = opHandler.arg(1);
+	                  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
 		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
@@ -274,7 +274,7 @@ static void __declspec(naked) op_register_hook_proc() {
 
 static void __stdcall op_register_hook_proc_spec2() {
 	const ScriptValue &idArg = opHandler.arg(0),
-					  &procArg = opHandler.arg(1);
+	                  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
 		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);

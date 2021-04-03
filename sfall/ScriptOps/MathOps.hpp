@@ -22,7 +22,7 @@
 
 static void __stdcall op_div2() {
 	const ScriptValue &dividend = opHandler.arg(0),
-					  &divisor = opHandler.arg(1);
+	                  &divisor = opHandler.arg(1);
 
 	if (!dividend.isString() && !divisor.isString()) {
 		if (divisor.rawValue() == 0) {
@@ -126,7 +126,7 @@ static void __declspec(naked) op_tan() {
 
 static void __stdcall op_arctan2() {
 	const ScriptValue &xFltArg = opHandler.arg(0),
-					  &yFltArg = opHandler.arg(1);
+	                  &yFltArg = opHandler.arg(1);
 
 	if (!xFltArg.isString() && !yFltArg.isString()) {
 		opHandler.setReturn(atan2(xFltArg.asFloat(), yFltArg.asFloat()));
@@ -142,7 +142,7 @@ static void __declspec(naked) op_arctan() {
 
 static void __stdcall op_power2() {
 	const ScriptValue &base = opHandler.arg(0),
-					  &power = opHandler.arg(1);
+	                  &power = opHandler.arg(1);
 
 	if (!base.isString() && !power.isString()) {
 		float result = 0.0;

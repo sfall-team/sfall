@@ -264,7 +264,7 @@ long LoadArrays(HANDLE h) {
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
-		while (ArrayExist(nextArrayID)) nextArrayID++;
+		while (ArrayExists(nextArrayID)) nextArrayID++;
 		if (nextArrayID == 0) nextArrayID++;
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
@@ -311,7 +311,7 @@ int GetNumArrays() {
 	return arrays.size();
 }
 
-bool ArrayExist(DWORD id) {
+bool ArrayExists(DWORD id) {
 	return (arrays.find(id) != arrays.end());
 }
 
@@ -430,7 +430,7 @@ DWORD __stdcall CreateArray(int len, DWORD flags) {
 		var.val.resize(len);
 	}
 
-	while (ArrayExist(nextArrayID)) nextArrayID++;
+	while (ArrayExists(nextArrayID)) nextArrayID++;
 	if (nextArrayID == 0) nextArrayID++;
 
 	if (arraysBehavior == 0) {
@@ -468,7 +468,7 @@ void DeleteAllTempArrays() {
 
 DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	if (!ArrayExist(id) || index < -1 || index > arrays[id].size()) {
+	if (!ArrayExists(id) || index < -1 || index > arrays[id].size()) {
 		return 0;
 	}
 	if (index == -1) { // special index to indicate if array is associative
@@ -498,7 +498,7 @@ DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 
 DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	if (!ArrayExist(id)) return 0;
+	if (!ArrayExists(id)) return 0;
 
 	int el;
 	sArrayVar &arr = arrays[id];
@@ -579,7 +579,7 @@ void __stdcall setArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD val
 }
 
 void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
-	if (ArrayExist(id)) setArray(id, key, keyType, val, valType, allowUnset);
+	if (ArrayExists(id)) setArray(id, key, keyType, val, valType, allowUnset);
 }
 
 int __stdcall LenArray(DWORD id) {
@@ -644,7 +644,7 @@ static void MapSort(sArrayVar& arr, int type) {
 }
 
 void __stdcall ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || !ArrayExist(id)) return;
+	if (newlen == -1 || !ArrayExists(id)) return;
 
 	sArrayVar &arr = arrays[id];
 	int arrSize = arr.size();
@@ -696,7 +696,7 @@ void __stdcall FixArray(DWORD id) {
 int __stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	datatype = getSfallTypeByScriptType(datatype);
-	if (!ArrayExist(id)) {
+	if (!ArrayExists(id)) {
 		return -1;
 	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
@@ -783,7 +783,7 @@ void __stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 	Should always return 0!
 */
 long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
-	if (stackArrayId == 0 || !ArrayExist(stackArrayId)) return 0;
+	if (stackArrayId == 0 || !ArrayExists(stackArrayId)) return 0;
 
 	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
 		size_t size = arrays[stackArrayId].val.size();

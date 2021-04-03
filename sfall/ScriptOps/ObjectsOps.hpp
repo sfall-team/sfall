@@ -175,7 +175,7 @@ static void __stdcall op_set_script2() {
 			return;
 		}
 		scriptIndex--;
-	
+
 		if (object->scriptId != 0xFFFFFFFF) {
 			fo_scr_remove(object->scriptId);
 			object->scriptId = 0xFFFFFFFF;
@@ -186,7 +186,7 @@ static void __stdcall op_set_script2() {
 			scriptType = Scripts::SCRIPT_ITEM;
 		}
 		fo_obj_new_sid_inst(object, scriptType, scriptIndex);
-	
+
 		long scriptId = object->scriptId;
 		exec_script_proc(scriptId, start);
 		if ((valArg & 0x80000000) == 0) exec_script_proc(scriptId, map_enter_p_proc);
@@ -203,15 +203,15 @@ static void __stdcall op_create_spatial2() {
 	using Scripts::start;
 
 	const ScriptValue &scriptIdxArg = opHandler.arg(0),
-					  &tileArg = opHandler.arg(1),
-					  &elevArg = opHandler.arg(2),
-					  &radiusArg = opHandler.arg(3);
+	                  &tileArg = opHandler.arg(1),
+	                  &elevArg = opHandler.arg(2),
+	                  &radiusArg = opHandler.arg(3);
 
 	if (scriptIdxArg.isInt() && tileArg.isInt() && elevArg.isInt() && radiusArg.isInt()) {
 		DWORD scriptIndex = scriptIdxArg.rawValue(),
-			tile = tileArg.rawValue(),
-			elevation = elevArg.rawValue(),
-			radius = radiusArg.rawValue();
+		      tile = tileArg.rawValue(),
+		      elevation = elevArg.rawValue(),
+		      radius = radiusArg.rawValue();
 
 		long scriptId;
 		TScript* scriptPtr;
@@ -383,7 +383,7 @@ static DWORD getBlockingFunc(BlockType type) {
 static void __stdcall op_make_straight_path2() {
 	TGameObj* objFrom = opHandler.arg(0).asObject();
 	const ScriptValue &tileToArg = opHandler.arg(1),
-					  &typeArg = opHandler.arg(2);
+	                  &typeArg = opHandler.arg(2);
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
 		DWORD tileTo = tileToArg.rawValue();
@@ -406,11 +406,11 @@ static void __declspec(naked) op_make_straight_path() {
 static void __stdcall op_make_path2() {
 	TGameObj* objFrom = opHandler.arg(0).asObject();
 	const ScriptValue &tileToArg = opHandler.arg(1),
-					  &typeArg = opHandler.arg(2);
+	                  &typeArg = opHandler.arg(2);
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
 		DWORD tileTo = tileToArg.rawValue(),
-			  func = getBlockingFunc((BlockType)typeArg.rawValue());
+		      func = getBlockingFunc((BlockType)typeArg.rawValue());
 
 		// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
 		long checkFlag = (objFrom->IsCritter());
@@ -434,12 +434,12 @@ static void __declspec(naked) op_make_path() {
 
 static void __stdcall op_obj_blocking_at2() {
 	const ScriptValue &tileArg = opHandler.arg(0),
-					  &elevArg = opHandler.arg(1),
-					  &typeArg = opHandler.arg(2);
+	                  &elevArg = opHandler.arg(1),
+	                  &typeArg = opHandler.arg(2);
 
 	if (tileArg.isInt() && elevArg.isInt() && typeArg.isInt()) {
 		DWORD tile = tileArg.rawValue(),
-			  elevation = elevArg.rawValue();
+		      elevation = elevArg.rawValue();
 		BlockType type = (BlockType)typeArg.rawValue();
 
 		TGameObj* resultObj = obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
@@ -460,11 +460,11 @@ static void __declspec(naked) op_obj_blocking_at() {
 
 static void __stdcall op_tile_get_objects2() {
 	const ScriptValue &tileArg = opHandler.arg(0),
-					  &elevArg = opHandler.arg(1);
+	                  &elevArg = opHandler.arg(1);
 
 	if (tileArg.isInt() && elevArg.isInt()) {
 		DWORD tile = tileArg.rawValue(),
-			elevation = elevArg.rawValue();
+		      elevation = elevArg.rawValue();
 		DWORD arrayId = CreateTempArray(0, 4);
 		TGameObj* obj = fo_obj_find_first_at_tile(elevation, tile);
 		while (obj) {
@@ -580,12 +580,12 @@ static void mf_get_dialog_object() {
 
 static void mf_obj_under_cursor() {
 	const ScriptValue &crSwitchArg = opHandler.arg(0),
-					  &inclDudeArg = opHandler.arg(1);
+	                  &inclDudeArg = opHandler.arg(1);
 
 	if (crSwitchArg.isInt() && inclDudeArg.isInt()) {
 		opHandler.setReturn((*ptr_gmouse_3d_current_mode != 0)
-							? fo_object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
-							: 0);
+		                    ? fo_object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
+		                    : 0);
 	} else {
 		OpcodeInvalidArgs("obj_under_cursor");
 		opHandler.setReturn(0);
@@ -600,7 +600,7 @@ static bool protoMaxLimitPatch = false;
 
 static void __stdcall op_get_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
-					  &offsetArg = opHandler.arg(1);
+	                  &offsetArg = opHandler.arg(1);
 
 	if (pidArg.isInt() && offsetArg.isInt()) {
 		sProto* protoPtr;
@@ -624,8 +624,8 @@ static void __declspec(naked) op_get_proto_data() {
 
 static void __stdcall op_set_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
-					  &offsetArg = opHandler.arg(1),
-					  &valueArg = opHandler.arg(2);
+	                  &offsetArg = opHandler.arg(1),
+	                  &valueArg = opHandler.arg(2);
 
 	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) {
 		sProto* protoPtr;
@@ -680,8 +680,8 @@ static void mf_set_unique_id() {
 
 static void mf_objects_in_radius() {
 	const ScriptValue &tileArg = opHandler.arg(0),
-					  &radiusArg = opHandler.arg(1),
-					  &elevArg = opHandler.arg(2);
+	                  &radiusArg = opHandler.arg(1),
+	                  &elevArg = opHandler.arg(2);
 
 	DWORD id = 0;
 	if (tileArg.isInt() && radiusArg.isInt() && elevArg.isInt()) {

@@ -54,10 +54,10 @@ static void mf_get_inven_ap_cost() {
 static void __stdcall op_obj_is_carrying_obj2() {
 	int num = 0;
 	const ScriptValue &invenObjArg = opHandler.arg(0),
-					  &itemObjArg = opHandler.arg(1);
+	                  &itemObjArg = opHandler.arg(1);
 
 	TGameObj *invenObj = invenObjArg.asObject(),
-			 *itemObj = itemObjArg.asObject();
+	         *itemObj = itemObjArg.asObject();
 	if (invenObj != nullptr && itemObj != nullptr) {
 		for (int i = 0; i < invenObj->invenSize; i++) {
 			if (invenObj->invenTable[i].object == itemObj) {

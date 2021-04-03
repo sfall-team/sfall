@@ -72,7 +72,7 @@ static void __declspec(naked) op_reg_anim_destroy() {
 static void __stdcall op_reg_anim_animate_and_hide2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &animIdArg = opHandler.arg(1),
-					  &delayArg = opHandler.arg(2);
+	                  &delayArg = opHandler.arg(2);
 
 	if (obj && animIdArg.isInt() && delayArg.isInt()) {
 		if (!checkCombatMode()) {
@@ -93,7 +93,7 @@ static void __declspec(naked) op_reg_anim_animate_and_hide() {
 static void __stdcall op_reg_anim_light2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &radiusArg = opHandler.arg(1),
-					  &delayArg = opHandler.arg(2);
+	                  &delayArg = opHandler.arg(2);
 
 	if (obj && radiusArg.isInt() && delayArg.isInt()) {
 		if (!checkCombatMode()) {
@@ -119,7 +119,7 @@ static void __declspec(naked) op_reg_anim_light() {
 static void __stdcall op_reg_anim_change_fid2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &fidArg = opHandler.arg(1),
-					  &delayArg = opHandler.arg(2);
+	                  &delayArg = opHandler.arg(2);
 
 	if (obj && fidArg.isInt() && delayArg.isInt()) {
 		if (!checkCombatMode()) {
@@ -140,7 +140,7 @@ static void __declspec(naked) op_reg_anim_change_fid() {
 static void __stdcall op_reg_anim_take_out2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &holdFrameArg = opHandler.arg(1),
-					  &nothingArg = opHandler.arg(2);
+	                  &nothingArg = opHandler.arg(2);
 
 	if (obj && holdFrameArg.isInt() && nothingArg.isInt()) {
 		if (!checkCombatMode()) {
@@ -161,7 +161,7 @@ static void __declspec(naked) op_reg_anim_take_out() {
 static void __stdcall op_reg_anim_turn_towards2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	const ScriptValue &tileArg = opHandler.arg(1),
-					  &nothingArg = opHandler.arg(2);
+	                  &nothingArg = opHandler.arg(2);
 
 	if (obj && tileArg.isInt() && nothingArg.isInt()) {
 		if (!checkCombatMode()) {
@@ -207,8 +207,8 @@ static void __declspec(naked) op_reg_anim_callback() {
 
 static void __stdcall op_explosions_metarule2() {
 	const ScriptValue &modeArg = opHandler.arg(0),
-					  &arg1Arg = opHandler.arg(1),
-					  &arg2Arg = opHandler.arg(2);
+	                  &arg1Arg = opHandler.arg(1),
+	                  &arg2Arg = opHandler.arg(2);
 
 	if (modeArg.isInt() && arg1Arg.isInt() && arg2Arg.isInt()) {
 		int mode = modeArg.rawValue(),
