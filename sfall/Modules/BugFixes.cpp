@@ -1008,35 +1008,31 @@ runToObject:
 // checks if an attacked object is a critter before attempting dodge animation
 static void __declspec(naked) action_melee_hack() {
 	__asm {
-		mov  edx, 0x4113DC;
+		mov  eax, [ebp + ctdTarget];
 		mov  ebx, [eax + artFid];         // objStruct->FID
 		and  ebx, 0x0F000000;
 		cmp  ebx, OBJ_TYPE_CRITTER << 24; // check if object FID type flag is set to critter
 		jne  end;                         // if object not a critter leave jump condition flags
-		// set to skip dodge animation
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN; // (original code)
-		jnz  end;
-		mov  edx, 0x4113FE;
 end:
-		jmp  edx;
+		retn; // JNZ to skip dodge animation
 	}
 }
 
 static void __declspec(naked) action_ranged_hack() {
 	__asm {
-		mov  edx, 0x411B6D;
+		mov  eax, [eax + ctdTarget];
 		mov  ebx, [eax + artFid];         // objStruct->FID
 		and  ebx, 0x0F000000;
 		cmp  ebx, OBJ_TYPE_CRITTER << 24; // check if object FID type flag is set to critter
 		jne  end;                         // if object not a critter leave jump condition flags
-		// set to skip dodge animation
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN; // (original code)
-		jnz  end;
-		mov  edx, 0x411BD2;
 end:
-		jmp  edx;
+		retn; // JNZ to skip dodge animation
 	}
 }
+
+////////// "NPC turns into a container" bug and knockout/down issues ///////////
 
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
@@ -1051,7 +1047,49 @@ static void __declspec(naked) set_new_results_hack() {
 	}
 }
 
-/////////////////////// "NPC turns into a container" bug ///////////////////////
+static void __declspec(naked) op_critter_state_hack() {
+	__asm {
+		mov  ebx, 2;
+		test eax, DAM_KNOCKOUT_WOKEN;
+		cmovnz esi, ebx;
+		and  eax, (DAM_CRIP_LEG_LEFT or DAM_CRIP_LEG_RIGHT or DAM_CRIP_ARM_LEFT or DAM_CRIP_ARM_RIGHT or DAM_BLIND);
+		retn;
+	}
+}
+
+// if the combat ends before the turn passes to the critter, the DAM_KNOCKOUT_WOKEN flag will remain set
+// therefore the flag for the critter is removed before the combat_turn_ execution, as well as when the combat ends in combat_over_
+static void __declspec(naked) critter_wake_up_hack() {
+	using fo::InCombat;
+	__asm {
+		or   byte ptr [eax], InCombat; // combat_data.combat_state
+		test dl, DAM_KNOCKED_OUT;      // is critter knocked out?
+		jz   skip;                     // No
+		or   dword ptr [ebx + damageFlags], DAM_KNOCKOUT_WOKEN; // game is in combat, set the flag
+skip:
+		xor  eax, eax;
+		retn;
+	}
+}
+
+// used when the player leaves the map and the time has been advanced in the map_exit_p_proc procedure
+// in that case, the critter_wake_up_ function will not work properly and the critter will remain in the prone position
+static void __fastcall sf_critter_wake_clear(fo::GameObject* critter) {
+	if (critter->IsCritter()) {
+		critter->critter.damageFlags &= ~(fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
+		critter->artFid = fo::func::art_id(fo::ObjType::OBJ_TYPE_CRITTER, critter->artFid & 0xFFF, 0, (critter->artFid & 0xF000) >> 12, critter->rotation + 1);
+		//fo::func::obj_change_fid(critter, artID, 0);
+	}
+}
+
+static void __declspec(naked) critter_wake_up_hook() {
+	__asm {
+		mov  ecx, eax;
+		test ScriptExtender::OnMapLeave, 1;
+		jnz  sf_critter_wake_clear;
+		jmp  fo::funcoffs::dude_standup_;
+	}
+}
 
 // called when leaving the map if the critter has a "knockout_event" event in the queue
 static void __declspec(naked) critter_wake_clear_hack() {
@@ -1073,9 +1111,10 @@ end:
 	}
 }
 
-// when loading the game
+// when loading the map
 static void __declspec(naked) obj_load_func_hack() {
 	static const DWORD obj_load_func_Ret = 0x488F14;
+	using fo::InCombat;
 	__asm {
 		test word ptr [eax + flags], Temp; // engine code
 		jz   fix;
@@ -1085,22 +1124,20 @@ fix:
 		and  edi, 0x0F000000;
 		cmp  edi, OBJ_TYPE_CRITTER << 24;
 		jne  skip;
+		test byte ptr [eax + combatState], InCombat;
+		jnz  skip;     // do nothing if the critter has the flag set
 		test byte ptr [eax + damageFlags], DAM_DEAD;
 		jnz  skip;     // is dead
+		and  dword ptr [eax + damageFlags], ~(DAM_KNOCKOUT_WOKEN or DAM_LOSE_TURN); // clear DAM_LOSE_TURN for "NPC turns into a container" bug
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
-		jnz  clear;    // Yes
+		jnz  clear;    // flag is set, so the "knockout_event" event is already in the queue (if there is no event, then there is a bug somewhere)
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN;
 		jz   clear;    // No
 		push eax;
-		xor  ecx, ecx;
-		mov  edx, eax; // object
-		xor  ebx, ebx; // extramem null
-		inc  ecx;      // type = 1 (knockout_event)
-		xor  eax, eax; // time = 0
-		call fo::funcoffs::queue_add_; // critter_wake_up_ will be called (run stand up anim)
+		call fo::funcoffs::critter_wake_up_; // (stand up anim)
 		pop  eax;
 clear:
-		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN); // or DAM_KNOCKOUT_WOKE?
+		//and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
 skip:
 		add  esp, 4;
 		jmp  obj_load_func_Ret;
@@ -1109,27 +1146,55 @@ skip:
 
 static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
-		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
+		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN); // clear DAM_LOSE_TURN for "NPC turns into a container" bug
 		jmp  fo::funcoffs::dude_stand_;
 	}
 }
 
 static void __declspec(naked) combat_over_hack() {
 	__asm {
-		mov  [eax + combatState], edx;
-		and  dword ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKOUT_WOKE);
-		//
-		test [eax + damageFlags], DAM_DEAD or DAM_KNOCKED_OUT;
-		jnz  skip;
-		test [eax + damageFlags], DAM_KNOCKED_DOWN;
+		mov  ebx, [eax + damageFlags];
+		mov  [eax + combatState], edx; // set to 0
+		and  dword ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKOUT_WOKEN); // clear DAM_LOSE_TURN for "NPC turns into a container" bug
+		test ebx, DAM_DEAD or DAM_KNOCKED_OUT;
+		jz   skip;
+		retn;
+skip:
+		test ebx, DAM_KNOCKED_DOWN;
 		jnz  standup;
 		retn;
 standup:
-		push eax;
-		call fo::funcoffs::dude_standup_;
-		pop  eax;
-skip:
+		test ebx, DAM_KNOCKOUT_WOKEN;
+		jnz  delay;
+		jmp  fo::funcoffs::dude_standup_;
+delay:
+		push ecx;
+		xor  ecx, ecx;
+		mov  edx, eax; // object
+		xor  ebx, ebx; // extramem null
+		inc  ecx;      // type = 1 (knockout_event)
+		mov  eax, 1;   // time
+		call fo::funcoffs::queue_add_; // critter_wake_up_ will be called (stand up anim)
+		pop  ecx;
+		xor  edx, edx;
 		retn;
+	}
+}
+
+static void __declspec(naked) dude_standup_hook() {
+	__asm {
+		mov  edx, [ecx + artFid];
+		and  edx, 0xFF0000;
+		cmp  edx, ANIM_fall_back << 16;
+		je   standup;
+		cmp  edx, ANIM_fall_front << 16;
+		jne  skip;
+standup:
+		jmp  fo::funcoffs::register_begin_;
+skip:
+		add  esp, 4;
+		mov  edx, 0x4185AD;
+		jmp  edx;
 	}
 }
 
@@ -1253,7 +1318,7 @@ skip:
 		mov  dword ptr [edx + esi + 0xC], 0;       // aiInfo.lastMove
 end:
 		// remove the flag set by critter_wake_up_ function if critter was knocked out
-		and  dword ptr [eax + damageFlags], ~DAM_KNOCKOUT_WOKE;
+		and  dword ptr [eax + damageFlags], ~DAM_KNOCKOUT_WOKEN;
 		mov  edx, edi;                             // dude_turn
 		retn;
 	}
@@ -2787,31 +2852,6 @@ skip:
 	}
 }
 
-// if the combat ends before the turn passes to the critter, the DAM_KNOCKOUT_WOKE flag will remain set
-// therefore the flag for the critter is removed before the combat_turn_ execution, as well as when the combat ends in combat_over_
-static void __declspec(naked) critter_wake_up_hack() {
-	using fo::InCombat;
-	__asm {
-		or   byte ptr [eax], InCombat; // combat_data.combat_state
-		test dl, DAM_KNOCKED_OUT;      // is critter knocked out?
-		jz   skip;                     // No
-		or   dword ptr [ebx + damageFlags], DAM_KNOCKOUT_WOKE; // game is in combat, set the flag
-skip:
-		xor  eax, eax;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_critter_state_hack() {
-	__asm {
-		mov  ebx, 2;
-		test eax, DAM_KNOCKOUT_WOKE;
-		cmovnz esi, ebx;
-		and  eax, (DAM_CRIP_LEG_LEFT or DAM_CRIP_LEG_RIGHT or DAM_CRIP_ARM_LEFT or DAM_CRIP_ARM_RIGHT or DAM_BLIND);
-		retn;
-	}
-}
-
 static void __declspec(naked) wmSubTileMarkRadiusVisited_hack() {
 	static const DWORD wmSubTileMarkRadiusVisited_Ret = 0x4C3730;
 	__asm {
@@ -3212,13 +3252,22 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
 		dlog("Applying Dodgy Door Fix.", DL_FIX);
-		MakeJump(0x4113D6, action_melee_hack);
-		MakeJump(0x411BCC, action_ranged_hack);
+		MakeCall(0x4113D3, action_melee_hack, 2);
+		MakeCall(0x411BC9, action_ranged_hack, 2);
 		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for multiple knockout events being added to the queue
 	HookCall(0x424F9A, set_new_results_hack);
+
+	// Fix for critter_state function when a critter in combat recovers from the knockout state outside its turn
+	// DAM_KNOCKOUT_WOKEN flag lets the function know that the critter was knocked out before it actually woke up (stand up)
+	MakeCall(0x45868E, op_critter_state_hack, 1);
+	MakeCall(0x42E44C, critter_wake_up_hack);
+
+	// Fixes for knockout/down issues
+	HookCall(0x42E456, critter_wake_up_hook);
+	HookCall(0x41857E, dude_standup_hook); // check if the critter is actually in the prone position
 
 	// Fix for "NPC turns into a container" bug
 	// https://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-123#post-4065716
@@ -3673,10 +3722,6 @@ void BugFixes::init()
 	// performed simultaneously
 	// Note: all events in combat will occur before the AI (party member) attack
 	HookCall(0x422E5F, combat_hook); // execute all events after the end of the combat sequence
-	// Additional fix for critter_state function when a critter in combat recovers from the knocked out state outside its turn
-	// DAM_KNOCKOUT_WOKE flag lets the function know that the critter was knocked out before it actually woke up (stand up)
-	MakeCall(0x45868E, op_critter_state_hack, 1);
-	MakeCall(0x42E44C, critter_wake_up_hack);
 
 	// Fix for the "Fill_W" flag in worldmap.txt not uncovering all tiles to the left edge of the world map
 	MakeJump(0x4C372B, wmSubTileMarkRadiusVisited_hack);

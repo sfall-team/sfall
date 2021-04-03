@@ -169,7 +169,7 @@ enum DamageFlag : unsigned long
 	DAM_BACKWASH        = 0x400000,
 	DAM_PERFORM_REVERSE = 0x800000,
 	// sfall flags
-	DAM_KNOCKOUT_WOKE   = 0x40000000, // internal for op_critter_state_
+	DAM_KNOCKOUT_WOKEN  = 0x40000000, // internal for op_critter_state_
 	DAM_PRESERVE_FLAGS  = 0x80000000  // used for attack_complex
 };
 

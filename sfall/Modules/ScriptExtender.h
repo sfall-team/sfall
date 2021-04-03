@@ -39,6 +39,7 @@ public:
 	void init();
 
 	static std::string iniConfigFolder;
+	static bool OnMapLeave;
 
 	static char gTextBuffer[5120];
 

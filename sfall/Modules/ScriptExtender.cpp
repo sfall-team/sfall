@@ -54,6 +54,8 @@ char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for s
 
 std::string ScriptExtender::iniConfigFolder;
 
+bool ScriptExtender::OnMapLeave;
+
 static std::vector<long> scriptsIndexList;
 
 struct GlobalScript {
@@ -851,7 +853,10 @@ static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		test cl, 1;
 		jz   skip;
-		jmp  fo::funcoffs::scr_exec_map_exit_scripts_;
+		mov  ScriptExtender::OnMapLeave, 1;
+		call fo::funcoffs::scr_exec_map_exit_scripts_;
+		mov  ScriptExtender::OnMapLeave, 0;
+		retn;
 skip:
 		jmp  fo::funcoffs::partyMemberSaveProtos_;
 	}
