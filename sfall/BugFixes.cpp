@@ -1131,33 +1131,30 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	}
 }
 
+// after combat_is_over_p_proc
 static void __declspec(naked) combat_over_hack() {
 	__asm {
-		mov  ebx, [eax + damageFlags];
-		mov  [eax + combatState], edx; // set to 0
+		mov  eax, esi; // critter
+		mov  esi, ds:[FO_VAR_list_total];
+		mov  edx, [eax + damageFlags];
 		and  dword ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKOUT_WOKEN); // clear DAM_LOSE_TURN for "NPC turns into a container" bug
-		test ebx, DAM_DEAD or DAM_KNOCKED_OUT;
-		jz   skip;
-		retn;
-skip:
-		test ebx, DAM_KNOCKED_DOWN;
+		test dl, DAM_DEAD or DAM_KNOCKED_OUT;
+		jnz  end;
+		test dl, DAM_KNOCKED_DOWN;
 		jnz  standup;
+end:
 		retn;
 standup:
-		test ebx, DAM_KNOCKOUT_WOKEN;
+		test edx, DAM_KNOCKOUT_WOKEN;
 		jnz  delay;
 		jmp  dude_standup_;
 delay:
-		push ecx;
 		xor  ecx, ecx;
 		mov  edx, eax; // object
-		xor  ebx, ebx; // extramem null
+		xor  ebx, ebx; // extramem
 		inc  ecx;      // type = 1 (knockout_event)
-		mov  eax, 1;   // time
-		call queue_add_; // critter_wake_up_ will be called (stand up anim)
-		pop  ecx;
-		xor  edx, edx;
-		retn;
+		mov  eax, ecx; // time
+		jmp  queue_add_; // critter_wake_up_ will be called (stand up anim)
 	}
 }
 
@@ -3260,7 +3257,7 @@ void BugFixes_Init()
 		MakeCall(0x488EF3, obj_load_func_hack, 1);
 		HookCall(0x4949B2, partyMemberPrepLoadInstance_hook);
 		// Fix for knocked down critters not playing stand up animation when the combat ends (when DAM_LOSE_TURN and DAM_KNOCKED_DOWN flags are set)
-		MakeCall(0x421F64, combat_over_hack, 1);
+		MakeCall(0x42206F, combat_over_hack, 1);
 		dlogr(" Done", DL_FIX);
 	//}
 
