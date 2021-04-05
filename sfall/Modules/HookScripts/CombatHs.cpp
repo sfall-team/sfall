@@ -99,8 +99,8 @@ static long CalcApCostHook_Script(fo::GameObject* source, long hitMode, long isC
 
 long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
 	return (HookScripts::HookHasScript(HOOK_CALCAPCOST))
-			? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
-			: cost;
+	       ? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
+	       : cost;
 }
 
 static void __declspec(naked) CalcApCostHook() {
@@ -578,6 +578,43 @@ default:
 	}
 }
 
+static fo::GameObject* __stdcall BestWeaponHook_Script(fo::GameObject* bestWeapon, fo::GameObject* source, fo::GameObject* weapon1, fo::GameObject* weapon2, fo::GameObject* target) {
+	BeginHook();
+	argCount = 5;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)bestWeapon;
+	args[2] = (DWORD)weapon1;
+	args[3] = (DWORD)weapon2;
+	args[4] = (DWORD)target;
+
+	RunHookScript(HOOK_BESTWEAPON);
+
+	if (cRet > 0) bestWeapon = (fo::GameObject*)rets[0];
+
+	EndHook();
+	return bestWeapon;
+}
+
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	__asm {
+		push ecx;
+		push ebx;
+		push edx;
+		push eax;
+		call fo::funcoffs::ai_best_weapon_;
+		push eax;
+		call BestWeaponHook_Script;
+		retn;
+	}
+}
+
+fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject* source, fo::GameObject* weapon1, fo::GameObject* weapon2, fo::GameObject* target) {
+	return (HookScripts::HookHasScript(HOOK_BESTWEAPON))
+	       ? BestWeaponHook_Script(bestWeapon, source, weapon1, weapon2, target)
+	       : bestWeapon;
+}
+
 void Inject_ToHitHook() {
 	HookCalls(ToHitHook, {
 		0x421686, // combat_safety_invalidate_weapon_func_
@@ -664,6 +701,10 @@ void Inject_TargetObjectHook() {
 	SafeWrite8(0x44C26E, 0x17);
 }
 
+void Inject_BestWeaponHook() {
+	HookCall(0x429A59, ai_search_inven_weap_hook);
+}
+
 void InitCombatHookScripts() {
 	HookScripts::LoadHookScript("hs_tohit", HOOK_TOHIT);
 	HookScripts::LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
@@ -676,6 +717,7 @@ void InitCombatHookScripts() {
 	HookScripts::LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 	HookScripts::LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
 	HookScripts::LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
+	HookScripts::LoadHookScript("hs_bestweapon", HOOK_BESTWEAPON);
 }
 
 }
