@@ -538,8 +538,8 @@ void __stdcall setArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD val
 		sArrayElement sEl(key, keyType);
 		ArrayKeysMap::iterator elIter = arr.keyHash.find(sEl);
 		int el = (elIter != arr.keyHash.end())
-			? elIter->second
-			: -1;
+		       ? elIter->second
+		       : -1;
 
 		bool lookupMap = (arr.flags & ARRAYFLAG_CONSTVAL) != 0;
 		if (lookupMap && el != -1) return; // don't update value of key

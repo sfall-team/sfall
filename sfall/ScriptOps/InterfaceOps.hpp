@@ -445,13 +445,13 @@ static void mf_inventory_redraw() {
 
 static void mf_create_win() {
 	int flags = (opHandler.numArgs() > 5)
-		? opHandler.arg(5).rawValue()
-		: WinFlags::MoveOnTop;
+	          ? opHandler.arg(5).rawValue()
+	          : WinFlags::MoveOnTop;
 
 	if (fo_createWindow(opHandler.arg(0).strValue(),
-		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // x, y
-		opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
-		(flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
+	    opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // x, y
+	    opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
+	    (flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
 		opHandler.printOpcodeError("create_win() - couldn't create window.");
 		opHandler.setReturn(-1);

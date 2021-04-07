@@ -81,8 +81,8 @@ DWORD __stdcall sfgame_adjust_fid() {
 				sProto* armorPro;
 				GetProto((*ptr_i_worn)->protoId, &armorPro);
 				DWORD armorFid = fo_stat_level(*ptr_inven_dude, STAT_gender) == GENDER_FEMALE
-					? armorPro->item.armor.femaleFID
-					: armorPro->item.armor.maleFID;
+				               ? armorPro->item.armor.femaleFID
+				               : armorPro->item.armor.maleFID;
 
 				if (armorFid != -1) {
 					indexNum = armorFid;
@@ -90,8 +90,8 @@ DWORD __stdcall sfgame_adjust_fid() {
 			}
 		}
 		TGameObj* itemInHand = fo_intface_is_item_right_hand()
-			? *ptr_i_rhand
-			: *ptr_i_lhand;
+		                     ? *ptr_i_rhand
+		                     : *ptr_i_lhand;
 
 		if (itemInHand != nullptr) {
 			sProto* itemPro;

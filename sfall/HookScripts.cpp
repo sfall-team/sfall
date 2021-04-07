@@ -260,8 +260,8 @@ static long __stdcall CalcApCostHook_Script(TGameObj* source, long hitMode, long
 
 long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon) {
 	return (HookHasScript(HOOK_CALCAPCOST))
-			? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
-			: cost;
+	       ? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
+	       : cost;
 }
 
 static void __declspec(naked) CalcApCostHook() {

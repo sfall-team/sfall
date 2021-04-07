@@ -128,8 +128,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// change level
 	int level = fo_isPartyMember(npc)
-				? fo_partyMemberGetCurLevel(npc)
-				: 0;
+	          ? fo_partyMemberGetCurLevel(npc)
+	          : 0;
 
 	*ptr_Level_ = level;
 	*ptr_last_level = level;
@@ -397,8 +397,8 @@ bool PartyControl_IsNpcControlled() {
 
 TGameObj* PartyControl_RealDudeObject() {
 	return realDude.obj_dude != nullptr
-		? realDude.obj_dude
-		: *ptr_obj_dude;
+	       ? realDude.obj_dude
+	       : *ptr_obj_dude;
 }
 
 static char levelMsg[12], armorClassMsg[12], addictMsg[16];

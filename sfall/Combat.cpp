@@ -355,8 +355,8 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 	}
 
 	long id = (mode == 0)
-			? Objects_SetSpecialID(object)
-			: Objects_SetObjectUniqueID(object);
+	        ? Objects_SetSpecialID(object)
+	        : Objects_SetObjectUniqueID(object);
 
 	KnockbackModifier mod = { id, type, (double)val };
 	for (size_t i = 0; i < mods->size(); i++) {

@@ -151,14 +151,14 @@ public:
 
 	const char* asString() const {
 		return (_type == DATATYPE_STR)
-			? _val.str
-			: "";
+		       ? _val.str
+		       : "";
 	}
 
 	TGameObj* asObject() const {
 		return (_type == DATATYPE_INT)
-			? _val.gObj
-			: nullptr;
+		       ? _val.gObj
+		       : nullptr;
 	}
 
 	TGameObj* object() const {
