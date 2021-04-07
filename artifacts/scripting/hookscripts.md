@@ -1,15 +1,16 @@
--------------------------------------
------------ WHAT IS THIS? -----------
--------------------------------------
+HOOK SCRIPTS
+------------
 
 Hook scripts are specially named scripts that are run by sfall at specific points to allow mods to override normally hardcoded behaviour in a more flexible way than sfall's normal ini configuration.
 
 In addition to the bit of code it overrides, the script will be run once when first loaded and again at each player reload to allow for setup. Hook scripts have access to a set of arguments supplied to sfall, but aren't required to use them all. They also return one or more values, but again they're optional, and you only need to return a value if you want to override the default.
 
-To aid in mods compatibility, avoid using hs_xxx .int scripts. Instead it is recommended to use a normal global script combined with register_hook_proc or register_hook.
+### Hooks compatibility
+
+To aid in mods compatibility, avoid using `hs_xxx.int` scripts. Instead it is recommended to use a normal global script combined with `register_hook_proc` or `register_hook`.
 
 Example setup for a hook-script based mod:
-
+```js
 procedure tohit_hook_handler begin
    display_msg("Modifying hit_hook " + get_sfall_arg);
    set_hit_chance_max(100);
@@ -21,65 +22,75 @@ procedure start begin
       register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
    end
 end
+```
 
+-------------------------------------------
 
 There are script functions available, specific to hook scripts:
 
-> int init_hook()
-The hook script equivalent of game_loaded; it returns 1 when the script is loaded for the first time or when the player reloads the game, and 0 otherwise.
+#### `int init_hook()`
+The hook script equivalent of `game_loaded`; it returns 1 when the script is loaded for the first time or when the player reloads the game, and 0 otherwise.
 
-> mixed get_sfall_arg()
+#### `mixed get_sfall_arg()`
 Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
-You can arbitrarily get the value of any argument using the sfall_func1("get_sfall_arg_at", argNum) function.
+You can arbitrarily get the value of any argument using the `sfall_func1("get_sfall_arg_at", argNum)` function.
 
-> array get_sfall_args()
+#### `array get_sfall_args()`
 Returns all hook arguments as a new temp array.
 
-> void set_sfall_return(int value)
+#### `void set_sfall_return(int value)`
 Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
 
-> void set_sfall_arg(int argNum, int value)
+#### `void set_sfall_arg(int argNum, int value)`
 Changes argument value. The argument number (argNum) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see below).
 
-> void register_hook(int hookID)
-Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be executed in a current global script. You can use all above functions like normal.
+#### `void register_hook(int hookID)`
+Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, `start` proc will be executed in the current global script. You can use all above functions like normal.
 
-> void register_hook_proc(int hookID, procedure proc)
-The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start" by default). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use "hs_*.int" scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
+#### `void register_hook_proc(int hookID, procedure proc)`
+The same as `register_hook`, except that you specifically define which procedure in the current script should be called as a hook (instead of "start" by default). Pass procedure the same as how you use dialog option functions.
+This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use `hs_*.int` scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
 
-> void register_hook_proc_spec(int hookID, procedure proc)
-Works very similar to register_hook_proc, except that it registers the current script at the end of the hook script execution chain (i.e. the script will be executed after all previously registered scripts for the same hook, including the hs_*.int script). All scripts hooked to a single hook point with this function are executed in exact order of how they were registered, as opposed to the description below, which refers to using register_hook/register_hook_proc functions.
+Use zero (0) as the second argument to unregister the hook from the current global script.
 
-NOTE: you can hook several scripts to a single hook point, for example if it's different mods from different authors or just some different aspects of one larger mod. In this case scripts are executed in reverse order of how they were registered. When one of the scripts in a chain returns value with "set_sfall_return", the next script may override this value if calls "set_sfall_return" again. Sometimes you need to multiply certain value in a chain of hook scripts.
+#### `void register_hook_proc_spec(int hookID, procedure proc)`
+Works very similar to `register_hook_proc`, except that it registers the current script at the end of the hook script execution chain (i.e. the script will be executed after all previously registered scripts for the same hook, including the `hs_*.int` script). All scripts hooked to a single hook point with this function are executed in exact order of how they were registered, as opposed to the description below, which refers to using `register_hook` and `register_hook_proc` functions.
+
+__NOTE:__ you can hook several scripts to a single hook point, for example if it's different mods from different authors or just some different aspects of one larger mod. In this case scripts are executed in reverse order of how they were registered. When one of the scripts in a chain returns value with `set_sfall_return`, the next script may override this value if calls `set_sfall_return` again. Sometimes you need to multiply certain value in a chain of hook scripts.
+
 Example: let's say we have a Mod A which reduces all "to hit" chances by 50%. The code might look like this:
-
+```js
     original_chance = get_sfall_arg;
     set_sfall_return(original_chance / 2);
+```
 
-Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to Mod A hook script:
-
+Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to **Mod A** hook script:
+```js
     set_sfall_arg(0, (original_chance / 2));
+```
 
-This basically changes hook argument for the next script. Mod B code:
-
+This basically changes hook argument for the next script. **Mod B** code:
+```js
     original_chance = get_sfall_arg;
     set_sfall_return(original_chance * 1.5);
     set_sfall_arg(0, (original_chance * 1.5));
+```
 
-So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use "set_sfall_arg" in both hooks).
+So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use `set_sfall_arg` in both hooks).
 
 
-The defines to use for the hookID are in sfall.h.
+The defines to use for the hookID are in **sfall.h**.
 
 -------------------------------------------
------------ HOOK SCRIPT TYPES -------------
--------------------------------------------
 
-HOOK_TOHIT (hs_tohit.int)
+## HOOK SCRIPT TYPES
+
+#### `HOOK_TOHIT (hs_tohit.int)`
 
 Runs when Fallout is calculating the chances of an attack striking a target
 Runs after the hit chance is fully calculated normally, including applying the 95% cap
 
+```
 int     arg0 - The hit chance (capped)
 Critter arg1 - The attacker
 Critter arg2 - The target of the attack
@@ -90,14 +101,16 @@ int     arg6 - Ranged flag. 1 means the hit chance is calculated by taking into 
 int     arg7 - The raw hit chance before applying the cap
 
 int     ret0 - the new hit chance
+```
 
 -------------------------------------------
 
-HOOK_AFTERHITROLL (hs_afterhitroll.int)
+#### `HOOK_AFTERHITROLL (hs_afterhitroll.int)`
 
 Runs after Fallout has decided if an attack will hit or miss
 
-int     arg0 - If the attack will hit. (0 - critical miss, 1 - miss, 2 - hit, 3 - critical hit)
+```
+int     arg0 - If the attack will hit: 0 - critical miss, 1 - miss, 2 - hit, 3 - critical hit
 Critter arg1 - The attacker
 Critter arg2 - The target of the attack
 int     arg3 - The bodypart
@@ -106,15 +119,17 @@ int     arg4 - The hit chance
 int     ret0 - Override the hit/miss
 int     ret1 - Override the targeted bodypart
 Critter ret2 - Override the target of the attack
+```
 
 -------------------------------------------
 
-HOOK_CALCAPCOST (hs_calcapcost.int)
+#### `HOOK_CALCAPCOST (hs_calcapcost.int)`
 
 Runs whenever Fallout is calculating the AP cost of using the weapon (or unarmed attack). Doesn't run for using other item types or moving.
 Note that the first time a game is loaded, this script doesn't run before the initial interface is drawn, so if the script effects the AP cost of whatever is in the player's hands at the time the wrong AP cost will be shown. It will be fixed the next time the interface is redrawn.
-You can get the weapon object by checking item slot based on attack type (ATKTYPE_LWEP1, ATKTYPE_LWEP2, etc) and then calling critter_inven_obj().
+You can get the weapon object by checking item slot based on attack type (`ATKTYPE_LWEP1`, `ATKTYPE_LWEP2`, etc) and then calling `critter_inven_obj`.
 
+```
 Critter arg0 - The critter performing the action
 int     arg1 - Attack Type (see ATKTYPE_* constants)
 int     arg2 - Is aimed attack (1 or 0)
@@ -122,14 +137,16 @@ int     arg3 - The default AP cost
 Item    arg4 - The weapon for which the cost is calculated. If it is 0, the pointer to the weapon can still be obtained by the aforementioned method
 
 int     ret0 - The new AP cost
+```
 
 -------------------------------------------
 
-HOOK_DEATHANIM1 (hs_deathanim1.int)
+#### `HOOK_DEATHANIM1 (hs_deathanim1.int)`
 
-Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees
+Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees.
 Does not run for critters in the knockdown/out state.
 
+```
 int     arg0 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
 Critter arg1 - The attacker
 Critter arg2 - The target
@@ -137,15 +154,17 @@ int     arg3 - The amount of damage
 int     arg4 - Unused, always -1. Use this if you are using the same procedure for HOOK_DEATHANIM1 and HOOK_DEATHANIM2 (since sfall 4.1/3.8.24)
 
 int     ret0 - The pid of an object to override the attacking weapon with
+```
 
 -------------------------------------------
 
-HOOK_DEATHANIM2 (hs_deathanim2.int)
+#### `HOOK_DEATHANIM2 (hs_deathanim2.int)`
 
-Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation.
-When using critter_dmg function, this script will also run. In that case weapon pid will be -1 and attacker will point to an object with obj_art_fid == 0x20001F5.
+Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than `HOOK_DEATHANIM2`, but performs no validation.
+When using `critter_dmg` function, this script will also run. In that case weapon pid will be -1 and attacker will point to an object with `obj_art_fid == 0x20001F5`.
 Does not run for critters in the knockdown/out state.
 
+```
 Item    arg0 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
 Critter arg1 - The attacker
 Critter arg2 - The target
@@ -153,16 +172,19 @@ int     arg3 - The amount of damage
 int     arg4 - The death anim id calculated by Fallout
 
 int     ret0 - The death anim id to override with
+```
 
 -------------------------------------------
 
-HOOK_COMBATDAMAGE (hs_combatdamage.int)
+#### `HOOK_COMBATDAMAGE (hs_combatdamage.int)`
 
 Runs when:
 1) Game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts). This happens BEFORE the actual attack animation.
 2) AI decides whether it is safe to use area attack (burst, grenades), if he might hit friendlies.
+
 Does not run for misses, or non-combat damage like dynamite explosions.
 
+```
 Critter arg0  - The target
 Critter arg1  - The attacker
 int     arg2  - The amount of damage to the target
@@ -182,31 +204,35 @@ int     ret1 - The damage to the attacker
 int     ret2 - The special effect flags for the target
 int     ret3 - The special effect flags for the attacker
 int     ret4 - The amount of knockback to the target
+```
 
 -------------------------------------------
 
-HOOK_ONDEATH (hs_ondeath.int)
+#### `HOOK_ONDEATH (hs_ondeath.int)`
 
 Runs immediately after a critter dies for any reason. No return values; this is just a convenience for when you need to do something after death for a large number of different critters and don't want to have to script each and every one of them.
 
+```
 Critter arg0 - The critter that just died
+```
 
 -------------------------------------------
 
-HOOK_FINDTARGET (hs_findtarget.int)
+#### `HOOK_FINDTARGET (hs_findtarget.int)`
 
 Runs when the AI is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the AI caps of the attacker.
 This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way.
 
 The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries, but this is fixed in sfall 4.2.3/3.8.23.
-Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's or pass -1 to skip the return value.
+Use `set_sfall_return` to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's or pass -1 to skip the return value.
 
-NOTE: The engine can choose targets by the following criteria:
+__NOTE:__ The engine can choose targets by the following criteria:
 1) The nearest enemy to the attacker.
 2) The enemy that attacked the attacker.
 3) The enemy that attacked an NPC from the same team as the attacker.
 4) The enemy that is attacked by an NPC from the same team as the attacker.
 
+```
 Critter arg0 - The attacker
 Critter arg1 - A possible target
 Critter arg2 - A possible target
@@ -217,60 +243,71 @@ Critter ret0 - The first choice of target
 Critter ret1 - The second choice of target
 Critter ret2 - The third choice of target
 Critter ret3 - The fourth choice of target
+```
 
 -------------------------------------------
 
-HOOK_USEOBJON (hs_useobjon.int)
+#### `HOOK_USEOBJON (hs_useobjon.int)`
 
 Runs when:
 1) a critter uses an object on another critter. (Or themselves)
 2) a critter uses an object from inventory screen AND this object does not have "Use" action flag set and it's not active flare or explosive.
 3) player or AI uses any drug
 
-This is fired before the object is used, and the relevant use_obj_on script procedures are run. You can disable default item behavior.
-NOTE: you can't remove and/or destroy this object during the hookscript (game will crash otherwise). To remove it, return 1.
+This is fired before the object is used, and the relevant `use_obj_on` script procedures are run. You can disable default item behavior.
 
+__NOTE:__ you can't remove and/or destroy this object during the hookscript (game will crash otherwise). To remove it, return 1.
+
+```
 Critter arg0 - The target
 Critter arg1 - The user
 int     arg2 - The object used
 
 int     ret0 - overrides hard-coded handler and selects what should happen with the item (0 - place it back, 1 - remove it, -1 - use engine handler)
+```
 
 -------------------------------------------
 
-HOOK_USEOBJ (hs_useobj.int)
+#### `HOOK_USEOBJ (hs_useobj.int)`
 
 Runs when:
 1) a critter uses an object from inventory which have "Use" action flag set or it's an active flare or dynamite.
 2) player uses an object from main interface
 
-This is fired before the object is used, and the relevant use_obj script procedures are run. You can disable default item behavior.
-NOTE: you can't remove and/or destroy this object during the hookscript (game will crash otherwise). To remove it, return 1.
+This is fired before the object is used, and the relevant `use_obj` script procedures are run. You can disable default item behavior.
 
+__NOTE:__ you can't remove and/or destroy this object during the hookscript (game will crash otherwise). To remove it, return 1.
+
+```
 Critter arg0 - The user
 Obj     arg1 - The object used
 
 int     ret0 - overrides hard-coded handler and selects what should happen with the item (0 - place it back, 1 - remove it, -1 - use engine handler)
+```
 
 -------------------------------------------
 
-HOOK_REMOVEINVENOBJ (hs_removeinvenobj.int)
+#### `HOOK_REMOVEINVENOBJ (hs_removeinvenobj.int)`
 
 Runs when an object is removed from a container or critter's inventory for any reason
 
+```
 Obj     arg0 - the owner that the object is being removed from
 Item    arg1 - the item that is being removed
 int     arg2 - the number of items to remove
 int     arg3 - The reason the object is being removed (see RMOBJ_* constants)
 Obj     arg4 - The destination object when the item is moved to another object, 0 otherwise
+```
 
 -------------------------------------------
 
-HOOK_BARTERPRICE (hs_barterprice.int)
+#### `HOOK_BARTERPRICE (hs_barterprice.int)`
 
-Runs whenever the value of goods being purchased is calculated
-NOTE: the hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
+Runs whenever the value of goods being purchased is calculated.
 
+__NOTE:__ the hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC.
+
+```
 critter arg0 - the critter doing the bartering (either dude_obj or inven_dude)
 critter arg1 - the critter being bartered with
 int     arg2 - the default value of the goods
@@ -284,47 +321,53 @@ int     arg9 - 1 if trading with a party member, 0 otherwise
 
 int     ret0 - the modified value of all of the goods (pass -1 if you just want to modify offered goods)
 int     ret1 - the modified value of all offered goods
+```
 
 -------------------------------------------
 
-HOOK_MOVECOST (hs_movecost.int)
+#### `HOOK_MOVECOST (hs_movecost.int)`
 
-Runs when calculating the AP cost of movement
+Runs when calculating the AP cost of movement.
 
+```
 Critter arg0 - the critter doing the moving
 int     arg1 - the number of hexes being moved
 int     arg2 - the original AP cost
 
 int     ret0 - the new AP cost
+```
 
 -------------------------------------------
 
-(DEPRECATED)
-HOOK_HEXMOVEBLOCKING  (hs_hexmoveblocking.int)
-HOOK_HEXAIBLOCKING    (hs_hexaiblocking.int)
-HOOK_HEXSHOOTBLOCKING (hs_hexshootblocking.int)
-HOOK_HEXSIGHTBLOCKING (hs_hexsightblocking.int)
+#### DEPRECATED HOOKS:
+* `HOOK_HEXMOVEBLOCKING  (hs_hexmoveblocking.int)`
+* `HOOK_HEXAIBLOCKING    (hs_hexaiblocking.int)`
+* `HOOK_HEXSHOOTBLOCKING (hs_hexshootblocking.int)`
+* `HOOK_HEXSIGHTBLOCKING (hs_hexsightblocking.int)`
 
 Runs when checking to see if a hex blocks movement or shooting. (or ai-ing, presumably...)
 
-NOTE: these hook scripts can become very CPU-intensive and you should avoid using them.
+__NOTE:__ these hook scripts can become very CPU-intensive and you should avoid using them.
 For this reason, they may be removed in future versions.
-If you want to check if some tile or path is blocked, use functions: obj_blocking_tile, obj_blocking_line, path_find_to.
-If you want script to be called every time NPC moves by hex in combat, use hs_movecost hook.
+If you want to check if some tile or path is blocked, use functions: `obj_blocking_tile`, `obj_blocking_line`, `path_find_to`.
+If you want script to be called every time NPC moves by hex in combat, use `HOOK_MOVECOST` hook.
 
+```
 Critter arg0 - the critter doing the moving
 int     arg1 - the tile number being checked
 int     arg2 - the elevation being checked
 int     arg3 - 1 if the hex would normally be blocking
 
 Obj     ret0 - 0 if the hex doesn't block, or any sort of object pointer if it does
+```
 
 -------------------------------------------
 
-HOOK_ITEMDAMAGE (hs_itemdamage.int)
+#### `HOOK_ITEMDAMAGE (hs_itemdamage.int)`
 
 Runs when retrieving the damage rating of the player's used weapon. (Which may be their fists.)
 
+```
 int     arg0 - The default min damage
 int     arg1 - The default max damage
 Item    arg2 - The weapon used (0 if unarmed)
@@ -334,15 +377,17 @@ int     arg5 - non-zero if this is an attack using a melee weapon
 
 int     ret0 - Either the damage to be used, if ret2 isn't given, or the new minimum damage if it is
 int     ret1 - The new maximum damage
+```
 
 -------------------------------------------
 
-HOOK_AMMOCOST (hs_ammocost.int)
+#### `HOOK_AMMOCOST (hs_ammocost.int)`
 
 Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.
 By default, weapon will shoot when at least 1 round is left, regardless of ammo cost calculations.
-To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set Misc.CheckWeaponAmmoCost=1 in ddraw.ini
+To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set **CheckWeaponAmmoCost=1** in **Misc** section of ddraw.ini.
 
+```
 Item    arg0 - The weapon
 int     arg1 - Number of bullets in burst or 1 for single shots
 int     arg2 - The amount of ammo that will be consumed, calculated by the original ammo cost function (this is basically 2 for Super Cattle Prod and Mega Power Fist)
@@ -354,74 +399,86 @@ int     arg3 - Type of hook:
                3 - when subtracting ammo after burst attack
 
 int     ret0 - The new amount of ammo to be consumed, or ammo cost per round for hook type 2 (set to 0 for unlimited ammo)
+```
 
 -------------------------------------------
 
-HOOK_KEYPRESS (hs_keypress.int)
+#### `HOOK_KEYPRESS (hs_keypress.int)`
 
 Runs once every time when any key was pressed or released.
-DX codes: (see dik.h header)
-VK codes: http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
-NOTE: if you want to override a key, the new key DX scancode should be the same for both pressed and released events.
+- DX codes: (see **dik.h** header)
+- VK codes: http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
 
+__NOTE:__ if you want to override a key, the new key DX scancode should be the same for both pressed and released events.
+
+```
 int     arg0 - event type: 1 - pressed, 0 - released
 int     arg1 - key DX scancode
 int     arg2 - key VK code (very similar to ASCII codes)
 
 int     ret0 - overrides the pressed key (a new key DX scancode or 0 for no override)
+```
 
 -------------------------------------------
 
-HOOK_MOUSECLICK (hs_mouseclick.int)
+#### `HOOK_MOUSECLICK (hs_mouseclick.int)`
 
 Runs once every time when a mouse button was pressed or released.
 
+```
 int     arg0 - event type: 1 - pressed, 0 - released
 int     arg1 - button number (0 - left, 1 - right, up to 7)
+```
 
 -------------------------------------------
 
-HOOK_USESKILL (hs_useskill.int)
+#### `HOOK_USESKILL (hs_useskill.int)`
 
 Runs when using any skill on any object.
 
-This is fired before the default handlers are called, which you can override. In this case you should write your own skill use handler entirely, or otherwise nothing will happen (this includes fade in/fade out, time lapsing and messages - all of this can be scripted; to get vanilla text messages - use message_str_game() along with sprintf()).
+This is fired before the default handlers are called, which you can override. In this case you should write your own skill use handler entirely, or otherwise nothing will happen (this includes fade in/fade out, time lapsing and messages - all of this can be scripted; to get vanilla text messages - use `message_str_game` along with `sprintf`).
 Suggested use - override first aid/doctor skills to buff/nerf them, override steal skill to disallow observing NPCs inventories in some cases.
 Doesn't seem to run when lock picking.
 
+```
 Critter arg0 - The user critter
 Obj     arg1 - The target object
 int     arg2 - skill being used
 int     arg3 - skill bonus from items such as first aid kits
 
 int     ret0 - overrides hard-coded handler (-1 - use engine handler, any other value - override)
+```
 
 -------------------------------------------
 
-HOOK_STEAL (hs_steal.int)
+#### `HOOK_STEAL (hs_steal.int)`
 
 Runs when checking an attempt to steal or plant an item in other inventory using Steal skill.
 
 This is fired before the default handlers are called, which you can override. In this case you MUST provide message of the result to player ("You steal the %s", "You are caught planting the %s", etc.).
-Example message (vanilla behavior): display_msg(sprintf(mstr_skill(570 + (isSuccess != false) + arg4*2), obj_name(arg3)));
 
+Example message (vanilla behavior): `display_msg(sprintf(mstr_skill(570 + (isSuccess != false) + arg4*2), obj_name(arg3)));`
+
+```
 Critter arg0 - Thief
 Obj     arg1 - The target
 Item    arg2 - Item being stolen/planted
 int     arg3 - 0 when stealing, 1 when planting
 
 int     ret0 - overrides hard-coded handler (1 - force success, 0 - force fail, -1 - use engine handler)
+```
 
 -------------------------------------------
 
-HOOK_WITHINPERCEPTION (hs_withinperception.int)
+#### `HOOK_WITHINPERCEPTION (hs_withinperception.int)`
 
 Runs when checking if one critter sees another critter. This is used in different situations like combat AI. You can override the result.
 
-NOTE: obj_can_see_obj calls this first when deciding if critter can possibly see another critter with regard to perception, lighting, sneak factors. If check fails, the end result is false. If check succeeds (e.g. critter is within perception range), another check is made if there is any blocking tile between two critters (which includes stuff like windows, large bushes, barrels, etc.) and if there is - check still fails. You can override "within perception" check by returning 0 or 1, OR, as a convenience, you can also override blocking check after the perception check by returning 2 instead. In this case you should add "line of sight" check inside your hook script, otherwise critters will detect you through walls.
+__NOTE:__ `obj_can_see_obj` calls this first when deciding if critter can possibly see another critter with regard to perception, lighting, sneak factors. If check fails, the end result is false. If check succeeds (e.g. critter is within perception range), another check is made if there is any blocking tile between two critters (which includes stuff like windows, large bushes, barrels, etc.) and if there is - check still fails. You can override "within perception" check by returning 0 or 1, OR, as a convenience, you can also override blocking check after the perception check by returning 2 instead. In this case you should add "line of sight" check inside your hook script, otherwise critters will detect you through walls.
 
 This is fired after the default calculation is made.
 
+```
 Critter arg0 - Watcher object
 Obj     arg1 - Target object
 int     arg2 - Result of vanilla function: 1 - within perception range, 0 - otherwise
@@ -431,36 +488,53 @@ int     arg3 - Type of hook:
                3 - when AI determines whether it sees a potential target when selecting attack targets
                0 - all other cases
 
-int     ret0 - overrides the returned result of the function: 0 - not in range (can't see), 1 - in range (will see if not blocked), 2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
+int     ret0 - overrides the returned result of the function:
+               0 - not in range (can't see)
+               1 - in range (will see if not blocked)
+               2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
+```
 
 -------------------------------------------
 
-HOOK_INVENTORYMOVE (hs_inventorymove.int)
+#### `HOOK_INVENTORYMOVE (hs_inventorymove.int)`
 
 Runs before moving items between inventory slots in dude interface. You can override the action.
 What you can NOT do with this hook:
 - force moving items to inappropriate slots (like gun in armor slot)
+
 What you can do:
 - restrict player from using specific weapons or armors
 - add AP costs for all inventory movement including reloading
 - apply or remove some special scripted effects depending on PC's armor
 
-int     arg0 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground,
-                            7 - picking up item, 8 - dropping item on the character portrait)
+```
+int     arg0 - Target slot:
+               0 - main backpack
+               1 - left hand
+               2 - right hand
+               3 - armor slot
+               4 - weapon, when reloading it by dropping ammo
+               5 - container, like bag/backpack
+               6 - dropping on the ground
+               7 - picking up item
+               8 - dropping item on the character portrait
 Item    arg1 - Item being moved
 Item    arg2 - Item being replaced, weapon being reloaded, or container being filled (can be 0)
 
 int     ret0 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon/picking up item)
+```
 
 -------------------------------------------
 
-HOOK_INVENWIELD (hs_invenwield.int)
+#### `HOOK_INVENWIELD (hs_invenwield.int)`
 
 Runs before causing a critter or the player to wield/unwield an armor or a weapon (except when using the inventory by PC).
 An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
-NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
+
+__NOTE:__ when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
 If you need to rely on this, try checking if armor/weapon is already equipped when wielding hook is executed.
 
+```
 Critter arg0 - critter
 Item    arg1 - item being wielded or unwielded (weapon/armor)
 int     arg2 - slot (INVEN_TYPE_*)
@@ -468,26 +542,31 @@ int     arg3 - 1 when wielding, 0 when unwielding
 int     arg4 - 1 when removing an equipped item from inventory, 0 otherwise
 
 int     ret0 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
+```
 
 -------------------------------------------
 
-HOOK_ADJUSTFID (hs_adjustfid.int)
+#### `HOOK_ADJUSTFID (hs_adjustfid.int)`
 
 Runs after calculating character figure FID on the inventory screen, whenever the game decides that character appearance might change.
 Also happens on other screens, like barter.
 
-NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
+__NOTE:__ FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
 
+```
 int     arg0 - the vanilla FID calculated by the engine according to critter base FID and armor/weapon being used
 int     arg1 - the modified FID calculated by the internal sfall code (like Hero Appearance Mod)
 
 int     ret0 - overrides the calculated FID with provided value
+```
 
 -------------------------------------------
 
-HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
+#### `HOOK_GAMEMODECHANGE (hs_gamemodechange.int)`
 
 Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
 
+```
 int     arg0 - event type: 1 - when the player exits the game, 0 - otherwise
 int     arg1 - the previous game mode
+```
