@@ -281,11 +281,13 @@ static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* atta
 	}
 	EndHook();
 }
+
 /*
 void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker) {
 	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);
 }
 */
+
 static void __declspec(naked) FindTargetHook() {
 	__asm {
 		push eax;
@@ -609,11 +611,13 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 	}
 }
 
+/*
 fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject* source, fo::GameObject* weapon1, fo::GameObject* weapon2, fo::GameObject* target) {
 	return (HookScripts::HookHasScript(HOOK_BESTWEAPON))
 	       ? BestWeaponHook_Script(bestWeapon, source, weapon1, weapon2, target)
 	       : bestWeapon;
 }
+*/
 
 void Inject_ToHitHook() {
 	HookCalls(ToHitHook, {

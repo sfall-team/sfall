@@ -117,14 +117,14 @@ float ScriptValue::asFloat() const {
 
 const char* ScriptValue::asString() const {
 	return (_type == DataType::STR)
-		? _val.str
-		: "";
+	       ? _val.str
+	       : "";
 }
 
 fo::GameObject* ScriptValue::asObject() const {
 	return (_type == DataType::INT)
-		? _val.gObj
-		: nullptr;
+	       ? _val.gObj
+	       : nullptr;
 }
 
 fo::GameObject* ScriptValue::object() const {

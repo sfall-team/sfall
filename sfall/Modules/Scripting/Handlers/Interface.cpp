@@ -383,13 +383,13 @@ void mf_dialog_message(OpcodeContext& ctx) {
 
 void mf_create_win(OpcodeContext& ctx) {
 	int flags = (ctx.numArgs() > 5)
-		? ctx.arg(5).rawValue()
-		: fo::WinFlags::MoveOnTop;
+	          ? ctx.arg(5).rawValue()
+	          : fo::WinFlags::MoveOnTop;
 
 	if (fo::func::createWindow(ctx.arg(0).strValue(),
-		ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), // x, y
-		ctx.arg(3).rawValue(), ctx.arg(4).rawValue(), // w, h
-		(flags & fo::WinFlags::Transparent) ? 0 : 256, flags) == -1)
+	    ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), // x, y
+	    ctx.arg(3).rawValue(), ctx.arg(4).rawValue(), // w, h
+	    (flags & fo::WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
 		ctx.printOpcodeError("%s() - couldn't create window.", ctx.getMetaruleName());
 		ctx.setReturn(-1);

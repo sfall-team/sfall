@@ -184,8 +184,8 @@ static void SetCurrentDude(fo::GameObject* npc) {
 
 	// change level
 	int level = (isPartyMember) // fo::func::isPartyMember(npc)
-				? fo::func::partyMemberGetCurLevel(npc)
-				: 0;
+	          ? fo::func::partyMemberGetCurLevel(npc)
+	          : 0;
 
 	fo::var::Level_ = level;
 	fo::var::last_level = level;
@@ -582,8 +582,8 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 
 fo::GameObject* PartyControl::RealDudeObject() {
 	return realDude.obj_dude != nullptr
-		? realDude.obj_dude
-		: fo::var::obj_dude;
+	       ? realDude.obj_dude
+	       : fo::var::obj_dude;
 }
 
 static char levelMsg[12], armorClassMsg[12], addictMsg[16];

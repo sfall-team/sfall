@@ -1021,11 +1021,11 @@ endFunc:
 static void __fastcall HeroGenderChange(long gender) {
 	// get PC stat current gender
 	long newGender = fo::func::stat_level(fo::var::obj_dude, fo::STAT_gender);
-	if (newGender == gender) return;      // check if gender has been changed
+	if (newGender == gender) return; // check if gender has been changed
 
-	long baseModel = (newGender)          // check if male 0
-		? *(DWORD*)0x5108AC               // base female model
-		: fo::var::art_vault_person_nums; // base male model
+	long baseModel = (newGender)     // check if male (0)
+	               ? *(DWORD*)0x5108AC               // base female model
+	               : fo::var::art_vault_person_nums; // base male model
 
 	// adjust base hero art
 	baseModel += critterListSize;

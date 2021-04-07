@@ -317,8 +317,8 @@ void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DW
 	}
 
 	long id = (mode == 0)
-			? Objects::SetSpecialID(object)
-			: Objects::SetObjectUniqueID(object);
+	        ? Objects::SetSpecialID(object)
+	        : Objects::SetObjectUniqueID(object);
 
 	KnockbackModifier mod = { id, type, (double)val };
 	for (size_t i = 0; i < mods->size(); i++) {

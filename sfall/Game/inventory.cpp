@@ -71,8 +71,8 @@ DWORD __stdcall Inventory::adjust_fid() {
 				fo::Proto* armorPro;
 				fo::GetProto(fo::var::i_worn->protoId, &armorPro);
 				DWORD armorFid = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
-					? armorPro->item.armor.femaleFID
-					: armorPro->item.armor.maleFID;
+				               ? armorPro->item.armor.femaleFID
+				               : armorPro->item.armor.maleFID;
 
 				if (armorFid != -1) {
 					indexNum = armorFid;
@@ -80,8 +80,8 @@ DWORD __stdcall Inventory::adjust_fid() {
 			}
 		}
 		auto itemInHand = fo::func::intface_is_item_right_hand()
-			? fo::var::i_rhand
-			: fo::var::i_lhand;
+		                ? fo::var::i_rhand
+		                : fo::var::i_lhand;
 
 		if (itemInHand != nullptr) {
 			fo::Proto* itemPro;

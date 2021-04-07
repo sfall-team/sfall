@@ -365,8 +365,8 @@ static long __fastcall PlayerHasPerk(int &isSelectPtr) {
 		if (fo::func::perk_level(fo::var::obj_dude, i)) return 0x43438A; // print perks
 	}
 	return (!fakePerks.empty())
-			? 0x43438A  // print perks
-			: 0x434446; // skip print perks
+	       ? 0x43438A  // print perks
+	       : 0x434446; // skip print perks
 }
 
 static DWORD __fastcall HaveFakeTraits(int &isSelectPtr) {
