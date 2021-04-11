@@ -14,6 +14,58 @@ namespace game
 
 namespace sf = sfall;
 
+static fo::GameObject* __fastcall obj_path_blocking_at(fo::GameObject* source, long tile, long elev) {
+	if (tile < 0 || tile >= 40000) return nullptr;
+
+	fo::ObjectTable* obj = fo::var::objectTable[tile];
+	while (obj) {
+		if (elev == obj->object->elevation) {
+			fo::GameObject* object = obj->object;
+			long flags = object->flags;
+			if (!(flags & (fo::ObjectFlag::Mouse_3d | fo::ObjectFlag::NoBlock)) && source != object) {
+				char type = object->TypeFid();
+				if (type == fo::ObjType::OBJ_TYPE_SCENERY || type == fo::ObjType::OBJ_TYPE_WALL) {
+					return object;
+				}
+			}
+		}
+		obj = obj->nextObject;
+	}
+	// check for multihex objects on the tile
+	long direction = 0;
+	do {
+		long _tile = fo::func::tile_num_in_direction(tile, direction, 1);
+		if (_tile >= 0 && _tile < 40000) {
+			obj = fo::var::objectTable[_tile];
+			while (obj) {
+				if (elev == obj->object->elevation) {
+					fo::GameObject* object = obj->object;
+					long flags = object->flags;
+					if (flags & fo::ObjectFlag::MultiHex && !(flags & (fo::ObjectFlag::Mouse_3d | fo::ObjectFlag::NoBlock)) && source != object) {
+						char type = object->TypeFid();
+						if (type == fo::ObjType::OBJ_TYPE_SCENERY || type == fo::ObjType::OBJ_TYPE_WALL) {
+							return object;
+						}
+					}
+				}
+				obj = obj->nextObject;
+			}
+		}
+	} while (++direction < 6);
+	return nullptr;
+}
+
+void __declspec(naked) Tilemap::obj_path_blocking_at_() {
+	__asm {
+		push ecx;
+		push ebx;
+		mov  ecx, eax;
+		call obj_path_blocking_at;
+		pop  ecx;
+		retn;
+	}
+}
+
 static std::vector<int> buildLineTiles;
 
 static bool TileExists(long tile) {

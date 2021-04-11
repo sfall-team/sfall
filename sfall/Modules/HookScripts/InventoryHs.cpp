@@ -69,7 +69,7 @@ static void __declspec(naked) MoveCostHook() {
 }
 
 static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
-	if (itemReplaced && fo::GetItemType(itemReplaced) == fo::item_type_weapon && fo::GetItemType(item) == fo::item_type_ammo) {
+	if (itemReplaced && fo::func::item_get_type(itemReplaced) == fo::item_type_weapon && fo::func::item_get_type(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 
@@ -381,7 +381,7 @@ static void __declspec(naked) InvenWieldFuncHook() {
 	}
 
 	// right hand slot?
-	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::GetItemType((fo::GameObject*)args[1]) != fo::item_type_armor) {
+	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::func::item_get_type((fo::GameObject*)args[1]) != fo::item_type_armor) {
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
 	InvenWieldHook_ScriptPart(1); // wield event

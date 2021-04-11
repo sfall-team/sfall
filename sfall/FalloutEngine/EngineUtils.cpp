@@ -90,8 +90,8 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-long __fastcall GetItemType(fo::GameObject* item) {
-	return fo::func::item_get_type(item);
+long GetItemType(fo::GameObject* item) {
+	return fo::GetProto(item->protoId)->item.type;
 }
 
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {

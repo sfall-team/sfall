@@ -49,8 +49,20 @@ std::vector<std::string> IniReader::GetListDefaultConfig(const char* section, co
 	return GetIniList(section, setting, defaultValue, bufSize, delimiter, ddrawIni);
 }
 
+int IniReader::GetConfigInt(const char* section, const char* setting, int defaultValue) {
+	return iniGetInt(section, setting, defaultValue, ini);
+}
+
 size_t IniReader::Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
 	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
+}
+
+std::string IniReader::Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
+}
+
+std::vector<std::string> IniReader::TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
+	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
 }
 
 int IniReader::SetConfigInt(const char* section, const char* setting, int value) {
@@ -87,7 +99,7 @@ std::vector<std::string> GetIniList(const char* section, const char* setting, co
 /*
 	For ddraw.ini config
 */
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
+int GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return iniGetInt(section, setting, defaultValue, ini);
 }
 
@@ -103,10 +115,6 @@ std::vector<std::string> GetConfigList(const char* section, const char* setting,
 	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
 }
 
-std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
-}
-
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
 }
@@ -116,7 +124,7 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 }
 
 void IniReader::init() {
-	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
+	modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
 	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
 }
 
