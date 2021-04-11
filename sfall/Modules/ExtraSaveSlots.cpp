@@ -59,11 +59,11 @@ void LoadPageOffsets() {
 
 	sprintf_s(LoadPath, MAX_PATH, filename, fo::var::patches);
 
-	fo::var::slot_cursor = iniGetInt("POSITION", "ListNum", 0, LoadPath);
+	fo::var::slot_cursor = IniReader::iniGetInt("POSITION", "ListNum", 0, LoadPath);
 	if (fo::var::slot_cursor > 9) {
 		fo::var::slot_cursor = 0;
 	}
-	LSPageOffset = iniGetInt("POSITION", "PageOffset", 0, LoadPath);
+	LSPageOffset = IniReader::iniGetInt("POSITION", "PageOffset", 0, LoadPath);
 	if (LSPageOffset > 9990) {
 		LSPageOffset = 0;
 	}
@@ -483,20 +483,20 @@ static void __declspec(naked) SaveGame_hack1() {
 }
 
 void ExtraSaveSlots::init() {
-	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
+	bool extraSaveSlots = (IniReader::GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
 		dlog("Applying extra save slots patch.", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}
 
-	autoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
+	autoQuickSave = IniReader::GetConfigInt("Misc", "AutoQuickSave", 0);
 	if (autoQuickSave > 0) {
 		dlog("Applying auto quick save patch.", DL_INIT);
 		if (autoQuickSave > 10) autoQuickSave = 10;
 		autoQuickSave--; // reserved slot count
 
-		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
+		quickSavePage = IniReader::GetConfigInt("Misc", "AutoQuickSavePage", 0);
 		if (quickSavePage > 1000) quickSavePage = 1000;
 
 		if (extraSaveSlots && quickSavePage > 0) {

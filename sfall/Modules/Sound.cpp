@@ -961,7 +961,7 @@ void Sound::init() {
 
 	void* soundLoad_func;
 
-	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
+	int allowDShowSound = IniReader::GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
 		soundLoad_func = soundLoad_hack_A; // main hook
 
@@ -998,12 +998,12 @@ void Sound::init() {
 		0x4A96CC  // sfxc_decode_
 	});
 
-	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
+	int sBuff = IniReader::GetConfigInt("Sound", "NumSoundBuffers", 0);
 	if (sBuff > 4) {
 		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 	}
 
-	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
+	if (IniReader::GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
 		HookCall(0x42B849, ai_print_msg_hook);
 

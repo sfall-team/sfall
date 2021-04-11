@@ -459,15 +459,15 @@ static void BodypartHitChances() {
 }
 
 static void BodypartHitReadConfig() {
-	bodyPartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head",          -40));
-	bodyPartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm",      -30));
-	bodyPartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm",     -30));
-	bodyPartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso",           0));
-	bodyPartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg",     -20));
-	bodyPartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg",      -20));
-	bodyPartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes",          -60));
-	bodyPartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin",         -30));
-	bodyPartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
+	bodyPartHit.Head      = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Head",          -40));
+	bodyPartHit.Left_Arm  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Left_Arm",      -30));
+	bodyPartHit.Right_Arm = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Right_Arm",     -30));
+	bodyPartHit.Torso     = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso",           0));
+	bodyPartHit.Right_Leg = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Right_Leg",     -20));
+	bodyPartHit.Left_Leg  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Left_Leg",      -20));
+	bodyPartHit.Eyes      = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Eyes",          -60));
+	bodyPartHit.Groin     = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Groin",         -30));
+	bodyPartHit.Uncalled  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
 }
 
 static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
@@ -572,7 +572,7 @@ void Combat::init() {
 	// Disables secondary burst attacks for the critter
 	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
 
-	checkWeaponAmmoCost = (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0) != 0);
+	checkWeaponAmmoCost = (IniReader::GetConfigInt("Misc", "CheckWeaponAmmoCost", 0) != 0);
 	if (checkWeaponAmmoCost) {
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x4266E9, combat_check_bad_shot_hook);

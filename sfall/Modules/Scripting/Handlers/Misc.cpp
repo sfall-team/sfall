@@ -153,10 +153,10 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 	}
 	if (isString) {
 		ScriptExtender::gTextBuffer[0] = 0;
-		iniGetString(section, key, "", ScriptExtender::gTextBuffer, 256, file);
+		IniReader::iniGetString(section, key, "", ScriptExtender::gTextBuffer, 256, file);
 		return (DWORD)&ScriptExtender::gTextBuffer[0];
 	} else {
-		return iniGetInt(section, key, -1, file);
+		return IniReader::iniGetInt(section, key, -1, file);
 	}
 }
 

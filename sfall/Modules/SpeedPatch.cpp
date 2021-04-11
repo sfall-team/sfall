@@ -145,15 +145,15 @@ void TimerInit() {
 	for (int i = 0; i < 10; i++) {
 		_itoa(i, buf, 10);
 		spKey[8] = spMulti[10] = buf[0];
-		speed[i].key = GetConfigInt("Input", spKey, 0);
-		speed[i].multiplier = GetConfigInt("Speed", spMulti, 0) / 100.0;
+		speed[i].key = IniReader::GetConfigInt("Input", spKey, 0);
+		speed[i].multiplier = IniReader::GetConfigInt("Speed", spMulti, 0) / 100.0;
 	}
 }
 
 void SpeedPatch::init() {
-	if (GetConfigInt("Speed", "Enable", 0)) {
-		modKey[0] = GetConfigInt("Input", "SpeedModKey", 0);
-		int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
+	if (IniReader::GetConfigInt("Speed", "Enable", 0)) {
+		modKey[0] = IniReader::GetConfigInt("Input", "SpeedModKey", 0);
+		int init = IniReader::GetConfigInt("Speed", "SpeedMultiInitial", 100);
 		if (init == 100 && !modKey[0]) return;
 
 		dlog("Applying speed patch.", DL_INIT);
@@ -176,13 +176,13 @@ void SpeedPatch::init() {
 		}
 
 		multi = (double)init / 100.0;
-		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
+		toggleKey = IniReader::GetConfigInt("Input", "SpeedToggleKey", 0);
 
 		getTickCountOffs = (DWORD)&FakeGetTickCount;
 		getLocalTimeOffs = (DWORD)&FakeGetLocalTime;
 
 		int size = sizeof(offsets) / 4;
-		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) size -= 4;
+		if (IniReader::GetConfigInt("Speed", "AffectPlayback", 0) == 0) size -= 4;
 
 		for (int i = 0; i < size; i++) {
 			SafeWrite32(offsets[i], (DWORD)&getTickCountOffs);

@@ -705,7 +705,7 @@ bool FileSystem::IsEmpty() {
 }
 
 void FileSystem::init() {
-	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
+	if (IniReader::GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
 		UsingFileSystem = true;
 	}

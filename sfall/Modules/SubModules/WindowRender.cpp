@@ -153,7 +153,7 @@ static __declspec(naked) void palette_fade_to_hook() {
 }
 
 void WindowRender::init() {
-	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
+	fadeMulti = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (fadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		HookCall(0x493B16, palette_fade_to_hook);

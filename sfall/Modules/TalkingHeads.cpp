@@ -291,7 +291,7 @@ void TalkingHeads::init() {
 	// Disable centering the screen if NPC has talking head
 	HookCall(0x445224, gdialogInitFromScript_hook);
 
-	if (Graphics::mode && GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
+	if (Graphics::mode && IniReader::GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
 		LoadGameHook::OnAfterGameInit() += TalkingHeadsInit;
 	}
 }

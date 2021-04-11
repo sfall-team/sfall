@@ -703,16 +703,16 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	char titleText[16];
 	// Get alternate text from ini if available
 	if (isStyle) {
-		Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
+		IniReader::Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
 	} else {
-		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
+		IniReader::Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
 	}
 
 	BYTE textColour = fo::var::PeanutButter; // PeanutButter colour - palette offset stored in mem
 	DWORD titleTextWidth = fo::GetTextWidth(titleText);
 	fo::PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	Translate("AppearanceMod", "DoneBtn", "Done", titleText, 16);
+	IniReader::Translate("AppearanceMod", "DoneBtn", "Done", titleText, 16);
 	titleTextWidth = fo::GetTextWidth(titleText);
 	fo::PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
@@ -1217,8 +1217,8 @@ static void __declspec(naked) FixCharScrnBack() {
 
 		char RaceText[8], StyleText[8];
 		// Get alternate text from ini if available
-		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
-		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
+		IniReader::Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
+		IniReader::Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
 
 		DWORD raceTextWidth = fo::GetTextWidth(RaceText);
 		DWORD styleTextWidth = fo::GetTextWidth(StyleText);
@@ -1517,7 +1517,7 @@ static void HeroAppearanceModExit() {
 }
 
 void HeroAppearance::init() {
-	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
+	int heroAppearanceMod = IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();

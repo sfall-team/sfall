@@ -343,7 +343,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 }
 
 void Animations::init() {
-	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
+	animationLimit = IniReader::GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
 			animationLimit = 127;

@@ -499,7 +499,7 @@ void DebugEditor::init() {
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
 
-	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
+	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {

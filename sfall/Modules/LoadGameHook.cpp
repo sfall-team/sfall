@@ -736,10 +736,10 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 }
 
 void LoadGameHook::init() {
-	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
+	saveInCombatFix = IniReader::GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time.");
-	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail",
+	saveFailMsg = IniReader::Translate("sfall", "SaveInCombat", "Cannot save at this time.");
+	saveSfallDataFailMsg = IniReader::Translate("sfall", "SaveSfallDataFail",
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
 	HookCall(0x4809BA, main_init_system_hook);

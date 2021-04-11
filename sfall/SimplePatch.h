@@ -14,7 +14,7 @@ T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* in
 {
 	T value;
 	char msg[255];
-	value = (T)GetConfigInt(iniSection, iniKey, defaultValue);
+	value = (T)IniReader::GetConfigInt(iniSection, iniKey, defaultValue);
 	if (value != defaultValue) {
 		if (value < minValue) {
 			value = minValue;

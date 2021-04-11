@@ -513,6 +513,8 @@ static void __declspec(naked) ai_try_attack_hack_check_safe_weapon() {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static void __fastcall CombatAttackHook(fo::GameObject* source, fo::GameObject* target) {
 	sources[target] = source; // who attacked the 'target' from the last time
 	targets[source] = target; // who was attacked by the 'source' from the last time
@@ -545,7 +547,7 @@ void AI::init() {
 	LoadGameHook::OnCombatStart() += AICombatClear;
 	LoadGameHook::OnCombatEnd() += AICombatClear;
 
-	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
+	RetryCombatMinAP = IniReader::GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, RetryCombatHook); // combat_turn_

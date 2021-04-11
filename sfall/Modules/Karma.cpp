@@ -78,22 +78,22 @@ void Karma::DisplayKarma(int value) {
 }
 
 static void ApplyDisplayKarmaChangesPatch() {
-	displayKarmaChanges = GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
+	displayKarmaChanges = IniReader::GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
 	if (displayKarmaChanges) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		karmaGainMsg = Translate("sfall", "KarmaGain", "You gained %d karma.");
-		karmaLossMsg = Translate("sfall", "KarmaLoss", "You lost %d karma.");
+		karmaGainMsg = IniReader::Translate("sfall", "KarmaGain", "You gained %d karma.");
+		karmaLossMsg = IniReader::Translate("sfall", "KarmaLoss", "You lost %d karma.");
 		HookScripts::InjectingHook(HOOK_SETGLOBALVAR);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void ApplyKarmaFRMsPatch() {
-	auto karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
+	auto karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "", 512);
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
 		dlog("Applying karma FRM patch.", DL_INIT);
-		auto karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
+		auto karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "", 512);
 
 		karmaFrms.resize(countFrm);
 		size_t countPoints = karmaPointsList.size();

@@ -400,7 +400,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 }
 
 void DamageMod::init() {
-	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
+	if (formula = IniReader::GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
 		case 1:
 		case 2:
@@ -412,8 +412,8 @@ void DamageMod::init() {
 		}
 	}
 
-	int BonusHtHDmgFix = GetConfigInt("Misc", "BonusHtHDamageFix", 1);
-	int DisplayBonusDmg = GetConfigInt("Misc", "DisplayBonusDamage", 0);
+	int BonusHtHDmgFix = IniReader::GetConfigInt("Misc", "BonusHtHDamageFix", 1);
+	int DisplayBonusDmg = IniReader::GetConfigInt("Misc", "DisplayBonusDamage", 0);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		if (DisplayBonusDmg == 0) {                           // Subtract damage from perk bonus (vanilla displaying)

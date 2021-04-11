@@ -914,12 +914,12 @@ void ScriptExtender::init() {
 	OnInputLoop() += RunGlobalScriptsOnInput;
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
-	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	globalScriptPathList = IniReader::GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
 	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
 		ToLowerCase(globalScriptPathList[i]);
 	}
 
-	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
+	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1) {
 		if (idle > 127) idle = 127;
 		fo::var::idle_func = reinterpret_cast<void*>(Sleep);
@@ -927,7 +927,7 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F13, idle);
 	}
 
-	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
+	arraysBehavior = IniReader::GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
@@ -935,7 +935,7 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	iniConfigFolder = GetConfigString("Scripts", "IniConfigFolder", "", 64);
+	iniConfigFolder = IniReader::GetConfigString("Scripts", "IniConfigFolder", "", 64);
 	size_t len = iniConfigFolder.length();
 	if (len) {
 		char c = iniConfigFolder[len - 1];

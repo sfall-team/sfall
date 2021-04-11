@@ -27,8 +27,8 @@ namespace sfall
 fo::PremadeChar* premade;
 
 void Premade::init() {
-	auto premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
-	auto premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
+	auto premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
+	auto premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (!premadePaths.empty() && !premadeFids.empty()) {
 		dlog("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());

@@ -436,11 +436,11 @@ public:
 };
 
 inline void InitInputFeatures() {
-	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
+	reverseMouse = IniReader::GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 
-	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
-	wheelMod = GetConfigInt("Input", "ScrollMod", 0);
-	LONG MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
+	useScrollWheel = IniReader::GetConfigInt("Input", "UseScrollWheel", 1) != 0;
+	wheelMod = IniReader::GetConfigInt("Input", "ScrollMod", 0);
+	LONG MouseSpeed = IniReader::GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
 		adjustMouseSpeed = true;
 		mouseSpeedMod = ((double)MouseSpeed) / 100.0;
@@ -448,11 +448,11 @@ inline void InitInputFeatures() {
 		mousePartY = 0;
 	} else adjustMouseSpeed = false;
 
-	middleMouseKey = GetConfigInt("Input", "MiddleMouse", 0x30);
+	middleMouseKey = IniReader::GetConfigInt("Input", "MiddleMouse", 0x30);
 	middleMouseDown = false;
 
-	backgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
-	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
+	backgroundKeyboard = IniReader::GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
+	backgroundMouse = IniReader::GetConfigInt("Input", "BackgroundMouse", 0) != 0;
 
 	keyboardLayout = GetKeyboardLayout(0);
 }

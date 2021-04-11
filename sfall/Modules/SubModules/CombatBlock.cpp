@@ -68,7 +68,7 @@ void CombatBlock::init() {
 	HookCall(0x45F626, intface_use_item_hook); // jnz hook
 	HookCall(0x4432A6, game_handle_input_hook);
 
-	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
+	combatBlockedMessage = IniReader::Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
 }
 
 }

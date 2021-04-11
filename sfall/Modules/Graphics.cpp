@@ -1109,21 +1109,21 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		gWidth  = dispMode.Width;
 		gHeight = dispMode.Height;
 	} else {
-		gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
-		gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
+		gWidth = IniReader::GetConfigInt("Graphics", "GraphicsWidth", 0);
+		gHeight = IniReader::GetConfigInt("Graphics", "GraphicsHeight", 0);
 		if (!gWidth || !gHeight) {
 			gWidth = ResWidth;
 			gHeight = ResHeight;
 		}
 	}
 
-	Graphics::GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
+	Graphics::GPUBlt = IniReader::GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
 	if (!Graphics::GPUBlt || Graphics::GPUBlt > 2)
 		Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		moveWindowKey[0] = GetConfigInt("Input", "WindowScrollKey", 0);
+		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
 		if (moveWindowKey[0] < 0) {
 			switch (moveWindowKey[0]) {
 			case -1:
@@ -1144,7 +1144,7 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		} else {
 			moveWindowKey[0] &= 0xFF;
 		}
-		windowData = GetConfigInt("Graphics", "WindowData", 0);
+		windowData = IniReader::GetConfigInt("Graphics", "WindowData", 0);
 		if (windowData > 0) {
 			windowLeft = windowData >> 16;
 			windowTop = windowData & 0xFFFF;
@@ -1183,7 +1183,7 @@ static __declspec(naked) void game_init_hook() {
 }
 
 void Graphics::init() {
-	Graphics::mode = GetConfigInt("Graphics", "Mode", 0);
+	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
 	if (Graphics::mode == 6) {
 		windowStyle = WS_OVERLAPPED;
 	} else if (Graphics::mode != 4 && Graphics::mode != 5) {
@@ -1205,7 +1205,7 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		textureFilter = GetConfigInt("Graphics", "TextureFilter", 1);
+		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
 	}
 
