@@ -556,8 +556,8 @@ void SkillSetTags(long* tags, long num) {
 	fo_skill_set_tags(tags, num);
 }
 
-long __fastcall GetItemType(TGameObj* item) {
-	return fo_item_get_type(item);
+long GetItemType(TGameObj* item) {
+	return GetProto(item->protoId)->item.type;
 }
 
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot) {

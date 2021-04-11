@@ -46,15 +46,6 @@ std::vector<std::string> GetListDefaultConfig(const char* section, const char* s
 	return GetIniList(section, setting, defaultValue, bufSize, delimiter, ddrawIni);
 }
 
-int SetConfigInt(const char* section, const char* setting, int value) {
-	char buf[33];
-	_itoa_s(value, buf, 33, 10);
-	int result = WritePrivateProfileStringA(section, setting, buf, ini);
-	return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
 	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
 }
@@ -80,7 +71,7 @@ std::vector<std::string> GetIniList(const char* section, const char* setting, co
 /*
 	For ddraw.ini config
 */
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
+int GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return iniGetInt(section, setting, defaultValue, ini);
 }
 
@@ -96,16 +87,23 @@ std::vector<std::string> GetConfigList(const char* section, const char* setting,
 	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
 }
 
-std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
+size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
+	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
 }
 
-size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
+std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
+	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
+}
+
+int SetConfigInt(const char* section, const char* setting, int value) {
+	char buf[33];
+	_itoa_s(value, buf, 33, 10);
+	int result = WritePrivateProfileStringA(section, setting, buf, ini);
+	return result;
 }
 
 void IniReader_Init() {

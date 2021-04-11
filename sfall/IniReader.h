@@ -32,8 +32,6 @@ int GetIntDefaultConfig(const char* section, const char* setting, int defaultVal
 // Gets a list of values separated by the delimiter from the default config (i.e. ddraw.ini)
 std::vector<std::string> GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter);
 
-int SetConfigInt(const char* section, const char* setting, int value);
-
 // Gets the integer value from given INI file
 int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
 
@@ -47,7 +45,7 @@ std::string GetIniString(const char* section, const char* setting, const char* d
 std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
 // Gets the integer value from sfall configuration INI file
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
+int GetConfigInt(const char* section, const char* setting, int defaultValue);
 
 // Gets the string value from sfall configuration INI file with trim function
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
@@ -58,10 +56,12 @@ size_t GetConfigString(const char* section, const char* setting, const char* def
 // Parses the comma-separated list from the settings from sfall configuration INI file
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
-std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
+// Translates given string using sfall translation INI file and puts the result into given buffer
+size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 // Translates given string using sfall translation INI file
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
-// Translates given string using sfall translation INI file and puts the result into given buffer
-size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
+
+int SetConfigInt(const char* section, const char* setting, int value);
