@@ -278,6 +278,7 @@ enum ArtType : char
 // Some FO2 PIDs possibly used by engine
 enum ProtoID : unsigned long
 {
+	PID_STIMPAK = 40,
 	PID_DYNAMITE = 51,
 	PID_MOTION_SENSOR = 59,
 	PID_PLASTIC_EXPLOSIVES = 85,
@@ -285,6 +286,7 @@ enum ProtoID : unsigned long
 	PID_ACTIVE_GEIGER_COUNTER = 207,
 	PID_ACTIVE_STEALTH_BOY = 210,
 	PID_JET = 259,
+	PID_HEALING_POWDER = 273,
 	PID_SOLAR_SCORCHER = 390,
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,

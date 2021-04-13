@@ -129,6 +129,42 @@ static void __declspec(naked) ai_check_drugs_hook() {
 	}
 }
 
+static void __declspec(naked) ai_check_drugs_hook_healing() {
+	__asm {
+		call ai_retrieve_object_;
+		cmp  [esp + 0x34 - 0x30 + 4], 2; // noInvenItem: is set to 2 that healing is required
+		jne  checkPid;
+		retn; // use drugs
+checkPid:
+		test eax, eax;
+		jnz  skip;
+		retn;
+skip:
+		mov  edx, [eax + protoId];
+		cmp  edx, PID_STIMPAK;
+		je   checkHP;
+		cmp  edx, PID_SUPER_STIMPAK;
+		je   checkHP;
+		cmp  edx, PID_HEALING_POWDER;
+		je   checkHP;
+		retn;
+checkHP:
+		push eax;
+		mov  ebx, 10;
+		add  ebx, [esi + health]; // source
+		mov  eax, esi;
+		mov  edx, STAT_max_hit_points;
+		call stat_level_;
+		cmp  ebx, eax;
+		pop  eax;
+		jge  dontUse; // 10 + currHP >= maxHP
+		retn
+dontUse:
+		xor  eax, eax;
+		retn;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall TargetExistInList(TGameObj* target, TGameObj** targetList) {
@@ -588,6 +624,11 @@ void AI_Init() {
 	MakeCall(0x42B1DC, combat_ai_hack);
 	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
 	HookCall(0x428579, ai_check_drugs_hook);
+
+	// Fix to prevent the unnecessary use of healing drugs
+	HookCall(0x4287D7, ai_check_drugs_hook_healing);
+	SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
+	SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
 
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
