@@ -288,6 +288,7 @@
 #define FO_VAR_wmBkWinBuf                 0x51DE24
 #define FO_VAR_wmEncounterIconShow        0x672E48
 #define FO_VAR_wmLastRndTime              0x51DEA0
+#define FO_VAR_wmMaxAreaNum               0x51DDFC
 #define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmMaxTileNum               0x51DDF0
 #define FO_VAR_wmMsgFile                  0x672FB0
