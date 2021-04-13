@@ -284,6 +284,30 @@ skip:
 	}
 }
 
+static bool customPosition = false;
+
+static void __declspec(naked) main_load_new_hook() {
+	__asm {
+		call map_load_;
+		push -1;
+		mov  edx, esp;
+		mov  eax, dword ptr ds:[FO_VAR_map_number];
+		call wmMatchAreaContainingMapIdx_;
+		pop  eax; // area ID
+		cmp  customPosition, 0;
+		jnz  skip;
+		jmp  wmTeleportToArea_;
+skip:
+		test eax, eax;
+		js   end;
+		cmp  eax, dword ptr ds:[FO_VAR_wmMaxAreaNum];
+		jge  end;
+		mov  dword ptr ds:[FO_VAR_WorldMapCurrArea], eax;
+end:
+		retn;
+	}
+}
+
 static void WorldLimitsPatches() {
 	DWORD data = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data) {
@@ -406,34 +430,46 @@ static void StartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	date = GetConfigInt("Misc", "StartXPos", -1);
-	if (date != -1) {
+	long xPos = GetConfigInt("Misc", "StartXPos", -1);
+	if (xPos != -1) {
+		if (xPos < 0) xPos = 0;
 		dlog("Applying starting x position patch.", DL_INIT);
-		SafeWrite32(0x4BC990, date);
-		SafeWrite32(0x4BCC08, date);
+		SafeWrite32(0x4BC990, xPos);
+		SafeWrite32(0x4BCC08, xPos);
 		dlogr(" Done", DL_INIT);
+		customPosition = true;
 	}
-	date = GetConfigInt("Misc", "StartYPos", -1);
-	if (date != -1) {
+	long yPos = GetConfigInt("Misc", "StartYPos", -1);
+	if (yPos != -1) {
+		if (yPos < 0) yPos = 0;
 		dlog("Applying starting y position patch.", DL_INIT);
-		SafeWrite32(0x4BC995, date);
-		SafeWrite32(0x4BCC0D, date);
+		SafeWrite32(0x4BC995, yPos);
+		SafeWrite32(0x4BCC0D, yPos);
 		dlogr(" Done", DL_INIT);
+		customPosition = true;
 	}
 
-	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
-	if (ViewportX != -1) {
+	// Fix the starting position of the player's marker on the world map when starting a new game
+	// also initialize the value of the current area for METARULE_CURRENT_TOWN metarule function
+	HookCall(0x480DC0, main_load_new_hook);
+
+	xPos = GetConfigInt("Misc", "ViewXPos", -1);
+	if (xPos != -1) {
+		if (xPos < 0) xPos = 0;
+		ViewportX = xPos;
 		dlog("Applying starting x view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
-	if (ViewportY != -1) {
+	yPos = GetConfigInt("Misc", "ViewYPos", -1);
+	if (yPos != -1) {
+		if (yPos < 0) yPos = 0;
+		ViewportY = yPos;
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
 		dlogr(" Done", DL_INIT);
 	}
-	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
+	if (xPos != -1 || yPos != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
 static void PipBoyAutomapsPatch() {
