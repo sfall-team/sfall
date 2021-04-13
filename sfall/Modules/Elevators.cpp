@@ -116,23 +116,23 @@ static void LoadElevators(const char* elevFile) {
 	if (elevFile && GetFileAttributes(elevFile) != INVALID_FILE_ATTRIBUTES) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			int type = IniReader::iniGetInt(section, "Image", elevatorType[i], elevFile);
+			int type = IniReader::GetInt(section, "Image", elevatorType[i], elevFile);
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
-				int cBtn = IniReader::iniGetInt(section, "ButtonCount", 2, elevFile);
+				int cBtn = IniReader::GetInt(section, "ButtonCount", 2, elevFile);
 				if (cBtn < 2) cBtn = 2;
 				elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
 			}
-			elevatorsFrms[i].main = IniReader::iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
-			elevatorsFrms[i].buttons = IniReader::iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
+			elevatorsFrms[i].main = IniReader::GetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+			elevatorsFrms[i].buttons = IniReader::GetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
 				sprintf(setting, "ID%d", j + 1);
-				elevatorExits[i][j].id = IniReader::iniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
+				elevatorExits[i][j].id = IniReader::GetInt(section, setting, elevatorExits[i][j].id, elevFile);
 				sprintf(setting, "Elevation%d", j + 1);
-				elevatorExits[i][j].elevation = IniReader::iniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
+				elevatorExits[i][j].elevation = IniReader::GetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
 				sprintf(setting, "Tile%d", j + 1);
-				elevatorExits[i][j].tile = IniReader::iniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
+				elevatorExits[i][j].tile = IniReader::GetInt(section, setting, elevatorExits[i][j].tile, elevFile);
 			}
 		}
 	}

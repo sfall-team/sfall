@@ -886,46 +886,46 @@ static void PerkSetup() {
 		char num[4];
 		for (int i = 0; i < fo::Perk::PERK_count; i++) {
 			_itoa(i, num, 10);
-			if (IniReader::iniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
+			if (IniReader::GetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				perks[i].name = &Name[i * maxNameLen];
 			}
-			if (IniReader::iniGetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
+			if (IniReader::GetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
 				perks[i].description = &Desc[i * descLen];
 			}
 			int value;
-			value = IniReader::iniGetInt(num, "Image", -99999, perksFile);
+			value = IniReader::GetInt(num, "Image", -99999, perksFile);
 			if (value != -99999) perks[i].image = value;
-			value = IniReader::iniGetInt(num, "Ranks", -99999, perksFile);
+			value = IniReader::GetInt(num, "Ranks", -99999, perksFile);
 			if (value != -99999) perks[i].ranks = value;
-			value = IniReader::iniGetInt(num, "Level", -99999, perksFile);
+			value = IniReader::GetInt(num, "Level", -99999, perksFile);
 			if (value != -99999) perks[i].levelMin = value;
-			value = IniReader::iniGetInt(num, "Stat", -99999, perksFile);
+			value = IniReader::GetInt(num, "Stat", -99999, perksFile);
 			if (value != -99999) perks[i].stat = value;
-			value = IniReader::iniGetInt(num, "StatMag", -99999, perksFile);
+			value = IniReader::GetInt(num, "StatMag", -99999, perksFile);
 			if (value != -99999) perks[i].statMod = value;
-			value = IniReader::iniGetInt(num, "Skill1", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill1", -99999, perksFile);
 			if (value != -99999) perks[i].skill1 = value;
-			value = IniReader::iniGetInt(num, "Skill1Mag", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill1Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill1Min = value;
-			value = IniReader::iniGetInt(num, "Type", -99999, perksFile);
+			value = IniReader::GetInt(num, "Type", -99999, perksFile);
 			if (value != -99999) perks[i].skillOperator = value;
-			value = IniReader::iniGetInt(num, "Skill2", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill2", -99999, perksFile);
 			if (value != -99999) perks[i].skill2 = value;
-			value = IniReader::iniGetInt(num, "Skill2Mag", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill2Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill2Min = value;
-			value = IniReader::iniGetInt(num, "STR", -99999, perksFile);
+			value = IniReader::GetInt(num, "STR", -99999, perksFile);
 			if (value != -99999) perks[i].strengthMin = value;
-			value = IniReader::iniGetInt(num, "PER", -99999, perksFile);
+			value = IniReader::GetInt(num, "PER", -99999, perksFile);
 			if (value != -99999) perks[i].perceptionMin = value;
-			value = IniReader::iniGetInt(num, "END", -99999, perksFile);
+			value = IniReader::GetInt(num, "END", -99999, perksFile);
 			if (value != -99999) perks[i].enduranceMin = value;
-			value = IniReader::iniGetInt(num, "CHR", -99999, perksFile);
+			value = IniReader::GetInt(num, "CHR", -99999, perksFile);
 			if (value != -99999) perks[i].charismaMin = value;
-			value = IniReader::iniGetInt(num, "INT", -99999, perksFile);
+			value = IniReader::GetInt(num, "INT", -99999, perksFile);
 			if (value != -99999) perks[i].intelligenceMin = value;
-			value = IniReader::iniGetInt(num, "AGL", -99999, perksFile);
+			value = IniReader::GetInt(num, "AGL", -99999, perksFile);
 			if (value != -99999) perks[i].agilityMin = value;
-			value = IniReader::iniGetInt(num, "LCK", -99999, perksFile);
+			value = IniReader::GetInt(num, "LCK", -99999, perksFile);
 			if (value != -99999) perks[i].luckMin = value;
 		}
 		if (perksReInit) {
@@ -938,41 +938,41 @@ static void PerkSetup() {
 		int n = 0;
 		for (int id = fo::Perk::PERK_count; id < startFakeID; id++) {
 			_itoa(id, num, 10);
-			int ranks = IniReader::iniGetInt(num, "Ranks", -1, perksFile);
+			int ranks = IniReader::GetInt(num, "Ranks", -1, perksFile);
 			if (ranks == -1) continue;
 			extPerks[n].data.ranks = ranks;
-			extPerks[n].data.image = IniReader::iniGetInt(num, "Image", -1, perksFile);
-			extPerks[n].data.levelMin = IniReader::iniGetInt(num, "Level", -1, perksFile);
-			extPerks[n].data.stat = IniReader::iniGetInt(num, "Stat", -1, perksFile);
-			extPerks[n].data.statMod = IniReader::iniGetInt(num, "StatMag", 0, perksFile);
-			extPerks[n].data.skill1 = IniReader::iniGetInt(num, "Skill1", -1, perksFile);
-			extPerks[n].data.skill1Min = IniReader::iniGetInt(num, "Skill1Mag", 0, perksFile);
-			extPerks[n].data.skillOperator = IniReader::iniGetInt(num, "Type", 0, perksFile);
-			extPerks[n].data.skill2 = IniReader::iniGetInt(num, "Skill2", -1, perksFile);
-			extPerks[n].data.skill2Min = IniReader::iniGetInt(num, "Skill2Mag", 0, perksFile);
-			extPerks[n].data.strengthMin = IniReader::iniGetInt(num, "STR", 0, perksFile);
-			extPerks[n].data.perceptionMin = IniReader::iniGetInt(num, "PER", 0, perksFile);
-			extPerks[n].data.enduranceMin = IniReader::iniGetInt(num, "END", 0, perksFile);
-			extPerks[n].data.charismaMin = IniReader::iniGetInt(num, "CHR", 0, perksFile);
-			extPerks[n].data.intelligenceMin = IniReader::iniGetInt(num, "INT", 0, perksFile);
-			extPerks[n].data.agilityMin = IniReader::iniGetInt(num, "AGL", 0, perksFile);
-			extPerks[n].data.luckMin = IniReader::iniGetInt(num, "LCK", 0, perksFile);
+			extPerks[n].data.image = IniReader::GetInt(num, "Image", -1, perksFile);
+			extPerks[n].data.levelMin = IniReader::GetInt(num, "Level", -1, perksFile);
+			extPerks[n].data.stat = IniReader::GetInt(num, "Stat", -1, perksFile);
+			extPerks[n].data.statMod = IniReader::GetInt(num, "StatMag", 0, perksFile);
+			extPerks[n].data.skill1 = IniReader::GetInt(num, "Skill1", -1, perksFile);
+			extPerks[n].data.skill1Min = IniReader::GetInt(num, "Skill1Mag", 0, perksFile);
+			extPerks[n].data.skillOperator = IniReader::GetInt(num, "Type", 0, perksFile);
+			extPerks[n].data.skill2 = IniReader::GetInt(num, "Skill2", -1, perksFile);
+			extPerks[n].data.skill2Min = IniReader::GetInt(num, "Skill2Mag", 0, perksFile);
+			extPerks[n].data.strengthMin = IniReader::GetInt(num, "STR", 0, perksFile);
+			extPerks[n].data.perceptionMin = IniReader::GetInt(num, "PER", 0, perksFile);
+			extPerks[n].data.enduranceMin = IniReader::GetInt(num, "END", 0, perksFile);
+			extPerks[n].data.charismaMin = IniReader::GetInt(num, "CHR", 0, perksFile);
+			extPerks[n].data.intelligenceMin = IniReader::GetInt(num, "INT", 0, perksFile);
+			extPerks[n].data.agilityMin = IniReader::GetInt(num, "AGL", 0, perksFile);
+			extPerks[n].data.luckMin = IniReader::GetInt(num, "LCK", 0, perksFile);
 
-			IniReader::iniGetString(num, "Name", "Error", extPerks[n].Name, maxNameLen - 1, perksFile);
+			IniReader::GetString(num, "Name", "Error", extPerks[n].Name, maxNameLen - 1, perksFile);
 			extPerks[n].data.name = extPerks[n].Name;
-			IniReader::iniGetString(num, "Desc", "Error", extPerks[n].Desc, descLen - 1, perksFile);
+			IniReader::GetString(num, "Desc", "Error", extPerks[n].Desc, descLen - 1, perksFile);
 			extPerks[n].data.description = extPerks[n].Desc;
 
-			extPerks[n].stat1 = IniReader::iniGetInt(num, "Stat1", -1, perksFile);
-			extPerks[n].stat1Mod = IniReader::iniGetInt(num, "Stat1Mag", 0, perksFile);
-			extPerks[n].stat2 = IniReader::iniGetInt(num, "Stat2", -1, perksFile);
-			extPerks[n].stat2Mod = IniReader::iniGetInt(num, "Stat2Mag", 0, perksFile);
-			extPerks[n].skill3 = IniReader::iniGetInt(num, "Skill3", -1, perksFile);
-			extPerks[n].skill3Mod = IniReader::iniGetInt(num, "Skill3Mod", 0, perksFile);
-			extPerks[n].skill4 = IniReader::iniGetInt(num, "Skill4", -1, perksFile);
-			extPerks[n].skill4Mod = IniReader::iniGetInt(num, "Skill4Mod", 0, perksFile);
-			extPerks[n].skill5 = IniReader::iniGetInt(num, "Skill5", -1, perksFile);
-			extPerks[n].skill5Mod = IniReader::iniGetInt(num, "Skill5Mod", 0, perksFile);
+			extPerks[n].stat1 = IniReader::GetInt(num, "Stat1", -1, perksFile);
+			extPerks[n].stat1Mod = IniReader::GetInt(num, "Stat1Mag", 0, perksFile);
+			extPerks[n].stat2 = IniReader::GetInt(num, "Stat2", -1, perksFile);
+			extPerks[n].stat2Mod = IniReader::GetInt(num, "Stat2Mag", 0, perksFile);
+			extPerks[n].skill3 = IniReader::GetInt(num, "Skill3", -1, perksFile);
+			extPerks[n].skill3Mod = IniReader::GetInt(num, "Skill3Mod", 0, perksFile);
+			extPerks[n].skill4 = IniReader::GetInt(num, "Skill4", -1, perksFile);
+			extPerks[n].skill4Mod = IniReader::GetInt(num, "Skill4Mod", 0, perksFile);
+			extPerks[n].skill5 = IniReader::GetInt(num, "Skill5", -1, perksFile);
+			extPerks[n].skill5Mod = IniReader::GetInt(num, "Skill5Mod", 0, perksFile);
 			extPerks[n].id = id;
 			++n;
 			extPerks.resize(n + 1); // add next 'empty' perk
@@ -1031,17 +1031,17 @@ static void PerkAndTraitSetup() {
 	char* num2 = &num[1];
 	for (int i = 0; i < fo::Trait::TRAIT_count; i++) {
 		_itoa_s(i, num2, 4, 10);
-		if (IniReader::iniGetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
+		if (IniReader::GetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
 			traits[i].name = &tName[i * maxNameLen];
 		}
-		if (IniReader::iniGetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
+		if (IniReader::GetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
 			traits[i].description = &tDesc[i * descLen];
 		}
 		int value;
-		value = IniReader::iniGetInt(num, "Image", -99999, perksFile);
+		value = IniReader::GetInt(num, "Image", -99999, perksFile);
 		if (value != -99999) traits[i].image = value;
 
-		if (IniReader::iniGetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
+		if (IniReader::GetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
@@ -1053,7 +1053,7 @@ static void PerkAndTraitSetup() {
 			}
 		}
 
-		if (IniReader::iniGetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
+		if (IniReader::GetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
@@ -1065,7 +1065,7 @@ static void PerkAndTraitSetup() {
 			}
 		}
 
-		if (IniReader::iniGetInt(num, "NoHardcode", 0, perksFile)) {
+		if (IniReader::GetInt(num, "NoHardcode", 0, perksFile)) {
 			disableTraits[i] = true;
 			switch (i) {
 			case fo::Trait::TRAIT_one_hander:
@@ -1409,8 +1409,8 @@ void Perks::init() {
 		perksFile[1] = '\\';
 		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
-		perksEnable = IniReader::iniGetInt("Perks", "Enable", 1, perksFile);
-		traitsEnable = IniReader::iniGetInt("Traits", "Enable", 1, perksFile);
+		perksEnable = IniReader::GetInt("Perks", "Enable", 1, perksFile);
+		traitsEnable = IniReader::GetInt("Traits", "Enable", 1, perksFile);
 
 		// Engine perks settings
 		perk::ReadPerksBonuses(perksFile);

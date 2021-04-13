@@ -29,6 +29,28 @@ static const char* ddrawIni = ".\\ddraw.ini";
 static char ini[65] = ".\\";
 static char translationIni[65];
 
+static int getInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
+	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
+}
+
+static size_t getString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+}
+
+static std::string getString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
+	char* buf = new char[bufSize];
+	getString(section, setting, defaultValue, buf, bufSize, iniFile);
+	std::string str(buf);
+	delete[] buf;
+	return str;
+}
+
+static std::vector<std::string> getList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
+	auto list = split(getString(section, setting, defaultValue, bufSize, iniFile), delimiter);
+	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
+	return list;
+}
+
 const char* IniReader::GetConfigFile() {
 	return ini;
 }
@@ -42,64 +64,55 @@ void IniReader::SetConfigFile(const char* iniFile) {
 }
 
 int IniReader::GetIntDefaultConfig(const char* section, const char* setting, int defaultValue) {
-	return iniGetInt(section, setting, defaultValue, ddrawIni);
+	return getInt(section, setting, defaultValue, ddrawIni);
 }
 
 std::vector<std::string> IniReader::GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter) {
-	return GetIniList(section, setting, defaultValue, bufSize, delimiter, ddrawIni);
+	return getList(section, setting, defaultValue, bufSize, delimiter, ddrawIni);
 }
 
-int IniReader::iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
-}
-
-size_t IniReader::iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
-}
-
-std::string IniReader::GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	char* buf = new char[bufSize];
-	iniGetString(section, setting, defaultValue, buf, bufSize, iniFile);
-	std::string str(buf);
-	delete[] buf;
-	return str;
-}
-
-std::vector<std::string> IniReader::GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	auto list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
-	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
-	return list;
-}
-
-/*
-	For ddraw.ini config
-*/
 int IniReader::GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return iniGetInt(section, setting, defaultValue, ini);
+	return getInt(section, setting, defaultValue, ini);
 }
 
 std::string IniReader::GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return trim(GetIniString(section, setting, defaultValue, bufSize, ini));
+	return trim(getString(section, setting, defaultValue, bufSize, ini));
 }
 
 size_t IniReader::GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buf, bufSize, ini);
+	return getString(section, setting, defaultValue, buf, bufSize, ini);
 }
 
 std::vector<std::string> IniReader::GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
+	return getList(section, setting, defaultValue, bufSize, ',', ini);
+}
+
+int IniReader::GetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
+	return getInt(section, setting, defaultValue, iniFile);
+}
+
+size_t IniReader::GetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
+	return getString(section, setting, defaultValue, buf, bufSize, iniFile);
+}
+
+std::string IniReader::GetString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
+	return getString(section, setting, defaultValue, bufSize, iniFile);
+}
+
+std::vector<std::string> IniReader::GetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
+	return getList(section, setting, defaultValue, bufSize, delimiter, iniFile);
 }
 
 size_t IniReader::Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
+	return getString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
 std::string IniReader::Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
+	return getString(section, setting, defaultValue, bufSize, translationIni);
 }
 
 std::vector<std::string> IniReader::TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
+	return getList(section, setting, defaultValue, bufSize, delimiter, translationIni);
 }
 
 int IniReader::SetConfigInt(const char* section, const char* setting, int value) {

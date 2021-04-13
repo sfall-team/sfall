@@ -162,41 +162,41 @@ void EnginePerkBonusInit() {
 }
 
 void ReadPerksBonuses(const char* perksFile) {
-	int wScopeRangeMod = IniReader::iniGetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
+	int wScopeRangeMod = IniReader::GetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
 	if (wScopeRangeMod != 8) perks.setWeaponScopeRangePenalty(wScopeRangeMod);
-	wScopeRangeMod = IniReader::iniGetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
+	wScopeRangeMod = IniReader::GetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
 	if (wScopeRangeMod != 5) perks.setWeaponScopeRangeBonus(wScopeRangeMod);
 
-	int wLongRangeBonus = IniReader::iniGetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
+	int wLongRangeBonus = IniReader::GetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
 	if (wLongRangeBonus != 4) perks.setWeaponLongRangeBonus(wLongRangeBonus);
 
-	int wAccurateBonus = IniReader::iniGetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
+	int wAccurateBonus = IniReader::GetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
 	if (wAccurateBonus != 20) perks.setWeaponAccurateBonus(wAccurateBonus);
 
-	int wHandlingBonus = IniReader::iniGetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
+	int wHandlingBonus = IniReader::GetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
 	if (wHandlingBonus != 3) perks.setWeaponHandlingBonus(wHandlingBonus);
 
-	int masterTraderBonus = IniReader::iniGetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
+	int masterTraderBonus = IniReader::GetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
 	if (masterTraderBonus != 25) perks.setMasterTraderBonus(masterTraderBonus);
 
-	int salesmanBonus = IniReader::iniGetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
+	int salesmanBonus = IniReader::GetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
 	if (salesmanBonus != 20) perks.setSalesmanBonus(salesmanBonus);
 
-	int livingAnatomyBonus = IniReader::iniGetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
+	int livingAnatomyBonus = IniReader::GetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
 	if (livingAnatomyBonus != 5) perks.setLivingAnatomyBonus(livingAnatomyBonus);
 
-	int pyromaniacBonus = IniReader::iniGetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
+	int pyromaniacBonus = IniReader::GetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
 	if (pyromaniacBonus != 5) perks.setPyromaniacBonus(pyromaniacBonus);
 
-	int stonewallPercent = IniReader::iniGetInt("PerksTweak", "StonewallPercent", 50, perksFile);
+	int stonewallPercent = IniReader::GetInt("PerksTweak", "StonewallPercent", 50, perksFile);
 	if (stonewallPercent != 50) perks.setStonewallPercent(stonewallPercent);
 
-	int demolitionExpertBonus = IniReader::iniGetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
+	int demolitionExpertBonus = IniReader::GetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
 	if (demolitionExpertBonus != 10) perks.setDemolitionExpertBonus(demolitionExpertBonus);
 
-	int vaultCityInoculationsBonus = IniReader::iniGetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
+	int vaultCityInoculationsBonus = IniReader::GetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
 	if (vaultCityInoculationsBonus != 10) perks.setVaultCityInoculationsPoisonBonus(vaultCityInoculationsBonus);
-	vaultCityInoculationsBonus = IniReader::iniGetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
+	vaultCityInoculationsBonus = IniReader::GetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
 	if (vaultCityInoculationsBonus != 10) perks.setVaultCityInoculationsRadBonus(vaultCityInoculationsBonus);
 }
 

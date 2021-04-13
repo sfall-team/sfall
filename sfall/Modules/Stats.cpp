@@ -300,7 +300,7 @@ void Stats::init() {
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
-			derivedHPwBonus = (IniReader::iniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+			derivedHPwBonus = (IniReader::GetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
 			engineDerivedStats = false;
 
 			// STAT_st + STAT_en * 2 + 15
@@ -337,14 +337,14 @@ void Stats::init() {
 				if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 				_itoa(i, key, 10);
-				statFormulas[i].base = IniReader::iniGetInt(key, "base", statFormulas[i].base, statFile);
-				statFormulas[i].min = IniReader::iniGetInt(key, "min", statFormulas[i].min, statFile);
+				statFormulas[i].base = IniReader::GetInt(key, "base", statFormulas[i].base, statFile);
+				statFormulas[i].min = IniReader::GetInt(key, "min", statFormulas[i].min, statFile);
 				for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
 					sprintf(buf2, "shift%d", j);
-					statFormulas[i].shift[j] = IniReader::iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
+					statFormulas[i].shift[j] = IniReader::GetInt(key, buf2, statFormulas[i].shift[j], statFile);
 					sprintf(buf2, "multi%d", j);
 					_gcvt(statFormulas[i].multi[j], 16, buf3);
-					IniReader::iniGetString(key, buf2, buf3, buf2, 256, statFile);
+					IniReader::GetString(key, buf2, buf3, buf2, 256, statFile);
 					statFormulas[i].multi[j] = atof(buf2);
 				}
 			}

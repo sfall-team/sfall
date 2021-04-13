@@ -183,7 +183,7 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 /*
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
-	IniReader::iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
+	IniReader::GetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
 	fo::PathNode* node = fo::var::paths;
 	while (node->next) {

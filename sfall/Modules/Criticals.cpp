@@ -89,7 +89,7 @@ static int CritTableLoad() {
 					fo::CritInfo& newEffect = baseCritTable[newCritter][part][crit];
 					fo::CritInfo& defaultEffect = fo::var::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
-						newEffect.values[i] = IniReader::iniGetInt(section, critNames[i], defaultEffect.values[i], critTableFile.c_str());
+						newEffect.values[i] = IniReader::GetInt(section, critNames[i], defaultEffect.values[i], critTableFile.c_str());
 						if (isDebug) {
 							char logmsg[256];
 							if (newEffect.values[i] != defaultEffect.values[i]) {
@@ -114,11 +114,11 @@ static int CritTableLoad() {
 			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = IniReader::iniGetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
+				if (!(all = IniReader::GetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!IniReader::iniGetInt(buf, buf2, 0, critTableFile.c_str())) continue;
+						if (!IniReader::GetInt(buf, buf2, 0, critTableFile.c_str())) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -126,7 +126,7 @@ static int CritTableLoad() {
 						fo::CritInfo& effect = baseCritTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
-							effect.values[i] = IniReader::iniGetInt(buf2, buf3, effect.values[i], critTableFile.c_str());
+							effect.values[i] = IniReader::GetInt(buf2, buf3, effect.values[i], critTableFile.c_str());
 						}
 					}
 				}
