@@ -87,7 +87,7 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 /*
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
-	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
+	IniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
 	PathNode* node = *ptr_paths;
 	while (node->next) {

@@ -56,11 +56,11 @@ void LoadPageOffsets() {
 
 	sprintf_s(LoadPath, MAX_PATH, filename, *ptr_patches);
 
-	*ptr_slot_cursor = iniGetInt("POSITION", "ListNum", 0, LoadPath);
+	*ptr_slot_cursor = IniGetInt("POSITION", "ListNum", 0, LoadPath);
 	if (*ptr_slot_cursor > 9) {
 		*ptr_slot_cursor = 0;
 	}
-	LSPageOffset = iniGetInt("POSITION", "PageOffset", 0, LoadPath);
+	LSPageOffset = IniGetInt("POSITION", "PageOffset", 0, LoadPath);
 	if (LSPageOffset > 9990) {
 		LSPageOffset = 0;
 	}

@@ -37,14 +37,14 @@ static void RunGlobalScripts1();
 static void ClearEventsOnMapExit();
 
 // variables for new opcodes
-#define OP_MAX_ARGUMENTS	(8)
+#define OP_MAX_ARGUMENTS    (8)
 
 // masks for argument validation
-#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
-#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
-#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
-#define DATATYPE_MASK_NOT_NULL	(0x00010000)
-#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
+#define DATATYPE_MASK_INT       (1 << DATATYPE_INT)
+#define DATATYPE_MASK_FLOAT     (1 << DATATYPE_FLOAT)
+#define DATATYPE_MASK_STR       (1 << DATATYPE_STR)
+#define DATATYPE_MASK_NOT_NULL  (0x00010000)
+#define DATATYPE_MASK_VALID_OBJ (DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
 struct SfallOpcodeMetadata {
 	// opcode handler, will be used as key

@@ -113,23 +113,23 @@ static void LoadElevators(const char* elevFile) {
 	if (elevFile && GetFileAttributes(elevFile) != INVALID_FILE_ATTRIBUTES) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			int type = iniGetInt(section, "Image", elevatorType[i], elevFile);
+			int type = IniGetInt(section, "Image", elevatorType[i], elevFile);
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
-				int cBtn = iniGetInt(section, "ButtonCount", 2, elevFile);
+				int cBtn = IniGetInt(section, "ButtonCount", 2, elevFile);
 				if (cBtn < 2) cBtn = 2;
 				elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
 			}
-			elevatorsFrms[i].main = iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
-			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
+			elevatorsFrms[i].main = IniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+			elevatorsFrms[i].buttons = IniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
 				sprintf(setting, "ID%d", j + 1);
-				elevatorExits[i][j].id = iniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
+				elevatorExits[i][j].id = IniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
 				sprintf(setting, "Elevation%d", j + 1);
-				elevatorExits[i][j].elevation = iniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
+				elevatorExits[i][j].elevation = IniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
 				sprintf(setting, "Tile%d", j + 1);
-				elevatorExits[i][j].tile = iniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
+				elevatorExits[i][j].tile = IniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
 			}
 		}
 	}

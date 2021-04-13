@@ -778,41 +778,41 @@ static void EnginePerkBonusInit() {
 }
 
 static void ReadPerksBonuses(const char* perksFile) {
-	int wScopeRangeMod = iniGetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
+	int wScopeRangeMod = IniGetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
 	if (wScopeRangeMod != 8) enginePerks.setWeaponScopeRangePenalty(wScopeRangeMod);
-	wScopeRangeMod = iniGetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
+	wScopeRangeMod = IniGetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
 	if (wScopeRangeMod != 5) enginePerks.setWeaponScopeRangeBonus(wScopeRangeMod);
 
-	int wLongRangeBonus = iniGetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
+	int wLongRangeBonus = IniGetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
 	if (wLongRangeBonus != 4) enginePerks.setWeaponLongRangeBonus(wLongRangeBonus);
 
-	int wAccurateBonus = iniGetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
+	int wAccurateBonus = IniGetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
 	if (wAccurateBonus != 20) enginePerks.setWeaponAccurateBonus(wAccurateBonus);
 
-	int wHandlingBonus = iniGetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
+	int wHandlingBonus = IniGetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
 	if (wHandlingBonus != 3) enginePerks.setWeaponHandlingBonus(wHandlingBonus);
 
-	int masterTraderBonus = iniGetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
+	int masterTraderBonus = IniGetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
 	if (masterTraderBonus != 25) enginePerks.setMasterTraderBonus(masterTraderBonus);
 
-	int salesmanBonus = iniGetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
+	int salesmanBonus = IniGetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
 	if (salesmanBonus != 20) enginePerks.setSalesmanBonus(salesmanBonus);
 
-	int livingAnatomyBonus = iniGetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
+	int livingAnatomyBonus = IniGetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
 	if (livingAnatomyBonus != 5) enginePerks.setLivingAnatomyBonus(livingAnatomyBonus);
 
-	int pyromaniacBonus = iniGetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
+	int pyromaniacBonus = IniGetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
 	if (pyromaniacBonus != 5) enginePerks.setPyromaniacBonus(pyromaniacBonus);
 
-	int stonewallPercent = iniGetInt("PerksTweak", "StonewallPercent", 50, perksFile);
+	int stonewallPercent = IniGetInt("PerksTweak", "StonewallPercent", 50, perksFile);
 	if (stonewallPercent != 50) enginePerks.setStonewallPercent(stonewallPercent);
 
-	int demolitionExpertBonus = iniGetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
+	int demolitionExpertBonus = IniGetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
 	if (demolitionExpertBonus != 10) enginePerks.setDemolitionExpertBonus(demolitionExpertBonus);
 
-	int vaultCityInoculationsBonus = iniGetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
+	int vaultCityInoculationsBonus = IniGetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
 	if (vaultCityInoculationsBonus != 10) enginePerks.setVaultCityInoculationsPoisonBonus(vaultCityInoculationsBonus);
-	vaultCityInoculationsBonus = iniGetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
+	vaultCityInoculationsBonus = IniGetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
 	if (vaultCityInoculationsBonus != 10) enginePerks.setVaultCityInoculationsRadBonus(vaultCityInoculationsBonus);
 }
 
@@ -884,46 +884,46 @@ static void PerkSetup() {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa(i, num, 10);
-			if (iniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
+			if (IniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				perks[i].name = &Name[i * maxNameLen];
 			}
-			if (iniGetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
+			if (IniGetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
 				perks[i].description = &Desc[i * descLen];
 			}
 			int value;
-			value = iniGetInt(num, "Image", -99999, perksFile);
+			value = IniGetInt(num, "Image", -99999, perksFile);
 			if (value != -99999) perks[i].image = value;
-			value = iniGetInt(num, "Ranks", -99999, perksFile);
+			value = IniGetInt(num, "Ranks", -99999, perksFile);
 			if (value != -99999) perks[i].ranks = value;
-			value = iniGetInt(num, "Level", -99999, perksFile);
+			value = IniGetInt(num, "Level", -99999, perksFile);
 			if (value != -99999) perks[i].levelMin = value;
-			value = iniGetInt(num, "Stat", -99999, perksFile);
+			value = IniGetInt(num, "Stat", -99999, perksFile);
 			if (value != -99999) perks[i].stat = value;
-			value = iniGetInt(num, "StatMag", -99999, perksFile);
+			value = IniGetInt(num, "StatMag", -99999, perksFile);
 			if (value != -99999) perks[i].statMod = value;
-			value = iniGetInt(num, "Skill1", -99999, perksFile);
+			value = IniGetInt(num, "Skill1", -99999, perksFile);
 			if (value != -99999) perks[i].skill1 = value;
-			value = iniGetInt(num, "Skill1Mag", -99999, perksFile);
+			value = IniGetInt(num, "Skill1Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill1Min = value;
-			value = iniGetInt(num, "Type", -99999, perksFile);
+			value = IniGetInt(num, "Type", -99999, perksFile);
 			if (value != -99999) perks[i].skillOperator = value;
-			value = iniGetInt(num, "Skill2", -99999, perksFile);
+			value = IniGetInt(num, "Skill2", -99999, perksFile);
 			if (value != -99999) perks[i].skill2 = value;
-			value = iniGetInt(num, "Skill2Mag", -99999, perksFile);
+			value = IniGetInt(num, "Skill2Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill2Min = value;
-			value = iniGetInt(num, "STR", -99999, perksFile);
+			value = IniGetInt(num, "STR", -99999, perksFile);
 			if (value != -99999) perks[i].strengthMin = value;
-			value = iniGetInt(num, "PER", -99999, perksFile);
+			value = IniGetInt(num, "PER", -99999, perksFile);
 			if (value != -99999) perks[i].perceptionMin = value;
-			value = iniGetInt(num, "END", -99999, perksFile);
+			value = IniGetInt(num, "END", -99999, perksFile);
 			if (value != -99999) perks[i].enduranceMin = value;
-			value = iniGetInt(num, "CHR", -99999, perksFile);
+			value = IniGetInt(num, "CHR", -99999, perksFile);
 			if (value != -99999) perks[i].charismaMin = value;
-			value = iniGetInt(num, "INT", -99999, perksFile);
+			value = IniGetInt(num, "INT", -99999, perksFile);
 			if (value != -99999) perks[i].intelligenceMin = value;
-			value = iniGetInt(num, "AGL", -99999, perksFile);
+			value = IniGetInt(num, "AGL", -99999, perksFile);
 			if (value != -99999) perks[i].agilityMin = value;
-			value = iniGetInt(num, "LCK", -99999, perksFile);
+			value = IniGetInt(num, "LCK", -99999, perksFile);
 			if (value != -99999) perks[i].luckMin = value;
 		}
 	}
@@ -973,17 +973,17 @@ static void PerkAndTraitSetup() {
 	char* num2 = &num[1];
 	for (int i = 0; i < TRAIT_count; i++) {
 		_itoa_s(i, num2, 4, 10);
-		if (iniGetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
+		if (IniGetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
 			traits[i].name = &tName[i * maxNameLen];
 		}
-		if (iniGetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
+		if (IniGetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
 			traits[i].description = &tDesc[i * descLen];
 		}
 		int value;
-		value = iniGetInt(num, "Image", -99999, perksFile);
+		value = IniGetInt(num, "Image", -99999, perksFile);
 		if (value != -99999) traits[i].image = value;
 
-		if (iniGetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
+		if (IniGetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
@@ -995,7 +995,7 @@ static void PerkAndTraitSetup() {
 			}
 		}
 
-		if (iniGetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
+		if (IniGetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
@@ -1007,7 +1007,7 @@ static void PerkAndTraitSetup() {
 			}
 		}
 
-		if (iniGetInt(num, "NoHardcode", 0, perksFile)) {
+		if (IniGetInt(num, "NoHardcode", 0, perksFile)) {
 			disableTraits[i] = true;
 			switch (i) {
 			case TRAIT_one_hander:
@@ -1316,8 +1316,8 @@ void Perks_Init() {
 		perksFile[1] = '\\';
 		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
-		perksEnable = iniGetInt("Perks", "Enable", 1, perksFile);
-		traitsEnable = iniGetInt("Traits", "Enable", 1, perksFile);
+		perksEnable = IniGetInt("Perks", "Enable", 1, perksFile);
+		traitsEnable = IniGetInt("Traits", "Enable", 1, perksFile);
 
 		// Engine perks settings
 		ReadPerksBonuses(perksFile);

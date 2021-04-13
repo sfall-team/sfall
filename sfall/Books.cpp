@@ -88,10 +88,10 @@ void Books_Init() {
 		dlog("Applying books patch...", DL_INIT);
 		const char* iniBooks = booksFile.insert(0, ".\\").c_str();
 
-		bool includeVanilla = (iniGetInt("main", "overrideVanilla", 0, iniBooks) == 0);
+		bool includeVanilla = (IniGetInt("main", "overrideVanilla", 0, iniBooks) == 0);
 		if (includeVanilla) BooksCount = 5;
 
-		int count = iniGetInt("main", "count", 0, iniBooks);
+		int count = IniGetInt("main", "count", 0, iniBooks);
 
 		int n = 0;
 		if (count > 0) {
@@ -103,9 +103,9 @@ void Books_Init() {
 			char section[4];
 			for (int i = 1; i <= count; i++) {
 				_itoa_s(i, section, 10);
-				if (books[BooksCount].bookPid = iniGetInt(section, "PID", 0, iniBooks)) {
-					books[BooksCount].msgID = iniGetInt(section, "TextID", 0, iniBooks);
-					books[BooksCount].skill = iniGetInt(section, "Skill", 0, iniBooks);
+				if (books[BooksCount].bookPid = IniGetInt(section, "PID", 0, iniBooks)) {
+					books[BooksCount].msgID = IniGetInt(section, "TextID", 0, iniBooks);
+					books[BooksCount].skill = IniGetInt(section, "Skill", 0, iniBooks);
 					BooksCount++;
 					n++;
 				}

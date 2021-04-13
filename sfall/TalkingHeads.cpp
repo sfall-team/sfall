@@ -252,7 +252,7 @@ noScroll:
 }
 
 void TalkingHeadsSetup() {
-	if (!GPUBlt) return;
+	if (!Graphics_GPUBlt) return;
 
 	*(DWORD*)FO_VAR_lips_draw_head = 0; // fix for non-speaking heads
 	const DWORD transTalkAddr[] = {0x44AFB4, 0x44B00B};
@@ -266,7 +266,7 @@ void TalkingHeads_Init() {
 	// Disable centering the screen if NPC has talking head
 	HookCall(0x445224, gdialogInitFromScript_hook);
 
-	if (GraphicsMode && GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
+	if (Graphics_mode && GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
 		Use32BitTalkingHeads = true;
 	}
 }

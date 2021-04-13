@@ -32,9 +32,9 @@ static DWORD statMinimumsNPC[STAT_max_stat];
 
 static DWORD xpTable[99];
 
-float ExperienceMod = 1.0f; // set_xp_mod func
-DWORD StandardApAcBonus = 4;
-DWORD ExtraApAcBonus = 4;
+float Stats_experienceMod = 1.0f; // set_xp_mod func
+DWORD Stats_standardApAcBonus = 4;
+DWORD Stats_extraApAcBonus = 4;
 
 static struct StatFormula {
 	long base;
@@ -131,12 +131,12 @@ static void __declspec(naked) CalcApToAcBonus() {
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call perk_level_;
-		imul eax, ExtraApAcBonus;        // bonus = perkLvl * ExtraApBonus
-		imul eax, edi;                   // perkBonus = bonus * curAP
+		imul eax, Stats_extraApAcBonus;    // bonus = perkLvl * extraApBonus
+		imul eax, edi;                     // perkBonus = bonus * curAP
 standard:
-		imul edi, StandardApAcBonus;     // stdBonus = curAP * StandardApBonus
-		add  eax, edi;                   // bonus = perkBonus + stdBonus
-		shr  eax, 2;                     // acBonus = bonus / 4
+		imul edi, Stats_standardApAcBonus; // stdBonus = curAP * standardApBonus
+		add  eax, edi;                     // bonus = perkBonus + stdBonus
+		shr  eax, 2;                       // acBonus = bonus / 4
 end:
 		retn;
 	}
@@ -199,7 +199,7 @@ void Stats_UpdateHPStat(TGameObj* critter) {
 
 	if (proto->critter.base.health != calcStatValue) {
 		fo_debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
-					critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+		                critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
 
 		proto->critter.base.health = calcStatValue;
 		critter->critter.health = calcStatValue + proto->critter.bonus.health;
@@ -308,10 +308,10 @@ static void StatsReset() {
 void Stats_OnGameLoad() {
 	StatsReset();
 	// Reset some settable game values back to the defaults
-	StandardApAcBonus = 4;
-	ExtraApAcBonus = 4;
+	Stats_standardApAcBonus = 4;
+	Stats_extraApAcBonus = 4;
 	// XP mod set to 100%
-	ExperienceMod = 1.0f;
+	Stats_experienceMod = 1.0f;
 	// HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	// Skill points per level mod
@@ -362,7 +362,7 @@ void Stats_Init() {
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
-			derivedHPwBonus = (iniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+			derivedHPwBonus = (IniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
 			engineDerivedStats = false;
 			MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 
@@ -400,14 +400,14 @@ void Stats_Init() {
 				if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
 
 				_itoa(i, key, 10);
-				statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
-				statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
+				statFormulas[i].base = IniGetInt(key, "base", statFormulas[i].base, statFile);
+				statFormulas[i].min = IniGetInt(key, "min", statFormulas[i].min, statFile);
 				for (int j = 0; j < STAT_max_hit_points; j++) {
 					sprintf(buf2, "shift%d", j);
-					statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
+					statFormulas[i].shift[j] = IniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
 					sprintf(buf2, "multi%d", j);
 					_gcvt(statFormulas[i].multi[j], 16, buf3);
-					iniGetString(key, buf2, buf3, buf2, 256, statFile);
+					IniGetString(key, buf2, buf3, buf2, 256, statFile);
 					statFormulas[i].multi[j] = atof(buf2);
 				}
 			}

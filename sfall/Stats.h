@@ -18,6 +18,10 @@
 
 #pragma once
 
+extern float Stats_experienceMod;
+extern DWORD Stats_standardApAcBonus;
+extern DWORD Stats_extraApAcBonus;
+
 void Stats_Init();
 void Stats_OnGameLoad();
 void Stats_UpdateHPStat(TGameObj* critter);
@@ -29,7 +33,3 @@ void __stdcall SetPCStatMax(int stat, int value);
 void __stdcall SetPCStatMin(int stat, int value);
 void __stdcall SetNPCStatMax(int stat, int value);
 void __stdcall SetNPCStatMin(int stat, int value);
-
-extern float ExperienceMod;
-extern DWORD StandardApAcBonus;
-extern DWORD ExtraApAcBonus;

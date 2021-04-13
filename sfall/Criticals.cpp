@@ -86,7 +86,7 @@ static int CritTableLoad() {
 					int slot1 = crit + part * 6 + critter * 9 * 6; // default effect
 					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6; // new effect
 					for (int i = 0; i < 7; i++) {
-						baseCritTable[slot2].values[i] = iniGetInt(section, critNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
+						baseCritTable[slot2].values[i] = IniGetInt(section, critNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
 						if (isDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
@@ -111,11 +111,11 @@ static int CritTableLoad() {
 			for (int critter = 0; critter < CritTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = iniGetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
+				if (!(all = IniGetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!iniGetInt(buf, buf2, 0, critTableFile.c_str())) continue;
+						if (!IniGetInt(buf, buf2, 0, critTableFile.c_str())) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -123,7 +123,7 @@ static int CritTableLoad() {
 						int slot = crit + part * 6 + critter * 9 * 6;
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
-							baseCritTable[slot].values[i] = iniGetInt(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
+							baseCritTable[slot].values[i] = IniGetInt(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
 						}
 					}
 				}

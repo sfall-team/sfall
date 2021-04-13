@@ -18,7 +18,7 @@
 
 #pragma once
 
-extern DWORD modifiedIni;
+extern DWORD IniReader_modifiedIni;
 
 void IniReader_Init();
 
@@ -32,18 +32,6 @@ int GetIntDefaultConfig(const char* section, const char* setting, int defaultVal
 // Gets a list of values separated by the delimiter from the default config (i.e. ddraw.ini)
 std::vector<std::string> GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter);
 
-// Gets the integer value from given INI file
-int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
-
-// Gets the string value from given INI file
-size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile);
-
-// Gets the string value from given INI file
-std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
-
-// Parses the comma-separated list setting from given INI file
-std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
-
 // Gets the integer value from sfall configuration INI file
 int GetConfigInt(const char* section, const char* setting, int defaultValue);
 
@@ -55,6 +43,18 @@ size_t GetConfigString(const char* section, const char* setting, const char* def
 
 // Parses the comma-separated list from the settings from sfall configuration INI file
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Gets the integer value from given INI file
+int IniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
+
+// Gets the string value from given INI file
+size_t IniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile);
+
+// Gets the string value from given INI file
+std::string IniGetString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
+
+// Parses the comma-separated list setting from given INI file
+std::vector<std::string> IniGetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
 // Translates given string using sfall translation INI file and puts the result into given buffer
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);

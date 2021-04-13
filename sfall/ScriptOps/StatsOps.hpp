@@ -375,7 +375,7 @@ end:
 static void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
 		_GET_ARG_INT(end);
-		mov  StandardApAcBonus, eax;
+		mov  Stats_standardApAcBonus, eax;
 end:
 		retn;
 	}
@@ -383,7 +383,7 @@ end:
 
 static void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
-		mov  edx, StandardApAcBonus;
+		mov  edx, Stats_standardApAcBonus;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -391,7 +391,7 @@ static void __declspec(naked) op_get_unspent_ap_bonus() {
 static void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
 		_GET_ARG_INT(end);
-		mov  ExtraApAcBonus, eax;
+		mov  Stats_extraApAcBonus, eax;
 end:
 		retn;
 	}
@@ -399,7 +399,7 @@ end:
 
 static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
-		mov  edx, ExtraApAcBonus;
+		mov  edx, Stats_extraApAcBonus;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -765,7 +765,7 @@ static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 		mov  ebp, [esp];  // return addr
 		mov  xpTemp, eax; // experience
 		fild xpTemp;
-		fmul ExperienceMod;
+		fmul Stats_experienceMod;
 		fistp xpTemp;
 		mov  eax, xpTemp;
 		sub  esp, 0xC; // instead of 0x10
@@ -780,7 +780,7 @@ static void __stdcall op_set_xp_mod2() {
 	if (pctArg.isInt()) {
 		static bool xpModPatch = false;
 		long percent = pctArg.rawValue() & 0xFFFF;
-		ExperienceMod = percent / 100.0f;
+		Stats_experienceMod = percent / 100.0f;
 
 		if (xpModPatch) return;
 		xpModPatch = true;

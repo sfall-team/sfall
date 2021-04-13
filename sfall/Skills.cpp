@@ -342,7 +342,7 @@ void Skills_Init() {
 
 		for (int i = 0; i < SKILL_count; i++) {
 			sprintf(key, "Skill%d", i);
-			if (iniGetString("Skills", key, "", buf, 64, file)) {
+			if (IniGetString("Skills", key, "", buf, 64, file)) {
 				char* tok = strtok(buf, "|");
 				while (tok) {
 					if (strlen(tok) >= 2) {
@@ -366,7 +366,7 @@ void Skills_Init() {
 				if (skills[i].statB >= 0) multipliers[i * 7 + skills[i].statB] = skills[i].statMulti;
 			}
 			sprintf(key, "SkillCost%d", i);
-			if (iniGetString("Skills", key, "", buf, 512, file)) {
+			if (IniGetString("Skills", key, "", buf, 512, file)) {
 				char* tok = strtok(buf, "|");
 				DWORD upto = 0;
 				BYTE price = 1;
@@ -388,15 +388,15 @@ void Skills_Init() {
 				for (int j = 201; j <= 511; j++) skillCosts[i * 512 + j] = 6; // 311
 			}
 			sprintf(key, "SkillBase%d", i);
-			skills[i].base = iniGetInt("Skills", key, skills[i].base, file);
+			skills[i].base = IniGetInt("Skills", key, skills[i].base, file);
 
 			sprintf(key, "SkillMulti%d", i);
-			int multi = iniGetInt("Skills", key, skills[i].skillPointMulti, file);
+			int multi = IniGetInt("Skills", key, skills[i].skillPointMulti, file);
 			if (multi < 1) multi = 1; else if (multi > 10) multi = 10;
 			skills[i].skillPointMulti = multi;
 
 			sprintf(key, "SkillImage%d", i);
-			skills[i].image = iniGetInt("Skills", key, skills[i].image, file);
+			skills[i].image = IniGetInt("Skills", key, skills[i].image, file);
 		}
 
 		MakeJump(0x4AA59D, skill_level_hack_bonus, 1);
@@ -405,13 +405,13 @@ void Skills_Init() {
 		const DWORD skillDecPointAddr[] = {0x4AA9E1, 0x4AA9F1};
 		HookCalls(skill_dec_point_hook_cost, skillDecPointAddr);
 
-		basedOnPoints = iniGetInt("Skills", "BasedOnPoints", 0, file);
+		basedOnPoints = IniGetInt("Skills", "BasedOnPoints", 0, file);
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)skill_points_); // skill_dec_point_
 
-		int tagBonus = iniGetInt("Skills", "TagSkillBonus", 20, file);
+		int tagBonus = IniGetInt("Skills", "TagSkillBonus", 20, file);
 		if (tagBonus != 20 && tagBonus >=0 && tagBonus <= 100) SafeWrite8(0x4AA61E, static_cast<BYTE>(tagBonus)); // skill_level_
 
-		int tagMode = iniGetInt("Skills", "TagSkillMode", 0, file);
+		int tagMode = IniGetInt("Skills", "TagSkillMode", 0, file);
 		if (tagMode & 1) SafeWrite8(0x4AA612, 0xEB);    // 4th tag skill can have initial skill bonus. skill_level_ (jz > jmp)
 		if (tagMode & 2) SafeWrite16(0x4AA60E, 0x9090); // disables double skill points bonus for tag skills. skill_level_
 	}

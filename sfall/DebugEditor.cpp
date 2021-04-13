@@ -58,7 +58,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	if (GraphicsMode != 0) fo_process_bk();
+	if (Graphics_mode != 0) fo_process_bk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {

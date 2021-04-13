@@ -259,7 +259,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		// OnGameReset
 		BugFixes_OnGameLoad();
-		if (GraphicsMode > 3) Graphics_OnGameLoad();
+		if (Graphics_mode > 3) Graphics_OnGameLoad();
 		ForceGraphicsRefresh(0); // disable refresh
 		LoadOrder_OnGameLoad();
 		Interface_OnGameLoad();

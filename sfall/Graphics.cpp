@@ -105,8 +105,8 @@ IDirectDrawSurface* primaryDDSurface = nullptr; // aka _GNW95_DDPrimarySurface
 static DWORD ResWidth;
 static DWORD ResHeight;
 
-DWORD GPUBlt;
-DWORD GraphicsMode;
+DWORD Graphics_GPUBlt;
+DWORD Graphics_mode;
 
 bool Gfx_PlayAviMovie = false;
 bool Gfx_AviMovieWidthFit = false;
@@ -254,7 +254,7 @@ void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int __stdcall LoadShader(const char* file) {
-	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
+	if (!Graphics_mode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
 	sprintf_s(buf, "%s\\shaders\\%s", (*ptr_master_db_handle)->path, file); // *ptr_patches
 	for (DWORD d = 0; d < shadersSize; d++) {
@@ -378,13 +378,13 @@ static void ResetDevice(bool createNew) {
 	GetDisplayMode(dispMode);
 
 	params.BackBufferCount = 1;
-	params.BackBufferFormat = dispMode.Format; // (GraphicsMode != 4) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
+	params.BackBufferFormat = dispMode.Format; // (Graphics_mode != 4) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
 	params.EnableAutoDepthStencil = false;
 	//params.MultiSampleQuality = 0;
 	//params.MultiSampleType = D3DMULTISAMPLE_NONE;
-	params.Windowed = (GraphicsMode != 4);
+	params.Windowed = (Graphics_mode != 4);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
 	params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -408,9 +408,9 @@ static void ResetDevice(bool createNew) {
 		ShaderVersion = ((caps.PixelShaderVersion & 0x0000FF00) >> 8) * 10 + (caps.PixelShaderVersion & 0xFF);
 
 		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
-		if (GPUBlt == 2 && ShaderVersion < 20) GPUBlt = 0;
+		if (Graphics_GPUBlt == 2 && ShaderVersion < 20) Graphics_GPUBlt = 0;
 
-		if (GPUBlt) {
+		if (Graphics_GPUBlt) {
 			A8_IsSupport = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8, D3DPOOL_DEFAULT, &mainTex, 0) == D3D_OK);
 			textureFormat = (A8_IsSupport) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
 
@@ -437,7 +437,7 @@ static void ResetDevice(bool createNew) {
 
 	if (!A8_IsSupport && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, textureFormat, D3DPOOL_DEFAULT, &mainTex, 0) != D3D_OK) {
 		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &mainTex, 0);
-		GPUBlt = 0;
+		Graphics_GPUBlt = 0;
 		textureFormat = D3DFMT_X8R8G8B8;
 		MessageBoxA(window, "GPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.",
 		                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
@@ -448,7 +448,7 @@ static void ResetDevice(bool createNew) {
 	sTex1->GetSurfaceLevel(0, &sSurf1);
 	sTex2->GetSurfaceLevel(0, &sSurf2);
 
-	if (GPUBlt) {
+	if (Graphics_GPUBlt) {
 		d3d9Device->CreateTexture(256, 1, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &gpuPalette, 0);
 		gpuBltEffect->SetTexture(gpuBltMainTex, mainTex);
 		gpuBltEffect->SetTexture(gpuBltPalette, gpuPalette);
@@ -581,7 +581,7 @@ static void Refresh() {
 	d3d9Device->SetTexture(0, mainTex);
 
 	UINT passes;
-	if (GPUBlt) {
+	if (Graphics_GPUBlt) {
 		// converts the palette in mainTex to RGB colors on the target surface (sSurf1/sTex1)
 		gpuBltEffect->Begin(&passes, 0);
 		gpuBltEffect->BeginPass(0);
@@ -718,7 +718,7 @@ void Gfx_ShowMovieFrame(IDirect3DTexture9* tex) {
 
 	d3d9Device->BeginScene();
 	if (!mainTexLock) {
-		if (shadersSize && GPUBlt) {
+		if (shadersSize && Graphics_GPUBlt) {
 			d3d9Device->SetTexture(0, sTex2);
 		} else {
 			d3d9Device->SetTexture(0, mainTex);
@@ -726,13 +726,13 @@ void Gfx_ShowMovieFrame(IDirect3DTexture9* tex) {
 		d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
 
 		// for showing subtitles
-		if (GPUBlt) {
+		if (Graphics_GPUBlt) {
 			UINT passes;
 			gpuBltEffect->Begin(&passes, 0);
 			gpuBltEffect->BeginPass(0);
 		}
 		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-		if (GPUBlt) {
+		if (Graphics_GPUBlt) {
 			gpuBltEffect->EndPass();
 			gpuBltEffect->End();
 		}
@@ -791,7 +791,7 @@ public:
 		Refs = 1;
 		isPrimary = primary;
 		lockTarget = nullptr;
-		if (primary && GPUBlt) {
+		if (primary && Graphics_GPUBlt) {
 			// use the mainTex texture as a buffer
 		} else {
 			lockTarget = new BYTE[ResWidth * ResHeight];
@@ -835,7 +835,7 @@ public:
 
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 
-		if (GPUBlt) {
+		if (Graphics_GPUBlt) {
 			fo_buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
 			//char* pBits = (char*)dRect.pBits;
 			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
@@ -893,7 +893,7 @@ public:
 		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
 		if (isPrimary) {
 			lockRect = a;
-			if (GPUBlt) {
+			if (Graphics_GPUBlt) {
 				D3DLOCKED_RECT buf;
 				if (SUCCEEDED(mainTex->LockRect(0, &buf, lockRect, 0))) {
 					mainTexLock = true;
@@ -921,7 +921,7 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			if (GPUBlt) SetGPUPalette(); // restore palette
+			if (Graphics_GPUBlt) SetGPUPalette(); // restore palette
 			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
 		return DeviceLost;
@@ -971,7 +971,7 @@ public:
 		if (!isPrimary) return DD_OK;
 		//dlog("\nUnlock -> primary", DL_INIT);
 
-		if (GPUBlt == 0) {
+		if (Graphics_GPUBlt == 0) {
 			mainTexLock = true;
 
 			D3DLOCKED_RECT dRect;
@@ -1064,7 +1064,7 @@ public:
 
 		__movsd((DWORD*)&palette[b], (DWORD*)destPal, c);
 
-		if (GPUBlt) {
+		if (Graphics_GPUBlt) {
 			SetGPUPalette();
 		} else {
 			// X8B8G8R8 format
@@ -1074,7 +1074,7 @@ public:
 				palette[i].R = clr;
 			}
 			primaryDDSurface->SetPalette(0); // update texture
-			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
+			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & Graphics_GPUBlt=2)
 		}
 		if (!Gfx_PlayAviMovie) {
 			//dlog("\nSetEntries -> RefreshGraphics", DL_INIT);
@@ -1170,7 +1170,7 @@ public:
 		}
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
-		if (GraphicsMode >= 5) {
+		if (Graphics_mode >= 5) {
 			SetWindowLong(a, GWL_STYLE, windowStyle);
 			RECT r;
 			r.left = 0;
@@ -1221,7 +1221,7 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	mveDesc.dwWidth = 640;
 	mveDesc.dwHeight = 480;
 
-	if (GraphicsMode == 6) {
+	if (Graphics_mode == 6) {
 		D3DDISPLAYMODE dispMode;
 		GetDisplayMode(dispMode);
 		gWidth  = dispMode.Width;
@@ -1235,12 +1235,12 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		}
 	}
 
-	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
-	if (!GPUBlt || GPUBlt > 2)
-		GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
-	else if (GPUBlt == 2) GPUBlt = 0; // Use CPU
+	Graphics_GPUBlt = GetConfigInt("Graphics", "Graphics_GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
+	if (!Graphics_GPUBlt || Graphics_GPUBlt > 2)
+		Graphics_GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
+	else if (Graphics_GPUBlt == 2) Graphics_GPUBlt = 0; // Use CPU
 
-	if (GraphicsMode == 5) {
+	if (Graphics_mode == 5) {
 		moveWindowKey[0] = GetConfigInt("Input", "WindowScrollKey", 0);
 		if (moveWindowKey[0] < 0) {
 			switch (moveWindowKey[0]) {
@@ -1438,14 +1438,14 @@ void Graphics_OnGameLoad() { // ResetShaders
 }
 
 void Graphics_Init() {
-	GraphicsMode = GetConfigInt("Graphics", "Mode", 0);
-	if (GraphicsMode == 6) {
+	Graphics_mode = GetConfigInt("Graphics", "Mode", 0);
+	if (Graphics_mode == 6) {
 		windowStyle = WS_OVERLAPPED;
-	} else if (GraphicsMode != 4 && GraphicsMode != 5) {
-		GraphicsMode = 0;
+	} else if (Graphics_mode != 4 && Graphics_mode != 5) {
+		Graphics_mode = 0;
 	}
 
-	if (GraphicsMode) {
+	if (Graphics_mode) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #ifdef WIN2K
 #define _DLL_NAME "d3dx9_42.dll"
@@ -1490,8 +1490,8 @@ void Graphics_Init() {
 }
 
 void Graphics_Exit() {
-	if (GraphicsMode) {
-		if (GraphicsMode == 5) {
+	if (Graphics_mode) {
+		if (Graphics_mode == 5) {
 			int data = windowTop | (windowLeft << 16);
 			if (data >= 0 && data != windowData) SetConfigInt("Graphics", "WindowData", data);
 		}

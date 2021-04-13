@@ -178,10 +178,10 @@ static DWORD __stdcall GetIniSetting(const char* str, DWORD isString) {
 	}
 	if (isString) {
 		gTextBuffer[0] = 0;
-		iniGetString(section, key, "", gTextBuffer, 256, file);
+		IniGetString(section, key, "", gTextBuffer, 256, file);
 		return (DWORD)&gTextBuffer[0];
 	} else {
-		return iniGetInt(section, key, -1, file);
+		return IniGetInt(section, key, -1, file);
 	}
 }
 
@@ -524,7 +524,7 @@ fail:
 
 static void __declspec(naked) op_modified_ini() {
 	__asm {
-		mov  edx, modifiedIni;
+		mov  edx, IniReader_modifiedIni;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

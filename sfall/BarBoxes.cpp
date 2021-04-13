@@ -301,7 +301,7 @@ void BarBoxes_Init() {
 	MakeCall(0x4615FA, refresh_box_bar_win_hack);
 	SafeWriteBatch<DWORD>((DWORD)newBoxSlot, bboxSlotAddr); // _bboxslot
 
-	ifaceWidth = iniGetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
+	ifaceWidth = IniGetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
 	if (ifaceWidth < 640) ifaceWidth = 640;
 }
 
