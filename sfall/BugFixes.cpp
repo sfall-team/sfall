@@ -1984,34 +1984,35 @@ skip:
 }
 
 static DWORD firstItemDrug = -1;
+
 static void __declspec(naked) ai_check_drugs_hack_break() {
 	static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 	__asm {
 		mov  eax, -1;
 		cmp  firstItemDrug, eax;
-		jnz  firstDrugs;
+		jne  firstDrugs;                   // pid != -1
 		add  esp, 4;
 		jmp  ai_check_drugs_hack_Ret;      // break loop
 firstDrugs:
-		mov  dword ptr [esp + 4], eax;     // buf
+		mov  dword ptr [esp + 4], eax;     // slot set -1
 		mov  edi, firstItemDrug;
 		mov  ebx, edi;
-		mov  firstItemDrug, eax;
+		mov  firstItemDrug, eax;           // set -1
 		retn;                              // use drug
 	}
 }
 
 static void __declspec(naked) ai_check_drugs_hack_check() {
 	__asm {
-		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem flag
+		test [esp + 0x34 - 0x30 + 4], 0;   // check NoInvenItem != 0
 		jnz  skip;
-		cmp  dword ptr [edx + 0xAC], -1;   // Chemical Preference Number (cap.chem_primary_desire)
+		cmp  dword ptr [edx + 0xAC], -1;   // cap.chem_primary_desire (Chemical Preference Number)
 		jnz  checkDrugs;
 skip:
-		xor  ebx, ebx;                     // set zero flag for skipping preference list check
+		xor  ebx, ebx;                     // set ZF for skipping preference list check
 		retn;
 checkDrugs:
-		cmp  ebx, [edx + 0xAC];            // Chemical Preference Number
+		cmp  ebx, [edx + 0xAC];            // check item.pid against cap.chem_primary_desire
 		retn;
 	}
 }
@@ -2019,16 +2020,16 @@ checkDrugs:
 static void __declspec(naked) ai_check_drugs_hack_use() {
 	static const DWORD ai_check_drugs_hack_Loop = 0x428675;
 	__asm {
-		cmp  eax, 3;
+		cmp  eax, 3;                       // counter
 		jge  beginLoop;
 		retn;                              // use drug
 beginLoop:
 		cmp  firstItemDrug, -1;
-		jnz  skip;
-		mov  firstItemDrug, edi;           // keep drug item
+		jne  skip;
+		mov  firstItemDrug, edi;           // keep first found drug item
 skip:
 		add  esp, 4;
-		jmp  ai_check_drugs_hack_Loop;     // goto begin loop
+		jmp  ai_check_drugs_hack_Loop;     // goto begin loop, search next item
 	}
 }
 
@@ -3493,14 +3494,18 @@ void BugFixes_Init()
 	// Display a pop-up message box about death from radiation
 	HookCall(0x42D733, process_rads_hook_msg);
 
-	// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
-	if (GetConfigInt("Misc", "AIDrugUsePerfFix", 0)) {
+	int drugUsePerfFix = GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	if (drugUsePerfFix > 0) {
 		dlog("Applying AI drug use preference fix.", DL_FIX);
-		MakeCall(0x42869D, ai_check_drugs_hack_break);
-		MakeCall(0x4286AB, ai_check_drugs_hack_check);
-		SafeWrite16(0x4286B0, 0x7490);         // jnz > jz
-		SafeWrite8(0x4286C5, CODETYPE_JumpNZ); // jz  > jnz
-		MakeCall(0x4286C7, ai_check_drugs_hack_use);
+		if (drugUsePerfFix == 1) {
+			// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
+			MakeCall(0x42869D, ai_check_drugs_hack_break);
+			MakeCall(0x4286AB, ai_check_drugs_hack_check, 1);
+			MakeCall(0x4286C7, ai_check_drugs_hack_use);
+		}
+		// Fix to allow using only the drugs listed in chem_primary_desire and healing drugs (stimpaks and healing powder)
+		SafeWrite8(0x4286B1, CODETYPE_JumpZ);  // jnz > jz (ai_check_drugs_)
+		SafeWrite8(0x4286C5, CODETYPE_JumpNZ); // jz > jnz (ai_check_drugs_)
 		dlogr(" Done", DL_FIX);
 	}
 
