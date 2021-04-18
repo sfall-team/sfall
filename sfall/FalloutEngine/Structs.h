@@ -434,6 +434,8 @@ struct FrmFile {            // sizeof 2954
 		BYTE pixels[80 * 36]; // for tiles FRM
 	};
 
+	FrmFile() {};
+
 	// Returns a pointer to the data of the frame in the direction
 	FrmFrameData* GetFrameData(long dir, long frame) {
 		BYTE* offsDirectionFrame = (BYTE*)&frameData;

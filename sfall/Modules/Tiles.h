@@ -27,6 +27,7 @@ class Tiles : public Module {
 public:
 	const char* name() { return "Tiles"; }
 	void init();
+	void exit() override;
 };
 
 }

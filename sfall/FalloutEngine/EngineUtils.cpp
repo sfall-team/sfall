@@ -573,7 +573,7 @@ static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 		return false;
 
 	frame->indexBuff = new BYTE[frame->size];
-	if (fo::func::db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1)
+	if (fo::func::db_fread(frame->indexBuff, 1, frame->size, frmStream) != frame->size)
 		return false;
 
 	return true;
