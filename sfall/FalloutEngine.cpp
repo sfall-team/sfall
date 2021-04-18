@@ -972,7 +972,7 @@ static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
 		return false;
 
 	frame->indexBuff = new BYTE[frame->size];
-	if (fo_db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1)
+	if (fo_db_fread(frame->indexBuff, 1, frame->size, frmStream) != frame->size)
 		return false;
 
 	return true;

@@ -19,3 +19,4 @@
 #pragma once
 
 void Tiles_Init();
+void Tiles_Exit();

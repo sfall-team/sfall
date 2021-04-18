@@ -20,8 +20,8 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
-#include "LoadGameHook.h"
 #include "Utils.h"
+#include "LoadGameHook.h"
 #include "Worldmap.h"
 
 long Interface_ActiveInterfaceWID() {

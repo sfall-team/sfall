@@ -21,7 +21,8 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
-#include "FileSystem.h"
+#include "Utils.h"
+//#include "FileSystem.h"
 
 typedef int (__stdcall *functype)();
 
@@ -53,114 +54,141 @@ struct TilesData {
 #pragma pack(pop)
 
 struct OverrideEntry {
-	DWORD xtiles;
-	DWORD ytiles;
-	DWORD replacementid;
+	DWORD xTiles;
+	DWORD yTiles;
+	DWORD replacementID;
 
-	OverrideEntry(DWORD _xtiles, DWORD _ytiles, DWORD _repid)
-		: xtiles(_xtiles), ytiles(_ytiles), replacementid(_repid) {
+	OverrideEntry(DWORD xtiles, DWORD ytiles, DWORD repid)
+		: xTiles(xtiles), yTiles(ytiles), replacementID(repid) {
 	}
 };
 
-static OverrideEntry** overrides;
+static OverrideEntry** overrides = nullptr;
 static DWORD origTileCount = 0;
 static DWORD tileMode;
 static BYTE* mask;
 
-static void CreateMask() {
+// emulation of std::lroundf in C++11
+static long lroundf(float x) {
+	if (x < 0)
+		return static_cast<long>(x - 0.5f);
+	else
+		return static_cast<long>(x + 0.5f);
+}
+
+static bool LoadMask() {
+	DbFile* file = fo_db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
+	if (!file) {
+		dlogr("AllowLargeTiles: Unable to open art\\tiles\\gridmask.frm file.", DL_INIT);
+		return false;
+	}
 	mask = new BYTE[80 * 36];
-	DbFile* file = fo_db_fopen("art\\tiles\\grid000.frm", "r");
-	fo_db_fseek(file, 0x4A, 0);
+
+	fo_db_fseek(file, 0x4A, SEEK_SET);
 	fo_db_freadByteCount(file, mask, 80 * 36);
 	fo_db_fclose(file);
+	return true;
 }
 
-static WORD ByteSwapW(WORD w) {
-	return ((w & 0xFF) << 8) | ((w & 0xFF00) >> 8);
-}
+static int __stdcall ProcessTile(sArt* tiles, int tile, int listPos) {
+	char buf[32] = "art\\tiles\\";
+	strncpy_s(&buf[10], 22, &tiles->names[13 * tile], _TRUNCATE);
 
-static DWORD ByteSwapD(DWORD w) {
-	return ((w & 0xFF) << 24) | ((w & 0xFF00) << 8) | ((w & 0xFF0000) >> 8) | ((w & 0xFF000000) >> 24);
-}
+	DbFile* artFile = fo_db_fopen(buf, "rb");
+	if (!artFile) return 0;
 
-static int ProcessTile(sArt* tiles, int tile, int listpos) {
-	char buf[32];
-	//sprintf_s(buf, "art\\tiles\\%s", &tiles->names[13*tile]);
-	strcpy_s(buf, "art\\tiles\\");
-	strcat_s(buf, &tiles->names[13 * tile]);
+	fo_db_fseek(artFile, 0x3E, SEEK_SET); // frameData
 
-	DbFile* art = fo_db_fopen(buf, "r");
-	if (!art) return 0;
-	fo_db_fseek(art, 0x3E, 0);
 	WORD width;
-	fo_db_freadShort(art, &width);  //80;
-	if (width == 80) {
-		fo_db_fclose(art);
+	fo_db_freadShort(artFile, &width);
+	if (width < 80) goto exit;
+
+	WORD height;
+	fo_db_freadShort(artFile, &height);
+	if (height < 36) goto exit;
+
+	float newWidth = (float)(width - (width % 8));
+	float newHeight = (float)(height - (height % 12));
+
+	// Number of tiles horizontally and vertically
+	// the calculation is unstable if the large tile is not proportional to the size of 80x36 (aspect ratio)
+	int xSize = lroundf(((newWidth / 32.0f) - (newHeight / 24.0f)) - 0.01f);
+	int ySize = lroundf(((newHeight / 16.0f) - (newWidth / 64.0f)) - 0.01f);
+	if (xSize <= 0 || ySize <= 0) goto exit;
+
+	long bytes = width * height;
+	BYTE* pixelData = new BYTE[bytes];
+
+	// Read pixels data
+	if (fo_db_fseek(artFile, 0x4A, SEEK_SET) ||
+	    fo_db_fread(pixelData, 1, bytes, artFile) != bytes)
+	{
+		delete[] pixelData;
+exit:
+		fo_db_fclose(artFile);
 		return 0;
 	}
-	WORD height;
-	fo_db_freadShort(art, &height); //36
-	fo_db_fseek(art, 0x4A, 0);
-	BYTE* pixeldata = new BYTE[width * height];
-	fo_db_freadByteCount(art, pixeldata, width * height);
-	DWORD listid = listpos - tiles->total;
-	float newwidth = (float)(width - width % 8);
-	float newheight = (float)(height - height % 12);
-	int xsize = (int)floor(newwidth / 32.0f - newheight / 24.0f);
-	int ysize = (int)floor(newheight / 16.0f - newwidth / 64.0f);
-	for (int y = 0; y < ysize; y++) {
-		for (int x = 0; x < xsize; x++) {
-			FrmFile frame;
-			fo_db_fseek(art, 0, 0);
-			fo_db_freadByteCount(art, (BYTE*)&frame, 0x4a);
-			frame.height = ByteSwapW(36);
-			frame.width = ByteSwapW(80);
-			frame.frameSize = ByteSwapD(80 * 36);
-			frame.frameAreaSize = ByteSwapD(80 * 36 + 12);
-			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
-			int yoffset = height - (36 + x * 12 + y * 24);
-			for (int y2 = 0; y2 < 36; y2++) {
-				for (int x2 = 0; x2 < 80; x2++) {
-					if (mask[y2 * 80 + x2]) {
-						frame.pixels[y2 * 80 + x2] = pixeldata[(yoffset + y2) * width + xoffset + x2];
+	long listID = listPos - tiles->total;
+
+	FrmFile frame;
+	fo_db_fseek(artFile, 0, SEEK_SET);
+	fo_db_freadByteCount(artFile, (BYTE*)&frame, 74);
+
+	frame.height = ByteSwapW(36);
+	frame.width = ByteSwapW(80);
+	frame.frameSize = ByteSwapD(80 * 36);
+	frame.frameAreaSize = ByteSwapD(80 * 36 + 12);
+
+	for (int y = 0; y < ySize; y++) {
+		for (int x = 0; x < xSize; x++) {
+			// offset relative to the top-left corner
+			int xOffset = x * 48 + (ySize - (y + 1)) * 32;
+			int yOffset = height - (36 + x * 12 + y * 24);
+
+			for (int pY = 0; pY < 36; pY++) {
+				for (int pX = 0; pX < 80; pX++) {
+					int point = (80 * pY) + pX;
+					if (mask[point]) {
+						frame.pixels[point] = pixelData[(width * (yOffset + pY)) + xOffset + pX];
 					} else {
-						frame.pixels[y2 * 80 + x2] = 0;
+						frame.pixels[point] = 0;
 					}
 				}
 			}
-
-			sprintf_s(buf, 32, "art\\tiles\\zzz%04d.frm", listid++);
+			sprintf_s(&buf[10], 22, "zzz%04d.frm", listID++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
-			DbFile* file = fo_db_fopen(buf, "w");
+			DbFile* file = fo_db_fopen(buf, "wb");
 			fo_db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
 			fo_db_fclose(file);
 		}
 	}
-	overrides[tile] = new OverrideEntry(xsize, ysize, listpos);
-	fo_db_fclose(art);
-	delete[] pixeldata;
-	return xsize * ysize;
+	overrides[tile] = new OverrideEntry(xSize, ySize, listPos);
+
+	fo_db_fclose(artFile);
+	delete[] pixelData;
+
+	return xSize * ySize; // number of tiles added
 }
 
 static const functype art_init = (functype)art_init_;
 
 static int __stdcall ArtInitHook() {
 	if (art_init()) return -1;
-
-	CreateMask();
+	if (!LoadMask()) return 0;
 
 	sArt* tiles = &ptr_art[4];
-	char buf[32];
-	DWORD listpos = tiles->total;
-	origTileCount = listpos;
-	overrides = new OverrideEntry*[listpos];
-	ZeroMemory(overrides, 4 * (listpos - 1));
+
+	long listpos = origTileCount = tiles->total;
+	overrides = new OverrideEntry*[listpos]();
 
 	if (tileMode == 2) {
 		DbFile* file = fo_db_fopen("art\\tiles\\xltiles.lst", "rt");
 		if (!file) return 0;
+
+		char buf[32];
 		DWORD id;
 		char* comment;
+
 		while (fo_db_fgets(buf, 31, file) > 0) {
 			if (comment = strchr(buf, ';')) *comment = 0;
 			id = atoi(buf);
@@ -172,7 +200,7 @@ static int __stdcall ArtInitHook() {
 	}
 	if (listpos != tiles->total) {
 		tiles->names = (char*)fo_mem_realloc(tiles->names, listpos * 13);
-		for (DWORD i = tiles->total; i < listpos; i++) {
+		for (long i = tiles->total; i < listpos; i++) {
 			sprintf_s(&tiles->names[i * 13], 12, "zzz%04d.frm", i - tiles->total);
 		}
 		tiles->total = listpos;
@@ -194,14 +222,15 @@ static void __declspec(naked) iso_init_hook() {
 }
 
 static long __fastcall SquareLoadCheck(TilesData* data) {
+	if (!overrides) return 0;
 	for (DWORD y = 0; y < 100; y++) {
 		for (DWORD x = 0; x < 100; x++) {
 			for (DWORD z = 0; z < 2; z++) {
 				DWORD tile = data[y * 100 + x].tile[z];
 				if (tile > 1 && tile < origTileCount && overrides[tile]) {
-					DWORD newtile = overrides[tile]->replacementid - 1;
-					for (DWORD y2 = 0; y2 < overrides[tile]->ytiles; y2++) {
-						for (DWORD x2 = 0; x2 < overrides[tile]->xtiles; x2++) {
+					DWORD newtile = overrides[tile]->replacementID - 1;
+					for (DWORD y2 = 0; y2 < overrides[tile]->yTiles; y2++) {
+						for (DWORD x2 = 0; x2 < overrides[tile]->xTiles; x2++) {
 							newtile++;
 							if (x - x2 < 0 || y - y2 < 0) continue;
 							data[(y - y2) * 100 + x - x2].tile[z] = (short)newtile;
@@ -275,5 +304,12 @@ void Tiles_Init() {
 			SafeWrite8(HRPAddress(0x1000E1DA), 0x3F);
 		}
 		dlogr(" Done", DL_INIT);
+	}
+}
+
+void Tiles_Exit() {
+	if (overrides) {
+		for (size_t i = 0; i < origTileCount; i++) delete overrides[i]; // free OverrideEntry
+		delete[] overrides;
 	}
 }

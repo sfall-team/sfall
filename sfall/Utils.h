@@ -18,6 +18,9 @@ void split(const std::string &s, char delim, T result, size_t limit = -1) {
 	}
 }
 
+WORD  ByteSwapW(WORD w);
+DWORD ByteSwapD(DWORD dw);
+
 // Splits a string by given delimiter
 std::vector<std::string> split(const std::string &s, char delim);
 

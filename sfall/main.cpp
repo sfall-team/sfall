@@ -238,6 +238,7 @@ static void __stdcall OnExit() {
 	Interface_Exit();
 	SpeedPatch_Exit();
 	Skills_Exit();
+	Tiles_Exit();
 	Sound_Exit();
 	Reputations_Exit();
 	Console_Exit();

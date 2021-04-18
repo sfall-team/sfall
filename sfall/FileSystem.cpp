@@ -544,7 +544,7 @@ DWORD __stdcall FScopy(const char* path, const char* source) {
 	DWORD fsize;
 	sFile* file;
 
-	const char* mode = "r";
+	const char* mode = "rb"; // was 'r'
 	__asm {
 		mov  eax, source;
 		mov  edx, mode;

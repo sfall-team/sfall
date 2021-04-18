@@ -78,32 +78,6 @@ WRAP_WATCOM_FUNC1(long, critter_is_dead, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, TGameObj*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
 WRAP_WATCOM_FUNC1(long, critterIsOverloaded, TGameObj*, critter)
-/* Database functions */
-WRAP_WATCOM_FUNC1(bool, db_access, const char*, fileName) // Checks if given file exists in DB
-WRAP_WATCOM_FUNC1(long, db_fclose, DbFile*, file)
-WRAP_WATCOM_FUNC2(DbFile*, db_fopen, const char*, path, const char*, mode)
-WRAP_WATCOM_FUNC1(long, db_fgetc, DbFile*, file)
-WRAP_WATCOM_FUNC3(char*, db_fgets, char*, buf, long, max_count, DbFile*, file)
-WRAP_WATCOM_FUNC4(long, db_fread, void*, buf, long, elsize, long, count, DbFile*, file)
-WRAP_WATCOM_FUNC3(long, db_fseek, DbFile*, file, long, pos, long, origin)
-WRAP_WATCOM_FUNC2(void, db_free_file_list, char***, fileList, DWORD, arg2) // Destroys filelist array created by db_get_file_list
-WRAP_WATCOM_FUNC2(long, db_freadByte, DbFile*, file, BYTE*, _out)
-WRAP_WATCOM_FUNC2(long, db_freadShort, DbFile*, file, WORD*, _out)
-WRAP_WATCOM_FUNC2(long, db_freadInt, DbFile*, file, DWORD*, _out)
-WRAP_WATCOM_FUNC3(long, db_freadByteCount, DbFile*, file, BYTE*, cptr, long, count)
-WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)
-WRAP_WATCOM_FUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, count)
-WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
-WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
-WRAP_WATCOM_FUNC3(long, db_fwriteByteCount, DbFile*, file, const BYTE*, cptr, long, count)
-WRAP_WATCOM_FUNC2(long, db_dir_entry, const char*, fileName, DWORD*, sizeOut) // Check fallout file and get file size (result 0 - file exists)
-// Searches files in DB by given path/filename mask and stores result in fileList
-// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
-WRAP_WATCOM_FUNC2(long, db_get_file_list, const char*, searchMask, char***, fileList) // Returns number of elements in *fileList
-WRAP_WATCOM_FUNC2(long, db_init, const char*, path_dat, const char*, path_patches)
-WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
-WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
-////////////////////////
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
@@ -235,5 +209,34 @@ WRAP_WATCOM_FUNC2(void, win_draw_rect, DWORD, winRef, RECT*, rect)
 WRAP_WATCOM_FUNC1(void, win_delete, DWORD, winRef)
 WRAP_WATCOM_FUNC0(long, windowWidth)
 WRAP_WATCOM_FUNC1(void, wmRefreshInterfaceOverlay, long, isRedraw)
+
+/* Database functions */
+WRAP_WATCOM_FUNC1(bool, db_access, const char*, fileName) // Checks if given file exists in DB
+WRAP_WATCOM_FUNC1(long, db_fclose, DbFile*, file)
+WRAP_WATCOM_FUNC2(DbFile*, db_fopen, const char*, path, const char*, mode)
+//WRAP_WATCOM_FUNC1(long, db_fgetc, DbFile*, file)
+WRAP_WATCOM_FUNC3(char*, db_fgets, char*, buf, long, max_count, DbFile*, file)
+WRAP_WATCOM_FFUNC4(long, db_fread, void*, buf, long, elsize, long, count, DbFile*, file)
+WRAP_WATCOM_FFUNC3(long, db_fseek, DbFile*, file, long, pos, long, origin)
+WRAP_WATCOM_FUNC2(void, db_free_file_list, char***, fileList, DWORD, arg2) // Destroys filelist array created by db_get_file_list
+WRAP_WATCOM_FUNC2(long, db_freadByte, DbFile*, file, BYTE*, _out)
+WRAP_WATCOM_FUNC2(long, db_freadShort, DbFile*, file, WORD*, _out)
+WRAP_WATCOM_FUNC2(long, db_freadInt, DbFile*, file, DWORD*, _out)
+WRAP_WATCOM_FFUNC3(long, db_freadByteCount, DbFile*, file, BYTE*, cptr, long, count)
+WRAP_WATCOM_FFUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)
+WRAP_WATCOM_FFUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, count)
+//WRAP_WATCOM_FFUNC3(long, db_freadLongCount, DbFile*, file, DWORD*, dest, long, count)
+WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
+WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
+WRAP_WATCOM_FFUNC3(long, db_fwriteByteCount, DbFile*, file, const BYTE*, cptr, long, count)
+//WRAP_WATCOM_FFUNC3(long, db_fwriteLongCount, DbFile*, file, DWORD*, dest, long, count)
+WRAP_WATCOM_FUNC2(long, db_dir_entry, const char*, fileName, DWORD*, sizeOut) // Check fallout file and get file size (result 0 - file exists)
+// Searches files in DB by given path/filename mask and stores result in fileList
+// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
+WRAP_WATCOM_FUNC2(long, db_get_file_list, const char*, searchMask, char***, fileList) // Returns number of elements in *fileList
+WRAP_WATCOM_FUNC2(long, db_init, const char*, path_dat, const char*, path_patches)
+WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
+WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
+
 WRAP_WATCOM_FUNC2(DbFile*, xfopen, const char*, fileName, const char*, flags)
-WRAP_WATCOM_FUNC3(long, xfseek, DbFile*, file, long, fOffset, long, origin)
+WRAP_WATCOM_FFUNC3(long, xfseek, DbFile*, file, long, fOffset, long, origin)
