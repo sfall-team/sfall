@@ -76,7 +76,7 @@ static BYTE* mask;
 static bool LoadMask() {
 	fo::DbFile* file = fo::func::db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
 	if (!file) {
-		dlogr("AllowLargeTiles: Failed to open gridmask.frm file.", DL_INIT);
+		dlogr("AllowLargeTiles: Unable to open art\\tiles\\gridmask.frm file.", DL_INIT);
 		return false;
 	}
 	mask = new BYTE[80 * 36];
@@ -89,7 +89,13 @@ static bool LoadMask() {
 
 static int ProcessTile(fo::Art* tiles, int tile, int listPos) {
 	char buf[32] = "art\\tiles\\";
-	strncpy_s(&buf[10], 22, &tiles->names[13 * tile], _TRUNCATE);
+	const char* name = &tiles->names[13 * tile];
+	for (size_t i = 10; ; i++) {
+		if (i == 32) return 0; // name too long
+		char c = *name++;
+		buf[i] = c;
+		if (c == '\0') break;
+	}
 
 	fo::DbFile* artFile = fo::func::db_fopen(buf, "rb");
 	if (!artFile) return 0;
@@ -112,6 +118,10 @@ static int ProcessTile(fo::Art* tiles, int tile, int listPos) {
 	int xSize = std::lroundf(((newWidth / 32.0f) - (newHeight / 24.0f)) - 0.01f);
 	int ySize = std::lroundf(((newHeight / 16.0f) - (newWidth / 64.0f)) - 0.01f);
 	if (xSize <= 0 || ySize <= 0) goto exit;
+
+	// Check if total dimension of split tiles exceeds the original
+	if (xSize > 1 && (xSize * 80) > width) xSize -= 1;
+	if (ySize > 1 && (ySize * 36) > height) ySize -= 1;
 
 	long bytes = width * height;
 	BYTE* pixelData = new BYTE[bytes];
@@ -152,7 +162,7 @@ exit:
 					}
 				}
 			}
-			sprintf_s(&buf[10], 22, "zzz%04d.frm", listID++);
+			sprintf(&buf[10], "zzz%04d.frm", listID++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
 			fo::DbFile* file = fo::func::db_fopen(buf, "wb");
 			fo::func::db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
