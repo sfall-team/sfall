@@ -208,7 +208,7 @@ static int __stdcall ArtInitHook() {
 	if (listpos != tiles->total) {
 		tiles->names = (char*)fo::func::mem_realloc(tiles->names, listpos * 13);
 		for (long i = tiles->total; i < listpos; i++) {
-			sprintf_s(&tiles->names[i * 13], 12, "zzz%04d.frm", i - tiles->total);
+			sprintf(&tiles->names[i * 13], "zzz%04d.frm", i - tiles->total);
 		}
 		tiles->total = listpos;
 	}

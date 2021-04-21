@@ -53,6 +53,12 @@ const fo::MessageList* gameMsgFiles[] = {
 };
 #undef CASTMSG
 
+static char gameLanguage[128];
+
+const char* Message::GameLanguage() {
+	return &gameLanguage[0];
+}
+
 ExtraGameMessageListsMap gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
 
@@ -244,9 +250,10 @@ static void ClearScriptAddedExtraGameMsg() { // C++11
 }
 
 static void FallbackEnglishLoadMsgFiles() {
-	char value[128];
-	if (fo::func::get_game_config_string(value, "system", "language") && _stricmp(value, "english") != 0) {
-		HookCall(0x484B18, message_load_hook);
+	const char* lang;
+	if (fo::func::get_game_config_string(&lang, "system", "language")) {
+		strncpy_s(gameLanguage, lang, _TRUNCATE);
+		if (_stricmp(lang, "english") != 0) HookCall(0x484B18, message_load_hook);
 	}
 }
 

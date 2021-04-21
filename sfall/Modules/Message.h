@@ -59,6 +59,8 @@ public:
 	void init();
 	void exit() override;
 
+	static const char* GameLanguage();
+
 	static long AddExtraMsgFile(const char* msgName, long msgNumber);
 };
 
