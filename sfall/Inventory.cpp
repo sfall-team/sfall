@@ -16,15 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-
 #include "main.h"
 #include "FalloutEngine.h"
+#include "InputFuncs.h"
+#include "Translate.h"
+
 #include "HeroAppearance.h"
 #include "HookScripts.h"
-#include "InputFuncs.h"
 #include "LoadGameHook.h"
-#include "PartyControl.h"
 #include "ReplacementFuncs.h"
 
 #include "Inventory.h"
@@ -672,7 +671,7 @@ void Inventory_Init() {
 	SafeWrite32(0x472632, widthWeight);
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
-		Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", superStimMsg);
+		Translate_Get("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", superStimMsg);
 		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 

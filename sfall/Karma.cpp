@@ -16,13 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <math.h>
-#include <stdio.h>
 #include <string>
 #include <vector>
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "Translate.h"
 
 struct KarmaFrmSetting {
 	DWORD frm;
@@ -90,8 +89,8 @@ end:
 static void ApplyDisplayKarmaChangesPatch() {
 	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		Translate("sfall", "KarmaGain", "You gained %d karma.", karmaGainMsg);
-		Translate("sfall", "KarmaLoss", "You lost %d karma.", karmaLossMsg);
+		Translate_Get("sfall", "KarmaGain", "You gained %d karma.", karmaGainMsg);
+		Translate_Get("sfall", "KarmaLoss", "You lost %d karma.", karmaLossMsg);
 		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}

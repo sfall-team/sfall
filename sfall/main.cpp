@@ -70,6 +70,7 @@
 #include "Stats.h"
 #include "TalkingHeads.h"
 #include "Tiles.h"
+#include "Translate.h"
 #include "version.h"
 #include "Worldmap.h"
 
@@ -80,11 +81,13 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
-DWORD hrpDLLBaseAddr = 0x10000000;
+static DWORD hrpDLLBaseAddr = 0x10000000;
 
 DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
 }
+
+char falloutConfigName[65] = {0};
 
 static void InitModules() {
 	dlogr("In InitModules", DL_MAIN);
@@ -417,6 +420,15 @@ defaultIni:
 		//std::srand(GetTickCount());
 
 		IniReader_Init();
+
+		if (GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 64)) {
+			dlog("Applying config file patch.", DL_INIT);
+			const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
+			SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, configFileAddr);
+			dlogr(" Done", DL_INIT);
+		}
+
+		Translate_Init(falloutConfigName);
 
 		InitReplacementHacks();
 		InitModules();

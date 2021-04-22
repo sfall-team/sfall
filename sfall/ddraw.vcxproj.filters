@@ -256,6 +256,9 @@
     <ClInclude Include="IniReader.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Translate.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -428,6 +431,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="IniReader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Translate.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

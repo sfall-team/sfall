@@ -222,7 +222,7 @@ WRAP_WATCOM_FUNC2(void, db_free_file_list, char***, fileList, DWORD, arg2) // De
 WRAP_WATCOM_FUNC2(long, db_freadByte, DbFile*, file, BYTE*, _out)
 WRAP_WATCOM_FUNC2(long, db_freadShort, DbFile*, file, WORD*, _out)
 WRAP_WATCOM_FUNC2(long, db_freadInt, DbFile*, file, DWORD*, _out)
-WRAP_WATCOM_FFUNC3(long, db_freadByteCount, DbFile*, file, BYTE*, cptr, long, count)
+WRAP_WATCOM_FFUNC3(long, db_freadByteCount, DbFile*, file, BYTE*, dest, long, count)
 WRAP_WATCOM_FFUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)
 WRAP_WATCOM_FFUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, count)
 //WRAP_WATCOM_FFUNC3(long, db_freadLongCount, DbFile*, file, DWORD*, dest, long, count)

@@ -29,6 +29,7 @@
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "ScriptExtender.h"
+#include "Translate.h"
 #include "version.h"
 
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId);
@@ -1504,8 +1505,8 @@ void ScriptExtender_Init() {
 		outlineColor = GetConfigInt("Input", "OutlineColor", 0x10);
 		if (outlineColor < 1) outlineColor = 0x40;
 		motionScanner = GetConfigInt("Misc", "MotionScannerFlags", 1);
-		Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
-		Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
+		Translate_Get("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
+		Translate_Get("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
 		HookCall(0x44BD1C, obj_remove_outline_hook); // gmouse_bk_process_
 		HookCall(0x44E559, obj_remove_outline_hook); // gmouse_remove_item_outline_
 	}

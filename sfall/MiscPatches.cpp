@@ -19,10 +19,11 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "SimplePatch.h"
+#include "Translate.h"
+
 #include "ScriptExtender.h"
 
 static char mapName[65]       = {};
-static char configName[65]    = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
@@ -719,13 +720,6 @@ void MiscPatches_Init() {
 	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
-		dlog("Applying config file patch.", DL_INIT);
-		const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
-		SafeWriteBatch<DWORD>((DWORD)&configName, configFileAddr);
 		dlogr(" Done", DL_INIT);
 	}
 

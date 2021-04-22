@@ -48,6 +48,7 @@
 #include "Sound.h"
 #include "Stats.h"
 #include "TalkingHeads.h"
+#include "Translate.h"
 #include "version.h"
 #include "Worldmap.h"
 
@@ -132,8 +133,6 @@ void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *ptr_patches, *ptr_slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
-static char saveSfallDataFailMsg[128];
-
 static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -169,23 +168,21 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo_display_print(saveSfallDataFailMsg);
+	fo_display_print(Translate_SfallSaveDataFailure());
 	fo_gsound_play_sfx_file("IISXXXX1");
 }
-
-static char saveFailMsg[128];
 
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl_IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl_IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo_display_print(saveFailMsg);
+			fo_display_print(Translate_CombatSaveBlockMessage());
 			return 0;
 		}
 		int ap = fo_stat_level(*ptr_obj_dude, STAT_max_move_points);
 		int bonusmove = fo_perk_level(*ptr_obj_dude, PERK_bonus_move);
 		if ((*ptr_obj_dude)->critter.movePoints != ap || bonusmove * 2 != *ptr_combat_free_move) {
-			fo_display_print(saveFailMsg);
+			fo_display_print(Translate_CombatSaveBlockMessage());
 			return 0;
 		}
 	}
@@ -761,9 +758,6 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 void LoadGameHook_Init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	Translate("sfall", "SaveInCombat", "Cannot save at this time.", saveFailMsg);
-	Translate("sfall", "SaveSfallDataFail",
-		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
 
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:

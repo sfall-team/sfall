@@ -24,6 +24,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "Translate.h"
 
 #include "PartyControl.h"
 
@@ -508,9 +509,9 @@ void PartyControl_Init() {
 	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
-		Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
-		Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
-		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+		Translate_Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate_Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate_Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
 }

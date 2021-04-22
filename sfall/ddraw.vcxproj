@@ -351,6 +351,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tiles.h" />
     <ClInclude Include="SpeedPatch.h" />
+    <ClInclude Include="Translate.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="Logging.h" />
@@ -420,6 +421,7 @@
     <ClCompile Include="SpeedPatch.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="ExtraSaveSlots.cpp" />
+    <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Worldmap.cpp" />
   </ItemGroup>

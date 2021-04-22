@@ -19,6 +19,8 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "SimplePatch.h"
+#include "Translate.h"
+
 #include "HookScripts.h"
 #include "Objects.h"
 
@@ -82,10 +84,9 @@ static bool checkWeaponAmmoCost;
 ///////////////////////////////// COMBAT BLOCK /////////////////////////////////
 
 static bool combatDisabled;
-static char combatBlockedMessage[128];
 
 static void __stdcall CombatBlocked() {
-	fo_display_print(combatBlockedMessage);
+	fo_display_print(Translate_CombatBlockMessage());
 }
 
 static void __declspec(naked) intface_use_item_hook() {
@@ -597,7 +598,6 @@ void Combat_OnGameLoad() {
 void Combat_Init() {
 	HookCall(0x45F626, intface_use_item_hook); // jnz hook
 	HookCall(0x4432A6, game_handle_input_hook);
-	Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
 
 	CombatProcPatch();
 

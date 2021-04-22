@@ -97,6 +97,7 @@
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
 #define FO_VAR_Experience_                0x6681B4
+#define FO_VAR_fallout_config             0x50281C
 #define FO_VAR_fallout_game_time          0x51C720
 #define FO_VAR_fidgetFID                  0x5186F4
 #define FO_VAR_fidgetFp                   0x5186FC

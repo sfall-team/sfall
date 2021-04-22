@@ -16,10 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-
 #include "main.h"
 #include "FalloutEngine.h"
+#include "Translate.h"
+
 #include "Inventory.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
@@ -706,11 +706,11 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 		char titleText[16];
 		char doneText[16];
 		if (isStyle) {
-			Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
+			Translate_Get("AppearanceMod", "StyleText", "Style", titleText, 16);
 		} else {
-			Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
+			Translate_Get("AppearanceMod", "RaceText", "Race", titleText, 16);
 		}
-		Translate("AppearanceMod", "DoneBtn", "Done", doneText, 16);
+		Translate_Get("AppearanceMod", "DoneBtn", "Done", doneText, 16);
 		RaceStyleBtn = titleText;
 		DoneBtn = doneText;
 	}
@@ -1229,8 +1229,8 @@ static void __declspec(naked) FixCharScrnBack() {
 		} else {
 			// Get alternate text from ini if available (TODO: remove this in the future)
 			char RaceText[8], StyleText[8];
-			Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
-			Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
+			Translate_Get("AppearanceMod", "RaceText", "Race", RaceText, 8);
+			Translate_Get("AppearanceMod", "StyleText", "Style", StyleText, 8);
 			RaceBtn = RaceText;
 			StyleBtn = StyleText;
 		}
