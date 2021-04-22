@@ -695,21 +695,32 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	int oldFont = GetFont();
 	SetFont(0x67);
 
-	char titleText[16];
-	// Get alternate text from ini if available
-	if (isStyle) {
-		Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
+	char *RaceStyleBtn, *DoneBtn;
+	MSGList MsgList;
+
+	if (fo_message_load(&MsgList, "game\\AppIface.msg") == 1) {
+		RaceStyleBtn = GetMsg(&MsgList, (isStyle) ? 101 : 100, 2);
+		DoneBtn = GetMsg(&MsgList, 102, 2);
 	} else {
-		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
+		// Get alternate text from ini if available (TODO: remove this in the future)
+		char titleText[16];
+		char doneText[16];
+		if (isStyle) {
+			Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
+		} else {
+			Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
+		}
+		Translate("AppearanceMod", "DoneBtn", "Done", doneText, 16);
+		RaceStyleBtn = titleText;
+		DoneBtn = doneText;
 	}
 
 	BYTE textColour = *ptr_PeanutButter; // PeanutButter colour - palette offset stored in mem
-	DWORD titleTextWidth = GetTextWidth(titleText);
-	PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
+	DWORD titleTextWidth = GetTextWidth(RaceStyleBtn);
+	PrintText(RaceStyleBtn, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	Translate("AppearanceMod", "DoneBtn", "Done", titleText, 16);
-	titleTextWidth = GetTextWidth(titleText);
-	PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
+	titleTextWidth = GetTextWidth(DoneBtn);
+	PrintText(DoneBtn, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	surface_draw(484, 230, 484, 0, 0, mainSurface, 484, 0, 0, winSurface);
 	fo_win_show(winRef);
@@ -1209,18 +1220,27 @@ static void __declspec(naked) FixCharScrnBack() {
 		int oldFont = GetFont();
 		SetFont(0x67);
 
-		char RaceText[8], StyleText[8];
-		// Get alternate text from ini if available
-		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
-		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
+		char *RaceBtn, *StyleBtn;
+		MSGList MsgList;
 
-		DWORD raceTextWidth = GetTextWidth(RaceText);
-		DWORD styleTextWidth = GetTextWidth(StyleText);
+		if (fo_message_load(&MsgList, "game\\AppIface.msg") == 1) {
+			RaceBtn = GetMsg(&MsgList, 100, 2);
+			StyleBtn = GetMsg(&MsgList, 101, 2);
+		} else {
+			// Get alternate text from ini if available (TODO: remove this in the future)
+			char RaceText[8], StyleText[8];
+			Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
+			Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
+			RaceBtn = RaceText;
+			StyleBtn = StyleText;
+		}
+		DWORD raceTextWidth = GetTextWidth(RaceBtn);
+		DWORD styleTextWidth = GetTextWidth(StyleBtn);
 
 		BYTE PeanutButter = *ptr_PeanutButter; // palette offset stored in mem
 
-		PrintText(RaceText, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
-		PrintText(StyleText, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
+		PrintText(RaceBtn, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
+		PrintText(StyleBtn, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
 		SetFont(oldFont);
 	}
 

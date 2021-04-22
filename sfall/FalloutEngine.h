@@ -416,7 +416,7 @@ void __cdecl fo_trans_buf_to_buf(BYTE* src, long width, long height, long src_wi
 
 BYTE* __fastcall fo_loadPCX(const char* file, long* width, long* height);
 
-long __fastcall fo_get_game_config_string(const char* outValue, const char* section, const char* param);
+long __fastcall fo_get_game_config_string(const char** outValue, const char* section, const char* param);
 
 // X-Macro for wrapper functions.
 #define WRAP_WATCOM_FUNC0(retType, name) \

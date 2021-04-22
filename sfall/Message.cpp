@@ -48,6 +48,12 @@ const MSGList* gameMsgFiles[] = {
 };
 #undef CASTMSG
 
+static char gameLanguage[41]; // max length of language string is 40
+
+const char* Message_GameLanguage() {
+	return &gameLanguage[0];
+}
+
 ExtraGameMessageListsMap gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
 
@@ -170,9 +176,10 @@ void ClearScriptAddedExtraGameMsg() {
 }
 
 void FallbackEnglishLoadMsgFiles() {
-	char value[128];
-	if (fo_get_game_config_string(value, "system", "language") && _stricmp(value, "english") != 0) {
-		HookCall(0x484B18, message_load_hook);
+	const char* lang;
+	if (fo_get_game_config_string(&lang, "system", "language")) {
+		strncpy_s(gameLanguage, lang, _TRUNCATE);
+		if (_stricmp(lang, "english") != 0) HookCall(0x484B18, message_load_hook);
 	}
 }
 

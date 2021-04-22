@@ -69,11 +69,11 @@ static DWORD tileMode;
 static BYTE* mask;
 
 // emulation of std::lroundf in C++11
-static long lroundf(float x) {
-	if (x < 0)
-		return static_cast<long>(x - 0.5f);
-	else
-		return static_cast<long>(x + 0.5f);
+static long lroundf(float num) {
+	float integer = ceilf(num);
+	if (num > 0)
+		return static_cast<long>(integer - num > 0.5f ? integer - 1.0f : integer);
+	return static_cast<long>(integer - num >= 0.5f ? integer - 1.0f : integer);
 }
 
 static bool LoadMask() {
@@ -211,7 +211,7 @@ static int __stdcall ArtInitHook() {
 	if (listpos != tiles->total) {
 		tiles->names = (char*)fo_mem_realloc(tiles->names, listpos * 13);
 		for (long i = tiles->total; i < listpos; i++) {
-			sprintf_s(&tiles->names[i * 13], 12, "zzz%04d.frm", i - tiles->total);
+			sprintf(&tiles->names[i * 13], "zzz%04d.frm", i - tiles->total);
 		}
 		tiles->total = listpos;
 	}

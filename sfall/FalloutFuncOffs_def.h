@@ -437,6 +437,7 @@ FUNC(pipboy_,                         0x497004)
 FUNC(process_bk_,                     0x4C8BDC)
 FUNC(protinst_use_item_,              0x49BF38)
 FUNC(protinst_use_item_on_,           0x49C3CC)
+FUNC(proto_dude_init_,                0x49FA64)
 FUNC(proto_dude_update_gender_,       0x49F984)
 FUNC(proto_list_str_,                 0x49E758)
 FUNC(proto_ptr_,                      0x4A2108) // eax - PID, edx - int** - pointer to a pointer to a proto struct

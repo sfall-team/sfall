@@ -1464,6 +1464,9 @@ void Graphics_Init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
+		// Patch HRP to show the mouse cursor over the window title
+		if (Graphics_mode == 5 && hrpVersionValid) SafeWrite8(HRPAddress(0x10027142), CODETYPE_JumpShort);
+
 		textureFilter = GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
 

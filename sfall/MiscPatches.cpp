@@ -766,6 +766,8 @@ void MiscPatches_Init() {
 
 	BlockCall(0x4425E6); // Patch out ereg call
 
+	SafeWrite8(0x4810AB, CODETYPE_JumpShort); // Disable selfrun
+
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
