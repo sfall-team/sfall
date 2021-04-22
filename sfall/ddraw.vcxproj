@@ -389,6 +389,7 @@
     <ClInclude Include="Modules\Stats.h" />
     <ClInclude Include="Modules\Tiles.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Translate.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="Logging.h" />
@@ -504,6 +505,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>

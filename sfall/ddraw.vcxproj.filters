@@ -342,6 +342,7 @@
     <ClInclude Include="Game\tilemap.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Translate.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -634,6 +635,7 @@
     <ClCompile Include="Game\tilemap.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Translate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

@@ -16,13 +16,13 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
-#include <stdio.h>
 #include <string>
 #include <vector>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Translate.h"
+
 #include "HookScripts.h"
 
 #include "Karma.h"
@@ -81,8 +81,8 @@ static void ApplyDisplayKarmaChangesPatch() {
 	displayKarmaChanges = IniReader::GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
 	if (displayKarmaChanges) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		karmaGainMsg = IniReader::Translate("sfall", "KarmaGain", "You gained %d karma.");
-		karmaLossMsg = IniReader::Translate("sfall", "KarmaLoss", "You lost %d karma.");
+		karmaGainMsg = Translate::Get("sfall", "KarmaGain", "You gained %d karma.");
+		karmaLossMsg = Translate::Get("sfall", "KarmaLoss", "You lost %d karma.");
 		HookScripts::InjectingHook(HOOK_SETGLOBALVAR);
 		dlogr(" Done", DL_INIT);
 	}

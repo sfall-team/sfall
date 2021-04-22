@@ -18,6 +18,7 @@
 
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Translate.h"
 
 #include "CombatBlock.h"
 
@@ -25,10 +26,9 @@ namespace sfall
 {
 
 static bool combatDisabled;
-static std::string combatBlockedMessage;
 
 static void __stdcall CombatBlocked() {
-	fo::func::display_print(combatBlockedMessage.c_str());
+	fo::func::display_print(Translate::CombatBlockMessage().c_str());
 }
 
 static void __declspec(naked) intface_use_item_hook() {
@@ -67,8 +67,6 @@ void __stdcall CombatBlock::SetBlockCombat(long toggle) {
 void CombatBlock::init() {
 	HookCall(0x45F626, intface_use_item_hook); // jnz hook
 	HookCall(0x4432A6, game_handle_input_hook);
-
-	combatBlockedMessage = IniReader::Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
 }
 
 }

@@ -19,6 +19,8 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
+#include "..\Translate.h"
+
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
 
@@ -28,7 +30,6 @@ namespace sfall
 {
 
 static char mapName[65]       = {};
-static char configName[65]    = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
@@ -769,12 +770,6 @@ void MiscPatches::init() {
 	if (IniReader::GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (IniReader::GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
-		dlog("Applying config file patch.", DL_INIT);
-		SafeWriteBatch<DWORD>((DWORD)&configName, {0x444BA5, 0x444BCA});
 		dlogr(" Done", DL_INIT);
 	}
 

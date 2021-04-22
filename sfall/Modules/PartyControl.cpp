@@ -18,7 +18,9 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Translate.h"
 #include "..\Utils.h"
+
 #include "Drugs.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
@@ -853,15 +855,15 @@ void PartyControl::init() {
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
-		IniReader::Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
-		IniReader::Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
-		IniReader::Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
 
-	partyOrderAttackMsg.push_back(std::move(IniReader::Translate("sfall", "PartyOrderAttackCreature", "::Growl::", 33)));
-	partyOrderAttackMsg.push_back(std::move(IniReader::Translate("sfall", "PartyOrderAttackRobot", "::Beep::", 33)));
-	auto msgs = IniReader::TranslateList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::", 33));
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::", 33));
+	auto msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
 	partyOrderAttackMsg.insert(partyOrderAttackMsg.cend(), msgs.cbegin(), msgs.cend());
 }
 

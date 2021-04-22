@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include <memory>
 #include <unordered_map>
 
 #include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
 
 #include "Module.h"
 

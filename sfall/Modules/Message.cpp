@@ -29,6 +29,7 @@ namespace sfall
 {
 
 #define CASTMSG(adr) reinterpret_cast<fo::MessageList*>(adr)
+
 const fo::MessageList* gameMsgFiles[] = {
 	CASTMSG(MSG_FILE_COMBAT),
 	CASTMSG(MSG_FILE_AI),
@@ -53,7 +54,7 @@ const fo::MessageList* gameMsgFiles[] = {
 };
 #undef CASTMSG
 
-static char gameLanguage[128];
+static char gameLanguage[41]; // max length of language string is 40
 
 const char* Message::GameLanguage() {
 	return &gameLanguage[0];

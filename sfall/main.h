@@ -86,4 +86,6 @@ DWORD HRPAddress(DWORD addr);
 extern bool hrpIsEnabled;
 extern bool hrpVersionValid;
 
+extern char falloutConfigName[65];
+
 }

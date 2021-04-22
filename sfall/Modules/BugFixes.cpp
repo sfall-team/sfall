@@ -1,6 +1,9 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Translate.h"
+
 #include "HookScripts\InventoryHs.h"
+
 #include "Drugs.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
@@ -3634,7 +3637,7 @@ void BugFixes::init()
 	// up an item due to not enough space in the inventory
 	HookCall(0x49B6E7, obj_pickup_hook);
 	HookCall(0x49B71C, obj_pickup_hook_message);
-	IniReader::Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessage, 64);
+	Translate::Get("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessage, 64);
 
 	// Fix for anim_move_to_tile_ engine function ignoring the distance argument for the player
 	HookCall(0x416D44, anim_move_to_tile_hook);

@@ -51,11 +51,11 @@ public:
 	}
 
 	// Replaces the current list of functions with single function provided.
-	Delegate operator =(Functor func) {
-		clear();
-		add(std::move(func));
-		return *this;
-	}
+	//Delegate operator =(Functor func) {
+	//	clear();
+	//	add(std::move(func));
+	//	return *this;
+	//}
 
 	// Removes all functions.
 	Delegate operator=(std::nullptr_t) {

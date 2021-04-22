@@ -21,6 +21,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
+#include "..\Translate.h"
 #include "..\version.h"
 
 #include "BugFixes.h"
@@ -118,8 +119,6 @@ void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, fo::var::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
-static std::string saveSfallDataFailMsg;
-
 static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -169,23 +168,21 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo::DisplayPrint(saveSfallDataFailMsg);
+	fo::DisplayPrint(Translate::SfallSaveDataFailure());
 	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
-
-static std::string saveFailMsg;
 
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo::DisplayPrint(saveFailMsg);
+			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 		int ap = fo::func::stat_level(fo::var::obj_dude, fo::STAT_max_move_points);
 		int bonusmove = fo::func::perk_level(fo::var::obj_dude, fo::PERK_bonus_move);
 		if (fo::var::obj_dude->critter.movePoints != ap || bonusmove * 2 != fo::var::combat_free_move) {
-			fo::DisplayPrint(saveFailMsg);
+			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 	}
@@ -738,9 +735,6 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 void LoadGameHook::init() {
 	saveInCombatFix = IniReader::GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	saveFailMsg = IniReader::Translate("sfall", "SaveInCombat", "Cannot save at this time.");
-	saveSfallDataFailMsg = IniReader::Translate("sfall", "SaveSfallDataFail",
-		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
 	HookCall(0x4809BA, main_init_system_hook);
 	HookCall(0x4426A6, game_init_hook);
