@@ -29,7 +29,7 @@
 namespace sfall
 {
 
-static char mapName[65]       = {};
+static char mapName[17]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
@@ -761,19 +761,19 @@ static void EngineOptimizationPatches() {
 void MiscPatches::init() {
 	EngineOptimizationPatches();
 
-	if (IniReader::GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
+	if (IniReader::GetConfigString("Misc", "StartingMap", "", mapName, 17)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (IniReader::GetConfigString("Misc", "VersionString", "", versionString, 64)) {
+	if (IniReader::GetConfigString("Misc", "VersionString", "", versionString, 65)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (IniReader::GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
+	if (IniReader::GetConfigString("Misc", "PatchFile", "", patchName, 65)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);

@@ -16,7 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "FalloutEngine\VariableOffsets.h"
 #include "IniReader.h"
 
 #include "Translate.h"
@@ -49,14 +48,12 @@ std::vector<std::string> Translate::GetList(const char* section, const char* set
 ////////////////////////////////////////////////////////////////////////////////
 
 static void MakeLangTranslationPath(const char* config) {
-	char patches[65], language[42];
+	char patches[65], language[41];
 	char fileConfig[65] = ".\\";
-
-	if (config[0] == '\0') config = (const char*)FO_VAR_fallout_config;
 	std::strcpy(&fileConfig[2], config);
 
 	IniReader::GetString("system", "language", "english", language, 41, fileConfig);
-	IniReader::GetString("system", "master_patches", "data", patches, 64, fileConfig);
+	IniReader::GetString("system", "master_patches", "data", patches, 65, fileConfig);
 
 	const char* iniDef = translationIni.def;
 	while (*iniDef == '\\' || *iniDef == '/' || *iniDef == '.') iniDef++; // skip first characters
