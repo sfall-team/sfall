@@ -43,10 +43,14 @@ __forceinline void sf_rect_free(fo::RectList* rect) {
 }
 
 // returns message string from given file or "Error" when not found
-const char* GetMessageStr(const fo::MessageList* fileAddr, long messageId);
+const char* GetMessageStr(const fo::MessageList* file, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* MessageSearch(const fo::MessageList* fileAddr, long messageId);
+const char* MessageSearch(const fo::MessageList* file, long messageId);
+
+fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgNum);
+
+char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType);
 
 fo::Queue* QueueFind(fo::GameObject* object, long type);
 

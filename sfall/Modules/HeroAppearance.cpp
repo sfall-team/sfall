@@ -18,13 +18,11 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\FalloutEngine\EngineUtils.h"
 #include "..\Translate.h"
 
 #include "Inventory.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
-#include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
@@ -578,8 +576,8 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	char *MsgFileName = (style) ? "game\\AppStyle.msg" : "game\\AppRace.msg";
 
 	if (fo::func::message_load(&MsgList, MsgFileName) == 1) {
-		TitleMsg = GetMsg(&MsgList, 100, 2);
-		InfoMsg = GetMsg(&MsgList, 101, 2);
+		TitleMsg = fo::GetMsg(&MsgList, 100, 2);
+		InfoMsg = fo::GetMsg(&MsgList, 101, 2);
 	}
 
 	fo::Window *winInfo = fo::func::GNW_find(winRef);
@@ -704,8 +702,8 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	fo::MessageList MsgList;
 
 	if (fo::func::message_load(&MsgList, "game\\AppIface.msg") == 1) {
-		RaceStyleBtn = GetMsg(&MsgList, (isStyle) ? 101 : 100, 2);
-		DoneBtn = GetMsg(&MsgList, 102, 2);
+		RaceStyleBtn = fo::GetMsg(&MsgList, (isStyle) ? 101 : 100, 2);
+		DoneBtn = fo::GetMsg(&MsgList, 102, 2);
 	} else {
 		// Get alternate text from ini if available (TODO: remove this in the future)
 		char titleText[16];
@@ -1230,8 +1228,8 @@ static void __declspec(naked) FixCharScrnBack() {
 		fo::MessageList MsgList;
 
 		if (fo::func::message_load(&MsgList, "game\\AppIface.msg") == 1) {
-			RaceBtn = GetMsg(&MsgList, 100, 2);
-			StyleBtn = GetMsg(&MsgList, 101, 2);
+			RaceBtn = fo::GetMsg(&MsgList, 100, 2);
+			StyleBtn = fo::GetMsg(&MsgList, 101, 2);
 		} else {
 			// Get alternate text from ini if available (TODO: remove this in the future)
 			char RaceText[8], StyleText[8];

@@ -30,14 +30,48 @@ namespace fo
 
 static fo::MessageNode messageBuf;
 
-const char* GetMessageStr(const fo::MessageList* fileAddr, long messageId) {
-	return fo::func::getmsg(fileAddr, &messageBuf, messageId);
+const char* GetMessageStr(const fo::MessageList* file, long messageId) {
+	return fo::func::getmsg(file, &messageBuf, messageId);
 }
 
-const char* MessageSearch(const fo::MessageList* fileAddr, long messageId) {
+const char* MessageSearch(const fo::MessageList* file, long messageId) {
 	messageBuf.number = messageId;
-	if (fo::func::message_search(fileAddr, &messageBuf) == 1) {
+	if (fo::func::message_search(file, &messageBuf) == 1) {
 		return messageBuf.message;
+	}
+	return nullptr;
+}
+
+fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgNum) {
+	if (msgList != nullptr && msgList->numMsgs > 0) {
+		fo::MessageNode *msgNode = msgList->nodes;
+		long last = msgList->numMsgs - 1;
+		long first = 0;
+		long mid;
+
+		// Use Binary Search to find msg
+		while (first <= last) {
+			mid = (first + last) / 2;
+			if (msgNum > msgNode[mid].number)
+				first = mid + 1;
+			else if (msgNum < msgNode[mid].number)
+				last = mid - 1;
+			else
+				return &msgNode[mid];
+		}
+	}
+	return nullptr;
+}
+
+// Alternative version of getmsg_ function
+char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType) {
+	fo::MessageNode *msgNode = GetMsgNode(msgList, msgNum);
+	if (msgNode) {
+		if (msgType == 2) {
+			return msgNode->message;
+		} else if (msgType == 1) {
+			return msgNode->audio;
+		}
 	}
 	return nullptr;
 }
@@ -582,14 +616,23 @@ static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char *artfolder = fo::var::art[folderRef].path; // address of art type name
+	const char *artfolder = fo::var::art[folderRef].path; // address of art type name
 	char frmPath[MAX_PATH];
 
-	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+	if (fo::var::use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)&fo::var::language, artfolder, frmName);
+	} else {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+	}
 
 	fo::UnlistedFrm *frm = new fo::UnlistedFrm;
 
-	auto frmStream = fo::func::xfopen(frmPath, "rb");
+	auto frmStream = fo::func::db_fopen(frmPath, "rb");
+
+	if (!frmStream && fo::var::use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+		frmStream = fo::func::db_fopen(frmPath, "rb");
+	}
 
 	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {
