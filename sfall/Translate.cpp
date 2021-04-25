@@ -22,7 +22,7 @@
 
 static struct Translation {
 	char def[65];
-	char lang[180];
+	char lang[170];
 	bool state;
 
 	const char* File() {
@@ -45,11 +45,11 @@ std::vector<std::string> Translate_GetList(const char* section, const char* sett
 ////////////////////////////////////////////////////////////////////////////////
 
 static void MakeLangTranslationPath(const char* config) {
-	char patches[65], language[41];
+	char patches[65], language[32];
 	char fileConfig[65] = ".\\";
 	std::strcpy(&fileConfig[2], config);
 
-	IniGetString("system", "language", "english", language, 41, fileConfig);
+	IniGetString("system", "language", "english", language, 32, fileConfig);
 	IniGetString("system", "master_patches", "data", patches, 65, fileConfig);
 
 	const char* iniDef = translationIni.def;
