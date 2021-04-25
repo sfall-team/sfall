@@ -283,6 +283,32 @@ artNotExist:
 	}
 }
 
+static DbFile* __fastcall LoadFont(const char* font, const char* mode) {
+	char file[128];
+	const char* lang;
+	if (fo_get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
+		std::sprintf(file, "%s\\%s", lang, font);
+		return fo_db_fopen(file, mode);
+	}
+	return nullptr;
+}
+
+void __declspec(naked) load_font_hook() {
+	__asm {
+		mov  ebp, edx;
+		mov  ebx, eax;
+		mov  ecx, eax;
+		call LoadFont;
+		test eax, eax;
+		jz   default;
+		retn;
+default:
+		mov  edx, ebp;
+		mov  eax, ebx;
+		jmp  db_fopen_;
+	}
+}
+
 void LoadOrder_OnGameLoad() {
 	savPrototypes.clear();
 	RemoveSavFiles();
@@ -318,4 +344,11 @@ void LoadOrder_Init() {
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
 	dlogr(" Done", DL_INIT);
+
+	// Load fonts based on the game language
+	const DWORD loadFontAddr[] = {
+		0x4D5621, // load_font_
+		0x441D58  // FMLoadFont_
+	};
+	HookCalls(load_font_hook, loadFontAddr);
 }

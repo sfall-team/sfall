@@ -508,14 +508,48 @@ long __fastcall fo_get_game_config_string(const char** outValue, const char* sec
 
 static MSGNode messageBuf;
 
-const char* GetMessageStr(const MSGList* fileAddr, long messageId) {
-	return fo_getmsg(fileAddr, &messageBuf, messageId);
+const char* GetMessageStr(const MSGList* file, long messageId) {
+	return fo_getmsg(file, &messageBuf, messageId);
 }
 
-const char* MessageSearch(const MSGList* fileAddr, long messageId) {
+const char* MessageSearch(const MSGList* file, long messageId) {
 	messageBuf.number = messageId;
-	if (fo_message_search(fileAddr, &messageBuf) == 1) {
+	if (fo_message_search(file, &messageBuf) == 1) {
 		return messageBuf.message;
+	}
+	return nullptr;
+}
+
+MSGNode* GetMsgNode(MSGList* msgList, int msgNum) {
+	if (msgList != nullptr && msgList->numMsgs > 0) {
+		MSGNode *msgNode = msgList->nodes;
+		long last = msgList->numMsgs - 1;
+		long first = 0;
+		long mid;
+
+		// Use Binary Search to find msg
+		while (first <= last) {
+			mid = (first + last) / 2;
+			if (msgNum > msgNode[mid].number)
+				first = mid + 1;
+			else if (msgNum < msgNode[mid].number)
+				last = mid - 1;
+			else
+				return &msgNode[mid];
+		}
+	}
+	return nullptr;
+}
+
+// Alternative version of getmsg_ function
+char* GetMsg(MSGList* msgList, int msgNum, int msgType) {
+	MSGNode *msgNode = GetMsgNode(msgList, msgNum);
+	if (msgNode) {
+		if (msgType == 2) {
+			return msgNode->message;
+		} else if (msgType == 1) {
+			return msgNode->audio;
+		}
 	}
 	return nullptr;
 }
@@ -981,14 +1015,23 @@ static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char *artfolder = ptr_art[folderRef].path; // address of art type name
-	char FrmPath[MAX_PATH];
+	const char *artfolder = ptr_art[folderRef].path; // address of art type name
+	char frmPath[MAX_PATH];
 
-	sprintf_s(FrmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+	if (*ptr_use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)ptr_language, artfolder, frmName);
+	} else {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+	}
 
 	UNLSTDfrm *frm = new UNLSTDfrm;
 
-	DbFile* frmStream = fo_xfopen(FrmPath, "rb");
+	DbFile* frmStream = fo_db_fopen(frmPath, "rb");
+
+	if (!frmStream && *ptr_use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+		frmStream = fo_db_fopen(frmPath, "rb");
+	}
 
 	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {

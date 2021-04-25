@@ -23,7 +23,7 @@
 
 #include "ScriptExtender.h"
 
-static char mapName[17]       = {};
+static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
@@ -711,7 +711,7 @@ static void EngineOptimizationPatches() {
 void MiscPatches_Init() {
 	EngineOptimizationPatches();
 
-	if (GetConfigString("Misc", "StartingMap", "", mapName, 17)) {
+	if (GetConfigString("Misc", "StartingMap", "", mapName, 16)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);

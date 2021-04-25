@@ -524,7 +524,7 @@ fail:
 
 static void __declspec(naked) op_modified_ini() {
 	__asm {
-		mov  edx, IniReader_modifiedIni;
+		mov  edx, modifiedIni;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

@@ -568,16 +568,27 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 	return frmPtr;
 }
 
-static long __stdcall GetArtFIDFile(long fid, const char* &file) {
+static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
 	long direction = 0;
 	long _fid = fid & 0xFFFFFFF;
-	file = fo_art_get_name(_fid); // .frm
+
+	const char* artPathName = fo_art_get_name(_fid); // <cd>\art\type\file.frm
+
 	if (_fid >> 24 == OBJ_TYPE_CRITTER) {
 		direction = (fid >> 28);
-		if (direction > 0 && !fo_db_access(file)) {
-			file = fo_art_get_name(fid); // .fr#
+		if (direction > 0 && !fo_db_access(artPathName)) {
+			artPathName = fo_art_get_name(fid); // .fr#
+		}
+	} else {
+		if (*ptr_use_language) {
+			const char* _artPathName = std::strchr(artPathName, '\\');
+			if (_artPathName && *(++_artPathName)) {
+				sprintf_s(outFilePath, MAX_PATH, "art\\%s\\%s", (const char*)ptr_language, _artPathName);
+				if (fo_db_access(outFilePath)) return direction;
+			}
 		}
 	}
+	std::strcpy(outFilePath, artPathName);
 	return direction;
 }
 
@@ -594,7 +605,9 @@ static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const c
 		long fid = opHandler.arg(0).rawValue();
 		if (fid == -1) return -1;
 
-		direction = GetArtFIDFile(fid, file);
+		char fileBuf[MAX_PATH];
+		direction = GetArtFIDFile(fid, fileBuf);
+		file = fileBuf;
 	} else {
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
@@ -664,7 +677,10 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 		if (fid == -1) return -1;
 
 		useShift = (((fid & 0xF000000) >> 24) == OBJ_TYPE_CRITTER);
-		direction = GetArtFIDFile(fid, file);
+
+		char fileBuf[MAX_PATH];
+		direction = GetArtFIDFile(fid, fileBuf);
+		file = fileBuf;
 	} else {
 		file = opHandler.arg(1).strValue(); // path to frm/pcx file
 	}

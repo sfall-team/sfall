@@ -33,6 +33,7 @@
 // Global variable offsets
 // TODO: probably need to hide these by moving inside implementation file
 
+#define FO_VAR_aDialogS_msg               0x50DBE8
 #define FO_VAR_aiInfoList                 0x510948
 #define FO_VAR_ambient_light              0x51923C
 #define FO_VAR_anim_set                   0x54CC14
@@ -42,6 +43,9 @@
 #define FO_VAR_art_vault_guy_num          0x5108A4
 #define FO_VAR_art_vault_person_nums      0x5108A8
 #define FO_VAR_artCritterFidShouldRunData 0x56CAF0
+#define FO_VAR_aTextSCuts                 0x501A8C
+#define FO_VAR_aTextSCutsS                0x503530
+#define FO_VAR_aTextSCutsSS               0x50B01C
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
@@ -154,6 +158,7 @@
 #define FO_VAR_itemButtonItems            0x5970F8
 #define FO_VAR_itemCurrentItem            0x518F78
 #define FO_VAR_kb_lock_flags              0x51E2EA
+#define FO_VAR_language                   0x56C970  // aka _darn_foreign_sub_path
 #define FO_VAR_last_buttons               0x51E2AC
 #define FO_VAR_last_button_winID          0x51E404
 #define FO_VAR_last_level                 0x5707B4
@@ -293,6 +298,7 @@
 #define FO_VAR_title_color                0x56D750
 #define FO_VAR_title_font                 0x56D748
 #define FO_VAR_trait_data                 0x51DB84
+#define FO_VAR_use_language               0x510898  // aka _darn_foreigners
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_window                     0x6ADE58
@@ -504,6 +510,10 @@ const char* GetMessageStr(const MSGList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
 const char* MessageSearch(const MSGList* fileAddr, long messageId);
+
+MSGNode* GetMsgNode(MSGList* msgList, int msgNum);
+
+char* GetMsg(MSGList* msgList, int msgNum, int msgType);
 
 Queue* QueueFind(TGameObj* object, long type);
 

@@ -23,14 +23,14 @@
 static PremadeChar* premade;
 
 static const char* __fastcall GetLangPremadePath(const char* premadePath) {
-	static char premadeLangPath[65]; // premade\<language>\combat.bio
+	static char premadeLangPath[56]; // premade\<language>\combat.bio
 	static bool isDefault = false;
 	static long len = 0;
 
 	if (isDefault) return nullptr;
 	if (len == 0) {
 		len = std::strlen(Message_GameLanguage());
-		if (len == 0 || len > 40) {
+		if (len == 0 || len >= 32) {
 			isDefault = true;
 			return nullptr;
 		}

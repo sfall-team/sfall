@@ -48,7 +48,7 @@ const MSGList* gameMsgFiles[] = {
 };
 #undef CASTMSG
 
-static char gameLanguage[41]; // max length of language string is 40
+static char gameLanguage[32]; // (max length of language string is 40)
 
 const char* Message_GameLanguage() {
 	return &gameLanguage[0];
@@ -80,39 +80,6 @@ noFile:
 		mov  eax, ecx;
 		jmp  db_fopen_;
 	}
-}
-
-MSGNode* GetMsgNode(MSGList* msgList, int msgRef) {
-	if (msgList != nullptr && msgList->numMsgs > 0) {
-		MSGNode *MsgNode = msgList->nodes;
-		long last = msgList->numMsgs - 1;
-		long first = 0;
-		long mid;
-
-		// Use Binary Search to find msg
-		while (first <= last) {
-			mid = (first + last) / 2;
-			if (msgRef > MsgNode[mid].number)
-				first = mid + 1;
-			else if (msgRef < MsgNode[mid].number)
-				last = mid - 1;
-			else
-				return &MsgNode[mid];
-		}
-	}
-	return nullptr;
-}
-
-char* GetMsg(MSGList* msgList, int msgRef, int msgNum) {
-	MSGNode *msgNode = GetMsgNode(msgList, msgRef);
-	if (msgNode) {
-		if (msgNum == 2) {
-			return msgNode->message;
-		} else if (msgNum == 1) {
-			return msgNode->audio;
-		}
-	}
-	return nullptr;
 }
 
 void ReadExtraGameMsgFiles() {

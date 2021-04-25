@@ -20,7 +20,7 @@
 
 #include "IniReader.h"
 
-DWORD IniReader_modifiedIni;
+DWORD modifiedIni;
 
 static const char* ddrawIni = ".\\ddraw.ini";
 static char ini[65] = ".\\";
@@ -107,5 +107,5 @@ int SetConfigInt(const char* section, const char* setting, int value) {
 }
 
 void IniReader_Init() {
-	IniReader_modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
+	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 }

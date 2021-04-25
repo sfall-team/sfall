@@ -21,7 +21,7 @@
 #include <unordered_map>
 
 #include "main.h"
-#include "FalloutEngine.h"
+//#include "FalloutEngine.h"
 
 #define MSG_FILE_COMBAT		(0x56D368)
 #define MSG_FILE_AI			(0x56D510)
@@ -58,6 +58,3 @@ void ClearScriptAddedExtraGameMsg();
 const char* Message_GameLanguage();
 
 long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber);
-
-MSGNode* GetMsgNode(MSGList* msgList, int msgRef);
-char* GetMsg(MSGList* msgList, int msgRef, int msgNum);

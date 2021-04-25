@@ -18,7 +18,7 @@
 
 #pragma once
 
-extern DWORD IniReader_modifiedIni;
+extern DWORD modifiedIni;
 
 void IniReader_Init();
 

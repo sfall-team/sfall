@@ -90,6 +90,7 @@ PTR_(inventry_message_file,      MSGList)
 PTR_(itemButtonItems,            ItemButtonItem) // array of 2 ItemButtonItem, 0 - left, 1 - right
 PTR_(itemCurrentItem,            long)  // 0 - left, 1 - right
 PTR_(kb_lock_flags,              DWORD)
+PTR_(language,                   char) // array of 32 char
 PTR_(last_buttons,               DWORD)
 PTR_(last_button_winID,          DWORD)
 PTR_(last_level,                 DWORD)
@@ -212,7 +213,8 @@ PTR_(text_width,                 DWORD)
 PTR_(tile,                       DWORD)
 PTR_(title_color,                DWORD)
 PTR_(title_font,                 DWORD)
-PTR_(trait_data,                 TraitInfo) // // array of size == TRAIT_count
+PTR_(trait_data,                 TraitInfo) // array of size == TRAIT_count
+PTR_(use_language,               DWORD)
 PTR_(view_page,                  DWORD)
 PTR_(wd_obj,                     DWORD)
 PTR_(window,                     WINinfo*) // array of 50 WINinfo*
