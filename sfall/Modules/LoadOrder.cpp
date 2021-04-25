@@ -18,7 +18,6 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\Logging.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 
@@ -439,7 +438,7 @@ static fo::DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	char file[128];
 	const char* lang;
 	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
-		std::sprintf(file, "%s\\%s", lang, font);
+		std::sprintf(file, "fonts\\%s\\%s", lang, font);
 		return fo::func::db_fopen(file, mode);
 	}
 	return nullptr;
@@ -527,7 +526,7 @@ void LoadOrder::init() {
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
 	dlogr(" Done", DL_INIT);
 
-	// Load fonts depending on the game language
+	// Load fonts based on the game language
 	HookCalls(load_font_hook, {
 		0x4D5621, // load_font_
 		0x441D58  // FMLoadFont_

@@ -25,7 +25,7 @@ namespace sfall
 
 static struct Translation {
 	char def[65];
-	char lang[180];
+	char lang[170];
 	bool state = false;
 
 	const char* File() {
@@ -48,11 +48,11 @@ std::vector<std::string> Translate::GetList(const char* section, const char* set
 ////////////////////////////////////////////////////////////////////////////////
 
 static void MakeLangTranslationPath(const char* config) {
-	char patches[65], language[41];
+	char patches[65], language[32];
 	char fileConfig[65] = ".\\";
 	std::strcpy(&fileConfig[2], config);
 
-	IniReader::GetString("system", "language", "english", language, 41, fileConfig);
+	IniReader::GetString("system", "language", "english", language, 32, fileConfig);
 	IniReader::GetString("system", "master_patches", "data", patches, 65, fileConfig);
 
 	const char* iniDef = translationIni.def;

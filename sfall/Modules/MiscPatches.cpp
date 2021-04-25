@@ -816,8 +816,15 @@ void MiscPatches::init() {
 
 	// Remove hardcoding for maps with IDs 19 and 37
 	if (IniReader::GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
-		dlog("Applying disable special map IDs patch.", DL_INIT);
+		dlog("Applying disable special maps handling patch.", DL_INIT);
 		SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Remove hardcoding for city areas 45 and 46 (AREA_FAKE_VAULT_13)
+	if (IniReader::GetConfigInt("Misc", "DisableSpecialAreas", 0)) {
+		dlog("Applying disable special areas handling patch.", DL_INIT);
+		SafeWrite8(0x4C0576, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 

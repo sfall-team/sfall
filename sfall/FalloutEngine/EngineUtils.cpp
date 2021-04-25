@@ -620,7 +620,7 @@ fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	char frmPath[MAX_PATH];
 
 	if (fo::var::use_language) {
-		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)&fo::var::language, artfolder, frmName);
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::var::language, artfolder, frmName);
 	} else {
 		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 	}
