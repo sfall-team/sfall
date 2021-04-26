@@ -18,7 +18,7 @@
 
 #pragma once
 
-extern long LoadGameHook_interfaceWID;
+extern long gameInterfaceWID;
 
 void LoadGameHook_Init();
 

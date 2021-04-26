@@ -1069,7 +1069,7 @@ static void __fastcall sf_critter_wake_clear(TGameObj* critter) {
 static void __declspec(naked) critter_wake_up_hook() {
 	__asm {
 		mov  ecx, eax;
-		test ScriptExtender_OnMapLeave, 1;
+		test scriptExtOnMapLeave, 1;
 		jnz  sf_critter_wake_clear;
 		jmp  dude_standup_;
 	}

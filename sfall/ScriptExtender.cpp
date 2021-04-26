@@ -380,7 +380,7 @@ static char gTextBuffer[5120]; // used as global temp text buffer for script fun
 // returns the size of the global text buffer
 inline static const long GlblTextBufferSize() { return sizeof(gTextBuffer); }
 
-bool ScriptExtender_OnMapLeave;
+bool scriptExtOnMapLeave;
 
 static std::vector<long> scriptsIndexList;
 
@@ -1445,9 +1445,9 @@ static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		test cl, 1;
 		jz   skip;
-		mov  ScriptExtender_OnMapLeave, 1;
+		mov  scriptExtOnMapLeave, 1;
 		call scr_exec_map_exit_scripts_;
-		mov  ScriptExtender_OnMapLeave, 0;
+		mov  scriptExtOnMapLeave, 0;
 		retn;
 skip:
 		jmp  partyMemberSaveProtos_;

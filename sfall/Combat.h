@@ -37,7 +37,7 @@ struct ChanceModifier {
 	}
 };
 
-extern long Combat_determineHitChance;
+extern long determineHitChance;
 
 void Combat_Init();
 void Combat_OnGameLoad();

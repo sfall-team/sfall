@@ -71,7 +71,7 @@ static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
 
-long LoadGameHook_interfaceWID = -1;
+long gameInterfaceWID = -1;
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
@@ -256,7 +256,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		// OnGameReset
 		BugFixes_OnGameLoad();
-		if (Graphics_mode > 3) Graphics_OnGameLoad();
+		if (GraphicsMode > 3) Graphics_OnGameLoad();
 		ForceGraphicsRefresh(0); // disable refresh
 		LoadOrder_OnGameLoad();
 		Interface_OnGameLoad();
@@ -675,7 +675,7 @@ static void __declspec(naked) AutomapHook_Start() {
 		call gmouse_set_cursor_;
 		test edx, edx;
 		jnz  skip;
-		mov  LoadGameHook_interfaceWID, ebp;
+		mov  gameInterfaceWID, ebp;
 		_InLoop(1, AUTOMAP);
 skip:
 		retn;
@@ -685,7 +685,7 @@ skip:
 static void __declspec(naked) AutomapHook_End() {
 	__asm {
 		_InLoop(0, AUTOMAP);
-		mov LoadGameHook_interfaceWID, -1
+		mov gameInterfaceWID, -1
 		jmp win_delete_;
 	}
 }

@@ -32,9 +32,9 @@ static DWORD statMinimumsNPC[STAT_max_stat];
 
 static DWORD xpTable[99];
 
-float Stats_experienceMod = 1.0f; // set_xp_mod func
-DWORD Stats_standardApAcBonus = 4;
-DWORD Stats_extraApAcBonus = 4;
+float experienceMod = 1.0f; // set_xp_mod func
+DWORD standardApAcBonus = 4;
+DWORD extraApAcBonus = 4;
 
 static struct StatFormula {
 	long base;
@@ -131,12 +131,12 @@ static void __declspec(naked) CalcApToAcBonus() {
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call perk_level_;
-		imul eax, Stats_extraApAcBonus;    // bonus = perkLvl * extraApBonus
-		imul eax, edi;                     // perkBonus = bonus * curAP
+		imul eax, extraApAcBonus;    // bonus = perkLvl * extraApBonus
+		imul eax, edi;               // perkBonus = bonus * curAP
 standard:
-		imul edi, Stats_standardApAcBonus; // stdBonus = curAP * standardApBonus
-		add  eax, edi;                     // bonus = perkBonus + stdBonus
-		shr  eax, 2;                       // acBonus = bonus / 4
+		imul edi, standardApAcBonus; // stdBonus = curAP * standardApBonus
+		add  eax, edi;               // bonus = perkBonus + stdBonus
+		shr  eax, 2;                 // acBonus = bonus / 4
 end:
 		retn;
 	}
@@ -308,10 +308,10 @@ static void StatsReset() {
 void Stats_OnGameLoad() {
 	StatsReset();
 	// Reset some settable game values back to the defaults
-	Stats_standardApAcBonus = 4;
-	Stats_extraApAcBonus = 4;
+	standardApAcBonus = 4;
+	extraApAcBonus = 4;
 	// XP mod set to 100%
-	Stats_experienceMod = 1.0f;
+	experienceMod = 1.0f;
 	// HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	// Skill points per level mod

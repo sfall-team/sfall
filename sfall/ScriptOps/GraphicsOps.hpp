@@ -24,7 +24,7 @@
 // graphics_functions
 static void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
-		cmp  Graphics_mode, 3;
+		cmp  GraphicsMode, 3;
 		seta dl;
 		and  edx, 0xFF;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);

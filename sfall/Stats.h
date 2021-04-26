@@ -18,9 +18,9 @@
 
 #pragma once
 
-extern float Stats_experienceMod;
-extern DWORD Stats_standardApAcBonus;
-extern DWORD Stats_extraApAcBonus;
+extern float experienceMod;
+extern DWORD standardApAcBonus;
+extern DWORD extraApAcBonus;
 
 void Stats_Init();
 void Stats_OnGameLoad();

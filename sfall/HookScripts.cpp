@@ -191,7 +191,7 @@ static void __declspec(naked) ToHitHook() {
 	}
 	argCount = 8;
 
-	args[7] = Combat_determineHitChance;
+	args[7] = determineHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {

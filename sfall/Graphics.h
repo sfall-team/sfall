@@ -26,8 +26,8 @@ extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 extern IDirectDrawSurface* primaryDDSurface;
 
-extern DWORD Graphics_mode;
-extern DWORD Graphics_GPUBlt;
+extern DWORD GraphicsMode;
+extern DWORD GPUBlt;
 
 extern bool Gfx_PlayAviMovie;
 extern bool Gfx_AviMovieWidthFit;
@@ -75,7 +75,7 @@ void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value);
 __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
 	long x = rect->left;
 	long y = rect->top;
-	if (Graphics_mode == 0) {
+	if (GraphicsMode == 0) {
 		__asm {
 			xor  eax, eax;
 			push y;
@@ -96,7 +96,7 @@ __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int wid
 
 		if (primaryDDSurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
 
-		if (Graphics_GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
+		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
 		fo_buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
 		primaryDDSurface->Unlock(desc.lpSurface);

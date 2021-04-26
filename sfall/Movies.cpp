@@ -547,7 +547,7 @@ static __declspec(naked) void LostFocus() {
 	if (aviPlayState == AVISTATE_Playing) {
 		if (isActive)
 			movieInterface.pControl->Run();
-		else if (Graphics_mode == 4)
+		else if (GraphicsMode == 4)
 			BreakMovie();
 		else
 			movieInterface.pControl->Pause();
@@ -593,7 +593,7 @@ void Movies_Init() {
 		WIP: Task
 		Implement subtitle output from the need to play an mve file in the background.
 	*/
-	if (Graphics_mode != 0) {
+	if (GraphicsMode != 0) {
 		int allowDShowMovies = GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
 			Gfx_AviMovieWidthFit = (allowDShowMovies >= 2);

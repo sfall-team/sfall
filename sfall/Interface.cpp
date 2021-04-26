@@ -25,7 +25,7 @@
 #include "Worldmap.h"
 
 long Interface_ActiveInterfaceWID() {
-	return LoadGameHook_interfaceWID;
+	return gameInterfaceWID;
 }
 
 enum WinNameType {
