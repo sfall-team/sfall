@@ -703,6 +703,8 @@ enum {
 
 #define AUTOMAP_MAX           (160)
 
+#define MSG_GENDER_CHECK_FLG  (0x80) // bit 8
+
 enum TicksTime : unsigned long
 {
 	ONE_GAME_YEAR         = 315360000

@@ -125,6 +125,7 @@ static void __stdcall RunOnBeforeGameStart() {
 }
 
 static void __stdcall RunOnAfterGameStarted() {
+	if (femaleMsgs) CheckPlayerGender();
 	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
 	InitGlobalScripts(); // running sfall scripts
 }
@@ -369,11 +370,11 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 	BuildSortedIndexList();
 }
-/*
+
 static void __stdcall GameExit() { // OnGameExit
-	// reserved
+	if (femaleMsgs >  1) RestoreCutsState();
 }
-*/
+
 static void __stdcall GameClose() { // OnBeforeGameClose
 	WipeSounds();
 	ClearReadExtraGameMsgFiles();
@@ -429,7 +430,7 @@ static void __declspec(naked) before_game_exit_hook() {
 		jmp  map_exit_;
 	}
 }
-/*
+
 static void __declspec(naked) after_game_exit_hook() {
 	__asm {
 		pushadc;
@@ -438,7 +439,7 @@ static void __declspec(naked) after_game_exit_hook() {
 		jmp  main_menu_create_;
 	}
 }
-*/
+
 static void __declspec(naked) game_close_hook() {
 	__asm {
 		pushadc;
@@ -796,8 +797,8 @@ void LoadGameHook_Init() {
 	HookCall(0x47F491, game_reset_on_load_hook); // PrepLoad_ (the very first step during save game loading)
 	const DWORD beforeGameExitAddr[] = {0x480ACE, 0x480BC7}; // gnw_main_
 	HookCalls(before_game_exit_hook, beforeGameExitAddr);
-	//const DWORD afterGameExitAddr[] = {0x480AEB, 0x480BE4}; // gnw_main_
-	//HookCalls(after_game_exit_hook, afterGameExitAddr);
+	const DWORD afterGameExitAddr[] = {0x480AEB, 0x480BE4}; // gnw_main_
+	HookCalls(after_game_exit_hook, afterGameExitAddr);
 	HookCall(0x480CA7, game_close_hook); // gnw_main_
 	//HookCall(0x480D45, game_close_hook); // main_exit_system_ (never called)
 

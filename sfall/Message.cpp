@@ -20,10 +20,12 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "LoadGameHook.h"
 
 #include "Message.h"
 
 #define CASTMSG(adr) reinterpret_cast<MSGList*>(adr)
+
 const MSGList* gameMsgFiles[] = {
 	CASTMSG(MSG_FILE_COMBAT),
 	CASTMSG(MSG_FILE_AI),
@@ -58,6 +60,77 @@ ExtraGameMessageListsMap gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
 
 static long msgNumCounter = 0x3000;
+
+static long heroIsFemale = -1;
+
+// Searches the special character in the text and removes the text depending on the player's gender
+// example: <MaleText^FemaleText>
+static long __fastcall ReplaceGenderWord(MSGNode* msgData, DWORD* msgFile) {
+	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
+	if (heroIsFemale < 0) heroIsFemale = HeroIsFemale();
+
+	unsigned char* _pos = (unsigned char*)msgData->message;
+	unsigned char* pos;
+
+	while ((pos = (unsigned char*)std::strchr((char*)_pos, '^')) != 0) { // pos - pointer to the character position
+		_pos = pos; // next find position
+		for (unsigned char* n = pos - 1; ; n--) {
+			if (n < (unsigned char*)msgData->message) {
+				_pos++; // error, open char not found
+				break;
+			} else if (*n == '<') {
+				if (heroIsFemale) { // remove left(male) side
+					pos++;
+					// shift all chars to the left
+					do {
+						*n++ = *pos++;
+						if (*pos == '>') { // skip close char
+							_pos = n; // set next find position
+							do *n++ = *++pos; while (*pos); // continue shift (with '\0')
+							break;
+						}
+					} while (*pos);
+				} else { // remove right(female) side
+					pos = n;
+					pos++;
+					// shift all chars to the left
+					do {
+						if (pos == _pos) { // skip '^' char
+							while (*++pos && *pos != '>');  // skip female side
+							do *n++ = *++pos; while (*pos); // continue shift (with '\0')
+							break;
+						}
+						*n++ = *pos++;
+					} while (*pos);
+				}
+				break; // exit for
+			}
+		}
+		if (_pos > pos) break;
+	}
+
+	// set flag
+	unsigned long outValue;
+	fo_message_find(msgFile, msgData->number, &outValue);
+	((MSGNode*)(msgFile[1] + (outValue * 16)))->flags |= MSG_GENDER_CHECK_FLG;
+
+	return 1;
+}
+
+static void __declspec(naked) scr_get_msg_str_speech_hook() {
+	__asm {
+		call message_search_;
+		cmp  eax, 1;
+		jne  end;
+		push ecx;
+		lea  ecx, [esp + 8]; // message data
+		mov  edx, [esp + 0x1C - 0x0C + 8]; // message file
+		call ReplaceGenderWord;
+		pop  ecx;
+end:
+		retn;
+	}
+}
 
 // Loads the msg file from the 'english' folder if it does not exist in the current language directory
 static void __declspec(naked) message_load_hook() {
@@ -140,6 +213,7 @@ void ClearScriptAddedExtraGameMsg() {
 		}
 	}
 	msgNumCounter = 0x3000;
+	heroIsFemale = -1;
 }
 
 void FallbackEnglishLoadMsgFiles() {
@@ -159,6 +233,13 @@ void ClearReadExtraGameMsgFiles() {
 
 void Message_Init() {
 	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
+
+	if (GetConfigInt("Misc", "DialogGenderWords", 0)) {
+		dlog("Applying dialog gender words patch.", DL_INIT);
+		HookCall(0x4A6CEE, scr_get_msg_str_speech_hook);
+		SafeWrite16(0x484C62, 0x9090); // message_search_
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 void Message_Exit() {

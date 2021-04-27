@@ -23,3 +23,8 @@ void LoadOrder_OnGameLoad();
 void RemoveSavFiles();
 
 void LoadOrder_art_get_name_hack();
+
+extern long femaleMsgs;
+
+void CheckPlayerGender();
+void RestoreCutsState();
