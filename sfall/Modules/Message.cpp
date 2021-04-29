@@ -70,7 +70,6 @@ static long heroIsFemale = -1;
 // Searches the special character in the text and removes the text depending on the player's gender
 // example: <MaleText^FemaleText>
 static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFile) {
-
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
 	if (heroIsFemale < 0) heroIsFemale = fo::HeroIsFemale();
 

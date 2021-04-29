@@ -66,11 +66,11 @@ void __declspec(naked) Tilemap::obj_path_blocking_at_() {
 	}
 }
 
-static std::vector<int> buildLineTiles;
+//static std::vector<int> buildLineTiles;
 
-static bool TileExists(long tile) {
-	return (std::find(buildLineTiles.cbegin(), buildLineTiles.cend(), tile) != buildLineTiles.cend());
-}
+//static bool TileExists(long tile) {
+//	return (std::find(buildLineTiles.cbegin(), buildLineTiles.cend(), tile) != buildLineTiles.cend());
+//}
 
 // Fixed and improved implementation of tile_num_beyond_ engine function
 // - correctly gets the tile from the constructed line
@@ -78,11 +78,11 @@ static bool TileExists(long tile) {
 long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long maxRange) {
 	if (maxRange <= 0 || sourceTile == targetTile) return sourceTile;
 
-	if (buildLineTiles.empty()) {
+	/*if (buildLineTiles.empty()) {
 		buildLineTiles.reserve(100);
 	} else {
 		buildLineTiles.clear();
-	}
+	}*/
 
 	long currentRange = fo::func::tile_dist(sourceTile, targetTile);
 	//fo::func::debug_printf("\ntile_dist: %d", currentRange);
@@ -121,11 +121,11 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 				long tile = fo::func::tile_num(target_X, target_Y);
 				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
-					if (!TileExists(tile)) {
+					//if (!TileExists(tile)) {
 						long dist = fo::func::tile_dist(targetTile, tile);
 						if ((dist + currentRange) >= maxRange || fo::func::tile_on_edge(tile)) return tile;
-						buildLineTiles.push_back(tile);
-					}
+					//	buildLineTiles.push_back(tile);
+					//}
 					lastTile = tile;
 				}
 				stepCounter = 0;
@@ -155,11 +155,11 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 				long tile = fo::func::tile_num(target_X, target_Y);
 				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
-					if (!TileExists(tile)) {
+					//if (!TileExists(tile)) {
 						long dist = fo::func::tile_dist(targetTile, tile);
 						if ((dist + currentRange) >= maxRange || fo::func::tile_on_edge(tile)) return tile;
-						buildLineTiles.push_back(tile);
-					}
+					//	buildLineTiles.push_back(tile);
+					//}
 					lastTile = tile;
 				}
 				stepCounter = 0;
