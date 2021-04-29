@@ -1081,7 +1081,7 @@ checkType:
 	}
 }
 
-// Haenlomal's fix
+// Haenlomal's tweak
 static void __declspec(naked) item_w_called_shot_hack() {
 	static const DWORD FastShotTraitFix_End = 0x478E7F;
 	__asm {
@@ -1110,20 +1110,20 @@ cantUse:
 }
 
 static void FastShotTraitFix() {
-	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
+	switch (GetConfigInt("Misc", "FastShotFix", 0)) {
 	case 1:
-		dlog("Applying Fast Shot trait patch. (Haenlomal's fix)", DL_INIT);
+		dlog("Applying Fast Shot trait patch (Haenlomal's tweak).", DL_INIT);
 		MakeJump(0x478E79, item_w_called_shot_hack);
 		goto fix;
 	case 2: {
-		dlog("Applying Fast Shot trait patch. (Alternative behavior)", DL_INIT);
+		dlog("Applying Fast Shot trait patch (Alternative behavior).", DL_INIT);
 		SafeWrite16(0x478C9F, 0x9090);
 		const DWORD fastShotFixF1[] = {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F};
 		HookCalls((void*)0x478C7D, fastShotFixF1);
 		goto done;
 	}
 	case 3:
-		dlog("Applying Fast Shot trait patch. (Fallout 1 behavior)", DL_INIT);
+		dlog("Applying Fast Shot trait patch (Fallout 1 behavior).", DL_INIT);
 		HookCall(0x478C97, (void*)item_hit_with_);
 		SafeWrite16(0x478C9E, CODETYPE_JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
 		goto done;

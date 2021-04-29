@@ -1804,6 +1804,15 @@ static void __declspec(naked) op_obj_can_hear_obj_hack() {
 	}
 }
 
+static void __declspec(naked) ai_best_weapon_hack() {
+	__asm {
+		sar  edx, 31;
+		sub  eax, edx
+		sar  eax, 1;
+		retn;
+	}
+}
+
 static void __declspec(naked) ai_best_weapon_hook() {
 	__asm {
 		mov  eax, [esp + 0xF4 - 0x10 + 4];  // prev.item
@@ -3430,16 +3439,18 @@ void BugFixes_Init()
 		dlogr(" Done", DL_FIX);
 	}
 
-	// Fix for AI not checking weapon perks properly when searching for the best weapon
-	int bestWeaponPerkFix = GetConfigInt("Misc", "AIBestWeaponFix", 0);
-	if (bestWeaponPerkFix > 0) {
+	if (GetConfigInt("Misc", "AIBestWeaponFix", 1)) {
 		dlog("Applying AI best weapon choice fix.", DL_FIX);
+		// Fix for the incorrect item being checked for the presence of weapon perks
 		HookCall(0x42954B, ai_best_weapon_hook);
-		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
-		if (bestWeaponPerkFix > 1) {
-			const DWORD aiBestWeaponAddr[] = {0x42955E, 0x4296E7};
-			SafeWriteBatch<BYTE>(0x55, aiBestWeaponAddr); // lea eax, [edx * 2];
-		}
+		// Corrects the calculation of the weapon score to: (maxDmg + minDmg) / 4
+		DWORD aiBestWeaponAddr[2] = {0x4294E2, 0x429675};
+		SafeWriteBatch<BYTE>(0x01, aiBestWeaponAddr); // sub > add
+		aiBestWeaponAddr[0] = 0x4294E6; aiBestWeaponAddr[1] = 0x429679;
+		MakeCalls(ai_best_weapon_hack, aiBestWeaponAddr);
+		// Corrects the weapon score multiplier for having perks to 2x (was 5x)
+		aiBestWeaponAddr[0] = 0x42955E; aiBestWeaponAddr[1] = 0x4296E7;
+		SafeWriteBatch<BYTE>(0x15, aiBestWeaponAddr); // lea eax, [edx*4] > lea eax, [edx]
 		dlogr(" Done", DL_FIX);
 	}
 
