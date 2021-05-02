@@ -220,6 +220,7 @@ WRAP_WATCOM_FUNC3(long, register_object_turn_towards, fo::GameObject*, object, l
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
 WRAP_WATCOM_FUNC1(long*, runProgram, fo::Program*, progPtr)
 WRAP_WATCOM_FUNC1(long, selectWindowID, long, sWinID)
+WRAP_WATCOM_FUNC1(void, scr_build_lookup_table, fo::ScriptInstance*, script)
 WRAP_WATCOM_FUNC1(fo::ScriptInstance*, scr_find_first_at, long, elevation)
 WRAP_WATCOM_FUNC0(fo::ScriptInstance*, scr_find_next_at)
 WRAP_WATCOM_FUNC1(fo::GameObject*, scr_find_obj_from_program, fo::Program*, program)

@@ -1824,10 +1824,12 @@ static void __declspec(naked) op_obj_can_hear_obj_hack() {
 	}
 }
 
+// correct signed division by 4
 static void __declspec(naked) ai_best_weapon_hack() {
 	__asm {
-		sar  edx, 31;
-		sub  eax, edx
+		add  edx, 3;
+		test eax, eax;
+		cmovs eax, edx;
 		sar  eax, 1;
 		retn;
 	}
@@ -2994,6 +2996,8 @@ skip:
 	}
 }
 
+static bool createObjectSidStartFix = false;
+
 static void __declspec(naked) op_create_object_sid_hack() {
 	static const char* proDbgMsg = "\nError: attempt to create object with PID of %d: %s!";
 	using fo::Scripts::start;
@@ -3001,8 +3005,22 @@ static void __declspec(naked) op_create_object_sid_hack() {
 		mov  ebx, [esp + 0x50 - 0x20 + 4]; // createObj
 		test ebx, ebx;
 		jz   noObject;
+		mov  ecx, [ebx + scriptId];
+		cmp  ecx, -1;
+		jne  init;
+		mov  edx, ebx;
+		mov  eax, esi;
+		retn;
+init:
+		cmp  createObjectSidStartFix, 0;
+		jne  runStart;
+		call ScriptExtender::InitScript;
+		mov  edx, ebx;
+		mov  eax, esi;
+		retn;
+runStart:
 		mov  edx, start; // procedure
-		mov  eax, [ebx + scriptId];
+		mov  eax, ecx;
 		call fo::funcoffs::exec_script_proc_;
 end:
 		mov  edx, ebx;
@@ -3795,6 +3813,7 @@ void BugFixes::init()
 	HookCall(0x4B6C13, checkAllRegions_hook);
 
 	// Fix for the script attached to an object not being initialized properly upon object creation
+	createObjectSidStartFix = (IniReader::GetConfigInt("Misc", "CreateObjectSidFix", 0) != 0);
 	MakeCall(0x4551C0, op_create_object_sid_hack, 1);
 	// Fix the error handling in create_object_sid function to prevent a crash when the proto is missing
 	SafeWrite8(0x45507B, 0x51); // jz 0x4550CD

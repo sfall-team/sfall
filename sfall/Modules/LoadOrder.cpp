@@ -39,6 +39,15 @@ static bool cutsPatch   = false;
 static std::vector<std::string> patchFiles;
 static std::vector<int> savPrototypes;
 
+static void PlayerGenderCutsRestore() {
+	if (cutsPatch) { // restore
+		SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
+		SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
+		SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
+		cutsPatch = false;
+	}
+}
+
 static void CheckPlayerGender() {
 	isFemale = fo::HeroIsFemale();
 
@@ -49,11 +58,8 @@ static void CheckPlayerGender() {
 			SafeWrite32(0x43FA9F, (DWORD)cutsEndGameFemale);
 			SafeWrite32(0x44EB5B, (DWORD)cutsSubFemale);
 			SafeWrite32(0x48152E, (DWORD)cutsDeathFemale);
-		} else if (cutsPatch) {
-			SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
-			SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
-			SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
-			cutsPatch = false;
+		} else {
+			PlayerGenderCutsRestore();
 		}
 	}
 }
@@ -497,14 +503,7 @@ void LoadOrder::init() {
 		LoadGameHook::OnAfterGameStarted() += CheckPlayerGender;
 		if (femaleMsgs > 1) {
 			MakeCall(0x480A95, gnw_main_hack); // before new game start from main menu. TODO: need moved to address 0x480A9A (it busy in movies.cpp)
-			LoadGameHook::OnGameExit() += []() {
-				if (cutsPatch) { // restore
-					SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
-					SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
-					SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
-					cutsPatch = false;
-				}
-			};
+			LoadGameHook::OnGameExit() += PlayerGenderCutsRestore;
 		}
 		dlogr(" Done", DL_INIT);
 	}
