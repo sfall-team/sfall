@@ -437,9 +437,9 @@ void mf_get_dialog_object(OpcodeContext& ctx) {
 }
 
 void mf_obj_under_cursor(OpcodeContext& ctx) {
-	ctx.setReturn((fo::var::gmouse_3d_current_mode != 0)
-	              ? fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation)
-	              : 0);
+	ctx.setReturn(
+		fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation)
+	);
 }
 
 void mf_get_loot_object(OpcodeContext& ctx) {

@@ -1062,7 +1062,9 @@ public:
 			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
 			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			if (!SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW)) {
+				windowLeft = windowTop = 0; // fail to set position
+			}
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1217,8 +1219,9 @@ void Graphics::init() {
 
 void Graphics::exit() {
 	if (Graphics::mode) {
-		if (Graphics::mode == 5) {
-			int data = windowTop | (windowLeft << 16);
+		RECT rect;
+		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
+			int data = rect.top | (rect.left << 16);
 			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
 		}
 		CoUninitialize();
