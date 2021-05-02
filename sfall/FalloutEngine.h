@@ -393,7 +393,7 @@ void __stdcall fo_interpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD val
 // USE WITH CAUTION
 void __declspec() fo_interpretError(const char* fmt, ...);
 
-long __fastcall fo_tile_num(long x, long y);
+long __stdcall fo_tile_num(long x, long y);
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
 

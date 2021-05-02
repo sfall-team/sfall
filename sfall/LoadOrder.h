@@ -27,4 +27,4 @@ void LoadOrder_art_get_name_hack();
 extern long femaleMsgs;
 
 void CheckPlayerGender();
-void RestoreCutsState();
+void PlayerGenderCutsRestore();

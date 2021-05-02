@@ -17,6 +17,8 @@
 /*
 	For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
 	because the compiler builds the better/optimized code when calling the engine functions
+
+	NOTES: be careful when using fastcall for engine functions inside C++ loops, as VS2010 might generate unexpected glithes
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC3(long, ai_have_ammo, TGameObj*, critter, TGameObj*, item, TGameObj**, outAmmo)
@@ -179,6 +181,7 @@ WRAP_WATCOM_FUNC3(long, register_object_turn_towards, TGameObj*, object, long, t
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
 WRAP_WATCOM_FUNC1(long*, runProgram, TProgram*, progPtr)
 WRAP_WATCOM_FUNC1(long, selectWindowID, long, sWinID)
+WRAP_WATCOM_FUNC1(void, scr_build_lookup_table, TScript*, script)
 WRAP_WATCOM_FUNC1(TScript*, scr_find_first_at, long, elevation)
 WRAP_WATCOM_FUNC0(TScript*, scr_find_next_at)
 WRAP_WATCOM_FUNC1(TGameObj*, scr_find_obj_from_program, TProgram*, program)

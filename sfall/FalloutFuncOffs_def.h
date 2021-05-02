@@ -500,6 +500,8 @@ FUNC(report_explosion_,               0x413144)
 FUNC(reset_box_bar_win_,              0x4614A0)
 FUNC(roll_random_,                    0x4A30C0)
 FUNC(runProgram_,                     0x46E154) // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
+FUNC(scr_build_lookup_table_,         0x4A49D0)
+FUNC(scr_exec_map_enter_scripts_,     0x4A67DC)
 FUNC(scr_exec_map_exit_scripts_,      0x4A69A0)
 FUNC(scr_exec_map_update_scripts_,    0x4A67E4)
 FUNC(scr_find_first_at_,              0x4A6524) // eax - elevation, returns spatial scriptID

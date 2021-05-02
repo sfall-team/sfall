@@ -65,8 +65,6 @@ long __stdcall SetGlobalVar(const char* var, int val);
 
 long __stdcall GetGlobalVar(const char* var);
 
-int __stdcall ScriptHasLoaded(TProgram* script);
-
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
 // fileName - the script file name without extension
@@ -92,6 +90,11 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
 void __stdcall AddTimerEventScripts(TProgram* script, long time, long param);
 void __stdcall RemoveTimerEventScripts(TProgram* script, long param);
 void __stdcall RemoveTimerEventScripts(TProgram* script);
+
+int __stdcall ScriptHasLoaded(TProgram* script);
+
+// loads and initializes script file (for normal game scripts)
+long __fastcall InitScript(long sid);
 
 // variables
 extern DWORD availableGlobalScriptTypes;

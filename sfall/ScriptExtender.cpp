@@ -995,9 +995,9 @@ void InitScriptProgram(sScriptProgram &prog, const char* fileName) {
 	TProgram* scriptPtr = fo_loadProgram(fileName);
 
 	if (scriptPtr) {
-		const char** procTable = ptr_procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
+		const char** procTable = ptr_procTableStrs;
 		for (int i = 0; i < Scripts::count; ++i) {
 			prog.procLookup[i] = fo_interpretFindProcedure(prog.ptr, procTable[i]);
 		}
@@ -1041,6 +1041,26 @@ bool __stdcall IsGameScript(const char* filename) {
 		} while (left <= right);
 	}
 	return false; // script name was not found in scripts.lst
+}
+
+// loads and initializes script file (for normal game scripts)
+long __fastcall InitScript(long sid) {
+	TScript* scriptPtr;
+	if (fo_scr_ptr(sid, &scriptPtr) == -1) return -1;
+
+	scriptPtr->program = fo_loadProgram((*ptr_scriptListInfo)[scriptPtr->scriptIdx & 0xFFFFFF].fileName);
+	if (!scriptPtr->program) return -1;
+	if (scriptPtr->program->flags & 0x124) return 0;
+
+	// fill lookup table
+	fo_scr_build_lookup_table(scriptPtr);
+
+	scriptPtr->flags |= 4 | 1; // init | loaded
+	scriptPtr->action = Scripts::no_p_proc;
+	scriptPtr->scriptOverrides = 0;
+
+	fo_runProgram(scriptPtr->program);
+	return 0;
 }
 
 static void LoadGlobalScriptsList() {

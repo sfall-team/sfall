@@ -372,7 +372,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 }
 
 static void __stdcall GameExit() { // OnGameExit
-	if (femaleMsgs >  1) RestoreCutsState();
+	if (femaleMsgs > 1) PlayerGenderCutsRestore();
 }
 
 static void __stdcall GameClose() { // OnBeforeGameClose

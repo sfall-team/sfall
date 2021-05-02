@@ -33,6 +33,15 @@ static bool cutsPatch   = false;
 
 static std::vector<int> savPrototypes;
 
+void PlayerGenderCutsRestore() {
+	if (cutsPatch) { // restore
+		SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
+		SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
+		SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
+		cutsPatch = false;
+	}
+}
+
 void CheckPlayerGender() {
 	isFemale = HeroIsFemale();
 
@@ -43,21 +52,9 @@ void CheckPlayerGender() {
 			SafeWrite32(0x43FA9F, (DWORD)cutsEndGameFemale);
 			SafeWrite32(0x44EB5B, (DWORD)cutsSubFemale);
 			SafeWrite32(0x48152E, (DWORD)cutsDeathFemale);
-		} else if (cutsPatch) {
-			SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
-			SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
-			SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
-			cutsPatch = false;
+		} else {
+			PlayerGenderCutsRestore();
 		}
-	}
-}
-
-void RestoreCutsState() {
-	if (cutsPatch) { // restore
-		SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
-		SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
-		SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
-		cutsPatch = false;
 	}
 }
 
