@@ -1180,7 +1180,9 @@ public:
 			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
 			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			if (!SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW)) {
+				windowLeft = windowTop = 0; // fail to set position
+			}
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1494,8 +1496,9 @@ void Graphics_Init() {
 
 void Graphics_Exit() {
 	if (GraphicsMode) {
-		if (GraphicsMode == 5) {
-			int data = windowTop | (windowLeft << 16);
+		RECT rect;
+		if (GraphicsMode == 5 && GetWindowRect(window, &rect)) {
+			int data = rect.top | (rect.left << 16);
 			if (data >= 0 && data != windowData) SetConfigInt("Graphics", "WindowData", data);
 		}
 		CoUninitialize();

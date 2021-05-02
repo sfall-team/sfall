@@ -583,9 +583,9 @@ static void mf_obj_under_cursor() {
 	                  &inclDudeArg = opHandler.arg(1);
 
 	if (crSwitchArg.isInt() && inclDudeArg.isInt()) {
-		opHandler.setReturn((*ptr_gmouse_3d_current_mode != 0)
-		                    ? fo_object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
-		                    : 0);
+		opHandler.setReturn(
+			fo_object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
+		);
 	} else {
 		OpcodeInvalidArgs("obj_under_cursor");
 		opHandler.setReturn(0);
