@@ -2277,7 +2277,16 @@ skip:
 	}
 }
 
-static DWORD dudeScriptID;
+static void __declspec(naked) map_load_file_hook() {
+	__asm {
+		mov  eax, 0x04004650; // dude script ID
+		call scr_remove_;
+		jmp  partyMemberRecoverLoad_;
+	}
+}
+
+static DWORD dudeScriptID; // usually equal to 0x04004650
+
 static void __declspec(naked) obj_load_dude_hook0() {
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];
@@ -2289,8 +2298,10 @@ static void __declspec(naked) obj_load_dude_hook0() {
 
 static void __declspec(naked) obj_load_dude_hook1() {
 	__asm {
-		mov  ebx, dudeScriptID;
-		mov  [eax + scriptId], ebx;
+		call scr_clear_dude_script_;
+		mov  ebx, ds:[FO_VAR_obj_dude];
+		mov  eax, dudeScriptID;
+		mov  [ebx + scriptId], eax;
 		retn;
 	}
 }
@@ -3641,6 +3652,7 @@ void BugFixes_Init()
 	HookCall(0x499240, PrintAMList_hook);
 
 	// Fix for a duplicate obj_dude script being created when loading a saved game
+	HookCall(0x48306E, map_load_file_hook); // removes the redundant saved dude script data from the scripts block
 	HookCall(0x48D63E, obj_load_dude_hook0);
 	HookCall(0x48D666, obj_load_dude_hook1);
 	BlockCall(0x48D675);
