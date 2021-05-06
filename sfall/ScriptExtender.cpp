@@ -1177,27 +1177,27 @@ static void ClearGlobalScripts() {
 
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
 	TProgram* sptr = prog->ptr;
-	int procNum = fo_interpretFindProcedure(sptr, procName);
-	if (procNum != -1) {
-		fo_executeProcedure(sptr, procNum);
+	int procPosition = fo_interpretFindProcedure(sptr, procName);
+	if (procPosition != -1) {
+		fo_executeProcedure(sptr, procPosition);
 	}
 }
 
 void RunScriptProc(sScriptProgram* prog, long procId) {
 	if (procId > 0 && procId < Scripts::count) {
-		int procNum = prog->procLookup[procId];
-		if (procNum != -1) {
-			fo_executeProcedure(prog->ptr, procNum);
+		int procPosition = prog->procLookup[procId];
+		if (procPosition != -1) {
+			fo_executeProcedure(prog->ptr, procPosition);
 		}
 	}
 }
 
 int RunScriptStartProc(sScriptProgram* prog) {
-	int procNum = prog->procLookup[Scripts::start];
-	if (procNum != -1) {
-		fo_executeProcedure(prog->ptr, procNum);
+	int procPosition = prog->procLookup[Scripts::start];
+	if (procPosition != -1) {
+		fo_executeProcedure(prog->ptr, procPosition);
 	}
-	return procNum;
+	return procPosition;
 }
 
 static void RunScript(sGlobalScript* script) {
@@ -1532,12 +1532,7 @@ void ScriptExtender_Init() {
 	}
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1) {
-		if (idle > 127) idle = 127;
-		*ptr_idle_func = reinterpret_cast<void*>(Sleep);
-		SafeWrite8(0x4C9F12, 0x6A); // push idle
-		SafeWrite8(0x4C9F13, idle);
-	}
+	if (idle > -1 && idle > 100) idle = 100;
 
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {

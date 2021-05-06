@@ -2318,10 +2318,12 @@ skip:
 
 static void __declspec(naked) exec_script_proc_hack() {
 	__asm {
-		mov  eax, [esi + 0x58];
+		test edi, edi; // loading?
+		jnz  end;
+		mov  eax, [esi + 0x58]; // script.procedure_table.start
 		test eax, eax;
-		ja   end;
-		inc  eax; // start proc
+		ja   end; // != 0
+		dec  eax; // is bad - set to -1 for skipping execution
 end:
 		retn;
 	}
@@ -2329,10 +2331,10 @@ end:
 
 static void __declspec(naked) exec_script_proc_hack1() {
 	__asm {
-		mov  esi, [edi + 0x58];
+		mov  esi, [edi + 0x58]; // script.procedure_table.start
 		test esi, esi;
-		ja   end;
-		inc  esi; // start proc
+		ja   end; // != 0
+		inc  esi; // 1 - default position
 end:
 		retn;
 	}
@@ -3473,13 +3475,13 @@ void BugFixes_Init()
 		// Fix for the incorrect item being checked for the presence of weapon perks
 		HookCall(0x42954B, ai_best_weapon_hook);
 		// Corrects the calculation of the weapon score to: (maxDmg + minDmg) / 4
-		DWORD aiBestWeaponAddr[2] = {0x4294E2, 0x429675};
-		SafeWriteBatch<BYTE>(0x01, aiBestWeaponAddr); // sub > add
-		aiBestWeaponAddr[0] = 0x4294E6; aiBestWeaponAddr[1] = 0x429679;
-		MakeCalls(ai_best_weapon_hack, aiBestWeaponAddr);
+		const DWORD aiBestWeaponAddr1[] = {0x4294E2, 0x429675};
+		SafeWriteBatch<BYTE>(0x01, aiBestWeaponAddr1); // sub > add
+		const DWORD aiBestWeaponAddr2[] = {0x4294E6, 0x429679};
+		MakeCalls(ai_best_weapon_hack, aiBestWeaponAddr2);
 		// Corrects the weapon score multiplier for having perks to 2x (was 5x)
-		aiBestWeaponAddr[0] = 0x42955E; aiBestWeaponAddr[1] = 0x4296E7;
-		SafeWriteBatch<BYTE>(0x15, aiBestWeaponAddr); // lea eax, [edx*4] > lea eax, [edx]
+		const DWORD aiBestWeaponAddr3[] = {0x42955E, 0x4296E7};
+		SafeWriteBatch<BYTE>(0x15, aiBestWeaponAddr3); // lea eax, [edx*4] > lea eax, [edx]
 		dlogr(" Done", DL_FIX);
 	}
 

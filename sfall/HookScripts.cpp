@@ -35,7 +35,7 @@ static const int numHooks = HOOK_COUNT;
 // Struct for registered hook script
 struct sHookScript {
 	sScriptProgram prog;
-	int callback;        // proc number in script's proc table
+	int callback;        // procedure position in script's proc table
 	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
 };
 

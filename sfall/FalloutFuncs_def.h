@@ -83,7 +83,7 @@ WRAP_WATCOM_FUNC1(long, critterIsOverloaded, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-WRAP_WATCOM_FUNC2(void, executeProcedure, TProgram*, sptr, long, procNum)
+WRAP_WATCOM_FUNC2(void, executeProcedure, TProgram*, sptr, long, procPosition)
 WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(const char*, findCurrentProc, TProgram*, program) // Returns the name of current procedure by program pointer
 WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)

@@ -758,6 +758,10 @@ void MiscPatches_Init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Set idle function
+	*ptr_idle_func = reinterpret_cast<void*>(Sleep);
+	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
+
 	BlockCall(0x4425E6); // Patch out ereg call
 
 	SafeWrite8(0x4810AB, CODETYPE_JumpShort); // Disable selfrun
