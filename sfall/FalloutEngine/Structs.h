@@ -289,7 +289,7 @@ struct Program {
 	long *codeStackPtr;
 	long field_8;
 	long field_C;
-	long *codePtr;
+	long codePosition;  // position in the code stack when reading script opcodes
 	long field_14;      // unused?
 	long field_18;      // unused?
 	long *dStackPtr;
@@ -299,24 +299,17 @@ struct Program {
 	long field_2C;
 	long *stringRefPtr;
 	long *procTablePtr;
-	long field_38;      // same as codeStackPtr
+	long *codeStack;    // same as codeStackPtr
 	long savedEnv[12];  // saved register values
 	long field_6C;      // unused?
 	long field_70;      // unused?
 	long field_74;      // unused?
-	long field_78;
-	long field_7C;
-	union {
-		long flags;
-		struct {
-			char flags1;
-			char flags2;
-			char flags3;
-			char flags4;
-		};
-	};
+	long timerTick;     // unused?
+	long func_7C;       // always null?
+	short flags;
+	short fetchOpcode;
 	long currentScriptWin; // current window for executing script
-	long field_88;
+	long shouldRemove;
 };
 
 static_assert(sizeof(Program) == 140, "Incorrect Program definition.");
