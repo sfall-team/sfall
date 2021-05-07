@@ -358,6 +358,9 @@ void Animations::init() {
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
 
+	// Allow playing the "magic hands" animation when using an item on an object
+	SafeWrite16(0x4120B8, 0x9090); // action_use_an_item_on_object_
+
 	// Fix for the player stuck at "climbing" frame after ladder climbing animation
 	HookCall(0x411E1F, action_climb_ladder_hook);
 

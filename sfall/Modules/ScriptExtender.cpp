@@ -940,7 +940,7 @@ void ScriptExtender::init() {
 	}
 
 	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1 && idle > 100) idle = 100;
+	if (idle > -1 && idle > 30) idle = 30;
 
 	arraysBehavior = IniReader::GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
