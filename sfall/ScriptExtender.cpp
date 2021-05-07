@@ -1532,7 +1532,7 @@ void ScriptExtender_Init() {
 	}
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1 && idle > 100) idle = 100;
+	if (idle > -1 && idle > 30) idle = 30;
 
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
