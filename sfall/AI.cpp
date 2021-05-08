@@ -276,7 +276,14 @@ static long __fastcall ai_try_attack_switch_fix(TGameObj* target, long &hitMode,
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
+
 	// no other weapon in inventory
+	if (weapon) {
+		if (fo_item_w_range(source, ATKTYPE_PUNCH) >= fo_obj_dist(source, target)) {
+			hitMode = ATKTYPE_PUNCH;
+			return 0; // change hit mode, continue attack cycle
+		}
+	}
 	return (weapon) ? -1 // exit, NPC has a weapon in hand slot, so we don't look for another weapon on the map
 	                : 1; // no weapon in inventory or hand slot, continue to search weapons on the map (call ai_switch_weapons_)
 }
@@ -543,6 +550,8 @@ static void __declspec(naked) ai_try_attack_hack_check_safe_weapon() {
 		retn;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __fastcall CombatAttackHook(TGameObj* source, TGameObj* target) {
 	sources[target] = source; // who attacked the 'target' from the last time

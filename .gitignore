@@ -53,8 +53,10 @@ nb-configuration.xml
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
+[Dd]evXP/
 [Rr]elease/
 [Rr]eleases/
+[Ww]in2K/
 x64/
 x86/
 build/
