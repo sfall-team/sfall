@@ -280,7 +280,14 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
+
 	// no other weapon in inventory
+	if (weapon) {
+		if (fo::func::item_w_range(source, fo::AttackType::ATKTYPE_PUNCH) >= fo::func::obj_dist(source, target)) {
+			hitMode = fo::AttackType::ATKTYPE_PUNCH;
+			return 0; // change hit mode, continue attack cycle
+		}
+	}
 	return (weapon) ? -1 // exit, NPC has a weapon in hand slot, so we don't look for another weapon on the map
 	                : 1; // no weapon in inventory or hand slot, continue to search weapons on the map (call ai_switch_weapons_)
 }
