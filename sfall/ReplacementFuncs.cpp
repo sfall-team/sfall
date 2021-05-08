@@ -78,8 +78,7 @@ DWORD __stdcall sfgame_adjust_fid() {
 				indexNum = critterPro->fid & 0xFFF;
 			}
 			if (*ptr_i_worn != nullptr) {
-				sProto* armorPro;
-				GetProto((*ptr_i_worn)->protoId, &armorPro);
+				sProto* armorPro = GetProto((*ptr_i_worn)->protoId);
 				DWORD armorFid = fo_stat_level(*ptr_inven_dude, STAT_gender) == GENDER_FEMALE
 				               ? armorPro->item.armor.femaleFID
 				               : armorPro->item.armor.maleFID;
@@ -149,6 +148,13 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 	return range;
 }
 
+// TODO
+//long __stdcall sfgame_item_w_range(TGameObj* source, long hitMode) {
+//	return sfgame_item_weapon_range(source, fo_item_hit_with(source, hitMode), hitMode);
+//}
+
+static bool fastShotTweak = false;
+
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
 long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled) {
 	long cost = 0;
@@ -177,12 +183,12 @@ long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, l
 
 		long type = fo_item_w_subtype(weapon, hitMode);
 
-		if (source->id == PLAYER_ID && sfgame_trait_level(TRAIT_fast_shot)) {
-			// Fallout 1 behavior and Alternative behavior (allowed for all weapons)
-			bool allow = false; // TODO: add FastShotFix variable
-
-						// Fallout 2 behavior (with fix) and Haenlomal's fix
-			if (allow || (fo_item_w_range(source, hitMode) >= 2 && type > ATKSUBTYPE_MELEE)) cost--;
+		if (source->protoId == PID_Player && DudeHasTrait(TRAIT_fast_shot)) {
+			if (fastShotTweak || // Fallout 1 behavior and Alternative behavior (allowed for all weapons)
+			    (fo_item_w_range(source, hitMode) >= 2 && type > ATKSUBTYPE_MELEE)) // Fallout 2 behavior (with fix) and Haenlomal's tweak
+			{
+				cost--;
+			}
 		}
 		if ((type == ATKSUBTYPE_MELEE || type == ATKSUBTYPE_UNARMED) && fo_perk_level(source, PERK_bonus_hth_attacks)) {
 			cost--;
@@ -208,6 +214,31 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		mov  edx, esi; // found weapon
 		mov  ecx, edi; // source
 		call sfgame_item_weapon_mp_cost;
+		retn;
+	}
+}
+
+long __fastcall sfgame_item_count(TGameObj* who, TGameObj* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenSize; i++) {
+		TGameObj::InvenItem* tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (fo_item_get_type(tableItem->object) == item_type_container) {
+			count += sfgame_item_count(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+static void __declspec(naked) item_count_hack() {
+	__asm {
+		push ecx;               // save state
+		//push edx; ???
+		mov  ecx, eax;          // container-object
+		call sfgame_item_count; // edx - item
+		//pop  edx;
+		pop  ecx;               // restore
 		retn;
 	}
 }
@@ -623,8 +654,7 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 }
 
 static void __declspec(naked) tile_num_beyond_hack() {
-	__asm {
-		//push ecx;
+	__asm { //push ecx;
 		push ebx;
 		mov  ecx, eax;
 		call sfgame_tile_num_beyond;
@@ -641,6 +671,12 @@ void InitReplacementHacks() {
 
 	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
 	HookCall(0x429A08, ai_search_inven_weap_hook);
+
+	// Replace the item_count_ function (fix vanilla function returning incorrect value when there is a container-item inside)
+	MakeJump(0x47808C, item_count_hack);
+
+	int fastShotFix = GetConfigInt("Misc", "FastShotFix", 0);
+	fastShotTweak = (fastShotFix > 0 && fastShotFix <= 3);
 
 	// Replace the srcCopy_ function with a pure MMX implementation
 	MakeJump(buf_to_buf_, fo_buf_to_buf); // 0x4D36D4
