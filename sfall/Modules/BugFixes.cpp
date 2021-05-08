@@ -1475,32 +1475,6 @@ end:
 	}
 }
 
-static int __stdcall ItemCountFix(fo::GameObject* who, fo::GameObject* item) {
-	int count = 0;
-	for (int i = 0; i < who->invenSize; i++) {
-		auto tableItem = &who->invenTable[i];
-		if (tableItem->object == item) {
-			count += tableItem->count;
-		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
-			count += ItemCountFix(tableItem->object, item);
-		}
-	}
-	return count;
-}
-
-static void __declspec(naked) item_count_hack() {
-	__asm {
-		push ecx;
-		push edx; // save state
-		push edx; // item
-		push eax; // container-object
-		call ItemCountFix;
-		pop  edx;
-		pop  ecx; // restore
-		retn;
-	}
-}
-
 static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
@@ -3389,9 +3363,6 @@ void BugFixes::init()
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
 	MakeCall(0x471A94, use_inventory_on_hack);
-
-	// Fix item_count function returning incorrect value when there is a container-item inside
-	MakeJump(0x47808C, item_count_hack); // replacing item_count_ function
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);

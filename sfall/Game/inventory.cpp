@@ -68,8 +68,7 @@ DWORD __stdcall Inventory::adjust_fid() {
 				indexNum = critterPro->fid & 0xFFF;
 			}
 			if (fo::var::i_worn != nullptr) {
-				fo::Proto* armorPro;
-				fo::GetProto(fo::var::i_worn->protoId, &armorPro);
+				fo::Proto* armorPro = fo::GetProto(fo::var::i_worn->protoId);
 				DWORD armorFid = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
 				               ? armorPro->item.armor.femaleFID
 				               : armorPro->item.armor.maleFID;

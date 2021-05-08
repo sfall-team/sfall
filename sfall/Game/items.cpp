@@ -45,6 +45,13 @@ long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, lo
 	return range;
 }
 
+// TODO
+//long Items::item_w_range(fo::GameObject* source, long hitMode) {
+//	return item_weapon_range(source, fo::func::item_hit_with(source, hitMode), hitMode);
+//}
+
+static bool fastShotTweak = false;
+
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
 long __fastcall Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, long hitMode, long isCalled) {
 	long cost = 0;
@@ -73,12 +80,12 @@ long __fastcall Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObjec
 
 		long type = fo::func::item_w_subtype(weapon, hitMode);
 
-		if (source->id == fo::PLAYER_ID && sf::Perks::DudeHasTrait(fo::Trait::TRAIT_fast_shot)) {
-			// Fallout 1 behavior and Alternative behavior (allowed for all weapons)
-			bool allow = false; // TODO: add FastShotFix variable
-
-						// Fallout 2 behavior (with fix) and Haenlomal's fix
-			if (allow || (fo::func::item_w_range(source, hitMode) >= 2 && type > fo::AttackSubType::MELEE)) cost--;
+		if (source->protoId == fo::ProtoID::PID_Player && sf::Perks::DudeHasTrait(fo::Trait::TRAIT_fast_shot)) {
+			if (fastShotTweak || // Fallout 1 behavior and Alternative behavior (allowed for all weapons)
+			    (fo::func::item_w_range(source, hitMode) >= 2 && type > fo::AttackSubType::MELEE)) // Fallout 2 behavior (with fix) and Haenlomal's tweak
+			{
+				cost--;
+			}
 		}
 		if ((type == fo::AttackSubType::MELEE || type == fo::AttackSubType::UNARMED) && Stats::perk_level(source, fo::Perk::PERK_bonus_hth_attacks)) {
 			cost--;
@@ -109,9 +116,40 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 	}
 }
 
+long __fastcall Items::item_count(fo::GameObject* who, fo::GameObject* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenSize; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
+			count += item_count(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+static void __declspec(naked) item_count_hack() {
+	__asm {
+		push ecx;               // save state
+		//push edx; ???
+		mov  ecx, eax;          // container-object
+		call Items::item_count; // edx - item
+		//pop  edx;
+		pop  ecx;               // restore
+		retn;
+	}
+}
+
 void Items::init() {
 	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
 	sf::HookCall(0x429A08, ai_search_inven_weap_hook);
+
+	// Replace the item_count_ function (fix vanilla function returning incorrect value when there is a container-item inside)
+	sf::MakeJump(0x47808C, item_count_hack);
+
+	int fastShotFix = sf::IniReader::GetConfigInt("Misc", "FastShotFix", 0);
+	fastShotTweak = (fastShotFix > 0 && fastShotFix <= 3);
 }
 
 }
