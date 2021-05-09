@@ -61,21 +61,22 @@ void mf_get_inven_ap_cost(OpcodeContext& ctx) {
 }
 
 void op_obj_is_carrying_obj(OpcodeContext& ctx) {
-	int num = 0;
 	const ScriptValue &invenObjArg = ctx.arg(0),
-		&itemObjArg = ctx.arg(1);
+	                  &itemObjArg = ctx.arg(1);
 
 	fo::GameObject *invenObj = invenObjArg.object(),
-		*itemObj = itemObjArg.object();
+	               *itemObj = itemObjArg.object();
+
+	int count = 0;
 	if (invenObj != nullptr && itemObj != nullptr) {
 		for (int i = 0; i < invenObj->invenSize; i++) {
 			if (invenObj->invenTable[i].object == itemObj) {
-				num = invenObj->invenTable[i].count;
+				count = invenObj->invenTable[i].count;
 				break;
 			}
 		}
 	}
-	ctx.setReturn(num);
+	ctx.setReturn(count);
 }
 
 void mf_critter_inven_obj2(OpcodeContext& ctx) {

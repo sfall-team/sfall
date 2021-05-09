@@ -262,9 +262,11 @@ isNotDead:
 
 static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hitMode, fo::GameObject* source, fo::GameObject* weapon) {
 	if (source->critter.movePoints <= 0) return -1; // exit from ai_try_attack_
-	if (weapon) {
-		long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
-		if (_hitMode != hitMode) {
+	if (!weapon) return 1; // no weapon in inventory or hand slot, continue to search weapons on the map (call ai_switch_weapons_)
+
+	long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
+	if (_hitMode != hitMode && _hitMode != fo::AttackType::ATKTYPE_PUNCH) {
+		if (game::Items::item_weapon_mp_cost(source, weapon, _hitMode, 0) <= source->critter.movePoints) {
 			hitMode = _hitMode;
 			return 0; // change hit mode, continue attack cycle
 		}
@@ -272,7 +274,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 
 	// does the NPC have other weapons in inventory?
 	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
-	if (item && weapon) {
+	if (item) {
 		// is using a close range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
@@ -282,14 +284,11 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 	}
 
 	// no other weapon in inventory
-	if (weapon) {
-		if (fo::func::item_w_range(source, fo::AttackType::ATKTYPE_PUNCH) >= fo::func::obj_dist(source, target)) {
-			hitMode = fo::AttackType::ATKTYPE_PUNCH;
-			return 0; // change hit mode, continue attack cycle
-		}
+	if (fo::func::item_w_range(source, fo::AttackType::ATKTYPE_PUNCH) >= fo::func::obj_dist(source, target)) {
+		hitMode = fo::AttackType::ATKTYPE_PUNCH;
+		return 0; // change hit mode, continue attack cycle
 	}
-	return (weapon) ? -1 // exit, NPC has a weapon in hand slot, so we don't look for another weapon on the map
-	                : 1; // no weapon in inventory or hand slot, continue to search weapons on the map (call ai_switch_weapons_)
+	return -1; // exit, NPC has a weapon in hand slot, so we don't look for another weapon on the map
 }
 
 static void __declspec(naked) ai_try_attack_hook_switch_fix() {

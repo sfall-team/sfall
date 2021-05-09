@@ -272,7 +272,7 @@ end:
 void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
 		mov  esi, ecx;
-		call ApplyHeaveHoFix;
+		call Perks::ApplyHeaveHoFix;
 		mov  ecx, esi;
 		retn;
 	}

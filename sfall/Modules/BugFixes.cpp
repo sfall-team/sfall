@@ -3364,6 +3364,9 @@ void BugFixes::init()
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
 	MakeCall(0x471A94, use_inventory_on_hack);
 
+	// Fix item_count_ function returning incorrect value when there is a container-item inside
+	SafeWrite8(0x4780B1, 0x29); // jmp 0x4780DB
+
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
 

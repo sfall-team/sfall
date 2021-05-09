@@ -58,13 +58,14 @@ public:
 	static __forceinline bool DudeHasTrait(DWORD traitID) {
 		return (!IsTraitDisabled(traitID) && (fo::var::pc_trait[0] == traitID || fo::var::pc_trait[1] == traitID));
 	}
+
+	static bool perkHeaveHoModTweak;
+	static void __stdcall ApplyHeaveHoFix();
 };
 
 void PerksEnterCharScreen();
 void PerksCancelCharScreen();
 void PerksAcceptCharScreen();
-
-void __stdcall ApplyHeaveHoFix();
 
 void __stdcall IgnoreDefaultPerks();
 void __stdcall RestoreDefaultPerks();

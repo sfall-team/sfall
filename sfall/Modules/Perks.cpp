@@ -801,11 +801,9 @@ static void __declspec(naked) HeaveHoHook() {
 		mov  eax, ecx;
 		call fo::funcoffs::stat_level_;
 		lea  ebx, [0 + eax * 4];
-		sub  ebx, eax;
+		sub  ebx, eax;      // ST * 3
 		cmp  ebx, esi;      // ebx = dist (3*ST), esi = max dist weapon
-		jle  lower;         // jump if dist <= max
-		mov  ebx, esi;      // dist = max
-lower:
+		cmovg ebx, esi;     // if dist > max then dist = max
 		mov  eax, ecx;
 		mov  edx, PERK_heave_ho;
 		call fo::funcoffs::perk_level_;
@@ -819,12 +817,12 @@ lower:
 	}
 }
 
-static bool perkHeaveHoModFix = false;
+bool Perks::perkHeaveHoModTweak = false;
 
-void __stdcall ApplyHeaveHoFix() { // not really a fix
+void __stdcall Perks::ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	perks[fo::Perk::PERK_heave_ho].strengthMin = 0;
-	perkHeaveHoModFix = true;
+	perkHeaveHoModTweak = true;
 }
 
 static void PerkEngineInit() {
@@ -1236,10 +1234,10 @@ void PerksReset() {
 	// Swift Learner bonus
 	SafeWrite32(0x4AFAE2, 100);
 	// Restore 'Heave Ho' modify fix
-	if (perkHeaveHoModFix) {
+	if (Perks::perkHeaveHoModTweak) {
 		SafeWrite8(0x478AC4, 0xBA);
 		SafeWrite32(0x478AC5, 0x23);
-		perkHeaveHoModFix = false;
+		Perks::perkHeaveHoModTweak = false;
 	}
 	if (perksReInit) PerkSetup(); // restore perk data
 }
