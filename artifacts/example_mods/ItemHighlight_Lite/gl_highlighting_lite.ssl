@@ -114,7 +114,7 @@ procedure InventoryMoveHandler begin
 end
 
 procedure start begin
-   if game_loaded and (sfall_ver_major < 4) then begin
+   if game_loaded and (sfall_ver_major < 4 and sfall_ver_build >= 12) then begin
       call InitConfigs;
 
       highlightKey := GetConfig(configSection, "Key", 0);

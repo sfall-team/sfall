@@ -15,7 +15,7 @@ Requires sfall 3.8.12 or higher.
 To use, copy gl_highlighting_lite.int to your scripts folder, and copy sfall-mods.ini to the same directory as sfall.
 Also, you should disable the built-in function in ddraw.ini (ToggleItemHighlightsKey=0).
 
-Note that due to the lack of newer game hooks in sfall 3.8.x, there are some minor visual glitches with the lite version:
+Note that due to the lack of newer game hooks in sfall 3.8.x, there are some minor visual glitches in the lite version:
 - items will be kept highlighted when entering combat while holding the highlight key.
 - when you pick up items while holding the highlight key, they will be kept highlighted if you drop them on the ground (fixed for 3.8.18+).
 Both glitches can bo solved by pressing and releasing the highlight key again.

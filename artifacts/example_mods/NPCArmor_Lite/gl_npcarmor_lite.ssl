@@ -1,13 +1,15 @@
 /*
 
-   NPC Armor Appearance mod
+   NPC Armor Appearance mod (Lite version)
 
-   Used to replace the scripted part of B-Team mod.
+   A cut-down version of the mod included in sfall 4.x modders pack. Used to replace the scripted part of B-Team mod.
    Appropriate graphics are required for this mod to work.
    Can be adopted to any mod by adjusting armor PIDs, allowed weapon anim codes, NPC PIDs and NPC FIDs in INI file.
 
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
+
+   Requires sfall 3.8.29 or higher
 
    version 1.1
 
@@ -163,7 +165,7 @@ end
 
 procedure start begin
    variable sect, sects, armorTypes, armorType, npc, pid, pids, i;
-   if game_loaded and (sfall_ver_major >= 4 or sfall_ver_build >= 29) then begin
+   if game_loaded and (sfall_ver_major < 4 and sfall_ver_build >= 29) then begin
       armorTypes := get_ini_section(modIni, "ArmorTypes");
       armorPidMap := create_array_map;
       foreach (armorType: pids in armorTypes) begin
