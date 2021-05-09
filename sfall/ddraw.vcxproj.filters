@@ -343,6 +343,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Translate.h" />
+    <ClInclude Include="Game\combatAI.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -636,6 +639,9 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Translate.cpp" />
+    <ClCompile Include="Game\combatAI.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

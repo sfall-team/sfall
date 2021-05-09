@@ -19,6 +19,8 @@
 	because the compiler builds the better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC4(fo::GameObject*, ai_best_weapon, fo::GameObject*, source, fo::GameObject*, prevItem, fo::GameObject*, checkItem, fo::GameObject*, target)
+WRAP_WATCOM_FFUNC3(bool, ai_can_use_weapon, fo::GameObject*, critter, fo::GameObject*, item, DWORD, hitMode)
 WRAP_WATCOM_FFUNC3(long, ai_have_ammo, fo::GameObject*, critter, fo::GameObject*, item, fo::GameObject**, outAmmo)
 WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, fo::GameObject*, source, fo::GameObject*, item, fo::GameObject*, target)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, ai_search_inven_weap, fo::GameObject*, source, long, apCheck, fo::GameObject*, target)

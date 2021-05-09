@@ -600,12 +600,12 @@ static fo::GameObject* __stdcall BestWeaponHook_Script(fo::GameObject* bestWeapo
 
 static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
-		push ecx;
-		push ebx;
-		push edx;
-		push eax;
+		push ecx; // target
+		push ebx; // weapon2 (secondary)
+		push edx; // weapon1 (primary)
+		push eax; // source
 		call fo::funcoffs::ai_best_weapon_;
-		push eax;
+		push eax; // bestWeapon
 		call BestWeaponHook_Script;
 		retn;
 	}
@@ -618,6 +618,48 @@ fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject
 	       : bestWeapon;
 }
 */
+
+static long __stdcall CanUseWeaponHook_Script(long result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+	BeginHook();
+	argCount = 4;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)weapon;
+	args[2] = hitMode;
+	args[3] = result;
+
+	RunHookScript(HOOK_CANUSEWEAPON);
+
+	if (cRet > 0) {
+		result = rets[0];
+		if (result != 0) result = 1;
+	}
+
+	EndHook();
+	return result;
+}
+
+static void __declspec(naked) CanUseWeaponHook() {
+	__asm {
+		push ecx;
+		push ebx; // hitMode
+		push edx; // weapon
+		push eax; // source
+		call fo::funcoffs::ai_can_use_weapon_;
+		push eax; // result
+		call CanUseWeaponHook_Script;
+		pop  ecx;
+		retn;
+	}
+}
+
+long CanUseWeaponHook_Invoke(long result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+	return (HookScripts::HookHasScript(HOOK_CANUSEWEAPON))
+	       ? CanUseWeaponHook_Script(result, source, weapon, hitMode)
+	       : result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void Inject_ToHitHook() {
 	HookCalls(ToHitHook, {
@@ -709,6 +751,14 @@ void Inject_BestWeaponHook() {
 	HookCall(0x429A59, ai_search_inven_weap_hook);
 }
 
+void Inject_CanUseWeaponHook() {
+	HookCalls(CanUseWeaponHook, {
+		0x429A1B, // ai_search_inven_weap_
+		0x429CF2, // ai_search_environ_
+		0x429E1C  // ai_pick_hit_mode_
+	});
+}
+
 void InitCombatHookScripts() {
 	HookScripts::LoadHookScript("hs_tohit", HOOK_TOHIT);
 	HookScripts::LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
@@ -722,6 +772,7 @@ void InitCombatHookScripts() {
 	HookScripts::LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
 	HookScripts::LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
 	HookScripts::LoadHookScript("hs_bestweapon", HOOK_BESTWEAPON);
+	HookScripts::LoadHookScript("hs_canuseweapon", HOOK_CANUSEWEAPON);
 }
 
 }
