@@ -19,6 +19,7 @@
 #pragma once
 
 extern long PerkLevelMod;
+extern bool perkHeaveHoModTweak;
 
 void Perks_Init();
 void PerksReset();

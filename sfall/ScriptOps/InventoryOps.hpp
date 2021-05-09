@@ -52,23 +52,24 @@ static void mf_get_inven_ap_cost() {
 }
 
 static void __stdcall op_obj_is_carrying_obj2() {
-	int num = 0;
 	const ScriptValue &invenObjArg = opHandler.arg(0),
 	                  &itemObjArg = opHandler.arg(1);
 
 	TGameObj *invenObj = invenObjArg.asObject(),
 	         *itemObj = itemObjArg.asObject();
+
+	int count = 0;
 	if (invenObj != nullptr && itemObj != nullptr) {
 		for (int i = 0; i < invenObj->invenSize; i++) {
 			if (invenObj->invenTable[i].object == itemObj) {
-				num = invenObj->invenTable[i].count;
+				count = invenObj->invenTable[i].count;
 				break;
 			}
 		}
 	} else {
 		OpcodeInvalidArgs("obj_is_carrying_obj");
 	}
-	opHandler.setReturn(num);
+	opHandler.setReturn(count);
 }
 
 static void __declspec(naked) op_obj_is_carrying_obj() {

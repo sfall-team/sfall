@@ -136,11 +136,17 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 	long type = GetWeaponType(flagExt);
 
 	if (type == ATKSUBTYPE_THROWING) {
-		// TODO: add perkHeaveHoModFix from perks.cpp
 		long heaveHoMod = fo_perk_level(source, PERK_heave_ho);
-		if (heaveHoMod > 0) heaveHoMod *= 2;
+		long stRange = fo_stat_level(source, STAT_st);
 
-		long stRange = (fo_stat_level(source, STAT_st) + heaveHoMod);
+		if (perkHeaveHoModTweak) {
+			stRange *= 3;
+			if (stRange > range) stRange = range;
+			return stRange + (heaveHoMod * 6);
+		}
+
+		// vanilla
+		stRange += (heaveHoMod * 2);
 		if (stRange > 10) stRange = 10; // fix for Heave Ho!
 		stRange *= 3;
 		if (stRange < range) range = stRange;
@@ -219,25 +225,23 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 }
 
 long __fastcall sfgame_item_count(TGameObj* who, TGameObj* item) {
-	int count = 0;
 	for (int i = 0; i < who->invenSize; i++) {
 		TGameObj::InvenItem* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
-			count += tableItem->count;
+			return tableItem->count; // fix
 		} else if (fo_item_get_type(tableItem->object) == item_type_container) {
-			count += sfgame_item_count(tableItem->object, item);
+			int count = sfgame_item_count(tableItem->object, item);
+			if (count > 0) return count;
 		}
 	}
-	return count;
+	return 0;
 }
 
 static void __declspec(naked) item_count_hack() {
 	__asm {
 		push ecx;               // save state
-		//push edx; ???
 		mov  ecx, eax;          // container-object
 		call sfgame_item_count; // edx - item
-		//pop  edx;
 		pop  ecx;               // restore
 		retn;
 	}
@@ -673,7 +677,7 @@ void InitReplacementHacks() {
 	HookCall(0x429A08, ai_search_inven_weap_hook);
 
 	// Replace the item_count_ function (fix vanilla function returning incorrect value when there is a container-item inside)
-	MakeJump(0x47808C, item_count_hack);
+	//MakeJump(0x47808C, item_count_hack);
 
 	int fastShotFix = GetConfigInt("Misc", "FastShotFix", 0);
 	fastShotTweak = (fastShotFix > 0 && fastShotFix <= 3);
