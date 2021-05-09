@@ -1,0 +1,138 @@
+name:        'sfall'
+description: 'Builds sfall binaries'
+author:      '@wipe2238'
+
+###
+#
+# Example:
+#
+# - name: Build sfall
+#   id:   sfall
+#   uses: phobos2077/sfall@develop
+#   with:
+#    release-xp: true
+#
+# - name: Copy sfall to mod directory
+#   run:  copy "${{ steps.sfall.outputs.release-xp }}" "my/mod/directory/ddraw.dll"
+#
+###
+
+# While both inputs are marked as required, users needs to set only one of them (at minimum) to 'true' for action to work
+inputs:
+
+ release-xp:
+  description: 'Set to true to enable building with ReleaseXP configuration'
+  required:    true
+
+ dev-xp:
+  description: 'Set to true to enable building with DevXP configuration'
+  required:    true
+
+# Outputs are always using Windows directory separator (`\`)
+outputs:
+
+ release-xp:
+  description:  'Full path to ddraw.dll built with ReleaseXP configuration'
+  value:         ${{ steps.build-release-xp.outputs.ddraw-dll }}
+
+ dev-xp:
+  description: 'Full path to ddraw.dll built with DevXP configuration'
+  value:       ${{ steps.build-dev-xp.outputs.ddraw-dll }}
+ dev-xp-pdb:
+  description: 'Full path to ddraw.pdb built with DevXP configuration'
+  value:       ${{ steps.build-dev-xp.outputs.ddraw-pdb }}
+
+runs:
+ using: 'composite'
+ steps:
+
+ # Quick check for things which should never happen
+ - name:  Sanity checks
+   run:   |
+          if   [[ "${{ runner.os }}" != "Windows" ]]; then
+               echo "[ERROR] This action can only be used on Windows"
+               exit 1
+          elif [[ "${{ inputs.release-xp }}" != "true" ]] && [[ "${{ inputs.dev-xp }}" != "true" ]]; then
+               echo "[ERROR] At least one of following inputs must be set to 'true' -- 'release-xp', 'dev-xp'"
+               exit 1
+          #
+          elif [[ ! -d "$(cygpath --unix "$GITHUB_ACTION_PATH/sfall/")" ]]; then
+               echo "[ERROR] Solution directory not found -- 'sfall\\'"
+               exit 1
+          elif [[ ! -f "$(cygpath --unix "$GITHUB_ACTION_PATH/sfall/ddraw.sln")" ]]; then
+               echo "[ERROR] Solution file not found -- 'sfall\\ddraw.sln'"
+               exit 1
+          fi
+          #
+   shell: bash
+
+ # DXSDK directory must be prepared only once, in case action is used N times
+ # Using `.lib` suffix to make sure directory is ignored by git in exotic scenarios
+ # Using `::set-output` to make sure workflow environment remains unchanged
+ - name:  Prepare DXSDK directory
+   id:    dxsdk
+   run:   |
+          DXSDK_DIR="$GITHUB_ACTION_PATH/sfall/DXSDK.lib"
+          if [[ ! -d "$DXSDK_DIR" ]]; then
+             echo "::group::Prepare DXSDK directory"
+             #
+             git clone --quiet https://github.com/NovaRain/DXSDK_Collection.git "$DXSDK_DIR"
+             cp "$DXSDK_DIR/DXSDK_Aug2007/Lib/x86/dinput.lib" "$DXSDK_DIR/DXSDK_Jun2010/Lib/x86/"
+             #
+             echo "::endgroup::"
+          fi
+          echo "::set-output name=dir::$(cygpath --windows "$DXSDK_DIR/DXSDK_Jun2010/")"
+   shell: bash
+
+ # MSBuild is not in PATH on Windows machines
+ # Using `::set-output` to make sure workflow environment remains unchanged
+ - name:  Prepare MSBuild
+   id:    msbuild
+   run:   |
+          echo "::group::Prepare MSBuild"
+
+          MSBUILD_EXE="$("/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild/**/Bin/MSBuild.exe)"
+          echo "::set-output name=exe::$MSBUILD_EXE"
+
+          echo "::endgroup::"
+   shell: bash
+
+ # Creating empty `PostBuild.cmd` to avoid false-positive build error
+ - name:  Build ReleaseXP
+   id:    build-release-xp
+   run:   |
+          if [[ "${{ inputs.release-xp }}" == "true" ]]; then
+             echo ::group::Build ReleaseXP
+
+             #
+             echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
+             "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=ReleaseXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
+             #
+             echo "::set-output name=ddraw-dll::$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/ReleaseXP/ddraw.dll")"
+
+             echo "::endgroup::"
+          fi
+   env:
+    DXSDK_DIR: ${{ steps.dxsdk.outputs.dir }}
+   shell: bash
+
+ # Creating empty `PostBuild.cmd` to avoid false-positive build error
+ - name: Build DevXP
+   id:   build-dev-xp
+   run:   |
+          :
+          if [[ "${{ inputs.dev-xp }}" == "true" ]]; then
+             echo "::group::Build DevXP"
+
+             #
+             echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
+             "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=DevXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
+             #
+             echo "::set-output name=ddraw-dll::$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.dll")"
+             echo "::set-output name=ddraw-pdb::$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.pdb")"
+
+             echo "::endgroup::"
+          fi
+   env:
+    DXSDK_DIR: ${{ steps.dxsdk.outputs.dir }}
+   shell: bash
