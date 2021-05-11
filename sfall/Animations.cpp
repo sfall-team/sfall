@@ -17,22 +17,17 @@
  */
 
 #include "main.h"
-
-#include "Animations.h"
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
 
-static const int animRecordSize = sizeof(AnimationSet);
-static const int sadSize = 3240;
-
-static int animationLimit = 32;
+//static int animationLimit = 32;
 
 //pointers to new animation struct arrays
-static std::vector<AnimationSet> new_anim_set;
-static std::vector<BYTE> new_sad;
+static std::vector<AnimationSet> sf_anim_set;
+static std::vector<AnimationSad> sf_sad;
 
-static DWORD animSetAddr = FO_VAR_anim_set;
-static DWORD sadAddr = FO_VAR_sad;
+static AnimationSet* animSet = (AnimationSet*)FO_VAR_anim_set;
+static AnimationSad* animSad = (AnimationSad*)FO_VAR_sad;
 
 static const DWORD animPCMove[] = {
 	0x416E11, 0x416F64, 0x417143, 0x41725C, 0x4179CC,
@@ -46,11 +41,7 @@ static const DWORD animMaxSizeCheck[] = {
 	0x413AA9, 0x413CB7, 0x413DC2, 0x417F3A,
 };
 
-static const DWORD fake_anim_set_C[] = {
-	0x413AA4, 0x413DBC,
-};
-
-static const DWORD anim_set_0[] = {
+static const DWORD anim_set_0[] = { // curr_anim
 	0x413B96, 0x413C5A, 0x413CF0, 0x413DE1, 0x413E66, 0x413EF3, 0x413FA2,
 	0x414161, 0x4142D3, 0x41449A, 0x41460B, 0x4146FF, 0x414826, 0x41491A,
 	0x4149F8, 0x414AD0, 0x414BA4, 0x414C8C, 0x414CF0, 0x414D60, 0x414DD0,
@@ -60,32 +51,36 @@ static const DWORD anim_set_0[] = {
 	0x415BB6, 0x415C7C, 0x415CA3, /*0x415DE4, - conflct with 0x415DE2*/
 };
 
-static const DWORD anim_set_4[] = {
+static const DWORD anim_set_4[] = { // counter
 	0x413D07, 0x415700, 0x415B6B, 0x415B78, 0x415C2D, 0x415D38, 0x415D56,
 	0x415D63, 0x415DCF,
 };
 
-static const DWORD anim_set_8[] = {
+static const DWORD anim_set_8[] = { // anim_counter
 	0x413C6A, 0x413CA3, 0x413CF6, 0x413E76, 0x413EA4, 0x413F03, 0x413F20,
 	0x413F3A, 0x4156EC, 0x415B72, 0x415C18, 0x415C58, 0x415C6D, 0x415DBE,
 };
 
-static const DWORD anim_set_C[] = {
+static const DWORD anim_set_C[] = { // flags
 	0x413B2A, 0x413B33, 0x413B43, 0x413B54, 0x413B66, 0x413BA2, 0x413BAB,
 	0x413BC0, 0x413BCD, 0x413C3C, 0x413C87, 0x413D01, 0x413D10, 0x413D36,
 	0x413D53, 0x413DAD, 0x413E93, 0x4155DF, 0x415AE2, 0x415D9A, 0x415DDE,
 	0x415E06, 0x415E12, 0x417F25, 0x417F30,
 };
 
-static const DWORD anim_set_10[] = {
+static const DWORD anim_set_C_shift[] = { // flags
+	0x413AA4, 0x413DBC,
+};
+
+static const DWORD anim_set_10[] = { // anim_0
 	0x413C7E, 0x413E8A, 0x413F17, 0x415C24, 0x415D16, 0x415D44,
 };
 
-static const DWORD anim_set_14[] = {
+static const DWORD anim_set_14[] = { // anim_0.source
 	0x413C76, 0x413E82, 0x413F0F, 0x415C3E, 0x415D0E, 0x415D4D,
 };
 
-static const DWORD anim_set_28[] = {
+static const DWORD anim_set_28[] = { // anim_0.delay
  0x413D1C, 0x41570D, 0x415720,
 };
 
@@ -150,42 +145,26 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
-static DWORD __fastcall AnimCombatFix(TGameObj* src, BYTE combatFlag) {
-	DWORD animAddr = animSetAddr;
-
-	if (animationLimit > 32) {
-		animAddr += animRecordSize; // include a dummy
-	}
-
-	if (combatFlag & 2) { // combat flag is set
-		__asm call combat_anim_finished_;
-	}
-	return animAddr;
-}
-
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
-		push ecx;
-		call AnimCombatFix;
-		mov  [eax][esi], ebx;
-		pop  ecx;
-		xor  dl, dl; // for goto 0x415DF2;
+		test dl, 2; // is combat flag set?
+		jz   skip;
+		call combat_anim_finished_;
+skip:
+		mov  eax, animSet;
+		mov  [eax][esi], ebx; // anim_set.curr_anim = -1000
 		retn;
 	}
 }
 
-static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
-	bool result = false;
-	int offset = (sadSize * valueMul) + 32;
-
-	if (*(DWORD*)(sadAddr + offset) == -1000) {
-		result = true;
+static bool __fastcall CheckSetSad(BYTE openFlag, DWORD slot) {
+	if (animSad[slot].currentAnim == -1000) {
+		return true;
 	} else if (!InCombat() && !(openFlag & 1)) {
-		*(DWORD*)(sadAddr + offset) = -1000;
-		result = true;
+		animSad[slot].currentAnim = -1000;
+		return true;
 	}
-
-	return result;
+	return false;
 }
 
 static void __declspec(naked) object_move_hack() {
@@ -193,9 +172,9 @@ static void __declspec(naked) object_move_hack() {
 	static const DWORD object_move_back1 = 0x417616;
 	__asm {
 		mov  ecx, ds:[ecx + 0x3C];         // openFlag
-		mov  edx, [esp + 0x4C - 0x20];     // valueMul
+		mov  edx, [esp + 0x4C - 0x20];     // slot (valueMul)
 		call CheckSetSad;
-		test eax, eax;
+		test al, al;
 		jz   end;
 		jmp  object_move_back0;            // fixed jump
 end:
@@ -241,105 +220,61 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
 
 	//allocate memory to store larger animation struct arrays
-	new_anim_set.resize(aniMax + 1);
-	new_sad.resize(sadSize * (aniMax + 1));
+	sf_anim_set.resize(aniMax + 1); // include a dummy
+	sf_sad.resize(aniMax + 1); // -8?
 
-	animSetAddr = reinterpret_cast<DWORD>(new_anim_set.data());
-	sadAddr = reinterpret_cast<DWORD>(new_sad.data());
+	//replace addresses for arrays
+	animSet = &sf_anim_set[1]; // the zero slot for the game remains unused
+	animSad = sf_sad.data();
 
-	//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
+	//set general animation limit check (old 20) aniMax-12 (4 reserved for PC movement + 8 other critical animations?)
 	SafeWrite8(0x413C07, aniMax - 12);
 
-	//PC movement animation limit checks (old 24) aniMax-8 -- +8 reserved for other critical animations?.
+	//PC movement animation limit checks (old 24) aniMax-8 (8 reserved for other critical animations?)
 	SafeWriteBatch<BYTE>(aniMax - 8, animPCMove);
 
 	//Max animation limit checks (old 32) aniMax
 	SafeWriteBatch<BYTE>(aniMax, animMaxCheck);
 
 	//Max animations checks - animation struct size * max num of animations (old 2656*32=84992)
-	SafeWriteBatch<DWORD>(animRecordSize * aniMax, animMaxSizeCheck);
+	SafeWriteBatch<DWORD>(sizeof(AnimationSet) * aniMax, animMaxSizeCheck);
 
 	//divert old animation structure list pointers to newly allocated memory
 
-	//struct array 1///////////////////
+	AnimationSet* animSetAddr = &sf_anim_set[0];
 
 	//old addr 0x54C1B4
-	SafeWrite32(0x413A9E, animSetAddr);
-
+	SafeWrite32(0x413A9E, (DWORD)&animSetAddr->currentAnim); // anim_reset_
 	//old addr 0x54C1C0
-	SafeWriteBatch<DWORD>(12 + animSetAddr, fake_anim_set_C);
+	SafeWriteBatch<DWORD>((DWORD)&animSetAddr->flags, anim_set_C_shift);
 
-	//old addr 0x54CC14
-	SafeWriteBatch<DWORD>(animRecordSize + animSetAddr, anim_set_0);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->currentAnim, anim_set_0);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->counter, anim_set_4);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->totalAnimCount, anim_set_8);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->flags, anim_set_C);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].number, anim_set_10);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].source, anim_set_14);
+	SafeWrite32(0x413F29, (DWORD)&animSet->animations[0].animCode);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].delay, anim_set_28);
+	SafeWrite32(0x415C35, (DWORD)&animSet->animations[0].flags);
 
-	//old addr 0x54CC18
-	SafeWriteBatch<DWORD>(animRecordSize + 4 + animSetAddr, anim_set_4);
-
-	//old addr 0x54CC1C
-	SafeWriteBatch<DWORD>(animRecordSize + 8 + animSetAddr, anim_set_8);
-
-	//old addr 0x54CC20
-	SafeWriteBatch<DWORD>(animRecordSize + 12 + animSetAddr, anim_set_C);
-
-	//old addr 0x54CC24
-	SafeWriteBatch<DWORD>(animRecordSize + 16 + animSetAddr, anim_set_10);
-
-	//old addr 0x54CC28
-	SafeWriteBatch<DWORD>(animRecordSize + 20 + animSetAddr, anim_set_14);
-
-	//old addr 0x54CC38
-	SafeWrite32(0x413F29, animRecordSize + 36 + animSetAddr);
-
-	//old addr 0x54CC3C
-	SafeWriteBatch<DWORD>(animRecordSize + 40 + animSetAddr, anim_set_28);
-
-	//old addr 0x54CC48
-	SafeWrite32(0x415C35, animRecordSize + 52 + animSetAddr);
-
-	//struct array 2///////////////////
-
-	//old addr 0x530014
-	SafeWriteBatch<DWORD>(sadAddr, sad_0);
-
-	//old addr 0x530018
-	SafeWriteBatch<DWORD>(4 + sadAddr, sad_4);
-
-	//old addr 0x53001C
-	SafeWriteBatch<DWORD>(8 + sadAddr, sad_8);
-
-	//old addr 0x530020
-	SafeWriteBatch<DWORD>(12 + sadAddr, sad_C);
-
-	//old addr 0x530024
-	SafeWriteBatch<DWORD>(16 + sadAddr, sad_10);
-
-	//old addr 0x530028
-	SafeWriteBatch<DWORD>(20 + sadAddr, sad_14);
-
-	//old addr 0x53002C
-	SafeWriteBatch<DWORD>(24 + sadAddr, sad_18);
-
-	//old addr 0x530030
-	SafeWriteBatch<DWORD>(28 + sadAddr, sad_1C);
-
-	//old addr 0x530034
-	SafeWriteBatch<DWORD>(32 + sadAddr, sad_20);
-
-	//old addr 0x530038
-	SafeWriteBatch<DWORD>(36 + sadAddr, sad_24);
-
-	//old addr 0x53003A
-	SafeWrite32(0x416903, 38 + sadAddr);
-
-	//old addr 0x53003B
-	SafeWriteBatch<DWORD>(39 + sadAddr, sad_27);
-
-	//old addr 0x53003C
-	SafeWriteBatch<DWORD>(40 + sadAddr, sad_28);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->flags, sad_0);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->source, sad_4);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->fid, sad_8);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->animCode, sad_C);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->ticks, sad_10);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->tpf, sad_14);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->currAnimSet, sad_18);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->pathCount, sad_1C);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->currentAnim, sad_20);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->dstTile, sad_24);
+	SafeWrite32(0x416903, (DWORD)&animSad->rotation1);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->rotation2, sad_27);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->pathData[0].tile, sad_28);
 }
 
 void Animations_Init() {
-	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
+	int animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
 			animationLimit = 127;
@@ -348,8 +283,10 @@ void Animations_Init() {
 		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
+
 	// Fix for calling anim() functions in combat
 	MakeCall(0x415DE2, anim_set_end_hack, 1);
+	SafeWrite8(0x415DEB, CODETYPE_JumpShort); // jz > jmp
 
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
