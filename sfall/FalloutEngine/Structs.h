@@ -61,8 +61,9 @@ struct Art {
 struct AnimationSet {
 	long currentAnim;
 	long counter;
-	long animCounter;
+	long totalAnimCount;
 	long flags;
+
 	struct Animation {
 		long number;
 		long source;
@@ -80,6 +81,30 @@ struct AnimationSet {
 };
 
 static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition.");
+
+struct AnimationSad {
+	long flags;
+	long source;
+	long fid;
+	long animCode;
+	long ticks;
+	long tpf;       // fps
+	long currAnimSet;
+	long pathCount; // len
+	long currentAnim;
+	short dstTile;
+	char rotation1;
+	char rotation2;
+
+	struct BuildPathData {
+		long tile;
+		long elevation;
+		long sX;
+		long sY;
+	} pathData[200];
+};
+
+static_assert(sizeof(AnimationSad) == 3240, "Incorrect AnimationSad definition.");
 
 // Bounding rectangle, used by tile_refresh_rect and related functions.
 struct BoundRect {
