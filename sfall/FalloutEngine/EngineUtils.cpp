@@ -419,8 +419,10 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 //}
 
 // Fills the specified interface window with index color
-void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
+bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
+	if (height > win->height || width > win->width) return true;
+
 	BYTE* surf = win->surface + (win->width * y) + x;
 	long pitch = win->width - width;
 	while (height--) {
@@ -428,6 +430,7 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 		while (w--) *surf++ = indexColor;
 		surf += pitch;
 	};
+	return false;
 }
 
 // Fills the specified interface window with index color 0 (black color)
