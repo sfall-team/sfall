@@ -832,7 +832,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 }
 
 static void mf_win_fill_color() {
-	long result = fo_selectWindowID(opHandler.program()->currentScriptWin);
+	long result = fo_selectWindowID(opHandler.program()->currentScriptWin); // TODO: examine the issue of restoring program->currentScriptWin of the current window in op_pop_flags_
 	long iWin = *(DWORD*)FO_VAR_currentWindow;
 	if (!result || iWin == -1) {
 		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");
@@ -840,11 +840,13 @@ static void mf_win_fill_color() {
 		return;
 	}
 	if (opHandler.numArgs() > 0) {
-		WinFillRect(ptr_sWindows[iWin].wID,
-		            opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), // x, y
-		            opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), // w, h
-		            static_cast<BYTE>(opHandler.arg(4).rawValue())
-		);
+		if (WinFillRect(ptr_sWindows[iWin].wID,
+		                opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), // x, y
+		                opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), // w, h
+		                static_cast<BYTE>(opHandler.arg(4).rawValue())))
+		{
+			opHandler.printOpcodeError("win_fill_color() - failed to fill the window, the area size exceeds the current window.");
+		}
 	} else {
 		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
 	}

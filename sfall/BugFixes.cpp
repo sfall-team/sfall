@@ -2939,7 +2939,7 @@ static void __declspec(naked) checkAllRegions_hack() {
 	static const DWORD checkAllRegions_FixRet = 0x4B6AAB;
 	__asm {
 		test eax, eax;
-		jnz  skip;
+		jnz  skip; // != 0
 		cmp  dword ptr ds:[FO_VAR_lastWin], -1;
 		je   skip;
 		mov  fixRegion, 1;
@@ -2955,10 +2955,11 @@ skip:
 static void __declspec(naked) checkAllRegions_hook() {
 	__asm {
 		test byte ptr fixRegion, 1;
-		jnz  skip;
+		jnz  skip; // == 1
 		jmp  windowCheckRegion_;
 skip:
 		mov  fixRegion, 0;
+		mov  dword ptr ds:[FO_VAR_lastWin], -1;
 		retn;
 	}
 }
