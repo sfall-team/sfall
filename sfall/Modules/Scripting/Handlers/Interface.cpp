@@ -783,7 +783,7 @@ void mf_win_fill_color(OpcodeContext& ctx) {
 		                    ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), // w, h
 		                    static_cast<BYTE>(ctx.arg(4).rawValue())))
 		{
-			ctx.printOpcodeError("%s() - failed to fill the window, the area size exceeds the current window.", ctx.getMetaruleName());
+			ctx.printOpcodeError("%s() - the fill area is truncated because it exceeds the current window.", ctx.getMetaruleName());
 		}
 	} else {
 		fo::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear

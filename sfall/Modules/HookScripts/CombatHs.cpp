@@ -619,7 +619,7 @@ fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject
 }
 */
 
-static long __stdcall CanUseWeaponHook_Script(long result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+static long __stdcall CanUseWeaponHook_Script(DWORD result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	BeginHook();
 	argCount = 4;
 
@@ -632,7 +632,8 @@ static long __stdcall CanUseWeaponHook_Script(long result, fo::GameObject* sourc
 
 	if (cRet > 0) {
 		result = rets[0];
-		if (result != 0) result = 1;
+		// unsigned check
+		if (result > 1) result = 1; // only 0 and 1
 	}
 
 	EndHook();
