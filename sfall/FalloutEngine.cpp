@@ -820,8 +820,15 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 // Fills the specified interface window with index color
 bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	WINinfo* win = fo_GNW_find(winID);
-	if (height > win->height || width > win->width) return true;
-
+	bool result = false;
+	if ((x + width) > win->width) {
+		width = win->width - x;
+		result = true;
+	}
+	if ((y + height) > win->height) {
+		height = win->height - y;
+		result = true;
+	}
 	BYTE* surf = win->surface + (win->width * y) + x;
 	long pitch = win->width - width;
 	while (height--) {
@@ -829,7 +836,7 @@ bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, 
 		while (w--) *surf++ = indexColor;
 		surf += pitch;
 	};
-	return false;
+	return result;
 }
 
 // Fills the specified interface window with index color 0 (black color)

@@ -71,6 +71,8 @@
 #define FO_VAR_critterClearObj            0x518438
 #define FO_VAR_crnt_func                  0x664508
 #define FO_VAR_cur_id                     0x51C7D4
+#define FO_VAR_curr_anim_set              0x51071C
+#define FO_VAR_curr_anim_counter          0x56C7DC 
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C

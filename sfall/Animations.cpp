@@ -20,6 +20,18 @@
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
 
+enum AnimFlags {
+	e_Priority  = 0x001,
+	e_InCombat  = 0x002,
+	e_Reserved  = 0x004,
+	e_InUse     = 0x008,
+	e_Suspend   = 0x010,
+	e_Clear     = 0x020,
+	e_EndAnim   = 0x040,
+	e_DontStand = 0x080,
+	e_Append    = 0x100, // sfall flag
+};
+
 //static int animationLimit = 32;
 
 //pointers to new animation struct arrays
@@ -145,14 +157,16 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
-		test dl, 2; // is combat flag set?
+		test dl, e_InCombat; // is combat flag set?
 		jz   skip;
 		call combat_anim_finished_;
 skip:
 		mov  eax, animSet;
-		mov  [eax][esi], ebx; // anim_set.curr_anim = -1000
+		mov  [eax][esi], ebx; // anim_set[].curr_anim = -1000
 		retn;
 	}
 }
@@ -172,7 +186,7 @@ static void __declspec(naked) object_move_hack() {
 	static const DWORD object_move_back1 = 0x417616;
 	__asm {
 		mov  ecx, ds:[ecx + 0x3C];         // openFlag
-		mov  edx, [esp + 0x4C - 0x20];     // slot (valueMul)
+		mov  edx, [esp + 0x4C - 0x20];     // slot (current)
 		call CheckSetSad;
 		test al, al;
 		jz   end;
@@ -252,7 +266,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>((DWORD)&animSet->counter, anim_set_4);
 	SafeWriteBatch<DWORD>((DWORD)&animSet->totalAnimCount, anim_set_8);
 	SafeWriteBatch<DWORD>((DWORD)&animSet->flags, anim_set_C);
-	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].number, anim_set_10);
+	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].animType, anim_set_10);
 	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].source, anim_set_14);
 	SafeWrite32(0x413F29, (DWORD)&animSet->animations[0].animCode);
 	SafeWriteBatch<DWORD>((DWORD)&animSet->animations[0].delay, anim_set_28);

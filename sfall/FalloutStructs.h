@@ -55,7 +55,7 @@ struct AnimationSet {
 	long flags;
 
 	struct Animation {
-		long number;
+		long animType;
 		long source;
 		long target;
 		long data1;

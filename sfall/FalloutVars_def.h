@@ -27,6 +27,8 @@ PTR_(crit_succ_eff,              CritInfo)  // array: 20 critters with 9 body pa
 PTR_(critter_db_handle,          PathNode*)
 PTR_(critterClearObj,            DWORD)
 PTR_(crnt_func,                  DWORD)
+PTR_(curr_anim_set,              DWORD)
+PTR_(curr_anim_counter,          DWORD)
 PTR_(curr_font_num,              DWORD)
 PTR_(curr_pc_stat,               long) // array of size == PCSTAT_max_pc_stat
 PTR_(curr_stack,                 DWORD)

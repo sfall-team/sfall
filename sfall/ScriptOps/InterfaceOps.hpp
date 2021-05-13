@@ -845,7 +845,7 @@ static void mf_win_fill_color() {
 		                opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), // w, h
 		                static_cast<BYTE>(opHandler.arg(4).rawValue())))
 		{
-			opHandler.printOpcodeError("win_fill_color() - failed to fill the window, the area size exceeds the current window.");
+			opHandler.printOpcodeError("win_fill_color() - the fill area is truncated because it exceeds the current window.");
 		}
 	} else {
 		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
