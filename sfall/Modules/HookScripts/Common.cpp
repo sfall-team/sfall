@@ -174,7 +174,10 @@ void HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	args[1] = *dxKey;
 	args[2] = vKey;
 	RunHookScript(HOOK_KEYPRESS);
-	if (cRet != 0) *dxKey = rets[0];
+	if (cRet != 0) {
+		long retKey = rets[0];
+		if (retKey > 0 && retKey < 264) *dxKey = retKey;
+	}
 	EndHook();
 }
 

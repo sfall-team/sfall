@@ -66,8 +66,8 @@ struct AnimationSet {
 
 	struct Animation {
 		long animType;
-		long source;
-		long target;
+		GameObject* source;
+		GameObject* target;
 		long data1;
 		long elevation;
 		long animCode;
@@ -84,24 +84,27 @@ static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition."
 
 struct AnimationSad {
 	long flags;
-	long source;
+	GameObject* source;
 	long fid;
 	long animCode;
 	long ticks;
 	long tpf;       // fps
-	long currAnimSet;
+	long animSetSlot;
 	long pathCount; // len
-	long currentAnim;
+	long animStep;  // current step in rotationData/pathData
 	short dstTile;
 	char rotation1;
 	char rotation2;
 
-	struct BuildPathData {
-		long tile;
-		long elevation;
-		long sX;
-		long sY;
-	} pathData[200];
+	union {
+		long rotationData[800];
+		struct BuildPathData {
+			long tile;
+			long elevation;
+			long sX;
+			long sY;
+		} pathData[200];
+	};
 };
 
 static_assert(sizeof(AnimationSad) == 3240, "Incorrect AnimationSad definition.");

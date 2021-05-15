@@ -52,6 +52,7 @@ static double mousePartX;
 static double mousePartY;
 
 #define MAX_KEYS (264)
+
 static DWORD keysDown[MAX_KEYS] = {0};
 
 static int mouseX;
@@ -60,6 +61,7 @@ static int mouseY;
 static DWORD forcingGraphicsRefresh = 0;
 
 void __stdcall ForceGraphicsRefresh(DWORD d) {
+	if (!d3d9Device) return;
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
@@ -301,11 +303,14 @@ public:
 
 			for (DWORD i = 0; i < *count; i++) {
 				DWORD dxKey = buf[i].dwOfs;
+				assert(dxKey >= 0 && dxKey < MAX_KEYS);
 				DWORD state = buf[i].dwData & 0x80;
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
+
 				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
-				if (dxKey > 0 && dxKey != buf[i].dwOfs) {
+
+				if ((signed)dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = dxKey; // Override key
 					keysDown[buf[i].dwOfs] = state;
@@ -448,7 +453,7 @@ inline void InitInputFeatures() {
 		mousePartY = 0;
 	} else adjustMouseSpeed = false;
 
-	middleMouseKey = IniReader::GetConfigInt("Input", "MiddleMouse", 0x30);
+	middleMouseKey = IniReader::GetConfigInt("Input", "MiddleMouse", DIK_B);
 	middleMouseDown = false;
 
 	backgroundKeyboard = IniReader::GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;

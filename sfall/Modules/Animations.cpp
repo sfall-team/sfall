@@ -30,7 +30,7 @@ enum AnimFlags {
 	e_InCombat  = 0x002,
 	e_Reserved  = 0x004,
 	e_InUse     = 0x008,
-	e_Suspend   = 0x010,
+	e_Suspend   = 0x010, // animation not start running in register_end
 	e_Clear     = 0x020,
 	e_EndAnim   = 0x040,
 	e_DontStand = 0x080,
@@ -66,7 +66,7 @@ static struct AnimSetHack {
 		0x414E48, 0x414EDA, 0x414F5E, 0x414FEE, 0x41505C, 0x4150D0, 0x415158,
 		0x4151B8, 0x415286, 0x41535C, 0x4153D0, 0x41544A, 0x4154EC, 0x4155EA,
 		0x4156C0, 0x4156D5, 0x4156F2, 0x41572F, 0x41573E, 0x415B1B, 0x415B56,
-		0x415BB6, 0x415C7C, 0x415CA3, /*0x415DE4, - conflct with 0x415DE2*/
+		0x415BB6, 0x415C7C, 0x415CA3, /*0x415DE4, - conflict with 0x415DE2*/
 	};
 
 	const DWORD anim_set_4[9] = { // counter
@@ -181,10 +181,10 @@ skip:
 }
 
 static bool __fastcall CheckSetSad(BYTE openFlag, DWORD slot) {
-	if (animSad[slot].currentAnim == -1000) {
+	if (animSad[slot].animStep == -1000) {
 		return true;
 	} else if (!InCombat() && !(openFlag & 1)) {
-		animSad[slot].currentAnim = -1000;
+		animSad[slot].animStep = -1000;
 		return true;
 	}
 	return false;
@@ -206,6 +206,7 @@ end:
 }
 
 static void __declspec(naked) action_climb_ladder_hook() {
+	using namespace fo;
 	__asm {
 		cmp  word ptr [edi + 0x40], 0xFFFF; // DestTile
 		je   skip;
@@ -217,7 +218,7 @@ static void __declspec(naked) action_climb_ladder_hook() {
 		pop  edx;
 		jne  skip;
 reset:
-		and  al, ~0x4; // reset RB_DONTSTAND flag
+		and  al, ~RB_DONTSTAND; // unset flag
 skip:
 		jmp  fo::funcoffs::register_begin_;
 	}
@@ -288,9 +289,9 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>((DWORD)&animSad->animCode, sadAddrs.sad_C);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->ticks, sadAddrs.sad_10);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->tpf, sadAddrs.sad_14);
-	SafeWriteBatch<DWORD>((DWORD)&animSad->currAnimSet, sadAddrs.sad_18);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->animSetSlot, sadAddrs.sad_18);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->pathCount, sadAddrs.sad_1C);
-	SafeWriteBatch<DWORD>((DWORD)&animSad->currentAnim, sadAddrs.sad_20);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->animStep, sadAddrs.sad_20);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->dstTile, sadAddrs.sad_24);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->rotation1, { 0x416903 });
 	SafeWriteBatch<DWORD>((DWORD)&animSad->rotation2, sadAddrs.sad_27);
