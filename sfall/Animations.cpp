@@ -25,7 +25,7 @@ enum AnimFlags {
 	e_InCombat  = 0x002,
 	e_Reserved  = 0x004,
 	e_InUse     = 0x008,
-	e_Suspend   = 0x010,
+	e_Suspend   = 0x010, // animation not start running in register_end
 	e_Clear     = 0x020,
 	e_EndAnim   = 0x040,
 	e_DontStand = 0x080,
@@ -60,7 +60,7 @@ static const DWORD anim_set_0[] = { // curr_anim
 	0x414E48, 0x414EDA, 0x414F5E, 0x414FEE, 0x41505C, 0x4150D0, 0x415158,
 	0x4151B8, 0x415286, 0x41535C, 0x4153D0, 0x41544A, 0x4154EC, 0x4155EA,
 	0x4156C0, 0x4156D5, 0x4156F2, 0x41572F, 0x41573E, 0x415B1B, 0x415B56,
-	0x415BB6, 0x415C7C, 0x415CA3, /*0x415DE4, - conflct with 0x415DE2*/
+	0x415BB6, 0x415C7C, 0x415CA3, /*0x415DE4, - conflict with 0x415DE2*/
 };
 
 static const DWORD anim_set_4[] = { // counter
@@ -172,10 +172,10 @@ skip:
 }
 
 static bool __fastcall CheckSetSad(BYTE openFlag, DWORD slot) {
-	if (animSad[slot].currentAnim == -1000) {
+	if (animSad[slot].animStep == -1000) {
 		return true;
 	} else if (!InCombat() && !(openFlag & 1)) {
-		animSad[slot].currentAnim = -1000;
+		animSad[slot].animStep = -1000;
 		return true;
 	}
 	return false;
@@ -208,7 +208,7 @@ static void __declspec(naked) action_climb_ladder_hook() {
 		pop  edx;
 		jne  skip;
 reset:
-		and  al, ~0x4; // reset RB_DONTSTAND flag
+		and  al, ~RB_DONTSTAND; // unset flag
 skip:
 		jmp  register_begin_;
 	}
@@ -278,9 +278,9 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>((DWORD)&animSad->animCode, sad_C);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->ticks, sad_10);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->tpf, sad_14);
-	SafeWriteBatch<DWORD>((DWORD)&animSad->currAnimSet, sad_18);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->animSetSlot, sad_18);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->pathCount, sad_1C);
-	SafeWriteBatch<DWORD>((DWORD)&animSad->currentAnim, sad_20);
+	SafeWriteBatch<DWORD>((DWORD)&animSad->animStep, sad_20);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->dstTile, sad_24);
 	SafeWrite32(0x416903, (DWORD)&animSad->rotation1);
 	SafeWriteBatch<DWORD>((DWORD)&animSad->rotation2, sad_27);
