@@ -55,6 +55,7 @@ FUNC(ai_search_inven_weap_,           0x4299A0)
 FUNC(ai_switch_weapons_,              0x42A5B8)
 FUNC(ai_try_attack_,                  0x42A7D8)
 FUNC(anim_can_use_door_,              0x415E24)
+FUNC(anim_set_end_,                   0x415B9C)
 FUNC(art_alias_fid_,                  0x4199D4)
 FUNC(art_alias_num_,                  0x419998)
 FUNC(art_exists_,                     0x4198C8) // eax - frameID, used for critter FIDs

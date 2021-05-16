@@ -19,6 +19,7 @@
 #include "main.h"
 #include "FalloutEngine.h"
 #include "AI.h"
+#include "Animations.h"
 #include "Arrays.h"
 #include "BugFixes.h"
 #include "BarBoxes.h"
@@ -274,6 +275,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		PartyControl_OnGameLoad();
 		Explosions_OnGameLoad();
 		ClearScriptAddedExtraGameMsg();
+		ClearAllLockAnimSets();
 		BarBoxes_OnGameLoad();
 		MetaruleExtenderReset();
 		ScriptExtender_OnGameLoad();

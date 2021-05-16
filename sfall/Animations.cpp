@@ -32,11 +32,14 @@ enum AnimFlags {
 	e_Append    = 0x100, // sfall flag
 };
 
-//static int animationLimit = 32;
+static int animationLimit = 32;
+static int lockLimit;
 
 //pointers to new animation struct arrays
 static std::vector<AnimationSet> sf_anim_set;
 static std::vector<AnimationSad> sf_sad;
+
+static std::vector<int8_t> lockAnimSet;
 
 static AnimationSet* animSet = (AnimationSet*)FO_VAR_anim_set;
 static AnimationSad* animSad = (AnimationSad*)FO_VAR_sad;
@@ -85,7 +88,8 @@ static const DWORD anim_set_C_shift[] = { // flags
 };
 
 static const DWORD anim_set_10[] = { // anim_0
-	0x413C7E, 0x413E8A, 0x413F17, 0x415C24, 0x415D16, 0x415D44,
+	0x413C7E, 0x413F17, 0x415C24, 0x415D16, 0x415D44,
+	/*0x413E8A, - conflict with 0x413E88*/
 };
 
 static const DWORD anim_set_14[] = { // anim_0.source
@@ -159,6 +163,235 @@ static const DWORD sad_28[] = {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+long regSlot = -2;
+
+/*
+	When the check_registry_ function finds an object for which a new animation
+	is being registered in the list of a sequence of already registered
+	animations, the engine stops registering animations for this object.
+
+	This implementation will copy all currently registered animations from the
+	current slot to another slot with already registered animations, appending
+	them to the end of the sequence.
+
+	This allows the engine to continue to animate the object sequentially.
+*/
+static long __fastcall CopyRegistry(long checkSlot) {
+	long currRegSlot = *ptr_curr_anim_set;
+	if (!(animSet[currRegSlot].flags & e_Reserved)) return 0;
+
+	if (currRegSlot == checkSlot) { // this will be bug!
+		#ifndef NDEBUG
+		BREAKPOINT;
+		#endif
+		return 0;
+	}
+	long currRegAnims = *ptr_curr_anim_counter;
+	long lastAnim = animSet[checkSlot].totalAnimCount;
+
+	devlog_f("\n\nCopyRegistry: animSet[%d] anims:%d >> animSet[%d] anims:%d", 0, currRegSlot, currRegAnims, checkSlot, lastAnim);
+	devlog_f("\n checkSlot: currAnim:%d, counter:%d", 0, animSet[checkSlot].currentAnim, animSet[checkSlot].counter);
+
+	for (long i = animSet[checkSlot].counter; i < lastAnim; i++) {
+		long animType = animSet[checkSlot].animations[i].animType;
+		devlog_f("\n anim[%d]: animType:%d, animCode:%d", 0, i, animType, animSet[checkSlot].animations[i].animCode);
+		if (animType < 4) return 0; // don't add to "move to" types of animations
+	}
+
+	long totalRegAnims = (animSet[checkSlot].flags & e_Append) ? currRegAnims : lastAnim + currRegAnims;
+	if (totalRegAnims >= 55) return 0; // not enough slots for animations
+
+	// copy the animations of the registered slot to the slot with the existing animations
+	for (long i = 0; i < currRegAnims; i++) {
+		devlog_f("\n Copy slot: animSet[%d].anim[%d] >> animSet[%d].anim[%d]", 0, currRegSlot, i, checkSlot, lastAnim);
+		animSet[checkSlot].animations[lastAnim++] = animSet[currRegSlot].animations[i];
+
+		//std::memset(&animSet[currRegSlot].animations[i], -1, 48);
+	}
+	animSet[checkSlot].flags |= animSet[currRegSlot].flags | e_Append | e_Suspend; // set flags
+	animSet[currRegSlot].flags = 0;
+
+	*ptr_curr_anim_counter = totalRegAnims; // set the current number of registered animations in the slot
+	*ptr_curr_anim_set = checkSlot;         // replace the currently registered slot with a slot with existing registered animations
+
+	regSlot = checkSlot;
+	return lastAnim;
+}
+
+static void __declspec(naked) check_registry_hack() {
+	__asm {
+		mov  eax, animSet;
+		cmp  [eax][edx][0x10], 0x0B; // animSet[].anim[].animType == Must_Call
+		je   skip;
+		//cmp  [eax][edx][0x10], 0x0C; // animSet[].anim[].animType == Call3
+		//je   skip;
+		test [eax][esi][0x0C], e_EndAnim; // anim_set[].flags
+		jnz  skip;
+		push ecx;
+		push edx;
+		call CopyRegistry;
+		test eax, eax;
+		cmovnz ebx, eax; // set ebx to the current count of animations to check the next anim_set slot
+		pop  edx;
+		pop  ecx;
+		// (re)set ZF
+		setz al;
+		test al, al;
+skip:
+		retn;
+	}
+}
+
+static long __fastcall anim_cleanup_sub(long currAnims) {
+	//long currAnims = *ptr_curr_anim_counter;
+	AnimationSet* set = &animSet[*ptr_curr_anim_set];
+	if (set->flags & e_Append) {
+		set->flags ^= e_Append;
+		if (set->currentAnim == -1000 || set->totalAnimCount >= currAnims) return -1;
+		return set->totalAnimCount;
+	}
+	// default
+	return (currAnims <= 0) ? -1 : 0;
+}
+
+static void __declspec(naked) anim_cleanup_hack() {
+	__asm {
+		call anim_cleanup_sub;
+		mov  ecx, eax; // ecx - anims slot index
+		mov  ebx, eax; // ebx - anims counter
+		test eax, eax;
+		retn;
+	}
+}
+
+static long __fastcall LockAnimSlot(long slot) {
+	if (animSet[slot].counter != animSet[slot].totalAnimCount) {
+		lockAnimSet[slot] = 8;
+	}
+	return slot;
+}
+
+static long __fastcall UnlockAnimSlot(long slot) {
+	long lockCount = 0;
+	for (std::vector<int8_t>::iterator it = lockAnimSet.begin(); it != lockAnimSet.end(); ++it) {
+		if (*it > 0) {
+			(*it)--;
+			lockCount++;
+		}
+	}
+	if (lockCount > lockLimit) fo_debug_printf("\n[SFALL] Warning: The number of animated slots in the lock is too large, locked %d of %d", lockCount, animationLimit);
+
+	//if (slot) slot /= sizeof(AnimationSet);
+	//lockAnimSet[slot] = 0;
+	return 0;
+}
+
+static BYTE __fastcall CheckLockAnimSlot(long, long slot) {
+	return lockAnimSet[slot];
+}
+
+#ifndef NDEBUG
+static void CheckReg() {
+	long s = regSlot;
+	regSlot = -2;
+	if (s != *ptr_curr_anim_set) return;
+
+	dlog_f("\nregister_end: anim_set: %d, total_anim: %d", 0, *ptr_curr_anim_set, *ptr_curr_anim_counter);
+	for (long i = 0; i < *ptr_curr_anim_counter; i++) {
+		dlog_f("\n anim[%d]: animType:%d, animCode:%d, source:%d (%s), callFunc:%d, callFunc3:%d", 0, i,
+		       animSet[s].animations[i].animType, animSet[s].animations[i].animCode,
+		       animSet[s].animations[i].source, fo_critter_name(animSet[s].animations[i].source),
+		       animSet[s].animations[i].callFunc, animSet[s].animations[i].callFunc3
+		);
+	}
+}
+#endif
+
+static void __declspec(naked) register_end_hack_begin() {
+	__asm {
+	#ifndef NDEBUG
+		pushadc;
+		call CheckReg;
+		popadc;
+	#endif
+		mov  edx, ds:[FO_VAR_curr_anim_counter];
+		mov  esi, animSet;
+		and  [esi][eax][0xC], ~e_InUse;          // animSet[].flags (unset inUse flag)
+		test word ptr [esi][eax][0xC], e_Append; // animSet[].flags
+		jnz  isAppend; // is set
+		retn;
+isAppend:
+		mov  [esi][eax][0x8], edx;               // animSet[].totalAnimCount
+		add  esp, 4;
+		mov  edx, 0x413D14;
+		mov  esi, eax; // keep offset to anim_set slot
+		jmp  edx;
+	}
+}
+
+static void __declspec(naked) register_end_hack_end() {
+	__asm {
+		mov  eax, animSet;
+		mov  dx, [eax][esi][0xC]; // animSet[].flags
+		test dx, e_Append;        // slot with added animation?
+		jz   skip;
+		and  dx, ~(e_Append | e_Suspend); // unset flags
+skip:
+		mov  [eax][esi][0xC], dx; // animSet[].flags
+		//mov  ecx, esi;
+		call UnlockAnimSlot;
+		pop  esi;
+		pop  edx;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) register_clear_hook() {
+	__asm {
+		mov  ecx, eax;
+		call LockAnimSlot;
+		jmp  anim_set_end_;
+	}
+}
+
+static void __declspec(naked) anim_free_slot_hack() {
+	static const DWORD anim_free_slot_next = 0x413BD5;
+	__asm {
+		pushadc;
+		call CheckLockAnimSlot;
+		test al, al;
+		popadc;
+		jnz  isLock;
+		test word ptr [esp + 0x10 - 0x10 + 4], RB_UNKNOWN; // command & RB_100_ (register_ping_)
+		retn;
+isLock:
+		add  esp, 4;
+		jmp  anim_free_slot_next;
+	}
+}
+
+void ClearAllLockAnimSets() {
+	std::fill(lockAnimSet.begin(), lockAnimSet.end(), 0);
+}
+
+static void __declspec(naked) anim_stop_hack() {
+	__asm {
+		call ClearAllLockAnimSets;
+		mov  edx, 1;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifndef NDEBUG
+static void __fastcall ClearDataAnimations(long slot) {
+	std::memset(animSet[slot].animations, 0, sizeof(AnimationSet) - 16);
+	//dlog_f("\nanim_set_end: clear all animations data in slot %d", 0, slot);
+}
+#endif
+
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
 		test dl, e_InCombat; // is combat flag set?
@@ -167,6 +400,10 @@ static void __declspec(naked) anim_set_end_hack() {
 skip:
 		mov  eax, animSet;
 		mov  [eax][esi], ebx; // anim_set[].curr_anim = -1000
+	#ifndef NDEBUG
+		mov  ecx, [esp + 0x2C - 0x1C + 4]; // current slot
+		call ClearDataAnimations;
+	#endif
 		retn;
 	}
 }
@@ -231,8 +468,6 @@ skip:
 }
 
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
-	if (aniMax <= 32) return;
-
 	//allocate memory to store larger animation struct arrays
 	sf_anim_set.resize(aniMax + 1); // include a dummy
 	sf_sad.resize(aniMax + 1); // -8?
@@ -288,7 +523,8 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 }
 
 void Animations_Init() {
-	int animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
+	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
+	if (animationLimit < 32) animationLimit = 32;
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
 			animationLimit = 127;
@@ -297,6 +533,24 @@ void Animations_Init() {
 		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Improved implementation of animation registration
+	MakeCall(0x413E88, check_registry_hack, 2);
+	MakeCall(0x413DCE, anim_cleanup_hack, 1);
+	SafeWrite16(0x413DD4, 0x4478); // js 0x413E1A
+	MakeCall(0x413CE8, register_end_hack_begin, 1);
+	MakeJump(0x413D64, register_end_hack_end);
+	SafeWrite16(0x413D0B, 0xC689); // and dl, not 8 > mov esi, eax (keep offset to anim_set slot)
+	SafeWrite8(0x413D0D, CODETYPE_Nop);
+
+	// Implement a temporary lock on an animation slot after it is cleared by the register_clear_ function
+	// to prevent it from being used as a free slot when registering a nested animation
+	HookCall(0x413C97, register_clear_hook);
+	MakeCall(0x413BB7, anim_free_slot_hack);
+	MakeCall(0x4186CF, anim_stop_hack);
+
+	lockAnimSet.resize(animationLimit);
+	lockLimit = animationLimit / 4;
 
 	// Fix for calling anim() functions in combat
 	MakeCall(0x415DE2, anim_set_end_hack, 1);

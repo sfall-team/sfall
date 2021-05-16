@@ -20,3 +20,4 @@
 
 void Animations_Init();
 void Animations_Exit();
+void ClearAllLockAnimSets();
