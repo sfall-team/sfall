@@ -215,7 +215,7 @@ inline void SfallInit() {
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 	if (isDebug) {
 		LoggingInit();
-		if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
+		if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
 	}
 
 	char filepath[MAX_PATH];
