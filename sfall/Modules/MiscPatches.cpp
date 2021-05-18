@@ -340,35 +340,50 @@ palColor:
 	}
 }
 
-static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
-	if (fo::var::text_object_index > 0) {
-		for (size_t i = 0; i < fo::var::text_object_index; i++) {
+static void __fastcall RemoveAllFloatTextObjects() {
+	long textCount = fo::var::text_object_index;
+	if (textCount > 0) {
+		for (long i = 0; i < textCount; i++) {
 			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
 			fo::func::mem_free(fo::var::text_object_list[i]);
 		}
 		fo::var::text_object_index = 0;
 	}
-	__asm {
-		mov  eax, tile;
-		mov  edx, flags;
-		call fo::funcoffs::tile_set_center_;
-	}
-	MainLoopHook::displayWinUpdateState = true;
 }
 
 static void __declspec(naked) obj_move_to_tile_hook() {
 	__asm {
-		mov  ecx, eax;
+		push eax;
+		push edx;
 		call RemoveAllFloatTextObjects;
-		mov  eax, ds:[FO_VAR_display_win];
-		jmp  fo::funcoffs::win_draw_; // update black edges
+		pop  edx;
+		pop  eax;
+		jmp  fo::funcoffs::map_set_elevation_;
 	}
 }
 
 static void __declspec(naked) map_check_state_hook() {
 	__asm {
+		push eax;
+		call RemoveAllFloatTextObjects;
+		pop  eax;
+		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hook_redraw() {
+	__asm {
+		mov  MainLoopHook::displayWinUpdateState, 1;
+		call fo::funcoffs::tile_set_center_;
+		mov  eax, ds:[FO_VAR_display_win];
+		jmp  fo::funcoffs::win_draw_; // update black edges after tile_set_center_
+	}
+}
+
+static void __declspec(naked) map_check_state_hook_redraw() {
+	__asm {
 		cmp  MainLoopHook::displayWinUpdateState, 0;
-		je   obj_move_to_tile_hook;
+		je   obj_move_to_tile_hook_redraw;
 		jmp  fo::funcoffs::tile_set_center_;
 	}
 }
@@ -844,11 +859,14 @@ void MiscPatches::init() {
 	// Allow setting custom colors from the game palette for object outlines
 	MakeCall(0x48EE00, obj_render_outline_hack);
 
-	// Remove floating text messages after moving to another map elevation
-	// and redraw the screen to update black edges of the map (HRP bug)
+	// Remove floating text messages after moving to another map or elevation
+	HookCall(0x48A94B, obj_move_to_tile_hook);
+	HookCall(0x4836BB, map_check_state_hook);
+
+	// Redraw the screen to update black edges of the map (HRP bug)
 	// https://github.com/phobos2077/sfall/issues/282
-	HookCall(0x48A954, obj_move_to_tile_hook);
-	HookCall(0x483726, map_check_state_hook);
+	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
+	HookCall(0x483726, map_check_state_hook_redraw);
 
 	F1EngineBehaviorPatch();
 	DialogueFix();
