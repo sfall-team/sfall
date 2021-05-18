@@ -20,14 +20,14 @@ See array function reference [here]({{ site.baseurl }}/array-functions/).
 ## Arrays concept
 
 Array elements are accessed by index or key. For example:
-
 ```c++
 // this code puts some string in array "list" at index 5:
 list[5] := "Value";
 ```
 
 There are 2 different types of arrays currently available:
-* Lists - a set of values with specific size (number of elements), where all elements have numeric indexes starting from zero (0) up to array length minus one.
+
+* **Lists** - a set of values with specific size (number of elements), where all elements have numeric indexes starting from zero (0) up to array length minus one.
 
   For example:
   ```c++
@@ -40,8 +40,8 @@ There are 2 different types of arrays currently available:
   - to assign value to a specific index, you must first resize array to contain this index
   (for example, if list is of size 3 (indexes from 0 to 2), you can't assign value to index 4 unless you change list size to 5 first).
 
+* **Maps** (or associative arrays) - a set of key=>value pairs, where all elements (values) are accessed by corresponding keys.
 
-* Maps (or associative arrays) - a set of key=>value pairs, where all elements (values) are accessed by corresponding keys.
   Differences from list:
   - maps don't have specific size (to assign values, you don't need to resize array first);
   - keys, just like values, can be of any type (but avoid using -1 as array keys or you won't be able to use some functions reliably).
@@ -58,11 +58,13 @@ Basically arrays are implemented using number of new operators (scripting functi
   display_msg(arr[5]);
   mymap["price"] := 515.23;
   ```
+
 * Alternative accessing for maps. Use dot:
   ```js
   display_msg(mymap.name);
   mymap.price := 232.23;
   ```
+
 * Array expressions. Create and fill arrays with just one expression:
   ```c++
   // create list with 5 values
@@ -71,12 +73,10 @@ Basically arrays are implemented using number of new operators (scripting functi
   // create map:
   {5: "Five", "health": 50, "speed": 0.252}
   ```
-
   __NOTES:__
   Make sure to call `fix_array` if you want new array to be available in the next frame or `save_array` if you want to use it for a longer period (see next section for details).
 
-
-* Iterating in loop. Use "foreach" key word like this:
+* Iterating in loop. Use `foreach` key word like this:
   ```js
   foreach (item in myarray) begin
       // this block is executed for each array element, where "item" contains current value on each step
@@ -88,40 +88,39 @@ Basically arrays are implemented using number of new operators (scripting functi
   end
   ```
 
-See "Script editor\docs\sslc readme.txt" file for full information on new SSL syntax features.
+See "scripting_docs\sslc_readme.txt" file for full information on new SSL syntax features.
 
 ## Storing arrays
 
 Apart from lists/maps arrays are divided by how they are stored.
 There a 3 types of arrays:
 
-* Temporary. They are created using `temp_array` function or when using array expressions.
+* **Temporary**. They are created using `temp_array` function or when using array expressions.
 Arrays of this type are auto-deleted at the end of the frame. So, for example, if you have a global script which runs at regular intervals,
 where you create temp_array, it will not be available next time your global script is executed.
 
-* Permanent. They are created using `create_array` function or `fix_array` (from pre-existing temporary array).
+* **Permanent**. They are created using `create_array` function or `fix_array` (from pre-existing temporary array).
 This type of arrays are always available (by their ID) until you start a new game or load a saved game (at which point they are deleted).
 
-* Saved. If you want your array to really stay for a while, use function `save_array` to make any array "saved". However, they are, like permanent arrays, "deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using `load_array` whenever you want to use them.
-Example:
+* **Saved**. If you want your array to really stay for a while, use function `save_array` to make any array "saved". However, they are, like permanent arrays, "deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using `load_array` whenever you want to use them.
 
-```js
-variable savedArray;
-procedure start begin
-    if game_loaded then begin
-        savedArray := load_array("traps");
-    end else begin
-        foreach trap in traps begin
-            ....
-        end
-    end
-end
-```
+  Example:
+  ```js
+  variable savedArray;
+  procedure start begin
+      if game_loaded then begin
+          savedArray := load_array("traps");
+      end else begin
+          foreach trap in traps begin
+              ....
+          end
+      end
+  end
+  ```
 
 ## Practical examples
 
 ### Use arrays to implement variable-argument procedures
-
 ```js
 // define it
 procedure give_item(variable critter, variable pidList) begin
@@ -135,7 +134,6 @@ call give_item(dude_obj, {PID_SHOTGUN: 1, PID_SHOTGUN_SHELLS: 4, PID_STIMPAK: 3}
 ```
 
 ### Create arrays of objects (maps) for advanced scripting
-
 ```js
 variable traps;
 procedure init_traps begin
@@ -167,15 +165,14 @@ end
 
 ## Array operators reference
 
-*mixed means any type
+_*mixed means any type_
 
 * `int create_array(int size, int flags)`:
   - creates permanent array (but not "saved")
-  - if size is >= 0, creates list with given size
-  - if size == -1, creates map (associative array)
-  - if size == -1 and flags == 2, creates a "lookup" map (associative array) in which the values of existing keys are read-only and can't be updated.
-  This type of array allows you to store a zero (0) key value
-  - NOTE: in earlier versions (up to 4.1.3/3.8.13) the second argument is not used, just use 0
+  - if `size >= 0`, creates list with given size
+  - if `size == -1`, creates map (associative array)
+  - if `size == -1` and `flags == 2`, creates a "lookup" map (associative array) in which the values of existing keys are read-only and can't be updated. This type of array allows you to store a zero (0) key value
+    * NOTE: in earlier versions (up to 4.1.3/3.8.13) the second argument is not used, just use 0
   - returns arrayID (valid until array is deleted)
 
 * `int temp_array(int size, int flags)`:
@@ -189,9 +186,8 @@ end
   - if used on list, "key" must be numeric and within valid index range (0..size-1)
   - if used on map, key can be of any type
   - to "unset" a value from map, just set it to zero (0)
-  - NOTE: to add a value of 0 for the key, use the float value of 0.0
-  - this works exactly like statement:
-      `arrayID[key] := value;`
+    * NOTE: to add a value of 0 for the key, use the float value of 0.0
+  - this works exactly like statement: `arrayID[key] := value;`
 
 * `mixed get_array(int arrayID, mixed key)`:
   - returns array value by key or index
@@ -228,20 +224,26 @@ end
   - always returns 0
 
 * `void save_array(mixed key, int arrayID)`:
+  - makes the array saveable; it will be saved in *sfallgv.sav* file when saving the game
   - arrayID is associated with given "key"
   - array becomes permanent (if it was temporary) and "saved"
   - key can be of any type (int, float or string)
+  - if you specify 0 as the key for the array ID, it will make the array "unsaved"
 
 * `int load_array(mixed key)`:
-  - load array from savegame data by the same key provided in `save_array`
-  - arrayID is returned or zero (0) if none found
+  - loads array from savegame data by the same key provided in `save_array`
+  - returns array ID or zero (0) if none found
 
 ## Backward compatibility notes
 
 For those who used arrays in their mods before sfall 3.4:
-* There is an INI parameter `arraysBehavior` in "Misc" section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that `create_array` will create permanent arrays which are "saved" by default and their ID is also permanent. It is 1 by default.
-* If `arraysBehaviour=0`:
+
+* There is an INI parameter **ArraysBehavior** in "Misc" section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that `create_array` will create permanent arrays which are "saved" by default and their ID is also permanent. It is 1 by default.
+
+* If `ArraysBehaviour=0`:
   Arrays are created and manipulated with the `xxx_array` functions. An array must first be created with `create_array` or `temp_array`, specifying how many data elements the array can hold. You can store any of ints, floats and strings in an array, and can mix all 3 in a single array. The id returned by `create/temp_array` can then be used with the other array functions. Arrays are shared between all scripts. (i.e. you can call `create_array` from one script, and then use the returned id from another script.) They are also saved across savegames. You must remember to free any arrays you create with `create_array` when you are done with them, or you will leak memory. arrays created with `temp_array` will be automatically freed at the end of the frame. These functions are safe, in that supplying a bad id or trying to access out of range elements will not crash the script. `create_array` is the only function that returns a permanent array, all other functions which return arrays (`string_split`, `list_as_array` etc,) all return temp arrays. You can use `fix_array` to make a temp array permanent.
+
 * How savegame compatibility is handled?
-  Saved arrays are stored in sfallgv.sav file (in savegame) in new (more flexible) format, just after the old arrays. So basically, when you load older savegame, sfall will load arrays from old format and save them to new format on next game save. If you load savegame made with sfall 3.4 using sfall 3.3 (for example), game shouldn't crash, but all arrays will be lost.
+  Saved arrays are stored in *sfallgv.sav* file (in savegame) in new (more flexible) format, just after the old arrays. So basically, when you load older savegame, sfall will load arrays from old format and save them to new format on next game save. If you load savegame made with sfall 3.4 using sfall 3.3 (for example), game shouldn't crash, but all arrays will be lost.
+
 * Previously you had to specify size in bytes for array elements. This parameter is now ignored and you can store strings of arbitrary length in arrays.
