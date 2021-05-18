@@ -633,7 +633,7 @@ void AI_Init() {
 	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
 	HookCall(0x428579, ai_check_drugs_hook);
 
-	// Fix to prevent the unnecessary use of healing drugs
+	// Fix to prevent the use of healing drugs when not necessary
 	HookCall(0x4287D7, ai_check_drugs_hook_healing);
 	SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
 	SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
