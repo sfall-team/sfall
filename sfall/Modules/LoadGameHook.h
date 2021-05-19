@@ -62,6 +62,8 @@ public:
 	static Delegate<>& OnCombatStart();
 	static Delegate<>& OnCombatEnd();
 
+	static bool IsMapLoading();
+
 	static long interfaceWID;
 };
 

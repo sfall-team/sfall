@@ -69,8 +69,13 @@ static Delegate<> onCombatEnd;
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool gameLoaded = false;
+static bool onLoadingMap = false;
 
 long LoadGameHook::interfaceWID = -1;
+
+bool LoadGameHook::IsMapLoading() {
+	return onLoadingMap;
+}
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
@@ -427,6 +432,16 @@ static void __declspec(naked) game_close_hook() {
 	}
 }
 
+
+static void __declspec(naked) map_load_hook() {
+	__asm {
+		mov  onLoadingMap, 1;
+		call fo::funcoffs::map_load_file_;
+		mov  onLoadingMap, 0;
+		retn;
+	}
+}
+
 static void __declspec(naked) WorldMapHook_Start() {
 	__asm {
 		call fo::funcoffs::wmInterfaceInit_;
@@ -736,12 +751,15 @@ void LoadGameHook::init() {
 	saveInCombatFix = IniReader::GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 
+	HookCall(0x482AEC, map_load_hook);
 	HookCall(0x4809BA, main_init_system_hook);
 	HookCall(0x4426A6, game_init_hook);
 	HookCall(0x480AAE, main_load_new_hook);
+
 	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
+
 	HookCalls(game_reset_hook, {
 				0x47DD6B, // LoadSlot_ (on load error)
 				0x47DDF3, // LoadSlot_ (on load error)
@@ -757,6 +775,7 @@ void LoadGameHook::init() {
 	HookCalls(game_reset_on_load_hook, {
 				0x47F491, // PrepLoad_ (the very first step during save game loading)
 			});
+
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 	HookCalls(game_close_hook, {

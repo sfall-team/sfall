@@ -3000,6 +3000,9 @@ static void __declspec(naked) op_create_object_sid_hack() {
 		mov  eax, esi;
 		retn;
 init:
+		call LoadGameHook::IsMapLoading;
+		test al, al;
+		jnz  end; // yes - initialization will be performed by engine functions
 		cmp  createObjectSidStartFix, 0;
 		jne  runStart;
 		call ScriptExtender::InitScript;
