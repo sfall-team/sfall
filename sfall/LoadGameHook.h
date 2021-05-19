@@ -22,6 +22,8 @@ extern long gameInterfaceWID;
 
 void LoadGameHook_Init();
 
+bool IsMapLoading();
+
 // True if game was started, false when on the main menu
 bool IsGameLoaded();
 

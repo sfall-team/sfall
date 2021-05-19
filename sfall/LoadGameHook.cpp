@@ -71,8 +71,13 @@ static DWORD saveInCombatFix;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
+static bool onLoadingMap = false;
 
 long gameInterfaceWID = -1;
+
+bool IsMapLoading() {
+	return onLoadingMap;
+}
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
@@ -451,6 +456,16 @@ static void __declspec(naked) game_close_hook() {
 	}
 }
 
+
+static void __declspec(naked) map_load_hook() {
+	__asm {
+		mov  onLoadingMap, 1;
+		call map_load_file_;
+		mov  onLoadingMap, 0;
+		retn;
+	}
+}
+
 static void __declspec(naked) WorldMapHook_Start() {
 	__asm {
 		call wmInterfaceInit_;
@@ -775,14 +790,17 @@ void LoadGameHook_Init() {
 		disableHorrigan = true;
 	}
 
+	HookCall(0x482AEC, map_load_hook);
 	HookCall(0x4809BA, main_init_system_hook);
 	HookCall(0x4426A6, game_init_hook);
 	HookCall(0x480AAE, main_load_new_hook);
+
 	const DWORD loadGameAddr[] = {0x443AE4, 0x443B89, 0x480B77, 0x48FD35};
 	HookCalls(LoadGame_hook, loadGameAddr);
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	const DWORD saveGameAddr[] = {0x443AAC, 0x443B1C, 0x48FCFF};
 	HookCalls(SaveGame_hook, saveGameAddr);
+
 	const DWORD gameResetAddr[] = {
 		0x47DD6B, // LoadSlot_ (on load error)
 		0x47DDF3, // LoadSlot_ (on load error)
@@ -797,6 +815,7 @@ void LoadGameHook_Init() {
 	};
 	HookCalls(game_reset_hook, gameResetAddr);
 	HookCall(0x47F491, game_reset_on_load_hook); // PrepLoad_ (the very first step during save game loading)
+
 	const DWORD beforeGameExitAddr[] = {0x480ACE, 0x480BC7}; // gnw_main_
 	HookCalls(before_game_exit_hook, beforeGameExitAddr);
 	const DWORD afterGameExitAddr[] = {0x480AEB, 0x480BE4}; // gnw_main_
