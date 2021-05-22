@@ -180,6 +180,7 @@ struct GameObject {
 			long damageLastTurn;
 			long aiPacket;
 			long teamNum;
+			// current target or the attacker who caused damage in the previous combat turn
 			GameObject* whoHitMe;
 			long health;
 			long rads;
@@ -205,14 +206,6 @@ struct GameObject {
 			}
 			inline bool IsFleeing() {
 				return ((combatState & CombatStateFlag::InFlee) != 0);
-			}
-
-			// Gets the current target or the attacker who dealt damage in the previous combat turn
-			inline GameObject* getHitTarget() {
-				return whoHitMe;
-			}
-			inline long getAP() {
-				return movePoints;
 			}
 		} critter;
 	};
