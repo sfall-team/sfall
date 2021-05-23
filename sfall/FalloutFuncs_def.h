@@ -213,6 +213,7 @@ WRAP_WATCOM_FUNC1(void, win_draw, DWORD, winRef)
 WRAP_WATCOM_FUNC2(void, win_draw_rect, DWORD, winRef, RECT*, rect)
 WRAP_WATCOM_FUNC1(void, win_delete, DWORD, winRef)
 WRAP_WATCOM_FUNC0(long, windowWidth)
+WRAP_WATCOM_FUNC1(long, wmEvalTileNumForPlacement, long, tile)
 WRAP_WATCOM_FUNC1(void, wmRefreshInterfaceOverlay, long, isRedraw)
 
 /* Database functions */

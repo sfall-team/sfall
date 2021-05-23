@@ -2636,55 +2636,59 @@ static void __declspec(naked) map_check_state_hook() {
 	}
 }
 
-static long __fastcall CheckPlacement(TGameObj* source, long tile, long elevation) {
+static long __fastcall MultiHexPlacement(TGameObj* source) {
 	//if (!(source->flags & ObjectFlag::MultiHex)) return 0;
-	for (long dir = 5; dir >= 0; dir--) {
-		if (fo_obj_blocking_at(source, fo_tile_num_in_direction(tile, dir, 1), elevation)) {
-			return 1;
+	long elevation = (*ptr_obj_dude)->elevation;
+	long dudeTile = (*ptr_obj_dude)->tile;
+	long dudeRot = (*ptr_obj_dude)->rotation;
+	dudeRot = (dudeRot + 3) % 6; // invert rotation
+
+	long count = 2;
+	do {
+		for (long distance = 2; distance < 8; distance++) {
+			long tilePlace = fo_tile_num_in_direction(dudeTile, dudeRot, distance);
+			if (fo_wmEvalTileNumForPlacement(tilePlace)) {
+				for (long dir = 5; dir >= 0; dir--) {
+					if (fo_obj_blocking_at(source, fo_tile_num_in_direction(tilePlace, dir, 1), elevation)) {
+						tilePlace = 0;
+						break;
+					}
+				}
+				if (tilePlace) {
+					__asm {
+						xor  edx, edx;
+						mov  eax, source;
+						call obj_turn_on_;
+						xor  ecx, ecx;
+						mov  ebx, elevation;
+						mov  edx, tilePlace;
+						mov  eax, source;
+						call obj_move_to_tile_;
+					}
+					return 1; // next PM
+				}
+			}
 		}
-	}
-	return 0; // free
+		dudeRot = (*ptr_obj_dude)->rotation;
+	} while (--count);
+	return 0; // default placement
 }
 
-static void __declspec(naked) objPMAttemptPlacement_hook() {
+static void __declspec(naked) partyMemberSyncPosition_hack() {
 	__asm {
-		test [eax + flags + 1], MultiHex >> 8;
+		and  eax, 0x0F000000;
+		cmp  eax, OBJ_TYPE_CRITTER << 24;
+		jne  default;
+		test [edx + flags + 1], MultiHex >> 8;
 		jnz  isMultiHex;
-		jmp  obj_turn_on_;
-isMultiHex:
-		push eax;
-		push ebx;
-		mov  edx, esi;
-		mov  ecx, eax;
-		call CheckPlacement;
-		test eax, eax;
-		jnz  busy;
-		pop  eax;
-		xor  edx, edx;
-		jmp  obj_turn_on_;
-busy:
-		add  esp, 8 + 8;
-		pop  ebp;
-		pop  edi;
-		pop  esi;
-		retn; // exit from objPMAttemptPlacement_
-	}
-}
-
-static void __declspec(naked) partyMemberSyncPosition_hook() {
-	__asm {
-		cmp  esi, 100; // loop counter
-		jg   skip;
-		call objPMAttemptPlacement_;
-		test eax, eax;
-		jg   nextTile; // > 0
+		xor  eax, eax;
+default:
 		retn;
-nextTile:
-		mov  eax, 0x494E22;
-		add  esp, 4;
-		jmp  eax;
-skip:
-		jmp  objPMAttemptPlacement_;
+isMultiHex:
+		mov  ecx, edx;
+		call MultiHexPlacement;
+		test eax, eax;
+		retn;
 	}
 }
 
@@ -3750,8 +3754,7 @@ void BugFixes_Init()
 	HookCall(0x4836F8, map_check_state_hook);
 
 	// Fix the placement of multihex critters in the player's party when entering a map or elevation
-	HookCall(0x49D6BA, objPMAttemptPlacement_hook);
-	HookCall(0x494E8A, partyMemberSyncPosition_hook);
+	MakeCall(0x494E33, partyMemberSyncPosition_hack, 1);
 
 	// Fix for critter_add/rm_trait functions ignoring the value of the "amount" argument
 	// Note: pass negative amount values to critter_rm_trait to remove all ranks of the perk (vanilla behavior)
