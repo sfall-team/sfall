@@ -2636,6 +2636,58 @@ static void __declspec(naked) map_check_state_hook() {
 	}
 }
 
+static long __fastcall CheckPlacement(TGameObj* source, long tile, long elevation) {
+	//if (!(source->flags & ObjectFlag::MultiHex)) return 0;
+	for (long dir = 5; dir >= 0; dir--) {
+		if (fo_obj_blocking_at(source, fo_tile_num_in_direction(tile, dir, 1), elevation)) {
+			return 1;
+		}
+	}
+	return 0; // free
+}
+
+static void __declspec(naked) objPMAttemptPlacement_hook() {
+	__asm {
+		test [eax + flags + 1], MultiHex >> 8;
+		jnz  isMultiHex;
+		jmp  obj_turn_on_;
+isMultiHex:
+		push eax;
+		push ebx;
+		mov  edx, esi;
+		mov  ecx, eax;
+		call CheckPlacement;
+		test eax, eax;
+		jnz  busy;
+		pop  eax;
+		xor  edx, edx;
+		jmp  obj_turn_on_;
+busy:
+		add  esp, 8 + 8;
+		pop  ebp;
+		pop  edi;
+		pop  esi;
+		retn; // exit from objPMAttemptPlacement_
+	}
+}
+
+static void __declspec(naked) partyMemberSyncPosition_hook() {
+	__asm {
+		cmp  esi, 100; // loop counter
+		jg   skip;
+		call objPMAttemptPlacement_;
+		test eax, eax;
+		jg   nextTile; // > 0
+		retn;
+nextTile:
+		mov  eax, 0x494E22;
+		add  esp, 4;
+		jmp  eax;
+skip:
+		jmp  objPMAttemptPlacement_;
+	}
+}
+
 static void __declspec(naked) op_critter_rm_trait_hook() {
 	__asm {
 		mov  ebx, [esp + 0x34 - 0x34 + 4]; // amount
@@ -3696,6 +3748,10 @@ void BugFixes_Init()
 
 	// Place the player on a nearby empty tile if the entrance tile is blocked by another object when entering a map
 	HookCall(0x4836F8, map_check_state_hook);
+
+	// Fix the placement of multihex critters in the player's party when entering a map or elevation
+	HookCall(0x49D6BA, objPMAttemptPlacement_hook);
+	HookCall(0x494E8A, partyMemberSyncPosition_hook);
 
 	// Fix for critter_add/rm_trait functions ignoring the value of the "amount" argument
 	// Note: pass negative amount values to critter_rm_trait to remove all ranks of the perk (vanilla behavior)
