@@ -742,6 +742,9 @@ optional arguments:
 - gvarNumber: the number of the global variable controlling the quest
 - thresholdValue: the value of the global variable at which the quest is counted as a failure
 
+> bool sfall_func1("proto_exists", int pid)
+- returns True if the specified PID number exists in the list of registered protos
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

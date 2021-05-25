@@ -596,6 +596,17 @@ static void mf_get_loot_object() {
 	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? ptr_target_stack[*ptr_target_curr_stack] : 0);
 }
 
+static void mf_proto_exists() {
+	const ScriptValue &pidArg = opHandler.arg(0);
+
+	if (pidArg.isInt()) {
+		opHandler.setReturn(CheckProtoID(pidArg.rawValue()));
+	} else {
+		OpcodeInvalidArgs("proto_exists");
+		opHandler.setReturn(0);
+	}
+}
+
 static bool protoMaxLimitPatch = false;
 
 static void __stdcall op_get_proto_data2() {

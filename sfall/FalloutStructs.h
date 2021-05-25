@@ -593,6 +593,19 @@ struct PremadeChar {
 	char unknown[20];
 };
 
+struct ProtoListBlock {
+	long* protoMem[16];
+	long  count;
+	ProtoListBlock* next;
+};
+
+struct ProtoList {
+	ProtoListBlock* block;
+	ProtoListBlock* lastBlock;
+	long countBlocks; // current
+	long totalCount;  // total number of prototypes for this type
+};
+
 // In-memory PROTO structure, not the same as PRO file format.
 struct sProto {
 	struct Tile {

@@ -166,6 +166,7 @@ PTR_(preload_list_index,         DWORD)
 PTR_(procTableStrs,              const char*)  // table of procId (from define.h) => procName map
 PTR_(proto_main_msg_file,        MSGList)
 PTR_(proto_msg_files,            MSGList)  // array of 6 elements
+PTR_(protoLists,                 ProtoList) // array of 11 elements
 PTR_(ptable,                     DWORD)
 PTR_(pud,                        DWORD)
 PTR_(queue,                      Queue*)

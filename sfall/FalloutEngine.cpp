@@ -576,6 +576,14 @@ long AnimCodeByWeapon(TGameObj* weapon) {
 	return 0;
 }
 
+bool CheckProtoID(DWORD pid) {
+	if (pid == 0) return false;
+	long type = pid >> 24;
+	if (type > OBJ_TYPE_MISC) return false;
+
+	return (static_cast<long>(pid & 0xFFFF) < ptr_protoLists[type].totalCount);
+}
+
 bool GetProto(long pid, sProto** outProto) {
 	return (fo_proto_ptr(pid, outProto) != -1);
 }
