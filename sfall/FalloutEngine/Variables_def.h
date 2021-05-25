@@ -175,6 +175,7 @@ VAR_(preload_list_index,         DWORD)
 VARA(procTableStrs,              const char*, (int)fo::Scripts::ScriptProc::count)  // table of procId (from define.h) => procName map
 VAR_(proto_main_msg_file,        fo::MessageList)
 VARA(proto_msg_files,            fo::MessageList, 6)  // array of 6 elements
+VARA(protoLists,                 fo::ProtoList, 11)
 VAR_(ptable,                     DWORD)
 VAR_(pud,                        DWORD)
 VAR_(queue,                      fo::Queue*)

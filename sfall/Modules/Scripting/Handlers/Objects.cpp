@@ -446,6 +446,10 @@ void mf_get_loot_object(OpcodeContext& ctx) {
 	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? fo::var::target_stack[fo::var::target_curr_stack] : 0);
 }
 
+void mf_proto_exists(OpcodeContext& ctx) {
+	ctx.setReturn(fo::CheckProtoID(ctx.arg(0).rawValue()));
+}
+
 static bool protoMaxLimitPatch = false;
 
 void op_get_proto_data(OpcodeContext& ctx) {

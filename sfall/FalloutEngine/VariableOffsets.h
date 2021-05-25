@@ -225,6 +225,7 @@
 #define FO_VAR_procTableStrs              0x51C758  // table of procId (from define.h) => procName map
 #define FO_VAR_proto_main_msg_file        0x6647FC
 #define FO_VAR_proto_msg_files            0x6647AC
+#define FO_VAR_protoLists                 0x51C290
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C

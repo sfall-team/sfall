@@ -98,6 +98,14 @@ long AnimCodeByWeapon(fo::GameObject* weapon) {
 	return 0;
 }
 
+bool CheckProtoID(DWORD pid) {
+	if (pid == 0) return false;
+	long type = pid >> 24;
+	if (type > fo::ObjType::OBJ_TYPE_MISC) return false;
+
+	return (static_cast<long>(pid & 0xFFFF) < fo::var::protoLists[type].totalCount);
+}
+
 bool GetProto(long pid, fo::Proto** outProto) {
 	return (fo::func::proto_ptr(pid, outProto) != -1);
 }

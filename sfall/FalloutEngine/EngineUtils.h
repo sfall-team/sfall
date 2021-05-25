@@ -57,6 +57,8 @@ fo::Queue* QueueFind(fo::GameObject* object, long type);
 // returns weapon animation code
 long AnimCodeByWeapon(fo::GameObject* weapon);
 
+bool CheckProtoID(DWORD pid);
+
 // returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
 bool GetProto(long pid, fo::Proto** outProto);
 
