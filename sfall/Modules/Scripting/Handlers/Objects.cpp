@@ -446,17 +446,13 @@ void mf_get_loot_object(OpcodeContext& ctx) {
 	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? fo::var::target_stack[fo::var::target_curr_stack] : 0);
 }
 
-void mf_proto_exists(OpcodeContext& ctx) {
-	ctx.setReturn(fo::CheckProtoID(ctx.arg(0).rawValue()));
-}
-
 static bool protoMaxLimitPatch = false;
 
 void op_get_proto_data(OpcodeContext& ctx) {
+	long result = -1;
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	int result = fo::func::proto_ptr(pid, &protoPtr);
-	if (result != -1) {
+	if (fo::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
 		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), pid);
@@ -466,7 +462,7 @@ void op_get_proto_data(OpcodeContext& ctx) {
 
 void op_set_proto_data(OpcodeContext& ctx) {
 	int pid = ctx.arg(0).rawValue();
-	if (CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
+	if (fo::CheckProtoID(pid) && CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
 			Objects::LoadProtoAutoMaxLimit();
 			protoMaxLimitPatch = true;

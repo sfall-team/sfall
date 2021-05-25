@@ -121,7 +121,6 @@ static const SfallMetarule metarules[] = {
 	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2,  0, {ARG_INT, ARG_INT}},
 	{"objects_in_radius",       mf_objects_in_radius,       3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"outlined_object",         mf_outlined_object,         0, 0},
-	{"proto_exists",            mf_proto_exists,            1, 1,  0, {ARG_INT}},
 	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
 	{"remove_timer_event",      mf_remove_timer_event,      0, 1, -1, {ARG_INT}},
 	{"set_can_rest_on_map",     mf_set_rest_on_map,         3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},

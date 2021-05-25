@@ -290,6 +290,8 @@
 // clears the keyboard input buffer, use it in the HOOK_KEYPRESS hook to clear keyboard events before calling functions that are waiting for keyboard input
 #define clear_keyboard_buffer                           metarule3(201, 0, 0, 0)
 
+// checks if the specified PID number exists in the list of registered protos
+#define check_pid(pid)                                  (get_proto_data(pid, 0) != -1)
 
 /* sfall_funcX macros */
 #define add_extra_msg_file(name)                                sfall_func1("add_extra_msg_file", name)
@@ -365,7 +367,6 @@
 #define overlay_clear(winType)                                  sfall_func2("interface_overlay", winType, 2)
 #define overlay_clear_rectangle(winType, x, y, w, h)            sfall_func6("interface_overlay", winType, 2, x, y, w, h)
 #define overlay_destroy(winType)                                sfall_func2("interface_overlay", winType, 0)
-#define proto_exists(pid)                                       sfall_func1("proto_exists", pid)
 #define real_dude_obj                                           sfall_func0("real_dude_obj")
 #define remove_all_timer_events                                 sfall_func0("remove_timer_event")
 #define remove_timer_event(fixedParam)                          sfall_func1("remove_timer_event", fixedParam)
