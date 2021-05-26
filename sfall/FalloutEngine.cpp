@@ -580,7 +580,6 @@ bool CheckProtoID(DWORD pid) {
 	if (pid == 0) return false;
 	long type = pid >> 24;
 	if (type > OBJ_TYPE_MISC) return false;
-
 	return (static_cast<long>(pid & 0xFFFF) < ptr_protoLists[type].totalCount);
 }
 

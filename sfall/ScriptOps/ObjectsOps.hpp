@@ -596,17 +596,6 @@ static void mf_get_loot_object() {
 	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? ptr_target_stack[*ptr_target_curr_stack] : 0);
 }
 
-static void mf_proto_exists() {
-	const ScriptValue &pidArg = opHandler.arg(0);
-
-	if (pidArg.isInt()) {
-		opHandler.setReturn(CheckProtoID(pidArg.rawValue()));
-	} else {
-		OpcodeInvalidArgs("proto_exists");
-		opHandler.setReturn(0);
-	}
-}
-
 static bool protoMaxLimitPatch = false;
 
 static void __stdcall op_get_proto_data2() {
@@ -614,10 +603,10 @@ static void __stdcall op_get_proto_data2() {
 	                  &offsetArg = opHandler.arg(1);
 
 	if (pidArg.isInt() && offsetArg.isInt()) {
+		long result = -1;
 		sProto* protoPtr;
 		int pid = pidArg.rawValue();
-		int result = fo_proto_ptr(pid, &protoPtr);
-		if (result != -1) {
+		if (CheckProtoID(pid) && fo_proto_ptr(pid, &protoPtr) != result) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(protoFailedLoad, "get_proto_data", pid);
@@ -641,7 +630,7 @@ static void __stdcall op_set_proto_data2() {
 	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) {
 		sProto* protoPtr;
 		int pid = pidArg.rawValue();
-		if (fo_proto_ptr(pid, &protoPtr) != -1) {
+		if (CheckProtoID(pid) && fo_proto_ptr(pid, &protoPtr) != -1) {
 			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
 			if (!protoMaxLimitPatch) {
 				Objects_LoadProtoAutoMaxLimit();

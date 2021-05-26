@@ -164,7 +164,6 @@ static const SfallMetarule metaruleArray[] = {
 	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2},
 	{"objects_in_radius",       mf_objects_in_radius,       3, 4},
 	{"outlined_object",         mf_outlined_object,         0, 0},
-	{"proto_exists",            mf_proto_exists,            1, 1},
 	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
 	{"remove_timer_event",      mf_remove_timer_event,      0, 1},
 	{"set_car_intface_art",     mf_set_car_intface_art,     1, 1},
