@@ -13,6 +13,8 @@ class Items {
 public:
 	static void init();
 
+	static long item_count(fo::GameObject* who, fo::GameObject* item);
+
 	static long item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode);
 
 	//static long item_w_range(fo::GameObject* source, long hitMode);
@@ -24,8 +26,6 @@ public:
 	// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
 	// Note: Use the generic item_mp_cost function which has a hook call
 	static long item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled);
-
-	static long __fastcall item_count(fo::GameObject* who, fo::GameObject* item);
 };
 
 }

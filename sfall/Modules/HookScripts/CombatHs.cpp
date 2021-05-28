@@ -619,25 +619,21 @@ fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject
 }
 */
 
-static long __stdcall CanUseWeaponHook_Script(DWORD result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+static bool __stdcall CanUseWeaponHook_Script(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	BeginHook();
 	argCount = 4;
 
 	args[0] = (DWORD)source;
 	args[1] = (DWORD)weapon;
 	args[2] = hitMode;
-	args[3] = result;
+	args[3] = 0 | result;
 
 	RunHookScript(HOOK_CANUSEWEAPON);
 
-	if (cRet > 0) {
-		result = rets[0];
-		// unsigned check
-		if (result > 1) result = 1; // only 0 and 1
-	}
+	if (cRet > 0) result = rets[0] ? true : false;
 
 	EndHook();
-	return result;
+	return result; // only 0 and 1
 }
 
 static void __declspec(naked) CanUseWeaponHook() {
@@ -649,12 +645,13 @@ static void __declspec(naked) CanUseWeaponHook() {
 		call fo::funcoffs::ai_can_use_weapon_;
 		push eax; // result
 		call CanUseWeaponHook_Script;
+		and  eax, 1;
 		pop  ecx;
 		retn;
 	}
 }
 
-long CanUseWeaponHook_Invoke(long result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+bool CanUseWeaponHook_Invoke(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	return (HookScripts::HookHasScript(HOOK_CANUSEWEAPON))
 	       ? CanUseWeaponHook_Script(result, source, weapon, hitMode)
 	       : result;

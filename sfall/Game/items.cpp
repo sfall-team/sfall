@@ -21,6 +21,19 @@ namespace sf = sfall;
 
 static constexpr int reloadCostAP = 2; // engine default reload AP cost
 
+long Items::item_count(fo::GameObject* who, fo::GameObject* item) {
+	for (int i = 0; i < who->invenSize; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			return tableItem->count; // fix
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
+			int count = item_count(tableItem->object, item);
+			if (count > 0) return count;
+		}
+	}
+	return 0;
+}
+
 long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	fo::Proto* wProto;
 	if (!GetProto(weapon->protoId, &wProto)) return 0;
@@ -122,35 +135,9 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 	}
 }
 
-long __fastcall Items::item_count(fo::GameObject* who, fo::GameObject* item) {
-	for (int i = 0; i < who->invenSize; i++) {
-		auto tableItem = &who->invenTable[i];
-		if (tableItem->object == item) {
-			return tableItem->count; // fix
-		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
-			int count = item_count(tableItem->object, item);
-			if (count > 0) return count;
-		}
-	}
-	return 0;
-}
-
-static void __declspec(naked) item_count_hack() {
-	__asm {
-		push ecx;               // save state
-		mov  ecx, eax;          // container-object
-		call Items::item_count; // edx - item
-		pop  ecx;               // restore
-		retn;
-	}
-}
-
 void Items::init() {
 	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
 	sf::HookCall(0x429A08, ai_search_inven_weap_hook);
-
-	// Replace the item_count_ function (fix vanilla function returning incorrect value when there is a container-item inside)
-	//sf::MakeJump(0x47808C, item_count_hack);
 
 	int fastShotFix = sf::IniReader::GetConfigInt("Misc", "FastShotFix", 0);
 	fastShotTweak = (fastShotFix > 0 && fastShotFix <= 3);

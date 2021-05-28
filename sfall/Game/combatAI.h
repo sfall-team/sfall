@@ -13,7 +13,7 @@ class CombatAI {
 public:
 	static void init();
 
-	static long ai_can_use_weapon(fo::GameObject* source, fo::GameObject* weapon, long hitMode);
+	static bool ai_can_use_weapon(fo::GameObject* source, fo::GameObject* weapon, long hitMode);
 };
 
 }

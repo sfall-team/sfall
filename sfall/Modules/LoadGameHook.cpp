@@ -272,7 +272,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		onGameReset.invoke();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo::func::debug_printf("\n[SFALL: State reset %s]", str);
+			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
 		}
 	}
 	inLoop = 0;

@@ -1,3 +1,5 @@
+#include <array>
+
 #include "main.h"
 
 #include "CheckAddress.h"
@@ -9,12 +11,12 @@ namespace sfall
 
 std::multimap<long, long> writeAddress;
 
-static std::vector<long> excludeWarning = {
+static std::array<long, 6> excludeWarning = {
 	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x44E932, // from movies.cpp
 	0x42D21C,                                         // CritterPoison.cpp
 };
 
-static std::vector<long> excludeConflict = {
+static std::array<long, 3> excludeConflict = {
 	0x42A0F8,                               // bugfixes.cpp
 	0x461495,                               // BarBoxes.cpp
 	0x42D21C,                               // CritterPoison.cpp
