@@ -286,7 +286,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		ScriptExtender_OnGameLoad();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo_debug_printf("\n[SFALL: State reset %s]", str);
+			fo_debug_printf("\nSFALL: [State reset %s]\n", str);
 		}
 	}
 	inLoop = 0;

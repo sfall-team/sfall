@@ -2640,8 +2640,7 @@ static long __fastcall MultiHexPlacement(TGameObj* source) {
 	//if (!(source->flags & ObjectFlag::MultiHex)) return 0;
 	long elevation = (*ptr_obj_dude)->elevation;
 	long dudeTile = (*ptr_obj_dude)->tile;
-	long dudeRot = (*ptr_obj_dude)->rotation;
-	dudeRot = (dudeRot + 3) % 6; // invert rotation
+	long dudeRot = ((*ptr_obj_dude)->rotation + 3) % 6; // invert rotation
 
 	long count = 2;
 	do {

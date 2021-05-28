@@ -85,10 +85,10 @@ static void __declspec(naked) op_inc_npc_level() {
 }
 
 static void __stdcall op_get_npc_level2() {
-	int level = -1;
 	const ScriptValue &npcArg = opHandler.arg(0);
 
 	if (!npcArg.isFloat()) {
+		int level = -1;
 		DWORD findPid = npcArg.asInt(); // set to 0 if passing npc name
 		const char *critterName, *name = npcArg.asString();
 
@@ -126,10 +126,11 @@ static void __stdcall op_get_npc_level2() {
 				}
 			}
 		}
+		opHandler.setReturn(level);
 	} else {
 		OpcodeInvalidArgs("get_npc_level");
+		opHandler.setReturn(-1);
 	}
-	opHandler.setReturn(level);
 }
 
 static void __declspec(naked) op_get_npc_level() {
@@ -683,7 +684,6 @@ static void mf_objects_in_radius() {
 	                  &radiusArg = opHandler.arg(1),
 	                  &elevArg = opHandler.arg(2);
 
-	DWORD id = 0;
 	if (tileArg.isInt() && radiusArg.isInt() && elevArg.isInt()) {
 		long type = -1;
 		if (opHandler.numArgs() > 3) {
@@ -700,15 +700,16 @@ static void mf_objects_in_radius() {
 		objects.reserve(25);
 		GetObjectsTileRadius(objects, tileArg.rawValue(), radius, elev, type);
 		size_t sz = objects.size();
-		id = CreateTempArray(sz, 0);
+		DWORD id = CreateTempArray(sz, 0);
 		for (size_t i = 0; i < sz; i++) {
 			arrays[id].val[i].set((long)objects[i]);
 		}
+		opHandler.setReturn(id);
 	} else {
 invalidArgs:
 		OpcodeInvalidArgs("get_objects_at_radius");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(id);
 }
 
 static void mf_npc_engine_level_up() {

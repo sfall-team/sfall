@@ -55,16 +55,16 @@ end:
 static void __stdcall op_get_perk_available2() {
 	const ScriptValue &perkIdArg = opHandler.arg(0);
 
-	int result = 0;
 	if (perkIdArg.isInt()) {
-		int perkId = perkIdArg.rawValue();
+		int result = 0, perkId = perkIdArg.rawValue();
 		if (perkId >= 0 && perkId < PERK_count) {
 			result = fo_perk_can_add(*ptr_obj_dude, perkId);
 		}
+		opHandler.setReturn(result);
 	} else {
 		OpcodeInvalidArgs("get_perk_available");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(result);
 }
 
 static void __declspec(naked) op_get_perk_available() {

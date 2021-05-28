@@ -124,6 +124,19 @@ static void __declspec(naked) adjust_fid_hack() {
 
 static const int reloadCostAP = 2; // engine default reload AP cost
 
+long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item) {
+	for (int i = 0; i < who->invenSize; i++) {
+		TGameObj::InvenItem* tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			return tableItem->count; // fix
+		} else if (fo_item_get_type(tableItem->object) == item_type_container) {
+			int count = sfgame_item_count(tableItem->object, item);
+			if (count > 0) return count;
+		}
+	}
+	return 0;
+}
+
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode) {
 	sProto* wProto;
 	if (!GetProto(weapon->protoId, &wProto)) return 0;
@@ -220,29 +233,6 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		mov  edx, esi; // found weapon
 		mov  ecx, edi; // source
 		call sfgame_item_weapon_mp_cost;
-		retn;
-	}
-}
-
-long __fastcall sfgame_item_count(TGameObj* who, TGameObj* item) {
-	for (int i = 0; i < who->invenSize; i++) {
-		TGameObj::InvenItem* tableItem = &who->invenTable[i];
-		if (tableItem->object == item) {
-			return tableItem->count; // fix
-		} else if (fo_item_get_type(tableItem->object) == item_type_container) {
-			int count = sfgame_item_count(tableItem->object, item);
-			if (count > 0) return count;
-		}
-	}
-	return 0;
-}
-
-static void __declspec(naked) item_count_hack() {
-	__asm {
-		push ecx;               // save state
-		mov  ecx, eax;          // container-object
-		call sfgame_item_count; // edx - item
-		pop  ecx;               // restore
 		retn;
 	}
 }
@@ -675,9 +665,6 @@ void InitReplacementHacks() {
 
 	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
 	HookCall(0x429A08, ai_search_inven_weap_hook);
-
-	// Replace the item_count_ function (fix vanilla function returning incorrect value when there is a container-item inside)
-	//MakeJump(0x47808C, item_count_hack);
 
 	int fastShotFix = GetConfigInt("Misc", "FastShotFix", 0);
 	fastShotTweak = (fastShotFix > 0 && fastShotFix <= 3);

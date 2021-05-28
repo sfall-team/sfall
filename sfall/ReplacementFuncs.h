@@ -34,9 +34,11 @@ DWORD __stdcall sfgame_item_total_size(TGameObj* critter);
 // - calls AdjustFidHook that allows to hook into FID calculation
 DWORD __stdcall sfgame_adjust_fid();
 
-//long __stdcall sfgame_item_w_range(TGameObj* source, long hitMode);
+long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item);
 
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode);
+
+//long __stdcall sfgame_item_w_range(TGameObj* source, long hitMode);
 
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
 // Note: Use only for weapons
@@ -45,8 +47,6 @@ long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, l
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
 // Note: Use the generic item_mp_cost function which has a hook call
 long __stdcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
-
-long __fastcall sfgame_item_count(TGameObj* who, TGameObj* item);
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
 long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType);
