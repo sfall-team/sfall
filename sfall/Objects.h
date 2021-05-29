@@ -8,7 +8,7 @@ enum UniqueID : long {
 extern long Objects_uniqueID;
 
 void Objects_Init();
-void RestoreObjUnjamAllLocks();
+void Objects_OnGameLoad();
 
 long __fastcall Objects_SetObjectUniqueID(TGameObj* obj);
 long __fastcall Objects_SetSpecialID(TGameObj* obj);

@@ -267,7 +267,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		ForceGraphicsRefresh(0); // disable refresh
 		LoadOrder_OnGameLoad();
 		Interface_OnGameLoad();
-		RestoreObjUnjamAllLocks();
+		Objects_OnGameLoad();
 		Worldmap_OnGameLoad();
 		Stats_OnGameLoad();
 		PerksReset();

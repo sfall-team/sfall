@@ -244,6 +244,16 @@ long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, 
 	return PerceptionRangeHook_Invoke(watcher, target, hookType, fo_is_within_perception(watcher, target));
 }
 
+// Alternative implementation of objFindObjPtrFromID_ engine function with the type of object to find
+TGameObj* __fastcall sfgame_FindObjectFromID(long id, long type) {
+	TGameObj* obj = fo_obj_find_first();
+	while (obj) {
+		if (obj->id == id && obj->Type() == type) return obj;
+		obj = fo_obj_find_next();
+	}
+	return nullptr;
+}
+
 //////////////////////////////////// RENDER ////////////////////////////////////
 
 static BYTE* __stdcall GetBuffer() {

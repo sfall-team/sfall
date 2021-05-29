@@ -4,6 +4,7 @@
 
 #include "HookScripts.h"
 #include "LoadGameHook.h"
+#include "ReplacementFuncs.h"
 #include "ScriptExtender.h"
 #include "Worldmap.h"
 
@@ -1463,7 +1464,30 @@ static void __declspec(naked) Save_as_ASCII_hack() {
 	}
 }
 
+static void __declspec(naked) combat_load_hook_critter() {
+	__asm {
+		push ecx;
+		mov  edx, OBJ_TYPE_CRITTER;
+		mov  ecx, eax;
+		call sfgame_FindObjectFromID;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_load_hook_item() {
+	__asm {
+		push ecx;
+		mov  edx, OBJ_TYPE_ITEM;
+		mov  ecx, eax;
+		call sfgame_FindObjectFromID;
+		pop  ecx;
+		retn;
+	}
+}
+
 static DWORD combatFreeMoveTmp = 0xFFFFFFFF;
+
 static void __declspec(naked) combat_load_hook() {
 	__asm {
 		call db_freadInt_;
@@ -3412,6 +3436,11 @@ void BugFixes_Init()
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
+
+	// Fix for the incorrect object type search when loading a game saved in combat mode
+	const DWORD combatLoadObjAddr[] = {0x42113B, 0x42117D};
+	HookCalls(combat_load_hook_critter, combatLoadObjAddr);
+	HookCall(0x4211C0, combat_load_hook_item);
 
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
 	//if (GetConfigInt("Misc", "BonusMoveFix", 1)) {

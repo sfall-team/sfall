@@ -51,6 +51,9 @@ long __stdcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCall
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
 long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType);
 
+// Alternative implementation of objFindObjPtrFromID_ engine function with the type of object to find
+TGameObj* __fastcall sfgame_FindObjectFromID(long id, long type);
+
 void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toBuffer);
 
 int __stdcall sfgame_trait_adjust_skill(DWORD skillID);
