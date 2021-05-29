@@ -31,6 +31,7 @@ VAR3(crit_succ_eff,              fo::CritInfo, 20, 9, 6)  // 20 critters with 9 
 VAR_(critter_db_handle,          fo::PathNode*)
 VAR_(critterClearObj,            DWORD)
 VAR_(crnt_func,                  DWORD)
+VAR_(cur_id,                     DWORD)
 VAR_(curr_anim_set,              DWORD)
 VAR_(curr_anim_counter,          DWORD)
 VAR_(curr_font_num,              DWORD)

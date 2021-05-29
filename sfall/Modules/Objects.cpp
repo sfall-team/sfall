@@ -95,6 +95,7 @@ pickNewID: // skip PM range (18000 - 83535)
 }
 
 // Reassigns object IDs to all critters upon first loading a map and updates their max HP stat
+// TODO: for items?
 static void map_fix_critter_id() {
 	long npcStartID = 4096;
 	fo::GameObject* obj = fo::func::obj_find_first();
@@ -254,6 +255,7 @@ skip:
 void Objects::init() {
 	LoadGameHook::OnGameReset() += []() {
 		RestoreObjUnjamAllLocks();
+		fo::var::cur_id = 4;
 	};
 
 	HookCall(0x4A38A5, new_obj_id_hook);
