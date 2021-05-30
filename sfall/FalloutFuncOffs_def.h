@@ -368,6 +368,7 @@ FUNC(make_straight_path_func_,        0x4163C8) // (TGameObj *aObj<eax>, int aTi
 FUNC(map_disable_bk_processes_,       0x482104)
 FUNC(map_enable_bk_processes_,        0x4820C0)
 FUNC(map_exit_,                       0x482084)
+FUNC(map_fix_critter_combat_data_,    0x483784)
 FUNC(map_get_short_name_,             0x48261C)
 FUNC(map_load_,                       0x482A68)
 FUNC(map_load_file_,                  0x482B74)

@@ -370,9 +370,8 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
-const char* scrNameFmt = "\nScript: %s ";
-
 static void __declspec(naked) debugMsg() {
+	static const char* scrNameFmt = "\nScript: %s ";
 	__asm {
 		mov  edx, ds:[FO_VAR_currentProgram];
 		push [edx]; // script name
@@ -380,6 +379,17 @@ static void __declspec(naked) debugMsg() {
 		call debug_printf_;
 		add  esp, 8;
 		jmp  debug_printf_; // ERROR: attempt to reference...
+	}
+}
+
+static void __declspec(naked) combat_load_hack() {
+	static const char* msgCombat = "LOADSAVE: Object ID not found while loading the combat data.\n";
+	__asm {
+		push msgCombat;
+		call debug_printf_;
+		add  esp, 4;
+		mov  eax, -1;
+		retn;
 	}
 }
 
@@ -493,6 +503,14 @@ void DebugEditor_Init() {
 
 	// Notifies and prints a debug message about a corrupted proto file to debug.log
 	MakeCall(0x4A1D73, proto_load_pid_hack, 6);
+
+	// Prints a debug message about a missing combat object to debug.log
+	const DWORD combatLoadNullObjAddr[] = {0x421146, 0x421189, 0x4211CC};
+	MakeCalls(combat_load_hack, combatLoadNullObjAddr);
+	if (!isDebug) {
+		const DWORD combatLoadObjRetAddr[] = {0x42114B, 0x42118E, 0x4211D1};
+		SafeWriteBatch<DWORD>(0x909008EB, combatLoadObjRetAddr); // jmp $+8
+	}
 
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
