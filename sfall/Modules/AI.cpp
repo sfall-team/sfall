@@ -599,7 +599,7 @@ void AI::init() {
 
 	/////////////////////// Combat behavior AI fixes ///////////////////////
 	#ifndef NDEBUG
-	if (IniReader::GetIntDefaultConfig("Debugging", "AIBugFixes", 1) == 0) return;
+	if (IniReader::GetIntDefaultConfig("Debugging", "AIFixes", 1) == 0) return;
 	#endif
 
 	// Fix for NPCs not fully reloading a weapon if it has an ammo capacity more than a box of ammo

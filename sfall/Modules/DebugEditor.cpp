@@ -313,7 +313,7 @@ hide:
 }
 
 static void __declspec(naked) art_data_size_hook() {
-	static char* artDbgMsg = "\nERROR: File not found: %s\n";
+	static const char* artDbgMsg = "\nERROR: File not found: %s\n";
 	__asm {
 		test edi, edi;
 		jz   artNotExist;
@@ -340,7 +340,7 @@ display:
 }
 
 static void __declspec(naked) proto_load_pid_hack() {
-	static const char* proDbgMsg = "\nERROR reading prototype file: %s\n";
+	static const char* proDbgMsg = "\nERROR: Reading prototype file: %s\n";
 	__asm {
 		mov  dword ptr [esp + 0x120 - 0x1C + 4], -1;
 		lea  eax, [esp + 0x120 - 0x120 + 4]; // pro file

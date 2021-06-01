@@ -3864,6 +3864,12 @@ void BugFixes::init()
 	};
 	SafeWriteBytes(0x42A0F4, codeData1, 18); // ai_move_steps_closer_
 	HookCall(0x42A0F8, (void*)fo::funcoffs::obj_dist_);
+	BYTE codeData2[] = {        // swap code
+		0x90, 0x90, 0x31, 0xC0, // xor  eax, eax
+		0xF6, 0x47, 0x25, 0x08, // test [edi + 0x25], MultiHex_
+	};
+	SafeWriteBytes(0x42A0E6, codeData2, 8); // ai_move_steps_closer_
+	SafeWrite8(0x42A0F2, CodeType::JumpZ);  // jmp > jz
 
 	// Fix to prevent the execution of critter_p_proc and game events when playing movies (same as when the dialog is active)
 	HookCall(0x4A3C89, doBkProcesses_hook);
