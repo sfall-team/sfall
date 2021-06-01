@@ -592,7 +592,7 @@ void AI_Init() {
 
 	/////////////////////// Combat behavior AI fixes ///////////////////////
 	#ifndef NDEBUG
-	if (GetIntDefaultConfig("Debugging", "AIBugFixes", 1) == 0) return;
+	if (GetIntDefaultConfig("Debugging", "AIFixes", 1) == 0) return;
 	#endif
 
 	// Fix for NPCs not fully reloading a weapon if it has an ammo capacity more than a box of ammo
