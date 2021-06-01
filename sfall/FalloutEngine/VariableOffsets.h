@@ -14,6 +14,7 @@
 #define FO_VAR_art_name                   0x56C9E4
 #define FO_VAR_art_vault_guy_num          0x5108A4
 #define FO_VAR_art_vault_person_nums      0x5108A8
+#define FO_VAR_artCritterFidShouldRunData 0x56CAF0
 #define FO_VAR_aTextSCuts                 0x501A8C
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
@@ -44,6 +45,8 @@
 #define FO_VAR_critterClearObj            0x518438
 #define FO_VAR_crnt_func                  0x664508
 #define FO_VAR_cur_id                     0x51C7D4
+#define FO_VAR_curr_anim_set              0x51071C
+#define FO_VAR_curr_anim_counter          0x56C7DC 
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
@@ -77,6 +80,7 @@
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
+#define FO_VAR_fallout_config             0x50281C
 #define FO_VAR_fallout_game_time          0x51C720
 #define FO_VAR_fidgetFID                  0x5186F4
 #define FO_VAR_fidgetFp                   0x5186FC
@@ -134,6 +138,7 @@
 #define FO_VAR_itemButtonItems            0x5970F8
 #define FO_VAR_itemCurrentItem            0x518F78
 #define FO_VAR_kb_lock_flags              0x51E2EA
+#define FO_VAR_language                   0x56C970  // aka _darn_foreign_sub_path
 #define FO_VAR_last_buttons               0x51E2AC
 #define FO_VAR_last_button_winID          0x51E404
 #define FO_VAR_last_level                 0x5707B4
@@ -220,9 +225,11 @@
 #define FO_VAR_procTableStrs              0x51C758  // table of procId (from define.h) => procName map
 #define FO_VAR_proto_main_msg_file        0x6647FC
 #define FO_VAR_proto_msg_files            0x6647AC
+#define FO_VAR_protoLists                 0x51C290
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C
+#define FO_VAR_quests                     0x51C128
 #define FO_VAR_queue                      0x6648C0
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC
@@ -277,6 +284,7 @@
 #define FO_VAR_title_color                0x56D750
 #define FO_VAR_title_font                 0x56D748
 #define FO_VAR_trait_data                 0x51DB84
+#define FO_VAR_use_language               0x510898  // aka _darn_foreigners
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_window                     0x6ADE58
@@ -286,6 +294,7 @@
 #define FO_VAR_wmBkWinBuf                 0x51DE24
 #define FO_VAR_wmEncounterIconShow        0x672E48
 #define FO_VAR_wmLastRndTime              0x51DEA0
+#define FO_VAR_wmMaxAreaNum               0x51DDFC
 #define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmMaxTileNum               0x51DDF0
 #define FO_VAR_wmMsgFile                  0x672FB0

@@ -74,17 +74,20 @@ void devlog_f(...) {}
 
 void LoggingInit() {
 	Log.open("sfall-log.txt", std::ios_base::out | std::ios_base::trunc);
-	if (iniGetInt("Debugging", "Init", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Init", 0)) {
 		DebugTypes |= DL_INIT;
 	}
-	if (iniGetInt("Debugging", "Hook", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Hook", 0)) {
 		DebugTypes |= DL_HOOK;
 	}
-	if (iniGetInt("Debugging", "Script", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Script", 0)) {
 		DebugTypes |= DL_SCRIPT;
 	}
-	if (iniGetInt("Debugging", "Criticals", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Criticals", 0)) {
 		DebugTypes |= DL_CRITICALS;
+	}
+	if (IniReader::GetIntDefaultConfig("Debugging", "Fixes", 0)) {
+		DebugTypes |= DL_FIX;
 	}
 }
 

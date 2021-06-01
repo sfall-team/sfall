@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "..\OpcodeContext.h"
+
 namespace sfall
 {
 namespace script
@@ -27,6 +29,8 @@ class OpcodeContext;
 
 // input_functions
 void __declspec() op_input_funcs_available();
+
+void __declspec() op_set_pipboy_available();
 
 void op_key_pressed(OpcodeContext& ctx);
 
@@ -49,12 +53,6 @@ void __declspec() op_get_screen_width();
 
 //Return screen height
 void __declspec() op_get_screen_height();
-
-//Stop game, the same effect as open charsscreen or inventory
-void __declspec() op_stop_game();
-
-//Resume the game when it is stopped
-void __declspec() op_resume_game();
 
 //Create a message window with given string
 void op_create_message_window(OpcodeContext&);
@@ -112,8 +110,6 @@ void mf_draw_image(OpcodeContext&);
 void mf_draw_image_scaled(OpcodeContext&);
 
 void mf_interface_art_draw(OpcodeContext&);
-
-void mf_unwield_slot(OpcodeContext&);
 
 void mf_get_window_attribute(OpcodeContext&);
 

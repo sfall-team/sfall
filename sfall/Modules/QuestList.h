@@ -25,6 +25,8 @@ class QuestList : public Module {
 public:
 	const char* name() { return "QuestList"; }
 	void init();
+
+	static void AddQuestFailureValue(long globalVarNum, long failureThreshold);
 };
 
 }

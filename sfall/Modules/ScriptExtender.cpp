@@ -27,8 +27,6 @@
 #include "..\Logging.h"
 #include "..\Version.h"
 #include "..\Utils.h"
-#include "BarBoxes.h"
-#include "Console.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
@@ -55,6 +53,8 @@ static int idle;
 char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for script functions
 
 std::string ScriptExtender::iniConfigFolder;
+
+bool ScriptExtender::OnMapLeave;
 
 static std::vector<long> scriptsIndexList;
 
@@ -428,14 +428,14 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
-	fo::Program* scriptPtr = fullPath
-		? fo::func::allocateProgram(fileName)
-		: fo::func::loadProgram(fileName);
+	fo::Program* scriptPtr = (fullPath)
+	                       ? fo::func::allocateProgram(fileName)
+	                       : fo::func::loadProgram(fileName);
 
 	if (scriptPtr) {
-		const char** procTable = fo::var::procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
+		const char** procTable = fo::var::procTableStrs;
 		for (int i = 0; i < fo::Scripts::ScriptProc::count; ++i) {
 			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
@@ -479,6 +479,26 @@ bool IsGameScript(const char* filename) {
 		} while (left <= right);
 	}
 	return false; // script name was not found in scripts.lst
+}
+
+// loads and initializes script file (for normal game scripts)
+long __fastcall ScriptExtender::InitScript(long sid) {
+	fo::ScriptInstance* scriptPtr;
+	if (fo::func::scr_ptr(sid, &scriptPtr) == -1) return -1;
+
+	scriptPtr->program = fo::func::loadProgram(fo::var::scriptListInfo[scriptPtr->scriptIdx & 0xFFFFFF].fileName);
+	if (!scriptPtr->program) return -1;
+	if (scriptPtr->program->flags & 0x124) return 0;
+
+	// fill lookup table
+	fo::func::scr_build_lookup_table(scriptPtr);
+
+	scriptPtr->flags |= 4 | 1; // init | loaded
+	scriptPtr->action = fo::Scripts::ScriptProc::no_p_proc;
+	scriptPtr->scriptOverrides = 0;
+
+	fo::func::runProgram(scriptPtr->program);
+	return 0;
 }
 
 static void LoadGlobalScriptsList() {
@@ -603,27 +623,27 @@ static void ClearGlobalScripts() {
 
 void RunScriptProc(ScriptProgram* prog, const char* procName) {
 	fo::Program* sptr = prog->ptr;
-	int procNum = fo::func::interpretFindProcedure(sptr, procName);
-	if (procNum != -1) {
-		fo::func::executeProcedure(sptr, procNum);
+	int procPosition = fo::func::interpretFindProcedure(sptr, procName);
+	if (procPosition != -1) {
+		fo::func::executeProcedure(sptr, procPosition);
 	}
 }
 
 void RunScriptProc(ScriptProgram* prog, long procId) {
 	if (procId > 0 && procId < fo::Scripts::ScriptProc::count) {
-		int procNum = prog->procLookup[procId];
-		if (procNum != -1) {
-			fo::func::executeProcedure(prog->ptr, procNum);
+		int procPosition = prog->procLookup[procId];
+		if (procPosition != -1) {
+			fo::func::executeProcedure(prog->ptr, procPosition);
 		}
 	}
 }
 
 int RunScriptStartProc(ScriptProgram* prog) {
-	int procNum = prog->procLookup[fo::Scripts::ScriptProc::start];
-	if (procNum != -1) {
-		fo::func::executeProcedure(prog->ptr, procNum);
+	int procPosition = prog->procLookup[fo::Scripts::ScriptProc::start];
+	if (procPosition != -1) {
+		fo::func::executeProcedure(prog->ptr, procPosition);
 	}
-	return procNum;
+	return procPosition;
 }
 
 static void RunScript(GlobalScript* script) {
@@ -853,7 +873,10 @@ static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		test cl, 1;
 		jz   skip;
-		jmp  fo::funcoffs::scr_exec_map_exit_scripts_;
+		mov  ScriptExtender::OnMapLeave, 1;
+		call fo::funcoffs::scr_exec_map_exit_scripts_;
+		mov  ScriptExtender::OnMapLeave, 0;
+		retn;
 skip:
 		jmp  fo::funcoffs::partyMemberSaveProtos_;
 	}
@@ -911,20 +934,15 @@ void ScriptExtender::init() {
 	OnInputLoop() += RunGlobalScriptsOnInput;
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
-	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	globalScriptPathList = IniReader::GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
 	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
 		ToLowerCase(globalScriptPathList[i]);
 	}
 
-	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1) {
-		if (idle > 127) idle = 127;
-		fo::var::idle_func = reinterpret_cast<void*>(Sleep);
-		SafeWrite8(0x4C9F12, 0x6A); // push idle
-		SafeWrite8(0x4C9F13, idle);
-	}
+	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
+	if (idle > -1 && idle > 30) idle = 30;
 
-	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
+	arraysBehavior = IniReader::GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
@@ -932,7 +950,7 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	iniConfigFolder = GetConfigString("Scripts", "IniConfigFolder", "", 64);
+	iniConfigFolder = IniReader::GetConfigString("Scripts", "IniConfigFolder", "", 64);
 	size_t len = iniConfigFolder.length();
 	if (len) {
 		char c = iniConfigFolder[len - 1];
@@ -945,7 +963,7 @@ void ScriptExtender::init() {
 		}
 	}
 
-	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
+	alwaysFindScripts = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global/hook scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, scr_find_sid_from_program_hack);

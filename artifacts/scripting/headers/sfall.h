@@ -72,6 +72,8 @@
 #define HOOK_ADJUSTPOISON     (44)
 #define HOOK_ADJUSTRADS       (45)
 #define HOOK_ROLLCHECK        (46)
+#define HOOK_BESTWEAPON       (47)
+#define HOOK_CANUSEWEAPON     (48)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -288,6 +290,8 @@
 // clears the keyboard input buffer, use it in the HOOK_KEYPRESS hook to clear keyboard events before calling functions that are waiting for keyboard input
 #define clear_keyboard_buffer                           metarule3(201, 0, 0, 0)
 
+// checks if the specified PID number exists in the list of registered protos
+#define check_pid(pid)                                  (get_proto_data(pid, 0) != -1)
 
 /* sfall_funcX macros */
 #define add_extra_msg_file(name)                                sfall_func1("add_extra_msg_file", name)
@@ -377,6 +381,7 @@
 #define set_map_enter_position(tile, elev, rot)                 sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_object_data(obj, offset, value)                     sfall_func3("set_object_data", obj, offset, value)
 #define set_outline(obj, color)                                 sfall_func2("set_outline", obj, color)
+#define set_quest_failure_value(gvar, threshold)                sfall_func2("set_quest_failure_value", gvar, threshold)
 #define set_rest_heal_time(time)                                sfall_func1("set_rest_heal_time", time)
 #define set_rest_mode(mode)                                     sfall_func1("set_rest_mode", mode)
 #define set_terrain_name(x, y, name)                            sfall_func3("set_terrain_name", x, y, name)

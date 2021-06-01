@@ -95,8 +95,9 @@ pickNewID: // skip PM range (18000 - 83535)
 }
 
 // Reassigns object IDs to all critters upon first loading a map and updates their max HP stat
+// TODO: for items?
 static void map_fix_critter_id() {
-	long npcStartID = 4096;
+	long npcStartID = 4096; // 0x1000
 	fo::GameObject* obj = fo::func::obj_find_first();
 	while (obj) {
 		if (obj->IsCritter()) {
@@ -110,22 +111,10 @@ static void map_fix_critter_id() {
 	}
 }
 
-static void __declspec(naked) map_load_file_hack() {
+static void __declspec(naked) map_load_file_hook() {
 	__asm {
-		jz   mapVirgin;
-		retn;
-mapVirgin:
-		test eax, eax;
-		jl   skip; // check map index > -1
-		call fo::funcoffs::wmMapIsSaveable_;
-		test eax, eax;
-		jnz  saveable;
-		retn;
-saveable:
 		call map_fix_critter_id;
-skip:
-		xor  eax, eax; // set ZF
-		retn;
+		jmp  fo::funcoffs::map_fix_critter_combat_data_;
 	}
 }
 
@@ -186,7 +175,7 @@ void Objects::SetAutoUnjamLockTime(DWORD time) {
 	}
 }
 
-void RestoreObjUnjamAllLocks() {
+static void RestoreObjUnjamAllLocks() {
 	if (unjamTimeState) {
 		SafeWrite8(0x4A364A, 0xE8);
 		SafeWrite32(0x4A364B, 0xFFFF9E69);
@@ -254,6 +243,7 @@ skip:
 void Objects::init() {
 	LoadGameHook::OnGameReset() += []() {
 		RestoreObjUnjamAllLocks();
+		//fo::var::cur_id = 4;
 	};
 
 	HookCall(0x4A38A5, new_obj_id_hook);
@@ -261,13 +251,12 @@ void Objects::init() {
 
 	// Fix the ID range check for item objects with IDs in the negative range
 	// Special ID values are assigned in the negative range
-	SafeWrite8(0x495273, 0x73); // jge > jae
+	SafeWrite8(0x495273, 0x73); // jge > jae (partyMemberItemSave_)
 
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 
 	// Fix mapper bug by reassigning object IDs to critters (for unvisited maps)
-	MakeCall(0x482E6B, map_load_file_hack);
-	SafeWrite8(0x482E71, 0x85); // jz > jnz
+	HookCall(0x482DE2, map_load_file_hook);
 	// Additionally fix object IDs for queued events
 	MakeCall(0x4A25BA, queue_add_hack);
 

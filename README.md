@@ -1,4 +1,5 @@
 # sfall
+[![github pages](https://github.com/phobos2077/sfall/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/phobos2077/sfall/actions/workflows/gh-pages.yml)
 
 A set of engine modifications for the classic game Fallout 2 in form of a DLL, which modifies executable in memory without changing anything in EXE file itself.
 

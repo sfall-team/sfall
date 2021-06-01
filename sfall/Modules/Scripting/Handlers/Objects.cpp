@@ -21,15 +21,11 @@
 #include "..\..\CritterStats.h"
 #include "..\..\Drugs.h"
 #include "..\..\Explosions.h"
-//#include "..\..\Inventory.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
-#include "..\OpcodeContext.h"
-
-#include "..\..\..\Game\inventory.h"
 
 #include "Objects.h"
 
@@ -38,10 +34,103 @@ namespace sfall
 namespace script
 {
 
-#define exec_script_proc(script, proc) __asm {  \
-	__asm mov  eax, script                      \
-	__asm mov  edx, proc                        \
-	__asm call fo::funcoffs::exec_script_proc_  \
+static const char* protoFailedLoad = "%s() - failed to load a prototype ID: %d";
+
+static const char* nameNPCToInc;
+static long pidNPCToInc;
+static bool onceNpcLoop;
+
+static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
+	fo::GameObject* mObj;
+	__asm {
+		push edx;
+		mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
+		mov  edx, [eax];
+		mov  mObj, edx;
+	}
+
+	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
+		fo::func::debug_printf(fmt, name);
+
+		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
+
+		SafeMemSet(0x495C77, CodeType::Nop, 6);   // Check that the player is high enough for the npc to consider this level
+		//SafeMemSet(0x495C8C, CodeType::Nop, 6); // Check that the npc isn't already at its maximum level
+		SafeMemSet(0x495CEC, CodeType::Nop, 6);   // Check that the npc hasn't already levelled up recently
+		if (!npcAutoLevelEnabled) {
+			SafeWrite8(0x495CFB, CodeType::JumpShort); // Disable random element
+		}
+		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
+	} else {
+		if (!onceNpcLoop) {
+			SafeWrite32(0x495C50, 0x01FCE9); // set goto next member
+			onceNpcLoop = true;
+		}
+	}
+	__asm pop edx;
+}
+
+void op_inc_npc_level(OpcodeContext& ctx) {
+	nameNPCToInc = ctx.arg(0).asString();
+	pidNPCToInc = ctx.arg(0).asInt(); // set to 0 if passing npc name
+	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
+
+	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
+	__asm call fo::funcoffs::partyMemberIncLevels_;
+	onceNpcLoop = false;
+
+	// restore code
+	SafeWrite32(0x495C50, 0x01FB840F);
+	__int64 data = 0x01D48C0F;
+	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
+	//SafeWrite16(0x495C8C, 0x8D0F);
+	//SafeWrite32(0x495C8E, 0x000001BF);
+	data = 0x0130850F;
+	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
+	if (!npcAutoLevelEnabled) {
+		SafeWrite8(0x495CFB, CodeType::JumpZ);
+	}
+}
+
+void op_get_npc_level(OpcodeContext& ctx) {
+	int level = -1;
+	DWORD findPid = ctx.arg(0).asInt(); // set to 0 if passing npc name
+	const char *critterName, *name = ctx.arg(0).asString();
+
+	if (findPid || name[0] != 0) {
+		DWORD pid = 0;
+		auto members = fo::var::partyMemberList;
+		for (DWORD i = 0; i < fo::var::partyMemberCount; i++) {
+			if (!findPid) {
+				__asm {
+					mov  eax, members;
+					mov  eax, [eax];
+					call fo::funcoffs::critter_name_;
+					mov  critterName, eax;
+				}
+				if (!_stricmp(name, critterName)) { // found npc
+					pid = members[i].object->protoId;
+					break;
+				}
+			} else {
+				DWORD _pid = members[i].object->protoId;
+				if (findPid == _pid) {
+					pid = _pid;
+					break;
+				}
+			}
+		}
+		if (pid) {
+			DWORD* pidList = fo::var::partyMemberPidList;
+			for (DWORD j = 0; j < fo::var::partyMemberMaxCount; j++) {
+				if (pidList[j] == pid) {
+					level = fo::var::partyMemberLevelUpInfoList[j * 3];
+					break;
+				}
+			}
+		}
+	}
+	ctx.setReturn(level);
 }
 
 void op_remove_script(OpcodeContext& ctx) {
@@ -50,6 +139,12 @@ void op_remove_script(OpcodeContext& ctx) {
 		fo::func::scr_remove(object->scriptId);
 		object->scriptId = 0xFFFFFFFF;
 	}
+}
+
+#define exec_script_proc(script, proc) __asm {  \
+	__asm mov  eax, script                      \
+	__asm mov  edx, proc                        \
+	__asm call fo::funcoffs::exec_script_proc_  \
 }
 
 void op_set_script(OpcodeContext& ctx) {
@@ -106,6 +201,8 @@ void op_create_spatial(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::scr_find_obj_from_program(scriptPtr->program));
 }
 
+#undef exec_script_proc
+
 void mf_spatial_radius(OpcodeContext& ctx) {
 	auto spatialObj = ctx.arg(0).object();
 	fo::ScriptInstance* script;
@@ -125,25 +222,43 @@ void op_set_critter_burst_disable(OpcodeContext& ctx) {
 
 void op_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	ctx.setReturn(obj->item.ammoPid);
+	long pid = -1;
+	fo::Proto* proto;
+	if (obj->IsItem() && GetProto(obj->protoId, &proto)) {
+		long type = proto->item.type;
+		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
+			pid = obj->item.ammoPid;
+		}
+	}
+	ctx.setReturn(pid);
 }
 
 void op_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	obj->item.ammoPid = ctx.arg(1).rawValue();
+	if (obj->IsNotItem()) return;
+
+	fo::Proto* proto;
+	if (GetProto(obj->protoId, &proto)) {
+		long type = proto->item.type;
+		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
+			obj->item.ammoPid = ctx.arg(1).rawValue();
+		}
+	} else {
+		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), obj->protoId);
+	}
 }
 
 void op_get_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	ctx.setReturn(obj->item.charges);
+	ctx.setReturn((obj->IsItem()) ? obj->item.charges : 0);
 }
 
 void op_set_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
-	obj->item.charges = ctx.arg(1).rawValue();
+	if (obj->IsItem()) obj->item.charges = ctx.arg(1).rawValue();
 }
 
-enum {
+enum class BlockType {
 	BLOCKING_TYPE_BLOCK  = 0,
 	BLOCKING_TYPE_SHOOT  = 1,
 	BLOCKING_TYPE_AI     = 2,
@@ -151,15 +266,15 @@ enum {
 	BLOCKING_TYPE_SCROLL = 4
 };
 
-static DWORD getBlockingFunc(DWORD type) {
+static DWORD getBlockingFunc(BlockType type) {
 	switch (type) {
-	case BLOCKING_TYPE_BLOCK: default:
+	case BlockType::BLOCKING_TYPE_BLOCK: default:
 		return fo::funcoffs::obj_blocking_at_;       // with calling hook
-	case BLOCKING_TYPE_SHOOT:
+	case BlockType::BLOCKING_TYPE_SHOOT:
 		return fo::funcoffs::obj_shoot_blocking_at_; // w/o calling hook
-	case BLOCKING_TYPE_AI:
+	case BlockType::BLOCKING_TYPE_AI:
 		return fo::funcoffs::obj_ai_blocking_at_;    // w/o calling hook
-	case BLOCKING_TYPE_SIGHT:
+	case BlockType::BLOCKING_TYPE_SIGHT:
 		return fo::funcoffs::obj_sight_blocking_at_; // w/o calling hook
 	//case 4:
 	//	return obj_scroll_blocking_at_;
@@ -168,20 +283,19 @@ static DWORD getBlockingFunc(DWORD type) {
 
 void op_make_straight_path(OpcodeContext& ctx) {
 	auto objFrom = ctx.arg(0).object();
-	DWORD tileTo = ctx.arg(1).rawValue(),
-		  type = ctx.arg(2).rawValue();
+	DWORD tileTo = ctx.arg(1).rawValue();
+	BlockType type = (BlockType)ctx.arg(2).rawValue();
 
-	long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
-	DWORD resultObj = 0;
-	fo::func::make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
+	long flag = (type == BlockType::BLOCKING_TYPE_SHOOT) ? 32 : 0;
+	fo::GameObject* resultObj = nullptr;
+	fo::func::make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, (DWORD*)&resultObj, flag, (void*)getBlockingFunc(type));
 	ctx.setReturn(resultObj);
 }
 
 void op_make_path(OpcodeContext& ctx) {
 	auto objFrom = ctx.arg(0).object();
-	auto tileTo = ctx.arg(1).rawValue(),
-		 type = ctx.arg(2).rawValue();
-	auto func = getBlockingFunc(type);
+	auto tileTo = ctx.arg(1).rawValue();
+	auto func = getBlockingFunc((BlockType)ctx.arg(2).rawValue());
 
 	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
 	long checkFlag = (objFrom->IsCritter());
@@ -197,11 +311,11 @@ void op_make_path(OpcodeContext& ctx) {
 
 void op_obj_blocking_at(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).rawValue(),
-		  elevation = ctx.arg(1).rawValue(),
-		  type = ctx.arg(2).rawValue();
+		  elevation = ctx.arg(1).rawValue();
+	BlockType type = (BlockType)ctx.arg(2).rawValue();
 
 	fo::GameObject* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
-	if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & fo::ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
+	if (resultObj && type == BlockType::BLOCKING_TYPE_SHOOT && (resultObj->flags & fo::ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = nullptr;
 	}
@@ -224,57 +338,13 @@ void op_get_party_members(OpcodeContext& ctx) {
 	auto includeHidden = ctx.arg(0).rawValue();
 	int actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = CreateTempArray(0, 4);
-	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
-		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
+		fo::GameObject* obj = fo::var::partyMemberList[i].object;
 		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}
 	ctx.setReturn(arrayId);
-}
-
-void op_art_exists(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::art_exists(ctx.arg(0).rawValue()));
-}
-
-void op_obj_is_carrying_obj(OpcodeContext& ctx) {
-	int num = 0;
-	const ScriptValue &invenObjArg = ctx.arg(0),
-		&itemObjArg = ctx.arg(1);
-
-	fo::GameObject *invenObj = invenObjArg.object(),
-		*itemObj = itemObjArg.object();
-	if (invenObj != nullptr && itemObj != nullptr) {
-		for (int i = 0; i < invenObj->invenSize; i++) {
-			if (invenObj->invenTable[i].object == itemObj) {
-				num = invenObj->invenTable[i].count;
-				break;
-			}
-		}
-	}
-	ctx.setReturn(num);
-}
-
-void mf_critter_inven_obj2(OpcodeContext& ctx) {
-	fo::GameObject* critter = ctx.arg(0).object();
-	int slot = ctx.arg(1).rawValue();
-	switch (slot) {
-	case 0:
-		ctx.setReturn(fo::func::inven_worn(critter));
-		break;
-	case 1:
-		ctx.setReturn(fo::func::inven_right_hand(critter));
-		break;
-	case 2:
-		ctx.setReturn(fo::func::inven_left_hand(critter));
-		break;
-	case -2:
-		ctx.setReturn(critter->invenSize);
-		break;
-	default:
-		ctx.printOpcodeError("%s() - invalid type.", ctx.getMetaruleName());
-	}
 }
 
 void mf_set_outline(OpcodeContext& ctx) {
@@ -301,10 +371,6 @@ void mf_get_flags(OpcodeContext& ctx) {
 
 void mf_outlined_object(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::outlined_object);
-}
-
-void mf_item_weight(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::item_weight(ctx.arg(0).object()));
 }
 
 void mf_set_dude_obj(OpcodeContext& ctx) {
@@ -366,48 +432,43 @@ void mf_item_make_explosive(OpcodeContext& ctx) {
 	}
 }
 
-void mf_get_current_inven_size(OpcodeContext& ctx) {
-	ctx.setReturn(game::Inventory::item_total_size(ctx.arg(0).object()));
-}
-
 void mf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
 void mf_obj_under_cursor(OpcodeContext& ctx) {
-	ctx.setReturn((fo::var::gmouse_3d_current_mode != 0)
-				  ? fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation)
-				  : 0);
+	ctx.setReturn(
+		fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation)
+	);
 }
 
 void mf_get_loot_object(OpcodeContext& ctx) {
 	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? fo::var::target_stack[fo::var::target_curr_stack] : 0);
 }
 
-static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
 void op_get_proto_data(OpcodeContext& ctx) {
+	long result = -1;
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	int result = fo::func::proto_ptr(pid, &protoPtr);
-	if (result != -1) {
+	if (fo::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
+		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), pid);
 	}
 	ctx.setReturn(result);
 }
 
 void op_set_proto_data(OpcodeContext& ctx) {
 	int pid = ctx.arg(0).rawValue();
-	if (CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
+	if (fo::CheckProtoID(pid) && CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
 			Objects::LoadProtoAutoMaxLimit();
 			protoMaxLimitPatch = true;
 		}
 	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
+		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), pid);
 	}
 }
 
@@ -530,6 +591,16 @@ void mf_objects_in_radius(OpcodeContext& ctx) {
 		arrays[id].val[i].set((long)objects[i]);
 	}
 	ctx.setReturn(id);
+}
+
+void mf_npc_engine_level_up(OpcodeContext& ctx) {
+	if (ctx.arg(0).asBool()) {
+		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
+		npcEngineLevelUp = true;
+	} else {
+		if (npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0xE990);
+		npcEngineLevelUp = false;
+	}
 }
 
 }

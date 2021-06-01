@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "..\OpcodeContext.h"
+
 /* Opcodes for core sfall features. */
 
 namespace sfall
@@ -48,6 +50,8 @@ void op_get_sfall_args(OpcodeContext&);
 void op_set_sfall_arg(OpcodeContext&);
 
 void __declspec() op_set_sfall_return();
+
+void __declspec() op_game_loaded();
 
 void __declspec() op_init_hook();
 

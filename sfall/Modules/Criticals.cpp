@@ -89,7 +89,7 @@ static int CritTableLoad() {
 					fo::CritInfo& newEffect = baseCritTable[newCritter][part][crit];
 					fo::CritInfo& defaultEffect = fo::var::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
-						newEffect.values[i] = iniGetInt(section, critNames[i], defaultEffect.values[i], critTableFile.c_str());
+						newEffect.values[i] = IniReader::GetInt(section, critNames[i], defaultEffect.values[i], critTableFile.c_str());
 						if (isDebug) {
 							char logmsg[256];
 							if (newEffect.values[i] != defaultEffect.values[i]) {
@@ -114,11 +114,11 @@ static int CritTableLoad() {
 			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = iniGetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
+				if (!(all = IniReader::GetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!iniGetInt(buf, buf2, 0, critTableFile.c_str())) continue;
+						if (!IniReader::GetInt(buf, buf2, 0, critTableFile.c_str())) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -126,7 +126,7 @@ static int CritTableLoad() {
 						fo::CritInfo& effect = baseCritTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
-							effect.values[i] = iniGetInt(buf2, buf3, effect.values[i], critTableFile.c_str());
+							effect.values[i] = IniReader::GetInt(buf2, buf3, effect.values[i], critTableFile.c_str());
 						}
 					}
 				}
@@ -137,18 +137,6 @@ static int CritTableLoad() {
 	}
 	return 0;
 }
-
-enum BodyPart {
-	Head,
-	ArmLeft,
-	ArmRight,
-	Torso,
-	LegRight,
-	LegLeft,
-	Eyes,
-	Groin,
-	Uncalled
-};
 
 enum CritParam {
 	DmgMult,
@@ -169,6 +157,7 @@ static void CriticalTableOverride() {
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
 	if (mode == 2 || mode == 3) { // bug fixes
+		using namespace fo;
 		// Children
 		SetEntry(2, LegRight, 1, FlagsFail, 0);
 		SetEntry(2, LegRight, 1, Message,   5216);
@@ -315,7 +304,7 @@ static void CriticalTableOverride() {
 #undef SetEntry
 
 static void RemoveCriticalTimeLimitsPatch() {
-	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
+	if (IniReader::GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x424118, CodeType::JumpShort); // jump to 0x424131
 		SafeWriteBatch<WORD>(0x9090, {0x4A3052, 0x4A3093});
@@ -324,10 +313,10 @@ static void RemoveCriticalTimeLimitsPatch() {
 }
 
 void Criticals::init() {
-	mode = GetConfigInt("Misc", "OverrideCriticalTable", 2);
+	mode = IniReader::GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
-		critTableFile += GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
+		critTableFile += IniReader::GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
 		CriticalTableOverride();
 		LoadGameHook::OnBeforeGameStart() += []() {
 			memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table

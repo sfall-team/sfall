@@ -37,7 +37,7 @@ struct CityRep {
 static CityRep* repList = nullptr;
 
 void Reputations::init() {
-	auto cityRepList = GetConfigList("Misc", "CityRepsList", "", 512);
+	auto cityRepList = IniReader::GetConfigList("Misc", "CityRepsList", "", 512);
 	size_t count = cityRepList.size();
 	if (count) {
 		repList = new CityRep[count];

@@ -326,13 +326,13 @@ enum PlayType : signed char {
 	slides = 4 // speech for endgame slideshow
 };
 
-static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool isExist) {
+static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFile) {
 	if (playType == PlayType::music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
 		Sound::StopSfallSound(backgroundMusic->id);
 		backgroundMusic = nullptr;
 	}
-	if (!isExist) return false;
+	if (!hasFile) return false;
 
 	if (playType == PlayType::music) {
 		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music loop
@@ -368,7 +368,7 @@ static bool SearchAlternativeFormats(const char* path, PlayType playType, std::s
 	wPath[len] = L'\0';
 	len -= 3; // the position of the first character of the file extension
 
-	bool isExist = false;
+	bool hasFile = false;
 	for (int i = 0; i < 3; i++) {
 		int j = len;
 		wPath[j++] = SoundExtensions[i][0];
@@ -377,12 +377,12 @@ static bool SearchAlternativeFormats(const char* path, PlayType playType, std::s
 
 		if (GetFileAttributesW(wPath) & FILE_ATTRIBUTE_DIRECTORY) continue; // also file not found
 
-		isExist = true;
+		hasFile = true;
 		break;
 	}
-	soundsFiles.emplace(std::move(pathFile), (isExist) ? wPath : L"");
+	soundsFiles.emplace(std::move(pathFile), (hasFile) ? wPath : L"");
 
-	return PrePlaySoundFile(playType, wPath, isExist);
+	return PrePlaySoundFile(playType, wPath, hasFile);
 }
 
 static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
@@ -961,7 +961,7 @@ void Sound::init() {
 
 	void* soundLoad_func;
 
-	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
+	int allowDShowSound = IniReader::GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
 		soundLoad_func = soundLoad_hack_A; // main hook
 
@@ -998,17 +998,17 @@ void Sound::init() {
 		0x4A96CC  // sfxc_decode_
 	});
 
-	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
+	int sBuff = IniReader::GetConfigInt("Sound", "NumSoundBuffers", 0);
 	if (sBuff > 4) {
 		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 	}
 
-	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
+	if (IniReader::GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
 		HookCall(0x42B849, ai_print_msg_hook);
 
 		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-		if (isDebug && iniGetInt("Debugging", "Test_ForceFloats", 0, ::sfall::ddrawIni)) {
+		if (isDebug && IniReader::GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
 			SafeWrite8(0x42B6F5, CodeType::JumpShort); // bypass chance
 		}
 	}

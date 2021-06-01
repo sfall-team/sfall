@@ -28,23 +28,57 @@
 namespace fo
 {
 
-static MessageNode messageBuf;
+static fo::MessageNode messageBuf;
 
-const char* GetMessageStr(const MessageList* fileAddr, long messageId) {
-	return fo::func::getmsg(fileAddr, &messageBuf, messageId);
+const char* GetMessageStr(const fo::MessageList* file, long messageId) {
+	return fo::func::getmsg(file, &messageBuf, messageId);
 }
 
-const char* MessageSearch(const MessageList* fileAddr, long messageId) {
+const char* MessageSearch(const fo::MessageList* file, long messageId) {
 	messageBuf.number = messageId;
-	if (fo::func::message_search(fileAddr, &messageBuf) == 1) {
+	if (fo::func::message_search(file, &messageBuf) == 1) {
 		return messageBuf.message;
 	}
 	return nullptr;
 }
 
-Queue* QueueFind(GameObject* object, long type) {
+fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgNum) {
+	if (msgList != nullptr && msgList->numMsgs > 0) {
+		fo::MessageNode *msgNode = msgList->nodes;
+		long last = msgList->numMsgs - 1;
+		long first = 0;
+		long mid;
+
+		// Use Binary Search to find msg
+		while (first <= last) {
+			mid = (first + last) / 2;
+			if (msgNum > msgNode[mid].number)
+				first = mid + 1;
+			else if (msgNum < msgNode[mid].number)
+				last = mid - 1;
+			else
+				return &msgNode[mid];
+		}
+	}
+	return nullptr;
+}
+
+// Alternative version of getmsg_ function
+char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType) {
+	fo::MessageNode *msgNode = GetMsgNode(msgList, msgNum);
+	if (msgNode) {
+		if (msgType == 2) {
+			return msgNode->message;
+		} else if (msgType == 1) {
+			return msgNode->audio;
+		}
+	}
+	return nullptr;
+}
+
+fo::Queue* QueueFind(fo::GameObject* object, long type) {
 	if (fo::var::queue) {
-		Queue* queue = fo::var::queue;
+		fo::Queue* queue = fo::var::queue;
 		while (queue->object != object && queue->type != type) {
 			queue = queue->next;
 			if (!queue) break;
@@ -54,33 +88,37 @@ Queue* QueueFind(GameObject* object, long type) {
 	return nullptr;
 }
 
-long AnimCodeByWeapon(GameObject* weapon) {
+long AnimCodeByWeapon(fo::GameObject* weapon) {
 	if (weapon != nullptr) {
-		Proto* proto = GetProto(weapon->protoId);
-		if (proto != nullptr && proto->item.type == item_type_weapon) {
+		fo::Proto* proto;
+		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
 }
 
-Proto* GetProto(long pid) {
-	Proto* protoPtr;
-	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
-		return protoPtr;
-	}
-	return nullptr;
+bool CheckProtoID(DWORD pid) {
+	if (pid == 0) return false;
+	long type = pid >> 24;
+	if (type > fo::ObjType::OBJ_TYPE_MISC) return false;
+	return (static_cast<long>(pid & 0xFFFF) < fo::var::protoLists[type].totalCount);
+}
+
+bool GetProto(long pid, fo::Proto** outProto) {
+	return (fo::func::proto_ptr(pid, outProto) != -1);
 }
 
 bool CritterCopyProto(long pid, long* &proto_dst) {
-	fo::Proto* protoPtr;
-	if (fo::func::proto_ptr(pid, &protoPtr) == -1) {
+	fo::Proto* proto;
+	bool result = GetProto(pid, &proto);
+	if (result) {
+		proto_dst = reinterpret_cast<long*>(new int32_t[104]);
+		std::memcpy(proto_dst, proto, 416);
+	} else {
 		proto_dst = nullptr;
-		return false;
 	}
-	proto_dst = reinterpret_cast<long*>(new long[104]);
-	memcpy(proto_dst, protoPtr, 416);
-	return true;
+	return result;
 }
 
 void SkillGetTags(long* result, long num) {
@@ -93,20 +131,20 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-long __fastcall GetItemType(GameObject* item) {
-	return fo::func::item_get_type(item);
+long GetItemType(fo::GameObject* item) {
+	return fo::GetProto(item->protoId)->item.type;
 }
 
-__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
-	GameObject* itemPtr = nullptr;
+__declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
+	fo::GameObject* itemPtr = nullptr;
 	switch (slot) {
-		case fo::INVEN_TYPE_LEFT_HAND:
+		case fo::InvenType::INVEN_TYPE_LEFT_HAND:
 			itemPtr = fo::func::inven_left_hand(critter);
 			break;
-		case fo::INVEN_TYPE_RIGHT_HAND:
+		case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
 			itemPtr = fo::func::inven_right_hand(critter);
 			break;
-		case fo::INVEN_TYPE_WORN:
+		case fo::InvenType::INVEN_TYPE_WORN:
 			itemPtr = fo::func::inven_worn(critter);
 			break;
 	}
@@ -117,7 +155,7 @@ long& GetActiveItemMode() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
 }
 
-GameObject* GetActiveItem() {
+fo::GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
@@ -135,10 +173,26 @@ long GetCurrentAttackMode() {
 			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
 			break;
 		case 5: // reload mode
-			hitMode = fo::ATKTYPE_LWEAPON_RELOAD + activeHand;
+			hitMode = fo::AttackType::ATKTYPE_LWEAPON_RELOAD + activeHand;
 		}
 	}
 	return hitMode;
+}
+
+fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
+	static const fo::AttackSubType weapon_types[9] = {
+		fo::AttackSubType::NONE,
+		fo::AttackSubType::UNARMED,
+		fo::AttackSubType::UNARMED,
+		fo::AttackSubType::MELEE,
+		fo::AttackSubType::MELEE,
+		fo::AttackSubType::THROWING,
+		fo::AttackSubType::GUNS,
+		fo::AttackSubType::GUNS,
+		fo::AttackSubType::GUNS
+	};
+	DWORD type = weaponFlag & 0xF;
+	return (type < 9) ? weapon_types[type] : fo::AttackSubType::NONE;
 }
 
 bool HeroIsFemale() {
@@ -165,26 +219,26 @@ long __fastcall IsRadInfluence() {
 }
 
 bool IsNpcFlag(fo::GameObject* npc, long flag) {
-	Proto* protoPtr;
-	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
-		return (protoPtr->critter.critterFlags & (1 << flag)) != 0;
+	fo::Proto* proto;
+	if (GetProto(npc->protoId, &proto)) {
+		return (proto->critter.critterFlags & (1 << flag)) != 0;
 	}
 	return false;
 }
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
-	Proto* protoPtr;
-	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
+	fo::Proto* proto;
+	if (GetProto(npc->protoId, &proto)) {
 		long bit = (1 << flag);
 		if (set) {
-			protoPtr->critter.critterFlags |= bit;
+			proto->critter.critterFlags |= bit;
 		} else {
-			protoPtr->critter.critterFlags &= ~bit;
+			proto->critter.critterFlags &= ~bit;
 		}
 	}
 }
 
-// Returns the position of party member in the existing table (begins from 1)
+// Returns the position of party member in the existing table (1 is added to the index position)
 long IsPartyMemberByPid(long pid) {
 	size_t partyCount = fo::var::partyMemberMaxCount;
 	if (partyCount) {
@@ -372,8 +426,17 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 //}
 
 // Fills the specified interface window with index color
-void WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
+bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
+	bool result = false;
+	if ((x + width) > win->width) {
+		width = win->width - x;
+		result = true;
+	}
+	if ((y + height) > win->height) {
+		height = win->height - y;
+		result = true;
+	}
 	BYTE* surf = win->surface + (win->width * y) + x;
 	long pitch = win->width - width;
 	while (height--) {
@@ -381,6 +444,7 @@ void WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 		while (w--) *surf++ = indexColor;
 		surf += pitch;
 	};
+	return result;
 }
 
 // Fills the specified interface window with index color 0 (black color)
@@ -505,10 +569,10 @@ DWORD GetMaxCharWidth() {
 //	return charWidth;
 }
 
-void RedrawObject(GameObject* obj) {
-	BoundRect rect;
-	func::obj_bound(obj, &rect);
-	func::tile_refresh_rect(&rect, obj->elevation);
+void RedrawObject(fo::GameObject* obj) {
+	fo::BoundRect rect;
+	fo::func::obj_bound(obj, &rect);
+	fo::func::tile_refresh_rect(&rect, obj->elevation);
 }
 
 // Redraws all windows
@@ -521,9 +585,9 @@ void RefreshGNW(bool skipOwner) {
 	*(DWORD*)FO_VAR_doing_refresh_all = 0;
 }
 
-/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
+//////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////
 
-static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
+static bool LoadFrmHeader(fo::UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
 		return false;
 	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
@@ -544,7 +608,7 @@ static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	return true;
 }
 
-static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
+static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
@@ -560,23 +624,32 @@ static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 		return false;
 
 	frame->indexBuff = new BYTE[frame->size];
-	if (fo::func::db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1)
+	if (fo::func::db_fread(frame->indexBuff, 1, frame->size, frmStream) != frame->size)
 		return false;
 
 	return true;
 }
 
-UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char *artfolder = fo::var::art[folderRef].path; // address of art type name
+	const char *artfolder = fo::var::art[folderRef].path; // address of art type name
 	char frmPath[MAX_PATH];
 
-	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+	if (fo::var::use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::var::language, artfolder, frmName);
+	} else {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+	}
 
-	UnlistedFrm *frm = new UnlistedFrm;
+	fo::UnlistedFrm *frm = new fo::UnlistedFrm;
 
-	auto frmStream = fo::func::xfopen(frmPath, "rb");
+	auto frmStream = fo::func::db_fopen(frmPath, "rb");
+
+	if (!frmStream && fo::var::use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+		frmStream = fo::func::db_fopen(frmPath, "rb");
+	}
 
 	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {
@@ -587,7 +660,7 @@ UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 		DWORD oriOffset_1st = frm->oriOffset[0];
 		DWORD oriOffset_new = 0;
-		frm->frames = new UnlistedFrm::Frame[6 * frm->numFrames];
+		frm->frames = new fo::UnlistedFrm::Frame[6 * frm->numFrames];
 		for (int ori = 0; ori < 6; ori++) {
 			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
 				frm->oriOffset[ori] = oriOffset_new;

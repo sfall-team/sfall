@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <unordered_map>
 #include <math.h>
 
@@ -52,6 +53,7 @@ static bool restMap;
 static bool restMode;
 static bool restTime;
 
+static bool worldMapLongDelay = false;
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
 
@@ -130,52 +132,39 @@ end:
 	}
 }
 
-static void __declspec(naked) WorldMapFpsPatch() {
+static void WorldMapFPS() {
+	DWORD prevTicks = worldMapTicks; // previous ticks
+	do {
+		WorldmapLoopHook();
+		if (worldMapLongDelay) {
+			__asm call fo::funcoffs::process_bk_;
+		}
+
+		DWORD tick; // current ticks
+		do {
+			tick = SpeedPatch::getTickCount();
+		} while (tick == prevTicks); // delay ~15 ms
+		prevTicks = tick;
+
+		// get elapsed time
+	} while ((prevTicks - worldMapTicks) < worldMapDelay);
+	worldMapTicks = prevTicks;
+}
+
+static void __declspec(naked) wmWorldMap_hook_patch1() {
 	__asm {
 		push dword ptr ds:[FO_VAR_last_buttons];
-		push dword ptr ds:[0x6AC7B0]; // _mouse_buttons
-		mov  esi, worldMapTicks;
-		mov  ebx, esi;                // previous ticks
-loopDelay:
-		call WorldmapLoopHook;
-		call fo::funcoffs::process_bk_;
-subLoop:
-		call ds:[sf_GetTickCount]; // current ticks
-		mov  edx, eax;
-		sub  eax, ebx;     // get elapsed time (cur.ticks - prev.ticks)
-		cmp  eax, 10;      // delay - GetTickCount returns minimum difference of 15 units
-		jb   subLoop;      // elapsed < invoke delay
-		mov  ebx, edx;
-		sub  edx, esi;     // get elapsed time (cur.ticks - worldMapTicks)
-		cmp  edx, worldMapDelay;
-		jb   loopDelay;    // elapsed < worldMapDelay
-
-		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
+		push dword ptr ds:[FO_VAR_mouse_buttons];
+		call WorldMapFPS;
+		pop  dword ptr ds:[FO_VAR_mouse_buttons];
 		pop  dword ptr ds:[FO_VAR_last_buttons];
-		call ds:[sf_GetTickCount];
-		mov  worldMapTicks, eax;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
 
-static void __declspec(naked) WorldMapFpsPatch2() {
+static void __declspec(naked) wmWorldMap_hook_patch2() {
 	__asm {
-		mov  esi, worldMapTicks;
-		mov  ebx, esi;
-loopDelay:
-		call WorldmapLoopHook;
-subLoop:
-		call ds:[sf_GetTickCount]; // current ticks
-		mov  edx, eax;
-		sub  eax, ebx;     // get elapsed time
-		jz   subLoop;
-		mov  ebx, edx;
-		sub  edx, esi;     // get elapsed time
-		cmp  edx, worldMapDelay;
-		jb   loopDelay;    // elapsed < worldMapDelay
-
-		call ds:[sf_GetTickCount];
-		mov  worldMapTicks, eax;
+		call WorldMapFPS;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -183,9 +172,12 @@ subLoop:
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		//pushadc;
-		call WorldmapLoopHook;
-		//popadc;
+		call ds:[SpeedPatch::getTickCountOffs]; // current ticks
+		cmp  eax, worldMapTicks;
+		je   skipHook;
+		mov  worldMapTicks, eax;
+		call WorldmapLoopHook; // hook is called every ~15 ms (GetTickCount returns a difference of 14-16 ms)
+skipHook:
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -198,7 +190,7 @@ static void __declspec(naked) wmWorldMapFunc_hook() {
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
-	__asm {
+	__asm { // edx - _wmLastRndTime
 		xor  ecx, ecx;
 		cmp  edx, WorldMapEncounterRate;
 		retn;
@@ -268,6 +260,7 @@ skip:
 }
 
 static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
+
 static void __declspec(naked) wmMapInit_hack() {
 	__asm {
 		mov  esi, [esp + 0xA0 - 0x20 + 4];       // curent map number
@@ -336,6 +329,30 @@ skip:
 	}
 }
 
+static bool customPosition = false;
+
+static void __declspec(naked) main_load_new_hook() {
+	__asm {
+		call fo::funcoffs::map_load_;
+		push -1;
+		mov  edx, esp;
+		mov  eax, dword ptr ds:[FO_VAR_map_number];
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
+		pop  eax; // area ID
+		cmp  customPosition, 0;
+		jnz  skip;
+		jmp  fo::funcoffs::wmTeleportToArea_;
+skip:
+		test eax, eax;
+		js   end;
+		cmp  eax, dword ptr ds:[FO_VAR_wmMaxAreaNum];
+		jge  end;
+		mov  dword ptr ds:[FO_VAR_WorldMapCurrArea], eax;
+end:
+		retn;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
@@ -349,20 +366,20 @@ static void RestRestore() {
 }
 
 static void WorldLimitsPatches() {
-	DWORD data = GetConfigInt("Misc", "LocalMapXLimit", 0);
+	DWORD data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data) {
 		dlog("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x4B13B9, data);
 		dlogr(" Done", DL_INIT);
 	}
-	data = GetConfigInt("Misc", "LocalMapYLimit", 0);
+	data = IniReader::GetConfigInt("Misc", "LocalMapYLimit", 0);
 	if (data) {
 		dlog("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x4B13C7, data);
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
 			SafeWrite8(0x4BF3BB, CodeType::JumpShort);
@@ -372,7 +389,7 @@ static void WorldLimitsPatches() {
 }
 
 static void TimeLimitPatch() {
-	int limit = GetConfigInt("Misc", "TimeLimit", 13);
+	int limit = IniReader::GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2 || limit == -3) {
 		addYear = true;
 		MakeCall(0x4A33B8, TimeDateFix, 1); // game_time_date_
@@ -399,32 +416,33 @@ static void TimeLimitPatch() {
 
 static void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
-	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
+	if (IniReader::GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (!fpsPatchOK) {
-			dlogr(" Failed", DL_INIT);
-		} else {
-			int delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
+		if (fpsPatchOK) {
+			int delay = IniReader::GetConfigInt("Misc", "WorldMapDelay2", 66);
 			worldMapDelay = max(1, delay);
 			dlogr(" Done", DL_INIT);
+		} else {
+			dlogr(" Failed", DL_INIT);
 		}
 	}
 	if (fpsPatchOK) {
 		void* func;
 		if (worldMapDelay == 0) {
-			func = wmWorldMap_hook;
+			func = wmWorldMap_hook; // only WorldmapLoop hook
 		} else if (worldMapDelay > 25) {
-			func = WorldMapFpsPatch;
+			worldMapLongDelay = true;
+			func = wmWorldMap_hook_patch1;
 		} else {
-			func = WorldMapFpsPatch2;
+			func = wmWorldMap_hook_patch2;
 		}
-		HookCall(0x4BFE5D, func);
+		HookCall(0x4BFE5D, func); // wmWorldMap_
 		::sfall::availableGlobalScriptTypes |= 2;
 	}
 
-	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
-		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
+		WorldMapEncounterRate = IniReader::GetConfigInt("Misc", "WorldMapEncounterRate", 5);
 		SafeWrite32(0x4C232D, 0xB8); // mov eax, 0; (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
@@ -433,30 +451,30 @@ static void WorldmapFpsPatch() {
 }
 
 static void PathfinderFixInit() {
-	//if (GetConfigInt("Misc", "PathfinderFix", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "PathfinderFix", 0)) {
 		dlog("Applying Pathfinder patch.", DL_INIT);
 		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
 		HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
-		mapMultiMod = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
+		mapMultiMod = (double)IniReader::GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
 		dlogr(" Done", DL_INIT);
 	//}
 }
 
 static void StartingStatePatches() {
-	int date = GetConfigInt("Misc", "StartYear", -1);
+	int date = IniReader::GetConfigInt("Misc", "StartYear", -1);
 	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	int month = GetConfigInt("Misc", "StartMonth", -1);
+	int month = IniReader::GetConfigInt("Misc", "StartMonth", -1);
 	if (month >= 0) {
 		if (month > 11) month = 11;
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, month);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetConfigInt("Misc", "StartDay", -1);
+	date = IniReader::GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
 		if (month == 1 && date > 28) { // for February
 			date = 28; // set 29th day
@@ -468,34 +486,46 @@ static void StartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	date = GetConfigInt("Misc", "StartXPos", -1);
-	if (date != -1) {
+	long xPos = IniReader::GetConfigInt("Misc", "StartXPos", -1);
+	if (xPos != -1) {
+		if (xPos < 0) xPos = 0;
 		dlog("Applying starting x position patch.", DL_INIT);
-		SafeWrite32(0x4BC990, date);
-		SafeWrite32(0x4BCC08, date);
+		SafeWrite32(0x4BC990, xPos);
+		SafeWrite32(0x4BCC08, xPos);
 		dlogr(" Done", DL_INIT);
+		customPosition = true;
 	}
-	date = GetConfigInt("Misc", "StartYPos", -1);
-	if (date != -1) {
+	long yPos = IniReader::GetConfigInt("Misc", "StartYPos", -1);
+	if (yPos != -1) {
+		if (yPos < 0) yPos = 0;
 		dlog("Applying starting y position patch.", DL_INIT);
-		SafeWrite32(0x4BC995, date);
-		SafeWrite32(0x4BCC0D, date);
+		SafeWrite32(0x4BC995, yPos);
+		SafeWrite32(0x4BCC0D, yPos);
 		dlogr(" Done", DL_INIT);
+		customPosition = true;
 	}
 
-	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
-	if (ViewportX != -1) {
+	// Fix the starting position of the player's marker on the world map when starting a new game
+	// also initialize the value of the current area for METARULE_CURRENT_TOWN metarule function
+	HookCall(0x480DC0, main_load_new_hook);
+
+	xPos = IniReader::GetConfigInt("Misc", "ViewXPos", -1);
+	if (xPos != -1) {
+		if (xPos < 0) xPos = 0;
+		ViewportX = xPos;
 		dlog("Applying starting x view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
-	if (ViewportY != -1) {
+	yPos = IniReader::GetConfigInt("Misc", "ViewYPos", -1);
+	if (yPos != -1) {
+		if (yPos < 0) yPos = 0;
+		ViewportY = yPos;
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
 		dlogr(" Done", DL_INIT);
 	}
-	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
+	if (xPos != -1 || yPos != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
 static void PipBoyAutomapsPatch() {
@@ -622,8 +652,7 @@ static const char* GetOverrideTerrainName(long x, long y) {
 
 	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
 	auto it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
-						  [=](const std::pair<long, std::string> &el)
-						  { return el.first == subTileID; }
+		[=](const std::pair<long, std::string> &el) { return el.first == subTileID; }
 	);
 	return (it != wmTerrainTypeNames.crend()) ? it->second.c_str() : nullptr;
 }

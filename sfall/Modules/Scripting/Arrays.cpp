@@ -271,7 +271,7 @@ long LoadArrays(HANDLE h) {
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
-		while (ArrayExist(nextArrayID)) nextArrayID++;
+		while (ArrayExists(nextArrayID)) nextArrayID++;
 		if (nextArrayID == 0) nextArrayID++;
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
@@ -318,7 +318,7 @@ int GetNumArrays() {
 	return arrays.size();
 }
 
-bool ArrayExist(DWORD id) {
+bool ArrayExists(DWORD id) {
 	return (arrays.find(id) != arrays.end());
 }
 
@@ -397,7 +397,7 @@ DWORD CreateArray(int len, DWORD flags) {
 		var.val.resize(len);
 	}
 
-	while (ArrayExist(nextArrayID)) nextArrayID++;
+	while (ArrayExists(nextArrayID)) nextArrayID++;
 	if (nextArrayID == 0) nextArrayID++;
 
 	if (arraysBehavior == 0) {
@@ -434,7 +434,7 @@ void DeleteAllTempArrays() {
 }
 
 ScriptValue GetArrayKey(DWORD id, int index) {
-	if (!ArrayExist(id) || index < -1 || index > arrays[id].size()) {
+	if (!ArrayExists(id) || index < -1 || index > arrays[id].size()) {
 		return ScriptValue(0);
 	}
 	if (index == -1) { // special index to indicate if array is associative
@@ -461,7 +461,7 @@ ScriptValue GetArrayKey(DWORD id, int index) {
 }
 
 ScriptValue GetArray(DWORD id, const ScriptValue& key) {
-	if (!ArrayExist(id)) return 0;
+	if (!ArrayExists(id)) return 0;
 
 	int el;
 	sArrayVar &arr = arrays[id];
@@ -497,8 +497,8 @@ void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 		sArrayElement sEl(key.rawValue(), key.type());
 		ArrayKeysMap::iterator elIter = arr.keyHash.find(sEl);
 		int el = (elIter != arr.keyHash.end())
-			? elIter->second
-			: -1;
+		       ? elIter->second
+		       : -1;
 
 		bool lookupMap = (arr.flags & ARRAYFLAG_CONSTVAL) != 0;
 		if (lookupMap && el != -1) return; // don't update value of key
@@ -538,7 +538,7 @@ void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 }
 
 void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
-	if (ArrayExist(id)) setArray(id, key, val, allowUnset);
+	if (ArrayExists(id)) setArray(id, key, val, allowUnset);
 }
 
 int LenArray(DWORD id) {
@@ -603,7 +603,7 @@ static void MapSort(sArrayVar& arr, int type) {
 }
 
 long ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || !ArrayExist(id)) return 0;
+	if (newlen == -1 || !ArrayExists(id)) return 0;
 
 	sArrayVar &arr = arrays[id];
 	int arrSize = arr.size();
@@ -650,7 +650,7 @@ void FixArray(DWORD id) {
 }
 
 ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
-	if (!ArrayExist(id)) {
+	if (!ArrayExists(id)) {
 		return ScriptValue(-1);
 	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
@@ -737,7 +737,7 @@ void SaveArray(const ScriptValue& key, DWORD id) {
 	Should always return 0!
 */
 long StackArray(const ScriptValue& key, const ScriptValue& val) {
-	if (stackArrayId == 0 || !ArrayExist(stackArrayId)) return 0;
+	if (stackArrayId == 0 || !ArrayExists(stackArrayId)) return 0;
 
 	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
 		size_t size = arrays[stackArrayId].val.size();

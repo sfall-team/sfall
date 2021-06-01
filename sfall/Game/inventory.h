@@ -15,6 +15,9 @@ class Inventory {
 public:
 	static void init();
 
+	// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
+	static long correctFidForRemovedItem(fo::GameObject* critter, fo::GameObject* item, long flags);
+
 	// This function returns the size of the occupied inventory space for the object or critter
 	// - difference from the item_c_curr_size_ function: includes the size of equipped items for the critter
 	// - does not return the size of nested items

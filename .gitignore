@@ -55,8 +55,10 @@ nb-configuration.xml
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
+[Dd]evXP
 [Rr]elease/
 [Rr]eleases/
+[Rr]eleaseXP/
 x64/
 x86/
 build/
@@ -222,3 +224,9 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 sfall/postbuild.cmd
+
+# jekyll build files
+docs/_site
+docs/.sass-cache
+docs/.jekyll-metadata
+docs/pages/*.md

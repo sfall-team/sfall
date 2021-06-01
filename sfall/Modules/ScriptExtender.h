@@ -39,6 +39,7 @@ public:
 	void init();
 
 	static std::string iniConfigFolder;
+	static bool OnMapLeave;
 
 	static char gTextBuffer[5120];
 
@@ -56,6 +57,9 @@ public:
 	static void RemoveTimerEventScripts(fo::Program* script);
 
 	static int __stdcall ScriptHasLoaded(fo::Program* script);
+
+	// loads and initializes script file (for normal game scripts)
+	static long __fastcall InitScript(long sid);
 
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();

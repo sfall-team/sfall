@@ -291,10 +291,15 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Game\combatAI.h" />
     <ClInclude Include="Game\inventory.h" />
+    <ClInclude Include="Game\items.h" />
+    <ClInclude Include="Game\objects.h" />
     <ClInclude Include="Game\render.h" />
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
+    <ClInclude Include="Game\tilemap.h" />
+    <ClInclude Include="IniReader.h" />
     <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
     <ClInclude Include="Modules\Interface.h" />
@@ -319,6 +324,8 @@
     <ClInclude Include="Modules\LoadOrder.h" />
     <ClInclude Include="Modules\Objects.h" />
     <ClInclude Include="Modules\PlayerModel.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Combat.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Inventory.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\SubModules\CombatBlock.h" />
@@ -383,6 +390,7 @@
     <ClInclude Include="Modules\Stats.h" />
     <ClInclude Include="Modules\Tiles.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Translate.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="Logging.h" />
@@ -395,10 +403,15 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Game\combatAI.cpp" />
     <ClCompile Include="Game\inventory.cpp" />
+    <ClCompile Include="Game\items.cpp" />
+    <ClCompile Include="Game\objects.cpp" />
     <ClCompile Include="Game\render.cpp" />
     <ClCompile Include="Game\skills.cpp" />
     <ClCompile Include="Game\stats.cpp" />
+    <ClCompile Include="Game\tilemap.cpp" />
+    <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
@@ -422,6 +435,8 @@
     <ClCompile Include="Modules\LoadOrder.cpp" />
     <ClCompile Include="Modules\Objects.cpp" />
     <ClCompile Include="Modules\PlayerModel.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\SubModules\CombatBlock.cpp" />
@@ -492,6 +507,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>

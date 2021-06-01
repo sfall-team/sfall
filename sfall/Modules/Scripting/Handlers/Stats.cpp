@@ -37,6 +37,19 @@ namespace script
 const char* invalidStat = "%s() - stat number out of range.";
 const char* objNotCritter = "%s() - the object is not a critter.";
 
+void __declspec(naked) op_set_hp_per_level_mod() {
+	__asm {
+		mov  esi, ecx;
+		_GET_ARG_INT(end);
+		push eax; // allowed -/+127
+		push 0x4AFBC1;
+		call SafeWrite8;
+end:
+		mov  ecx, esi;
+		retn;
+	}
+}
+
 void op_set_pc_base_stat(OpcodeContext& ctx) {
 	int stat = ctx.arg(0).rawValue();
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
@@ -146,8 +159,8 @@ void op_set_critter_skill_points(OpcodeContext& ctx) {
 
 	fo::GameObject* obj = ctx.arg(0).object();
 	if (obj->IsCritter()) {
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		if (proto) proto->critter.skills[skill] = ctx.arg(2).rawValue();
+		fo::Proto* proto;
+		if (fo::GetProto(obj->protoId, &proto)) proto->critter.skills[skill] = ctx.arg(2).rawValue();
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -162,8 +175,8 @@ void op_get_critter_skill_points(OpcodeContext& ctx) {
 
 	fo::GameObject* obj = ctx.arg(0).object();
 	if (obj->IsCritter()) {
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		if (proto) ctx.setReturn(proto->critter.skills[skill]);
+		fo::Proto* proto;
+		if (fo::GetProto(obj->protoId, &proto)) ctx.setReturn(proto->critter.skills[skill]);
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -206,6 +219,38 @@ void __declspec(naked) op_mod_skill_points_per_level() {
 end:
 		mov  ecx, esi;
 		retn;
+	}
+}
+
+void __declspec(naked) op_set_unspent_ap_bonus() {
+	__asm {
+		_GET_ARG_INT(end);
+		mov  Stats::standardApAcBonus, eax;
+end:
+		retn;
+	}
+}
+
+void __declspec(naked) op_get_unspent_ap_bonus() {
+	__asm {
+		mov  edx, Stats::standardApAcBonus;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
+}
+
+void __declspec(naked) op_set_unspent_ap_perk_bonus() {
+	__asm {
+		_GET_ARG_INT(end);
+		mov  Stats::extraApAcBonus, eax;
+end:
+		retn;
+	}
+}
+
+void __declspec(naked) op_get_unspent_ap_perk_bonus() {
+	__asm {
+		mov  edx, Stats::extraApAcBonus;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 

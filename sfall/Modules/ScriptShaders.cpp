@@ -221,7 +221,7 @@ void ScriptShaders::Release() {
 
 void ScriptShaders::init() {
 	if (Graphics::mode) {
-		for each (const auto& shaderFile in GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
+		for each (const auto& shaderFile in IniReader::GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
 			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
 		}
 		globalShadersActive = !gShaderFiles.empty();

@@ -22,10 +22,12 @@
 
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
+#include "Handlers\Combat.h"
 #include "Handlers\Core.h"
 #include "Handlers\FileSystem.h"
 #include "Handlers\Graphics.h"
 #include "Handlers\Interface.h"
+#include "Handlers\Inventory.h"
 #include "Handlers\Math.h"
 #include "Handlers\Memory.h"
 #include "Handlers\Misc.h"
@@ -287,7 +289,7 @@ void InitNewOpcodes() {
 		ForceEncounterRestore(); // restore if the encounter did not happen
 	};
 
-	if (int unsafe = iniGetInt("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
+	if (int unsafe = IniReader::GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {
 		if (unsafe == 2) checkValidMemAddr = false;
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = op_write_byte;

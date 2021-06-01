@@ -26,27 +26,31 @@ namespace var
 {
 
 // defines reference to a variable (pointer is constant, but value can be changed)
-#define VAR_(name, type)	\
-	type &name = *reinterpret_cast<type*>(FO_VAR_##name);
+#define VAR_(name, type) \
+	type& name = *reinterpret_cast<type*>(FO_VAR_##name);
 
 // defines reference to a constant variable (value can't be changed from sfall)
-#define VARC(name, type)	\
+#define VARC(name, type) \
 	const type& name = *reinterpret_cast<type*>(FO_VAR_##name);
 
 // defines reference to static array
-#define VARA(name, type, size)	\
+#define VARA(name, type, size) \
 	ArrayWrapper<type, size> &name = *reinterpret_cast<ArrayWrapper<type, size>*>(FO_VAR_##name);
 
 // defines reference to static 2-dimensional array
-#define VAR2(name, type, size1, size2)	\
+#define VAR2(name, type, size1, size2) \
 	ArrayWrapper<ArrayWrapper<type, size2>, size1> &name = *reinterpret_cast<ArrayWrapper<ArrayWrapper<type, size2>, size1>*>(FO_VAR_##name);
 
 // defines reference to static 3-dimensional array
-#define VAR3(name, type, size1, size2, size3)	\
+#define VAR3(name, type, size1, size2, size3) \
 	ArrayWrapper<ArrayWrapper<ArrayWrapper<type, size3>, size2>, size1> &name = *reinterpret_cast<ArrayWrapper<ArrayWrapper<ArrayWrapper<type, size3>, size2>, size1>*>(FO_VAR_##name);
 
+// defines reference pointer to dynamic array
+#define VARD(name, type) \
+	type*& name = *reinterpret_cast<type**>(FO_VAR_##name);
+
 // defines const pointer to variable (useful for static arrays, when exact size is unknown)
-#define VARP(name, type)	\
+#define VARP(name, type) \
 	type* const name = reinterpret_cast<type*>(FO_VAR_##name);
 
 // X-Macros pattern

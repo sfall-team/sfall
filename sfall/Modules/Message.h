@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "..\main.h"
+//#include "..\FalloutEngine\Fallout2.h"
 
 #include "Module.h"
 
@@ -50,8 +51,6 @@ namespace sfall
 #define MSG_FILE_WORLDMAP	(0x672FB0)
 
 typedef std::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGameMessageListsMap;
-extern ExtraGameMessageListsMap gExtraGameMsgLists;
-extern const fo::MessageList* gameMsgFiles[];
 
 class Message : public Module {
 public:
@@ -59,10 +58,12 @@ public:
 	void init();
 	void exit() override;
 
+	static const char* GameLanguage();
+
+	static ExtraGameMessageListsMap gExtraGameMsgLists;
+	static const fo::MessageList* gameMsgFiles[];
+
 	static long AddExtraMsgFile(const char* msgName, long msgNumber);
 };
-
-fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgRef);
-char* GetMsg(fo::MessageList* msgList, int msgRef, int msgNum);
 
 }

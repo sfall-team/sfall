@@ -108,6 +108,8 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_ADJUSTPOISON,     Inject_AdjustPoisonHook,     0},
 	{HOOK_ADJUSTRADS,       Inject_AdjustRadsHook,       1},  // always embedded for party control fix
 	{HOOK_ROLLCHECK,        Inject_RollCheckHook,        0},
+	{HOOK_BESTWEAPON,       Inject_BestWeaponHook,       0},
+	{HOOK_CANUSEWEAPON,     Inject_CanUseWeaponHook,     0},
 };
 
 void HookScripts::InjectingHook(int hookId) {
@@ -255,7 +257,7 @@ void HookScripts::init() {
 	LoadGameHook::OnGameModeChange() += HookCommon::GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
-	injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
+	injectAllHooks = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "InjectAllGameHooks", 0) != 0);
 	if (injectAllHooks) dlogr("Injecting all game hooks.", DL_HOOK|DL_INIT);
 }
 

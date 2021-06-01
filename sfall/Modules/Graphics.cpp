@@ -1062,7 +1062,9 @@ public:
 			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
 			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			if (!SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW)) {
+				windowLeft = windowTop = 0; // fail to set position
+			}
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1109,21 +1111,21 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		gWidth  = dispMode.Width;
 		gHeight = dispMode.Height;
 	} else {
-		gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
-		gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
+		gWidth = IniReader::GetConfigInt("Graphics", "GraphicsWidth", 0);
+		gHeight = IniReader::GetConfigInt("Graphics", "GraphicsHeight", 0);
 		if (!gWidth || !gHeight) {
 			gWidth = ResWidth;
 			gHeight = ResHeight;
 		}
 	}
 
-	Graphics::GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
+	Graphics::GPUBlt = IniReader::GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
 	if (!Graphics::GPUBlt || Graphics::GPUBlt > 2)
 		Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		moveWindowKey[0] = GetConfigInt("Input", "WindowScrollKey", 0);
+		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
 		if (moveWindowKey[0] < 0) {
 			switch (moveWindowKey[0]) {
 			case -1:
@@ -1144,7 +1146,7 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		} else {
 			moveWindowKey[0] &= 0xFF;
 		}
-		windowData = GetConfigInt("Graphics", "WindowData", 0);
+		windowData = IniReader::GetConfigInt("Graphics", "WindowData", 0);
 		if (windowData > 0) {
 			windowLeft = windowData >> 16;
 			windowTop = windowData & 0xFFFF;
@@ -1183,7 +1185,7 @@ static __declspec(naked) void game_init_hook() {
 }
 
 void Graphics::init() {
-	Graphics::mode = GetConfigInt("Graphics", "Mode", 0);
+	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
 	if (Graphics::mode == 6) {
 		windowStyle = WS_OVERLAPPED;
 	} else if (Graphics::mode != 4 && Graphics::mode != 5) {
@@ -1196,7 +1198,7 @@ void Graphics::init() {
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+			               "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
 		} else {
@@ -1205,7 +1207,10 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		textureFilter = GetConfigInt("Graphics", "TextureFilter", 1);
+		// Patch HRP to show the mouse cursor over the window title
+		if (Graphics::mode == 5 && hrpVersionValid) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
+
+		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1214,9 +1219,10 @@ void Graphics::init() {
 
 void Graphics::exit() {
 	if (Graphics::mode) {
-		if (Graphics::mode == 5) {
-			int data = windowTop | (windowLeft << 16);
-			if (data >= 0 && data != windowData) SetConfigInt("Graphics", "WindowData", data);
+		RECT rect;
+		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
+			int data = rect.top | (rect.left << 16);
+			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
 		}
 		CoUninitialize();
 	}

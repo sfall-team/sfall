@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 
 #include "QuestList.h"
 
@@ -45,7 +46,7 @@ static bool calledflag = false;
 static DWORD called_quest_number = 0;
 static DWORD total_quests_pages = 0;
 static DWORD curent_quest_page = 0;
-static DWORD look_quests = 0;         // check current quests
+static DWORD look_quests = 0; // check current quests
 
 static DWORD first_quest_page = 0;
 static DWORD last_quest_page = INT_MAX;
@@ -86,7 +87,7 @@ static void __declspec(naked) pip_print_hack() {
 	__asm {
 		test bh, 1;
 		jz   skip;
-		add  edx, 60;  // pixel offset
+		add  edx, 60; // pixel offset
 		jmp  end;
 skip:
 		test bh, 2;
@@ -178,7 +179,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
+static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const char* text) {
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {
@@ -223,14 +224,11 @@ static void __declspec(naked) PipStatus_hack_print() {
 	static const DWORD PipStatus_BreakRet  = 0x4982A4;
 	__asm {
 		push ecx;
-		push ebx;
 		push edx;
-		push ecx;         // count
+		push eax;         // text
 		push ebx;         // buf
-		mov  ecx, eax;    // text
-		call QuestsPrint; // edx - width
+		call QuestsPrint; // ecx - count, edx - width
 		pop  edx;
-		pop  ebx;
 		pop  ecx;
 		cmp  eax, 0;
 		jl   jbreak;
@@ -246,6 +244,7 @@ jbreak:
 
 static char bufPage[16];
 static const char* format = "%s %d %s %d";
+
 static void __declspec(naked) PrintPages() {
 	__asm {
 		// total pages
@@ -302,7 +301,7 @@ skip:
 	}
 }
 
-static DWORD __fastcall ActionButtons(register DWORD key) {
+static DWORD __fastcall ActionButtons(DWORD key) {
 	buttonsPressed = false;
 	if (key == 0x300) { // up
 		if (curent_quest_page == 0) return -1;
@@ -317,8 +316,8 @@ static DWORD __fastcall ActionButtons(register DWORD key) {
 			curent_quest_page++;
 			first_quest_page = pageQuest[curent_quest_page];
 			last_quest_page  = ((pageQuest.size() - 1) > curent_quest_page)
-							? pageQuest[curent_quest_page + 1] - 1
-							: INT_MAX;
+			                 ? pageQuest[curent_quest_page + 1] - 1
+			                 : INT_MAX;
 			buttonsPressed = true;
 			return called_quest_number;
 		}
@@ -335,7 +334,7 @@ static void __declspec(naked) pipboy_hack_action() {
 		mov  ecx, ebx;
 		call ActionButtons;
 		cmp  eax, -1;
-		cmovne ebx, eax;  // called_quest_number
+		cmovne ebx, eax; // called_quest_number
 		pop  edx;
 		pop  eax;
 		xor  ecx, ecx;
@@ -346,31 +345,17 @@ skip:
 	}
 }
 
-static void RegisterButtonSoundFunc0() {
+static void RegisterButtonSound() {
 	__asm {
 		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
 		mov  edx, fo::funcoffs::gsound_red_butt_press_;
-		call fo::funcoffs::win_register_button_sound_func_;
+		call fo::funcoffs::win_register_button_sound_func_; // eax - register button
 	}
 }
 
-static void __stdcall ArtButtonFunc(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) {
-using namespace fo;
-	__asm {
-		xor  ecx, ecx;
-		xor  ebx, ebx;
-		mov  edx, indexArt;          // index from intrface.lst
-		mov  eax, OBJ_TYPE_INTRFACE;
-		push ecx;
-		call fo::funcoffs::art_id_;
-		//
-		mov  ecx, buttonKey;
-		xor  ebx, ebx;
-		xor  edx, edx;
-		call fo::funcoffs::art_ptr_lock_data_;
-		mov  ecx, buttonMem;
-		mov  dword ptr [ecx], eax;   // first texture memory address
-	}
+static void LoadArtButton(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) { // indexArt - index from intrface.lst
+	long artId = fo::func::art_id(fo::ArtType::OBJ_TYPE_INTRFACE, indexArt, 0, 0, 0);
+	*(BYTE**)buttonMem = fo::func::art_ptr_lock_data(artId, 0, 0, (DWORD*)buttonKey); // first texture memory address
 }
 
 // Create buttons
@@ -410,11 +395,11 @@ static void __declspec(naked) StartPipboy_hack() {
 	// Load new texture for first (up) button. I used memory address for texture from buttons at chracter screen.
 	// Everything fine, because this buttons can't use in one time, and they everytime recreating.
 	// Down
-	ArtButtonFunc(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp,   indexUpArt0);
-	ArtButtonFunc(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown, indexDownArt0);
+	LoadArtButton(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp,   indexUpArt0);
+	LoadArtButton(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown, indexDownArt0);
 	// Up
-	ArtButtonFunc(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp1,   indexUpArt1);
-	ArtButtonFunc(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown1, indexDownArt1);
+	LoadArtButton(FO_VAR_optionsButtonUpKey,   FO_VAR_optionsButtonUp1,   indexUpArt1);
+	LoadArtButton(FO_VAR_optionsButtonDownKey, FO_VAR_optionsButtonDown1, indexDownArt1);
 
 	xPos = questsScrollButtonsX;
 	yPos = questsScrollButtonsY;
@@ -424,19 +409,19 @@ static void __declspec(naked) StartPipboy_hack() {
 	picDown = (BYTE*)fo::var::optionsButtonDown1;
 	picUp   = (BYTE*)fo::var::optionsButtonUp1;
 	if (fo::func::win_register_button(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
-		RegisterButtonSoundFunc0();
+		RegisterButtonSound();
 	}
 
 	picDown = (BYTE*)fo::var::optionsButtonDown;
 	picUp   = (BYTE*)fo::var::optionsButtonUp;
 	if (fo::func::win_register_button(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
-		RegisterButtonSoundFunc0();
+		RegisterButtonSound();
 	}
 
 	__asm {
-		mov  esp, ebp;    // epilog
+		mov  esp, ebp;   // epilog
 		pop  edi;
-		mov  ebp, 0x1F4;  // overwrite engine code
+		mov  ebp, 0x1F4; // overwrite engine code
 		retn;
 	}
 }
@@ -453,6 +438,40 @@ skip:
 		mov  calledflag, 0;
 		mov  InQuestsList, 0;
 		retn;
+	}
+}
+
+static void __fastcall QuestListSort(fo::QuestData* questList, size_t numElements) {
+	if (numElements <= 1) return;
+
+	fo::QuestData* tmpList = new fo::QuestData[numElements];
+	std::memcpy(tmpList, questList, numElements * sizeof(fo::QuestData));
+
+	long locStart = 1500; // number from which the locations starting
+	size_t leftStart = 0;
+
+	for (size_t i = 0; i < numElements;) {
+		for (size_t j = leftStart; j < numElements; j++) {
+			if (!tmpList[j].location) {
+				if ((j - leftStart) == 1) leftStart = j;
+				continue;
+			}
+			if (tmpList[j].location == locStart) {
+				// unsorted?
+				if (j != i) questList[i] = tmpList[j];
+				if (++i >= numElements) break;
+				tmpList[j].location = 0;
+			}
+		}
+		locStart++;
+	}
+	delete[] tmpList;
+}
+
+static void __declspec(naked) quest_init_hook() {
+	__asm {
+		mov  ecx, eax;      // questList (base)
+		jmp  QuestListSort; // edx - numElements
 	}
 }
 
@@ -473,15 +492,72 @@ void QuestListPatch() {
 	MakeCall(0x497A7D, pip_print_hack);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+struct QuestFailure {
+	long gvarNum;
+	long failureVal;
+};
+
+std::vector<QuestFailure> questFailures;
+
+static long FindGVarQuestFailure(long globalVarNum) {
+	for (size_t i = 0; i < questFailures.size(); i++) {
+		if (questFailures[i].gvarNum == globalVarNum) return i;
+	}
+	return -1;
+}
+
+void QuestList::AddQuestFailureValue(long globalVarNum, long failureThreshold) {
+	long index = FindGVarQuestFailure(globalVarNum);
+	if (index == -1) {
+		questFailures.push_back({ globalVarNum, failureThreshold });
+	} else {
+		questFailures[index].failureVal = failureThreshold;
+	}
+}
+
+static BYTE __fastcall CheckQuestFailureState(fo::QuestData* quest, BYTE completeColor) {
+	if (questFailures.empty()) return completeColor;
+
+	const BYTE failureColor = 137; // dark red
+
+	long index = FindGVarQuestFailure(quest->gvarIndex);
+	return (index != -1 && fo::var::game_global_vars[quest->gvarIndex] >= questFailures[index].failureVal) ? failureColor : completeColor;
+}
+
+static void __declspec(naked) PipStatus_hack() {
+	__asm {
+		push eax;
+		push ecx;
+		mov  dl, ds:[0x6A5B34]; // completeColor (dark green)
+		mov  ecx, ds:[FO_VAR_quests];
+		add  ecx, [esp + 0x4BC - 0x28 + 12];
+		call CheckQuestFailureState;
+		mov  bl, al;
+		pop  ecx;
+		pop  eax;
+		retn;
+	}
+}
+
+static void ResetQuests() {
+	questFailures.clear();
+}
+
 void QuestList::init() {
-	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
+	LoadGameHook::OnGameReset() += ResetQuests;
+
+	MakeCall(0x498222, PipStatus_hack, 1);
+
+	questsButtonsType = IniReader::GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
 		dlog("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
-		questsScrollButtonsX = GetConfigInt("Misc", "QuestsScrollButtonsX", 140);
+		questsScrollButtonsX = IniReader::GetConfigInt("Misc", "QuestsScrollButtonsX", 140);
 		if (questsScrollButtonsX < 0 || questsScrollButtonsX > 618) questsScrollButtonsX = 140;
-		questsScrollButtonsY = GetConfigInt("Misc", "QuestsScrollButtonsY", 334);
+		questsScrollButtonsY = IniReader::GetConfigInt("Misc", "QuestsScrollButtonsY", 334);
 		if (questsScrollButtonsY < 0 || questsScrollButtonsY > 434) questsScrollButtonsY = 334;
 
 		pageQuest.reserve(4); // init
@@ -491,6 +567,9 @@ void QuestList::init() {
 	} else {
 		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of bounds" bug when printing a list of quests
 	}
+
+	// Replace the qsort_ unstable sorting function with a simple stable sorting algorithm
+	HookCall(0x49A7C2, quest_init_hook);
 }
 
 }

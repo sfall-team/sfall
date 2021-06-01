@@ -10,12 +10,21 @@
 #include "..\Modules\Inventory.h"
 #include "..\Modules\PartyControl.h"
 
+#include "..\Modules\HookScripts\InventoryHs.h"
+
 #include "inventory.h"
 
 namespace game
 {
 
 namespace sf = sfall;
+
+// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
+long Inventory::correctFidForRemovedItem(fo::GameObject* critter, fo::GameObject* item, long flags) {
+	long result = sf::InvenWieldHook_Invoke(critter, item, flags);
+	if (result) fo::func::correctFidForRemovedItem(critter, item, flags);
+	return result;
+}
 
 DWORD __stdcall Inventory::item_total_size(fo::GameObject* critter) {
 	int totalSize = fo::func::item_c_curr_size(critter);
@@ -54,15 +63,15 @@ DWORD __stdcall Inventory::adjust_fid() {
 		} else {
 			// vanilla logic:
 			indexNum = fo::var::art_vault_guy_num;
-			auto critterPro = fo::GetProto(fo::var::inven_pid);
-			if (critterPro != nullptr) {
+			fo::Proto* critterPro;
+			if (fo::GetProto(fo::var::inven_pid, &critterPro)) {
 				indexNum = critterPro->fid & 0xFFF;
 			}
 			if (fo::var::i_worn != nullptr) {
-				auto armorPro = fo::GetProto(fo::var::i_worn->protoId);
+				fo::Proto* armorPro = fo::GetProto(fo::var::i_worn->protoId);
 				DWORD armorFid = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
-					? armorPro->item.armor.femaleFID
-					: armorPro->item.armor.maleFID;
+				               ? armorPro->item.armor.femaleFID
+				               : armorPro->item.armor.maleFID;
 
 				if (armorFid != -1) {
 					indexNum = armorFid;
@@ -70,12 +79,12 @@ DWORD __stdcall Inventory::adjust_fid() {
 			}
 		}
 		auto itemInHand = fo::func::intface_is_item_right_hand()
-			? fo::var::i_rhand
-			: fo::var::i_lhand;
+		                ? fo::var::i_rhand
+		                : fo::var::i_lhand;
 
 		if (itemInHand != nullptr) {
-			auto itemPro = fo::GetProto(itemInHand->protoId);
-			if (itemPro->item.type == fo::item_type_weapon) {
+			fo::Proto* itemPro;
+			if (fo::GetProto(itemInHand->protoId, &itemPro) && itemPro->item.type == fo::item_type_weapon) {
 				weaponAnimCode = itemPro->item.weapon.animationCode;
 			}
 		}
@@ -100,7 +109,7 @@ static void __declspec(naked) adjust_fid_hack() {
 }
 
 void Inventory::init() {
-	// Replace functions
+	// Replace adjust_fid_ function
 	sf::MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_hack); // 0x4716E8
 }
 

@@ -69,7 +69,7 @@ static void __declspec(naked) MoveCostHook() {
 }
 
 static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
-	if (itemReplaced && fo::GetItemType(itemReplaced) == fo::item_type_weapon && fo::GetItemType(item) == fo::item_type_ammo) {
+	if (itemReplaced && fo::func::item_get_type(itemReplaced) == fo::item_type_weapon && fo::func::item_get_type(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 
@@ -269,7 +269,6 @@ static void __declspec(naked) DropIntoContainerHandSlotHack() {
 }
 
 static void __declspec(naked) DropAmmoIntoWeaponHook() {
-	//static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 	static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
 	__asm {
 		pushadc;
@@ -278,13 +277,11 @@ static void __declspec(naked) DropAmmoIntoWeaponHook() {
 		push 4;                     // event: weapon reloading
 		call InventoryMoveHook_Script;
 		cmp  eax, -1;               // ret value
-		popadc;
 		jne  donothing;
+		popadc;
 		jmp  fo::funcoffs::item_w_can_reload_;
-		//mov  ebx, 1;   // overwritten code
-		//jmp  DropAmmoIntoWeaponHack_back;
 donothing:
-		add  esp, 4;   // destroy return address
+		add  esp, 4*4; // destroy all pushed values and return address
 		xor  eax, eax; // result 0
 		jmp  DropAmmoIntoWeaponHack_return;
 	}
@@ -384,7 +381,7 @@ static void __declspec(naked) InvenWieldFuncHook() {
 	}
 
 	// right hand slot?
-	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::GetItemType((fo::GameObject*)args[1]) != fo::item_type_armor) {
+	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::func::item_get_type((fo::GameObject*)args[1]) != fo::item_type_armor) {
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
 	InvenWieldHook_ScriptPart(1); // wield event
@@ -456,6 +453,18 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 		popadc;
 		jmp  fo::funcoffs::correctFidForRemovedItem_;
 	}
+}
+
+long InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long flags) {
+	if (!HookScripts::HookHasScript(HOOK_INVENWIELD)) return 1;
+
+	long slot = fo::INVEN_TYPE_WORN;
+	if (flags & fo::ObjectFlag::Right_Hand) {       // right hand slot
+		slot = fo::INVEN_TYPE_RIGHT_HAND;
+	} else if (flags & fo::ObjectFlag::Left_Hand) { // left hand slot
+		slot = fo::INVEN_TYPE_LEFT_HAND;
+	}
+	return InvenWieldHook_Script(critter, item, slot, 0, 0);
 }
 
 static void __declspec(naked) item_drop_all_hack() {
@@ -652,22 +661,6 @@ void Inject_InvenWieldHook() {
 	MakeCall(0x4778AF, item_drop_all_hack, 3);
 
 	hookInvenWieldIsInject = true;
-}
-
-// internal function implementation with hook
-long CorrectFidForRemovedItem_wHook(fo::GameObject* critter, fo::GameObject* item, long flags) {
-	long result = 1;
-	if (!hooks[HOOK_INVENWIELD].empty()) {
-		long slot = fo::INVEN_TYPE_WORN;
-		if (flags & fo::ObjectFlag::Right_Hand) {       // right hand slot
-			slot = fo::INVEN_TYPE_RIGHT_HAND;
-		} else if (flags & fo::ObjectFlag::Left_Hand) { // left hand slot
-			slot = fo::INVEN_TYPE_LEFT_HAND;
-		}
-		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
-	}
-	if (result) fo::func::correctFidForRemovedItem(critter, item, flags);
-	return result;
 }
 
 void InitInventoryHookScripts() {

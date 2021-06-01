@@ -16,13 +16,13 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
-#include <stdio.h>
 #include <string>
 #include <vector>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Translate.h"
+
 #include "HookScripts.h"
 
 #include "Karma.h"
@@ -78,22 +78,22 @@ void Karma::DisplayKarma(int value) {
 }
 
 static void ApplyDisplayKarmaChangesPatch() {
-	displayKarmaChanges = GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
+	displayKarmaChanges = IniReader::GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
 	if (displayKarmaChanges) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		karmaGainMsg = Translate("sfall", "KarmaGain", "You gained %d karma.");
-		karmaLossMsg = Translate("sfall", "KarmaLoss", "You lost %d karma.");
+		karmaGainMsg = Translate::Get("sfall", "KarmaGain", "You gained %d karma.");
+		karmaLossMsg = Translate::Get("sfall", "KarmaLoss", "You lost %d karma.");
 		HookScripts::InjectingHook(HOOK_SETGLOBALVAR);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void ApplyKarmaFRMsPatch() {
-	auto karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
+	auto karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "", 512);
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
 		dlog("Applying karma FRM patch.", DL_INIT);
-		auto karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
+		auto karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "", 512);
 
 		karmaFrms.resize(countFrm);
 		size_t countPoints = karmaPointsList.size();

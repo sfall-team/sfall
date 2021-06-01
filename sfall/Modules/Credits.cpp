@@ -160,7 +160,7 @@ morelines:
 
 void Credits::init() {
 	HookCalls(ShowCreditsHook, {0x480C49, 0x43F881});
-	if (GetConfigInt("Misc", "CreditsAtBottom", 0)) {
+	if (IniReader::GetConfigInt("Misc", "CreditsAtBottom", 0)) {
 		HookCall(0x42CB49, CreditsNextLineHook_Bottom);
 	} else {
 		HookCall(0x42CB49, CreditsNextLineHook_Top);

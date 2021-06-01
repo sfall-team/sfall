@@ -522,7 +522,7 @@ static void __declspec(naked) op_play_gmovie_hack() {
 }
 
 void SkipOpeningMoviesPatch() {
-	int skipOpening = GetConfigInt("Misc", "SkipOpeningMovies", 0);
+	int skipOpening = IniReader::GetConfigInt("Misc", "SkipOpeningMovies", 0);
 	if (skipOpening) {
 		dlog("Skipping opening movies.", DL_INIT);
 		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
@@ -575,9 +575,9 @@ void Movies::init() {
 
 		_itoa_s(i + 1, &optName[5], 3, 10);
 		if (i < DEFAULT_MOVIES) {
-			GetConfigString("Misc", optName, fo::var::movie_list[i], &MoviePaths[index], 65);
+			IniReader::GetConfigString("Misc", optName, fo::var::movie_list[i], &MoviePaths[index], 65);
 		} else {
-			GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
+			IniReader::GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
 		}
 	}
 	dlog(".", DL_INIT);
@@ -591,7 +591,7 @@ void Movies::init() {
 		Implement subtitle output from the need to play an mve file in the background.
 	*/
 	if (Graphics::mode != 0) {
-		int allowDShowMovies = GetConfigInt("Graphics", "AllowDShowMovies", 0);
+		int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
 			Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
 			MakeJump(0x44E690, gmovie_play_hack);
@@ -604,7 +604,7 @@ void Movies::init() {
 	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
 	days = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, days);
-	Artimer1DaysCheckTimer = GetConfigInt("Misc", "MovieTimer_artimer1", 90);
+	Artimer1DaysCheckTimer = IniReader::GetConfigInt("Misc", "MovieTimer_artimer1", 90);
 	if (Artimer1DaysCheckTimer != 90) {
 		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];

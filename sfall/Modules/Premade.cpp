@@ -17,18 +17,77 @@
  */
 
 #include "..\main.h"
-#include "..\FalloutEngine\Structs.h"
+#include "..\FalloutEngine\Fallout2.h"
+#include "Message.h"
 
 #include "Premade.h"
 
 namespace sfall
 {
 
-fo::PremadeChar* premade;
+static fo::PremadeChar* premade;
+
+static const char* __fastcall GetLangPremadePath(const char* premadePath) {
+	static char premadeLangPath[56]; // premade\<language>\combat.bio
+	static bool isDefault = false;
+	static long len = 0;
+
+	if (isDefault) return nullptr;
+	if (len == 0) {
+		len = std::strlen(Message::GameLanguage());
+		if (len == 0 || len >= 32) {
+			isDefault = true;
+			return nullptr;
+		}
+		isDefault = (_stricmp(Message::GameLanguage(), "english") == 0);
+		if (isDefault) return nullptr;
+
+		std::strncpy(premadeLangPath, premadePath, 8);
+		std::strcpy(&premadeLangPath[8], Message::GameLanguage());
+	}
+	std::strcpy(&premadeLangPath[8 + len], &premadePath[7]);
+
+	return premadeLangPath;
+}
+
+static const char* __fastcall PremadeGCD(const char* premadePath) {
+	const char* path = GetLangPremadePath(premadePath);
+	return (path && fo::func::db_access(path)) ? path : premadePath;
+}
+
+static fo::DbFile* __fastcall PremadeBIO(const char* premadePath, const char* mode) {
+	premadePath = GetLangPremadePath(premadePath);
+	return (premadePath) ? fo::func::db_fopen(premadePath, mode) : nullptr;
+}
+
+static void __declspec(naked) select_display_bio_hook() {
+	__asm {
+		push eax;
+		push edx;
+		mov  ecx, eax; // premade path
+		call PremadeBIO;
+		test eax, eax;
+		jz   default;
+		add  esp, 8;
+		retn;
+default:
+		pop  edx;
+		pop  eax;
+		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
+static void __declspec(naked) select_update_display_hook() {
+	__asm {
+		mov  ecx, eax; // premade path
+		call PremadeGCD;
+		jmp  fo::funcoffs::proto_dude_init_;
+	}
+}
 
 void Premade::init() {
-	auto premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
-	auto premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
+	auto premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
+	auto premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (!premadePaths.empty() && !premadeFids.empty()) {
 		dlog("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());
@@ -39,17 +98,21 @@ void Premade::init() {
 				dlog_f(" Failed: %s exceeds 11 characters\n", DL_INIT, premadePaths[i].c_str());
 				return;
 			}
-			strcpy(premade[i].path, path.c_str());
+			std::strcpy(premade[i].path, path.c_str());
 			premade[i].fid = atoi(premadeFids[i].c_str());
 		}
 
-		SafeWrite32(0x51C8D4, count);
-		SafeWrite32(0x4A7D76, (DWORD)premade);
-		SafeWrite32(0x4A8B1E, (DWORD)premade);
-		SafeWrite32(0x4A7E2C, (DWORD)&premade[0].fid);
-		strcpy((char*)0x50AF68, premade[0].path);
+		SafeWrite32(0x51C8D4, count);                  // _premade_total
+		SafeWrite32(0x4A7D76, (DWORD)premade);         // select_update_display_
+		SafeWrite32(0x4A8B1E, (DWORD)premade);         // select_display_bio_
+		SafeWrite32(0x4A7E2C, (DWORD)&premade[0].fid); // select_display_portrait_
+		std::strcpy((char*)0x50AF68, premade[0].path); // for selfrun
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Add language path for premade GCD/BIO files
+	HookCall(0x4A8B44, select_display_bio_hook);
+	HookCall(0x4A7D91, select_update_display_hook);
 }
 
 }

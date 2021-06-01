@@ -20,10 +20,6 @@
 
 #include <psapi.h>
 
-#include <algorithm>
-#include <stdio.h>
-#include <memory>
-
 #include "FalloutEngine\Fallout2.h"
 #include "ModuleManager.h"
 #include "Modules\Module.h"
@@ -47,8 +43,8 @@
 #include "Modules\ExtraSaveSlots.h"
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
 #include "Modules\HeroAppearance.h"
+#include "Modules\HookScripts.h"
 #include "Modules\Input.h"
 #include "Modules\Interface.h"
 #include "Modules\Inventory.h"
@@ -80,11 +76,10 @@
 #include "Modules\Worldmap.h"
 
 #include "CRC.h"
-#include "SimplePatch.h"
 #include "Logging.h"
 #include "ReplacementFuncs.h"
-#include "Utils.h"
-#include "Version.h"
+#include "Translate.h"
+#include "version.h"
 
 #include "main.h"
 
@@ -98,83 +93,21 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
-const char ddrawIni[] = ".\\ddraw.ini";
-static char ini[65] = ".\\";
-static char translationIni[65];
-
-DWORD modifiedIni;
-DWORD hrpDLLBaseAddr = 0x10000000;
+static DWORD hrpDLLBaseAddr = 0x10000000;
 
 DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
 }
 
-int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
-}
-
-size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
-}
-
-std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	char* buf = new char[bufSize];
-	iniGetString(section, setting, defaultValue, buf, bufSize, iniFile);
-	std::string str(buf);
-	delete[] buf;
-	return str;
-}
-
-std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	auto list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
-	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
-	return list;
-}
-
-/*
-	For ddraw.ini config
-*/
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return iniGetInt(section, setting, defaultValue, ini);
-}
-
-std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return trim(GetIniString(section, setting, defaultValue, bufSize, ini));
-}
-
-size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buf, bufSize, ini);
-}
-
-std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
-}
-
-std::vector<std::string> TranslateList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, delimiter, translationIni);
-}
-
-std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
-}
-
-size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
-}
-
-int SetConfigInt(const char* section, const char* setting, int value) {
-	char* buf = new char[33];
-	_itoa_s(value, buf, 33, 10);
-	int result = WritePrivateProfileStringA(section, setting, buf, ini);
-	delete[] buf;
-	return result;
-}
+char falloutConfigName[65] = {0};
 
 void InitReplacementHacks() {
 	game::Inventory::init();
+	game::Items::init();
 	game::Render::init();
 	game::Skills::init();
 	game::Stats::init();
+	game::Tilemap::init();
 }
 
 static void InitModules() {
@@ -265,9 +198,9 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					RegCloseKey(key);
 
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
-								   "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
-								   "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
+					               "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
+					               "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
+					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -279,10 +212,10 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 
 inline void SfallInit() {
 	// enabling debugging features
-	isDebug = (iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
+	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 	if (isDebug) {
 		LoggingInit();
-		if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
+		if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
 	}
 
 	char filepath[MAX_PATH];
@@ -290,7 +223,7 @@ inline void SfallInit() {
 
 	CRC(filepath);
 
-	if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
+	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -308,7 +241,7 @@ inline void SfallInit() {
 	// ini file override
 	bool cmdlineexists = false;
 	char* cmdline = GetCommandLineA();
-	if (iniGetInt("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
 		while (cmdline[0] == ' ') cmdline++;
 		bool InQuote = false;
 		int count = -1;
@@ -334,19 +267,16 @@ inline void SfallInit() {
 		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-			strcat_s(ini, cmdline);
+			IniReader::SetConfigFile(cmdline);
 		} else {
 			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
-						   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
+			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}
 	} else {
 defaultIni:
-		strcpy(&ini[2], &::sfall::ddrawIni[2]);
+		IniReader::SetDefaultConfigFile();
 	}
-
-	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
-	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
@@ -359,6 +289,19 @@ defaultIni:
 		}
 	}
 	std::srand(GetTickCount());
+
+	IniReader::init();
+
+	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
+		dlog("Applying config file patch.", DL_INIT);
+		SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, {0x444BA5, 0x444BCA});
+		dlogr(" Done", DL_INIT);
+	} else {
+		// if the ConfigFile is not assigned a value
+		std::strcpy(falloutConfigName, (const char*)FO_VAR_fallout_config);
+	}
+
+	Translate::init(falloutConfigName);
 
 	InitReplacementHacks();
 	InitModules();

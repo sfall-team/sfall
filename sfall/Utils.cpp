@@ -6,6 +6,14 @@
 namespace sfall
 {
 
+WORD ByteSwapW(WORD w) {
+	return ((w & 0xFF) << 8) | ((w & 0xFF00) >> 8);
+}
+
+DWORD ByteSwapD(DWORD dw) {
+	return ((dw & 0xFF) << 24) | ((dw & 0xFF00) << 8) | ((dw & 0xFF0000) >> 8) | ((dw & 0xFF000000) >> 24);
+}
+
 std::vector<std::string> split(const std::string &s, char delim) {
 	std::vector<std::string> elems;
 	split(s, delim, std::back_inserter(elems));

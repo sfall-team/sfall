@@ -5,7 +5,7 @@
 
 #include "Modules\Module.h"
 
-namespace sfall 
+namespace sfall
 {
 
 // Singleton for managing all of Sfall modules.
@@ -17,7 +17,7 @@ public:
 
 	void initAll();
 
-	template<typename T> 
+	template <typename T>
 	void add()
 	{
 		_modules.emplace_back(new T());

@@ -16,15 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\FalloutEngine\EngineUtils.h"
+#include "..\Translate.h"
+
 #include "Inventory.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
-#include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
@@ -34,8 +32,6 @@
 
 namespace sfall
 {
-
-using namespace fo;
 
 bool HeroAppearance::appModEnabled = false; // check if Appearance mod enabled for script functions
 
@@ -69,7 +65,7 @@ typedef struct LineNode {
 	}
 } LineNode;
 
-/////////////////////////////////////////////////////////////////TEXT FUNCTIONS//////////////////////////////////////////////////////////////////////
+//////////////////////////////// TEXT FUNCTIONS ////////////////////////////////
 
 static void SetFont(long ref) {
 	fo::func::text_font(ref);
@@ -132,7 +128,7 @@ static void DeleteWordWrapList(LineNode *CurrentLine) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////DAT FUNCTIONS///////////////////////////////////////////////////////////////////////
+//////////////////////////////// DAT FUNCTIONS /////////////////////////////////
 
 static void* LoadDat(const char* fileName) {
 	return fo::func::dbase_open(fileName);
@@ -142,13 +138,13 @@ static void UnloadDat(void* dat) {
 	fo::func::dbase_close(dat);
 }
 
-/////////////////////////////////////////////////////////////////OTHER FUNCTIONS/////////////////////////////////////////////////////////////////////
+/////////////////////////////// OTHER FUNCTIONS ////////////////////////////////
 
 static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
 	return (lstRef << 24) | lstNum;
 }
 
-/////////////////////////////////////////////////////////////////APP MOD FUNCTIONS///////////////////////////////////////////////////////////////////
+////////////////////////////// APP MOD FUNCTIONS ///////////////////////////////
 
 static char GetSex() {
 	return (fo::HeroIsFemale()) ? 'F' : 'M';
@@ -180,11 +176,11 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 	}
 
 	const char sex = GetSex();
-	bool folderIsExist = false, heroDatIsExist = false;
+	bool folderExists = false, heroDatExists = false;
 	// check if folder exists for selected appearance
 	sprintf_s(heroPathPtr[0]->path, 64, appearancePathFmt, sex, race, style, "");
 	if (GetFileAttributes(heroPathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
-		folderIsExist = true;
+		folderExists = true;
 	}
 	// check if Dat exists for selected appearance
 	sprintf_s(heroPathPtr[1]->path, 64, appearancePathFmt, sex, race, style, ".dat");
@@ -194,21 +190,21 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 			heroPathPtr[1]->pDat = LoadDat(heroPathPtr[1]->path);
 			heroPathPtr[1]->isDat = 1;
 		}
-		if (folderIsExist) heroPathPtr[0]->next = heroPathPtr[1];
-		heroDatIsExist = true;
-	} else if (!folderIsExist) {
+		if (folderExists) heroPathPtr[0]->next = heroPathPtr[1];
+		heroDatExists = true;
+	} else if (!folderExists) {
 		return -1; // no .dat files and folder
 	}
 
-	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
-	heroPathPtr[0 + heroDatIsExist]->next = &fo::var::paths[0]; // heroPathPtr[] >> foPaths
+	heroAppPaths = &heroPathPtr[1 - folderExists]; // set path for selected appearance
+	heroPathPtr[0 + heroDatExists]->next = &fo::var::paths[0]; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
-		bool raceDatIsExist = false, folderIsExist = false;
+		bool raceDatExists = false, folderExists = false;
 		// check if folder exists for selected race base appearance
 		sprintf_s(racePathPtr[0]->path, 64, appearancePathFmt, sex, race, 0, "");
 		if (GetFileAttributes(racePathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
-			folderIsExist = true;
+			folderExists = true;
 		}
 		// check if Dat (or folder) exists for selected race base appearance
 		sprintf_s(racePathPtr[1]->path, 64, appearancePathFmt, sex, race, 0, ".dat");
@@ -218,14 +214,14 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 				racePathPtr[1]->pDat = LoadDat(racePathPtr[1]->path);
 				racePathPtr[1]->isDat = 1;
 			}
-			if (folderIsExist) racePathPtr[0]->next = racePathPtr[1];
-			raceDatIsExist = true;
-		} else if (!folderIsExist) {
+			if (folderExists) racePathPtr[0]->next = racePathPtr[1];
+			raceDatExists = true;
+		} else if (!folderExists) {
 			return 0;
 		}
 
-		heroPathPtr[0 + heroDatIsExist]->next = racePathPtr[1 - folderIsExist]; // set path for selected race base appearance
-		racePathPtr[0 + raceDatIsExist]->next = &fo::var::paths[0]; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
+		heroPathPtr[0 + heroDatExists]->next = racePathPtr[1 - folderExists]; // set path for selected race base appearance
+		racePathPtr[0 + raceDatExists]->next = &fo::var::paths[0]; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
 	}
 	return 0;
 }
@@ -336,7 +332,7 @@ static long __stdcall AddHeroCritNames() { // art_init_
 	critterListSize = critterArt.total / 2;
 	if (critterListSize > 2048) {
 		MessageBoxA(0, "This mod cannot be used because the maximum limit of the FID count in the critters.lst is exceeded.\n"
-					   "Please disable the mod and restart the game.", "Hero Appearance mod", MB_TASKMODAL | MB_ICONERROR);
+		               "Please disable the mod and restart the game.", "Hero Appearance mod", MB_TASKMODAL | MB_ICONERROR);
 		ExitProcess(-1);
 	}
 	critterArraySize = critterListSize * 13;
@@ -360,7 +356,7 @@ static void DoubleArtAlias() {
 	std::memcpy(crittersAliasData + critterListSize, crittersAliasData, critterListSize * 4);
 }
 
-///////////////////////////////////////////////////////////////GRAPHICS HERO FUNCTIONS///////////////////////////////////////////////////////////////
+/////////////////////////// GRAPHICS HERO FUNCTIONS ////////////////////////////
 
 static void DrawPC() {
 	fo::RedrawObject(fo::var::obj_dude);
@@ -488,7 +484,7 @@ endFunc:
 	}
 }
 
-/////////////////////////////////////////////////////////////////INTERFACE FUNCTIONS/////////////////////////////////////////////////////////////////
+///////////////////////////// INTERFACE FUNCTIONS //////////////////////////////
 
 static void surface_draw(long width, long height, long fromWidth, long fromX, long fromY, BYTE *fromBuff,
                          long toWidth, long toX, long toY, BYTE *toBuff, int maskRef)
@@ -580,8 +576,8 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	char *MsgFileName = (style) ? "game\\AppStyle.msg" : "game\\AppRace.msg";
 
 	if (fo::func::message_load(&MsgList, MsgFileName) == 1) {
-		TitleMsg = GetMsg(&MsgList, 100, 2);
-		InfoMsg = GetMsg(&MsgList, 101, 2);
+		TitleMsg = fo::GetMsg(&MsgList, 100, 2);
+		InfoMsg = fo::GetMsg(&MsgList, 101, 2);
 	}
 
 	fo::Window *winInfo = fo::func::GNW_find(winRef);
@@ -589,7 +585,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
-	UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
+	fo::UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
 	if (frm) {
 		fo::DrawToSurface(frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].width, frm->frames[0].indexBuff, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
@@ -657,7 +653,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
-	UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	fo::UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -702,21 +698,32 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	int oldFont = GetFont();
 	SetFont(0x67);
 
-	char titleText[16];
-	// Get alternate text from ini if available
-	if (isStyle) {
-		Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
+	char *RaceStyleBtn, *DoneBtn;
+	fo::MessageList MsgList;
+
+	if (fo::func::message_load(&MsgList, "game\\AppIface.msg") == 1) {
+		RaceStyleBtn = fo::GetMsg(&MsgList, (isStyle) ? 101 : 100, 2);
+		DoneBtn = fo::GetMsg(&MsgList, 102, 2);
 	} else {
-		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
+		// Get alternate text from ini if available (TODO: remove this in the future)
+		char titleText[16];
+		char doneText[16];
+		if (isStyle) {
+			Translate::Get("AppearanceMod", "StyleText", "Style", titleText, 16);
+		} else {
+			Translate::Get("AppearanceMod", "RaceText", "Race", titleText, 16);
+		}
+		Translate::Get("AppearanceMod", "DoneBtn", "Done", doneText, 16);
+		RaceStyleBtn = titleText;
+		DoneBtn = doneText;
 	}
 
 	BYTE textColour = fo::var::PeanutButter; // PeanutButter colour - palette offset stored in mem
-	DWORD titleTextWidth = fo::GetTextWidth(titleText);
-	fo::PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
+	DWORD titleTextWidth = fo::GetTextWidth(RaceStyleBtn);
+	fo::PrintText(RaceStyleBtn, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	Translate("AppearanceMod", "DoneBtn", "Done", titleText, 16);
-	titleTextWidth = fo::GetTextWidth(titleText);
-	fo::PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
+	titleTextWidth = fo::GetTextWidth(DoneBtn);
+	fo::PrintText(DoneBtn, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	surface_draw(484, 230, 484, 0, 0, mainSurface, 484, 0, 0, winSurface);
 	fo::func::win_show(winRef);
@@ -1023,11 +1030,11 @@ endFunc:
 static void __fastcall HeroGenderChange(long gender) {
 	// get PC stat current gender
 	long newGender = fo::func::stat_level(fo::var::obj_dude, fo::STAT_gender);
-	if (newGender == gender) return;      // check if gender has been changed
+	if (newGender == gender) return; // check if gender has been changed
 
-	long baseModel = (newGender)          // check if male 0
-		? *(DWORD*)0x5108AC               // base female model
-		: fo::var::art_vault_person_nums; // base male model
+	long baseModel = (newGender)     // check if male (0)
+	               ? *(DWORD*)0x5108AC               // base female model
+	               : fo::var::art_vault_person_nums; // base male model
 
 	// adjust base hero art
 	baseModel += critterListSize;
@@ -1142,7 +1149,7 @@ static void __declspec(naked) FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		UnlistedFrm *frm = LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
+		fo::UnlistedFrm *frm = LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 
 		if (frm != nullptr) {
 			surface_draw(640, 480, 640, 0, 0, frm->frames[0].indexBuff, 640, 0, 0, charScrnBackSurface);
@@ -1217,18 +1224,27 @@ static void __declspec(naked) FixCharScrnBack() {
 		int oldFont = GetFont();
 		SetFont(0x67);
 
-		char RaceText[8], StyleText[8];
-		// Get alternate text from ini if available
-		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
-		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
+		char *RaceBtn, *StyleBtn;
+		fo::MessageList MsgList;
 
-		DWORD raceTextWidth = fo::GetTextWidth(RaceText);
-		DWORD styleTextWidth = fo::GetTextWidth(StyleText);
+		if (fo::func::message_load(&MsgList, "game\\AppIface.msg") == 1) {
+			RaceBtn = fo::GetMsg(&MsgList, 100, 2);
+			StyleBtn = fo::GetMsg(&MsgList, 101, 2);
+		} else {
+			// Get alternate text from ini if available (TODO: remove this in the future)
+			char RaceText[8], StyleText[8];
+			Translate::Get("AppearanceMod", "RaceText", "Race", RaceText, 8);
+			Translate::Get("AppearanceMod", "StyleText", "Style", StyleText, 8);
+			RaceBtn = RaceText;
+			StyleBtn = StyleText;
+		}
+		DWORD raceTextWidth = fo::GetTextWidth(RaceBtn);
+		DWORD styleTextWidth = fo::GetTextWidth(StyleBtn);
 
 		BYTE PeanutButter = fo::var::PeanutButter; // palette offset stored in mem
 
-		fo::PrintText(RaceText, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
-		fo::PrintText(StyleText, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
+		fo::PrintText(RaceBtn, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
+		fo::PrintText(StyleBtn, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
 		SetFont(oldFont);
 	}
 
@@ -1260,7 +1276,7 @@ static void __declspec(naked) CharScrnEnd() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////FIX FUNCTIONS//////////////////////////////////////////////////////////////////
+//////////////////////////////// FIX FUNCTIONS /////////////////////////////////
 
 // Adjust PC SFX acm name. Skip Underscore char at the start of PC frm file name
 static void __declspec(naked) FixPcSFX() {
@@ -1306,6 +1322,7 @@ endFunc:
 
 static void __declspec(naked) op_obj_art_fid_hack() {
 	static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  esi, [edi + artFid];
@@ -1323,6 +1340,7 @@ skip:
 }
 
 static void __declspec(naked) op_metarule3_hook() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 0x4C - 0x44 + 8]; // source
@@ -1341,7 +1359,7 @@ skip:
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Load Appearance data from GCD file
 static void __fastcall LoadGCDAppearance(fo::DbFile* fileStream) {
@@ -1517,7 +1535,7 @@ static void HeroAppearanceModExit() {
 }
 
 void HeroAppearance::init() {
-	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
+	int heroAppearanceMod = IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();

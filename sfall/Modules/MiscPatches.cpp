@@ -19,6 +19,8 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
+#include "..\Translate.h"
+
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
 
@@ -27,8 +29,7 @@
 namespace sfall
 {
 
-static char mapName[65]       = {};
-static char configName[65]    = {};
+static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
@@ -145,7 +146,7 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
-		mov  edi, [esp + 4]; // buf **ret_objStruct
+		mov  edi, [esp + 4]; // buf **outObject
 		test ebp, ebp; // check only once
 		jz   checkSee;
 		xor  ebp, ebp; // for only once
@@ -165,10 +166,12 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 		call fo::funcoffs::make_straight_path_;
 		retn 8;
 checkSee:
+		push eax;                                  // keep source
 		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
 		push 0x20;                                 // flags, 0x20 = check ShootThru
 		push edi;
-		call fo::funcoffs::make_straight_path_func_;
+		call fo::funcoffs::make_straight_path_func_; // overlapping if len(eax) == 0
+		pop  ecx;            // source
 		mov  edx, [edi - 8]; // target
 		mov  ebx, [edi];     // blocking object
 		test ebx, ebx;
@@ -186,6 +189,7 @@ checkObj:
 		je   continue; // see through critter
 		retn 8;
 continue:
+		mov  [edi], ecx;                // outObject - ignore source (for cases of overlapping tiles from multihex critters)
 		mov  [edi - 4], ebx;            // replace source with blocking object
 		mov  dword ptr [esp], 0x456BAB; // repeat from the blocking object
 		retn 8;
@@ -339,41 +343,56 @@ palColor:
 	}
 }
 
-static void __fastcall RemoveAllFloatTextObjects(DWORD tile, DWORD flags) {
-	if (fo::var::text_object_index > 0) {
-		for (size_t i = 0; i < fo::var::text_object_index; i++) {
+static void __fastcall RemoveAllFloatTextObjects() {
+	long textCount = fo::var::text_object_index;
+	if (textCount > 0) {
+		for (long i = 0; i < textCount; i++) {
 			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
 			fo::func::mem_free(fo::var::text_object_list[i]);
 		}
 		fo::var::text_object_index = 0;
 	}
-	__asm {
-		mov  eax, tile;
-		mov  edx, flags;
-		call fo::funcoffs::tile_set_center_;
-	}
-	MainLoopHook::displayWinUpdateState = true;
 }
 
 static void __declspec(naked) obj_move_to_tile_hook() {
 	__asm {
-		mov  ecx, eax;
+		push eax;
+		push edx;
 		call RemoveAllFloatTextObjects;
-		mov  eax, ds:[FO_VAR_display_win];
-		jmp  fo::funcoffs::win_draw_; // update black edges
+		pop  edx;
+		pop  eax;
+		jmp  fo::funcoffs::map_set_elevation_;
 	}
 }
 
 static void __declspec(naked) map_check_state_hook() {
 	__asm {
+		push eax;
+		call RemoveAllFloatTextObjects;
+		pop  eax;
+		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hook_redraw() {
+	__asm {
+		mov  MainLoopHook::displayWinUpdateState, 1;
+		call fo::funcoffs::tile_set_center_;
+		mov  eax, ds:[FO_VAR_display_win];
+		jmp  fo::funcoffs::win_draw_; // update black edges after tile_set_center_
+	}
+}
+
+static void __declspec(naked) map_check_state_hook_redraw() {
+	__asm {
 		cmp  MainLoopHook::displayWinUpdateState, 0;
-		je   obj_move_to_tile_hook;
+		je   obj_move_to_tile_hook_redraw;
 		jmp  fo::funcoffs::tile_set_center_;
 	}
 }
 
 static void AdditionalWeaponAnimsPatch() {
-	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
+	if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
 		HookCalls(WeaponAnimHook, {
@@ -386,25 +405,25 @@ static void AdditionalWeaponAnimsPatch() {
 
 static void SkilldexImagesPatch() {
 	dlog("Checking for changed skilldex images.", DL_INIT);
-	long tmp = GetConfigInt("Misc", "Lockpick", 293);
+	long tmp = IniReader::GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) SafeWrite32(0x518D54, tmp);
-	tmp = GetConfigInt("Misc", "Steal", 293);
+	tmp = IniReader::GetConfigInt("Misc", "Steal", 293);
 	if (tmp != 293) SafeWrite32(0x518D58, tmp);
-	tmp = GetConfigInt("Misc", "Traps", 293);
+	tmp = IniReader::GetConfigInt("Misc", "Traps", 293);
 	if (tmp != 293) SafeWrite32(0x518D5C, tmp);
-	tmp = GetConfigInt("Misc", "FirstAid", 293);
+	tmp = IniReader::GetConfigInt("Misc", "FirstAid", 293);
 	if (tmp != 293) SafeWrite32(0x518D4C, tmp);
-	tmp = GetConfigInt("Misc", "Doctor", 293);
+	tmp = IniReader::GetConfigInt("Misc", "Doctor", 293);
 	if (tmp != 293) SafeWrite32(0x518D50, tmp);
-	tmp = GetConfigInt("Misc", "Science", 293);
+	tmp = IniReader::GetConfigInt("Misc", "Science", 293);
 	if (tmp != 293) SafeWrite32(0x518D60, tmp);
-	tmp = GetConfigInt("Misc", "Repair", 293);
+	tmp = IniReader::GetConfigInt("Misc", "Repair", 293);
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 }
 
 static void ScienceOnCrittersPatch() {
-	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
+	switch (IniReader::GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
 		HookCall(0x41276E, action_use_skill_on_hook_science);
 		break;
@@ -419,7 +438,7 @@ static void BoostScriptDialogLimitPatch() {
 		0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 	};
 
-	if (GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
+	if (IniReader::GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
 		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
 		scriptDialog = new int[scriptDialogCount * 2]; // Because the msg structure is 8 bytes, not 4.
@@ -432,7 +451,7 @@ static void BoostScriptDialogLimitPatch() {
 }
 
 static void NumbersInDialoguePatch() {
-	if (GetConfigInt("Misc", "NumbersInDialogue", 0)) {
+	if (IniReader::GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlog("Applying numbers in dialogue patch.", DL_INIT);
 		SafeWrite32(0x502C32, 0x2000202E);
 		SafeWrite8(0x446F3B, 0x35);
@@ -455,7 +474,7 @@ static void InstantWeaponEquipPatch() {
 		0x472996, // invenWieldFunc_
 	};
 
-	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
+	if (IniReader::GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon); // jmps
@@ -468,7 +487,7 @@ static void InstantWeaponEquipPatch() {
 }
 
 static void DontTurnOffSneakIfYouRunPatch() {
-	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
+	if (IniReader::GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
 		SafeWrite8(0x418135, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
@@ -476,7 +495,7 @@ static void DontTurnOffSneakIfYouRunPatch() {
 }
 
 static void PlayIdleAnimOnReloadPatch() {
-	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
+	if (IniReader::GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, intface_item_reload_hook);
 		dlogr(" Done", DL_INIT);
@@ -484,7 +503,7 @@ static void PlayIdleAnimOnReloadPatch() {
 }
 
 static void MotionScannerFlagsPatch() {
-	if (long flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
+	if (long flags = IniReader::GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (flags & 1) MakeJump(0x41BBE9, automap_hack);
 		if (flags & 2) {
@@ -512,7 +531,7 @@ static void EncounterTableSizePatch() {
 		0x4C0815, 0x4C0D4A, 0x4C0FD4,
 	};
 
-	int tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
+	int tableSize = IniReader::GetConfigInt("Misc", "EncounterTableSize", 0);
 	if (tableSize > 40) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
 		if (tableSize > 50) {
@@ -528,7 +547,7 @@ static void EncounterTableSizePatch() {
 }
 
 static void DisablePipboyAlarmPatch() {
-	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
+	if (IniReader::GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, CodeType::Ret);
 		SafeWrite8(0x443601, 0x0);
@@ -537,7 +556,7 @@ static void DisablePipboyAlarmPatch() {
 }
 
 static void ObjCanSeeShootThroughPatch() {
-	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying obj_can_see_obj fix for seeing through critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
@@ -547,7 +566,7 @@ static void ObjCanSeeShootThroughPatch() {
 static void OverrideMusicDirPatch() {
 	static const char* musicOverridePath = "data\\sound\\music\\";
 
-	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
+	if (long overrideMode = IniReader::GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
 		if (overrideMode == 2) {
 			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
@@ -557,7 +576,7 @@ static void OverrideMusicDirPatch() {
 }
 
 static void DialogueFix() {
-	if (GetConfigInt("Misc", "DialogueFix", 1)) {
+	if (IniReader::GetConfigInt("Misc", "DialogueFix", 1)) {
 		dlog("Applying dialogue patch.", DL_INIT);
 		SafeWrite8(0x446848, 0x31);
 		dlogr(" Done", DL_INIT);
@@ -565,7 +584,7 @@ static void DialogueFix() {
 }
 
 static void AlwaysReloadMsgs() {
-	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
+	if (IniReader::GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8D, 0x0);
 		dlogr(" Done", DL_INIT);
@@ -573,7 +592,7 @@ static void AlwaysReloadMsgs() {
 }
 
 static void InterfaceWindowPatch() {
-	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+	if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x4D6EDD, 0x4D6F12});
 	}
 
@@ -602,7 +621,7 @@ static void InterfaceWindowPatch() {
 }
 
 static void InventoryCharacterRotationSpeedPatch() {
-	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
+	long setting = IniReader::GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
 		SafeWrite32(0x47066B, setting);
@@ -622,7 +641,7 @@ static void UIAnimationSpeedPatch() {
 }
 
 static void MusicInDialoguePatch() {
-	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
+	if (IniReader::GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0);
 		//BlockCall(0x450627);
@@ -631,7 +650,7 @@ static void MusicInDialoguePatch() {
 }
 
 static void PipboyAvailableAtStartPatch() {
-	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
+	switch (IniReader::GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		LoadGameHook::OnBeforeGameStart() += []() {
 			fo::var::gmovie_played_list[3] = true; // PipBoy aquiring video
@@ -644,7 +663,7 @@ static void PipboyAvailableAtStartPatch() {
 }
 
 static void DisableHorriganPatch() {
-	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
+	if (IniReader::GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		LoadGameHook::OnAfterGameStarted() += []() {
 			fo::var::Meet_Frank_Horrigan = true;
 		};
@@ -652,8 +671,8 @@ static void DisableHorriganPatch() {
 }
 
 static void DisplaySecondWeaponRangePatch() {
-	// Display the range of the second attack mode in the inventory when you switch weapon modes in active item slots
-	//if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
+	// Display the range of the secondary attack mode in the inventory when you switch weapon modes in active item slots
+	//if (IniReader::GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
 		dlogr(" Done", DL_INIT);
@@ -661,7 +680,7 @@ static void DisplaySecondWeaponRangePatch() {
 }
 
 static void KeepWeaponSelectModePatch() {
-	//if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
 		dlogr(" Done", DL_INIT);
@@ -673,7 +692,7 @@ static void PartyMemberSkillPatch() {
 	// Note: this will cause the party member to apply his/her skill when you use First Aid/Doctor skill on the player, but only if
 	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
 	// this option without a global script that overrides First Aid/Doctor functions has very limited usefulness
-	if (GetConfigInt("Misc", "PartyMemberSkillFix", 0) != 0) {
+	if (IniReader::GetConfigInt("Misc", "PartyMemberSkillFix", 0) != 0) {
 		dlog("Applying party member using First Aid/Doctor skill patch.", DL_INIT);
 		HookCall(0x412836, action_use_skill_on_hook);
 		dlogr(" Done", DL_INIT);
@@ -691,7 +710,7 @@ struct CodeData {
 #pragma pack(pop)
 
 static void SkipLoadingGameSettingsPatch() {
-	if (int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
+	if (int skipLoading = IniReader::GetConfigInt("Misc", "SkipLoadingGameSettings", 0)) {
 		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
 		BlockCall(0x493421);
 		SafeWrite8(0x4935A8, 0x1F);
@@ -708,7 +727,7 @@ static void SkipLoadingGameSettingsPatch() {
 }
 
 static void UseWalkDistancePatch() {
-	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	int distance = IniReader::GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
 		SafeWriteBatch<BYTE>(distance, {0x411FF0, 0x4121C4, 0x412475, 0x412906}); // default is 5
@@ -717,7 +736,7 @@ static void UseWalkDistancePatch() {
 }
 
 static void F1EngineBehaviorPatch() {
-	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
+	if (IniReader::GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight for power armor items
@@ -740,8 +759,10 @@ static void EngineOptimizationPatches() {
 	// Speed up display_msg script function
 	HookCall(0x455404, op_display_msg_hook);
 
-	// Remove duplicate code from intface_redraw_ engine function
-	BlockCall(0x45EBBF);
+	// Remove redundant/duplicate code
+	BlockCall(0x45EBBF); // intface_redraw_
+	BlockCall(0x4A4859); // exec_script_proc_
+	SafeMemSet(0x455189, CodeType::Nop, 11); // op_create_object_sid_
 
 	// Improve performance of the data conversion of script interpreter
 	// mov eax, [edx+eax]; bswap eax; ret;
@@ -758,31 +779,25 @@ static void EngineOptimizationPatches() {
 void MiscPatches::init() {
 	EngineOptimizationPatches();
 
-	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
+	if (IniReader::GetConfigString("Misc", "StartingMap", "", mapName, 16)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
+	if (IniReader::GetConfigString("Misc", "VersionString", "", versionString, 65)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
-		dlog("Applying config file patch.", DL_INIT);
-		SafeWriteBatch<DWORD>((DWORD)&configName, {0x444BA5, 0x444BCA});
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
+	if (IniReader::GetConfigString("Misc", "PatchFile", "", patchName, 65)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetConfigInt("Misc", "SingleCore", 1)) {
+	if (IniReader::GetConfigInt("Misc", "SingleCore", 1)) {
 		dlog("Applying single core patch.", DL_INIT);
 		HANDLE process = GetCurrentProcess();
 		SetProcessAffinityMask(process, 1);
@@ -790,14 +805,14 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
+	if (IniReader::GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
 		SafeWrite32(0x418867, 0x90909090);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
 
-	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	int time = IniReader::GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
 	if (time != 6) {
 		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
@@ -811,14 +826,27 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Set idle function
+	fo::var::idle_func = reinterpret_cast<void*>(Sleep);
+	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
+
 	BlockCall(0x4425E6); // Patch out ereg call
+
+	SafeWrite8(0x4810AB, CodeType::JumpShort); // Disable selfrun
 
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
-	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
-		dlog("Applying disable special map IDs patch.", DL_INIT);
+	if (IniReader::GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
+		dlog("Applying disable special maps handling patch.", DL_INIT);
 		SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Remove hardcoding for city areas 45 and 46 (AREA_FAKE_VAULT_13)
+	if (IniReader::GetConfigInt("Misc", "DisableSpecialAreas", 0)) {
+		dlog("Applying disable special areas handling patch.", DL_INIT);
+		SafeWrite8(0x4C0576, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -834,11 +862,14 @@ void MiscPatches::init() {
 	// Allow setting custom colors from the game palette for object outlines
 	MakeCall(0x48EE00, obj_render_outline_hack);
 
-	// Remove floating text messages after moving to another map elevation
-	// and redraw the screen to update black edges of the map (HRP bug)
+	// Remove floating text messages after moving to another map or elevation
+	HookCall(0x48A94B, obj_move_to_tile_hook);
+	HookCall(0x4836BB, map_check_state_hook);
+
+	// Redraw the screen to update black edges of the map (HRP bug)
 	// https://github.com/phobos2077/sfall/issues/282
-	HookCall(0x48A954, obj_move_to_tile_hook);
-	HookCall(0x483726, map_check_state_hook);
+	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
+	HookCall(0x483726, map_check_state_hook_redraw);
 
 	F1EngineBehaviorPatch();
 	DialogueFix();

@@ -18,7 +18,6 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\Logging.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 
@@ -40,6 +39,15 @@ static bool cutsPatch   = false;
 static std::vector<std::string> patchFiles;
 static std::vector<int> savPrototypes;
 
+static void PlayerGenderCutsRestore() {
+	if (cutsPatch) { // restore
+		SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
+		SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
+		SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
+		cutsPatch = false;
+	}
+}
+
 static void CheckPlayerGender() {
 	isFemale = fo::HeroIsFemale();
 
@@ -50,11 +58,8 @@ static void CheckPlayerGender() {
 			SafeWrite32(0x43FA9F, (DWORD)cutsEndGameFemale);
 			SafeWrite32(0x44EB5B, (DWORD)cutsSubFemale);
 			SafeWrite32(0x48152E, (DWORD)cutsDeathFemale);
-		} else if (cutsPatch) {
-			SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
-			SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
-			SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
-			cutsPatch = false;
+		} else {
+			PlayerGenderCutsRestore();
 		}
 	}
 }
@@ -102,6 +107,8 @@ static void __declspec(naked) gnw_main_hack() {
 		retn;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	auto paths = fo::var::paths; // curr.node (beginning of the chain of paths)
@@ -178,10 +185,10 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
 }
-
+/*
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
-	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
+	IniReader::GetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
 	fo::PathNode* node = fo::var::paths;
 	while (node->next) {
@@ -192,14 +199,16 @@ static void __fastcall game_init_databases_hook1() {
 
 	InitExtraPatches();
 }
-
+*/
 static bool NormalizePath(std::string &path) {
 	if (path.find(':') != std::string::npos) return false;
+
 	int pos = 0;
 	do { // replace all '/' char to '\'
 		pos = path.find('/', pos);
 		if (pos != std::string::npos) path[pos] = '\\';
 	} while (pos != std::string::npos);
+
 	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
 	while (path.front() == '\\') path.erase(0, 1); // remove firsts '\'
 	return true;
@@ -210,11 +219,11 @@ static void GetExtraPatches() {
 	char patchFile[12] = "PatchFile";
 	for (int i = 0; i < 100; i++) {
 		_itoa(i, &patchFile[9], 10);
-		auto patch = GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
+		auto patch = IniReader::GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
 		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
 		patchFiles.push_back(patch);
 	}
-	std::string searchPath = "mods\\"; //GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
+	std::string searchPath = "mods\\"; //IniReader::GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
 	//if (!searchPath.empty() && NormalizePath(searchPath)) {
 		//if (searchPath.back() != '\\') searchPath += "\\";
 
@@ -244,7 +253,7 @@ static void GetExtraPatches() {
 }
 
 static void MultiPatchesPatch() {
-	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4);          // Disable check
@@ -252,7 +261,7 @@ static void MultiPatchesPatch() {
 	//}
 }
 
-////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
+///////////////////////// SAVE PARTY MEMBER PROTOTYPES /////////////////////////
 
 static void __fastcall AddSavPrototype(long pid) {
 	for (const auto& _pid : savPrototypes) {
@@ -431,25 +440,62 @@ artNotExist:
 	}
 }
 
-void LoadOrder::init() {
-	// Load external sfall resource file (load order is before patchXXX.dat)
-	patchFiles.push_back("sfall.dat");
+static fo::DbFile* __fastcall LoadFont(const char* font, const char* mode) {
+	char file[128];
+	const char* lang;
+	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
+		std::sprintf(file, "fonts\\%s\\%s", lang, font);
+		return fo::func::db_fopen(file, mode);
+	}
+	return nullptr;
+}
 
+void __declspec(naked) load_font_hook() {
+	__asm {
+		mov  ebp, edx;
+		mov  ebx, eax;
+		mov  ecx, eax;
+		call LoadFont;
+		test eax, eax;
+		jz   default;
+		retn;
+default:
+		mov  edx, ebp;
+		mov  eax, ebx;
+		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
+static void SfallResourceFile() {
+	const char* sfallRes = "sfall.dat";
+
+	WIN32_FIND_DATA findData;
+	HANDLE hFind = FindFirstFile("sfall_??.dat", &findData); // example: sfall_ru.dat, sfall_zh.dat
+	if (hFind != INVALID_HANDLE_VALUE) {
+		FindClose(hFind);
+		dlog_f("Loading a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
+		sfallRes = findData.cFileName;
+	}
+	patchFiles.push_back(sfallRes);
+}
+
+void LoadOrder::init() {
+	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
 	GetExtraPatches();
 	MultiPatchesPatch();
 
-	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
-	} else /*if (!patchFiles.empty())*/ {
-		HookCall(0x44436D, game_init_databases_hook1);
-	}
+	//} else /*if (!patchFiles.empty())*/ {
+	//	HookCall(0x44436D, game_init_databases_hook1);
+	//}
 
-	femaleMsgs = GetConfigInt("Misc", "FemaleDialogMsgs", 0);
+	femaleMsgs = IniReader::GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
 		dlog("Applying alternative female dialog files patch.", DL_INIT);
 		MakeJump(0x4A6BCD, scr_get_dialog_msg_file_hack1);
@@ -457,14 +503,7 @@ void LoadOrder::init() {
 		LoadGameHook::OnAfterGameStarted() += CheckPlayerGender;
 		if (femaleMsgs > 1) {
 			MakeCall(0x480A95, gnw_main_hack); // before new game start from main menu. TODO: need moved to address 0x480A9A (it busy in movies.cpp)
-			LoadGameHook::OnGameExit() += []() {
-				if (cutsPatch) { // restore
-					SafeWrite32(0x43FA9F, FO_VAR_aTextSCuts);
-					SafeWrite32(0x44EB5B, FO_VAR_aTextSCutsS);
-					SafeWrite32(0x48152E, FO_VAR_aTextSCutsSS);
-					cutsPatch = false;
-				}
-			};
+			LoadGameHook::OnGameExit() += PlayerGenderCutsRestore;
 		}
 		dlogr(" Done", DL_INIT);
 	}
@@ -473,7 +512,7 @@ void LoadOrder::init() {
 	// first check the existence of the art file of the current critter and then replace the art alias if file not found
 	HookCall(0x419440, art_get_name_hook);
 	SafeWrite16(0x419521, 0x003B); // jmp 0x419560
-	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0) <= 0) { // Hero Appearance mod uses an alternative code
+	if (IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0) <= 0) { // Hero Appearance mod uses an alternative code
 		MakeCall(0x419560, art_get_name_hack);
 	}
 
@@ -485,6 +524,12 @@ void LoadOrder::init() {
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
 	dlogr(" Done", DL_INIT);
+
+	// Load fonts based on the game language
+	HookCalls(load_font_hook, {
+		0x4D5621, // load_font_
+		0x441D58  // FMLoadFont_
+	});
 
 	LoadGameHook::OnAfterGameInit() += RemoveSavFiles;
 	LoadGameHook::OnGameReset() += []() {

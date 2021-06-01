@@ -52,26 +52,30 @@ struct ArrayWrapper {
 };
 
 // defines reference to an engine variable
-#define VAR_(name, type)	\
+#define VAR_(name, type) \
 	extern type& name;
 
-#define VARC(name, type)	\
+#define VARC(name, type) \
 	extern const type& name;
 
 // defines reference to static array
-#define VARA(name, type, size)	\
+#define VARA(name, type, size) \
 	extern ArrayWrapper<type, size> &name;
 
 // defines reference to static 2-dimensional array
-#define VAR2(name, type, size1, size2)	\
+#define VAR2(name, type, size1, size2) \
 	extern ArrayWrapper<ArrayWrapper<type, size2>, size1> &name;
 
 // defines reference to static 3-dimensional array
-#define VAR3(name, type, size1, size2, size3)	\
+#define VAR3(name, type, size1, size2, size3) \
 	extern ArrayWrapper<ArrayWrapper<ArrayWrapper<type, size3>, size2>, size1> &name;
 
+// defines reference pointer to dynamic array
+#define VARD(name, type) \
+	extern type*& name;
+
 // defines const pointer to variable (useful for static arrays, when exact size is unknown)
-#define VARP(name, type)	\
+#define VARP(name, type) \
 	extern type* const name;
 
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables

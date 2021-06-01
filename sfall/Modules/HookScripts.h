@@ -73,6 +73,8 @@ enum HookType
 	HOOK_ADJUSTPOISON     = 44,
 	HOOK_ADJUSTRADS       = 45,
 	HOOK_ROLLCHECK        = 46,
+	HOOK_BESTWEAPON       = 47,
+	HOOK_CANUSEWEAPON     = 48,
 	HOOK_COUNT
 };
 

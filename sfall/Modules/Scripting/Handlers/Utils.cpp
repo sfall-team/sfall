@@ -17,7 +17,6 @@
  */
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
-#include "..\..\..\FalloutEngine\EngineUtils.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Message.h"
 #include "..\Arrays.h"
@@ -350,13 +349,13 @@ void op_message_str_game(OpcodeContext& ctx) {
 	if (fileId >= 0) {
 		int msgId = ctx.arg(1).rawValue();
 		if (fileId < 20) { // main msg files
-			msg = fo::GetMessageStr(gameMsgFiles[fileId], msgId);
+			msg = fo::GetMessageStr(Message::gameMsgFiles[fileId], msgId);
 		} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 			msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
 		} else if (fileId >= 0x2000) { // Extra game message files.
-			ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
-			if (it != gExtraGameMsgLists.end()) {
-				msg = GetMsg(it->second.get(), msgId, 2);
+			ExtraGameMessageListsMap::iterator it = Message::gExtraGameMsgLists.find(fileId);
+			if (it != Message::gExtraGameMsgLists.end()) {
+				msg = fo::GetMsg(it->second.get(), msgId, 2);
 			}
 		}
 	}

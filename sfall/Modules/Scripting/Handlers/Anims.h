@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "..\OpcodeContext.h"
+
 namespace sfall
 {
 namespace script
@@ -39,6 +41,8 @@ void op_reg_anim_turn_towards(OpcodeContext&);
 void op_reg_anim_callback(OpcodeContext&);
 
 void op_explosions_metarule(OpcodeContext&);
+
+void op_art_exists(OpcodeContext&);
 
 void mf_art_cache_flush(OpcodeContext&);
 

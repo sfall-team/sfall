@@ -18,13 +18,18 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Translate.h"
 #include "..\Utils.h"
-#include "HookScripts\InventoryHs.h"
+
 #include "Drugs.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 //#include "Objects.h"
+
+#include "..\Game\inventory.h"
+#include "..\Game\objects.h"
+#include "..\Game\tilemap.h"
 
 #include "PartyControl.h"
 
@@ -128,9 +133,9 @@ static void SaveRealDudeState() {
 	realDude.obj_dude = fo::var::obj_dude;
 	realDude.art_vault_guy_num = fo::var::art_vault_guy_num;
 	realDude.itemCurrentItem = fo::var::itemCurrentItem;
-	memcpy(realDude.itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-	memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
-	memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
+	std::memcpy(realDude.itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
+	std::memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
+	std::memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(realDude.pc_name, sizeof(fo::var::pc_name), fo::var::pc_name);
 	realDude.Level = fo::var::Level_;
 	realDude.last_level = fo::var::last_level;
@@ -176,17 +181,15 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// copy existing party member perks or reset list for non-party member NPC
 	long isPartyMember = fo::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
-		memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList + (fo::PERK_count * (isPartyMember - 1)), sizeof(DWORD) * fo::PERK_count);
+		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::Perk::PERK_count);
 	} else {
-		for (int i = 0; i < fo::PERK_count; i++) {
-			fo::var::perkLevelDataList[i] = 0;
-		}
+		std::memset(fo::var::perkLevelDataList, 0, sizeof(DWORD) * fo::Perk::PERK_count);
 	}
 
 	// change level
 	int level = (isPartyMember) // fo::func::isPartyMember(npc)
-				? fo::func::partyMemberGetCurLevel(npc)
-				: 0;
+	          ? fo::func::partyMemberGetCurLevel(npc)
+	          : 0;
 
 	fo::var::Level_ = level;
 	fo::var::last_level = level;
@@ -215,7 +218,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 			if (weaponState[i].leftIsCopy) {
 				auto item = fo::func::inven_left_hand(npc);
 				if (item && item->protoId == weaponState[i].leftSlot.item->protoId) {
-					memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
+					std::memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
 					isMatch = true;
 				}
 				weaponState[i].leftIsCopy = false;
@@ -223,7 +226,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 			if (weaponState[i].rightIsCopy) {
 				auto item = fo::func::inven_right_hand(npc);
 				if (item && item->protoId == weaponState[i].rightSlot.item->protoId) {
-					memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
+					std::memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
 					isMatch = true;
 				}
 				weaponState[i].rightIsCopy = false;
@@ -291,9 +294,9 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::art_vault_guy_num = realDude.art_vault_guy_num;
 
 	fo::var::itemCurrentItem = realDude.itemCurrentItem;
-	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-	memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
-	memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
+	std::memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
+	std::memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
+	std::memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
 	fo::var::Level_ = realDude.Level;
 	fo::var::last_level = realDude.last_level;
@@ -470,11 +473,11 @@ bool PartyControl::IsNpcControlled() {
 static bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
 	bool isCopy = false;
 	if (fo::var::itemButtonItems[0 + isSwap].itsWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
-		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
+		std::memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
 		element.leftIsCopy = isCopy = true;
 	}
 	if (fo::var::itemButtonItems[1 - isSwap].itsWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
-		memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
+		std::memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
 		element.rightIsCopy = isCopy = true;
 	}
 	if (isSwap && isCopy) {
@@ -583,8 +586,8 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 
 fo::GameObject* PartyControl::RealDudeObject() {
 	return realDude.obj_dude != nullptr
-		? realDude.obj_dude
-		: fo::var::obj_dude;
+	       ? realDude.obj_dude
+	       : fo::var::obj_dude;
 }
 
 static char levelMsg[12], armorClassMsg[12], addictMsg[16];
@@ -627,8 +630,38 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static bool partyOrderPickTargetLoop;
 static std::vector<std::string> partyOrderAttackMsg;
+
+struct PartyTarget {
+	fo::GameObject* member;
+	fo::GameObject* target;
+};
+
+static std::vector<PartyTarget> partyOrderAttackTarget;
+
+static fo::GameObject* GetMemberTarget(fo::GameObject* member) {
+	for (auto &el : partyOrderAttackTarget) {
+		if (el.member->id == member->id) {
+			fo::GameObject* target = el.target;
+			if (target && target->critter.IsDead()) el.target = nullptr;
+			return el.target;
+		}
+	}
+	return nullptr;
+}
+
+static void SetMemberTarget(fo::GameObject* member, fo::GameObject* target) {
+	for (auto &el : partyOrderAttackTarget) {
+		if (el.member->id == member->id) {
+			el.target = target;
+			return;
+		}
+	}
+	partyOrderAttackTarget.push_back({member, target});
+}
 
 // disables the display of the hit chance value when picking a target
 static void __declspec(naked) gmouse_bk_process_hack() {
@@ -671,7 +704,10 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			if (underObject->critter.IsNotDead()) {
 				outlineColor = underObject->outline;
 
-				if (fo::var::combatNumTurns || underObject->critter.combatState) {
+				if ((fo::var::combatNumTurns || underObject->critter.combatState) &&
+				    game::Objects::is_within_perception(partyMember, underObject, 0) && // HOOK_WITHINPERCEPTION
+				    fo::func::make_path_func(partyMember, partyMember->tile, underObject->tile, 0, 0, game::Tilemap::obj_path_blocking_at_) > 0)
+				{
 					underObject->outline = 254 << 8; // flashing red
 					validTarget = underObject;
 				} else {
@@ -687,7 +723,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 	} while (fo::var::mouse_buttons != 2 && fo::func::get_input() != 27); // 27 - escape code
 
 	if (validTarget && fo::var::mouse_buttons == 1) {
-		partyMember->critter.whoHitMe = validTarget;
+		SetMemberTarget(partyMember, validTarget);
 		validTarget->outline = outlineColor;
 
 		fo::AIcap* cap = fo::func::ai_cap(partyMember);
@@ -754,15 +790,37 @@ static void __declspec(naked) gmouse_handle_event_hook_restore() {
 	}
 }
 
+static void __fastcall SetOrderTarget(fo::GameObject* attacker) {
+	if (attacker->critter.teamNum || partyOrderAttackTarget.empty()) return;
+	fo::GameObject* target = GetMemberTarget(attacker);
+	if (target) attacker->critter.whoHitMe = target;
+}
+
+static void __declspec(naked) combat_ai_hook_targer() {
+	__asm {
+		push ecx;
+		mov  ecx, eax;
+		call SetOrderTarget;
+		pop  ecx;
+		mov  eax, esi;
+		jmp  fo::funcoffs::ai_danger_source_;
+	}
+}
+
 void PartyControl::OrderAttackPatch() {
 	MakeCall(0x44C4A7, gmouse_handle_event_hack, 2);
 	HookCall(0x44C75F, gmouse_handle_event_hook);
 	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
 	MakeCall(0x44B830, gmouse_bk_process_hack);
+
+	HookCall(0x42B235, combat_ai_hook_targer);
+	LoadGameHook::OnCombatEnd() += []() {
+		partyOrderAttackTarget.clear();
+	};
 }
 
 static void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
+	npcAutoLevelEnabled = IniReader::GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
@@ -791,21 +849,21 @@ void PartyControl::init() {
 
 	NpcAutoLevelPatch();
 
-	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
+	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
 
 	// Display party member's current level & AC & addict flag
-	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
+	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
-		Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
-		Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
-		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
 
-	partyOrderAttackMsg.push_back(std::move(Translate("sfall", "PartyOrderAttackCreature", "::Growl::", 33)));
-	partyOrderAttackMsg.push_back(std::move(Translate("sfall", "PartyOrderAttackRobot", "::Beep::", 33)));
-	auto msgs = TranslateList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::", 33));
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::", 33));
+	auto msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
 	partyOrderAttackMsg.insert(partyOrderAttackMsg.cend(), msgs.cbegin(), msgs.cend());
 }
 

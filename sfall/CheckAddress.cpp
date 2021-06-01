@@ -1,3 +1,5 @@
+#include <array>
+
 #include "main.h"
 
 #include "CheckAddress.h"
@@ -9,12 +11,12 @@ namespace sfall
 
 std::multimap<long, long> writeAddress;
 
-static std::vector<long> excludeWarning = {
+static std::array<long, 6> excludeWarning = {
 	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x44E932, // from movies.cpp
 	0x42D21C,                                         // CritterPoison.cpp
 };
 
-static std::vector<long> excludeConflict = {
+static std::array<long, 3> excludeConflict = {
 	0x42A0F8,                               // bugfixes.cpp
 	0x461495,                               // BarBoxes.cpp
 	0x42D21C,                               // CritterPoison.cpp
@@ -41,7 +43,7 @@ static std::vector<HackPair> hackAddr = {
 	{0x4C06D1, 5},
 
 	// module: AI
-	{0x4290B6, 5},
+	//{0x4290B6, 5},
 	// module: BarBoxes
 	{0x461342, 5}, {0x461243, 5},
 	{0x461493, 5}, //{0x461495, 1},
@@ -128,7 +130,7 @@ static std::vector<HackPair> hackAddr = {
 
 // Checking for conflicts requires all options in ddraw.ini to be enabled
 void PrintAddrList() {
-	long level = iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni);
+	long level = IniReader::GetIntDefaultConfig("Debugging", "Enable", 0);
 	if (level < 10) hackAddr.clear();
 
 	std::vector<HackPair> sortAddr(hackAddr);

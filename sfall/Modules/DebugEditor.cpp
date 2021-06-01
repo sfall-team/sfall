@@ -313,7 +313,7 @@ hide:
 }
 
 static void __declspec(naked) art_data_size_hook() {
-	static char* artDbgMsg = "\nERROR: File not found: %s\n";
+	static const char* artDbgMsg = "\nERROR: File not found: %s\n";
 	__asm {
 		test edi, edi;
 		jz   artNotExist;
@@ -340,7 +340,7 @@ display:
 }
 
 static void __declspec(naked) proto_load_pid_hack() {
-	static char* proDbgMsg = "\nERROR reading prototype file: %s\n";
+	static const char* proDbgMsg = "\nERROR: Reading prototype file: %s\n";
 	__asm {
 		mov  dword ptr [esp + 0x120 - 0x1C + 4], -1;
 		lea  eax, [esp + 0x120 - 0x120 + 4]; // pro file
@@ -373,23 +373,49 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
-const char* scrNameFmt = "\nScript: %s ";
-
 static void __declspec(naked) debugMsg() {
+	static const char* scrNameFmt = "\nScript: %s ";
 	__asm {
 		mov  edx, ds:[FO_VAR_currentProgram];
 		push [edx]; // script name
 		push scrNameFmt;
 		call fo::funcoffs::debug_printf_;
 		add  esp, 8;
-		jmp  fo::funcoffs::debug_printf_;
+		jmp  fo::funcoffs::debug_printf_; // ERROR: attempt to reference...
 	}
 }
 
-//static const DWORD addrNewLine[] = {0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE}; // ERROR: attempt to reference * var out of range: %d
+static void __declspec(naked) combat_load_hack() {
+	static const char* msgCombat = "LOADSAVE: Object ID not found while loading the combat data.\n";
+	__asm {
+		push msgCombat;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 4;
+		mov  eax, -1;
+		retn;
+	}
+}
+
+// Shifts the string one character to the right and inserts a newline control character at the beginning
+static void MoveDebugString(char* messageAddr) {
+	int i = 0;
+	do {
+		messageAddr[i + 1] = messageAddr[i];
+		i--;
+	} while (messageAddr[i] != '\0');
+	messageAddr[i + 1] = '\n';
+}
+
+static const DWORD addrDotChar[] = {
+	0x50B244, 0x50B27C, 0x50B2B6, 0x50B2EE // "ERROR: attempt to reference * var out of range: %d"
+};
+
+static const DWORD addrNewLineChar[] = {
+	0x500A64, // "Friendly was in the way!"
+};
 
 static void DebugModePatch() {
-	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
+	int dbgMode = IniReader::GetIntDefaultConfig("Debugging", "DebugMode", 0);
 	if (dbgMode > 0) {
 		dlog("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -411,7 +437,7 @@ static void DebugModePatch() {
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
-		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
+		if (IniReader::GetIntDefaultConfig("Debugging", "HideObjIsNullMsg", 0)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
 		// prints a debug message about a missing critter art file to both debug.log and the message window in sfall debugging mode
@@ -430,25 +456,49 @@ static void DebugModePatch() {
 		SafeWrite8(0x4DC34D, 15);
 
 		// Fix the format of some debug messages
-		//SafeWriteBatch<BYTE>(0xA, addrNewLine);
+		SafeWriteBatch<BYTE>('\n', addrNewLineChar);
+		SafeWriteBatch<BYTE>('.', addrDotChar);
 		HookCalls(debugMsg, {
 			0x482240, // map_set_global_var_
 			0x482274, // map_get_global_var_
 			0x4822A0, // map_set_local_var_
 			0x4822D4  // map_get_local_var_
 		});
-
+		if (dbgMode != 1) {
+			MoveDebugString((char*)0x500A9B); // "computing attack..."
+		}
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void DontDeleteProtosPatch() {
-	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }
+
+/*
+void CheckTimerResolution() {
+	DWORD ticksList[50];
+	DWORD old_ticks = GetTickCount();
+	for (size_t i = 0; i < 50;) {
+		DWORD ticks = GetTickCount();
+		if (ticks != old_ticks) {
+			old_ticks = ticks;
+			ticksList[i++] = ticks;
+		}
+	}
+	int min = 100, max = 0;
+	for (size_t i = 0; i < 49; i++) {
+		int ms = ticksList[i + 1] - ticksList[i];
+		if (ms < min) min = ms;
+		if (ms > max) max = ms;
+	}
+	fo::func::debug_printf("System timer resolution: %d - %d ms.\n", min, max);
+}
+*/
 
 void DebugEditor::init() {
 	DebugModePatch();
@@ -456,10 +506,14 @@ void DebugEditor::init() {
 	// Notifies and prints a debug message about a corrupted proto file to debug.log
 	MakeCall(0x4A1D73, proto_load_pid_hack, 6);
 
+	// Prints a debug message about a missing combat object to debug.log
+	MakeCalls(combat_load_hack, {0x421146, 0x421189, 0x4211CC});
+	if (!isDebug) SafeWriteBatch<DWORD>(0x909008EB, {0x42114B, 0x42118E, 0x4211D1}); // jmp $+8
+
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
 
-	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
+	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {

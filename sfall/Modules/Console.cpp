@@ -48,7 +48,7 @@ static void __declspec(naked) ConsoleHook() {
 }
 
 void Console::init() {
-	auto path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
+	auto path = IniReader::GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {

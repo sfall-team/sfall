@@ -21,9 +21,9 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
+#include "..\Translate.h"
 #include "..\version.h"
 
-#include "AI.h"
 #include "BugFixes.h"
 #include "CritterStats.h"
 #include "ExtraSaveSlots.h"
@@ -63,12 +63,19 @@ static Delegate<> onAfterGameStarted;
 static Delegate<> onAfterNewGame;
 static Delegate<DWORD> onGameModeChange;
 static Delegate<> onBeforeGameClose;
+static Delegate<> onCombatStart;
+static Delegate<> onCombatEnd;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool gameLoaded = false;
+static bool onLoadingMap = false;
 
 long LoadGameHook::interfaceWID = -1;
+
+bool LoadGameHook::IsMapLoading() {
+	return onLoadingMap;
+}
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded() {
@@ -116,8 +123,6 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, fo::var::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
-
-static std::string saveSfallDataFailMsg;
 
 static void __stdcall SaveGame2() {
 	char buf[MAX_PATH];
@@ -168,23 +173,21 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo::DisplayPrint(saveSfallDataFailMsg);
+	fo::DisplayPrint(Translate::SfallSaveDataFailure());
 	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
-
-static std::string saveFailMsg;
 
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo::DisplayPrint(saveFailMsg);
+			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 		int ap = fo::func::stat_level(fo::var::obj_dude, fo::STAT_max_move_points);
 		int bonusmove = fo::func::perk_level(fo::var::obj_dude, fo::PERK_bonus_move);
 		if (fo::var::obj_dude->critter.movePoints != ap || bonusmove * 2 != fo::var::combat_free_move) {
-			fo::DisplayPrint(saveFailMsg);
+			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 	}
@@ -269,7 +272,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		onGameReset.invoke();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo::func::debug_printf("\n[SFALL: State reset %s]", str);
+			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
 		}
 	}
 	inLoop = 0;
@@ -429,6 +432,16 @@ static void __declspec(naked) game_close_hook() {
 	}
 }
 
+
+static void __declspec(naked) map_load_hook() {
+	__asm {
+		mov  onLoadingMap, 1;
+		call fo::funcoffs::map_load_file_;
+		mov  onLoadingMap, 0;
+		retn;
+	}
+}
+
 static void __declspec(naked) WorldMapHook_Start() {
 	__asm {
 		call fo::funcoffs::wmInterfaceInit_;
@@ -451,17 +464,25 @@ static void __declspec(naked) WorldMapHook_End() {
 	}
 }
 
+static void __fastcall CombatInternal(fo::CombatGcsd* gcsd) {
+	onCombatStart.invoke();
+	SetInLoop(1, COMBAT);
+
+	__asm mov  eax, gcsd;
+	__asm call fo::funcoffs::combat_;
+
+	onCombatEnd.invoke();
+	SetInLoop(0, COMBAT);
+}
+
 static void __declspec(naked) CombatHook() {
 	__asm {
-		pushadc;
-		call AI::AICombatStart;
-		_InLoop2(1, COMBAT);
-		popadc;
-		call fo::funcoffs::combat_;
-		pushadc;
-		call AI::AICombatEnd;
-		_InLoop2(0, COMBAT);
-		popadc;
+		push ecx;
+		push edx;
+		mov  ecx, eax;
+		call CombatInternal;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -727,18 +748,18 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 }
 
 void LoadGameHook::init() {
-	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
+	saveInCombatFix = IniReader::GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time.");
-	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail",
-		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
+	HookCall(0x482AEC, map_load_hook);
 	HookCall(0x4809BA, main_init_system_hook);
 	HookCall(0x4426A6, game_init_hook);
 	HookCall(0x480AAE, main_load_new_hook);
+
 	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
+
 	HookCalls(game_reset_hook, {
 				0x47DD6B, // LoadSlot_ (on load error)
 				0x47DDF3, // LoadSlot_ (on load error)
@@ -754,6 +775,7 @@ void LoadGameHook::init() {
 	HookCalls(game_reset_on_load_hook, {
 				0x47F491, // PrepLoad_ (the very first step during save game loading)
 			});
+
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 	HookCalls(game_close_hook, {
@@ -848,4 +870,11 @@ Delegate<>& LoadGameHook::OnBeforeGameClose() {
 	return onBeforeGameClose;
 }
 
+Delegate<>& LoadGameHook::OnCombatStart() {
+	return onCombatStart;
+}
+
+Delegate<>& LoadGameHook::OnCombatEnd() {
+	return onCombatEnd;
+}
 }

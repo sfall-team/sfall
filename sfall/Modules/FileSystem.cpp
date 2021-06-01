@@ -540,7 +540,7 @@ DWORD __stdcall FScopy(const char* path, const char* source) {
 	DWORD fsize;
 	sFile* file;
 
-	const char* mode = "r";
+	const char* mode = "rb"; // was 'r'
 	__asm {
 		mov  eax, source;
 		mov  edx, mode;
@@ -705,7 +705,7 @@ bool FileSystem::IsEmpty() {
 }
 
 void FileSystem::init() {
-	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
+	if (IniReader::GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
 		UsingFileSystem = true;
 	}

@@ -23,8 +23,8 @@
 #define LEGAL_COPYRIGHT "Copyright (C) 2006-2021, sfall team"
 
 #define VERSION_MAJOR 4
-#define VERSION_MINOR 2
-#define VERSION_BUILD 9
+#define VERSION_MINOR 3
+#define VERSION_BUILD 0
 #define VERSION_REV 0
 
-#define VERSION_STRING "4.2.9"
+#define VERSION_STRING "4.3"

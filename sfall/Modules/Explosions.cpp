@@ -349,11 +349,11 @@ static void SetExplosionRadius(int arg1, int arg2) {
 static void SetExplosionDamage(int pid, int min, int max) {
 	explosionsDamageReset = true;
 	switch (pid) {
-		case fo::ProtoId::PID_DYNAMITE:
+		case fo::ProtoID::PID_DYNAMITE:
 			SafeWrite32(dynamite_min_dmg_addr, min);
 			SafeWrite32(dynamite_max_dmg_addr, max);
 			break;
-		case fo::ProtoId::PID_PLASTIC_EXPLOSIVES:
+		case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
 			SafeWrite32(plastic_min_dmg_addr, min);
 			SafeWrite32(plastic_max_dmg_addr, max);
 			break;
@@ -363,11 +363,11 @@ static void SetExplosionDamage(int pid, int min, int max) {
 static int GetExplosionDamage(int pid) {
 	DWORD min = 0, max = 0;
 	switch (pid) {
-		case fo::ProtoId::PID_DYNAMITE:
+		case fo::ProtoID::PID_DYNAMITE:
 			min = *(DWORD*)dynamite_min_dmg_addr;
 			max = *(DWORD*)dynamite_max_dmg_addr;
 			break;
-		case fo::ProtoId::PID_PLASTIC_EXPLOSIVES:
+		case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
 			min = *(DWORD*)plastic_min_dmg_addr;
 			max = *(DWORD*)plastic_max_dmg_addr;
 			break;
@@ -422,10 +422,10 @@ int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 		case EXPL_GET_EXPLOSION_DAMAGE:
 			return GetExplosionDamage(arg1);
 		case EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE:
-			SetExplosionDamage(fo::ProtoId::PID_DYNAMITE, arg1, arg2);
+			SetExplosionDamage(fo::ProtoID::PID_DYNAMITE, arg1, arg2);
 			return 0;
 		case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
-			SetExplosionDamage(fo::ProtoId::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
+			SetExplosionDamage(fo::ProtoID::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
 			return 0;
 		case EXPL_SET_EXPLOSION_MAX_TARGET:
 			if (arg1 > 0 && arg1 < 7) {
@@ -481,7 +481,7 @@ static void ResetExplosionDamage() {
 void Explosions::init() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
-	lightingEnabled = GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
+	lightingEnabled = IniReader::GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
 	if (lightingEnabled) {
 		dlog("Applying Explosion changes.", DL_INIT);
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);

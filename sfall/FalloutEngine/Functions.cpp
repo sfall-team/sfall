@@ -408,7 +408,7 @@ BYTE* __fastcall loadPCX(const char* file, long* width, long* height) {
 	}
 }
 
-long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
+long __fastcall get_game_config_string(const char** outValue, const char* section, const char* param) {
 	__asm {
 		mov  ebx, param;
 		mov  eax, FO_VAR_game_config;

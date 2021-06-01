@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <math.h>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
@@ -25,9 +23,11 @@
 #include "LoadGameHook.h"
 #include "Objects.h"
 
-#include "SubModules\CombatBlock.h"
-
 #include "HookScripts\CombatHS.h"
+
+//#include "..\Game\items.h"
+
+#include "SubModules\CombatBlock.h"
 
 #include "Combat.h"
 
@@ -37,7 +37,7 @@ namespace sfall
 static const DWORD bodypartAddr[] = {
 	0x425562,                     // combat_display_
 	0x42A68F, 0x42A739,           // ai_called_shot_
-//	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_
+//	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_ (used for hit mode)
 	0x423231, 0x423268,           // check_ranged_miss_
 	0x4242D4,                     // attack_crit_failure_
 	// for combat_ctd_init_ func
@@ -54,7 +54,7 @@ static const DWORD bodypartAddr[] = {
 	0x49C00C,                     // protinstTestDroppedExplosive_
 };
 
-static struct BodyParts {
+static struct {
 	long Head;
 	long Left_Arm;
 	long Right_Arm;
@@ -64,7 +64,7 @@ static struct BodyParts {
 	long Eyes;
 	long Groin;
 	long Uncalled;
-} bodypartHit;
+} bodyPartHit;
 
 struct KnockbackModifier {
 	long id;
@@ -74,7 +74,7 @@ struct KnockbackModifier {
 
 long Combat::determineHitChance; // the value of hit chance w/o any cap
 
-static std::vector<long> noBursts; // object id
+static std::vector<long> noBursts; // critter id
 
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
@@ -87,34 +87,39 @@ static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
-DWORD __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, DWORD hitMode) {
-	DWORD rounds = 1;
+static bool checkWeaponAmmoCost;
+
+// Compares the cost (required count of rounds) for one shot with the current amount of ammo to make an attack or other checks
+long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
+	long currAmmo = fo::func::item_w_curr_ammo(weapon);
+	if (!checkWeaponAmmoCost || currAmmo <= 0) return currAmmo;
+
+	long rounds = 1; // default ammo for single shot
 
 	long anim = fo::func::item_w_anim_weap(weapon, hitMode);
 	if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
 		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
 	}
-	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
-		AmmoCostHook_Script(1, weapon, rounds);   // get rounds cost from hook
-	} else if (rounds == 1) {
-		fo::func::item_w_compute_ammo_cost(weapon, &rounds);
-	}
-	long currAmmo = fo::func::item_w_curr_ammo(weapon);
 
-	long cost = 1; // default cost
-	if (currAmmo > 0) {
-		cost = rounds / currAmmo;
-		if (rounds % currAmmo) cost++; // round up
+	DWORD newRounds = rounds;
+
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		AmmoCostHook_Script(1, weapon, newRounds); // newRounds returns the new "ammo" value multiplied by the cost
+	} else if (rounds == 1) { // NOTE: it doesn't make sense to call item_w_compute_ammo_cost for rounds greater than one
+		fo::func::item_w_compute_ammo_cost(weapon, &newRounds);
 	}
-	return (cost > currAmmo) ? 0 : 1;  // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
+
+	// calculate the cost
+	long cost = (newRounds != rounds) ? newRounds / rounds : 1; // 1 - default cost
+	return (cost > currAmmo) ? 0 : currAmmo; // 0 - this will force "Not Enough Ammo"
 }
 
 // adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
 static void __declspec(naked) combat_check_bad_shot_hook() {
 	__asm {
 		push edx;
-		push ecx;         // weapon
-		mov  edx, edi;    // hitMode
+		push ecx;      // weapon
+		mov  edx, edi; // hitMode
 		call Combat::check_item_ammo_cost;
 		pop  ecx;
 		pop  edx;
@@ -127,9 +132,9 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 	using namespace fo;
 	__asm {
 		push ecx;
-		mov  ecx, eax;                      // weapon
-		mov  edx, ATKTYPE_RWEAPON_PRIMARY;  // hitMode
-		call Combat::check_item_ammo_cost;  // enough ammo?
+		mov  edx, ATKTYPE_RWEAPON_PRIMARY; // hitMode
+		mov  ecx, eax;                     // weapon
+		call Combat::check_item_ammo_cost; // enough ammo?
 		pop  ecx;
 		retn;
 	}
@@ -158,33 +163,35 @@ tryAttack:
 	}
 }
 
-static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon, register DWORD currAmmo, DWORD burstRounds) {
-	DWORD rounds = 1; // default multiply
+/*** The return value should set the correct count of rounds for the burst calculated based on the cost ***/
+static long __fastcall divide_burst_rounds_by_ammo_cost(long currAmmo, fo::GameObject* weapon, long burstRounds) {
+	DWORD roundsCost = 1; // default burst cost
 
 	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
-		rounds = burstRounds;             // rounds in burst
-		AmmoCostHook_Script(2, weapon, rounds);
+		roundsCost = burstRounds;                   // rounds in burst (the number of rounds fired in the burst)
+		AmmoCostHook_Script(2, weapon, roundsCost); // roundsCost returns the new cost
 	}
 
-	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
+	long cost = burstRounds * roundsCost; // amount of ammo required for this burst (multiplied by 1 or by the value returned from HOOK_AMMOCOST)
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
 
-	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
+	return (cost / roundsCost);           // divide back to get proper number of rounds for damage calculations
 }
 
 static void __declspec(naked) compute_spray_hack() {
-	__asm {
-		push edx;         // weapon
-		push ecx;         // current ammo in weapon
-		xchg ecx, edx;
-		push eax;         // eax - rounds in burst attack, need to set ebp
+	__asm { // ebp = current ammo
+//		push edx;      // weapon
+//		push ecx;      // current ammo in weapon
+		push eax;      // rounds in burst attack, need to set ebp
 		call divide_burst_rounds_by_ammo_cost;
-		mov  ebp, eax;    // overwriten code
-		pop  ecx;
-		pop  edx;
+		mov  ebp, eax; // overwriten code
+//		pop  ecx;
+//		pop  edx;
 		retn;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObject* object, double val) {
 	for (size_t i = 0; i < mods->size(); i++) {
@@ -261,24 +268,32 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 	}
 }
 
-static long __fastcall CheckDisableBurst(fo::GameObject* critter) {
+bool Combat::IsBurstDisabled(fo::GameObject* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter->id) {
+		if (noBursts[i] == critter->id) return true;
+	}
+	return false;
+}
+
+static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject* weapon, fo::AIcap* cap) {
+	if (Combat::IsBurstDisabled(critter)) {
+		long anim = fo::func::item_w_anim_weap(weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY);
+		if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
-	return 0;
+	return cap->area_attack_mode; // default engine code
 }
 
-static void __declspec(naked) ai_pick_hit_mode_hack_noSecondary() {
+static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
 	__asm {
-		mov  ebx, [eax + 0x94]; // cap->area_attack_mode
 		push eax;
 		push ecx;
-		mov  ecx, esi;          // source
+		push eax;      // cap
+		mov  edx, ebp; // weapon
+		mov  ecx, esi; // source
 		call CheckDisableBurst;
-		test eax, eax;
-		cmovnz ebx, eax;
+		mov  ebx, eax;
 		pop  ecx;
 		pop  eax;
 		retn;
@@ -302,8 +317,8 @@ void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DW
 	}
 
 	long id = (mode == 0)
-			? Objects::SetSpecialID(object)
-			: Objects::SetObjectUniqueID(object);
+	        ? Objects::SetSpecialID(object)
+	        : Objects::SetObjectUniqueID(object);
 
 	KnockbackModifier mod = { id, type, (double)val };
 	for (size_t i = 0; i < mods->size(); i++) {
@@ -386,7 +401,7 @@ static void __declspec(naked) item_w_called_shot_hook() {
 	static const DWORD aimedShotRet2 = 0x478EEA;
 	__asm {
 		push edx;
-		mov  ecx, edx;       // item
+		mov  ecx, edx; // item
 		call AimedShotTest;
 		test eax, eax;
 		jg   force;
@@ -432,50 +447,96 @@ void __stdcall ForceAimedShots(DWORD pid) {
 
 static void BodypartHitChances() {
 	using fo::var::hit_location_penalty;
-	hit_location_penalty[0] = bodypartHit.Head;
-	hit_location_penalty[1] = bodypartHit.Left_Arm;
-	hit_location_penalty[2] = bodypartHit.Right_Arm;
-	hit_location_penalty[3] = bodypartHit.Torso;
-	hit_location_penalty[4] = bodypartHit.Right_Leg;
-	hit_location_penalty[5] = bodypartHit.Left_Leg;
-	hit_location_penalty[6] = bodypartHit.Eyes;
-	hit_location_penalty[7] = bodypartHit.Groin;
-	hit_location_penalty[8] = bodypartHit.Uncalled;
+	hit_location_penalty[0] = bodyPartHit.Head;
+	hit_location_penalty[1] = bodyPartHit.Left_Arm;
+	hit_location_penalty[2] = bodyPartHit.Right_Arm;
+	hit_location_penalty[3] = bodyPartHit.Torso;
+	hit_location_penalty[4] = bodyPartHit.Right_Leg;
+	hit_location_penalty[5] = bodyPartHit.Left_Leg;
+	hit_location_penalty[6] = bodyPartHit.Eyes;
+	hit_location_penalty[7] = bodyPartHit.Groin;
+	hit_location_penalty[8] = bodyPartHit.Uncalled;
 }
 
 static void BodypartHitReadConfig() {
-	bodypartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
-	bodypartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
-	bodypartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
-	bodypartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso", 0));
-	bodypartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
-	bodypartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
-	bodypartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
-	bodypartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
-	bodypartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
+	bodyPartHit.Head      = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Head",          -40));
+	bodyPartHit.Left_Arm  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Left_Arm",      -30));
+	bodyPartHit.Right_Arm = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Right_Arm",     -30));
+	bodyPartHit.Torso     = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso",           0));
+	bodyPartHit.Right_Leg = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Right_Leg",     -20));
+	bodyPartHit.Left_Leg  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Left_Leg",      -20));
+	bodyPartHit.Eyes      = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Eyes",          -60));
+	bodyPartHit.Groin     = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Groin",         -30));
+	bodyPartHit.Uncalled  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
 }
 
 static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
+	using fo::Uncalled;
 	__asm {
-		mov  ebx, 8; // replace Body_Torso with Body_Uncalled
+		mov  ebx, Uncalled; // replace Body_Torso with Body_Uncalled
 		jmp  fo::funcoffs::determine_to_hit_;
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static void __declspec(naked) apply_damage_hack_main() {
+	using namespace fo::Fields;
+	__asm {
+		mov  edx, [eax + teamNum]; // ctd.target.team_num
+		mov  ecx, [ebx + teamNum]; // ctd.source.team_num (attacker)
+		cmp  edx, ecx;
+		jnz  check;
+		retn; // skip combatai_check_retaliation_
+check:  // does the target belong to the player's team?
+		test edx, edx;
+		jz   dudeTeam;
+		retn; // call combatai_check_retaliation_
+dudeTeam: // check who the attacker was attacking
+		mov  ecx, [esi + ctdMainTarget]; // ctd.mainTarget
+		cmp  edx, [ecx + teamNum];       // dude.team_num == mainTarget.team_num?
+		jne  skipSetHitTarget;           // target is not main
+		or   edx, 1;
+		retn; // call combatai_check_retaliation_
+skipSetHitTarget:
+		xor  edx, edx;
+		retn;
+	}
+}
+
+static void __declspec(naked) apply_damage_hook_extra() {
+	using namespace fo::Fields;
+	__asm { // eax - target1-6
+		// does the target belong to the player's team?
+		test ebx, ebx; // target.team_num
+		jz   dudeTeam;
+default:
+		jmp  fo::funcoffs::combatai_check_retaliation_;
+dudeTeam: // check who the attacker was attacking
+		mov  ecx, [esi + ctdMainTarget]; // ctd.mainTarget
+		cmp  ebx, [ecx + teamNum];       // dude.team_num == mainTarget.team_num?
+		je   default;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Ray's combat_p_proc patch
 static void __declspec(naked) apply_damage_hack() {
+	using namespace fo::Fields;
 	__asm {
 		xor  edx, edx;
-		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
-		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
-		jz   end;              // no hit
-		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+		inc  edx;                          // 1 - COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + ctdAttackerFlags], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;                          // no hit
+		inc  edx;                          // 2 - COMBAT_SUBTYPE_HIT_SUCCEEDED
 end:
 		retn;
 	}
 }
 
-static void CombatProcFix() {
-	//Ray's combat_p_proc fix
+static void CombatProcPatch() {
 	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
 	MakeCall(0x424DD9, apply_damage_hack);
 	SafeWrite16(0x424DC6, 0x9090);
@@ -495,7 +556,12 @@ static void Combat_OnGameLoad() {
 
 void Combat::init() {
 	CombatBlock::init();
-	CombatProcFix();
+
+	CombatProcPatch();
+
+	// Prevents NPC aggression when non-hostile NPCs accidentally hit the player or members of the player's team
+	MakeCall(0x424D6B, apply_damage_hack_main, 1);
+	HookCall(0x424E58, apply_damage_hook_extra);
 
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
@@ -503,13 +569,14 @@ void Combat::init() {
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
 
-	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
-	MakeCall(0x429E44, ai_pick_hit_mode_hack_noSecondary, 1);   // NoBurst
+	// Disables secondary burst attacks for the critter
+	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
 
-	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
+	checkWeaponAmmoCost = (IniReader::GetConfigInt("Misc", "CheckWeaponAmmoCost", 0) != 0);
+	if (checkWeaponAmmoCost) {
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
-		HookCall(0x429A37, ai_search_inven_weap_hook);
+		HookCall(0x429A37, ai_search_inven_weap_hook); // check if there is enough ammo to shoot
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 	}
 
@@ -521,8 +588,8 @@ void Combat::init() {
 	// Remove the dependency of Body_Torso from Body_Uncalled
 	SafeWrite8(0x423830, CodeType::JumpShort); // compute_attack_
 	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
-	SafeWrite8(0x42A713, 7); // Body_Uncalled > Body_Groin (ai_called_shot_)
-	SafeWriteBatch<BYTE>(8, bodypartAddr); // replace Body_Torso with Body_Uncalled
+	SafeWrite8(0x42A713, fo::BodyPart::Groin); // Body_Uncalled > Body_Groin (ai_called_shot_)
+	SafeWriteBatch<BYTE>(fo::BodyPart::Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
 	HookCalls(ai_pick_hit_mode_hook_bodypart, {0x429E8C, 0x429ECC, 0x429F09});
 
 	LoadGameHook::OnGameReset() += Combat_OnGameLoad;

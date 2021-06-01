@@ -18,10 +18,14 @@ void Inject_CombatTurnHook();
 void Inject_OnExplosionHook();
 void Inject_SubCombatDamageHook();
 void Inject_TargetObjectHook();
+void Inject_BestWeaponHook();
+void Inject_CanUseWeaponHook();
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
-// Implementation of item_w_mp_cost_ engine function with the hook
-long __fastcall sf_item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled);
+long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
+//void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker);
+//fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject* source, fo::GameObject* weapon1, fo::GameObject* weapon2, fo::GameObject* target);
+bool CanUseWeaponHook_Invoke(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode);
 
 }

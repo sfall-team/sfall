@@ -255,15 +255,13 @@ skip:
 	}
 }
 
-static long __fastcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type) {
-	long result = fo::func::is_within_perception(watcher, target);
-
+static __forceinline long PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type, long result) {
 	BeginHook();
 	argCount = 4;
 
 	args[0] = (DWORD)watcher;
 	args[1] = (DWORD)target;
-	args[2] = result;
+	args[2] = result; // engine result
 	args[3] = type;
 
 	RunHookScript(HOOK_WITHINPERCEPTION);
@@ -274,12 +272,13 @@ static long __fastcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::G
 	return result;
 }
 
-// Implementation of is_within_perception_ engine function with the hook
-long __fastcall sf_is_within_perception(fo::GameObject* watcher, fo::GameObject* target) { // TODO: add type arg
-	if (HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) {
-		return PerceptionRangeHook_Script(watcher, target, 0);
-	}
-	return fo::func::is_within_perception(watcher, target);
+long PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result) {
+	if (!HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) return result;
+	return PerceptionRangeHook_Script(watcher, target, type, result);
+}
+
+static long __fastcall PerceptionRange_Hook(fo::GameObject* watcher, fo::GameObject* target, int type) {
+	return PerceptionRangeHook_Script(watcher, target, type, fo::func::is_within_perception(watcher, target));
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
@@ -287,7 +286,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		push ecx;
 		push 0;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -298,7 +297,7 @@ static void __declspec(naked) PerceptionRangeSeeHook() {
 		push ecx;
 		push 1;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		cmp  eax, 2;
 		jne  nevermind; // normal return
@@ -315,7 +314,7 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 		push ecx;
 		push 2;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}
@@ -326,7 +325,7 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 		push ecx;
 		push 3;
 		mov  ecx, eax;
-		call PerceptionRangeHook_Script;
+		call PerceptionRange_Hook;
 		pop  ecx;
 		retn;
 	}

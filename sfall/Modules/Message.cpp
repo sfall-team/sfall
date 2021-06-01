@@ -29,7 +29,8 @@ namespace sfall
 {
 
 #define CASTMSG(adr) reinterpret_cast<fo::MessageList*>(adr)
-const fo::MessageList* gameMsgFiles[] = {
+
+const fo::MessageList* Message::gameMsgFiles[] = {
 	CASTMSG(MSG_FILE_COMBAT),
 	CASTMSG(MSG_FILE_AI),
 	CASTMSG(MSG_FILE_SCRNAME),
@@ -53,7 +54,13 @@ const fo::MessageList* gameMsgFiles[] = {
 };
 #undef CASTMSG
 
-ExtraGameMessageListsMap gExtraGameMsgLists;
+static char gameLanguage[32]; // (max length of language string is 40)
+
+const char* Message::GameLanguage() {
+	return &gameLanguage[0];
+}
+
+ExtraGameMessageListsMap Message::gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
 
 static long msgNumCounter = 0x3000;
@@ -66,12 +73,13 @@ static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFil
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
 	if (heroIsFemale < 0) heroIsFemale = fo::HeroIsFemale();
 
-	unsigned char* _pos = (u_char*)msgData->message;
+	unsigned char* _pos = (unsigned char*)msgData->message;
 	unsigned char* pos;
-	while ((pos = (u_char*)std::strchr((char*)_pos, '^')) != 0) { // pos - pointer to the character position
+
+	while ((pos = (unsigned char*)std::strchr((char*)_pos, '^')) != 0) { // pos - pointer to the character position
 		_pos = pos; // next find position
-		for (u_char* n = pos - 1; ; n--) {
-			if (n < (u_char*)msgData->message) {
+		for (unsigned char* n = pos - 1; ; n--) {
+			if (n < (unsigned char*)msgData->message) {
 				_pos++; // error, open char not found
 				break;
 			} else if (*n == '<') {
@@ -104,6 +112,7 @@ static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFil
 		}
 		if (_pos > pos) break;
 	}
+
 	// set flag
 	unsigned long outValue;
 	fo::func::message_find(msgFile, msgData->number, &outValue);
@@ -150,39 +159,6 @@ noFile:
 	}
 }
 
-fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgRef) {
-	if (msgList != nullptr && msgList->numMsgs > 0) {
-		fo::MessageNode *msgNode = msgList->nodes;
-		long last = msgList->numMsgs - 1;
-		long first = 0;
-		long mid;
-
-		// Use Binary Search to find msg
-		while (first <= last) {
-			mid = (first + last) / 2;
-			if (msgRef > msgNode[mid].number)
-				first = mid + 1;
-			else if (msgRef < msgNode[mid].number)
-				last = mid - 1;
-			else
-				return &msgNode[mid];
-		}
-	}
-	return nullptr;
-}
-
-char* GetMsg(fo::MessageList* msgList, int msgRef, int msgNum) {
-	fo::MessageNode *msgNode = GetMsgNode(msgList, msgRef);
-	if (msgNode) {
-		if (msgNum == 2) {
-			return msgNode->message;
-		} else if (msgNum == 1) {
-			return msgNode->audio;
-		}
-	}
-	return nullptr;
-}
-
 static void ReadExtraGameMsgFiles() {
 	if (!msgFileList.empty()) {
 		int number = 0;
@@ -198,7 +174,7 @@ static void ReadExtraGameMsgFiles() {
 			path += ".msg";
 			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, path.c_str()) == 1) {
-				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
+				Message::gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
 			}
@@ -211,7 +187,7 @@ static void ReadExtraGameMsgFiles() {
 long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 	if (msgNumber) {
 		if (msgNumber < 0x2000 || msgNumber > 0x2FFF) return -1;
-		if (gExtraGameMsgLists.count(msgNumber)) return 0; // file has already been added
+		if (Message::gExtraGameMsgLists.count(msgNumber)) return 0; // file has already been added
 	} else if (msgNumCounter > 0x3FFF) return -3;
 
 	std::string path("game\\");
@@ -226,15 +202,15 @@ long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 		//}
 	}
 	if (msgNumber == 0) msgNumber = msgNumCounter++;
-	gExtraGameMsgLists.emplace(msgNumber, list);
+	Message::gExtraGameMsgLists.emplace(msgNumber, list);
 	return msgNumber;
 }
 
 static void ClearScriptAddedExtraGameMsg() { // C++11
-	for (auto it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end();) {
+	for (auto it = Message::gExtraGameMsgLists.begin(); it != Message::gExtraGameMsgLists.end();) {
 		if (it->first >= 0x3000 && it->first <= 0x3FFF) {
 			fo::func::message_exit(it->second.get());
-			it = gExtraGameMsgLists.erase(it);
+			it = Message::gExtraGameMsgLists.erase(it);
 		} else {
 			++it;
 		}
@@ -244,22 +220,23 @@ static void ClearScriptAddedExtraGameMsg() { // C++11
 }
 
 static void FallbackEnglishLoadMsgFiles() {
-	char value[128];
-	if (fo::func::get_game_config_string(value, "system", "language") && _stricmp(value, "english") != 0) {
-		HookCall(0x484B18, message_load_hook);
+	const char* lang;
+	if (fo::func::get_game_config_string(&lang, "system", "language")) {
+		strncpy_s(gameLanguage, lang, _TRUNCATE);
+		if (_stricmp(lang, "english") != 0) HookCall(0x484B18, message_load_hook);
 	}
 }
 
 static void ClearReadExtraGameMsgFiles() {
-	for (auto it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
+	for (auto it = Message::gExtraGameMsgLists.begin(); it != Message::gExtraGameMsgLists.end(); ++it) {
 		fo::func::message_exit(it->second.get());
 	}
 }
 
 void Message::init() {
-	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
+	msgFileList = IniReader::GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
 
-	if (GetConfigInt("Misc", "DialogGenderWords", 0)) {
+	if (IniReader::GetConfigInt("Misc", "DialogGenderWords", 0)) {
 		dlog("Applying dialog gender words patch.", DL_INIT);
 		HookCall(0x4A6CEE, scr_get_msg_str_speech_hook);
 		SafeWrite16(0x484C62, 0x9090); // message_search_

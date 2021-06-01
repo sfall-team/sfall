@@ -83,14 +83,14 @@ void CRC(const char* filepath) {
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (!sizeMatch && iniGetInt("Debugging", "SkipSizeCheck", 0, ::sfall::ddrawIni)) {
+	if (!sizeMatch && IniReader::GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0)) {
 		sizeMatch = true;
 	}
 
 	if (!sizeMatch) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
-					   "Was expecting '" TARGETVERSION "'.\n\n"
-					   "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
+		               "Was expecting '" TARGETVERSION "'.\n\n"
+		               "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
 		Fail(buf);
 	}
 	BYTE* bytes = new BYTE[size];
@@ -99,7 +99,7 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ::sfall::ddrawIni);
+	auto extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
 	if (!extraCrcList.empty()) {
 		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
 			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
@@ -112,8 +112,8 @@ void CRC(const char* filepath) {
 	}
 	if (!matchedCRC) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
-					   "Was expecting '" TARGETVERSION "'.\n\n"
-					   "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
+		               "Was expecting '" TARGETVERSION "'.\n\n"
+		               "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
 		Fail(buf);
 	}
 

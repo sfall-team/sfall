@@ -262,7 +262,7 @@ static void __declspec(naked) refresh_box_bar_win_hack() {
 }
 
 void BarBoxes::init() {
-	initCount += GetConfigInt("Misc", "BoxBarCount", 5);
+	initCount += IniReader::GetConfigInt("Misc", "BoxBarCount", 5);
 	if (initCount < 5)  initCount = 5; // exclude the influence of negative values from the config
 	if (initCount > 100) initCount = 100;
 
@@ -276,7 +276,7 @@ void BarBoxes::init() {
 		boxes[i].msg = 100 + i;
 	}
 
-	auto boxBarColors = GetConfigString("Misc", "BoxBarColours", "", actualBoxCount + 1);
+	auto boxBarColors = IniReader::GetConfigString("Misc", "BoxBarColours", "", actualBoxCount + 1);
 	for (size_t i = 0; i < boxBarColors.size(); i++) {
 		if (boxBarColors[i] == '1') {
 			boxes[i + 5].colour = 1; // red color
@@ -303,7 +303,7 @@ void BarBoxes::init() {
 	MakeCall(0x4615FA, refresh_box_bar_win_hack);
 	SafeWriteBatch<DWORD>((DWORD)newBoxSlot, bboxSlotAddr); // _bboxslot
 
-	ifaceWidth = iniGetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
+	ifaceWidth = IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
 	if (ifaceWidth < 640) ifaceWidth = 640;
 
 	LoadGameHook::OnAfterGameInit() += SetMaxSlots;
