@@ -20,30 +20,27 @@ jobs:
     uses: actions/checkout@v2
 
   # Action is used twice for self-testing only
+  # DevXP build results are intentionally *not* included in artifact
 
   - name: ReleaseXP build
-    id:   build1
+    id:   build
     uses: ./
     with:
      release-xp: true
 
   - name: DevXP build
-    id:   build2
     uses: ./
     with:
      dev-xp: true
 
-  - name:  Prepare artifacts
+  - name:  Prepare artifact
     run:   |
            :
-           mkdir -p ddraw/ReleaseXP
-           mkdir -p ddraw/DevXP
+           mkdir -p ddraw
 
            cp artifacts/ddraw.ini ddraw
            cp artifacts/sfall.dat ddraw
-           cp "${{ steps.build1.outputs.release-xp }}" ddraw/ReleaseXP
-           cp "${{ steps.build2.outputs.dev-xp }}"     ddraw/DevXP
-           cp "${{ steps.build2.outputs.dev-xp-pdb }}" ddraw/DevXP
+           cp "${{ steps.build.outputs.release-xp }}" ddraw
     shell: bash
 
   - name: Upload artifacts
