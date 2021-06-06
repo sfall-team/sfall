@@ -1449,11 +1449,7 @@ void Graphics_Init() {
 
 	if (GraphicsMode) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
-#ifdef WIN2K
 #define _DLL_NAME "d3dx9_42.dll"
-#else
-#define _DLL_NAME "d3dx9_43.dll"
-#endif
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
