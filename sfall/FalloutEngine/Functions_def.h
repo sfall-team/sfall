@@ -25,6 +25,7 @@ WRAP_WATCOM_FFUNC3(long, ai_have_ammo, fo::GameObject*, critter, fo::GameObject*
 WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, fo::GameObject*, source, fo::GameObject*, item, fo::GameObject*, target)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, ai_search_inven_weap, fo::GameObject*, source, long, apCheck, fo::GameObject*, target)
 WRAP_WATCOM_FFUNC3(void, check_for_death, fo::GameObject*, critter, long, amountDamage, long*, flags)
+WRAP_WATCOM_FFUNC6(long, combat_safety_invalidate_weapon_func, fo::GameObject*, source, fo::GameObject*, weapon, long, hitMode, fo::GameObject*, targetA, DWORD*, outSafeRange, fo::GameObject*, targetB)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, fo::GameObject*, critter, fo::GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
 WRAP_WATCOM_FFUNC4(long, determine_to_hit, fo::GameObject*, source, fo::GameObject*, target, long, bodyPart, long, hitMode)
