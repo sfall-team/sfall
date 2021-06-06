@@ -556,6 +556,7 @@ void Animations::init() {
 	}
 
 	// Improved implementation of animation registration
+	#ifndef NDEBUG
 	MakeCall(0x413E88, check_registry_hack, 2);
 	MakeCall(0x413DCE, anim_cleanup_hack, 1);
 	SafeWrite16(0x413DD4, 0x4478); // js 0x413E1A
@@ -563,6 +564,7 @@ void Animations::init() {
 	MakeJump(0x413D64, register_end_hack_end);
 	SafeWrite16(0x413D0B, 0xC689); // and dl, not 8 > mov esi, eax (keep offset to anim_set slot)
 	SafeWrite8(0x413D0D, CodeType::Nop);
+	#endif
 
 	// Implement a temporary lock on an animation slot after it is cleared by the register_clear_ function
 	// to prevent it from being used as a free slot when registering a nested animation
