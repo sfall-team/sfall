@@ -1,0 +1,51 @@
+name: Build
+
+on:
+ push:
+  branches:
+  - 'develop'
+  - 'github-action'
+  paths:
+  - '.github/workflows/build.yml'
+  - 'action.yml'
+  - 'sfall/**'
+
+jobs:
+ Build:
+  name:    sfall
+  runs-on: windows-latest
+  steps:
+
+  - name: Clone sfall
+    uses: actions/checkout@v2
+
+  # Action is used twice for self-testing only
+  # DevXP build results are intentionally *not* included in artifact
+
+  - name: ReleaseXP build
+    id:   build
+    uses: ./
+    with:
+     release-xp: true
+
+  - name: DevXP build
+    uses: ./
+    with:
+     dev-xp: true
+
+  - name:  Prepare artifact
+    run:   |
+           :
+           mkdir -p ddraw
+
+           cp artifacts/ddraw.ini ddraw
+           cp artifacts/sfall.dat ddraw
+           cp "${{ steps.build.outputs.release-xp }}" ddraw
+    shell: bash
+
+  - name: Upload artifacts
+    uses: actions/upload-artifact@v2
+    with:
+     name:           ddraw
+     path:           ddraw
+     retention-days: 14
