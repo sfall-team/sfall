@@ -1998,35 +1998,36 @@ skip:
 
 static DWORD firstItemDrug = -1;
 
+// when there are no more items in the inventory
 static void __declspec(naked) ai_check_drugs_hack_break() {
 	static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 	__asm {
 		mov  eax, -1;
 		cmp  firstItemDrug, eax;
-		jne  firstDrugs;                   // pid != -1
+		jne  useDrugs;                     // pid != -1
 		add  esp, 4;
 		jmp  ai_check_drugs_hack_Ret;      // break loop
-firstDrugs:
+useDrugs: // use the first found item
 		mov  dword ptr [esp + 4], eax;     // slot set -1
 		mov  edi, firstItemDrug;
 		mov  ebx, edi;
 		mov  firstItemDrug, eax;           // set -1
-		retn;                              // use drug
+		retn;                              // goto check (use drug)
 	}
 }
 
 static void __declspec(naked) ai_check_drugs_hack_check() {
 	__asm {
-		test [esp + 0x34 - 0x30 + 4], 0;   // check NoInvenItem != 0
-		jnz  skip;
+		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem != 0
+		jnz  skip;                         // there are no more drugs in inventory
 		cmp  dword ptr [edx + 0xAC], -1;   // cap.chem_primary_desire (Chemical Preference Number)
 		jnz  checkDrugs;
 skip:
 		xor  ebx, ebx;                     // set ZF for skipping preference list check
 		retn;
 checkDrugs:
-		cmp  ebx, [edx + 0xAC];            // check item.pid against cap.chem_primary_desire
-		retn;
+		cmp  ebx, [edx + 0xAC];            // item.pid == cap.chem_primary_desire?
+		retn;                              // if yes, use it (jz 0x4286C7); otherwise, check the other values of chem_primary_desire
 	}
 }
 
