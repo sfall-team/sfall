@@ -371,6 +371,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 		return;
 	}
 	#endif
+	combat_ai_init_backup(); // BugFixes
 	RemoveSavFiles();
 	Sound_OnAfterGameInit();
 	BarBoxes_SetMaxSlots();

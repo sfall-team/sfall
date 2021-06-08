@@ -76,6 +76,22 @@ void BugFixes_Initialization() {
 	SafeWriteBytes(0x4CA9DC, (BYTE*)&data, 5); // mouse_get_position_
 }
 
+static std::vector<AIcap> aiCapsBackup;
+
+void combat_ai_init_backup() {
+	long num_caps = *ptr_num_caps;
+	AIcap* caps = *ptr_cap;
+
+	aiCapsBackup.resize(num_caps);
+	std::memcpy(&aiCapsBackup[0], caps, num_caps * sizeof(AIcap));
+}
+
+static void combat_ai_reset() {
+	long num_caps = *ptr_num_caps;
+	AIcap* caps = *ptr_cap;
+	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(AIcap));
+}
+
 // fix for vanilla negate operator not working on floats
 static void __declspec(naked) NegateFixHack() {
 	static const DWORD NegateFixHack_Back = 0x46AB77;
@@ -2047,6 +2063,14 @@ skip:
 	}
 }
 
+static void __declspec(naked) cai_cap_save_hook() {
+	__asm {
+		add  esi, 4;
+		mov  edx, [edx];
+		jmp  db_fwriteInt_;
+	}
+}
+
 static void __declspec(naked) config_get_values_hack() {
 	static const DWORD config_get_values_hack_Get = 0x42C13F;
 	static const DWORD config_get_values_hack_OK = 0x42C14D;
@@ -3481,7 +3505,7 @@ void BugFixes_Init()
 	MakeCall(0x48A704, obj_move_to_tile_hack);
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
-	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
+	// in their AI packets is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	const DWORD aiCombatTurnRunAddr[] = {
 		0x42A1A8, // ai_move_steps_closer_ (old 0x42B24D)
 		0x42898D, // ai_run_away_  (potential fix)
@@ -3617,6 +3641,10 @@ void BugFixes_Init()
 		SafeWrite8(0x4286C5, CODETYPE_JumpNZ); // jz > jnz (ai_check_drugs_)
 		dlogr(" Done", DL_FIX);
 	}
+
+	// Fix for chem_primary_desire values in party member AI packets not being saved correctly
+	HookCall(0x42803E, cai_cap_save_hook);
+	HookCall(0x442BC1, combat_ai_reset); // replace the engine function that does nothing (game_reset_)
 
 	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
 	// number of values (for chem_primary_desire)
