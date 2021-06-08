@@ -27,6 +27,7 @@
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
+#define FO_VAR_cap                        0x518064
 #define FO_VAR_carCurrentArea             0x672E68
 #define FO_VAR_carGasAmount               0x672E6C
 #define FO_VAR_card_old_fid1              0x5709EC
@@ -182,6 +183,7 @@
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_font                  0x56D74C
 #define FO_VAR_name_sort_list             0x56FCB0
+#define FO_VAR_num_caps                   0x518060
 #define FO_VAR_num_game_global_vars       0x5186C4
 #define FO_VAR_num_map_global_vars        0x519574
 #define FO_VAR_num_windows                0x6ADF24
