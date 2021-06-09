@@ -14,7 +14,7 @@ PTR_(BlueColor,                  BYTE)
 PTR_(bottom_line,                DWORD)
 PTR_(btable,                     DWORD)
 PTR_(btncnt,                     DWORD)
-PTR_(cap,                        AIcap*)
+PTR_(cap,                        AIcap*) // dynamic array
 PTR_(carCurrentArea,             DWORD)
 PTR_(carGasAmount,               long) // from 0 to 80000
 PTR_(cmap,                       DWORD)
