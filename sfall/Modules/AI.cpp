@@ -523,12 +523,12 @@ fix:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static long __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+static bool __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
 	if (AI::CheckFriendlyFire(target, attacker)) {
 		long dice = fo::func::roll_random(1, 10);
-		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // 1 - is friendly
+		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // true - is friendly
 	}
-	return 0;
+	return false;
 }
 
 static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() {
@@ -537,13 +537,38 @@ static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() 
 		pushadc;
 		mov  ecx, esi; // target
 		call RollFriendlyFire;
-		test eax, eax;
+		test al, al;
 		jnz  friendly;
 		popadc;
 		jmp  fo::funcoffs::combat_ctd_init_;
 friendly:
 		lea  esp, [esp + 8 + 3*4];
 		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
+	}
+}
+
+static long __fastcall CheckFireBurst(fo::GameObject* attacker, fo::GameObject* target, fo::GameObject* weapon) {
+	if (fo::func::item_w_anim_weap(weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) == fo::Animation::ANIM_fire_burst) {
+		return !fo::func::combat_safety_invalidate_weapon_func(attacker, weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY, target, 0, 0);
+	}
+	return 1; // allow
+}
+
+static void __declspec(naked) ai_pick_hit_mode_hack() {
+	__asm {
+		cmp  eax, 1;
+		je   isAllowed;
+		xor  eax, eax;
+		retn;
+isAllowed:
+		cmp  ecx, 3;   // source IQ (no check for low IQ)
+		jl   skip;
+		push ebp;      // item
+		mov  edx, edi; // target
+		mov  ecx, esi; // source
+		call CheckFireBurst;
+skip:
+		retn;
 	}
 }
 
@@ -623,6 +648,8 @@ void AI::init() {
 	// Fix to reduce friendly fire in burst attacks
 	// Adds a check/roll for friendly critters in the line of fire when AI uses burst attacks
 	HookCall(0x421666, combat_safety_invalidate_weapon_func_hook_check);
+	// for unset (random) value of 'area_attack_mode'
+	MakeCall(0x429F56, ai_pick_hit_mode_hack);
 
 	// Fix for duplicate critters being added to the list of potential targets for AI
 	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);

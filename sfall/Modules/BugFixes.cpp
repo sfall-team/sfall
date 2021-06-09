@@ -83,6 +83,22 @@ static void Initialization() {
 	SafeWriteBytes(0x4CA9DC, (BYTE*)&data, 5); // mouse_get_position_
 }
 
+static std::vector<fo::AIcap> aiCapsBackup;
+
+static void combat_ai_init_backup() {
+	long num_caps = fo::var::num_caps;
+	fo::AIcap* caps = fo::var::cap;
+
+	aiCapsBackup.resize(num_caps);
+	std::memcpy(&aiCapsBackup[0], caps, num_caps * sizeof(fo::AIcap));
+}
+
+static void combat_ai_reset() {
+	long num_caps = fo::var::num_caps;
+	fo::AIcap* caps = fo::var::cap;
+	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(fo::AIcap));
+}
+
 // fix for vanilla negate operator not working on floats
 static void __declspec(naked) NegateFixHack() {
 	static const DWORD NegateFixHack_Back = 0x46AB77;
@@ -2019,35 +2035,36 @@ skip:
 
 static DWORD firstItemDrug = -1;
 
+// when there are no more items in the inventory
 static void __declspec(naked) ai_check_drugs_hack_break() {
 	static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 	__asm {
 		mov  eax, -1;
 		cmp  firstItemDrug, eax;
-		jne  firstDrugs;                   // pid != -1
+		jne  useDrugs;                     // pid != -1
 		add  esp, 4;
 		jmp  ai_check_drugs_hack_Ret;      // break loop
-firstDrugs:
+useDrugs: // use the first found item
 		mov  dword ptr [esp + 4], eax;     // slot set -1
 		mov  edi, firstItemDrug;
 		mov  ebx, edi;
 		mov  firstItemDrug, eax;           // set -1
-		retn;                              // use drug
+		retn;                              // goto check (use drug)
 	}
 }
 
 static void __declspec(naked) ai_check_drugs_hack_check() {
 	__asm {
-		test [esp + 0x34 - 0x30 + 4], 0;   // check NoInvenItem != 0
-		jnz  skip;
+		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem != 0
+		jnz  skip;                         // there are no more drugs in inventory
 		cmp  dword ptr [edx + 0xAC], -1;   // cap.chem_primary_desire (Chemical Preference Number)
 		jnz  checkDrugs;
 skip:
 		xor  ebx, ebx;                     // set ZF for skipping preference list check
 		retn;
 checkDrugs:
-		cmp  ebx, [edx + 0xAC];            // check item.pid against cap.chem_primary_desire
-		retn;
+		cmp  ebx, [edx + 0xAC];            // item.pid == cap.chem_primary_desire?
+		retn;                              // if yes, use it (jz 0x4286C7); otherwise, check the other values of chem_primary_desire
 	}
 }
 
@@ -2064,6 +2081,14 @@ beginLoop:
 skip:
 		add  esp, 4;
 		jmp  ai_check_drugs_hack_Loop;     // goto begin loop, search next item
+	}
+}
+
+static void __declspec(naked) cai_cap_save_hook() {
+	__asm {
+		add  esi, 4;
+		mov  edx, [edx];
+		jmp  fo::funcoffs::db_fwriteInt_;
 	}
 }
 
@@ -3117,7 +3142,11 @@ void BugFixes::init()
 
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
-	LoadGameHook::OnGameReset() += []() { dudeIsAnimDeath = false; };
+	LoadGameHook::OnAfterGameInit() += combat_ai_init_backup;
+	LoadGameHook::OnGameReset() += []() {
+		dudeIsAnimDeath = false;
+		combat_ai_reset();
+	};
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -3496,7 +3525,7 @@ void BugFixes::init()
 	MakeCall(0x48A704, obj_move_to_tile_hack);
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
-	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
+	// in their AI packets is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCalls(ai_combat_turn_run_hook, {
 		0x42A1A8, // ai_move_steps_closer_ (old 0x42B24D)
 		0x42898D, // ai_run_away_  (potential fix)
@@ -3626,6 +3655,9 @@ void BugFixes::init()
 		SafeWrite8(0x4286C5, CodeType::JumpNZ); // jz > jnz (ai_check_drugs_)
 		dlogr(" Done", DL_FIX);
 	}
+
+	// Fix for chem_primary_desire values in party member AI packets not being saved correctly
+	HookCall(0x42803E, cai_cap_save_hook);
 
 	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
 	// number of values (for chem_primary_desire)
