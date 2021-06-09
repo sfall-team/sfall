@@ -180,7 +180,7 @@ enum TerrainHoverImage {
 	HVRIMG_x_shift = (HVRIMG_width / 4) + 25 // adjust x position
 };
 
-static std::array<unsigned char, HVRIMG_size> wmTmpBuffer;
+static std::tr1::array<unsigned char, HVRIMG_size> wmTmpBuffer;
 static bool isHoveringHotspot = false;
 static bool backImageIsCopy = false;
 

@@ -595,12 +595,12 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 	long diffY_x2 = 2 * std::abs(diffY);
 
 	const int step = 4;
-	long stepCounter = step - 1;
+	long stepCounter = 1;
 
 	if (diffX_x2 > diffY_x2) {
 		long stepY = diffY_x2 - (diffX_x2 >> 1);
 		while (true) {
-			if (++stepCounter == step) {
+			if (!--stepCounter) {
 				long tile = fo_tile_num(target_X, target_Y);
 				//fo_debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
@@ -611,7 +611,7 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 					//}
 					lastTile = tile;
 				}
-				stepCounter = 0;
+				stepCounter = step;
 			}
 			if (stepY >= 0) {
 				stepY -= diffX_x2;
@@ -634,7 +634,7 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 	} else {
 		long stepX = diffX_x2 - (diffY_x2 >> 1);
 		while (true) {
-			if (++stepCounter == step) {
+			if (!--stepCounter) {
 				long tile = fo_tile_num(target_X, target_Y);
 				//fo_debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
@@ -645,7 +645,7 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 					//}
 					lastTile = tile;
 				}
-				stepCounter = 0;
+				stepCounter = step;
 			}
 			if (stepX >= 0) {
 				stepX -= diffY_x2;

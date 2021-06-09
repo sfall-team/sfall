@@ -575,6 +575,7 @@ FUNC(text_object_create_,             0x4B036C)
 FUNC(tile_coord_,                     0x4B1674) // eax - tilenum, edx (int*) - x, ebx (int*) - y
 FUNC(tile_dir_,                       0x4B1ABC)
 FUNC(tile_dist_,                      0x4B185C)
+FUNC(tile_idistance_,                 0x416360) // EST
 FUNC(tile_num_,                       0x4B1754)
 FUNC(tile_num_beyond_,                0x4B1B84)
 FUNC(tile_num_in_direction_,          0x4B1A6C)

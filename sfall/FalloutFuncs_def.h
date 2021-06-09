@@ -65,6 +65,7 @@ WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long,
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, TProgram*, scriptPtr, DWORD, dataType, DWORD, strId)
 
 /* stdcall */
+WRAP_WATCOM_FUNC2(long, anim_can_use_door, TGameObj*, source, TGameObj*, object)
 WRAP_WATCOM_FUNC1(bool, art_exists, long, artFid)
 WRAP_WATCOM_FUNC0(void, art_flush)
 WRAP_WATCOM_FUNC1(const char*, art_get_name, long, artFID)
@@ -85,6 +86,7 @@ WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the
 WRAP_WATCOM_FUNC1(long, critterIsOverloaded, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
+WRAP_WATCOM_FUNC1(long, critter_kill_count_type, TGameObj*, critter)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, executeProcedure, TProgram*, sptr, long, procPosition)
 WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
@@ -203,6 +205,7 @@ WRAP_WATCOM_FUNC2(long, stat_level, TGameObj*, critter, long, statId)
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 WRAP_WATCOM_FUNC2(long, tile_dist, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_dir, long, scrTile, long, dstTile)
+WRAP_WATCOM_FUNC2(long, tile_idistance, long, sourceTile, long, targetTile)
 WRAP_WATCOM_FUNC1(long, tile_on_edge, long, tile)
 WRAP_WATCOM_FUNC0(void, tile_refresh_display) // Redraws the whole screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, BoundRect*, boundRect, long, elevation) // Redraws the given rectangle on screen
