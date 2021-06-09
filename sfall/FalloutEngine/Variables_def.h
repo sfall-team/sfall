@@ -17,7 +17,7 @@ VAR_(BlueColor,                  BYTE)
 VAR_(bottom_line,                DWORD)
 VAR_(btable,                     DWORD)
 VAR_(btncnt,                     DWORD)
-VAR_(cap,                        fo::AIcap*)
+VARD(cap,                        fo::AIcap) // dynamic array
 VAR_(carCurrentArea,             DWORD)
 VAR_(carGasAmount,               long) // from 0 to 80000
 VAR_(cmap,                       DWORD)

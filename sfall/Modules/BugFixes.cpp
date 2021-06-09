@@ -3143,7 +3143,10 @@ void BugFixes::init()
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
 	LoadGameHook::OnAfterGameInit() += combat_ai_init_backup;
-	LoadGameHook::OnGameReset() += []() { dudeIsAnimDeath = false; };
+	LoadGameHook::OnGameReset() += []() {
+		dudeIsAnimDeath = false;
+		combat_ai_reset();
+	};
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -3655,7 +3658,6 @@ void BugFixes::init()
 
 	// Fix for chem_primary_desire values in party member AI packets not being saved correctly
 	HookCall(0x42803E, cai_cap_save_hook);
-	HookCall(0x442BC1, combat_ai_reset); // replace the engine function that does nothing (game_reset_)
 
 	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
 	// number of values (for chem_primary_desire)
