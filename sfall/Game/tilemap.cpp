@@ -112,12 +112,12 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 	long diffY_x2 = 2 * std::abs(diffY);
 
 	const int step = 4;
-	long stepCounter = step - 1;
+	long stepCounter = 1;
 
 	if (diffX_x2 > diffY_x2) {
 		long stepY = diffY_x2 - (diffX_x2 >> 1);
 		while (true) {
-			if (++stepCounter == step) {
+			if (!--stepCounter) {
 				long tile = fo::func::tile_num(target_X, target_Y);
 				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
@@ -128,7 +128,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 					//}
 					lastTile = tile;
 				}
-				stepCounter = 0;
+				stepCounter = step;
 			}
 			if (stepY >= 0) {
 				stepY -= diffX_x2;
@@ -151,7 +151,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 	} else {
 		long stepX = diffX_x2 - (diffY_x2 >> 1);
 		while (true) {
-			if (++stepCounter == step) {
+			if (!--stepCounter) {
 				long tile = fo::func::tile_num(target_X, target_Y);
 				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
@@ -162,7 +162,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 					//}
 					lastTile = tile;
 				}
-				stepCounter = 0;
+				stepCounter = step;
 			}
 			if (stepX >= 0) {
 				stepX -= diffY_x2;

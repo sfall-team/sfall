@@ -943,19 +943,19 @@ struct LSData {
 };
 
 struct AIcap {
-	long name;
+	const char* name;
 	long packet_num;
 	long max_dist;
 	long min_to_hit;
 	long min_hp;
-	long aggression;
+	long aggression; // unused
 	long hurt_too_much;
 	long secondary_freq;
 	long called_freq;
 	long font;
 	long color;
 	long outline_color;
-	long chance;
+	long chance_message;
 	long combat_message_data[24];
 	long area_attack_mode;
 	long run_away_mode;
@@ -965,8 +965,8 @@ struct AIcap {
 	long chem_use;
 	long chem_primary_desire[3];
 	long disposition;
-	long body_type;
-	long general_type;
+	const char* body_type;    // unused
+	const char* general_type; // unused
 
 	inline AIpref::distance getDistance() {
 		return (AIpref::distance)distance;
