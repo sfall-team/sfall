@@ -89,7 +89,7 @@ static const DWORD anim_set_C_shift[] = { // flags
 
 static const DWORD anim_set_10[] = { // anim_0
 	0x413C7E, 0x413F17, 0x415C24, 0x415D16, 0x415D44,
-	/*0x413E8A, - conflict with 0x413E88*/
+	0x413E8A, /*- conflict with 0x413E88*/
 };
 
 static const DWORD anim_set_14[] = { // anim_0.source
@@ -263,29 +263,6 @@ static void __declspec(naked) anim_cleanup_hack() {
 	}
 }
 
-static long __fastcall LockAnimSlot(long slot) {
-	if (animSet[slot].counter != animSet[slot].totalAnimCount) {
-		lockAnimSet[slot] = 8;
-	}
-	return slot;
-}
-
-static long __fastcall UnlockAnimSlot() {
-	long lockCount = 0;
-	for (std::vector<int8_t>::iterator it = lockAnimSet.begin(); it != lockAnimSet.end(); ++it) {
-		if (*it > 0) {
-			(*it)--;
-			lockCount++;
-		}
-	}
-	if (lockCount >= lockLimit) fo_debug_printf("\n[SFALL] Warning: The number of animated slots in the lock is too large, locked %d of %d", lockCount, animationLimit);
-	return 0;
-}
-
-static BYTE __fastcall CheckLockAnimSlot(long, long slot) {
-	return lockAnimSet[slot];
-}
-
 static void __fastcall CheckAppendReg(long, long totalAnims) {
 	long slot = appendSlot;
 	appendSlot = -2;
@@ -345,13 +322,38 @@ isAppend:
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static BYTE __fastcall CheckLockAnimSlot(long, long slot) {
+	return lockAnimSet[slot];
+}
+
+static long __fastcall LockAnimSlot(long slot) {
+	if (animSet[slot].counter != animSet[slot].totalAnimCount) {
+		lockAnimSet[slot] = 8;
+	}
+	return slot;
+}
+
+static long __fastcall UnlockAnimSlot() {
+	long lockCount = 0;
+	for (std::vector<int8_t>::iterator it = lockAnimSet.begin(); it != lockAnimSet.end(); ++it) {
+		if (*it > 0) {
+			(*it)--;
+			lockCount++;
+		}
+	}
+	if (lockCount >= lockLimit) fo_debug_printf("\n[SFALL] Warning: The number of animated slots in the lock is too large, locked %d of %d", lockCount, animationLimit);
+	return 0;
+}
+
 static void __declspec(naked) register_end_hack_end() {
 	__asm {
-		mov  eax, animSet;
-		test word ptr [eax][esi][0xC], e_Append; // slot with added animation?
-		jz   skip;
-		and  word ptr [eax][esi][0xC], ~(e_Append | e_Suspend); // animSet[].flags (unset flags)
-skip:
+//		mov  eax, animSet;
+//		test word ptr [eax][esi][0xC], e_Append; // slot with added animation?
+//		jz   skip;
+//		and  word ptr [eax][esi][0xC], ~(e_Append | e_Suspend); // animSet[].flags (unset flags)
+//skip:
 		call UnlockAnimSlot;
 		pop  esi;
 		pop  edx;
@@ -549,13 +551,13 @@ void Animations_Init() {
 	MakeCall(0x413DCE, anim_cleanup_hack, 1);
 	SafeWrite16(0x413DD4, 0x4478); // js 0x413E1A
 	MakeCall(0x413CE8, register_end_hack_begin, 1);
-	MakeJump(0x413D64, register_end_hack_end);
 	SafeWrite16(0x413D0B, 0xC689); // and dl, not 8 > mov esi, eax (keep offset to anim_set slot)
 	SafeWrite8(0x413D0D, CODETYPE_Nop);
 	#endif
 
 	// Implement a temporary lock on an animation slot after it is cleared by the register_clear_ function
 	// to prevent it from being used as a free slot when registering a nested animation
+	MakeJump(0x413D64, register_end_hack_end);
 	HookCall(0x413C97, register_clear_hook);
 	MakeCall(0x413BB7, anim_free_slot_hack);
 	MakeCall(0x4186CF, anim_stop_hack);
