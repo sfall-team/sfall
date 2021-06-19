@@ -329,7 +329,7 @@ static BYTE __fastcall CheckLockAnimSlot(long, long slot) {
 }
 
 static long __fastcall LockAnimSlot(long slot) {
-	if (animSet[slot].counter != animSet[slot].totalAnimCount) {
+	if (slot < animationLimit && animSet[slot].counter != animSet[slot].totalAnimCount) {
 		lockAnimSet[slot] = 8;
 	}
 	return slot;
@@ -564,6 +564,7 @@ void Animations_Init() {
 
 	lockAnimSet.resize(animationLimit);
 	lockLimit = animationLimit / 2;
+	animationLimit--; // this is necessary so as not to block the last slot
 
 	// Fix for calling anim() functions in combat
 	MakeCall(0x415DE2, anim_set_end_hack, 1);

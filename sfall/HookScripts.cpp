@@ -1147,7 +1147,7 @@ static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, in
 
 	RunHookScript(HOOK_INVENTORYMOVE);
 
-	int result = (cRet > 0) ? rets[0] : -1;
+	int result = (cRet > 0) ? rets[0] : -1; // -1 - can move
 	EndHook();
 
 	return result;
@@ -1158,7 +1158,7 @@ static void __declspec(naked) UseArmorHack() {
 	static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
 	static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 	__asm {
-		mov  ecx, ds:[FO_VAR_i_worn];             // replacement item (override code)
+		mov  ecx, ds:[FO_VAR_i_worn];       // replacement item (override code)
 		mov  edx, [esp + 0x58 - 0x40];      // item
 		push ecx;
 		push 3;                             // event: armor slot
@@ -1265,19 +1265,20 @@ static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCal
 
 static void __declspec(naked) DropIntoContainerHack() {
 	static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
-	static const DWORD DropIntoContainer_skip = 0x476503;
+	static const DWORD DropIntoContainer_skip = 0x476503; // exit drop_into_container_
 	__asm {
-		pushadc;
-		mov  ecx, ebp;                // contaner ptr
-		mov  edx, esi;                // item
-		mov  eax, [esp + 0x10 + 12];  // call address
-		push eax;
+		test ecx, ecx;
+		js   skipDrop;
+		push ecx; //pushadc;
+		mov  edx, esi;         // item
+		mov  ecx, ebp;         // contaner ptr
+		push [esp + 0x10 + 4]; // call address
 		call DropIntoContainer;
-		cmp  eax, -1;                 // ret value
-		popadc;
-		jne  skipdrop;
+		cmp  eax, -1;          // ret value
+		pop  ecx; //popadc;
+		jne  skipDrop;
 		jmp  DropIntoContainer_back;
-skipdrop:
+skipDrop:
 		mov  eax, -1;
 		jmp  DropIntoContainer_skip;
 	}
