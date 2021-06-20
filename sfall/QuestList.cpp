@@ -441,8 +441,15 @@ static void __fastcall QuestListSort(QuestData* questList, size_t numElements) {
 	QuestData* tmpList = new QuestData[numElements];
 	std::memcpy(tmpList, questList, numElements * sizeof(QuestData));
 
-	long locStart = 1500; // number from which the locations starting
+	long locStart = 1500; // message number from which the locations starting
 	size_t leftStart = 0;
+	long locLast = 0;
+
+	for (size_t i = 0; i < numElements; i++) {
+		long loc = tmpList[i].location;
+		if (locStart > loc) locStart = loc;
+		if (loc > locLast) locLast = loc;
+	}
 
 	for (size_t i = 0; i < numElements;) {
 		for (size_t j = leftStart; j < numElements; j++) {
@@ -457,7 +464,7 @@ static void __fastcall QuestListSort(QuestData* questList, size_t numElements) {
 				tmpList[j].location = 0;
 			}
 		}
-		locStart++;
+		if (++locStart > locLast) break;
 	}
 	delete[] tmpList;
 }
