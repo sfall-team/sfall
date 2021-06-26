@@ -124,7 +124,7 @@ static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, in
 
 	RunHookScript(HOOK_INVENTORYMOVE);
 
-	int result = (cRet > 0) ? rets[0] : -1;
+	int result = (cRet > 0) ? rets[0] : -1; // -1 - can move
 	EndHook();
 
 	return result;
@@ -242,19 +242,20 @@ static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCal
 
 static void __declspec(naked) DropIntoContainerHack() {
 	static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
-	static const DWORD DropIntoContainer_skip = 0x476503;
+	static const DWORD DropIntoContainer_skip = 0x476503; // exit drop_into_container_
 	__asm {
-		pushadc;
-		mov  ecx, ebp;                // contaner ptr
-		mov  edx, esi;                // item
-		mov  eax, [esp + 0x10 + 12];  // call address
-		push eax;
+		test ecx, ecx;
+		js   skipDrop;
+		push ecx; //pushadc;
+		mov  edx, esi;         // item
+		mov  ecx, ebp;         // contaner ptr
+		push [esp + 0x10 + 4]; // call address
 		call DropIntoContainer;
-		cmp  eax, -1;                 // ret value
-		popadc;
-		jne  skipdrop;
+		cmp  eax, -1;          // ret value
+		pop  ecx; //popadc;
+		jne  skipDrop;
 		jmp  DropIntoContainer_back;
-skipdrop:
+skipDrop:
 		mov  eax, -1;
 		jmp  DropIntoContainer_skip;
 	}

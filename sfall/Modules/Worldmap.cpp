@@ -334,15 +334,19 @@ static bool customPosition = false;
 static void __declspec(naked) main_load_new_hook() {
 	__asm {
 		call fo::funcoffs::map_load_;
-		push -1;
+		push edx;
+		sub  esp, 4; // buff outAreaID
 		mov  edx, esp;
 		mov  eax, dword ptr ds:[FO_VAR_map_number];
 		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 		pop  eax; // area ID
 		cmp  customPosition, 0;
 		jnz  skip;
-		jmp  fo::funcoffs::wmTeleportToArea_;
+		call fo::funcoffs::wmTeleportToArea_;
+		pop  edx;
+		retn;
 skip:
+		pop  edx;
 		test eax, eax;
 		js   end;
 		cmp  eax, dword ptr ds:[FO_VAR_wmMaxAreaNum];
