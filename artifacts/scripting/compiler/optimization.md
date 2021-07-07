@@ -8,12 +8,12 @@ The executation speed of scripts is not typically important in an unmodded game,
 
 The sfall build of sslc supports a `-O` command line option to perform an optimization pass over the generated code. This isn't a magic make-my-code-go-faster bullet; most of what it does is very limited in scope. It's primary purpose was to strip out the procedures and variables which get automatically pulled into every script that includes **define.h**, whether you use them or not, and to do something about the additional variables that get created by `foreach` loops.
 
-There are several levels of optimization available:
+**There are several levels of optimization available:**
 - `-O1` - Basic, only removes unreferenced globals variables and procedures, code itself remains untouched.
 - `-O2` - Full, most code optimizations are on, but only those that were tested on complex scripts.
 - `-O3` - Experimental, provides most efficiency, but tend to break some complex code due to bugs.
 
-The following optimizations are performed:
+**The following optimizations are performed:**
 
 - constant expression folding: if an expression depends only on values which are known at compile time, then the expression is replaced by its result.
   ```
@@ -103,8 +103,8 @@ The following optimizations are performed:
                                                 -> end
   ```
 
-- Mark functions with **pure** or **inline** where relevent.
+- Mark functions with `pure` or `inline` where relevent.
 
-  * 'pure' is a hint to the optimizer that a procedure has no side effects. (i.e. there's no way to tell that it's been called aside from its return value.) Pure procedures cannot modify global variables, or call any other procedure that isn't itself pure. Functions marked with pure can only be used in expressions (i.e. you cannot use the `call <procedure>` syntax to call them.) If there are non-pure terms in an expression, it prevents that expression being considered for dead store removal. Where no such optimizations can be performed, or if optimization is disabled, marking a procedure with pure will have no effect on the compiled code.
+  * `pure` is a hint to the optimizer that a procedure has no side effects. (i.e. there's no way to tell that it's been called aside from its return value.) Pure procedures cannot modify global variables, or call any other procedure that isn't itself pure. Functions marked with pure can only be used in expressions (i.e. you cannot use the `call <procedure>` syntax to call them.) If there are non-pure terms in an expression, it prevents that expression being considered for dead store removal. Where no such optimizations can be performed, or if optimization is disabled, marking a procedure with pure will have no effect on the compiled code.
 
-  * 'inline' is an instruction to the compiler to replace calls to the marked procedure with a copy of the procedures code instead of having a seperate call. Inlined procedures cannot use the `return` command, cannot be predefined, and cannot be used as part of an expression. Inlining if a procedure is only going to be called once is always a win, but if there are multiple calls to a procedure you will end up bloating the size of the generated code.
+  * `inline` is an instruction to the compiler to replace calls to the marked procedure with a copy of the procedures code instead of having a seperate call. Inlined procedures cannot use the `return` command, cannot be predefined, and cannot be used as part of an expression. Inlining if a procedure is only going to be called once is always a win, but if there are multiple calls to a procedure you will end up bloating the size of the generated code.
