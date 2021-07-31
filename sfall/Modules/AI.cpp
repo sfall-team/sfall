@@ -394,12 +394,11 @@ skip:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static long tempReloadCost;
+static long aiReloadCost;
 
 static long __fastcall item_weapon_reload_cost_fix(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject** outAmmo) {
-	long reloadCost = game::Items::item_weapon_mp_cost(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_RELOAD, 0);
-	if (reloadCost > source->critter.movePoints) return -1; // not enough action points
-	tempReloadCost = reloadCost;
+	aiReloadCost = game::Items::item_weapon_mp_cost(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_RELOAD, 0);
+	//if (aiReloadCost > source->critter.movePoints) return -1; // not enough action points
 
 	return fo::func::ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
 }
@@ -410,21 +409,21 @@ static void __declspec(naked) ai_try_attack_hook_cost_reload() {
 		push ebx;      // ammoObj ref
 		mov  ecx, eax; // source
 		call item_weapon_reload_cost_fix; // edx - weapon
-		cmp  eax, -1;
-		je   noAPs;
+//		cmp  eax, -1;
+//		je   noAPs;
 		retn;
-noAPs:  // not enough action points
-		add  esp, 4; // destroy ret
-		mov  edi, 10;
-		jmp  ai_try_attack_hook_goNext_Ret; // end ai_try_attack_
+//noAPs:  // not enough action points
+//		add  esp, 4; // destroy ret
+//		mov  edi, 10;
+//		jmp  ai_try_attack_hook_goNext_Ret; // end ai_try_attack_
 	}
 }
 
 static void __declspec(naked) ai_try_attack_hook_cost1() {
 	__asm {
 		xor  ebx, ebx;
-		sub  edx, tempReloadCost; // curr.mp - reload cost
-		cmovg ebx, edx;           // if curr.mp > 0
+		sub  edx, aiReloadCost; // curr.mp - reload cost
+		cmovg ebx, edx;         // if curr.mp > 0
 		retn;
 	}
 }
@@ -432,8 +431,8 @@ static void __declspec(naked) ai_try_attack_hook_cost1() {
 static void __declspec(naked) ai_try_attack_hook_cost2() {
 	__asm {
 		xor  ecx, ecx;
-		sub  ebx, tempReloadCost; // curr.mp - reload cost
-		cmovg ecx, ebx;           // if curr.mp > 0
+		sub  ebx, aiReloadCost; // curr.mp - reload cost
+		cmovg ecx, ebx;         // if curr.mp > 0
 		retn;
 	}
 }
