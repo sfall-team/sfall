@@ -64,7 +64,7 @@ public:
 
 	static bool IsMapLoading();
 
-	static char mapLoadingName[40];
+	static char mapLoadingName[16];
 	static long interfaceWID;
 };
 

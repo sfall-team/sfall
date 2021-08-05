@@ -71,7 +71,7 @@ static DWORD saveInCombatFix;
 static bool gameLoaded = false;
 static bool onLoadingMap = false;
 
-char LoadGameHook::mapLoadingName[40]; // current loading/loaded map name
+char LoadGameHook::mapLoadingName[16]; // current loading/loaded map name
 
 long LoadGameHook::interfaceWID = -1;
 
@@ -439,7 +439,7 @@ static void __declspec(naked) map_load_hook() {
 	__asm {
 		mov  esi, ebx;
 		lea  edi, LoadGameHook::mapLoadingName;
-		mov  ecx, 10;
+		mov  ecx, 4;
 		rep  movsd; // copy the name of the loaded map to mapLoadingName
 		mov  onLoadingMap, 1;
 		call fo::funcoffs::map_load_file_;

@@ -777,7 +777,7 @@ static void __declspec(naked) map_load_file_hook() {
 		push eax;
 		call InWorldMap;
 		test eax, eax;
-		jnz  play;
+		jnz  playWind;
 		lea  eax, LoadGameHook::mapLoadingName;
 		call fo::funcoffs::wmMapMatchNameToIdx_;
 		test eax, eax;
@@ -789,10 +789,10 @@ static void __declspec(naked) map_load_file_hook() {
 		pop  eax;
 		pop  edx;
 		cmp  eax, cMusicArea;
-		jne  play;
+		jne  playWind;
 		add  esp, 4;
 		retn;
-play:
+playWind:
 		mov  eax, -1;
 default:
 		mov  cMusicArea, eax;
