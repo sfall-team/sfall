@@ -18,7 +18,7 @@
 
 #pragma once
 
-extern char gameMapLoadingName[40];
+extern char gameMapLoadingName[16];
 extern long gameInterfaceWID;
 
 void LoadGameHook_Init();
