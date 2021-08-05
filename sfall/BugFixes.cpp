@@ -3926,4 +3926,7 @@ void BugFixes_Init()
 	MakeCall(0x4551C0, op_create_object_sid_hack, 1);
 	// Fix the error handling in create_object_sid function to prevent a crash when the proto is missing
 	SafeWrite8(0x45507B, 0x51); // jz 0x4550CD
+
+	// Fix to prevent the main menu music from stopping when entering the load game screen
+	BlockCall(0x480B25);
 }

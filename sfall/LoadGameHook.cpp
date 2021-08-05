@@ -73,6 +73,8 @@ static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
 static bool onLoadingMap = false;
 
+char gameMapLoadingName[40]; // current loading/loaded map name
+
 long gameInterfaceWID = -1;
 
 bool IsMapLoading() {
@@ -460,9 +462,13 @@ static void __declspec(naked) game_close_hook() {
 
 static void __declspec(naked) map_load_hook() {
 	__asm {
+		mov  esi, ebx;
+		lea  edi, gameMapLoadingName;
+		mov  ecx, 10;
+		rep  movsd; // copy the name of the loaded map to gameMapLoadingName
 		mov  onLoadingMap, 1;
 		call map_load_file_;
-		mov  onLoadingMap, 0;
+		mov  onLoadingMap, cl; // unset
 		retn;
 	}
 }

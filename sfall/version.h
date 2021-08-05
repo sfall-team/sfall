@@ -24,7 +24,7 @@
 
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 8
-#define VERSION_BUILD 30
-#define VERSION_REV 2
+#define VERSION_BUILD 31
+#define VERSION_REV 0
 
-#define VERSION_STRING "3.8.30.2"
+#define VERSION_STRING "3.8.31"

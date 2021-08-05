@@ -46,6 +46,7 @@
 #define FO_VAR_aTextSCuts                 0x501A8C
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
+#define FO_VAR_background_fname_requested 0x596FC2
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
@@ -135,6 +136,7 @@
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
 #define FO_VAR_GNW95_isActive             0x51E444
 #define FO_VAR_GNWWin                     0x5195B8
+#define FO_VAR_gsound_background_fade     0x518E40
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_gsound_speech_tag          0x518E54
 #define FO_VAR_hit_location_penalty       0x510954
@@ -182,6 +184,7 @@
 #define FO_VAR_main_window                0x5194F0
 #define FO_VAR_map_elevation              0x519578
 #define FO_VAR_map_global_vars            0x51956C
+#define FO_VAR_map_name                   0x631D58
 #define FO_VAR_map_number                 0x631D88
 #define FO_VAR_map_state                  0x631D28
 #define FO_VAR_mapEntranceElevation       0x519558
