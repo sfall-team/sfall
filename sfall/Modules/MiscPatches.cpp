@@ -745,9 +745,80 @@ static void F1EngineBehaviorPatch() {
 	}
 }
 
+static long cMusicArea = -1;
+
+static void __declspec(naked) wmMapMusicStart_hook() {
+	__asm {
+		push edx;
+		push eax;
+		call fo::funcoffs::map_target_load_area_; // returns the area ID of the loaded map
+		cmp  eax, cMusicArea;
+		mov  cMusicArea, eax;
+		jne  default;
+		mov  eax, [esp];
+		lea  edx, ds:[FO_VAR_background_fname_requested];
+		call fo::funcoffs::stricmp_; // compare music file name
+		test eax, eax;
+		jz   continuePlay;
+default:
+		pop  eax;
+		pop  edx;
+		jmp  fo::funcoffs::gsound_background_play_level_music_;
+continuePlay:
+		pop  eax;
+		pop  edx;
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) map_load_file_hook() {
+	__asm {
+		push eax;
+		call InWorldMap;
+		test eax, eax;
+		jnz  play;
+		lea  eax, LoadGameHook::mapLoadingName;
+		call fo::funcoffs::wmMapMatchNameToIdx_;
+		test eax, eax;
+		js   default; // -1
+		push edx;
+		sub  esp, 4;
+		mov  edx, esp;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
+		pop  eax;
+		pop  edx;
+		cmp  eax, cMusicArea;
+		jne  play;
+		add  esp, 4;
+		retn;
+play:
+		mov  eax, -1;
+default:
+		mov  cMusicArea, eax;
+		pop  eax;
+		jmp  fo::funcoffs::gsound_background_play_;
+	}
+}
+
+static void __declspec(naked) wmSetMapMusic_hook() {
+	__asm {
+		mov  ds:[FO_VAR_background_fname_requested], 0;
+		jmp  fo::funcoffs::wmMapMusicStart_;
+	}
+}
+
+// When moving to another map that uses the same music, the music playback will not restart from the beginning
+static void PlayingMusicPatch() {
+	HookCall(0x4C58FB, wmMapMusicStart_hook);
+	HookCall(0x482BA0, map_load_file_hook);
+
+	HookCall(0x4C5999, wmSetMapMusic_hook); // related fix
+}
+
 static void __declspec(naked) op_display_msg_hook() {
 	__asm {
-		cmp  dword ptr ds:FO_VAR_debug_func, 0;
+		cmp  dword ptr ds:[FO_VAR_debug_func], 0;
 		jne  debug;
 		retn;
 debug:
@@ -908,6 +979,7 @@ void MiscPatches::init() {
 	SkipLoadingGameSettingsPatch();
 
 	UseWalkDistancePatch();
+	PlayingMusicPatch();
 }
 
 void MiscPatches::exit() {

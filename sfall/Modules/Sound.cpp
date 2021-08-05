@@ -959,7 +959,7 @@ void Sound::init() {
 	MakeCall(0x4503CA, gsound_master_volume_set_hack, 1);
 	MakeCall(0x45042C, gsound_set_sfx_volume_hack);
 
-	void* soundLoad_func;
+	void* soundLoad_func = soundLoad_hack_B;
 
 	int allowDShowSound = IniReader::GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
@@ -987,9 +987,8 @@ void Sound::init() {
 		MakeCall(0x4450C5, gdialogFreeSpeech_hack, 2);
 
 		CreateSndWnd();
-	} else {
-		soundLoad_func = soundLoad_hack_B;
 	}
+
 	// Support 44.1kHz sample rate for ACM files
 	MakeCall(0x4AD4D6, soundLoad_func, 1);
 	HookCalls(audioOpen_hook, {
@@ -1007,7 +1006,6 @@ void Sound::init() {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
 		HookCall(0x42B849, ai_print_msg_hook);
 
-		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
 		if (isDebug && IniReader::GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
 			SafeWrite8(0x42B6F5, CodeType::JumpShort); // bypass chance
 		}
