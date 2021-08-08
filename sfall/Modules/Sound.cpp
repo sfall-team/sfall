@@ -938,6 +938,13 @@ skip:
 	}
 }
 
+static void __declspec(naked) sfxl_init_hook() {
+	__asm {
+		xor  eax, eax;
+		retn;
+	}
+}
+
 constexpr int SampleRate = 44100; // 44.1kHz
 
 void Sound::init() {
@@ -1013,6 +1020,10 @@ void Sound::init() {
 
 	// Support for ACM audio file playback and volume control for the soundplay script function
 	HookCall(0x4661B3, soundStartInterpret_hook);
+
+	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
+		HookCalls(sfxl_init_hook, {0x4A9999, 0x4A9B34});
+	}
 }
 
 void Sound::exit() {
