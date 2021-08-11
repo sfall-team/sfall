@@ -25,18 +25,19 @@
 
 DWORD LSPageOffset = 0;
 
-int LSButtDN = 0;
-BYTE* SaveLoadSurface = nullptr;
+static long LSButtDN = 0;
+static BYTE* SaveLoadSurface = nullptr;
 
 static const char* filename = "%s\\savegame\\slotdat.ini";
 
-void SavePageOffsets() {
+static void SavePageOffsets() {
 	char SavePath[MAX_PATH], buffer[6];
 
 	sprintf_s(SavePath, MAX_PATH, filename, *ptr_patches);
 
 	_itoa_s(*ptr_slot_cursor, buffer, 10);
 	WritePrivateProfileStringA("POSITION", "ListNum", buffer, SavePath);
+
 	_itoa_s(LSPageOffset, buffer, 10);
 	WritePrivateProfileStringA("POSITION", "PageOffset", buffer, SavePath);
 }
@@ -51,7 +52,7 @@ static void __declspec(naked) save_page_offsets(void) {
 	}
 }
 
-void LoadPageOffsets() {
+static void LoadPageOffsets() {
 	char LoadPath[MAX_PATH];
 
 	sprintf_s(LoadPath, MAX_PATH, filename, *ptr_patches);
@@ -99,7 +100,7 @@ static void __declspec(naked) create_page_buttons(void) {
 	}
 }
 
-void SetPageNum() {
+static void SetPageNum() {
 	DWORD winRef = *ptr_lsgwin; // load/save winref
 	if (winRef == 0) {
 		return;
@@ -111,8 +112,8 @@ void SetPageNum() {
 
 	BYTE ConsoleGold = *ptr_YellowColor; // palette offset stored in mem - text colour
 
-	char TempText[32];
-	unsigned int TxtMaxWidth = GetMaxCharWidth() * 8; // GetTextWidth(TempText);
+	char tempText[32];
+	unsigned int TxtMaxWidth = GetMaxCharWidth() * 8; // GetTextWidth(tempText);
 	unsigned int HalfMaxWidth = TxtMaxWidth / 2;
 	unsigned int TxtWidth = 0;
 
@@ -136,16 +137,16 @@ void SetPageNum() {
 			blip = (blip == '_') ? ' ' : '_';
 
 			if (tempPageOffset == -1) {
-				sprintf_s(TempText, 32, "[ %c ]", '_');
+				sprintf_s(tempText, 32, "[ %c ]", '_');
 			} else {
-				sprintf_s(TempText, 32, "[ %d%c ]", tempPageOffset / 10 + 1, '_');
+				sprintf_s(tempText, 32, "[ %d%c ]", tempPageOffset / 10 + 1, '_');
 			}
-			TxtWidth = GetTextWidth(TempText);
+			TxtWidth = GetTextWidth(tempText);
 
 			if (tempPageOffset == -1) {
-				sprintf_s(TempText, 32, "[ %c", blip);
+				sprintf_s(tempText, 32, "[ %c", blip);
 			} else {
-				sprintf_s(TempText, 32, "[ %d%c", tempPageOffset / 10 + 1, blip);
+				sprintf_s(tempText, 32, "[ %d%c", tempPageOffset / 10 + 1, blip);
 			}
 
 			int z = 0;
@@ -156,7 +157,7 @@ void SetPageNum() {
 
 			int HalfTxtWidth = TxtWidth / 2;
 
-			PrintText(TempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			PrintText(tempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 			PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
 			fo_win_draw(winRef);
 		}
@@ -199,36 +200,32 @@ void SetPageNum() {
 
 static long __fastcall CheckPage(long button) {
 	switch (button) {
-		case 0x14B:                        // left button
-			if (LSPageOffset >= 10) LSPageOffset -= 10;
+		case 0x14B: // left button
+			LSPageOffset -= 10;
+			if (LSPageOffset < 0) LSPageOffset += 10000; // to the last page
 			__asm call gsound_red_butt_press_;
 			break;
-		case 0x149:                        // fast left PGUP button
-			if (LSPageOffset < 100) {
-				LSPageOffset = 0;          // First Page
-			} else {
-				LSPageOffset -= 100;
-			}
+		case 0x149: // fast left PGUP button
+			LSPageOffset -= 100;
+			if (LSPageOffset < 0) LSPageOffset += 10000;
 			__asm call gsound_red_butt_press_;
 			break;
-		case 0x14D:                        // right button
-			if (LSPageOffset <= 9980) LSPageOffset += 10;
+		case 0x14D: // right button
+			LSPageOffset += 10;
+			if (LSPageOffset > 9990) LSPageOffset -= 10000; // to the first page
 			__asm call gsound_red_butt_press_;
 			break;
-		case 0x151:                        // fast right PGDN button
-			if (LSPageOffset > 9890) {
-				LSPageOffset = 9990;       // Last Page
-			} else {
-				LSPageOffset += 100;
-			}
+		case 0x151: // fast right PGDN button
+			LSPageOffset += 100;
+			if (LSPageOffset > 9990) LSPageOffset -= 10000;
 			__asm call gsound_red_butt_press_;
 			break;
-		case 'p':                          // p/P button pressed - start SetPageNum func
+		case 'p': // p/P button pressed - start SetPageNum func
 		case 'P':
 			SetPageNum();
 			break;
 		default:
-			if (button < 0x500) return 1;  // button in down state
+			if (button < 0x500) return 1; // button in down state
 	}
 
 	LSButtDN = button;
@@ -252,7 +249,7 @@ CheckUp:
 	}
 }
 
-void DrawPageText() {
+static void DrawPageText() {
 	if (*ptr_lsgwin == 0) {
 		return;
 	}
@@ -279,47 +276,47 @@ void DrawPageText() {
 	BYTE ConsoleGold = *ptr_YellowColor; // palette offset stored in mem - text colour
 	BYTE Colour = ConsoleGreen;
 
-	char TempText[32];
-	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
+	char tempText[32];
+	sprintf_s(tempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
 
-	unsigned int TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	unsigned int TxtWidth = GetTextWidth(tempText);
+	PrintText(tempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
 	} else {
 		Colour = ConsoleGreen;
 	}
-	strcpy_s(TempText, 12, "<<");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	std::strcpy(tempText, "<<");
+	TxtWidth = GetTextWidth(tempText);
+	PrintText(tempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
 	} else {
 		Colour = ConsoleGreen;
 	}
-	strcpy_s(TempText, 12, "<");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	std::strcpy(tempText, "<");
+	TxtWidth = GetTextWidth(tempText);
+	PrintText(tempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
 	} else {
 		Colour = ConsoleGreen;
 	}
-	strcpy_s(TempText, 12, ">>");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	std::strcpy(tempText, ">>");
+	TxtWidth = GetTextWidth(tempText);
+	PrintText(tempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
 	} else {
 		Colour = ConsoleGreen;
 	}
-	strcpy_s(TempText, 12, ">");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	std::strcpy(tempText, ">");
+	TxtWidth = GetTextWidth(tempText);
+	PrintText(tempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = nullptr;
 }
@@ -358,13 +355,13 @@ static void __declspec(naked) AddPageOffset02(void) {
 static void __declspec(naked) AddPageOffset03(void) {
 	__asm {
 		inc  eax;
-		add  eax, LSPageOffset; // add page num offset
+		add  eax, LSPageOffset;            // add page num offset
 		mov  bl, byte ptr ss:[esp + 0x10]; // add 4 bytes - func ret addr
 		retn;
 	}
 }
 
-void EnableSuperSaving() {
+static void EnableSuperSaving() {
 	// save/load button setup func
 	MakeCall(0x47D80D, create_page_buttons);
 
