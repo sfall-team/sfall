@@ -123,7 +123,7 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, fo::var::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, ExtraSaveSlots::GetSaveSlot() + 1, ftype); //add SuperSave Page offset
 }
 
 static void __stdcall SaveGame2() {

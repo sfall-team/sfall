@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "ExtraSaveSlots.h"
 #include "LoadGameHook.h"
 #include "PartyControl.h"
 
@@ -36,7 +37,14 @@ static bool HorriganEncounterDisabled = false;
 enum class MetaruleFunction : long {
 	SET_HORRIGAN_ENCOUNTER = 200, // sets the number of days for the Frank Horrigan encounter or disable encounter
 	CLEAR_KEYBOARD_BUFFER  = 201, // clears the keyboard input buffer, should be used in the HOOK_KEYPRESS hook to clear keyboard events in some cases
-	EXT_PARTY_ORDER_ATTACK = 999
+	PARTY_ORDER_ATTACK     = 999,
+
+	// save slot controls
+	GET_CURRENT_SAVE_SLOT  = 1000,
+	SET_CURRENT_SAVE_SLOT  = 1001,
+	GET_CURRENT_QSAVE_PAGE = 1002,
+	GET_CURRENT_QSAVE_SLOT = 1003,
+	SET_CURRENT_QSAVE_SLOT = 1004,
 };
 
 /*
@@ -63,8 +71,23 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 		case MetaruleFunction::CLEAR_KEYBOARD_BUFFER:
 			__asm call fo::funcoffs::kb_clear_;
 			break;
-		case MetaruleFunction::EXT_PARTY_ORDER_ATTACK:
+		case MetaruleFunction::PARTY_ORDER_ATTACK:
 			PartyControl::OrderAttackPatch();
+			break;
+		case MetaruleFunction::GET_CURRENT_SAVE_SLOT:
+			result = ExtraSaveSlots::GetSaveSlot();
+			break;
+		case MetaruleFunction::SET_CURRENT_SAVE_SLOT:
+			ExtraSaveSlots::SetSaveSlot(args[0], args[1]);
+			break;
+		case MetaruleFunction::GET_CURRENT_QSAVE_PAGE:
+			result = ExtraSaveSlots::GetQuickSavePage();
+			break;
+		case MetaruleFunction::GET_CURRENT_QSAVE_SLOT:
+			result = ExtraSaveSlots::GetQuickSaveSlot();
+			break;
+		case MetaruleFunction::SET_CURRENT_QSAVE_SLOT:
+			ExtraSaveSlots::SetQuickSaveSlot(args[0], args[1], args[2]);
 			break;
 		default:
 			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
