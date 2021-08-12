@@ -139,7 +139,7 @@ static void __stdcall RunOnAfterGameStarted() {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *ptr_patches, *ptr_slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *ptr_patches, ExtraSaveSlots_GetSaveSlot() + 1, ftype); //add SuperSave Page offset
 }
 
 static void __stdcall SaveGame2() {

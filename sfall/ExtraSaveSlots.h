@@ -18,7 +18,12 @@
 
 #pragma once
 
-extern DWORD LSPageOffset;
-
 void ExtraSaveSlots_Init();
 void ExtraSaveSlots_Exit();
+
+long ExtraSaveSlots_GetSaveSlot();
+void ExtraSaveSlots_SetSaveSlot(long page, long slot);
+
+long ExtraSaveSlots_GetQuickSavePage();
+long ExtraSaveSlots_GetQuickSaveSlot();
+void ExtraSaveSlots_SetQuickSaveSlot(long page, long slot, long check);

@@ -18,6 +18,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "ExtraSaveSlots.h"
 
 #define HorriganEncounterDays                   (0x4C06EA)
 #define HorriganEncounterCheck                  (0x4C06D8)
@@ -29,6 +30,13 @@ static bool HorriganEncounterDisabled = false;
 enum MetaruleFunction : long {
 	SET_HORRIGAN_ENCOUNTER = 200, // sets the number of days for the Frank Horrigan encounter or disable encounter
 	CLEAR_KEYBOARD_BUFFER  = 201, // clears the keyboard input buffer, should be used in the HOOK_KEYPRESS hook to clear keyboard events in some cases
+
+	// for save slots
+	GET_CURRENT_SAVE_SLOT  = 1000,
+	SET_CURRENT_SAVE_SLOT  = 1001,
+	GET_CURRENT_QSAVE_PAGE = 1002,
+	GET_CURRENT_QSAVE_SLOT = 1003,
+	SET_CURRENT_QSAVE_SLOT = 1004,
 };
 
 /*
@@ -54,6 +62,21 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 		}
 		case CLEAR_KEYBOARD_BUFFER:
 			__asm call kb_clear_;
+			break;
+		case GET_CURRENT_SAVE_SLOT:
+			result = ExtraSaveSlots_GetSaveSlot();
+			break;
+		case SET_CURRENT_SAVE_SLOT:
+			ExtraSaveSlots_SetSaveSlot(args[0], args[1]);
+			break;
+		case GET_CURRENT_QSAVE_PAGE:
+			result = ExtraSaveSlots_GetQuickSavePage();
+			break;
+		case GET_CURRENT_QSAVE_SLOT:
+			result = ExtraSaveSlots_GetQuickSaveSlot();
+			break;
+		case SET_CURRENT_QSAVE_SLOT:
+			ExtraSaveSlots_SetQuickSaveSlot(args[0], args[1], args[2]);
 			break;
 		default:
 			fo_debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",

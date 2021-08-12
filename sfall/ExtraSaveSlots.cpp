@@ -23,14 +23,23 @@
 
 #include "ExtraSaveSlots.h"
 
-DWORD LSPageOffset = 0;
-
+static long LSPageOffset = 0;
 static long LSButtDN = 0;
 static BYTE* SaveLoadSurface = nullptr;
 
 static const char* filename = "%s\\savegame\\slotdat.ini";
 
-static void SavePageOffsets() {
+long ExtraSaveSlots_GetSaveSlot() {
+	return LSPageOffset + *ptr_slot_cursor;
+}
+
+void ExtraSaveSlots_SetSaveSlot(long page, long slot) {
+	if (ExtraSaveSlots_GetQuickSavePage() >= 0 && page >= 0 && page <= 9990) LSPageOffset = page - (page % 10);;
+	if (slot >= 0 && slot < 10) *ptr_slot_cursor = slot;
+}
+
+// save last slot position values to file
+static long save_page_offsets() {
 	char SavePath[MAX_PATH], buffer[6];
 
 	sprintf_s(SavePath, MAX_PATH, filename, *ptr_patches);
@@ -40,16 +49,8 @@ static void SavePageOffsets() {
 
 	_itoa_s(LSPageOffset, buffer, 10);
 	WritePrivateProfileStringA("POSITION", "PageOffset", buffer, SavePath);
-}
 
-static void __declspec(naked) save_page_offsets(void) {
-	__asm {
-		// save last slot position values to file
-		call SavePageOffsets;
-		// restore original code
-		mov  eax, dword ptr ds:[FO_VAR_lsgwin];
-		retn;
-	}
+	return *ptr_lsgwin; // restore original code
 }
 
 static void LoadPageOffsets() {
@@ -71,16 +72,15 @@ static void __declspec(naked) load_page_offsets(void) {
 	__asm {
 		// load last slot position values from file
 		call LoadPageOffsets;
-		// restore original code
-		mov  edx, 0x50A480; // ASCII "SAV"
+		mov  edx, 0x50A480; // ASCII "SAV" (restore original code)
 		retn;
 	}
 }
 
-static void CreateButtons() {
+static long create_page_buttons() {
 	DWORD winRef = *ptr_lsgwin;
 
-	// left button -10       | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
+	// left button -10            | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
 	fo_win_register_button(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
 	// left button -100
 	fo_win_register_button(winRef,  68, 60, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
@@ -90,14 +90,8 @@ static void CreateButtons() {
 	fo_win_register_button(winRef, 248, 60, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
 	// Set Number button
 	fo_win_register_button(winRef, 140, 60, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
-}
 
-static void __declspec(naked) create_page_buttons(void) {
-	__asm {
-		call CreateButtons;
-		mov  eax, 0x65; // restore original code
-		retn;
-	}
+	return 101; // restore original value
 }
 
 static void SetPageNum() {
@@ -212,12 +206,12 @@ static long __fastcall CheckPage(long button) {
 			break;
 		case 0x14D: // right button
 			LSPageOffset += 10;
-			if (LSPageOffset > 9990) LSPageOffset -= 10000; // to the first page
+			if (LSPageOffset >= 10000) LSPageOffset -= 10000; // to the first page
 			__asm call gsound_red_butt_press_;
 			break;
 		case 0x151: // fast right PGDN button
 			LSPageOffset += 100;
-			if (LSPageOffset > 9990) LSPageOffset -= 10000;
+			if (LSPageOffset >= 10000) LSPageOffset -= 10000;
 			__asm call gsound_red_butt_press_;
 			break;
 		case 'p': // p/P button pressed - start SetPageNum func
@@ -234,15 +228,17 @@ static long __fastcall CheckPage(long button) {
 
 static void __declspec(naked) check_page_buttons(void) {
 	__asm {
-		pushad;
+		push eax;
+		push ecx;
 		mov  ecx, eax;
 		call CheckPage;
 		test eax, eax;
-		popad;
-		jnz  CheckUp;
+		pop  ecx;
+		pop  eax;
+		jnz  checkUp;
 		add  dword ptr ds:[esp], 26;        // set return to button pressed code
 		jmp  GetSlotList_;                  // reset page save list func
-CheckUp:
+checkUp:
 		// restore original code
 		cmp  eax, 0x148;                    // up button
 		retn;
@@ -323,25 +319,25 @@ static void DrawPageText() {
 
 static void __declspec(naked) draw_page_text(void) {
 	__asm {
-		pushad;
+		push eax;
 		call DrawPageText;
-		popad;
-		mov  ebp, 0x57; // restore original code
+		pop  eax;
+		mov  ebp, 87; // restore original code
 		retn;
 	}
 }
 
 // add page num offset when reading and writing various save data files
-static void __declspec(naked) AddPageOffset01(void) {
+static void __declspec(naked) add_page_offset_hack1(void) {
 	__asm {
 		mov  eax, dword ptr ds:[FO_VAR_slot_cursor]; // list position 0-9
-		add  eax, LSPageOffset; // add page num offset
+		add  eax, LSPageOffset;                      // add page num offset
 		retn;
 	}
 }
 
 // getting info for the 10 currently displayed save slots from save.dats
-static void __declspec(naked) AddPageOffset02(void) {
+static void __declspec(naked) add_page_offset_hack2(void) {
 	__asm {
 		push 0x50A514;          // ASCII "SAVE.DAT"
 		lea  eax, [ebx + 1];
@@ -352,7 +348,7 @@ static void __declspec(naked) AddPageOffset02(void) {
 }
 
 // printing current 10 slot numbers
-static void __declspec(naked) AddPageOffset03(void) {
+static void __declspec(naked) add_page_offset_hack3(void) {
 	__asm {
 		inc  eax;
 		add  eax, LSPageOffset;            // add page num offset
@@ -363,34 +359,38 @@ static void __declspec(naked) AddPageOffset03(void) {
 
 static void EnableSuperSaving() {
 	// save/load button setup func
-	MakeCall(0x47D80D, create_page_buttons);
+	MakeCall(0x47D80D, create_page_buttons); // LSGameStart_
 
 	// Draw button text
-	MakeCall(0x47E6E8, draw_page_text);
+	MakeCall(0x47E6E8, draw_page_text); // ShowSlotList_
 
 	// check save/load buttons
-	const DWORD checkPageBtnsAddr[] = {0x47BD49, 0x47CB1C};
+	const DWORD checkPageBtnsAddr[] = {0x47BD49, 0x47CB1C}; // SaveGame_, LoadGame_
 	MakeCalls(check_page_buttons, checkPageBtnsAddr);
 
 	// save current page and list positions to file on load/save scrn exit
-	MakeCall(0x47D828, save_page_offsets);
+	MakeCall(0x47D828, save_page_offsets); // LSGameEnd_
 
 	// load saved page and list positions from file
-	MakeCall(0x47B82B, load_page_offsets);
+	MakeCall(0x47B82B, load_page_offsets); // InitLoadSave_
 
 	// Add Load/Save page offset to Load/Save folder number
-	const DWORD AddPageOffset01Addr[] = {
-		0x47B929, 0x47D8DB, 0x47D9B0, 0x47DA34, 0x47DABF, 0x47DB58, 0x47DBE9,
-		0x47DC9C, 0x47EC77, 0x47F5AB, 0x47F694, 0x47F6EB, 0x47F7FB, 0x47F892,
-		0x47FB86, 0x47FC3A, 0x47FCF2, 0x480117, 0x4801CF, 0x480234, 0x480310,
-		0x4803F3, 0x48049F, 0x480512, 0x4805F2, 0x480767, 0x4807E6, 0x480839,
-		0x4808D3
+	const DWORD AddPageOffset1Addr[] = {
+		0x47B929, // SaveGame_
+		0x47D8DB, 0x47D9B0, 0x47DA34, 0x47DABF, 0x47DB58, 0x47DBE9, // SaveSlot_
+		0x47DC9C, // LoadSlot_
+		0x47EC77, // LoadTumbSlot_
+		0x47F5AB, 0x47F694, 0x47F6EB, 0x47F7FB, 0x47F892, // GameMap2Slot_
+		0x47FB86, 0x47FC3A, 0x47FCF2,           // SlotMap2Game_
+		0x480117, 0x4801CF, 0x480234, 0x480310, // SaveBackup_
+		0x4803F3, 0x48049F, 0x480512, 0x4805F2, // RestoreSave_
+		0x480767, 0x4807E6, 0x480839, 0x4808D3  // EraseSave_
 	};
-	MakeCalls(AddPageOffset01, AddPageOffset01Addr);
+	MakeCalls(add_page_offset_hack1, AddPageOffset1Addr);
 
-	MakeJump(0x47E5E1, AddPageOffset02);
+	MakeJump(0x47E5E1, add_page_offset_hack2); // GetSlotList_
 
-	MakeCall(0x47E756, AddPageOffset03);
+	MakeCall(0x47E756, add_page_offset_hack3); // ShowSlotList_
 }
 
 static void GetSaveFileTime(char* filename, FILETIME* ftSlot) {
@@ -407,43 +407,69 @@ static void GetSaveFileTime(char* filename, FILETIME* ftSlot) {
 	};
 }
 
-static const char* commentFmt = "%02d/%02d/%d - %02d:%02d:%02d";
+static const char* autoFmt  = "AUTO: %02d/%02d/%d - %02d:%02d:%02d";
+static const char* quickFmt = "QUICK: %02d/%02d/%d - %02d:%02d:%02d";
 
-static void CreateSaveComment(char* bufstr) {
+static void CreateSaveComment(char* bufstr, bool isAuto) {
 	SYSTEMTIME stUTC, stLocal;
 	GetSystemTime(&stUTC);
 	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
 
-	char buf[30];
-	sprintf_s(buf, commentFmt, stLocal.wDay, stLocal.wMonth, stLocal.wYear, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
-	strcpy(bufstr, buf);
+	const char* fmt = (isAuto) ? autoFmt : quickFmt;
+	sprintf_s(bufstr, 30, fmt, stLocal.wDay, stLocal.wMonth, stLocal.wYear, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
 }
 
-static long autoQuickSave = 0;
-static long quickSavePage = 0;
+static long quickSavePageInit = -1;
+static long quickSavePageCount;
+static long currentPageCount;
+
+static long quickSavePage = -1;
+static long quickSaveSlot = 0;
+
+static long dontCheckSlot = 0;
+static bool qFirst = true;
 
 static FILETIME ftPrevSlot;
 
 static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
 	long currSlot = *ptr_slot_cursor;
 
-	if (file) { // This slot is not empty
-		fo_db_fclose(file);
+	if (dontCheckSlot) {
+		if (file) fo_db_fclose(file);
+	} else {
+	// for quick feature
+		if (file) { // This slot is not empty
+			fo_db_fclose(file);
 
-		FILETIME ftCurrSlot;
-		GetSaveFileTime(filename, &ftCurrSlot);
+			FILETIME ftCurrSlot;
+			GetSaveFileTime(filename, &ftCurrSlot);
 
-		if (currSlot == 0 || ftCurrSlot.dwHighDateTime > ftPrevSlot.dwHighDateTime ||
-		    (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime))
-		{
-			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
-			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
+			if (currSlot == 0 ||
+			    ftCurrSlot.dwHighDateTime > ftPrevSlot.dwHighDateTime ||
+			    (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime))
+			{
+				ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
+				ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
 
-			if (++currSlot > autoQuickSave) {
-				currSlot = 0;
-			} else {
-				*ptr_slot_cursor = currSlot;
-				return 0x47B929; // check next slot
+				if (!qFirst && currSlot < 9) {
+					*ptr_slot_cursor = ++quickSaveSlot;
+					return 0x47B929; // check next slot
+				}
+				currSlot = 0; // set if currSlot >= 9
+				qFirst = false;
+			}
+		}
+		// next save slot
+		if (++quickSaveSlot >= 10) {
+			quickSaveSlot = 0;
+			// next page
+			if (quickSavePageCount > 1 && quickSavePageInit != -1) {
+				if (++currentPageCount >= quickSavePageCount) {
+					currentPageCount = 0;
+					quickSavePage = quickSavePageInit;
+				} else if (quickSavePage <= 9980) {
+					quickSavePage += 10;
+				}
 			}
 		}
 	}
@@ -451,7 +477,7 @@ static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
 	// Save to slot
 	*ptr_slot_cursor = currSlot;
 	LSData* saveData = (LSData*)FO_VAR_LSData;
-	CreateSaveComment(saveData[currSlot].comment);
+	CreateSaveComment(saveData[currSlot].comment, dontCheckSlot != 0);
 	*ptr_quick_done = 1;
 
 	return 0x47B9A4; // normal return
@@ -471,11 +497,26 @@ static void __declspec(naked) SaveGame_hack0() {
 
 static void __declspec(naked) SaveGame_hack1() {
 	__asm {
-		mov ds:[FO_VAR_slot_cursor], 0;
+		mov eax, quickSaveSlot;
+		mov ds:[FO_VAR_slot_cursor], eax;
 		mov eax, quickSavePage;
 		mov LSPageOffset, eax;
 		retn;
 	}
+}
+
+long ExtraSaveSlots_GetQuickSavePage() {
+	return quickSavePage;
+}
+
+long ExtraSaveSlots_GetQuickSaveSlot() {
+	return quickSaveSlot;
+}
+
+void ExtraSaveSlots_SetQuickSaveSlot(long page, long slot, long check) {
+	if (quickSavePage >= 0 && page >= 0 && page <= 9990) quickSavePage = page - (page % 10);
+	if (slot >= 0 && slot < 10) quickSaveSlot = slot;
+	dontCheckSlot = check;
 }
 
 void ExtraSaveSlots_Init() {
@@ -486,19 +527,19 @@ void ExtraSaveSlots_Init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	autoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
-	if (autoQuickSave > 0) {
+	quickSavePageCount = GetConfigInt("Misc", "AutoQuickSave", 0);
+	if (quickSavePageCount > 0) {
 		dlog("Applying auto quick save patch.", DL_INIT);
-		if (autoQuickSave > 10) autoQuickSave = 10;
-		autoQuickSave--; // reserved slot count
+		if (quickSavePageCount > 10) quickSavePageCount = 10;
 
-		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
+		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 1);
 		if (quickSavePage > 1000) quickSavePage = 1000;
 
 		if (extraSaveSlots && quickSavePage > 0) {
 			quickSavePage = (quickSavePage - 1) * 10;
+			quickSavePageInit = quickSavePage;
 			MakeCall(0x47B923, SaveGame_hack1, 1);
-		} else {
+		} else { // for quickSavePage == 0
 			SafeWrite8(0x47B923, 0x89);
 			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi = 0
 		}

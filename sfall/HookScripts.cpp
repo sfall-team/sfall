@@ -1238,10 +1238,10 @@ capsMultiDrop:
 static void __declspec(naked) InvenActionExplosiveDropHack() {
 	__asm {
 		pushadc;
-		xor  ecx, ecx;                       // no itemReplace
-		push 6;                              // event: item drop ground
-		call InventoryMoveHook_Script;       // edx - item
-		cmp  eax, -1;                        // ret value
+		xor  ecx, ecx;                 // no itemReplace
+		push 6;                        // event: item drop ground
+		call InventoryMoveHook_Script; // edx - item
+		cmp  eax, -1;                  // ret value
 		popadc;
 		jnz  noDrop;
 		mov  dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
@@ -1249,7 +1249,7 @@ static void __declspec(naked) InvenActionExplosiveDropHack() {
 		retn;
 noDrop:
 		add  esp, 4;
-		jmp  InvenActionObjDropRet;           // no drop
+		jmp  InvenActionObjDropRet; // no drop
 	}
 }
 
@@ -1942,8 +1942,8 @@ void HookScripts_Init() {
 	HookCalls(SwitchHandHook, switchHandHkAddr);
 	MakeJump(0x4713A9, UseArmorHack); // old 0x4713A3
 	MakeJump(0x476491, DropIntoContainerHack);
-	MakeJump(0x471338, DropIntoContainerHandSlotHack);
-	MakeJump(0x4712AB, DropIntoContainerHandSlotHack);
+	const DWORD dropIntoContHandHkAddr[] = {0x471338, 0x4712AB};
+	MakeJumps(DropIntoContainerHandSlotHack, dropIntoContHandHkAddr);
 	HookCall(0x471200, MoveInventoryHook);
 	HookCall(0x476549, DropAmmoIntoWeaponHook); // old 0x476588
 	const DWORD actionCurObjDropHkAddr[] = {
