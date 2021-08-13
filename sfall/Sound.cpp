@@ -959,8 +959,11 @@ static void __declspec(naked) sfxl_init_hook() {
 
 static const int SampleRate = 44100; // 44.1kHz
 
+static bool fadeBgMusic = false;
+
 void Sound_OnAfterGameInit() {
 	*ptr_sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
+	if (fadeBgMusic) *(DWORD*)FO_VAR_gsound_background_fade = 1;
 }
 
 void Sound_Init() {
@@ -1039,6 +1042,13 @@ void Sound_Init() {
 	if (GetConfigInt("Sound", "AutoSearchSFX", 1)) {
 		const DWORD sfxlInitAddr[] = {0x4A9999, 0x4A9B34};
 		HookCalls(sfxl_init_hook, sfxlInitAddr);
+	}
+
+	if (GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
+		SafeMemSet(0x45020C, CODETYPE_Nop, 6); // gsound_reset_
+		SafeWrite32(0x45212C, 250); // delay start
+		SafeWrite32(0x450ADE, 500); // delay stop
+		fadeBgMusic = true;
 	}
 }
 
