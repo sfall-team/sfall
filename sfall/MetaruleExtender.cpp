@@ -31,12 +31,11 @@ enum MetaruleFunction : long {
 	SET_HORRIGAN_ENCOUNTER = 200, // sets the number of days for the Frank Horrigan encounter or disable encounter
 	CLEAR_KEYBOARD_BUFFER  = 201, // clears the keyboard input buffer, should be used in the HOOK_KEYPRESS hook to clear keyboard events in some cases
 
-	// for save slots
-	GET_CURRENT_SAVE_SLOT  = 1000,
-	SET_CURRENT_SAVE_SLOT  = 1001,
-	GET_CURRENT_QSAVE_PAGE = 1002,
-	GET_CURRENT_QSAVE_SLOT = 1003,
-	SET_CURRENT_QSAVE_SLOT = 1004,
+	GET_CURRENT_SAVE_SLOT  = 210,
+	SET_CURRENT_SAVE_SLOT  = 211,
+	GET_CURRENT_QSAVE_PAGE = 212,
+	GET_CURRENT_QSAVE_SLOT = 213,
+	SET_CURRENT_QSAVE_SLOT = 214,
 };
 
 /*

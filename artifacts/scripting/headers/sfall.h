@@ -367,11 +367,11 @@
 #define clear_keyboard_buffer                                   metarule3(201, 0, 0, 0)
 
 // functions to control the save slot
-// Note: page and slot here are 0-indexed instead of 1-indexed displayed in game
-#define get_current_save_slot                                   metarule3(1000, 0, 0, 0) // returns the amount: page + slot
-#define set_current_save_slot(page, slot)                       metarule3(1001, page, slot, 0)
-#define get_current_quick_save_page                             metarule3(1002, 0, 0, 0)
-#define get_current_quick_save_slot                             metarule3(1003, 0, 0, 0)
-#define set_current_quick_save_slot(page, slot, check)          metarule3(1004, page, slot, check) // check: 1 - don't check slot when saving
+// Note: slot value here is 0-indexed instead of 1-indexed displayed in game and used for folder names
+#define get_current_save_slot                                   metarule3(210, 0, 0, 0) // returns the amount: page + slot
+#define set_current_save_slot(page, slot)                       metarule3(211, page, slot, 0)
+#define get_current_quick_save_page                             metarule3(212, 0, 0, 0)
+#define get_current_quick_save_slot                             metarule3(213, 0, 0, 0)
+#define set_current_quick_save_slot(page, slot, check)          metarule3(214, page, slot, check) // check: 1 - don't check slot when saving
 
 #endif
