@@ -950,7 +950,9 @@ constexpr int SampleRate = 44100; // 44.1kHz
 void Sound::init() {
 	// Set the 44.1kHz sample rate for the primary sound buffer
 	SafeWrite32(0x44FDBC, SampleRate);
-	LoadGameHook::OnAfterGameInit() += []() { fo::var::sampleRate = SampleRate / 2; }; // Revert to 22kHz for secondary sound buffers
+	LoadGameHook::OnAfterGameInit() += []() {
+		fo::var::sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
+	};
 
 	LoadGameHook::OnGameReset() += WipeSounds;
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
@@ -1023,6 +1025,15 @@ void Sound::init() {
 
 	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
 		HookCalls(sfxl_init_hook, {0x4A9999, 0x4A9B34});
+	}
+
+	if (IniReader::GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
+		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
+		SafeWrite32(0x45212C, 250); // delay start
+		SafeWrite32(0x450ADE, 500); // delay stop
+		LoadGameHook::OnAfterGameInit() += []() {
+			*(DWORD*)FO_VAR_gsound_background_fade = 1;
+		};
 	}
 }
 
