@@ -37,7 +37,7 @@ long ExtraSaveSlots::GetSaveSlot() {
 }
 
 void ExtraSaveSlots::SetSaveSlot(long page, long slot) {
-	if (GetQuickSavePage() >= 0 && page >= 0 && page <= 9990) LSPageOffset = page - (page % 10);;
+	if (page >= 0 && page <= 9990) LSPageOffset = page - (page % 10);
 	if (slot >= 0 && slot < 10) fo::var::slot_cursor = slot;
 }
 
@@ -56,6 +56,7 @@ static long save_page_offsets() {
 	return fo::var::lsgwin; // restore original code
 }
 
+// load last slot position values from file
 static void LoadPageOffsets() {
 	char LoadPath[MAX_PATH];
 
@@ -73,7 +74,6 @@ static void LoadPageOffsets() {
 
 static void __declspec(naked) load_page_offsets(void) {
 	__asm {
-		// load last slot position values from file
 		call LoadPageOffsets;
 		mov  edx, 0x50A480; // ASCII "SAV" (restore original code)
 		retn;
@@ -110,13 +110,13 @@ static void SetPageNum() {
 	BYTE ConsoleGold = fo::var::YellowColor; // palette offset stored in mem - text colour
 
 	char tempText[32];
-	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 8; // GetTextWidth(tempText);
+	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 6; // GetTextWidth(tempText);
 	unsigned int HalfMaxWidth = TxtMaxWidth / 2;
 	unsigned int TxtWidth = 0;
 
 	DWORD NewTick = 0, OldTick = 0;
 	int button = 0, exitFlag = 0, numpos = 0;
-	char Number[5], blip = '_';
+	char Number[4], blip = '_';
 
 	DWORD tempPageOffset = -1;
 
@@ -136,14 +136,14 @@ static void SetPageNum() {
 			if (tempPageOffset == -1) {
 				sprintf_s(tempText, 32, "[ %c ]", '_');
 			} else {
-				sprintf_s(tempText, 32, "[ %d%c ]", tempPageOffset / 10 + 1, '_');
+				sprintf_s(tempText, 32, "[ %d%c ]", tempPageOffset / 10, '_');
 			}
 			TxtWidth = fo::GetTextWidth(tempText);
 
 			if (tempPageOffset == -1) {
 				sprintf_s(tempText, 32, "[ %c", blip);
 			} else {
-				sprintf_s(tempText, 32, "[ %d%c", tempPageOffset / 10 + 1, blip);
+				sprintf_s(tempText, 32, "[ %d%c", tempPageOffset / 10, blip);
 			}
 
 			int z = 0;
@@ -161,15 +161,15 @@ static void SetPageNum() {
 
 		button = fo::func::get_input();
 		if (button >= '0' && button <= '9') {
-			if (numpos < 4) {
+			if (numpos < 3) {
 				Number[numpos] = button;
 				Number[numpos + 1] = '\0';
 				numpos++;
 				if (Number[0] == '0') {
 					numpos = 0;
-					tempPageOffset = -1;
+					tempPageOffset = 0;
 				} else {
-					tempPageOffset = (atoi(Number) - 1) * 10;
+					tempPageOffset = (atoi(Number)) * 10;
 				}
 			}
 			//else exitFlag=-1;
@@ -179,7 +179,7 @@ static void SetPageNum() {
 			if (!numpos) {
 				tempPageOffset = -1;
 			} else {
-				tempPageOffset = (atoi(Number) - 1) * 10;
+				tempPageOffset = (atoi(Number)) * 10;
 			}
 		} else if (button == 0x0D || button == 0x20 || button == 'p' || button == 'P') {
 			exitFlag = -1; // Enter, Space or P Keys
@@ -276,7 +276,7 @@ static void DrawPageText() {
 	BYTE Colour = ConsoleGreen;
 
 	char tempText[32];
-	sprintf_s(tempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
+	sprintf_s(tempText, 32, "[ %d ]", LSPageOffset / 10);
 
 	unsigned int TxtWidth = fo::GetTextWidth(tempText);
 	fo::PrintText(tempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
@@ -457,9 +457,9 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 					return 0x47B929; // check next slot
 				}
 				currSlot = 0; // set if currSlot >= 9
-				qFirst = false;
 			}
 		}
+		qFirst = false;
 		// next save slot
 		if (++quickSaveSlot >= 10) {
 			quickSaveSlot = 0;
@@ -498,10 +498,17 @@ static void __declspec(naked) SaveGame_hack0() {
 
 static void __declspec(naked) SaveGame_hack1() {
 	__asm {
-		mov eax, quickSaveSlot;
-		mov ds:[FO_VAR_slot_cursor], eax;
-		mov eax, quickSavePage;
-		mov LSPageOffset, eax;
+		mov  eax, quickSavePage;
+		test eax, eax;
+		js   skip;
+		mov  LSPageOffset, eax;
+		mov  eax, quickSaveSlot;
+		mov  ds:[FO_VAR_slot_cursor], eax;
+		retn;
+skip:	// if AutoQuickSavePage is disabled (set to less than 0)
+		xor  eax, eax;
+		mov  quickSaveSlot, eax;
+		mov  ds:[FO_VAR_slot_cursor], eax;
 		retn;
 	}
 }
@@ -515,7 +522,11 @@ long ExtraSaveSlots::GetQuickSaveSlot() {
 }
 
 void ExtraSaveSlots::SetQuickSaveSlot(long page, long slot, long check) {
-	if (quickSavePage >= 0 && page >= 0 && page <= 9990) quickSavePage = page - (page % 10);
+	if (page < 0) {
+		quickSavePage = -1;
+	} else if (page <= 9990) {
+		quickSavePage = page - (page % 10);
+	}
 	if (slot >= 0 && slot < 10) quickSaveSlot = slot;
 	dontCheckSlot = check;
 }
@@ -534,17 +545,14 @@ void ExtraSaveSlots::init() {
 		if (quickSavePageCount > 10) quickSavePageCount = 10;
 
 		quickSavePage = IniReader::GetConfigInt("Misc", "AutoQuickSavePage", 1);
-		if (quickSavePage > 1000) quickSavePage = 1000;
+		if (quickSavePage > 999) quickSavePage = 999;
 
-		if (extraSaveSlots && quickSavePage > 0) {
-			quickSavePage = (quickSavePage - 1) * 10;
+		if (extraSaveSlots && quickSavePage >= 0) {
+			quickSavePage *= 10;
 			quickSavePageInit = quickSavePage;
-			MakeCall(0x47B923, SaveGame_hack1, 1);
-		} else { // for quickSavePage == 0
-			SafeWrite8(0x47B923, 0x89);
-			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi = 0
 		}
 		MakeJump(0x47B984, SaveGame_hack0);
+		MakeCall(0x47B923, SaveGame_hack1, 1);
 		dlogr(" Done", DL_INIT);
 	}
 }
