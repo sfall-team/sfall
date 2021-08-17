@@ -84,5 +84,6 @@ void InvenUnwield_HookMove();
 void __stdcall AdjustFidHook(DWORD vanillaFid);
 
 long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon);
+long __stdcall UseObjOnHook_Invoke(TGameObj* source, TGameObj* item, TGameObj* target);
 long __stdcall PerceptionRangeHook_Invoke(TGameObj* watcher, TGameObj* target, long type, long result);
 long __stdcall InvenWieldHook_Invoke(TGameObj* critter, TGameObj* item, long flags);

@@ -20,6 +20,8 @@
 
 void InitReplacementHacks();
 
+void __stdcall sfgame_ai_check_drugs(TGameObj* source);
+
 // Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
 long __stdcall sfgame_correctFidForRemovedItem(TGameObj* critter, TGameObj* item, long flags);
 
@@ -33,6 +35,9 @@ DWORD __stdcall sfgame_item_total_size(TGameObj* critter);
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - calls AdjustFidHook that allows to hook into FID calculation
 DWORD __stdcall sfgame_adjust_fid();
+
+// Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
+long __stdcall sfgame_item_d_take_drug(TGameObj* source, TGameObj* item);
 
 long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item);
 

@@ -23,6 +23,7 @@
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC3(long, ai_have_ammo, TGameObj*, critter, TGameObj*, item, TGameObj**, outAmmo)
 WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, TGameObj*, source, TGameObj*, item, TGameObj*, target)
+WRAP_WATCOM_FFUNC3(long, ai_magic_hands, TGameObj*, source, TGameObj*, object, long, msgNumber)
 WRAP_WATCOM_FFUNC3(TGameObj*, ai_search_inven_weap, TGameObj*, source, long, apCheck, TGameObj*, target)
 WRAP_WATCOM_FFUNC3(void, check_for_death, TGameObj*, critter, long, amountDamage, long*, flags)
 WRAP_WATCOM_FFUNC6(long, combat_safety_invalidate_weapon_func, TGameObj*, source, TGameObj*, weapon, long, hitMode, TGameObj*, targetA, DWORD*, outSafeRange, TGameObj*, targetB)
@@ -37,7 +38,7 @@ WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, lo
 WRAP_WATCOM_FFUNC3(TGameObj*, inven_find_type, TGameObj*, critter, long, itemType, DWORD*, slot)
 WRAP_WATCOM_FFUNC3(long, inven_wield, TGameObj*, critter, TGameObj*, item, long, slot)
 WRAP_WATCOM_FFUNC3(long, item_add_force, TGameObj*, critter, TGameObj*, item, long, count)
-WRAP_WATCOM_FFUNC3(long, item_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
+WRAP_WATCOM_FFUNC3(long, item_remove_mult, TGameObj*, critter, TGameObj*, item, long, count) // WARNING: HOOK_REMOVEINVENOBJ uses the return address in this function
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, TGameObj*, source, long, hitMode, long, isCalled)
 // Calculates path and returns it's length
 WRAP_WATCOM_FFUNC6(long, make_path_func, TGameObj*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, checkTileTo, void*, blockingFunc)
@@ -46,6 +47,7 @@ WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*,
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC3(TGameObj*, obj_blocking_at, TGameObj*, object, long, tile, long, elevation)
+WRAP_WATCOM_FFUNC4(long, obj_connect, TGameObj*, object, long, tile, long, elevation, RECT*, rect)
 WRAP_WATCOM_FFUNC4(long, obj_dist_with_tile, TGameObj*, source, long, sourceTile, TGameObj*, target, long, targetTile)
 WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, TGameObj*, object, long, sType, long, scriptIndex)
 WRAP_WATCOM_FFUNC3(TGameObj*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
@@ -65,6 +67,9 @@ WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long,
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, TProgram*, scriptPtr, DWORD, dataType, DWORD, strId)
 
 /* stdcall */
+WRAP_WATCOM_FUNC1(AIcap*, ai_cap, TGameObj*, critter)
+WRAP_WATCOM_FUNC2(TGameObj*, ai_retrieve_object, TGameObj*, critter, TGameObj*, item)
+WRAP_WATCOM_FUNC2(TGameObj*, ai_search_environ, TGameObj*, critter, long, itemType)
 WRAP_WATCOM_FUNC2(long, anim_can_use_door, TGameObj*, source, TGameObj*, object)
 WRAP_WATCOM_FUNC1(bool, art_exists, long, artFid)
 WRAP_WATCOM_FUNC0(void, art_flush)
@@ -122,6 +127,7 @@ WRAP_WATCOM_FUNC2(long, is_within_perception, TGameObj*, source, TGameObj*, targ
 WRAP_WATCOM_FUNC1(long, isPartyMember, TGameObj*, obj)
 WRAP_WATCOM_FUNC1(long, item_c_curr_size, TGameObj*, critter)
 WRAP_WATCOM_FUNC1(long, item_caps_total, TGameObj*, object)
+WRAP_WATCOM_FUNC2(long, item_d_take_drug, TGameObj*, source, TGameObj*, item)
 WRAP_WATCOM_FUNC1(long, item_get_type, TGameObj*, item)
 WRAP_WATCOM_FUNC2(TGameObj*, item_hit_with, TGameObj*, critter, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_m_dec_charges, TGameObj*, item) // Returns 0 on success, -1 if the item has no charges
