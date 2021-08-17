@@ -3641,20 +3641,20 @@ void BugFixes::init()
 	// Display a pop-up message box about death from radiation
 	HookCall(0x42D733, process_rads_hook_msg);
 
-	int drugUsePerfFix = IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
-	if (drugUsePerfFix > 0) {
-		dlog("Applying AI drug use preference fix.", DL_FIX);
-		if (drugUsePerfFix == 1) {
-			// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
-			MakeCall(0x42869D, ai_check_drugs_hack_break);
-			MakeCall(0x4286AB, ai_check_drugs_hack_check, 1);
-			MakeCall(0x4286C7, ai_check_drugs_hack_use);
-		}
-		// Fix to allow using only the drugs listed in chem_primary_desire and healing drugs (stimpaks and healing powder)
-		SafeWrite8(0x4286B1, CodeType::JumpZ);  // jnz > jz (ai_check_drugs_)
-		SafeWrite8(0x4286C5, CodeType::JumpNZ); // jz > jnz (ai_check_drugs_)
-		dlogr(" Done", DL_FIX);
-	}
+	//int drugUsePerfFix = IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	//if (drugUsePerfFix > 0) {
+	//	dlog("Applying AI drug use preference fix.", DL_FIX);
+	//	if (drugUsePerfFix == 1) {
+	//		// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
+	//		MakeCall(0x42869D, ai_check_drugs_hack_break);
+	//		MakeCall(0x4286AB, ai_check_drugs_hack_check, 1);
+	//		MakeCall(0x4286C7, ai_check_drugs_hack_use);
+	//	}
+	//	// Fix to allow using only the drugs listed in chem_primary_desire and healing drugs (stimpaks and healing powder)
+	//	SafeWrite8(0x4286B1, CodeType::JumpZ);  // jnz > jz (ai_check_drugs_)
+	//	SafeWrite8(0x4286C5, CodeType::JumpNZ); // jz > jnz (ai_check_drugs_)
+	//	dlogr(" Done", DL_FIX);
+	//}
 
 	// Fix for chem_primary_desire values in party member AI packets not being saved correctly
 	HookCall(0x42803E, cai_cap_save_hook);

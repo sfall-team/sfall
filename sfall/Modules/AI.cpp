@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
+#include "..\Game\combatAI.h"
 #include "..\Game\items.h"
 
 #include "AI.h"
@@ -112,8 +113,10 @@ end:
 		add  esp, 4;
 		jmp  combat_ai_hack_Ret;
 tryHeal:
-		mov  eax, esi;
-		call fo::funcoffs::ai_check_drugs_;
+		push ecx;
+		push esi;                            // mov  eax, esi;
+		call game::CombatAI::ai_check_drugs; // call fo::funcoffs::ai_check_drugs_;
+		pop  ecx;
 		cmp  [esi + health], edx; // edx - minimum hp, below which NPC will run away
 		jge  end;
 		retn; // flee
@@ -126,7 +129,7 @@ static void __declspec(naked) ai_check_drugs_hook() {
 		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
 		mov  edx, [edx + 0x10];                      // min_hp
 		cmp  eax, edx;                               // curr_hp < cap.min_hp
-		cmovl edi, edx;
+		cmovl edi, edx;                              // min_hp <- cap.min_hp
 		retn;
 	}
 }
@@ -663,12 +666,12 @@ void AI::init() {
 	// Fix to allow fleeing NPC to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
 	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
-	HookCall(0x428579, ai_check_drugs_hook);
+	//HookCall(0x428579, ai_check_drugs_hook);
 
 	// Fix to prevent the use of healing drugs when not necessary
-	HookCall(0x4287D7, ai_check_drugs_hook_healing);
-	SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
-	SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
+	//HookCall(0x4287D7, ai_check_drugs_hook_healing);
+	//SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
+	//SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
 
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
