@@ -123,7 +123,7 @@ tryHeal:
 	}
 }
 
-static void __declspec(naked) ai_check_drugs_hook() {
+/*static void __declspec(naked) ai_check_drugs_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;              // current hp
 		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
@@ -169,7 +169,7 @@ dontUse:
 		xor  eax, eax;
 		retn;
 	}
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 

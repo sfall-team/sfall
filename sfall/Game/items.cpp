@@ -4,6 +4,8 @@
  *
  */
 
+#include <array>
+
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
@@ -21,6 +23,34 @@ namespace game
 namespace sf = sfall;
 
 static constexpr int reloadCostAP = 2; // engine default reload AP cost
+
+static std::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
+
+void Items::SetHealingPID(long index, long pid) {
+	/*if (index >= 0 && index < 3)*/ healingItemPids[index] = pid;
+}
+
+bool Items::IsHealingItem(fo::GameObject* item) {
+	if (std::find(healingItemPids.cbegin(), healingItemPids.cend(), item->protoId) != healingItemPids.cend()) return true;
+
+	fo::Proto* proto;
+	if (fo::GetProto(item->protoId, &proto)) {
+		return ((proto->item.flagsExt & fo::ItemFlags::HealingItem) != 0); // TODO: check asm code
+	}
+	return false;
+}
+
+bool Items::UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item) {
+	bool result = (game::Items::item_d_take_drug(source, item) == -1);
+	if (result) {
+		fo::func::item_add_force(source, item, 1);
+	} else {
+		fo::func::ai_magic_hands(source, item, 5000);
+		fo::func::obj_connect(item, source->tile, source->elevation, 0);
+		fo::func::obj_destroy(item);
+	}
+	return result;
+}
 
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 long Items::item_d_take_drug(fo::GameObject* source, fo::GameObject* item) {

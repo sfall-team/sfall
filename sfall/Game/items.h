@@ -13,6 +13,13 @@ class Items {
 public:
 	static void init();
 
+	static void SetHealingPID(long index, long pid);
+
+	static bool IsHealingItem(fo::GameObject* item);
+
+	// True - use failed
+	static bool UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item);
+
 	// Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 	static long item_d_take_drug(fo::GameObject* source, fo::GameObject* item);
 

@@ -139,6 +139,7 @@ enum ItemFlags : long
 	// Action Flags:
 	Use          = 0x00000800, // object can be used
 
+	HealingItem  = 0x04000000, // sfall healing drug flag
 	HiddenItem   = 0x08000000  // item is hidden
 };
 
