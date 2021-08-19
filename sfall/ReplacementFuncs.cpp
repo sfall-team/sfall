@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <array>
+
 #include "main.h"
 #include "FalloutEngine.h"
 
@@ -30,25 +32,6 @@
 ////////////////////////////////// COMBAT AI ///////////////////////////////////
 
 static const long aiUseItemAPCost = 2;
-//static std::vector<long> healingItemPids = {PID_STIMPAK, PID_SUPER_STIMPAK, PID_HEALING_POWDER};
-
-static bool __stdcall CheckHealingItems(TGameObj* item) {
-//	return (std::find(healingItemPids.cbegin(), healingItemPids.cend(), item->protoId) != healingItemPids.cend());
-	return (item->protoId == PID_STIMPAK || item->protoId == PID_SUPER_STIMPAK || item->protoId == PID_HEALING_POWDER);
-}
-
-// True - use failed
-static bool __stdcall UseItemDrugFunc(TGameObj* source, TGameObj* item) {
-	bool result = (fo_item_d_take_drug(source, item) == -1);
-	if (result) {
-		fo_item_add_force(source, item, 1);
-	} else {
-		fo_ai_magic_hands(source, item, 5000);
-		fo_obj_connect(item, source->tile, source->elevation, 0);
-		fo_obj_destroy(item);
-	}
-	return result;
-}
 
 static long drugUsePerfFixMode;
 
@@ -91,7 +74,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 
 		long minHP = (hpPercent * fo_stat_level(source, STAT_max_hit_points)) / 100;
 
-		// [FIX] for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
+		// [FIX] for AI not checking minimum hp properly for using healing drugs (prevents premature fleeing)
 		if (cap->min_hp > minHP) minHP = cap->min_hp;
 
 		while (fo_stat_level(source, STAT_current_hp) < minHP && source->critter.movePoints >= aiUseItemAPCost) {
@@ -101,8 +84,8 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				break;
 			}
 
-			if (CheckHealingItems(itemFind) && !fo_item_remove_mult(source, itemFind, 1)) {
-				if (!UseItemDrugFunc(source, itemFind)) {
+			if (sfgame_IsHealingItem(itemFind) && !fo_item_remove_mult(source, itemFind, 1)) {
+				if (!sfgame_UseDrugItemFunc(source, itemFind)) {
 					drugWasUsed = true;
 				}
 
@@ -134,7 +117,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 						while (item->protoId != cap->chem_primary_desire[counter]) if (++counter > 2) break;
 						if (counter <= 2) break; // there is a match
 
-						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference when using drugs in the inventory
+						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 						if (drugUsePerfFixMode == 1) {
 							item = fo_inven_find_type(source, item_type_drug, &slot);
 							if (!item) {
@@ -145,15 +128,15 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 						}
 					} while (counter < 3);
 				} else {
-					// if the durg is equal to the first item of preference, then check the next two (vanilla behavior)
+					// if the drug is equal to the item in the preference list, then check the next (vanilla behavior)
 					while (item->protoId == cap->chem_primary_desire[counter]) if (++counter > 2) break;
 				}
 
 				// if the preference counter is less than 3, then AI can use the drug
 				if (counter < 3) {
 					// if the item is NOT a healing drug
-					if (!CheckHealingItems(item) && !fo_item_remove_mult(source, item, 1)) {
-						if (!UseItemDrugFunc(source, item)) {
+					if (!sfgame_IsHealingItem(item) && !fo_item_remove_mult(source, item, 1)) {
+						if (!sfgame_UseDrugItemFunc(source, item)) {
 							drugWasUsed = true;
 							usedCount++;
 						}
@@ -177,7 +160,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 		}
 	}
 	// search for drugs on the map
-	if (lastItem || (!drugWasUsed /*&& noInvenDrug*/)) {
+	if (lastItem || (!drugWasUsed && noInvenDrug)) {
 		do {
 			if (!lastItem) lastItem = fo_ai_search_environ(source, item_type_drug);
 			if (!lastItem) lastItem = fo_ai_search_environ(source, item_type_misc_item);
@@ -185,7 +168,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 
 			// [FIX] Prevent the use of healing drugs when not necessary
 			// noInvenDrug: is set to 2 that healing is required
-			if (lastItem && noInvenDrug != 2 && CheckHealingItems(lastItem)) {
+			if (lastItem && noInvenDrug != 2 && sfgame_IsHealingItem(lastItem)) {
 				long maxHP = fo_stat_level(source, STAT_max_hit_points);
 				if (10 + source->critter.health >= maxHP) { // quick check current HP
 					return; // exit: don't use healing item
@@ -193,7 +176,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 			}
 
 			if (lastItem && !fo_item_remove_mult(source, lastItem, 1)) {
-				if (!UseItemDrugFunc(source, lastItem)) lastItem = nullptr;
+				if (!sfgame_UseDrugItemFunc(source, lastItem)) lastItem = nullptr;
 
 				if (source->critter.movePoints < aiUseItemAPCost) {
 					source->critter.movePoints = 0;
@@ -202,6 +185,26 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				}
 			}
 		} while (lastItem && source->critter.movePoints >= aiUseItemAPCost);
+	}
+}
+
+static void __declspec(naked) ai_check_drugs_hack() {
+	__asm {
+		push ecx;
+		push eax; // source
+		call sfgame_ai_check_drugs;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_can_use_drug_hack() {
+	__asm {
+		push ecx; // item
+		call sfgame_IsHealingItem;
+		pop  ecx;
+		test al, al;
+		retn;
 	}
 }
 
@@ -302,10 +305,47 @@ static void __declspec(naked) adjust_fid_hack() {
 
 static const int reloadCostAP = 2; // engine default reload AP cost
 
+static std::tr1::array<long, 3> healingItemPids = {PID_STIMPAK, PID_SUPER_STIMPAK, PID_HEALING_POWDER};
+
+long __stdcall sfgame_GetHealingPID(long index) {
+	return healingItemPids[index];
+}
+
+void __stdcall sfgame_SetHealingPID(long index, long pid) {
+	healingItemPids[index] = pid;
+}
+
+bool __fastcall sfgame_IsHealingItem(TGameObj* item) {
+	//for each (long pid in healingItemPids) if (pid == item->protoId) return true;
+	if (healingItemPids[0] == item->protoId || healingItemPids[1] == item->protoId || healingItemPids[2] == item->protoId) {
+		return true;
+	}
+
+	sProto* proto;
+	if (GetProto(item->protoId, &proto)) {
+		return (proto->item.flagsExt & IFLG_HealingItem) != 0;
+	}
+	return false;
+}
+
+bool __stdcall sfgame_UseDrugItemFunc(TGameObj* source, TGameObj* item) {
+	bool result = (sfgame_item_d_take_drug(source, item) == -1);
+	if (result) {
+		fo_item_add_force(source, item, 1);
+	} else {
+		fo_ai_magic_hands(source, item, 5000);
+		fo_obj_connect(item, source->tile, source->elevation, 0);
+		fo_obj_destroy(item);
+	}
+	return result;
+}
+
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 long __stdcall sfgame_item_d_take_drug(TGameObj* source, TGameObj* item) {
-	if (UseObjOnHook_Invoke(source, item, source) == -1) return -1;
-	return fo_item_d_take_drug(source, item);
+	if (UseObjOnHook_Invoke(source, item, source) == -1) { // default handler
+		return fo_item_d_take_drug(source, item);
+	}
+	return -1; // cancel the drug use
 }
 
 long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item) {
@@ -854,6 +894,14 @@ static void __declspec(naked) tile_num_beyond_hack() {
 ////////////////////////////////////////////////////////////////////////////////
 
 void InitReplacementHacks() {
+	// Replace ai_check_drugs_ function for code fixes and checking healing items
+	//MakeJump(ai_check_drugs_, ai_check_drugs_hack); // 0x428480
+
+	// Change ai_can_use_drug_ function code to check healing items
+	//MakeCall(0x429BDE, ai_can_use_drug_hack, 6);
+	//SafeWrite8(0x429BE9, CODETYPE_JumpNZ);    // jz > jnz
+	//SafeWrite8(0x429BF1, CODETYPE_JumpShort); // jnz > jmp
+
 	//drugUsePerfFixMode = GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
 	//if (drugUsePerfFixMode > 0) dlogr("Applying AI drug use preference fix.", DL_FIX);
 

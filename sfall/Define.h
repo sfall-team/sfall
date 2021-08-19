@@ -136,6 +136,7 @@ enum ItemFlags : long
 	// Action Flags:
 	IFLG_Use          = 0x00000800, // object can be used
 
+	IFLG_HealingItem  = 0x04000000, // sfall healing drug flag
 	IFLG_HiddenItem   = 0x08000000  // item is hidden
 };
 

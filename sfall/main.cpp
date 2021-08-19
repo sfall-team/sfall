@@ -96,6 +96,9 @@ static void InitModules() {
 	dlogr("Running BugFixes_Init().", DL_INIT);
 	BugFixes_Init();
 
+	dlogr("Running FileSystem_Init().", DL_INIT);
+	FileSystem_Init();
+
 	dlogr("Running Graphics_Init().", DL_INIT);
 	Graphics_Init();
 
@@ -107,6 +110,15 @@ static void InitModules() {
 
 	dlogr("Running LoadGameHook_Init().", DL_INIT);
 	LoadGameHook_Init();
+
+	dlogr("Running Books_Init().", DL_INIT);
+	Books_Init();
+
+	dlogr("Running Criticals_Init().", DL_INIT);
+	Criticals_Init();
+
+	dlogr("Running Elevators_Init().", DL_INIT);
+	Elevators_Init();
 
 	dlogr("Running Movies_Init().", DL_INIT);
 	Movies_Init();
@@ -140,12 +152,6 @@ static void InitModules() {
 
 	dlogr("Running Skills_Init().", DL_INIT);
 	Skills_Init();
-
-	dlogr("Running FileSystem_Init().", DL_INIT);
-	FileSystem_Init();
-
-	dlogr("Running Criticals_Init().", DL_INIT);
-	Criticals_Init();
 
 	dlogr("Running Karma_Init().", DL_INIT);
 	Karma_Init();
@@ -183,17 +189,11 @@ static void InitModules() {
 	dlogr("Running BurstMods_Init().", DL_INIT);
 	BurstMods_Init();
 
-	dlogr("Running Books_Init().", DL_INIT);
-	Books_Init();
-
 	dlogr("Running Explosions_Init().", DL_INIT);
 	Explosions_Init();
 
 	dlogr("Running Message_Init().", DL_INIT);
 	Message_Init();
-
-	dlogr("Running Elevators_Init().", DL_INIT);
-	Elevators_Init();
 
 	dlogr("Running KillCounter_Init().", DL_INIT);
 	KillCounter_Init();
@@ -237,6 +237,7 @@ static void InitModules() {
 
 static void __stdcall OnExit() {
 	Graphics_Exit();
+	Books_Exit();
 	Movies_Exit();
 	Interface_Exit();
 	SpeedPatch_Exit();
@@ -246,7 +247,6 @@ static void __stdcall OnExit() {
 	Reputations_Exit();
 	Console_Exit();
 	ExtraSaveSlots_Exit();
-	Books_Exit();
 	Message_Exit();
 	Animations_Exit();
 	BarBoxes_Exit();

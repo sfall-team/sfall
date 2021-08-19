@@ -714,4 +714,9 @@ void FileSystem_Init() {
 		UsingFileSystem = true;
 	}
 	MakeJump(0x47CCE2, FSLoadHook); // LoadGame_
+
+	// Fix crash if the filename contains a '%' character (relevant to SFX files)
+	// xfopen_ - remove sprintf_ function calls that do nothing (probably just checking the filename for the '%' formatting char?)
+	BlockCall(0x4DEF12);
+	BlockCall(0x4DEF84);
 }

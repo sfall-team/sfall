@@ -36,6 +36,14 @@ DWORD __stdcall sfgame_item_total_size(TGameObj* critter);
 // - calls AdjustFidHook that allows to hook into FID calculation
 DWORD __stdcall sfgame_adjust_fid();
 
+long __stdcall sfgame_GetHealingPID(long index);
+void __stdcall sfgame_SetHealingPID(long index, long pid);
+
+bool __fastcall sfgame_IsHealingItem(TGameObj* item);
+
+// True - use failed
+bool __stdcall sfgame_UseDrugItemFunc(TGameObj* source, TGameObj* item);
+
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 long __stdcall sfgame_item_d_take_drug(TGameObj* source, TGameObj* item);
 

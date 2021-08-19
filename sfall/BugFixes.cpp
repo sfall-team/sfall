@@ -3632,7 +3632,7 @@ void BugFixes_Init()
 	if (drugUsePerfFix > 0) {
 		dlog("Applying AI drug use preference fix.", DL_FIX);
 		if (drugUsePerfFix == 1) {
-			// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
+			// Fix for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 			MakeCall(0x42869D, ai_check_drugs_hack_break);
 			MakeCall(0x4286AB, ai_check_drugs_hack_check, 1);
 			MakeCall(0x4286C7, ai_check_drugs_hack_use);
