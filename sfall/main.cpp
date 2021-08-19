@@ -39,6 +39,7 @@
 #include "Modules\DebugEditor.h"
 #include "Modules\Drugs.h"
 #include "Modules\Elevators.h"
+#include "Modules\EngineTweaks.h"
 #include "Modules\Explosions.h"
 #include "Modules\ExtraSaveSlots.h"
 #include "Modules\FileSystem.h"
@@ -125,6 +126,7 @@ static void InitModules() {
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 
+	manager.add<EngineTweaks>();
 	manager.add<Books>();
 	manager.add<Criticals>();
 	manager.add<Elevators>();

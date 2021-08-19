@@ -24,6 +24,7 @@
 #include "LoadGameHook.h"
 
 #include "..\Game\inventory.h"
+#include "..\Game\items.h"
 
 #include "Inventory.h"
 
@@ -310,8 +311,10 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 ////////////////////////////////////////////////////////////////////////////////
 
 static std::string superStimMsg;
+constexpr long SUPER_STIMPAK = 1;
+
 static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {
-	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || target->IsNotCritter()) {
+	if (item->protoId != game::Items::GetHealingPID(SUPER_STIMPAK) || !target || target->IsNotCritter()) {
 		return 0;
 	}
 
@@ -682,7 +685,7 @@ void Inventory::init() {
 	SafeWrite32(0x472632, widthWeight);
 
 	if (IniReader::GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
-		superStimMsg = Translate::Get("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
+		superStimMsg = Translate::Get("sfall", "SuperStimExploitMsg", "You cannot use this item on someone who is not injured!");
 		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 

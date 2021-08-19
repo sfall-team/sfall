@@ -346,6 +346,9 @@
     <ClInclude Include="Game\combatAI.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\EngineTweaks.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -641,6 +644,9 @@
     <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Game\combatAI.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\EngineTweaks.cpp">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
