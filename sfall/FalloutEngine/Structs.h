@@ -207,6 +207,14 @@ struct GameObject {
 			inline bool IsFleeing() {
 				return ((combatState & CombatStateFlag::InFlee) != 0);
 			}
+
+			inline void decreaseAP(long value) {
+				if (movePoints > value) {
+					movePoints -= value;
+				} else {
+					movePoints = 0;
+				}
+			}
 		} critter;
 	};
 	DWORD protoId; // object PID

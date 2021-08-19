@@ -77,16 +77,12 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				break;
 			}
 
-			if (game::Items::IsHealingItem(itemFind) && !fo::func::item_remove_mult(source, itemFind, 1)) {
-				if (!game::Items::UseDrugItemFunc(source, itemFind)) {
+			if (game::Items::IsHealingItem(itemFind) && !fo::func::item_remove_mult(source, itemFind, 1)) { // HOOK_REMOVEINVENOBJ
+				if (!game::Items::UseDrugItemFunc(source, itemFind)) { // HOOK_USEOBJON
 					drugWasUsed = true;
 				}
 
-				if (source->critter.movePoints < aiUseItemAPCost) {
-					source->critter.movePoints = 0;
-				} else {
-					source->critter.movePoints -= aiUseItemAPCost;
-				}
+				source->critter.decreaseAP(aiUseItemAPCost);
 				slot = -1;
 			}
 		}
@@ -94,6 +90,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 		// use any drug (except healing drugs) if there is a chance of using it
 		if (!drugWasUsed && chance > 0 && fo::func::roll_random(0, 100) < chance) {
 			long usedCount = 0;
+			slot = -1; // [FIX] start the search from the first slot
 			while (source->critter.movePoints >= aiUseItemAPCost) {
 				fo::GameObject* item = fo::func::inven_find_type(source, fo::ItemType::item_type_drug, &slot);
 				if (!item) {
@@ -128,17 +125,13 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				// if the preference counter is less than 3, then AI can use the drug
 				if (counter < 3) {
 					// if the item is NOT a healing drug
-					if (!game::Items::IsHealingItem(item) && !fo::func::item_remove_mult(source, item, 1)) {
-						if (!game::Items::UseDrugItemFunc(source, item)) {
+					if (!game::Items::IsHealingItem(item) && !fo::func::item_remove_mult(source, item, 1)) { // HOOK_REMOVEINVENOBJ
+						if (!game::Items::UseDrugItemFunc(source, item)) { // HOOK_USEOBJON
 							drugWasUsed = true;
 							usedCount++;
 						}
 
-						if (source->critter.movePoints < aiUseItemAPCost) {
-							source->critter.movePoints = 0;
-						} else {
-							source->critter.movePoints -= aiUseItemAPCost;
-						}
+						source->critter.decreaseAP(aiUseItemAPCost);
 						slot = -1;
 
 						fo::AIpref::chem_use_mode chemUse = (fo::AIpref::chem_use_mode)cap->chem_use;
@@ -169,13 +162,9 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 			}
 
 			if (lastItem && !fo::func::item_remove_mult(source, lastItem, 1)) {
-				if (!game::Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr;
+				if (!game::Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr; // HOOK_USEOBJON
 
-				if (source->critter.movePoints < aiUseItemAPCost) {
-					source->critter.movePoints = 0;
-				} else {
-					source->critter.movePoints -= aiUseItemAPCost;
-				}
+				source->critter.decreaseAP(aiUseItemAPCost);
 			}
 		} while (lastItem && source->critter.movePoints >= aiUseItemAPCost);
 	}
@@ -187,6 +176,7 @@ static void __declspec(naked) ai_check_drugs_hack() {
 		push eax; // source
 		call CombatAI::ai_check_drugs;
 		pop  ecx;
+		xor  eax, eax;
 		retn;
 	}
 }
