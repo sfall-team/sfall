@@ -67,7 +67,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 
 		long minHP = (hpPercent * fo::func::stat_level(source, fo::Stat::STAT_max_hit_points)) / 100;
 
-		// [FIX] for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
+		// [FIX] for AI not checking minimum hp properly for using healing drugs (prevents premature fleeing)
 		if (cap->min_hp > minHP) minHP = cap->min_hp;
 
 		while (fo::func::stat_level(source, fo::Stat::STAT_current_hp) < minHP && source->critter.movePoints >= aiUseItemAPCost) {
@@ -110,7 +110,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 						while (item->protoId != cap->chem_primary_desire[counter]) if (++counter > 2) break;
 						if (counter <= 2) break; // there is a match
 
-						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference when using drugs in the inventory
+						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 						if (drugUsePerfFixMode == 1) {
 							item = fo::func::inven_find_type(source, fo::ItemType::item_type_drug, &slot);
 							if (!item) {
@@ -121,7 +121,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 						}
 					} while (counter < 3);
 				} else {
-					// if the durg is equal to the first item of preference, then check the next two (vanilla behavior)
+					// if the drug is equal to the item in the preference list, then check the next (vanilla behavior)
 					while (item->protoId == cap->chem_primary_desire[counter]) if (++counter > 2) break;
 				}
 
@@ -153,7 +153,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 		}
 	}
 	// search for drugs on the map
-	if (lastItem || (!drugWasUsed /*&& noInvenDrug*/)) {
+	if (lastItem || (!drugWasUsed && noInvenDrug)) {
 		do {
 			if (!lastItem) lastItem = fo::func::ai_search_environ(source, fo::ItemType::item_type_drug);
 			if (!lastItem) lastItem = fo::func::ai_search_environ(source, fo::ItemType::item_type_misc_item);
@@ -191,9 +191,24 @@ static void __declspec(naked) ai_check_drugs_hack() {
 	}
 }
 
+static void __declspec(naked) ai_can_use_drug_hack() {
+	__asm {
+		push ecx; // item
+		call Items::IsHealingItem;
+		pop  ecx;
+		test al, al;
+		retn;
+	}
+}
+
 void CombatAI::init() {
-	// Replace ai_check_drugs_ function
+	// Replace ai_check_drugs_ function for code fixes and checking healing items
 	sf::MakeJump(fo::funcoffs::ai_check_drugs_, ai_check_drugs_hack); // 0x428480
+
+	// Change ai_can_use_drug_ function code to check healing items
+	sf::MakeCall(0x429BDE, ai_can_use_drug_hack, 6);
+	sf::SafeWrite8(0x429BE9, sf::CodeType::JumpNZ);    // jz > jnz
+	sf::SafeWrite8(0x429BF1, sf::CodeType::JumpShort); // jnz > jmp
 
 	drugUsePerfFixMode = sf::IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
 	if (drugUsePerfFixMode > 0) sf::dlogr("Applying AI drug use preference fix.", DL_FIX);

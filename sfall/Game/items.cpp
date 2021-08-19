@@ -26,16 +26,23 @@ static constexpr int reloadCostAP = 2; // engine default reload AP cost
 
 static std::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
 
-void Items::SetHealingPID(long index, long pid) {
-	/*if (index >= 0 && index < 3)*/ healingItemPids[index] = pid;
+long Items::GetHealingPID(long index) {
+	return healingItemPids[index];
 }
 
-bool Items::IsHealingItem(fo::GameObject* item) {
-	if (std::find(healingItemPids.cbegin(), healingItemPids.cend(), item->protoId) != healingItemPids.cend()) return true;
+void Items::SetHealingPID(long index, long pid) {
+	healingItemPids[index] = pid;
+}
+
+bool __fastcall Items::IsHealingItem(fo::GameObject* item) {
+	//for each (long pid in healingItemPids) if (pid == item->protoId) return true;
+	if (healingItemPids[0] == item->protoId || healingItemPids[1] == item->protoId || healingItemPids[2] == item->protoId) {
+		return true;
+	}
 
 	fo::Proto* proto;
 	if (fo::GetProto(item->protoId, &proto)) {
-		return ((proto->item.flagsExt & fo::ItemFlags::HealingItem) != 0); // TODO: check asm code
+		return (proto->item.flagsExt & fo::ItemFlags::HealingItem) != 0;
 	}
 	return false;
 }
@@ -54,8 +61,10 @@ bool Items::UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item) {
 
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 long Items::item_d_take_drug(fo::GameObject* source, fo::GameObject* item) {
-	if (sf::UseObjOnHook_Invoke(source, item, source) == -1) return -1;
-	return fo::func::item_d_take_drug(source, item);
+	if (sf::UseObjOnHook_Invoke(source, item, source) == -1) { // default handler
+		return fo::func::item_d_take_drug(source, item);
+	}
+	return -1; // cancel the drug use
 }
 
 long Items::item_count(fo::GameObject* who, fo::GameObject* item) {
