@@ -78,7 +78,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 			}
 
 			if (game::Items::IsHealingItem(itemFind) && !fo::func::item_remove_mult(source, itemFind, 1)) { // HOOK_REMOVEINVENOBJ
-				if (!game::Items::UseDrugItemFunc(source, itemFind)) { // HOOK_USEOBJON
+				if (!game::Items::UseDrugItemFunc(source, itemFind)) {                                      // HOOK_USEOBJON
 					drugWasUsed = true;
 				}
 
@@ -101,7 +101,8 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				long counter = 0;
 
 				if (drugUsePerfFixMode > 0) {
-					fo::GameObject* firstFoundDrug = item;
+					fo::GameObject* firstFindDrug = item;
+					long _slot = slot; // keep current slot
 					do {
 						// [FIX] Allow using only the drugs listed in chem_primary_desire and healing drugs (AIDrugUsePerfFix == 2)
 						while (item->protoId != cap->chem_primary_desire[counter]) if (++counter > 2) break;
@@ -109,12 +110,13 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 
 						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 						if (drugUsePerfFixMode == 1) {
+							counter = 0;
 							item = fo::func::inven_find_type(source, fo::ItemType::item_type_drug, &slot);
 							if (!item) {
-								item = firstFoundDrug;
+								item = firstFindDrug;
+								slot = _slot; // back to slot
 								break;
 							}
-							counter = 0;
 						}
 					} while (counter < 3);
 				} else {
@@ -126,7 +128,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				if (counter < 3) {
 					// if the item is NOT a healing drug
 					if (!game::Items::IsHealingItem(item) && !fo::func::item_remove_mult(source, item, 1)) { // HOOK_REMOVEINVENOBJ
-						if (!game::Items::UseDrugItemFunc(source, item)) { // HOOK_USEOBJON
+						if (!game::Items::UseDrugItemFunc(source, item)) {                                   // HOOK_USEOBJON
 							drugWasUsed = true;
 							usedCount++;
 						}
@@ -161,7 +163,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				}
 			}
 
-			if (lastItem && !fo::func::item_remove_mult(source, lastItem, 1)) {
+			if (lastItem && !fo::func::item_remove_mult(source, lastItem, 1)) {          // HOOK_REMOVEINVENOBJ
 				if (!game::Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr; // HOOK_USEOBJON
 
 				source->critter.decreaseAP(aiUseItemAPCost);
