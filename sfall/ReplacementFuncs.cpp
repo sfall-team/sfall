@@ -84,16 +84,12 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				break;
 			}
 
-			if (sfgame_IsHealingItem(itemFind) && !fo_item_remove_mult(source, itemFind, 1)) {
-				if (!sfgame_UseDrugItemFunc(source, itemFind)) {
+			if (sfgame_IsHealingItem(itemFind) && !fo_item_remove_mult(source, itemFind, 1)) { // HOOK_REMOVEINVENOBJ
+				if (!sfgame_UseDrugItemFunc(source, itemFind)) {                               // HOOK_USEOBJON
 					drugWasUsed = true;
 				}
 
-				if (source->critter.movePoints < aiUseItemAPCost) {
-					source->critter.movePoints = 0;
-				} else {
-					source->critter.movePoints -= aiUseItemAPCost;
-				}
+				source->critter.decreaseAP(aiUseItemAPCost);
 				slot = -1;
 			}
 		}
@@ -101,6 +97,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 		// use any drug (except healing drugs) if there is a chance of using it
 		if (!drugWasUsed && chance > 0 && fo_roll_random(0, 100) < chance) {
 			long usedCount = 0;
+			slot = -1; // [FIX] start the search from the first slot
 			while (source->critter.movePoints >= aiUseItemAPCost) {
 				TGameObj* item = fo_inven_find_type(source, item_type_drug, &slot);
 				if (!item) {
@@ -111,7 +108,8 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				long counter = 0;
 
 				if (drugUsePerfFixMode > 0) {
-					TGameObj* firstFoundDrug = item;
+					TGameObj* firstFindDrug = item;
+					long _slot = slot; // keep current slot
 					do {
 						// [FIX] Allow using only the drugs listed in chem_primary_desire and healing drugs (AIDrugUsePerfFix == 2)
 						while (item->protoId != cap->chem_primary_desire[counter]) if (++counter > 2) break;
@@ -119,12 +117,13 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 
 						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 						if (drugUsePerfFixMode == 1) {
+							counter = 0;
 							item = fo_inven_find_type(source, item_type_drug, &slot);
 							if (!item) {
-								item = firstFoundDrug;
+								item = firstFindDrug;
+								slot = _slot; // back to slot
 								break;
 							}
-							counter = 0;
 						}
 					} while (counter < 3);
 				} else {
@@ -135,17 +134,13 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				// if the preference counter is less than 3, then AI can use the drug
 				if (counter < 3) {
 					// if the item is NOT a healing drug
-					if (!sfgame_IsHealingItem(item) && !fo_item_remove_mult(source, item, 1)) {
-						if (!sfgame_UseDrugItemFunc(source, item)) {
+					if (!sfgame_IsHealingItem(item) && !fo_item_remove_mult(source, item, 1)) { // HOOK_REMOVEINVENOBJ
+						if (!sfgame_UseDrugItemFunc(source, item)) {                            // HOOK_USEOBJON
 							drugWasUsed = true;
 							usedCount++;
 						}
 
-						if (source->critter.movePoints < aiUseItemAPCost) {
-							source->critter.movePoints = 0;
-						} else {
-							source->critter.movePoints -= aiUseItemAPCost;
-						}
+						source->critter.decreaseAP(aiUseItemAPCost);
 						slot = -1;
 
 						AIpref::chem_use_mode chemUse = (AIpref::chem_use_mode)cap->chem_use;
@@ -175,14 +170,10 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				}
 			}
 
-			if (lastItem && !fo_item_remove_mult(source, lastItem, 1)) {
-				if (!sfgame_UseDrugItemFunc(source, lastItem)) lastItem = nullptr;
+			if (lastItem && !fo_item_remove_mult(source, lastItem, 1)) {           // HOOK_REMOVEINVENOBJ
+				if (!sfgame_UseDrugItemFunc(source, lastItem)) lastItem = nullptr; // HOOK_USEOBJON
 
-				if (source->critter.movePoints < aiUseItemAPCost) {
-					source->critter.movePoints = 0;
-				} else {
-					source->critter.movePoints -= aiUseItemAPCost;
-				}
+				source->critter.decreaseAP(aiUseItemAPCost);
 			}
 		} while (lastItem && source->critter.movePoints >= aiUseItemAPCost);
 	}
@@ -194,6 +185,7 @@ static void __declspec(naked) ai_check_drugs_hack() {
 		push eax; // source
 		call sfgame_ai_check_drugs;
 		pop  ecx;
+		xor  eax, eax;
 		retn;
 	}
 }

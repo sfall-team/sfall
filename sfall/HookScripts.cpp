@@ -628,7 +628,7 @@ static void __declspec(naked) RemoveObjHook() {
 		mov args[0], eax;   // source
 		mov args[4], edx;   // item
 		mov args[8], ebx;   // count
-		mov args[12], ecx;
+		mov args[12], ecx;  // called func
 		xor esi, esi;
 		xor ecx, 0x47761D;  // from item_move_func_
 		cmovz esi, ebp;     // target

@@ -326,6 +326,8 @@ void RemoveSavFiles() {
 	fo_MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static DWORD aliasFID = -1;
 
 static void __declspec(naked) art_get_name_hook() {
