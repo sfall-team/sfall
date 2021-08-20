@@ -42,14 +42,14 @@ static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
-		fo::GameObject* item = fo::GetActiveItem();
+		fo::GameObject* item = fo::util::GetActiveItem();
 		if (!item) return;
 
 		if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 			long maxAmmo = fo::func::item_w_max_ammo(item);
 			long curAmmo = fo::func::item_w_curr_ammo(item);
 			if (maxAmmo != curAmmo) {
-				long &currentMode = fo::GetActiveItemMode();
+				long &currentMode = fo::util::GetActiveItemMode();
 				long previusMode = currentMode;
 				currentMode = 5; // reload mode
 				fo::func::intface_use_item();
@@ -77,7 +77,7 @@ static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
 
 	int statSize = 0;
 	fo::Proto* proto;
-	if (fo::GetProto(critter->protoId, &proto)) {
+	if (fo::util::GetProto(critter->protoId, &proto)) {
 		statSize = proto->critter.base.unarmedDamage + proto->critter.bonus.unarmedDamage; // The unused stat in the base + extra block
 	}
 	return (statSize > 0) ? statSize : 100; // 100 - default value, for all critters if not set stats
@@ -234,7 +234,7 @@ static void __cdecl DisplaySizeStats(fo::GameObject* critter, const char* &messa
 	sizeMax = limitMax;
 	size = game::Inventory::item_total_size(critter);
 
-	const char* msg = fo::MessageSearch(&fo::var::inventry_message_file, 35);
+	const char* msg = fo::util::MessageSearch(&fo::var::inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
 
 	strcpy(InvenFmt, InvenFmt1);
@@ -263,13 +263,13 @@ static char SizeMsgBuf[32];
 static const char* __stdcall SizeInfoMessage(fo::GameObject* item) {
 	int size = fo::func::item_size(item);
 	if (size == 1) {
-		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
+		const char* message = fo::util::MessageSearch(&fo::var::proto_main_msg_file, 543);
 		if (message == nullptr)
 			strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else
 			strncpy_s(SizeMsgBuf, message, _TRUNCATE);
 	} else {
-		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 542);
+		const char* message = fo::util::MessageSearch(&fo::var::proto_main_msg_file, 542);
 		if (message == nullptr)
 			sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else

@@ -97,7 +97,7 @@ static BYTE movePointBackground[16 * 9 * 5];
 static fo::UnlistedFrm* ifaceFrm = nullptr;
 
 static void* LoadIfaceFrm() {
-	ifaceFrm = fo::LoadUnlistedFrm("IFACE_E.frm", fo::OBJ_TYPE_INTRFACE);
+	ifaceFrm = fo::util::LoadUnlistedFrm("IFACE_E.frm", fo::OBJ_TYPE_INTRFACE);
 	if (!ifaceFrm) return nullptr;
 	return ifaceFrm->frames[0].indexBuff;
 }
@@ -636,10 +636,10 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 
 	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
 		backImageIsCopy = true;
-		fo::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+		fo::util::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 	}
 
-	long txtWidth = fo::GetTextWidthFM(text);
+	long txtWidth = fo::util::GetTextWidthFM(text);
 	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
 	// offset text position
@@ -658,8 +658,8 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 		x += x_cut;
 	}*/
 
-	fo::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // shadow
-	fo::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
+	fo::util::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // shadow
+	fo::util::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
 
 	if (backgroundCopy) fo::func::wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
 	return true;
@@ -710,7 +710,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 			if (!PrintHotspotText(x, y, true)) return;
 		} else {
 			// restore background image
-			fo::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+			fo::util::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
@@ -930,7 +930,7 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
 		push 1; // bypass Transparent
 		mov  ecx, eax;
-		call fo::GetTopWindowAtPos;
+		call fo::util::GetTopWindowAtPos;
 		mov  eax, [eax]; // wID
 		retn;
 	}

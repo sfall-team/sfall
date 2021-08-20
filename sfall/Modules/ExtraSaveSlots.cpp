@@ -110,7 +110,7 @@ static void SetPageNum() {
 	BYTE ConsoleGold = fo::var::YellowColor; // palette offset stored in mem - text colour
 
 	char tempText[32];
-	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 6; // GetTextWidth(tempText);
+	unsigned int TxtMaxWidth = fo::util::GetMaxCharWidth() * 6; // GetTextWidth(tempText);
 	unsigned int HalfMaxWidth = TxtMaxWidth / 2;
 	unsigned int TxtWidth = 0;
 
@@ -121,7 +121,7 @@ static void SetPageNum() {
 	DWORD tempPageOffset = -1;
 
 	char* EndBracket = "]";
-	int width = fo::GetTextWidth(EndBracket);
+	int width = fo::util::GetTextWidth(EndBracket);
 
 	while (!exitFlag) {
 		NewTick = GetTickCount(); // timer for redraw
@@ -138,7 +138,7 @@ static void SetPageNum() {
 			} else {
 				sprintf_s(tempText, 32, "[ %d%c ]", tempPageOffset / 10, '_');
 			}
-			TxtWidth = fo::GetTextWidth(tempText);
+			TxtWidth = fo::util::GetTextWidth(tempText);
 
 			if (tempPageOffset == -1) {
 				sprintf_s(tempText, 32, "[ %c", blip);
@@ -154,8 +154,8 @@ static void SetPageNum() {
 
 			int HalfTxtWidth = TxtWidth / 2;
 
-			fo::PrintText(tempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
-			fo::PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
+			fo::util::PrintText(tempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			fo::util::PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
 			fo::func::win_draw(winRef);
 		}
 
@@ -278,8 +278,8 @@ static void DrawPageText() {
 	char tempText[32];
 	sprintf_s(tempText, 32, "[ %d ]", LSPageOffset / 10);
 
-	unsigned int TxtWidth = fo::GetTextWidth(tempText);
-	fo::PrintText(tempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	unsigned int TxtWidth = fo::util::GetTextWidth(tempText);
+	fo::util::PrintText(tempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
@@ -287,8 +287,8 @@ static void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	std::strcpy(tempText, "<<");
-	TxtWidth = fo::GetTextWidth(tempText);
-	fo::PrintText(tempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::util::GetTextWidth(tempText);
+	fo::util::PrintText(tempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
@@ -296,8 +296,8 @@ static void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	std::strcpy(tempText, "<");
-	TxtWidth = fo::GetTextWidth(tempText);
-	fo::PrintText(tempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::util::GetTextWidth(tempText);
+	fo::util::PrintText(tempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
@@ -305,8 +305,8 @@ static void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	std::strcpy(tempText, ">>");
-	TxtWidth = fo::GetTextWidth(tempText);
-	fo::PrintText(tempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::util::GetTextWidth(tempText);
+	fo::util::PrintText(tempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
@@ -314,8 +314,8 @@ static void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	std::strcpy(tempText, ">");
-	TxtWidth = fo::GetTextWidth(tempText);
-	fo::PrintText(tempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::util::GetTextWidth(tempText);
+	fo::util::PrintText(tempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = nullptr;
 }

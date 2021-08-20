@@ -120,7 +120,7 @@ static bool SetAddictGvar(fo::GameObject* npc) {
 		long pid = Drugs::GetDrugPid(i);
 		if (pid > 0) {
 			long gvarID = Drugs::GetDrugGvar(i);
-			if (gvarID <= 0 || !fo::CheckAddictByPid(npc, pid)) continue;
+			if (gvarID <= 0 || !fo::util::CheckAddictByPid(npc, pid)) continue;
 			fo::var::game_global_vars[gvarID] = 1;
 			isAddict = true;
 		}
@@ -146,13 +146,13 @@ static void SaveRealDudeState() {
 	fo::Queue* queue = nullptr;
 	realDude.sneak_working = fo::var::sneak_working;
 	if (fo::func::is_pc_flag(0)) { // sneak flag
-		queue = fo::QueueFind(realDude.obj_dude, fo::QueueType::sneak_event);
+		queue = fo::util::QueueFind(realDude.obj_dude, fo::QueueType::sneak_event);
 		fo::func::queue_remove_this(realDude.obj_dude, fo::QueueType::sneak_event);
 	}
 	realDude.sneak_queue_time = (queue) ? queue->time : 0;
 	devlog_f("Dude save sneak: time %d[%d], state %d\n", DL_MAIN, realDude.sneak_queue_time, fo::var::fallout_game_time, realDude.sneak_working);
 
-	fo::SkillGetTags(realDude.tag_skill, 4);
+	fo::util::SkillGetTags(realDude.tag_skill, 4);
 
 	for (int i = 0; i < 6; i++) realDude.addictGvar[i] = fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar];
 	realDude.addictGvar[6] = fo::var::game_global_vars[fo::var::drugInfoList[7].addictGvar];
@@ -173,13 +173,13 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// remove skill tags
 	long tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
-	fo::SkillSetTags(tagSkill, 4);
+	fo::util::SkillSetTags(tagSkill, 4);
 
 	// reset traits
 	fo::var::pc_trait[0] = fo::var::pc_trait[1] = -1;
 
 	// copy existing party member perks or reset list for non-party member NPC
-	long isPartyMember = fo::IsPartyMemberByPid(npc->protoId);
+	long isPartyMember = fo::util::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
 		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::Perk::PERK_count);
 	} else {
@@ -205,7 +205,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
-	if (fo::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
+	if (fo::util::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
 		fo::var::itemCurrentItem = fo::ActiveSlot::Left;
 	} else {
 		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
@@ -242,12 +242,12 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	bool isAddict = false;
 	for (int i = 0; i < 9; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 0;
 	for (int i = 0; i < 9; i++) {
-		if (!fo::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid)) continue;
+		if (!fo::util::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid)) continue;
 		fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 1;
 		isAddict = true;
 	}
 	if (realDude.extendAddictGvar) isAddict |= SetAddictGvar(npc); // check new added addictions
-	fo::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
+	fo::util::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
 
 	// switch main dude_obj pointers - this should be done last!
 	fo::var::obj_dude = npc;
@@ -258,7 +258,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	isControllingNPC = true;
 	delayedExperience = 0;
 
-	if (fo::IsNpcFlag(npc, 0)) { // sneak flag
+	if (fo::util::IsNpcFlag(npc, 0)) { // sneak flag
 		bool exist = false;
 		/* restore the previously saved sneak state */
 		for (const auto& member : partySneakWorking) {
@@ -312,7 +312,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 		devlog_f("Dude restore sneak: time %d, state %d\n", DL_MAIN, realDude.sneak_queue_time, realDude.sneak_working);
 	}
 
-	fo::SkillSetTags(realDude.tag_skill, 4);
+	fo::util::SkillSetTags(realDude.tag_skill, 4);
 
 	if (delayedExperience > 0) {
 		fo::func::stat_pc_add_experience(delayedExperience);
@@ -334,7 +334,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 }
 
 static void __stdcall DisplayCantDoThat() {
-	fo::func::display_print(fo::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
+	fo::func::display_print(fo::util::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
@@ -342,7 +342,7 @@ int __fastcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
 	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::i_fid; //fo::var::obj_dude->artFid;
-		long weaponCode = fo::AnimCodeByWeapon(item);
+		long weaponCode = fo::util::AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		if (!fo::func::art_exists(fId)) {
 			DisplayCantDoThat();
@@ -529,12 +529,12 @@ static void NPCWeaponTweak() {
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
-		if (fo::IsNpcFlag(fo::var::obj_dude, 0)) { // sneak flag
+		if (fo::util::IsNpcFlag(fo::var::obj_dude, 0)) { // sneak flag
 			/* saves the sneak state for the currently controlled NPC and clears its events before switching */
 			bool exist = false;
 			for (auto& member : partySneakWorking) {
 				if (member.object == fo::var::obj_dude) {
-					fo::Queue* queue = fo::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
+					fo::Queue* queue = fo::util::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
 					member.sneak_queue_time = (queue) ? queue->time : 0;
 					member.sneak_working = fo::var::sneak_working;
 					exist = true;
@@ -545,7 +545,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 			if (!exist) {
 				PartySneakWorking member;
 				member.object = fo::var::obj_dude;
-				fo::Queue* queue = fo::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
+				fo::Queue* queue = fo::util::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
 				member.sneak_queue_time = (queue) ? queue->time : 0;
 				member.sneak_working = fo::var::sneak_working;
 				partySneakWorking.push_back(member);
@@ -570,7 +570,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		ScriptExtender::OnMapExit() += []() {
 			if (!partySneakWorking.empty()) {
 				// unset active sneak flags for controlled NPCs when exiting the map
-				for (const auto& member : partySneakWorking) fo::ToggleNpcFlag(member.object, 0, false);
+				for (const auto& member : partySneakWorking) fo::util::ToggleNpcFlag(member.object, 0, false);
 				partySneakWorking.clear();
 			}
 		};
@@ -603,19 +603,19 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	sprintf_s(lvlMsg, fmt, levelMsg, level);
 
 	BYTE color = fo::var::GreenColor;
-	int widthText = fo::GetTextWidth(lvlMsg);
-	fo::PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
+	int widthText = fo::util::GetTextWidth(lvlMsg);
+	fo::util::PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
 
 	int ac = fo::func::stat_level(partyMember, fo::STAT_ac);
 	sprintf_s(acMsg, fmt, armorClassMsg, ac);
 
-	xPos -= fo::GetTextWidth(armorClassMsg) + 20;
-	fo::PrintText(acMsg, color, xPos, 167, fo::GetTextWidth(acMsg), toWidth, surface);
+	xPos -= fo::util::GetTextWidth(armorClassMsg) + 20;
+	fo::util::PrintText(acMsg, color, xPos, 167, fo::util::GetTextWidth(acMsg), toWidth, surface);
 
 	if (fo::func::queue_find_first(partyMember, 2)) {
 		color = fo::var::RedColor;
-		widthText = fo::GetTextWidth(addictMsg);
-		fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+		widthText = fo::util::GetTextWidth(addictMsg);
+		fo::util::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
 	}
 }
 
@@ -745,7 +745,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			long rnd = (max > 2) ? GetRandom(2, max) : 2;
 			message = partyOrderAttackMsg[rnd].c_str();
 		}
-		fo::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
+		fo::util::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
 	}
 
 	partyOrderPickTargetLoop = false;

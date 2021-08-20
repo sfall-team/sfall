@@ -155,7 +155,7 @@ end:
 }
 
 void op_get_attack_type(OpcodeContext& ctx) {
-	ctx.setReturn(fo::GetCurrentAttackMode());
+	ctx.setReturn(fo::util::GetCurrentAttackMode());
 }
 
 void __declspec(naked) op_force_aimed_shots() {

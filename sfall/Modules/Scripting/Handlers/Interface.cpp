@@ -257,7 +257,7 @@ void op_is_iface_tag_active(OpcodeContext &ctx) {
 			}
 		} else { // Sneak/Level/Addict
 			fo::GameObject* obj = fo::var::obj_dude;
-			fo::Proto* proto = fo::GetProto(obj->protoId);
+			fo::Proto* proto = fo::util::GetProto(obj->protoId);
 			int flagBit = 1 << tag;
 			result = ((proto->critter.critterFlags & flagBit) != 0);
 		}
@@ -274,7 +274,7 @@ void mf_intface_redraw(OpcodeContext& ctx) {
 		// fake redraw interfaces (TODO: need a real redraw of interface?)
 		long winType = ctx.arg(0).rawValue();
 		if (winType == -1) {
-			fo::RefreshGNW(true);
+			fo::util::RefreshGNW(true);
 		} else {
 			fo::Window* win = Interface::GetWindow(winType);
 			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
@@ -778,15 +778,15 @@ void mf_win_fill_color(OpcodeContext& ctx) {
 		return;
 	}
 	if (ctx.numArgs() > 0) {
-		if (fo::WinFillRect(fo::var::sWindows[iWin].wID,
-		                    ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), // x, y
-		                    ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), // w, h
-		                    static_cast<BYTE>(ctx.arg(4).rawValue())))
+		if (fo::util::WinFillRect(fo::var::sWindows[iWin].wID,
+		                          ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), // x, y
+		                          ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), // w, h
+		                          static_cast<BYTE>(ctx.arg(4).rawValue())))
 		{
 			ctx.printOpcodeError("%s() - the fill area is truncated because it exceeds the current window.", ctx.getMetaruleName());
 		}
 	} else {
-		fo::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
+		fo::util::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
 	}
 }
 

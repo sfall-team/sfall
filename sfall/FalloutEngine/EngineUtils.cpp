@@ -27,6 +27,8 @@
 // TODO: split these functions into several files
 namespace fo
 {
+namespace util
+{
 
 static fo::MessageNode messageBuf;
 
@@ -91,7 +93,7 @@ fo::Queue* QueueFind(fo::GameObject* object, long type) {
 long AnimCodeByWeapon(fo::GameObject* weapon) {
 	if (weapon != nullptr) {
 		fo::Proto* proto;
-		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
+		if (GetProto(weapon->protoId, &proto) && proto->item.type == fo::item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
@@ -132,7 +134,7 @@ void SkillSetTags(long* tags, long num) {
 }
 
 long GetItemType(fo::GameObject* item) {
-	return fo::GetProto(item->protoId)->item.type;
+	return fo::util::GetProto(item->protoId)->item.type;
 }
 
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
@@ -252,7 +254,7 @@ long IsPartyMemberByPid(long pid) {
 
 // Returns True if the NPC belongs to the player's potential (set in party.txt) party members (analog of broken isPotentialPartyMember_)
 bool IsPartyMember(fo::GameObject* critter) {
-	if (critter->id < PLAYER_ID) return false;
+	if (critter->id < fo::PLAYER_ID) return false;
 	return (IsPartyMemberByPid(critter->protoId) > 0);
 }
 
@@ -685,4 +687,5 @@ fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	return frm;
 }
 
+}
 }

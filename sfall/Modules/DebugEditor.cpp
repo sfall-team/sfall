@@ -200,7 +200,7 @@ static void RunEditorInternal(SOCKET &s) {
 		case CODE_GET_LOCVARS:
 			{
 				InternalRecv(s, &id, 4); // sid
-				val = fo::GetScriptLocalVars(id);
+				val = fo::util::GetScriptLocalVars(id);
 				InternalSend(s, &val, 4);
 				if (val) {
 					std::vector<int> values(val);

@@ -24,7 +24,7 @@ int Stats::trait_level(DWORD traitID) {
 
 // Support the player's party members
 int Stats::perk_level(fo::GameObject* source, DWORD perkID) {
-	if (source != fo::var::obj_dude && !fo::IsPartyMember(source)) return 0;
+	if (source != fo::var::obj_dude && !fo::util::IsPartyMember(source)) return 0;
 	return fo::func::perk_level(source, perkID);
 }
 

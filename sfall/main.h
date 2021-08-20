@@ -32,6 +32,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cstdint>
+#include <Windows.h>
 
 #include "SafeWrite.h"
 #include "Logging.h"

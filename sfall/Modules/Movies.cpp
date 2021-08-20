@@ -216,7 +216,7 @@ static void StopMovie() {
 	aviPlayState = AviState::Stop;
 	Graphics::SetMovieTexture(false);
 	movieInterface.pControl->Stop();
-	if (*(DWORD*)FO_VAR_subtitles == 0) fo::RefreshGNW(); // Note: it is only necessary when in the game
+	if (*(DWORD*)FO_VAR_subtitles == 0) fo::util::RefreshGNW(); // Note: it is only necessary when in the game
 }
 
 DWORD FreeMovie(sDSTexture* movie) {
@@ -309,7 +309,7 @@ static DWORD __fastcall PlayMovieLoop() {
 		__asm call fo::funcoffs::movieUpdate_; // for reading subtitles when playing mve
 		if (!onlyOnce) {
 			onlyOnce = true;
-			fo::ClearWindow(*(DWORD*)FO_VAR_GNWWin);
+			fo::util::ClearWindow(*(DWORD*)FO_VAR_GNWWin);
 		}
 	}
 

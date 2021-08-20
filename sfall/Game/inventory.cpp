@@ -64,11 +64,11 @@ DWORD __stdcall Inventory::adjust_fid() {
 			// vanilla logic:
 			indexNum = fo::var::art_vault_guy_num;
 			fo::Proto* critterPro;
-			if (fo::GetProto(fo::var::inven_pid, &critterPro)) {
+			if (fo::util::GetProto(fo::var::inven_pid, &critterPro)) {
 				indexNum = critterPro->fid & 0xFFF;
 			}
 			if (fo::var::i_worn != nullptr) {
-				fo::Proto* armorPro = fo::GetProto(fo::var::i_worn->protoId);
+				fo::Proto* armorPro = fo::util::GetProto(fo::var::i_worn->protoId);
 				DWORD armorFid = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
 				               ? armorPro->item.armor.femaleFID
 				               : armorPro->item.armor.maleFID;
@@ -84,7 +84,7 @@ DWORD __stdcall Inventory::adjust_fid() {
 
 		if (itemInHand != nullptr) {
 			fo::Proto* itemPro;
-			if (fo::GetProto(itemInHand->protoId, &itemPro) && itemPro->item.type == fo::item_type_weapon) {
+			if (fo::util::GetProto(itemInHand->protoId, &itemPro) && itemPro->item.type == fo::item_type_weapon) {
 				weaponAnimCode = itemPro->item.weapon.animationCode;
 			}
 		}

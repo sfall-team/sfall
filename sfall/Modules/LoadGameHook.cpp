@@ -175,7 +175,7 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo::DisplayPrint(Translate::SfallSaveDataFailure());
+	fo::util::DisplayPrint(Translate::SfallSaveDataFailure());
 	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
 
@@ -183,13 +183,13 @@ static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
+			fo::util::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 		int ap = fo::func::stat_level(fo::var::obj_dude, fo::STAT_max_move_points);
 		int bonusmove = fo::func::perk_level(fo::var::obj_dude, fo::PERK_bonus_move);
 		if (fo::var::obj_dude->critter.movePoints != ap || bonusmove * 2 != fo::var::combat_free_move) {
-			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
+			fo::util::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 	}

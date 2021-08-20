@@ -676,7 +676,7 @@ void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
 // Returns the name of the terrain type in the position of the player's marker on the world map
 const char* Worldmap::GetCurrentTerrainName() {
 	const char* name = GetOverrideTerrainName(fo::var::world_xpos / 50, fo::var::world_ypos / 50);
-	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetCurrentTerrainType());
+	return (name) ? name : fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::util::wmGetCurrentTerrainType());
 }
 
 bool Worldmap::AreaTitlesIsEmpty() {

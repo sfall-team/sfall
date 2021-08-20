@@ -224,7 +224,7 @@ void op_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	long pid = -1;
 	fo::Proto* proto;
-	if (obj->IsItem() && GetProto(obj->protoId, &proto)) {
+	if (obj->IsItem() && fo::util::GetProto(obj->protoId, &proto)) {
 		long type = proto->item.type;
 		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
 			pid = obj->item.ammoPid;
@@ -238,7 +238,7 @@ void op_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	if (obj->IsNotItem()) return;
 
 	fo::Proto* proto;
-	if (GetProto(obj->protoId, &proto)) {
+	if (fo::util::GetProto(obj->protoId, &proto)) {
 		long type = proto->item.type;
 		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
 			obj->item.ammoPid = ctx.arg(1).rawValue();
@@ -452,7 +452,7 @@ void op_get_proto_data(OpcodeContext& ctx) {
 	long result = -1;
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	if (fo::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
+	if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
 		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), pid);
@@ -462,7 +462,7 @@ void op_get_proto_data(OpcodeContext& ctx) {
 
 void op_set_proto_data(OpcodeContext& ctx) {
 	int pid = ctx.arg(0).rawValue();
-	if (fo::CheckProtoID(pid) && CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
+	if (fo::util::CheckProtoID(pid) && CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
 			Objects::LoadProtoAutoMaxLimit();
 			protoMaxLimitPatch = true;
@@ -584,7 +584,7 @@ void mf_objects_in_radius(OpcodeContext& ctx) {
 
 	std::vector<fo::GameObject*> objects;
 	objects.reserve(25);
-	fo::GetObjectsTileRadius(objects, ctx.arg(0).rawValue(), radius, elev, type);
+	fo::util::GetObjectsTileRadius(objects, ctx.arg(0).rawValue(), radius, elev, type);
 	size_t sz = objects.size();
 	DWORD id = CreateTempArray(sz, 0);
 	for (size_t i = 0; i < sz; i++) {

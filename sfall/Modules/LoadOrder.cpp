@@ -49,7 +49,7 @@ static void PlayerGenderCutsRestore() {
 }
 
 static void CheckPlayerGender() {
-	isFemale = fo::HeroIsFemale();
+	isFemale = fo::util::HeroIsFemale();
 
 	if (femaleMsgs > 1) {
 		if (isFemale) {
@@ -399,6 +399,8 @@ end:
 static void RemoveSavFiles() {
 	fo::func::MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static DWORD aliasFID = -1;
 

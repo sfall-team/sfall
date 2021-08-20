@@ -19,7 +19,7 @@ static void __declspec(naked) RemoveObjHook() {
 		mov args[0], eax;   // source
 		mov args[4], edx;   // item
 		mov args[8], ebx;   // count
-		mov args[12], ecx;
+		mov args[12], ecx;  // called func
 		xor esi, esi;
 		xor ecx, 0x47761D;  // from item_move_func_
 		cmovz esi, ebp;     // target
@@ -413,7 +413,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 	}
 
 	// get item
-	args[1] = (DWORD)fo::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]);
+	args[1] = (DWORD)fo::util::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]);
 
 	InvenWieldHook_ScriptPart(0); // unwield event
 

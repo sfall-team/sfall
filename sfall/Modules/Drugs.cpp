@@ -146,22 +146,22 @@ static long __fastcall PrintAddictionList(long isSeparator) {
 
 			if (!isSeparator) { // print separator line
 				isSeparator = 1;
-				const char* message = fo::GetMessageStr(&fo::var::editor_message_file, 4001);
+				const char* message = fo::util::GetMessageStr(&fo::var::editor_message_file, 4001);
 				if (fo::func::folder_print_seperator(message)) {
 					fo::var::folder_card_title = (DWORD)message;
 					fo::var::folder_card_title2 = 0;
-					fo::var::folder_card_desc = (DWORD)fo::GetMessageStr(&fo::var::editor_message_file, 4101);
+					fo::var::folder_card_desc = (DWORD)fo::util::GetMessageStr(&fo::var::editor_message_file, 4101);
 					fo::var::folder_card_fid = 53;
 					isSelect = 1;
 				}
 			}
 			int msgNum = drugs[i].msgID;
-			const char* message = fo::GetMessageStr(&fo::var::editor_message_file, msgNum);
+			const char* message = fo::util::GetMessageStr(&fo::var::editor_message_file, msgNum);
 			if (fo::func::folder_print_line(message)) {
 				fo::var::folder_card_title = (DWORD)message;
 				fo::var::folder_card_title2 = 0;
 				if (msgNum > 0) msgNum += 100;
-				fo::var::folder_card_desc = (DWORD)fo::GetMessageStr(&fo::var::editor_message_file, msgNum);
+				fo::var::folder_card_desc = (DWORD)fo::util::GetMessageStr(&fo::var::editor_message_file, msgNum);
 				fo::var::folder_card_fid = drugs[i].frmID;
 				isSelect = 1;
 			}

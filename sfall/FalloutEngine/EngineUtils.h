@@ -30,13 +30,15 @@
 
 namespace fo
 {
+namespace util
+{
 
 __inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
 }
 
 // rect_free_ function for inline implementation
-__forceinline void sf_rect_free(fo::RectList* rect) {
+__forceinline void rect_free(fo::RectList* rect) {
 	fo::RectList* front = fo::var::rectList;
 	fo::var::rectList = rect;
 	rect->nextRect = front;
@@ -171,4 +173,5 @@ void RefreshGNW(bool skipOwner = false);
 
 fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 
+}
 }

@@ -41,7 +41,7 @@ bool __fastcall Items::IsHealingItem(fo::GameObject* item) {
 	}
 
 	fo::Proto* proto;
-	if (fo::GetProto(item->protoId, &proto)) {
+	if (fo::util::GetProto(item->protoId, &proto)) {
 		return (proto->item.flagsExt & fo::ItemFlags::HealingItem) != 0;
 	}
 	return false;
@@ -82,14 +82,14 @@ long Items::item_count(fo::GameObject* who, fo::GameObject* item) {
 
 long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	fo::Proto* wProto;
-	if (!GetProto(weapon->protoId, &wProto)) return 0;
+	if (!fo::util::GetProto(weapon->protoId, &wProto)) return 0;
 
 	long isSecondMode = (hitMode && hitMode != fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) ? 1 : 0;
 	long range = wProto->item.weapon.maxRange[isSecondMode];
 
 	long flagExt = wProto->item.flagsExt;
 	if (isSecondMode) flagExt = (flagExt >> 4);
-	long type = fo::GetWeaponType(flagExt);
+	long type = fo::util::GetWeaponType(flagExt);
 
 	if (type == fo::AttackSubType::THROWING) {
 		long heaveHoMod = Stats::perk_level(source, fo::Perk::PERK_heave_ho);
@@ -134,7 +134,7 @@ long __fastcall Items::item_weapon_mp_cost(fo::GameObject* source, fo::GameObjec
 	case fo::AttackType::ATKTYPE_RWEAPON_RELOAD:
 		if (weapon && weapon->protoId != fo::ProtoID::PID_SOLAR_SCORCHER) { // Solar Scorcher has no reload AP cost
 			cost = reloadCostAP;
-			if (fo::GetProto(weapon->protoId)->item.weapon.perk == fo::Perk::PERK_weapon_fast_reload) {
+			if (fo::util::GetProto(weapon->protoId)->item.weapon.perk == fo::Perk::PERK_weapon_fast_reload) {
 				cost--;
 			}
 		}

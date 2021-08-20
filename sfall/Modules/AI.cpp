@@ -355,7 +355,7 @@ static long __fastcall ai_weapon_reload_fix(fo::GameObject* weapon, fo::GameObje
 		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
-			proto = fo::GetProto(weapon->protoId);
+			proto = fo::util::GetProto(weapon->protoId);
 			maxAmmo = proto->item.weapon.maxAmmo;
 		}
 		if (weapon->item.charges >= maxAmmo) break; // magazine is full
