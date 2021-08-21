@@ -10,19 +10,47 @@
 
 namespace sfall
 {
+/*
+static void RemoveInvenObjHook_Script(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
+	BeginHook();
+	argCount = 5;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)item;
+	args[2] = count;
+	args[3] = rmType; // RMOBJ_*
+	args[4] = 0; // target only from item_move_func_
+
+	RunHookScript(HOOK_REMOVEINVENOBJ);
+	EndHook();
+}
+
+void RemoveInvenObjHook_Invoke(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
+	if (HookScripts::HookHasScript(HOOK_REMOVEINVENOBJ)) RemoveInvenObjHook_Script(source, item, count, rmType);
+}
+*/
+
+static long rmObjType = -1;
+
+void SetRemoveObjectType(long rmType) {
+	rmObjType = rmType;
+}
 
 static void __declspec(naked) RemoveObjHook() {
 	static const DWORD RemoveObjHookRet = 0x477497;
 	__asm {
-		mov ecx, [esp + 8]; // call addr
+		mov  ecx, [esp + 8]; // call addr
+		cmp  rmObjType, -1;
+		cmovne ecx, rmObjType;
+		mov  rmObjType, -1;
 		HookBegin;
-		mov args[0], eax;   // source
-		mov args[4], edx;   // item
-		mov args[8], ebx;   // count
-		mov args[12], ecx;  // called func
-		xor esi, esi;
-		xor ecx, 0x47761D;  // from item_move_func_
-		cmovz esi, ebp;     // target
+		mov  args[0], eax;   // source
+		mov  args[4], edx;   // item
+		mov  args[8], ebx;   // count
+		mov  args[12], ecx;  // RMOBJ_* (called func)
+		xor  esi, esi;
+		xor  ecx, 0x47761D;  // from item_move_func_
+		cmovz esi, ebp;      // target
 		mov  args[16], esi;
 		push edi;
 		push ebp;

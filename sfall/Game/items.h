@@ -24,6 +24,8 @@ public:
 	// Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 	static long item_d_take_drug(fo::GameObject* source, fo::GameObject* item);
 
+	static long item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType);
+
 	static long item_count(fo::GameObject* who, fo::GameObject* item);
 
 	static long item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode);

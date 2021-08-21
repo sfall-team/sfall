@@ -10,6 +10,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 
 #include "..\Modules\HookScripts\CombatHs.h"
+#include "..\Modules\HookScripts\InventoryHs.h"
 #include "..\Modules\HookScripts\ObjectHs.h"
 #include "..\Modules\Perks.h"
 
@@ -22,7 +23,7 @@ namespace game
 
 namespace sf = sfall;
 
-static constexpr int reloadCostAP = 2; // engine default reload AP cost
+constexpr int reloadCostAP = 2; // engine default reload AP cost
 
 static std::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
 
@@ -65,6 +66,11 @@ long Items::item_d_take_drug(fo::GameObject* source, fo::GameObject* item) {
 		return fo::func::item_d_take_drug(source, item);
 	}
 	return -1; // cancel the drug use
+}
+
+long Items::item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
+	sf::SetRemoveObjectType(rmType);
+	return fo::func::item_remove_mult(source, item, count);
 }
 
 long Items::item_count(fo::GameObject* who, fo::GameObject* item) {

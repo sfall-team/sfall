@@ -77,8 +77,8 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				break;
 			}
 
-			if (game::Items::IsHealingItem(itemFind) && !fo::func::item_remove_mult(source, itemFind, 1)) { // HOOK_REMOVEINVENOBJ
-				if (!game::Items::UseDrugItemFunc(source, itemFind)) {                                      // HOOK_USEOBJON
+			if (game::Items::IsHealingItem(itemFind) && !game::Items::item_remove_mult(source, itemFind, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+				if (!game::Items::UseDrugItemFunc(source, itemFind)) {                                                   // HOOK_USEOBJON
 					drugWasUsed = true;
 				}
 
@@ -127,8 +127,8 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				// if the preference counter is less than 3, then AI can use the drug
 				if (counter < 3) {
 					// if the item is NOT a healing drug
-					if (!game::Items::IsHealingItem(item) && !fo::func::item_remove_mult(source, item, 1)) { // HOOK_REMOVEINVENOBJ
-						if (!game::Items::UseDrugItemFunc(source, item)) {                                   // HOOK_USEOBJON
+					if (!game::Items::IsHealingItem(item) && !game::Items::item_remove_mult(source, item, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+						if (!game::Items::UseDrugItemFunc(source, item)) {                                                // HOOK_USEOBJON
 							drugWasUsed = true;
 							usedCount++;
 						}
@@ -163,8 +163,8 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				}
 			}
 
-			if (lastItem && !fo::func::item_remove_mult(source, lastItem, 1)) {          // HOOK_REMOVEINVENOBJ
-				if (!game::Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr; // HOOK_USEOBJON
+			if (lastItem && !game::Items::item_remove_mult(source, lastItem, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+				if (!game::Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr;     // HOOK_USEOBJON
 
 				source->critter.decreaseAP(aiUseItemAPCost);
 			}
