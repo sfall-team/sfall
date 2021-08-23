@@ -97,7 +97,7 @@ bool hrpVersionValid = false; // HRP 4.1.8 version validation
 static DWORD hrpDLLBaseAddr = 0x10000000;
 
 DWORD HRPAddress(DWORD addr) {
-	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
+	return (hrpDLLBaseAddr | (addr & 0xFFFFF));
 }
 
 char falloutConfigName[65] = {0};
@@ -289,7 +289,7 @@ defaultIni:
 		LoadHRPModule();
 		MODULEINFO info;
 		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
-			if (*(BYTE*)HRPAddress(0x10039940 + 7) == 0 && strncmp((const char*)HRPAddress(0x10039940), "4.1.8", 5) == 0) {
+			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
 				hrpVersionValid = true;
 			}
 		}
