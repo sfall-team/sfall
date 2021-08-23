@@ -592,7 +592,7 @@ fix:
 }
 
 void Interface_OnBeforeGameInit() {
-	if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
+	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 }
 
