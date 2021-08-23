@@ -81,6 +81,8 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &roun
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
 
+void __stdcall SetRemoveObjectType(long rmType);
+
 void __stdcall AdjustFidHook(DWORD vanillaFid);
 
 long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon);

@@ -36,6 +36,7 @@
 #include "DamageMod.h"
 #include "DebugEditor.h"
 #include "Elevators.h"
+#include "EngineTweaks.h"
 #include "Explosions.h"
 #include "ExtraSaveSlots.h"
 #include "FileSystem.h"
@@ -110,6 +111,9 @@ static void InitModules() {
 
 	dlogr("Running LoadGameHook_Init().", DL_INIT);
 	LoadGameHook_Init();
+
+	dlogr("Running EngineTweaks_Init().", DL_INIT);
+	EngineTweaks_Init();
 
 	dlogr("Running Books_Init().", DL_INIT);
 	Books_Init();
@@ -237,6 +241,7 @@ static void InitModules() {
 
 static void __stdcall OnExit() {
 	Graphics_Exit();
+	EngineTweaks_Exit();
 	Books_Exit();
 	Movies_Exit();
 	Interface_Exit();

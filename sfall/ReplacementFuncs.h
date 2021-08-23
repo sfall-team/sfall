@@ -47,6 +47,8 @@ bool __stdcall sfgame_UseDrugItemFunc(TGameObj* source, TGameObj* item);
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 long __stdcall sfgame_item_d_take_drug(TGameObj* source, TGameObj* item);
 
+long __stdcall sfgame_item_remove_mult(TGameObj* source, TGameObj* item, long count, long rmType);
+
 long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item);
 
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode);

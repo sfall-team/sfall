@@ -220,6 +220,7 @@
     <ClInclude Include="DebugEditor.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="Elevators.h" />
+    <ClInclude Include="EngineTweaks.h" />
     <ClInclude Include="Explosions.h" />
     <ClInclude Include="FalloutEngine.h" />
     <ClInclude Include="FalloutFuncOffs_def.h" />
@@ -304,6 +305,7 @@
     <ClCompile Include="Credits.cpp" />
     <ClCompile Include="Criticals.cpp" />
     <ClCompile Include="ddraw.cpp" />
+    <ClCompile Include="EngineTweaks.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="DebugEditor.cpp" />
     <ClCompile Include="IniReader.cpp" />

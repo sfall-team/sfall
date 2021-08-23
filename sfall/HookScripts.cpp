@@ -620,18 +620,47 @@ defaultHandler:
 	}
 }
 
+/*
+static void RemoveInvenObjHook_Script(TGameObj* source, TGameObj* item, long count, long rmType) {
+	BeginHook();
+	argCount = 5;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)item;
+	args[2] = count;
+	args[3] = rmType; // RMOBJ_*
+	args[4] = 0; // target only from item_move_func_
+
+	RunHookScript(HOOK_REMOVEINVENOBJ);
+	EndHook();
+}
+
+void RemoveInvenObjHook_Invoke(TGameObj* source, TGameObj* item, long count, long rmType) {
+	if (HookHasScript(HOOK_REMOVEINVENOBJ)) RemoveInvenObjHook_Script(source, item, count, rmType);
+}
+*/
+
+static long rmObjType = -1;
+
+void __stdcall SetRemoveObjectType(long rmType) {
+	rmObjType = rmType;
+}
+
 static void __declspec(naked) RemoveObjHook() {
 	static const DWORD RemoveObjHookRet = 0x477497;
 	__asm {
-		mov ecx, [esp + 8]; // call addr
+		mov  ecx, [esp + 8]; // call addr
+		cmp  rmObjType, -1;
+		cmovne ecx, rmObjType;
+		mov  rmObjType, -1;
 		HookBegin;
-		mov args[0], eax;   // source
-		mov args[4], edx;   // item
-		mov args[8], ebx;   // count
-		mov args[12], ecx;  // called func
-		xor esi, esi;
-		xor ecx, 0x47761D;  // from item_move_func_
-		cmovz esi, ebp;     // target
+		mov  args[0], eax;   // source
+		mov  args[4], edx;   // item
+		mov  args[8], ebx;   // count
+		mov  args[12], ecx;  // RMOBJ_* (called func)
+		xor  esi, esi;
+		xor  ecx, 0x47761D;  // from item_move_func_
+		cmovz esi, ebp;      // target
 		mov  args[16], esi;
 		push edi;
 		push ebp;
@@ -1893,9 +1922,9 @@ void HookScripts_Init() {
 	HookCalls(UseObjOnHook, useObjOnHkAddr);
 	// the following hooks allows to catch drug use of AI and from action cursor
 	const DWORD drugUseObjOnHkAddr[] = {
-		0x4285DF, // ai_check_drugs
-		0x4286F8, // ai_check_drugs
-		0x4287F8, // ai_check_drugs
+		//0x4285DF, // ai_check_drugs
+		//0x4286F8, // ai_check_drugs
+		//0x4287F8, // ai_check_drugs
 		0x473573  // inven_action_cursor
 	};
 	HookCalls(Drug_UseObjOnHook, drugUseObjOnHkAddr);

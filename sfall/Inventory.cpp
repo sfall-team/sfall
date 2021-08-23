@@ -304,8 +304,10 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 ////////////////////////////////////////////////////////////////////////////////
 
 static char superStimMsg[128];
+static const long SUPER_STIMPAK = 1;
+
 static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
-	if (item->protoId != PID_SUPER_STIMPAK || !target || target->IsNotCritter()) {
+	if (item->protoId != sfgame_GetHealingPID(SUPER_STIMPAK) || !target || target->IsNotCritter()) {
 		return 0;
 	}
 
@@ -671,7 +673,7 @@ void Inventory_Init() {
 	SafeWrite32(0x472632, widthWeight);
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
-		Translate_Get("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", superStimMsg);
+		Translate_Get("sfall", "SuperStimExploitMsg", "You cannot use this item on someone who is not injured!", superStimMsg);
 		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 

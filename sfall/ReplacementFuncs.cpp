@@ -84,8 +84,8 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				break;
 			}
 
-			if (sfgame_IsHealingItem(itemFind) && !fo_item_remove_mult(source, itemFind, 1)) { // HOOK_REMOVEINVENOBJ
-				if (!sfgame_UseDrugItemFunc(source, itemFind)) {                               // HOOK_USEOBJON
+			if (sfgame_IsHealingItem(itemFind) && !sfgame_item_remove_mult(source, itemFind, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+				if (!sfgame_UseDrugItemFunc(source, itemFind)) {                                             // HOOK_USEOBJON
 					drugWasUsed = true;
 				}
 
@@ -134,8 +134,8 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				// if the preference counter is less than 3, then AI can use the drug
 				if (counter < 3) {
 					// if the item is NOT a healing drug
-					if (!sfgame_IsHealingItem(item) && !fo_item_remove_mult(source, item, 1)) { // HOOK_REMOVEINVENOBJ
-						if (!sfgame_UseDrugItemFunc(source, item)) {                            // HOOK_USEOBJON
+					if (!sfgame_IsHealingItem(item) && !sfgame_item_remove_mult(source, item, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+						if (!sfgame_UseDrugItemFunc(source, item)) {                                          // HOOK_USEOBJON
 							drugWasUsed = true;
 							usedCount++;
 						}
@@ -170,8 +170,8 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 				}
 			}
 
-			if (lastItem && !fo_item_remove_mult(source, lastItem, 1)) {           // HOOK_REMOVEINVENOBJ
-				if (!sfgame_UseDrugItemFunc(source, lastItem)) lastItem = nullptr; // HOOK_USEOBJON
+			if (lastItem && !sfgame_item_remove_mult(source, lastItem, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+				if (!sfgame_UseDrugItemFunc(source, lastItem)) lastItem = nullptr;     // HOOK_USEOBJON
 
 				source->critter.decreaseAP(aiUseItemAPCost);
 			}
@@ -338,6 +338,11 @@ long __stdcall sfgame_item_d_take_drug(TGameObj* source, TGameObj* item) {
 		return fo_item_d_take_drug(source, item);
 	}
 	return -1; // cancel the drug use
+}
+
+long __stdcall sfgame_item_remove_mult(TGameObj* source, TGameObj* item, long count, long rmType) {
+	SetRemoveObjectType(rmType);
+	return fo_item_remove_mult(source, item, count);
 }
 
 long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item) {
@@ -887,15 +892,15 @@ static void __declspec(naked) tile_num_beyond_hack() {
 
 void InitReplacementHacks() {
 	// Replace ai_check_drugs_ function for code fixes and checking healing items
-	//MakeJump(ai_check_drugs_, ai_check_drugs_hack); // 0x428480
+	MakeJump(ai_check_drugs_, ai_check_drugs_hack); // 0x428480
 
 	// Change ai_can_use_drug_ function code to check healing items
-	//MakeCall(0x429BDE, ai_can_use_drug_hack, 6);
-	//SafeWrite8(0x429BE9, CODETYPE_JumpNZ);    // jz > jnz
-	//SafeWrite8(0x429BF1, CODETYPE_JumpShort); // jnz > jmp
+	MakeCall(0x429BDE, ai_can_use_drug_hack, 6);
+	SafeWrite8(0x429BE9, CODETYPE_JumpNZ);    // jz > jnz
+	SafeWrite8(0x429BF1, CODETYPE_JumpShort); // jnz > jmp
 
-	//drugUsePerfFixMode = GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
-	//if (drugUsePerfFixMode > 0) dlogr("Applying AI drug use preference fix.", DL_FIX);
+	drugUsePerfFixMode = GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	if (drugUsePerfFixMode > 0) dlogr("Applying AI drug use preference fix.", DL_FIX);
 
 	// Replace adjust_fid_ function
 	MakeJump(adjust_fid_, adjust_fid_hack); // 0x4716E8
