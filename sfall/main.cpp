@@ -85,7 +85,7 @@ bool hrpVersionValid = false; // HRP 4.1.8 version validation
 static DWORD hrpDLLBaseAddr = 0x10000000;
 
 DWORD HRPAddress(DWORD addr) {
-	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
+	return (hrpDLLBaseAddr | (addr & 0xFFFFF));
 }
 
 char falloutConfigName[65] = {0};
@@ -241,9 +241,9 @@ static void InitModules() {
 
 static void __stdcall OnExit() {
 	Graphics_Exit();
-	EngineTweaks_Exit();
+	//EngineTweaks_Exit();
 	Books_Exit();
-	Movies_Exit();
+	//Movies_Exit();
 	Interface_Exit();
 	SpeedPatch_Exit();
 	Skills_Exit();
@@ -253,7 +253,7 @@ static void __stdcall OnExit() {
 	Console_Exit();
 	ExtraSaveSlots_Exit();
 	Message_Exit();
-	Animations_Exit();
+	//Animations_Exit();
 	BarBoxes_Exit();
 	HeroAppearance_Exit();
 	MiscPatches_Exit();

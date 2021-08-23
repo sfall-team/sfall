@@ -220,45 +220,14 @@ end:
 	}
 }
 
-static void __stdcall intface_attack_type() {
-	__asm {
-		sub esp, 8;
-		lea edx, [esp];
-		lea eax, [esp + 4];
-		call intface_get_attack_;
-		pop edx; // is_secondary
-		pop ecx; // hit_mode
-	}
-}
-
 static void __declspec(naked) op_get_attack_type() {
 	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call intface_attack_type;
-		mov edx, ecx; // hit_mode
-		test eax, eax;
-		jz skip;
-		// get reload
-		cmp ds:[FO_VAR_interfaceWindow], eax;
-		jz end;
-		mov ecx, ds:[FO_VAR_itemCurrentItem];         // 0 - left, 1 - right
-		imul edx, ecx, 0x18;
-		cmp ds:[FO_VAR_itemButtonItems + 5 + edx], 1; // .itsWeapon
-		jnz end;
-		lea eax, [ecx + 6];
-end:
-		mov edx, eax; // result
-skip:
-		pop ecx;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop ecx;
-		pop edx;
+		mov  esi, ecx;
+		call GetCurrentAttackMode;
+		mov  edx, eax;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }

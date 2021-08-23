@@ -78,9 +78,17 @@ struct ddrawDll {
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
-DWORD HRPAddress(DWORD addr);
-
 extern bool hrpIsEnabled;
 extern bool hrpVersionValid;
 
 extern char falloutConfigName[65];
+
+DWORD HRPAddress(DWORD addr);
+
+__inline long GetIntHRPValue(DWORD addr) {
+	return *reinterpret_cast<DWORD*>(HRPAddress(addr));
+}
+
+__inline char GetByteHRPValue(DWORD addr) {
+	return *reinterpret_cast<BYTE*>(HRPAddress(addr));
+}

@@ -625,6 +625,26 @@ TGameObj* GetActiveItem() {
 	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
 }
 
+long GetCurrentAttackMode() {
+	long hitMode = -1;
+	if (*ptr_interfaceWindow != -1) {
+		long activeHand = *ptr_itemCurrentItem; // 0 - left, 1 - right
+		switch (ptr_itemButtonItems[activeHand].mode) {
+		case 1:
+		case 2: // called shot
+			hitMode = ptr_itemButtonItems[activeHand].primaryAttack;
+			break;
+		case 3:
+		case 4: // called shot
+			hitMode = ptr_itemButtonItems[activeHand].secondaryAttack;
+			break;
+		case 5: // reload mode
+			hitMode = ATKTYPE_LWEAPON_RELOAD + activeHand;
+		}
+	}
+	return hitMode;
+}
+
 AttackSubType GetWeaponType(DWORD weaponFlag) {
 	static const AttackSubType weapon_types[9] = {
 		ATKSUBTYPE_NONE,
