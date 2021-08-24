@@ -81,5 +81,22 @@ struct ArrayWrapper {
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 #include "Variables_def.h"
 
+
+__inline long GetInt(DWORD addr) {
+	return *reinterpret_cast<DWORD*>(addr);
+}
+
+__inline BYTE GetByte(DWORD addr) {
+	return *reinterpret_cast<BYTE*>(addr);
+}
+
+__inline long* SetInt(DWORD addr) {
+	return reinterpret_cast<long*>(addr);
+}
+
+__inline BYTE* SetByte(DWORD addr) {
+	return reinterpret_cast<BYTE*>(addr);
+}
+
 }
 }
