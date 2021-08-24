@@ -51,6 +51,7 @@
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
 #define FO_VAR_bk_disabled                0x6AC780
+#define FO_VAR_bk_process_time            0x6AC788
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
@@ -93,6 +94,10 @@
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialogueBackWindow         0x518740
 #define FO_VAR_dialogueWindow             0x518744
+#define FO_VAR_disp_curr                  0x56FB48
+#define FO_VAR_disp_init                  0x51850C
+#define FO_VAR_disp_start                 0x56FB54
+#define FO_VAR_display_string_buf         0x56DBFC
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_doing_refresh_all          0x6ADF38
@@ -169,6 +174,7 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_lastMovieH                 0x638E64
 #define FO_VAR_lastMovieW                 0x638E68
+#define FO_VAR_lastTime                   0x56FB58
 #define FO_VAR_lastWin                    0x51DD80
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
@@ -191,7 +197,8 @@
 #define FO_VAR_mapEntranceTileNum         0x51955C
 #define FO_VAR_master_db_handle           0x58E948
 #define FO_VAR_master_volume              0x518E84
-#define FO_VAR_max                        0x56FB50
+#define FO_VAR_max                        0x56FB50 // always equal 100
+#define FO_VAR_max_disp                   0x56FB40
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
 #define FO_VAR_Move_on_Car                0x672E64
@@ -618,8 +625,8 @@ DWORD __stdcall GetTextWidth(const char* textMsg);
 DWORD __stdcall GetTextWidthFM(const char* textMsg);
 
 // get width of Char for current font
-DWORD __stdcall GetCharWidth(char charVal);
-DWORD __stdcall GetCharWidthFM(char charVal);
+DWORD __stdcall GetCharWidth(BYTE charVal);
+DWORD __stdcall GetCharWidthFM(BYTE charVal);
 
 // get maximum string length for current font - if all characters were maximum width
 DWORD __stdcall GetMaxTextWidth(const char* textMsg);

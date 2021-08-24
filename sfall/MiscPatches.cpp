@@ -820,15 +820,15 @@ void MiscPatches_Init() {
 	}
 
 	if (GetConfigInt("Misc", "SingleCore", 1)) {
-		dlog("Applying single core patch.", DL_INIT);
 		SYSTEM_INFO sysInfo;
 		GetSystemInfo(&sysInfo);
 		if (sysInfo.dwNumberOfProcessors > 1) {
+			dlog("Applying single core patch.", DL_INIT);
 			HANDLE process = GetCurrentProcess();
 			SetProcessAffinityMask(process, 2); // use only CPU 1
 			CloseHandle(process);
+			dlogr(" Done", DL_INIT);
 		}
-		dlogr(" Done", DL_INIT);
 	}
 
 	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {

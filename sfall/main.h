@@ -89,6 +89,6 @@ __inline long GetIntHRPValue(DWORD addr) {
 	return *reinterpret_cast<DWORD*>(HRPAddress(addr));
 }
 
-__inline char GetByteHRPValue(DWORD addr) {
+__inline BYTE GetByteHRPValue(DWORD addr) {
 	return *reinterpret_cast<BYTE*>(HRPAddress(addr));
 }

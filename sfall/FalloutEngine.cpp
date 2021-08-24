@@ -940,14 +940,14 @@ DWORD __stdcall GetTextWidthFM(const char* TextMsg) {
 
 //---------------------------------------------------------
 //get width of Char for current font
-DWORD __stdcall GetCharWidth(char charVal) {
+DWORD __stdcall GetCharWidth(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
 		call dword ptr ds:[FO_VAR_text_char_width];
 	}
 }
 
-DWORD __stdcall GetCharWidthFM(char charVal) {
+DWORD __stdcall GetCharWidthFM(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
 		call FMtext_char_width_;
