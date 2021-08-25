@@ -798,6 +798,62 @@ static void EngineOptimizationPatches() {
 	SafeWrite32(0x467296, 0xC308C0C1);
 }
 
+static void __declspec(naked) SplitPrintMessage() {
+	__asm {
+		push esi;
+		push ecx;
+		test eax, eax;                 // Is there a string?
+		jz   end;                      // No
+		mov  esi, eax;
+		xor  ecx, ecx;
+loopString:
+		cmp  byte ptr [esi], 0;        // End of string?
+		je   printLine;                // Yes
+		cmp  byte ptr [esi], 0x5C;     // Possible a newline character '\'?
+		jne  nextChar;                 // No
+		cmp  byte ptr [esi + 1], 0x6E; // Exactly the newline character 'n'?
+		jne  nextChar;                 // No
+		inc  ecx;
+		mov  byte ptr [esi], 0;        // set null terminator
+printLine:
+		call edi;
+		test ecx, ecx;
+		jz   end;
+		dec  ecx;
+		mov  byte ptr [esi], 0x5C;
+		inc  esi;
+		mov  eax, esi;
+		inc  eax;
+nextChar:
+		inc  esi;
+		jmp  loopString;
+end:
+		pop  ecx;
+		pop  esi;
+		retn;
+	}
+}
+
+static void __declspec(naked) sf_display_print_alt() {
+	__asm {
+		push edi;
+		mov  edi, display_print_;
+		call SplitPrintMessage; // eax - message
+		pop  edi;
+		retn;
+	}
+}
+
+static void __declspec(naked) sf_inven_display_msg() {
+	__asm {
+		push edi;
+		mov  edi, inven_display_msg_;
+		call SplitPrintMessage; // eax - message
+		pop  edi;
+		retn;
+	}
+}
+
 void MiscPatches_Init() {
 	EngineOptimizationPatches();
 
@@ -900,6 +956,11 @@ void MiscPatches_Init() {
 	// https://github.com/phobos2077/sfall/issues/282
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
+
+	// Support for the newline control character '\n' in the object description in pro_*.msg files
+	const DWORD displayPrintAltAddr[] = {0x46ED87, 0x49AD7A}; // setup_inventory_, obj_examine_
+	SafeWriteBatch<DWORD>((DWORD)&sf_display_print_alt, displayPrintAltAddr);
+	SafeWrite32(0x472F9A, (DWORD)&sf_inven_display_msg); // inven_obj_examine_func_
 
 	F1EngineBehaviorPatch();
 	DialogueFix();

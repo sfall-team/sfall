@@ -374,6 +374,23 @@
 #include "FalloutVars_def.h"
 
 
+__inline long VarGetInt(DWORD addr) {
+	return *reinterpret_cast<DWORD*>(addr);
+}
+
+__inline BYTE VarGetByte(DWORD addr) {
+	return *reinterpret_cast<BYTE*>(addr);
+}
+
+__inline long* VarSetInt(DWORD addr) {
+	return reinterpret_cast<long*>(addr);
+}
+
+__inline BYTE* VarSetByte(DWORD addr) {
+	return reinterpret_cast<BYTE*>(addr);
+}
+
+
 /*
  * HOW TO USE ENGINE FUNCTIONS:
  *
