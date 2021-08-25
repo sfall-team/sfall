@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Game\GUI\Text.h"
+
 #include "Game\combatAI.h"
 #include "Game\inventory.h"
 #include "Game\items.h"

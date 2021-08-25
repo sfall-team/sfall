@@ -22,6 +22,9 @@
     <Filter Include="Game">
       <UniqueIdentifier>{eb2be45d-bfdf-4a70-920d-4d616202a597}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\GUI">
+      <UniqueIdentifier>{e19ca1b6-f754-47a9-9a6d-5ce44592d8ab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -349,6 +352,12 @@
     <ClInclude Include="Modules\EngineTweaks.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GUI\Text.h">
+      <Filter>Game\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -647,6 +656,9 @@
     </ClCompile>
     <ClCompile Include="Modules\EngineTweaks.cpp">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\GUI\Text.cpp">
+      <Filter>Game\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
