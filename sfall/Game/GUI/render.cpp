@@ -4,21 +4,23 @@
  *
  */
 
-#include "..\main.h"
-#include "..\FalloutEngine\Fallout2.h"
+#include "..\..\main.h"
+#include "..\..\FalloutEngine\Fallout2.h"
 
-#include "..\Modules\Graphics.h"
-#include "..\Modules\SubModules\WindowRender.h"
+#include "..\..\Modules\Graphics.h"
+#include "..\..\Modules\SubModules\WindowRender.h"
 
 #include "render.h"
 
 namespace game
 {
+namespace gui
+{
 
 namespace sf = sfall;
 
 static BYTE* GetBuffer() {
-	return (BYTE*)*(DWORD*)FO_VAR_screen_buffer;
+	return (BYTE*)fo::var::GetInt(FO_VAR_screen_buffer);
 }
 
 static void Draw(fo::Window* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
@@ -43,7 +45,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 	if (win->flags & fo::WinFlags::Hidden) return;
 	fo::RectList* rects;
 
-	if (win->flags & fo::WinFlags::Transparent && !*(DWORD*)FO_VAR_doing_refresh_all) {
+	if (win->flags & fo::WinFlags::Transparent && !fo::var::GetInt(FO_VAR_doing_refresh_all)) {
 		__asm {
 			mov  eax, updateRect;
 			mov  edx, ds:[FO_VAR_screen_buffer];
@@ -158,7 +160,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 		rects = next;
 	}
 
-	if (!toBuffer && !*(DWORD*)FO_VAR_doing_refresh_all && !fo::var::mouse_is_hidden && fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+	if (!toBuffer && !fo::var::GetInt(FO_VAR_doing_refresh_all) && !fo::var::mouse_is_hidden && fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 		fo::func::mouse_show();
 	}
 }
@@ -185,4 +187,5 @@ void Render::init() {
 	sf::SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, {0x4C8FD1, 0x4C900D});
 }
 
+}
 }
