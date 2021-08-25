@@ -24,23 +24,29 @@
 
 static std::ofstream consoleFile;
 
-static void __stdcall ConsoleFilePrint(const char* msg) {
-	consoleFile << msg << std::endl;
+static void __fastcall ConsoleFilePrint(const char* msg) {
+	consoleFile << msg << '\n';
 }
 
-static void __declspec(naked) ConsoleHook() {
-	static const DWORD ConsoleHookRet = 0x431871;
+static void __declspec(naked) display_print_hack() {
+	static const DWORD display_print_Ret = 0x431871;
 	__asm {
-		pushadc;
-		push eax;
-		call ConsoleFilePrint;
-		popadc;
 		push ebx;
 		push ecx;
 		push edx;
 		push esi;
 		push edi;
-		jmp ConsoleHookRet;
+		mov  ebx, eax;
+		mov  ecx, eax;
+		call ConsoleFilePrint;
+		mov  eax, ebx;
+		jmp  display_print_Ret;
+	}
+}
+
+void Console_OnGameLoad() {
+	if (consoleFile.is_open()) {
+		consoleFile.flush();
 	}
 }
 
@@ -49,7 +55,7 @@ void Console_Init() {
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {
-			MakeJump(0x43186C, ConsoleHook);
+			MakeJump(0x43186C, display_print_hack);
 		}
 	}
 }

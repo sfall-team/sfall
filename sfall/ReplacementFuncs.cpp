@@ -478,7 +478,7 @@ TGameObj* __fastcall sfgame_FindObjectFromID(long id, long type) {
 //////////////////////////////////// RENDER ////////////////////////////////////
 
 static BYTE* __stdcall GetBuffer() {
-	return (BYTE*)*(DWORD*)FO_VAR_screen_buffer;
+	return (BYTE*)VarGetInt(FO_VAR_screen_buffer);
 }
 
 static void __stdcall Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
@@ -503,7 +503,7 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 	if (win->flags & WinFlags::Hidden) return;
 	RectList* rects;
 
-	if (win->flags & WinFlags::Transparent && !*(DWORD*)FO_VAR_doing_refresh_all) {
+	if (win->flags & WinFlags::Transparent && !VarGetInt(FO_VAR_doing_refresh_all)) {
 		__asm {
 			mov  eax, updateRect;
 			mov  edx, ds:[FO_VAR_screen_buffer];
@@ -621,7 +621,7 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 		rects = next;
 	}
 
-	if (!toBuffer && !*(DWORD*)FO_VAR_doing_refresh_all && !*ptr_mouse_is_hidden && fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+	if (!toBuffer && !VarGetInt(FO_VAR_doing_refresh_all) && !*ptr_mouse_is_hidden && fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 		fo_mouse_show();
 	}
 }
@@ -891,6 +891,12 @@ static void __declspec(naked) tile_num_beyond_hack() {
 ////////////////////////////////////////////////////////////////////////////////
 
 void InitReplacementHacks() {
+	// Custom implementation of the GNW_win_refresh function
+	MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
+	// Replace _screendump_buf with _screen_buffer for creating screenshots
+	const DWORD scrdumpBufAddr[] = {0x4C8FD1, 0x4C900D};
+	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
+
 	// Replace ai_check_drugs_ function for code fixes and checking healing items
 	MakeJump(ai_check_drugs_, ai_check_drugs_hack); // 0x428480
 
@@ -915,12 +921,6 @@ void InitReplacementHacks() {
 	MakeJump(buf_to_buf_, fo_buf_to_buf); // 0x4D36D4
 	// Replace the transSrcCopy_ function
 	MakeJump(trans_buf_to_buf_, fo_trans_buf_to_buf); // 0x4D3704
-
-	// Custom implementation of the GNW_win_refresh function
-	MakeJump(0x4D6FD9, GNW_win_refresh_hack, 1);
-	// Replace _screendump_buf with _screen_buffer for creating screenshots
-	const DWORD scrdumpBufAddr[] = {0x4C8FD1, 0x4C900D};
-	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
 
 	// Replace trait_adjust_*_ functions
 	MakeJump(trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC

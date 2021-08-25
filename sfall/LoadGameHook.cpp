@@ -278,6 +278,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		FileSystemReset();
 		ResetQuests();
 		WipeSounds();
+		Console_OnGameLoad();
 		InventoryReset();
 		PartyControl_OnGameLoad();
 		Explosions_OnGameLoad();
