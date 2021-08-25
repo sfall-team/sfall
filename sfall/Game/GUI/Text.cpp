@@ -7,6 +7,8 @@
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
 
+#include "..\..\Modules\Console.h"
+
 #include "Text.h"
 
 namespace game
@@ -51,7 +53,8 @@ static long GetPositionWidth(const char* text, long width) {
 // Works with vanilla and HRP 4.1.8
 static void __fastcall DisplayPrintLineBreak(const char* message) {
 	if (*message == 0 || !fo::var::GetInt(FO_VAR_disp_init)) return;
-	const char* text = message;
+
+	sfall::Console::PrintFile(message);
 
 	const long max_lines = 100; // aka FO_VAR_max
 	long max_disp_chars = 256;  // HRP value (vanilla 80)
@@ -84,7 +87,7 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 	do {
 		char* display_string_buf = &display_string_buf_addr[max_disp_chars * fo::var::GetInt(FO_VAR_disp_start)];
 
-		long pos = GetPositionWidth(text, width);
+		long pos = GetPositionWidth(message, width);
 
 		if (bulletChar) {
 			*display_string_buf = bulletChar;
@@ -93,18 +96,18 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 			width += wChar;
 		}
 
-		std::strncpy(display_string_buf, text, pos);
+		std::strncpy(display_string_buf, message, pos);
 		display_string_buf[pos] = 0;
 
-		if (text[pos] == ' ') {
+		if (message[pos] == ' ') {
 			pos++;
-		} else if (text[pos] == '\\' && text[pos + 1] == 'n') {
+		} else if (message[pos] == '\\' && message[pos + 1] == 'n') {
 			pos += 2; // position after the 'n' character
 		}
-		text += pos;
+		message += pos;
 
 		*fo::var::SetInt(FO_VAR_disp_start) = (fo::var::GetInt(FO_VAR_disp_start) + 1) % max_lines;
-	} while (*text);
+	} while (*message);
 
 	*fo::var::SetInt(FO_VAR_disp_curr) = fo::var::GetInt(FO_VAR_disp_start);
 
