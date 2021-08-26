@@ -579,12 +579,12 @@ void RedrawObject(fo::GameObject* obj) {
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner) {
-	*(DWORD*)FO_VAR_doing_refresh_all = 1;
+	*fo::var::SetInt(FO_VAR_doing_refresh_all) = 1;
 	for (size_t i = 0; i < fo::var::num_windows; i++) {
 		if (skipOwner && fo::var::window[i]->flags & fo::WinFlags::OwnerFlag) continue;
 		fo::func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
 	}
-	*(DWORD*)FO_VAR_doing_refresh_all = 0;
+	*fo::var::SetInt(FO_VAR_doing_refresh_all) = 0;
 }
 
 //////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////

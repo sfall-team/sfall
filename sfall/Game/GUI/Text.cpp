@@ -141,7 +141,7 @@ static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
 			text++;
 		}
 	}
-	// print the last line or the all text if there was no line break
+	// print the last line or all the text if there is no line break
 	if (message != text) {
 		__asm mov  eax, message;
 		__asm call printFunc;
@@ -161,11 +161,11 @@ static void __declspec(naked) sf_display_print_alt() {
 
 static void __declspec(naked) sf_inven_display_msg() {
 	__asm {
-		push  ecx;
-		push  fo::funcoffs::inven_display_msg_;
-		push  eax; // message
-		call  SplitPrintMessage;
-		pop   ecx;
+		push ecx;
+		push fo::funcoffs::inven_display_msg_;
+		push eax; // message
+		call SplitPrintMessage;
+		pop  ecx;
 		retn;
 	}
 }

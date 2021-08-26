@@ -1032,7 +1032,7 @@ void Sound::init() {
 		SafeWrite32(0x45212C, 250); // delay start
 		SafeWrite32(0x450ADE, 500); // delay stop
 		LoadGameHook::OnAfterGameInit() += []() {
-			*(DWORD*)FO_VAR_gsound_background_fade = 1;
+			*fo::var::SetInt(FO_VAR_gsound_background_fade) = 1;
 		};
 	}
 }

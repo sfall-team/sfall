@@ -57,16 +57,16 @@ static void ForceEncounterEffects() {
 	if (ForceEncounterFlags & 4) return; // _NoIcon flag
 	long iconType = (ForceEncounterFlags & 8) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
 
-	*(DWORD*)FO_VAR_wmEncounterIconShow = 1;
-	*(DWORD*)FO_VAR_wmRndCursorFid = 0;
+	*fo::var::SetInt(FO_VAR_wmEncounterIconShow) = 1;
+	*fo::var::SetInt(FO_VAR_wmRndCursorFid) = 0;
 
 	for (size_t n = 8; n > 0; --n) {
-		long iconFidIndex = iconType - *(DWORD*)FO_VAR_wmRndCursorFid;
-		*(DWORD*)FO_VAR_wmRndCursorFid = iconFidIndex;
+		long iconFidIndex = iconType - fo::var::GetInt(FO_VAR_wmRndCursorFid);
+		*fo::var::SetInt(FO_VAR_wmRndCursorFid) = iconFidIndex;
 		__asm call fo::funcoffs::wmInterfaceRefresh_;
 		fo::func::block_for_tocks(200);
 	}
-	*(DWORD*)FO_VAR_wmEncounterIconShow = 0;
+	*fo::var::SetInt(FO_VAR_wmEncounterIconShow) = 0;
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {

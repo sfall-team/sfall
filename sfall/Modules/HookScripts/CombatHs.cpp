@@ -420,7 +420,7 @@ static void __declspec(naked) CombatTurnHook_End() {
 		argCount = 3;
 
 		args[0] = -2; // combat ended normally
-		args[1] = *(DWORD*)FO_VAR_combat_turn_obj;
+		args[1] = fo::var::GetInt(FO_VAR_combat_turn_obj);
 		args[2] = 0;
 
 		RunHookScript(HOOK_COMBATTURN);
