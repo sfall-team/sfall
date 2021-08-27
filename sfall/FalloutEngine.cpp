@@ -996,12 +996,12 @@ void RedrawObject(TGameObj* obj) {
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner) {
-	*(DWORD*)FO_VAR_doing_refresh_all = 1;
+	var_setInt(FO_VAR_doing_refresh_all) = 1;
 	for (size_t i = 0; i < *ptr_num_windows; i++) {
 		if (skipOwner && ptr_window[i]->flags & WinFlags::OwnerFlag) continue;
 		fo_GNW_win_refresh(ptr_window[i], ptr_scr_size, 0);
 	}
-	*(DWORD*)FO_VAR_doing_refresh_all = 0;
+	var_setInt(FO_VAR_doing_refresh_all) = 0;
 }
 
 //////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////

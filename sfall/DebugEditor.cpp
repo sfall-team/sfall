@@ -97,7 +97,7 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 }
 
 static void RunEditorInternal(SOCKET &s) {
-	*(DWORD*)FO_VAR_script_engine_running = 0;
+	var_setInt(FO_VAR_script_engine_running) = 0;
 
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
@@ -230,7 +230,7 @@ static void RunEditorInternal(SOCKET &s) {
 	delete[] arrays;
 
 	FlushInputBuffer();
-	*(DWORD*)FO_VAR_script_engine_running = 1;
+	var_setInt(FO_VAR_script_engine_running) = 1;
 }
 
 void RunDebugEditor() {

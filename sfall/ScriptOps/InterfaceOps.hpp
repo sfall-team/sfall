@@ -218,9 +218,9 @@ static void mf_message_box() {
 		colors |= (opHandler.arg(3).rawValue() & 0xFF) << 8;
 	}
 	dialogShowCount++;
-	*(DWORD*)FO_VAR_script_engine_running = 0;
+	var_setInt(FO_VAR_script_engine_running) = 0;
 	long result = DialogOutEx(gTextBuffer, str_ptr, lines, flags, colors);
-	if (--dialogShowCount == 0) *(DWORD*)FO_VAR_script_engine_running = 1;
+	if (--dialogShowCount == 0) var_setInt(FO_VAR_script_engine_running) = 1;
 
 	opHandler.setReturn(result);
 }
@@ -593,7 +593,7 @@ static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
 }
 
 static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const char* metaruleName) {
-	if (!fo_selectWindowID(opHandler.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
+	if (!fo_selectWindowID(opHandler.program()->currentScriptWin) || var_getInt(FO_VAR_currentWindow) == -1) {
 		opHandler.printOpcodeError("%s() - no created or selected window.", metaruleName);
 		return 0;
 	}
@@ -833,7 +833,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 
 static void mf_win_fill_color() {
 	long result = fo_selectWindowID(opHandler.program()->currentScriptWin); // TODO: examine the issue of restoring program->currentScriptWin of the current window in op_pop_flags_
-	long iWin = *(DWORD*)FO_VAR_currentWindow;
+	long iWin = var_getInt(FO_VAR_currentWindow);
 	if (!result || iWin == -1) {
 		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");
 		opHandler.setReturn(-1);

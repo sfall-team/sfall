@@ -374,20 +374,20 @@
 #include "FalloutVars_def.h"
 
 
-__inline long VarGetInt(DWORD addr) {
+__inline long var_getInt(DWORD addr) {
 	return *reinterpret_cast<DWORD*>(addr);
 }
 
-__inline BYTE VarGetByte(DWORD addr) {
+__inline BYTE var_getByte(DWORD addr) {
 	return *reinterpret_cast<BYTE*>(addr);
 }
 
-__inline long* VarSetInt(DWORD addr) {
-	return reinterpret_cast<long*>(addr);
+__inline long& var_setInt(DWORD addr) {
+	return *reinterpret_cast<long*>(addr);
 }
 
-__inline BYTE* VarSetByte(DWORD addr) {
-	return reinterpret_cast<BYTE*>(addr);
+__inline BYTE& var_setByte(DWORD addr) {
+	return *reinterpret_cast<BYTE*>(addr);
 }
 
 

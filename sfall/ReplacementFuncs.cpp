@@ -478,7 +478,7 @@ TGameObj* __fastcall sfgame_FindObjectFromID(long id, long type) {
 //////////////////////////////////// RENDER ////////////////////////////////////
 
 static BYTE* __stdcall GetBuffer() {
-	return (BYTE*)VarGetInt(FO_VAR_screen_buffer);
+	return (BYTE*)var_getInt(FO_VAR_screen_buffer);
 }
 
 static void __stdcall Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
@@ -503,7 +503,7 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 	if (win->flags & WinFlags::Hidden) return;
 	RectList* rects;
 
-	if (win->flags & WinFlags::Transparent && !VarGetInt(FO_VAR_doing_refresh_all)) {
+	if (win->flags & WinFlags::Transparent && !var_getInt(FO_VAR_doing_refresh_all)) {
 		__asm {
 			mov  eax, updateRect;
 			mov  edx, ds:[FO_VAR_screen_buffer];
@@ -621,7 +621,7 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 		rects = next;
 	}
 
-	if (!toBuffer && !VarGetInt(FO_VAR_doing_refresh_all) && !*ptr_mouse_is_hidden && fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+	if (!toBuffer && !var_getInt(FO_VAR_doing_refresh_all) && !*ptr_mouse_is_hidden && fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 		fo_mouse_show();
 	}
 }

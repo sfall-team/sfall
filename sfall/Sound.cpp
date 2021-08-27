@@ -963,7 +963,7 @@ static bool fadeBgMusic = false;
 
 void Sound_OnAfterGameInit() {
 	*ptr_sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
-	if (fadeBgMusic) *(DWORD*)FO_VAR_gsound_background_fade = 1;
+	if (fadeBgMusic) var_setInt(FO_VAR_gsound_background_fade) = 1;
 }
 
 void Sound_Init() {

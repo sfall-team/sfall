@@ -551,7 +551,7 @@ static long gmouse_handle_event_hook() {
 	}
 	if (IFACE_BAR_MODE) return 1;
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
-	win = fo_GNW_find(*(DWORD*)FO_VAR_display_win);
+	win = fo_GNW_find(var_getInt(FO_VAR_display_win));
 	RECT *rect = &win->wRect;
 	return fo_mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }

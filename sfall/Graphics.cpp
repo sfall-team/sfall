@@ -901,8 +901,8 @@ public:
 				b->lpSurface = lockTarget;
 			}
 		} else {
-			mveDesc.lPitch = *(DWORD*)FO_VAR_lastMovieW;
-			mveDesc.dwHeight = *(DWORD*)FO_VAR_lastMovieH;
+			mveDesc.lPitch = var_getInt(FO_VAR_lastMovieW);
+			mveDesc.dwHeight = var_getInt(FO_VAR_lastMovieH);
 			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 			*b = mveDesc;
 			b->lpSurface = lockTarget;

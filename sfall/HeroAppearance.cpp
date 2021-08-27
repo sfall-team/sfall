@@ -592,7 +592,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	SetFont(0x66);           // set font for title
 
 	DWORD textHeight;
-	BYTE colour = *(BYTE*)FO_VAR_colorTable; // black color
+	BYTE colour = var_getByte(FO_VAR_colorTable); // black color
 
 	if (TitleMsg != nullptr) {
 		textHeight = GetTextHeight();
@@ -636,7 +636,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	SetFont(oldFont); // restore previous font
 	fo_message_exit(&MsgList);
 
-	*(long*)FO_VAR_card_old_fid1 = -1; // reset fid
+	var_setInt(FO_VAR_card_old_fid1) = -1; // reset fid
 
 	DeleteWordWrapList(StartLine);
 	delete[] PadSurface;
@@ -878,7 +878,7 @@ static int __stdcall CheckCharButtons() {
 	int infoLine = *ptr_info_line;
 	if (infoLine == 0x503 || infoLine == 0x504) {
 		*ptr_info_line -= 2;
-		*(DWORD*)FO_VAR_frstc_draw1 = 1;
+		var_setInt(FO_VAR_frstc_draw1) = 1;
 		DrawCharNoteNewChar(infoLine != 0x503);
 	} else if (infoLine == 0x501 || infoLine == 0x502) {
 		switch (button) {
