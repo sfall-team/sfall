@@ -1,8 +1,7 @@
-
-#include "..\InputFuncs.h"
+//#include "..\InputFuncs.h"
 #include "..\Logging.h"
 #include "..\SafeWrite.h"
-#include "LoadGameHook.h"
+//#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 #include "Input.h"
@@ -17,10 +16,6 @@ void Input::init() {
 		::sfall::availableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
-
-	LoadGameHook::OnGameReset() += []() {
-		ForceGraphicsRefresh(0); // disable refresh
-	};
 }
 
 }

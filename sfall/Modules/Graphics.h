@@ -82,6 +82,7 @@ public:
 	static bool AviMovieWidthFit;
 
 	static void RefreshGraphics();
+	static void __stdcall ForceGraphicsRefresh(DWORD d);
 
 	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
 		long x = rect->left;

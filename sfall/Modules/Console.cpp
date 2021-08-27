@@ -26,11 +26,16 @@
 namespace sfall
 {
 
-static bool fileIsOpen = false;
 static std::ofstream consoleFile;
+static long printCount = 0;
 
 static void __fastcall ConsoleFilePrint(const char* msg) {
 	consoleFile << msg << '\n';
+
+	if (++printCount >= 20) {
+		printCount = 0;
+		consoleFile.flush();
+	}
 }
 
 static void __declspec(naked) display_print_hack() {
@@ -50,7 +55,7 @@ static void __declspec(naked) display_print_hack() {
 }
 
 void Console::PrintFile(const char* msg) {
-	if (fileIsOpen) ConsoleFilePrint(msg);
+	if (consoleFile.is_open()) ConsoleFilePrint(msg);
 }
 
 void Console::init() {
@@ -58,10 +63,10 @@ void Console::init() {
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {
-			fileIsOpen = true;
 			MakeJump(0x43186C, display_print_hack);
 
 			LoadGameHook::OnGameReset() += []() {
+				printCount = 0;
 				consoleFile.flush();
 			};
 		}
@@ -69,9 +74,7 @@ void Console::init() {
 }
 
 void Console::exit() {
-	if (consoleFile.is_open()) {
-		consoleFile.close();
-	}
+	if (consoleFile.is_open()) consoleFile.close();
 }
 
 }

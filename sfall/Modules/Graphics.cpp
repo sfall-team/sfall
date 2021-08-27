@@ -19,6 +19,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "LoadGameHook.h"
 #include "ScriptShaders.h"
 
 #include "SubModules\WindowRender.h"
@@ -495,10 +496,6 @@ static void Refresh() {
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2); // render square with a texture image (mainTex/sTex1/sTex2) to the backBuffer
 	d3d9Device->EndScene();
 	Present();
-}
-
-void Graphics::RefreshGraphics() {
-	if (!Graphics::PlayAviMovie) Refresh();
 }
 
 HRESULT Graphics::CreateMovieTexture(D3DSURFACE_DESC &desc) {
@@ -1184,6 +1181,17 @@ static __declspec(naked) void game_init_hook() {
 	}
 }
 
+static DWORD forcingGraphicsRefresh = 0;
+
+void Graphics::RefreshGraphics() {
+	if (forcingGraphicsRefresh && !Graphics::PlayAviMovie) Refresh();
+}
+
+void __stdcall Graphics::ForceGraphicsRefresh(DWORD d) {
+	if (!d3d9Device) return;
+	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
+}
+
 void Graphics::init() {
 	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
 	if (Graphics::mode == 6) {
@@ -1212,6 +1220,10 @@ void Graphics::init() {
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
+
+		LoadGameHook::OnGameReset() += []() {
+			ForceGraphicsRefresh(0); // disable refresh
+		};
 	}
 
 	WindowRender::init();
