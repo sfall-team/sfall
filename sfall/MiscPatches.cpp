@@ -221,20 +221,20 @@ static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
 	ItemButtonItem* rightSlot = &ptr_itemButtonItems[1];
 
 	if (toSlot == nullptr) { // copy to slot
-		ItemButtonItem* slot;
-		ItemButtonItem item[1];
+		ItemButtonItem* dstSlot;
+		ItemButtonItem item;
 		if ((int)&toSlot == FO_VAR_i_lhand) {
-			std::memcpy(item, rightSlot, 0x14);
-			item[0].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
-			item[0].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
-			slot = leftSlot; // Rslot > Lslot
+			std::memcpy(&item, rightSlot, 0x14);
+			item.primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
+			item.secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
+			dstSlot = leftSlot; // Rslot > Lslot
 		} else {
-			std::memcpy(item, leftSlot, 0x14);
-			item[0].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
-			item[0].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
-			slot = rightSlot; // Lslot > Rslot;
+			std::memcpy(&item, leftSlot, 0x14);
+			item.primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
+			item.secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
+			dstSlot = rightSlot; // Lslot > Rslot;
 		}
-		std::memcpy(slot, item, 0x14);
+		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
 		ItemButtonItem hands[2];
 		std::memcpy(hands, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
@@ -570,56 +570,6 @@ static void AlwaysReloadMsgs() {
 	}
 }
 
-static void InterfaceWindowPatch() {
-	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
-		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
-		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, windowRoundingAddr);
-	}
-
-	dlog("Applying flags patch for interface windows.", DL_INIT);
-
-	// Remove MoveOnTop flag for interfaces
-	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
-	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ WinFlags::MoveOnTop); // Automap
-
-	// Set OwnerFlag flag
-	SafeWrite8(0x4D5EBF, WinFlags::OwnerFlag); // win_init_ (main win)
-	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | WinFlags::OwnerFlag); // _display_win (map win)
-	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | WinFlags::OwnerFlag); // gmovie_play_ (movie win)
-
-	// Remove OwnerFlag flag
-	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ WinFlags::OwnerFlag); // createWindow_
-	// Remove OwnerFlag and Transparent flags
-	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (WinFlags::Transparent | WinFlags::OwnerFlag)); // addWindow_
-
-	dlogr(" Done", DL_INIT);
-
-	// Disable unused code for the RandX and RandY window structure fields (these fields can now be used for other purposes)
-	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
-	SafeWrite8(0x4D6310, 0x90);
-	BlockCall(0x4D6319);
-}
-
-static void InventoryCharacterRotationSpeedPatch() {
-	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
-	if (setting != 166 && setting <= 1000) {
-		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
-		SafeWrite32(0x47066B, setting);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
-static void UIAnimationSpeedPatch() {
-	DWORD addrs[] = {
-		0x45F9DE, 0x45FB33,
-		0x447DF4, 0x447EB6,
-		0x499B99, 0x499DA8
-	};
-	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
-	SimplePatch<BYTE>(&addrs[2], 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
-	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
-}
-
 static void MusicInDialoguePatch() {
 	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
@@ -767,35 +717,12 @@ static void PlayingMusicPatch() {
 	HookCall(0x4C5999, wmSetMapMusic_hook); // related fix
 }
 
-static void __declspec(naked) op_display_msg_hook() {
+static void __declspec(naked) main_death_scene_hook() {
 	__asm {
-		cmp  dword ptr ds:[FO_VAR_debug_func], 0;
-		jne  debug;
-		retn;
-debug:
-		jmp  config_get_value_;
+		mov  eax, 101;
+		call text_font_;
+		jmp  debug_printf_;
 	}
-}
-
-static void EngineOptimizationPatches() {
-	// Speed up display_msg script function
-	HookCall(0x455404, op_display_msg_hook);
-
-	// Remove redundant/duplicate code
-	BlockCall(0x45EBBF); // intface_redraw_
-	BlockCall(0x4A4859); // exec_script_proc_
-	SafeMemSet(0x455189, CODETYPE_Nop, 11); // op_create_object_sid_
-
-	// Improve performance of the data conversion of script interpreter
-	// mov eax, [edx+eax]; bswap eax; ret;
-	SafeWrite32(0x4672A4, 0x0F02048B);
-	SafeWrite16(0x4672A8, 0xC3C8);
-	// mov eax, [edx+eax]; bswap eax;
-	SafeWrite32(0x4673E5, 0x0F02048B);
-	SafeWrite8(0x4673E9, 0xC8);
-	// mov ax, [eax]; rol ax, 8; ret;
-	SafeWrite32(0x467292, 0x66008B66);
-	SafeWrite32(0x467296, 0xC308C0C1);
 }
 
 static void __declspec(naked) SplitPrintMessage() {
@@ -852,6 +779,42 @@ static void __declspec(naked) sf_inven_display_msg() {
 		pop  edi;
 		retn;
 	}
+}
+
+static void __declspec(naked) op_display_msg_hook() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_debug_func], 0;
+		jne  debug;
+		retn;
+debug:
+		jmp  config_get_value_;
+	}
+}
+
+static void EngineOptimizationPatches() {
+	// Speed up display_msg script function
+	HookCall(0x455404, op_display_msg_hook);
+
+	// Remove redundant/duplicate code
+	BlockCall(0x45EBBF); // intface_redraw_
+	BlockCall(0x4A4859); // exec_script_proc_
+	SafeMemSet(0x455189, CODETYPE_Nop, 11); // op_create_object_sid_
+
+	// Improve performance of the data conversion of script interpreter
+	// mov eax, [edx+eax]; bswap eax; ret;
+	SafeWrite32(0x4672A4, 0x0F02048B);
+	SafeWrite16(0x4672A8, 0xC3C8);
+	// mov eax, [edx+eax]; bswap eax;
+	SafeWrite32(0x4673E5, 0x0F02048B);
+	SafeWrite8(0x4673E9, 0xC8);
+	// mov ax, [eax]; rol ax, 8; ret;
+	SafeWrite32(0x467292, 0x66008B66);
+	SafeWrite32(0x467296, 0xC308C0C1);
+
+	// Disable unused code for the RandX and RandY window structure fields (these fields can now be used for other purposes)
+	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
+	SafeWrite8(0x4D6310, 0x90);
+	BlockCall(0x4D6319);
 }
 
 void MiscPatches_Init() {
@@ -933,17 +896,21 @@ void MiscPatches_Init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Set the normal font for death screen subtitles
+	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
+		dlog("Applying death screen font patch.", DL_INIT);
+		HookCall(0x4812DF, main_death_scene_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Support for the newline control character '\n' in the object description in pro_*.msg files
+	const DWORD displayPrintAltAddr[] = {0x46ED87, 0x49AD7A}; // setup_inventory_, obj_examine_
+	SafeWriteBatch<DWORD>((DWORD)&sf_display_print_alt, displayPrintAltAddr);
+	SafeWrite32(0x472F9A, (DWORD)&sf_inven_display_msg); // inven_obj_examine_func_
+
 	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
 	const DWORD listDrvdStatsAddr[] = {0x43549C, 0x4354BE};
 	HookCalls(ListDrvdStats_hook, listDrvdStatsAddr);
-
-	// Increase the max text width of the player name on the character screen
-	const DWORD printBignameAddr[] = {0x435160, 0x435189}; // 100
-	SafeWriteBatch<BYTE>(127, printBignameAddr);
-
-	// Increase the max text width of the information card on the character screen
-	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133
-	SafeWriteBatch<BYTE>(145, drawCardAddr);
 
 	// Allow setting custom colors from the game palette for object outlines
 	MakeCall(0x48EE00, obj_render_outline_hack);
@@ -957,10 +924,10 @@ void MiscPatches_Init() {
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
 
-	// Support for the newline control character '\n' in the object description in pro_*.msg files
-	const DWORD displayPrintAltAddr[] = {0x46ED87, 0x49AD7A}; // setup_inventory_, obj_examine_
-	SafeWriteBatch<DWORD>((DWORD)&sf_display_print_alt, displayPrintAltAddr);
-	SafeWrite32(0x472F9A, (DWORD)&sf_inven_display_msg); // inven_obj_examine_func_
+	// Corrects the height of the black background for death screen subtitles
+	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
+	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
 
 	F1EngineBehaviorPatch();
 	DialogueFix();
@@ -969,10 +936,7 @@ void MiscPatches_Init() {
 	PlayIdleAnimOnReloadPatch();
 
 	SkilldexImagesPatch();
-	InterfaceWindowPatch();
-
 	ScienceOnCrittersPatch();
-	InventoryCharacterRotationSpeedPatch();
 
 	OverrideMusicDirPatch();
 	BoostScriptDialogLimitPatch();
@@ -982,7 +946,6 @@ void MiscPatches_Init() {
 	DisablePipboyAlarmPatch();
 
 	ObjCanSeeShootThroughPatch();
-	UIAnimationSpeedPatch();
 	MusicInDialoguePatch();
 	DontTurnOffSneakIfYouRunPatch();
 

@@ -60,13 +60,6 @@ static DWORD keysDown[MAX_KEYS] = {0};
 static int mouseX;
 static int mouseY;
 
-static DWORD forcingGraphicsRefresh = 0;
-
-void __stdcall ForceGraphicsRefresh(DWORD d) {
-	if (!d3d9Device) return;
-	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
-}
-
 void GetMouse(int* x, int* y) {
 	*x = mouseX;
 	*y = mouseY;
@@ -200,7 +193,7 @@ public:
 
 	// Only called for the mouse
 	HRESULT __stdcall GetDeviceState(DWORD a, LPVOID b) {
-		if (forcingGraphicsRefresh) Gfx_RefreshGraphics();
+		Gfx_RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
 		}

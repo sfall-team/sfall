@@ -625,10 +625,6 @@ static void Refresh() {
 	Present();
 }
 
-void Gfx_RefreshGraphics() {
-	if (!Gfx_PlayAviMovie) Refresh();
-}
-
 HRESULT Gfx_CreateMovieTexture(D3DSURFACE_DESC &desc) {
 	HRESULT hr = d3d9Device->CreateTexture(desc.Width, desc.Height, 1, 0, desc.Format, D3DPOOL_DEFAULT, &movieTex, nullptr);
 	if (movieTex) movieTex->GetLevelDesc(0, &movieDesc);
@@ -1300,6 +1296,17 @@ static __declspec(naked) void game_init_hook() {
 		pop  ecx;
 		jmp  palette_init_;
 	}
+}
+
+static DWORD forcingGraphicsRefresh = 0;
+
+void Gfx_RefreshGraphics() {
+	if (forcingGraphicsRefresh && !Gfx_PlayAviMovie) Refresh();
+}
+
+void __stdcall Gfx_ForceGraphicsRefresh(DWORD d) {
+	if (!d3d9Device) return;
+	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
 //////////////////////////////// WINDOW RENDER /////////////////////////////////

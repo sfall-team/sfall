@@ -23,9 +23,15 @@
 #include "Console.h"
 
 static std::ofstream consoleFile;
+static long printCount = 0;
 
 static void __fastcall ConsoleFilePrint(const char* msg) {
 	consoleFile << msg << '\n';
+
+	if (++printCount >= 20) {
+		printCount = 0;
+		consoleFile.flush();
+	}
 }
 
 static void __declspec(naked) display_print_hack() {
@@ -46,6 +52,7 @@ static void __declspec(naked) display_print_hack() {
 
 void Console_OnGameLoad() {
 	if (consoleFile.is_open()) {
+		printCount = 0;
 		consoleFile.flush();
 	}
 }
@@ -61,7 +68,5 @@ void Console_Init() {
 }
 
 void Console_Exit() {
-	if (consoleFile.is_open()) {
-		consoleFile.close();
-	}
+	if (consoleFile.is_open()) consoleFile.close();
 }

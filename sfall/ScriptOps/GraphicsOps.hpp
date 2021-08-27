@@ -19,9 +19,8 @@
 #pragma once
 
 #include "Graphics.h"
-#include "InputFuncs.h"
+//#include "InputFuncs.h"
 
-// graphics_functions
 static void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
 		cmp  GraphicsMode, 3;
@@ -445,7 +444,7 @@ static void __declspec(naked) op_force_graphics_refresh() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call ForceGraphicsRefresh;
+		call Gfx_ForceGraphicsRefresh;
 end:
 		mov  ecx, esi;
 		retn;

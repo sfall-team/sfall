@@ -51,6 +51,7 @@ HRESULT Gfx_CreateMovieTexture(D3DSURFACE_DESC &desc);
 void Gfx_ReleaseMovieTexture();
 
 void Gfx_RefreshGraphics();
+void __stdcall Gfx_ForceGraphicsRefresh(DWORD d);
 
 void WinRender_CreateOverlaySurface(WINinfo* win, long winType);
 void WinRender_DestroyOverlaySurface(WINinfo* win);

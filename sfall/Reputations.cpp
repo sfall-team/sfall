@@ -55,7 +55,5 @@ void Reputations_Init() {
 }
 
 void Reputations_Exit() {
-	if (repList != nullptr) {
-		delete[] repList;
-	}
+	if (repList) delete[] repList;
 }

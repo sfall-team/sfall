@@ -20,6 +20,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
+#include "SimplePatch.h"
 #include "Utils.h"
 #include "LoadGameHook.h"
 #include "Worldmap.h"
@@ -565,14 +566,6 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
-static void __declspec(naked) main_death_scene_hook() {
-	__asm {
-		mov  eax, 101;
-		call text_font_;
-		jmp  debug_printf_;
-	}
-}
-
 static void __declspec(naked) display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -591,37 +584,24 @@ fix:
 	}
 }
 
-void Interface_OnBeforeGameInit() {
-	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
-	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
-}
+static void InterfaceWindowPatch() {
+	dlog("Applying flags patch for interface windows.", DL_INIT);
 
-void Interface_OnGameLoad() {
-	dots.clear();
-}
+	// Remove MoveOnTop flag for interfaces
+	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
+	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ WinFlags::MoveOnTop); // Automap
 
-void Interface_Init() {
-	DrawActionPointsNumber();
-	WorldMapInterfacePatch();
-	SpeedInterfaceCounterAnimsPatch();
+	// Set OwnerFlag flag
+	SafeWrite8(0x4D5EBF, WinFlags::OwnerFlag); // win_init_ (main win)
+	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | WinFlags::OwnerFlag); // _display_win (map win)
+	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | WinFlags::OwnerFlag); // gmovie_play_ (movie win)
 
-	// Fix for interface windows with 'Transparent', 'Hidden' and 'ScriptWindow' flags
-	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
-	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
-	HookCall(0x44B737, gmouse_bk_process_hook);
-	// Interface_OnBeforeGameInit will be run before game initialization
+	// Remove OwnerFlag flag
+	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ WinFlags::OwnerFlag); // createWindow_
+	// Remove OwnerFlag and Transparent flags
+	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (WinFlags::Transparent | WinFlags::OwnerFlag)); // addWindow_
 
-	// Set the normal font for death screen subtitles
-	if (GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
-		dlog("Applying death screen font patch.", DL_INIT);
-		HookCall(0x4812DF, main_death_scene_hook);
-		dlogr(" Done", DL_INIT);
-	}
-
-	// Corrects the height of the black background for death screen subtitles
-	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
-	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
+	dlogr(" Done", DL_INIT);
 
 	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
 	HookCall(0x47093C, display_body_hook);
@@ -632,6 +612,64 @@ void Interface_Init() {
 		0x53, 0x90              // push ebx (frame width)
 	};
 	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
+
+	// Increase the max text width of the player name on the character screen
+	const DWORD printBignameAddr[] = {0x435160, 0x435189}; // 100
+	SafeWriteBatch<BYTE>(127, printBignameAddr);
+
+	// Increase the max text width of the information card on the character screen
+	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133
+	SafeWriteBatch<BYTE>(145, drawCardAddr);
+}
+
+static void InventoryCharacterRotationSpeedPatch() {
+	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
+	if (setting != 166 && setting <= 1000) {
+		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
+		SafeWrite32(0x47066B, setting);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+static void UIAnimationSpeedPatch() {
+	DWORD addrs[] = {
+		0x45F9DE, 0x45FB33,
+		0x447DF4, 0x447EB6,
+		0x499B99, 0x499DA8
+	};
+	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
+	SimplePatch<BYTE>(&addrs[2], 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
+}
+
+void Interface_OnBeforeGameInit() {
+	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
+}
+
+void Interface_OnGameLoad() {
+	dots.clear();
+}
+
+void Interface_Init() {
+	InterfaceWindowPatch();
+	InventoryCharacterRotationSpeedPatch();
+	UIAnimationSpeedPatch();
+
+	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
+		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, windowRoundingAddr);
+	}
+
+	DrawActionPointsNumber();
+	WorldMapInterfacePatch();
+	SpeedInterfaceCounterAnimsPatch();
+
+	// Fix for interface windows with 'Transparent', 'Hidden' and 'ScriptWindow' flags
+	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
+	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
+	HookCall(0x44B737, gmouse_bk_process_hook);
+	// Interface_OnBeforeGameInit will be run before game initialization
 }
 
 void Interface_Exit() {
