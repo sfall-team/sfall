@@ -52,7 +52,7 @@ static long GetPositionWidth(const char* text, long width) {
 // Replaces the implementation of display_print_ function from HRP with support for the newline control character '\n'
 // Works with vanilla and HRP 4.1.8
 static void __fastcall DisplayPrintLineBreak(const char* message) {
-	if (*message == 0 || !fo::var::GetInt(FO_VAR_disp_init)) return;
+	if (*message == 0 || !fo::var::getInt(FO_VAR_disp_init)) return;
 
 	sfall::Console::PrintFile(message);
 
@@ -69,10 +69,10 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 		display_string_buf_addr = (char*)sf::HRPAddress(HRP_VAR_display_string_buf); // array size 100x256, allocated by HRP
 	}
 
-	if (!(fo::var::combat_state & 1)) {
-		long time = fo::var::GetInt(FO_VAR_bk_process_time);
-		if ((time - fo::var::GetInt(FO_VAR_lastTime)) >= 500) {
-			*fo::var::SetInt(FO_VAR_lastTime) = time;
+	if (!(fo::var::combat_state & fo::CombatStateFlag::InCombat)) {
+		long time = fo::var::getInt(FO_VAR_bk_process_time);
+		if ((time - fo::var::getInt(FO_VAR_lastTime)) >= 500) {
+			fo::var::setInt(FO_VAR_lastTime) = time;
 			fo::func::gsound_play_sfx_file((const char*)0x50163C); // "monitor"
 		}
 	}
@@ -82,10 +82,10 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 
 	unsigned char bulletChar = 149;
 	long wChar = fo::util::GetCharWidth(bulletChar);
-	width -= (wChar + fo::var::GetInt(FO_VAR_max_disp));
+	width -= (wChar + fo::var::getInt(FO_VAR_max_disp));
 
 	do {
-		char* display_string_buf = &display_string_buf_addr[max_disp_chars * fo::var::GetInt(FO_VAR_disp_start)];
+		char* display_string_buf = &display_string_buf_addr[max_disp_chars * fo::var::getInt(FO_VAR_disp_start)];
 
 		long pos = GetPositionWidth(message, width);
 
@@ -106,10 +106,10 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 		}
 		message += pos;
 
-		*fo::var::SetInt(FO_VAR_disp_start) = (fo::var::GetInt(FO_VAR_disp_start) + 1) % max_lines;
+		fo::var::setInt(FO_VAR_disp_start) = (fo::var::getInt(FO_VAR_disp_start) + 1) % max_lines;
 	} while (*message);
 
-	*fo::var::SetInt(FO_VAR_disp_curr) = fo::var::GetInt(FO_VAR_disp_start);
+	fo::var::setInt(FO_VAR_disp_curr) = fo::var::getInt(FO_VAR_disp_start);
 
 	fo::func::text_font(font);
 	__asm call fo::funcoffs::display_redraw_;

@@ -82,20 +82,20 @@ struct ArrayWrapper {
 #include "Variables_def.h"
 
 
-__inline long GetInt(DWORD addr) {
+__inline long getInt(DWORD addr) {
 	return *reinterpret_cast<DWORD*>(addr);
 }
 
-__inline BYTE GetByte(DWORD addr) {
+__inline BYTE getByte(DWORD addr) {
 	return *reinterpret_cast<BYTE*>(addr);
 }
 
-__inline long* SetInt(DWORD addr) {
-	return reinterpret_cast<long*>(addr);
+__inline long& setInt(DWORD addr) {
+	return *reinterpret_cast<long*>(addr);
 }
 
-__inline BYTE* SetByte(DWORD addr) {
-	return reinterpret_cast<BYTE*>(addr);
+__inline BYTE& setByte(DWORD addr) {
+	return *reinterpret_cast<BYTE*>(addr);
 }
 
 }

@@ -176,9 +176,9 @@ void mf_message_box(OpcodeContext &ctx) {
 		colors |= (ctx.arg(3).rawValue() & 0xFF) << 8;
 	}
 	dialogShowCount++;
-	*fo::var::SetInt(FO_VAR_script_engine_running) = 0;
+	fo::var::setInt(FO_VAR_script_engine_running) = 0;
 	long result = fo::func::DialogOutEx(ScriptExtender::gTextBuffer, str_ptr, lines, flags, colors);
-	if (--dialogShowCount == 0) *fo::var::SetInt(FO_VAR_script_engine_running) = 1;
+	if (--dialogShowCount == 0) fo::var::setInt(FO_VAR_script_engine_running) = 1;
 
 	ctx.setReturn(result);
 }
@@ -531,7 +531,7 @@ static long GetArtFIDFile(long fid, char* outFilePath) {
 }
 
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
-	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || fo::var::GetInt(FO_VAR_currentWindow) == -1) {
+	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || fo::var::getInt(FO_VAR_currentWindow) == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		return 0;
 	}
@@ -771,7 +771,7 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 
 void mf_win_fill_color(OpcodeContext& ctx) {
 	long result = fo::func::selectWindowID(ctx.program()->currentScriptWin); // TODO: examine the issue of restoring program->currentScriptWin of the current window in op_pop_flags_
-	long iWin = fo::var::GetInt(FO_VAR_currentWindow);
+	long iWin = fo::var::getInt(FO_VAR_currentWindow);
 	if (!result || iWin == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
