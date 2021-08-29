@@ -667,10 +667,10 @@ bool HeroIsFemale() {
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence() {
-	QueueRadiation* queue = (QueueRadiation*)fo_queue_find_first(*ptr_obj_dude, radiation_event);
+	QueueRadiationData* queue = (QueueRadiationData*)fo_queue_find_first(*ptr_obj_dude, radiation_event);
 	while (queue) {
 		if (queue->init && queue->level >= 2) return 1;
-		queue = (QueueRadiation*)fo_queue_find_next(*ptr_obj_dude, radiation_event);
+		queue = (QueueRadiationData*)fo_queue_find_next(*ptr_obj_dude, radiation_event);
 	}
 	return 0;
 }

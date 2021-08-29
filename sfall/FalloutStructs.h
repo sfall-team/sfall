@@ -967,9 +967,31 @@ struct Queue {
 	Queue* next;
 };
 
-struct QueueRadiation {
+struct QueueRadiationData {
 	long level;
 	long init; // 1 - for removing effect
+};
+
+struct QueueDrugData {
+	DWORD pid;
+	Stat stat0;
+	Stat stat1;
+	Stat stat2;
+	long amount0;
+	long amount1;
+	long amount2;
+};
+
+struct QueueAddictData {
+	long  wait;   // 1 - waiting for applying the addiction effects (perk is not active yet)
+	DWORD drugPid;
+	Perk  perkId; // effect of addiction
+};
+
+struct DrugInfoList {
+	DWORD itemPid;
+	long  addictGvar;
+	long  numEffects;
 };
 
 struct FloatText {
