@@ -993,12 +993,12 @@ struct Queue {
 	Queue* next;
 };
 
-struct QueueRadiation {
+struct QueueRadiationData {
 	long level;
 	long init; // 1 - for removing effect
 };
 
-struct QueueDrug {
+struct QueueDrugData {
 	DWORD pid;
 	fo::Stat stat0;
 	fo::Stat stat1;
@@ -1008,8 +1008,8 @@ struct QueueDrug {
 	long amount2;
 };
 
-struct QueueAddict {
-	long  init;      // 1 - perk is not active yet
+struct QueueAddictData {
+	long  wait;      // 1 - waiting for applying the addiction effects (perk is not active yet)
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };

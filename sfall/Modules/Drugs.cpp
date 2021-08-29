@@ -68,11 +68,11 @@ static long __fastcall AllowUseDrug(fo::GameObject* critter, DWORD pid) {
 		if (drugs[i].drugPid == pid) {
 			if (drugs[i].numEffects == -1) break; // use NumEffects value from engine
 			if (drugs[i].numEffects == 0) return 1;
-			auto queue = (fo::QueueDrug*)fo::func::queue_find_first(critter, 0);
+			auto queue = (fo::QueueDrugData*)fo::func::queue_find_first(critter, 0);
 			if (!queue) return 1;
 			int num = 0;
 			while (queue->pid != pid || ++num < drugs[i].numEffects) {
-				queue = (fo::QueueDrug*)fo::func::queue_find_next(critter, 0);
+				queue = (fo::QueueDrugData*)fo::func::queue_find_next(critter, 0);
 				if (!queue) return 1;
 			}
 			return 0; // not allow
