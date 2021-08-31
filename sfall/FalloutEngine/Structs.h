@@ -163,13 +163,14 @@ struct GameObject {
 
 	union {
 		struct {
-			long updatedFlags;
+			fo::MiscFlags miscFlags; // aka updated_flags
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
 			long ammoPid;
-			long unused[8]; // offset 0x44
+			long unused[8]; // offset 0x44 (not saved)
 		} item;
+
 		struct {
 			long reaction; // unused?
 			// 1 - combat, 2 - enemies out of sight, 4 - running away
@@ -216,14 +217,21 @@ struct GameObject {
 				}
 			}
 		} critter;
+
+		struct {
+			fo::MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
+			fo::MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
+			long unused[9];             // offset 0x40 (not saved)
+		} scenery;
 	};
+
 	DWORD protoId; // object PID
 	long cid; // combat ID (don't change while in combat)
 	long lightDistance;
 	long lightIntensity;
 	DWORD outline;
 	long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - index in scripts.lst; 0xFFFFFFFF no attached script
-	GameObject* owner;
+	GameObject* owner; // not saved
 	long scriptIndex;
 
 	inline char Type() {
