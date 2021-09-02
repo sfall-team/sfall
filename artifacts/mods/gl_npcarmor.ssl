@@ -65,7 +65,7 @@ procedure check_weapon_change(variable critter, variable weapon, variable isWiel
             weaponAnimList := npc["WeaponAnims"];
             if (weaponAnimList != 0) then begin
                foreach (i in string_split(weaponAnimList, ",")) begin
-                  if (newWeaponAnim == atoi(i)) then return -1; // can use (engine default)
+                  if (newWeaponAnim == atoi(i) and not(weapon_is_unusable(weapon))) then return -1; // can use (engine default)
                end
             end
             return 0; // can't use
@@ -226,10 +226,10 @@ end
 procedure canuseweapon_handler begin
    variable critter, canWield;
    critter := get_sfall_arg;
-   //if (critter) then begin
+   if (critter != dude_obj) then begin
       canWield := check_weapon_change(critter, get_sfall_arg, true);
       // override result
       set_sfall_arg(3, canWield);
       set_sfall_return(canWield);
-   //end
+   end
 end

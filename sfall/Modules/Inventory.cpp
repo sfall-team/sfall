@@ -595,25 +595,6 @@ static void __declspec(naked) do_move_timer_hack() {
 	}
 }
 
-static void __declspec(naked) can_use_weapon_hook() {
-	static const DWORD can_use_weapon_Ret = 0x477F9F;
-	using namespace fo;
-	using namespace fo::Fields;
-	__asm {
-		call fo::funcoffs::item_get_type_;
-		cmp  eax, item_type_weapon;
-		je   checkFlag;
-		retn; // eax - type
-checkFlag:
-		test dword ptr [edx + miscFlags], CantUse;
-		jnz  cantUse;
-		retn; // eax - type
-cantUse:
-		add esp, 4;
-		jmp can_use_weapon_Ret;
-	}
-}
-
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 
@@ -758,11 +739,6 @@ void Inventory::init() {
 	// Note: the flag is not checked for the metarule(METARULE_INVEN_UNWIELD_WHO, x) function
 	HookCall(0x45B0CE, op_inven_unwield_hook); // with fix to update interface slot after unwielding
 	HookCall(0x45693C, op_wield_obj_critter_hook);
-
-	// Add an additional "Can't Use" flag to the misc flags of item objects (offset 0x0038)
-	// Misc Flags:
-	// 0x00000010 - Can't Use (makes the weapon object unusable in combat)
-	HookCall(0x477F4C, can_use_weapon_hook);
 }
 
 void Inventory::InvokeAdjustFid(long fid) {

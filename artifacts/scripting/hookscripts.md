@@ -897,13 +897,14 @@ Item    ret0 - overrides the chosen best weapon
 
 #### `HOOK_CANUSEWEAPON (hs_canuseweapon.int)`
 
-Run when the AI checks whether it can use a weapon.
-This mostly happens when NPCs try to find weapons in their inventory or on the map.
+Run when the AI checks whether it can use a weapon, or when the game checks whether the player can use a weapon.
+For AI, this mostly happens when NPCs try to find weapons in their inventory or on the map.
+For the player, this happens when the game redraws the interface bar.
 
 ```
 Critter arg0 - the critter doing the check
-Item    arg1 - the weapon being checked
-int     arg2 - attack type (see ATKTYPE_* constants)
+Item    arg1 - the item being checked
+int     arg2 - attack type (see ATKTYPE_* constants), or -1 for dude_obj
 int     arg3 - original result of engine function: 1 - can use, 0 - can't use
 
 int     ret0 - overrides the result of engine function. Any non-zero value allows using the weapon

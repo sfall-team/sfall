@@ -289,9 +289,11 @@
 // checks if the specified PID number exists in the list of registered protos
 #define check_pid(pid)                                  (get_proto_data(pid, 0) != -1)
 
-// sets the status of a broken weapon that cannot be used in combat (the hand slot will not be available for use)
-#define set_broken_weapon_state_on(item)                set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwor  0x00000010)
-#define set_broken_weapon_state_off(item)               set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0xFFFFFFEF)
+// sets the status of an unusable weapon that cannot be used in combat
+// use the HOOK_CANUSEWEAPON hook with weapon_is_unusable macro to override the engine value
+#define set_weapon_unusable(item)                       set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwor  0x00000010)
+#define set_weapon_usable(item)                         set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0xFFFFFFEF)
+#define weapon_is_unusable(item)                        (get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0x00000010)
 
 
 /* SFALL_FUNCX MACROS */

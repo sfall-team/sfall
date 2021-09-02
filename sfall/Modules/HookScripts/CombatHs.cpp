@@ -626,17 +626,17 @@ static bool __stdcall CanUseWeaponHook_Script(bool result, fo::GameObject* sourc
 	args[0] = (DWORD)source;
 	args[1] = (DWORD)weapon;
 	args[2] = hitMode;
-	args[3] = 0 | result;
+	args[3] = result;
 
 	RunHookScript(HOOK_CANUSEWEAPON);
 
-	if (cRet > 0) result = rets[0] ? true : false;
+	if (cRet > 0) result = (rets[0]) ? true : false;
 
 	EndHook();
 	return result; // only 0 and 1
 }
 
-static void __declspec(naked) CanUseWeaponHook() {
+static void __declspec(naked) AICanUseWeaponHook() {
 	__asm {
 		push ecx;
 		push ebx; // hitMode
@@ -645,7 +645,25 @@ static void __declspec(naked) CanUseWeaponHook() {
 		call fo::funcoffs::ai_can_use_weapon_;
 		push eax; // result
 		call CanUseWeaponHook_Script;
-		and  eax, 1;
+		//and  eax, 1;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) CanUseWeaponHook() {
+	__asm {
+		push ecx;
+		push edx;
+		push -1;  // hitMode (indefinite)
+		push eax; // weapon
+		push ds:[FO_VAR_obj_dude]; // source
+		call fo::funcoffs::can_use_weapon_; // 1 - can't use
+		xor  al, 1;
+		push eax; // result
+		call CanUseWeaponHook_Script;
+		xor  al, 1; // invert
+		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -750,11 +768,12 @@ void Inject_BestWeaponHook() {
 }
 
 void Inject_CanUseWeaponHook() {
-	HookCalls(CanUseWeaponHook, {
+	HookCalls(AICanUseWeaponHook, {
 		0x429A1B, // ai_search_inven_weap_
 		0x429CF2, // ai_search_environ_
 		0x429E1C  // ai_pick_hit_mode_
 	});
+	HookCalls(CanUseWeaponHook, { 0x45F05E, 0x45F1C1, 0x45F203, 0x45F36A }); // intface_update_items_
 }
 
 void InitCombatHookScripts() {
