@@ -25,6 +25,9 @@
     <Filter Include="Game\GUI">
       <UniqueIdentifier>{e19ca1b6-f754-47a9-9a6d-5ce44592d8ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\AI">
+      <UniqueIdentifier>{6ce67248-1c25-4dae-967c-3078b65838e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -358,6 +361,9 @@
     <ClInclude Include="Game\GUI\render.h">
       <Filter>Game\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Game\AI\AIHelpers.h">
+      <Filter>Game\AI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -659,6 +665,9 @@
     </ClCompile>
     <ClCompile Include="Game\GUI\render.cpp">
       <Filter>Game\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\AI\AIHelpers.cpp">
+      <Filter>Game\AI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

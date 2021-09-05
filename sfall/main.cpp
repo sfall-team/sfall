@@ -100,19 +100,7 @@ DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr | (addr & 0xFFFFF));
 }
 
-char falloutConfigName[65] = {0};
-
-void InitReplacementHacks() {
-	game::gui::Render::init();
-	game::gui::Text::init();
-
-	game::CombatAI::init();
-	game::Inventory::init();
-	game::Items::init();
-	game::Skills::init();
-	game::Stats::init();
-	game::Tilemap::init();
-}
+char falloutConfigName[65];
 
 static void InitModules() {
 	dlogr("In InitModules", DL_MAIN);

@@ -292,6 +292,7 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Game\AI\AIHelpers.h" />
     <ClInclude Include="Game\combatAI.h" />
     <ClInclude Include="Game\GUI\render.h" />
     <ClInclude Include="Game\GUI\Text.h" />
@@ -406,6 +407,7 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Game\AI\AIHelpers.cpp" />
     <ClCompile Include="Game\combatAI.cpp" />
     <ClCompile Include="Game\GUI\render.cpp" />
     <ClCompile Include="Game\GUI\Text.cpp" />

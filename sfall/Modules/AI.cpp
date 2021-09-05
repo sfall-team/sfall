@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
+#include "..\Game\AI\AIHelpers.h"
 #include "..\Game\combatAI.h"
 #include "..\Game\items.h"
 
@@ -34,39 +35,6 @@ using namespace fo::Fields;
 
 static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
-
-// Returns the friendly critter or any blocking object in the line of fire
-fo::GameObject* AI::CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team) {
-	if (object && object->IsCritter() && object->critter.teamNum != team) { // is not friendly fire
-		long objTile = object->tile;
-		if (objTile == targetTile) return nullptr;
-
-		if (object->flags & fo::ObjectFlag::MultiHex) {
-			long dir = fo::func::tile_dir(objTile, targetTile);
-			objTile = fo::func::tile_num_in_direction(objTile, dir, 1);
-			if (objTile == targetTile) return nullptr; // just in case
-		}
-		// continue checking the line of fire from object tile to targetTile
-		fo::GameObject* obj = object; // for ignoring the object (multihex) when building the path
-		fo::func::make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-
-		object = CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
-	}
-	return object; // friendly critter, any object or null
-}
-
-// Returns the friendly critter in the line of fire
-fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
-	fo::GameObject* object = nullptr;
-	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-	object = CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
-	return (object && object->IsCritter()) ? object : nullptr; // 0 - if there are no friendly critters
-}
-
-bool AI::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance) {
-	if (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) >= distance) return true;
-	return (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) >= distance);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -281,7 +249,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 		// is using a close range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
-			if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
+			if (!game::ai::AIHelpers::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
@@ -526,7 +494,7 @@ fix:
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
-	if (AI::CheckFriendlyFire(target, attacker)) {
+	if (game::ai::AIHelpers::CheckFriendlyFire(target, attacker)) {
 		long dice = fo::func::roll_random(1, 10);
 		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // true - is friendly
 	}
