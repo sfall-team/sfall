@@ -49,7 +49,7 @@
 #define FO_VAR_crnt_func                  0x664508
 #define FO_VAR_cur_id                     0x51C7D4
 #define FO_VAR_curr_anim_set              0x51071C
-#define FO_VAR_curr_anim_counter          0x56C7DC 
+#define FO_VAR_curr_anim_counter          0x56C7DC
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
@@ -118,6 +118,8 @@
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
 #define FO_VAR_GNW95_isActive             0x51E444
+#define FO_VAR_GNW95_repeat_delay         0x51E240
+#define FO_VAR_GNW95_repeat_rate          0x51E23C
 #define FO_VAR_GNWWin                     0x5195B8
 #define FO_VAR_gsound_background_fade     0x518E40
 #define FO_VAR_gsound_initialized         0x518E30
