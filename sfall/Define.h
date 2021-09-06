@@ -491,15 +491,14 @@ enum ScenerySubType : long
 
 enum Stat : long
 {
-	STAT_st = 0,
-	STAT_pe = 1,
-	STAT_en = 2,
-	STAT_ch = 3,
-	STAT_iq = 4,
-	STAT_ag = 5,
-	STAT_lu = 6,
-	///  strength, perception, endurance, charisma, intelligence, agility,
-	///  luck,   // luck MUST be the last basic stat
+	STAT_st = 0, // strength
+	STAT_pe = 1, // perception
+	STAT_en = 2, // endurance
+	STAT_ch = 3, // charisma
+	STAT_iq = 4, // intelligence
+	STAT_ag = 5, // agility
+	STAT_lu = 6, // luck
+
 	// derived stats
 	STAT_max_hit_points = 7,
 	STAT_max_move_points = 8,
@@ -528,14 +527,18 @@ enum Stat : long
 	STAT_rad_resist = 31,
 	STAT_poison_resist = 32,
 	// poison_resist MUST be the last derived stat
+
 	// non-derived stats
 	STAT_age = 33,
 	STAT_gender = 34,
 	// gender MUST be the last non-derived stat
+
 	STAT_current_hp = 35,
 	STAT_current_poison = 36,
 	STAT_current_rad = 37,
-	STAT_real_max_stat = 38
+
+	STAT_real_max_stat = 38,
+	STAT_base_count = 7
 };
 
 namespace Scripts {

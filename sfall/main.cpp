@@ -88,7 +88,7 @@ DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr | (addr & 0xFFFFF));
 }
 
-char falloutConfigName[65] = {0};
+char falloutConfigName[65];
 
 static void InitModules() {
 	dlogr("In InitModules", DL_MAIN);
