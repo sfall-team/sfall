@@ -419,7 +419,7 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
-static void __declspec(naked) register_button() {
+static void __declspec(naked) wmInterfaceInit_hook() {
 	static DWORD retAddr;
 	__asm {
 		pop  retAddr;
@@ -447,7 +447,7 @@ static void WorldMapInterfacePatch() {
 		0x4C2D4C, // up
 		0x4C2D8A  // down
 	};
-	HookCalls(register_button, wmInterfaceBtnsAddr);
+	HookCalls(wmInterfaceInit_hook, wmInterfaceBtnsAddr);
 
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
