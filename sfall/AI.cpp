@@ -34,8 +34,10 @@ typedef std::tr1::unordered_map<TGameObj*, TGameObj*>::const_iterator iter;
 static std::tr1::unordered_map<TGameObj*, TGameObj*> targets;
 static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
+////////////////////////////////// AI HELPERS //////////////////////////////////
+
 // Returns the friendly critter or any blocking object in the line of fire
-TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
+TGameObj* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team) {
 	if (object && object->IsCritter() && object->critter.teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
@@ -49,22 +51,26 @@ TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long 
 		TGameObj* obj = object; // for ignoring the object (multihex) when building the path
 		fo_make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)obj_shoot_blocking_at_);
 
-		object = AI_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
+		object = AIHelpers_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
 	}
 	return object; // friendly critter, any object or null
 }
 
 // Returns the friendly critter in the line of fire
-TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
+TGameObj* __stdcall AIHelpers_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
 	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)obj_shoot_blocking_at_);
-	object = AI_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
+	object = AIHelpers_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
 	return (object && object->IsCritter()) ? object : nullptr; // 0 - if there are no friendly critters
 }
 
-bool __stdcall AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance) {
+bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, long distance) {
 	if (sfgame_item_weapon_range(source, weapon, ATKTYPE_RWEAPON_PRIMARY) >= distance) return true;
 	return (sfgame_item_weapon_range(source, weapon, ATKTYPE_RWEAPON_SECONDARY) >= distance);
+}
+
+bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, TGameObj* target) {
+	return AIHelpers_AttackInRange(source, weapon, fo_obj_dist(source, target));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +282,7 @@ static long __fastcall ai_try_attack_switch_fix(TGameObj* target, long &hitMode,
 		// is using a close range weapon?
 		long wType = fo_item_w_subtype(item, ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= ATKSUBTYPE_MELEE) { // unarmed and melee weapons, check the distance before switching
-			if (!AI_AttackInRange(source, item, fo_obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
+			if (!AIHelpers_AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
@@ -519,7 +525,7 @@ fix:
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall RollFriendlyFire(TGameObj* target, TGameObj* attacker) {
-	if (AI_CheckFriendlyFire(target, attacker)) {
+	if (AIHelpers_CheckFriendlyFire(target, attacker)) {
 		long dice = fo_roll_random(1, 10);
 		return (fo_stat_level(attacker, STAT_iq) >= dice); // true - is friendly
 	}

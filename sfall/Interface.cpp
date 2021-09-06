@@ -419,12 +419,35 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
+static void __declspec(naked) register_button() {
+	static DWORD retAddr;
+	__asm {
+		pop  retAddr;
+		call win_register_button_;
+		push eax;
+		mov  ebx, gsound_red_butt_release_;
+		mov  edx, gsound_red_butt_press_;
+		call win_register_button_sound_func_;
+		pop  eax;
+		jmp  retAddr;
+	}
+}
+
 static void WorldMapInterfacePatch() {
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Add missing sounds for the buttons on the world map interface (wmInterfaceInit_)
+	const DWORD wmInterfaceBtnsAddr[] = {
+		0x4C2BF4, // location labels
+		0x4C2BB5, // town/world
+		0x4C2D4C, // up
+		0x4C2D8A  // down
+	};
+	HookCalls(register_button, wmInterfaceBtnsAddr);
 
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM

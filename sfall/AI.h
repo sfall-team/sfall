@@ -23,10 +23,14 @@
 void AI_Init();
 void AICombatClear();
 
-TGameObj* __stdcall AI_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
-TGameObj* __stdcall AI_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
+// Returns the friendly critter or any blocking object in the line of fire
+TGameObj* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
 
-bool __stdcall AI_AttackInRange(TGameObj* source, TGameObj* weapon, long distance);
+// Returns the friendly critter in the line of fire
+TGameObj* __stdcall AIHelpers_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
+
+bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, long distance);
+bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, TGameObj* target);
 
 TGameObj* __stdcall AIGetLastAttacker(TGameObj* target);
 TGameObj* __stdcall AIGetLastTarget(TGameObj* source);
