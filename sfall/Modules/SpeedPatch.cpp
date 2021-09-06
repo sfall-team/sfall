@@ -129,8 +129,10 @@ static DWORD __stdcall FakeGetTickCount() {
 	lastTickCount = newTickCount;
 
 	// Multiply the tick count difference by the multiplier
-	long mode = GetLoopFlags();
-	if (IsGameLoaded() && enabled && (!mode || (mode & (LoopFlag::WORLDMAP | LoopFlag::PCOMBAT | LoopFlag::COMBAT))) && !slideShow) {
+	long mode;
+	if (IsGameLoaded() && enabled &&
+	    (!(mode = GetLoopFlags()) || mode == LoopFlag::COMBAT || mode == (LoopFlag::COMBAT | LoopFlag::PCOMBAT) || (mode & LoopFlag::WORLDMAP)) && !slideShow)
+	{
 		elapsed *= multi;
 		elapsed += tickCountFraction;
 		tickCountFraction = modf(elapsed, &elapsed);

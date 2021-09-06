@@ -97,7 +97,7 @@ bool hrpVersionValid = false; // HRP 4.1.8 version validation
 static DWORD hrpDLLBaseAddr = 0x10000000;
 
 DWORD HRPAddress(DWORD addr) {
-	return (hrpDLLBaseAddr | (addr & 0xFFFFF));
+	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
 }
 
 char falloutConfigName[65];
