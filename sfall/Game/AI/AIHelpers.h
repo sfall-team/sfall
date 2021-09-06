@@ -20,6 +20,7 @@ public:
 	static fo::GameObject* CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
 
 	static bool AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
+	static bool AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target);
 };
 
 }

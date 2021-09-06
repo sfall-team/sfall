@@ -53,5 +53,9 @@ bool AIHelpers::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, lo
 	return (Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) >= distance);
 }
 
+bool AIHelpers::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target) {
+	return AIHelpers::AttackInRange(source, weapon, fo::func::obj_dist(source, target));
+}
+
 }
 }

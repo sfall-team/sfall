@@ -249,7 +249,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 		// is using a close range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
-			if (!game::ai::AIHelpers::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
+			if (!game::ai::AIHelpers::AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
