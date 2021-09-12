@@ -35,96 +35,6 @@ namespace sfall
 typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 //typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
 
-static const char* gpuEffectA8 =
-	"texture image;"
-	"texture palette;"
-	"texture head;"
-	"texture highlight;"
-	"sampler s0 = sampler_state { texture=<image>; };"
-	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
-	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"float2 size;"
-	"float2 corner;"
-	"float2 sizehl;"
-	"float2 cornerhl;"
-	"int showhl;"
-	// shader for displaying head textures
-	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float backdrop = tex2D(s0, Tex).a;"
-	  "float3 result;"
-	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
-	    "result = tex2D(s2, saturate((Tex - corner) / size));"
-	  "} else {"
-	    "result = tex1D(s1, backdrop).bgr;" // get color in palette and swap R <> B
-	  "}"
-	  // blend highlights
-	  "if (showhl) {"
-	    "float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
-	    "result = saturate(result + h);" // saturate(result * (1 - h.a) * h.rgb * h.a)"
-	  "}"
-	  "return float4(result, 1);"
-	"}"
-	"technique T1"
-	"{"
-	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
-	"}"
-
-	// main shader
-	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);" // get color in palette
-	  "return float4(result.bgr, 1);"                // swap R <> B
-	"}"
-	"technique T0"
-	"{"
-	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}";
-
-static const char* gpuEffectL8 =
-	"texture image;"
-	"texture palette;"
-	"texture head;"
-	"texture highlight;"
-	"sampler s0 = sampler_state { texture=<image>; };"
-	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
-	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
-	"float2 size;"
-	"float2 corner;"
-	"float2 sizehl;"
-	"float2 cornerhl;"
-	"int showhl;"
-	// shader for displaying head textures
-	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float backdrop = tex2D(s0, Tex).r;"
-	  "float3 result;"
-	  "if (abs(backdrop - 1.0) < 0.001) {"
-	    "result = tex2D(s2, saturate((Tex - corner) / size));"
-	  "} else {"
-	    "result = tex1D(s1, backdrop).bgr;"
-	  "}"
-	  // blend highlights
-	  "if (showhl) {"
-	    "float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
-	    "result = saturate(result + h);"
-	  "}"
-	  "return float4(result, 1);"
-	"}"
-	"technique T1"
-	"{"
-	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
-	"}"
-
-	// main shader
-	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	  "float3 result = tex1D(s1, tex2D(s0, Tex).r);"
-	  "return float4(result.bgr, 1);"
-	"}"
-	"technique T0"
-	"{"
-	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}";
-
 IDirectDrawSurface* primaryDDSurface = nullptr; // aka _GNW95_DDPrimarySurface
 
 static DWORD ResWidth;
@@ -152,9 +62,10 @@ static struct PALCOLOR {
 	union {
 		DWORD xRGB;
 		struct {
-			BYTE B;
-			BYTE G;
 			BYTE R;
+			BYTE G;
+			BYTE B;
+			BYTE x;
 		};
 	};
 } palette[256];
@@ -168,8 +79,8 @@ static DWORD gHeight;
 static long moveWindowKey[2];
 
 static bool windowInit = false;
-static DWORD windowLeft = 0;
-static DWORD windowTop = 0;
+static long windowLeft = 0;
+static long windowTop = 0;
 static HWND window;
 static DWORD windowStyle = WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX;
 
@@ -249,6 +160,14 @@ static void WindowInit() {
 	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 	ScriptShaders::LoadGlobalShader();
+}
+
+static void CenterWindow() {
+	RECT desktop;
+	GetWindowRect(GetDesktopWindow(), &desktop);
+
+	windowLeft = (desktop.right / 2) - (gWidth  / 2);
+	windowTop  = (desktop.bottom / 2) - (gHeight / 2);
 }
 
 // pixel size for the current game resolution
@@ -944,16 +863,16 @@ public:
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY destPal) { // used to set palette for splash screen, fades, subtitles
 		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		__movsd((DWORD*)&palette[b], (DWORD*)destPal, c);
+		__movsd((DWORD*)&palette[b], (DWORD*)destPal, c); // copy DWORDs
 
 		if (Graphics::GPUBlt) {
 			SetGPUPalette();
 		} else {
 			// X8B8G8R8 format
 			for (size_t i = b; i < b + c; i++) { // swap color B <> R
-				BYTE clr = palette[i].B;
-				palette[i].B = palette[i].R;
-				palette[i].R = clr;
+				BYTE clrB = palette[i].R;
+				palette[i].R = palette[i].B;
+				palette[i].B = clrB;
 			}
 			primaryDDSurface->SetPalette(0); // update texture
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
@@ -1059,9 +978,7 @@ public:
 			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
 			r.bottom -= r.top;
-			if (!SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW)) {
-				windowLeft = windowTop = 0; // fail to set position
-			}
+			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1108,10 +1025,10 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		gWidth  = dispMode.Width;
 		gHeight = dispMode.Height;
 	} else {
-		gWidth = IniReader::GetConfigInt("Graphics", "GraphicsWidth", 0);
+		gWidth  = IniReader::GetConfigInt("Graphics", "GraphicsWidth", 0);
 		gHeight = IniReader::GetConfigInt("Graphics", "GraphicsHeight", 0);
 		if (!gWidth || !gHeight) {
-			gWidth = ResWidth;
+			gWidth  = ResWidth;
 			gHeight = ResHeight;
 		}
 	}
@@ -1143,12 +1060,12 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		} else {
 			moveWindowKey[0] &= 0xFF;
 		}
-		windowData = IniReader::GetConfigInt("Graphics", "WindowData", 0);
+		windowData = IniReader::GetConfigInt("Graphics", "WindowData", -1);
 		if (windowData > 0) {
 			windowLeft = windowData >> 16;
 			windowTop = windowData & 0xFFFF;
-		} else {
-			windowData = 0;
+		} else if (windowData == -1) {
+			CenterWindow();
 		}
 	}
 
@@ -1215,8 +1132,13 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		// Patch HRP to show the mouse cursor over the window title
-		if (Graphics::mode == 5 && hrpVersionValid) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
+		if (hrpVersionValid) {
+			// Patch HRP to show the mouse cursor over the window title
+			if (Graphics::mode == 5) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
+
+			// Patch HRP to fix the issue of displaying a palette color with index 255 for images (splash screens, ending slides)
+			SafeWrite8(HRPAddress(0x1000F8C7), CodeType::JumpShort);
+		}
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);

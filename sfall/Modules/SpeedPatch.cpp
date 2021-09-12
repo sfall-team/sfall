@@ -65,16 +65,16 @@ static bool enabled = true;
 static bool toggled = false;
 static bool slideShow = false;
 
-static double multi;
+static float multi;
 static DWORD sfallTickCount = 0;
 static DWORD lastTickCount;
-static double tickCountFraction = 0.0;
+static float tickCountFraction = 0.0f;
 
 static __int64 startTime;
 
 static struct SpeedCfg {
 	int key;
-	double multiplier;
+	float multiplier;
 } *speed = nullptr;
 
 static int modKey[2];
@@ -125,7 +125,7 @@ static DWORD __stdcall FakeGetTickCount() {
 		return sfallTickCount;
 	}
 
-	double elapsed = (double)(newTickCount - lastTickCount);
+	float elapsed = static_cast<float>(newTickCount - lastTickCount);
 	lastTickCount = newTickCount;
 
 	// Multiply the tick count difference by the multiplier
@@ -135,13 +135,13 @@ static DWORD __stdcall FakeGetTickCount() {
 	{
 		elapsed *= multi;
 		elapsed += tickCountFraction;
-		tickCountFraction = modf(elapsed, &elapsed);
+		tickCountFraction = std::modf(elapsed, &elapsed);
 		if (defaultDelay) SetKeyboardDelay();
 	} else {
 		SetKeyboardDefaultDelay();
 	}
 
-	sfallTickCount += (DWORD)elapsed;
+	sfallTickCount += static_cast<DWORD>(elapsed);
 
 	return sfallTickCount;
 }
@@ -184,7 +184,7 @@ void TimerInit() {
 		_itoa(i, buf, 10);
 		spKey[8] = spMulti[10] = buf[0];
 		speed[i].key = IniReader::GetConfigInt("Input", spKey, 0);
-		speed[i].multiplier = IniReader::GetConfigInt("Speed", spMulti, 0) / 100.0;
+		speed[i].multiplier = IniReader::GetConfigInt("Speed", spMulti, 0) / 100.0f;
 	}
 }
 
@@ -213,7 +213,7 @@ void SpeedPatch::init() {
 			modKey[1] = 0;
 		}
 
-		multi = (double)init / 100.0;
+		multi = init / 100.0f;
 		toggleKey = IniReader::GetConfigInt("Input", "SpeedToggleKey", 0);
 
 		getTickCountOffs = (DWORD)&FakeGetTickCount;
