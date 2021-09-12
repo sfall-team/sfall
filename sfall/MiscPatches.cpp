@@ -725,58 +725,47 @@ static void __declspec(naked) main_death_scene_hook() {
 	}
 }
 
-static void __declspec(naked) SplitPrintMessage() {
-	__asm {
-		push esi;
-		push ecx;
-		test eax, eax;                 // Is there a string?
-		jz   end;                      // No
-		mov  esi, eax;
-		xor  ecx, ecx;
-loopString:
-		cmp  byte ptr [esi], 0;        // End of string?
-		je   printLine;                // Yes
-		cmp  byte ptr [esi], 0x5C;     // Possible a newline character '\'?
-		jne  nextChar;                 // No
-		cmp  byte ptr [esi + 1], 0x6E; // Exactly the newline character 'n'?
-		jne  nextChar;                 // No
-		inc  ecx;
-		mov  byte ptr [esi], 0;        // set null terminator
-printLine:
-		call edi;
-		test ecx, ecx;
-		jz   end;
-		dec  ecx;
-		mov  byte ptr [esi], 0x5C;
-		inc  esi;
-		mov  eax, esi;
-		inc  eax;
-nextChar:
-		inc  esi;
-		jmp  loopString;
-end:
-		pop  ecx;
-		pop  esi;
-		retn;
+static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
+	char* text = message;
+	while (*text) {
+		if (text[0] == '\\' && text[1] == 'n') {
+			*text = 0; // set null terminator
+
+			__asm mov  eax, message;
+			__asm call printFunc;
+
+			*text = '\\';
+			text += 2; // position after the 'n' character
+			message = text;
+		} else {
+			text++;
+		}
+	}
+	// print the last line or all the text if there is no line break
+	if (message != text) {
+		__asm mov  eax, message;
+		__asm call printFunc;
 	}
 }
 
 static void __declspec(naked) sf_display_print_alt() {
 	__asm {
-		push edi;
-		mov  edi, display_print_;
-		call SplitPrintMessage; // eax - message
-		pop  edi;
+		push ecx;
+		push display_print_;
+		push eax; // message
+		call SplitPrintMessage;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) sf_inven_display_msg() {
 	__asm {
-		push edi;
-		mov  edi, inven_display_msg_;
-		call SplitPrintMessage; // eax - message
-		pop  edi;
+		push ecx;
+		push inven_display_msg_;
+		push eax; // message
+		call SplitPrintMessage;
+		pop  ecx;
 		retn;
 	}
 }
