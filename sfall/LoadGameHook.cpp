@@ -125,10 +125,10 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 }
 
 static void __stdcall RunOnBeforeGameStart() {
-	BodypartHitChances(); // set on start & load
 	CritLoad();
 	ReadExtraGameMsgFiles();
 	if (pipBoyAvailableAtGameStart) ptr_gmovie_played_list[3] = true; // PipBoy aquiring video
+	BodypartHitChances(); // set on start & load
 	LoadGlobalScripts(); // loading sfall scripts
 }
 
@@ -269,24 +269,24 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 			Gfx_ForceGraphicsRefresh(0); // disable refresh
 			Graphics_OnGameLoad();
 		}
-		LoadOrder_OnGameLoad();
-		Interface_OnGameLoad();
-		Objects_OnGameLoad();
-		Worldmap_OnGameLoad();
-		Stats_OnGameLoad();
-		PerksReset();
-		Combat_OnGameLoad();
-		Skills_OnGameLoad();
 		FileSystemReset();
-		ResetQuests();
-		WipeSounds();
-		Console_OnGameLoad();
-		InventoryReset();
-		PartyControl_OnGameLoad();
-		Explosions_OnGameLoad();
-		ClearScriptAddedExtraGameMsg();
+		LoadOrder_OnGameLoad();
 		ClearAllLockAnimSets();
 		BarBoxes_OnGameLoad();
+		Explosions_OnGameLoad();
+		ClearScriptAddedExtraGameMsg();
+		Interface_OnGameLoad();
+		Worldmap_OnGameLoad();
+		WipeSounds();
+		InventoryReset();
+		Objects_OnGameLoad();
+		Stats_OnGameLoad();
+		PerksReset();
+		Skills_OnGameLoad();
+		PartyControl_OnGameLoad();
+		Combat_OnGameLoad();
+		ResetQuests();
+		Console_OnGameLoad();
 		MetaruleExtenderReset();
 		ScriptExtender_OnGameLoad();
 		if (isDebug) {
@@ -378,8 +378,8 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	#endif
 	combat_ai_init_backup(); // BugFixes
 	RemoveSavFiles();
-	Sound_OnAfterGameInit();
 	BarBoxes_SetMaxSlots();
+	Sound_OnAfterGameInit();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 	BuildSortedIndexList();
 }
@@ -389,8 +389,8 @@ static void __stdcall GameExit() { // OnGameExit
 }
 
 static void __stdcall GameClose() { // OnBeforeGameClose
-	WipeSounds();
 	ClearReadExtraGameMsgFiles();
+	WipeSounds();
 }
 
 static void __declspec(naked) main_init_system_hook() {

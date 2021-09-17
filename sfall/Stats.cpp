@@ -114,7 +114,7 @@ static void __declspec(naked) GetLevelXPHook() {
 
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
-		mov eax, ds:[FO_VAR_Level_];
+		mov eax, ds:[FO_VAR_Level_pc];
 		jmp GetLevelXPHook;
 	}
 }

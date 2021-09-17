@@ -41,7 +41,7 @@ static DWORD WorldMapEncounterRate;
 
 static double tickFract = 0.0;
 static double mapMultiMod = 1.0;
-static float scriptMapMulti = 1.0;
+static float scriptMapMulti = 1.0f;
 
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
@@ -197,7 +197,7 @@ static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 		break;
 	}
 	multi = ((double)ticks) * multi + tickFract;
-	tickFract = modf(multi, &multi);
+	tickFract = std::modf(multi, &multi);
 
 	return static_cast<DWORD>(multi);
 }

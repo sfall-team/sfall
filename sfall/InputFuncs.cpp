@@ -42,16 +42,16 @@ static DWORD wheelMod;
 
 static bool reverseMouse;
 
-bool middleMouseDown;
+bool middleMouseDown = false;
 static DWORD middleMouseKey;
 
 static bool backgroundKeyboard;
 static bool backgroundMouse;
 
-static bool adjustMouseSpeed;
+static bool adjustMouseSpeed = false;
 static double mouseSpeedMod;
-static double mousePartX;
-static double mousePartY;
+static double mousePartX = 0.0;
+static double mousePartY = 0.0;
 
 #define MAX_KEYS (264)
 
@@ -211,11 +211,11 @@ public:
 		}
 		if (adjustMouseSpeed) {
 			double d = ((double)MouseState.lX) * mouseSpeedMod + mousePartX;
-			mousePartX = modf(d, &d);
-			MouseState.lX = (LONG)d;
+			mousePartX = std::modf(d, &d);
+			MouseState.lX = (long)d;
 			d = ((double)MouseState.lY) * mouseSpeedMod + mousePartY;
-			mousePartY = modf(d, &d);
-			MouseState.lY = (LONG)d;
+			mousePartY = std::modf(d, &d);
+			MouseState.lY = (long)d;
 		}
 		if (useScrollWheel) {
 			int count = 1;
@@ -436,16 +436,13 @@ HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c,
 
 	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
 	wheelMod = GetConfigInt("Input", "ScrollMod", 0);
-	LONG MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
+	long MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
 		adjustMouseSpeed = true;
 		mouseSpeedMod = ((double)MouseSpeed) / 100.0;
-		mousePartX = 0;
-		mousePartY = 0;
-	} else adjustMouseSpeed = false;
+	}
 
 	middleMouseKey = GetConfigInt("Input", "MiddleMouse", DIK_B);
-	middleMouseDown = false;
 
 	backgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
 	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;

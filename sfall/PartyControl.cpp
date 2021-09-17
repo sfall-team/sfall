@@ -96,11 +96,11 @@ static void SaveRealDudeState() {
 	std::memcpy(realDude.traits, ptr_pc_trait, sizeof(long) * 2);
 	std::memcpy(realDude.perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(realDude.pc_name, 32, ptr_pc_name);
-	realDude.Level = *ptr_Level_;
+	realDude.Level = *ptr_Level_pc;
 	realDude.last_level = *ptr_last_level;
-	realDude.Experience = *ptr_Experience_;
+	realDude.Experience = *ptr_Experience_pc;
 	realDude.free_perk = *ptr_free_perk;
-	realDude.unspent_skill_points = ptr_curr_pc_stat[0];
+	realDude.unspent_skill_points = ptr_curr_pc_stat[PCSTAT_unspent_skill_points];
 	realDude.sneak_working = *ptr_sneak_working;
 	SkillGetTags(realDude.tag_skill, 4);
 
@@ -132,16 +132,16 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	          ? fo_partyMemberGetCurLevel(npc)
 	          : 0;
 
-	*ptr_Level_ = level;
+	*ptr_Level_pc = level;
 	*ptr_last_level = level;
 
 	// change character name
 	fo_critter_pc_set_name(fo_critter_name(npc));
 
 	// reset other stats
-	*ptr_Experience_ = 0;
+	*ptr_Experience_pc = 0;
 	*ptr_free_perk = 0;
-	ptr_curr_pc_stat[0] = 0;
+	ptr_curr_pc_stat[PCSTAT_unspent_skill_points] = 0;
 	*ptr_sneak_working = 0;
 
 	// deduce active hand by weapon anim code
@@ -181,11 +181,11 @@ static void RestoreRealDudeState(bool redraw = true) {
 	std::memcpy(ptr_pc_trait, realDude.traits, sizeof(long) * 2);
 	std::memcpy(*ptr_perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(ptr_pc_name, 32, realDude.pc_name);
-	*ptr_Level_ = realDude.Level;
+	*ptr_Level_pc = realDude.Level;
 	*ptr_last_level = realDude.last_level;
-	*ptr_Experience_ = realDude.Experience;
+	*ptr_Experience_pc = realDude.Experience;
 	*ptr_free_perk = realDude.free_perk;
-	ptr_curr_pc_stat[0] = realDude.unspent_skill_points;
+	ptr_curr_pc_stat[PCSTAT_unspent_skill_points] = realDude.unspent_skill_points;
 	*ptr_sneak_working = realDude.sneak_working;
 	SkillSetTags(realDude.tag_skill, 4);
 

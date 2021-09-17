@@ -105,7 +105,7 @@ static void __declspec(naked) LevelUpHack() {
 notSkilled:
 		mov  ecx, 3;
 afterSkilled:
-		mov  eax, ds:[FO_VAR_Level_]; // Get player's level
+		mov  eax, ds:[FO_VAR_Level_pc]; // Get player's level
 		inc  eax;
 		xor  edx, edx;
 		div  ecx;
@@ -114,7 +114,7 @@ afterSkilled:
 		inc  byte ptr ds:[FO_VAR_free_perk]; // Increment the number of perks owed
 end:
 		pop  ecx;
-		mov  edx, ds:[FO_VAR_Level_];
+		mov  edx, ds:[FO_VAR_Level_pc];
 		retn;
 	}
 }

@@ -1755,7 +1755,7 @@ static DWORD expSwiftLearner; // experience points for print
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
 		mov  expSwiftLearner, edi;
-		mov  eax, dword ptr ds:[FO_VAR_Experience_];
+		mov  eax, dword ptr ds:[FO_VAR_Experience_pc];
 		retn;
 	}
 }
@@ -3142,13 +3142,16 @@ void BugFixes_Init()
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
+
 	// Fix incorrect int-to-float conversion
+	// replace operator to "fild 32bit"
 	// op_mult:
-	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
+	SafeWrite16(0x46A3F4, 0x04DB);
 	SafeWrite16(0x46A3A8, 0x04DB);
 	// op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+
 	// Fix for vanilla division operator treating negative integers as unsigned
 	if (GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
 		dlog("Applying division operator fix.", DL_FIX);
