@@ -109,9 +109,10 @@ static void InitModules() {
 
 	// initialize all modules
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
-	manager.add<FileSystem>();
+	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
+	manager.add<FileSystem>();
 	manager.add<LoadOrder>();
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
@@ -121,45 +122,47 @@ static void InitModules() {
 	manager.add<Criticals>();
 	manager.add<Elevators>();
 
-	manager.add<Movies>();
-	manager.add<MainMenu>();
+	manager.add<Animations>();
+	manager.add<BarBoxes>();
+	manager.add<Explosions>();
+	manager.add<Message>();
 	manager.add<Interface>();
-	manager.add<Objects>();
-	manager.add<SpeedPatch>();
-	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
+	manager.add<Tiles>();
+	manager.add<Movies>();
+	manager.add<Sound>();
+	manager.add<MiscPatches>();
+
+	manager.add<AI>();
+	manager.add<DamageMod>();
+	manager.add<BurstMods>();
+
+	manager.add<Inventory>();
+	manager.add<Objects>();
 	manager.add<Stats>();
 	manager.add<CritterStats>();
 	manager.add<CritterPoison>();
 	manager.add<Perks>();
-	manager.add<Combat>();
 	manager.add<Skills>();
-
-	manager.add<Karma>();
-	manager.add<Tiles>();
-	manager.add<Credits>();
-	manager.add<QuestList>();
-	manager.add<Premade>();
-	manager.add<Sound>();
-	manager.add<Reputations>();
-	manager.add<Console>();
-	manager.add<ExtraSaveSlots>();
-	manager.add<Inventory>();
 	manager.add<Drugs>();       // should be loaded before PartyControl
 	manager.add<PartyControl>();
-	manager.add<BurstMods>();
-	manager.add<Explosions>();
-	manager.add<Message>();
+	manager.add<Combat>();
+
+	manager.add<PlayerModel>();
+	manager.add<Karma>();
+	manager.add<Premade>();
+	manager.add<Reputations>();
 	manager.add<KillCounter>();
 
-	manager.add<AI>();
-	manager.add<DamageMod>();
-	manager.add<Animations>();
-	manager.add<BarBoxes>();
+	manager.add<MainMenu>();
 	manager.add<HeroAppearance>();
-	manager.add<MiscPatches>();
 	manager.add<TalkingHeads>();
 	manager.add<ScriptShaders>();
+
+	manager.add<ExtraSaveSlots>();
+	manager.add<QuestList>();
+	manager.add<Credits>();
+	manager.add<Console>();
 
 	// all built-in events(delegates) of modules should be executed before running the script handlers
 	manager.add<MetaruleExtender>();

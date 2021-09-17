@@ -137,11 +137,11 @@ static void SaveRealDudeState() {
 	std::memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
 	std::memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(realDude.pc_name, sizeof(fo::var::pc_name), fo::var::pc_name);
-	realDude.Level = fo::var::Level_;
+	realDude.Level = fo::var::Level_pc;
 	realDude.last_level = fo::var::last_level;
-	realDude.Experience = fo::var::Experience_;
+	realDude.Experience = fo::var::Experience_pc;
 	realDude.free_perk = fo::var::free_perk;
-	realDude.unspent_skill_points = fo::var::curr_pc_stat[0];
+	realDude.unspent_skill_points = fo::var::curr_pc_stat[fo::PCSTAT_unspent_skill_points];
 
 	fo::Queue* queue = nullptr;
 	realDude.sneak_working = fo::var::sneak_working;
@@ -191,24 +191,24 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	          ? fo::func::partyMemberGetCurLevel(npc)
 	          : 0;
 
-	fo::var::Level_ = level;
+	fo::var::Level_pc = level;
 	fo::var::last_level = level;
 
 	// change character name
 	fo::func::critter_pc_set_name(fo::func::critter_name(npc));
 
 	// reset other stats
-	fo::var::Experience_ = 0;
+	fo::var::Experience_pc = 0;
 	fo::var::free_perk = 0;
-	fo::var::curr_pc_stat[0] = 0;
+	fo::var::curr_pc_stat[fo::PCSTAT_unspent_skill_points] = 0;
 	fo::var::sneak_working = 0;
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
 	if (fo::util::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
-		fo::var::itemCurrentItem = fo::ActiveSlot::Left;
+		fo::var::itemCurrentItem = fo::HandSlot::Left;
 	} else {
-		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
+		fo::var::itemCurrentItem = fo::HandSlot::Right;
 	}
 	// restore selected weapon mode
 	size_t count = weaponState.size();
@@ -298,11 +298,11 @@ static void RestoreRealDudeState(bool redraw = true) {
 	std::memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
 	std::memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
-	fo::var::Level_ = realDude.Level;
+	fo::var::Level_pc = realDude.Level;
 	fo::var::last_level = realDude.last_level;
-	fo::var::Experience_ = realDude.Experience;
+	fo::var::Experience_pc = realDude.Experience;
 	fo::var::free_perk = realDude.free_perk;
-	fo::var::curr_pc_stat[0] = realDude.unspent_skill_points;
+	fo::var::curr_pc_stat[fo::PCSTAT_unspent_skill_points] = realDude.unspent_skill_points;
 
 	fo::var::sneak_working = 0;
 	if (realDude.sneak_queue_time && fo::func::is_pc_flag(0)) {
@@ -510,7 +510,7 @@ static void SaveWeaponMode(bool isSwap) {
 // Moves the weapon from the active left slot to the right slot and saves the selected weapon mode for NPC
 static void NPCWeaponTweak() {
 	bool isSwap = false;
-	if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
+	if (fo::var::itemCurrentItem == fo::HandSlot::Left) {
 		// set active left item to right slot
 		fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
 		if (lItem) {

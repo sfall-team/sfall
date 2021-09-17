@@ -155,7 +155,7 @@ static DWORD __stdcall LevelUp() {
 		}
 	}
 
-	DWORD level = fo::var::Level_; // Get player's level
+	DWORD level = fo::var::Level_pc; // Get player's level
 	if (!((level + 1) % eachLevel)) fo::var::free_perk++; // Increment the number of perks owed
 	return level;
 }

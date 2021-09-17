@@ -774,7 +774,7 @@ enum TicksTime : unsigned long
 	ONE_GAME_YEAR         = 315360000
 };
 
-enum ActiveSlot : unsigned long
+enum HandSlot : unsigned long
 {
 	Left                  = 0,
 	Right                 = 1

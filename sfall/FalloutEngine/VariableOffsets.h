@@ -85,7 +85,7 @@
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
-#define FO_VAR_Experience_                0x6681B4
+#define FO_VAR_Experience_pc              0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_config             0x50281C
 #define FO_VAR_fallout_game_time          0x51C720
@@ -156,7 +156,7 @@
 #define FO_VAR_lastMovieW                 0x638E68
 #define FO_VAR_lastTime                   0x56FB58
 #define FO_VAR_lastWin                    0x51DD80
-#define FO_VAR_Level_                     0x6681B0
+#define FO_VAR_Level_pc                   0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
 #define FO_VAR_lips_draw_head             0x519248
 #define FO_VAR_lipsFID                    0x518704
