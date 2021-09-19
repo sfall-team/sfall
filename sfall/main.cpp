@@ -74,6 +74,7 @@
 #include "Modules\Stats.h"
 #include "Modules\TalkingHeads.h"
 #include "Modules\Tiles.h"
+#include "Modules\Unarmed.h"
 #include "Modules\Worldmap.h"
 
 #include "CRC.h"
@@ -121,6 +122,7 @@ static void InitModules() {
 	manager.add<Books>();
 	manager.add<Criticals>();
 	manager.add<Elevators>();
+	manager.add<Unarmed>();
 
 	manager.add<Animations>();
 	manager.add<BarBoxes>();

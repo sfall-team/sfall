@@ -364,6 +364,9 @@
     <ClInclude Include="Game\AI\AIHelpers.h">
       <Filter>Game\AI</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Unarmed.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -668,6 +671,9 @@
     </ClCompile>
     <ClCompile Include="Game\AI\AIHelpers.cpp">
       <Filter>Game\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Unarmed.cpp">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

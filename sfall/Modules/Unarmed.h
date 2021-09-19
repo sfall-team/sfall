@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009  The sfall team
+ *    Copyright (C) 2008-2021  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -23,16 +23,13 @@
 namespace sfall
 {
 
-class DamageMod : public Module {
+class Unarmed : public Module {
 public:
-	const char* name() { return "DamageMod"; }
+	const char* name() { return "Unarmed"; }
 	void init();
+	//void exit() override;
 
-	static int formula;
-	static void DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty);
-	static void DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty);
-
-	static long GetHtHMinDamageBonus(fo::GameObject* source);
+	static long GetHitAPCost(fo::AttackType hit);
 };
 
 }

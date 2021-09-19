@@ -37,8 +37,8 @@ public:
 	static long __fastcall item_weapon_mp_cost(fo::GameObject* source, fo::GameObject* weapon, long hitMode, long isCalled);
 
 	// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-	// Note: Use the generic item_mp_cost function which has a hook call
-	static long item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled);
+	// Note: Can use the generic item_mp_cost_ function which has a hook call
+	static long __fastcall item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled);
 };
 
 }

@@ -22,6 +22,8 @@
 #include "..\Logging.h"
 #include "HookScripts.h"
 
+#include "..\Game\stats.h"
+
 #include "DamageMod.h"
 
 namespace sfall
@@ -320,7 +322,7 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 		retn;
 	}
 }
-
+/*
 static __declspec(naked) void HtHDamageFix1a_hack() {
 	using namespace fo;
 	__asm {
@@ -337,7 +339,7 @@ fix:
 		retn;
 	}
 }
-
+*/
 static __declspec(naked) void HtHDamageFix1b_hook() {
 	using namespace fo;
 	__asm {
@@ -399,6 +401,14 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	}
 }
 
+static bool bonusHtHDamageFix = false;
+
+long DamageMod::GetHtHMinDamageBonus(fo::GameObject* source) {
+	return (bonusHtHDamageFix)
+	       ? game::Stats::perk_level(source, fo::Perk::PERK_bonus_hth_damage) << 1 // Rank_of_Bonus_HtH_Damage_perk *= 2
+	       : 0;
+}
+
 void DamageMod::init() {
 	if (formula = IniReader::GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
@@ -414,7 +424,9 @@ void DamageMod::init() {
 
 	int BonusHtHDmgFix = IniReader::GetConfigInt("Misc", "BonusHtHDamageFix", 1);
 	int DisplayBonusDmg = IniReader::GetConfigInt("Misc", "DisplayBonusDamage", 0);
+
 	if (BonusHtHDmgFix) {
+		bonusHtHDamageFix = true;
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		if (DisplayBonusDmg == 0) {                           // Subtract damage from perk bonus (vanilla displaying)
 			HookCalls(MeleeDmgDisplayPrintFix_hook, {
@@ -426,7 +438,7 @@ void DamageMod::init() {
 				0x472546                                      // Unarmed    (display_stats_)
 			});
 		}
-		MakeCall(0x478492, HtHDamageFix1a_hack);              // Unarmed    (item_w_damage_)
+		//MakeCall(0x478492, HtHDamageFix1a_hack);            // Unarmed    (item_w_damage_)
 		HookCall(0x47854C, HtHDamageFix1b_hook);              // MeleeWeap  (item_w_damage_)
 		dlogr(" Done", DL_INIT);
 	}

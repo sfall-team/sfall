@@ -102,7 +102,7 @@ long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, 
 	       ? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
 	       : cost;
 }
-
+/*
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
@@ -129,7 +129,7 @@ static void __declspec(naked) CalcApCostHook() {
 		retn;
 	}
 }
-
+*/
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
@@ -281,13 +281,11 @@ static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* atta
 	}
 	EndHook();
 }
-
 /*
 void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker) {
 	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);
 }
 */
-
 static void __declspec(naked) FindTargetHook() {
 	__asm {
 		push eax;
@@ -311,9 +309,10 @@ static void __declspec(naked) ItemDamageHook() {
 	}
 	argCount = 6;
 
-	if (args[2] == 0) {  // weapon arg
-		args[4] += 8;    // type arg
-	}
+	// tweak for 0x4784AA (obsolete)
+	//if (args[2] == 0) { // weapon arg
+	//	args[4] += 8;     // type arg
+	//}
 
 	RunHookScript(HOOK_ITEMDAMAGE);
 
@@ -610,7 +609,6 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		retn;
 	}
 }
-
 /*
 fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject* source, fo::GameObject* weapon1, fo::GameObject* weapon2, fo::GameObject* target) {
 	return (HookScripts::HookHasScript(HOOK_BESTWEAPON))
@@ -618,7 +616,6 @@ fo::GameObject* BestWeaponHook_Invoke(fo::GameObject* bestWeapon, fo::GameObject
 	       : bestWeapon;
 }
 */
-
 static bool __stdcall CanUseWeaponHook_Script(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	BeginHook();
 	argCount = 4;
@@ -695,18 +692,18 @@ void Inject_AfterHitRollHook() {
 }
 
 void Inject_CalcApCostHook() {
-	HookCalls(CalcApCostHook, {
-		0x42307A,
-		0x42669F,
-		0x42687B,
-		0x42A625,
-		0x42A655,
-		0x42A686,
-		0x42AE32,
-		0x42AE71,
-		0x460048,
-		0x47807B
-	});
+	//HookCalls(CalcApCostHook, {
+	//	0x42307A,
+	//	0x42669F,
+	//	0x42687B,
+	//	0x42A625,
+	//	0x42A655,
+	//	0x42A686,
+	//	0x42AE32,
+	//	0x42AE71,
+	//	0x460048,
+	//	0x47807B
+	//});
 	MakeCall(0x478083, CalcApCostHook2);
 }
 
