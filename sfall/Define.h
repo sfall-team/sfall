@@ -733,6 +733,12 @@ enum TicksTime : unsigned long
 	ONE_GAME_YEAR         = 315360000
 };
 
+enum HandSlot : unsigned long
+{
+	HANDSLOT_Left         = 0,
+	HANDSLOT_Right        = 1
+};
+
 enum RollResult
 {
 	ROLL_CRITICAL_FAILURE = 0x0,

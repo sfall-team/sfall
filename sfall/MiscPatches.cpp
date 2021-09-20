@@ -217,8 +217,8 @@ static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
 	if (toSlot && GetItemType(item) != item_type_weapon && GetItemType(toSlot) != item_type_weapon) {
 		return;
 	}
-	ItemButtonItem* leftSlot  = &ptr_itemButtonItems[0];
-	ItemButtonItem* rightSlot = &ptr_itemButtonItems[1];
+	ItemButtonItem* leftSlot  = &ptr_itemButtonItems[HANDSLOT_Left];
+	ItemButtonItem* rightSlot = &ptr_itemButtonItems[HANDSLOT_Right];
 
 	if (toSlot == nullptr) { // copy to slot
 		ItemButtonItem* dstSlot;
@@ -238,13 +238,13 @@ static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
 	} else { // swap slots
 		ItemButtonItem hands[2];
 		std::memcpy(hands, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
-		hands[0].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
-		hands[0].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
-		hands[1].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
-		hands[1].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
+		hands[HANDSLOT_Left].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
+		hands[HANDSLOT_Left].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
+		hands[HANDSLOT_Right].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
+		hands[HANDSLOT_Right].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
 
-		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
-		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[HANDSLOT_Right], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[HANDSLOT_Left],  0x14); // Lslot > Rslot
 	}
 }
 
@@ -265,6 +265,46 @@ skip:
 		retn;
 end:
 		mov  dword ptr [esp], 0x4715B7;
+		retn;
+	}
+}
+
+static long pHitL, sHitL, modeL = -2;
+static long pHitR, sHitR, modeR = -2;
+
+static long intface_update_items_hack_begin() {
+	if (!ptr_itemButtonItems[HANDSLOT_Left].item && !fo_inven_left_hand(*ptr_obj_dude)) {
+		modeL = ptr_itemButtonItems[HANDSLOT_Left].mode;
+		pHitL = ptr_itemButtonItems[HANDSLOT_Left].primaryAttack;
+		sHitL = ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack;
+	}
+	if (!ptr_itemButtonItems[HANDSLOT_Right].item && !fo_inven_right_hand(*ptr_obj_dude)) {
+		modeR = ptr_itemButtonItems[HANDSLOT_Right].mode;
+		pHitR = ptr_itemButtonItems[HANDSLOT_Right].primaryAttack;
+		sHitR = ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack;
+	}
+	return *ptr_itemCurrentItem;
+}
+
+static void intface_update_restore() {
+	if (modeL != -2 && pHitL == ptr_itemButtonItems[HANDSLOT_Left].primaryAttack &&
+	    sHitL == ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack)
+	{
+		ptr_itemButtonItems[HANDSLOT_Left].mode = modeL;
+	}
+	if (modeR != -2 && pHitR == ptr_itemButtonItems[HANDSLOT_Right].primaryAttack &&
+	    sHitR == ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack)
+	{
+		ptr_itemButtonItems[HANDSLOT_Right].mode = modeR;
+	}
+	modeL = -2;
+	modeR = -2;
+}
+
+static void __declspec(naked) intface_update_items_hack_end() {
+	__asm {
+		call intface_update_restore;
+		cmp  [esp + 0x1C - 0x18 + 4], 0; // animate
 		retn;
 	}
 }
@@ -588,10 +628,13 @@ static void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
-static void KeepWeaponSelectModePatch() {
+static void KeepSelectModePatch() {
 	//if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
-		dlog("Applying keep weapon select mode patch.", DL_INIT);
+		dlog("Applying keep selected attack mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
+		// Keep unarmed mode
+		MakeCall(0x45F019, intface_update_items_hack_begin);
+		MakeCall(0x45F380, intface_update_items_hack_end);
 		dlogr(" Done", DL_INIT);
 	//}
 }
@@ -942,7 +985,7 @@ void MiscPatches_Init() {
 	NumbersInDialoguePatch();
 
 	DisplaySecondWeaponRangePatch();
-	KeepWeaponSelectModePatch();
+	KeepSelectModePatch();
 
 	SkipLoadingGameSettingsPatch();
 
