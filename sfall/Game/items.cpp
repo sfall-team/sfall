@@ -25,7 +25,7 @@ namespace game
 namespace sf = sfall;
 
 constexpr int reloadAPCost = 2;  // engine default reload AP cost
-constexpr int unarmedAPCost = 3; // engine default use item AP cost
+constexpr int unarmedAPCost = 3; // engine default unarmed AP cost
 
 static std::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
 
@@ -195,7 +195,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 }
 
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-long __fastcall Items::item_w_mp_cost(fo::GameObject* source, long hitMode, long isCalled) {
+long __fastcall Items::item_w_mp_cost(fo::GameObject* source, fo::AttackType hitMode, long isCalled) {
 	fo::GameObject* handItem = nullptr;
 
 	switch (hitMode) {
@@ -219,7 +219,7 @@ long __fastcall Items::item_w_mp_cost(fo::GameObject* source, long hitMode, long
 	// unarmed hits
 	long cost = unarmedAPCost;
 	if (hitMode == fo::AttackType::ATKTYPE_PUNCH || hitMode == fo::AttackType::ATKTYPE_KICK || hitMode >= fo::AttackType::ATKTYPE_STRONGPUNCH) {
-		cost = sf::Unarmed::GetHitAPCost((fo::AttackType)hitMode);
+		cost = sf::Unarmed::GetHitAPCost(hitMode);
 	}
 
 	// return cost
@@ -244,7 +244,7 @@ static void __declspec(naked) item_w_mp_cost_hack() {
 }
 
 void Items::init() {
-	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
+	// Replace the item_w_primary_mp_cost_ function with the sfall implementation in ai_search_inven_weap_
 	sf::HookCall(0x429A08, ai_search_inven_weap_hook);
 
 	// Replace the item_w_mp_cost_ function with the sfall implementation

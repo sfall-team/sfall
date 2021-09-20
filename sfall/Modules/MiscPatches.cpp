@@ -225,8 +225,8 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 	if (toSlot && fo::util::GetItemType(item) != fo::item_type_weapon && fo::util::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
-	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[0];
-	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[1];
+	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[fo::HandSlot::Left];
+	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[fo::HandSlot::Right];
 
 	if (toSlot == nullptr) { // copy to slot
 		fo::ItemButtonItem* dstSlot;
@@ -245,13 +245,13 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
 		auto hands = fo::var::itemButtonItems;
-		hands[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		hands[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		hands[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		hands[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[fo::HandSlot::Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
-		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[fo::HandSlot::Right], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[fo::HandSlot::Left],  0x14); // Lslot > Rslot
 	}
 }
 
@@ -272,6 +272,46 @@ skip:
 		retn;
 end:
 		mov  dword ptr [esp], 0x4715B7;
+		retn;
+	}
+}
+
+static long pHitL, sHitL, modeL = -2;
+static long pHitR, sHitR, modeR = -2;
+
+static long intface_update_items_hack_begin() {
+	if (!fo::var::itemButtonItems[fo::HandSlot::Left].item && !fo::func::inven_left_hand(fo::var::obj_dude)) {
+		modeL = fo::var::itemButtonItems[fo::HandSlot::Left].mode;
+		pHitL = fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack;
+		sHitL = fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack;
+	}
+	if (!fo::var::itemButtonItems[fo::HandSlot::Right].item && !fo::func::inven_right_hand(fo::var::obj_dude)) {
+		modeR = fo::var::itemButtonItems[fo::HandSlot::Right].mode;
+		pHitR = fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack;
+		sHitR = fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack;
+	}
+	return fo::var::itemCurrentItem;
+}
+
+static void intface_update_restore() {
+	if (modeL != -2 && pHitL == fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack &&
+	    sHitL == fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack)
+	{
+		fo::var::itemButtonItems[fo::HandSlot::Left].mode = modeL;
+	}
+	if (modeR != -2 && pHitR == fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack &&
+	    sHitR == fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack)
+	{
+		fo::var::itemButtonItems[fo::HandSlot::Right].mode = modeR;
+	}
+	modeL = -2;
+	modeR = -2;
+}
+
+static void __declspec(naked) intface_update_items_hack_end() {
+	__asm {
+		call intface_update_restore;
+		cmp  [esp + 0x1C - 0x18 + 4], 0; // animate
 		retn;
 	}
 }
@@ -630,10 +670,13 @@ static void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
-static void KeepWeaponSelectModePatch() {
+static void KeepSelectModePatch() {
 	//if (IniReader::GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
-		dlog("Applying keep weapon select mode patch.", DL_INIT);
+		dlog("Applying keep selected attack mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
+		// Keep unarmed mode
+		MakeCall(0x45F019, intface_update_items_hack_begin);
+		MakeCall(0x45F380, intface_update_items_hack_end);
 		dlogr(" Done", DL_INIT);
 	//}
 }
@@ -942,7 +985,7 @@ void MiscPatches::init() {
 	DisableHorriganPatch();
 
 	DisplaySecondWeaponRangePatch();
-	KeepWeaponSelectModePatch();
+	KeepSelectModePatch();
 
 	PartyMemberSkillPatch();
 

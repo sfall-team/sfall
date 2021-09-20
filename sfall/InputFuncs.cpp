@@ -303,7 +303,7 @@ public:
 
 				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 
-				if ((long)dxKey > 0 && dxKey != buf[i].dwOfs) {
+				if ((signed)dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = dxKey; // Override key
 					keysDown[buf[i].dwOfs] = state;
