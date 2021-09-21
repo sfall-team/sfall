@@ -343,7 +343,26 @@ long Unarmed::GetHitAPCost(fo::AttackType hit) {
 	return unarmed.Hit(hit).apCost;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static void __declspec(naked) statPCAddExperienceCheckPMs_hook() {
+	__asm {
+		call fo::funcoffs::intface_update_hit_points_;
+		sub  esp, 8;
+		lea  edx, [esp + 4]; // modeR
+		mov  eax, esp;       // modeL
+		call fo::funcoffs::intface_get_item_states_;
+		pop  edx;
+		pop  ebx;
+		xor  eax, eax;
+		jmp  fo::funcoffs::intface_update_items_;
+	}
+}
+
 void Unarmed::init() {
+	// Update unarmed attack after leveling up
+	HookCall(0x4AFC15, statPCAddExperienceCheckPMs_hook);
+
 	unarmed = Hits();
 
 	auto unarmedFile = IniReader::GetConfigString("Misc", "UnarmedFile", "", MAX_PATH);
@@ -381,7 +400,7 @@ void Unarmed::init() {
 				val = IniReader::GetInt(sHit, "Penetrate", -1, file);
 				if (val >= 0) hit.isPenetrate = (val != 0);
 
-				val = IniReader::GetInt(sHit, "Second", -1, file);
+				val = IniReader::GetInt(sHit, "Secondary", -1, file);
 				if (val >= 0) hit.isSecondary = (val != 0);
 
 				for (size_t s = 0; s < fo::Stat::STAT_base_count; _itoa(++s, &stat[4], 10)) {

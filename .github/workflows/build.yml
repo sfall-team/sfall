@@ -36,16 +36,16 @@ jobs:
   - name:  Prepare artifact
     run:   |
            :
-           mkdir -p ddraw
+           mkdir -p sfall-build
 
-           cp artifacts/ddraw.ini ddraw
-           cp artifacts/sfall.dat ddraw
-           cp "${{ steps.build.outputs.release-xp }}" ddraw
+           cp artifacts/ddraw.ini sfall-build
+           cp artifacts/sfall.dat sfall-build
+           cp "${{ steps.build.outputs.release-xp }}" sfall-build
     shell: bash
 
   - name: Upload artifacts
     uses: actions/upload-artifact@v2
     with:
-     name:           ddraw
-     path:           ddraw
+     name:           sfall-build
+     path:           sfall-build
      retention-days: 14
