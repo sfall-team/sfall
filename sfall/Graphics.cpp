@@ -295,7 +295,7 @@ static void WindowInit() {
 	LoadGlobalShader();
 }
 
-static void CenterWindow() {
+static void SetWindowToCenter() {
 	RECT desktop;
 	GetWindowRect(GetDesktopWindow(), &desktop);
 
@@ -1202,7 +1202,7 @@ HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 			windowLeft = windowData >> 16;
 			windowTop = windowData & 0xFFFF;
 		} else if (windowData == -1) {
-			CenterWindow();
+			SetWindowToCenter();
 		}
 	}
 

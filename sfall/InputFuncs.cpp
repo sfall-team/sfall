@@ -200,15 +200,18 @@ public:
 
 		DIMOUSESTATE2 MouseState;
 		HRESULT hr;
-		int numButtons;
-		if (formatLock) hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE2), &MouseState);
-		else hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE), &MouseState);
+		if (formatLock)
+			hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE2), &MouseState);
+		else
+			hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE), &MouseState);
 		if (FAILED(hr)) return hr;
+
 		if (reverseMouse) {
 			BYTE tmp = MouseState.rgbButtons[0];
 			MouseState.rgbButtons[0] = MouseState.rgbButtons[1];
 			MouseState.rgbButtons[1] = tmp;
 		}
+
 		if (adjustMouseSpeed) {
 			double d = ((double)MouseState.lX) * mouseSpeedMod + mousePartX;
 			mousePartX = std::modf(d, &d);
@@ -217,6 +220,7 @@ public:
 			mousePartY = std::modf(d, &d);
 			MouseState.lY = (long)d;
 		}
+
 		if (useScrollWheel) {
 			int count = 1;
 			if (MouseState.lZ > 0) {
@@ -241,6 +245,7 @@ public:
 				}
 			}
 		}
+
 		if (middleMouseKey && MouseState.rgbButtons[2]) {
 			if (!middleMouseDown) {
 				TapKey(middleMouseKey);
@@ -250,14 +255,14 @@ public:
 		mouseX = MouseState.lX;
 		mouseY = MouseState.lY;
 
-		numButtons = formatLock ? 8 : 4;
+		int numButtons = formatLock ? 8 : 4;
 		for (int i = 0; i < numButtons; i++) {
 			if ((MouseState.rgbButtons[i] & 0x80) != (keysDown[256 + i] & 0x80)) { // state changed
 				MouseClickHook(i, (MouseState.rgbButtons[i] & 0x80) > 0);
 			}
 			keysDown[256 + i] = MouseState.rgbButtons[i];
 		}
-		memcpy(b, &MouseState, sizeof(DIMOUSESTATE));
+		std::memcpy(b, &MouseState, sizeof(DIMOUSESTATE));
 		return 0;
 	}
 
@@ -433,9 +438,9 @@ HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c,
 	*c = (IDirectInputA*)new FakeDirectInput(*c);
 
 	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
-
 	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
 	wheelMod = GetConfigInt("Input", "ScrollMod", 0);
+
 	long MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
 		adjustMouseSpeed = true;
