@@ -47,8 +47,8 @@ private:
 	};
 
 	struct SortHits {
-		char level;
-		char hit; // index in Hits class
+		BYTE level;
+		BYTE hit; // index in Hits class
 	};
 
 	// sorted in descending order of the required stats in group hits
@@ -371,7 +371,7 @@ void Unarmed::init() {
 		if (GetFileAttributes(file) != INVALID_FILE_ATTRIBUTES) { // check if file exists
 			char stat[6] = "Stat0";
 			char sHit[4] = "0";
-			for (size_t i = fo::AttackType::ATKTYPE_PUNCH; i < Hits::count; _itoa(++i, sHit, 10)) {
+			for (size_t i = 0; i < Hits::count; _itoa(++i, sHit, 10)) {
 				if (i < fo::ATKTYPE_STRONGPUNCH && i != fo::ATKTYPE_PUNCH && i != fo::ATKTYPE_KICK) continue;
 
 				auto& hit = unarmed.Hit(i);

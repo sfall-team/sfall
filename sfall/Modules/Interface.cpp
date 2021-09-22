@@ -594,7 +594,7 @@ static void AddNewDot() {
 	dots.emplace_back(dot_xpos, dot_ypos);
 }
 
-static void __declspec(naked) DrawingDots() {
+static void __declspec(naked) DrawingDots() noexcept {
 	long x_offset,  y_offset;
 	__asm {
 		mov ebp, esp; // prolog
