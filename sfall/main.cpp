@@ -72,6 +72,7 @@
 #include "TalkingHeads.h"
 #include "Tiles.h"
 #include "Translate.h"
+#include "Unarmed.h"
 #include "version.h"
 #include "Worldmap.h"
 
@@ -126,6 +127,9 @@ static void InitModules() {
 
 	dlogr("Running Elevators_Init().", DL_INIT);
 	Elevators_Init();
+
+	dlogr("Running Unarmed_Init().", DL_INIT);
+	Unarmed_Init();
 
 	dlogr("Running Animations_Init().", DL_INIT);
 	Animations_Init();
@@ -244,6 +248,7 @@ static void __stdcall OnExit() {
 	Graphics_Exit();
 	//EngineTweaks_Exit();
 	Books_Exit();
+	//Unarmed_Exit();
 	//Animations_Exit();
 	BarBoxes_Exit();
 	//Message_Exit();

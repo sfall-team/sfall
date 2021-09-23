@@ -265,6 +265,9 @@
     <ClInclude Include="EngineTweaks.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Unarmed.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Console.cpp">
@@ -443,6 +446,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="EngineTweaks.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Unarmed.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

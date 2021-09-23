@@ -21,6 +21,8 @@
 #include "FalloutEngine.h"
 #include "Logging.h"
 
+#include "ReplacementFuncs.h"
+
 static int formula;
 
 static const DWORD DamageFunctionReturn = 0x424A63;
@@ -362,7 +364,7 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 		retn;
 	}
 }
-
+/*
 static __declspec(naked) void HtHDamageFix1a_hack() {
 	__asm {
 		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
@@ -378,7 +380,7 @@ fix:
 		retn;
 	}
 }
-
+*/
 static __declspec(naked) void HtHDamageFix1b_hook() {
 	__asm {
 		call stat_level_;                              // Get Total_Melee_Damage
@@ -436,6 +438,14 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	}
 }
 
+static bool bonusHtHDamageFix = false;
+
+long DamageMod_GetHtHMinDamageBonus(TGameObj* source) {
+	return (bonusHtHDamageFix)
+	       ? sfgame_perk_level(source, PERK_bonus_hth_damage) << 1 // Rank_of_Bonus_HtH_Damage_perk *= 2
+	       : 0;
+}
+
 void DamageMod_Init() {
 	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
@@ -451,7 +461,9 @@ void DamageMod_Init() {
 
 	int BonusHtHDmgFix = GetConfigInt("Misc", "BonusHtHDamageFix", 1);
 	int DisplayBonusDmg = GetConfigInt("Misc", "DisplayBonusDamage", 0);
+
 	if (BonusHtHDmgFix) {
+		bonusHtHDamageFix = true;
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		if (DisplayBonusDmg == 0) {                           // Subtract damage from perk bonus (vanilla displaying)
 			const DWORD meleeDmgDispPrtAddr[] = {
@@ -465,7 +477,7 @@ void DamageMod_Init() {
 			};
 			HookCalls(CommonDmgRngDispFix_hook, commonDmgRngDispAddr);
 		}
-		MakeCall(0x478492, HtHDamageFix1a_hack);              // Unarmed    (item_w_damage_)
+		//MakeCall(0x478492, HtHDamageFix1a_hack);            // Unarmed    (item_w_damage_)
 		HookCall(0x47854C, HtHDamageFix1b_hook);              // MeleeWeap  (item_w_damage_)
 		dlogr(" Done", DL_INIT);
 	}

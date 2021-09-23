@@ -26,6 +26,7 @@
 #include "HookScripts.h"
 #include "PartyControl.h"
 #include "Perks.h"
+#include "Unarmed.h"
 
 #include "ReplacementFuncs.h"
 
@@ -295,7 +296,8 @@ static void __declspec(naked) adjust_fid_hack() {
 
 //////////////////////////////////// ITEMS /////////////////////////////////////
 
-static const int reloadCostAP = 2; // engine default reload AP cost
+static const int reloadAPCost = 2;  // engine default reload AP cost
+static const int unarmedAPCost = 3; // engine default use item AP cost
 
 static std::tr1::array<long, 3> healingItemPids = {PID_STIMPAK, PID_SUPER_STIMPAK, PID_HEALING_POWDER};
 
@@ -321,7 +323,7 @@ bool __fastcall sfgame_IsHealingItem(TGameObj* item) {
 }
 
 bool __stdcall sfgame_UseDrugItemFunc(TGameObj* source, TGameObj* item) {
-	bool result = (sfgame_item_d_take_drug(source, item) == -1);
+	bool result = (sfgame_item_d_take_drug(source, item) == -1); // HOOK_USEOBJON
 	if (result) {
 		fo_item_add_force(source, item, 1);
 	} else {
@@ -370,7 +372,7 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 	long type = GetWeaponType(flagExt);
 
 	if (type == ATKSUBTYPE_THROWING) {
-		long heaveHoMod = fo_perk_level(source, PERK_heave_ho);
+		long heaveHoMod = sfgame_perk_level(source, PERK_heave_ho);
 		long stRange = fo_stat_level(source, STAT_st);
 
 		if (perkHeaveHoModTweak) {
@@ -393,7 +395,34 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 //	return sfgame_item_weapon_range(source, fo_item_hit_with(source, hitMode), hitMode);
 //}
 
-static bool fastShotTweak = false;
+static int fastShotTweak;
+
+static long item_w_mp_cost_sub(TGameObj* source, TGameObj* item, long hitMode, long isCalled, long cost) {
+	if (isCalled) cost++;
+	if (cost < 0) cost = 0;
+
+	long type = fo_item_w_subtype(item, hitMode);
+
+	if (source->protoId == PID_Player && DudeHasTrait(TRAIT_fast_shot)) {
+		// Alternative behaviors of the Fast Shot trait
+		if (item && fastShotTweak > 2) { // Fallout 1 behavior (allowed for all weapons)
+			cost--;
+		} else if (fastShotTweak == 2) { // Alternative behavior (allowed for all attacks)
+			cost--;
+		} else if (fastShotTweak < 2 && type > ATKSUBTYPE_MELEE && fo_item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
+			cost--;
+		}
+	}
+	if ((type == ATKSUBTYPE_MELEE || type == ATKSUBTYPE_UNARMED) && sfgame_perk_level(source, PERK_bonus_hth_attacks)) {
+		cost--;
+	}
+	if (type == ATKSUBTYPE_GUNS && sfgame_perk_level(source, PERK_bonus_rate_of_fire)) {
+		cost--;
+	}
+	if (cost < 1) cost = 1;
+
+	return cost;
+}
 
 // Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
 long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled) {
@@ -411,40 +440,18 @@ long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, l
 	case ATKTYPE_LWEAPON_RELOAD:
 	case ATKTYPE_RWEAPON_RELOAD:
 		if (weapon && weapon->protoId != PID_SOLAR_SCORCHER) { // Solar Scorcher has no reload AP cost
-			cost = reloadCostAP;
+			cost = reloadAPCost;
 			if (GetProto(weapon->protoId)->item.weapon.perk == PERK_weapon_fast_reload) {
 				cost--;
 			}
 		}
+		goto endReload;
 	}
-	if (hitMode < ATKTYPE_LWEAPON_RELOAD) {
-		if (isCalled) cost++;
-		if (cost < 0) cost = 0;
 
-		long type = fo_item_w_subtype(weapon, hitMode);
+	cost = item_w_mp_cost_sub(source, weapon, hitMode, isCalled, cost);
 
-		if (source->protoId == PID_Player && DudeHasTrait(TRAIT_fast_shot)) {
-			if (fastShotTweak || // Fallout 1 behavior and Alternative behavior (allowed for all weapons)
-			    (fo_item_w_range(source, hitMode) >= 2 && type > ATKSUBTYPE_MELEE)) // Fallout 2 behavior (with fix) and Haenlomal's tweak
-			{
-				cost--;
-			}
-		}
-		if ((type == ATKSUBTYPE_MELEE || type == ATKSUBTYPE_UNARMED) && fo_perk_level(source, PERK_bonus_hth_attacks)) {
-			cost--;
-		}
-		if (type == ATKSUBTYPE_GUNS && fo_perk_level(source, PERK_bonus_rate_of_fire)) {
-			cost--;
-		}
-		if (cost < 1) cost = 1;
-	}
-	return CalcApCostHook_Invoke(source, hitMode, isCalled, cost, weapon);
-}
-
-// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-long __stdcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled) {
-	long cost = fo_item_w_mp_cost(source, hitMode, isCalled);
-	return CalcApCostHook_Invoke(source, hitMode, isCalled, cost, nullptr);
+endReload:
+	return CalcApCostHook_Invoke(source, hitMode, isCalled, cost, weapon); // return cost
 }
 
 static void __declspec(naked) ai_search_inven_weap_hook() {
@@ -454,6 +461,54 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		mov  edx, esi; // found weapon
 		mov  ecx, edi; // source
 		call sfgame_item_weapon_mp_cost;
+		retn;
+	}
+}
+
+// Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
+long __fastcall sfgame_item_w_mp_cost(TGameObj* source, AttackType hitMode, long isCalled) {
+	TGameObj* handItem = nullptr;
+
+	switch (hitMode) {
+	case ATKTYPE_LWEAPON_PRIMARY:
+	case ATKTYPE_LWEAPON_SECONDARY:
+	case ATKTYPE_LWEAPON_RELOAD:
+		handItem = fo_inven_left_hand(source);
+		break;
+	case ATKTYPE_RWEAPON_PRIMARY:
+	case ATKTYPE_RWEAPON_SECONDARY:
+	case ATKTYPE_RWEAPON_RELOAD:
+		handItem = fo_inven_right_hand(source);
+		break;
+	default:
+		break;
+	}
+	if (handItem) {
+		return sfgame_item_weapon_mp_cost(source, handItem, hitMode, isCalled);
+	}
+
+	// unarmed hits
+	long cost = unarmedAPCost;
+	if (hitMode == ATKTYPE_PUNCH || hitMode == ATKTYPE_KICK || hitMode >= ATKTYPE_STRONGPUNCH) {
+		cost = Unarmed_GetHitAPCost(hitMode);
+	}
+
+	// return cost
+	return CalcApCostHook_Invoke(
+		source,
+		hitMode,
+		isCalled,
+		item_w_mp_cost_sub(source, nullptr, hitMode, isCalled, cost),
+		nullptr
+	);
+}
+
+static void __declspec(naked) item_w_mp_cost_hack() {
+	__asm {
+		push ebx;      // isCalled
+		mov  ecx, eax; // source
+		call sfgame_item_w_mp_cost;
+		pop  ecx;
 		retn;
 	}
 }
@@ -675,6 +730,12 @@ static bool smallFrameTraitFix = false;
 
 int __stdcall sfgame_trait_level(DWORD traitID) {
 	return DudeHasTrait(traitID);
+}
+
+// Wrapper of perk_level_ function, for quickly skipping other critters
+int __stdcall sfgame_perk_level(TGameObj* source, DWORD perkID) {
+	if (source != *ptr_obj_dude) return 0;
+	return fo_perk_level(source, perkID);
 }
 
 static int DudeGetBaseStat(DWORD statID) {
@@ -911,11 +972,13 @@ void InitReplacementHacks() {
 	// Replace adjust_fid_ function
 	MakeJump(adjust_fid_, adjust_fid_hack); // 0x4716E8
 
-	// Replace the item_w_primary_mp_cost_ function with the sfall implementation
+	// Replace the item_w_primary_mp_cost_ function with the sfall implementation in ai_search_inven_weap_
 	HookCall(0x429A08, ai_search_inven_weap_hook);
 
-	int fastShotFix = GetConfigInt("Misc", "FastShotFix", 0);
-	fastShotTweak = (fastShotFix > 0 && fastShotFix <= 3);
+	// Replace the item_w_mp_cost_ function with the sfall implementation
+	MakeJump(item_w_mp_cost_ + 1, item_w_mp_cost_hack); // 0x478B25
+
+	fastShotTweak = GetConfigInt("Misc", "FastShotFix", 0);
 
 	// Replace the srcCopy_ function with a pure MMX implementation
 	MakeJump(buf_to_buf_, fo_buf_to_buf); // 0x4D36D4

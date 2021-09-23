@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009  The sfall team
+ *    Copyright (C) 2008-2021  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #pragma once
 
-void DamageMod_Init();
+void Unarmed_Init();
+//void Unarmed_Exit();
 
-long DamageMod_GetHtHMinDamageBonus(TGameObj* source);
+long Unarmed_GetHitAPCost(AttackType hit);

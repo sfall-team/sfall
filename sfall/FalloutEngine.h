@@ -591,6 +591,9 @@ long& GetActiveItemMode();
 
 TGameObj* GetActiveItem();
 
+// Hand: 0 - left, 1 - right
+AttackType GetSlotHitMode(HandSlot hand);
+
 long GetCurrentAttackMode();
 
 AttackSubType GetWeaponType(DWORD weaponFlag);

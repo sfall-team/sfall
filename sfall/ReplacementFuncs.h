@@ -60,8 +60,8 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, long hitMode, long isCalled);
 
 // Implementation of item_w_mp_cost_ engine function with the HOOK_CALCAPCOST hook
-// Note: Use the generic item_mp_cost function which has a hook call
-long __stdcall sfgame_item_w_mp_cost(TGameObj* source, long hitMode, long isCalled);
+// Note: Can use the generic item_mp_cost_ function which has a hook call
+long __fastcall sfgame_item_w_mp_cost(TGameObj* source, AttackType hitMode, long isCalled);
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
 long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType);
@@ -74,6 +74,8 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 int __stdcall sfgame_trait_adjust_skill(DWORD skillID);
 
 int __stdcall sfgame_trait_level(DWORD traitID);
+
+int __stdcall sfgame_perk_level(TGameObj* source, DWORD perkID);
 
 int __stdcall sfgame_trait_adjust_stat(DWORD statID);
 

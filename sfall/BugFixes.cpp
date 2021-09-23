@@ -113,7 +113,7 @@ isFloat:
 		jmp  NegateFixHack_Back;
 	}
 }
-
+/*
 static void __declspec(naked) compute_attack_hack() {
 	static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
 	__asm {
@@ -150,7 +150,7 @@ end:
 		jmp  UnarmedAttacksFixEnd;
 	}
 }
-
+*/
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call stat_level_                          // Perception
@@ -3161,7 +3161,7 @@ void BugFixes_Init()
 
 	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_FIX);
-		MakeJump(0x42394D, compute_attack_hack);
+		//MakeJump(0x42394D, compute_attack_hack); - implementation moved to Unarmed module
 		dlogr(" Done", DL_FIX);
 	//}
 

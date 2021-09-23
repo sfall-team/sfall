@@ -604,15 +604,15 @@ long GetItemType(TGameObj* item) {
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot) {
 	TGameObj* itemPtr = nullptr;
 	switch (slot) {
-		case INVEN_TYPE_LEFT_HAND:
-			itemPtr = fo_inven_left_hand(critter);
-			break;
-		case INVEN_TYPE_RIGHT_HAND:
-			itemPtr = fo_inven_right_hand(critter);
-			break;
-		case INVEN_TYPE_WORN:
-			itemPtr = fo_inven_worn(critter);
-			break;
+	case INVEN_TYPE_LEFT_HAND:
+		itemPtr = fo_inven_left_hand(critter);
+		break;
+	case INVEN_TYPE_RIGHT_HAND:
+		itemPtr = fo_inven_right_hand(critter);
+		break;
+	case INVEN_TYPE_WORN:
+		itemPtr = fo_inven_worn(critter);
+		break;
 	}
 	return itemPtr;
 }
@@ -625,24 +625,25 @@ TGameObj* GetActiveItem() {
 	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
 }
 
-long GetCurrentAttackMode() {
-	long hitMode = -1;
-	if (*ptr_interfaceWindow != -1) {
-		long activeHand = *ptr_itemCurrentItem; // 0 - left, 1 - right
-		switch (ptr_itemButtonItems[activeHand].mode) {
-		case 1:
-		case 2: // called shot
-			hitMode = ptr_itemButtonItems[activeHand].primaryAttack;
-			break;
-		case 3:
-		case 4: // called shot
-			hitMode = ptr_itemButtonItems[activeHand].secondaryAttack;
-			break;
-		case 5: // reload mode
-			hitMode = ATKTYPE_LWEAPON_RELOAD + activeHand;
-		}
+AttackType GetSlotHitMode(HandSlot hand) { // 0 - left, 1 - right
+	switch (ptr_itemButtonItems[hand].mode) {
+	case 1:
+	case 2: // called shot
+		return (AttackType)ptr_itemButtonItems[hand].primaryAttack;
+	case 3:
+	case 4: // called shot
+		return (AttackType)ptr_itemButtonItems[hand].secondaryAttack;
+	case 5: // reload mode
+		return (AttackType)(ATKTYPE_LWEAPON_RELOAD + hand);
 	}
-	return hitMode;
+	return ATKTYPE_PUNCH;
+}
+
+long GetCurrentAttackMode() {
+	if (*ptr_interfaceWindow != -1) {
+		return GetSlotHitMode((HandSlot)*ptr_itemCurrentItem);
+	}
+	return -1;
 }
 
 AttackSubType GetWeaponType(DWORD weaponFlag) {

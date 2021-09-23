@@ -263,7 +263,7 @@ long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCall
 	       ? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
 	       : cost;
 }
-
+/*
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
 		HookBegin;
@@ -290,7 +290,7 @@ static void __declspec(naked) CalcApCostHook() {
 		retn;
 	}
 }
-
+*/
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
@@ -619,7 +619,6 @@ defaultHandler:
 		jmp protinst_use_item_;
 	}
 }
-
 /*
 static void RemoveInvenObjHook_Script(TGameObj* source, TGameObj* item, long count, long rmType) {
 	BeginHook();
@@ -639,7 +638,6 @@ void RemoveInvenObjHook_Invoke(TGameObj* source, TGameObj* item, long count, lon
 	if (HookHasScript(HOOK_REMOVEINVENOBJ)) RemoveInvenObjHook_Script(source, item, count, rmType);
 }
 */
-
 static long rmObjType = -1;
 
 void __stdcall SetRemoveObjectType(long rmType) {
@@ -914,9 +912,10 @@ static void __declspec(naked) ItemDamageHook() {
 	}
 	argCount = 6;
 
-	if (args[2] == 0) {  // weapon arg
-		args[4] += 8;    // type arg
-	}
+	// tweak for 0x4784AA (obsolete)
+	//if (args[2] == 0) { // weapon arg
+	//	args[4] += 8;     // type arg
+	//}
 
 	RunHookScript(HOOK_ITEMDAMAGE);
 
@@ -1872,19 +1871,19 @@ void HookScripts_Init() {
 	MakeCall(0x423893, AfterHitRollHook);
 
 	// HOOK_CALCAPCOST
-	const DWORD calcApCostHkAddr[] = {
-		0x42307A,
-		0x42669F,
-		0x42687B,
-		0x42A625,
-		0x42A655,
-		0x42A686,
-		0x42AE32,
-		0x42AE71,
-		0x460048,
-		0x47807B
-	};
-	HookCalls(CalcApCostHook, calcApCostHkAddr);
+	//const DWORD calcApCostHkAddr[] = {
+	//	0x42307A,
+	//	0x42669F,
+	//	0x42687B,
+	//	0x42A625,
+	//	0x42A655,
+	//	0x42A686,
+	//	0x42AE32,
+	//	0x42AE71,
+	//	0x460048,
+	//	0x47807B
+	//};
+	//HookCalls(CalcApCostHook, calcApCostHkAddr);
 	MakeCall(0x478083, CalcApCostHook2);
 
 	// HOOK_DEATHANIM1, HOOK_DEATHANIM2

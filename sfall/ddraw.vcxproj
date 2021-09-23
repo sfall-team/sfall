@@ -124,7 +124,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -285,6 +285,7 @@
     <ClInclude Include="Tiles.h" />
     <ClInclude Include="SpeedPatch.h" />
     <ClInclude Include="Translate.h" />
+    <ClInclude Include="Unarmed.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="Logging.h" />
@@ -355,6 +356,7 @@
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="ExtraSaveSlots.cpp" />
     <ClCompile Include="Translate.cpp" />
+    <ClCompile Include="Unarmed.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Worldmap.cpp" />
   </ItemGroup>
