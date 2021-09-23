@@ -140,15 +140,15 @@ long GetItemType(fo::GameObject* item) {
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
 	fo::GameObject* itemPtr = nullptr;
 	switch (slot) {
-		case fo::InvenType::INVEN_TYPE_LEFT_HAND:
-			itemPtr = fo::func::inven_left_hand(critter);
-			break;
-		case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
-			itemPtr = fo::func::inven_right_hand(critter);
-			break;
-		case fo::InvenType::INVEN_TYPE_WORN:
-			itemPtr = fo::func::inven_worn(critter);
-			break;
+	case fo::InvenType::INVEN_TYPE_LEFT_HAND:
+		itemPtr = fo::func::inven_left_hand(critter);
+		break;
+	case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
+		itemPtr = fo::func::inven_right_hand(critter);
+		break;
+	case fo::InvenType::INVEN_TYPE_WORN:
+		itemPtr = fo::func::inven_worn(critter);
+		break;
 	}
 	return itemPtr;
 }
@@ -161,24 +161,25 @@ fo::GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
-long GetCurrentAttackMode() {
-	long hitMode = -1;
-	if (fo::var::interfaceWindow != -1) {
-		long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
-		switch (fo::var::itemButtonItems[activeHand].mode) {
-		case 1:
-		case 2: // called shot
-			hitMode = fo::var::itemButtonItems[activeHand].primaryAttack;
-			break;
-		case 3:
-		case 4: // called shot
-			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
-			break;
-		case 5: // reload mode
-			hitMode = fo::AttackType::ATKTYPE_LWEAPON_RELOAD + activeHand;
-		}
+fo::AttackType GetSlotHitMode(fo::HandSlot hand) { // 0 - left, 1 - right
+	switch (fo::var::itemButtonItems[hand].mode) {
+	case 1:
+	case 2: // called shot
+		return (fo::AttackType)fo::var::itemButtonItems[hand].primaryAttack;
+	case 3:
+	case 4: // called shot
+		return (fo::AttackType)fo::var::itemButtonItems[hand].secondaryAttack;
+	case 5: // reload mode
+		return (fo::AttackType)(fo::AttackType::ATKTYPE_LWEAPON_RELOAD + hand);
 	}
-	return hitMode;
+	return fo::AttackType::ATKTYPE_PUNCH;
+}
+
+long GetCurrentAttackMode() {
+	if (fo::var::interfaceWindow != -1) {
+		return GetSlotHitMode((fo::HandSlot)fo::var::itemCurrentItem);
+	}
+	return -1;
 }
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag) {

@@ -88,6 +88,9 @@ long& GetActiveItemMode();
 
 fo::GameObject* GetActiveItem();
 
+// Hand: 0 - left, 1 - right
+fo::AttackType GetSlotHitMode(fo::HandSlot hand);
+
 long GetCurrentAttackMode();
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag);

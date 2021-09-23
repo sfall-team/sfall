@@ -87,15 +87,6 @@ public:
 		hit[Types::strong_punch].reqSkill = 55;
 		hit[Types::strong_punch].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::strong_punch].bonusDamage = 3;
-		// secondary 1
-		hit[Types::jab].reqLevel = 5;
-		hit[Types::jab].reqSkill = 75;
-		hit[Types::jab].reqStat[fo::Stat::STAT_st] = 4;
-		hit[Types::jab].reqStat[fo::Stat::STAT_ag] = 6;
-		hit[Types::jab].bonusDamage = 3;
-		hit[Types::jab].bonusCrit = 10;
-		hit[Types::jab].isSecondary = true;
-
 		// primary 2
 		hit[Types::hammer_punch].reqLevel = 6;
 		hit[Types::hammer_punch].reqSkill = 75;
@@ -103,6 +94,22 @@ public:
 		hit[Types::hammer_punch].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::hammer_punch].bonusDamage = 5;
 		hit[Types::hammer_punch].bonusCrit = 5;
+		// primary 3
+		hit[Types::haymaker].reqLevel = 9;
+		hit[Types::haymaker].reqSkill = 100;
+		hit[Types::haymaker].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::haymaker].reqStat[fo::Stat::STAT_ag] = 7;
+		hit[Types::haymaker].bonusDamage = 7;
+		hit[Types::haymaker].bonusCrit = 15;
+
+		// punch secondary 1
+		hit[Types::jab].reqLevel = 5;
+		hit[Types::jab].reqSkill = 75;
+		hit[Types::jab].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::jab].reqStat[fo::Stat::STAT_ag] = 7;
+		hit[Types::jab].bonusDamage = 3;
+		hit[Types::jab].bonusCrit = 10;
+		hit[Types::jab].isSecondary = true;
 		// secondary 2
 		hit[Types::palm_strike].reqLevel = 12;
 		hit[Types::palm_strike].reqSkill = 115;
@@ -113,14 +120,6 @@ public:
 		hit[Types::palm_strike].apCost = 6;
 		hit[Types::palm_strike].isPenetrate = true;
 		hit[Types::palm_strike].isSecondary = true;
-
-		// primary 3
-		hit[Types::haymaker].reqLevel = 9;
-		hit[Types::haymaker].reqSkill = 100;
-		hit[Types::haymaker].reqStat[fo::Stat::STAT_st] = 5;
-		hit[Types::haymaker].reqStat[fo::Stat::STAT_ag] = 7;
-		hit[Types::haymaker].bonusDamage = 7;
-		hit[Types::haymaker].bonusCrit = 15;
 		// secondary 3
 		hit[Types::piercing_strike].reqLevel = 16;
 		hit[Types::piercing_strike].reqSkill = 130;
@@ -138,7 +137,22 @@ public:
 		hit[Types::strong_kick].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::strong_kick].bonusDamage = 5;
 		hit[Types::strong_kick].apCost = 4;
-		// secondary 1
+		// primary 2
+		hit[Types::snap_kick].reqLevel = 6;
+		hit[Types::snap_kick].reqSkill = 60;
+		hit[Types::snap_kick].reqStat[fo::Stat::STAT_ag] = 6;
+		hit[Types::snap_kick].bonusDamage = 7;
+		hit[Types::snap_kick].apCost = 4;
+		// primary 3
+		hit[Types::power_kick].reqLevel = 9;
+		hit[Types::power_kick].reqSkill = 80;
+		hit[Types::power_kick].reqStat[fo::Stat::STAT_st] = 6;
+		hit[Types::power_kick].reqStat[fo::Stat::STAT_ag] = 6;
+		hit[Types::power_kick].bonusDamage = 9;
+		hit[Types::power_kick].bonusCrit = 5;
+		hit[Types::power_kick].apCost = 4;
+
+		// kick secondary 1
 		hit[Types::hip_kick].reqLevel = 6;
 		hit[Types::hip_kick].reqSkill = 60;
 		hit[Types::hip_kick].reqStat[fo::Stat::STAT_st] = 6;
@@ -146,13 +160,6 @@ public:
 		hit[Types::hip_kick].bonusDamage = 7;
 		hit[Types::hip_kick].apCost = 7;
 		hit[Types::hip_kick].isSecondary = true;
-
-		// primary 2
-		hit[Types::snap_kick].reqLevel = 6;
-		hit[Types::snap_kick].reqSkill = 60;
-		hit[Types::snap_kick].reqStat[fo::Stat::STAT_ag] = 6;
-		hit[Types::snap_kick].bonusDamage = 7;
-		hit[Types::snap_kick].apCost = 4;
 		// secondary 2
 		hit[Types::hook_kick].reqLevel = 12;
 		hit[Types::hook_kick].reqSkill = 100;
@@ -163,15 +170,6 @@ public:
 		hit[Types::hook_kick].apCost = 7;
 		hit[Types::hook_kick].isPenetrate = true;
 		hit[Types::hook_kick].isSecondary = true;
-
-		// primary 3
-		hit[Types::power_kick].reqLevel = 9;
-		hit[Types::power_kick].reqSkill = 80;
-		hit[Types::power_kick].reqStat[fo::Stat::STAT_st] = 6;
-		hit[Types::power_kick].reqStat[fo::Stat::STAT_ag] = 6;
-		hit[Types::power_kick].bonusDamage = 9;
-		hit[Types::power_kick].bonusCrit = 5;
-		hit[Types::power_kick].apCost = 4;
 		// secondary 3
 		hit[Types::piercing_kick].reqLevel = 15;
 		hit[Types::piercing_kick].reqSkill = 125;
