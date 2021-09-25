@@ -84,6 +84,10 @@ long GetItemType(fo::GameObject* item);
 
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot);
 
+fo::AttackType GetHandSlotPrimaryAttack(fo::HandSlot slot);
+fo::AttackType GetHandSlotSecondaryAttack(fo::HandSlot slot);
+fo::HandSlotMode GetHandSlotMode(fo::HandSlot slot);
+
 long& GetActiveItemMode();
 
 fo::GameObject* GetActiveItem();

@@ -30,6 +30,10 @@ public:
 	//void exit() override;
 
 	static long GetHitAPCost(fo::AttackType hit);
+	static long GetDamage(fo::AttackType hit, long &minOut, long &maxOut);
+
+	static void SlotsStoreCurrentHitMode();
+	static fo::AttackType GetStoredHitMode(fo::HandSlot slot);
 };
 
 }

@@ -21,6 +21,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 #include "HookScripts.h"
+#include "Unarmed.h"
 
 #include "..\Game\stats.h"
 
@@ -383,25 +384,36 @@ static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 		jmp  fo::funcoffs::sprintf_;
 	}
 }
+static bool bonusHtHDamageFix = false;
+static bool displayBonusDamage = false;
+
+static long __fastcall GetHtHDamage(fo::GameObject* source, long &meleeDmg, long handOffset) {
+	long max, min;
+
+	fo::AttackType hit = Unarmed::GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
+	long bonus = Unarmed::GetDamage(hit, min, max);
+	meleeDmg += max + bonus;
+
+	long perkBonus = game::Stats::perk_level(source, fo::Perk::PERK_bonus_hth_damage) << 1;
+	if (!displayBonusDamage) meleeDmg -= perkBonus;
+	if (bonusHtHDamageFix && displayBonusDamage) min += perkBonus;
+
+	return min + bonus;
+}
 
 static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
-	static const DWORD DisplayBonusHtHDmg2Exit = 0x47254E;
-	using namespace fo;
+	static const DWORD DisplayBonusHtHDmg2Exit = 0x47254F;
 	__asm {
 		mov  ecx, eax;
-		call fo::funcoffs::stat_level_;
-		add  eax, 2;
-		push eax;                                      // max dmg
-		mov  edx, PERK_bonus_hth_damage;
-		mov  eax, ecx;
-		call fo::funcoffs::perk_level_;
-		shl  eax, 1;                                   // Multiply by 2
-		inc  eax;                                      // min dmg (1 + bonus)
+		call fo::funcoffs::stat_level_; // get STAT_melee_dmg
+		push eax;                       // max dmg (meleeDmg)
+		mov  edx, esp;                  // meleeDmg ref
+		push edi;                       // handOffset
+		call GetHtHDamage;
+		push eax;                       // min dmg
 		jmp  DisplayBonusHtHDmg2Exit;
 	}
 }
-
-static bool bonusHtHDamageFix = false;
 
 long DamageMod::GetHtHMinDamageBonus(fo::GameObject* source) {
 	return (bonusHtHDamageFix)
@@ -428,7 +440,8 @@ void DamageMod::init() {
 	if (BonusHtHDmgFix) {
 		bonusHtHDamageFix = true;
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
-		if (DisplayBonusDmg == 0) {                           // Subtract damage from perk bonus (vanilla displaying)
+		// Subtract damage from perk bonus (vanilla displaying)
+		if (DisplayBonusDmg == 0) {
 			HookCalls(MeleeDmgDisplayPrintFix_hook, {
 				0x435C0C,                                     // DisplayFix (ListDrvdStats_)
 				0x439921                                      // PrintFix   (Save_as_ASCII_)
@@ -444,18 +457,21 @@ void DamageMod::init() {
 	}
 
 	if (DisplayBonusDmg) {
+		displayBonusDamage = true;
 		dlog("Applying Display Bonus Damage patch.", DL_INIT);
 		HookCall(0x4722DD, DisplayBonusRangedDmg_hook);       // display_stats_
 		if (BonusHtHDmgFix) {
-			HookCall(0x472309, DisplayBonusHtHDmg1_hook);     // display_stats_
-			MakeJump(0x472546, DisplayBonusHtHDmg2_hack);     // display_stats_
-			SafeWrite32(0x472558, 0x509EDC);                  // fmt: '%s %d-%d'
-			SafeWrite8(0x472552, 0x98 + 4);
-			SafeWrite8(0x47255F, 0x0C + 4);
-			SafeWrite8(0x472568, 0x10 + 4);
+			HookCall(0x472309, DisplayBonusHtHDmg1_hook);     // MeleeWeap (display_stats_)
 		}
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Display actual damage values for unarmed attacks (display_stats_)
+	MakeJump(0x472546, DisplayBonusHtHDmg2_hack);
+	SafeWrite32(0x472558, 0x509EDC); // fmt: '%s %d-%d'
+	SafeWrite8(0x472552, 0x98 + 4);
+	SafeWrite8(0x47255F, 0x0C + 4);
+	SafeWrite8(0x472568, 0x10 + 4);
 }
 
 }

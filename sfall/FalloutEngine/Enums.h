@@ -780,6 +780,17 @@ enum HandSlot : unsigned long
 	Right                 = 1
 };
 
+enum HandSlotMode : long
+{
+	Unset                 = 0,
+	Primary               = 1,
+	Primary_Aimed         = 2,
+	Secondary             = 3,
+	Secondary_Aimed       = 4,
+	Reload                = 5,
+	UnkMode               = 6
+};
+
 enum RollResult
 {
 	ROLL_CRITICAL_FAILURE = 0x0,

@@ -681,8 +681,11 @@ void Inventory::init() {
 		}
 	}
 
-	// Adjust the max text width of the total weight display on the inventory screen
+	// Adjust the maximum text width of the total weight display on the inventory screen
 	SafeWrite32(0x472632, widthWeight);
+
+	// Adjust the maximum text width of the unarmed attack display on the inventory screen
+	SafeWrite8(0x472576, 150);
 
 	if (IniReader::GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate::Get("sfall", "SuperStimExploitMsg", "You cannot use this item on someone who is not injured!");
