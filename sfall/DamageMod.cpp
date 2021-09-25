@@ -456,7 +456,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 
 long DamageMod_GetHtHMinDamageBonus(TGameObj* source) {
 	return (bonusHtHDamageFix)
-	       ? sfgame_perk_level(source, PERK_bonus_hth_damage) << 1 // Rank_of_Bonus_HtH_Damage_perk *= 2
+	       ? sfgame_perk_level(source, PERK_bonus_hth_damage) << 1 // Multiply by 2
 	       : 0;
 }
 
@@ -505,7 +505,7 @@ void DamageMod_Init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Display actual damage values for unarmed attacks (display_stats_ hacks)
+	// Display the actual damage values of unarmed attacks (display_stats_ hacks)
 	MakeJump(0x472546, DisplayBonusHtHDmg2_hack);
 	SafeWrite32(0x472558, 0x509EDC); // fmt: '%s %d-%d'
 	SafeWrite8(0x472552, 0x98 + 4);

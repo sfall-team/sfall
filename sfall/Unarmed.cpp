@@ -26,7 +26,7 @@
 static struct {
 	AttackType primaryHit;
 	AttackType secondaryHit;
-	long mode;
+	HandSlotMode mode;
 } slotHitData[2];
 
 class Hits {
@@ -382,13 +382,8 @@ AttackType Unarmed_GetStoredHitMode(HandSlot slot) {
 	if (hit < ATKTYPE_STRONGPUNCH && hit != ATKTYPE_PUNCH && hit != ATKTYPE_KICK) {
 		hit = (slot == HANDSLOT_Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
 
-		if (slot == HANDSLOT_Left) {
-			slotHitData[HANDSLOT_Left].primaryHit = hit;
-			slotHitData[HANDSLOT_Left].mode = HANDMODE_Primary;
-		} else {
-			slotHitData[HANDSLOT_Right].primaryHit = hit;
-			slotHitData[HANDSLOT_Right].mode = HANDMODE_Primary;
-		}
+		slotHitData[slot].primaryHit = hit;
+		slotHitData[slot].mode = HANDMODE_Primary;
 	}
 	return hit;
 }

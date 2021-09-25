@@ -46,12 +46,12 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 			if (maxAmmo != curAmmo) {
 				long &currentMode = GetActiveItemMode();
 				long previusMode = currentMode;
-				currentMode = 5; // reload mode
+				currentMode = HANDMODE_Reload;
 				fo_intface_use_item();
-				if (previusMode != 5) {
+				if (previusMode != HANDMODE_Reload) {
 					// return to previous active item mode (if it wasn't "reload")
 					currentMode = previusMode - 1;
-					if (currentMode < 0) currentMode = 4;
+					if (currentMode < 0) currentMode = HANDMODE_Secondary_Aimed;
 					fo_intface_toggle_item_state();
 				}
 			}
