@@ -617,6 +617,18 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, Inven
 	return itemPtr;
 }
 
+AttackType GetHandSlotPrimaryAttack(HandSlot slot) {
+	return (AttackType)ptr_itemButtonItems[slot].primaryAttack;
+}
+
+AttackType GetHandSlotSecondaryAttack(HandSlot slot) {
+	return (AttackType)ptr_itemButtonItems[slot].secondaryAttack;
+}
+
+HandSlotMode GetHandSlotMode(HandSlot slot) {
+	return (HandSlotMode)ptr_itemButtonItems[slot].mode;
+}
+
 long& GetActiveItemMode() {
 	return ptr_itemButtonItems[*ptr_itemCurrentItem].mode;
 }
@@ -627,13 +639,13 @@ TGameObj* GetActiveItem() {
 
 AttackType GetSlotHitMode(HandSlot hand) { // 0 - left, 1 - right
 	switch (ptr_itemButtonItems[hand].mode) {
-	case 1:
-	case 2: // called shot
-		return (AttackType)ptr_itemButtonItems[hand].primaryAttack;
-	case 3:
-	case 4: // called shot
-		return (AttackType)ptr_itemButtonItems[hand].secondaryAttack;
-	case 5: // reload mode
+	case HANDMODE_Primary:
+	case HANDMODE_Primary_Aimed: // called shot
+		return GetHandSlotPrimaryAttack(hand);
+	case HANDMODE_Secondary:
+	case HANDMODE_Secondary_Aimed: // called shot
+		return GetHandSlotSecondaryAttack(hand);
+	case HANDMODE_Reload:
 		return (AttackType)(ATKTYPE_LWEAPON_RELOAD + hand);
 	}
 	return ATKTYPE_PUNCH;

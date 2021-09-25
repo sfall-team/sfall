@@ -22,3 +22,6 @@ void Unarmed_Init();
 //void Unarmed_Exit();
 
 long Unarmed_GetHitAPCost(AttackType hit);
+long Unarmed_GetDamage(AttackType hit, long &minOut, long &maxOut);
+
+AttackType Unarmed_GetStoredHitMode(HandSlot slot);

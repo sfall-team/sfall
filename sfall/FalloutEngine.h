@@ -587,6 +587,10 @@ long GetItemType(TGameObj* item);
 
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot);
 
+AttackType GetHandSlotPrimaryAttack(HandSlot slot);
+AttackType GetHandSlotSecondaryAttack(HandSlot slot);
+HandSlotMode GetHandSlotMode(HandSlot slot);
+
 long& GetActiveItemMode();
 
 TGameObj* GetActiveItem();

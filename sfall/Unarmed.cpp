@@ -23,6 +23,12 @@
 
 #include "DamageMod.h"
 
+static struct {
+	AttackType primaryHit;
+	AttackType secondaryHit;
+	long mode;
+} slotHitData[2];
+
 class Hits {
 public:
 	static const long count = 20;
@@ -40,7 +46,6 @@ private:
 		bool isPenetrate; // compute_damage_
 		bool isSecondary;
 
-//		HitsData() : reqLevel(0), reqSkill(0), reqStat(), minDamage(1), maxDamage(2), bonusDamage(0), bonusCrit(0), costAP(3), isPenetrate(false), isSecondary(false) {}
 		HitsData() {
 			reqLevel = 0;
 			reqSkill = 0;
@@ -231,7 +236,7 @@ Hits unarmed;
 static bool UnarmedReqStats(AttackType hit) {
 	if (unarmed.SkillLevel() >= unarmed.Hit(hit).reqSkill && (long)*ptr_Level_pc >= unarmed.Hit(hit).reqLevel) {
 		for (size_t stat = 0; stat < STAT_base_count; stat++) {
-			if (unarmed.Hit(hit).reqStat[stat] == 0) continue;
+			if (unarmed.Hit(hit).reqStat[stat] <= 0) continue;
 			if (unarmed.Hit(hit).reqStat[stat] > unarmed.DudeStat(stat)) {
 				return false;
 			}
@@ -241,29 +246,20 @@ static bool UnarmedReqStats(AttackType hit) {
 	return false;
 }
 
-static bool Punching(bool isPrimary) {
+static AttackType GetPunchingHit(bool isPrimary) {
 	for (size_t i = 0; i < 6; i++) {
 		AttackType hit = unarmed.GetSortHit(i);
-		if (unarmed.Hit(hit).isSecondary == isPrimary) continue;
-
-		if (UnarmedReqStats(hit)) {
-			if (unarmed.Hit(hit).isSecondary) {
-				ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack = hit;
-			} else {
-				ptr_itemButtonItems[HANDSLOT_Left].primaryAttack = hit;
-			}
-			return true;
-		}
+		if (unarmed.Hit(hit).isSecondary != isPrimary && UnarmedReqStats(hit)) return hit;
 	}
-	return false;
+	return ATKTYPE_PUNCH;
 }
 
 // Punch hits
 static void __fastcall check_unarmed_left_slot(long skillLevel) {
 	unarmed.GetDudeStats(skillLevel);
 
-	if (!Punching(true))  ptr_itemButtonItems[HANDSLOT_Left].primaryAttack = ATKTYPE_PUNCH;
-	if (!Punching(false)) ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack = ATKTYPE_PUNCH;
+	ptr_itemButtonItems[HANDSLOT_Left].primaryAttack = GetPunchingHit(true);
+	ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack = GetPunchingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_punch() {
@@ -273,27 +269,18 @@ static void __declspec(naked) intface_update_items_hack_punch() {
 	}
 }
 
-static bool Kicking(bool isPrimary) {
+static AttackType GetKickingHit(bool isPrimary) {
 	for (size_t i = 6; i < 12; i++) {
 		AttackType hit = unarmed.GetSortHit(i);
-		if (unarmed.Hit(hit).isSecondary == isPrimary) continue;
-
-		if (UnarmedReqStats(hit)) {
-			if (unarmed.Hit(hit).isSecondary) {
-				ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack = hit;
-			} else {
-				ptr_itemButtonItems[HANDSLOT_Right].primaryAttack = hit;
-			}
-			return true;
-		}
+		if (unarmed.Hit(hit).isSecondary != isPrimary && UnarmedReqStats(hit)) return hit;
 	}
-	return false;
+	return ATKTYPE_KICK;
 }
 
 // Kick hits
 static void check_unarmed_right_slot() {
-	if (!Kicking(true))  ptr_itemButtonItems[HANDSLOT_Right].primaryAttack = ATKTYPE_KICK;
-	if (!Kicking(false)) ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack = ATKTYPE_KICK;
+	ptr_itemButtonItems[HANDSLOT_Right].primaryAttack = GetKickingHit(true);
+	ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack = GetKickingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_kick() {
@@ -348,6 +335,69 @@ static long __fastcall check_unarmed_penetrate(AttackType hit) {
 
 long Unarmed_GetHitAPCost(AttackType hit) {
 	return unarmed.Hit(hit).apCost;
+}
+
+long Unarmed_GetDamage(AttackType hit, long &minOut, long &maxOut) {
+	minOut = unarmed.Hit(hit).minDamage;
+	maxOut = unarmed.Hit(hit).maxDamage;
+	return unarmed.Hit(hit).bonusDamage;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+static AttackType GetPunchingHit() {
+	unarmed.GetDudeStats(fo_skill_level(*ptr_obj_dude, SKILL_UNARMED_COMBAT));
+	return GetPunchingHit(true);
+}
+
+static AttackType GetKickingHit() {
+	//unarmed.GetDudeStats(fo_skill_level(*ptr_obj_dude, SKILL_UNARMED_COMBAT));
+	return GetKickingHit(true);
+}
+
+static void SlotsStoreCurrentHitMode() {
+	slotHitData[HANDSLOT_Left].primaryHit   = GetHandSlotPrimaryAttack(HANDSLOT_Left);
+	slotHitData[HANDSLOT_Left].secondaryHit = GetHandSlotSecondaryAttack(HANDSLOT_Left);
+	slotHitData[HANDSLOT_Left].mode = GetHandSlotMode(HANDSLOT_Left);
+
+	slotHitData[HANDSLOT_Right].primaryHit   = GetHandSlotPrimaryAttack(HANDSLOT_Right);
+	slotHitData[HANDSLOT_Right].secondaryHit = GetHandSlotSecondaryAttack(HANDSLOT_Right);
+	slotHitData[HANDSLOT_Right].mode = GetHandSlotMode(HANDSLOT_Right);
+}
+
+AttackType Unarmed_GetStoredHitMode(HandSlot slot) {
+	AttackType hit;
+
+	switch (slotHitData[slot].mode) {
+	case HANDMODE_Primary:
+	case HANDMODE_Primary_Aimed: // called shot
+		hit = slotHitData[slot].primaryHit;
+		break;
+	case HANDMODE_Secondary:
+	case HANDMODE_Secondary_Aimed: // called shot
+		hit = slotHitData[slot].secondaryHit;
+		break;
+	}
+
+	if (hit < ATKTYPE_STRONGPUNCH && hit != ATKTYPE_PUNCH && hit != ATKTYPE_KICK) {
+		hit = (slot == HANDSLOT_Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
+
+		if (slot == HANDSLOT_Left) {
+			slotHitData[HANDSLOT_Left].primaryHit = hit;
+			slotHitData[HANDSLOT_Left].mode = HANDMODE_Primary;
+		} else {
+			slotHitData[HANDSLOT_Right].primaryHit = hit;
+			slotHitData[HANDSLOT_Right].mode = HANDMODE_Primary;
+		}
+	}
+	return hit;
+}
+
+static void __declspec(naked) handle_inventory_hook() {
+	__asm {
+		call SlotsStoreCurrentHitMode;
+		jmp  display_stats_;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -437,6 +487,9 @@ void Unarmed_Init() {
 	MakeCall(0x4248B6, check_unarmed_penetrate, 5);
 	SafeWrite16(0x4248C1, 0x01F8); // cmp eax, 1
 	SafeWrite8(0x4248C8, CODETYPE_JumpShort);
+
+	// Store the current values of unarmed attack modes when opening the player's inventory
+	HookCall(0x46E8D4, handle_inventory_hook);
 }
 
 //void Unarmed_Exit() {
