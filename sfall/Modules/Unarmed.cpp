@@ -31,7 +31,7 @@ namespace sfall
 static struct {
 	fo::AttackType primaryHit;
 	fo::AttackType secondaryHit;
-	long mode;
+	fo::HandSlotMode mode;
 } slotHitData[2];
 
 class Hits {
@@ -374,13 +374,8 @@ fo::AttackType Unarmed::GetStoredHitMode(fo::HandSlot slot) {
 	if (hit < fo::AttackType::ATKTYPE_STRONGPUNCH && hit != fo::AttackType::ATKTYPE_PUNCH && hit != fo::AttackType::ATKTYPE_KICK) {
 		hit = (slot == fo::HandSlot::Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
 
-		if (slot == fo::HandSlot::Left) {
-			slotHitData[fo::HandSlot::Left].primaryHit = hit;
-			slotHitData[fo::HandSlot::Left].mode = fo::HandSlotMode::Primary;
-		} else {
-			slotHitData[fo::HandSlot::Right].primaryHit = hit;
-			slotHitData[fo::HandSlot::Right].mode = fo::HandSlotMode::Primary;
-		}
+		slotHitData[slot].primaryHit = hit;
+		slotHitData[slot].mode = fo::HandSlotMode::Primary;
 	}
 	return hit;
 }
