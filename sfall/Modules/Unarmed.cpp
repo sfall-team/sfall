@@ -347,7 +347,7 @@ static fo::AttackType GetKickingHit() {
 	return GetKickingHit(true);
 }
 
-void Unarmed::SlotsStoreCurrentHitMode() {
+static void SlotsStoreCurrentHitMode() {
 	slotHitData[fo::HandSlot::Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HandSlot::Left);
 	slotHitData[fo::HandSlot::Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HandSlot::Left);
 	slotHitData[fo::HandSlot::Left].mode = fo::util::GetHandSlotMode(fo::HandSlot::Left);
@@ -383,6 +383,13 @@ fo::AttackType Unarmed::GetStoredHitMode(fo::HandSlot slot) {
 		}
 	}
 	return hit;
+}
+
+static void __declspec(naked) handle_inventory_hook() {
+	__asm {
+		call SlotsStoreCurrentHitMode;
+		jmp  fo::funcoffs::display_stats_;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -472,6 +479,9 @@ void Unarmed::init() {
 	MakeCall(0x4248B6, check_unarmed_penetrate, 5);
 	SafeWrite16(0x4248C1, 0x01F8); // cmp eax, 1
 	SafeWrite8(0x4248C8, CodeType::JumpShort);
+
+	// Store the current values of unarmed attack modes when opening the player's inventory
+	HookCall(0x46E8D4, handle_inventory_hook);
 }
 
 //void Unarmed::exit() {
