@@ -617,7 +617,7 @@ void Movies::init() {
 	SkipOpeningMoviesPatch();
 }
 
-void Movies::exit() {
-}
+//void Movies::exit() {
+//}
 
 }

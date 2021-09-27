@@ -27,7 +27,7 @@ class Animations : public Module {
 public:
 	const char* name() { return "Animations"; }
 	void init();
-	void exit() override;
+	//void exit() override;
 };
 
 }

@@ -56,7 +56,7 @@ class Message : public Module {
 public:
 	const char* name() { return "Message"; }
 	void init();
-	void exit() override;
+	//void exit() override;
 
 	static const char* GameLanguage();
 

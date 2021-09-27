@@ -597,7 +597,7 @@ void Animations::init() {
 	MakeCall(0x419A17, art_alias_fid_hack);
 }
 
-void Animations::exit() {
-}
+//void Animations::exit() {
+//}
 
 }

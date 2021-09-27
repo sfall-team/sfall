@@ -20,6 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Translate.h"
 
 #include "DamageMod.h"
 
@@ -33,6 +34,8 @@ static struct {
 	fo::AttackType secondaryHit;
 	fo::HandSlotMode mode;
 } slotHitData[2];
+
+std::string hitNames[14];
 
 class Hits {
 public:
@@ -335,6 +338,18 @@ long Unarmed::GetDamage(fo::AttackType hit, long &minOut, long &maxOut) {
 	return unarmed.Hit(hit).bonusDamage;
 }
 
+const char* Unarmed::GetName(fo::AttackType hit) {
+	if (hit > fo::AttackType::ATKTYPE_PIERCINGKICK) return nullptr;
+
+	switch (hit) {
+	case fo::AttackType::ATKTYPE_PUNCH:
+	case fo::AttackType::ATKTYPE_KICK:
+		return (!hitNames[hit - 4].empty()) ? hitNames[hit - 4].c_str() : nullptr;
+	default:
+		return (hit >= fo::AttackType::ATKTYPE_STRONGPUNCH && !hitNames[hit - 6].empty()) ? hitNames[hit - 6].c_str() : nullptr;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static fo::AttackType GetPunchingHit() {
@@ -477,6 +492,26 @@ void Unarmed::init() {
 
 	// Store the current values of unarmed attack modes when opening the player's inventory
 	HookCall(0x46E8D4, handle_inventory_hook);
+
+	const char* setting[14] = {
+		"Punch",
+		"Kick",
+		"StrongPunch",
+		"HammerPunch",
+		"Haymaker",
+		"Jab",
+		"PalmStrike",
+		"PiercingStrike",
+		"StrongKick",
+		"SnapKick",
+		"PowerKick",
+		"HipKick",
+		"HookKick",
+		"PiercingKick"
+	};
+	for (size_t i = 0; i < 14; i++) {
+		hitNames[i] = Translate::Get("Unarmed", setting[i], "", 17);
+	}
 }
 
 //void Unarmed::exit() {

@@ -27,7 +27,7 @@ class EngineTweaks : public Module {
 public:
 	const char* name() { return "EngineTweaks"; }
 	void init();
-	void exit() override;
+	//void exit() override;
 };
 
 }
