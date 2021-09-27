@@ -583,5 +583,5 @@ void Animations_Init() {
 	MakeCall(0x419A17, art_alias_fid_hack);
 }
 
-void Animations_Exit() {
-}
+//void Animations_Exit() {
+//}

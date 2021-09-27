@@ -620,5 +620,5 @@ void Movies_Init() {
 	SkipOpeningMoviesPatch();
 }
 
-void Movies_Exit() {
-}
+//void Movies_Exit() {
+//}

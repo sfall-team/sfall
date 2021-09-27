@@ -242,6 +242,6 @@ void Message_Init() {
 	}
 }
 
-void Message_Exit() {
+//void Message_Exit() {
 	//gExtraGameMsgLists.clear();
-}
+//}

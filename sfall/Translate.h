@@ -21,13 +21,13 @@
 void Translate_Init(const char* config);
 
 // Translates given string using sfall translation INI file and puts the result into given buffer
-size_t Translate_Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+size_t __stdcall Translate_Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 // Translates given string using sfall translation INI file
-std::string Translate_Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+std::string __stdcall Translate_Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
 // Translates given list of strings using sfall translation INI file
-std::vector<std::string> Translate_GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
+std::vector<std::string> __stdcall Translate_GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
 
 /* Messages */
 

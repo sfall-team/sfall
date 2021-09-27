@@ -23,5 +23,6 @@ void Unarmed_Init();
 
 long Unarmed_GetHitAPCost(AttackType hit);
 long Unarmed_GetDamage(AttackType hit, long &minOut, long &maxOut);
+const char* Unarmed_GetName(AttackType hit);
 
 AttackType Unarmed_GetStoredHitMode(HandSlot slot);

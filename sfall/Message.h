@@ -49,7 +49,7 @@ extern ExtraGameMessageListsMap gExtraGameMsgLists;
 extern const MSGList* gameMsgFiles[];
 
 void Message_Init();
-void Message_Exit();
+//void Message_Exit();
 void FallbackEnglishLoadMsgFiles();
 void ReadExtraGameMsgFiles();
 void ClearReadExtraGameMsgFiles();

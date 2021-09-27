@@ -423,7 +423,7 @@ static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 	}
 }
 
-static bool bonusHtHDamageFix = false;
+static bool bonusHtHDamageFix = true;
 static bool displayBonusDamage = false;
 
 static long __fastcall GetHtHDamage(TGameObj* source, long &meleeDmg, long handOffset) {
@@ -435,13 +435,19 @@ static long __fastcall GetHtHDamage(TGameObj* source, long &meleeDmg, long handO
 
 	long perkBonus = sfgame_perk_level(source, PERK_bonus_hth_damage) << 1;
 	if (!displayBonusDamage) meleeDmg -= perkBonus;
-	if (bonusHtHDamageFix && displayBonusDamage) min += perkBonus;
+	if (displayBonusDamage && bonusHtHDamageFix) min += perkBonus;
 
 	return min + bonus;
 }
 
+static const char* __fastcall GetHtHName(long handOffset) {
+	AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? HANDSLOT_Left : HANDSLOT_Right);
+	return Unarmed_GetName(hit);
+}
+
 static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	static const DWORD DisplayBonusHtHDmg2Exit = 0x47254F;
+	static const DWORD DisplayBonusHtHDmg2Exit2 = 0x472556;
 	__asm {
 		mov  ecx, eax;
 		call stat_level_;               // get STAT_melee_dmg
@@ -450,7 +456,13 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 		push edi;                       // handOffset
 		call GetHtHDamage;
 		push eax;                       // min dmg
+		mov  ecx, edi;
+		call GetHtHName;
+		test eax, eax;
+		jnz  customName;
 		jmp  DisplayBonusHtHDmg2Exit;
+customName:
+		jmp  DisplayBonusHtHDmg2Exit2;
 	}
 }
 
