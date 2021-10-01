@@ -235,6 +235,7 @@ WRAP_WATCOM_FUNC1(void, scr_build_lookup_table, fo::ScriptInstance*, script)
 WRAP_WATCOM_FUNC1(fo::ScriptInstance*, scr_find_first_at, long, elevation)
 WRAP_WATCOM_FUNC0(fo::ScriptInstance*, scr_find_next_at)
 WRAP_WATCOM_FUNC1(fo::GameObject*, scr_find_obj_from_program, fo::Program*, program)
+WRAP_WATCOM_FUNC1(long, scr_find_sid_from_program, fo::Program*, program)
 WRAP_WATCOM_FUNC2(long, scr_new, long*, scriptID, long, sType)
 // Saves pointer to script object into scriptPtr using scriptID
 WRAP_WATCOM_FUNC2(long, scr_ptr, long, scriptId, fo::ScriptInstance**, scriptPtr) // Returns 0 on success, -1 on failure

@@ -284,7 +284,7 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-// Display melee damage w/o perk bonus
+// Display melee damage w/o PERK_bonus_hth_damage bonus
 static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 	using namespace fo;
 	__asm {
@@ -304,7 +304,7 @@ static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 	}
 }
 
-// Display max melee damage w/o perk bonus
+// Display max melee damage w/o PERK_bonus_hth_damage bonus
 static __declspec(naked) void CommonDmgRngDispFix_hook() {
 	using namespace fo;
 	__asm {

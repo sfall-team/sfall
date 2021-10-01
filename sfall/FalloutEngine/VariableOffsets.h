@@ -193,7 +193,9 @@
 #define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744
+#define FO_VAR_name_critter               0x51833C
 #define FO_VAR_name_font                  0x56D74C
+#define FO_VAR_name_item                  0x519238
 #define FO_VAR_name_sort_list             0x56FCB0
 #define FO_VAR_num_caps                   0x518060
 #define FO_VAR_num_game_global_vars       0x5186C4

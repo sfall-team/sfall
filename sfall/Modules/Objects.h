@@ -17,6 +17,8 @@ public:
 
 	static long uniqueID;
 
+	static bool IsUniqueID(long id);
+
 	static long __fastcall SetObjectUniqueID(fo::GameObject* obj);
 	static long __fastcall SetSpecialID(fo::GameObject* obj);
 	static void SetNewEngineID(fo::GameObject* obj);

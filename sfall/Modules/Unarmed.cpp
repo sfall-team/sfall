@@ -442,10 +442,10 @@ void Unarmed::init() {
 				if (val >= 0) hit.reqSkill = val;
 
 				val = IniReader::GetInt(sHit, "MinDamage", -1, file);
-				if (val >= 0) hit.minDamage = val;
+				if (val > 0) hit.minDamage = val;
 
 				val = IniReader::GetInt(sHit, "MaxDamage", -1, file);
-				if (val >= 0) hit.maxDamage = val;
+				if (val > 0) hit.maxDamage = val;
 
 				val = IniReader::GetInt(sHit, "BonusDamage", -1, file);
 				if (val >= 0) hit.bonusDamage = val;
@@ -454,7 +454,7 @@ void Unarmed::init() {
 				if (val >= 0) hit.bonusCrit = val;
 
 				val = IniReader::GetInt(sHit, "APCost", -1, file);
-				if (val >= 0) hit.apCost = val;
+				if (val > 0) hit.apCost = val;
 
 				val = IniReader::GetInt(sHit, "Penetrate", -1, file);
 				if (val >= 0) hit.isPenetrate = (val != 0);

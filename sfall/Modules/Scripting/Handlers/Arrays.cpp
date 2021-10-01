@@ -151,24 +151,22 @@ struct ListId {
 static std::vector<ListId> mList;
 
 static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
+	if (type == 4) return; // LIST_TILES
+
 	vec.reserve(100);
-	if (type == 6) {
-		fo::ScriptInstance* scriptPtr;
-		fo::GameObject* self_obj;
-		fo::Program* programPtr;
+	if (type == 6) { // LIST_SPATIAL
 		for (int elev = 0; elev <= 2; elev++) {
-			scriptPtr = fo::func::scr_find_first_at(elev);
+			fo::ScriptInstance* scriptPtr = fo::func::scr_find_first_at(elev);
 			while (scriptPtr != nullptr) {
-				self_obj = scriptPtr->selfObject;
+				fo::GameObject* self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
-					programPtr = scriptPtr->program;
-					self_obj = fo::func::scr_find_obj_from_program(programPtr);
+					self_obj = fo::func::scr_find_obj_from_program(scriptPtr->program);
 				}
 				vec.push_back(self_obj);
 				scriptPtr = fo::func::scr_find_next_at();
 			}
 		}
-	/*} else if (type == 4) {
+	/*} else if (type == 4) { // LIST_TILES
 		// TODO: verify code correctness
 		for(int elv=0;elv<2;elv++) {
 			DWORD* esquares = &fo::var::squares[elv];
@@ -176,7 +174,7 @@ static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 				esquares[tile]=0x8f000002;
 			}
 		}*/
-	} else if (type != 4) {
+	} else {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
 				fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);

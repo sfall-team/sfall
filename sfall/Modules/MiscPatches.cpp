@@ -228,7 +228,7 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[fo::HandSlot::Left];
 	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[fo::HandSlot::Right];
 
-	if (toSlot == nullptr) { // copy to slot
+	if (toSlot == nullptr) { // copy to empty slot
 		fo::ItemButtonItem* dstSlot;
 		fo::ItemButtonItem item;
 		if ((int)&toSlot == FO_VAR_i_lhand) {

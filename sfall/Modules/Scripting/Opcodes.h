@@ -25,7 +25,10 @@ namespace sfall
 namespace script
 {
 
-void InitNewOpcodes();
+class Opcodes {
+public:
+	static void InitNew();
+};
 
 }
 }

@@ -796,8 +796,6 @@ static void __declspec(naked) wmInterfaceInit_hook() {
 }
 
 static void WorldMapInterfacePatch() {
-	BlockCall(0x4C2380); // Remove disabling palette animations (can be used as a place to call a hack function in wmInterfaceInit_)
-
 	if (IniReader::GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
@@ -846,7 +844,7 @@ static void WorldMapInterfacePatch() {
 		dlog("Applying world map travel markers patch.", DL_INIT);
 
 		int color = IniReader::GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
-		if (color > 255) color = 255; else if (color < 1) color = 1;
+		if (color > 228) color = 228; else if (color < 1) color = 1; // no palette animation colors
 		colorDot = color;
 
 		auto dotList = IniReader::GetConfigList("Interface", "TravelMarkerStyles", "", 512);

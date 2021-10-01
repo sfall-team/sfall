@@ -29,7 +29,7 @@ namespace sfall
 
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
-extern IDirectDrawSurface* primaryDDSurface;
+extern IDirectDrawSurface* primarySurface;
 extern bool DeviceLost;
 
 /*
@@ -106,12 +106,12 @@ public:
 			DDSURFACEDESC desc;
 			RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
 
-			if (primaryDDSurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
+			if (primarySurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
 
 			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
 			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
-			primaryDDSurface->Unlock(desc.lpSurface);
+			primarySurface->Unlock(desc.lpSurface);
 		}
 	}
 };
@@ -137,7 +137,7 @@ static const char* gpuEffectA8 =
 	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
 	    "result = tex2D(s2, saturate((Tex - corner) / size));"
 	  "} else {"
-	    "result = tex1D(s1, backdrop).bgr;" // get color in palette and swap R <> B
+	    "result = tex1D(s1, backdrop);" // get color in palette
 	  "}"
 	  // blend highlights
 	  "if (showhl) {"
@@ -154,7 +154,7 @@ static const char* gpuEffectA8 =
 	// main shader
 	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
 	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);" // get color in palette
-	  "return float4(result.bgr, 1);"                // swap R <> B
+	  "return float4(result, 1);"
 	"}"
 	"technique T0"
 	"{"
@@ -182,7 +182,7 @@ static const char* gpuEffectL8 =
 	  "if (abs(backdrop - 1.0) < 0.001) {"
 	    "result = tex2D(s2, saturate((Tex - corner) / size));"
 	  "} else {"
-	    "result = tex1D(s1, backdrop).bgr;"
+	    "result = tex1D(s1, backdrop);"
 	  "}"
 	  // blend highlights
 	  "if (showhl) {"
@@ -199,7 +199,7 @@ static const char* gpuEffectL8 =
 	// main shader
 	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
 	  "float3 result = tex1D(s1, tex2D(s0, Tex).r);"
-	  "return float4(result.bgr, 1);"
+	  "return float4(result, 1);"
 	"}"
 	"technique T0"
 	"{"

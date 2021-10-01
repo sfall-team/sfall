@@ -1007,7 +1007,7 @@ void ScriptExtender::init() {
 		MakeCall(0x423DEB, (void*)fo::funcoffs::compute_damage_);
 	}
 
-	InitNewOpcodes();
+	Opcodes::InitNew();
 
 	ScriptExtender::OnMapExit() += ClearEventsOnMapExit; // for reordering the execution of functions before exiting the map
 }
