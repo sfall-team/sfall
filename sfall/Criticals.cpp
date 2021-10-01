@@ -26,8 +26,7 @@
 
 static std::string critTableFile(".\\");
 
-static const DWORD CritTableCount = 2 * 19 + 1;            // Number of species in new critical table
-//static const DWORD origCritTableSize = 6 * 9 * 20;         // Number of entries in original table
+const DWORD CritTableCount = 2 * 19 + 1;                   // Number of species in new critical table
 static const DWORD CritTableSize = 6 * 9 * CritTableCount; // Number of entries in new critical table
 static DWORD mode;
 
@@ -49,7 +48,7 @@ static bool Inited = false;
 
 static const char* errorTable = "\nError: %s - function requires enabling OverrideCriticalTable in ddraw.ini.";
 
-void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
+void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) {
 		fo_debug_printf(errorTable, "set_critical_table()");
 		return;
@@ -57,7 +56,7 @@ void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, 
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = value;
 }
 
-DWORD GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
+DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
 		fo_debug_printf(errorTable, "get_critical_table()");
 		return 0;
@@ -65,7 +64,7 @@ DWORD GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element)
 	return critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
 }
 
-void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
+void __stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
 		fo_debug_printf(errorTable, "reset_critical_table()");
 		return;

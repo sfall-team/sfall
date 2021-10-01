@@ -220,7 +220,7 @@ static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
 	ItemButtonItem* leftSlot  = &ptr_itemButtonItems[HANDSLOT_Left];
 	ItemButtonItem* rightSlot = &ptr_itemButtonItems[HANDSLOT_Right];
 
-	if (toSlot == nullptr) { // copy to slot
+	if (toSlot == nullptr) { // copy to empty slot
 		ItemButtonItem* dstSlot;
 		ItemButtonItem item;
 		if ((int)&toSlot == FO_VAR_i_lhand) {

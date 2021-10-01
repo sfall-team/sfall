@@ -450,10 +450,10 @@ void Unarmed_Init() {
 				if (val >= 0) hit.reqSkill = val;
 
 				val = IniGetInt(sHit, "MinDamage", -1, file);
-				if (val >= 0) hit.minDamage = val;
+				if (val > 0) hit.minDamage = val;
 
 				val = IniGetInt(sHit, "MaxDamage", -1, file);
-				if (val >= 0) hit.maxDamage = val;
+				if (val > 0) hit.maxDamage = val;
 
 				val = IniGetInt(sHit, "BonusDamage", -1, file);
 				if (val >= 0) hit.bonusDamage = val;
@@ -462,7 +462,7 @@ void Unarmed_Init() {
 				if (val >= 0) hit.bonusCrit = val;
 
 				val = IniGetInt(sHit, "APCost", -1, file);
-				if (val >= 0) hit.apCost = val;
+				if (val > 0) hit.apCost = val;
 
 				val = IniGetInt(sHit, "Penetrate", -1, file);
 				if (val >= 0) hit.isPenetrate = (val != 0);

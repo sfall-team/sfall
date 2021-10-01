@@ -328,7 +328,7 @@ end:
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-// Display melee damage w/o perk bonus
+// Display melee damage w/o PERK_bonus_hth_damage bonus
 static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 	__asm {
 		mov  ecx, eax;                                 // Store pointer to critter
@@ -347,7 +347,7 @@ static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 	}
 }
 
-// Display max melee damage w/o perk bonus
+// Display max melee damage w/o PERK_bonus_hth_damage bonus
 static __declspec(naked) void CommonDmgRngDispFix_hook() {
 	__asm {
 		mov  ebx, eax;                                 // Store pointer to critter

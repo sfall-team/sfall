@@ -144,7 +144,7 @@ static void __declspec(naked) op_eax_available() {
 	}
 }
 
-static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
+static int __stdcall ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
 	key = strstr(iniString, "|");
 	if (!key) return -1;
 
@@ -298,7 +298,7 @@ end:
 
 static const char* valueOutRange = "%s() - argument values out of range.";
 
-static void op_set_critical_table2() {
+static void __stdcall op_set_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
 	                  &bodypartArg = opHandler.arg(1),
 	                  &slotArg = opHandler.arg(2),
@@ -325,7 +325,7 @@ static void __declspec(naked) op_set_critical_table() {
 	_WRAP_OPCODE(op_set_critical_table2, 5, 0)
 }
 
-static void op_get_critical_table2() {
+static void __stdcall op_get_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
 	                  &bodypartArg = opHandler.arg(1),
 	                  &slotArg = opHandler.arg(2),
@@ -352,7 +352,7 @@ static void __declspec(naked) op_get_critical_table() {
 	_WRAP_OPCODE(op_get_critical_table2, 4, 1)
 }
 
-static void op_reset_critical_table2() {
+static void __stdcall op_reset_critical_table2() {
 	const ScriptValue &critterArg = opHandler.arg(0),
 	                  &bodypartArg = opHandler.arg(1),
 	                  &slotArg = opHandler.arg(2),
