@@ -65,6 +65,7 @@ static Delegate<DWORD> onGameModeChange;
 static Delegate<> onBeforeGameClose;
 static Delegate<> onCombatStart;
 static Delegate<> onCombatEnd;
+static Delegate<> onBeforeMapLoad;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -365,6 +366,10 @@ static void __stdcall GameClose() {
 	onBeforeGameClose.invoke();
 }
 
+static void __stdcall MapLoadHook() {
+	onBeforeMapLoad.invoke();
+}
+
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushadc;
@@ -442,8 +447,13 @@ static void __declspec(naked) map_load_hook() {
 		mov  ecx, 4;
 		rep  movsd; // copy the name of the loaded map to mapLoadingName
 		mov  onLoadingMap, 1;
+		push eax;
+		push edx;
+		call MapLoadHook;
+		pop  edx;
+		pop  eax;
 		call fo::funcoffs::map_load_file_;
-		mov  onLoadingMap, cl; // unset
+		mov  onLoadingMap, 0;
 		retn;
 	}
 }
@@ -883,4 +893,9 @@ Delegate<>& LoadGameHook::OnCombatStart() {
 Delegate<>& LoadGameHook::OnCombatEnd() {
 	return onCombatEnd;
 }
+
+Delegate<>& LoadGameHook::OnBeforeMapLoad() {
+	return onBeforeMapLoad;
+}
+
 }

@@ -460,7 +460,7 @@ void DamageMod::init() {
 			});
 			HookCalls(CommonDmgRngDispFix_hook, {
 				0x472266,                                     // MeleeWeap  (display_stats_)
-				0x472546                                      // Unarmed    (display_stats_)
+				//0x472546                                    // Unarmed    (display_stats_)
 			});
 		}
 		//MakeCall(0x478492, HtHDamageFix1a_hack);            // Unarmed    (item_w_damage_)

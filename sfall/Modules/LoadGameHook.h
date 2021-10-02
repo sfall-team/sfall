@@ -62,6 +62,8 @@ public:
 	static Delegate<>& OnCombatStart();
 	static Delegate<>& OnCombatEnd();
 
+	static Delegate<>& OnBeforeMapLoad();
+
 	static bool IsMapLoading();
 
 	static char mapLoadingName[16];

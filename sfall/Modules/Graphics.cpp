@@ -346,15 +346,14 @@ static void ResetDevice(bool create) {
 }
 
 #if !(NDEBUG) && !(_DEBUG)
+static DWORD lastTime = GetTickCount();
 static long frameCount;
 static long elapsedTime;
 static long fps;
-static long palCounter;
-static long lockCounter;
+//static long palCounter;
+//static long lockCounter;
 
 static void CalcFPS() {
-	static DWORD lastTime = GetTickCount();
-
 	frameCount++;
 
 	DWORD time = GetTickCount();
@@ -940,7 +939,7 @@ public:
 		if (Graphics::GPUBlt) {
 			D3DLOCKED_RECT pal;
 			if (c != 256) {
-				RECT rect = { b, 0, b + c, 1 };
+				RECT rect = { static_cast<long>(b), 0, static_cast<long>(b + c), 1 };
 				paletteTex->LockRect(0, &pal, &rect, D3DLOCK_NO_DIRTY_UPDATE);
 				paletteTex->AddDirtyRect(&rect);
 				b = 0;

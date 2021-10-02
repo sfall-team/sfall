@@ -104,5 +104,7 @@ void mf_get_ini_section(OpcodeContext&);
 
 void mf_set_quest_failure_value(OpcodeContext&);
 
+void mf_set_src_name(OpcodeContext&);
+
 }
 }

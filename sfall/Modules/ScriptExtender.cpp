@@ -32,6 +32,8 @@
 #include "MainLoopHook.h"
 #include "Worldmap.h"
 
+#include "SubModules\ObjectName.h"
+
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
@@ -1008,6 +1010,7 @@ void ScriptExtender::init() {
 	}
 
 	Opcodes::InitNew();
+	ObjectName::init();
 
 	ScriptExtender::OnMapExit() += ClearEventsOnMapExit; // for reordering the execution of functions before exiting the map
 }
