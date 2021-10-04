@@ -452,7 +452,7 @@ static fo::DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	return nullptr;
 }
 
-void __declspec(naked) load_font_hook() {
+static void __declspec(naked) load_font_hook() {
 	__asm {
 		mov  ebp, edx;
 		mov  ebx, eax;
@@ -475,7 +475,7 @@ static void SfallResourceFile() {
 	HANDLE hFind = FindFirstFile("sfall_??.dat", &findData); // example: sfall_ru.dat, sfall_zh.dat
 	if (hFind != INVALID_HANDLE_VALUE) {
 		FindClose(hFind);
-		dlog_f("Loading a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
+		dlog_f("Found a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
 		sfallRes = findData.cFileName;
 	}
 	patchFiles.push_back(sfallRes);

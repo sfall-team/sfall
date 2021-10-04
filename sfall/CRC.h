@@ -19,6 +19,6 @@
 namespace sfall
 {
 
-void CRC(const char* filepath);
+bool CRC(const char* filepath);
 
 }

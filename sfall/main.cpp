@@ -211,18 +211,24 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	}
 }
 
-inline void SfallInit() {
+static int CheckEXE() {
+	return std::strncmp((const char*)0x53C938, "FALLOUT Mapper", 14);
+}
+
+static void SfallInit() {
+	if (!CheckEXE()) return;
+
+	char filepath[MAX_PATH];
+	GetModuleFileName(0, filepath, MAX_PATH);
+
+	if (!CRC(filepath)) return;
+
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 	if (isDebug) {
 		LoggingInit();
 		if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
 	}
-
-	char filepath[MAX_PATH];
-	GetModuleFileName(0, filepath, MAX_PATH);
-
-	CRC(filepath);
 
 	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
