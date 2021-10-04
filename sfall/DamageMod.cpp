@@ -499,7 +499,7 @@ void DamageMod_Init() {
 			HookCalls(MeleeDmgDisplayPrintFix_hook, meleeDmgDispPrtAddr);
 			const DWORD commonDmgRngDispAddr[] = {
 				0x472266,                                     // MeleeWeap  (display_stats_)
-				0x472546                                      // Unarmed    (display_stats_)
+				//0x472546                                    // Unarmed    (display_stats_)
 			};
 			HookCalls(CommonDmgRngDispFix_hook, commonDmgRngDispAddr);
 		}

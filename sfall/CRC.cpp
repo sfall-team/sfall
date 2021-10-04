@@ -26,7 +26,10 @@
 static const DWORD ExpectedSize = 0x00122800;
 static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
 
-static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR); ExitProcess(1); }
+static void inline MessageFail(const char* a) {
+	MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR);
+	ExitProcess(1);
+}
 
 static const DWORD CRC_table[256] = {
 	0x00000000, 0x0A5F4D75, 0x14BE9AEA, 0x1EE1D79F, 0x14C5EB57, 0x1E9AA622, 0x007B71BD, 0x0A243CC8,
@@ -71,26 +74,37 @@ static DWORD crcInternal(BYTE* data, DWORD size) {
 	return crc ^ 0xffffffff;
 }
 
-void CRC(const char* filepath) {
+bool CRC(const char* filepath) {
 	char buf[512];
-	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-	if (h == INVALID_HANDLE_VALUE) Fail("Cannot open fallout2.exe for CRC check.");
-	DWORD size = GetFileSize(h, 0), crc;
-	bool sizeMatch = (size == ExpectedSize);
 
-	if (!sizeMatch && GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0)) {
-		sizeMatch = true;
+	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (h == INVALID_HANDLE_VALUE) {
+		MessageFail("Cannot open fallout2.exe for CRC check.");
+		return false;
 	}
 
-	if (!sizeMatch) {
+	DWORD size = GetFileSize(h, 0);
+
+	if (size != ExpectedSize && GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0) == 0) {
+		CloseHandle(h);
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
 		               "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
-		Fail(buf);
+		MessageFail(buf);
+		return false;
 	}
+
+	DWORD crc;
 	BYTE* bytes = new BYTE[size];
 	ReadFile(h, bytes, size, &crc, 0);
+	CloseHandle(h);
+
 	crc = crcInternal(bytes, size);
+	delete[] bytes;
+
+	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {
+		if (crc == ExpectedCRC[i]) return true;
+	}
 
 	bool matchedCRC = false;
 
@@ -98,20 +112,14 @@ void CRC(const char* filepath) {
 	if (!extraCrcList.empty()) {
 		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) -> bool {
 			DWORD testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
-			return testedCrc && crc == testedCrc;
+			return testedCrc && crc == testedCrc; // return for lambda
 		});
-	}
-
-	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {
-		if (crc == ExpectedCRC[i]) matchedCRC = true;
 	}
 	if (!matchedCRC) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
 		               "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
-		Fail(buf);
+		MessageFail(buf);
 	}
-
-	CloseHandle(h);
-	delete[] bytes;
+	return matchedCRC;
 }

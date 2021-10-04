@@ -265,12 +265,12 @@ static void __stdcall OnExit() {
 	Console_Exit();
 }
 
-static void __declspec(naked) OnExitFunc() {
+static void __declspec(naked) WinMain_hook() {
 	__asm {
 		pushad;
 		call OnExit;
 		popad;
-		jmp DOSCmdLineDestroy_;
+		jmp  DOSCmdLineDestroy_;
 	}
 }
 
@@ -305,6 +305,112 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 		}
 		RegCloseKey(key);
 	}
+}
+
+static int CheckEXE() {
+	return std::strncmp((const char*)0x53C938, "FALLOUT Mapper", 14);
+}
+
+static void SfallInit() {
+	if (!CheckEXE()) return;
+
+	char filepath[MAX_PATH];
+	GetModuleFileName(0, filepath, MAX_PATH);
+
+	if (!CRC(filepath)) return;
+
+	// enabling debugging features
+	isDebug = (GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
+	if (isDebug) {
+		LoggingInit();
+		if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
+	}
+
+	HookCall(0x4DE7D2, WinMain_hook);
+
+	if (!isDebug || !GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
+		int is64bit;
+		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
+		HMODULE h = LoadLibrary("Kernel32.dll");
+		chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
+		if (proc)
+			proc(GetCurrentProcess(), &is64bit);
+		else
+			is64bit = 0;
+		FreeLibrary(h);
+
+		CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit ? KEY_WOW64_64KEY : 0);
+		CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit ? KEY_WOW64_64KEY : 0);
+	}
+
+	// ini file override
+	bool cmdlineexists = false;
+	char* cmdline = GetCommandLineA();
+	if (GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
+		while (cmdline[0] == ' ') cmdline++;
+		bool InQuote = false;
+		int count = -1;
+
+		while (true) {
+			count++;
+			if (cmdline[count] == 0) break;;
+			if (cmdline[count] == ' ' && !InQuote) break;
+			if (cmdline[count] == '"') {
+				InQuote = !InQuote;
+				if (!InQuote) break;
+			}
+		}
+		if (cmdline[count] != 0) {
+			count++;
+			while (cmdline[count] == ' ') count++;
+			cmdline = &cmdline[count];
+			cmdlineexists = true;
+		}
+	}
+
+	if (cmdlineexists && *cmdline != 0) {
+		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+		if (h != INVALID_HANDLE_VALUE) {
+			CloseHandle(h);
+			SetConfigFile(cmdline);
+		} else {
+			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
+			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
+			goto defaultIni;
+		}
+	} else {
+defaultIni:
+		SetDefaultConfigFile();
+	}
+
+	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
+	if (hrpIsEnabled) {
+		LoadHRPModule();
+		MODULEINFO info;
+		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
+			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
+				hrpVersionValid = true;
+			}
+		}
+	}
+	//std::srand(GetTickCount());
+
+	IniReader_Init();
+
+	if (GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
+		dlog("Applying config file patch.", DL_INIT);
+		const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
+		SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, configFileAddr);
+		dlogr(" Done", DL_INIT);
+	} else {
+		// if the ConfigFile is not assigned a value
+		std::strcpy(falloutConfigName, (const char*)FO_VAR_fallout_config);
+	}
+
+	Translate_Init(falloutConfigName);
+
+	InitReplacementHacks();
+	InitModules();
 }
 
 static bool LoadOriginalDll(DWORD dwReason) {
@@ -348,103 +454,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 
 bool __stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
-		// enabling debugging features
-		isDebug = (GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
-		if (isDebug) {
-			LoggingInit();
-			if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
-		}
-
-		HookCall(0x4DE7D2, &OnExitFunc);
-
-		char filepath[MAX_PATH];
-		GetModuleFileName(0, filepath, MAX_PATH);
-
-		CRC(filepath);
-
-		if (!isDebug || !GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
-			int is64bit;
-			typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
-			HMODULE h = LoadLibrary("Kernel32.dll");
-			chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
-			if (proc)
-				proc(GetCurrentProcess(), &is64bit);
-			else
-				is64bit = 0;
-			FreeLibrary(h);
-
-			CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit ? KEY_WOW64_64KEY : 0);
-			CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit ? KEY_WOW64_64KEY : 0);
-		}
-
-		// ini file override
-		bool cmdlineexists = false;
-		char* cmdline = GetCommandLineA();
-		if (GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
-			while (cmdline[0] == ' ') cmdline++;
-			bool InQuote = false;
-			int count = -1;
-
-			while (true) {
-				count++;
-				if (cmdline[count] == 0) break;;
-				if (cmdline[count] == ' ' && !InQuote) break;
-				if (cmdline[count] == '"') {
-					InQuote = !InQuote;
-					if (!InQuote) break;
-				}
-			}
-			if (cmdline[count] != 0) {
-				count++;
-				while (cmdline[count] == ' ') count++;
-				cmdline = &cmdline[count];
-				cmdlineexists = true;
-			}
-		}
-
-		if (cmdlineexists && *cmdline != 0) {
-			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-			if (h != INVALID_HANDLE_VALUE) {
-				CloseHandle(h);
-				SetConfigFile(cmdline);
-			} else {
-				MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
-				               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
-				goto defaultIni;
-			}
-		} else {
-defaultIni:
-			SetDefaultConfigFile();
-		}
-
-		hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-		if (hrpIsEnabled) {
-			LoadHRPModule();
-			MODULEINFO info;
-			if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
-				if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
-					hrpVersionValid = true;
-				}
-			}
-		}
-		//std::srand(GetTickCount());
-
-		IniReader_Init();
-
-		if (GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
-			dlog("Applying config file patch.", DL_INIT);
-			const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
-			SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, configFileAddr);
-			dlogr(" Done", DL_INIT);
-		} else {
-			// if the ConfigFile is not assigned a value
-			std::strcpy(falloutConfigName, (const char*)FO_VAR_fallout_config);
-		}
-
-		Translate_Init(falloutConfigName);
-
-		InitReplacementHacks();
-		InitModules();
+		SfallInit();
 	}
 	return true;
 }

@@ -16,4 +16,4 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void CRC(const char* filepath);
+bool CRC(const char* filepath);
