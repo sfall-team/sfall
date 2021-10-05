@@ -16,7 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <unordered_map>
 #include <algorithm>
 #include <dsound.h>
 #include <dshow.h>
@@ -27,7 +26,8 @@
 
 #include "Sound.h"
 
-#define SAFERELEASE(a) { if (a) { a->Release(); } }
+#define WM_APP_DS_NOTIFY    0xA000
+#define SAFERELEASE(a)      { if (a) { a->Release(); } }
 
 enum SoundType : DWORD {
 	SNDTYPE_sfx_loop    = 0, // sfall
@@ -79,7 +79,7 @@ static bool deathSceneSpeech = false;
 static bool lipsPlaying = false;
 
 static void FreeSound(sDSSound* sound) {
-	sound->pEvent->SetNotifyWindow(0, WM_APP, 0);
+	sound->pEvent->SetNotifyWindow(0, WM_APP_DS_NOTIFY, 0);
 	SAFERELEASE(sound->pAudio);
 	SAFERELEASE(sound->pEvent);
 	SAFERELEASE(sound->pSeek);
@@ -89,8 +89,9 @@ static void FreeSound(sDSSound* sound) {
 }
 
 void WipeSounds() {
-	for (size_t i = 0; i < playingSounds.size(); i++) FreeSound(playingSounds[i]);
-	for (size_t i = 0; i < loopingSounds.size(); i++) FreeSound(loopingSounds[i]);
+	std::vector<sDSSound*>::const_iterator it;
+	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) FreeSound(*it);
+	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) FreeSound(*it);
 	playingSounds.clear();
 	loopingSounds.clear();
 	backgroundMusic = nullptr;
@@ -101,33 +102,51 @@ void WipeSounds() {
 }
 
 LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
-	if (msg == WM_APP) {
-		if (!(l & 0xA0000000)) return 0;
-		sDSSound* sound = reinterpret_cast<sDSSound*>(l & ~0xA0000000);
+	if (msg == WM_APP_DS_NOTIFY) {
+		long id = l;
+		sDSSound* sound = nullptr;
+		size_t i;
+		if (id & SNDFLAG_looping) {
+			for (i = 0; i < loopingSounds.size(); i++) {
+				if (loopingSounds[i]->id == id) {
+					sound = loopingSounds[i];
+					break;
+				}
+			}
+		} else {
+			for (i = 0; i < playingSounds.size(); i++) {
+				if (playingSounds[i]->id == id) {
+					sound = playingSounds[i];
+					break;
+				}
+			}
+		}
+		if (!sound || !sound->pEvent) return 0;
+
 		LONG e = 0;
 		LONG_PTR p1 = 0, p2 = 0;
-		if (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
+		bool shouldFree = false;
+
+		while (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
+			sound->pEvent->FreeEventParams(e, p1, p2);
 			if (e == EC_COMPLETE) {
 				if (sound->id & SNDFLAG_looping) {
 					LONGLONG pos = 0;
 					sound->pSeek->SetPositions(&pos, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
 					sound->pControl->Run();
-					sound->pEvent->FreeEventParams(e, p1, p2);
 				} else {
-					sound->pEvent->FreeEventParams(e, p1, p2);
 					if (sound->id & SNDFLAG_on_stop) { // speech sound playback is completed
 						*ptr_main_death_voiceover_done = 1;
 						*ptr_endgame_subtitle_done = 1;
 						lipsPlaying = false;
 						speechSound = nullptr;
 					}
-					playingSounds.erase(
-						std::find_if(playingSounds.cbegin(), playingSounds.cend(), [&](const sDSSound* snd) { return snd->id == sound->id; })
-					);
-					FreeSound(sound);
+					playingSounds.erase(playingSounds.cbegin() + i);
+					shouldFree = true;
 				}
 			}
 		}
+		if (shouldFree) FreeSound(sound);
 		return 0;
 	}
 	return DefWindowProc(wnd, msg, w, l);
@@ -166,9 +185,9 @@ static DWORD GetSpeechPlayingPosition() {
 	return static_cast<DWORD>(pos << 1);
 }
 
-void __fastcall PauseSfallSound(sDSSound* sound) {
-	if (sound) sound->pControl->Pause();
-}
+//void __fastcall PauseSfallSound(sDSSound* sound) {
+//	if (sound) sound->pControl->Pause();
+//}
 
 void __fastcall ResumeSfallSound(sDSSound* sound) {
 	if (sound) sound->pControl->Run();
@@ -176,27 +195,25 @@ void __fastcall ResumeSfallSound(sDSSound* sound) {
 
 void __stdcall PauseAllSfallSound() {
 	std::vector<sDSSound*>::const_iterator it;
-	sDSSound* sound = nullptr;
-	for (it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
-		sound = *it;
-		sound->pControl->Pause();
+	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) {
+		(*it)->pEvent->SetNotifyFlags(AM_MEDIAEVENT_NONOTIFY);
+		(*it)->pControl->Pause();
 	}
-	for (it = playingSounds.begin(); it != playingSounds.end(); ++it) {
-		sound = *it;
-		sound->pControl->Pause();
+	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) {
+		(*it)->pEvent->SetNotifyFlags(AM_MEDIAEVENT_NONOTIFY);
+		(*it)->pControl->Pause();
 	}
 }
 
 void __stdcall ResumeAllSfallSound() {
 	std::vector<sDSSound*>::const_iterator it;
-	sDSSound* sound = nullptr;
-	for (it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
-		sound = *it;
-		sound->pControl->Run();
+	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) {
+		(*it)->pEvent->SetNotifyFlags(0);
+		(*it)->pControl->Run();
 	}
-	for (it = playingSounds.begin(); it != playingSounds.end(); ++it) {
-		sound = *it;
-		sound->pControl->Run();
+	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) {
+		(*it)->pEvent->SetNotifyFlags(0);
+		(*it)->pControl->Run();
 	}
 }
 
@@ -313,7 +330,7 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 		break;
 	}
 
-	sound->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP, ((unsigned long)sound | 0xA0000000));
+	sound->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP_DS_NOTIFY, (LONG_PTR)sound->id);
 	sound->pControl->Run();
 
 	if (isLoop) {
