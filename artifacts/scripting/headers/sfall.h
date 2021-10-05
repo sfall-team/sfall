@@ -350,6 +350,7 @@
 #define set_object_data(obj, offset, value)                     sfall_func3("set_object_data", obj, offset, value)
 #define set_outline(obj, color)                                 sfall_func2("set_outline", obj, color)
 #define set_quest_failure_value(gvar, threshold)                sfall_func2("set_quest_failure_value", gvar, threshold)
+#define set_scr_name(name)                                      sfall_func1("set_scr_name", name)
 #define set_terrain_name(x, y, name)                            sfall_func3("set_terrain_name", x, y, name)
 #define set_town_title(areaID, title)                           sfall_func2("set_town_title", areaID, title)
 #define set_unique_id(obj)                                      sfall_func1("set_unique_id", obj)
@@ -366,6 +367,7 @@
 #define tile_by_position(x, y)                                  sfall_func2("tile_by_position", x, y)
 #define tile_refresh_display                                    sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                                         sfall_func1("unjam_lock", obj)
+#define unset_scr_name                                          sfall_func0("set_scr_name") /* sets the name of the script object from pro_*.msg instead of scrname.msg */
 #define unset_unique_id(obj)                                    sfall_func2("set_unique_id", obj, -1)
 #define unwield_slot(critter, slot)                             sfall_func2("unwield_slot", critter, slot)
 #define win_fill_color(x, y, width, height, color)              sfall_func5("win_fill_color", x, y, width, height, color)

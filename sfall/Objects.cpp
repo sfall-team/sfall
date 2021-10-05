@@ -27,6 +27,10 @@ static int maxCountLoadProto = 512;
 
 long Objects_uniqueID = UID_START; // current counter id, saving to sfallgv.sav
 
+bool Objects_IsUniqueID(long id) {
+	return (id > UID_START || (id >= PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
+}
+
 static void SetScriptObjectID(TGameObj* obj) {
 	TScript* script;
 	if (fo_scr_ptr(obj->scriptId, &script) != -1) {
@@ -39,7 +43,7 @@ static void SetScriptObjectID(TGameObj* obj) {
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long __fastcall Objects_SetObjectUniqueID(TGameObj* obj) {
 	long id = obj->id;
-	if (id > UID_START || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (Objects_IsUniqueID(id)) return id;
 
 	if ((DWORD)Objects_uniqueID >= (DWORD)UID_END) Objects_uniqueID = UID_START;
 	obj->id = ++Objects_uniqueID;
@@ -155,7 +159,7 @@ end:
 	}
 }
 
-void Objects_SetAutoUnjamLockTime(DWORD time) {
+void __stdcall Objects_SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
 	if (time > 0) {
@@ -196,7 +200,7 @@ end:
 	}
 }
 
-void Objects_LoadProtoAutoMaxLimit() {
+void __stdcall Objects_LoadProtoAutoMaxLimit() {
 	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 

@@ -678,3 +678,10 @@ static void mf_get_ini_section() {
 static void mf_set_quest_failure_value() {
 	QuestList_AddQuestFailureValue(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
 }
+
+static void mf_set_scr_name() {
+	long sid = fo_scr_find_sid_from_program(opHandler.program());
+	if (sid == -1) return;
+
+	ObjectName_SetName(sid, opHandler.arg(0).strValue());
+}

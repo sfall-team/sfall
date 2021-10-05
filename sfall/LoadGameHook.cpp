@@ -393,6 +393,10 @@ static void __stdcall GameClose() { // OnBeforeGameClose
 	WipeSounds();
 }
 
+static void __stdcall MapLoadHook() { // OnBeforeMapLoad
+	ObjectNameReset();
+}
+
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushadc;
@@ -470,8 +474,13 @@ static void __declspec(naked) map_load_hook() {
 		mov  ecx, 4;
 		rep  movsd; // copy the name of the loaded map to gameMapLoadingName
 		mov  onLoadingMap, 1;
+		push eax;
+		push edx;
+		call MapLoadHook;
+		pop  edx;
+		pop  eax;
 		call map_load_file_;
-		mov  onLoadingMap, cl; // unset
+		mov  onLoadingMap, 0;
 		retn;
 	}
 }

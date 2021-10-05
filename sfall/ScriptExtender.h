@@ -96,6 +96,10 @@ int __stdcall ScriptHasLoaded(TProgram* script);
 // loads and initializes script file (for normal game scripts)
 long __fastcall InitScript(long sid);
 
+const char* __stdcall ObjectName_GetName(TGameObj* object);
+void __stdcall ObjectName_SetName(long sid, const char* name);
+void ObjectNameReset();
+
 // variables
 extern DWORD availableGlobalScriptTypes;
 extern bool alwaysFindScripts;

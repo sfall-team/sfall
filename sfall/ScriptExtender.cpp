@@ -603,6 +603,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{mf_set_object_data,         "set_object_data",         {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{mf_set_outline,             "set_outline",             {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{mf_set_quest_failure_value, "set_quest_failure_value", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{mf_set_scr_name,            "set_scr_name",            {DATATYPE_MASK_STR}},
 	{mf_set_terrain_name,        "set_terrain_name",        {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_STR}},
 	{mf_set_town_title,          "set_town_title",          {DATATYPE_MASK_INT, DATATYPE_MASK_STR}},
 	{mf_set_unique_id,           "set_unique_id",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
@@ -1510,11 +1511,114 @@ void BuildSortedIndexList() {
 	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
 }
 
+///////////////////////////////// OBJECT NAME //////////////////////////////////
+
+static std::tr1::unordered_map<int, std::string> overrideScrName;
+
+static long lastNamePid = -1;
+static long lastNameSid = -1;
+static long lastItemPid = -1;
+
+void __stdcall ObjectName_SetName(long sid, const char* name) {
+	if (sid == lastNameSid) lastNameSid = -1;
+	if (!name) name = "";
+	overrideScrName.insert(std::pair<const int, std::string>(sid, name));
+}
+
+const char* __stdcall ObjectName_GetName(TGameObj* object) {
+	if (!overrideScrName.empty()) {
+		std::tr1::unordered_map<int, std::string>::iterator name = overrideScrName.find(object->scriptId);
+		if (name != overrideScrName.cend()) {
+			return (name->second.length() > 0)
+			       ? name->second.c_str()
+			       : fo_proto_get_msg_info(object->protoId, 0);
+		}
+	}
+	return nullptr;
+}
+
+static void __declspec(naked) critter_name_hack() {
+	static DWORD critter_name_hack_ret = 0x42D125;
+	using namespace Fields;
+	__asm {
+		push ebx; // object
+		call ObjectName_GetName;
+		test eax, eax;
+		jnz  override;
+		mov  edi, [ebx + scriptIndex];
+		retn;
+override:
+		add  esp, 4;
+		jmp  critter_name_hack_ret;
+	}
+}
+
+static void __declspec(naked) critter_name_hack_check() {
+	static DWORD critter_name_hack_ret = 0x42D12F;
+	using namespace Fields;
+	__asm {
+		mov  ecx, [ebx + scriptId];
+		cmp  ecx, -1;
+		je   checkPid; // has no script, check only the PID
+		cmp  ecx, lastNameSid;
+		jne  default;
+		add  esp, 4;
+		mov  eax, ds:[FO_VAR_name_critter];
+		jmp  critter_name_hack_ret;
+checkPid:
+		mov  ecx, [ebx + protoId];
+		cmp  ecx, lastNamePid;
+		jne  default;
+		add  esp, 4;
+		mov  eax, ds:[FO_VAR_name_critter];
+		jmp  critter_name_hack_ret;
+default:
+		mov  ecx, [ebx + scriptIndex];
+		retn;
+	}
+}
+
+static void __declspec(naked) critter_name_hack_end() {
+	using namespace Fields;
+	__asm {
+		mov  edx, [ebx + protoId];
+		mov  lastNamePid, edx;
+		mov  ecx, [ebx + scriptId];
+		mov  lastNameSid, ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) object_name_hook() {
+	using namespace Fields;
+	__asm {
+		mov  edx, [eax + protoId];
+		cmp  edx, lastItemPid;
+		je   getLast;
+		mov  lastItemPid, edx;
+		jmp  item_name_;
+getLast:
+		mov  eax, ds:[FO_VAR_name_item];
+		retn;
+	}
+}
+
+void ObjectNameReset() {
+	overrideScrName.clear();
+	lastNameSid = -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void ScriptExtender_OnGameLoad() {
 	ClearGlobalScripts();
 	ClearGlobals();
 	RegAnimCombatCheck(1);
 	ForceEncounterRestore(); // restore if the encounter did not happen
+
+	ObjectNameReset();
+	lastNamePid = -1;
+	lastItemPid = -1;
 }
 
 void ScriptExtender_Init() {
@@ -1892,4 +1996,12 @@ void ScriptExtender_Init() {
 
 	InitOpcodeMetaTable();
 	InitMetaruleTable();
+
+	// Returns the redefined object name
+	MakeCall(0x42D0F2, critter_name_hack, 1);
+
+	// Tweak for quickly getting last object name
+	MakeCall(0x42D0C4, critter_name_hack_check, 1);
+	MakeCall(0x42D12A, critter_name_hack_end);
+	HookCall(0x48C901, object_name_hook);
 }
