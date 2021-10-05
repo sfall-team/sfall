@@ -561,7 +561,7 @@ static void PrepareGlobalScriptsListByMask() {
 					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
 					continue;
 				}
-				globalScriptFilesList.insert(std::make_pair(baseName, fullPath)); // script files should be sorted in alphabetical order
+				globalScriptFilesList.emplace(std::move(baseName), std::move(fullPath)); // script files should be sorted in alphabetical order
 			}
 		}
 		fo::func::db_free_file_list(&filenames, 0);

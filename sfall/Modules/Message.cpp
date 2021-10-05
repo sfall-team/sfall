@@ -174,7 +174,7 @@ static void ReadExtraGameMsgFiles() {
 			path += ".msg";
 			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, path.c_str()) == 1) {
-				Message::gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
+				Message::gExtraGameMsgLists.emplace(0x2000 + number, list);
 			} else {
 				delete list;
 			}

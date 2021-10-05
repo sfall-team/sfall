@@ -472,11 +472,16 @@ static void SfallResourceFile() {
 	const char* sfallRes = "sfall.dat";
 
 	WIN32_FIND_DATA findData;
-	HANDLE hFind = FindFirstFile("sfall_??.dat", &findData); // example: sfall_ru.dat, sfall_zh.dat
+	HANDLE hFind = FindFirstFileA("sfall_??.dat", &findData); // example: sfall_ru.dat, sfall_zh.dat
 	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			if (std::strlen(&findData.cFileName[6]) == 6) {
+				dlog_f("Found a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
+				sfallRes = findData.cFileName;
+				break;
+			}
+		} while (FindNextFileA(hFind, &findData));
 		FindClose(hFind);
-		dlog_f("Found a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
-		sfallRes = findData.cFileName;
 	}
 	patchFiles.push_back(sfallRes);
 }
