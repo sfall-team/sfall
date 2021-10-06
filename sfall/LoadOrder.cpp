@@ -31,6 +31,7 @@ static bool femaleCheck = false;  // flag for check female dialog file
 static DWORD format;
 static bool cutsPatch   = false;
 
+static char sfallRes[13] = "sfall.dat"; // sfall_XX.dat filename length
 static std::vector<int> savPrototypes;
 
 void PlayerGenderCutsRestore() {
@@ -132,7 +133,7 @@ static void __declspec(naked) game_init_databases_hack1() {
 		mov  ecx, [esp + 0x104 + 4]; // path_patches
 		call RemoveDatabase;
 skip:
-		mov  ds:[FO_VAR_master_db_handle], eax;         // the pointer of master_patches node will be saved here
+		mov  ds:[FO_VAR_master_db_handle], eax;   // the pointer of master_patches node will be saved here
 		retn;
 	}
 }
@@ -142,7 +143,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1;
 		je   end;
-		mov  eax, ds:[FO_VAR_master_db_handle];         // pointer to master_patches node
+		mov  eax, ds:[FO_VAR_master_db_handle];   // pointer to master_patches node
 		mov  eax, [eax];                          // eax = master_patches.path
 		call xremovepath_;
 		dec  eax;                                 // remove path (critter_patches == master_patches)?
@@ -150,13 +151,16 @@ static void __declspec(naked) game_init_databases_hack2() {
 		mov  ecx, [esp + 0x104 + 4];              // path_patches
 		call RemoveDatabase;
 end:
-		mov  ds:[FO_VAR_critter_db_handle], eax;        // the pointer of critter_patches node will be saved here
+		mov  ds:[FO_VAR_critter_db_handle], eax;  // the pointer of critter_patches node will be saved here
 		retn;
 	}
 }
 
 static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	PathNode* master_patches = *ptr_master_db_handle;
+
+	fo_db_init(sfallRes, 0);
+
 	PathNode* critter_patches = *ptr_critter_db_handle;
 	PathNode* paths = *ptr_paths; // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
@@ -178,6 +182,8 @@ static void __fastcall game_init_databases_hook1() {
 		node = node->next;
 	}
 	*ptr_master_db_handle = node; // set pointer to master_patches node
+
+	fo_db_init(sfallRes, 0);
 }
 */
 static void MultiPatchesPatch() {
@@ -378,7 +384,7 @@ static DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	return nullptr;
 }
 
-void __declspec(naked) load_font_hook() {
+static void __declspec(naked) load_font_hook() {
 	__asm {
 		mov  ebp, edx;
 		mov  ebx, eax;
@@ -394,12 +400,28 @@ default:
 	}
 }
 
+static void SfallResourceFile() {
+	WIN32_FIND_DATA findData;
+	HANDLE hFind = FindFirstFileA("sfall_??.dat", &findData); // example: sfall_ru.dat, sfall_zh.dat
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			if (std::strlen(&findData.cFileName[6]) == 6) {
+				dlog_f("Found a localized sfall resource file: %s\n", DL_MAIN, findData.cFileName);
+				std::strcpy(sfallRes, findData.cFileName);
+				break;
+			}
+		} while (FindNextFileA(hFind, &findData));
+		FindClose(hFind);
+	}
+}
+
 void LoadOrder_OnGameLoad() {
 	savPrototypes.clear();
 	RemoveSavFiles();
 }
 
 void LoadOrder_Init() {
+	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
 	MultiPatchesPatch();
 
 	//if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {

@@ -25,6 +25,8 @@ static struct Translation {
 	char lang[170];
 	bool state;
 
+	Translation() : state(false) {}
+
 	const char* File() {
 		return (state) ? lang : def;
 	}

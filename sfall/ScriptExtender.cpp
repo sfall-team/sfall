@@ -406,6 +406,8 @@ struct SelfOverrideObj {
 	TGameObj* object;
 	char counter;
 
+	SelfOverrideObj(TGameObj* obj) : object(obj), counter(0) {}
+
 	bool UnSetSelf() {
 		if (counter) counter--;
 		return counter == 0;
@@ -538,10 +540,7 @@ static void __fastcall SetSelfObject(TProgram* script, TGameObj* obj) {
 				it->second.counter = 0;
 			}
 		} else {
-			SelfOverrideObj self;
-			self.object = obj;
-			self.counter = 0;
-			selfOverrideMap[script] = self;
+			selfOverrideMap.insert(std::pair<TProgram* const, SelfOverrideObj>(script, obj));
 		}
 	} else if (isFind) {
 		selfOverrideMap.erase(it);

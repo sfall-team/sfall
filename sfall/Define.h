@@ -776,7 +776,7 @@ namespace Fields {
 		y                 = 0x0C, // saveable
 		sx                = 0x10, // saveable
 		sy                = 0x14, // saveable
-		frm               = 0x18, // saveable
+		currFrame         = 0x18, // saveable
 		rotation          = 0x1C, // saveable
 		artFid            = 0x20, // saveable
 		flags             = 0x24, // saveable
