@@ -31,7 +31,7 @@ static bool femaleCheck = false;  // flag for check female dialog file
 static DWORD format;
 static bool cutsPatch   = false;
 
-static char sfallRes[13] = "sfall.dat"; // sfall_XX.dat filename length
+static char sfallRes[14] = "sfall.dat"; // for sfall_XX.dat filename
 static std::vector<int> savPrototypes;
 
 void PlayerGenderCutsRestore() {
