@@ -188,6 +188,7 @@ WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_first)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_next)
 WRAP_WATCOM_FUNC2(fo::GameObject*, obj_find_first_at_tile, long, elevation, long, tileNum)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_next_at_tile)
+WRAP_WATCOM_FUNC1(bool, obj_is_openable, fo::GameObject*, object)
 WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, fo::GameObject*, object) // Checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, fo::GameObject*, object)

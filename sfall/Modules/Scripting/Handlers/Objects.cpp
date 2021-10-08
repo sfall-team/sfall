@@ -603,5 +603,9 @@ void mf_npc_engine_level_up(OpcodeContext& ctx) {
 	}
 }
 
+void mf_obj_is_openable(OpcodeContext& ctx) {
+	ctx.setReturn(fo::util::ObjIsOpenable(ctx.arg(0).object()));
+}
+
 }
 }
