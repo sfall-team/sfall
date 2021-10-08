@@ -435,6 +435,10 @@ FUNC(obj_find_next_,                  0x48B41C)
 FUNC(obj_find_next_at_,               0x48B510)
 FUNC(obj_find_next_at_tile_,          0x48B608)
 FUNC(obj_is_a_portal_,                0x49D140)
+FUNC(obj_is_lockable_,                0x49D178)
+FUNC(obj_is_locked_,                  0x49D1C8)
+FUNC(obj_is_open_,                    0x49D2E4)
+FUNC(obj_is_openable_,                0x49D294)
 FUNC(obj_lock_is_jammed_,             0x49D410)
 FUNC(obj_move_to_tile_,               0x48A568) // int aObj<eax>, int aTile<edx>, int aElev<ebx>
 FUNC(obj_new_,                        0x489A84) // int aObj*<eax>, int aPid<ebx>

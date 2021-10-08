@@ -604,6 +604,8 @@ long GetCurrentAttackMode();
 
 AttackSubType GetWeaponType(DWORD weaponFlag);
 
+long ObjIsOpenable(TGameObj* object);
+
 bool HeroIsFemale();
 
 // Checks whether the player is under the influence of negative effects of radiation

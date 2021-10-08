@@ -674,6 +674,19 @@ AttackSubType GetWeaponType(DWORD weaponFlag) {
 	return (type < 9) ? weapon_types[type] : ATKSUBTYPE_NONE;
 }
 
+long ObjIsOpenable(TGameObj* object) {
+	long result = 0;
+	if (fo_obj_is_openable(object)) {
+		DWORD lock;
+		FrmHeaderData* frm = fo_art_ptr_lock(object->artFid, &lock);
+		if (frm) {
+			if (frm->numFrames > 1) result = 1;
+			fo_art_ptr_unlock(lock);
+		}
+	}
+	return result;
+}
+
 bool HeroIsFemale() {
 	return (fo_stat_level(*ptr_obj_dude, STAT_gender) == GENDER_FEMALE);
 }

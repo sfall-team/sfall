@@ -161,6 +161,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"message_box",             mf_message_box,             1, 4},
 	{"metarule_exist",          mf_metarule_exist,          1, 1},
 	{"npc_engine_level_up",     mf_npc_engine_level_up,     1, 1},
+	{"obj_is_openable",         mf_obj_is_openable,         1, 1},
 	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2},
 	{"objects_in_radius",       mf_objects_in_radius,       3, 4},
 	{"outlined_object",         mf_outlined_object,         0, 0},

@@ -971,6 +971,11 @@ sfall_funcX metarule functions
 - Passing an empty string ("") to the `name` argument or omitting it will allow the game to get the name for the object from pro_*.msg files
 - __NOTE:__ this function is intended for use in normal game scripts and overrides the name only once for the same object until reset
 
+----
+#### obj_is_openable
+`bool sfall_func1("obj_is_openable", object obj)`
+- Returns True if the object is openable (i.e. has an opening/closing animation)
+
 
 ****
 _See other documentation files (arrays.md, hookscripts.md) for related functions reference._

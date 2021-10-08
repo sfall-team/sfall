@@ -721,3 +721,13 @@ static void mf_npc_engine_level_up() {
 		npcEngineLevelUp = false;
 	}
 }
+
+static void mf_obj_is_openable() {
+	TGameObj* object = opHandler.arg(0).asObject();
+	if (object) {
+		opHandler.setReturn(ObjIsOpenable(object));
+	} else {
+		OpcodeInvalidArgs("obj_is_openable");
+		opHandler.setReturn(0);
+	}
+}
