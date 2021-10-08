@@ -480,6 +480,26 @@ skip:
 	}
 }
 
+static void __declspec(naked) obj_use_container_hook() {
+	static const DWORD obj_use_container_Ret = 0x49D012;
+	static const DWORD obj_use_container_ExitRet = 0x49D069;
+	using namespace Fields;
+	__asm {
+		mov  ebx, [ecx + currFrame]; // obj.cur_frm
+		cmp  ebx, 1; // grave type containers in the open state?
+		je   skip;   // skip animation
+		jmp  register_begin_; // vanilla behavior
+skip:
+		add  esp, 4;
+		cmp  edi, ds:[FO_VAR_obj_dude];
+		jne  notDude;
+		xor  eax, eax;
+		jmp  obj_use_container_Ret; // print message
+notDude:
+		jmp  obj_use_container_ExitRet;
+	}
+}
+
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//allocate memory to store larger animation struct arrays
 	sf_anim_set.resize(aniMax + 1); // include a dummy
@@ -581,6 +601,10 @@ void Animations_Init() {
 
 	// Add ANIM_charred_body/ANIM_charred_body_sf animations to art aliases
 	MakeCall(0x419A17, art_alias_fid_hack);
+
+	// Fix for grave type containers in the open state not executing the use_p_proc procedure
+	HookCall(0x49CFAC, obj_use_container_hook);
+	SafeWrite16(0x4122D9, 0x9090); // action_get_an_object_
 }
 
 //void Animations_Exit() {
