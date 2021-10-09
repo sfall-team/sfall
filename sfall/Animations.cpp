@@ -485,10 +485,9 @@ static void __declspec(naked) obj_use_container_hook() {
 	static const DWORD obj_use_container_ExitRet = 0x49D069;
 	using namespace Fields;
 	__asm {
-		mov  ebx, [ecx + currFrame]; // obj.cur_frm
-		cmp  ebx, 1; // grave type containers in the open state?
-		je   skip;   // skip animation
-		jmp  register_begin_; // vanilla behavior
+		cmp  dword ptr [ecx + currFrame], 1; // grave type containers in the open state?
+		je   skip;                           // skip animation
+		jmp  register_begin_;                // vanilla behavior
 skip:
 		add  esp, 4;
 		cmp  edi, ds:[FO_VAR_obj_dude];

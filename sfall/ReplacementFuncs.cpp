@@ -397,7 +397,7 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 
 static int fastShotTweak;
 
-static long item_w_mp_cost_sub(TGameObj* source, TGameObj* item, long hitMode, long isCalled, long cost) {
+static long __stdcall item_w_mp_cost_sub(TGameObj* source, TGameObj* item, long hitMode, long isCalled, long cost) {
 	if (isCalled) cost++;
 	if (cost < 0) cost = 0;
 
