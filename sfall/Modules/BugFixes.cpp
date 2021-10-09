@@ -266,8 +266,11 @@ skip:
 
 static void __declspec(naked) item_wd_process_hack() {
 	__asm {
+		cmp  Drugs::JetWithdrawal, 1;
+		je   skip;
 		cmp  esi, PERK_add_jet; // esi - queue_addict.perk
 		je   jetAddict;
+skip:
 		retn;
 jetAddict:
 		push ecx;
