@@ -374,8 +374,9 @@ skip:
 	}
 }
 
-// hooks combat_turn function
 static long combatTurnResult = 0;
+
+// hooks combat_turn function
 static long __fastcall CombatTurnHook_Script(fo::GameObject* critter, long dudeBegin) {
 	BeginHook();
 	argCount = 3;
@@ -390,12 +391,16 @@ static long __fastcall CombatTurnHook_Script(fo::GameObject* critter, long dudeB
 	if (cRet > 0 && rets[0] == 1) { // skip turn
 		goto endHook;               // exit hook
 	}
+
 	// set_sfall_return is not used, proceed normally
-	combatTurnResult = args[0] = fo::func::combat_turn(critter, dudeBegin);
+	combatTurnResult = fo::func::combat_turn(critter, dudeBegin);
+	args[0] = combatTurnResult;
+
 	if (fo::var::combat_end_due_to_load && combatTurnResult == -1) goto endHook; // don't run end of turn hook when the game was loaded during the combat
 
 	//cRet = 0; // reset number of return values
 	RunHookScript(HOOK_COMBATTURN); // End of turn
+
 	if (cRet > 0 && rets[0] == -1) combatTurnResult = -1; // override result of turn
 
 endHook:

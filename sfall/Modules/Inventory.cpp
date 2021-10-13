@@ -69,7 +69,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 ////////////////////////////////////////////////////////////////////////////////
 
 static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
-	if (critter == fo::var::obj_dude) return invSizeMaxLimit;
+	if (critter->protoId == fo::PID_Player) return invSizeMaxLimit;
 
 	if (sizeLimitMode != 3) { // selected mode 1 or 2
 		if (!(sizeLimitMode & 2) || !(fo::func::isPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0

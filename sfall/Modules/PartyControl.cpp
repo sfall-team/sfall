@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2016  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -40,7 +40,7 @@ bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
 static bool isControllingNPC = false;
-static bool skipCounterAnim  = false;
+static char skipCounterAnim;
 
 static int delayedExperience;
 static bool switchHandHookInjected = false;
@@ -161,8 +161,10 @@ static void SaveRealDudeState() {
 
 	realDude.isSaved = true;
 
-	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
-
+	if (skipCounterAnim == 1) {
+		skipCounterAnim++;
+		SafeWrite8(0x422BDE, 0); // no animate
+	}
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Save dude state.");
 }
 
@@ -250,6 +252,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	fo::util::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
 
 	// switch main dude_obj pointers - this should be done last!
+	fo::var::combat_turn_obj = npc;
 	fo::var::obj_dude = npc;
 	fo::var::inven_dude = npc;
 	fo::var::inven_pid = npc->protoId;
@@ -323,9 +326,13 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar] = realDude.addictGvar[7];
 	if (realDude.extendAddictGvar) RestoreAddictGvarState();
 
-	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
-
-	if (redraw) fo::func::intface_redraw();
+	if (redraw) {
+		if (skipCounterAnim == 2) {
+			skipCounterAnim--;
+			SafeWrite8(0x422BDE, 1); // restore
+		}
+		fo::func::intface_redraw();
+	}
 
 	realDude.isSaved = false;
 	isControllingNPC = false;
@@ -459,6 +466,10 @@ pcName:
 static void PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
+		if (skipCounterAnim == 2) {
+			skipCounterAnim = 1; // skipCounterAnim--;
+			SafeWrite8(0x422BDE, 1); // restore
+		}
 	}
 	realDude.obj_dude = nullptr;
 	realDude.isSaved = false;
@@ -528,6 +539,11 @@ static void NPCWeaponTweak() {
 }
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	if (skipCounterAnim == 2 && critter && critter == realDude.obj_dude) {
+		skipCounterAnim--;
+		SafeWrite8(0x422BDE, 1); // restore
+	}
+
 	if (isControllingNPC) {
 		if (fo::util::IsNpcFlag(fo::var::obj_dude, 0)) { // sneak flag
 			/* saves the sneak state for the currently controlled NPC and clears its events before switching */
@@ -555,32 +571,33 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		}
 
 		NPCWeaponTweak();
-		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(critter != nullptr); // return control to dude
 	}
-	if (critter != nullptr && critter != PartyControl::RealDudeObject()) {
+	if (critter && critter != PartyControl::RealDudeObject()) {
 		if (!isControllingNPC && !realDude.isSaved) {
 			SaveRealDudeState();
 		}
 		SetCurrentDude(critter);
 
-		if (switchHandHookInjected) return;
-		switchHandHookInjected = true;
-//		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+		if (!switchHandHookInjected) {
+			switchHandHookInjected = true;
+			//if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
 
-		ScriptExtender::OnMapExit() += []() {
-			if (!partySneakWorking.empty()) {
-				// unset active sneak flags for controlled NPCs when exiting the map
-				for (const auto& member : partySneakWorking) fo::util::ToggleNpcFlag(member.object, 0, false);
-				partySneakWorking.clear();
-			}
-		};
-		HookCall(0x42E25B, pc_flag_off_hook);
-		HookCall(0x49EB09, proto_name_hook);
+			ScriptExtender::OnMapExit() += []() {
+				if (!partySneakWorking.empty()) {
+					// unset active sneak flags for controlled NPCs when exiting the map
+					for (const auto& member : partySneakWorking) fo::util::ToggleNpcFlag(member.object, 0, false);
+					partySneakWorking.clear();
+				}
+			};
+			HookCall(0x42E25B, pc_flag_off_hook);
+			HookCall(0x49EB09, proto_name_hook);
 
-		// Gets dude perks and traits from script while controlling another NPC
-		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
-		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
-		HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
+			// Gets dude perks and traits from script while controlling another NPC
+			// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
+			HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
+			HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
+		}
 	}
 }
 
@@ -796,7 +813,7 @@ static void __fastcall SetOrderTarget(fo::GameObject* attacker) {
 	if (target) attacker->critter.whoHitMe = target;
 }
 
-static void __declspec(naked) combat_ai_hook_targer() {
+static void __declspec(naked) combat_ai_hook_target() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;
@@ -813,7 +830,7 @@ void PartyControl::OrderAttackPatch() {
 	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
 	MakeCall(0x44B830, gmouse_bk_process_hack);
 
-	HookCall(0x42B235, combat_ai_hook_targer);
+	HookCall(0x42B235, combat_ai_hook_target);
 	LoadGameHook::OnCombatEnd() += []() {
 		partyOrderAttackTarget.clear();
 	};
@@ -849,7 +866,7 @@ void PartyControl::init() {
 
 	NpcAutoLevelPatch();
 
-	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
+	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3) ? 1 : 0;
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {

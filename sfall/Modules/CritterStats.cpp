@@ -330,7 +330,7 @@ skip:
 
 // Returns the individual critter prototype, or null if it is missing
 long* __fastcall CritterStats::GetProto(fo::GameObject* critter) {
-	if (protoMem.empty() || critter->protoId == fo::PID_Player) return nullptr;
+	if (critter->protoId == fo::PID_Player || protoMem.empty()) return nullptr;
 	if (lastGetProtoID.id == critter->id) return lastGetProtoID.proto;
 
 	auto itMem = protoMem.find(critter->id);

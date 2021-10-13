@@ -373,7 +373,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 }
 
 void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
-	if (critter == fo::var::obj_dude || critter->IsNotCritter()) return;
+	if (critter->protoId == fo::PID_Player || critter->IsNotCritter()) return;
 
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
