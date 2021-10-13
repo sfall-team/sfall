@@ -33,7 +33,7 @@ bool npcEngineLevelUp = true;
 
 static DWORD Mode;
 static bool isControllingNPC = false;
-static bool skipCounterAnim  = false;
+static char skipCounterAnim;
 static std::vector<WORD> Chars;
 static int delayedExperience;
 
@@ -104,11 +104,10 @@ static void SaveRealDudeState() {
 	realDude.sneak_working = *ptr_sneak_working;
 	SkillGetTags(realDude.tag_skill, 4);
 
-	if (skipCounterAnim) {
-		const DWORD counterAnimAddr[] = {0x422BDE, 0x4229EC};
-		SafeWriteBatch<BYTE>(0, counterAnimAddr); // no animate
+	if (skipCounterAnim == 1) {
+		skipCounterAnim++;
+		SafeWrite8(0x422BDE, 0); // no animate
 	}
-
 	if (isDebug) fo_debug_printf("\n[SFALL] Save dude state.");
 }
 
@@ -147,12 +146,13 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
 	if (AnimCodeByWeapon(fo_inven_left_hand(npc)) == critterAnim) { // definitely left hand
-		*ptr_itemCurrentItem = 0;
+		*ptr_itemCurrentItem = HANDSLOT_Left;
 	} else {
-		*ptr_itemCurrentItem = 1;
+		*ptr_itemCurrentItem = HANDSLOT_Right;
 	}
 
 	// switch main dude_obj pointers - this should be done last!
+	*ptr_combat_turn_obj = npc;
 	*ptr_obj_dude = npc;
 	*ptr_inven_dude = npc;
 	*ptr_inven_pid = npc->protoId;
@@ -193,12 +193,13 @@ static void RestoreRealDudeState(bool redraw = true) {
 		StatPcAddExperience(delayedExperience);
 	}
 
-	if (skipCounterAnim) {
-		const DWORD counterAnimAddr[] = {0x422BDE, 0x4229EC};
-		SafeWriteBatch<BYTE>(1, counterAnimAddr); // restore
+	if (redraw) {
+		if (skipCounterAnim == 2) {
+			skipCounterAnim--;
+			SafeWrite8(0x422BDE, 1); // restore
+		}
+		fo_intface_redraw();
 	}
-
-	if (redraw) fo_intface_redraw();
 
 	SetInventoryCheck(false);
 	isControllingNPC = false;
@@ -388,6 +389,10 @@ pcName:
 static void PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
+		if (skipCounterAnim == 2) {
+			skipCounterAnim = 1; // skipCounterAnim--;
+			SafeWrite8(0x422BDE, 1); // restore
+		}
 	}
 	realDude.obj_dude = nullptr;
 }
@@ -503,7 +508,7 @@ void PartyControl_Init() {
 
 	NpcAutoLevelPatch();
 
-	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
+	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3) ? 1 : 0;
 
 	// Display party member's current level & AC & addict flag
 	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {

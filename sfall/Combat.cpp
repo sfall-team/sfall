@@ -464,7 +464,7 @@ void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 }
 
 void __stdcall SetNoBurstMode(TGameObj* critter, bool on) {
-	if (critter == *ptr_obj_dude || critter->IsNotCritter()) return;
+	if (critter->protoId == PID_Player || critter->IsNotCritter()) return;
 
 	long id = Objects_SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {

@@ -17,7 +17,7 @@
  */
 
 #include "main.h"
-#include "logging.h"
+#include "Logging.h"
 
 #ifndef NO_SFALL_DEBUG
 
@@ -25,6 +25,11 @@
 
 static int DebugTypes = 0;
 static std::ofstream Log;
+
+void dlog(const char* a) {
+	Log << a;
+	Log.flush();
+}
 
 void dlog(const char* a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
@@ -71,6 +76,7 @@ void devlog_f(...) {}
 
 void LoggingInit() {
 	Log.open("sfall-log.txt", std::ios_base::out | std::ios_base::trunc);
+
 	if (GetIntDefaultConfig("Debugging", "Init", 0)) {
 		DebugTypes |= DL_INIT;
 	}

@@ -24,8 +24,12 @@
 // Pointers to engine global variables
 
 // defines pointer to an engine variable
-#define PTR_(name, type)	\
+#define PTR_(name, type) \
 	type* ptr_##name = reinterpret_cast<type*>(FO_VAR_##name);
+
+// defines pointer to a constant engine variable
+#define PTRC(name, type) \
+	const type* ptr_##name = reinterpret_cast<type*>(FO_VAR_##name);
 
 // X-Macros pattern
 #include "FalloutVars_def.h"

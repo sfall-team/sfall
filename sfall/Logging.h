@@ -26,6 +26,7 @@
 #ifndef NO_SFALL_DEBUG
 #include <stdio.h>
 
+void dlog(const char* msg);
 void dlog(const char* msg, int type);
 void dlogr(const char* msg, int type);
 void dlog_f(const char* fmt, int type, ...);

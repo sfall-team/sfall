@@ -57,7 +57,7 @@ static void __declspec(naked) stat_level_hack() {
 
 static int __fastcall check_stat_level(int value, DWORD stat) {
 	int valLimit;
-	if (cCritter == *ptr_obj_dude) {
+	if (cCritter->protoId == PID_Player) {
 		valLimit = statMinimumsPC[stat];
 		if (value < valLimit) return valLimit;
 		valLimit = statMaximumsPC[stat];

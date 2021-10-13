@@ -283,7 +283,7 @@ DWORD __stdcall sfgame_adjust_fid() {
 	return *ptr_i_fid;
 }
 
-static void __declspec(naked) adjust_fid_hack() {
+static void __declspec(naked) adjust_fid_replacement() {
 	__asm {
 		push ecx;
 		push edx;
@@ -712,7 +712,7 @@ int __stdcall sfgame_trait_adjust_skill(DWORD skillID) {
 	return result;
 }
 
-static void __declspec(naked) trait_adjust_skill_hack() {
+static void __declspec(naked) trait_adjust_skill_replacement() {
 	__asm {
 		push edx;
 		push ecx;
@@ -817,7 +817,7 @@ int __stdcall sfgame_trait_adjust_stat(DWORD statID) {
 	return result;
 }
 
-static void __declspec(naked) trait_adjust_stat_hack() {
+static void __declspec(naked) trait_adjust_stat_replacement() {
 	__asm {
 		push edx;
 		push ecx;
@@ -970,7 +970,7 @@ void InitReplacementHacks() {
 	if (drugUsePerfFixMode > 0) dlogr("Applying AI drug use preference fix.", DL_FIX);
 
 	// Replace adjust_fid_ function
-	MakeJump(adjust_fid_, adjust_fid_hack); // 0x4716E8
+	MakeJump(adjust_fid_, adjust_fid_replacement); // 0x4716E8
 
 	// Replace the item_w_primary_mp_cost_ function with the sfall implementation in ai_search_inven_weap_
 	HookCall(0x429A08, ai_search_inven_weap_hook);
@@ -986,8 +986,8 @@ void InitReplacementHacks() {
 	MakeJump(trans_buf_to_buf_, fo_trans_buf_to_buf); // 0x4D3704
 
 	// Replace trait_adjust_*_ functions
-	MakeJump(trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
-	MakeJump(trait_adjust_stat_, trait_adjust_stat_hack);   // 0x4B3C7C
+	MakeJump(trait_adjust_skill_, trait_adjust_skill_replacement); // 0x4B40FC
+	MakeJump(trait_adjust_stat_, trait_adjust_stat_replacement);   // 0x4B3C7C
 
 	// Fix the carry weight penalty of the Small Frame trait not being applied to bonus Strength points
 	smallFrameTraitFix = (GetConfigInt("Misc", "SmallFrameFix", 0) != 0);

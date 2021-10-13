@@ -66,7 +66,9 @@
 #define FO_VAR_combat_end_due_to_load     0x517F98
 #define FO_VAR_combat_free_move           0x56D39C
 #define FO_VAR_combat_list                0x56D390
+#define FO_VAR_combat_obj                 0x51805C
 #define FO_VAR_combat_state               0x510944
+#define FO_VAR_combat_turn_obj            0x56D388
 #define FO_VAR_combat_turn_running        0x51093C
 #define FO_VAR_combatNumTurns             0x510940
 #define FO_VAR_crit_succ_eff              0x510978
@@ -371,8 +373,11 @@
 // TODO: move to separate namespace
 
 // defines pointer to an engine variable
-#define PTR_(name, type)	\
+#define PTR_(name, type) \
 	extern type* ptr_##name;
+
+#define PTRC(name, type) \
+	extern const type* ptr_##name;
 
 // X-Macros pattern
 #include "FalloutVars_def.h"
