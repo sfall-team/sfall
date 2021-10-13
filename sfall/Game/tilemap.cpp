@@ -174,7 +174,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 	}
 }
 
-static void __declspec(naked) tile_num_beyond_hack() {
+static void __declspec(naked) tile_num_beyond_replacement() {
 	__asm { //push ecx;
 		push ebx;
 		mov  ecx, eax;
@@ -186,7 +186,7 @@ static void __declspec(naked) tile_num_beyond_hack() {
 
 void Tilemap::init() {
 	// Replace tile_num_beyond_ function
-	sf::MakeJump(fo::funcoffs::tile_num_beyond_ + 1, tile_num_beyond_hack); // 0x4B1B84
+	sf::MakeJump(fo::funcoffs::tile_num_beyond_ + 1, tile_num_beyond_replacement); // 0x4B1B84
 }
 
 }

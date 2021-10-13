@@ -37,7 +37,7 @@ int __stdcall Skills::trait_adjust_skill(DWORD skillID) {
 	return result;
 }
 
-static void __declspec(naked) trait_adjust_skill_hack() {
+static void __declspec(naked) trait_adjust_skill_replacement() {
 	__asm {
 		push edx;
 		push ecx;
@@ -51,7 +51,7 @@ static void __declspec(naked) trait_adjust_skill_hack() {
 
 void Skills::init() {
 	// Replace trait_adjust_skill_ function
-	sf::MakeJump(fo::funcoffs::trait_adjust_skill_, trait_adjust_skill_hack); // 0x4B40FC
+	sf::MakeJump(fo::funcoffs::trait_adjust_skill_, trait_adjust_skill_replacement); // 0x4B40FC
 }
 
 }
