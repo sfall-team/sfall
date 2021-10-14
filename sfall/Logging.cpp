@@ -29,14 +29,28 @@ namespace sfall
 static int DebugTypes = 0;
 static std::ofstream Log;
 
-void dlog(const std::string& a) {
+void dlog(const char* a) {
 	Log << a;
 	Log.flush();
+}
+
+void dlog(const char* a, int type) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
+		Log << a;
+		Log.flush();
+	}
 }
 
 void dlog(const std::string& a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a;
+		Log.flush();
+	}
+}
+
+void dlogr(const char* a, int type) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
+		Log << a << "\n";
 		Log.flush();
 	}
 }
