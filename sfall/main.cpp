@@ -319,15 +319,13 @@ static void SfallInit() {
 
 	if (!CRC(filepath)) return;
 
-	// enabling debugging features
-	isDebug = (GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
-	if (isDebug) {
-		LoggingInit();
-		if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
-	}
+	LoggingInit();
+	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
 	HookCall(0x4DE7D2, WinMain_hook);
 
+	// enabling debugging features
+	isDebug = (GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 	if (!isDebug || !GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
