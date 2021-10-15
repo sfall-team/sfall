@@ -135,7 +135,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 			}
 			surface = &win->surface[currRect->wRect.left - win->rect.x] + ((currRect->wRect.top - win->rect.y) * win->width);
 		} else {
-			surface = new BYTE[height * width](); // black background
+			surface = new BYTE[height * width](); // black background (for main menu)
 			widthFrom = width; // replace with rectangle
 		}
 

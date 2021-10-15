@@ -172,7 +172,7 @@ procedure start begin
       if (controlMode > 0) then begin
          displayName := GetConfig("CombatControl", "DisplayName", 0);
 
-         if displayName then begin
+         if (displayName) then begin
             variable nameTag := add_iface_tag;
             debug_msg("NPC control - added new box: " + nameTag);
             if (nameTag <= 0) then begin // box added?
@@ -199,6 +199,8 @@ procedure start begin
          register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChange_Handler);
          register_hook_proc(HOOK_INVENTORYMOVE, InventoryMove_Handler);
          register_hook_proc(HOOK_INVENWIELD, InvenWield_Handler);
+      end else begin
+         exit;
       end
    end
 end
