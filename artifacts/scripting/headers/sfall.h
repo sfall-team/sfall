@@ -1,7 +1,7 @@
 #ifndef SFALL_H
 #define SFALL_H
 
-//Recognised modes for set_shader_mode and get_game_mode
+// Recognised modes for set_shader_mode and get_game_mode
 #define WORLDMAP    (0x1)
 #define DIALOG      (0x4)
 #define ESCMENU     (0x8)
@@ -24,7 +24,7 @@
 #define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
 #define SPECIAL     (0x80000000)
 
-//Valid arguments to register_hook
+// Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
 #define HOOK_AFTERHITROLL     (1)
 #define HOOK_CALCAPCOST       (2)
@@ -75,7 +75,7 @@
 #define HOOK_BESTWEAPON       (47)
 #define HOOK_CANUSEWEAPON     (48)
 
-//Valid arguments to list_begin
+// Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
 #define LIST_GROUNDITEMS (1)
 #define LIST_SCENERY     (2)
@@ -85,7 +85,7 @@
 #define LIST_SPATIAL     (6)
 #define LIST_ALL         (9)
 
-//Valid window types for get_window_attribute
+// Valid window types for get_window_attribute
 #define WINTYPE_INVENTORY    (0) // any inventory window (player/loot/use/barter)
 #define WINTYPE_DIALOG       (1)
 #define WINTYPE_PIPBOY       (2)
@@ -96,14 +96,14 @@
 #define WINTYPE_ESCMENU      (7) // escape menu
 #define WINTYPE_AUTOMAP      (8)
 
-//Valid flags for force_encounter_with_flags
+// Valid flags for force_encounter_with_flags
 #define ENCOUNTER_FLAG_NO_CAR   (0x1)
 #define ENCOUNTER_FLAG_LOCK     (0x2)  // block new forced encounter by the next function call until the current specified encounter occurs
 #define ENCOUNTER_FLAG_NO_ICON  (0x4)  // disable displaying the flashing icon
 #define ENCOUNTER_FLAG_ICON_SP  (0x8)  // use special encounter icon
 #define ENCOUNTER_FLAG_FADEOUT  (0x10) // fade out the screen on encounter (Note: you yourself should restore the fade screen when entering the encounter)
 
-//The attack types returned by get_attack_type
+// The attack types returned by get_attack_type
 #define ATKTYPE_LWEP1           (0)
 #define ATKTYPE_LWEP2           (1)
 #define ATKTYPE_RWEP1           (2)
@@ -125,18 +125,18 @@
 #define ATKTYPE_HOOKKICK       (18)
 #define ATKTYPE_PIERCINGKICK   (19)
 
-//Some possible values for the 4th argument to hs_removeinvobj
-#define RMOBJ_DROP      (0x49B875)  //If the object is dropped manually by the player from the inventory screen
-#define RMOBJ_TRADE     (0x47761D)  //If the object is offered up as a trade
-#define RMOBJ_DROPMULTI (0x45C1CF)  //When dropping a part of a stack (RMOBJ_DROP occures first)
+// Some possible values for the 4th argument to hs_removeinvobj
+#define RMOBJ_DROP             (0x49B875)  // If the object is dropped manually by the player from the inventory screen
+#define RMOBJ_TRADE            (0x47761D)  // If the object is offered up as a trade
+#define RMOBJ_DROPMULTI        (0x45C1CF)  // When dropping a part of a stack (RMOBJ_DROP occurs first)
 
-//Return values for "typeof"
+// Return values for "typeof"
 #define VALTYPE_NONE  (0) // not used yet
 #define VALTYPE_INT   (1)
 #define VALTYPE_FLOAT (2)
 #define VALTYPE_STR   (3)
 
-//Arrays defines
+/* ARRAYS FUNCTION DEFINES */
 
 // create persistent list
 #define create_array_list(size)     (create_array(size, 0))
@@ -232,7 +232,7 @@
 #define CURSOR_COMMAND      (1)
 #define CURSOR_TARGETING    (2)
 
-//Valid flags for set_rest_mode
+// Valid flags for set_rest_mode
 #define RESTMODE_DISABLED   (1) // disable resting on all maps
 #define RESTMODE_STRICT     (2) // disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
 #define RESTMODE_NO_HEALING (4) // disable healing during resting
@@ -272,6 +272,9 @@
 #define ADD_PERK_MODE_PERK      (2)  // add to the player's perks list
 #define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks (after added to the player)
 
+
+/* MISC FUNCTION MACROS */
+
 // instantly apply the item to dude_obj (w/o animation)
 #define use_item_on_dude(item)                          set_self(dude_obj);             \
                                                         set_self(dude_obj);             \
@@ -283,17 +286,18 @@
                                                         if (get_flags(obj1) bwand FLAG_MULTIHEX) then distance--; \
                                                         if (get_flags(obj2) bwand FLAG_MULTIHEX) then distance--
 
-
-/* sfall metarule3 function macros */
-// sets the number of days (range 1...127) for the Frank Horrigan encounter, or disable the encounter if days is set to 0
-#define set_horrigan_days(day)                          metarule3(200, day, 0, 0)
-// clears the keyboard input buffer, use it in the HOOK_KEYPRESS hook to clear keyboard events before calling functions that are waiting for keyboard input
-#define clear_keyboard_buffer                           metarule3(201, 0, 0, 0)
-
 // checks if the specified PID number exists in the list of registered protos
 #define check_pid(pid)                                  (get_proto_data(pid, 0) != -1)
 
-/* sfall_funcX macros */
+// sets the status of an unusable weapon that cannot be used in combat
+// use the HOOK_CANUSEWEAPON hook with weapon_is_unusable macro to override the engine value
+#define set_weapon_unusable(item)                       set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwor  0x00000010)
+#define set_weapon_usable(item)                         set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0xFFFFFFEF)
+#define weapon_is_unusable(item)                        (get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0x00000010)
+
+
+/* SFALL_FUNCX MACROS */
+
 #define add_extra_msg_file(name)                                sfall_func1("add_extra_msg_file", name)
 #define add_global_timer_event(time, fixedParam)                sfall_func2("add_g_timer_event", time, fixedParam)
 #define add_iface_tag                                           sfall_func0("add_iface_tag")
@@ -339,6 +343,7 @@
 #define get_text_width(text)                                    sfall_func1("get_text_width", text)
 #define has_fake_perk_npc(npc, perk)                            sfall_func2("has_fake_perk_npc", npc, perk)
 #define has_fake_trait_npc(npc, trait)                          sfall_func2("has_fake_trait_npc", npc, trait)
+#define hide_win                                                sfall_func0("hide_window")
 #define hide_window(winName)                                    sfall_func1("hide_window", winName)
 #define interface_art_draw(winID, artFile, x, y)                sfall_func4("interface_art_draw", winID, artFile, x, y)
 #define interface_art_draw_frame(winID, artID, x, y, frame)     sfall_func5("interface_art_draw", winID, artID, x, y, frame)
@@ -360,6 +365,7 @@
 #define message_box(text)                                       sfall_func1("message_box", text)
 #define metarule_exist(metaruleName)                            sfall_func1("metarule_exist", metaruleName)
 #define npc_engine_level_up(toggle)                             sfall_func1("npc_engine_level_up", toggle)
+#define obj_is_openable(obj)                                    sfall_func1("obj_is_openable", obj)
 #define obj_under_cursor(onlyCritter, includeDude)              sfall_func2("obj_under_cursor", onlyCritter, includeDude)
 #define objects_in_radius(tile, radius, elev, type)             sfall_func4("objects_in_radius", tile, radius, elev, type)
 #define outlined_object                                         sfall_func0("outlined_object")
@@ -384,11 +390,13 @@
 #define set_quest_failure_value(gvar, threshold)                sfall_func2("set_quest_failure_value", gvar, threshold)
 #define set_rest_heal_time(time)                                sfall_func1("set_rest_heal_time", time)
 #define set_rest_mode(mode)                                     sfall_func1("set_rest_mode", mode)
+#define set_scr_name(name)                                      sfall_func1("set_scr_name", name)
 #define set_terrain_name(x, y, name)                            sfall_func3("set_terrain_name", x, y, name)
 #define set_town_title(areaID, title)                           sfall_func2("set_town_title", areaID, title)
 #define set_unique_id(obj)                                      sfall_func1("set_unique_id", obj)
 #define set_unjam_locks_time(time)                              sfall_func1("set_unjam_locks_time", time)
 #define set_window_flag(winID, flag, value)                     sfall_func3("set_window_flag", winID, flag, value)
+#define show_win                                                sfall_func0("show_window")
 #define show_window(winName)                                    sfall_func1("show_window", winName)
 #define spatial_radius(obj)                                     sfall_func1("spatial_radius", obj)
 #define string_compare(str1, str2)                              sfall_func2("string_compare", str1, str2)
@@ -399,6 +407,7 @@
 #define tile_by_position(x, y)                                  sfall_func2("tile_by_position", x, y)
 #define tile_refresh_display                                    sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                                         sfall_func1("unjam_lock", obj)
+#define unset_scr_name                                          sfall_func0("set_scr_name") /* sets the name of the script object from pro_*.msg instead of scrname.msg */
 #define unset_unique_id(obj)                                    sfall_func2("set_unique_id", obj, -1)
 #define unwield_slot(critter, slot)                             sfall_func2("unwield_slot", critter, slot)
 #define win_fill_color(x, y, width, height, color)              sfall_func5("win_fill_color", x, y, width, height, color)
@@ -406,5 +415,21 @@
 #define set_fake_perk_npc(npc, perk, level, image, desc)        sfall_func5("set_fake_perk_npc", npc, perk, level, image, desc)
 #define set_fake_trait_npc(npc, trait, active, image, desc)     sfall_func5("set_fake_trait_npc", npc, trait, active, image, desc)
 #define set_selectable_perk_npc(npc, perk, active, image, desc) sfall_func5("set_selectable_perk_npc", npc, perk, active, image, desc)
+
+
+/* SFALL METARULE3 FUNCTION MACROS */
+
+// sets the number of days (range 1...127) for the Frank Horrigan encounter, or disable the encounter if days is set to 0
+#define set_horrigan_days(day)                                  metarule3(200, day, 0, 0)
+// clears the keyboard input buffer, use it in the HOOK_KEYPRESS hook to clear keyboard events before calling functions that are waiting for keyboard input
+#define clear_keyboard_buffer                                   metarule3(201, 0, 0, 0)
+
+// functions to control the save slot
+// Note: slot value here is 0-indexed instead of 1-indexed displayed in game and used for folder names
+#define get_current_save_slot                                   metarule3(210, 0, 0, 0) // returns the amount: page + slot
+#define set_current_save_slot(page, slot)                       metarule3(211, page, slot, 0)
+#define get_current_quick_save_page                             metarule3(212, 0, 0, 0)
+#define get_current_quick_save_slot                             metarule3(213, 0, 0, 0)
+#define set_current_quick_save_slot(page, slot, check)          metarule3(214, page, slot, check) // check: 1 - don't check slot when saving
 
 #endif

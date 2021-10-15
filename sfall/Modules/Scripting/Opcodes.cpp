@@ -270,7 +270,7 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 	__asm pop ecx;
 }
 
-void InitNewOpcodes() {
+void Opcodes::InitNew() {
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 
 	SafeWrite32(0x46E370, opcodeCount);    // Maximum number of allowed opcodes

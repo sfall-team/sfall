@@ -156,7 +156,7 @@ static void SetStatValue(long* proto, long offset, long amount) {
 
 // Applies all stats parameters, loaded from save file to individual critter prototype
 static void ModifyAllStats(const itProtoMem &mem) {
-	if (!mem->second.proto && !fo::CritterCopyProto(mem->second.pid, mem->second.proto)) return; // proto error
+	if (!mem->second.proto && !fo::util::CritterCopyProto(mem->second.pid, mem->second.proto)) return; // proto error
 
 	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); itBonus++) {
 		if (itBonus->objID == mem->first && itBonus->objPID == mem->second.pid) {
@@ -212,7 +212,7 @@ static void AddStat(long stat, fo::GameObject* critter, long amount, long* defau
 
 static void __fastcall SetStatToProto(long stat, fo::GameObject* critter, long amount, long* protoBase, long offset, bool isSaved) {
 	if (critter->protoId != fo::PID_Player) {
-		if (critter->protoId == isNotPartyMemberPid || !IsPartyMember(critter)) {
+		if (critter->protoId == isNotPartyMemberPid || !fo::util::IsPartyMember(critter)) {
 			isNotPartyMemberPid = critter->protoId;
 			AddStat(stat, critter, amount, protoBase, offset, isSaved);
 			return;
@@ -330,7 +330,7 @@ skip:
 
 // Returns the individual critter prototype, or null if it is missing
 long* __fastcall CritterStats::GetProto(fo::GameObject* critter) {
-	if (protoMem.empty() || critter->protoId == fo::PID_Player) return nullptr;
+	if (critter->protoId == fo::PID_Player || protoMem.empty()) return nullptr;
 	if (lastGetProtoID.id == critter->id) return lastGetProtoID.proto;
 
 	auto itMem = protoMem.find(critter->id);

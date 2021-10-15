@@ -222,36 +222,36 @@ static void __declspec(naked) display_stats_hook() {
 }
 
 static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
-	if (toSlot && fo::GetItemType(item) != fo::item_type_weapon && fo::GetItemType(toSlot) != fo::item_type_weapon) {
+	if (toSlot && fo::util::GetItemType(item) != fo::item_type_weapon && fo::util::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
-	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[0];
-	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[1];
+	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[fo::HandSlot::Left];
+	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[fo::HandSlot::Right];
 
-	if (toSlot == nullptr) { // copy to slot
-		fo::ItemButtonItem* slot;
-		fo::ItemButtonItem item[1];
+	if (toSlot == nullptr) { // copy to empty slot
+		fo::ItemButtonItem* dstSlot;
+		fo::ItemButtonItem item;
 		if ((int)&toSlot == FO_VAR_i_lhand) {
-			std::memcpy(item, rightSlot, 0x14);
-			item[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-			item[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
-			slot = leftSlot; // Rslot > Lslot
+			std::memcpy(&item, rightSlot, 0x14);
+			item.primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			item.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+			dstSlot = leftSlot; // Rslot > Lslot
 		} else {
-			std::memcpy(item, leftSlot, 0x14);
-			item[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-			item[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-			slot = rightSlot; // Lslot > Rslot;
+			std::memcpy(&item, leftSlot, 0x14);
+			item.primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			item.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+			dstSlot = rightSlot; // Lslot > Rslot;
 		}
-		std::memcpy(slot, item, 0x14);
+		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
 		auto hands = fo::var::itemButtonItems;
-		hands[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		hands[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		hands[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		hands[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[fo::HandSlot::Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		std::memcpy(leftSlot,  &hands[1], 0x14); // Rslot > Lslot
-		std::memcpy(rightSlot, &hands[0], 0x14); // Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[fo::HandSlot::Right], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[fo::HandSlot::Left],  0x14); // Lslot > Rslot
 	}
 }
 
@@ -272,6 +272,46 @@ skip:
 		retn;
 end:
 		mov  dword ptr [esp], 0x4715B7;
+		retn;
+	}
+}
+
+static long pHitL, sHitL, modeL = -2;
+static long pHitR, sHitR, modeR = -2;
+
+static long intface_update_items_hack_begin() {
+	if (!fo::var::itemButtonItems[fo::HandSlot::Left].item && !fo::func::inven_left_hand(fo::var::obj_dude)) {
+		modeL = fo::var::itemButtonItems[fo::HandSlot::Left].mode;
+		pHitL = fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack;
+		sHitL = fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack;
+	}
+	if (!fo::var::itemButtonItems[fo::HandSlot::Right].item && !fo::func::inven_right_hand(fo::var::obj_dude)) {
+		modeR = fo::var::itemButtonItems[fo::HandSlot::Right].mode;
+		pHitR = fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack;
+		sHitR = fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack;
+	}
+	return fo::var::itemCurrentItem;
+}
+
+static void intface_update_restore() {
+	if (modeL != -2 && pHitL == fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack &&
+	    sHitL == fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack)
+	{
+		fo::var::itemButtonItems[fo::HandSlot::Left].mode = modeL;
+	}
+	if (modeR != -2 && pHitR == fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack &&
+	    sHitR == fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack)
+	{
+		fo::var::itemButtonItems[fo::HandSlot::Right].mode = modeR;
+	}
+	modeL = -2;
+	modeR = -2;
+}
+
+static void __declspec(naked) intface_update_items_hack_end() {
+	__asm {
+		call intface_update_restore;
+		cmp  [esp + 0x1C - 0x18 + 4], 0; // animate
 		retn;
 	}
 }
@@ -314,7 +354,7 @@ playWalkMovie:
 static void __declspec(naked) ListDrvdStats_hook() {
 	static const DWORD ListDrvdStats_Ret = 0x4354D9;
 	__asm {
-		call fo::IsRadInfluence;
+		call fo::util::IsRadInfluence;
 		test eax, eax;
 		jnz  influence;
 		mov  eax, ds:[FO_VAR_obj_dude];
@@ -591,55 +631,6 @@ static void AlwaysReloadMsgs() {
 	}
 }
 
-static void InterfaceWindowPatch() {
-	if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
-		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x4D6EDD, 0x4D6F12});
-	}
-
-	dlog("Applying flags patch for interface windows.", DL_INIT);
-
-	// Remove MoveOnTop flag for interfaces
-	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ fo::WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
-	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ fo::WinFlags::MoveOnTop); // Automap
-
-	// Set OwnerFlag flag
-	SafeWrite8(0x4D5EBF, fo::WinFlags::OwnerFlag); // win_init_ (main win)
-	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | fo::WinFlags::OwnerFlag); // _display_win (map win)
-	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | fo::WinFlags::OwnerFlag); // gmovie_play_ (movie win)
-
-	// Remove OwnerFlag flag
-	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ fo::WinFlags::OwnerFlag); // createWindow_
-	// Remove OwnerFlag and Transparent flags
-	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (fo::WinFlags::Transparent | fo::WinFlags::OwnerFlag)); // addWindow_
-
-	dlogr(" Done", DL_INIT);
-
-	// Disable unused code for the RandX and RandY window structure fields (these fields can now be used for other purposes)
-	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
-	SafeWrite8(0x4D6310, 0x90);
-	BlockCall(0x4D6319);
-}
-
-static void InventoryCharacterRotationSpeedPatch() {
-	long setting = IniReader::GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
-	if (setting != 166 && setting <= 1000) {
-		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
-		SafeWrite32(0x47066B, setting);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
-static void UIAnimationSpeedPatch() {
-	DWORD addrs[] = {
-		0x45F9DE, 0x45FB33,
-		0x447DF4, 0x447EB6,
-		0x499B99, 0x499DA8
-	};
-	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
-	SimplePatch<BYTE>(&addrs[2], 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
-	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
-}
-
 static void MusicInDialoguePatch() {
 	if (IniReader::GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
@@ -679,10 +670,13 @@ static void DisplaySecondWeaponRangePatch() {
 	//}
 }
 
-static void KeepWeaponSelectModePatch() {
+static void KeepSelectModePatch() {
 	//if (IniReader::GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
-		dlog("Applying keep weapon select mode patch.", DL_INIT);
+		dlog("Applying keep selected attack mode patch.", DL_INIT);
 		MakeCall(0x4714EC, switch_hand_hack, 1);
+		// Keep unarmed mode
+		MakeCall(0x45F019, intface_update_items_hack_begin);
+		MakeCall(0x45F380, intface_update_items_hack_end);
 		dlogr(" Done", DL_INIT);
 	//}
 }
@@ -745,9 +739,88 @@ static void F1EngineBehaviorPatch() {
 	}
 }
 
+static long cMusicArea = -1;
+
+static void __declspec(naked) wmMapMusicStart_hook() {
+	__asm {
+		push edx;
+		push eax;
+		call fo::funcoffs::map_target_load_area_; // returns the area ID of the loaded map
+		cmp  eax, cMusicArea;
+		mov  cMusicArea, eax;
+		jne  default;
+		mov  eax, [esp];
+		lea  edx, ds:[FO_VAR_background_fname_requested];
+		call fo::funcoffs::stricmp_; // compare music file name
+		test eax, eax;
+		jz   continuePlay;
+default:
+		pop  eax;
+		pop  edx;
+		jmp  fo::funcoffs::gsound_background_play_level_music_;
+continuePlay:
+		pop  eax;
+		pop  edx;
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) map_load_file_hook() {
+	__asm {
+		push eax;
+		call InWorldMap;
+		test eax, eax;
+		jnz  playWind;
+		lea  eax, LoadGameHook::mapLoadingName;
+		call fo::funcoffs::wmMapMatchNameToIdx_;
+		test eax, eax;
+		js   default; // -1
+		push edx;
+		sub  esp, 4;
+		mov  edx, esp;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
+		pop  eax;
+		pop  edx;
+		cmp  eax, cMusicArea;
+		jne  playWind;
+		add  esp, 4;
+		retn;
+playWind:
+		mov  eax, -1;
+default:
+		mov  cMusicArea, eax;
+		pop  eax;
+		jmp  fo::funcoffs::gsound_background_play_;
+	}
+}
+
+static void __declspec(naked) wmSetMapMusic_hook() {
+	__asm {
+		mov  ds:[FO_VAR_background_fname_requested], 0;
+		jmp  fo::funcoffs::wmMapMusicStart_;
+	}
+}
+
+// When moving to another map that uses the same music, the music playback will not restart from the beginning
+static void PlayingMusicPatch() {
+	HookCall(0x4C58FB, wmMapMusicStart_hook);
+	HookCall(0x482BA0, map_load_file_hook);
+
+	HookCall(0x4C5999, wmSetMapMusic_hook); // related fix
+}
+
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 101;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
+	}
+}
+
 static void __declspec(naked) op_display_msg_hook() {
 	__asm {
-		cmp  dword ptr ds:FO_VAR_debug_func, 0;
+		cmp  dword ptr ds:[FO_VAR_debug_func], 0;
 		jne  debug;
 		retn;
 debug:
@@ -774,6 +847,11 @@ static void EngineOptimizationPatches() {
 	// mov ax, [eax]; rol ax, 8; ret;
 	SafeWrite32(0x467292, 0x66008B66);
 	SafeWrite32(0x467296, 0xC308C0C1);
+
+	// Disable unused code for the RandX and RandY window structure fields (these fields can now be used for other purposes)
+	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
+	SafeWrite8(0x4D6310, 0x90);
+	BlockCall(0x4D6319);
 }
 
 void MiscPatches::init() {
@@ -798,11 +876,15 @@ void MiscPatches::init() {
 	}
 
 	if (IniReader::GetConfigInt("Misc", "SingleCore", 1)) {
-		dlog("Applying single core patch.", DL_INIT);
-		HANDLE process = GetCurrentProcess();
-		SetProcessAffinityMask(process, 1);
-		CloseHandle(process);
-		dlogr(" Done", DL_INIT);
+		SYSTEM_INFO sysInfo;
+		GetSystemInfo(&sysInfo);
+		if (sysInfo.dwNumberOfProcessors > 1) {
+			dlog("Applying single core patch.", DL_INIT);
+			HANDLE process = GetCurrentProcess();
+			SetProcessAffinityMask(process, 2); // use only CPU 1
+			CloseHandle(process);
+			dlogr(" Done", DL_INIT);
+		}
 	}
 
 	if (IniReader::GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
@@ -850,14 +932,15 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Set the normal font for death screen subtitles
+	if (IniReader::GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
+		dlog("Applying death screen font patch.", DL_INIT);
+		HookCall(0x4812DF, main_death_scene_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
 	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
 	HookCalls(ListDrvdStats_hook, {0x43549C, 0x4354BE});
-
-	// Increase the max text width of the player name on the character screen
-	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100
-
-	// Increase the max text width of the information card on the character screen
-	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
 
 	// Allow setting custom colors from the game palette for object outlines
 	MakeCall(0x48EE00, obj_render_outline_hack);
@@ -871,6 +954,11 @@ void MiscPatches::init() {
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
 
+	// Corrects the height of the black background for death screen subtitles
+	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
+	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
+
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
@@ -878,10 +966,7 @@ void MiscPatches::init() {
 	PlayIdleAnimOnReloadPatch();
 
 	SkilldexImagesPatch();
-	InterfaceWindowPatch();
-
 	ScienceOnCrittersPatch();
-	InventoryCharacterRotationSpeedPatch();
 
 	OverrideMusicDirPatch();
 	BoostScriptDialogLimitPatch();
@@ -891,7 +976,6 @@ void MiscPatches::init() {
 	DisablePipboyAlarmPatch();
 
 	ObjCanSeeShootThroughPatch();
-	UIAnimationSpeedPatch();
 	MusicInDialoguePatch();
 	DontTurnOffSneakIfYouRunPatch();
 
@@ -901,13 +985,14 @@ void MiscPatches::init() {
 	DisableHorriganPatch();
 
 	DisplaySecondWeaponRangePatch();
-	KeepWeaponSelectModePatch();
+	KeepSelectModePatch();
 
 	PartyMemberSkillPatch();
 
 	SkipLoadingGameSettingsPatch();
 
 	UseWalkDistancePatch();
+	PlayingMusicPatch();
 }
 
 void MiscPatches::exit() {

@@ -107,5 +107,7 @@ void mf_objects_in_radius(OpcodeContext&);
 
 void mf_npc_engine_level_up(OpcodeContext&);
 
+void mf_obj_is_openable(OpcodeContext&);
+
 }
 }

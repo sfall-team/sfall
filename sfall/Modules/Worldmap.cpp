@@ -61,7 +61,7 @@ static DWORD WorldMapEncounterRate;
 
 static double tickFract = 0.0;
 static double mapMultiMod = 1.0;
-static float scriptMapMulti = 1.0;
+static float scriptMapMulti = 1.0f;
 
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
@@ -223,7 +223,7 @@ static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 		break;
 	}
 	multi = ((double)ticks) * multi + tickFract;
-	tickFract = modf(multi, &multi);
+	tickFract = std::modf(multi, &multi);
 
 	return static_cast<DWORD>(multi);
 }
@@ -562,7 +562,7 @@ bool Worldmap::LoadData(HANDLE file) {
 		ReadFile(file, &mID, 4, &sizeRead, 0);
 		ReadFile(file, &elevData, sizeof(levelRest), &sizeRead, 0);
 		if (sizeRead != sizeof(levelRest)) return true;
-		mapRestInfo.insert(std::make_pair(mID, elevData));
+		mapRestInfo.emplace(mID, elevData);
 	}
 	if (count && !restMap) {
 		HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
@@ -637,7 +637,7 @@ void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
 			elev++;
 		}
 		elevData.level[elev] = canRest;
-		mapRestInfo.insert(std::make_pair(mapId, elevData));
+		mapRestInfo.emplace(mapId, elevData);
 	}
 }
 
@@ -676,7 +676,7 @@ void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
 // Returns the name of the terrain type in the position of the player's marker on the world map
 const char* Worldmap::GetCurrentTerrainName() {
 	const char* name = GetOverrideTerrainName(fo::var::world_xpos / 50, fo::var::world_ypos / 50);
-	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetCurrentTerrainType());
+	return (name) ? name : fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::util::wmGetCurrentTerrainType());
 }
 
 bool Worldmap::AreaTitlesIsEmpty() {

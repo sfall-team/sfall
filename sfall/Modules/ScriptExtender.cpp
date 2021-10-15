@@ -32,6 +32,8 @@
 #include "MainLoopHook.h"
 #include "Worldmap.h"
 
+#include "SubModules\ObjectName.h"
+
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
@@ -559,7 +561,7 @@ static void PrepareGlobalScriptsListByMask() {
 					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
 					continue;
 				}
-				globalScriptFilesList.insert(std::make_pair(baseName, fullPath)); // script files should be sorted in alphabetical order
+				globalScriptFilesList.emplace(std::move(baseName), std::move(fullPath)); // script files should be sorted in alphabetical order
 			}
 		}
 		fo::func::db_free_file_list(&filenames, 0);
@@ -942,7 +944,7 @@ void ScriptExtender::init() {
 	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle > 30) idle = 30;
 
-	arraysBehavior = IniReader::GetConfigInt("Misc", "arraysBehavior", 1);
+	arraysBehavior = IniReader::GetConfigInt("Misc", "ArraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
@@ -1007,7 +1009,8 @@ void ScriptExtender::init() {
 		MakeCall(0x423DEB, (void*)fo::funcoffs::compute_damage_);
 	}
 
-	InitNewOpcodes();
+	Opcodes::InitNew();
+	ObjectName::init();
 
 	ScriptExtender::OnMapExit() += ClearEventsOnMapExit; // for reordering the execution of functions before exiting the map
 }

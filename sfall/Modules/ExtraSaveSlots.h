@@ -23,13 +23,18 @@
 namespace sfall
 {
 
-extern DWORD LSPageOffset;
-
 class ExtraSaveSlots : public Module {
 public:
 	const char* name() { return "SuperSave"; }
 	void init();
 	void exit() override;
+
+	static long GetSaveSlot();
+	static void SetSaveSlot(long page, long slot);
+
+	static long GetQuickSavePage();
+	static long GetQuickSaveSlot();
+	static void SetQuickSaveSlot(long page, long slot, long check);
 };
 
 }

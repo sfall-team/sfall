@@ -113,10 +113,10 @@ enum BodyPart : long {
 
 enum CritterFlags : long
 {
-	Sneak        = 0x01,   // Can sneak ?
+	Sneak        = 0x01,   // Can sneak ? (unused)
 	Barter       = 0x02,   // Can trade with
-	Level        = 0x04,   // Level received ?
-	Addict       = 0x08,   // Drug addiction ?
+	Level        = 0x04,   // Level received ? (unused)
+	Addict       = 0x08,   // Drug addiction ? (unused)
 	NoSteal      = 0x20,   // Can't be stolen from
 	NoDrop       = 0x40,   // Doesn't drop items
 	NoLimbs      = 0x80,   // Can't lose limbs
@@ -129,7 +129,7 @@ enum CritterFlags : long
 	NoKnockBack  = 0x4000, // Can't be knocked back
 };
 
-enum ItemFlags : long
+enum ItemFlags : unsigned long // for FlagsExt
 {
 	// Weapon Flags:
 	BigGun       = 0x00000100,
@@ -139,7 +139,16 @@ enum ItemFlags : long
 	// Action Flags:
 	Use          = 0x00000800, // object can be used
 
+	HealingItem  = 0x04000000, // sfall healing drug flag
 	HiddenItem   = 0x08000000  // item is hidden
+};
+
+enum MiscFlags : unsigned long
+{
+	Opened       = 0x00000001,
+	CantUse      = 0x00000010, // determines whether the weapon can be used in combat (sfall flag)
+	Locked       = 0x02000000,
+	Jammed       = 0x04000000,
 };
 
 enum DamageFlag : unsigned long
@@ -237,10 +246,10 @@ namespace ObjectFlag {
 		Flat         = 0x00000008,
 		NoBlock      = 0x00000010,
 		Lighting     = 0x00000020,
-		Temp         = 0x00000400,
+		Temp         = 0x00000400, // ???
 		MultiHex     = 0x00000800,
 		NoHighlight  = 0x00001000,
-		Used         = 0x00002000,
+		Used         = 0x00002000, // set if there was/is any event for the object
 		TransRed     = 0x00004000,
 		TransNone    = 0x00008000,
 		TransWall    = 0x00010000,
@@ -250,7 +259,7 @@ namespace ObjectFlag {
 		Left_Hand    = 0x01000000,
 		Right_Hand   = 0x02000000,
 		Worn         = 0x04000000,
-		HiddenItem   = 0x08000000,
+		Unused       = 0x08000000, // reserved
 		WallTransEnd = 0x10000000,
 		LightThru    = 0x20000000,
 		Seen         = 0x40000000,
@@ -516,15 +525,14 @@ enum class ScenerySubType : long
 
 enum Stat : long
 {
-	STAT_st = 0,
-	STAT_pe = 1,
-	STAT_en = 2,
-	STAT_ch = 3,
-	STAT_iq = 4,
-	STAT_ag = 5,
-	STAT_lu = 6,
-	///  strength, perception, endurance, charisma, intelligence, agility,
-	///  luck,   // luck MUST be the last basic stat
+	STAT_st = 0, // strength
+	STAT_pe = 1, // perception
+	STAT_en = 2, // endurance
+	STAT_ch = 3, // charisma
+	STAT_iq = 4, // intelligence
+	STAT_ag = 5, // agility
+	STAT_lu = 6, // luck
+
 	// derived stats
 	STAT_max_hit_points = 7,
 	STAT_max_move_points = 8,
@@ -553,14 +561,18 @@ enum Stat : long
 	STAT_rad_resist = 31,
 	STAT_poison_resist = 32,
 	// poison_resist MUST be the last derived stat
+
 	// non-derived stats
 	STAT_age = 33,
 	STAT_gender = 34,
 	// gender MUST be the last non-derived stat
+
 	STAT_current_hp = 35,
 	STAT_current_poison = 36,
 	STAT_current_rad = 37,
-	STAT_real_max_stat = 38
+
+	STAT_real_max_stat = 38,
+	STAT_base_count = 7
 };
 
 namespace Scripts {
@@ -762,10 +774,21 @@ enum TicksTime : unsigned long
 	ONE_GAME_YEAR         = 315360000
 };
 
-enum ActiveSlot : unsigned long
+enum HandSlot : unsigned long
 {
 	Left                  = 0,
 	Right                 = 1
+};
+
+enum HandSlotMode : long
+{
+	Unset                 = 0,
+	Primary               = 1,
+	Primary_Aimed         = 2,
+	Secondary             = 3,
+	Secondary_Aimed       = 4,
+	Reload                = 5,
+	UnkMode               = 6
 };
 
 enum RollResult
@@ -788,49 +811,55 @@ enum CombatStateFlag : long
 namespace Fields {
 	enum CommonObj : long
 	{
-		id                = 0x00,
-		tile              = 0x04,
-		x                 = 0x08,
-		y                 = 0x0C,
-		sx                = 0x10,
-		sy                = 0x14,
-		frm               = 0x18,
-		rotation          = 0x1C,
-		artFid            = 0x20,
-		flags             = 0x24,
-		elevation         = 0x28,
-		inventory         = 0x2C,
+		id                = 0x00, // saveable
+		tile              = 0x04, // saveable
+		x                 = 0x08, // saveable
+		y                 = 0x0C, // saveable
+		sx                = 0x10, // saveable
+		sy                = 0x14, // saveable
+		currFrame         = 0x18, // saveable
+		rotation          = 0x1C, // saveable
+		artFid            = 0x20, // saveable
+		flags             = 0x24, // saveable
+		elevation         = 0x28, // saveable
+		inventory         = 0x2C, // saveable
 
-		protoId           = 0x64,
-		cid               = 0x68, // combatID, don't change while in combat
-		lightDistance     = 0x6C,
-		lightIntensity    = 0x70,
-		outline           = 0x74,
-		scriptId          = 0x78,
+		protoId           = 0x64, // saveable
+		cid               = 0x68, // saveable (critter CombatID, don't change while in combat)
+		lightDistance     = 0x6C, // saveable
+		lightIntensity    = 0x70, // saveable
+		outline           = 0x74, // saveable
+		scriptId          = 0x78, // saveable
 		owner             = 0x7C,
-		scriptIndex       = 0x80,
+		scriptIndex       = 0x80, // saveable
 	};
 
 	enum CritterObj : long
 	{
-		reaction          = 0x38,
-		combatState       = 0x3C,
-		movePoints        = 0x40,
-		damageFlags       = 0x44,
-		damageLastTurn    = 0x48,
-		aiPacket          = 0x4C,
-		teamNum           = 0x50,
-		whoHitMe          = 0x54,
-		health            = 0x58,
-		rads              = 0x5C,
-		poison            = 0x60,
+		reaction          = 0x38, // saveable
+		combatState       = 0x3C, // saveable
+		movePoints        = 0x40, // saveable
+		damageFlags       = 0x44, // saveable
+		damageLastTurn    = 0x48, // saveable
+		aiPacket          = 0x4C, // saveable
+		teamNum           = 0x50, // saveable
+		whoHitMe          = 0x54, // saveable
+		health            = 0x58, // saveable
+		rads              = 0x5C, // saveable
+		poison            = 0x60, // saveable
 	};
 
 	enum ItemObj : long
 	{
-		updatedFlags      = 0x38,
-		charges           = 0x3C,
-		ammoPid           = 0x40,
+		miscFlags         = 0x38, // saveable
+		charges           = 0x3C, // saveable
+		ammoPid           = 0x40, // saveable
+	};
+
+	enum SceneryObj : long
+	{
+		sceneryFlags      = 0x38, // saveable
+		doorFlags         = 0x3C, // saveable
 	};
 
 	enum ComputeAttack : long
@@ -885,7 +914,7 @@ namespace AIpref {
 		whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
 		strongest             = 1, // attack stronger targets (will always switch to stronger ones in combat)
 		weakest               = 2, // attack weaker targets (will always switch to weaker ones in combat)
-		whomever              = 3, // anyone, will attack the chosen target until it dies, or until retaliation occurs (combatai_check_retalization_)
+		whomever              = 3, // anyone, will attack the chosen target until it dies, or until retaliation occurs (combatai_check_retaliation_)
 		closest               = 4, // only attack near targets
 	};
 

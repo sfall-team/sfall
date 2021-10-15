@@ -1001,7 +1001,7 @@ sfall_funcX metarule functions
 - `winType`: the type number of the interface window (see `WINTYPE_*` constants in **sfall.h**)
 - `x/y`: offset relative to the top-left corner of the window
 - `color`: the color index in the game palette. Pass 0 if the text color was previously set by vanilla `SetTextColor` function. It can also take additional flags (via `bwor`) for displaying text:<br>
-    `0x0010000` - adds a shadow to the text, the 'textshadow' compiler constant<br>
+    `0x0010000` - adds a shadow to the text, the `textshadow` compiler constant<br>
     `0x1000000` - prevents immediate redrawing of the interface window, the `textdirect` compiler constant (works the other way around)<br>
     `0x2000000` - fills the background of the text with black color, the `textnofill` compiler constant (works the other way around)
 
@@ -1039,6 +1039,19 @@ sfall_funcX metarule functions
 - Sets the threshold value (failure_threshold) for the quest at which the quest will be considered failed (its description in the pipboy will be crossed out and colored red)
 - `gvarNumber`: the number of the global variable controlling the quest
 - `thresholdValue`: the value of the global variable at which the quest is counted as a failure
+
+----
+#### set_scr_name
+`void sfall_func1("set_scr_name", string name)`
+- Overrides the name of the script object that was set from **scrname.msg**
+- The changed name will be reset each time the player leaves the map or reloads the game
+- Passing an empty string ("") to the `name` argument or omitting it will allow the game to get the name for the object from pro_*.msg files
+- __NOTE:__ this function is intended for use in normal game scripts and overrides the name only once for the same object until reset
+
+----
+#### obj_is_openable
+`bool sfall_func1("obj_is_openable", object obj)`
+- Returns True if the object is openable (i.e. has an opening/closing animation)
 
 
 ****

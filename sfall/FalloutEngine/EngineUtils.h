@@ -30,13 +30,15 @@
 
 namespace fo
 {
+namespace util
+{
 
 __inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
 }
 
 // rect_free_ function for inline implementation
-__forceinline void sf_rect_free(fo::RectList* rect) {
+__forceinline void rect_free(fo::RectList* rect) {
 	fo::RectList* front = fo::var::rectList;
 	fo::var::rectList = rect;
 	rect->nextRect = front;
@@ -82,13 +84,22 @@ long GetItemType(fo::GameObject* item);
 
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot);
 
+fo::AttackType GetHandSlotPrimaryAttack(fo::HandSlot slot);
+fo::AttackType GetHandSlotSecondaryAttack(fo::HandSlot slot);
+fo::HandSlotMode GetHandSlotMode(fo::HandSlot slot);
+
 long& GetActiveItemMode();
 
 fo::GameObject* GetActiveItem();
 
+// Hand: 0 - left, 1 - right
+fo::AttackType GetSlotHitMode(fo::HandSlot hand);
+
 long GetCurrentAttackMode();
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag);
+
+long ObjIsOpenable(fo::GameObject* object);
 
 bool HeroIsFemale();
 
@@ -151,8 +162,8 @@ DWORD GetTextWidth(const char* textMsg);
 DWORD GetTextWidthFM(const char* textMsg);
 
 // get width of Char for current font
-DWORD GetCharWidth(char charVal);
-DWORD GetCharWidthFM(char charVal);
+DWORD GetCharWidth(BYTE charVal);
+DWORD GetCharWidthFM(BYTE charVal);
 
 // get maximum string length for current font - if all characters were maximum width
 DWORD GetMaxTextWidth(const char* textMsg);
@@ -171,4 +182,5 @@ void RefreshGNW(bool skipOwner = false);
 
 fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 
+}
 }

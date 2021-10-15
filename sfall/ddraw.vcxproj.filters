@@ -22,6 +22,12 @@
     <Filter Include="Game">
       <UniqueIdentifier>{eb2be45d-bfdf-4a70-920d-4d616202a597}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\GUI">
+      <UniqueIdentifier>{e19ca1b6-f754-47a9-9a6d-5ce44592d8ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\AI">
+      <UniqueIdentifier>{6ce67248-1c25-4dae-967c-3078b65838e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -323,9 +329,6 @@
     <ClInclude Include="Game\stats.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="Game\render.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="Game\items.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -345,6 +348,27 @@
     <ClInclude Include="Translate.h" />
     <ClInclude Include="Game\combatAI.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\EngineTweaks.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GUI\Text.h">
+      <Filter>Game\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GUI\render.h">
+      <Filter>Game\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\AI\AIHelpers.h">
+      <Filter>Game\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Unarmed.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\SubModules\ObjectName.h">
+      <Filter>Modules\SubModules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -619,9 +643,6 @@
     <ClCompile Include="Game\stats.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Game\render.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Game\items.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -641,6 +662,24 @@
     <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Game\combatAI.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\EngineTweaks.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\GUI\Text.cpp">
+      <Filter>Game\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\GUI\render.cpp">
+      <Filter>Game\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\AI\AIHelpers.cpp">
+      <Filter>Game\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Unarmed.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\ObjectName.cpp">
+      <Filter>Modules\SubModules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

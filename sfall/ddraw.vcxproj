@@ -95,8 +95,9 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include\</AdditionalIncludeDirectories>
-      <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
+      <AssemblerOutput>NoListing</AssemblerOutput>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d9.lib;d3dx9.lib;dinput.lib;Strmiids.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -142,7 +143,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
       <CallingConvention>StdCall</CallingConvention>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
@@ -163,7 +164,9 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <NoEntryPoint>false</NoEntryPoint>
+      <BaseAddress>0x11000000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
@@ -193,7 +196,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
       <CallingConvention>StdCall</CallingConvention>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
@@ -214,7 +217,9 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <NoEntryPoint>false</NoEntryPoint>
+      <BaseAddress>0x11000000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
@@ -266,7 +271,9 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <NoEntryPoint>false</NoEntryPoint>
+      <BaseAddress>0x11000000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
@@ -288,20 +295,24 @@
     <ClInclude Include="FalloutEngine\Structs.h" />
     <ClInclude Include="FalloutEngine\EngineUtils.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />
+    <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h" />
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Game\AI\AIHelpers.h" />
     <ClInclude Include="Game\combatAI.h" />
+    <ClInclude Include="Game\GUI\render.h" />
+    <ClInclude Include="Game\GUI\Text.h" />
     <ClInclude Include="Game\inventory.h" />
     <ClInclude Include="Game\items.h" />
     <ClInclude Include="Game\objects.h" />
-    <ClInclude Include="Game\render.h" />
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Game\tilemap.h" />
     <ClInclude Include="IniReader.h" />
     <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
+    <ClInclude Include="Modules\EngineTweaks.h" />
     <ClInclude Include="Modules\Interface.h" />
     <ClInclude Include="Modules\Drugs.h" />
     <ClInclude Include="Modules\HookScripts\CombatHs.h" />
@@ -330,7 +341,9 @@
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\SubModules\CombatBlock.h" />
     <ClInclude Include="Modules\SubModules\EnginePerks.h" />
+    <ClInclude Include="Modules\SubModules\ObjectName.h" />
     <ClInclude Include="Modules\SubModules\WindowRender.h" />
+    <ClInclude Include="Modules\Unarmed.h" />
     <ClInclude Include="Modules\Worldmap.h" />
     <ClInclude Include="Modules\ScriptExtender.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
@@ -403,17 +416,20 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Game\AI\AIHelpers.cpp" />
     <ClCompile Include="Game\combatAI.cpp" />
+    <ClCompile Include="Game\GUI\render.cpp" />
+    <ClCompile Include="Game\GUI\Text.cpp" />
     <ClCompile Include="Game\inventory.cpp" />
     <ClCompile Include="Game\items.cpp" />
     <ClCompile Include="Game\objects.cpp" />
-    <ClCompile Include="Game\render.cpp" />
     <ClCompile Include="Game\skills.cpp" />
     <ClCompile Include="Game\stats.cpp" />
     <ClCompile Include="Game\tilemap.cpp" />
     <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
+    <ClCompile Include="Modules\EngineTweaks.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
     <ClCompile Include="Modules\Drugs.cpp" />
     <ClCompile Include="Modules\HookScripts\CombatHs.cpp" />
@@ -441,7 +457,9 @@
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\SubModules\CombatBlock.cpp" />
     <ClCompile Include="Modules\SubModules\EnginePerks.cpp" />
+    <ClCompile Include="Modules\SubModules\ObjectName.cpp" />
     <ClCompile Include="Modules\SubModules\WindowRender.cpp" />
+    <ClCompile Include="Modules\Unarmed.cpp" />
     <ClCompile Include="Modules\Worldmap.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />

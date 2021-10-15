@@ -28,3 +28,5 @@
 #include "EngineUtils.h"
 #include "Variables.h"
 #include "Functions.h"
+
+#include "VariableOffsets_HRP.h"

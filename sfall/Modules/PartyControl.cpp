@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2016  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -40,7 +40,7 @@ bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
 static bool isControllingNPC = false;
-static bool skipCounterAnim  = false;
+static char skipCounterAnim;
 
 static int delayedExperience;
 static bool switchHandHookInjected = false;
@@ -120,7 +120,7 @@ static bool SetAddictGvar(fo::GameObject* npc) {
 		long pid = Drugs::GetDrugPid(i);
 		if (pid > 0) {
 			long gvarID = Drugs::GetDrugGvar(i);
-			if (gvarID <= 0 || !fo::CheckAddictByPid(npc, pid)) continue;
+			if (gvarID <= 0 || !fo::util::CheckAddictByPid(npc, pid)) continue;
 			fo::var::game_global_vars[gvarID] = 1;
 			isAddict = true;
 		}
@@ -137,22 +137,22 @@ static void SaveRealDudeState() {
 	std::memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
 	std::memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(realDude.pc_name, sizeof(fo::var::pc_name), fo::var::pc_name);
-	realDude.Level = fo::var::Level_;
+	realDude.Level = fo::var::Level_pc;
 	realDude.last_level = fo::var::last_level;
-	realDude.Experience = fo::var::Experience_;
+	realDude.Experience = fo::var::Experience_pc;
 	realDude.free_perk = fo::var::free_perk;
-	realDude.unspent_skill_points = fo::var::curr_pc_stat[0];
+	realDude.unspent_skill_points = fo::var::curr_pc_stat[fo::PCSTAT_unspent_skill_points];
 
 	fo::Queue* queue = nullptr;
 	realDude.sneak_working = fo::var::sneak_working;
 	if (fo::func::is_pc_flag(0)) { // sneak flag
-		queue = fo::QueueFind(realDude.obj_dude, fo::QueueType::sneak_event);
+		queue = fo::util::QueueFind(realDude.obj_dude, fo::QueueType::sneak_event);
 		fo::func::queue_remove_this(realDude.obj_dude, fo::QueueType::sneak_event);
 	}
 	realDude.sneak_queue_time = (queue) ? queue->time : 0;
 	devlog_f("Dude save sneak: time %d[%d], state %d\n", DL_MAIN, realDude.sneak_queue_time, fo::var::fallout_game_time, realDude.sneak_working);
 
-	fo::SkillGetTags(realDude.tag_skill, 4);
+	fo::util::SkillGetTags(realDude.tag_skill, 4);
 
 	for (int i = 0; i < 6; i++) realDude.addictGvar[i] = fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar];
 	realDude.addictGvar[6] = fo::var::game_global_vars[fo::var::drugInfoList[7].addictGvar];
@@ -161,8 +161,10 @@ static void SaveRealDudeState() {
 
 	realDude.isSaved = true;
 
-	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
-
+	if (skipCounterAnim == 1) {
+		skipCounterAnim++;
+		SafeWrite8(0x422BDE, 0); // no animate
+	}
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Save dude state.");
 }
 
@@ -173,13 +175,13 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// remove skill tags
 	long tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
-	fo::SkillSetTags(tagSkill, 4);
+	fo::util::SkillSetTags(tagSkill, 4);
 
 	// reset traits
 	fo::var::pc_trait[0] = fo::var::pc_trait[1] = -1;
 
 	// copy existing party member perks or reset list for non-party member NPC
-	long isPartyMember = fo::IsPartyMemberByPid(npc->protoId);
+	long isPartyMember = fo::util::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
 		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::Perk::PERK_count);
 	} else {
@@ -191,24 +193,24 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	          ? fo::func::partyMemberGetCurLevel(npc)
 	          : 0;
 
-	fo::var::Level_ = level;
+	fo::var::Level_pc = level;
 	fo::var::last_level = level;
 
 	// change character name
 	fo::func::critter_pc_set_name(fo::func::critter_name(npc));
 
 	// reset other stats
-	fo::var::Experience_ = 0;
+	fo::var::Experience_pc = 0;
 	fo::var::free_perk = 0;
-	fo::var::curr_pc_stat[0] = 0;
+	fo::var::curr_pc_stat[fo::PCSTAT_unspent_skill_points] = 0;
 	fo::var::sneak_working = 0;
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
-	if (fo::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
-		fo::var::itemCurrentItem = fo::ActiveSlot::Left;
+	if (fo::util::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
+		fo::var::itemCurrentItem = fo::HandSlot::Left;
 	} else {
-		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
+		fo::var::itemCurrentItem = fo::HandSlot::Right;
 	}
 	// restore selected weapon mode
 	size_t count = weaponState.size();
@@ -242,14 +244,15 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	bool isAddict = false;
 	for (int i = 0; i < 9; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 0;
 	for (int i = 0; i < 9; i++) {
-		if (!fo::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid)) continue;
+		if (!fo::util::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid)) continue;
 		fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 1;
 		isAddict = true;
 	}
 	if (realDude.extendAddictGvar) isAddict |= SetAddictGvar(npc); // check new added addictions
-	fo::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
+	fo::util::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
 
 	// switch main dude_obj pointers - this should be done last!
+	fo::var::combat_turn_obj = npc;
 	fo::var::obj_dude = npc;
 	fo::var::inven_dude = npc;
 	fo::var::inven_pid = npc->protoId;
@@ -258,7 +261,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	isControllingNPC = true;
 	delayedExperience = 0;
 
-	if (fo::IsNpcFlag(npc, 0)) { // sneak flag
+	if (fo::util::IsNpcFlag(npc, 0)) { // sneak flag
 		bool exist = false;
 		/* restore the previously saved sneak state */
 		for (const auto& member : partySneakWorking) {
@@ -298,11 +301,11 @@ static void RestoreRealDudeState(bool redraw = true) {
 	std::memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
 	std::memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
-	fo::var::Level_ = realDude.Level;
+	fo::var::Level_pc = realDude.Level;
 	fo::var::last_level = realDude.last_level;
-	fo::var::Experience_ = realDude.Experience;
+	fo::var::Experience_pc = realDude.Experience;
 	fo::var::free_perk = realDude.free_perk;
-	fo::var::curr_pc_stat[0] = realDude.unspent_skill_points;
+	fo::var::curr_pc_stat[fo::PCSTAT_unspent_skill_points] = realDude.unspent_skill_points;
 
 	fo::var::sneak_working = 0;
 	if (realDude.sneak_queue_time && fo::func::is_pc_flag(0)) {
@@ -312,7 +315,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 		devlog_f("Dude restore sneak: time %d, state %d\n", DL_MAIN, realDude.sneak_queue_time, realDude.sneak_working);
 	}
 
-	fo::SkillSetTags(realDude.tag_skill, 4);
+	fo::util::SkillSetTags(realDude.tag_skill, 4);
 
 	if (delayedExperience > 0) {
 		fo::func::stat_pc_add_experience(delayedExperience);
@@ -323,9 +326,13 @@ static void RestoreRealDudeState(bool redraw = true) {
 	fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar] = realDude.addictGvar[7];
 	if (realDude.extendAddictGvar) RestoreAddictGvarState();
 
-	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
-
-	if (redraw) fo::func::intface_redraw();
+	if (redraw) {
+		if (skipCounterAnim == 2) {
+			skipCounterAnim--;
+			SafeWrite8(0x422BDE, 1); // restore
+		}
+		fo::func::intface_redraw();
+	}
 
 	realDude.isSaved = false;
 	isControllingNPC = false;
@@ -334,7 +341,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 }
 
 static void __stdcall DisplayCantDoThat() {
-	fo::func::display_print(fo::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
+	fo::func::display_print(fo::util::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
@@ -342,7 +349,7 @@ int __fastcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
 	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::i_fid; //fo::var::obj_dude->artFid;
-		long weaponCode = fo::AnimCodeByWeapon(item);
+		long weaponCode = fo::util::AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		if (!fo::func::art_exists(fId)) {
 			DisplayCantDoThat();
@@ -459,6 +466,10 @@ pcName:
 static void PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
+		if (skipCounterAnim == 2) {
+			skipCounterAnim = 1; // skipCounterAnim--;
+			SafeWrite8(0x422BDE, 1); // restore
+		}
 	}
 	realDude.obj_dude = nullptr;
 	realDude.isSaved = false;
@@ -510,7 +521,7 @@ static void SaveWeaponMode(bool isSwap) {
 // Moves the weapon from the active left slot to the right slot and saves the selected weapon mode for NPC
 static void NPCWeaponTweak() {
 	bool isSwap = false;
-	if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
+	if (fo::var::itemCurrentItem == fo::HandSlot::Left) {
 		// set active left item to right slot
 		fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
 		if (lItem) {
@@ -528,13 +539,18 @@ static void NPCWeaponTweak() {
 }
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	if (skipCounterAnim == 2 && critter && critter == realDude.obj_dude) {
+		skipCounterAnim--;
+		SafeWrite8(0x422BDE, 1); // restore
+	}
+
 	if (isControllingNPC) {
-		if (fo::IsNpcFlag(fo::var::obj_dude, 0)) { // sneak flag
+		if (fo::util::IsNpcFlag(fo::var::obj_dude, 0)) { // sneak flag
 			/* saves the sneak state for the currently controlled NPC and clears its events before switching */
 			bool exist = false;
 			for (auto& member : partySneakWorking) {
 				if (member.object == fo::var::obj_dude) {
-					fo::Queue* queue = fo::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
+					fo::Queue* queue = fo::util::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
 					member.sneak_queue_time = (queue) ? queue->time : 0;
 					member.sneak_working = fo::var::sneak_working;
 					exist = true;
@@ -545,7 +561,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 			if (!exist) {
 				PartySneakWorking member;
 				member.object = fo::var::obj_dude;
-				fo::Queue* queue = fo::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
+				fo::Queue* queue = fo::util::QueueFind(fo::var::obj_dude, fo::QueueType::sneak_event);
 				member.sneak_queue_time = (queue) ? queue->time : 0;
 				member.sneak_working = fo::var::sneak_working;
 				partySneakWorking.push_back(member);
@@ -555,32 +571,33 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		}
 
 		NPCWeaponTweak();
-		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(critter != nullptr); // return control to dude
 	}
-	if (critter != nullptr && critter != PartyControl::RealDudeObject()) {
+	if (critter && critter != PartyControl::RealDudeObject()) {
 		if (!isControllingNPC && !realDude.isSaved) {
 			SaveRealDudeState();
 		}
 		SetCurrentDude(critter);
 
-		if (switchHandHookInjected) return;
-		switchHandHookInjected = true;
-//		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+		if (!switchHandHookInjected) {
+			switchHandHookInjected = true;
+			//if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
 
-		ScriptExtender::OnMapExit() += []() {
-			if (!partySneakWorking.empty()) {
-				// unset active sneak flags for controlled NPCs when exiting the map
-				for (const auto& member : partySneakWorking) fo::ToggleNpcFlag(member.object, 0, false);
-				partySneakWorking.clear();
-			}
-		};
-		HookCall(0x42E25B, pc_flag_off_hook);
-		HookCall(0x49EB09, proto_name_hook);
+			ScriptExtender::OnMapExit() += []() {
+				if (!partySneakWorking.empty()) {
+					// unset active sneak flags for controlled NPCs when exiting the map
+					for (const auto& member : partySneakWorking) fo::util::ToggleNpcFlag(member.object, 0, false);
+					partySneakWorking.clear();
+				}
+			};
+			HookCall(0x42E25B, pc_flag_off_hook);
+			HookCall(0x49EB09, proto_name_hook);
 
-		// Gets dude perks and traits from script while controlling another NPC
-		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
-		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
-		HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
+			// Gets dude perks and traits from script while controlling another NPC
+			// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
+			HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
+			HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
+		}
 	}
 }
 
@@ -603,19 +620,19 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	sprintf_s(lvlMsg, fmt, levelMsg, level);
 
 	BYTE color = fo::var::GreenColor;
-	int widthText = fo::GetTextWidth(lvlMsg);
-	fo::PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
+	int widthText = fo::util::GetTextWidth(lvlMsg);
+	fo::util::PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
 
 	int ac = fo::func::stat_level(partyMember, fo::STAT_ac);
 	sprintf_s(acMsg, fmt, armorClassMsg, ac);
 
-	xPos -= fo::GetTextWidth(armorClassMsg) + 20;
-	fo::PrintText(acMsg, color, xPos, 167, fo::GetTextWidth(acMsg), toWidth, surface);
+	xPos -= fo::util::GetTextWidth(armorClassMsg) + 20;
+	fo::util::PrintText(acMsg, color, xPos, 167, fo::util::GetTextWidth(acMsg), toWidth, surface);
 
 	if (fo::func::queue_find_first(partyMember, 2)) {
 		color = fo::var::RedColor;
-		widthText = fo::GetTextWidth(addictMsg);
-		fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+		widthText = fo::util::GetTextWidth(addictMsg);
+		fo::util::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
 	}
 }
 
@@ -745,7 +762,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			long rnd = (max > 2) ? GetRandom(2, max) : 2;
 			message = partyOrderAttackMsg[rnd].c_str();
 		}
-		fo::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
+		fo::util::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
 	}
 
 	partyOrderPickTargetLoop = false;
@@ -796,7 +813,7 @@ static void __fastcall SetOrderTarget(fo::GameObject* attacker) {
 	if (target) attacker->critter.whoHitMe = target;
 }
 
-static void __declspec(naked) combat_ai_hook_targer() {
+static void __declspec(naked) combat_ai_hook_target() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;
@@ -813,7 +830,7 @@ void PartyControl::OrderAttackPatch() {
 	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
 	MakeCall(0x44B830, gmouse_bk_process_hack);
 
-	HookCall(0x42B235, combat_ai_hook_targer);
+	HookCall(0x42B235, combat_ai_hook_target);
 	LoadGameHook::OnCombatEnd() += []() {
 		partyOrderAttackTarget.clear();
 	};
@@ -849,7 +866,7 @@ void PartyControl::init() {
 
 	NpcAutoLevelPatch();
 
-	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
+	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3) ? 1 : 0;
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {

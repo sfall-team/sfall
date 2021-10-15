@@ -349,13 +349,13 @@ void op_message_str_game(OpcodeContext& ctx) {
 	if (fileId >= 0) {
 		int msgId = ctx.arg(1).rawValue();
 		if (fileId < 20) { // main msg files
-			msg = fo::GetMessageStr(Message::gameMsgFiles[fileId], msgId);
+			msg = fo::util::GetMessageStr(Message::gameMsgFiles[fileId], msgId);
 		} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-			msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
+			msg = fo::util::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
 		} else if (fileId >= 0x2000) { // Extra game message files.
 			ExtraGameMessageListsMap::iterator it = Message::gExtraGameMsgLists.find(fileId);
 			if (it != Message::gExtraGameMsgLists.end()) {
-				msg = fo::GetMsg(it->second.get(), msgId, 2);
+				msg = fo::util::GetMsg(it->second.get(), msgId, 2);
 			}
 		}
 	}
@@ -383,7 +383,7 @@ void mf_get_string_pointer(OpcodeContext& ctx) {
 }
 
 void mf_get_text_width(OpcodeContext& ctx) {
-	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).strValue()));
+	ctx.setReturn(fo::util::GetTextWidth(ctx.arg(0).strValue()));
 }
 
 static std::string strToCase;

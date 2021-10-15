@@ -37,13 +37,13 @@ public:
 	/* Messages */
 
 	// SaveSfallDataFail: "ERROR saving extended savegame information!"
-	static std::string& Translate::SfallSaveDataFailure();
+	static std::string& SfallSaveDataFailure();
 
 	// SaveInCombat: "Cannot save at this time."
-	static std::string& Translate::CombatSaveBlockMessage();
+	static std::string& CombatSaveBlockMessage();
 
 	// BlockedCombat: "You cannot enter combat at this time."
-	static std::string& Translate::CombatBlockMessage();
+	static std::string& CombatBlockMessage();
 };
 
 }

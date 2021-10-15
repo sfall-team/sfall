@@ -28,7 +28,8 @@ public:
 	const char* name() { return "Console"; }
 	void init();
 	void exit() override;
+
+	static void PrintFile(const char* msg);
 };
 
-//void DisplayAlertPopup(const char* msg, const char* line2);
 }

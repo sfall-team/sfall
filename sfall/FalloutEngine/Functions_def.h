@@ -23,6 +23,7 @@ WRAP_WATCOM_FFUNC4(fo::GameObject*, ai_best_weapon, fo::GameObject*, source, fo:
 WRAP_WATCOM_FFUNC3(bool, ai_can_use_weapon, fo::GameObject*, critter, fo::GameObject*, item, DWORD, hitMode)
 WRAP_WATCOM_FFUNC3(long, ai_have_ammo, fo::GameObject*, critter, fo::GameObject*, item, fo::GameObject**, outAmmo)
 WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, fo::GameObject*, source, fo::GameObject*, item, fo::GameObject*, target)
+WRAP_WATCOM_FFUNC3(long, ai_magic_hands, fo::GameObject*, source, fo::GameObject*, object, long, msgNumber)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, ai_search_inven_weap, fo::GameObject*, source, long, apCheck, fo::GameObject*, target)
 WRAP_WATCOM_FFUNC3(void, check_for_death, fo::GameObject*, critter, long, amountDamage, long*, flags)
 WRAP_WATCOM_FFUNC6(long, combat_safety_invalidate_weapon_func, fo::GameObject*, source, fo::GameObject*, weapon, long, hitMode, fo::GameObject*, targetA, DWORD*, outSafeRange, fo::GameObject*, targetB)
@@ -37,7 +38,7 @@ WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, lo
 WRAP_WATCOM_FFUNC3(fo::GameObject*, inven_find_type, fo::GameObject*, critter, long, itemType, DWORD*, slot)
 WRAP_WATCOM_FFUNC3(long, inven_wield, fo::GameObject*, critter, fo::GameObject*, item, long, slot)
 WRAP_WATCOM_FFUNC3(long, item_add_force, fo::GameObject*, critter, fo::GameObject*, item, long, count)
-WRAP_WATCOM_FFUNC3(long, item_mp_cost, fo::GameObject*, source, long, hitMode, long, isCalled)
+WRAP_WATCOM_FFUNC3(long, item_remove_mult, fo::GameObject*, critter, fo::GameObject*, item, long, count) // WARNING: HOOK_REMOVEINVENOBJ uses the return address in this function
 WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, fo::GameObject*, source, long, hitMode, long, isCalled)
 // Calculates path and returns it's length
 WRAP_WATCOM_FFUNC6(long, make_path_func, fo::GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, checkTileTo, void*, blockingFunc)
@@ -46,6 +47,7 @@ WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*,
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, obj_blocking_at, fo::GameObject*, object, long, tile, long, elevation)
+WRAP_WATCOM_FFUNC4(long, obj_connect, fo::GameObject*, object, long, tile, long, elevation, RECT*, rect)
 WRAP_WATCOM_FFUNC4(long, obj_dist_with_tile, fo::GameObject*, source, long, sourceTile, fo::GameObject*, target, long, targetTile)
 WRAP_WATCOM_FFUNC4(long, obj_move_to_tile, fo::GameObject*, object, long, tile, long, elevation, RECT*, rect)
 WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, fo::GameObject*, object, long, sType, long, scriptIndex)
@@ -71,6 +73,8 @@ WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWO
 /* stdcall */
 WRAP_WATCOM_FUNC1(fo::AIcap*, ai_cap, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC2(void, ai_print_msg, fo::GameObject*, object, long, mode)
+WRAP_WATCOM_FUNC2(fo::GameObject*, ai_retrieve_object, fo::GameObject*, critter, fo::GameObject*, item)
+WRAP_WATCOM_FUNC2(fo::GameObject*, ai_search_environ, fo::GameObject*, critter, long, itemType)
 WRAP_WATCOM_FUNC1(fo::Program*, allocateProgram, const char*, filePath)
 WRAP_WATCOM_FUNC2(long, anim_can_use_door, fo::GameObject*, source, fo::GameObject*, object)
 WRAP_WATCOM_FUNC1(bool, art_exists, long, artFid)
@@ -136,6 +140,7 @@ WRAP_WATCOM_FUNC2(long, is_within_perception, fo::GameObject*, source, fo::GameO
 WRAP_WATCOM_FUNC1(long, isPartyMember, fo::GameObject*, obj)
 WRAP_WATCOM_FUNC1(long, item_c_curr_size, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, item_caps_total, fo::GameObject*, object)
+WRAP_WATCOM_FUNC2(long, item_d_take_drug, fo::GameObject*, source, fo::GameObject*, item)
 WRAP_WATCOM_FUNC1(long, item_get_type, fo::GameObject*, item)
 WRAP_WATCOM_FUNC2(fo::GameObject*, item_hit_with, fo::GameObject*, critter, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_m_dec_charges, fo::GameObject*, item) // Returns 0 on success, -1 if the item has no charges
@@ -183,6 +188,7 @@ WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_first)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_next)
 WRAP_WATCOM_FUNC2(fo::GameObject*, obj_find_first_at_tile, long, elevation, long, tileNum)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_next_at_tile)
+WRAP_WATCOM_FUNC1(bool, obj_is_openable, fo::GameObject*, object)
 WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, fo::GameObject*, object) // Checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, fo::GameObject*, object)
@@ -194,6 +200,7 @@ WRAP_WATCOM_FUNC2(long, perk_level, fo::GameObject*, critter, long, perkId)
 //WRAP_WATCOM_FUNC2(void, perk_remove_effect, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC6(long, pick_death, fo::GameObject*, attacker, fo::GameObject*, target, fo::GameObject*, weapon, long, amount, long, anim, long, hitFromBack)
 WRAP_WATCOM_FUNC0(void, process_bk)
+WRAP_WATCOM_FUNC2(const char*, proto_get_msg_info, long, pid, long, msgType) // msgType: 0 - name, 1 - desc
 WRAP_WATCOM_FUNC0(void, proto_dude_update_gender)
 WRAP_WATCOM_FUNC2(void, proto_make_path, char*, buffer, long, pid)
 // Places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
@@ -230,6 +237,7 @@ WRAP_WATCOM_FUNC1(void, scr_build_lookup_table, fo::ScriptInstance*, script)
 WRAP_WATCOM_FUNC1(fo::ScriptInstance*, scr_find_first_at, long, elevation)
 WRAP_WATCOM_FUNC0(fo::ScriptInstance*, scr_find_next_at)
 WRAP_WATCOM_FUNC1(fo::GameObject*, scr_find_obj_from_program, fo::Program*, program)
+WRAP_WATCOM_FUNC1(long, scr_find_sid_from_program, fo::Program*, program)
 WRAP_WATCOM_FUNC2(long, scr_new, long*, scriptID, long, sType)
 // Saves pointer to script object into scriptPtr using scriptID
 WRAP_WATCOM_FUNC2(long, scr_ptr, long, scriptId, fo::ScriptInstance**, scriptPtr) // Returns 0 on success, -1 on failure

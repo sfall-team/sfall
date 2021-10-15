@@ -118,6 +118,7 @@ static const SfallMetarule metarules[] = {
 	{"message_box",             mf_message_box,             1, 4, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT}},
 	{"metarule_exist",          mf_metarule_exist,          1, 1}, // no arg check
 	{"npc_engine_level_up",     mf_npc_engine_level_up,     1, 1},
+	{"obj_is_openable",         mf_obj_is_openable,         1, 1,  0, {ARG_OBJECT}},
 	{"obj_under_cursor",        mf_obj_under_cursor,        2, 2,  0, {ARG_INT, ARG_INT}},
 	{"objects_in_radius",       mf_objects_in_radius,       3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"outlined_object",         mf_outlined_object,         0, 0},
@@ -139,6 +140,7 @@ static const SfallMetarule metarules[] = {
 	{"set_quest_failure_value", mf_set_quest_failure_value, 2, 2, -1, {ARG_INT, ARG_INT}},
 	{"set_rest_heal_time",      mf_set_rest_heal_time,      1, 1, -1, {ARG_INT}},
 	{"set_rest_mode",           mf_set_rest_mode,           1, 1, -1, {ARG_INT}},
+	{"set_scr_name",            mf_set_scr_name,            0, 1, -1, {ARG_STRING}},
 	{"set_selectable_perk_npc", mf_set_selectable_perk_npc, 5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_terrain_name",        mf_set_terrain_name,        3, 3, -1, {ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_town_title",          mf_set_town_title,          2, 2, -1, {ARG_INT, ARG_STRING}},

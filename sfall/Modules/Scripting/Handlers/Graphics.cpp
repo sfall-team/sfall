@@ -20,7 +20,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 
 #include "..\..\..\main.h"
-#include "..\..\..\InputFuncs.h"
+//#include "..\..\..\InputFuncs.h"
 #include "..\..\Graphics.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\ScriptShaders.h"
@@ -455,7 +455,7 @@ void __declspec(naked) op_force_graphics_refresh() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call ForceGraphicsRefresh;
+		call Graphics::ForceGraphicsRefresh;
 end:
 		mov  ecx, esi;
 		retn;

@@ -100,7 +100,7 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 }
 
 static void RunEditorInternal(SOCKET &s) {
-	*(DWORD*)FO_VAR_script_engine_running = 0;
+	fo::var::setInt(FO_VAR_script_engine_running) = 0;
 
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
@@ -200,7 +200,7 @@ static void RunEditorInternal(SOCKET &s) {
 		case CODE_GET_LOCVARS:
 			{
 				InternalRecv(s, &id, 4); // sid
-				val = fo::GetScriptLocalVars(id);
+				val = fo::util::GetScriptLocalVars(id);
 				InternalSend(s, &val, 4);
 				if (val) {
 					std::vector<int> values(val);
@@ -233,7 +233,7 @@ static void RunEditorInternal(SOCKET &s) {
 	delete[] arrays;
 
 	FlushInputBuffer();
-	*(DWORD*)FO_VAR_script_engine_running = 1;
+	fo::var::setInt(FO_VAR_script_engine_running) = 1;
 }
 
 void RunDebugEditor() {
@@ -313,9 +313,9 @@ hide:
 }
 
 static void __declspec(naked) art_data_size_hook() {
-	static const char* artDbgMsg = "\nERROR: File not found: %s\n";
+	static const char* artDbgMsg = "\nERROR: Art file not found: %s\n";
 	__asm {
-		test edi, edi;
+		test edi, edi; // 1 - isExistsArt
 		jz   artNotExist;
 		retn;
 artNotExist:
@@ -336,6 +336,18 @@ display:
 		add  esp, 20;
 		lea  eax, [esp + 4];
 		jmp  fo::funcoffs::display_print_;
+	}
+}
+
+static void __declspec(naked) art_data_size_hook_check() {
+	using namespace fo;
+	__asm {
+		xor  esi, esi;
+		mov  eax, ebx; // ebx - FID
+		shr  eax, 16;  // al - animation code (ID2)
+		cmp  al, ANIM_walk;
+		cmove ecx, esi;
+		retn;
 	}
 }
 
@@ -437,11 +449,16 @@ static void DebugModePatch() {
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
+
 		if (IniReader::GetIntDefaultConfig("Debugging", "HideObjIsNullMsg", 0)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
+
 		// prints a debug message about a missing critter art file to both debug.log and the message window in sfall debugging mode
 		HookCall(0x419B65, art_data_size_hook);
+		// checks the animation code, if ANIM_walk then skip printing the debug message
+		HookCall(0x419AA0, art_data_size_hook_check);
+		SafeWrite8(0x419B61, CodeType::JumpNZ); // jz > jnz
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
 		if (dbgMode > 1) {

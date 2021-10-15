@@ -4,21 +4,23 @@
  *
  */
 
-#include "..\main.h"
-#include "..\FalloutEngine\Fallout2.h"
+#include "..\..\main.h"
+#include "..\..\FalloutEngine\Fallout2.h"
 
-#include "..\Modules\Graphics.h"
-#include "..\Modules\SubModules\WindowRender.h"
+#include "..\..\Modules\Graphics.h"
+#include "..\..\Modules\SubModules\WindowRender.h"
 
 #include "render.h"
 
 namespace game
 {
+namespace gui
+{
 
 namespace sf = sfall;
 
 static BYTE* GetBuffer() {
-	return (BYTE*)*(DWORD*)FO_VAR_screen_buffer;
+	return (BYTE*)fo::var::getInt(FO_VAR_screen_buffer);
 }
 
 static void Draw(fo::Window* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
@@ -43,7 +45,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 	if (win->flags & fo::WinFlags::Hidden) return;
 	fo::RectList* rects;
 
-	if (win->flags & fo::WinFlags::Transparent && !*(DWORD*)FO_VAR_doing_refresh_all) {
+	if (win->flags & fo::WinFlags::Transparent && !fo::var::getInt(FO_VAR_doing_refresh_all)) {
 		__asm {
 			mov  eax, updateRect;
 			mov  edx, ds:[FO_VAR_screen_buffer];
@@ -86,7 +88,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 
 				fo::RectList* free = rects;
 				rects = rects->nextRect;
-				fo::sf_rect_free(free);
+				fo::util::rect_free(free);
 			}
 		}
 		return;
@@ -110,7 +112,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 	if (rects->wRect.bottom > win->wRect.bottom) rects->wRect.bottom = win->wRect.bottom;
 
 	if (rects->wRect.right < rects->wRect.left || rects->wRect.bottom < rects->wRect.top) {
-		fo::sf_rect_free(rects);
+		fo::util::rect_free(rects);
 		return;
 	}
 
@@ -133,7 +135,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 			}
 			surface = &win->surface[currRect->wRect.left - win->rect.x] + ((currRect->wRect.top - win->rect.y) * win->width);
 		} else {
-			surface = new BYTE[height * width](); // black background
+			surface = new BYTE[height * width](); // black background (for main menu)
 			widthFrom = width; // replace with rectangle
 		}
 
@@ -154,11 +156,11 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 			sf::Graphics::UpdateDDSurface(&GetBuffer()[rects->rect.x] + (rects->rect.y * widthFrom), width, height, widthFrom, &rects->wRect);
 		}
 		fo::RectList* next = rects->nextRect;
-		fo::sf_rect_free(rects);
+		fo::util::rect_free(rects);
 		rects = next;
 	}
 
-	if (!toBuffer && !*(DWORD*)FO_VAR_doing_refresh_all && !fo::var::mouse_is_hidden && fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+	if (!toBuffer && !fo::var::getInt(FO_VAR_doing_refresh_all) && !fo::var::mouse_is_hidden && fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 		fo::func::mouse_show();
 	}
 }
@@ -185,4 +187,5 @@ void Render::init() {
 	sf::SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, {0x4C8FD1, 0x4C900D});
 }
 
+}
 }

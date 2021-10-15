@@ -19,6 +19,7 @@
 #include <fstream>
 
 #include "..\main.h"
+#include "..\Modules\LoadGameHook.h"
 
 #include "Console.h"
 
@@ -26,25 +27,35 @@ namespace sfall
 {
 
 static std::ofstream consoleFile;
+static long printCount = 0;
 
-static void __stdcall ConsoleFilePrint(const char* msg) {
-	consoleFile << msg << std::endl;
+static void __fastcall ConsoleFilePrint(const char* msg) {
+	consoleFile << msg << '\n';
+
+	if (++printCount >= 20) {
+		printCount = 0;
+		consoleFile.flush();
+	}
 }
 
-static void __declspec(naked) ConsoleHook() {
-	static const DWORD ConsoleHookRet = 0x431871;
+static void __declspec(naked) display_print_hack() {
+	static const DWORD display_print_Ret = 0x431871;
 	__asm {
-		pushadc;
-		push eax;
-		call ConsoleFilePrint;
-		popadc;
 		push ebx;
 		push ecx;
 		push edx;
 		push esi;
 		push edi;
-		jmp ConsoleHookRet;
+		mov  ebx, eax;
+		mov  ecx, eax;
+		call ConsoleFilePrint;
+		mov  eax, ebx;
+		jmp  display_print_Ret;
 	}
+}
+
+void Console::PrintFile(const char* msg) {
+	if (consoleFile.is_open()) ConsoleFilePrint(msg);
 }
 
 void Console::init() {
@@ -52,15 +63,18 @@ void Console::init() {
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {
-			MakeJump(0x43186C, ConsoleHook);
+			MakeJump(0x43186C, display_print_hack);
+
+			LoadGameHook::OnGameReset() += []() {
+				printCount = 0;
+				consoleFile.flush();
+			};
 		}
 	}
 }
 
 void Console::exit() {
-	if (consoleFile.is_open()) {
-		consoleFile.close();
-	}
+	if (consoleFile.is_open()) consoleFile.close();
 }
 
 }

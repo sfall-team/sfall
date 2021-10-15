@@ -40,16 +40,16 @@ static DWORD wheelMod;
 
 static bool reverseMouse;
 
-bool middleMouseDown;
+bool middleMouseDown = false;
 static DWORD middleMouseKey;
 
 static bool backgroundKeyboard;
 static bool backgroundMouse;
 
-static bool adjustMouseSpeed;
+static bool adjustMouseSpeed = false;
 static double mouseSpeedMod;
-static double mousePartX;
-static double mousePartY;
+static double mousePartX = 0.0;
+static double mousePartY = 0.0;
 
 #define MAX_KEYS (264)
 
@@ -57,13 +57,6 @@ static DWORD keysDown[MAX_KEYS] = {0};
 
 static int mouseX;
 static int mouseY;
-
-static DWORD forcingGraphicsRefresh = 0;
-
-void __stdcall ForceGraphicsRefresh(DWORD d) {
-	if (!d3d9Device) return;
-	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
-}
 
 void GetMouse(int* x, int* y) {
 	*x = mouseX;
@@ -214,30 +207,34 @@ public:
 
 	// Only called for the mouse
 	HRESULT __stdcall GetDeviceState(DWORD a, LPVOID b) {
-		if (forcingGraphicsRefresh) Graphics::RefreshGraphics();
+		Graphics::RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
 		}
 
 		DIMOUSESTATE2 MouseState;
 		HRESULT hr;
-		int numButtons;
-		if (formatLock) hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE2), &MouseState);
-		else hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE), &MouseState);
+		if (formatLock)
+			hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE2), &MouseState);
+		else
+			hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE), &MouseState);
 		if (FAILED(hr)) return hr;
+
 		if (reverseMouse) {
 			BYTE tmp = MouseState.rgbButtons[0];
 			MouseState.rgbButtons[0] = MouseState.rgbButtons[1];
 			MouseState.rgbButtons[1] = tmp;
 		}
+
 		if (adjustMouseSpeed) {
 			double d = ((double)MouseState.lX) * mouseSpeedMod + mousePartX;
-			mousePartX = modf(d, &d);
-			MouseState.lX = (LONG)d;
+			mousePartX = std::modf(d, &d);
+			MouseState.lX = (long)d;
 			d = ((double)MouseState.lY) * mouseSpeedMod + mousePartY;
-			mousePartY = modf(d, &d);
-			MouseState.lY = (LONG)d;
+			mousePartY = std::modf(d, &d);
+			MouseState.lY = (long)d;
 		}
+
 		if (useScrollWheel) {
 			int count = 1;
 			if (MouseState.lZ > 0) {
@@ -262,6 +259,7 @@ public:
 				}
 			}
 		}
+
 		if (middleMouseKey && MouseState.rgbButtons[2]) {
 			if (!middleMouseDown) {
 				TapKey(middleMouseKey);
@@ -271,14 +269,14 @@ public:
 		mouseX = MouseState.lX;
 		mouseY = MouseState.lY;
 
-		numButtons = formatLock ? 8 : 4;
+		int numButtons = formatLock ? 8 : 4;
 		for (int i = 0; i < numButtons; i++) {
 			if ((MouseState.rgbButtons[i] & 0x80) != (keysDown[256 + i] & 0x80)) { // state changed
 				onMouseClick.invoke(i, (MouseState.rgbButtons[i] & 0x80) > 0);
 			}
 			keysDown[256 + i] = MouseState.rgbButtons[i];
 		}
-		memcpy(b, &MouseState, sizeof(DIMOUSESTATE));
+		std::memcpy(b, &MouseState, sizeof(DIMOUSESTATE));
 		return 0;
 	}
 
@@ -310,7 +308,7 @@ public:
 
 				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 
-				if ((long)dxKey > 0 && dxKey != buf[i].dwOfs) {
+				if ((signed)dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = dxKey; // Override key
 					keysDown[buf[i].dwOfs] = state;
@@ -442,19 +440,16 @@ public:
 
 inline void InitInputFeatures() {
 	reverseMouse = IniReader::GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
-
 	useScrollWheel = IniReader::GetConfigInt("Input", "UseScrollWheel", 1) != 0;
 	wheelMod = IniReader::GetConfigInt("Input", "ScrollMod", 0);
-	LONG MouseSpeed = IniReader::GetConfigInt("Input", "MouseSensitivity", 100);
+
+	long MouseSpeed = IniReader::GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
 		adjustMouseSpeed = true;
 		mouseSpeedMod = ((double)MouseSpeed) / 100.0;
-		mousePartX = 0;
-		mousePartY = 0;
-	} else adjustMouseSpeed = false;
+	}
 
 	middleMouseKey = IniReader::GetConfigInt("Input", "MiddleMouse", DIK_B);
-	middleMouseDown = false;
 
 	backgroundKeyboard = IniReader::GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
 	backgroundMouse = IniReader::GetConfigInt("Input", "BackgroundMouse", 0) != 0;

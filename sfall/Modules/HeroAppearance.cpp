@@ -78,10 +78,10 @@ static long GetFont() {
 static bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LineNode *StartLine) {
 	*lineNum = 1;
 
-	if (fo::GetMaxCharWidth() >= WrapWidth) return false;
-	if (fo::GetTextWidth(TextMsg) < WrapWidth) return true;
+	if (fo::util::GetMaxCharWidth() >= WrapWidth) return false;
+	if (fo::util::GetTextWidth(TextMsg) < WrapWidth) return true;
 
-	DWORD GapWidth = fo::GetCharGapWidth();
+	DWORD GapWidth = fo::util::GetCharGapWidth();
 
 	StartLine->next = new LineNode;
 	LineNode *NextLine = StartLine->next;
@@ -92,7 +92,7 @@ static bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, L
 	while (TextMsg[i] != '\0') {
 		CurrentChar = TextMsg[i++];
 
-		int cWidth = fo::GetCharWidth(CurrentChar) + GapWidth;
+		int cWidth = fo::util::GetCharWidth(CurrentChar) + GapWidth;
 		lineWidth += cWidth;
 		wordWidth += cWidth;
 
@@ -147,7 +147,7 @@ static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
 ////////////////////////////// APP MOD FUNCTIONS ///////////////////////////////
 
 static char GetSex() {
-	return (fo::HeroIsFemale()) ? 'F' : 'M';
+	return (fo::util::HeroIsFemale()) ? 'F' : 'M';
 }
 
 // functions to load and save appearance globals
@@ -359,7 +359,7 @@ static void DoubleArtAlias() {
 /////////////////////////// GRAPHICS HERO FUNCTIONS ////////////////////////////
 
 static void DrawPC() {
-	fo::RedrawObject(fo::var::obj_dude);
+	fo::util::RedrawObject(fo::var::obj_dude);
 }
 
 // scan inventory items for armor and weapons currently being worn or wielded and setup matching FrmID for PC
@@ -576,8 +576,8 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	char *MsgFileName = (style) ? "game\\AppStyle.msg" : "game\\AppRace.msg";
 
 	if (fo::func::message_load(&MsgList, MsgFileName) == 1) {
-		TitleMsg = fo::GetMsg(&MsgList, 100, 2);
-		InfoMsg = fo::GetMsg(&MsgList, 101, 2);
+		TitleMsg = fo::util::GetMsg(&MsgList, 100, 2);
+		InfoMsg = fo::util::GetMsg(&MsgList, 101, 2);
 	}
 
 	fo::Window *winInfo = fo::func::GNW_find(winRef);
@@ -585,9 +585,9 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
-	fo::UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
+	fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
 	if (frm) {
-		fo::DrawToSurface(frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].width, frm->frames[0].indexBuff, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
+		fo::util::DrawToSurface(frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].width, frm->frames[0].indexBuff, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
 	}
 
@@ -595,11 +595,11 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	SetFont(0x66);           // set font for title
 
 	DWORD textHeight;
-	BYTE colour = *(BYTE*)FO_VAR_colorTable; // black color
+	BYTE colour = fo::var::getByte(FO_VAR_colorTable); // black color
 
 	if (TitleMsg != nullptr) {
-		textHeight = fo::GetTextHeight();
-		fo::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
+		textHeight = fo::util::GetTextHeight();
+		fo::util::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
 		// draw line
 		std::memset(PadSurface + 280 * textHeight, colour, 265);
 		std::memset(PadSurface + 280 * (textHeight + 1), colour, 265);
@@ -611,13 +611,13 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 
 	if (InfoMsg != nullptr) {
 		SetFont(0x65); // set font for info
-		textHeight = fo::GetTextHeight();
+		textHeight = fo::util::GetTextHeight();
 
 		if (CreateWordWrapList(InfoMsg, 160, &lineNum, StartLine)) {
 			int lineHeight = 43;
 
 			if (lineNum == 1) {
-				fo::PrintText(InfoMsg, colour, 0, lineHeight, 280, 280, PadSurface);
+				fo::util::PrintText(InfoMsg, colour, 0, lineHeight, 280, 280, PadSurface);
 			} else {
 				if (lineNum > 11) lineNum = 11;
 				CurrentLine = StartLine;
@@ -626,7 +626,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 					NextLine = CurrentLine->next;
 					char TempChar = InfoMsg[NextLine->offset]; //[line+1]];
 					InfoMsg[NextLine->offset] = '\0';
-					fo::PrintText(InfoMsg + CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
+					fo::util::PrintText(InfoMsg + CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
 					InfoMsg[NextLine->offset] = TempChar;
 					lineHeight += textHeight + 1;
 					CurrentLine = NextLine;
@@ -639,7 +639,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	SetFont(oldFont); // restore previous font
 	fo::func::message_exit(&MsgList);
 
-	*(long*)FO_VAR_card_old_fid1 = -1; // reset fid
+	fo::var::setInt(FO_VAR_card_old_fid1) = -1; // reset fid
 
 	DeleteWordWrapList(StartLine);
 	delete[] PadSurface;
@@ -653,7 +653,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
-	fo::UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -702,8 +702,8 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	fo::MessageList MsgList;
 
 	if (fo::func::message_load(&MsgList, "game\\AppIface.msg") == 1) {
-		RaceStyleBtn = fo::GetMsg(&MsgList, (isStyle) ? 101 : 100, 2);
-		DoneBtn = fo::GetMsg(&MsgList, 102, 2);
+		RaceStyleBtn = fo::util::GetMsg(&MsgList, (isStyle) ? 101 : 100, 2);
+		DoneBtn = fo::util::GetMsg(&MsgList, 102, 2);
 	} else {
 		// Get alternate text from ini if available (TODO: remove this in the future)
 		char titleText[16];
@@ -719,11 +719,11 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	}
 
 	BYTE textColour = fo::var::PeanutButter; // PeanutButter colour - palette offset stored in mem
-	DWORD titleTextWidth = fo::GetTextWidth(RaceStyleBtn);
-	fo::PrintText(RaceStyleBtn, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
+	DWORD titleTextWidth = fo::util::GetTextWidth(RaceStyleBtn);
+	fo::util::PrintText(RaceStyleBtn, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	titleTextWidth = fo::GetTextWidth(DoneBtn);
-	fo::PrintText(DoneBtn, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
+	titleTextWidth = fo::util::GetTextWidth(DoneBtn);
+	fo::util::PrintText(DoneBtn, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	surface_draw(484, 230, 484, 0, 0, mainSurface, 484, 0, 0, winSurface);
 	fo::func::win_show(winRef);
@@ -881,7 +881,7 @@ static int __stdcall CheckCharButtons() {
 	int infoLine = fo::var::info_line;
 	if (infoLine == 0x503 || infoLine == 0x504) {
 		fo::var::info_line -= 2;
-		*(DWORD*)FO_VAR_frstc_draw1 = 1;
+		fo::var::setInt(FO_VAR_frstc_draw1) = 1;
 		DrawCharNoteNewChar(infoLine != 0x503);
 	} else if (infoLine == 0x501 || infoLine == 0x502) {
 		switch (button) {
@@ -1149,7 +1149,7 @@ static void __declspec(naked) FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		fo::UnlistedFrm *frm = LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
+		fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 
 		if (frm != nullptr) {
 			surface_draw(640, 480, 640, 0, 0, frm->frames[0].indexBuff, 640, 0, 0, charScrnBackSurface);
@@ -1228,8 +1228,8 @@ static void __declspec(naked) FixCharScrnBack() {
 		fo::MessageList MsgList;
 
 		if (fo::func::message_load(&MsgList, "game\\AppIface.msg") == 1) {
-			RaceBtn = fo::GetMsg(&MsgList, 100, 2);
-			StyleBtn = fo::GetMsg(&MsgList, 101, 2);
+			RaceBtn = fo::util::GetMsg(&MsgList, 100, 2);
+			StyleBtn = fo::util::GetMsg(&MsgList, 101, 2);
 		} else {
 			// Get alternate text from ini if available (TODO: remove this in the future)
 			char RaceText[8], StyleText[8];
@@ -1238,13 +1238,13 @@ static void __declspec(naked) FixCharScrnBack() {
 			RaceBtn = RaceText;
 			StyleBtn = StyleText;
 		}
-		DWORD raceTextWidth = fo::GetTextWidth(RaceBtn);
-		DWORD styleTextWidth = fo::GetTextWidth(StyleBtn);
+		DWORD raceTextWidth = fo::util::GetTextWidth(RaceBtn);
+		DWORD styleTextWidth = fo::util::GetTextWidth(StyleBtn);
 
 		BYTE PeanutButter = fo::var::PeanutButter; // palette offset stored in mem
 
-		fo::PrintText(RaceBtn, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
-		fo::PrintText(StyleBtn, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
+		fo::util::PrintText(RaceBtn, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
+		fo::util::PrintText(StyleBtn, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
 		SetFont(oldFont);
 	}
 

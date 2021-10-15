@@ -22,6 +22,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
+#include "..\Game\AI\AIHelpers.h"
+#include "..\Game\combatAI.h"
 #include "..\Game\items.h"
 
 #include "AI.h"
@@ -33,39 +35,6 @@ using namespace fo::Fields;
 
 static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
-
-// Returns the friendly critter or any blocking object in the line of fire
-fo::GameObject* AI::CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team) {
-	if (object && object->IsCritter() && object->critter.teamNum != team) { // is not friendly fire
-		long objTile = object->tile;
-		if (objTile == targetTile) return nullptr;
-
-		if (object->flags & fo::ObjectFlag::MultiHex) {
-			long dir = fo::func::tile_dir(objTile, targetTile);
-			objTile = fo::func::tile_num_in_direction(objTile, dir, 1);
-			if (objTile == targetTile) return nullptr; // just in case
-		}
-		// continue checking the line of fire from object tile to targetTile
-		fo::GameObject* obj = object; // for ignoring the object (multihex) when building the path
-		fo::func::make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-
-		object = CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
-	}
-	return object; // friendly critter, any object or null
-}
-
-// Returns the friendly critter in the line of fire
-fo::GameObject* AI::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
-	fo::GameObject* object = nullptr;
-	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-	object = CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
-	return (object && object->IsCritter()) ? object : nullptr; // 0 - if there are no friendly critters
-}
-
-bool AI::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance) {
-	if (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) >= distance) return true;
-	return (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) >= distance);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -105,28 +74,30 @@ static void __declspec(naked) ai_try_attack_hook_runFix() {
 static void __declspec(naked) combat_ai_hack() {
 	static const DWORD combat_ai_hack_Ret = 0x42B204;
 	__asm {
-		mov  edx, [ebx + 0x10]; // cap.min_hp
+		mov  edx, [ebx + 0x10];              // cap.min_hp
 		cmp  eax, edx;
-		jl   tryHeal; // curr_hp < min_hp
+		jl   tryHeal;                        // curr_hp < min_hp
 end:
 		add  esp, 4;
-		jmp  combat_ai_hack_Ret;
+		jmp  combat_ai_hack_Ret;             // jump to call ai_check_drugs_
 tryHeal:
-		mov  eax, esi;
-		call fo::funcoffs::ai_check_drugs_;
-		cmp  [esi + health], edx; // edx - minimum hp, below which NPC will run away
+		push ecx;
+		push esi;                            // mov  eax, esi;
+		call game::CombatAI::ai_check_drugs; // call fo::funcoffs::ai_check_drugs_;
+		pop  ecx;
+		cmp  [esi + health], edx;            // edx - minimum hp, below which NPC will run away
 		jge  end;
 		retn; // flee
 	}
 }
 
-static void __declspec(naked) ai_check_drugs_hook() {
+/*static void __declspec(naked) ai_check_drugs_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;              // current hp
 		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
 		mov  edx, [edx + 0x10];                      // min_hp
 		cmp  eax, edx;                               // curr_hp < cap.min_hp
-		cmovl edi, edx;
+		cmovl edi, edx;                              // min_hp <- cap.min_hp
 		retn;
 	}
 }
@@ -166,7 +137,7 @@ dontUse:
 		xor  eax, eax;
 		retn;
 	}
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -278,7 +249,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 		// is using a close range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
-			if (!AI::AttackInRange(source, item, fo::func::obj_dist(source, target))) return -1; // target out of range, exit ai_try_attack_
+			if (!game::ai::AIHelpers::AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
@@ -352,7 +323,7 @@ static long __fastcall ai_weapon_reload_fix(fo::GameObject* weapon, fo::GameObje
 		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
-			proto = fo::GetProto(weapon->protoId);
+			proto = fo::util::GetProto(weapon->protoId);
 			maxAmmo = proto->item.weapon.maxAmmo;
 		}
 		if (weapon->item.charges >= maxAmmo) break; // magazine is full
@@ -394,12 +365,11 @@ skip:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static long tempReloadCost;
+static long aiReloadCost;
 
 static long __fastcall item_weapon_reload_cost_fix(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject** outAmmo) {
-	long reloadCost = game::Items::item_weapon_mp_cost(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_RELOAD, 0);
-	if (reloadCost > source->critter.movePoints) return -1; // not enough action points
-	tempReloadCost = reloadCost;
+	aiReloadCost = game::Items::item_weapon_mp_cost(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_RELOAD, 0);
+	//if (aiReloadCost > source->critter.movePoints) return -1; // not enough action points
 
 	return fo::func::ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
 }
@@ -410,21 +380,21 @@ static void __declspec(naked) ai_try_attack_hook_cost_reload() {
 		push ebx;      // ammoObj ref
 		mov  ecx, eax; // source
 		call item_weapon_reload_cost_fix; // edx - weapon
-		cmp  eax, -1;
-		je   noAPs;
+//		cmp  eax, -1;
+//		je   noAPs;
 		retn;
-noAPs:  // not enough action points
-		add  esp, 4; // destroy ret
-		mov  edi, 10;
-		jmp  ai_try_attack_hook_goNext_Ret; // end ai_try_attack_
+//noAPs:  // not enough action points
+//		add  esp, 4; // destroy ret
+//		mov  edi, 10;
+//		jmp  ai_try_attack_hook_goNext_Ret; // end ai_try_attack_
 	}
 }
 
 static void __declspec(naked) ai_try_attack_hook_cost1() {
 	__asm {
 		xor  ebx, ebx;
-		sub  edx, tempReloadCost; // curr.mp - reload cost
-		cmovg ebx, edx;           // if curr.mp > 0
+		sub  edx, aiReloadCost; // curr.mp - reload cost
+		cmovg ebx, edx;         // if curr.mp > 0
 		retn;
 	}
 }
@@ -432,8 +402,8 @@ static void __declspec(naked) ai_try_attack_hook_cost1() {
 static void __declspec(naked) ai_try_attack_hook_cost2() {
 	__asm {
 		xor  ecx, ecx;
-		sub  ebx, tempReloadCost; // curr.mp - reload cost
-		cmovg ecx, ebx;           // if curr.mp > 0
+		sub  ebx, aiReloadCost; // curr.mp - reload cost
+		cmovg ecx, ebx;         // if curr.mp > 0
 		retn;
 	}
 }
@@ -524,7 +494,7 @@ fix:
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
-	if (AI::CheckFriendlyFire(target, attacker)) {
+	if (game::ai::AIHelpers::CheckFriendlyFire(target, attacker)) {
 		long dice = fo::func::roll_random(1, 10);
 		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // true - is friendly
 	}
@@ -664,12 +634,12 @@ void AI::init() {
 	// Fix to allow fleeing NPC to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
 	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
-	HookCall(0x428579, ai_check_drugs_hook);
+	//HookCall(0x428579, ai_check_drugs_hook);
 
 	// Fix to prevent the use of healing drugs when not necessary
-	HookCall(0x4287D7, ai_check_drugs_hook_healing);
-	SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
-	SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
+	//HookCall(0x4287D7, ai_check_drugs_hook_healing);
+	//SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
+	//SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
 
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);

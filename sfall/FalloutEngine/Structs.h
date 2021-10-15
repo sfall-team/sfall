@@ -163,13 +163,14 @@ struct GameObject {
 
 	union {
 		struct {
-			long updatedFlags;
+			fo::MiscFlags miscFlags; // aka updated_flags
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
 			long ammoPid;
-			long unused[8]; // offset 0x44
+			long unused[8]; // offset 0x44 (not saved)
 		} item;
+
 		struct {
 			long reaction; // unused?
 			// 1 - combat, 2 - enemies out of sight, 4 - running away
@@ -207,15 +208,30 @@ struct GameObject {
 			inline bool IsFleeing() {
 				return ((combatState & CombatStateFlag::InFlee) != 0);
 			}
+
+			inline void decreaseAP(long value) {
+				if (movePoints > value) {
+					movePoints -= value;
+				} else {
+					movePoints = 0;
+				}
+			}
 		} critter;
+
+		struct {
+			fo::MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
+			fo::MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
+			long unused[9];             // offset 0x40 (not saved)
+		} scenery;
 	};
+
 	DWORD protoId; // object PID
 	long cid; // combat ID (don't change while in combat)
 	long lightDistance;
 	long lightIntensity;
 	DWORD outline;
-	long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - index in scripts.lst; 0xFFFFFFFF no attached script
-	GameObject* owner;
+	long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - ID number (1-32000); 0xFFFFFFFF no attached script
+	GameObject* owner; // not saved
 	long scriptIndex;
 
 	inline char Type() {
@@ -279,12 +295,12 @@ struct CombatGcsd {
 
 // Script instance attached to an object or tile (spatial script).
 struct ScriptInstance {
-	long id;
+	long id; // same as sid
 	long next;
 	long elevationAndTile; // first 3 bits - elevation, rest - tile number
 	long spatialRadius;
 	long flags;
-	long scriptIdx;
+	long scriptIdx; // script index in scripts.lst?
 	Program *program;
 	long ownerObjectId;
 	long localVarOffset; // data
@@ -297,9 +313,9 @@ struct ScriptInstance {
 	GameObject *targetObject;
 	long actionNum;
 	long scriptOverrides;
-	long field_48;
+	long field_48; // unknown
 	long howMuch;
-	long field_50;
+	long field_50; // unused
 	long procedureTable[28];
 	long gap[7];
 };
@@ -985,12 +1001,12 @@ struct Queue {
 	Queue* next;
 };
 
-struct QueueRadiation {
+struct QueueRadiationData {
 	long level;
 	long init; // 1 - for removing effect
 };
 
-struct QueueDrug {
+struct QueueDrugData {
 	DWORD pid;
 	fo::Stat stat0;
 	fo::Stat stat1;
@@ -1000,8 +1016,8 @@ struct QueueDrug {
 	long amount2;
 };
 
-struct QueueAddict {
-	long  init;      // 1 - perk is not active yet
+struct QueueAddictData {
+	long  wait;      // 1 - waiting for applying the addiction effects (perk is not active yet)
 	DWORD drugPid;
 	fo::Perk perkId; // effect of addiction
 };

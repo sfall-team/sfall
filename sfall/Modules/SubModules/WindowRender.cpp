@@ -19,7 +19,7 @@
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
 
-#include "..\..\Game\render.h"
+#include "..\..\Game\GUI\render.h"
 
 #include "WindowRender.h"
 
@@ -123,7 +123,7 @@ void WindowRender::ClearOverlay(fo::Window* win, Rectangle &rect) {
 		updateRect.y += win->rect.y;
 		updateRect.offx += win->rect.x;
 		updateRect.offy += win->rect.y;
-		game::Render::GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
+		game::gui::Render::GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
 	}
 }
 
@@ -133,7 +133,7 @@ void WindowRender::DestroyOverlaySurface(fo::Window* win) {
 		win->randY = nullptr;
 		overlay->winType = -1;
 		overlay->DestroySurface();
-		game::Render::GNW_win_refresh(win, &win->wRect, 0);
+		game::gui::Render::GNW_win_refresh(win, &win->wRect, 0);
 	}
 }
 

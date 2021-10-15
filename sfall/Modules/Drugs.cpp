@@ -30,6 +30,7 @@ static int drugsCount = 0;
 static bool drugsReset = false; // true - need reset
 
 long Drugs::addictionGvarCount = 0;
+bool Drugs::JetWithdrawal = false;
 
 sDrugs *drugs = nullptr;
 
@@ -68,11 +69,11 @@ static long __fastcall AllowUseDrug(fo::GameObject* critter, DWORD pid) {
 		if (drugs[i].drugPid == pid) {
 			if (drugs[i].numEffects == -1) break; // use NumEffects value from engine
 			if (drugs[i].numEffects == 0) return 1;
-			auto queue = (fo::QueueDrug*)fo::func::queue_find_first(critter, 0);
+			auto queue = (fo::QueueDrugData*)fo::func::queue_find_first(critter, 0);
 			if (!queue) return 1;
 			int num = 0;
 			while (queue->pid != pid || ++num < drugs[i].numEffects) {
-				queue = (fo::QueueDrug*)fo::func::queue_find_next(critter, 0);
+				queue = (fo::QueueDrugData*)fo::func::queue_find_next(critter, 0);
 				if (!queue) return 1;
 			}
 			return 0; // not allow
@@ -146,22 +147,22 @@ static long __fastcall PrintAddictionList(long isSeparator) {
 
 			if (!isSeparator) { // print separator line
 				isSeparator = 1;
-				const char* message = fo::GetMessageStr(&fo::var::editor_message_file, 4001);
+				const char* message = fo::util::GetMessageStr(&fo::var::editor_message_file, 4001);
 				if (fo::func::folder_print_seperator(message)) {
 					fo::var::folder_card_title = (DWORD)message;
 					fo::var::folder_card_title2 = 0;
-					fo::var::folder_card_desc = (DWORD)fo::GetMessageStr(&fo::var::editor_message_file, 4101);
+					fo::var::folder_card_desc = (DWORD)fo::util::GetMessageStr(&fo::var::editor_message_file, 4101);
 					fo::var::folder_card_fid = 53;
 					isSelect = 1;
 				}
 			}
 			int msgNum = drugs[i].msgID;
-			const char* message = fo::GetMessageStr(&fo::var::editor_message_file, msgNum);
+			const char* message = fo::util::GetMessageStr(&fo::var::editor_message_file, msgNum);
 			if (fo::func::folder_print_line(message)) {
 				fo::var::folder_card_title = (DWORD)message;
 				fo::var::folder_card_title2 = 0;
 				if (msgNum > 0) msgNum += 100;
-				fo::var::folder_card_desc = (DWORD)fo::GetMessageStr(&fo::var::editor_message_file, msgNum);
+				fo::var::folder_card_desc = (DWORD)fo::util::GetMessageStr(&fo::var::editor_message_file, msgNum);
 				fo::var::folder_card_fid = drugs[i].frmID;
 				isSelect = 1;
 			}
@@ -287,7 +288,7 @@ void Drugs::init() {
 		dlog("Applying drugs patch...", DL_INIT);
 		const char* iniDrugs = drugsFile.insert(0, ".\\").c_str();
 
-		if (IniReader::GetInt("main", "JetWithdrawal", 0, iniDrugs) == 1) SafeWrite8(0x47A3A8, 0);
+		JetWithdrawal = (IniReader::GetInt("main", "JetWithdrawal", 0, iniDrugs) == 1); // SafeWrite8(0x47A3A8, 0); item_wd_process_
 
 		int count = IniReader::GetInt("main", "Count", 0, iniDrugs);
 		if (count > 0) {
@@ -334,8 +335,8 @@ void Drugs::init() {
 				MakeCall(0x43C15C, list_karma_hack, 2);
 				MakeCall(0x47A5B8, pid_to_gvar_hack, 1);
 				MakeCall(0x47A50C, perform_withdrawal_start_hack);
-				SafeWrite32(0x47A523, 0x9090EBD1); // shr ebx, 1 (fix for trait drug addict)
-				SafeWrite8(0x47A527, CodeType::Nop);
+				SafeWrite32(0x47A523, 0x9090EBD1); // shr ebx, 1 (fix for trait drug addict perform_withdrawal_start_)
+				SafeWrite8(0x47A527, CodeType::Nop); // perform_withdrawal_start_
 
 				if (addictionGvarCount) {
 					LoadGameHook::OnAfterGameInit() += CheckValidGvarNumber;

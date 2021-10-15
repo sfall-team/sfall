@@ -71,7 +71,7 @@ static long heroIsFemale = -1;
 // example: <MaleText^FemaleText>
 static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFile) {
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
-	if (heroIsFemale < 0) heroIsFemale = fo::HeroIsFemale();
+	if (heroIsFemale < 0) heroIsFemale = fo::util::HeroIsFemale();
 
 	unsigned char* _pos = (unsigned char*)msgData->message;
 	unsigned char* pos;
@@ -174,7 +174,7 @@ static void ReadExtraGameMsgFiles() {
 			path += ".msg";
 			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, path.c_str()) == 1) {
-				Message::gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
+				Message::gExtraGameMsgLists.emplace(0x2000 + number, list);
 			} else {
 				delete list;
 			}
@@ -249,8 +249,8 @@ void Message::init() {
 	LoadGameHook::OnGameReset() += ClearScriptAddedExtraGameMsg;
 }
 
-void Message::exit() {
+//void Message::exit() {
 	//gExtraGameMsgLists.clear();
-}
+//}
 
 }

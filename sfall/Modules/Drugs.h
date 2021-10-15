@@ -30,6 +30,7 @@ public:
 	void exit() override;
 
 	static long addictionGvarCount;
+	static bool JetWithdrawal;
 
 	static long GetDrugCount();
 	static long GetDrugPid(long n);

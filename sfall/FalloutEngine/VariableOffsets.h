@@ -19,10 +19,12 @@
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
 #define FO_VAR_attack_str                 0x56D624
+#define FO_VAR_background_fname_requested 0x596FC2
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
 #define FO_VAR_bk_disabled                0x6AC780
+#define FO_VAR_bk_process_time            0x6AC788
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
@@ -37,6 +39,7 @@
 #define FO_VAR_combat_end_due_to_load     0x517F98
 #define FO_VAR_combat_free_move           0x56D39C
 #define FO_VAR_combat_list                0x56D390
+#define FO_VAR_combat_obj                 0x51805C
 #define FO_VAR_combat_state               0x510944
 #define FO_VAR_combat_turn_obj            0x56D388
 #define FO_VAR_combat_turn_running        0x51093C
@@ -47,7 +50,7 @@
 #define FO_VAR_crnt_func                  0x664508
 #define FO_VAR_cur_id                     0x51C7D4
 #define FO_VAR_curr_anim_set              0x51071C
-#define FO_VAR_curr_anim_counter          0x56C7DC 
+#define FO_VAR_curr_anim_counter          0x56C7DC
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
@@ -66,6 +69,10 @@
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialogueBackWindow         0x518740
 #define FO_VAR_dialogueWindow             0x518744
+#define FO_VAR_disp_curr                  0x56FB48
+#define FO_VAR_disp_init                  0x51850C
+#define FO_VAR_disp_start                 0x56FB54
+#define FO_VAR_display_string_buf         0x56DBFC
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_doing_refresh_all          0x6ADF38
@@ -79,7 +86,7 @@
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
-#define FO_VAR_Experience_                0x6681B4
+#define FO_VAR_Experience_pc              0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_config             0x50281C
 #define FO_VAR_fallout_game_time          0x51C720
@@ -112,7 +119,10 @@
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
 #define FO_VAR_GNW95_isActive             0x51E444
+#define FO_VAR_GNW95_repeat_delay         0x51E240
+#define FO_VAR_GNW95_repeat_rate          0x51E23C
 #define FO_VAR_GNWWin                     0x5195B8
+#define FO_VAR_gsound_background_fade     0x518E40
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_gsound_speech_tag          0x518E54
 #define FO_VAR_hit_location_penalty       0x510954
@@ -145,8 +155,9 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_lastMovieH                 0x638E64
 #define FO_VAR_lastMovieW                 0x638E68
+#define FO_VAR_lastTime                   0x56FB58
 #define FO_VAR_lastWin                    0x51DD80
-#define FO_VAR_Level_                     0x6681B0
+#define FO_VAR_Level_pc                   0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
 #define FO_VAR_lips_draw_head             0x519248
 #define FO_VAR_lipsFID                    0x518704
@@ -160,13 +171,15 @@
 #define FO_VAR_main_window                0x5194F0
 #define FO_VAR_map_elevation              0x519578
 #define FO_VAR_map_global_vars            0x51956C
+#define FO_VAR_map_name                   0x631D58
 #define FO_VAR_map_number                 0x631D88
 #define FO_VAR_map_state                  0x631D28
 #define FO_VAR_mapEntranceElevation       0x519558
 #define FO_VAR_mapEntranceTileNum         0x51955C
 #define FO_VAR_master_db_handle           0x58E948
 #define FO_VAR_master_volume              0x518E84
-#define FO_VAR_max                        0x56FB50
+#define FO_VAR_max                        0x56FB50 // always equal 100
+#define FO_VAR_max_disp                   0x56FB40
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
 #define FO_VAR_Move_on_Car                0x672E64
@@ -181,7 +194,9 @@
 #define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744
+#define FO_VAR_name_critter               0x51833C
 #define FO_VAR_name_font                  0x56D74C
+#define FO_VAR_name_item                  0x519238
 #define FO_VAR_name_sort_list             0x56FCB0
 #define FO_VAR_num_caps                   0x518060
 #define FO_VAR_num_game_global_vars       0x5186C4

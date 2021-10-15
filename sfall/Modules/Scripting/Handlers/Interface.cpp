@@ -26,7 +26,7 @@
 #include "..\..\Interface.h"
 #include "..\Arrays.h"
 
-#include "..\..\..\Game\render.h"
+#include "..\..\..\Game\GUI\render.h"
 
 #include "..\..\SubModules\WindowRender.h"
 
@@ -176,9 +176,9 @@ void mf_message_box(OpcodeContext &ctx) {
 		colors |= (ctx.arg(3).rawValue() & 0xFF) << 8;
 	}
 	dialogShowCount++;
-	*(DWORD*)FO_VAR_script_engine_running = 0;
+	fo::var::setInt(FO_VAR_script_engine_running) = 0;
 	long result = fo::func::DialogOutEx(ScriptExtender::gTextBuffer, str_ptr, lines, flags, colors);
-	if (--dialogShowCount == 0) *(DWORD*)FO_VAR_script_engine_running = 1;
+	if (--dialogShowCount == 0) fo::var::setInt(FO_VAR_script_engine_running) = 1;
 
 	ctx.setReturn(result);
 }
@@ -257,7 +257,7 @@ void op_is_iface_tag_active(OpcodeContext &ctx) {
 			}
 		} else { // Sneak/Level/Addict
 			fo::GameObject* obj = fo::var::obj_dude;
-			fo::Proto* proto = fo::GetProto(obj->protoId);
+			fo::Proto* proto = fo::util::GetProto(obj->protoId);
 			int flagBit = 1 << tag;
 			result = ((proto->critter.critterFlags & flagBit) != 0);
 		}
@@ -274,10 +274,10 @@ void mf_intface_redraw(OpcodeContext& ctx) {
 		// fake redraw interfaces (TODO: need a real redraw of interface?)
 		long winType = ctx.arg(0).rawValue();
 		if (winType == -1) {
-			fo::RefreshGNW(true);
+			fo::util::RefreshGNW(true);
 		} else {
 			fo::Window* win = Interface::GetWindow(winType);
-			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
+			if (win && (int)win != -1) game::gui::Render::GNW_win_refresh(win, &win->wRect, 0);
 		}
 	}
 }
@@ -531,7 +531,7 @@ static long GetArtFIDFile(long fid, char* outFilePath) {
 }
 
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
-	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || *(DWORD*)FO_VAR_currentWindow == -1) {
+	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || fo::var::getInt(FO_VAR_currentWindow) == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		return 0;
 	}
@@ -660,7 +660,7 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	);
 
 	if (!(ctx.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
-		game::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
+		game::gui::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -766,27 +766,27 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) game::Render::GNW_win_refresh(win, &win->wRect, 0);
+	if (!(color & 0x1000000)) game::gui::Render::GNW_win_refresh(win, &win->wRect, 0);
 }
 
 void mf_win_fill_color(OpcodeContext& ctx) {
 	long result = fo::func::selectWindowID(ctx.program()->currentScriptWin); // TODO: examine the issue of restoring program->currentScriptWin of the current window in op_pop_flags_
-	long iWin = *(DWORD*)FO_VAR_currentWindow;
+	long iWin = fo::var::getInt(FO_VAR_currentWindow);
 	if (!result || iWin == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 		return;
 	}
 	if (ctx.numArgs() > 0) {
-		if (fo::WinFillRect(fo::var::sWindows[iWin].wID,
-		                    ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), // x, y
-		                    ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), // w, h
-		                    static_cast<BYTE>(ctx.arg(4).rawValue())))
+		if (fo::util::WinFillRect(fo::var::sWindows[iWin].wID,
+		                          ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), // x, y
+		                          ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), // w, h
+		                          static_cast<BYTE>(ctx.arg(4).rawValue())))
 		{
 			ctx.printOpcodeError("%s() - the fill area is truncated because it exceeds the current window.", ctx.getMetaruleName());
 		}
 	} else {
-		fo::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
+		fo::util::ClearWindow(fo::var::sWindows[iWin].wID, false); // full clear
 	}
 }
 

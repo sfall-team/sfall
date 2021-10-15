@@ -27,6 +27,8 @@
 // TODO: split these functions into several files
 namespace fo
 {
+namespace util
+{
 
 static fo::MessageNode messageBuf;
 
@@ -91,7 +93,7 @@ fo::Queue* QueueFind(fo::GameObject* object, long type) {
 long AnimCodeByWeapon(fo::GameObject* weapon) {
 	if (weapon != nullptr) {
 		fo::Proto* proto;
-		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
+		if (GetProto(weapon->protoId, &proto) && proto->item.type == fo::item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
@@ -132,23 +134,35 @@ void SkillSetTags(long* tags, long num) {
 }
 
 long GetItemType(fo::GameObject* item) {
-	return fo::GetProto(item->protoId)->item.type;
+	return fo::util::GetProto(item->protoId)->item.type;
 }
 
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
 	fo::GameObject* itemPtr = nullptr;
 	switch (slot) {
-		case fo::InvenType::INVEN_TYPE_LEFT_HAND:
-			itemPtr = fo::func::inven_left_hand(critter);
-			break;
-		case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
-			itemPtr = fo::func::inven_right_hand(critter);
-			break;
-		case fo::InvenType::INVEN_TYPE_WORN:
-			itemPtr = fo::func::inven_worn(critter);
-			break;
+	case fo::InvenType::INVEN_TYPE_LEFT_HAND:
+		itemPtr = fo::func::inven_left_hand(critter);
+		break;
+	case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
+		itemPtr = fo::func::inven_right_hand(critter);
+		break;
+	case fo::InvenType::INVEN_TYPE_WORN:
+		itemPtr = fo::func::inven_worn(critter);
+		break;
 	}
 	return itemPtr;
+}
+
+fo::AttackType GetHandSlotPrimaryAttack(fo::HandSlot slot) {
+	return (fo::AttackType)fo::var::itemButtonItems[slot].primaryAttack;
+}
+
+fo::AttackType GetHandSlotSecondaryAttack(fo::HandSlot slot) {
+	return (fo::AttackType)fo::var::itemButtonItems[slot].secondaryAttack;
+}
+
+fo::HandSlotMode GetHandSlotMode(fo::HandSlot slot) {
+	return (fo::HandSlotMode)fo::var::itemButtonItems[slot].mode;
 }
 
 long& GetActiveItemMode() {
@@ -159,24 +173,25 @@ fo::GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
-long GetCurrentAttackMode() {
-	long hitMode = -1;
-	if (fo::var::interfaceWindow != -1) {
-		long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
-		switch (fo::var::itemButtonItems[activeHand].mode) {
-		case 1:
-		case 2: // called shot
-			hitMode = fo::var::itemButtonItems[activeHand].primaryAttack;
-			break;
-		case 3:
-		case 4: // called shot
-			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
-			break;
-		case 5: // reload mode
-			hitMode = fo::AttackType::ATKTYPE_LWEAPON_RELOAD + activeHand;
-		}
+fo::AttackType GetSlotHitMode(fo::HandSlot hand) { // 0 - left, 1 - right
+	switch (fo::var::itemButtonItems[hand].mode) {
+	case fo::HandSlotMode::Primary:
+	case fo::HandSlotMode::Primary_Aimed: // called shot
+		return GetHandSlotPrimaryAttack(hand);
+	case fo::HandSlotMode::Secondary:
+	case fo::HandSlotMode::Secondary_Aimed: // called shot
+		return GetHandSlotSecondaryAttack(hand);
+	case fo::HandSlotMode::Reload:
+		return (fo::AttackType)(fo::AttackType::ATKTYPE_LWEAPON_RELOAD + hand);
 	}
-	return hitMode;
+	return fo::AttackType::ATKTYPE_PUNCH;
+}
+
+long GetCurrentAttackMode() {
+	if (fo::var::interfaceWindow != -1) {
+		return GetSlotHitMode((fo::HandSlot)fo::var::itemCurrentItem);
+	}
+	return -1;
 }
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
@@ -195,6 +210,19 @@ fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
 	return (type < 9) ? weapon_types[type] : fo::AttackSubType::NONE;
 }
 
+long ObjIsOpenable(fo::GameObject* object) {
+	long result = 0;
+	if (fo::func::obj_is_openable(object)) {
+		DWORD lock;
+		fo::FrmHeaderData* frm = fo::func::art_ptr_lock(object->artFid, &lock);
+		if (frm) {
+			if (frm->numFrames > 1) result = 1;
+			fo::func::art_ptr_unlock(lock);
+		}
+	}
+	return result;
+}
+
 bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }
@@ -210,10 +238,10 @@ long CheckAddictByPid(fo::GameObject* critter, long pid) {
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence() {
-	fo::QueueRadiation* queue = (fo::QueueRadiation*)fo::func::queue_find_first(fo::var::obj_dude, fo::radiation_event);
+	fo::QueueRadiationData* queue = (fo::QueueRadiationData*)fo::func::queue_find_first(fo::var::obj_dude, fo::radiation_event);
 	while (queue) {
 		if (queue->init && queue->level >= 2) return 1;
-		queue = (fo::QueueRadiation*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
+		queue = (fo::QueueRadiationData*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
 	}
 	return 0;
 }
@@ -252,7 +280,7 @@ long IsPartyMemberByPid(long pid) {
 
 // Returns True if the NPC belongs to the player's potential (set in party.txt) party members (analog of broken isPotentialPartyMember_)
 bool IsPartyMember(fo::GameObject* critter) {
-	if (critter->id < PLAYER_ID) return false;
+	if (critter->id < fo::PLAYER_ID) return false;
 	return (IsPartyMemberByPid(critter->protoId) > 0);
 }
 
@@ -521,14 +549,14 @@ DWORD GetTextWidthFM(const char* TextMsg) {
 
 //---------------------------------------------------------
 //get width of Char for current font
-DWORD GetCharWidth(char charVal) {
+DWORD GetCharWidth(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
 		call dword ptr ds:[FO_VAR_text_char_width];
 	}
 }
 
-DWORD GetCharWidthFM(char charVal) {
+DWORD GetCharWidthFM(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
 		call fo::funcoffs::FMtext_char_width_;
@@ -577,12 +605,12 @@ void RedrawObject(fo::GameObject* obj) {
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner) {
-	*(DWORD*)FO_VAR_doing_refresh_all = 1;
+	fo::var::setInt(FO_VAR_doing_refresh_all) = 1;
 	for (size_t i = 0; i < fo::var::num_windows; i++) {
 		if (skipOwner && fo::var::window[i]->flags & fo::WinFlags::OwnerFlag) continue;
 		fo::func::GNW_win_refresh(fo::var::window[i], &fo::var::scr_size, 0);
 	}
-	*(DWORD*)FO_VAR_doing_refresh_all = 0;
+	fo::var::setInt(FO_VAR_doing_refresh_all) = 0;
 }
 
 //////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////
@@ -685,4 +713,5 @@ fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	return frm;
 }
 
+}
 }

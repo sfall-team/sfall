@@ -8,12 +8,13 @@
 
 namespace game
 {
+namespace gui
+{
 
-class Render {
+class Text {
 public:
 	static void init();
-
-	static void __fastcall GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE* toBuffer);
 };
 
+}
 }

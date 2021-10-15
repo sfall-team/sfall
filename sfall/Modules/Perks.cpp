@@ -155,7 +155,7 @@ static DWORD __stdcall LevelUp() {
 		}
 	}
 
-	DWORD level = fo::var::Level_; // Get player's level
+	DWORD level = fo::var::Level_pc; // Get player's level
 	if (!((level + 1) % eachLevel)) fo::var::free_perk++; // Increment the number of perks owed
 	return level;
 }
@@ -1073,7 +1073,7 @@ static void PerkAndTraitSetup() {
 				HookCall(0x4248F9, BlockedTrait); // compute_damage_
 				break;
 			case fo::Trait::TRAIT_fast_shot:
-				HookCall(0x478C8A, BlockedTrait); // item_w_mp_cost_
+				//HookCall(0x478C8A, BlockedTrait); // item_w_mp_cost_ (obsolete)
 				HookCall(0x478E70, BlockedTrait); // item_w_called_shot_
 				break;
 			case fo::Trait::TRAIT_bloody_mess:
@@ -1121,7 +1121,7 @@ dlgExit:
 		jmp  perks_dialog_Ret;
 	}
 }
-
+/*
 static void __declspec(naked) item_w_mp_cost_hook() {
 	__asm {
 		call fo::funcoffs::item_w_range_;
@@ -1136,7 +1136,7 @@ checkType:
 		jmp  fo::funcoffs::item_w_subtype_; // eax - item
 	}
 }
-
+*/
 // Haenlomal's tweak
 static void __declspec(naked) item_w_called_shot_hack() {
 	static const DWORD FastShotTraitFix_End = 0x478E7F;
@@ -1174,18 +1174,20 @@ static void FastShotTraitFix() {
 		goto fix;
 	case 2:
 		dlog("Applying Fast Shot trait patch (Alternative behavior).", DL_INIT);
-		SafeWrite16(0x478C9F, 0x9090);
-		HookCalls((void*)0x478C7D, {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F});
+		/* Implemented in sfall item_w_mp_cost function */
+		//SafeWrite16(0x478C9F, 0x9090); // item_w_mp_cost_
+		//HookCalls((void*)0x478C7D, {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F}); // jmp 0x478C7D
 		goto done;
 	case 3:
 		dlog("Applying Fast Shot trait patch (Fallout 1 behavior).", DL_INIT);
-		HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
-		SafeWrite16(0x478C9E, CodeType::JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
+		/* Implemented in sfall item_w_mp_cost function */
+		//HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
+		//SafeWrite16(0x478C9E, CodeType::JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
 		goto done;
 	default:
 		dlog("Applying Fast Shot trait fix.", DL_INIT);
 	fix:
-		HookCall(0x478C97, item_w_mp_cost_hook);
+		//HookCall(0x478C97, item_w_mp_cost_hook); - Fix implemented in sfall item_w_mp_cost function
 	done:
 		dlogr(" Done", DL_INIT);
 	}

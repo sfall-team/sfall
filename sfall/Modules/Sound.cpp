@@ -16,7 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <unordered_map>
 #include <algorithm>
 #include <dsound.h>
 #include <dshow.h>
@@ -31,7 +30,8 @@
 namespace sfall
 {
 
-#define SAFERELEASE(a) { if (a) { a->Release(); } }
+#define WM_APP_DS_NOTIFY    0xA000
+#define SAFERELEASE(a)      { if (a) { a->Release(); } }
 
 enum SoundType : DWORD {
 	sfx_loop    = 0, // sfall
@@ -83,7 +83,7 @@ static bool deathSceneSpeech = false;
 static bool lipsPlaying = false;
 
 static void FreeSound(sDSSound* sound) {
-	sound->pEvent->SetNotifyWindow(0, WM_APP, 0);
+	sound->pEvent->SetNotifyWindow(0, WM_APP_DS_NOTIFY, 0);
 	SAFERELEASE(sound->pAudio);
 	SAFERELEASE(sound->pEvent);
 	SAFERELEASE(sound->pSeek);
@@ -93,8 +93,8 @@ static void FreeSound(sDSSound* sound) {
 }
 
 static void WipeSounds() {
-	for (size_t i = 0; i < playingSounds.size(); i++) FreeSound(playingSounds[i]);
-	for (size_t i = 0; i < loopingSounds.size(); i++) FreeSound(loopingSounds[i]);
+	for (auto &sound : playingSounds) FreeSound(sound);
+	for (auto &sound : loopingSounds) FreeSound(sound);
 	playingSounds.clear();
 	loopingSounds.clear();
 	backgroundMusic = nullptr;
@@ -105,33 +105,51 @@ static void WipeSounds() {
 }
 
 LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
-	if (msg == WM_APP) {
-		if (!(l & 0xA0000000)) return 0;
-		sDSSound* sound = reinterpret_cast<sDSSound*>(l & ~0xA0000000);
+	if (msg == WM_APP_DS_NOTIFY) {
+		long id = l;
+		sDSSound* sound = nullptr;
+		size_t i;
+		if (id & SoundFlags::looping) {
+			for (i = 0; i < loopingSounds.size(); i++) {
+				if (loopingSounds[i]->id == id) {
+					sound = loopingSounds[i];
+					break;
+				}
+			}
+		} else {
+			for (i = 0; i < playingSounds.size(); i++) {
+				if (playingSounds[i]->id == id) {
+					sound = playingSounds[i];
+					break;
+				}
+			}
+		}
+		if (!sound || !sound->pEvent) return 0;
+
 		LONG e = 0;
 		LONG_PTR p1 = 0, p2 = 0;
-		if (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
+		bool shouldFree = false;
+
+		while (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
+			sound->pEvent->FreeEventParams(e, p1, p2);
 			if (e == EC_COMPLETE) {
 				if (sound->id & SoundFlags::looping) {
 					LONGLONG pos = 0;
 					sound->pSeek->SetPositions(&pos, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
 					sound->pControl->Run();
-					sound->pEvent->FreeEventParams(e, p1, p2);
 				} else {
-					sound->pEvent->FreeEventParams(e, p1, p2);
 					if (sound->id & SoundFlags::on_stop) { // speech sound playback is completed
 						fo::var::main_death_voiceover_done = 1;
 						fo::var::endgame_subtitle_done = 1;
 						lipsPlaying = false;
 						speechSound = nullptr;
 					}
-					playingSounds.erase(
-						std::find_if(playingSounds.cbegin(), playingSounds.cend(), [&](const sDSSound* snd) { return snd->id == sound->id; })
-					);
-					FreeSound(sound);
+					playingSounds.erase(playingSounds.cbegin() + i);
+					shouldFree = true;
 				}
 			}
 		}
+		if (shouldFree) FreeSound(sound);
 		return 0;
 	}
 	return DefWindowProc(wnd, msg, w, l);
@@ -170,22 +188,34 @@ static DWORD GetSpeechPlayingPosition() {
 	return static_cast<DWORD>(pos << 1);
 }
 
-void __fastcall PauseSfallSound(sDSSound* sound) {
-	if (sound) sound->pControl->Pause();
-}
+//void __fastcall PauseSfallSound(sDSSound* sound) {
+//	if (sound) sound->pControl->Pause();
+//}
 
 void __fastcall ResumeSfallSound(sDSSound* sound) {
 	if (sound) sound->pControl->Run();
 }
 
 void __stdcall PauseAllSfallSound() {
-	for (sDSSound* sound : loopingSounds) sound->pControl->Pause();
-	for (sDSSound* sound : playingSounds) sound->pControl->Pause();
+	for (sDSSound* sound : loopingSounds) {
+		sound->pEvent->SetNotifyFlags(AM_MEDIAEVENT_NONOTIFY);
+		sound->pControl->Pause();
+	}
+	for (sDSSound* sound : playingSounds) {
+		sound->pEvent->SetNotifyFlags(AM_MEDIAEVENT_NONOTIFY);
+		sound->pControl->Pause();
+	}
 }
 
 void __stdcall ResumeAllSfallSound() {
-	for (sDSSound* sound : loopingSounds) sound->pControl->Run();
-	for (sDSSound* sound : playingSounds) sound->pControl->Run();
+	for (sDSSound* sound : loopingSounds) {
+		sound->pEvent->SetNotifyFlags(0);
+		sound->pControl->Run();
+	}
+	for (sDSSound* sound : playingSounds) {
+		sound->pEvent->SetNotifyFlags(0);
+		sound->pControl->Run();
+	}
 }
 
 long Sound::CalculateVolumeDB(long masterVolume, long passVolume) {
@@ -301,7 +331,7 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 		break;
 	}
 
-	sound->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP, ((unsigned long)sound | 0xA0000000));
+	sound->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP_DS_NOTIFY, (LONG_PTR)sound->id);
 	sound->pControl->Run();
 
 	if (isLoop) {
@@ -938,12 +968,21 @@ skip:
 	}
 }
 
+static void __declspec(naked) sfxl_init_hook() {
+	__asm {
+		xor  eax, eax;
+		retn;
+	}
+}
+
 constexpr int SampleRate = 44100; // 44.1kHz
 
 void Sound::init() {
 	// Set the 44.1kHz sample rate for the primary sound buffer
 	SafeWrite32(0x44FDBC, SampleRate);
-	LoadGameHook::OnAfterGameInit() += []() { fo::var::sampleRate = SampleRate / 2; }; // Revert to 22kHz for secondary sound buffers
+	LoadGameHook::OnAfterGameInit() += []() {
+		fo::var::sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
+	};
 
 	LoadGameHook::OnGameReset() += WipeSounds;
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
@@ -959,7 +998,7 @@ void Sound::init() {
 	MakeCall(0x4503CA, gsound_master_volume_set_hack, 1);
 	MakeCall(0x45042C, gsound_set_sfx_volume_hack);
 
-	void* soundLoad_func;
+	void* soundLoad_func = soundLoad_hack_B;
 
 	int allowDShowSound = IniReader::GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
@@ -987,9 +1026,8 @@ void Sound::init() {
 		MakeCall(0x4450C5, gdialogFreeSpeech_hack, 2);
 
 		CreateSndWnd();
-	} else {
-		soundLoad_func = soundLoad_hack_B;
 	}
+
 	// Support 44.1kHz sample rate for ACM files
 	MakeCall(0x4AD4D6, soundLoad_func, 1);
 	HookCalls(audioOpen_hook, {
@@ -1007,7 +1045,6 @@ void Sound::init() {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
 		HookCall(0x42B849, ai_print_msg_hook);
 
-		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
 		if (isDebug && IniReader::GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
 			SafeWrite8(0x42B6F5, CodeType::JumpShort); // bypass chance
 		}
@@ -1015,6 +1052,19 @@ void Sound::init() {
 
 	// Support for ACM audio file playback and volume control for the soundplay script function
 	HookCall(0x4661B3, soundStartInterpret_hook);
+
+	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
+		HookCalls(sfxl_init_hook, {0x4A9999, 0x4A9B34});
+	}
+
+	if (IniReader::GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
+		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
+		SafeWrite32(0x45212C, 250); // delay start
+		SafeWrite32(0x450ADE, 500); // delay stop
+		LoadGameHook::OnAfterGameInit() += []() {
+			fo::var::setInt(FO_VAR_gsound_background_fade) = 1;
+		};
+	}
 }
 
 void Sound::exit() {

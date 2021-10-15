@@ -60,9 +60,7 @@ void Reputations::init() {
 }
 
 void Reputations::exit() {
-	if (repList != nullptr) {
-		delete[] repList;
-	}
+	if (repList) delete[] repList;
 }
 
 }

@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\FalloutEngine\EngineUtils.h"
+#include "..\SimplePatch.h"
 #include "..\Utils.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
@@ -97,7 +98,7 @@ static BYTE movePointBackground[16 * 9 * 5];
 static fo::UnlistedFrm* ifaceFrm = nullptr;
 
 static void* LoadIfaceFrm() {
-	ifaceFrm = fo::LoadUnlistedFrm("IFACE_E.frm", fo::OBJ_TYPE_INTRFACE);
+	ifaceFrm = fo::util::LoadUnlistedFrm("IFACE_E.frm", fo::OBJ_TYPE_INTRFACE);
 	if (!ifaceFrm) return nullptr;
 	return ifaceFrm->frames[0].indexBuff;
 }
@@ -148,8 +149,8 @@ static void ActionPointsBarPatch() {
 	dlog("Applying expanded action points bar patch.", DL_INIT);
 	if (hrpIsEnabled) {
 		// check valid data
-		if (hrpVersionValid && !_stricmp((const char*)HRPAddress(0x10039358), "HR_IFACE_%i.frm")) {
-			SafeWriteStr(HRPAddress(0x10039363), "E.frm"); // patching HRP
+		if (hrpVersionValid && !_stricmp((const char*)HRPAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRPAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
 		} else {
 			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
@@ -593,7 +594,7 @@ static void AddNewDot() {
 	dots.emplace_back(dot_xpos, dot_ypos);
 }
 
-static void __declspec(naked) DrawingDots() {
+static void __declspec(naked) DrawingDots() noexcept {
 	long x_offset,  y_offset;
 	__asm {
 		mov ebp, esp; // prolog
@@ -636,10 +637,10 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 
 	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
 		backImageIsCopy = true;
-		fo::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+		fo::util::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 	}
 
-	long txtWidth = fo::GetTextWidthFM(text);
+	long txtWidth = fo::util::GetTextWidthFM(text);
 	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
 	// offset text position
@@ -658,8 +659,8 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 		x += x_cut;
 	}*/
 
-	fo::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // shadow
-	fo::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
+	fo::util::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // shadow
+	fo::util::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
 
 	if (backgroundCopy) fo::func::wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
 	return true;
@@ -710,7 +711,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 			if (!PrintHotspotText(x, y, true)) return;
 		} else {
 			// restore background image
-			fo::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+			fo::util::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
@@ -780,14 +781,34 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
-static void WorldMapInterfacePatch() {
-	BlockCall(0x4C2380); // Remove disabling palette animations (can be used as a place to call a hack function in wmInterfaceInit_)
+static void __declspec(naked) wmInterfaceInit_hook() {
+	static DWORD retAddr;
+	__asm {
+		pop  retAddr;
+		call fo::funcoffs::win_register_button_;
+		push eax;
+		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
+		mov  edx, fo::funcoffs::gsound_red_butt_press_;
+		call fo::funcoffs::win_register_button_sound_func_;
+		pop  eax;
+		jmp  retAddr;
+	}
+}
 
+static void WorldMapInterfacePatch() {
 	if (IniReader::GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Add missing sounds for the buttons on the world map interface (wmInterfaceInit_)
+	HookCalls(wmInterfaceInit_hook, {
+		0x4C2BF4, // location labels
+		0x4C2BB5, // town/world
+		0x4C2D4C, // up
+		0x4C2D8A  // down
+	});
 
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
@@ -823,7 +844,7 @@ static void WorldMapInterfacePatch() {
 		dlog("Applying world map travel markers patch.", DL_INIT);
 
 		int color = IniReader::GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
-		if (color > 255) color = 255; else if (color < 1) color = 1;
+		if (color > 228) color = 228; else if (color < 1) color = 1; // no palette animation colors
 		colorDot = color;
 
 		auto dotList = IniReader::GetConfigList("Interface", "TravelMarkerStyles", "", 512);
@@ -921,7 +942,7 @@ static long gmouse_handle_event_hook() {
 	}
 	if (IFACE_BAR_MODE) return 1;
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
-	win = fo::func::GNW_find(*(DWORD*)FO_VAR_display_win);
+	win = fo::func::GNW_find(fo::var::getInt(FO_VAR_display_win));
 	RECT *rect = &win->wRect;
 	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
@@ -930,17 +951,9 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
 		push 1; // bypass Transparent
 		mov  ecx, eax;
-		call fo::GetTopWindowAtPos;
+		call fo::util::GetTopWindowAtPos;
 		mov  eax, [eax]; // wID
 		retn;
-	}
-}
-
-static void __declspec(naked) main_death_scene_hook() {
-	__asm {
-		mov  eax, 101;
-		call fo::funcoffs::text_font_;
-		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -962,7 +975,71 @@ fix:
 	}
 }
 
+static void InterfaceWindowPatch() {
+	dlog("Applying flags patch for interface windows.", DL_INIT);
+
+	// Remove MoveOnTop flag for interfaces
+	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ fo::WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
+	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ fo::WinFlags::MoveOnTop); // Automap
+
+	// Set OwnerFlag flag
+	SafeWrite8(0x4D5EBF, fo::WinFlags::OwnerFlag); // win_init_ (main win)
+	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | fo::WinFlags::OwnerFlag); // _display_win (map win)
+	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | fo::WinFlags::OwnerFlag); // gmovie_play_ (movie win)
+
+	// Remove OwnerFlag flag
+	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ fo::WinFlags::OwnerFlag); // createWindow_
+	// Remove OwnerFlag and Transparent flags
+	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (fo::WinFlags::Transparent | fo::WinFlags::OwnerFlag)); // addWindow_
+
+	dlogr(" Done", DL_INIT);
+
+	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
+	HookCall(0x47093C, display_body_hook);
+	BYTE code[11] = {
+		0x8B, 0xD3,             // mov  edx, ebx
+		0x66, 0x8B, 0x58, 0xF4, // mov  bx, [eax - 12] [sizeof(frame)]
+		0x0F, 0xAF, 0xD3,       // imul edx, ebx (y * frame width)
+		0x53, 0x90              // push ebx (frame width)
+	};
+	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
+
+	// Increase the max text width of the player name on the character screen
+	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100
+
+	// Increase the max text width of the information card on the character screen
+	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
+}
+
+static void InventoryCharacterRotationSpeedPatch() {
+	long setting = IniReader::GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
+	if (setting != 166 && setting <= 1000) {
+		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
+		SafeWrite32(0x47066B, setting);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+static void UIAnimationSpeedPatch() {
+	DWORD addrs[] = {
+		0x45F9DE, 0x45FB33,
+		0x447DF4, 0x447EB6,
+		0x499B99, 0x499DA8
+	};
+	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
+	SimplePatch<BYTE>(&addrs[2], 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
+}
+
 void Interface::init() {
+	InterfaceWindowPatch();
+	InventoryCharacterRotationSpeedPatch();
+	UIAnimationSpeedPatch();
+
+	if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x4D6EDD, 0x4D6F12});
+	}
+
 	if (IniReader::GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
 	}
@@ -975,31 +1052,9 @@ void Interface::init() {
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	LoadGameHook::OnBeforeGameInit() += []() {
-		if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
+		if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 	};
-
-	// Set the normal font for death screen subtitles
-	if (IniReader::GetConfigInt("Misc", "DeathScreenFontPatch", 0)) {
-		dlog("Applying death screen font patch.", DL_INIT);
-		HookCall(0x4812DF, main_death_scene_hook);
-		dlogr(" Done", DL_INIT);
-	}
-
-	// Corrects the height of the black background for death screen subtitles
-	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
-	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
-
-	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
-	HookCall(0x47093C, display_body_hook);
-	BYTE code[11] = {
-		0x8B, 0xD3,             // mov  edx, ebx
-		0x66, 0x8B, 0x58, 0xF4, // mov  bx, [eax - 12] [sizeof(frame)]
-		0x0F, 0xAF, 0xD3,       // imul edx, ebx (y * frame width)
-		0x53, 0x90              // push ebx (frame width)
-	};
-	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
 }
 
 void Interface::exit() {

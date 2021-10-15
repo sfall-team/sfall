@@ -65,11 +65,14 @@ static Delegate<DWORD> onGameModeChange;
 static Delegate<> onBeforeGameClose;
 static Delegate<> onCombatStart;
 static Delegate<> onCombatEnd;
+static Delegate<> onBeforeMapLoad;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool gameLoaded = false;
 static bool onLoadingMap = false;
+
+char LoadGameHook::mapLoadingName[16]; // current loading/loaded map name
 
 long LoadGameHook::interfaceWID = -1;
 
@@ -121,7 +124,7 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, fo::var::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, ExtraSaveSlots::GetSaveSlot() + 1, ftype); //add SuperSave Page offset
 }
 
 static void __stdcall SaveGame2() {
@@ -173,7 +176,7 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo::DisplayPrint(Translate::SfallSaveDataFailure());
+	fo::util::DisplayPrint(Translate::SfallSaveDataFailure());
 	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
 
@@ -181,13 +184,13 @@ static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
+			fo::util::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 		int ap = fo::func::stat_level(fo::var::obj_dude, fo::STAT_max_move_points);
 		int bonusmove = fo::func::perk_level(fo::var::obj_dude, fo::PERK_bonus_move);
 		if (fo::var::obj_dude->critter.movePoints != ap || bonusmove * 2 != fo::var::combat_free_move) {
-			fo::DisplayPrint(Translate::CombatSaveBlockMessage());
+			fo::util::DisplayPrint(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 	}
@@ -363,6 +366,10 @@ static void __stdcall GameClose() {
 	onBeforeGameClose.invoke();
 }
 
+static void __stdcall MapLoadHook() {
+	onBeforeMapLoad.invoke();
+}
+
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushadc;
@@ -435,7 +442,16 @@ static void __declspec(naked) game_close_hook() {
 
 static void __declspec(naked) map_load_hook() {
 	__asm {
+		mov  esi, ebx;
+		lea  edi, LoadGameHook::mapLoadingName;
+		mov  ecx, 4;
+		rep  movsd; // copy the name of the loaded map to mapLoadingName
 		mov  onLoadingMap, 1;
+		push eax;
+		push edx;
+		call MapLoadHook;
+		pop  edx;
+		pop  eax;
 		call fo::funcoffs::map_load_file_;
 		mov  onLoadingMap, 0;
 		retn;
@@ -877,4 +893,9 @@ Delegate<>& LoadGameHook::OnCombatStart() {
 Delegate<>& LoadGameHook::OnCombatEnd() {
 	return onCombatEnd;
 }
+
+Delegate<>& LoadGameHook::OnBeforeMapLoad() {
+	return onBeforeMapLoad;
+}
+
 }
