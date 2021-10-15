@@ -161,7 +161,7 @@ void __declspec(naked) fo_interpretError(const char* fmt, ...) {
 
 long __stdcall fo_tile_num(long x, long y) {
 	__asm push ebx; // don't delete (bug in tile_num_)
-	WRAP_WATCOM_CALL2(tile_num_, x, y)
+	WRAP_WATCOM_CALL2(tile_num_, x, y);
 	__asm pop  ebx;
 }
 

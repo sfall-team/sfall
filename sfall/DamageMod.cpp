@@ -33,27 +33,27 @@ static __declspec(naked) void DamageGlovz() {
 	__asm {
 		mov  ebx, dword ptr ss:[esp + 0x1C];  // get the number of hits
 		xor  ecx, ecx;                        // set the loop counter to 0
-		cmp  ebx, 0;                          // compare the number of hits to 0
+		test ebx, ebx;                        // compare the number of hits to 0
 		jle  end;                             // exit
 begin:
 		mov  dword ptr ss:[esp + 0x30], 0;    // clear value
-		mov  edx, dword ptr ds:[esi + 4];     // get the hit mode of weapon being used by attacker
+		mov  edx, dword ptr ds:[esi + 4];     // get the hit mode of weapon being used by the attacker
 		mov  eax, dword ptr ds:[esi];         // get pointer to critter attacking
 		call item_w_damage_;                  // get the raw damage value
 		mov  ebx, dword ptr ss:[esp + 0x18];  // get the bonus ranged damage value
-		cmp  ebx, 0;                          // compare the range bonus damage value to 0
+		test ebx, ebx;                        // compare the range bonus damage value to 0
 		jle  rdJmp;                           // if the RB value is less than or equal to 0 then goto rdJmp
 		add  eax, ebx;                        // add the RB value to the RD value
 rdJmp:
-		cmp  eax, 0;                          // compare the new damage value to 0
+		test eax, eax;                        // compare the new damage value to 0
 		jle  noDamageJmp;                     // goto noDamageJmp
 		mov  ebx, eax;                        // set the ND value
 		mov  edx, dword ptr ss:[esp + 0x28];  // get the armorDT value
-		cmp  edx, 0;                          // compare the armorDT value to 0
+		test edx, edx;                        // compare the armorDT value to 0
 		jle  bJmp;                            // if the armorDT value is less than or equal to 0 then goto bJmp
 		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_div_;                 // get the ammoY value
-		cmp  eax, 0;                          // compare the ammoY value to 0
+		test eax, eax;                        // compare the ammoY value to 0
 		jg   aJmp;                            // if the ammoY value is greater than 0 then goto aJmp
 		mov  eax, 1;                          // set the ammoY value to 1
 aJmp:
@@ -63,16 +63,10 @@ aJmp:
 		jg   grThan;                          // the dividend is greater than the divisor then goto grThan
 		jmp  setOne;                          // if the two values are equal then goto setOne
 lrThan:
-		mov  ebp, edx;                        // store the dividend value temporarily
-		imul edx, 2;                          // multiply dividend value by 2
-		sub  edx, eax;                        // subtract divisor value from the dividend value
-		cmp  edx, 0;                          // compare the result to 0
-		jl   setZero;                         // if the result is less than 0 then goto setZero
-		jg   setOne;                          // if the result is greater than 0 then goto setOne
-		mov  edx, ebp;                        // restore dividend value
-		and  edx, 1;                          // if true (1) then odd if false (0) then even
-		jz   setZero;                         // if the result is equal to 0 then setZero
-		jmp  setOne;                          // if the result is not 0 then goto setOne
+		shl  edx, 1;                          // multiply dividend value by 2
+		cmp  edx, eax;                        // compare the dividend value to the divisor value
+		jle  setZero;                         // if the dividend value is less than or equal to the divisor value then goto setZero
+		jmp  setOne;                          // if the dividend value is greater than the divisor value then goto setOne
 grThan:
 		mov  ebp, eax;                        // assign the divisor value
 		xor  eax, eax;                        // clear value
@@ -81,15 +75,14 @@ bbbJmp:
 		sub  edx, ebp;                        // subtract the divisor value from the dividend value
 		cmp  edx, ebp;                        // compare the remainder value to the divisor value
 		jge  bbbJmp;                          // if the remainder value is greater or equal to the divisor value then goto bbbJmp
+		test edx, edx;                        // compare the remainder value to 0
 		jz   endDiv;                          // if the remainder value is equal to 0 then goto endDiv
-		imul edx, 2;                          // multiply temp remainder value by 2
-		sub  edx, ebp;                        // subtract the divisor value from the temp remainder
-		cmp  edx, 0;                          // compare the result to 0
-		jl   endDiv;                          // if the result is less than 0 then goto endDiv
-		jg   addOne;                          // if the result is greater than 0 then goto addOne
-		mov  ebp, eax;                        // assign the quotient value
-		and  ebp, 1;                          // if true (1) then odd if false (0) then even
-		jz   endDiv;                          // if the result is equal to zero goto endDiv
+		shl  edx, 1;                          // multiply temp remainder value by 2
+		cmp  edx, ebp;                        // compare the temp remainder to the divisor value
+		jl   endDiv;                          // if the temp remainder is less than the divisor value then goto endDiv
+		jg   addOne;                          // if the temp remainder is greater than the divisor value then goto addOne
+		test al, 1;                           // check if the quotient value is even or odd
+		jz   endDiv;                          // if the quotient value is even goto endDiv
 addOne:
 		inc  eax;                             // add 1 to the quotient value
 		jmp  endDiv;                          // goto endDiv
@@ -115,13 +108,13 @@ endDiv:
 		jmp  cJmp;                            // goto cJmp
 bJmp:
 		mov  edx, dword ptr ss:[esp + 0x2C];  // get the armorDR value
-		cmp  edx, 0;                          // compare the armorDR value to 0
+		test edx, edx;                        // compare the armorDR value to 0
 		jle  dJmp;                            // if the armorDR value is less than or equal to 0 then goto dJmp
 cJmp:
-		cmp  ebx, 0;                          // compare the new damage value to 0
+		test ebx, ebx;                          // compare the new damage value to 0
 		jle  noDamageJmp;                     // goto noDamageJmp
 		mov  edx, dword ptr ss:[esp + 0x2C];  // get the armorDR value
-		cmp  edx, 0;                          // compare the armorDR value to 0
+		test edx, edx;                        // compare the armorDR value to 0
 		jle  eJmp;                            // if the armorDR value is less than or equal to 0 then goto eJmp
 		mov  eax, dword ptr ss:[esp + 0x20];  // get the CD value
 		cmp  eax, 100;                        // compare the CD value to 100
@@ -134,9 +127,9 @@ sdrJmp:
 aSubCJmp:
 		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dr_adjust_;               // get the ammoDRM value
-		cmp  eax, 0;                          // compare the ammoDRM value to 0
+		test eax, eax;                        // compare the ammoDRM value to 0
 		jl   adrJmp;                          // if the ammoDRM value is less than 0 then goto adrJmp
-		je   bSubCJmp;                        // if the ammoDRM value is equal to 0 then goto bSubCJmp
+		jz   bSubCJmp;                        // if the ammoDRM value is equal to 0 then goto bSubCJmp
 		xor  ebp, ebp;                        // clear value
 		sub  ebp, eax;                        // subtract ammoDRM value from 0
 		mov  eax, ebp;                        // set new ammoDRM value
@@ -145,7 +138,7 @@ adrJmp:
 bSubCJmp:
 		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_mult_;                // get the ammoX value
-		cmp  eax, 0;                          // compare the ammoX value to 0
+		test eax, eax;                        // compare the ammoX value to 0
 		jg   cSubCJmp;                        // if the ammoX value is greater than 0 then goto cSubCJmp;
 		mov  eax, 1;                          // set the ammoX value to 1
 cSubCJmp:
@@ -199,7 +192,7 @@ bSubDJmp:
 divSix:
 		add  ebx, eax;                        // add the quotient value to the ND value
 eJmp:
-		cmp  ebx, 0;                          // compare the new damage value to 0
+		test ebx, ebx;                        // compare the new damage value to 0
 		jle  noDamageJmp;                     // goto noDamageJmp
 		mov  eax, dword ptr ss:[esp + 0x24];  // get the CM value
 		cmp  eax, 2;                          // compare the CM value to 2
@@ -266,7 +259,7 @@ bjmp:
 		jle  cjmp;                            // If yes, skip damage calculation and go to bottom of loop
 		imul ebx, dword ptr ss:[esp + 0x24];  // Otherwise, Raw Damage = Raw Damage * Damage Multiplier
 		test ebp, ebp;                        // Is Ammo Divisor == 0?
-		je   djmp;                            // If yes, avoid divide by zero error
+		jz   djmp;                            // If yes, avoid divide by zero error
 		mov  edx, ebx;
 		mov  eax, ebx;
 		sar  edx, 31;

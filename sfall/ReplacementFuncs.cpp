@@ -651,7 +651,7 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 			}
 			surface = &win->surface[currRect->wRect.left - win->rect.x] + ((currRect->wRect.top - win->rect.y) * win->width);
 		} else {
-			surface = new BYTE[height * width](); // black background
+			surface = new BYTE[height * width](); // black background (for main menu)
 			widthFrom = width; // replace with rectangle
 		}
 
