@@ -24,12 +24,12 @@
 
 #include "main.h"
 #include "Logging.h"
-#include "FalloutEngine.h"
-#include "DebugEditor.h"
-#include "Graphics.h"
-#include "HookScripts.h"
-#include "Inventory.h"
-#include "ScriptExtender.h"
+#include "FalloutEngine\Fallout2.h"
+#include "Modules\DebugEditor.h"
+#include "Modules\Graphics.h"
+#include "Modules\HookScripts.h"
+#include "Modules\Inventory.h"
+#include "Modules\ScriptExtender.h"
 
 #include "InputFuncs.h"
 
