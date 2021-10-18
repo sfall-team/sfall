@@ -6,13 +6,17 @@
 
 #pragma once
 
-namespace game
+namespace sfall
 {
 
-class x {
+class HRP {
 public:
 	static void init();
 
+	static bool BuiltIn;
+
+	static long ScreenWidth();
+	static long ScreenHeight();
 };
 
 }

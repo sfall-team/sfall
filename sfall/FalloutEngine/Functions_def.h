@@ -16,7 +16,7 @@
 
 /*
 	For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
-	because the compiler builds the better/optimized code when calling the engine functions
+	because the compiler can build a better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC4(fo::GameObject*, ai_best_weapon, fo::GameObject*, source, fo::GameObject*, prevItem, fo::GameObject*, checkItem, fo::GameObject*, target)
@@ -32,6 +32,7 @@ WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y,
 WRAP_WATCOM_FFUNC4(long, determine_to_hit, fo::GameObject*, source, fo::GameObject*, target, long, bodyPart, long, hitMode)
 WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
 WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
+//WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
 WRAP_WATCOM_FFUNC3(fo::FrmFrameData*, frame_ptr, fo::FrmHeaderData*, frm, long, frame, long, direction)
 WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, fo::Window*, win, fo::BoundRect*, rect, long*, buffer)
 WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
@@ -65,6 +66,7 @@ WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // th
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, fo::Window*, window, fo::RectList**, rects, void*, buffer)
+WRAP_WATCOM_FFUNC6(void, win_print, long, winID, const char*, text, long, textWidth, long, xPos, long, yPos, long, colorFlags)
 WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
 WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 

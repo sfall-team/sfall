@@ -83,6 +83,8 @@
 #include "Translate.h"
 #include "version.h"
 
+#include "HRP\Init.h"
+
 #include "main.h"
 
 ddrawDll ddraw;
@@ -307,6 +309,7 @@ defaultIni:
 	}
 
 	Translate::init(falloutConfigName);
+	HRP::init();
 
 	InitReplacementHacks();
 	InitModules();

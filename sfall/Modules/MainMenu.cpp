@@ -20,83 +20,56 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
+#include "..\HRP\Init.h"
+
 #include "MainMenu.h"
 
 namespace sfall
 {
 
 #ifdef NDEBUG
-static const char* VerString1 = "SFALL " VERSION_STRING;
+static const char* VerString1 = "SFALL w/ HRP" VERSION_STRING;
 #else
-static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
+static const char* VerString1 = "SFALL w/ HRP" VERSION_STRING " Debug Build";
 #endif
 
-static DWORD MainMenuYOffset;
-static DWORD MainMenuTextOffset;
+long MainMenu::mXOffset;
+long MainMenu::mYOffset;
+long MainMenu::mTextOffset; // sum: x + (y * w)
 
 static long OverrideColour, OverrideColour2;
 
-static void __declspec(naked) MainMenuButtonYHook() {
+static void __declspec(naked) MainMenuHookButtonYOffset() {
 	static const DWORD MainMenuButtonYHookRet = 0x48184A;
 	__asm {
 		xor edi, edi;
 		xor esi, esi;
-		mov ebp, MainMenuYOffset;
+		mov ebp, MainMenu::mYOffset;
 		jmp MainMenuButtonYHookRet;
 	}
 }
 
-static void __declspec(naked) MainMenuTextYHook() {
+static void __declspec(naked) MainMenuHookTextYOffset() {
 	__asm {
-		add eax, MainMenuTextOffset;
+		add eax, MainMenu::mTextOffset;
 		jmp dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
-static void __declspec(naked) FontColour() {
-	__asm {
-		test OverrideColour, 0xFF;
-		jnz  override;
-		movzx eax, byte ptr ds:[0x6A8B33];
-		or   eax, 0x6000000;
-		retn;
-override:
-		mov  eax, OverrideColour;
-		retn;
+static long __fastcall main_menu_create_hook_print_text(long xPos, const char* text, long yPos, long color) {
+	long winId = fo::var::main_window;
+	if (!hrpIsEnabled) { // TODO: test w/o HRP
+		fo::Window* win = fo::var::window[winId];
+		yPos = ((yPos - 460) - 20) + win->height;
+		xPos = ((xPos - 615) - 25) + win->width;
 	}
-}
+	if (OverrideColour) color = OverrideColour;
 
-static void __declspec(naked) MainMenuTextHook() {
-	static const DWORD MainMenuTextRet = 0x4817B0;
-	__asm {
-		mov  esi, eax;                // winptr
-		mov  ebp, ecx;                // keep xpos
-		mov  edi, [esp];              // ypos
-		mov  eax, edi;
-		sub  eax, 12;                 // shift y position up by 12
-		mov  [esp], eax;
-		call FontColour;
-		mov  [esp + 4], eax;          // colour
-		mov  eax, esi;
-		mov  esi, edx;                // keep fallout buff
-		call fo::funcoffs::win_print_;
-		// sfall print
-		mov  eax, esi;
-		call ds:[FO_VAR_text_width];
-		add  ebp, eax;               // xpos shift (right align)
-		call FontColour;
-		push eax;                    // colour
-		mov  edx, VerString1;        // msg
-		mov  eax, edx;
-		call ds:[FO_VAR_text_width];
-		mov  ecx, ebp;               // xpos
-		sub  ecx, eax;               // left shift position
-		push edi;                    // ypos
-		xor  ebx, ebx;               // font
-		mov  eax, dword ptr ds:[FO_VAR_main_window]; // winptr
-		call fo::funcoffs::win_print_;
-		jmp  MainMenuTextRet;
-	}
+	long fWidth = fo::util::GetTextWidth(text);
+	fo::func::win_print(winId, text, fWidth, xPos, yPos - 12, color); // fallout print
+
+	long sWidth = fo::util::GetTextWidth(VerString1);
+	fo::func::win_print(winId, VerString1, sWidth, xPos + fWidth - sWidth, yPos, color); // sfall print
 }
 
 void MainMenu::init() {
@@ -108,19 +81,20 @@ void MainMenu::init() {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 30 + offset);
-		MainMenuTextOffset = offset;
+		SafeWrite32(0x48187C, 30 + offset); // button
+		mXOffset = offset;
+		mTextOffset = offset;
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
-		MainMenuYOffset = offset;
-		MainMenuTextOffset += offset * 640;
-		MakeJump(0x481844, MainMenuButtonYHook);
+		mYOffset = offset;
+		mTextOffset += offset * 640;
+		MakeJump(0x481844, MainMenuHookButtonYOffset);
 	}
-	if (MainMenuTextOffset) {
-		MakeCall(0x481933, MainMenuTextYHook, 1);
+	if (!HRP::BuiltIn && mTextOffset) {
+		MakeCall(0x481933, MainMenuHookTextYOffset, 1);
 	}
 
-	MakeJump(0x4817AB, MainMenuTextHook);
+	HookCall(0x4817AB, main_menu_create_hook_print_text);
 
 	OverrideColour = IniReader::GetConfigInt("Misc", "MainMenuFontColour", 0);
 	if (OverrideColour & 0xFF) {

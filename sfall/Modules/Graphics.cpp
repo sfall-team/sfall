@@ -24,6 +24,8 @@
 
 #include "SubModules\WindowRender.h"
 
+#include "..\HRP\Init.h"
+
 #include "Graphics.h"
 
 namespace sfall
@@ -115,7 +117,8 @@ static IDirect3DSurface9* backBuffer;
 
 static IDirect3DVertexBuffer9* vertexOrigRes;
 static IDirect3DVertexBuffer9* vertexSfallRes;
-static IDirect3DVertexBuffer9* vertexMovie;
+static IDirect3DVertexBuffer9* vertexMovie; // for AVI
+static IDirect3DVertexBuffer9* vertexStaticScreen; // splash/death/endslides
 
 static IDirect3DTexture9* paletteTex;
 static IDirect3DTexture9* gpuPalette;
@@ -1086,8 +1089,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
 	// original resolution or HRP
-	ResWidth = *(DWORD*)0x4CAD6B;  // 640
-	ResHeight = *(DWORD*)0x4CAD66; // 480
+	ResWidth  = HRP::ScreenWidth();  //*(DWORD*)0x4CAD6B; // 640
+	ResHeight = HRP::ScreenHeight(); //*(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 
@@ -1191,7 +1194,7 @@ static __declspec(naked) void game_init_hook() {
 	}
 }
 
-static __declspec(naked) void GNW95_SetPaletteEntries_hack() {
+static __declspec(naked) void GNW95_SetPaletteEntries_replacement() {
 	LPPALETTEENTRY palette;
 	DWORD startIndex;
 	DWORD count;
@@ -1213,7 +1216,7 @@ static __declspec(naked) void GNW95_SetPaletteEntries_hack() {
 	}
 }
 
-static __declspec(naked) void GNW95_SetPalette_hack() {
+static __declspec(naked) void GNW95_SetPalette_replacement() {
 	LPPALETTEENTRY palette;
 	__asm {
 		push ecx;
@@ -1268,8 +1271,8 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_hack); // 0x4CB311
-		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_hack); // 0x4CB568
+		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
+		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
 		if (hrpVersionValid) {
 			// Patch HRP to show the mouse cursor over the window title

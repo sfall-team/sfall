@@ -28,6 +28,9 @@
     <Filter Include="Game\AI">
       <UniqueIdentifier>{6ce67248-1c25-4dae-967c-3078b65838e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HRP">
+      <UniqueIdentifier>{12f6f063-3ef2-45e9-a55f-d6423dd62126}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -370,6 +373,18 @@
     <ClInclude Include="Modules\SubModules\ObjectName.h">
       <Filter>Modules\SubModules</Filter>
     </ClInclude>
+    <ClInclude Include="HRP\Image.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
+    <ClInclude Include="HRP\Init.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
+    <ClInclude Include="HRP\MainMenu.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
+    <ClInclude Include="HRP\SplashScreen.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -680,6 +695,18 @@
     </ClCompile>
     <ClCompile Include="Modules\SubModules\ObjectName.cpp">
       <Filter>Modules\SubModules</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\Image.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\Init.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\MainMenu.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\SplashScreen.cpp">
+      <Filter>HRP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

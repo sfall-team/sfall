@@ -486,6 +486,12 @@ static void SfallResourceFile() {
 	patchFiles.push_back(sfallRes);
 }
 
+// last: master.dat < critter.dat < [add here] < sfall.dat < patchXXX.dat
+void LoadOrder::AddResourcePatches(std::string &dat, std::string &patches) {
+	patchFiles.push_back(std::move(dat));
+	patchFiles.push_back(std::move(patches));
+}
+
 void LoadOrder::init() {
 	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
 	GetExtraPatches();

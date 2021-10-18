@@ -6,13 +6,14 @@
 
 #pragma once
 
-namespace game
+namespace sfall
 {
 
-class x {
+class SplashScreen {
 public:
 	static void init();
 
+	static long SPLASH_SCRN_SIZE;
 };
 
 }
