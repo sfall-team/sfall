@@ -210,7 +210,7 @@ static DWORD backgroundVolume = 0;
 static void PlayMovie(sDSTexture* movie) {
 	movie->pControl->Run();
 	movie->pAudio->put_Volume(
-		Sound_CalculateVolumeDB(*ptr_master_volume, (backgroundVolume) ? backgroundVolume : *ptr_background_volume)
+		Sound_CalculateVolumeDB(*fo::ptr::master_volume, (backgroundVolume) ? backgroundVolume : *fo::ptr::background_volume)
 	);
 }
 
@@ -218,7 +218,7 @@ static void StopMovie() {
 	aviPlayState = AVISTATE_Stop;
 	Gfx_SetMovieTexture(false);
 	movieInterface.pControl->Stop();
-	if (var_getInt(FO_VAR_subtitles) == 0) RefreshGNW(); // Note: it is only necessary when in the game
+	if (fo::var::getInt(FO_VAR_subtitles) == 0) fo::util::RefreshGNW(); // Note: it is only necessary when in the game
 }
 
 DWORD FreeMovie(sDSTexture* movie) {
@@ -307,11 +307,11 @@ static DWORD __fastcall PlayMovieLoop() {
 		return 0;
 	}
 
-	if (var_getInt(FO_VAR_subtitles) && *ptr_subtitleList) {
-		__asm call movieUpdate_; // for reading subtitles when playing mve
+	if (fo::var::getInt(FO_VAR_subtitles) && *fo::ptr::subtitleList) {
+		__asm call fo::funcoffs::movieUpdate_; // for reading subtitles when playing mve
 		if (!onlyOnce) {
 			onlyOnce = true;
-			ClearWindow(var_getInt(FO_VAR_GNWWin));
+			fo::util::ClearWindow(fo::var::getInt(FO_VAR_GNWWin));
 		}
 	}
 
@@ -333,10 +333,10 @@ static DWORD __fastcall PlayMovieLoop() {
 static void __declspec(naked) gmovie_play_hook() {
 	__asm {
 		push ecx;
-		call GNW95_process_message_; // windows message pump
+		call fo::funcoffs::GNW95_process_message_; // windows message pump
 		cmp  ds:[FO_VAR_GNW95_isActive], 0;
 		jnz  skip;
-		call GNW95_lost_focus_;
+		call fo::funcoffs::GNW95_lost_focus_;
 skip:
 		call PlayMovieLoop;
 		pop  ecx;
@@ -354,21 +354,21 @@ static void __declspec(naked) gmovie_play_hook_input() {
 
 static void __stdcall PreparePlayMovie() {
 	// if subtitles are disabled then mve videos will not be played
-	if (var_getInt(FO_VAR_subtitles) || !*ptr_subtitleList) {
+	if (fo::var::getInt(FO_VAR_subtitles) || !*fo::ptr::subtitleList) {
 		// patching MVE_rmStepMovie_ for game subtitles
 		SafeWrite8(0x4F5F40, CODETYPE_Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
 
 		// TODO
 
 		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
-		backgroundVolume = fo_gsound_background_volume_get_set(0);
+		backgroundVolume = fo::func::gsound_background_volume_get_set(0);
 		#endif
 	}
 }
 
 static void __declspec(naked) gmovie_play_hook_run() {
 	__asm {
-		call movieRun_;
+		call fo::funcoffs::movieRun_;
 		mov  ebx, ecx;
 		call PreparePlayMovie;
 		mov  ecx, ebx;
@@ -395,7 +395,7 @@ static DWORD __fastcall PrepareLoadMovie(const DWORD id) {
 	wchar_t path[MAX_PATH];
 	long pos = 0;
 
-	char* master_patches = *ptr_patches;
+	char* master_patches = *fo::ptr::patches;
 	while (pos < MAX_PATH && master_patches[pos]) path[pos] = master_patches[pos++];
 	if ((pos + 10) >= MAX_PATH) return 0;
 
@@ -433,9 +433,9 @@ static void __stdcall PlayMovieRestore() {
 	SafeWrite32(0x44E938, 0x3934C); // call moviePlaying_
 	SafeWrite32(0x44E94A, 0x7A22A); // call get_input_
 
-	if (var_getInt(FO_VAR_subtitles) || !*ptr_subtitleList) {
+	if (fo::var::getInt(FO_VAR_subtitles) || !*fo::ptr::subtitleList) {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
-		if (backgroundVolume) backgroundVolume = fo_gsound_background_volume_get_set(backgroundVolume); // restore volume
+		if (backgroundVolume) backgroundVolume = fo::func::gsound_background_volume_get_set(backgroundVolume); // restore volume
 	}
 	aviPlayState = AVISTATE_Stop;
 	FreeMovie(&movieInterface);
@@ -481,7 +481,7 @@ static void __declspec(naked) gmovie_play_hook_stop() {
 		call StopMovie;
 		mov  ecx, ebx;
 skip:
-		jmp  movieStop_;
+		jmp  fo::funcoffs::movieStop_;
 	}
 }
 
@@ -567,7 +567,7 @@ void Movies_Init() {
 	//}
 
 	// Pause and resume movie/sound playback when the game loses focus
-	fo_set_focus_func(LostFocus);
+	fo::func::set_focus_func(LostFocus);
 
 	char optName[8] = "Movie";
 	for (int i = 0; i < MaxMovies; i++) {
@@ -577,7 +577,7 @@ void Movies_Init() {
 
 		_itoa_s(i + 1, &optName[5], 3, 10);
 		if (i < DEFAULT_MOVIES) {
-			GetConfigString("Misc", optName, ptr_movie_list[i], &MoviePaths[index], 65);
+			GetConfigString("Misc", optName, fo::ptr::movie_list[i], &MoviePaths[index], 65);
 		} else {
 			GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
 		}

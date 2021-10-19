@@ -44,7 +44,7 @@ void PlayerGenderCutsRestore() {
 }
 
 void CheckPlayerGender() {
-	isFemale = HeroIsFemale();
+	isFemale = fo::util::HeroIsFemale();
 
 	if (femaleMsgs > 1) {
 		if (isFemale) {
@@ -106,8 +106,8 @@ static void __declspec(naked) gnw_main_hack() {
 ////////////////////////////////////////////////////////////////////////////////
 
 static PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
-	PathNode* paths = *ptr_paths; // curr.node (beginning of the chain of paths)
-	PathNode* pPaths = paths;     // prev.node
+	PathNode* paths = *fo::ptr::paths; // curr.node (beginning of the chain of paths)
+	PathNode* pPaths = paths;          // prev.node
 
 	while (paths) {
 		if (_stricmp(paths->path, pathPatches) == 0) { // found path
@@ -116,7 +116,7 @@ static PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 			if (paths != pPaths)
 				pPaths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
 			else                                       // if the current node is equal to the previous node
-				*ptr_paths = nextPaths;                // set the next node at the beginning of the chain
+				*fo::ptr::paths = nextPaths;           // set the next node at the beginning of the chain
 			return paths;                              // return the pointer of the current removed node (save the pointer)
 		}
 		pPaths = paths;      // prev.node <- curr.node
@@ -145,7 +145,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		je   end;
 		mov  eax, ds:[FO_VAR_master_db_handle];   // pointer to master_patches node
 		mov  eax, [eax];                          // eax = master_patches.path
-		call xremovepath_;
+		call fo::funcoffs::xremovepath_;
 		dec  eax;                                 // remove path (critter_patches == master_patches)?
 		jz   end;                                 // Yes (jump if 0)
 		mov  ecx, [esp + 0x104 + 4];              // path_patches
@@ -157,33 +157,33 @@ end:
 }
 
 static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
-	PathNode* master_patches = *ptr_master_db_handle;
+	PathNode* master_patches = *fo::ptr::master_db_handle;
 
-	fo_db_init(sfallRes, 0);
+	fo::func::db_init(sfallRes, 0);
 
-	PathNode* critter_patches = *ptr_critter_db_handle;
-	PathNode* paths = *ptr_paths; // beginning of the chain of paths
+	PathNode* critter_patches = *fo::ptr::critter_db_handle;
+	PathNode* paths = *fo::ptr::paths;    // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
 	if (critter_patches) {
 		critter_patches->next = paths;    // critter_patches.next -> paths
 		paths = critter_patches;
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
-	*ptr_paths = master_patches;          // set master_patches node at the beginning of the chain of paths
+	*fo::ptr::paths = master_patches;     // set master_patches node at the beginning of the chain of paths
 }
 /*
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
 	IniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
-	PathNode* node = *ptr_paths;
+	PathNode* node = *fo::ptr::paths;
 	while (node->next) {
 		if (!strcmp(node->path, masterPatch)) break;
 		node = node->next;
 	}
-	*ptr_master_db_handle = node; // set pointer to master_patches node
+	*fo::ptr::master_db_handle = node; // set pointer to master_patches node
 
-	fo_db_init(sfallRes, 0);
+	fo::func::db_init(sfallRes, 0);
 }
 */
 static void MultiPatchesPatch() {
@@ -238,7 +238,7 @@ static long __fastcall CheckProtoType(long pid, char* path) {
 static void __declspec(naked) proto_save_pid_hook() {
 	__asm {
 		push ecx;
-		call proto_list_str_;
+		call fo::funcoffs::proto_list_str_;
 		test eax, eax;
 		jnz  end;
 		mov  ecx, ebx; // party pid
@@ -285,10 +285,11 @@ end:
 }
 
 static void __declspec(naked) proto_load_pid_hook() {
+	using namespace fo;
 	__asm { // eax - party pid
 		push ecx;
 		mov  ecx, eax;
-		call proto_list_str_;
+		call fo::funcoffs::proto_list_str_;
 		test eax, eax;
 		jnz  end;
 		// check pid type
@@ -313,6 +314,7 @@ static void ResetReadOnlyAttr() {
 }
 
 static void __declspec(naked) SlotMap2Game_hack_attr() {
+	using namespace fo;
 	__asm {
 		cmp  eax, -1;
 		je   end;
@@ -329,7 +331,7 @@ end:
 #define _F_PROTO_CRITTERS (const char*)0x50A490
 
 void RemoveSavFiles() {
-	fo_MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
+	fo::func::MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -338,7 +340,7 @@ static DWORD aliasFID = -1;
 
 static void __declspec(naked) art_get_name_hook() {
 	__asm {
-		call art_alias_fid_;
+		call fo::funcoffs::art_alias_fid_;
 		cmp  eax, -1;
 		jne  artAlias;
 		retn; // if aliasFID here is not equal to -1, then the algorithm is not working correctly
@@ -360,7 +362,7 @@ void __declspec(naked) LoadOrder_art_get_name_hack() {
 		jne  artHasAlias;
 		retn;
 artHasAlias:
-		call db_access_;
+		call fo::funcoffs::db_access_;
 		test eax, eax;
 		jz   artNotExist;
 		mov  aliasFID, -1;
@@ -377,9 +379,9 @@ artNotExist:
 static DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	char file[128];
 	const char* lang;
-	if (fo_get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
+	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
 		std::sprintf(file, "fonts\\%s\\%s", lang, font);
-		return fo_db_fopen(file, mode);
+		return fo::func::db_fopen(file, mode);
 	}
 	return nullptr;
 }
@@ -396,7 +398,7 @@ static void __declspec(naked) load_font_hook() {
 default:
 		mov  edx, ebp;
 		mov  eax, ebx;
-		jmp  db_fopen_;
+		jmp  fo::funcoffs::db_fopen_;
 	}
 }
 

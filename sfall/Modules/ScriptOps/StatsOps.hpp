@@ -132,7 +132,7 @@ static void __stdcall op_set_critter_base_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = GetProto(obj->protoId);
+				sProto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_base_stat");
@@ -158,7 +158,7 @@ static void __stdcall op_set_critter_extra_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = GetProto(obj->protoId);
+				sProto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_extra_stat");
@@ -184,7 +184,7 @@ static void __stdcall op_get_critter_base_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = GetProto(obj->protoId);
+				sProto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[9 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_base_stat");
@@ -211,7 +211,7 @@ static void __stdcall op_get_critter_extra_stat2() {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = GetProto(obj->protoId);
+				sProto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[44 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_extra_stat");
@@ -233,49 +233,49 @@ static void __declspec(naked) op_set_critter_skill_points() {
 	__asm {
 		pushaop;
 		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
+		mov  ecx, eax;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		mov  edi, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		mov  esi, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
 		//eax now contains the critter ID, esi the skill ID, and edi the new value
 		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 8];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
+		mov  ebx, [esp];
+		cmp  bx, VAR_TYPE_INT;
+		jnz  end;
+		mov  ebx, [esp + 4];
+		cmp  bx, VAR_TYPE_INT;
+		jnz  end;
+		mov  ebx, [esp + 8];
+		cmp  bx, VAR_TYPE_INT;
+		jnz  end;
 		test esi, esi;
-		jl end;
-		cmp esi, 18;
-		jge end;
+		jl   end;
+		cmp  esi, 18;
+		jge  end;
 		//set the new value
-		mov eax, [eax + 0x64];
-		mov edx, esp;
-		call proto_ptr_;
+		mov  eax, [eax + 0x64];
+		mov  edx, esp;
+		call fo::funcoffs::proto_ptr_;
 		test eax, eax;
-		js end;
-		mov eax, [esp];
-		mov [eax + 0x13C + esi * 4], edi;
+		js   end;
+		mov  eax, [esp];
+		mov  [eax + 0x13C + esi * 4], edi;
 end:
 		//Restore registers and return
-		add esp, 12;
+		add  esp, 12;
 		popaop;
 		retn;
 	}
@@ -285,48 +285,48 @@ static void __declspec(naked) op_get_critter_skill_points() {
 	__asm {
 		pushaop;
 		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
+		mov  ecx, eax;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		mov  esi, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
 		//eax now contains the critter ID, esi the skill ID
 		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
+		mov  ebx, [esp];
+		cmp  bx, VAR_TYPE_INT;
+		jnz  fail;
+		mov  ebx, [esp + 4];
+		cmp  bx, VAR_TYPE_INT;
+		jnz  fail;
 		test esi, esi;
-		jl fail;
-		cmp esi, 18;
-		jge fail;
+		jl   fail;
+		cmp  esi, 18;
+		jge  fail;
 		//get the value
-		mov eax, [eax + 0x64];
-		mov edx, esp;
-		call proto_ptr_;
+		mov  eax, [eax + 0x64];
+		mov  edx, esp;
+		call fo::funcoffs::proto_ptr_;
 		test eax, eax;
-		js fail;
-		mov eax, [esp];
-		mov edx, [eax + 0x13C + esi * 4];
-		jmp end;
+		js   fail;
+		mov  eax, [esp];
+		mov  edx, [eax + 0x13C + esi * 4];
+		jmp  end;
 fail:
-		xor edx, edx;
+		xor  edx, edx;
 end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPushShort_;
 		//Restore registers and return
-		add esp, 8;
+		add  esp, 8;
 		popaop;
 		retn;
 	}
@@ -338,7 +338,7 @@ static void __declspec(naked) op_set_available_skill_points() {
 		_GET_ARG_INT(end);
 		mov  edx, eax;
 		xor  eax, eax;
-		call stat_pc_set_;
+		call fo::funcoffs::stat_pc_set_;
 end:
 		mov  ecx, esi;
 		retn;
@@ -405,6 +405,7 @@ static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 }
 
 static void __declspec(naked) op_get_critter_current_ap() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		_GET_ARG_INT(fail); // Get function arg and check if valid
@@ -434,7 +435,7 @@ static void __stdcall op_set_critter_current_ap2() {
 			if (ap < 0) ap = 0;
 			obj->critter.movePoints = ap;
 
-			if (obj == *ptr_obj_dude) fo_intface_update_move_points(ap, *ptr_combat_free_move);
+			if (obj == *fo::ptr::obj_dude) fo::func::intface_update_move_points(ap, *fo::ptr::combat_free_move);
 		} else {
 			opHandler.printOpcodeError(objNotCritter, "set_critter_current_ap");
 		}

@@ -39,14 +39,14 @@ const char* stringTooLong = "%s() - the string exceeds maximum length of 64 char
 //Stop game, the same effect as open charsscreen or inventory
 static void __declspec(naked) op_stop_game() {
 	__asm {
-		jmp map_disable_bk_processes_;
+		jmp fo::funcoffs::map_disable_bk_processes_;
 	}
 }
 
 //Resume the game when it is stopped
 static void __declspec(naked) op_resume_game() {
 	__asm {
-		jmp map_enable_bk_processes_;
+		jmp fo::funcoffs::map_enable_bk_processes_;
 	}
 }
 
@@ -116,23 +116,23 @@ static void __declspec(naked) op_get_year() {
 		push ecx;
 		push edx;
 		push edi;
-		mov edi, eax;
-		sub esp, 4;
-		xor eax, eax;
-		xor edx, edx;
-		mov ebx, esp;
-		call game_time_date_;
-		mov edx, [esp];
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		add esp, 4;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edi, eax;
+		sub  esp, 4;
+		xor  eax, eax;
+		xor  edx, edx;
+		mov  ebx, esp;
+		call fo::funcoffs::game_time_date_;
+		mov  edx, [esp];
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
+		add  esp, 4;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -191,36 +191,36 @@ static void __declspec(naked) op_get_ini_setting() {
 		push ecx;
 		push edx;
 		push edi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz error;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  error;
 next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretGetString_;
 		push 0;
 		push eax;
 		call GetIniSetting;
-		mov edx, eax;
-		jmp result;
+		mov  edx, eax;
+		jmp  result;
 error:
-		mov edx, -1;
+		mov  edx, -1;
 result:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -231,42 +231,42 @@ static void __declspec(naked) op_get_ini_string() {
 		push ecx;
 		push edx;
 		push edi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz error;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  error;
 next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretGetString_;
 		push 1;
 		push eax;
 		call GetIniSetting;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretAddString_;
-		mov edx, eax;
-		mov ebx, VAR_TYPE_STR;
-		jmp result;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax;
+		mov  ebx, VAR_TYPE_STR;
+		jmp  result;
 error:
-		xor edx, edx;
-		dec edx;
-		mov ebx, VAR_TYPE_INT;
+		xor  edx, edx;
+		dec  edx;
+		mov  ebx, VAR_TYPE_INT;
 result:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, ebx;
-		mov eax, edi;
-		call interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, ebx;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -383,26 +383,26 @@ static void __declspec(naked) op_set_palette() {
 		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
+		mov  ecx, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  end;
 next:
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretGetString_;
-		call loadColorTable_;
-		mov eax, FO_VAR_cmap;
-		call palette_set_to_;
+		mov  ebx, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretGetString_;
+		call fo::funcoffs::loadColorTable_;
+		mov  eax, FO_VAR_cmap;
+		call fo::funcoffs::palette_set_to_;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -504,10 +504,10 @@ static void __declspec(naked) op_get_tile_fid() {
 		sub  esp, 8;        // x/y buf
 		lea  edx, [esp];
 		lea  ebx, [esp + 4];
-		call tile_coord_;
+		call fo::funcoffs::tile_coord_;
 		pop  eax; // x
 		pop  edx; // y
-		call square_num_;
+		call fo::funcoffs::square_num_;
 		mov  edx, ds:[FO_VAR_square];
 		movzx edx, word ptr ds:[edx + eax * 4];
 		mov  ebx, esi; // script
@@ -548,10 +548,10 @@ static void __declspec(naked) op_tile_under_cursor() {
 		sub  esp, 8;
 		lea  edx, [esp];
 		lea  eax, [esp + 4];
-		call mouse_get_position_;
+		call fo::funcoffs::mouse_get_position_;
 		pop  edx;
 		pop  eax;
-		call tile_num_; // ebx - unused
+		call fo::funcoffs::tile_num_; // ebx - unused
 		mov  edx, eax; // tile
 		mov  ebx, esi;
 		mov  eax, esi;
@@ -568,7 +568,7 @@ static void __declspec(naked) op_gdialog_get_barter_mod() {
 
 static void __declspec(naked) op_sneak_success() {
 	__asm {
-		call is_pc_sneak_working_;
+		call fo::funcoffs::is_pc_sneak_working_;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -580,7 +580,7 @@ static void __stdcall op_tile_light2() {
 	                  &tileArg = opHandler.arg(1);
 
 	if (elevArg.isInt() && tileArg.isInt()) {
-		int lightLevel = fo_light_get_tile(elevArg.rawValue(), tileArg.rawValue());
+		int lightLevel = fo::func::light_get_tile(elevArg.rawValue(), tileArg.rawValue());
 		opHandler.setReturn(lightLevel);
 	} else {
 		OpcodeInvalidArgs("tile_light");
@@ -593,7 +593,7 @@ static void __declspec(naked) op_tile_light() {
 }
 
 static void mf_exec_map_update_scripts() {
-	__asm call scr_exec_map_update_scripts_
+	__asm call fo::funcoffs::scr_exec_map_update_scripts_
 }
 
 static void mf_set_ini_setting() {
@@ -680,7 +680,7 @@ static void mf_set_quest_failure_value() {
 }
 
 static void mf_set_scr_name() {
-	long sid = fo_scr_find_sid_from_program(opHandler.program());
+	long sid = fo::func::scr_find_sid_from_program(opHandler.program());
 	if (sid == -1) return;
 
 	ObjectName_SetName(sid, opHandler.arg(0).strValue());

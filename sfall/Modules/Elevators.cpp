@@ -35,7 +35,7 @@ static void __declspec(naked) GetMenuHook() {
 		lea  edx, elevatorType;
 		shl  eax, 2;
 		mov  eax, [edx + eax];
-		jmp  elevator_start_;
+		jmp  fo::funcoffs::elevator_start_;
 	}
 }
 
@@ -47,7 +47,7 @@ static void __declspec(naked) CheckHotKeysHook() {
 		lea  ebx, elevatorType;
 		shl  eax, 2;
 		mov  eax, [ebx + eax];
-		call Check4Keys_;
+		call fo::funcoffs::Check4Keys_;
 		pop  ebx;
 		retn;
 skip:
@@ -62,7 +62,7 @@ static void __declspec(naked) UnknownHook2() {
 		lea  edx, elevatorType;
 		shl  eax, 2;
 		mov  eax, [edx + eax];
-		jmp  elevator_end_;
+		jmp  fo::funcoffs::elevator_end_;
 	}
 }
 */

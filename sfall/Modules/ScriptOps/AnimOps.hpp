@@ -37,7 +37,7 @@ void __stdcall RegAnimCombatCheck(DWORD newValue) {
 
 // true if combat mode is active and combat check was not disabled
 static bool checkCombatMode() {
-	return (regAnimCombatCheck & *ptr_combat_state) != 0;
+	return (regAnimCombatCheck & *fo::ptr::combat_state) != 0;
 }
 
 static void __stdcall op_reg_anim_combat_check2() {
@@ -58,7 +58,7 @@ static void __stdcall op_reg_anim_destroy2() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		if (!checkCombatMode()) {
-			fo_register_object_must_erase(obj);
+			fo::func::register_object_must_erase(obj);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_destroy");
@@ -79,7 +79,7 @@ static void __stdcall op_reg_anim_animate_and_hide2() {
 			int animId = animIdArg.rawValue(),
 				delay = delayArg.rawValue();
 
-			fo_register_object_animate_and_hide(obj, animId, delay);
+			fo::func::register_object_animate_and_hide(obj, animId, delay);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_animate_and_hide");
@@ -105,7 +105,7 @@ static void __stdcall op_reg_anim_light2() {
 			} else if (radius > 8) {
 				radius = 8;
 			}
-			fo_register_object_light(obj, radius, delay);
+			fo::func::register_object_light(obj, radius, delay);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_light");
@@ -126,7 +126,7 @@ static void __stdcall op_reg_anim_change_fid2() {
 			int fid = fidArg.rawValue(),
 				delay = delayArg.rawValue();
 
-			fo_register_object_change_fid(obj, fid, delay);
+			fo::func::register_object_change_fid(obj, fid, delay);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_change_fid");
@@ -147,7 +147,7 @@ static void __stdcall op_reg_anim_take_out2() {
 			int holdFrame = holdFrameArg.rawValue(),
 				nothing = nothingArg.rawValue(); // not used by engine
 
-			fo_register_object_take_out(obj, holdFrame, nothing);
+			fo::func::register_object_take_out(obj, holdFrame, nothing);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_take_out");
@@ -168,7 +168,7 @@ static void __stdcall op_reg_anim_turn_towards2() {
 			int tile = tileArg.rawValue(),
 				nothing = nothingArg.rawValue(); // not used by engine
 
-			fo_register_object_turn_towards(obj, tile, nothing);
+			fo::func::register_object_turn_towards(obj, tile, nothing);
 		}
 	} else {
 		OpcodeInvalidArgs("reg_anim_turn_towards");
@@ -181,7 +181,7 @@ static void __declspec(naked) op_reg_anim_turn_towards() {
 
 static void __declspec(naked) ExecuteCallback() {
 	__asm {
-		call executeProcedure_;
+		call fo::funcoffs::executeProcedure_;
 		jmp  GetResetScriptReturnValue; // return callback result from scr_return script function: -1 - break registered sequence
 	}
 }
@@ -190,7 +190,7 @@ static void __stdcall op_reg_anim_callback2() {
 	const ScriptValue &procArg = opHandler.arg(0);
 
 	if (procArg.isInt()) {
-		fo_register_object_call(
+		fo::func::register_object_call(
 			reinterpret_cast<long*>(opHandler.program()),
 			reinterpret_cast<long*>(procArg.rawValue()), // callback procedure
 			reinterpret_cast<void*>(ExecuteCallback),
@@ -231,7 +231,7 @@ static void __declspec(naked) op_explosions_metarule() {
 static void __declspec(naked) op_art_exists() {
 	__asm {
 		_GET_ARG_INT(fail);
-		call art_exists_;
+		call fo::funcoffs::art_exists_;
 		mov  edx, eax;
 end:
 		mov  eax, ebx;
@@ -243,5 +243,5 @@ fail:
 }
 
 static void mf_art_cache_flush() {
-	__asm call art_flush_;
+	__asm call fo::funcoffs::art_flush_;
 }

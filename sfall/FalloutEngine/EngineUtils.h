@@ -28,10 +28,15 @@
 // Various utility functions, based on FO engine functions
 //
 
+namespace fo
+{
+namespace util
+{
+
 // rect_free_ function for inline implementation
-__forceinline void sf_rect_free(RectList* rect) {
-	RectList* front = *ptr_rectList;
-	*ptr_rectList = rect;
+__forceinline void rect_free(RectList* rect) {
+	RectList* front = *fo::ptr::rectList;
+	*fo::ptr::rectList = rect;
 	rect->nextRect = front;
 }
 
@@ -59,7 +64,7 @@ bool GetProto(long pid, sProto** outProto);
 // Note: use this function if you need to get the proto immediately without extra checks
 __forceinline sProto* GetProto(long pid) {
 	sProto* proto;
-	fo_proto_ptr(pid, &proto);
+	fo::func::proto_ptr(pid, &proto);
 	return proto;
 }
 
@@ -158,3 +163,6 @@ void RedrawObject(TGameObj* obj);
 void RefreshGNW(bool skipOwner = false);
 
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
+
+}
+}

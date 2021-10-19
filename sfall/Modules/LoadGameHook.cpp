@@ -128,19 +128,19 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 static void __stdcall RunOnBeforeGameStart() {
 	CritLoad();
 	ReadExtraGameMsgFiles();
-	if (pipBoyAvailableAtGameStart) ptr_gmovie_played_list[3] = true; // PipBoy aquiring video
+	if (pipBoyAvailableAtGameStart) fo::ptr::gmovie_played_list[3] = true; // PipBoy aquiring video
 	BodypartHitChances(); // set on start & load
 	LoadGlobalScripts(); // loading sfall scripts
 }
 
 static void __stdcall RunOnAfterGameStarted() {
 	if (femaleMsgs) CheckPlayerGender();
-	if (disableHorrigan) *ptr_Meet_Frank_Horrigan = true;
+	if (disableHorrigan) *fo::ptr::Meet_Frank_Horrigan = true;
 	InitGlobalScripts(); // running sfall scripts
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *ptr_patches, ExtraSaveSlots_GetSaveSlot() + 1, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *fo::ptr::patches, ExtraSaveSlots_GetSaveSlot() + 1, ftype); //add SuperSave Page offset
 }
 
 static void __stdcall SaveGame2() {
@@ -178,21 +178,21 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo_display_print(Translate_SfallSaveDataFailure());
-	fo_gsound_play_sfx_file("IISXXXX1");
+	fo::func::display_print(Translate_SfallSaveDataFailure());
+	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
 
 static DWORD __stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !PartyControl_IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || PartyControl_IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo_display_print(Translate_CombatSaveBlockMessage());
+			fo::func::display_print(Translate_CombatSaveBlockMessage());
 			return 0;
 		}
-		int ap = fo_stat_level(*ptr_obj_dude, STAT_max_move_points);
-		int bonusmove = fo_perk_level(*ptr_obj_dude, PERK_bonus_move);
-		if ((*ptr_obj_dude)->critter.movePoints != ap || bonusmove * 2 != *ptr_combat_free_move) {
-			fo_display_print(Translate_CombatSaveBlockMessage());
+		int ap = fo::func::stat_level(*fo::ptr::obj_dude, STAT_max_move_points);
+		int bonusmove = fo::func::perk_level(*fo::ptr::obj_dude, PERK_bonus_move);
+		if ((*fo::ptr::obj_dude)->critter.movePoints != ap || bonusmove * 2 != *fo::ptr::combat_free_move) {
+			fo::func::display_print(Translate_CombatSaveBlockMessage());
 			return 0;
 		}
 	}
@@ -211,7 +211,7 @@ static void __declspec(naked) SaveGame_hook() {
 		push edx;
 		_InLoop2(1, SAVEGAME);
 		pop  eax;
-		call SaveGame_;
+		call fo::funcoffs::SaveGame_;
 		push eax;
 		_InLoop2(0, SAVEGAME);
 		pop  eax;
@@ -257,7 +257,7 @@ static bool __stdcall LoadGame_Before() {
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
-	fo_debug_printf("\n[SFALL] ERROR reading data: %s", buf);
+	fo::func::debug_printf("\n[SFALL] ERROR reading data: %s", buf);
 	return (true & !isDebug);
 }
 
@@ -292,7 +292,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		ScriptExtender_OnGameLoad();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo_debug_printf("\nSFALL: [State reset %s]\n", str);
+			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
 		}
 	}
 	inLoop = 0;
@@ -310,7 +310,7 @@ static void __stdcall LoadGame_After() {
 static void __declspec(naked) LoadGame_hook() {
 	__asm {
 		_InLoop(1, LOADGAME);
-		call LoadGame_;
+		call fo::funcoffs::LoadGame_;
 		_InLoop(0, LOADGAME);
 		cmp  eax, 1;
 		jne  end;
@@ -328,7 +328,7 @@ end:
 
 static void __declspec(naked) EndLoadHook() {
 	__asm {
-		call EndLoad_;
+		call fo::funcoffs::EndLoad_;
 		pushadc;
 		call LoadHeroAppearance;
 		popadc;
@@ -356,7 +356,7 @@ static void __declspec(naked) main_load_new_hook() {
 		push eax;
 		call NewGame_Before;
 		pop  eax;
-		call main_load_new_;
+		call fo::funcoffs::main_load_new_;
 		jmp  NewGame_After;
 	}
 }
@@ -403,7 +403,7 @@ static void __declspec(naked) main_init_system_hook() {
 		pushadc;
 		call GameInitialization;
 		popadc;
-		call main_init_system_;
+		call fo::funcoffs::main_init_system_;
 		pushadc;
 		push eax;
 		call GameInitialized;
@@ -418,7 +418,7 @@ static void __declspec(naked) game_reset_hook() {
 		push 0;
 		call GameReset; // reset all sfall modules before resetting the game data
 		popadc;
-		jmp  game_reset_;
+		jmp  fo::funcoffs::game_reset_;
 	}
 }
 
@@ -430,7 +430,7 @@ static void __declspec(naked) game_reset_on_load_hook() {
 		test al, al;
 		popadc;
 		jnz  errorLoad;
-		jmp  game_reset_;
+		jmp  fo::funcoffs::game_reset_;
 errorLoad:
 		mov  eax, -1;
 		add  esp, 4;
@@ -445,7 +445,7 @@ static void __declspec(naked) before_game_exit_hook() {
 		push 1;
 		call GameModeChange;
 		popadc;
-		jmp  map_exit_;
+		jmp  fo::funcoffs::map_exit_;
 	}
 }
 
@@ -454,7 +454,7 @@ static void __declspec(naked) after_game_exit_hook() {
 		pushadc;
 		call GameExit;
 		popadc;
-		jmp  main_menu_create_;
+		jmp  fo::funcoffs::main_menu_create_;
 	}
 }
 
@@ -463,7 +463,7 @@ static void __declspec(naked) game_close_hook() {
 		pushadc;
 		call GameClose;
 		popadc;
-		jmp game_exit_;
+		jmp  fo::funcoffs::game_exit_;
 	}
 }
 
@@ -480,7 +480,7 @@ static void __declspec(naked) map_load_hook() {
 		call MapLoadHook;
 		pop  edx;
 		pop  eax;
-		call map_load_file_;
+		call fo::funcoffs::map_load_file_;
 		mov  onLoadingMap, 0;
 		retn;
 	}
@@ -488,7 +488,7 @@ static void __declspec(naked) map_load_hook() {
 
 static void __declspec(naked) WorldMapHook_Start() {
 	__asm {
-		call wmInterfaceInit_;
+		call fo::funcoffs::wmInterfaceInit_;
 		test eax, eax;
 		jl   skip;
 		push eax;
@@ -504,7 +504,7 @@ static void __declspec(naked) WorldMapHook_End() {
 		push eax;
 		_InLoop2(0, WORLDMAP);
 		pop  eax;
-		jmp  remove_bk_process_;
+		jmp  fo::funcoffs::remove_bk_process_;
 	}
 }
 
@@ -514,7 +514,7 @@ static void __fastcall CombatInternal(CombatGcsd* gcsd) {
 	SetInLoop(1, COMBAT);
 
 	__asm mov  eax, gcsd;
-	__asm call combat_;
+	__asm call fo::funcoffs::combat_;
 
 	// OnCombatEnd
 	AICombatClear();
@@ -536,7 +536,7 @@ static void __declspec(naked) CombatHook() {
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
 		_InLoop(1, PCOMBAT);
-		call combat_input_;
+		call fo::funcoffs::combat_input_;
 		_InLoop(0, PCOMBAT);
 		retn;
 	}
@@ -545,7 +545,7 @@ static void __declspec(naked) PlayerCombatHook() {
 static void __declspec(naked) EscMenuHook() {
 	__asm {
 		_InLoop(1, ESCMENU);
-		call do_optionsFunc_;
+		call fo::funcoffs::do_optionsFunc_;
 		_InLoop(0, ESCMENU);
 		retn;
 	}
@@ -554,7 +554,7 @@ static void __declspec(naked) EscMenuHook() {
 static void __declspec(naked) EscMenuHook2() {
 	__asm {
 		_InLoop(1, ESCMENU);
-		call do_options_;
+		call fo::funcoffs::do_options_;
 		_InLoop(0, ESCMENU);
 		retn;
 	}
@@ -563,7 +563,7 @@ static void __declspec(naked) EscMenuHook2() {
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
 		_InLoop(1, OPTIONS);
-		call do_prefscreen_;
+		call fo::funcoffs::do_prefscreen_;
 		_InLoop(0, OPTIONS);
 		retn;
 	}
@@ -572,7 +572,7 @@ static void __declspec(naked) OptionsMenuHook() {
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
 		_InLoop(1, HELP);
-		call game_help_;
+		call fo::funcoffs::game_help_;
 		_InLoop(0, HELP);
 		retn;
 	}
@@ -584,7 +584,7 @@ static void __declspec(naked) CharacterHook() {
 		_InLoop2(1, CHARSCREEN);
 		call PerksEnterCharScreen;
 		xor  eax, eax;
-		call editor_design_;
+		call fo::funcoffs::editor_design_;
 		test eax, eax;
 		jz   success;
 		call PerksCancelCharScreen;
@@ -611,7 +611,7 @@ static void __declspec(naked) DialogHook_End() {
 	__asm {
 		and inLoop, ~DIALOG;  // unset flag
 		_InLoop2(1, SPECIAL); // set the flag before animating the panel when exiting the dialog
-		call gdDestroyHeadWindow_;
+		call fo::funcoffs::gdDestroyHeadWindow_;
 		_InLoop2(0, SPECIAL);
 		retn;
 	}
@@ -622,7 +622,7 @@ static void __declspec(naked) PipboyHook_Start() {
 		push eax;
 		_InLoop2(1, PIPBOY);
 		pop  eax;
-		jmp  win_draw_;
+		jmp  fo::funcoffs::win_draw_;
 	}
 }
 
@@ -631,14 +631,14 @@ static void __declspec(naked) PipboyHook_End() {
 		push eax;
 		_InLoop2(0, PIPBOY);
 		pop  eax;
-		jmp  win_delete_;
+		jmp  fo::funcoffs::win_delete_;
 	}
 }
 
 static void __declspec(naked) SkilldexHook() {
 	__asm {
 		_InLoop(1, SKILLDEX);
-		call skilldex_select_;
+		call fo::funcoffs::skilldex_select_;
 		_InLoop(0, SKILLDEX);
 		retn;
 	}
@@ -648,7 +648,7 @@ static void __declspec(naked) HandleInventoryHook_Start() {
 	__asm {
 		_InLoop2(1, INVENTORY);
 		xor eax, eax;
-		jmp inven_set_mouse_;
+		jmp fo::funcoffs::inven_set_mouse_;
 	}
 }
 
@@ -656,7 +656,7 @@ static void __declspec(naked) HandleInventoryHook_End() {
 	__asm {
 		_InLoop2(0, INVENTORY);
 		mov eax, esi;
-		jmp exit_inventory_;
+		jmp fo::funcoffs::exit_inventory_;
 	}
 }
 
@@ -664,7 +664,7 @@ static void __declspec(naked) UseInventoryOnHook_Start() {
 	__asm {
 		_InLoop2(1, INTFACEUSE);
 		xor eax, eax;
-		jmp inven_set_mouse_;
+		jmp fo::funcoffs::inven_set_mouse_;
 	}
 }
 
@@ -672,7 +672,7 @@ static void __declspec(naked) UseInventoryOnHook_End() {
 	__asm {
 		_InLoop2(0, INTFACEUSE);
 		mov eax, edi;
-		jmp exit_inventory_;
+		jmp fo::funcoffs::exit_inventory_;
 	}
 }
 
@@ -680,7 +680,7 @@ static void __declspec(naked) LootContainerHook_Start() {
 	__asm {
 		_InLoop2(1, INTFACELOOT);
 		xor eax, eax;
-		jmp inven_set_mouse_;
+		jmp fo::funcoffs::inven_set_mouse_;
 	}
 }
 
@@ -701,7 +701,7 @@ static void __declspec(naked) BarterInventoryHook() {
 		and inLoop, ~SPECIAL; // unset flag after animating the dialog panel
 		_InLoop(1, BARTER);
 		push [esp + 4];
-		call barter_inventory_;
+		call fo::funcoffs::barter_inventory_;
 		_InLoop(0, BARTER);
 		call ResetBodyState;
 		retn 4;
@@ -710,7 +710,7 @@ static void __declspec(naked) BarterInventoryHook() {
 
 static void __declspec(naked) AutomapHook_Start() {
 	__asm {
-		call gmouse_set_cursor_;
+		call fo::funcoffs::gmouse_set_cursor_;
 		test edx, edx;
 		jnz  skip;
 		mov  gameInterfaceWID, ebp;
@@ -724,13 +724,13 @@ static void __declspec(naked) AutomapHook_End() {
 	__asm {
 		_InLoop(0, AUTOMAP);
 		mov gameInterfaceWID, -1
-		jmp win_delete_;
+		jmp fo::funcoffs::win_delete_;
 	}
 }
 
 static void __declspec(naked) DialogReviewInitHook() {
 	__asm {
-		call gdReviewInit_;
+		call fo::funcoffs::gdReviewInit_;
 		test eax, eax;
 		jnz  error;
 		push ecx;
@@ -749,14 +749,14 @@ static void __declspec(naked) DialogReviewExitHook() {
 		_InLoop2(0, DIALOGVIEW);
 		pop eax;
 		pop ecx;
-		jmp gdReviewExit_;
+		jmp fo::funcoffs::gdReviewExit_;
 	}
 }
 
 static void __declspec(naked) setup_move_timer_win_Hook() {
 	__asm {
 		_InLoop2(1, COUNTERWIN);
-		jmp text_curr_;
+		jmp fo::funcoffs::text_curr_;
 	}
 }
 
@@ -765,14 +765,14 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 		push eax;
 		_InLoop2(0, COUNTERWIN);
 		pop  eax;
-		jmp  win_delete_;
+		jmp  fo::funcoffs::win_delete_;
 	}
 }
 
 static void __declspec(naked) gdialog_bk_hook() {
 	__asm {
 		_InLoop2(1, SPECIAL); // set the flag before switching from dialog mode to barter
-		jmp gdialog_window_destroy_;
+		jmp fo::funcoffs::gdialog_window_destroy_;
 	}
 }
 
@@ -781,13 +781,13 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
 		push edx;
 		_InLoop2(1, SPECIAL); // set the flag before animating the dialog panel when a party member joins/leaves
 		pop  edx;
-		jmp  gdialog_window_destroy_;
+		jmp  fo::funcoffs::gdialog_window_destroy_;
 	}
 }
 
 static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 	__asm {
-		call gdialog_window_create_;
+		call fo::funcoffs::gdialog_window_create_;
 		_InLoop2(0, SPECIAL); // unset the flag when entering the party member control panel
 		retn;
 	}

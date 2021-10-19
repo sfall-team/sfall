@@ -277,7 +277,7 @@ static void __declspec(naked) WinMain_hook() {
 		pushad;
 		call OnExit;
 		popad;
-		jmp  DOSCmdLineDestroy_;
+		jmp  fo::funcoffs::DOSCmdLineDestroy_;
 	}
 }
 

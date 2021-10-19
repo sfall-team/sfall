@@ -166,7 +166,7 @@ end:
 }
 
 static void __fastcall WriteStringInternal(char* addr, long type, long strID, TProgram* script) {
-	const char* str = fo_interpretGetString(script, type, strID);
+	const char* str = fo::func::interpretGetString(script, type, strID);
 	while (*str) {
 		if (!addr[0] && addr[1]) break; // addr[1] as *(addr + 1)
 		*addr++ = *str++;
@@ -213,8 +213,8 @@ static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
 	int argCount = func % 5;
 
 	for (int i = argCount; i >= 0; i--) {
-		if ((short)fo_interpretPopShort(script) != (short)VAR_TYPE_INT) illegalArg++;
-		args[i] = fo_interpretPopLong(script);
+		if ((short)fo::func::interpretPopShort(script) != (short)VAR_TYPE_INT) illegalArg++;
+		args[i] = fo::func::interpretPopLong(script);
 	}
 	if (illegalArg || (checkValidMemAddr && (args[0] < 0x410010 || args[0] > 0x4FCE34))) {
 		args[0] = 0;

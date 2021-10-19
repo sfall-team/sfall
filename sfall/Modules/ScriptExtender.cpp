@@ -268,8 +268,8 @@ public:
 		vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
 		va_end(args);
 
-		const char* procName = fo_findCurrentProc(_program);
-		fo_debug_printf("\nOPCODE ERROR: %s\n > Script: %s, procedure %s.", msg, _program->fileName, procName);
+		const char* procName = fo::func::findCurrentProc(_program);
+		fo::func::debug_printf("\nOPCODE ERROR: %s\n > Script: %s, procedure %s.", msg, _program->fileName, procName);
 	}
 
 	// Validate opcode arguments against type masks
@@ -311,13 +311,13 @@ public:
 		// process arguments on stack (reverse order)
 		for (int i = argNum - 1; i >= 0; i--) {
 			// get argument from stack
-			DWORD rawValueType = fo_interpretPopShort(program);
-			DWORD rawValue = fo_interpretPopLong(program);
+			DWORD rawValueType = fo::func::interpretPopShort(program);
+			DWORD rawValue = fo::func::interpretPopLong(program);
 			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args[i] = fo_interpretGetString(program, rawValueType, rawValue);
+				_args[i] = fo::func::interpretGetString(program, rawValueType, rawValue);
 			} else {
 				_args[i] = ScriptValue(type, rawValue);
 			}
@@ -344,7 +344,7 @@ public:
 			if (_ret.type() == DATATYPE_NONE) {
 				_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 			}
-			fo_interpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type())); // 4.x backport
+			fo::func::interpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type())); // 4.x backport
 		}
 	}
 
@@ -679,8 +679,8 @@ static long __fastcall FindOverride(TProgram* program, TScript** script) {
 	return result;
 }
 
-static const DWORD scr_ptr_back = scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program_back = scr_find_sid_from_program_ + 5;
+static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program_back = fo::funcoffs::scr_find_sid_from_program_ + 5;
 
 static void __declspec(naked) scr_find_sid_from_program_hack() {
 	__asm {
@@ -738,7 +738,7 @@ static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack
 static void __declspec(naked) MainGameLoopHook() {
 	__asm {
 		push ecx;
-		call get_input_;
+		call fo::funcoffs::get_input_;
 		push edx;
 		push eax;
 		call RunGlobalScripts1;
@@ -758,7 +758,7 @@ static void __declspec(naked) CombatLoopHook() {
 		call RunGlobalScripts1;
 		//pop  eax;
 		pop  edx;
-		call get_input_;
+		call fo::funcoffs::get_input_;
 		pop  ecx; // fix to prevent the combat turn from being skipped after using Alt+Tab
 		retn;
 	}
@@ -828,7 +828,7 @@ static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 		retn;
 proceedNormal:
 		mov  eax, edx;  // varName
-		jmp  findVar_
+		jmp  fo::funcoffs::findVar_;
 	}
 }
 
@@ -843,7 +843,7 @@ static void __declspec(naked) exportExportVariable_hook() {
 		add  esp, 4;                       // destroy return
 		jmp  exportExportVariable_BackRet; // if sfall exported var, jump to the end of function
 proceedNormal:
-		jmp  findVar_;                     // else - proceed normal
+		jmp  fo::funcoffs::findVar_;       // else - proceed normal
 	}
 }
 
@@ -852,7 +852,7 @@ static void __stdcall FreeProgram(TProgram* progPtr) {
 	if (isGameReset || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
-			call interpretFreeProgram_;
+			call fo::funcoffs::interpretFreeProgram_;
 		}
 	}
 }
@@ -873,10 +873,10 @@ static void __declspec(naked) CombatBeginHook() {
 	using namespace Scripts;
 	__asm {
 		push eax;
-		call scr_set_ext_param_;
+		call fo::funcoffs::scr_set_ext_param_;
 		pop  eax;                                 // pobj.sid
 		mov  edx, combat_is_starting_p_proc;
-		jmp  exec_script_proc_;
+		jmp  fo::funcoffs::exec_script_proc_;
 	}
 }
 
@@ -884,10 +884,10 @@ static void __declspec(naked) CombatOverHook() {
 	using namespace Scripts;
 	__asm {
 		push eax;
-		call scr_set_ext_param_;
+		call fo::funcoffs::scr_set_ext_param_;
 		pop  eax;                                 // pobj.sid
 		mov  edx, combat_is_over_p_proc;
-		jmp  exec_script_proc_;
+		jmp  fo::funcoffs::exec_script_proc_;
 	}
 }
 
@@ -896,7 +896,7 @@ static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
 		pushadc;
 		mov  eax, ds:[FO_VAR_map_elevation];
-		call obj_find_first_at_;
+		call fo::funcoffs::obj_find_first_at_;
 loopObject:
 		test eax, eax;
 		jz   end;
@@ -916,7 +916,7 @@ loopObject:
 		jz   nextObject;                          // No
 		mov  edx, CFLG_NoSteal;                   // _Steal flag
 		mov  eax, [ecx + protoId];                // eax = source.pid
-		call critter_flag_check_;
+		call fo::funcoffs::critter_flag_check_;
 		test eax, eax;                            // Can't be stolen from?
 		jnz  nextObject;                          // Yes
 skip:
@@ -932,10 +932,10 @@ NoHighlight:
 		mov  edx, outlineColor;
 		mov  [ecx + outline], edx;
 nextObject:
-		call obj_find_next_at_;
+		call fo::funcoffs::obj_find_next_at_;
 		jmp  loopObject;
 end:
-		call tile_refresh_display_;
+		call fo::funcoffs::tile_refresh_display_;
 		popadc;
 		retn;
 	}
@@ -946,7 +946,7 @@ static void __declspec(naked) obj_outline_all_items_off() {
 	__asm {
 		pushadc;
 		mov  eax, ds:[FO_VAR_map_elevation];
-		call obj_find_first_at_;
+		call fo::funcoffs::obj_find_first_at_;
 loopObject:
 		test eax, eax;
 		jz   end;
@@ -967,10 +967,10 @@ skip:
 		jnz  nextObject;                          // Yes
 		mov  [ecx + outline], eax;
 nextObject:
-		call obj_find_next_at_;
+		call fo::funcoffs::obj_find_next_at_;
 		jmp  loopObject;
 end:
-		call tile_refresh_display_;
+		call fo::funcoffs::tile_refresh_display_;
 		popadc;
 		retn;
 	}
@@ -978,7 +978,7 @@ end:
 
 static void __declspec(naked) obj_remove_outline_hook() {
 	__asm {
-		call obj_remove_outline_;
+		call fo::funcoffs::obj_remove_outline_;
 		test eax, eax;
 		jnz  end;
 		cmp  highlightingToggled, 1;
@@ -992,14 +992,14 @@ end:
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void InitScriptProgram(sScriptProgram &prog, const char* fileName) {
-	TProgram* scriptPtr = fo_loadProgram(fileName);
+	TProgram* scriptPtr = fo::func::loadProgram(fileName);
 
 	if (scriptPtr) {
 		prog.ptr = scriptPtr;
 		// fill lookup table
-		const char** procTable = ptr_procTableStrs;
+		const char** procTable = fo::ptr::procTableStrs;
 		for (int i = 0; i < Scripts::count; ++i) {
-			prog.procLookup[i] = fo_interpretFindProcedure(prog.ptr, procTable[i]);
+			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
 		prog.initialized = false;
 	} else {
@@ -1009,8 +1009,8 @@ void InitScriptProgram(sScriptProgram &prog, const char* fileName) {
 
 void RunScriptProgram(sScriptProgram &prog) {
 	if (!prog.initialized) {
-		fo_runProgram(prog.ptr);
-		fo_interpret(prog.ptr, -1);
+		fo::func::runProgram(prog.ptr);
+		fo::func::interpret(prog.ptr, -1);
 		prog.initialized = true;
 	}
 }
@@ -1027,11 +1027,11 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
 bool __stdcall IsGameScript(const char* filename) {
 	for (int i = 1; filename[i]; ++i) if (i > 7) return false; // script name is more than 8 characters
 	// script name is 8 characters, try to find this name in the array of game scripts
-	long mid, left = 0, right = *ptr_maxScriptNum;
+	long mid, left = 0, right = *fo::ptr::maxScriptNum;
 	if (right > 0) {
 		do {
 			mid = (left + right) / 2;
-			int result = std::strcmp(filename, (*ptr_scriptListInfo)[scriptsIndexList[mid]].fileName);
+			int result = std::strcmp(filename, (*fo::ptr::scriptListInfo)[scriptsIndexList[mid]].fileName);
 			if (result == 0) return true;
 			if (result > 0) {
 				left = mid + 1;
@@ -1046,20 +1046,20 @@ bool __stdcall IsGameScript(const char* filename) {
 // loads and initializes script file (for normal game scripts)
 long __fastcall InitScript(long sid) {
 	TScript* scriptPtr;
-	if (fo_scr_ptr(sid, &scriptPtr) == -1) return -1;
+	if (fo::func::scr_ptr(sid, &scriptPtr) == -1) return -1;
 
-	scriptPtr->program = fo_loadProgram((*ptr_scriptListInfo)[scriptPtr->scriptIdx & 0xFFFFFF].fileName);
+	scriptPtr->program = fo::func::loadProgram((*fo::ptr::scriptListInfo)[scriptPtr->scriptIdx & 0xFFFFFF].fileName);
 	if (!scriptPtr->program) return -1;
 	if (scriptPtr->program->flags & 0x124) return 0;
 
 	// fill lookup table
-	fo_scr_build_lookup_table(scriptPtr);
+	fo::func::scr_build_lookup_table(scriptPtr);
 
 	scriptPtr->flags |= 4 | 1; // init | loaded
 	scriptPtr->action = Scripts::no_p_proc;
 	scriptPtr->scriptOverrides = 0;
 
-	fo_runProgram(scriptPtr->program);
+	fo::func::runProgram(scriptPtr->program);
 	return 0;
 }
 
@@ -1102,7 +1102,7 @@ static void PrepareGlobalScriptsList() {
 
 	char* name = "scripts\\gl*.int";
 	char** filenames;
-	int count = fo_db_get_file_list(name, &filenames);
+	int count = fo::func::db_get_file_list(name, &filenames);
 
 	for (int i = 0; i < count; i++) {
 		name = _strlwr(filenames[i]); // name of the script in lower case
@@ -1118,7 +1118,7 @@ static void PrepareGlobalScriptsList() {
 			globalScriptFilesList.push_back(baseName);
 		}
 	}
-	fo_db_free_file_list(&filenames, 0);
+	fo::func::db_free_file_list(&filenames, 0);
 	globalScripts.reserve(globalScriptFilesList.size());
 }
 
@@ -1177,9 +1177,9 @@ static void ClearGlobalScripts() {
 
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
 	TProgram* sptr = prog->ptr;
-	int procPosition = fo_interpretFindProcedure(sptr, procName);
+	int procPosition = fo::func::interpretFindProcedure(sptr, procName);
 	if (procPosition != -1) {
-		fo_executeProcedure(sptr, procPosition);
+		fo::func::executeProcedure(sptr, procPosition);
 	}
 }
 
@@ -1187,7 +1187,7 @@ void RunScriptProc(sScriptProgram* prog, long procId) {
 	if (procId > 0 && procId < Scripts::count) {
 		int procPosition = prog->procLookup[procId];
 		if (procPosition != -1) {
-			fo_executeProcedure(prog->ptr, procPosition);
+			fo::func::executeProcedure(prog->ptr, procPosition);
 		}
 	}
 }
@@ -1195,7 +1195,7 @@ void RunScriptProc(sScriptProgram* prog, long procId) {
 int RunScriptStartProc(sScriptProgram* prog) {
 	int procPosition = prog->procLookup[Scripts::start];
 	if (procPosition != -1) {
-		fo_executeProcedure(prog->ptr, procPosition);
+		fo::func::executeProcedure(prog->ptr, procPosition);
 	}
 	return procPosition;
 }
@@ -1203,7 +1203,7 @@ int RunScriptStartProc(sScriptProgram* prog) {
 static void RunScript(sGlobalScript* script) {
 	script->count = 0;
 	if (script->startProc != -1) {
-		fo_executeProcedure(script->prog.ptr, script->startProc); // run "start"
+		fo::func::executeProcedure(script->prog.ptr, script->startProc); // run "start"
 	}
 }
 
@@ -1225,15 +1225,15 @@ static void RunGlobalScripts1() {
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (motionScanner & 4) {
-					TGameObj* scanner = fo_inven_pid_is_carried_ptr(*ptr_obj_dude, PID_MOTION_SENSOR);
+					TGameObj* scanner = fo::func::inven_pid_is_carried_ptr(*fo::ptr::obj_dude, PID_MOTION_SENSOR);
 					if (scanner) {
 						if (!(motionScanner & 2)) {
-							highlightingToggled = fo_item_m_dec_charges(scanner) + 1;
-							fo_intface_redraw();
-							if (!highlightingToggled) fo_display_print(highlightFail2);
+							highlightingToggled = fo::func::item_m_dec_charges(scanner) + 1;
+							fo::func::intface_redraw();
+							if (!highlightingToggled) fo::func::display_print(highlightFail2);
 						} else highlightingToggled = 1;
 					} else {
-						fo_display_print(highlightFail1);
+						fo::func::display_print(highlightFail1);
 					}
 				} else highlightingToggled = 1;
 				if (highlightingToggled) obj_outline_all_items_on();
@@ -1286,7 +1286,7 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == Scripts::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); ++it) {
-			fo_runProgram(it->prog.ptr);
+			fo::func::runProgram(it->prog.ptr);
 		}
 	} else if (procId == Scripts::map_exit_p_proc) {
 		ClearEventsOnMapExit(); // for reordering the execution of functions before exiting the map
@@ -1299,14 +1299,14 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 }
 
 static DWORD HandleTimedEventScripts() {
-	DWORD currentTime = *ptr_fallout_game_time;
+	DWORD currentTime = *fo::ptr::fallout_game_time;
 	if (timerEventScripts.empty()) return currentTime;
 
 	executeTimedEventDepth++;
 
-	dev_printf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
+	fo::func::dev_printf("\n[TimedEventScripts] Time: %d / Depth: %d", currentTime, executeTimedEventDepth);
 	for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend(); ++it) {
-		dev_printf("\n[TimedEventScripts] Event: %d", it->time);
+		fo::func::dev_printf("\n[TimedEventScripts] Event: %d", it->time);
 	}
 
 	bool eventWasRunning = false;
@@ -1318,9 +1318,9 @@ static DWORD HandleTimedEventScripts() {
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
 			timedEvent->isActive = false;
 
-			dev_printf("\n[TimedEventScripts] Run event: %d", timerIt->time);
+			fo::func::dev_printf("\n[TimedEventScripts] Run event: %d", timerIt->time);
 			RunScriptProc(timerIt->script, Scripts::timed_event_p_proc);
-			dev_printf("\n[TimedEventScripts] Event done: %d", timerIt->time);
+			fo::func::dev_printf("\n[TimedEventScripts] Event done: %d", timerIt->time);
 
 			timedEvent = nullptr;
 			if (!executeTimedEvents.empty()) {
@@ -1339,7 +1339,7 @@ static DWORD HandleTimedEventScripts() {
 		// delete all previously executed events
 		for (std::list<TimedEvent>::const_iterator it = timerEventScripts.cbegin(); it != timerEventScripts.cend();) {
 			if (!it->isActive) {
-				dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
+				fo::func::dev_printf("\n[TimedEventScripts] Remove event: %d", it->time);
 				it = timerEventScripts.erase(it);
 			} else {
 				++it;
@@ -1353,7 +1353,7 @@ static DWORD TimedEventNextTime() {
 	DWORD nextTime;
 	__asm {
 		push ecx;
-		call queue_next_time_;
+		call fo::funcoffs::queue_next_time_;
 		mov  nextTime, eax;
 		push edx;
 	}
@@ -1367,7 +1367,7 @@ static DWORD TimedEventNextTime() {
 }
 
 static DWORD script_chk_timed_events_hook() {
-	return (!*ptr_queue && timerEventScripts.empty());
+	return (!*fo::ptr::queue && timerEventScripts.empty());
 }
 
 void __stdcall AddTimerEventScripts(TProgram* script, long time, long param) {
@@ -1376,7 +1376,7 @@ void __stdcall AddTimerEventScripts(TProgram* script, long time, long param) {
 	timer.isActive = true;
 	timer.script = scriptProg;
 	timer.fixed_param = param;
-	timer.time = *ptr_fallout_game_time + time;
+	timer.time = *fo::ptr::fallout_game_time + time;
 	timerEventScripts.push_back(std::move(timer));
 	timerEventScripts.sort(TimedEvent());
 }
@@ -1466,35 +1466,36 @@ static void __declspec(naked) map_save_in_game_hook() {
 		test cl, 1;
 		jz   skip;
 		mov  scriptExtOnMapLeave, 1;
-		call scr_exec_map_exit_scripts_;
+		call fo::funcoffs::scr_exec_map_exit_scripts_;
 		mov  scriptExtOnMapLeave, 0;
 		retn;
 skip:
-		jmp  partyMemberSaveProtos_;
+		jmp  fo::funcoffs::partyMemberSaveProtos_;
 	}
 }
 
 static void ClearEventsOnMapExit() {
+	using namespace fo;
 	__asm {
 		mov  eax, explode_event; // type
-		mov  edx, queue_explode_exit_; // func
-		call queue_clear_type_;
+		mov  edx, fo::funcoffs::queue_explode_exit_; // func
+		call fo::funcoffs::queue_clear_type_;
 		mov  eax, explode_fail_event;
-		mov  edx, queue_explode_exit_;
-		call queue_clear_type_;
+		mov  edx, fo::funcoffs::queue_explode_exit_;
+		call fo::funcoffs::queue_clear_type_;
 	}
 }
 
 // Creates an list of indexes arranged in sorted order relative to the script names
 void BuildSortedIndexList() {
-	scriptsIndexList.reserve(*ptr_maxScriptNum);
+	scriptsIndexList.reserve(*fo::ptr::maxScriptNum);
 	scriptsIndexList.push_back(0);
 
-	for (long index = 1; index < *ptr_maxScriptNum; index++) {
+	for (long index = 1; index < *fo::ptr::maxScriptNum; index++) {
 		size_t size = scriptsIndexList.size();
 		size_t lastPos = size - 1;
 		for (size_t posIndex = 0; posIndex < size; posIndex++) {
-			if (std::strcmp((*ptr_scriptListInfo)[index].fileName, (*ptr_scriptListInfo)[scriptsIndexList[posIndex]].fileName) > 0) {
+			if (std::strcmp((*fo::ptr::scriptListInfo)[index].fileName, (*fo::ptr::scriptListInfo)[scriptsIndexList[posIndex]].fileName) > 0) {
 				if (posIndex < lastPos) continue;  // if this is not the end of the array, then go to the next name
 				scriptsIndexList.push_back(index); // otherwise insert at the end of the array
 			} else {
@@ -1505,7 +1506,7 @@ void BuildSortedIndexList() {
 	}
 	// preview the sorted list
 	//for (size_t i = 0; i < scriptsIndexList.size(); i++) {
-	//	devlog_f("\nName: %s, i: %d", DL_MAIN, (*ptr_scriptListInfo)[scriptsIndexList[i]].fileName, scriptsIndexList[i]);
+	//	devlog_f("\nName: %s, i: %d", DL_MAIN, (*fo::ptr::scriptListInfo)[scriptsIndexList[i]].fileName, scriptsIndexList[i]);
 	//}
 	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
 }
@@ -1530,7 +1531,7 @@ const char* __stdcall ObjectName_GetName(TGameObj* object) {
 		if (name != overrideScrName.cend()) {
 			return (name->second.length() > 0)
 			       ? name->second.c_str()
-			       : fo_proto_get_msg_info(object->protoId, 0);
+			       : fo::func::proto_get_msg_info(object->protoId, 0);
 		}
 	}
 	return nullptr;
@@ -1595,7 +1596,7 @@ static void __declspec(naked) object_name_hook() {
 		cmp  edx, lastItemPid;
 		je   getLast;
 		mov  lastItemPid, edx;
-		jmp  item_name_;
+		jmp  fo::funcoffs::item_name_;
 getLast:
 		mov  eax, ds:[FO_VAR_name_item];
 		retn;
@@ -1683,9 +1684,9 @@ void ScriptExtender_Init() {
 	// Reorder the execution of functions before exiting the map
 	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
 	HookCall(0x483CB4, map_save_in_game_hook);
-	HookCall(0x483CC3, (void*)partyMemberSaveProtos_);
-	HookCall(0x483CC8, (void*)partyMemberPrepLoad_);
-	HookCall(0x483CCD, (void*)partyMemberPrepItemSaveAll_);
+	HookCall(0x483CC3, (void*)fo::funcoffs::partyMemberSaveProtos_);
+	HookCall(0x483CC8, (void*)fo::funcoffs::partyMemberPrepLoad_);
+	HookCall(0x483CCD, (void*)fo::funcoffs::partyMemberPrepItemSaveAll_);
 
 	// Set the DAM_BACKWASH flag for the attacker before calling compute_damage_
 	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_

@@ -24,15 +24,20 @@
 
 #include "EngineUtils.h"
 
+namespace fo
+{
+namespace util
+{
+
 static MSGNode messageBuf;
 
 const char* GetMessageStr(const MSGList* file, long messageId) {
-	return fo_getmsg(file, &messageBuf, messageId);
+	return fo::func::getmsg(file, &messageBuf, messageId);
 }
 
 const char* MessageSearch(const MSGList* file, long messageId) {
 	messageBuf.number = messageId;
-	if (fo_message_search(file, &messageBuf) == 1) {
+	if (fo::func::message_search(file, &messageBuf) == 1) {
 		return messageBuf.message;
 	}
 	return nullptr;
@@ -73,8 +78,8 @@ char* GetMsg(MSGList* msgList, int msgNum, int msgType) {
 }
 
 Queue* QueueFind(TGameObj* object, long type) {
-	if (*ptr_queue) {
-		Queue* queue = *ptr_queue;
+	if (*fo::ptr::queue) {
+		Queue* queue = *fo::ptr::queue;
 		while (queue->object != object && queue->type != type) {
 			queue = queue->next;
 			if (!queue) break;
@@ -98,21 +103,21 @@ bool CheckProtoID(DWORD pid) {
 	if (pid == 0) return false;
 	long type = pid >> 24;
 	if (type > OBJ_TYPE_MISC) return false;
-	return (static_cast<long>(pid & 0xFFFF) < ptr_protoLists[type].totalCount);
+	return (static_cast<long>(pid & 0xFFFF) < fo::ptr::protoLists[type].totalCount);
 }
 
 bool GetProto(long pid, sProto** outProto) {
-	return (fo_proto_ptr(pid, outProto) != -1);
+	return (fo::func::proto_ptr(pid, outProto) != -1);
 }
 
 void SkillGetTags(long* result, long num) {
 	if (num > 4) num = 4;
-	fo_skill_get_tags(result, num);
+	fo::func::skill_get_tags(result, num);
 }
 
 void SkillSetTags(long* tags, long num) {
 	if (num > 4) num = 4;
-	fo_skill_set_tags(tags, num);
+	fo::func::skill_set_tags(tags, num);
 }
 
 long GetItemType(TGameObj* item) {
@@ -123,40 +128,40 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, Inven
 	TGameObj* itemPtr = nullptr;
 	switch (slot) {
 	case INVEN_TYPE_LEFT_HAND:
-		itemPtr = fo_inven_left_hand(critter);
+		itemPtr = fo::func::inven_left_hand(critter);
 		break;
 	case INVEN_TYPE_RIGHT_HAND:
-		itemPtr = fo_inven_right_hand(critter);
+		itemPtr = fo::func::inven_right_hand(critter);
 		break;
 	case INVEN_TYPE_WORN:
-		itemPtr = fo_inven_worn(critter);
+		itemPtr = fo::func::inven_worn(critter);
 		break;
 	}
 	return itemPtr;
 }
 
 AttackType GetHandSlotPrimaryAttack(HandSlot slot) {
-	return (AttackType)ptr_itemButtonItems[slot].primaryAttack;
+	return (AttackType)fo::ptr::itemButtonItems[slot].primaryAttack;
 }
 
 AttackType GetHandSlotSecondaryAttack(HandSlot slot) {
-	return (AttackType)ptr_itemButtonItems[slot].secondaryAttack;
+	return (AttackType)fo::ptr::itemButtonItems[slot].secondaryAttack;
 }
 
 HandSlotMode GetHandSlotMode(HandSlot slot) {
-	return (HandSlotMode)ptr_itemButtonItems[slot].mode;
+	return (HandSlotMode)fo::ptr::itemButtonItems[slot].mode;
 }
 
 long& GetActiveItemMode() {
-	return ptr_itemButtonItems[*ptr_itemCurrentItem].mode;
+	return fo::ptr::itemButtonItems[*fo::ptr::itemCurrentItem].mode;
 }
 
 TGameObj* GetActiveItem() {
-	return ptr_itemButtonItems[*ptr_itemCurrentItem].item;
+	return fo::ptr::itemButtonItems[*fo::ptr::itemCurrentItem].item;
 }
 
 AttackType GetSlotHitMode(HandSlot hand) { // 0 - left, 1 - right
-	switch (ptr_itemButtonItems[hand].mode) {
+	switch (fo::ptr::itemButtonItems[hand].mode) {
 	case HANDMODE_Primary:
 	case HANDMODE_Primary_Aimed: // called shot
 		return GetHandSlotPrimaryAttack(hand);
@@ -170,8 +175,8 @@ AttackType GetSlotHitMode(HandSlot hand) { // 0 - left, 1 - right
 }
 
 long GetCurrentAttackMode() {
-	if (*ptr_interfaceWindow != -1) {
-		return GetSlotHitMode((HandSlot)*ptr_itemCurrentItem);
+	if (*fo::ptr::interfaceWindow != -1) {
+		return GetSlotHitMode((HandSlot)*fo::ptr::itemCurrentItem);
 	}
 	return -1;
 }
@@ -194,27 +199,27 @@ AttackSubType GetWeaponType(DWORD weaponFlag) {
 
 long ObjIsOpenable(TGameObj* object) {
 	long result = 0;
-	if (fo_obj_is_openable(object)) {
+	if (fo::func::obj_is_openable(object)) {
 		DWORD lock;
-		FrmHeaderData* frm = fo_art_ptr_lock(object->artFid, &lock);
+		FrmHeaderData* frm = fo::func::art_ptr_lock(object->artFid, &lock);
 		if (frm) {
 			if (frm->numFrames > 1) result = 1;
-			fo_art_ptr_unlock(lock);
+			fo::func::art_ptr_unlock(lock);
 		}
 	}
 	return result;
 }
 
 bool HeroIsFemale() {
-	return (fo_stat_level(*ptr_obj_dude, STAT_gender) == GENDER_FEMALE);
+	return (fo::func::stat_level(*fo::ptr::obj_dude, STAT_gender) == GENDER_FEMALE);
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence() {
-	QueueRadiationData* queue = (QueueRadiationData*)fo_queue_find_first(*ptr_obj_dude, radiation_event);
+	QueueRadiationData* queue = (QueueRadiationData*)fo::func::queue_find_first(*fo::ptr::obj_dude, radiation_event);
 	while (queue) {
 		if (queue->init && queue->level >= 2) return 1;
-		queue = (QueueRadiationData*)fo_queue_find_next(*ptr_obj_dude, radiation_event);
+		queue = (QueueRadiationData*)fo::func::queue_find_next(*fo::ptr::obj_dude, radiation_event);
 	}
 	return 0;
 }
@@ -222,18 +227,18 @@ long __fastcall IsRadInfluence() {
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid) {
 	TScript* script = nullptr;
-	fo_scr_ptr(sid, &script);
+	fo::func::scr_ptr(sid, &script);
 	return (script) ? script->numLocalVars : 0;
 }
 
 // Returns window by x/y coordinate (hidden windows are ignored)
 WINinfo* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans) {
-	long num = *ptr_num_windows - 1;
+	long num = *fo::ptr::num_windows - 1;
 	if (num) {
 		int cflags = WinFlags::Hidden;
 		if (bypassTrans) cflags |= WinFlags::Transparent;
 		do {
-			WINinfo* win = ptr_window[num];
+			WINinfo* win = fo::ptr::window[num];
 			if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
 				if (!(win->flags & cflags)) {
 					return win;
@@ -241,7 +246,7 @@ WINinfo* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans) {
 			}
 		} while (--num);
 	}
-	return ptr_window[0];
+	return fo::ptr::window[0];
 }
 
 static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
@@ -258,15 +263,15 @@ static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type) {
 	long endTile;
 	for (long tile = GetRangeTileNumbers(sourceTile, radius, endTile); tile < endTile; tile++) {
-		TGameObj* obj = fo_obj_find_first_at_tile(elev, tile);
+		TGameObj* obj = fo::func::obj_find_first_at_tile(elev, tile);
 		while (obj) {
 			if (type == -1 || type == obj->Type()) {
 				bool multiHex = (obj->flags & ObjectFlag::MultiHex) ? true : false;
-				if (fo_tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
+				if (fo::func::tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
 					objs.push_back(obj);
 				}
 			}
-			obj = fo_obj_find_next_at_tile();
+			obj = fo::func::obj_find_next_at_tile();
 		}
 	}
 }
@@ -275,8 +280,8 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile) {
 	long rotation = 5;
 	do {
-		long chkTile = fo_tile_num_in_direction(dstTile, rotation, 1);
-		TGameObj* obj = fo_obj_blocking_at(source, chkTile, source->elevation);
+		long chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
+		TGameObj* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
 		if (obj) return obj;
 	} while (--rotation >= 0);
 
@@ -284,26 +289,26 @@ TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile) {
 }
 
 TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile) {
-	if (fo_tile_dist(source->tile, dstTile) > 1) {
+	if (fo::func::tile_dist(source->tile, dstTile) > 1) {
 		return CheckAroundBlockingTiles(source, dstTile);
 	}
 	// Checks the blocking arc of adjacent tiles
-	long dir = fo_tile_dir(source->tile, dstTile);
+	long dir = fo::func::tile_dir(source->tile, dstTile);
 
-	long chkTile = fo_tile_num_in_direction(dstTile, dir, 1);
-	TGameObj* obj = fo_obj_blocking_at(source, chkTile, source->elevation);
+	long chkTile = fo::func::tile_num_in_direction(dstTile, dir, 1);
+	TGameObj* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	// +1 direction
 	long rotation = (dir + 1) % 6;
-	chkTile = fo_tile_num_in_direction(dstTile, rotation, 1);
-	obj = fo_obj_blocking_at(source, chkTile, source->elevation);
+	chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
+	obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	// -1 direction
 	rotation = (dir + 5) % 6;
-	chkTile = fo_tile_num_in_direction(dstTile, rotation, 1);
-	obj = fo_obj_blocking_at(source, chkTile, source->elevation);
+	chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
+	obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	return nullptr;
@@ -317,7 +322,7 @@ long wmGetCurrentTerrainType() {
 			lea  ebx, terrainId;
 			mov  edx, dword ptr ds:[FO_VAR_world_ypos];
 			mov  eax, dword ptr ds:[FO_VAR_world_xpos];
-			call wmFindCurSubTileFromPos_;
+			call fo::funcoffs::wmFindCurSubTileFromPos_;
 		}
 	}
 	return *terrainId;
@@ -385,12 +390,12 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 //void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
 //	BYTE* surf = surface + (y * surfWidth) + x;
-//	fo_wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
+//	fo::func::wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
 //}
 
 // Fills the specified interface window with index color
 bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
-	WINinfo* win = fo_GNW_find(winID);
+	WINinfo* win = fo::func::GNW_find(winID);
 	bool result = false;
 	if ((x + width) > win->width) {
 		width = win->width - x;
@@ -412,18 +417,18 @@ bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, 
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
-	WINinfo* win = fo_GNW_find(winID);
+	WINinfo* win = fo::func::GNW_find(winID);
 	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
-		fo_GNW_win_refresh(win, &win->rect, nullptr);
+		fo::func::GNW_win_refresh(win, &win->rect, nullptr);
 	}
 }
 
 //---------------------------------------------------------
 void PrintFloatText(TGameObj* object, const char* text, long colorText, long colorOutline, long font) {
 	BoundRect rect;
-	if (!fo_text_object_create(object, text, font, colorText, colorOutline, &rect)) {
-		fo_tile_refresh_rect(&rect, object->elevation);
+	if (!fo::func::text_object_create(object, text, font, colorText, colorOutline, &rect)) {
+		fo::func::tile_refresh_rect(&rect, object->elevation);
 	}
 }
 
@@ -454,7 +459,7 @@ void __stdcall PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos,
 		mov  eax, toSurface;
 		mov  ecx, toWidth;
 		add  eax, posOffset;
-		call FMtext_to_buf_;
+		call fo::funcoffs::FMtext_to_buf_;
 	}
 }
 
@@ -479,7 +484,7 @@ DWORD __stdcall GetTextWidth(const char* TextMsg) {
 }
 
 DWORD __stdcall GetTextWidthFM(const char* TextMsg) {
-	return fo_FMtext_width(TextMsg); //get text width
+	return fo::func::FMtext_width(TextMsg); //get text width
 }
 
 //---------------------------------------------------------
@@ -494,7 +499,7 @@ DWORD __stdcall GetCharWidth(BYTE charVal) {
 DWORD __stdcall GetCharWidthFM(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
-		call FMtext_char_width_;
+		call fo::funcoffs::FMtext_char_width_;
 	}
 }
 
@@ -534,38 +539,38 @@ DWORD __stdcall GetMaxCharWidth() {
 
 void RedrawObject(TGameObj* obj) {
 	BoundRect rect;
-	fo_obj_bound(obj, &rect);
-	fo_tile_refresh_rect(&rect, obj->elevation);
+	fo::func::obj_bound(obj, &rect);
+	fo::func::tile_refresh_rect(&rect, obj->elevation);
 }
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner) {
-	var_setInt(FO_VAR_doing_refresh_all) = 1;
-	for (size_t i = 0; i < *ptr_num_windows; i++) {
-		if (skipOwner && ptr_window[i]->flags & WinFlags::OwnerFlag) continue;
-		fo_GNW_win_refresh(ptr_window[i], ptr_scr_size, 0);
+	fo::var::setInt(FO_VAR_doing_refresh_all) = 1;
+	for (size_t i = 0; i < *fo::ptr::num_windows; i++) {
+		if (skipOwner && fo::ptr::window[i]->flags & WinFlags::OwnerFlag) continue;
+		fo::func::GNW_win_refresh(fo::ptr::window[i], fo::ptr::scr_size, 0);
 	}
-	var_setInt(FO_VAR_doing_refresh_all) = 0;
+	fo::var::setInt(FO_VAR_doing_refresh_all) = 0;
 }
 
 //////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////
 
 static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
-	if (fo_db_freadInt(frmStream, &frmHeader->version) == -1)
+	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
 		return false;
-	else if (fo_db_freadShort(frmStream, &frmHeader->FPS) == -1)
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
 		return false;
-	else if (fo_db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
 		return false;
-	else if (fo_db_freadShort(frmStream, &frmHeader->numFrames) == -1)
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->numFrames) == -1)
 		return false;
-	else if (fo_db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
 		return false;
-	else if (fo_db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
 		return false;
-	else if (fo_db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
+	else if (fo::func::db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
 		return false;
-	else if (fo_db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
+	else if (fo::func::db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
 		return false;
 
 	return true;
@@ -575,19 +580,19 @@ static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
-	if (fo_db_freadShort(frmStream, &frame->width) == -1)
+	if (fo::func::db_freadShort(frmStream, &frame->width) == -1)
 		return false;
-	else if (fo_db_freadShort(frmStream, &frame->height) == -1)
+	else if (fo::func::db_freadShort(frmStream, &frame->height) == -1)
 		return false;
-	else if (fo_db_freadInt(frmStream, &frame->size) == -1)
+	else if (fo::func::db_freadInt(frmStream, &frame->size) == -1)
 		return false;
-	else if (fo_db_freadShort(frmStream, &frame->x) == -1)
+	else if (fo::func::db_freadShort(frmStream, &frame->x) == -1)
 		return false;
-	else if (fo_db_freadShort(frmStream, &frame->y) == -1)
+	else if (fo::func::db_freadShort(frmStream, &frame->y) == -1)
 		return false;
 
 	frame->indexBuff = new BYTE[frame->size];
-	if (fo_db_fread(frame->indexBuff, 1, frame->size, frmStream) != frame->size)
+	if (fo::func::db_fread(frame->indexBuff, 1, frame->size, frmStream) != frame->size)
 		return false;
 
 	return true;
@@ -596,27 +601,27 @@ static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
 
-	const char *artfolder = ptr_art[folderRef].path; // address of art type name
+	const char *artfolder = fo::ptr::art[folderRef].path; // address of art type name
 	char frmPath[MAX_PATH];
 
-	if (*ptr_use_language) {
-		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)ptr_language, artfolder, frmName);
+	if (*fo::ptr::use_language) {
+		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::ptr::language, artfolder, frmName);
 	} else {
 		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 	}
 
 	UNLSTDfrm *frm = new UNLSTDfrm;
 
-	DbFile* frmStream = fo_db_fopen(frmPath, "rb");
+	DbFile* frmStream = fo::func::db_fopen(frmPath, "rb");
 
-	if (!frmStream && *ptr_use_language) {
+	if (!frmStream && *fo::ptr::use_language) {
 		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
-		frmStream = fo_db_fopen(frmPath, "rb");
+		frmStream = fo::func::db_fopen(frmPath, "rb");
 	}
 
 	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {
-			fo_db_fclose(frmStream);
+			fo::func::db_fclose(frmStream);
 			delete frm;
 			return nullptr;
 		}
@@ -629,7 +634,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 				frm->oriOffset[ori] = oriOffset_new;
 				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
 					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						fo_db_fclose(frmStream);
+						fo::func::db_fclose(frmStream);
 						delete frm;
 						return nullptr;
 					}
@@ -640,10 +645,13 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 			}
 		}
 
-		fo_db_fclose(frmStream);
+		fo::func::db_fclose(frmStream);
 	} else {
 		delete frm;
 		return nullptr;
 	}
 	return frm;
+}
+
+}
 }

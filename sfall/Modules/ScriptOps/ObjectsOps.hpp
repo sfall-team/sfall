@@ -38,7 +38,7 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 	}
 
 	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
-		fo_debug_printf(fmt, name);
+		fo::func::debug_printf(fmt, name);
 
 		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
 
@@ -64,7 +64,7 @@ static void __stdcall op_inc_npc_level2() {
 	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
 
 	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
-	__asm call partyMemberIncLevels_;
+	__asm call fo::funcoffs::partyMemberIncLevels_;
 	onceNpcLoop = false;
 
 	// restore code
@@ -94,13 +94,13 @@ static void __stdcall op_get_npc_level2() {
 
 		if (findPid || name[0] != 0) {
 			DWORD pid = 0;
-			ObjectListData* members = *ptr_partyMemberList;
-			for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
+			ObjectListData* members = *fo::ptr::partyMemberList;
+			for (DWORD i = 0; i < *fo::ptr::partyMemberCount; i++) {
 				if (!findPid) {
 					__asm {
 						mov  eax, members;
 						mov  eax, [eax];
-						call critter_name_;
+						call fo::funcoffs::critter_name_;
 						mov  critterName, eax;
 					}
 					if (!_stricmp(name, critterName)) { // found npc
@@ -116,9 +116,9 @@ static void __stdcall op_get_npc_level2() {
 				}
 			}
 			if (pid) {
-				DWORD* pidList = *ptr_partyMemberPidList;
-				DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
-				for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
+				DWORD* pidList = *fo::ptr::partyMemberPidList;
+				DWORD* lvlUpInfo = *fo::ptr::partyMemberLevelUpInfoList;
+				for (DWORD j = 0; j < *fo::ptr::partyMemberMaxCount; j++) {
 					if (pidList[j] == pid) {
 						level = lvlUpInfo[j * 3];
 						break;
@@ -141,7 +141,7 @@ static void __stdcall op_remove_script2() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
 		if (object->scriptId != 0xFFFFFFFF) {
-			fo_scr_remove(object->scriptId);
+			fo::func::scr_remove(object->scriptId);
 			object->scriptId = 0xFFFFFFFF;
 		}
 	} else {
@@ -156,7 +156,7 @@ static void __declspec(naked) op_remove_script() {
 #define exec_script_proc(script, proc) __asm {  \
 	__asm mov  eax, script                      \
 	__asm mov  edx, proc                        \
-	__asm call exec_script_proc_                \
+	__asm call fo::funcoffs::exec_script_proc_  \
 }
 
 static void __stdcall op_set_script2() {
@@ -178,7 +178,7 @@ static void __stdcall op_set_script2() {
 		scriptIndex--;
 
 		if (object->scriptId != 0xFFFFFFFF) {
-			fo_scr_remove(object->scriptId);
+			fo::func::scr_remove(object->scriptId);
 			object->scriptId = 0xFFFFFFFF;
 		}
 		if (object->IsCritter()) {
@@ -186,7 +186,7 @@ static void __stdcall op_set_script2() {
 		} else {
 			scriptType = Scripts::SCRIPT_ITEM;
 		}
-		fo_obj_new_sid_inst(object, scriptType, scriptIndex);
+		fo::func::obj_new_sid_inst(object, scriptType, scriptIndex);
 
 		long scriptId = object->scriptId;
 		exec_script_proc(scriptId, start);
@@ -216,7 +216,7 @@ static void __stdcall op_create_spatial2() {
 
 		long scriptId;
 		TScript* scriptPtr;
-		if (fo_scr_new(&scriptId, Scripts::SCRIPT_SPATIAL) == -1 || fo_scr_ptr(scriptId, &scriptPtr) == -1) return;
+		if (fo::func::scr_new(&scriptId, Scripts::SCRIPT_SPATIAL) == -1 || fo::func::scr_ptr(scriptId, &scriptPtr) == -1) return;
 
 		// set spatial script properties:
 		scriptPtr->scriptIdx = scriptIndex - 1;
@@ -226,7 +226,7 @@ static void __stdcall op_create_spatial2() {
 		// this will load appropriate script program and link it to the script instance we just created:
 		exec_script_proc(scriptId, start);
 
-		opHandler.setReturn(fo_scr_find_obj_from_program(scriptPtr->program));
+		opHandler.setReturn(fo::func::scr_find_obj_from_program(scriptPtr->program));
 	} else {
 		OpcodeInvalidArgs("create_spatial");
 		opHandler.setReturn(0);
@@ -243,7 +243,7 @@ static void mf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	if (spatialObj) {
 		TScript* script;
-		if (fo_scr_ptr(spatialObj->scriptId, &script) != -1) {
+		if (fo::func::scr_ptr(spatialObj->scriptId, &script) != -1) {
 			opHandler.setReturn(script->spatialRadius);
 		}
 	} else {
@@ -287,7 +287,7 @@ static void __stdcall op_get_weapon_ammo_pid2() {
 	if (obj) {
 		long pid = -1;
 		sProto* proto;
-		if (obj->IsItem() && GetProto(obj->protoId, &proto)) {
+		if (obj->IsItem() && fo::util::GetProto(obj->protoId, &proto)) {
 			long type = proto->item.type;
 			if (type == item_type_weapon || type == item_type_misc_item) {
 				pid = obj->item.ammoPid;
@@ -312,7 +312,7 @@ static void __stdcall op_set_weapon_ammo_pid2() {
 		if (obj->IsNotItem()) return;
 
 		sProto* proto;
-		if (GetProto(obj->protoId, &proto)) {
+		if (fo::util::GetProto(obj->protoId, &proto)) {
 			long type = proto->item.type;
 			if (type == item_type_weapon || type == item_type_misc_item) {
 				obj->item.ammoPid = pidArg.rawValue();
@@ -368,16 +368,16 @@ enum BlockType {
 
 static DWORD getBlockingFunc(BlockType type) {
 	switch (type) {
-		case BLOCKING_TYPE_BLOCK: default:
-			return obj_blocking_at_;       // with calling hook
-		case BLOCKING_TYPE_SHOOT:
-			return obj_shoot_blocking_at_; // w/o calling hook
-		case BLOCKING_TYPE_AI:
-			return obj_ai_blocking_at_;    // w/o calling hook
-		case BLOCKING_TYPE_SIGHT:
-			return obj_sight_blocking_at_; // w/o calling hook
-		//case 4:
-		//	return obj_scroll_blocking_at_;
+	case BLOCKING_TYPE_BLOCK: default:
+		return fo::funcoffs::obj_blocking_at_;       // with calling hook
+	case BLOCKING_TYPE_SHOOT:
+		return fo::funcoffs::obj_shoot_blocking_at_; // w/o calling hook
+	case BLOCKING_TYPE_AI:
+		return fo::funcoffs::obj_ai_blocking_at_;    // w/o calling hook
+	case BLOCKING_TYPE_SIGHT:
+		return fo::funcoffs::obj_sight_blocking_at_; // w/o calling hook
+	//case 4:
+	//	return fo::funcoffs::obj_scroll_blocking_at_;
 	}
 }
 
@@ -392,7 +392,7 @@ static void __stdcall op_make_straight_path2() {
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 		TGameObj* resultObj = nullptr;
-		fo_make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, (DWORD*)&resultObj, flag, (void*)getBlockingFunc(type));
+		fo::func::make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, (DWORD*)&resultObj, flag, (void*)getBlockingFunc(type));
 		opHandler.setReturn(resultObj);
 	} else {
 		OpcodeInvalidArgs("obj_blocking_line");
@@ -417,7 +417,7 @@ static void __stdcall op_make_path2() {
 		long checkFlag = (objFrom->IsCritter());
 
 		char pathData[800];
-		long pathLength = fo_make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
+		long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
 		DWORD arrayId = CreateTempArray(pathLength, 0);
 		for (int i = 0; i < pathLength; i++) {
 			arrays[arrayId].val[i].set((long)pathData[i]);
@@ -443,7 +443,7 @@ static void __stdcall op_obj_blocking_at2() {
 		      elevation = elevArg.rawValue();
 		BlockType type = (BlockType)typeArg.rawValue();
 
-		TGameObj* resultObj = obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
+		TGameObj* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
 		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
 			// this check was added because the engine always does exactly this when using shoot blocking checks
 			resultObj = nullptr;
@@ -467,10 +467,10 @@ static void __stdcall op_tile_get_objects2() {
 		DWORD tile = tileArg.rawValue(),
 		      elevation = elevArg.rawValue();
 		DWORD arrayId = CreateTempArray(0, 4);
-		TGameObj* obj = fo_obj_find_first_at_tile(elevation, tile);
+		TGameObj* obj = fo::func::obj_find_first_at_tile(elevation, tile);
 		while (obj) {
 			arrays[arrayId].push_back(reinterpret_cast<long>(obj));
-			obj = fo_obj_find_next_at_tile();
+			obj = fo::func::obj_find_next_at_tile();
 		}
 		opHandler.setReturn(arrayId);
 	} else {
@@ -488,11 +488,11 @@ static void __stdcall op_get_party_members2() {
 
 	if (modeArg.isInt()) {
 		DWORD includeHidden = modeArg.rawValue();
-		int actualCount = *ptr_partyMemberCount;
+		int actualCount = *fo::ptr::partyMemberCount;
 		DWORD arrayId = CreateTempArray(0, 4);
 		for (int i = 0; i < actualCount; i++) {
-			TGameObj* obj = (*ptr_partyMemberList)[i].object;
-			if (includeHidden || (obj->IsCritter() && !fo_critter_is_dead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
+			TGameObj* obj = (*fo::ptr::partyMemberList)[i].object;
+			if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
 				arrays[arrayId].push_back((long)obj);
 			}
 		}
@@ -540,7 +540,7 @@ static void mf_get_flags() {
 }
 
 static void mf_outlined_object() {
-	opHandler.setReturn(*ptr_outlined_object);
+	opHandler.setReturn(*fo::ptr::outlined_object);
 }
 
 static void mf_real_dude_obj() {
@@ -548,13 +548,13 @@ static void mf_real_dude_obj() {
 }
 
 static void mf_car_gas_amount() {
-	opHandler.setReturn(*ptr_carGasAmount);
+	opHandler.setReturn(*fo::ptr::carGasAmount);
 }
 
 static void mf_lock_is_jammed() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(fo_obj_lock_is_jammed(obj));
+		opHandler.setReturn(fo::func::obj_lock_is_jammed(obj));
 	} else {
 		OpcodeInvalidArgs("lock_is_jammed");
 		opHandler.setReturn(0);
@@ -562,7 +562,7 @@ static void mf_lock_is_jammed() {
 }
 
 static void mf_unjam_lock() {
-	fo_obj_unjam_lock(opHandler.arg(0).object());
+	fo::func::obj_unjam_lock(opHandler.arg(0).object());
 }
 
 static void mf_set_unjam_locks_time() {
@@ -576,7 +576,7 @@ static void mf_set_unjam_locks_time() {
 }
 
 static void mf_get_dialog_object() {
-	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0);
+	opHandler.setReturn(InDialog() ? *fo::ptr::dialog_target : 0);
 }
 
 static void mf_obj_under_cursor() {
@@ -585,7 +585,7 @@ static void mf_obj_under_cursor() {
 
 	if (crSwitchArg.isInt() && inclDudeArg.isInt()) {
 		opHandler.setReturn(
-			fo_object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation)
+			fo::func::object_under_mouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *fo::ptr::map_elevation)
 		);
 	} else {
 		OpcodeInvalidArgs("obj_under_cursor");
@@ -594,7 +594,7 @@ static void mf_obj_under_cursor() {
 }
 
 static void mf_get_loot_object() {
-	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? ptr_target_stack[*ptr_target_curr_stack] : 0);
+	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? fo::ptr::target_stack[*fo::ptr::target_curr_stack] : 0);
 }
 
 static bool protoMaxLimitPatch = false;
@@ -607,7 +607,7 @@ static void __stdcall op_get_proto_data2() {
 		long result = -1;
 		sProto* protoPtr;
 		int pid = pidArg.rawValue();
-		if (CheckProtoID(pid) && fo_proto_ptr(pid, &protoPtr) != result) {
+		if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.rawValue());
 		} else {
 			opHandler.printOpcodeError(protoFailedLoad, "get_proto_data", pid);
@@ -631,7 +631,7 @@ static void __stdcall op_set_proto_data2() {
 	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) {
 		sProto* protoPtr;
 		int pid = pidArg.rawValue();
-		if (CheckProtoID(pid) && fo_proto_ptr(pid, &protoPtr) != -1) {
+		if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != -1) {
 			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
 			if (!protoMaxLimitPatch) {
 				Objects_LoadProtoAutoMaxLimit();
@@ -671,7 +671,7 @@ static void mf_set_unique_id() {
 	TGameObj* obj = opHandler.arg(0).object();
 	long id;
 	if (opHandler.arg(1).rawValue() == -1) {
-		id = fo_new_obj_id();
+		id = fo::func::new_obj_id();
 		obj->id = id;
 	} else {
 		id = Objects_SetObjectUniqueID(obj);
@@ -698,7 +698,7 @@ static void mf_objects_in_radius() {
 
 		std::vector<TGameObj*> objects;
 		objects.reserve(25);
-		GetObjectsTileRadius(objects, tileArg.rawValue(), radius, elev, type);
+		fo::util::GetObjectsTileRadius(objects, tileArg.rawValue(), radius, elev, type);
 		size_t sz = objects.size();
 		DWORD id = CreateTempArray(sz, 0);
 		for (size_t i = 0; i < sz; i++) {
@@ -725,7 +725,7 @@ static void mf_npc_engine_level_up() {
 static void mf_obj_is_openable() {
 	TGameObj* object = opHandler.arg(0).asObject();
 	if (object) {
-		opHandler.setReturn(ObjIsOpenable(object));
+		opHandler.setReturn(fo::util::ObjIsOpenable(object));
 	} else {
 		OpcodeInvalidArgs("obj_is_openable");
 		opHandler.setReturn(0);

@@ -69,7 +69,7 @@ void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 int __stdcall LoadShader(const char* file) {
 	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
-	sprintf_s(buf, "%s\\shaders\\%s", (*ptr_master_db_handle)->path, file); // *ptr_patches
+	sprintf_s(buf, "%s\\shaders\\%s", (*fo::ptr::master_db_handle)->path, file); // *fo::ptr::patches
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (!shaders[d].Effect) {
 			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) {
@@ -90,7 +90,7 @@ int __stdcall LoadShader(const char* file) {
 
 		sprintf(buf, "texname%d", i);
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", (*ptr_master_db_handle)->path, name); // *ptr_patches
+		sprintf_s(buf, "%s\\art\\stex\\%s", (*fo::ptr::master_db_handle)->path, name); // *fo::ptr::patches
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
 
 		sprintf(buf, "tex%d", i);
@@ -223,7 +223,5 @@ void ScriptShaders_Init() {
 			if (shaderFile.length() > 3) gShaderFiles.push_back(sGlobalShader(shaderFile));
 		}
 		globalShadersActive = !gShaderFiles.empty();
-
-//		LoadGameHook::OnGameReset() += ResetShaders;
 	}
 }

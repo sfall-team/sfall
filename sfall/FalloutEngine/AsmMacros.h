@@ -48,13 +48,13 @@
 	arguments come in reverse order (from last to first)
 	all arguments should be valid r32 registers
 */
-#define _GET_ARG_R32(rscript, rtype, rval) __asm { \
-	__asm mov  eax, rscript					\
-	__asm call interpretPopShort_			\
-	__asm mov  rtype, eax					\
-	__asm mov  eax, rscript					\
-	__asm call interpretPopLong_			\
-	__asm mov  rval, eax					\
+#define _GET_ARG_R32(rscript, rtype, rval) __asm {	\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPopShort_		\
+	__asm mov  rtype, eax							\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPopLong_		\
+	__asm mov  rval, eax							\
 }
 
 /*
@@ -63,21 +63,21 @@
 	jlabel - name of the jump label in case the value type is not INT
 	return: eax - arg value
 */
-#define _GET_ARG_INT(jlabel) __asm {		\
-	__asm mov  edx, eax						\
-	__asm call interpretPopShort_			\
-	__asm xchg eax, edx						\
-	__asm call interpretPopLong_			\
-	__asm cmp  dx, VAR_TYPE_INT				\
-	__asm jnz  jlabel						\
+#define _GET_ARG_INT(jlabel) __asm {				\
+	__asm mov  edx, eax								\
+	__asm call fo::funcoffs::interpretPopShort_		\
+	__asm xchg eax, edx								\
+	__asm call fo::funcoffs::interpretPopLong_		\
+	__asm cmp  dx, VAR_TYPE_INT						\
+	__asm jnz  jlabel								\
 }
 
-#define _GET_ARG(outVal, outType) __asm {	\
-	__asm call interpretPopShort_			\
-	__asm mov  outType, eax					\
-	__asm mov  eax, ebx						\
-	__asm call interpretPopLong_			\
-	__asm mov  outVal, eax					\
+#define _GET_ARG(outVal, outType) __asm {			\
+	__asm call fo::funcoffs::interpretPopShort_		\
+	__asm mov  outType, eax							\
+	__asm mov  eax, ebx								\
+	__asm call fo::funcoffs::interpretPopLong_		\
+	__asm mov  outVal, eax							\
 }
 
 /*
@@ -87,26 +87,26 @@
 	rval - r32 where value is stored
 */
 #define _CHECK_PARSE_STR(num, rscript, r16type, rval) __asm { \
-	__asm cmp  r16type, VAR_TYPE_STR2	\
-	__asm jz   skipgetstr##num			\
-	__asm cmp  r16type, VAR_TYPE_STR	\
-	__asm jnz  notstring##num			\
-__asm skipgetstr##num:					\
-	__asm mov  edx, e##r16type			\
-	__asm mov  ebx, rval				\
-	__asm mov  eax, rscript				\
-	__asm call interpretGetString_		\
-	__asm mov  rval, eax }				\
+	__asm cmp  r16type, VAR_TYPE_STR2				\
+	__asm jz   skipgetstr##num						\
+	__asm cmp  r16type, VAR_TYPE_STR				\
+	__asm jnz  notstring##num						\
+__asm skipgetstr##num:								\
+	__asm mov  edx, e##r16type						\
+	__asm mov  ebx, rval							\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretGetString_	\
+	__asm mov  rval, eax }							\
 notstring##num:
 
 // must be immediately after C function call
-#define _RET_VAL_INT32(rscript) __asm {	\
-	__asm mov  edx, eax					\
-	__asm mov  eax, rscript				\
-	__asm call interpretPushLong_		\
-	__asm mov  edx, VAR_TYPE_INT		\
-	__asm mov  eax, rscript				\
-	__asm call interpretPushShort_		\
+#define _RET_VAL_INT32(rscript) __asm {				\
+	__asm mov  edx, eax								\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPushLong_		\
+	__asm mov  edx, VAR_TYPE_INT					\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPushShort_	\
 }
 
 /*
@@ -114,18 +114,18 @@ notstring##num:
 	eax and ebx register must contain the script_ptr
 	edx register must contain the returned value
 */
-#define _RET_VAL_INT __asm {			\
-	__asm call interpretPushLong_		\
-	__asm mov  edx, VAR_TYPE_INT		\
-	__asm mov  eax, ebx					\
-	__asm call interpretPushShort_		\
+#define _RET_VAL_INT __asm {						\
+	__asm call fo::funcoffs::interpretPushLong_		\
+	__asm mov  edx, VAR_TYPE_INT					\
+	__asm mov  eax, ebx								\
+	__asm call fo::funcoffs::interpretPushShort_	\
 }
 
-#define _J_RET_VAL_TYPE(type) __asm {	\
-	__asm call interpretPushLong_		\
-	__asm mov  edx, type				\
-	__asm mov  eax, ebx					\
-	__asm jmp  interpretPushShort_		\
+#define _J_RET_VAL_TYPE(type) __asm {				\
+	__asm call fo::funcoffs::interpretPushLong_		\
+	__asm mov  edx, type							\
+	__asm mov  eax, ebx								\
+	__asm jmp  fo::funcoffs::interpretPushShort_	\
 }
 
 /*
@@ -134,21 +134,21 @@ notstring##num:
 	type - register or other expression (like memory address) where value type is stored (usually [esp])
 */
 #define _RET_VAL_POSSIBLY_STR(num, rscript, type) __asm { \
-	__asm mov  ecx, eax					\
-	__asm mov  edx, type				\
-	__asm cmp  edx, VAR_TYPE_STR		\
-	__asm jne  resultnotstr##num		\
-	__asm mov  edx, eax					\
-	__asm mov  eax, rscript				\
-	__asm call interpretAddString_		\
-	__asm mov  ecx, eax					\
-__asm resultnotstr##num:				\
-	__asm mov  edx, ecx					\
-	__asm mov  eax, rscript				\
-	__asm call interpretPushLong_		\
-	__asm mov  edx, type				\
-	__asm mov  eax, rscript				\
-	__asm call interpretPushShort_		\
+	__asm mov  ecx, eax								\
+	__asm mov  edx, type							\
+	__asm cmp  edx, VAR_TYPE_STR					\
+	__asm jne  resultnotstr##num					\
+	__asm mov  edx, eax								\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretAddString_	\
+	__asm mov  ecx, eax								\
+__asm resultnotstr##num:							\
+	__asm mov  edx, ecx								\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPushLong_		\
+	__asm mov  edx, type							\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPushShort_	\
 }
 
 /*

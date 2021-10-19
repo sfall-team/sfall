@@ -82,13 +82,13 @@ static bool defaultDelay = true;
 static void SetKeyboardDefaultDelay() {
 	if (defaultDelay) return;
 	defaultDelay = true;
-	var_setInt(FO_VAR_GNW95_repeat_rate) = 80;
-	var_setInt(FO_VAR_GNW95_repeat_delay) = 500;
+	fo::var::setInt(FO_VAR_GNW95_repeat_rate) = 80;
+	fo::var::setInt(FO_VAR_GNW95_repeat_delay) = 500;
 }
 
 static void SetKeyboardDelay() {
-	var_setInt(FO_VAR_GNW95_repeat_rate) = static_cast<long>(80 * multi);
-	var_setInt(FO_VAR_GNW95_repeat_delay) = static_cast<long>(500 * multi);
+	fo::var::setInt(FO_VAR_GNW95_repeat_rate) = static_cast<long>(80 * multi);
+	fo::var::setInt(FO_VAR_GNW95_repeat_delay) = static_cast<long>(500 * multi);
 	defaultDelay = false;
 }
 
@@ -160,7 +160,7 @@ MMRESULT __stdcall fTimeKillEvent(UINT id) {
 static void __declspec(naked) scripts_check_state_hook() {
 	__asm {
 		inc  slideShow;
-		call endgame_slideshow_;
+		call fo::funcoffs::endgame_slideshow_;
 		dec  slideShow;
 		retn;
 	}

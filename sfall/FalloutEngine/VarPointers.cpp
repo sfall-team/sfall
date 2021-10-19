@@ -20,13 +20,21 @@
 
 // Pointers to engine global variables
 
+namespace fo
+{
+namespace ptr
+{
+
 // defines pointer to a variable (pointer is constant, but value can be changed)
 #define PTR_(name, type) \
-	type* ptr_##name = reinterpret_cast<type*>(FO_VAR_##name);
+	type* name = reinterpret_cast<type*>(FO_VAR_##name);
 
 // defines pointer to a constant variable (value can't be changed from sfall)
 #define PTRC(name, type) \
-	const type* ptr_##name = reinterpret_cast<type*>(FO_VAR_##name);
+	const type* name = reinterpret_cast<type*>(FO_VAR_##name);
 
 // X-Macros pattern
 #include "VarPointers_def.h"
+
+}
+}

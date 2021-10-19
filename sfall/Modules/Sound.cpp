@@ -136,8 +136,8 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 					sound->pControl->Run();
 				} else {
 					if (sound->id & SNDFLAG_on_stop) { // speech sound playback is completed
-						*ptr_main_death_voiceover_done = 1;
-						*ptr_endgame_subtitle_done = 1;
+						*fo::ptr::main_death_voiceover_done = 1;
+						*fo::ptr::endgame_subtitle_done = 1;
 						lipsPlaying = false;
 						speechSound = nullptr;
 					}
@@ -235,10 +235,10 @@ long Sound_CalculateVolumeDB(long masterVolume, long passVolume) {
 	speech_volume:     sound=sound           type=sfx_single      passVolume=speech_volume
 */
 static void __cdecl SetSoundVolume(sDSSound* sound, SoundType type, long passVolume) {
-	long volume, sfxVolume, masterVolume = *ptr_master_volume;
+	long volume, sfxVolume, masterVolume = *fo::ptr::master_volume;
 
 	volume = Sound_CalculateVolumeDB(masterVolume, passVolume);
-	if (type == SNDTYPE_game_master) sfxVolume = Sound_CalculateVolumeDB(masterVolume, *ptr_sndfx_volume);
+	if (type == SNDTYPE_game_master) sfxVolume = Sound_CalculateVolumeDB(masterVolume, *fo::ptr::sndfx_volume);
 
 	if (sound) {
 		sound->pAudio->put_Volume(volume);
@@ -264,15 +264,15 @@ static void __cdecl SetSoundVolume(sDSSound* sound, SoundType type, long passVol
 }
 
 static bool IsMute(SoundMode mode) {
-	//if (*ptr_master_volume == 0) return true;
+	//if (*fo::ptr::master_volume == 0) return true;
 
 	switch (mode) {
 	case SNDMODE_single_play:
-		return (*ptr_sndfx_volume == 0);
+		return (*fo::ptr::sndfx_volume == 0);
 	case SNDMODE_speech_play:
-		return (*ptr_speech_volume == 0);
+		return (*fo::ptr::speech_volume == 0);
 	default:
-		return (*ptr_background_volume == 0);
+		return (*fo::ptr::background_volume == 0);
 	}
 }
 
@@ -320,7 +320,7 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 		if (backgroundMusic)
 			StopSfallSound(backgroundMusic->id);
 		else {
-			__asm call gsound_background_stop_;
+			__asm call fo::funcoffs::gsound_background_stop_;
 		}
 		backgroundMusic = sound;
 		break;
@@ -334,10 +334,10 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 	sound->pControl->Run();
 
 	if (isLoop) {
-		SetSoundVolume(sound, SNDTYPE_sfx_loop, ((mode == SNDMODE_loop_play) ? *ptr_sndfx_volume : *ptr_background_volume) - adjustVolume);
+		SetSoundVolume(sound, SNDTYPE_sfx_loop, ((mode == SNDMODE_loop_play) ? *fo::ptr::sndfx_volume : *fo::ptr::background_volume) - adjustVolume);
 		loopingSounds.push_back(sound);
 	} else {
-		SetSoundVolume(sound, SNDTYPE_sfx_single, ((mode == SNDMODE_speech_play) ? *ptr_speech_volume : *ptr_sndfx_volume) - adjustVolume);
+		SetSoundVolume(sound, SNDTYPE_sfx_single, ((mode == SNDMODE_speech_play) ? *fo::ptr::speech_volume : *fo::ptr::sndfx_volume) - adjustVolume);
 		if (mode == SNDMODE_speech_play) speechSound = sound;
 		if (isPaused) {
 			sound->pControl->Pause(); // for delayed playback
@@ -386,7 +386,7 @@ static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playTy
 	size_t len = 0;
 	wchar_t wPath[MAX_PATH];
 	if (playType != PLAYTYPE_music) {
-		char* master_patches = *ptr_patches; // all sfx/speech sounds must be placed in patches folder
+		char* master_patches = *fo::ptr::patches; // all sfx/speech sounds must be placed in patches folder
 		while (master_patches[len]) wPath[len] = master_patches[len++];
 		wPath[len++] = L'\\';
 	}
@@ -430,10 +430,10 @@ static void __fastcall MakeMusicPath(const char* file) {
 	const char* pathFmt = "%s%s.ACM";
 	char pathBuf[MAX_PATH];
 
-	sprintf_s(pathBuf, pathFmt, *ptr_sound_music_path1, file);
+	sprintf_s(pathBuf, pathFmt, *fo::ptr::sound_music_path1, file);
 	if (SoundFileLoad(PLAYTYPE_music, pathBuf)) return;
 
-	sprintf_s(pathBuf, pathFmt, *ptr_sound_music_path2, file);
+	sprintf_s(pathBuf, pathFmt, *fo::ptr::sound_music_path2, file);
 	SoundFileLoad(PLAYTYPE_music, pathBuf);
 }
 
@@ -466,7 +466,7 @@ void __stdcall StopSfallSound(DWORD id) {
 			FreeSound(sound);
 			loopingSounds.erase(loopingSounds.begin() + i);
 			if (!(id & SNDFLAG_engine) && id & SNDFLAG_restore) {
-				__asm call gsound_background_restart_last_;
+				__asm call fo::funcoffs::gsound_background_restart_last_;
 			}
 			return;
 		}
@@ -533,14 +533,14 @@ static void __declspec(naked) gsound_background_play_hook() {
 		mov  ecx, ebp;         // file
 		call MakeMusicPath;
 		mov  eax, esi;         // restore eax
-		jmp  soundDelete_;
+		jmp  fo::funcoffs::soundDelete_;
 	}
 }
 
 static void __declspec(naked) main_death_scene_hook() {
 	__asm {
 		mov  deathSceneSpeech, 1;
-		call gsound_speech_play_;
+		call fo::funcoffs::gsound_speech_play_;
 		cmp  deathSceneSpeech, 0
 		je   playSfall;
 		mov  deathSceneSpeech, 0;
@@ -593,14 +593,14 @@ static void __declspec(naked) audioOpen_hook() {
 		je   skip;
 		pop  audioOpen_AddrRet;
 		push offset return;
-		jmp  Create_AudioDecoder_;
+		jmp  fo::funcoffs::Create_AudioDecoder_;
 return:
 		//mov  edx, ebp; // audio
 		mov  ecx, eax;   // decode
 		push audioOpen_AddrRet;
 		jmp  SoundFormatChange;
 skip:
-		jmp  Create_AudioDecoder_;
+		jmp  fo::funcoffs::Create_AudioDecoder_;
 	}
 }
 
@@ -639,7 +639,7 @@ static void __declspec(naked) endgame_pan_desert_hook() {
 	__asm {
 		cmp  speechSound, 0;
 		jnz  GetSpeechDurationTime;
-		jmp  gsound_speech_length_get_;
+		jmp  fo::funcoffs::gsound_speech_length_get_;
 	}
 }
 
@@ -668,7 +668,7 @@ static void __declspec(naked) lips_play_speech_hook() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jnz  skip;
-		jmp  soundPlay_;
+		jmp  fo::funcoffs::soundPlay_;
 skip:
 		xor  eax, eax;
 		retn;
@@ -679,7 +679,7 @@ static void __declspec(naked) gdialog_bk_hook() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jnz  skip;
-		jmp  soundPlaying_;
+		jmp  fo::funcoffs::soundPlaying_;
 skip:
 		or   eax, 1;
 		retn;
@@ -690,7 +690,7 @@ static void __declspec(naked) lips_bkg_proc_hook() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jnz  skip;
-		jmp  soundGetPosition_;
+		jmp  fo::funcoffs::soundGetPosition_;
 skip:
 		jmp  GetSpeechPlayingPosition;
 	}
@@ -747,7 +747,7 @@ static void __declspec(naked) gmovie_play_hook_stop() {
 		pop  ecx;
 		retn;
 skip:
-		jmp  gsound_background_stop_;
+		jmp  fo::funcoffs::gsound_background_stop_;
 	}
 }
 
@@ -760,7 +760,7 @@ static void __declspec(naked) gmovie_play_hook_pause() {
 		pop  ecx;
 		cmp  dword ptr backgroundMusic, 0;
 		jnz  skip;
-		jmp  gsound_background_pause_;
+		jmp  fo::funcoffs::gsound_background_pause_;
 skip:
 		retn;
 	}
@@ -775,7 +775,7 @@ static void __declspec(naked) gmovie_play_hook_unpause() {
 		pop  ecx;
 		cmp  dword ptr backgroundMusic, 0;
 		jnz  skip;
-		jmp  gsound_background_unpause_;
+		jmp  fo::funcoffs::gsound_background_unpause_;
 skip:
 		retn;
 	}
@@ -866,11 +866,11 @@ skip:
 		push ebx;
 		mov  edx, edi;
 		mov  ebx, 8;
-		call strncpy_;
+		call fo::funcoffs::strncpy_;
 		pop  ebx;
 		pop  edx;
 		pop  eax;
-		jmp  strncpy_;
+		jmp  fo::funcoffs::strncpy_;
 	}
 }
 
@@ -888,32 +888,32 @@ skip:
 		mov  ecx, [eax];
 		test cl, cl;
 		jz   end;
-		call gsound_play_sfx_file_;
+		call fo::funcoffs::gsound_play_sfx_file_;
 end:
 		pop  ecx;
 		pop  eax;
-		jmp  text_object_create_;
+		jmp  fo::funcoffs::text_object_create_;
 	}
 }
 
 static void __declspec(naked) soundStartInterpret_hook() {
 	__asm {
 		mov  ebp, eax; // keep sound data
-		call soundSetCallback_;
+		call fo::funcoffs::soundSetCallback_;
 		xor  ebx, ebx;
 		mov  eax, [esp + 0x18 - 0x18 + 4]; // play mode flags
 		and  eax, 0x80000000; // check raw format flag (for backward compatibility mode)
 		jnz  rawFile;
 		push ecx;
-		push audioFileSize_;
-		mov  ecx, audioRead_;
+		push fo::funcoffs::audioFileSize_;
+		mov  ecx, fo::funcoffs::audioRead_;
 		push eax;
-		mov  ebx, audioCloseFile_;
-		push audioSeek_;
-		mov  edx, audioOpen_;
+		mov  ebx, fo::funcoffs::audioCloseFile_;
+		push fo::funcoffs::audioSeek_;
+		mov  edx, fo::funcoffs::audioOpen_;
 		push eax;
 		mov  eax, ebp;
-		call soundSetFileIO_;
+		call fo::funcoffs::soundSetFileIO_;
 		pop  ecx;
 		mov  bx, [esp + 0x18 - 0x18 + 4+2]; // get volume adjustment: 0 - max volume, 32767 - mute
 		and  bx, ~0x8000;
@@ -923,7 +923,7 @@ rawFile:
 		sub  ax, bx;    // reduce volume
 		cmovg edx, eax; // volume > 0
 		mov  eax, ebp;
-		jmp  soundVolume_; // set sfx volume
+		jmp  fo::funcoffs::soundVolume_; // set sfx volume
 	}
 }
 
@@ -934,21 +934,21 @@ static TGameObj* relativeObject;
 static void __declspec(naked) gsound_compute_relative_volume_hook() {
 	__asm {
 		mov relativeObject, ecx;
-		jmp win_get_rect_;
+		jmp fo::funcoffs::win_get_rect_;
 	}
 }
 
 static long __fastcall SetVolumeAndPan(long volume, ACMSoundData* sound) {
 	//if (!relativeObject) return volume;
 
-	long distance = fo_obj_dist(*ptr_obj_dude, relativeObject);
+	long distance = fo::func::obj_dist(*fo::ptr::obj_dude, relativeObject);
 	if (distance > 5) {
-		long direction = fo_tile_dir((*ptr_obj_dude)->tile, relativeObject->tile);
+		long direction = fo::func::tile_dir((*fo::ptr::obj_dude)->tile, relativeObject->tile);
 		bool isRightSide = (direction <= 2);
 		long panValue = (distance < 55) ? (distance - 5) * 200 : 10000;
 		sound->soundBuffer->SetPan((isRightSide) ? panValue : -panValue); // left mute 10000 ... -10000 right mute
 	}
-	if (relativeObject->elevation != (*ptr_obj_dude)->elevation) volume = (32767 / 4); // set volume to 1/4
+	if (relativeObject->elevation != (*fo::ptr::obj_dude)->elevation) volume = (32767 / 4); // set volume to 1/4
 
 	relativeObject = nullptr;
 	return volume;
@@ -979,8 +979,8 @@ static const int SampleRate = 44100; // 44.1kHz
 static bool fadeBgMusic = false;
 
 void Sound_OnAfterGameInit() {
-	*ptr_sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
-	if (fadeBgMusic) var_setInt(FO_VAR_gsound_background_fade) = 1;
+	*fo::ptr::sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
+	if (fadeBgMusic) fo::var::setInt(FO_VAR_gsound_background_fade) = 1;
 }
 
 void Sound_Init() {

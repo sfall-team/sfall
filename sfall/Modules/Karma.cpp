@@ -34,7 +34,7 @@ static char karmaGainMsg[128];
 static char karmaLossMsg[128];
 
 static DWORD __stdcall DrawCard() {
-	int reputation = (*ptr_game_global_vars)[GVAR_PLAYER_REPUTATION];
+	int reputation = (*fo::ptr::game_global_vars)[GVAR_PLAYER_REPUTATION];
 	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
 		if (reputation < it->points) {
 			return it->frm;
@@ -55,7 +55,7 @@ static void __declspec(naked) DrawInfoWin_hook() {
 		pop  edx;
 		pop  ecx;
 skip:
-		jmp  DrawCard_;
+		jmp  fo::funcoffs::DrawCard_;
 	}
 }
 
@@ -66,7 +66,7 @@ static void __stdcall SetKarma(int value) {
 	} else {
 		sprintf_s(buf, karmaLossMsg, -value);
 	}
-	fo_display_print(buf);
+	fo::func::display_print(buf);
 }
 
 static void __declspec(naked) SetGlobalVarWrapper() {
@@ -74,7 +74,7 @@ static void __declspec(naked) SetGlobalVarWrapper() {
 		test eax, eax; // Gvar number
 		jnz  end;
 		pushadc;
-		call game_get_global_var_;
+		call fo::funcoffs::game_get_global_var_;
 		sub  edx, eax; // value -= old
 		jz   skip;
 		push edx;
@@ -82,7 +82,7 @@ static void __declspec(naked) SetGlobalVarWrapper() {
 skip:
 		popadc;
 end:
-		jmp  game_set_global_var_;
+		jmp  fo::funcoffs::game_set_global_var_;
 	}
 }
 

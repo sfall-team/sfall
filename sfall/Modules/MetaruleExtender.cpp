@@ -60,7 +60,7 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			break;
 		}
 		case CLEAR_KEYBOARD_BUFFER:
-			__asm call kb_clear_;
+			__asm call fo::funcoffs::kb_clear_;
 			break;
 		case GET_CURRENT_SAVE_SLOT:
 			result = ExtraSaveSlots_GetSaveSlot();
@@ -78,8 +78,8 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			ExtraSaveSlots_SetQuickSaveSlot(args[0], args[1], args[2]);
 			break;
 		default:
-			fo_debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
-			                metafunc, (*ptr_currentProgram)->fileName, fo_findCurrentProc(*ptr_currentProgram));
+			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
+			                       metafunc, (*fo::ptr::currentProgram)->fileName, fo::func::findCurrentProc(*fo::ptr::currentProgram));
 			break;
 	}
 	return result;

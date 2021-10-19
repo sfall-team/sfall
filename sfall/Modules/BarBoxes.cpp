@@ -63,7 +63,7 @@ start:
 		test al, al;
 		jz   next;
 		lea  eax, [ebx + 5];                // index box
-		call add_bar_box_;
+		call fo::funcoffs::add_bar_box_;
 		add  esi, eax;
 next:
 		inc  ebx;
@@ -87,7 +87,7 @@ static void __declspec(naked) BarBoxesTextHack() {
 		cmp  byte ptr [esi][ecx], 1;        // tBox.hasText
 		je   customText;
 		add  esp, 4;
-		jmp  getmsg_;
+		jmp  fo::funcoffs::getmsg_;
 customText:
 		// get color
 		movzx ebx, byte ptr [esi + 1][ecx]; // tBox.color
@@ -130,8 +130,8 @@ exitLoop:
 static void ReconstructBarBoxes(int count) {
 	SafeWrite8(0x46140B, count);
 	__asm {
-		call reset_box_bar_win_;
-		call construct_box_bar_win_;
+		call fo::funcoffs::reset_box_bar_win_;
+		call fo::funcoffs::construct_box_bar_win_;
 	}
 }
 
@@ -174,25 +174,25 @@ void __stdcall BarBoxes_SetText(int box, const char* text, DWORD color) {
 	char clr;
 	switch (color) {
 	case 2:
-		clr = *ptr_WhiteColor;
+		clr = *fo::ptr::WhiteColor;
 		break;
 	case 3:
-		clr = *ptr_YellowColor;
+		clr = *fo::ptr::YellowColor;
 		break;
 	case 4:
-		clr = *ptr_PeanutButter;
+		clr = *fo::ptr::PeanutButter;
 		break;
 	case 5:
-		clr = *ptr_BlueColor;
+		clr = *fo::ptr::BlueColor;
 		break;
 	case 6:
-		clr = *ptr_GoodColor;
+		clr = *fo::ptr::GoodColor;
 		break;
 	case 7:
-		clr = *ptr_DullPinkColor;
+		clr = *fo::ptr::DullPinkColor;
 		break;
 	default:
-		clr = *ptr_GreenColor;
+		clr = *fo::ptr::GreenColor;
 	}
 	boxText[box].color = clr;
 
@@ -316,7 +316,7 @@ long __stdcall BarBoxes_AddExtraBox() {
 	void* data;
 	__asm {
 		mov  eax, 2730;
-		call mem_malloc_;
+		call fo::funcoffs::mem_malloc_;
 		mov  data, eax;
 	}
 	if (data == nullptr) return -1;   // error on memory allocation
@@ -352,13 +352,13 @@ bool __stdcall BarBoxes_GetBox(int i) {
 void __stdcall BarBoxes_AddBox(int i) {
 	if (i < 5 || i > BarBoxes_MaxBox()) return;
 	boxText[i - 5].isActive = true;
-	__asm call refresh_box_bar_win_;
+	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
 void __stdcall BarBoxes_RemoveBox(int i) {
 	if (i < 5 || i > BarBoxes_MaxBox()) return;
 	boxText[i - 5].isActive = false;
-	__asm call refresh_box_bar_win_;
+	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
 void BarBoxes_Exit() {

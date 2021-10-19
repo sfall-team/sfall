@@ -29,8 +29,16 @@
  * 2) Call __stdcall functions from (1), write those entirely in C++ (with little ASM blocks only to call engine functions, when you are too lazy to add wrapper)
  */
 
-#define FUNC(name, addr) extern const DWORD name;
+namespace fo
+{
+namespace funcoffs
+{
+
+#define FUNC(name, addr) extern const unsigned long name;
 
 #include "FunctionOffsets_def.h"
 
 #undef FUNC
+
+}
+}

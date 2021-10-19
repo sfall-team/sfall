@@ -81,22 +81,22 @@ static void __declspec(naked) SetKnockback() {
 		sub esp, 0xC;
 		mov ecx, eax;
 		//Get args
-		call interpretPopShort_; //First arg type
+		call fo::funcoffs::interpretPopShort_; //First arg type
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;  //First arg
+		call fo::funcoffs::interpretPopLong_;  //First arg
 		mov [esp + 8], eax;
 		mov eax, ecx;
-		call interpretPopShort_; //Second arg type
+		call fo::funcoffs::interpretPopShort_; //Second arg type
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;  //Second arg
+		call fo::funcoffs::interpretPopLong_;  //Second arg
 		mov [esp + 4], eax;
 		mov eax, ecx;
-		call interpretPopShort_; //Third arg type
+		call fo::funcoffs::interpretPopShort_; //Third arg type
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;  //Third arg
+		call fo::funcoffs::interpretPopLong_;  //Third arg
 		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_FLOAT;
@@ -147,10 +147,10 @@ static void __declspec(naked) op_set_attacker_knockback() {
 static void __declspec(naked) RemoveKnockback() {
 	__asm {
 		mov ecx, eax;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
@@ -223,7 +223,7 @@ end:
 static void __declspec(naked) op_get_attack_type() {
 	__asm {
 		mov  esi, ecx;
-		call GetCurrentAttackMode;
+		call fo::util::GetCurrentAttackMode;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
@@ -304,13 +304,13 @@ end:
 
 static void mf_attack_is_aimed() {
 	DWORD isAimed, unused;
-	opHandler.setReturn(!fo_intface_get_attack(&unused, &isAimed) ? isAimed : 0);
+	opHandler.setReturn(!fo::func::intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
 static void mf_combat_data() {
 	TComputeAttack* ctd = nullptr;
-	if (*ptr_combat_state & 1) {
-		ctd = ptr_main_ctd;
+	if (*fo::ptr::combat_state & 1) {
+		ctd = fo::ptr::main_ctd;
 	}
 	opHandler.setReturn((DWORD)ctd, DATATYPE_INT);
 }

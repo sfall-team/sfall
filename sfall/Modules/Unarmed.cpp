@@ -226,7 +226,7 @@ public:
 	void GetDudeStats(long sLevel) {
 		skillLevel = sLevel;
 		for (size_t stat = 0; stat < STAT_base_count; stat++) {
-			psStat[stat] = fo_stat_level(*ptr_obj_dude, stat);
+			psStat[stat] = fo::func::stat_level(*fo::ptr::obj_dude, stat);
 		}
 	}
 
@@ -237,7 +237,7 @@ public:
 Hits unarmed;
 
 static bool UnarmedReqStats(AttackType hit) {
-	if (unarmed.SkillLevel() >= unarmed.Hit(hit).reqSkill && (long)*ptr_Level_pc >= unarmed.Hit(hit).reqLevel) {
+	if (unarmed.SkillLevel() >= unarmed.Hit(hit).reqSkill && (long)*fo::ptr::Level_pc >= unarmed.Hit(hit).reqLevel) {
 		for (size_t stat = 0; stat < STAT_base_count; stat++) {
 			if (unarmed.Hit(hit).reqStat[stat] <= 0) continue;
 			if (unarmed.Hit(hit).reqStat[stat] > unarmed.DudeStat(stat)) {
@@ -261,8 +261,8 @@ static AttackType GetPunchingHit(bool isPrimary) {
 static void __fastcall check_unarmed_left_slot(long skillLevel) {
 	unarmed.GetDudeStats(skillLevel);
 
-	ptr_itemButtonItems[HANDSLOT_Left].primaryAttack = GetPunchingHit(true);
-	ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack = GetPunchingHit(false);
+	fo::ptr::itemButtonItems[HANDSLOT_Left].primaryAttack = GetPunchingHit(true);
+	fo::ptr::itemButtonItems[HANDSLOT_Left].secondaryAttack = GetPunchingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_punch() {
@@ -282,8 +282,8 @@ static AttackType GetKickingHit(bool isPrimary) {
 
 // Kick hits
 static void check_unarmed_right_slot() {
-	ptr_itemButtonItems[HANDSLOT_Right].primaryAttack = GetKickingHit(true);
-	ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack = GetKickingHit(false);
+	fo::ptr::itemButtonItems[HANDSLOT_Right].primaryAttack = GetKickingHit(true);
+	fo::ptr::itemButtonItems[HANDSLOT_Right].secondaryAttack = GetKickingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_kick() {
@@ -312,7 +312,7 @@ static void __declspec(naked) compute_attack_hack() {
 
 static long __fastcall get_unarmed_damage(TGameObj* source, AttackType hit, long &minOut, long &maxOut) {
 	minOut = unarmed.Hit(hit).minDamage + DamageMod_GetHtHMinDamageBonus(source);
-	maxOut = unarmed.Hit(hit).maxDamage + fo_stat_level(source, STAT_melee_dmg);
+	maxOut = unarmed.Hit(hit).maxDamage + fo::func::stat_level(source, STAT_melee_dmg);
 	return unarmed.Hit(hit).bonusDamage;
 }
 
@@ -361,23 +361,23 @@ const char* Unarmed_GetName(AttackType hit) {
 ////////////////////////////////////////////////////////////////////////////////
 
 static AttackType GetPunchingHit() {
-	unarmed.GetDudeStats(fo_skill_level(*ptr_obj_dude, SKILL_UNARMED_COMBAT));
+	unarmed.GetDudeStats(fo::func::skill_level(*fo::ptr::obj_dude, SKILL_UNARMED_COMBAT));
 	return GetPunchingHit(true);
 }
 
 static AttackType GetKickingHit() {
-	//unarmed.GetDudeStats(fo_skill_level(*ptr_obj_dude, SKILL_UNARMED_COMBAT));
+	//unarmed.GetDudeStats(fo::func::skill_level(*fo::ptr::obj_dude, SKILL_UNARMED_COMBAT));
 	return GetKickingHit(true);
 }
 
 static void SlotsStoreCurrentHitMode() {
-	slotHitData[HANDSLOT_Left].primaryHit   = GetHandSlotPrimaryAttack(HANDSLOT_Left);
-	slotHitData[HANDSLOT_Left].secondaryHit = GetHandSlotSecondaryAttack(HANDSLOT_Left);
-	slotHitData[HANDSLOT_Left].mode = GetHandSlotMode(HANDSLOT_Left);
+	slotHitData[HANDSLOT_Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(HANDSLOT_Left);
+	slotHitData[HANDSLOT_Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(HANDSLOT_Left);
+	slotHitData[HANDSLOT_Left].mode = fo::util::GetHandSlotMode(HANDSLOT_Left);
 
-	slotHitData[HANDSLOT_Right].primaryHit   = GetHandSlotPrimaryAttack(HANDSLOT_Right);
-	slotHitData[HANDSLOT_Right].secondaryHit = GetHandSlotSecondaryAttack(HANDSLOT_Right);
-	slotHitData[HANDSLOT_Right].mode = GetHandSlotMode(HANDSLOT_Right);
+	slotHitData[HANDSLOT_Right].primaryHit   = fo::util::GetHandSlotPrimaryAttack(HANDSLOT_Right);
+	slotHitData[HANDSLOT_Right].secondaryHit = fo::util::GetHandSlotSecondaryAttack(HANDSLOT_Right);
+	slotHitData[HANDSLOT_Right].mode = fo::util::GetHandSlotMode(HANDSLOT_Right);
 }
 
 AttackType Unarmed_GetStoredHitMode(HandSlot slot) {
@@ -406,7 +406,7 @@ AttackType Unarmed_GetStoredHitMode(HandSlot slot) {
 static void __declspec(naked) handle_inventory_hook() {
 	__asm {
 		call SlotsStoreCurrentHitMode;
-		jmp  display_stats_;
+		jmp  fo::funcoffs::display_stats_;
 	}
 }
 
@@ -414,15 +414,15 @@ static void __declspec(naked) handle_inventory_hook() {
 
 static void __declspec(naked) statPCAddExperienceCheckPMs_hook() {
 	__asm {
-		call intface_update_hit_points_;
+		call fo::funcoffs::intface_update_hit_points_;
 		sub  esp, 8;
 		lea  edx, [esp + 4]; // modeR
 		mov  eax, esp;       // modeL
-		call intface_get_item_states_;
+		call fo::funcoffs::intface_get_item_states_;
 		pop  edx;
 		pop  ebx;
 		xor  eax, eax;
-		jmp  intface_update_items_;
+		jmp  fo::funcoffs::intface_update_items_;
 	}
 }
 

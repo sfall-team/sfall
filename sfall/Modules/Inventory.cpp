@@ -38,26 +38,26 @@ static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
-		TGameObj* item = GetActiveItem();
+		TGameObj* item = fo::util::GetActiveItem();
 		if (!item) return;
 
-		if (fo_item_get_type(item) == item_type_weapon) {
-			long maxAmmo = fo_item_w_max_ammo(item);
-			long curAmmo = fo_item_w_curr_ammo(item);
+		if (fo::func::item_get_type(item) == item_type_weapon) {
+			long maxAmmo = fo::func::item_w_max_ammo(item);
+			long curAmmo = fo::func::item_w_curr_ammo(item);
 			if (maxAmmo != curAmmo) {
-				long &currentMode = GetActiveItemMode();
+				long &currentMode = fo::util::GetActiveItemMode();
 				long previusMode = currentMode;
 				currentMode = HANDMODE_Reload;
-				fo_intface_use_item();
+				fo::func::intface_use_item();
 				if (previusMode != HANDMODE_Reload) {
 					// return to previous active item mode (if it wasn't "reload")
 					currentMode = previusMode - 1;
 					if (currentMode < 0) currentMode = HANDMODE_Secondary_Aimed;
-					fo_intface_toggle_item_state();
+					fo::func::intface_toggle_item_state();
 				}
 			}
 		} else {
-			fo_intface_use_item();
+			fo::func::intface_use_item();
 		}
 	}
 }
@@ -68,12 +68,12 @@ static int __stdcall CritterGetMaxSize(TGameObj* critter) {
 	if (critter->protoId == PID_Player) return invSizeMaxLimit;
 
 	if (sizeLimitMode != 3) { // selected mode 1 or 2
-		if (!(sizeLimitMode & 2) || !(fo_isPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0
+		if (!(sizeLimitMode & 2) || !(fo::func::isPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0
 	}
 
 	int statSize = 0;
 	sProto* proto;
-	if (GetProto(critter->protoId, &proto)) {
+	if (fo::util::GetProto(critter->protoId, &proto)) {
 		statSize = proto->critter.base.unarmedDamage + proto->critter.bonus.unarmedDamage; // The unused stat in the base + extra block
 	}
 	return (statSize > 0) ? statSize : 100; // 100 - default value, for all critters if not set stats
@@ -104,7 +104,7 @@ end:
 static int __fastcall CanAddedItems(TGameObj* critter, TGameObj* item, int count) {
 	int sizeMax = CritterGetMaxSize(critter);
 	if (sizeMax > 0) {
-		int totalSize = sfgame_item_total_size(critter) + (fo_item_size(item) * count);
+		int totalSize = sfgame_item_total_size(critter) + (fo::func::item_size(item) * count);
 		if (totalSize > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
 	}
 	return 0;
@@ -207,7 +207,7 @@ static __declspec(naked) void loot_container_hook_btn() {
 		test eax, eax;
 		jz   fail;
 		mov  eax, ebp;                       // target
-		jmp  item_total_weight_;
+		jmp  fo::funcoffs::item_total_weight_;
 fail:
 		mov  eax, edx;
 		inc  eax;                            // weight + 1
@@ -230,7 +230,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 	sizeMax = limitMax;
 	size = sfgame_item_total_size(critter);
 
-	const char* msg = MessageSearch(ptr_inventry_message_file, 35);
+	const char* msg = fo::util::MessageSearch(fo::ptr::inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
 
 	strcpy(InvenFmt, InvenFmt1);
@@ -256,15 +256,15 @@ static __declspec(naked) void display_stats_hack() {
 
 static char SizeMsgBuf[32];
 static const char* __stdcall SizeInfoMessage(TGameObj* item) {
-	int size = fo_item_size(item);
+	int size = fo::func::item_size(item);
 	if (size == 1) {
-		const char* message = MessageSearch(ptr_proto_main_msg_file, 543);
+		const char* message = fo::util::MessageSearch(fo::ptr::proto_main_msg_file, 543);
 		if (message == nullptr)
 			strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else
 			strncpy_s(SizeMsgBuf, message, _TRUNCATE);
 	} else {
-		const char* message = MessageSearch(ptr_proto_main_msg_file, 542);
+		const char* message = fo::util::MessageSearch(fo::ptr::proto_main_msg_file, 542);
 		if (message == nullptr)
 			sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else
@@ -275,19 +275,20 @@ static const char* __stdcall SizeInfoMessage(TGameObj* item) {
 
 static __declspec(naked) void inven_obj_examine_func_hook() {
 	__asm {
-		call inven_display_msg_;
+		call fo::funcoffs::inven_display_msg_;
 		push edx;
 		push ecx;
 		push esi;
 		call SizeInfoMessage;
 		pop  ecx;
 		pop  edx;
-		jmp  inven_display_msg_;
+		jmp  fo::funcoffs::inven_display_msg_;
 	}
 }
 
 static void __declspec(naked) gdControlUpdateInfo_hack() {
 	static const DWORD ControlUpdateInfoRet = 0x44912A;
+	using namespace fo;
 	__asm {
 		mov  ebx, eax;
 		push eax;               // critter
@@ -312,10 +313,10 @@ static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
 		return 0;
 	}
 
-	long max_hp = fo_stat_level(target, STAT_max_hit_points);
+	long max_hp = fo::func::stat_level(target, STAT_max_hit_points);
 	if (target->critter.health < max_hp) return 0;
 
-	fo_display_print(superStimMsg);
+	fo::func::display_print(superStimMsg);
 	return -1;
 }
 
@@ -337,12 +338,13 @@ end:
 }
 
 static void __declspec(naked) SetDefaultAmmo() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		push ecx;
 		mov  ecx, edx;                     // ecx = item
 		mov  eax, edx;
-		call item_get_type_;
+		call fo::funcoffs::item_get_type_;
 		cmp  eax, item_type_weapon;        // is it item_type_weapon?
 		jne  end;                          // no
 		cmp  dword ptr [ecx + charges], 0; // is there any ammo in the weapon?
@@ -350,7 +352,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		sub  esp, 4;
 		mov  edx, esp;
 		mov  eax, [ecx + protoId];         // eax = weapon pid
-		call proto_ptr_;
+		call fo::funcoffs::proto_ptr_;
 		mov  edx, [esp];
 		mov  eax, [edx + 0x5C];            // eax = default ammo pid
 		mov  [ecx + ammoPid], eax;         // set current ammo proto
@@ -376,14 +378,14 @@ static void __declspec(naked) item_add_mult_hook() {
 		call SetDefaultAmmo;
 		pop  edx;
 		mov  eax, ecx;    // restore
-		jmp  item_add_force_;
+		jmp  fo::funcoffs::item_add_force_;
 	}
 }
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
 		mov  eax, ds:[FO_VAR_i_wid];
-		call GNW_find_;
+		call fo::funcoffs::GNW_find_;
 		mov  ebx, [eax + 8 + 0];                  // ebx = _i_wid.rect.x
 		mov  ecx, [eax + 8 + 4];                  // ecx = _i_wid.rect.y
 		lea  eax, [ebx + 176];                    // x_start
@@ -402,7 +404,7 @@ static void __declspec(naked) loot_container_hack_scroll() {
 		jne  end;
 scroll:
 		mov  eax, ds:[FO_VAR_i_wid];
-		call GNW_find_;
+		call fo::funcoffs::GNW_find_;
 		push edx;
 		push ecx;
 		push ebx;
@@ -412,7 +414,7 @@ scroll:
 		add  ebx, 297 + 64;                       // x_end
 		lea  edx, [ecx + 37];                     // y_start
 		add  ecx, 37 + 6 * 48;                    // y_end
-		call mouse_click_in_;
+		call fo::funcoffs::mouse_click_in_;
 		pop  ebx;
 		pop  ecx;
 		pop  edx;
@@ -439,7 +441,7 @@ static void __declspec(naked) barter_inventory_hack_scroll() {
 		jne  skip;
 scroll:
 		mov  eax, ds:[FO_VAR_i_wid];
-		call GNW_find_;
+		call fo::funcoffs::GNW_find_;
 		push edx;
 		push ecx;
 		push ebx;
@@ -453,7 +455,7 @@ scroll:
 		add  ebx, 395 + 64;                       // x_end
 		lea  edx, [edi + 35];                     // y_start
 		add  ecx, 35 + 3 * 48;                    // y_end
-		call mouse_click_in_;
+		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   notTargetScroll;
 		cmp  esi, 0x150;                          // source_down
@@ -470,7 +472,7 @@ notTargetScroll:
 		add  ebx, 250 + 64;                       // x_end
 		lea  edx, [edi + 20];                     // y_start
 		add  ecx, 20 + 3 * 48;                    // y_end
-		call mouse_click_in_;
+		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   notTargetBarter;
 		cmp  esi, 0x150;                          // source_down
@@ -487,7 +489,7 @@ notTargetBarter:
 		add  ebx, 165 + 64;                       // x_end
 		lea  edx, [edi + 20];                     // y_start
 		add  ecx, 20 + 3 * 48;                    // y_end
-		call mouse_click_in_;
+		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   end;
 		cmp  esi, 0x150;                          // source_down
@@ -510,6 +512,7 @@ skip:
 }
 
 static void __declspec(naked) op_inven_unwield_hook() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  ecx, [eax + protoId];
@@ -519,12 +522,12 @@ static void __declspec(naked) op_inven_unwield_hook() {
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
 		jz   skip;
 		push 0x505AFC; // "But is already Inactive (Dead/Stunned/Invisible)"
-		call debug_printf_;
+		call fo::funcoffs::debug_printf_;
 		add  esp, 4;
 end:
 		retn;
 skip:
-		call inven_unwield_;
+		call fo::funcoffs::inven_unwield_;
 		// update interface slot
 		cmp  ebx, ds:[FO_VAR_obj_dude];
 		jne  end;
@@ -532,11 +535,12 @@ skip:
 		mov  ebx, eax;
 		dec  ebx;      // modeRight (-1)
 		mov  edx, ebx; // modeLeft (-1)
-		jmp  intface_update_items_;
+		jmp  fo::funcoffs::intface_update_items_;
 	}
 }
 
 static void __declspec(naked) op_wield_obj_critter_hook() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
@@ -544,7 +548,7 @@ static void __declspec(naked) op_wield_obj_critter_hook() {
 		mov  eax, -1;
 		retn;
 skip:
-		jmp  inven_wield_;
+		jmp  fo::funcoffs::inven_wield_;
 	}
 }
 
@@ -572,7 +576,7 @@ noSkip:
 		add  esp, 4;    // destroy ret
 		jmp  DoMoveTimer_Ret;
 end:
-		jmp  setup_move_timer_win_;
+		jmp  fo::funcoffs::setup_move_timer_win_;
 	}
 }
 
@@ -610,7 +614,7 @@ void __fastcall SetInvenApCost(int cost) {
 }
 
 long __stdcall GetInvenApCost() {
-	long perkLevel = fo_perk_level(*ptr_obj_dude, PERK_quick_pockets);
+	long perkLevel = fo::func::perk_level(*fo::ptr::obj_dude, PERK_quick_pockets);
 	return invenApCost - (invenApQPReduction * perkLevel);
 }
 
@@ -724,7 +728,7 @@ void Inventory_Init() {
 	if (useScrollWheel) {
 		MakeCall(0x473E66, loot_container_hack_scroll);
 		MakeCall(0x4759F1, barter_inventory_hack_scroll);
-		*ptr_max = 100;
+		*fo::ptr::max = 100;
 	};
 
 	// Check the DAM_KNOCKED_OUT flag for wield_obj_critter/inven_unwield script functions

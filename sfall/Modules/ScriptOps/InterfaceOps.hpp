@@ -50,29 +50,29 @@ static void __declspec(naked) op_key_pressed() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
+		mov  ecx, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_INT;
+		jnz  fail;
 		push ecx;
 		push eax;
 		call KeyDown;
-		mov edx, eax;
-		pop ecx;
-		jmp end;
+		mov  edx, eax;
+		pop  ecx;
+		jmp  end;
 fail:
-		xor edx, edx;
+		xor  edx, edx;
 end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPushShort_;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -124,10 +124,10 @@ static void __declspec(naked) op_get_mouse_buttons() {
 		mov edx, 4; // mouse middle button
 skip:
 		mov ecx, eax;
-		call interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		retn;
@@ -190,7 +190,7 @@ static void __stdcall op_create_message_window2() {
 		SplitToBuffer(str, str_ptr, lines);
 
 		dialogShow = true;
-		DialogOutEx(gTextBuffer, str_ptr, lines, DIALOGOUT_NORMAL);
+		fo::func::DialogOutEx(gTextBuffer, str_ptr, lines, DIALOGOUT_NORMAL);
 		dialogShow = false;
 	} else {
 		OpcodeInvalidArgs("create_message_window");
@@ -219,9 +219,9 @@ static void mf_message_box() {
 		colors |= (opHandler.arg(3).rawValue() & 0xFF) << 8;
 	}
 	dialogShowCount++;
-	var_setInt(FO_VAR_script_engine_running) = 0;
-	long result = DialogOutEx(gTextBuffer, str_ptr, lines, flags, colors);
-	if (--dialogShowCount == 0) var_setInt(FO_VAR_script_engine_running) = 1;
+	fo::var::setInt(FO_VAR_script_engine_running) = 0;
+	long result = fo::func::DialogOutEx(gTextBuffer, str_ptr, lines, flags, colors);
+	if (--dialogShowCount == 0) fo::var::setInt(FO_VAR_script_engine_running) = 1;
 
 	opHandler.setReturn(result);
 }
@@ -270,7 +270,7 @@ static void __stdcall op_show_iface_tag2() {
 		int tag = tagArg.rawValue();
 		if (tag == 3 || tag == 4) {
 			__asm mov  eax, tag;
-			__asm call pc_flag_on_;
+			__asm call fo::funcoffs::pc_flag_on_;
 		} else {
 			BarBoxes_AddBox(tag);
 		}
@@ -289,7 +289,7 @@ static void __stdcall op_hide_iface_tag2() {
 		int tag = tagArg.rawValue();
 		if (tag == 3 || tag == 4) {
 			__asm mov  eax, tag;
-			__asm call pc_flag_off_;
+			__asm call fo::funcoffs::pc_flag_off_;
 		} else {
 			BarBoxes_RemoveBox(tag);
 		}
@@ -319,8 +319,8 @@ static void __stdcall op_is_iface_tag_active2() {
 					}
 				}
 			} else { // Sneak/Level/Addict
-				TGameObj* obj = *ptr_obj_dude;
-				sProto* proto = GetProto(obj->protoId);
+				TGameObj* obj = *fo::ptr::obj_dude;
+				sProto* proto = fo::util::GetProto(obj->protoId);
 				int flagBit = 1 << tag;
 				result = ((proto->critter.critterFlags & flagBit) != 0);
 			}
@@ -340,12 +340,12 @@ static void __declspec(naked) op_is_iface_tag_active() {
 
 static void mf_intface_redraw() {
 	if (opHandler.numArgs() == 0) {
-		fo_intface_redraw();
+		fo::func::intface_redraw();
 	} else {
 		// fake redraw interfaces (TODO: need a real redraw of interface?)
 		long winType = opHandler.arg(0).rawValue();
 		if (winType == -1) {
-			RefreshGNW(true); 
+			fo::util::RefreshGNW(true); 
 		} else {
 			WINinfo* win = Interface_GetWindow(winType);
 			if (win && (int)win != -1) sfgame_GNW_win_refresh(win, &win->wRect, 0);
@@ -354,50 +354,50 @@ static void mf_intface_redraw() {
 }
 
 static void mf_intface_show() {
-	__asm call intface_show_;
+	__asm call fo::funcoffs::intface_show_;
 }
 
 static void mf_intface_hide() {
-	__asm call intface_hide_;
+	__asm call fo::funcoffs::intface_hide_;
 }
 
 static void mf_intface_is_hidden() {
-	opHandler.setReturn(fo_intface_is_hidden());
+	opHandler.setReturn(fo::func::intface_is_hidden());
 }
 
 static void mf_tile_refresh_display() {
-	fo_tile_refresh_display();
+	fo::func::tile_refresh_display();
 }
 
 static void mf_get_cursor_mode() {
-	opHandler.setReturn(*ptr_gmouse_3d_current_mode);
+	opHandler.setReturn(*fo::ptr::gmouse_3d_current_mode);
 }
 
 static void mf_set_cursor_mode() {
-	fo_gmouse_3d_set_mode(opHandler.arg(0).rawValue());
+	fo::func::gmouse_3d_set_mode(opHandler.arg(0).rawValue());
 }
 
 static void mf_display_stats() {
 	unsigned long flags = GetLoopFlags();
 	if (flags & INVENTORY) {
-		fo_display_stats(); // calling the function outside of inventory screen will crash the game
+		fo::func::display_stats(); // calling the function outside of inventory screen will crash the game
 	} else if (flags & CHARSCREEN) {
 		__asm {
 			mov  eax, ds:[FO_VAR_obj_dude];
-			call stat_recalc_derived_;
+			call fo::funcoffs::stat_recalc_derived_;
 			xor  edx, edx;
 			mov  eax, ds:[FO_VAR_obj_dude];
-			call critter_adjust_hits_;
+			call fo::funcoffs::critter_adjust_hits_;
 			push ebx;
 			mov  eax, 7;
-			call PrintBasicStat_;
+			call fo::funcoffs::PrintBasicStat_;
 			xor  eax, eax;
-			call ListSkills_;
-			call PrintLevelWin_;
-			call ListDrvdStats_;
+			call fo::funcoffs::ListSkills_;
+			call fo::funcoffs::PrintLevelWin_;
+			call fo::funcoffs::ListDrvdStats_;
 			pop  ebx;
 		}
-		fo_win_draw(*ptr_edit_win);
+		fo::func::win_draw(*fo::ptr::edit_win);
 	}
 }
 
@@ -434,13 +434,13 @@ static void mf_inventory_redraw() {
 	}
 	long redrawSide = (opHandler.numArgs() > 0) ? opHandler.arg(0).rawValue() : -1; // -1 - both
 	if (redrawSide <= 0) {
-		ptr_stack_offset[*ptr_curr_stack] = 0;
-		fo_display_inventory(0, -1, mode);
+		fo::ptr::stack_offset[*fo::ptr::curr_stack] = 0;
+		fo::func::display_inventory(0, -1, mode);
 	}
 	if (redrawSide && mode >= 2) {
-		ptr_target_stack_offset[*ptr_target_curr_stack] = 0;
-		fo_display_target_inventory(0, -1, *ptr_target_pud, mode);
-		fo_win_draw(*ptr_i_wid);
+		fo::ptr::target_stack_offset[*fo::ptr::target_curr_stack] = 0;
+		fo::func::display_target_inventory(0, -1, *fo::ptr::target_pud, mode);
+		fo::func::win_draw(*fo::ptr::i_wid);
 	}
 }
 
@@ -449,7 +449,7 @@ static void mf_create_win() {
 	          ? opHandler.arg(5).rawValue()
 	          : WinFlags::MoveOnTop;
 
-	if (fo_createWindow(opHandler.arg(0).strValue(),
+	if (fo::func::createWindow(opHandler.arg(0).strValue(),
 	    opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // x, y
 	    opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
 	    (flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
@@ -463,14 +463,14 @@ static void mf_show_window() {
 	if (opHandler.numArgs() > 0) {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
-			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
-				fo_win_show(ptr_sWindows[i].wID);
+			if (_stricmp(name, fo::ptr::sWindows[i].name) == 0) {
+				fo::func::win_show(fo::ptr::sWindows[i].wID);
 				return;
 			}
 		}
 		opHandler.printOpcodeError("show_window() - window '%s' is not found.", name);
 	} else {
-		__asm call windowShow_;
+		__asm call fo::funcoffs::windowShow_;
 	}
 }
 
@@ -478,14 +478,14 @@ static void mf_hide_window() {
 	if (opHandler.numArgs() > 0) {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
-			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
-				fo_win_hide(ptr_sWindows[i].wID);
+			if (_stricmp(name, fo::ptr::sWindows[i].name) == 0) {
+				fo::func::win_hide(fo::ptr::sWindows[i].wID);
 				return;
 			}
 		}
 		opHandler.printOpcodeError("hide_window() - window '%s' is not found.", name);
 	} else {
-		__asm call windowHide_;
+		__asm call fo::funcoffs::windowHide_;
 	}
 }
 
@@ -505,13 +505,13 @@ static void mf_set_window_flag() {
 	if (opHandler.arg(0).isString()) {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
-			if (_stricmp(name, ptr_sWindows[i].name) == 0) {
-				WINinfo* win = fo_GNW_find(ptr_sWindows[i].wID);
+			if (_stricmp(name, fo::ptr::sWindows[i].name) == 0) {
+				WINinfo* win = fo::func::GNW_find(fo::ptr::sWindows[i].wID);
 				if (mode) {
-					ptr_sWindows[i].flags |= bitFlag;
+					fo::ptr::sWindows[i].flags |= bitFlag;
 					win->flags |= bitFlag;
 				} else {
-					ptr_sWindows[i].flags &= ~bitFlag;
+					fo::ptr::sWindows[i].flags &= ~bitFlag;
 					win->flags &= ~bitFlag;
 				}
 				return;
@@ -520,7 +520,7 @@ static void mf_set_window_flag() {
 		opHandler.printOpcodeError("set_window_flag() - window '%s' is not found.", name);
 	} else {
 		long wid = opHandler.arg(0).rawValue();
-		WINinfo* win = fo_GNW_find((wid > 0) ? wid : *ptr_i_wid); // i_wid - set flag to current game interface window
+		WINinfo* win = fo::func::GNW_find((wid > 0) ? wid : *fo::ptr::i_wid); // i_wid - set flag to current game interface window
 		if (win == nullptr) return;
 		if (mode) {
 			win->flags |= bitFlag;
@@ -538,7 +538,7 @@ static void __fastcall FreeArtFile(FrmFile* frmPtr) {
 		delete[] frmPtr;
 	} else {
 		__asm mov  eax, frmPtr;
-		__asm call my_free_;
+		__asm call fo::funcoffs::my_free_;
 	}
 }
 
@@ -548,7 +548,7 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 		const char* pos = strrchr(file, '.');
 		if (pos && _stricmp(++pos, "PCX") == 0) {
 			long w, h;
-			BYTE* data = fo_loadPCX(file, &w, &h);
+			BYTE* data = fo::func::loadPCX(file, &w, &h);
 			if (!data) return nullptr;
 
 			frmPtr = reinterpret_cast<FrmFile*>(new BYTE[78]);
@@ -562,7 +562,7 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 			return frmPtr;
 		}
 	}
-	if (fo_load_frame(file, &frmPtr)) {
+	if (fo::func::load_frame(file, &frmPtr)) {
 		return nullptr;
 	}
 	framePtr = frmPtr->GetFrameData(direction, frame);
@@ -573,19 +573,19 @@ static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
 	long direction = 0;
 	long _fid = fid & 0xFFFFFFF;
 
-	const char* artPathName = fo_art_get_name(_fid); // <cd>\art\type\file.frm
+	const char* artPathName = fo::func::art_get_name(_fid); // <cd>\art\type\file.frm
 
 	if (_fid >> 24 == OBJ_TYPE_CRITTER) {
 		direction = (fid >> 28);
-		if (direction > 0 && !fo_db_access(artPathName)) {
-			artPathName = fo_art_get_name(fid); // .fr#
+		if (direction > 0 && !fo::func::db_access(artPathName)) {
+			artPathName = fo::func::art_get_name(fid); // .fr#
 		}
 	} else {
-		if (*ptr_use_language) {
+		if (*fo::ptr::use_language) {
 			const char* _artPathName = std::strchr(artPathName, '\\');
 			if (_artPathName && *(++_artPathName)) {
-				sprintf_s(outFilePath, MAX_PATH, "art\\%s\\%s", (const char*)ptr_language, _artPathName);
-				if (fo_db_access(outFilePath)) return direction;
+				sprintf_s(outFilePath, MAX_PATH, "art\\%s\\%s", (const char*)fo::ptr::language, _artPathName);
+				if (fo::func::db_access(outFilePath)) return direction;
 			}
 		}
 	}
@@ -594,7 +594,7 @@ static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
 }
 
 static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const char* metaruleName) {
-	if (!fo_selectWindowID(opHandler.program()->currentScriptWin) || var_getInt(FO_VAR_currentWindow) == -1) {
+	if (!fo::func::selectWindowID(opHandler.program()->currentScriptWin) || fo::var::getInt(FO_VAR_currentWindow) == -1) {
 		opHandler.printOpcodeError("%s() - no created or selected window.", metaruleName);
 		return 0;
 	}
@@ -623,7 +623,7 @@ static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const c
 	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
 
 	if (isScaled && opHandler.numArgs() < 3) {
-		fo_displayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
+		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
 	} else {
 		int x = opHandler.arg(2).rawValue(), y = opHandler.arg(3).rawValue();
 		if (isScaled) { // draw to scale
@@ -646,11 +646,11 @@ static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const c
 				goto exit;
 			}
 
-			long w_width = fo_windowWidth();
+			long w_width = fo::func::windowWidth();
 			long xy_pos = (y * w_width) + x;
-			window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
+			fo::func::window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
 		} else { // with x/y frame offsets
-			fo_windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, opHandler.arg(4).rawValue());
+			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, opHandler.arg(4).rawValue());
 		}
 	}
 
@@ -718,8 +718,8 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 
 	BYTE* surface = (ifaceWin->randY) ? WinRender_GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
-	fo_trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
-	                surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
+	fo::func::trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
+	                       surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
 	if (!(opHandler.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
@@ -810,7 +810,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 
 	color ^= 0x2000000; // fills background with black color if the flag is set (textnofill)
 	if ((color & 0xFF) == 0) {
-		__asm call windowGetTextColor_; // set from SetTextColor
+		__asm call fo::funcoffs::windowGetTextColor_; // set from SetTextColor
 		__asm mov  byte ptr color, al;
 	}
 
@@ -821,10 +821,10 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	}
 
 	if (color & 0x10000) { // shadow (textshadow)
-		fo_windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
+		fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, 0x201000F, 0, 0);
 		color ^= 0x10000;
 	}
-	opHandler.setReturn(fo_windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
+	opHandler.setReturn(fo::func::windowWrapLineWithSpacing(win->wID, text, width, maxHeight, x, y, color, 0, 0)); // returns count of lines printed
 
 	if (win->randY) win->surface = surface;
 
@@ -833,23 +833,23 @@ static void mf_interface_print() { // same as vanilla PrintRect
 }
 
 static void mf_win_fill_color() {
-	long result = fo_selectWindowID(opHandler.program()->currentScriptWin); // TODO: examine the issue of restoring program->currentScriptWin of the current window in op_pop_flags_
-	long iWin = var_getInt(FO_VAR_currentWindow);
+	long result = fo::func::selectWindowID(opHandler.program()->currentScriptWin); // TODO: examine the issue of restoring program->currentScriptWin of the current window in op_pop_flags_
+	long iWin = fo::var::getInt(FO_VAR_currentWindow);
 	if (!result || iWin == -1) {
 		opHandler.printOpcodeError("win_fill_color() - no created or selected window.");
 		opHandler.setReturn(-1);
 		return;
 	}
 	if (opHandler.numArgs() > 0) {
-		if (WinFillRect(ptr_sWindows[iWin].wID,
-		                opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), // x, y
-		                opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), // w, h
-		                static_cast<BYTE>(opHandler.arg(4).rawValue())))
+		if (fo::util::WinFillRect(fo::ptr::sWindows[iWin].wID,
+		                          opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), // x, y
+		                          opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), // w, h
+		                          static_cast<BYTE>(opHandler.arg(4).rawValue())))
 		{
 			opHandler.printOpcodeError("win_fill_color() - the fill area is truncated because it exceeds the current window.");
 		}
 	} else {
-		ClearWindow(ptr_sWindows[iWin].wID, false); // full clear
+		fo::util::ClearWindow(fo::ptr::sWindows[iWin].wID, false); // full clear
 	}
 }
 

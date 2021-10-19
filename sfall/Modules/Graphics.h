@@ -87,7 +87,7 @@ __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int wid
 		if (primarySurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
 
 		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
-		fo_buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
+		fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
 
 		primarySurface->Unlock(desc.lpSurface);
 	}

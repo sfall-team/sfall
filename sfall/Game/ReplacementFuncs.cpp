@@ -37,7 +37,7 @@ static const long aiUseItemAPCost = 2;
 static long drugUsePerfFixMode;
 
 void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
-	if (fo_critter_body_type(source)) return; // Robotic/Quadruped cannot use drugs
+	if (fo::func::critter_body_type(source)) return; // Robotic/Quadruped cannot use drugs
 
 	DWORD slot = -1;
 	long noInvenDrug = 0;
@@ -45,7 +45,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 
 	TGameObj* lastItem = nullptr; // combatAIInfoGetLastItem_(source); unused function, always returns 0
 	if (!lastItem) {
-		AIcap* cap = fo_ai_cap(source);
+		AIcap* cap = fo::func::ai_cap(source);
 		if (!cap) return;
 
 		long hpPercent = 50;
@@ -59,11 +59,11 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 			hpPercent = 30;
 			break;
 		case AIpref::CHEM_sometimes:
-			if (!(*ptr_combatNumTurns % 3)) chance = 25; // every three turns
+			if (!(*fo::ptr::combatNumTurns % 3)) chance = 25; // every three turns
 			//hpPercent = 50;
 			break;
 		case AIpref::CHEM_anytime:
-			if (!(*ptr_combatNumTurns % 3)) chance = 75; // every three turns
+			if (!(*fo::ptr::combatNumTurns % 3)) chance = 75; // every three turns
 			//hpPercent = 50;
 			break;
 		case AIpref::CHEM_always:
@@ -73,13 +73,13 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 			return; // exit: don't use drugs
 		}
 
-		long minHP = (hpPercent * fo_stat_level(source, STAT_max_hit_points)) / 100;
+		long minHP = (hpPercent * fo::func::stat_level(source, STAT_max_hit_points)) / 100;
 
 		// [FIX] for AI not checking minimum hp properly for using healing drugs (prevents premature fleeing)
 		if (cap->min_hp > minHP) minHP = cap->min_hp;
 
-		while (fo_stat_level(source, STAT_current_hp) < minHP && source->critter.movePoints >= aiUseItemAPCost) {
-			TGameObj* itemFind = fo_inven_find_type(source, item_type_drug, &slot);
+		while (fo::func::stat_level(source, STAT_current_hp) < minHP && source->critter.movePoints >= aiUseItemAPCost) {
+			TGameObj* itemFind = fo::func::inven_find_type(source, item_type_drug, &slot);
 			if (!itemFind) {
 				noInvenDrug = 2; // healing drugs were not found in the inventory (was 1)
 				break;
@@ -96,11 +96,11 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 		}
 
 		// use any drug (except healing drugs) if there is a chance of using it
-		if (!drugWasUsed && chance > 0 && fo_roll_random(0, 100) < chance) {
+		if (!drugWasUsed && chance > 0 && fo::func::roll_random(0, 100) < chance) {
 			long usedCount = 0;
 			slot = -1; // [FIX] start the search from the first slot
 			while (source->critter.movePoints >= aiUseItemAPCost) {
-				TGameObj* item = fo_inven_find_type(source, item_type_drug, &slot);
+				TGameObj* item = fo::func::inven_find_type(source, item_type_drug, &slot);
 				if (!item) {
 					noInvenDrug = 1;
 					break;
@@ -119,7 +119,7 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 						if (drugUsePerfFixMode == 1) {
 							counter = 0;
-							item = fo_inven_find_type(source, item_type_drug, &slot);
+							item = fo::func::inven_find_type(source, item_type_drug, &slot);
 							if (!item) {
 								item = firstFindDrug;
 								slot = _slot; // back to slot
@@ -158,14 +158,14 @@ void __stdcall sfgame_ai_check_drugs(TGameObj* source) {
 	// search for drugs on the map
 	if (lastItem || (!drugWasUsed && noInvenDrug)) {
 		do {
-			if (!lastItem) lastItem = fo_ai_search_environ(source, item_type_drug);
-			if (!lastItem) lastItem = fo_ai_search_environ(source, item_type_misc_item);
-			if (lastItem) lastItem = fo_ai_retrieve_object(source, lastItem);
+			if (!lastItem) lastItem = fo::func::ai_search_environ(source, item_type_drug);
+			if (!lastItem) lastItem = fo::func::ai_search_environ(source, item_type_misc_item);
+			if (lastItem) lastItem = fo::func::ai_retrieve_object(source, lastItem);
 
 			// [FIX] Prevent the use of healing drugs when not necessary
 			// noInvenDrug: is set to 2 that healing is required
 			if (lastItem && noInvenDrug != 2 && sfgame_IsHealingItem(lastItem)) {
-				long maxHP = fo_stat_level(source, STAT_max_hit_points);
+				long maxHP = fo::func::stat_level(source, STAT_max_hit_points);
 				if (10 + source->critter.health >= maxHP) { // quick check current HP
 					return; // exit: don't use healing item
 				}
@@ -206,27 +206,27 @@ static void __declspec(naked) ai_can_use_drug_hack() {
 // Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
 long __stdcall sfgame_correctFidForRemovedItem(TGameObj* critter, TGameObj* item, long flags) {
 	long result = InvenWieldHook_Invoke(critter, item, flags);
-	if (result) fo_correctFidForRemovedItem(critter, item, flags);
+	if (result) fo::func::correctFidForRemovedItem(critter, item, flags);
 	return result;
 }
 
 DWORD __stdcall sfgame_item_total_size(TGameObj* critter) {
-	int totalSize = fo_item_c_curr_size(critter);
+	int totalSize = fo::func::item_c_curr_size(critter);
 
 	if (critter->TypeFid() == OBJ_TYPE_CRITTER) {
-		TGameObj* item = fo_inven_right_hand(critter);
+		TGameObj* item = fo::func::inven_right_hand(critter);
 		if (item && !(item->flags & ObjectFlag::Right_Hand)) {
-			totalSize += fo_item_size(item);
+			totalSize += fo::func::item_size(item);
 		}
 
-		TGameObj* itemL = fo_inven_left_hand(critter);
+		TGameObj* itemL = fo::func::inven_left_hand(critter);
 		if (itemL && item != itemL && !(itemL->flags & ObjectFlag::Left_Hand)) {
-			totalSize += fo_item_size(itemL);
+			totalSize += fo::func::item_size(itemL);
 		}
 
-		item = fo_inven_worn(critter);
+		item = fo::func::inven_worn(critter);
 		if (item && !(item->flags & ObjectFlag::Worn)) {
-			totalSize += fo_item_size(item);
+			totalSize += fo::func::item_size(item);
 		}
 	}
 	return totalSize;
@@ -238,22 +238,22 @@ DWORD __stdcall sfgame_item_total_size(TGameObj* critter) {
 // - calls AdjustFidHook that allows to hook into FID calculation
 DWORD __stdcall sfgame_adjust_fid() {
 	DWORD fid;
-	if ((*ptr_inven_dude)->TypeFid() == OBJ_TYPE_CRITTER) {
+	if ((*fo::ptr::inven_dude)->TypeFid() == OBJ_TYPE_CRITTER) {
 		DWORD indexNum;
 		DWORD weaponAnimCode = 0;
 		if (PartyControl_IsNpcControlled()) {
 			// if NPC is under control, use current FID of critter
-			indexNum = (*ptr_inven_dude)->artFid & 0xFFF;
+			indexNum = (*fo::ptr::inven_dude)->artFid & 0xFFF;
 		} else {
 			// vanilla logic:
-			indexNum = *ptr_art_vault_guy_num;
+			indexNum = *fo::ptr::art_vault_guy_num;
 			sProto* critterPro;
-			if (GetProto(*ptr_inven_pid, &critterPro)) {
+			if (fo::util::GetProto(*fo::ptr::inven_pid, &critterPro)) {
 				indexNum = critterPro->fid & 0xFFF;
 			}
-			if (*ptr_i_worn != nullptr) {
-				sProto* armorPro = GetProto((*ptr_i_worn)->protoId);
-				DWORD armorFid = fo_stat_level(*ptr_inven_dude, STAT_gender) == GENDER_FEMALE
+			if (*fo::ptr::i_worn != nullptr) {
+				sProto* armorPro = fo::util::GetProto((*fo::ptr::i_worn)->protoId);
+				DWORD armorFid = fo::func::stat_level(*fo::ptr::inven_dude, STAT_gender) == GENDER_FEMALE
 				               ? armorPro->item.armor.femaleFID
 				               : armorPro->item.armor.maleFID;
 
@@ -262,25 +262,25 @@ DWORD __stdcall sfgame_adjust_fid() {
 				}
 			}
 		}
-		TGameObj* itemInHand = fo_intface_is_item_right_hand()
-		                     ? *ptr_i_rhand
-		                     : *ptr_i_lhand;
+		TGameObj* itemInHand = fo::func::intface_is_item_right_hand()
+		                     ? *fo::ptr::i_rhand
+		                     : *fo::ptr::i_lhand;
 
 		if (itemInHand != nullptr) {
 			sProto* itemPro;
-			if (GetProto(itemInHand->protoId, &itemPro) && itemPro->item.type == item_type_weapon) {
+			if (fo::util::GetProto(itemInHand->protoId, &itemPro) && itemPro->item.type == item_type_weapon) {
 				weaponAnimCode = itemPro->item.weapon.animationCode;
 			}
 		}
-		fid = fo_art_id(OBJ_TYPE_CRITTER, indexNum, 0, weaponAnimCode, 0);
+		fid = fo::func::art_id(OBJ_TYPE_CRITTER, indexNum, 0, weaponAnimCode, 0);
 	} else {
-		fid = (*ptr_inven_dude)->artFid;
+		fid = (*fo::ptr::inven_dude)->artFid;
 	}
-	*ptr_i_fid = fid;
+	*fo::ptr::i_fid = fid;
 	// OnAdjustFid
 	if (appModEnabled) AdjustHeroArmorArt(fid);
 	AdjustFidHook(fid); // should be called last
-	return *ptr_i_fid;
+	return *fo::ptr::i_fid;
 }
 
 static void __declspec(naked) adjust_fid_replacement() {
@@ -316,7 +316,7 @@ bool __fastcall sfgame_IsHealingItem(TGameObj* item) {
 	}
 
 	sProto* proto;
-	if (GetProto(item->protoId, &proto)) {
+	if (fo::util::GetProto(item->protoId, &proto)) {
 		return (proto->item.flagsExt & IFLG_HealingItem) != 0;
 	}
 	return false;
@@ -325,11 +325,11 @@ bool __fastcall sfgame_IsHealingItem(TGameObj* item) {
 bool __stdcall sfgame_UseDrugItemFunc(TGameObj* source, TGameObj* item) {
 	bool result = (sfgame_item_d_take_drug(source, item) == -1); // HOOK_USEOBJON
 	if (result) {
-		fo_item_add_force(source, item, 1);
+		fo::func::item_add_force(source, item, 1);
 	} else {
-		fo_ai_magic_hands(source, item, 5000);
-		fo_obj_connect(item, source->tile, source->elevation, 0);
-		fo_obj_destroy(item);
+		fo::func::ai_magic_hands(source, item, 5000);
+		fo::func::obj_connect(item, source->tile, source->elevation, 0);
+		fo::func::obj_destroy(item);
 	}
 	return result;
 }
@@ -337,14 +337,14 @@ bool __stdcall sfgame_UseDrugItemFunc(TGameObj* source, TGameObj* item) {
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
 long __stdcall sfgame_item_d_take_drug(TGameObj* source, TGameObj* item) {
 	if (UseObjOnHook_Invoke(source, item, source) == -1) { // default handler
-		return fo_item_d_take_drug(source, item);
+		return fo::func::item_d_take_drug(source, item);
 	}
 	return -1; // cancel the drug use
 }
 
 long __stdcall sfgame_item_remove_mult(TGameObj* source, TGameObj* item, long count, long rmType) {
 	SetRemoveObjectType(rmType);
-	return fo_item_remove_mult(source, item, count);
+	return fo::func::item_remove_mult(source, item, count);
 }
 
 long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item) {
@@ -352,7 +352,7 @@ long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item) {
 		TGameObj::InvenItem* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			return tableItem->count; // fix
-		} else if (fo_item_get_type(tableItem->object) == item_type_container) {
+		} else if (fo::func::item_get_type(tableItem->object) == item_type_container) {
 			int count = sfgame_item_count(tableItem->object, item);
 			if (count > 0) return count;
 		}
@@ -362,18 +362,18 @@ long __stdcall sfgame_item_count(TGameObj* who, TGameObj* item) {
 
 long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long hitMode) {
 	sProto* wProto;
-	if (!GetProto(weapon->protoId, &wProto)) return 0;
+	if (!fo::util::GetProto(weapon->protoId, &wProto)) return 0;
 
 	long isSecondMode = (hitMode && hitMode != ATKTYPE_RWEAPON_PRIMARY) ? 1 : 0;
 	long range = wProto->item.weapon.maxRange[isSecondMode];
 
 	long flagExt = wProto->item.flagsExt;
 	if (isSecondMode) flagExt = (flagExt >> 4);
-	long type = GetWeaponType(flagExt);
+	long type = fo::util::GetWeaponType(flagExt);
 
 	if (type == ATKSUBTYPE_THROWING) {
 		long heaveHoMod = sfgame_perk_level(source, PERK_heave_ho);
-		long stRange = fo_stat_level(source, STAT_st);
+		long stRange = fo::func::stat_level(source, STAT_st);
 
 		if (perkHeaveHoModTweak) {
 			stRange *= 3;
@@ -392,7 +392,7 @@ long __stdcall sfgame_item_weapon_range(TGameObj* source, TGameObj* weapon, long
 
 // TODO
 //long __stdcall sfgame_item_w_range(TGameObj* source, long hitMode) {
-//	return sfgame_item_weapon_range(source, fo_item_hit_with(source, hitMode), hitMode);
+//	return sfgame_item_weapon_range(source, fo::func::item_hit_with(source, hitMode), hitMode);
 //}
 
 static int fastShotTweak;
@@ -401,7 +401,7 @@ static long __stdcall item_w_mp_cost_sub(TGameObj* source, TGameObj* item, long 
 	if (isCalled) cost++;
 	if (cost < 0) cost = 0;
 
-	long type = fo_item_w_subtype(item, hitMode);
+	long type = fo::func::item_w_subtype(item, hitMode);
 
 	if (source->protoId == PID_Player && DudeHasTrait(TRAIT_fast_shot)) {
 		// Alternative behaviors of the Fast Shot trait
@@ -409,7 +409,7 @@ static long __stdcall item_w_mp_cost_sub(TGameObj* source, TGameObj* item, long 
 			cost--;
 		} else if (fastShotTweak == 2) { // Alternative behavior (allowed for all attacks)
 			cost--;
-		} else if (fastShotTweak < 2 && type > ATKSUBTYPE_MELEE && fo_item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
+		} else if (fastShotTweak < 2 && type > ATKSUBTYPE_MELEE && fo::func::item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
 			cost--;
 		}
 	}
@@ -431,17 +431,17 @@ long __fastcall sfgame_item_weapon_mp_cost(TGameObj* source, TGameObj* weapon, l
 	switch (hitMode) {
 	case ATKTYPE_LWEAPON_PRIMARY:
 	case ATKTYPE_RWEAPON_PRIMARY:
-		cost = fo_item_w_primary_mp_cost(weapon);
+		cost = fo::func::item_w_primary_mp_cost(weapon);
 		break;
 	case ATKTYPE_LWEAPON_SECONDARY:
 	case ATKTYPE_RWEAPON_SECONDARY:
-		cost = fo_item_w_secondary_mp_cost(weapon);
+		cost = fo::func::item_w_secondary_mp_cost(weapon);
 		break;
 	case ATKTYPE_LWEAPON_RELOAD:
 	case ATKTYPE_RWEAPON_RELOAD:
 		if (weapon && weapon->protoId != PID_SOLAR_SCORCHER) { // Solar Scorcher has no reload AP cost
 			cost = reloadAPCost;
-			if (GetProto(weapon->protoId)->item.weapon.perk == PERK_weapon_fast_reload) {
+			if (fo::util::GetProto(weapon->protoId)->item.weapon.perk == PERK_weapon_fast_reload) {
 				cost--;
 			}
 		}
@@ -473,12 +473,12 @@ long __fastcall sfgame_item_w_mp_cost(TGameObj* source, AttackType hitMode, long
 	case ATKTYPE_LWEAPON_PRIMARY:
 	case ATKTYPE_LWEAPON_SECONDARY:
 	case ATKTYPE_LWEAPON_RELOAD:
-		handItem = fo_inven_left_hand(source);
+		handItem = fo::func::inven_left_hand(source);
 		break;
 	case ATKTYPE_RWEAPON_PRIMARY:
 	case ATKTYPE_RWEAPON_SECONDARY:
 	case ATKTYPE_RWEAPON_RELOAD:
-		handItem = fo_inven_right_hand(source);
+		handItem = fo::func::inven_right_hand(source);
 		break;
 	default:
 		break;
@@ -517,15 +517,15 @@ static void __declspec(naked) item_w_mp_cost_hack() {
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
 long __stdcall sfgame_is_within_perception(TGameObj* watcher, TGameObj* target, long hookType) {
-	return PerceptionRangeHook_Invoke(watcher, target, hookType, fo_is_within_perception(watcher, target));
+	return PerceptionRangeHook_Invoke(watcher, target, hookType, fo::func::is_within_perception(watcher, target));
 }
 
 // Alternative implementation of objFindObjPtrFromID_ engine function with the type of object to find
 TGameObj* __fastcall sfgame_FindObjectFromID(long id, long type) {
-	TGameObj* obj = fo_obj_find_first();
+	TGameObj* obj = fo::func::obj_find_first();
 	while (obj) {
 		if (obj->id == id && obj->Type() == type) return obj;
-		obj = fo_obj_find_next();
+		obj = fo::func::obj_find_next();
 	}
 	return nullptr;
 }
@@ -533,11 +533,11 @@ TGameObj* __fastcall sfgame_FindObjectFromID(long id, long type) {
 //////////////////////////////////// RENDER ////////////////////////////////////
 
 static BYTE* __stdcall GetBuffer() {
-	return (BYTE*)var_getInt(FO_VAR_screen_buffer);
+	return (BYTE*)fo::var::getInt(FO_VAR_screen_buffer);
 }
 
 static void __stdcall Draw(WINinfo* win, BYTE* surface, long width, long height, long widthFrom, BYTE* toBuffer, long toWidth, RECT &rect, RECT* updateRect) {
-	auto drawFunc = (win->flags & WinFlags::Transparent && win->wID) ? fo_trans_buf_to_buf : fo_buf_to_buf;
+	auto drawFunc = (win->flags & WinFlags::Transparent && win->wID) ? fo::func::trans_buf_to_buf : fo::func::buf_to_buf;
 	if (toBuffer) {
 		drawFunc(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
 	} else {
@@ -548,9 +548,9 @@ static void __stdcall Draw(WINinfo* win, BYTE* surface, long width, long height,
 	surface = &WinRender_GetOverlaySurface(win)[rect.left - win->rect.x] + ((rect.top - win->rect.y) * win->width);
 
 	if (toBuffer) {
-		fo_trans_buf_to_buf(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
+		fo::func::trans_buf_to_buf(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
 	} else {
-		fo_trans_buf_to_buf(surface, width, height, widthFrom, &GetBuffer()[rect.left] + (rect.top * toWidth), toWidth);
+		fo::func::trans_buf_to_buf(surface, width, height, widthFrom, &GetBuffer()[rect.left] + (rect.top * toWidth), toWidth);
 	}
 }
 
@@ -558,40 +558,40 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 	if (win->flags & WinFlags::Hidden) return;
 	RectList* rects;
 
-	if (win->flags & WinFlags::Transparent && !var_getInt(FO_VAR_doing_refresh_all)) {
+	if (win->flags & WinFlags::Transparent && !fo::var::getInt(FO_VAR_doing_refresh_all)) {
 		__asm {
 			mov  eax, updateRect;
 			mov  edx, ds:[FO_VAR_screen_buffer];
-			call refresh_all_;
+			call fo::funcoffs::refresh_all_;
 		}
 		int w = (updateRect->right - updateRect->left) + 1;
 
-		if (*ptr_mouse_is_hidden || !fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+		if (*fo::ptr::mouse_is_hidden || !fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
 			/*__asm {
 				mov  eax, win;
 				mov  edx, updateRect;
-				call GNW_button_refresh_;
+				call fo::funcoffs::GNW_button_refresh_;
 			}*/
 			int h = (updateRect->bottom - updateRect->top) + 1;
 
 			UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
 
 		} else {
-			fo_mouse_show(); // for updating background cursor area
+			fo::func::mouse_show(); // for updating background cursor area
 			RECT mouseRect;
 			__asm {
 				lea  eax, mouseRect;
 				mov  edx, eax;
-				call mouse_get_rect_;
+				call fo::funcoffs::mouse_get_rect_;
 				mov  eax, updateRect;
-				call rect_clip_;
+				call fo::funcoffs::rect_clip_;
 				mov  rects, eax;
 			}
 			while (rects) { // updates everything except the cursor area
 				/*__asm {
 					mov  eax, win;
 					mov  edx, rects;
-					call GNW_button_refresh_;
+					call fo::funcoffs::GNW_button_refresh_;
 				}*/
 
 				int wRect = (rects->wRect.right - rects->wRect.left) + 1;
@@ -601,14 +601,14 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 
 				RectList* free = rects;
 				rects = rects->nextRect;
-				sf_rect_free(free);
+				fo::util::rect_free(free);
 			}
 		}
 		return;
 	}
 
 	/* Allocates memory for 10 RectList (if no memory was allocated), returns the first Rect and removes it from the list */
-	__asm call rect_malloc_;
+	__asm call fo::funcoffs::rect_malloc_;
 	__asm mov  rects, eax;
 	if (!rects) return;
 
@@ -628,14 +628,14 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 	if (rects->wRect.bottom > win->wRect.bottom) rects->wRect.bottom = win->wRect.bottom;
 
 	if (rects->wRect.right < rects->wRect.left || rects->wRect.bottom < rects->wRect.top) {
-		sf_rect_free(rects);
+		fo::util::rect_free(rects);
 		return;
 	}
 
 	int widthFrom = win->width;
 	int toWidth = (toBuffer) ? (updateRect->right - updateRect->left) + 1 : Gfx_GetGameWidthRes();
 
-	fo_win_clip(win, &rects, toBuffer);
+	fo::func::win_clip(win, &rects, toBuffer);
 
 	RectList* currRect = rects;
 	while (currRect) {
@@ -647,7 +647,7 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 			__asm {
 				mov  eax, win;
 				mov  edx, currRect;
-				call GNW_button_refresh_;
+				call fo::funcoffs::GNW_button_refresh_;
 			}
 			surface = &win->surface[currRect->wRect.left - win->rect.x] + ((currRect->wRect.top - win->rect.y) * win->width);
 		} else {
@@ -672,12 +672,12 @@ void __fastcall sfgame_GNW_win_refresh(WINinfo* win, RECT* updateRect, BYTE* toB
 			UpdateDDSurface(&GetBuffer()[rects->rect.x] + (rects->rect.y * widthFrom), width, height, widthFrom, &rects->wRect);
 		}
 		RectList* next = rects->nextRect;
-		sf_rect_free(rects);
+		fo::util::rect_free(rects);
 		rects = next;
 	}
 
-	if (!toBuffer && !var_getInt(FO_VAR_doing_refresh_all) && !*ptr_mouse_is_hidden && fo_mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
-		fo_mouse_show();
+	if (!toBuffer && !fo::var::getInt(FO_VAR_doing_refresh_all) && !*fo::ptr::mouse_is_hidden && fo::func::mouse_in(updateRect->left, updateRect->top, updateRect->right, updateRect->bottom)) {
+		fo::func::mouse_show();
 	}
 }
 
@@ -696,8 +696,8 @@ static __declspec(naked) void GNW_win_refresh_hack() {
 int __stdcall sfgame_trait_adjust_skill(DWORD skillID) {
 	int result = 0;
 	if (TraitsModEnable()) {
-		if (ptr_pc_trait[0] != -1) result += GetTraitSkillBonus(skillID, 0);
-		if (ptr_pc_trait[1] != -1) result += GetTraitSkillBonus(skillID, 1);
+		if (fo::ptr::pc_trait[0] != -1) result += GetTraitSkillBonus(skillID, 0);
+		if (fo::ptr::pc_trait[1] != -1) result += GetTraitSkillBonus(skillID, 1);
 	}
 
 	if (sfgame_trait_level(TRAIT_gifted)) result -= 10;
@@ -734,12 +734,12 @@ int __stdcall sfgame_trait_level(DWORD traitID) {
 
 // Wrapper of perk_level_ function, for quickly skipping other critters
 int __stdcall sfgame_perk_level(TGameObj* source, DWORD perkID) {
-	if (source != *ptr_obj_dude) return 0;
-	return fo_perk_level(source, perkID);
+	if (source != *fo::ptr::obj_dude) return 0;
+	return fo::func::perk_level(source, perkID);
 }
 
 static int DudeGetBaseStat(DWORD statID) {
-	return fo_stat_get_base_direct(*ptr_obj_dude, statID);
+	return fo::func::stat_get_base_direct(*fo::ptr::obj_dude, statID);
 }
 
 int __stdcall sfgame_trait_adjust_stat(DWORD statID) {
@@ -747,8 +747,8 @@ int __stdcall sfgame_trait_adjust_stat(DWORD statID) {
 
 	int result = 0;
 	if (TraitsModEnable()) {
-		if (ptr_pc_trait[0] != -1) result += GetTraitStatBonus(statID, 0);
-		if (ptr_pc_trait[1] != -1) result += GetTraitStatBonus(statID, 1);
+		if (fo::ptr::pc_trait[0] != -1) result += GetTraitStatBonus(statID, 0);
+		if (fo::ptr::pc_trait[1] != -1) result += GetTraitStatBonus(statID, 1);
 	}
 
 	switch (statID) {
@@ -788,7 +788,7 @@ int __stdcall sfgame_trait_adjust_stat(DWORD statID) {
 		if (sfgame_trait_level(TRAIT_small_frame)) {
 			int st;
 			if (smallFrameTraitFix) {
-				st = fo_stat_level(*ptr_obj_dude, STAT_st);
+				st = fo::func::stat_level(*fo::ptr::obj_dude, STAT_st);
 			} else {
 				st = DudeGetBaseStat(STAT_st);
 			}
@@ -849,15 +849,15 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 		buildLineTiles.clear();
 	}*/
 
-	long currentRange = fo_tile_dist(sourceTile, targetTile);
-	//fo_debug_printf("\ntile_dist: %d", currentRange);
+	long currentRange = fo::func::tile_dist(sourceTile, targetTile);
+	//fo::func::debug_printf("\ntile_dist: %d", currentRange);
 	if (currentRange == maxRange) maxRange++; // increase the range if the target is located at a distance equal to maxRange (fix range)
 
 	long lastTile = targetTile;
 	long source_X, source_Y, target_X, target_Y;
 
-	fo_tile_coord(sourceTile, &source_X, &source_Y);
-	fo_tile_coord(targetTile, &target_X, &target_Y);
+	fo::func::tile_coord(sourceTile, &source_X, &source_Y);
+	fo::func::tile_coord(targetTile, &target_X, &target_Y);
 
 	// set the point to the center of the hexagon
 	source_X += 16;
@@ -883,12 +883,12 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 		long stepY = diffY_x2 - (diffX_x2 >> 1);
 		while (true) {
 			if (!--stepCounter) {
-				long tile = fo_tile_num(target_X, target_Y);
-				//fo_debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
+				long tile = fo::func::tile_num(target_X, target_Y);
+				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
 					//if (!TileExists(tile)) {
-						long dist = fo_tile_dist(targetTile, tile);
-						if ((dist + currentRange) >= maxRange || fo_tile_on_edge(tile)) return tile;
+						long dist = fo::func::tile_dist(targetTile, tile);
+						if ((dist + currentRange) >= maxRange || fo::func::tile_on_edge(tile)) return tile;
 					//	buildLineTiles.push_back(tile);
 					//}
 					lastTile = tile;
@@ -917,12 +917,12 @@ long __fastcall sfgame_tile_num_beyond(long sourceTile, long targetTile, long ma
 		long stepX = diffX_x2 - (diffY_x2 >> 1);
 		while (true) {
 			if (!--stepCounter) {
-				long tile = fo_tile_num(target_X, target_Y);
-				//fo_debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
+				long tile = fo::func::tile_num(target_X, target_Y);
+				//fo::func::debug_printf("\ntile_num: %d [x:%d y:%d]", tile, target_X, target_Y);
 				if (tile != lastTile) {
 					//if (!TileExists(tile)) {
-						long dist = fo_tile_dist(targetTile, tile);
-						if ((dist + currentRange) >= maxRange || fo_tile_on_edge(tile)) return tile;
+						long dist = fo::func::tile_dist(targetTile, tile);
+						if ((dist + currentRange) >= maxRange || fo::func::tile_on_edge(tile)) return tile;
 					//	buildLineTiles.push_back(tile);
 					//}
 					lastTile = tile;
@@ -959,7 +959,7 @@ void InitReplacementHacks() {
 	SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
 
 	// Replace ai_check_drugs_ function for code fixes and checking healing items
-	MakeJump(ai_check_drugs_, ai_check_drugs_hack); // 0x428480
+	MakeJump(fo::funcoffs::ai_check_drugs_, ai_check_drugs_hack); // 0x428480
 
 	// Change ai_can_use_drug_ function code to check healing items
 	MakeCall(0x429BDE, ai_can_use_drug_hack, 6);
@@ -970,28 +970,28 @@ void InitReplacementHacks() {
 	if (drugUsePerfFixMode > 0) dlogr("Applying AI drug use preference fix.", DL_FIX);
 
 	// Replace adjust_fid_ function
-	MakeJump(adjust_fid_, adjust_fid_replacement); // 0x4716E8
+	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_replacement); // 0x4716E8
 
 	// Replace the item_w_primary_mp_cost_ function with the sfall implementation in ai_search_inven_weap_
 	HookCall(0x429A08, ai_search_inven_weap_hook);
 
 	// Replace the item_w_mp_cost_ function with the sfall implementation
-	MakeJump(item_w_mp_cost_ + 1, item_w_mp_cost_hack); // 0x478B25
+	MakeJump(fo::funcoffs::item_w_mp_cost_ + 1, item_w_mp_cost_hack); // 0x478B25
 
 	fastShotTweak = GetConfigInt("Misc", "FastShotFix", 0);
 
 	// Replace the srcCopy_ function with a pure MMX implementation
-	MakeJump(buf_to_buf_, fo_buf_to_buf); // 0x4D36D4
+	MakeJump(fo::funcoffs::buf_to_buf_, fo::func::buf_to_buf); // 0x4D36D4
 	// Replace the transSrcCopy_ function
-	MakeJump(trans_buf_to_buf_, fo_trans_buf_to_buf); // 0x4D3704
+	MakeJump(fo::funcoffs::trans_buf_to_buf_, fo::func::trans_buf_to_buf); // 0x4D3704
 
 	// Replace trait_adjust_*_ functions
-	MakeJump(trait_adjust_skill_, trait_adjust_skill_replacement); // 0x4B40FC
-	MakeJump(trait_adjust_stat_, trait_adjust_stat_replacement);   // 0x4B3C7C
+	MakeJump(fo::funcoffs::trait_adjust_skill_, trait_adjust_skill_replacement); // 0x4B40FC
+	MakeJump(fo::funcoffs::trait_adjust_stat_, trait_adjust_stat_replacement);   // 0x4B3C7C
 
 	// Fix the carry weight penalty of the Small Frame trait not being applied to bonus Strength points
 	smallFrameTraitFix = (GetConfigInt("Misc", "SmallFrameFix", 0) != 0);
 
 	// Replace tile_num_beyond_ function
-	MakeJump(tile_num_beyond_ + 1, tile_num_beyond_hack); // 0x4B1B84
+	MakeJump(fo::funcoffs::tile_num_beyond_ + 1, tile_num_beyond_hack); // 0x4B1B84
 }

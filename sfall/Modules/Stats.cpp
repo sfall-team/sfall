@@ -130,7 +130,7 @@ static void __declspec(naked) CalcApToAcBonus() {
 		jb   standard;
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
-		call perk_level_;
+		call fo::funcoffs::perk_level_;
 		imul eax, extraApAcBonus;    // bonus = perkLvl * extraApBonus
 		imul eax, edi;               // perkBonus = bonus * curAP
 standard:
@@ -153,12 +153,12 @@ static long __stdcall RecalcStat(int stat, int statsValue[]) {
 
 static void __stdcall StatRecalcDerived(TGameObj* critter) {
 	long* proto;
-	if (fo_proto_ptr(critter->protoId, (sProto**)&proto) == -1) return;
+	if (fo::func::proto_ptr(critter->protoId, (sProto**)&proto) == -1) return;
 
 	int baseStats[7], levelStats[7];
 	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
-		levelStats[stat] = fo_stat_level(critter, stat);
-		if (!derivedHPwBonus) baseStats[stat] = fo_stat_get_base(critter, stat);
+		levelStats[stat] = fo::func::stat_level(critter, stat);
+		if (!derivedHPwBonus) baseStats[stat] = fo::func::stat_get_base(critter, stat);
 	}
 
 	((sProto*)proto)->critter.base.health = RecalcStat(STAT_max_hit_points, (derivedHPwBonus) ? levelStats : baseStats);
@@ -186,9 +186,9 @@ void Stats_UpdateHPStat(TGameObj* critter) {
 	if (engineDerivedStats) return;
 
 	sProto* proto;
-	if (fo_proto_ptr(critter->protoId, &proto) == -1) return;
+	if (fo::func::proto_ptr(critter->protoId, &proto) == -1) return;
 
-	auto getStatFunc = (derivedHPwBonus) ? fo_stat_level : fo_stat_get_base;
+	auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
 
 	double sum = 0;
 	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
@@ -198,8 +198,8 @@ void Stats_UpdateHPStat(TGameObj* critter) {
 	if (calcStatValue < statFormulas[STAT_max_hit_points].min) calcStatValue = statFormulas[STAT_max_hit_points].min;
 
 	if (proto->critter.base.health != calcStatValue) {
-		fo_debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
-		                critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
+		                       critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
 
 		proto->critter.base.health = calcStatValue;
 		critter->critter.health = calcStatValue + proto->critter.bonus.health;
@@ -208,6 +208,7 @@ void Stats_UpdateHPStat(TGameObj* critter) {
 
 static void __declspec(naked) stat_set_base_hack_allow() {
 	static const DWORD StatSetBaseRet = 0x4AF559;
+	using namespace fo;
 	__asm {
 		cmp  ecx, STAT_unused;
 		je   allow;
@@ -226,6 +227,7 @@ notAllow:
 
 static void __declspec(naked) op_set_critter_stat_hack() {
 	static const DWORD SetCritterStatRet = 0x455D8A;
+	using namespace fo;
 	__asm {
 		cmp  dword ptr [esp + 0x2C - 0x28 + 4], STAT_unused;
 		je   allow;
@@ -243,13 +245,14 @@ void __fastcall critter_check_poison_fix() {
 	if (PartyControl_IsNpcControlled()) {
 		// since another critter is being controlled, we can't apply the poison effect to it
 		// instead, we add the "poison" event to dude again, which will be triggered when dude returns to the player's control
-		fo_queue_clear_type(poison_event, nullptr);
+		fo::func::queue_clear_type(poison_event, nullptr);
 		TGameObj* dude = PartyControl_RealDudeObject();
-		fo_queue_add(10, dude, nullptr, poison_event);
+		fo::func::queue_add(10, dude, nullptr, poison_event);
 	}
 }
 
 static void __declspec(naked) critter_check_poison_hack_fix() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  ecx, [eax + protoId]; // critter.pid
@@ -264,6 +267,7 @@ notDude:
 }
 
 void __declspec(naked) critter_adjust_poison_hack_fix() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edx, ds:[FO_VAR_obj_dude];
@@ -274,6 +278,7 @@ void __declspec(naked) critter_adjust_poison_hack_fix() {
 }
 
 static void __declspec(naked) critter_check_rads_hack() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edx, ds:[FO_VAR_obj_dude];
@@ -300,8 +305,8 @@ notDude:
 
 static void StatsReset() {
 	for (size_t i = 0; i < STAT_max_stat; i++) {
-		statMaximumsPC[i] = statMaximumsNPC[i] = ptr_stat_data[i].maxValue;
-		statMinimumsPC[i] = statMinimumsNPC[i] = ptr_stat_data[i].minValue;
+		statMaximumsPC[i] = statMaximumsNPC[i] = fo::ptr::stat_data[i].maxValue;
+		statMinimumsPC[i] = statMinimumsNPC[i] = fo::ptr::stat_data[i].minValue;
 	}
 }
 

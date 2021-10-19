@@ -50,7 +50,7 @@ static const char* errorTable = "\nError: %s - function requires enabling Overri
 
 void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) {
-		fo_debug_printf(errorTable, "set_critical_table()");
+		fo::func::debug_printf(errorTable, "set_critical_table()");
 		return;
 	}
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = value;
@@ -58,7 +58,7 @@ void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD
 
 DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
-		fo_debug_printf(errorTable, "get_critical_table()");
+		fo::func::debug_printf(errorTable, "get_critical_table()");
 		return 0;
 	}
 	return critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
@@ -66,7 +66,7 @@ DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWOR
 
 void __stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
-		fo_debug_printf(errorTable, "reset_critical_table()");
+		fo::func::debug_printf(errorTable, "reset_critical_table()");
 		return;
 	}
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = baseCritTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
@@ -76,7 +76,7 @@ static int CritTableLoad() {
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
 		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
-		CritInfo* defaultTable = ptr_crit_succ_eff;
+		CritInfo* defaultTable = fo::ptr::crit_succ_eff;
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
@@ -99,9 +99,9 @@ static int CritTableLoad() {
 		}
 	} else {
 		dlog("Setting up critical hit table using RP fixes", DL_CRITICALS);
-		memcpy(baseCritTable, ptr_crit_succ_eff, 19 * 6 * 9 * sizeof(CritInfo));
+		memcpy(baseCritTable, fo::ptr::crit_succ_eff, 19 * 6 * 9 * sizeof(CritInfo));
 		//memset(&baseCritTable[6 * 9 * 19], 0, 19 * 6 * 9 * sizeof(CritInfo));
-		memcpy(&baseCritTable[6 * 9 * 38], ptr_pc_crit_succ_eff, 6 * 9 * sizeof(CritInfo)); // PC crit table
+		memcpy(&baseCritTable[6 * 9 * 38], fo::ptr::pc_crit_succ_eff, 6 * 9 * sizeof(CritInfo)); // PC crit table
 
 		if (mode == 3) {
 			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
@@ -144,7 +144,7 @@ enum CritParam {
 	MsgFail
 };
 
-#define SetEntry(critter, bodypart, effect, param, value) ptr_crit_succ_eff[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value
+#define SetEntry(critter, bodypart, effect, param, value) fo::ptr::crit_succ_eff[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value
 
 static void CriticalTableOverride() {
 	dlogr("Initializing critical table override...", DL_INIT);

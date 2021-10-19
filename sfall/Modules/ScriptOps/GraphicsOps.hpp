@@ -39,10 +39,10 @@ static void __declspec(naked) op_load_shader() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_STR2;
 		jz next;
 		cmp dx, VAR_TYPE_STR;
@@ -50,7 +50,7 @@ static void __declspec(naked) op_load_shader() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call LoadShader;
 		mov edx, eax;
@@ -59,10 +59,10 @@ error:
 		mov edx, -1;
 result:
 		mov eax, edi;
-		call interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
-		call interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -116,16 +116,16 @@ static void __declspec(naked) op_get_shader_texture() {
 		push edi;
 		//Get function args
 		mov ecx, eax;
-		call interpretPopShort_;
-		push eax
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
+		mov edi, eax;
+		mov eax, ecx;
+		call fo::funcoffs::interpretPopShort_;
+		push eax;
+		mov eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebx, [esp];
 		cmp bx, VAR_TYPE_INT;
 		jnz fail;
@@ -145,10 +145,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		call interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
 		pop edi;
@@ -170,22 +170,22 @@ static void __declspec(naked) op_set_shader_int() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp + 8], eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_INT;
@@ -199,7 +199,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		call interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov [esp + 4], eax;
 		call SetShaderInt;
 		jmp end;
@@ -227,22 +227,22 @@ static void __declspec(naked) op_set_shader_texture() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp + 8], eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_INT;
@@ -256,7 +256,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		call interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov [esp + 4], eax;
 		call SetShaderTexture;
 		jmp end;
@@ -284,22 +284,22 @@ static void __declspec(naked) op_set_shader_float() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp + 8], eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_FLOAT;
@@ -318,7 +318,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		call interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov [esp + 4], eax;
 		call SetShaderFloat;
 		jmp end;
@@ -347,10 +347,10 @@ static void __declspec(naked) op_set_shader_vector() {
 		mov ecx, 6;
 argloopstart:
 		mov eax, ebp;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov word ptr [esp + ecx * 2 + 0x16], ax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov [esp + ecx * 4 - 0x4], eax;
 		dec ecx;
 		jnz argloopstart;
@@ -377,7 +377,7 @@ next:
 		mov ebx, [esp + 4];
 		xor edx, edx;
 		mov dx, word ptr [esp + 0x1a];
-		call interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov [esp + 4], eax;
 		call SetShaderVector;
 		add esp, 0x12;
@@ -412,16 +412,16 @@ static void __declspec(naked) op_set_shader_mode() {
 		push edx;
 		push esi;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		cmp si, VAR_TYPE_INT;

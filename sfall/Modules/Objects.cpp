@@ -33,7 +33,7 @@ bool Objects_IsUniqueID(long id) {
 
 static void SetScriptObjectID(TGameObj* obj) {
 	TScript* script;
-	if (fo_scr_ptr(obj->scriptId, &script) != -1) {
+	if (fo::func::scr_ptr(obj->scriptId, &script) != -1) {
 		script->ownerObjectId = obj->id;
 	}
 }
@@ -65,7 +65,7 @@ long __fastcall Objects_SetSpecialID(TGameObj* obj) {
 
 void Objects_SetNewEngineID(TGameObj* obj) {
 	if (obj->id > UID_START) return;
-	obj->id = fo_new_obj_id();
+	obj->id = fo::func::new_obj_id();
 	SetScriptObjectID(obj);
 }
 
@@ -90,7 +90,7 @@ static void __declspec(naked) new_obj_id_hook() {
 		retn;
 pickNewID: // skip PM range (18000 - 83535)
 		mov  ds:[FO_VAR_cur_id], eax;
-		jmp  new_obj_id_;
+		jmp  fo::funcoffs::new_obj_id_;
 	}
 }
 
@@ -98,7 +98,7 @@ pickNewID: // skip PM range (18000 - 83535)
 // TODO: for items?
 static void map_fix_critter_id() {
 	long npcStartID = 4096; // 0x1000
-	TGameObj* obj = fo_obj_find_first();
+	TGameObj* obj = fo::func::obj_find_first();
 	while (obj) {
 		if (obj->IsCritter()) {
 			if (obj->id < PLAYER_ID) {
@@ -107,18 +107,19 @@ static void map_fix_critter_id() {
 			}
 			Stats_UpdateHPStat(obj);
 		}
-		obj = fo_obj_find_next();
+		obj = fo::func::obj_find_next();
 	}
 }
 
 static void __declspec(naked) map_load_file_hook() {
 	__asm {
 		call map_fix_critter_id;
-		jmp  map_fix_critter_combat_data_;
+		jmp  fo::funcoffs::map_fix_critter_combat_data_;
 	}
 }
 
 static void __declspec(naked) queue_add_hack() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		// engine code
@@ -240,7 +241,7 @@ skip:
 
 void Objects_OnGameLoad() {
 	RestoreObjUnjamAllLocks();
-	//*ptr_cur_id = 4;
+	//*fo::ptr::cur_id = 4;
 }
 
 void Objects_Init() {

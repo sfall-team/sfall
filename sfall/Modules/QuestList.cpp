@@ -52,7 +52,7 @@ static void __declspec(naked) PipStatus_hook_printfix() {
 	__asm {
 		test outRangeFlag, 0xFF;
 		jnz  force;
-		call _word_wrap_;
+		call fo::funcoffs::_word_wrap_;
 		push eax;
 		movzx eax, word ptr [esp + 0x49C + 8];
 		dec  eax;
@@ -168,7 +168,7 @@ skip:
 static void AddPage(int lines) {
 	total_quests_pages++;
 	pageQuest.push_back(look_quests); // add the quest number to array at top of page
-	*ptr_cursor_line = 3 + lines; // reset current line to beginning, and add text lines
+	*fo::ptr::cursor_line = 3 + lines; // reset current line to beginning, and add text lines
 	outRangeFlag = true;
 }
 
@@ -179,14 +179,14 @@ static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const cha
 	if (outRangeFlag) {
 		if (pageFlag) return EXITCODE_Break; // pages are already counted
 		// count the number of pages
-		fo__word_wrap(text, width, buf, count);
+		fo::func::_word_wrap(text, width, buf, count);
 
 		// check whether the text of the quest leaves the current page
 		int lines = 2 * ((int)*count - 1); // number of lines of text
-		if (*ptr_cursor_line + lines >= *ptr_bottom_line) {
+		if (*fo::ptr::cursor_line + lines >= *fo::ptr::bottom_line) {
 			AddPage(lines);                // quest does not fit in the current page, we add a page
 		} else {
-			*ptr_cursor_line += lines;
+			*fo::ptr::cursor_line += lines;
 		}
 		return EXITCODE_NextQuest;
 	}
@@ -199,12 +199,12 @@ static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const cha
 		return EXITCODE_Break;           // exit from quests loop
 	}
 
-	if (fo__word_wrap(text, width, buf, count) == -1) return EXITCODE_Error; // error wrap
+	if (fo::func::_word_wrap(text, width, buf, count) == -1) return EXITCODE_Error; // error wrap
 
 	if (!pageFlag || last_quest_page == INT_MAX) {        // pages have not been calculated yet
 		// check whether the text of the quest leaves the current page
 		int lines = 2 * ((int)*count - 1);
-		if (*ptr_cursor_line + lines >= *ptr_bottom_line) {
+		if (*fo::ptr::cursor_line + lines >= *fo::ptr::bottom_line) {
 			AddPage(lines); // quest does not fit in the current page, we add a page
 			return EXITCODE_NextQuest;
 		}
@@ -249,7 +249,7 @@ static void __declspec(naked) PrintPages() {
 		mov  ebx, 212;                      // message
 		mov  edx, FO_VAR_pipmesg;
 		mov  eax, FO_VAR_pipboy_message_file;
-		call getmsg_;
+		call fo::funcoffs::getmsg_;
 		push eax;
 		// current page
 		mov  eax, curent_quest_page;
@@ -259,13 +259,13 @@ static void __declspec(naked) PrintPages() {
 		mov  ebx, 213;                      // message
 		mov  edx, FO_VAR_pipmesg;
 		mov  eax, FO_VAR_pipboy_message_file;
-		call getmsg_;
+		call fo::funcoffs::getmsg_;
 		push eax;
 
 		push format;
 		lea  eax, [bufPage];
 		push eax;                           // text buf
-		call sprintf_;
+		call fo::funcoffs::sprintf_;
 		add  esp, 0x18;
 
 		mov  ebx, 1;
@@ -273,13 +273,13 @@ static void __declspec(naked) PrintPages() {
 		mov  bl, byte ptr ds:[FO_VAR_GreenColor];
 		mov  edx, 0x21;
 		lea  eax, [bufPage];
-		jmp  pip_print_;
+		jmp  fo::funcoffs::pip_print_;
 	}
 }
 
 static void __declspec(naked) PipStatus_hook_end() {
 	__asm {
-		call pip_back_;
+		call fo::funcoffs::pip_back_;
 		test total_quests_pages, 0xFF;
 		jz   skip;
 		push edx;
@@ -341,15 +341,15 @@ skip:
 
 static void RegisterButtonSound() {
 	__asm {
-		mov  ebx, gsound_red_butt_release_;
-		mov  edx, gsound_red_butt_press_;
-		call win_register_button_sound_func_; // eax - register button
+		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
+		mov  edx, fo::funcoffs::gsound_red_butt_press_;
+		call fo::funcoffs::win_register_button_sound_func_; // eax - register button
 	}
 }
 
 static void LoadArtButton(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) { // indexArt - index from intrface.lst
-	long artId = fo_art_id(OBJ_TYPE_INTRFACE, indexArt, 0, 0, 0);
-	*(BYTE**)buttonMem = fo_art_ptr_lock_data(artId, 0, 0, (DWORD*)buttonKey); // first texture memory address
+	long artId = fo::func::art_id(OBJ_TYPE_INTRFACE, indexArt, 0, 0, 0);
+	*(BYTE**)buttonMem = fo::func::art_ptr_lock_data(artId, 0, 0, (DWORD*)buttonKey); // first texture memory address
 }
 
 // Create buttons
@@ -397,18 +397,18 @@ static void __declspec(naked) StartPipboy_hack() {
 
 	xPos = questsScrollButtonsX;
 	yPos = questsScrollButtonsY;
-	winRef = *ptr_pip_win;
+	winRef = *fo::ptr::pip_win;
 
 	// creating new 2 buttons
-	picDown = (BYTE*)*ptr_optionsButtonDown1;
-	picUp   = (BYTE*)*ptr_optionsButtonUp1;
-	if (fo_win_register_button(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
+	picDown = (BYTE*)*fo::ptr::optionsButtonDown1;
+	picUp   = (BYTE*)*fo::ptr::optionsButtonUp1;
+	if (fo::func::win_register_button(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
 		RegisterButtonSound();
 	}
 
-	picDown = (BYTE*)*ptr_optionsButtonDown;
-	picUp   = (BYTE*)*ptr_optionsButtonUp;
-	if (fo_win_register_button(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
+	picDown = (BYTE*)*fo::ptr::optionsButtonDown;
+	picUp   = (BYTE*)*fo::ptr::optionsButtonUp;
+	if (fo::func::win_register_button(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
 		RegisterButtonSound();
 	}
 
@@ -423,7 +423,7 @@ static void __declspec(naked) StartPipboy_hack() {
 // Reset states when closing pipboy
 static void __declspec(naked) pipboy_hook() {
 	__asm {
-		call EndPipboy_;
+		call fo::funcoffs::EndPipboy_;
 		test closeFlag, 0xFF;
 		jz   skip;
 		call ResetPageValues;
@@ -525,7 +525,7 @@ static BYTE __fastcall CheckQuestFailureState(QuestData* quest, BYTE completeCol
 	const BYTE failureColor = 137; // dark red
 
 	long index = FindGVarQuestFailure(quest->gvarIndex);
-	return (index != -1 && (*ptr_game_global_vars)[quest->gvarIndex] >= questFailures[index].failureVal) ? failureColor : completeColor;
+	return (index != -1 && (*fo::ptr::game_global_vars)[quest->gvarIndex] >= questFailures[index].failureVal) ? failureColor : completeColor;
 }
 
 static void __declspec(naked) PipStatus_hack() {

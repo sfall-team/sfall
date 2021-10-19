@@ -349,52 +349,52 @@ static char* __stdcall sprintf_lite(const char* format, DWORD value, DWORD value
 static void __declspec(naked) op_sprintf() {
 	__asm {
 		pushaop;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_; // any value
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopLong_; // format string
-		mov esi, eax;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_; // any value
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ecx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_; // format string
+		mov  esi, eax;
 		// check types
-		cmp cx, VAR_TYPE_STR2;
-		je nextarg;
-		cmp cx, VAR_TYPE_STR;
-		jne fail;
+		cmp  cx, VAR_TYPE_STR2;
+		je   nextarg;
+		cmp  cx, VAR_TYPE_STR;
+		jne  fail;
 nextarg:
-		cmp dx, VAR_TYPE_STR2;
-		je next2;
-		cmp dx, VAR_TYPE_STR;
-		jne notstring;
+		cmp  dx, VAR_TYPE_STR2;
+		je   next2;
+		cmp  dx, VAR_TYPE_STR;
+		jne  notstring;
 next2:
-		mov eax, edi;
-		call interpretGetString_; // value string ptr
-		mov ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretGetString_; // value string ptr
+		mov  ebx, eax;
 notstring:
 		push edx; // arg 3 - valueType
-		mov eax, esi;
-		mov esi, ebx;
-		mov edx, ecx;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_; // format string ptr
+		mov  eax, esi;
+		mov  esi, ebx;
+		mov  edx, ecx;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretGetString_; // format string ptr
 		push esi; // arg 2 - value
 		push eax; // arg 1 - format str
 		call sprintf_lite;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretAddString_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_STR;
-		mov eax, edi;
-		call interpretPushShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_STR;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
 fail:
 		popaop;
 		retn;
@@ -481,13 +481,13 @@ static void __stdcall op_message_str_game2() {
 		if (fileId >= 0) {
 			int msgId = msgIdArg.rawValue();
 			if (fileId < 20) { // main msg files
-				msg = GetMessageStr(gameMsgFiles[fileId], msgId);
+				msg = fo::util::GetMessageStr(gameMsgFiles[fileId], msgId);
 			} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-				msg = GetMessageStr(&ptr_proto_msg_files[fileId - 0x1000], msgId);
+				msg = fo::util::GetMessageStr(&fo::ptr::proto_msg_files[fileId - 0x1000], msgId);
 			} else if (fileId >= 0x2000) { // Extra game message files.
 				ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 				if (it != gExtraGameMsgLists.end()) {
-					msg = GetMsg(it->second, msgId, 2);
+					msg = fo::util::GetMsg(it->second, msgId, 2);
 				}
 			}
 		}
@@ -522,7 +522,7 @@ static void mf_get_text_width() {
 	const ScriptValue &textArg = opHandler.arg(0);
 
 	if (textArg.isString()) {
-		opHandler.setReturn(GetTextWidth(textArg.strValue()));
+		opHandler.setReturn(fo::util::GetTextWidth(textArg.strValue()));
 	} else {
 		OpcodeInvalidArgs("get_text_width");
 		opHandler.setReturn(0);

@@ -97,7 +97,7 @@ static void __declspec(naked) LevelUpHack() {
 		test al, al;
 		jnz  notSkilled;
 		mov  eax, TRAIT_skilled;
-		call trait_level_; // Check if the player has the skilled trait
+		call fo::funcoffs::trait_level_; // Check if the player has the skilled trait
 		test eax, eax;
 		jz   notSkilled;
 		mov  ecx, 4;
@@ -324,12 +324,12 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 
 static DWORD __stdcall HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
-		if (fo_folder_print_line(fakeTraits[i].Name) && !isSelect) {
+		if (fo::func::folder_print_line(fakeTraits[i].Name) && !isSelect) {
 			isSelect = 1;
-			*ptr_folder_card_fid = fakeTraits[i].Image;
-			*ptr_folder_card_title = (DWORD)fakeTraits[i].Name;
-			*ptr_folder_card_title2 = 0;
-			*ptr_folder_card_desc = (DWORD)fakeTraits[i].Desc;
+			*fo::ptr::folder_card_fid = fakeTraits[i].Image;
+			*fo::ptr::folder_card_title = (DWORD)fakeTraits[i].Name;
+			*fo::ptr::folder_card_title2 = 0;
+			*fo::ptr::folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
 	return isSelect;
@@ -344,7 +344,7 @@ static void __declspec(naked) PlayerHasPerkHack() {
 oloop:
 		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, ebx;
-		call perk_level_;
+		call fo::funcoffs::perk_level_;
 		test eax, eax;
 		jnz  win;
 		inc  ebx;
@@ -374,6 +374,7 @@ end:
 }
 
 static void __declspec(naked) GetPerkLevelHook() {
+	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
 		jl   end;
@@ -382,11 +383,12 @@ static void __declspec(naked) GetPerkLevelHook() {
 		mov  eax, ds:[eax];
 		retn;
 end:
-		jmp  perk_level_;
+		jmp  fo::funcoffs::perk_level_;
 	}
 }
 
 static void __declspec(naked) GetPerkImageHook() {
+	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
 		jl   end;
@@ -395,11 +397,12 @@ static void __declspec(naked) GetPerkImageHook() {
 		mov  eax, ds:[eax + 4];
 		retn;
 end:
-		jmp  perk_skilldex_fid_;
+		jmp  fo::funcoffs::perk_skilldex_fid_;
 	}
 }
 
 static void __declspec(naked) GetPerkNameHook() {
+	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
 		jl   end;
@@ -408,11 +411,12 @@ static void __declspec(naked) GetPerkNameHook() {
 		lea  eax, ds:[eax + 8];
 		retn;
 end:
-		jmp  perk_name_;
+		jmp  fo::funcoffs::perk_name_;
 	}
 }
 
 static void __declspec(naked) GetPerkDescHook() {
+	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
 		jl   end;
@@ -421,7 +425,7 @@ static void __declspec(naked) GetPerkDescHook() {
 		lea  eax, ds:[eax + 72];
 		retn;
 end:
-		jmp  perk_description_
+		jmp  fo::funcoffs::perk_description_
 	}
 }
 
@@ -429,6 +433,7 @@ end:
 static void __declspec(naked) EndPerkLoopHack() {
 	static const DWORD EndPerkLoopExit = 0x434446;
 	static const DWORD EndPerkLoopCont = 0x4343A5;
+	using namespace fo;
 	__asm {
 		jl   cLoop;           // if ebx < 119
 		call HaveFakePerks;   // return perks count
@@ -443,7 +448,7 @@ cLoop:
 
 // Build a table of perks ID numbers available for selection, data buffer has limited size for 119 perks
 static DWORD __stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
-	for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
+	for (size_t i = 0; i < fakeSelectablePerks.size(); i++) {
 		if (available >= 119) break; // exit if the buffer is overfull
 		data[available++] = PERK_count + i;
 	}
@@ -456,7 +461,7 @@ static void __declspec(naked) GetAvailablePerksHook() {
 		push edx; // arg data
 		cmp  IgnoringDefaultPerks, 0;
 		jnz  skipDefaults;
-		call perk_make_list_; // return available count
+		call fo::funcoffs::perk_make_list_; // return available count
 		jmp  next;
 skipDefaults:
 		xor  eax, eax;
@@ -469,6 +474,7 @@ next:
 }
 
 static void __declspec(naked) GetPerkSLevelHook() {
+	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
 		jl   end;
@@ -476,11 +482,12 @@ static void __declspec(naked) GetPerkSLevelHook() {
 		call GetFakeSPerkLevel;
 		retn;
 end:
-		jmp  perk_level_;
+		jmp  fo::funcoffs::perk_level_;
 	}
 }
 
 static void __declspec(naked) GetPerkSImageHook() {
+	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
 		jl   end;
@@ -489,11 +496,12 @@ static void __declspec(naked) GetPerkSImageHook() {
 		mov  eax, ds:[eax + 4];
 		retn;
 end:
-		jmp  perk_skilldex_fid_;
+		jmp  fo::funcoffs::perk_skilldex_fid_;
 	}
 }
 
 static void __declspec(naked) GetPerkSNameHook() {
+	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
 		jl   end;
@@ -502,11 +510,12 @@ static void __declspec(naked) GetPerkSNameHook() {
 		lea  eax, ds:[eax + 8]; // Name
 		retn;
 end:
-		jmp  perk_name_;
+		jmp  fo::funcoffs::perk_name_;
 	}
 }
 
 static void __declspec(naked) GetPerkSDescHook() {
+	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
 		jl   end;
@@ -515,7 +524,7 @@ static void __declspec(naked) GetPerkSDescHook() {
 		lea  eax, ds:[eax + 72]; // Desc
 		retn;
 end:
-		jmp  perk_description_;
+		jmp  fo::funcoffs::perk_description_;
 	}
 }
 
@@ -562,6 +571,7 @@ static long __stdcall AddFakePerk(DWORD perkID) {
 
 // Adds perk from selection window to player
 static void __declspec(naked) AddPerkHook() {
+	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
 		jl   normalPerk;
@@ -572,7 +582,7 @@ static void __declspec(naked) AddPerkHook() {
 		retn;
 normalPerk:
 		push edx;
-		call perk_add_;
+		call fo::funcoffs::perk_add_;
 		pop  edx;
 		test eax, eax;
 		jnz  end;
@@ -588,17 +598,18 @@ end:
 }
 
 static void __declspec(naked) HeaveHoHook() {
+	using namespace fo;
 	__asm {
 		xor  edx, edx;
 		mov  eax, ecx;
-		call stat_level_;
+		call fo::funcoffs::stat_level_;
 		lea  ebx, [0 + eax * 4];
 		sub  ebx, eax;      // ST * 3
 		cmp  ebx, esi;      // ebx = dist (3*ST), esi = max dist weapon
 		cmovg ebx, esi;     // if dist > max then dist = max
 		mov  eax, ecx;
 		mov  edx, PERK_heave_ho;
-		call perk_level_;
+		call fo::funcoffs::perk_level_;
 		lea  ecx, [0 + eax * 8];
 		sub  ecx, eax;
 		sub  ecx, eax;
@@ -939,11 +950,11 @@ bool __stdcall IsTraitDisabled(int traitID) {
 }
 
 DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex) {
-	return traitStatBonuses[statID * TRAIT_count + ptr_pc_trait[traitIndex]];
+	return traitStatBonuses[statID * TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
 DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex) {
-	return traitSkillBonuses[skillID * TRAIT_count + ptr_pc_trait[traitIndex]];
+	return traitSkillBonuses[skillID * TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
 static void __declspec(naked) BlockedTrait() {
@@ -1046,7 +1057,7 @@ static void PerkAndTraitSetup() {
 
 static __declspec(naked) void game_init_hook() {
 	__asm {
-		call trait_init_;
+		call fo::funcoffs::trait_init_;
 		jmp  PerkAndTraitSetup;
 	}
 }
@@ -1054,7 +1065,7 @@ static __declspec(naked) void game_init_hook() {
 static void __declspec(naked) perks_dialog_hook() {
 	static const DWORD perks_dialog_Ret = 0x43C92F;
 	__asm {
-		call ListDPerks_;
+		call fo::funcoffs::ListDPerks_;
 		test eax, eax;
 		jz   dlgExit;
 		retn;
@@ -1066,35 +1077,36 @@ dlgExit:
 /*
 static void __declspec(naked) item_w_mp_cost_hook() {
 	__asm {
-		call item_w_range_;
+		call fo::funcoffs::item_w_range_;
 		cmp  eax, 2;
 		jge  checkType;                     // is weapon range less than 2?
 		retn;                               // yes, skip -1 AP cost (0x478CA2)
 checkType:
 		mov  eax, edi;                      // source
 		mov  edx, ecx;                      // hit_mode
-		call item_hit_with_;                // get pointer to weapon
+		call fo::funcoffs::item_hit_with_;  // get pointer to weapon
 		mov  edx, ecx;                      // hit_mode
-		jmp  item_w_subtype_;               // eax - item
+		jmp  fo::funcoffs::item_w_subtype_; // eax - item
 	}
 }
 */
 // Haenlomal's tweak
 static void __declspec(naked) item_w_called_shot_hack() {
 	static const DWORD FastShotTraitFix_End = 0x478E7F;
+	using namespace fo;
 	__asm {
 		mov  edx, ecx;                     // argument for item_hit_with_: hit_mode
 		mov  eax, ebx;                     // argument for item_hit_with_: pointer to source_obj (always dude_obj due to code path)
-		call item_hit_with_;               // get pointer to weapon
+		call fo::funcoffs::item_hit_with_; // get pointer to weapon
 		mov  edx, ecx;
-		call item_w_subtype_;
+		call fo::funcoffs::item_w_subtype_;
 		cmp  eax, ATKSUBTYPE_THROWING;     // is weapon type GUNS or THROWING?
 		jge  checkRange;                   // yes
 		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
 checkRange:
 		mov  edx, ecx;                     // argument for item_w_range_: hit_mode
 		mov  eax, ebx;                     // argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
-		call item_w_range_;                // get weapon's range
+		call fo::funcoffs::item_w_range_;  // get weapon's range
 		cmp  eax, 2;                       // is weapon range greater than or equal to 2 (i.e. ranged attack)?
 		jge  cantUse;                      // yes, disallow called shot attempt
 		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
@@ -1124,7 +1136,7 @@ static void FastShotTraitFix() {
 	case 3:
 		dlog("Applying Fast Shot trait patch (Fallout 1 behavior).", DL_INIT);
 		/* Implemented in sfall item_w_mp_cost function */
-		//HookCall(0x478C97, (void*)item_hit_with_);
+		//HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
 		//SafeWrite16(0x478C9E, CODETYPE_JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
 		goto done;
 	default:

@@ -111,7 +111,7 @@ static void __stdcall RunSpecificHookScript(sHookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
-		fo_executeProcedure(hook->prog.ptr, hook->callback);
+		fo::func::executeProcedure(hook->prog.ptr, hook->callback);
 	} else {
 		hook->callback = RunScriptStartProc(&hook->prog); // run start
 	}
@@ -121,7 +121,7 @@ static void __stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
 	if (!hooks[hook].empty()) {
 		if (callDepth > 8) {
-			fo_debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
+			fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
 			dlog_f("The hook %d cannot be executed due to exceeding depth limit\n", DL_MAIN, hook);
 			return;
 		}
@@ -185,7 +185,7 @@ static void __declspec(naked) ToHitHook() {
 		mov  args[20], eax;   // attack type
 		push eax;
 		mov  eax, args[4];    // restore
-		call determine_to_hit_func_;
+		call fo::funcoffs::determine_to_hit_func_;
 		mov  args[0], eax;
 		mov  ebx, eax;
 	}
@@ -270,7 +270,7 @@ static void __declspec(naked) CalcApCostHook() {
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
-		call item_w_mp_cost_;
+		call fo::funcoffs::item_w_mp_cost_;
 		mov  args[12], eax;
 		mov  ebx, eax;
 		push ecx;
@@ -337,14 +337,14 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 		DWORD pid = rets[0];
 		args[0] = pid; // replace for HOOK_DEATHANIM2
 		TGameObj* object = nullptr;
-		if (fo_obj_pid_new((TGameObj*)&object, pid) != -1) { // create new object
+		if (fo::func::obj_pid_new((TGameObj*)&object, pid) != -1) { // create new object
 			createNewObj = true;
 			weapon = object; // replace pointer with newly created weapon object
 		}
 		cRet = 0; // reset rets from HOOK_DEATHANIM1
 	}
 
-	DWORD animDeath = fo_pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
+	DWORD animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
 	args[4] = animDeath;
 	RunHookScript(HOOK_DEATHANIM2);
@@ -352,7 +352,7 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 	if (cRet > 0) animDeath = rets[0];
 	EndHook();
 
-	if (createNewObj) fo_obj_erase_object(weapon, 0); // delete created object
+	if (createNewObj) fo::func::obj_erase_object(weapon, 0); // delete created object
 
 	return animDeath;
 }
@@ -374,7 +374,7 @@ static void __declspec(naked) CalcDeathAnimHook() {
 
 static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
-		call check_death_; // call original function
+		call fo::funcoffs::check_death_; // call original function
 		mov  ebx, eax;
 		call BeginHook;
 		mov  eax, [esp + 60];
@@ -441,7 +441,7 @@ static void __declspec(naked) ComputeDamageHook() {
 		push ebx;         // store dmg multiplier  args[8]
 		push edx;         // store num of rounds   args[9]
 		push eax;         // store ctd
-		call compute_damage_;
+		call fo::funcoffs::compute_damage_;
 		pop  ecx;         // restore ctd (eax)
 		pop  edx;         // restore num of rounds
 		call ComputeDamageHook_Script;  // stack - arg multiplier
@@ -473,7 +473,7 @@ static void __declspec(naked) OnDeathHook() {
 
 static void __declspec(naked) OnDeathHook2() {
 	__asm {
-		call partyMemberRemove_;
+		call fo::funcoffs::partyMemberRemove_;
 		HookBegin;
 		mov  args[0], esi;
 		pushadc;
@@ -512,7 +512,7 @@ static void __fastcall FindTargetHook_Script(DWORD* target, TGameObj* attacker) 
 static void __declspec(naked) FindTargetHook() {
 	__asm {
 		push eax;
-		call qsort_;
+		call fo::funcoffs::qsort_;
 		pop  ecx;          // targets (base)
 		mov  edx, esi;     // attacker
 		jmp  FindTargetHook_Script;
@@ -563,7 +563,7 @@ static void __declspec(naked) UseObjOnHook() {
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp protinst_use_item_on_;
+		jmp fo::funcoffs::protinst_use_item_on_;
 	}
 }
 
@@ -590,7 +590,7 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp item_d_take_drug_;
+		jmp fo::funcoffs::item_d_take_drug_;
 	}
 }
 
@@ -616,7 +616,7 @@ static void __declspec(naked) UseObjHook() {
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp protinst_use_item_;
+		jmp fo::funcoffs::protinst_use_item_;
 	}
 }
 /*
@@ -681,8 +681,8 @@ static void __declspec(naked) RemoveObjHook() {
 // 4.x backport
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, register TGameObj* target, DWORD callAddr) {
-	bool barterIsParty = (*ptr_dialog_target_is_party != 0);
-	long computeCost = fo_barter_compute_value(source, target);
+	bool barterIsParty = (*fo::ptr::dialog_target_is_party != 0);
+	long computeCost = fo::func::barter_compute_value(source, target);
 
 	BeginHook();
 	argCount = 10;
@@ -691,20 +691,20 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 	args[1] = (DWORD)target;
 	args[2] = !barterIsParty ? computeCost : 0;
 
-	TGameObj* bTable = (TGameObj*)*ptr_btable;
+	TGameObj* bTable = (TGameObj*)*fo::ptr::btable;
 	args[3] = (DWORD)bTable;
-	args[4] = fo_item_caps_total(bTable);
-	args[5] = fo_item_total_cost(bTable);
+	args[4] = fo::func::item_caps_total(bTable);
+	args[5] = fo::func::item_total_cost(bTable);
 
-	TGameObj* pTable = (TGameObj*)*ptr_ptable;
+	TGameObj* pTable = (TGameObj*)*fo::ptr::ptable;
 	args[6] = (DWORD)pTable;
 
 	long pcCost = 0;
 	if (barterIsParty) {
 		args[7] = pcCost;
-		pcCost = fo_item_total_weight(pTable);
+		pcCost = fo::func::item_total_weight(pTable);
 	} else {
-		args[7] = pcCost = fo_item_total_cost(pTable);
+		args[7] = pcCost = fo::func::item_total_cost(pTable);
 	}
 
 	args[8] = (DWORD)(callAddr == 0x474D51); // offers button pressed
@@ -768,7 +768,7 @@ static void __declspec(naked) MoveCostHook() {
 		HookBegin;
 		mov  args[0], eax;
 		mov  args[4], edx;
-		call critter_compute_ap_from_distance_;
+		call fo::funcoffs::critter_compute_ap_from_distance_;
 		mov  args[8], eax;
 		push ebx;
 		push ecx;
@@ -830,7 +830,7 @@ static void __declspec(naked) HexAIBlockingHook() {
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
-		call obj_ai_blocking_at_;
+		call fo::funcoffs::obj_ai_blocking_at_;
 		mov  args[12], eax;
 		mov  ebx, eax;
 		push ecx;
@@ -855,7 +855,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
-		call obj_shoot_blocking_at_;
+		call fo::funcoffs::obj_shoot_blocking_at_;
 		mov  args[12], eax;
 		mov  ebx, eax;
 		push ecx;
@@ -880,7 +880,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 		mov  args[0], eax;
 		mov  args[4], edx;
 		mov  args[8], ebx;
-		call obj_sight_blocking_at_;
+		call fo::funcoffs::obj_sight_blocking_at_;
 		mov  args[12], eax;
 		mov  ebx, eax;
 		push ecx;
@@ -930,7 +930,7 @@ static void __declspec(naked) ItemDamageHook() {
 		}
 	}
 	HookEnd;
-	__asm jmp roll_random_;
+	__asm jmp fo::funcoffs::roll_random_;
 }
 
 // 4.x backport
@@ -947,7 +947,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &roun
 	if (hookType == 2) {        // burst hook
 		rounds = 1;             // set default multiply for check burst attack
 	} else {
-		result = fo_item_w_compute_ammo_cost(weapon, &rounds);
+		result = fo::func::item_w_compute_ammo_cost(weapon, &rounds);
 		if (result == -1) goto failed; // computation failed
 	}
 	args[2] = rounds;           // rounds as computed by game (cost)
@@ -1030,7 +1030,7 @@ static void __declspec(naked) UseSkillHook() {
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp skill_use_;
+		jmp fo::funcoffs::skill_use_;
 	}
 }
 
@@ -1058,7 +1058,7 @@ static void __declspec(naked) StealCheckHook() {
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp skill_check_stealing_;
+		jmp fo::funcoffs::skill_check_stealing_;
 	}
 }
 
@@ -1086,7 +1086,7 @@ long __stdcall PerceptionRangeHook_Invoke(TGameObj* watcher, TGameObj* target, l
 }
 
 static long __fastcall PerceptionRange_Hook(TGameObj* watcher, TGameObj* target, int type) {
-	return PerceptionRangeHook_Script(watcher, target, type, fo_is_within_perception(watcher, target));
+	return PerceptionRangeHook_Script(watcher, target, type, fo::func::is_within_perception(watcher, target));
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
@@ -1141,7 +1141,7 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 
 // 4.x backport
 static int __fastcall SwitchHandHook_Script(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
-	if (itemReplaced && fo_item_get_type(itemReplaced) == item_type_weapon && fo_item_get_type(item) == item_type_ammo) {
+	if (itemReplaced && fo::func::item_get_type(itemReplaced) == item_type_weapon && fo::func::item_get_type(item) == item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 
@@ -1179,7 +1179,7 @@ static void __declspec(naked) SwitchHandHook() {
 		cmp  eax, -1;            // ret value
 		popadc;
 		jne  skip;
-		jmp  switch_hand_;
+		jmp  fo::funcoffs::switch_hand_;
 skip:
 		retn;
 	}
@@ -1236,7 +1236,7 @@ noCont:
 		cmp  eax, -1;                    // ret value
 		popadc;
 		jne  skip;
-		jmp  item_add_force_;
+		jmp  fo::funcoffs::item_add_force_;
 skip:
 		retn;
 	}
@@ -1269,7 +1269,7 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 
 	if (dropResult == -1) {
 skipHook:
-		__asm call obj_drop_;
+		__asm call fo::funcoffs::obj_drop_;
 	}
 	__asm retn;
 
@@ -1277,7 +1277,7 @@ skipHook:
 capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
-		__asm call item_remove_mult_;
+		__asm call fo::funcoffs::item_remove_mult_;
 		__asm retn;
 	}
 	__asm add esp, 4;
@@ -1336,7 +1336,7 @@ skipDrop:
 static void __declspec(naked) DropIntoContainerHandSlotHack() {
 	static const DWORD DropIntoContainerRet = 0x471481;
 	__asm {
-		call drop_into_container_;
+		call fo::funcoffs::drop_into_container_;
 		jmp  DropIntoContainerRet;
 	}
 }
@@ -1352,7 +1352,7 @@ static void __declspec(naked) DropAmmoIntoWeaponHook() {
 		cmp  eax, -1;               // ret value
 		jne  donothing;
 		popadc;
-		jmp  item_w_can_reload_;
+		jmp  fo::funcoffs::item_w_can_reload_;
 donothing:
 		add  esp, 4*4; // destroy all pushed values and return address
 		xor  eax, eax; // result 0
@@ -1383,7 +1383,7 @@ runHook:
 
 static void __declspec(naked) InvenPickupHook() {
 	__asm {
-		call mouse_click_in_;
+		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jnz  runHook;
 		retn;
@@ -1407,11 +1407,11 @@ skip:
 static long __fastcall InvenWieldHook_Script(TGameObj* critter, TGameObj* item, long slot, long isWield, long isRemove) {
 	if (!isWield) {
 		// for the critter, the right slot is always the active slot
-		if (slot == INVEN_TYPE_LEFT_HAND && critter != *ptr_obj_dude) return 1;
+		if (slot == INVEN_TYPE_LEFT_HAND && critter != *fo::ptr::obj_dude) return 1;
 		// check the current active slot for the player
-		if (slot != INVEN_TYPE_WORN && critter == *ptr_obj_dude) {
+		if (slot != INVEN_TYPE_WORN && critter == *fo::ptr::obj_dude) {
 			long _slot = (slot != INVEN_TYPE_LEFT_HAND);
-			if (_slot != *ptr_itemCurrentItem) return 1; // item in non-active slot
+			if (_slot != *fo::ptr::itemCurrentItem) return 1; // item in non-active slot
 		}
 	}
 	BeginHook();
@@ -1455,7 +1455,7 @@ static void __declspec(naked) InvenWieldFuncHook() {
 	}
 
 	// right hand slot?
-	if (args[2] != INVEN_TYPE_RIGHT_HAND && fo_item_get_type((TGameObj*)args[1]) != item_type_armor) {
+	if (args[2] != INVEN_TYPE_RIGHT_HAND && fo::func::item_get_type((TGameObj*)args[1]) != item_type_armor) {
 		args[2] = INVEN_TYPE_LEFT_HAND;
 	}
 	InvenWieldHook_ScriptPart(1); // wield event
@@ -1464,7 +1464,7 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		test al, al;
 		popad;
 		jz   skip;
-		jmp  invenWieldFunc_;
+		jmp  fo::funcoffs::invenWieldFunc_;
 skip:
 		mov  eax, -1;
 		retn;
@@ -1486,7 +1486,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 	}
 
 	// get item
-	args[1] = (DWORD)GetItemPtrSlot((TGameObj*)args[0], (InvenType)args[2]);
+	args[1] = (DWORD)fo::util::GetItemPtrSlot((TGameObj*)args[0], (InvenType)args[2]);
 
 	InvenWieldHook_ScriptPart(0); // unwield event
 
@@ -1494,7 +1494,7 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 		test al, al;
 		popadc;
 		jz   skip;
-		jmp  invenUnwieldFunc_;
+		jmp  fo::funcoffs::invenUnwieldFunc_;
 skip:
 		mov  eax, -1;
 		retn;
@@ -1524,7 +1524,7 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	// engine handler is not overridden
 	__asm {
 		popadc;
-		jmp  correctFidForRemovedItem_;
+		jmp  fo::funcoffs::correctFidForRemovedItem_;
 	}
 }
 
@@ -1608,7 +1608,7 @@ static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
 	__asm {
 		cmp  eax, ds:[FO_VAR_obj_dude];
 		je   runHook;
-		jmp  item_move_all_;
+		jmp  fo::funcoffs::item_move_all_;
 runHook:
 		push eax;
 		push edx;
@@ -1616,10 +1616,10 @@ runHook:
 		mov  edx, ds:[FO_VAR_itemCurrentItem]; // get player's active slot
 		test edx, edx;
 		jz   left;
-		call inven_right_hand_;
+		call fo::funcoffs::inven_right_hand_;
 		jmp  skip;
 left:
-		call inven_left_hand_;
+		call fo::funcoffs::inven_left_hand_;
 skip:
 		test eax, eax;
 		jz   noWeapon;
@@ -1646,7 +1646,7 @@ noWeapon:
 noArmor:
 		pop  edx;
 		pop  eax;
-		jmp  item_move_all_;
+		jmp  fo::funcoffs::item_move_all_;
 	}
 }
 
@@ -1656,11 +1656,11 @@ void __stdcall AdjustFidHook(DWORD vanillaFid) {
 	argCount = 2;
 
 	args[0] = vanillaFid;
-	args[1] = *ptr_i_fid; // modified FID by sfall code
+	args[1] = *fo::ptr::i_fid; // modified FID by sfall code
 	RunHookScript(HOOK_ADJUSTFID);
 
 	if (cRet > 0) {
-		*ptr_i_fid = rets[0];
+		*fo::ptr::i_fid = rets[0];
 	}
 	EndHook();
 }
@@ -1758,7 +1758,7 @@ void LoadHookScript(const char* name, int id) {
 	char filePath[MAX_PATH];
 
 	sprintf(filePath, "scripts\\%s.int", name);
-	if (!fo_db_access(filePath)) return; // hook script not found
+	if (!fo::func::db_access(filePath)) return; // hook script not found
 
 	HookFile hookFile = {id, name};
 	hookScriptFilesList.push_back(hookFile);

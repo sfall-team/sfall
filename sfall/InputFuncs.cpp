@@ -99,7 +99,7 @@ void SetMPos(int x, int y) {
 }
 
 void FlushInputBuffer() {
-	__asm call kb_clear_;
+	__asm call fo::funcoffs::kb_clear_;
 }
 
 DWORD __stdcall KeyDown(DWORD key) {
@@ -224,9 +224,9 @@ public:
 		if (useScrollWheel) {
 			int count = 1;
 			if (MouseState.lZ > 0) {
-				if (*ptr_gmouse_current_cursor == 2 || *ptr_gmouse_current_cursor == 3) {
+				if (*fo::ptr::gmouse_current_cursor == 2 || *fo::ptr::gmouse_current_cursor == 3) {
 					__asm {
-						call display_scroll_up_;
+						call fo::funcoffs::display_scroll_up_;
 					}
 				} else {
 					if (wheelMod) count = MouseState.lZ / wheelMod;
@@ -234,9 +234,9 @@ public:
 					while (count--) TapKey(DIK_UP);
 				}
 			} else if (MouseState.lZ < 0) {
-				if (*ptr_gmouse_current_cursor == 2 || *ptr_gmouse_current_cursor == 3) {
+				if (*fo::ptr::gmouse_current_cursor == 2 || *fo::ptr::gmouse_current_cursor == 3) {
 					__asm {
-						call display_scroll_down_;
+						call fo::funcoffs::display_scroll_down_;
 					}
 				} else {
 					if (wheelMod) count = (-MouseState.lZ) / wheelMod;

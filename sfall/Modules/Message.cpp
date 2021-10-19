@@ -67,7 +67,7 @@ static long heroIsFemale = -1;
 // example: <MaleText^FemaleText>
 static long __fastcall ReplaceGenderWord(MSGNode* msgData, DWORD* msgFile) {
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
-	if (heroIsFemale < 0) heroIsFemale = HeroIsFemale();
+	if (heroIsFemale < 0) heroIsFemale = fo::util::HeroIsFemale();
 
 	unsigned char* _pos = (unsigned char*)msgData->message;
 	unsigned char* pos;
@@ -111,7 +111,7 @@ static long __fastcall ReplaceGenderWord(MSGNode* msgData, DWORD* msgFile) {
 
 	// set flag
 	unsigned long outValue;
-	fo_message_find(msgFile, msgData->number, &outValue);
+	fo::func::message_find(msgFile, msgData->number, &outValue);
 	((MSGNode*)(msgFile[1] + (outValue * 16)))->flags |= MSG_GENDER_CHECK_FLG;
 
 	return 1;
@@ -119,7 +119,7 @@ static long __fastcall ReplaceGenderWord(MSGNode* msgData, DWORD* msgFile) {
 
 static void __declspec(naked) scr_get_msg_str_speech_hook() {
 	__asm {
-		call message_search_;
+		call fo::funcoffs::message_search_;
 		cmp  eax, 1;
 		jne  end;
 		push ecx;
@@ -137,7 +137,7 @@ static void __declspec(naked) message_load_hook() {
 	__asm {
 		mov  ebx, edx; // keep mode
 		mov  ecx, eax; // keep buf
-		call db_fopen_;
+		call fo::funcoffs::db_fopen_;
 		test eax, eax;
 		jz   noFile;
 		retn;
@@ -147,11 +147,11 @@ noFile:
 		push 0x50B7D0; // "text"
 		push 0x50B7D8; // "%s\%s\%s"
 		push ecx;      // buf
-		call sprintf_;
+		call fo::funcoffs::sprintf_;
 		add  esp, 20;
 		mov  edx, ebx;
 		mov  eax, ecx;
-		jmp  db_fopen_;
+		jmp  fo::funcoffs::db_fopen_;
 	}
 }
 
@@ -169,7 +169,7 @@ void ReadExtraGameMsgFiles() {
 			}
 			path += ".msg";
 			MSGList* list = new MSGList();
-			if (fo_message_load(list, path.c_str()) == 1) {
+			if (fo::func::message_load(list, path.c_str()) == 1) {
 				gExtraGameMsgLists.insert(std::pair<const int, MSGList*>(0x2000 + number, list));
 			} else {
 				delete list;
@@ -189,10 +189,10 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 	std::string path("game\\");
 	path += msgName;
 	MSGList* list = new MSGList();
-	if (!fo_message_load(list, path.c_str())) {
+	if (!fo::func::message_load(list, path.c_str())) {
 		// change current language folder
 		//path.insert(0, "..\\english\\");
-		//if (!fo_message_load(list, path.c_str())) {
+		//if (!fo::func::message_load(list, path.c_str())) {
 			delete list;
 			return -2;
 		//}
@@ -205,7 +205,7 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 void ClearScriptAddedExtraGameMsg() {
 	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end();) {
 		if (it->first >= 0x3000 && it->first <= 0x3FFF) {
-			fo_message_exit(it->second);
+			fo::func::message_exit(it->second);
 			delete it->second;
 			it = gExtraGameMsgLists.erase(it);
 		} else {
@@ -218,7 +218,7 @@ void ClearScriptAddedExtraGameMsg() {
 
 void FallbackEnglishLoadMsgFiles() {
 	const char* lang;
-	if (fo_get_game_config_string(&lang, "system", "language")) {
+	if (fo::func::get_game_config_string(&lang, "system", "language")) {
 		strncpy_s(gameLanguage, lang, _TRUNCATE);
 		if (_stricmp(lang, "english") != 0) HookCall(0x484B18, message_load_hook);
 	}
@@ -226,7 +226,7 @@ void FallbackEnglishLoadMsgFiles() {
 
 void ClearReadExtraGameMsgFiles() {
 	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
-		fo_message_exit(it->second);
+		fo::func::message_exit(it->second);
 		delete it->second;
 	}
 }

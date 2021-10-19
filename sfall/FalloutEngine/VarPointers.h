@@ -24,35 +24,43 @@
 //
 // Global variable pointers.
 //
-// In normal CPP code use: *ptr_name to read/write value or ptr_name to use as pointer.
+// In normal CPP code use: *fo::ptr::ptr_name to read/write value or fo::ptr::ptr_name to use as pointer.
 //
+namespace fo
+{
+namespace ptr
+{
 
 // defines pointer to an engine variable
 #define PTR_(name, type) \
-	extern type* ptr_##name;
+	extern type* name;
 
 #define PTRC(name, type) \
-	extern const type* ptr_##name;
+	extern const type* name;
 
 // X-Macros pattern
 #include "VarPointers_def.h"
 
+}
 
-//namespace var // 4.x
-//{
+namespace var // 4.x
+{
 
-__inline long var_getInt(DWORD addr) {
+__inline long getInt(DWORD addr) {
 	return *reinterpret_cast<DWORD*>(addr);
 }
 
-__inline BYTE var_getByte(DWORD addr) {
+__inline BYTE getByte(DWORD addr) {
 	return *reinterpret_cast<BYTE*>(addr);
 }
 
-__inline long& var_setInt(DWORD addr) {
+__inline long& setInt(DWORD addr) {
 	return *reinterpret_cast<long*>(addr);
 }
 
-__inline BYTE& var_setByte(DWORD addr) {
+__inline BYTE& setByte(DWORD addr) {
 	return *reinterpret_cast<BYTE*>(addr);
+}
+
+}
 }

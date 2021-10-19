@@ -31,7 +31,7 @@ static void __declspec(naked) op_active_hand() {
 static void __declspec(naked) op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
-		jmp intface_toggle_items_;
+		jmp fo::funcoffs::intface_toggle_items_;
 	}
 }
 
@@ -84,13 +84,13 @@ static void mf_critter_inven_obj2() {
 		int slot = slotArg.rawValue();
 		switch (slot) {
 		case 0:
-			opHandler.setReturn(fo_inven_worn(critter));
+			opHandler.setReturn(fo::func::inven_worn(critter));
 			break;
 		case 1:
-			opHandler.setReturn(fo_inven_right_hand(critter));
+			opHandler.setReturn(fo::func::inven_right_hand(critter));
 			break;
 		case 2:
-			opHandler.setReturn(fo_inven_left_hand(critter));
+			opHandler.setReturn(fo::func::inven_left_hand(critter));
 			break;
 		case -2:
 			opHandler.setReturn(critter->invenSize);
@@ -107,7 +107,7 @@ static void mf_critter_inven_obj2() {
 static void mf_item_weight() {
 	TGameObj* item = opHandler.arg(0).asObject();
 	if (item) {
-		opHandler.setReturn(fo_item_weight(item));
+		opHandler.setReturn(fo::func::item_weight(item));
 	} else {
 		OpcodeInvalidArgs("item_weight");
 		opHandler.setReturn(0);
@@ -137,10 +137,10 @@ static void mf_unwield_slot() {
 		opHandler.setReturn(-1);
 		return;
 	}
-	bool isDude = (critter == *ptr_obj_dude);
+	bool isDude = (critter == *fo::ptr::obj_dude);
 	bool update = false;
 	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
-		if (fo_inven_unwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
+		if (fo::func::inven_unwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
 			update = isDude;
 		}
 	} else {
@@ -151,10 +151,10 @@ static void mf_unwield_slot() {
 			if (!isDude) return;
 			long* itemRef = nullptr;
 			if (slot == INVEN_TYPE_LEFT_HAND) {
-				item = *ptr_i_lhand;
+				item = *fo::ptr::i_lhand;
 				itemRef = (long*)FO_VAR_i_lhand;
 			} else {
-				item = *ptr_i_rhand;
+				item = *fo::ptr::i_rhand;
 				itemRef = (long*)FO_VAR_i_rhand;
 			}
 			if (item) {
@@ -166,22 +166,22 @@ static void mf_unwield_slot() {
 				update = true;
 			}
 		} else {
-			if (isDude) item = *ptr_i_worn;
+			if (isDude) item = *fo::ptr::i_worn;
 			if (!item) {
-				item = fo_inven_worn(critter);
+				item = fo::func::inven_worn(critter);
 			} else {
-				*ptr_i_worn = nullptr;
+				*fo::ptr::i_worn = nullptr;
 				forceAdd = true;
 			}
 			if (item) {
 				if (!sfgame_correctFidForRemovedItem(critter, item, ObjectFlag::Worn)) {
-					if (forceAdd) *ptr_i_worn = item;
+					if (forceAdd) *fo::ptr::i_worn = item;
 					return;
 				}
-				if (isDude) fo_intface_update_ac(0);
+				if (isDude) fo::func::intface_update_ac(0);
 			}
 		}
-		if (forceAdd) fo_item_add_force(critter, item, 1);
+		if (forceAdd) fo::func::item_add_force(critter, item, 1);
 	}
-	if (update) fo_intface_update_items(0, -1, -1);
+	if (update) fo::func::intface_update_items(0, -1, -1);
 }

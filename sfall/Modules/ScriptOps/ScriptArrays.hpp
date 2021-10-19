@@ -21,35 +21,35 @@
 static void __declspec(naked) op_create_array() {
 	__asm {
 		pushaop;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jne fail;
-		cmp dx, VAR_TYPE_INT;
-		jne fail;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		mov  ecx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  bx, VAR_TYPE_INT;
+		jne  fail;
+		cmp  dx, VAR_TYPE_INT;
+		jne  fail;
 		push ecx;
 		push eax;
 		call CreateArray;
-		mov edx, eax;
-		jmp end;
+		mov  edx, eax;
+		jmp  end;
 fail:
-		xor edx, edx;
-		dec edx;
+		xor  edx, edx;
+		dec  edx;
 end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
 		popaop;
 		retn;
 	}
@@ -58,52 +58,52 @@ end:
 static void __declspec(naked) op_set_array() {
 	__asm {
 		pushaop;
-		mov ebp, eax;
+		mov  ebp, eax;
 		//Get args
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov edi, eax; // value
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov esi, eax; // key
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  edi, eax; // value
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ecx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  esi, eax; // key
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
 		xchg eax, edi; // arrayID
 		//Error check:
-		cmp bx, VAR_TYPE_INT;
-		jne end;
+		cmp  bx, VAR_TYPE_INT;
+		jne  end;
 		push 1; // arg 6: allow unset
 		push edx; // arg 5: value type
 		// value:
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz notstring;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  notstring;
 next:
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretGetString_;
+		mov  ebx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretGetString_;
 notstring:
 		push eax; // arg 4: value
 		// key:
-		cmp cx, VAR_TYPE_STR2;
-		jz next1;
-		cmp cx, VAR_TYPE_STR;
-		jnz notstring1;
+		cmp  cx, VAR_TYPE_STR2;
+		jz   next1;
+		cmp  cx, VAR_TYPE_STR;
+		jnz  notstring1;
 next1:
-		mov edx, ecx;
-		mov ebx, esi;
-		mov eax, ebp;
-		call interpretGetString_;
-		mov esi, eax;
+		mov  edx, ecx;
+		mov  ebx, esi;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretGetString_;
+		mov  esi, eax;
 notstring1:
 		push ecx; // arg 3: key type
 		push esi; // arg 2: key
@@ -133,80 +133,80 @@ static char* __stdcall GetArraySubstr(const char* str, size_t index) {
 static void __declspec(naked) op_get_array() {
 	__asm {
 		pushaop;
-		mov ebp, eax;
+		mov  ebp, eax;
 		//Get args
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  edi, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ecx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  esi, eax;
+		mov  eax, ebp;
 		// check first argument type
-		cmp cx, VAR_TYPE_STR;
-		je callsubstr;
-		cmp cx, VAR_TYPE_STR2;
-		jne proceedgetarray;
+		cmp  cx, VAR_TYPE_STR;
+		je   callsubstr;
+		cmp  cx, VAR_TYPE_STR2;
+		jne  proceedgetarray;
 callsubstr:
 		// use substr instead of get_array when used on string
 		// in this case, check for second argument to be numeric
-		cmp bx, VAR_TYPE_INT;
-		jne fail;
-		mov eax, ebp;
-		mov ebx, esi;
-		mov edx, ecx;
-		call interpretGetString_;
+		cmp  bx, VAR_TYPE_INT;
+		jne  fail;
+		mov  eax, ebp;
+		mov  ebx, esi;
+		mov  edx, ecx;
+		call fo::funcoffs::interpretGetString_;
 		push edi;
 		push eax;
 		call GetArraySubstr;
-		mov edx, eax; // result substring
-		mov ebx, VAR_TYPE_STR; // result type
-		jmp end;
+		mov  edx, eax; // result substring
+		mov  ebx, VAR_TYPE_STR; // result type
+		jmp  end;
 proceedgetarray:
-		cmp cx, VAR_TYPE_INT; // only int is allowed for arrayID in this case
-		jne fail;
-		cmp bx, VAR_TYPE_STR;
-		je next1;
-		cmp bx, VAR_TYPE_STR2;
-		jne notstring1;
+		cmp  cx, VAR_TYPE_INT; // only int is allowed for arrayID in this case
+		jne  fail;
+		cmp  bx, VAR_TYPE_STR;
+		je   next1;
+		cmp  bx, VAR_TYPE_STR2;
+		jne  notstring1;
 next1:
-		mov ecx, ebx;
-		mov edx, ebx;
-		mov ebx, edi;
-		mov eax, ebp;
-		call interpretGetString_;
-		mov edi, eax;
-		mov ebx, ecx;
+		mov  ecx, ebx;
+		mov  edx, ebx;
+		mov  ebx, edi;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretGetString_;
+		mov  edi, eax;
+		mov  ebx, ecx;
 notstring1:
-		mov eax, esp; // ptr to resultType (will be changed in GetArray)
+		mov  eax, esp; // ptr to resultType (will be changed in GetArray)
 		push eax;
 		push ebx;
 		push edi;
 		push esi;
 		call GetArray;
-		mov edx, eax; // result data
-		mov ebx, [esp]; // resultType
-		jmp end;
+		mov  edx, eax; // result data
+		mov  ebx, [esp]; // resultType
+		jmp  end;
 fail:
-		xor edx, edx;
-		mov ebx, VAR_TYPE_INT;
+		xor  edx, edx;
+		mov  ebx, VAR_TYPE_INT;
 end:
-		cmp bx, VAR_TYPE_STR;
-		jne notstring;
-		mov eax, ebp;
-		call interpretAddString_;
-		mov edx, eax;
+		cmp  bx, VAR_TYPE_STR;
+		jne  notstring;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax;
 notstring:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, ebx;
-		mov eax, ebp;
-		call interpretPushShort_;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, ebx;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPushShort_;
 		popaop;
 		retn;
 	}
@@ -215,13 +215,13 @@ notstring:
 static void __declspec(naked) op_free_array() {
 	__asm {
 		pushaop;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jne end;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  bx, VAR_TYPE_INT;
+		jne  end;
 		push eax;
 		call FreeArray;
 end:
@@ -233,25 +233,25 @@ end:
 static void __declspec(naked) op_len_array() {
 	__asm {
 		pushaop;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jne fail;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  bx, VAR_TYPE_INT;
+		jne  fail;
 		push eax;
 		call LenArray;
-		mov edx, eax;
-		jmp end;
+		mov  edx, eax;
+		jmp  end;
 fail:
-		xor edx, edx;
+		xor  edx, edx;
 end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
 		popaop;
 		retn;
 	}
@@ -260,25 +260,25 @@ end:
 static void __declspec(naked) op_resize_array() {
 	__asm {
 		pushaop;
-		mov ebp, eax;
+		mov  ebp, eax;
 		//Get args
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  edi, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ecx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  esi, eax;
+		mov  eax, ebp;
 		//Error check
-		cmp bx, VAR_TYPE_INT;
-		jne end;
-		cmp cx, VAR_TYPE_INT;
-		jne end;
+		cmp  bx, VAR_TYPE_INT;
+		jne  end;
+		cmp  cx, VAR_TYPE_INT;
+		jne  end;
 		push edi;
 		push esi;
 		call ResizeArray;
@@ -291,35 +291,35 @@ end:
 static void __declspec(naked) op_temp_array() {
 	__asm {
 		pushaop;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jne fail;
-		cmp dx, VAR_TYPE_INT;
-		jne fail;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		mov  ecx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  bx, VAR_TYPE_INT;
+		jne  fail;
+		cmp  dx, VAR_TYPE_INT;
+		jne  fail;
 		push ecx;
 		push eax;
 		call CreateTempArray;
-		mov edx, eax;
-		jmp end;
+		mov  edx, eax;
+		jmp  end;
 fail:
-		xor edx, edx;
-		dec edx;
+		xor  edx, edx;
+		dec  edx;
 end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, VAR_TYPE_INT;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushShort_;
 		popaop;
 		retn;
 	}
@@ -328,13 +328,13 @@ end:
 static void __declspec(naked) op_fix_array() {
 	__asm {
 		pushaop;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jne end;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  bx, VAR_TYPE_INT;
+		jne  end;
 		push eax;
 		call FixArray;
 end:
@@ -346,57 +346,57 @@ end:
 static void __declspec(naked) op_scan_array() {
 		__asm {
 		pushaop;
-		mov ebp, eax;
+		mov  ebp, eax;
 		//Get args
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov edi, eax; // value (needle)
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov esi, eax; // arrayID (haystack)
-		mov eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  edi, eax; // value (needle)
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopShort_;
+		mov  ecx, eax;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPopLong_;
+		mov  esi, eax; // arrayID (haystack)
+		mov  eax, ebp;
 		//Error check
-		cmp cx, VAR_TYPE_INT;
-		jne fail;
-		cmp dx, VAR_TYPE_STR;
-		je getstringvar;
-		cmp dx, VAR_TYPE_STR2;
-		jne success;
+		cmp  cx, VAR_TYPE_INT;
+		jne  fail;
+		cmp  dx, VAR_TYPE_STR;
+		je   getstringvar;
+		cmp  dx, VAR_TYPE_STR2;
+		jne  success;
 getstringvar:
-		mov ebx, edi;
-		mov eax, ebp;
-		call interpretGetString_;
-		mov edi, eax;
+		mov  ebx, edi;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretGetString_;
+		mov  edi, eax;
 success:
 		push esp;
 		push edx;
 		push edi;
 		push esi;
 		call ScanArray;
-		mov edx, eax; // result
-		mov ebx, [esp]; // resultType
-		jmp end;
+		mov  edx, eax; // result
+		mov  ebx, [esp]; // resultType
+		jmp  end;
 fail:
-		mov ebx, VAR_TYPE_INT;
-		xor edx, edx;
-		dec edx; // returns -1
+		mov  ebx, VAR_TYPE_INT;
+		xor  edx, edx;
+		dec  edx; // returns -1
 end:
-		cmp ebx, VAR_TYPE_STR;
-		jne resultnotstr;
-		mov eax, ebp;
-		call interpretAddString_;
-		mov edx, eax; // str ptr
+		cmp  ebx, VAR_TYPE_STR;
+		jne  resultnotstr;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax; // str ptr
 resultnotstr:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, ebx;
-		mov eax, ebp;
-		call interpretPushShort_;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPushLong_;
+		mov  edx, ebx;
+		mov  eax, ebp;
+		call fo::funcoffs::interpretPushShort_;
 		popaop;
 		retn;
 	}
@@ -409,8 +409,8 @@ static void __declspec(naked) op_save_array() {
 	_GET_ARG_R32(ebp, edx, ecx);
 	__asm {
 		// arg check:
-		cmp bx, VAR_TYPE_INT;
-		jne end;
+		cmp  bx, VAR_TYPE_INT;
+		jne  end;
 	}
 	_CHECK_PARSE_STR(1, ebp, dx, ecx);
 	__asm {
@@ -442,10 +442,10 @@ static void __declspec(naked) op_get_array_key() {
 	_GET_ARG_R32(ebp, ebx, edi); // arrayID
 	__asm {
 		// arg check:
-		cmp bx, VAR_TYPE_INT;
-		jne wrongarg;
-		cmp dx, VAR_TYPE_INT;
-		jne wrongarg;
+		cmp  bx, VAR_TYPE_INT;
+		jne  wrongarg;
+		cmp  dx, VAR_TYPE_INT;
+		jne  wrongarg;
 		push esp; // arg 3: *resultType
 		push ecx; // arg 2: index
 		push edi; // arg 1: arrayID
@@ -455,7 +455,7 @@ static void __declspec(naked) op_get_array_key() {
 	goto end;
 	__asm {
 wrongarg:
-		xor eax, eax; // return 0 on wrong arguments
+		xor  eax, eax; // return 0 on wrong arguments
 	}
 	_RET_VAL_INT32(ebp);
 end:
@@ -472,8 +472,8 @@ static void __declspec(naked) op_stack_array() {
 	}
 	_CHECK_PARSE_STR(1, ebp, dx, esi);
 	__asm {
-		pop ebx;
-		mov ecx, ebx;
+		pop  ebx;
+		mov  ecx, ebx;
 	}
 	_CHECK_PARSE_STR(2, ebp, bx, edi);
 	__asm {
@@ -519,14 +519,14 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	vec.reserve(100);
 	if (type == 6) { // LIST_SPATIAL
 		for (int elev = 0; elev <= 2; elev++) {
-			TScript* scriptPtr = fo_scr_find_first_at(elev);
+			TScript* scriptPtr = fo::func::scr_find_first_at(elev);
 			while (scriptPtr != nullptr) {
 				TGameObj* self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
-					self_obj = fo_scr_find_obj_from_program(scriptPtr->program);
+					self_obj = fo::func::scr_find_obj_from_program(scriptPtr->program);
 				}
 				vec.push_back(self_obj);
-				scriptPtr = fo_scr_find_next_at();
+				scriptPtr = fo::func::scr_find_next_at();
 			}
 		}
 	/*} else if (type == 4) { // LIST_TILES
@@ -540,13 +540,13 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	} else {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
-				TGameObj* obj = fo_obj_find_first_at_tile(elv, tile);
+				TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
 				while (obj) {
 					DWORD otype = obj->Type();
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
 						vec.push_back(obj);
 					}
-					obj = fo_obj_find_next_at_tile();
+					obj = fo::func::obj_find_next_at_tile();
 				}
 			}
 		}

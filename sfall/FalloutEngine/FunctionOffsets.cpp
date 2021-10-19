@@ -18,8 +18,16 @@
 
 #include "FunctionOffsets.h"
 
-#define FUNC(name, addr) const DWORD name = addr;
+namespace fo
+{
+namespace funcoffs
+{
+
+#define FUNC(name, addr) const unsigned long name = addr;
 
 #include "FunctionOffsets_def.h"
 
 #undef FUNC
+
+}
+}

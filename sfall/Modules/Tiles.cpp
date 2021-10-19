@@ -77,16 +77,16 @@ static long lroundf(float num) {
 }
 
 static bool LoadMask() {
-	DbFile* file = fo_db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
+	DbFile* file = fo::func::db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
 	if (!file) {
 		dlogr("AllowLargeTiles: Unable to open art\\tiles\\gridmask.frm file.", DL_INIT);
 		return false;
 	}
 	mask = new BYTE[80 * 36];
 
-	fo_db_fseek(file, 0x4A, SEEK_SET);
-	fo_db_freadByteCount(file, mask, 80 * 36);
-	fo_db_fclose(file);
+	fo::func::db_fseek(file, 0x4A, SEEK_SET);
+	fo::func::db_freadByteCount(file, mask, 80 * 36);
+	fo::func::db_fclose(file);
 	return true;
 }
 
@@ -100,17 +100,17 @@ static int __stdcall ProcessTile(sArt* tiles, int tile, int listPos) {
 		if (c == '\0') break;
 	}
 
-	DbFile* artFile = fo_db_fopen(buf, "rb");
+	DbFile* artFile = fo::func::db_fopen(buf, "rb");
 	if (!artFile) return 0;
 
-	fo_db_fseek(artFile, 0x3E, SEEK_SET); // frameData
+	fo::func::db_fseek(artFile, 0x3E, SEEK_SET); // frameData
 
 	WORD width;
-	fo_db_freadShort(artFile, &width);
+	fo::func::db_freadShort(artFile, &width);
 	if (width <= 80) goto exit;
 
 	WORD height;
-	fo_db_freadShort(artFile, &height);
+	fo::func::db_freadShort(artFile, &height);
 	if (height < 36) goto exit;
 
 	float newWidth = (float)(width - (width % 8));
@@ -130,19 +130,19 @@ static int __stdcall ProcessTile(sArt* tiles, int tile, int listPos) {
 	BYTE* pixelData = new BYTE[bytes];
 
 	// Read pixels data
-	if (fo_db_fseek(artFile, 0x4A, SEEK_SET) ||
-	    fo_db_fread(pixelData, 1, bytes, artFile) != bytes)
+	if (fo::func::db_fseek(artFile, 0x4A, SEEK_SET) ||
+	    fo::func::db_fread(pixelData, 1, bytes, artFile) != bytes)
 	{
 		delete[] pixelData;
 exit:
-		fo_db_fclose(artFile);
+		fo::func::db_fclose(artFile);
 		return 0;
 	}
 	long listID = listPos - tiles->total;
 
 	FrmFile frame;
-	fo_db_fseek(artFile, 0, SEEK_SET);
-	fo_db_freadByteCount(artFile, (BYTE*)&frame, 74);
+	fo::func::db_fseek(artFile, 0, SEEK_SET);
+	fo::func::db_freadByteCount(artFile, (BYTE*)&frame, 74);
 
 	frame.height = ByteSwapW(36);
 	frame.width = ByteSwapW(80);
@@ -167,49 +167,49 @@ exit:
 			}
 			sprintf(&buf[10], "zzz%04d.frm", listID++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
-			DbFile* file = fo_db_fopen(buf, "wb");
-			fo_db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
-			fo_db_fclose(file);
+			DbFile* file = fo::func::db_fopen(buf, "wb");
+			fo::func::db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
+			fo::func::db_fclose(file);
 		}
 	}
 	overrides[tile] = new OverrideEntry(xSize, ySize, listPos);
 
-	fo_db_fclose(artFile);
+	fo::func::db_fclose(artFile);
 	delete[] pixelData;
 
 	return xSize * ySize; // number of tiles added
 }
 
-static const functype art_init = (functype)art_init_;
+static const functype art_init = (functype)fo::funcoffs::art_init_;
 
 static int __stdcall ArtInitHook() {
 	if (art_init()) return -1;
 	if (!LoadMask()) return 0;
 
-	sArt* tiles = &ptr_art[4];
+	sArt* tiles = &fo::ptr::art[4];
 
 	long listpos = origTileCount = tiles->total;
 	overrides = new OverrideEntry*[listpos]();
 
 	if (tileMode == 2) {
-		DbFile* file = fo_db_fopen("art\\tiles\\xltiles.lst", "rt");
+		DbFile* file = fo::func::db_fopen("art\\tiles\\xltiles.lst", "rt");
 		if (!file) return 0;
 
 		char buf[32];
 		DWORD id;
 		char* comment;
 
-		while (fo_db_fgets(buf, 31, file) > 0) {
+		while (fo::func::db_fgets(buf, 31, file) > 0) {
 			if (comment = strchr(buf, ';')) *comment = 0;
 			id = atoi(buf);
 			if (id > 1) listpos += ProcessTile(tiles, id, listpos);
 		}
-		fo_db_fclose(file);
+		fo::func::db_fclose(file);
 	} else {
 		for (int i = 2; i < tiles->total; i++) listpos += ProcessTile(tiles, i, listpos);
 	}
 	if (listpos != tiles->total) {
-		tiles->names = (char*)fo_mem_realloc(tiles->names, listpos * 13);
+		tiles->names = (char*)fo::func::mem_realloc(tiles->names, listpos * 13);
 		for (long i = tiles->total; i < listpos; i++) {
 			sprintf(&tiles->names[i * 13], "zzz%04d.frm", i - tiles->total);
 		}
@@ -256,7 +256,7 @@ static long __fastcall SquareLoadCheck(TilesData* data) {
 static void __declspec(naked) square_load_hook() {
 	__asm {
 		mov  ecx, edx;
-		call db_freadIntCount_;
+		call fo::funcoffs::db_freadIntCount_;
 		test eax, eax;
 		jnz  end;
 		jmp  SquareLoadCheck; // ecx - data
@@ -266,6 +266,7 @@ end:
 }
 
 static void __declspec(naked) art_id_hack() {
+	using namespace fo;
 	__asm {
 		cmp  esi, (OBJ_TYPE_TILE << 24); // 0x4000000
 		jne  end;
@@ -278,6 +279,7 @@ end:
 }
 
 static void __declspec(naked) art_get_name_hack() {
+	using namespace fo;
 	__asm {
 		sar  eax, 24;
 		cmp  eax, OBJ_TYPE_TILE;

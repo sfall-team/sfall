@@ -64,7 +64,7 @@ static void __declspec(naked) item_w_skill_hook() {
 		test byte ptr [edx + 0x19], 4; // weapon.flags_ext
 		jnz  energy;
 		mov  edx, ebx;
-		jmp  item_w_damage_type_;
+		jmp  fo::funcoffs::item_w_damage_type_;
 energy:
 		inc  eax; // DMG_laser
 		retn;
@@ -106,8 +106,8 @@ static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
 	int rawPoints = skillNegPoints;
 	if (rawPoints) {
 		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
-		rawPoints *= ptr_skill_data[skill].skillPointMulti;
-		if (fo_skill_is_tagged(skill)) rawPoints *= 2;
+		rawPoints *= fo::ptr::skill_data[skill].skillPointMulti;
+		if (fo::func::skill_is_tagged(skill)) rawPoints *= 2;
 		base += rawPoints; // add the negative skill points after calculating the skill level
 		if (base < 0) return max(-999, base);
 	}
@@ -127,7 +127,7 @@ static void __declspec(naked) skill_level_hack() {
 static void __declspec(naked) skill_level_hook() {
 	__asm {
 		mov  skillNegPoints, 0;   // reset value
-		call skill_points_;
+		call fo::funcoffs::skill_points_;
 		test eax, eax;
 		jge  notNeg;              // skip if eax >= 0
 		mov  skillNegPoints, eax; // save the negative skill points
@@ -181,7 +181,7 @@ static void __declspec(naked) skill_inc_point_hack() {
 static int __fastcall GetStatBonus(TGameObj* critter, const SkillInfo* info, int skill, int points) {
 	double result = 0;
 	for (int i = 0; i < 7; i++) {
-		result += fo_stat_level(critter, i) * multipliers[skill * 7 + i];
+		result += fo::func::stat_level(critter, i) * multipliers[skill * 7 + i];
 	}
 	result += points * info->skillPointMulti;
 	result += info->base;
@@ -211,7 +211,7 @@ static void __declspec(naked) skill_inc_point_hack_cost() {
 		je   next;
 		mov  edx, ebx;
 		mov  eax, esi;
-		call skill_points_;
+		call fo::funcoffs::skill_points_;
 next:
 		mov  edx, ebx;
 		shl  edx, 9;
@@ -231,7 +231,7 @@ static void __declspec(naked) skill_dec_point_hack_cost() {
 		je   next;
 		mov  edx, ebx;
 		mov  eax, edi;
-		call skill_points_;
+		call fo::funcoffs::skill_points_;
 		lea  ecx, [eax - 1];
 next:
 		mov  edx, ebx;
@@ -336,7 +336,7 @@ void Skills_Init() {
 	char buf[512], key[16];
 	std::string skillsFile = GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
 	if (!skillsFile.empty()) {
-		SkillInfo *skills = ptr_skill_data;
+		SkillInfo *skills = fo::ptr::skill_data;
 
 		const char* file = skillsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(file) == INVALID_FILE_ATTRIBUTES) return;
@@ -409,7 +409,7 @@ void Skills_Init() {
 		HookCalls(skill_dec_point_hook_cost, skillDecPointAddr);
 
 		basedOnPoints = IniGetInt("Skills", "BasedOnPoints", 0, file);
-		if (basedOnPoints) HookCall(0x4AA9EC, (void*)skill_points_); // skill_dec_point_
+		if (basedOnPoints) HookCall(0x4AA9EC, (void*)fo::funcoffs::skill_points_); // skill_dec_point_
 
 		int tagBonus = IniGetInt("Skills", "TagSkillBonus", 20, file);
 		if (tagBonus != 20 && tagBonus >=0 && tagBonus <= 100) SafeWrite8(0x4AA61E, static_cast<BYTE>(tagBonus)); // skill_level_

@@ -47,12 +47,12 @@ static const char* __fastcall GetLangPremadePath(const char* premadePath) {
 
 static const char* __fastcall PremadeGCD(const char* premadePath) {
 	const char* path = GetLangPremadePath(premadePath);
-	return (path && fo_db_access(path)) ? path : premadePath;
+	return (path && fo::func::db_access(path)) ? path : premadePath;
 }
 
 static DbFile* __fastcall PremadeBIO(const char* premadePath, const char* mode) {
 	premadePath = GetLangPremadePath(premadePath);
-	return (premadePath) ? fo_db_fopen(premadePath, mode) : nullptr;
+	return (premadePath) ? fo::func::db_fopen(premadePath, mode) : nullptr;
 }
 
 static void __declspec(naked) select_display_bio_hook() {
@@ -68,7 +68,7 @@ static void __declspec(naked) select_display_bio_hook() {
 default:
 		pop  edx;
 		pop  eax;
-		jmp  db_fopen_;
+		jmp  fo::funcoffs::db_fopen_;
 	}
 }
 
@@ -76,7 +76,7 @@ static void __declspec(naked) select_update_display_hook() {
 	__asm {
 		mov  ecx, eax; // premade path
 		call PremadeGCD;
-		jmp  proto_dude_init_;
+		jmp  fo::funcoffs::proto_dude_init_;
 	}
 }
 

@@ -177,7 +177,7 @@ static long appendSlot = -2;
 	This allows the engine to continue to animate the object sequentially.
 */
 static long __fastcall CopyRegistry(long checkSlot) {
-	long currRegSlot = *ptr_curr_anim_set;
+	long currRegSlot = *fo::ptr::curr_anim_set;
 	if (!(animSet[currRegSlot].flags & e_Reserved)) return 0;
 
 	if (currRegSlot == checkSlot) { // this will be bug!
@@ -186,7 +186,7 @@ static long __fastcall CopyRegistry(long checkSlot) {
 		#endif
 		return 0;
 	}
-	long currRegAnims = *ptr_curr_anim_counter;
+	long currRegAnims = *fo::ptr::curr_anim_counter;
 	long lastAnim = animSet[checkSlot].totalAnimCount;
 
 	devlog_f("\n\nCopyRegistry: animSet[%d] anims:%d >> animSet[%d] anims:%d", 0, currRegSlot, currRegAnims, checkSlot, lastAnim);
@@ -209,8 +209,8 @@ static long __fastcall CopyRegistry(long checkSlot) {
 	animSet[checkSlot].flags |= animSet[currRegSlot].flags | e_Append | e_Suspend; // set flags
 	animSet[currRegSlot].flags = 0;
 
-	*ptr_curr_anim_counter = totalRegAnims; // set the current number of registered animations in the slot
-	*ptr_curr_anim_set = checkSlot;         // replace the currently registered slot with a slot with existing registered animations
+	*fo::ptr::curr_anim_counter = totalRegAnims; // set the current number of registered animations in the slot
+	*fo::ptr::curr_anim_set = checkSlot;         // replace the currently registered slot with a slot with existing registered animations
 
 	appendSlot = checkSlot;
 	return lastAnim;
@@ -242,8 +242,8 @@ skip:
 
 // sets the counter to the index of the anim_# slot with the added animation
 static long __fastcall anim_cleanup_sub(long currAnims) {
-	//long currAnims = *ptr_curr_anim_counter;
-	AnimationSet* set = &animSet[*ptr_curr_anim_set];
+	//long currAnims = *fo::ptr::curr_anim_counter;
+	AnimationSet* set = &animSet[*fo::ptr::curr_anim_set];
 	if (set->flags & e_Append) {
 		set->flags ^= e_Append;
 		if (set->currentAnim == -1000 || set->totalAnimCount >= currAnims) return -1;
@@ -266,9 +266,9 @@ static void __declspec(naked) anim_cleanup_hack() {
 static void __fastcall CheckAppendReg(long, long totalAnims) {
 	long slot = appendSlot;
 	appendSlot = -2;
-	if (slot != *ptr_curr_anim_set) return;
+	if (slot != *fo::ptr::curr_anim_set) return;
 
-	//long totalAnims = *ptr_curr_anim_counter;
+	//long totalAnims = *fo::ptr::curr_anim_counter;
 	AnimationSet* set = &animSet[slot];
 
 	#ifndef NDEBUG
@@ -276,7 +276,7 @@ static void __fastcall CheckAppendReg(long, long totalAnims) {
 	for (long i = 0; i < totalAnims; i++) {
 		devlog_f("\n anim[%d]: animType:%d, animCode:%d, source:%x (%s), callFunc:%x, callFunc3:%x", 0, i,
 		         set->animations[i].animType, set->animations[i].animCode,
-		         set->animations[i].source, fo_critter_name(set->animations[i].source),
+		         set->animations[i].source, fo::func::critter_name(set->animations[i].source),
 		         set->animations[i].callFunc, set->animations[i].callFunc3
 		);
 	}
@@ -287,13 +287,13 @@ static void __fastcall CheckAppendReg(long, long totalAnims) {
 			for (long i = set->totalAnimCount; i < totalAnims; i++) {
 				// cleanup
 				long frm = set->animations[i].frmPtr;
-				if (frm) fo_art_ptr_unlock(frm);
+				if (frm) fo::func::art_ptr_unlock(frm);
 				// anim Must_Call
-				if (set->animations[i].animType == 11 && (DWORD)set->animations[i].callFunc == (DWORD)gsnd_anim_sound_) {
+				if (set->animations[i].animType == 11 && (DWORD)set->animations[i].callFunc == (DWORD)fo::funcoffs::gsnd_anim_sound_) {
 					long sfx = (long)set->animations[i].target;
 					__asm {
 						mov  eax, sfx;
-						call gsound_delete_sfx_;
+						call fo::funcoffs::gsound_delete_sfx_;
 					}
 				}
 			}
@@ -343,7 +343,7 @@ static long __fastcall UnlockAnimSlot() {
 			lockCount++;
 		}
 	}
-	if (lockCount >= lockLimit) fo_debug_printf("\n[SFALL] Warning: The number of animated slots in the lock is too large, locked %d of %d", lockCount, animationLimit);
+	if (lockCount >= lockLimit) fo::func::debug_printf("\n[SFALL] Warning: The number of animated slots in the lock is too large, locked %d of %d", lockCount, animationLimit);
 	return 0;
 }
 
@@ -366,12 +366,13 @@ static void __declspec(naked) register_clear_hook() {
 	__asm {
 		mov  ecx, eax;
 		call LockAnimSlot;
-		jmp  anim_set_end_;
+		jmp  fo::funcoffs::anim_set_end_;
 	}
 }
 
 static void __declspec(naked) anim_free_slot_hack() {
 	static const DWORD anim_free_slot_next = 0x413BD5;
+	using namespace fo;
 	__asm {
 		pushadc;
 		call CheckLockAnimSlot;
@@ -409,7 +410,7 @@ static void __declspec(naked) anim_set_end_hack() {
 	__asm {
 		test dl, e_InCombat; // is combat flag set?
 		jz   skip;
-		call combat_anim_finished_;
+		call fo::funcoffs::combat_anim_finished_;
 skip:
 		mov  eax, animSet;
 		mov  [eax][esi], ebx; // anim_set[].curr_anim = -1000
@@ -460,12 +461,13 @@ static void __declspec(naked) action_climb_ladder_hook() {
 reset:
 		and  al, ~RB_DONTSTAND; // unset flag
 skip:
-		jmp  register_begin_;
+		jmp  fo::funcoffs::register_begin_;
 	}
 }
 
 static void __declspec(naked) art_alias_fid_hack() {
 	static const DWORD art_alias_fid_Ret = 0x419A6D;
+	using namespace fo;
 	__asm {
 		cmp  eax, ANIM_called_shot_pic;
 		je   skip;
@@ -487,7 +489,7 @@ static void __declspec(naked) obj_use_container_hook() {
 	__asm {
 		cmp  dword ptr [ecx + currFrame], 1; // grave type containers in the open state?
 		je   skip;                           // skip animation
-		jmp  register_begin_;                // vanilla behavior
+		jmp  fo::funcoffs::register_begin_;  // vanilla behavior
 skip:
 		add  esp, 4;
 		cmp  edi, ds:[FO_VAR_obj_dude];

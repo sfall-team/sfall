@@ -86,7 +86,7 @@ static bool checkWeaponAmmoCost;
 static bool combatDisabled;
 
 static void __stdcall CombatBlocked() {
-	fo_display_print(Translate_CombatBlockMessage());
+	fo::func::display_print(Translate_CombatBlockMessage());
 }
 
 static void __declspec(naked) intface_use_item_hook() {
@@ -119,6 +119,7 @@ end:
 }
 
 static void __declspec(naked) ai_can_use_weapon_hack() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		test dword ptr [esi + miscFlags], MISCFLG_CantUse;
@@ -133,9 +134,10 @@ cantUse:
 
 static void __declspec(naked) can_use_weapon_hook() {
 	static const DWORD cant_use_weapon_Ret = 0x477F9F;
+	using namespace fo;
 	using namespace Fields;
 	__asm {
-		call item_get_type_;
+		call fo::funcoffs::item_get_type_;
 		cmp  eax, item_type_weapon;
 		je   checkFlag;
 		retn; // eax - type
@@ -152,6 +154,7 @@ cantUse:
 // Note: in ai_try_attack_, the attacker will not be able to change unusable weapon, as it happens with crippled arms
 static void __declspec(naked) combat_check_bad_shot_hack() {
 	static const DWORD combat_check_bad_shot_Ret = 0x42673A;
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		test dword ptr [ecx + miscFlags], MISCFLG_CantUse;
@@ -174,14 +177,14 @@ void __stdcall SetBlockCombat(long toggle) {
 
 // Compares the cost (required count of rounds) for one shot with the current amount of ammo to make an attack or other checks
 long __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, AttackType hitMode) {
-	long currAmmo = fo_item_w_curr_ammo(weapon);
+	long currAmmo = fo::func::item_w_curr_ammo(weapon);
 	if (!checkWeaponAmmoCost || currAmmo <= 0) return currAmmo;
 
 	long rounds = 1; // default ammo for single shot
 
-	long anim = fo_item_w_anim_weap(weapon, hitMode);
+	long anim = fo::func::item_w_anim_weap(weapon, hitMode);
 	if (anim == ANIM_fire_burst || anim == ANIM_fire_continuous) {
-		rounds = fo_item_w_rounds(weapon); // ammo in burst
+		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
 	}
 
 	DWORD newRounds = rounds;
@@ -208,6 +211,7 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 
 // check if there is enough ammo to shoot
 static void __declspec(naked) ai_search_inven_weap_hook() {
+	using namespace fo;
 	__asm {
 		push ecx;
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY; // hitMode
@@ -222,6 +226,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 static void __declspec(naked) ai_try_attack_hook() {
 	static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
 	static const DWORD ai_try_attack_continue = 0x42A929;
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
@@ -352,7 +357,7 @@ bool __stdcall Combat_IsBurstDisabled(TGameObj* critter) {
 
 static long __fastcall CheckDisableBurst(TGameObj* critter, TGameObj* weapon, AIcap* cap) {
 	if (Combat_IsBurstDisabled(critter)) {
-		long anim = fo_item_w_anim_weap(weapon, ATKTYPE_RWEAPON_SECONDARY);
+		long anim = fo::func::item_w_anim_weap(weapon, ATKTYPE_RWEAPON_SECONDARY);
 		if (anim == ANIM_fire_burst || anim == ANIM_fire_continuous) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
@@ -380,21 +385,21 @@ void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mo
 	switch (mode) {
 	case 0:
 		if (object->IsNotItem()) {
-			fo_debug_printf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
+			fo::func::debug_printf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
 			return;
 		}
 		mods = &mWeapons;
 		break;
 	case 1:
 		if (object->IsNotCritter()) {
-			fo_debug_printf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
+			fo::func::debug_printf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
 			return;
 		}
 		mods = &mTargets;
 		break;
 	case 2:
 		if (object->IsNotCritter()) {
-			fo_debug_printf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
+			fo::func::debug_printf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
 			return;
 		}
 		mods = &mAttackers;
@@ -499,7 +504,7 @@ static void __declspec(naked) item_w_called_shot_hook() {
 		jl   disable;
 		pop  edx;
 		mov  eax, ebx;
-		jmp  item_w_damage_type_;
+		jmp  fo::funcoffs::item_w_damage_type_;
 force:
 		add  esp, 8;
 		jmp  aimedShotRet2;
@@ -537,15 +542,16 @@ void __stdcall ForceAimedShots(DWORD pid) {
 }
 
 void BodypartHitChances() {
-	ptr_hit_location_penalty[0] = bodyPartHit.Head;
-	ptr_hit_location_penalty[1] = bodyPartHit.Left_Arm;
-	ptr_hit_location_penalty[2] = bodyPartHit.Right_Arm;
-	ptr_hit_location_penalty[3] = bodyPartHit.Torso;
-	ptr_hit_location_penalty[4] = bodyPartHit.Right_Leg;
-	ptr_hit_location_penalty[5] = bodyPartHit.Left_Leg;
-	ptr_hit_location_penalty[6] = bodyPartHit.Eyes;
-	ptr_hit_location_penalty[7] = bodyPartHit.Groin;
-	ptr_hit_location_penalty[8] = bodyPartHit.Uncalled;
+	using fo::ptr::hit_location_penalty;
+	hit_location_penalty[0] = bodyPartHit.Head;
+	hit_location_penalty[1] = bodyPartHit.Left_Arm;
+	hit_location_penalty[2] = bodyPartHit.Right_Arm;
+	hit_location_penalty[3] = bodyPartHit.Torso;
+	hit_location_penalty[4] = bodyPartHit.Right_Leg;
+	hit_location_penalty[5] = bodyPartHit.Left_Leg;
+	hit_location_penalty[6] = bodyPartHit.Eyes;
+	hit_location_penalty[7] = bodyPartHit.Groin;
+	hit_location_penalty[8] = bodyPartHit.Uncalled;
 }
 
 static void BodypartHitReadConfig() {
@@ -563,7 +569,7 @@ static void BodypartHitReadConfig() {
 static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
 	__asm {
 		mov  ebx, BODY_Uncalled; // replace Body_Torso with Body_Uncalled
-		jmp  determine_to_hit_;
+		jmp  fo::funcoffs::determine_to_hit_;
 	}
 }
 
@@ -600,7 +606,7 @@ static void __declspec(naked) apply_damage_hook_extra() {
 		test ebx, ebx; // target.team_num
 		jz   dudeTeam;
 default:
-		jmp  combatai_check_retaliation_;
+		jmp  fo::funcoffs::combatai_check_retaliation_;
 dudeTeam: // check who the attacker was attacking
 		mov  ecx, [esi + ctdMainTarget]; // ctd.mainTarget
 		cmp  ebx, [ecx + teamNum];       // dude.team_num == mainTarget.team_num?

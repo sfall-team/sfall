@@ -151,11 +151,11 @@ HWND Gfx_GetFalloutWindowInfo(RECT* rect) {
 }
 
 long Gfx_GetGameWidthRes() {
-	return (ptr_scr_size->offx - ptr_scr_size->x) + 1;
+	return (fo::ptr::scr_size->offx - fo::ptr::scr_size->x) + 1;
 }
 
 long Gfx_GetGameHeightRes() {
-	return (ptr_scr_size->offy - ptr_scr_size->y) + 1;
+	return (fo::ptr::scr_size->offy - fo::ptr::scr_size->y) + 1;
 }
 
 int __stdcall Gfx_GetShaderVersion() {
@@ -506,7 +506,7 @@ void Gfx_SetMovieTexture(bool state) {
 	shaderVertices[3].y = (float)gHeight - 0.5f;
 	shaderVertices[3].x = (float)gWidth - 0.5f;
 
-	bool subtitleShow = (*ptr_subtitleList != nullptr);
+	bool subtitleShow = (*fo::ptr::subtitleList != nullptr);
 
 	long offset;
 	if (aviAspect > winAspect) {
@@ -675,7 +675,7 @@ public:
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 
 		if (GPUBlt) {
-			fo_buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
+			fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
 			//char* pBits = (char*)dRect.pBits;
 			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
 			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
@@ -747,8 +747,8 @@ public:
 				b->lpSurface = lockTarget;
 			}
 		} else {
-			mveDesc.lPitch = var_getInt(FO_VAR_lastMovieW);
-			mveDesc.dwHeight = var_getInt(FO_VAR_lastMovieH);
+			mveDesc.lPitch = fo::var::getInt(FO_VAR_lastMovieW);
+			mveDesc.dwHeight = fo::var::getInt(FO_VAR_lastMovieH);
 			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 			*b = mveDesc;
 			b->lpSurface = lockTarget;
@@ -1163,7 +1163,7 @@ static __declspec(naked) void game_init_hook() {
 		push ecx;
 		call WindowInit;
 		pop  ecx;
-		jmp  palette_init_;
+		jmp  fo::funcoffs::palette_init_;
 	}
 }
 
@@ -1347,7 +1347,7 @@ static __declspec(naked) void palette_fade_to_hook() {
 		fmul fadeMulti;
 		fistp [esp];
 		pop  ebx;
-		jmp  fadeSystemPalette_;
+		jmp  fo::funcoffs::fadeSystemPalette_;
 	}
 }
 
@@ -1374,8 +1374,8 @@ void Graphics_Init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		MakeJump(GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
-		MakeJump(GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
+		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
+		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
 		if (hrpVersionValid) {
 			// Patch HRP to show the mouse cursor over the window title

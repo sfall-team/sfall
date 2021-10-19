@@ -58,7 +58,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	if (GraphicsMode != 0) fo_process_bk();
+	if (GraphicsMode != 0) fo::func::process_bk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
@@ -97,23 +97,23 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 }
 
 static void RunEditorInternal(SOCKET &s) {
-	var_setInt(FO_VAR_script_engine_running) = 0;
+	fo::var::setInt(FO_VAR_script_engine_running) = 0;
 
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
-			TGameObj* obj = fo_obj_find_first_at_tile(elv, tile);
+			TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
 				if (obj->IsCritter()) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
-				obj = fo_obj_find_next_at_tile();
+				obj = fo::func::obj_find_next_at_tile();
 			}
 		}
 	}
 	int numCritters = vec.size();
-	int numGlobals = *ptr_num_game_global_vars;
-	int numMapVars = *ptr_num_map_global_vars;
+	int numGlobals = *fo::ptr::num_game_global_vars;
+	int numMapVars = *fo::ptr::num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
 	int numArrays = GetNumArrays();
 
@@ -129,8 +129,8 @@ static void RunEditorInternal(SOCKET &s) {
 	sArray* arrays = new sArray[numArrays];
 	GetArrays((int*)arrays);
 
-	InternalSend(s, reinterpret_cast<void*>(*ptr_game_global_vars), 4 * numGlobals);
-	InternalSend(s, reinterpret_cast<void*>(*ptr_map_global_vars), 4 * numMapVars);
+	InternalSend(s, reinterpret_cast<void*>(*fo::ptr::game_global_vars), 4 * numGlobals);
+	InternalSend(s, reinterpret_cast<void*>(*fo::ptr::map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar) * numSGlobals);
 	InternalSend(s, arrays, numArrays * sizeof(sArray));
 	for (int i = 0; i < numCritters; i++) {
@@ -147,12 +147,12 @@ static void RunEditorInternal(SOCKET &s) {
 		case CODE_SET_GLOBAL:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			(*ptr_game_global_vars)[id] = val;
+			(*fo::ptr::game_global_vars)[id] = val;
 			break;
 		case CODE_SET_MAPVAR:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			(*ptr_map_global_vars)[id] = val;
+			(*fo::ptr::map_global_vars)[id] = val;
 			break;
 		case CODE_GET_CRITTER:
 			InternalRecv(s, &id, 4);
@@ -197,13 +197,13 @@ static void RunEditorInternal(SOCKET &s) {
 		case CODE_GET_LOCVARS:
 			{
 				InternalRecv(s, &id, 4); // sid
-				val = GetScriptLocalVars(id);
+				val = fo::util::GetScriptLocalVars(id);
 				InternalSend(s, &val, 4);
 				if (val) {
 					std::vector<int> values(val);
 					long varVal;
 					for (int i = 0; i < val; i++) {
-						fo_scr_get_local_var(id, i, &varVal);
+						fo::func::scr_get_local_var(id, i, &varVal);
 						values[i] = varVal;
 					}
 					InternalSend(s, values.data(), val * 4);
@@ -217,7 +217,7 @@ static void RunEditorInternal(SOCKET &s) {
 				std::vector<int> values(val);
 				InternalRecv(s, values.data(), val * 4);
 				for (int i = 0; i < val; i++) {
-					fo_scr_set_local_var(id, i, values[i]);
+					fo::func::scr_set_local_var(id, i, values[i]);
 				}
 			}
 			break;
@@ -230,7 +230,7 @@ static void RunEditorInternal(SOCKET &s) {
 	delete[] arrays;
 
 	FlushInputBuffer();
-	var_setInt(FO_VAR_script_engine_running) = 1;
+	fo::var::setInt(FO_VAR_script_engine_running) = 1;
 }
 
 void RunDebugEditor() {
@@ -319,7 +319,7 @@ artNotExist:
 		mov  edx, [esp + 0x124 - 0x1C + 4]; // filename
 		push edx;
 		push artDbgMsg;
-		call debug_printf_;
+		call fo::funcoffs::debug_printf_;
 		cmp  isDebug, 0;
 		jne  display;
 		add  esp, 8;
@@ -329,14 +329,15 @@ display:
 		push artDbgMsg;
 		lea  eax, [esp + 0x124 - 0x124 + 20]; // buf
 		push eax;
-		call sprintf_;
+		call fo::funcoffs::sprintf_;
 		add  esp, 20;
 		lea  eax, [esp + 4];
-		jmp  display_print_;
+		jmp  fo::funcoffs::display_print_;
 	}
 }
 
 static void __declspec(naked) art_data_size_hook_check() {
+	using namespace fo;
 	__asm {
 		xor  esi, esi;
 		mov  eax, ebx; // ebx - FID
@@ -354,16 +355,16 @@ static void __declspec(naked) proto_load_pid_hack() {
 		lea  eax, [esp + 0x120 - 0x120 + 4]; // pro file
 		push eax;
 		push proDbgMsg;
-		call debug_printf_;
+		call fo::funcoffs::debug_printf_;
 		add  esp, 8;
 		mov  eax, 0x500494; // 'iisxxxx1'
-		jmp  gsound_play_sfx_file_;
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
 static void __declspec(naked) win_debug_hook() {
 	__asm {
-		call debug_log_;
+		call fo::funcoffs::debug_log_;
 		xor  eax, eax;
 		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
 		retn;
@@ -375,7 +376,7 @@ static void __declspec(naked) debug_log_hack() {
 		push eax;      // text
 		push 0x5016EC; // fmt '%s'
 		push ebx;      // log file
-		call fprintf_;
+		call fo::funcoffs::fprintf_;
 		add  esp, 12;
 		retn;
 	}
@@ -387,9 +388,9 @@ static void __declspec(naked) debugMsg() {
 		mov  edx, ds:[FO_VAR_currentProgram];
 		push [edx]; // script name
 		push scrNameFmt;
-		call debug_printf_;
+		call fo::funcoffs::debug_printf_;
 		add  esp, 8;
-		jmp  debug_printf_; // ERROR: attempt to reference...
+		jmp  fo::funcoffs::debug_printf_; // ERROR: attempt to reference...
 	}
 }
 
@@ -397,7 +398,7 @@ static void __declspec(naked) combat_load_hack() {
 	static const char* msgCombat = "LOADSAVE: Object ID not found while loading the combat data.\n";
 	__asm {
 		push msgCombat;
-		call debug_printf_;
+		call fo::funcoffs::debug_printf_;
 		add  esp, 4;
 		mov  eax, -1;
 		retn;
@@ -510,7 +511,7 @@ void CheckTimerResolution() {
 		if (ms < min) min = ms;
 		if (ms > max) max = ms;
 	}
-	fo_debug_printf("System timer resolution: %d - %d ms.\n", min, max);
+	fo::func::debug_printf("System timer resolution: %d - %d ms.\n", min, max);
 }
 */
 

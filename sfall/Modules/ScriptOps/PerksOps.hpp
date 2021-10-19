@@ -58,7 +58,7 @@ static void __stdcall op_get_perk_available2() {
 	if (perkIdArg.isInt()) {
 		int result = 0, perkId = perkIdArg.rawValue();
 		if (perkId >= 0 && perkId < PERK_count) {
-			result = fo_perk_can_add(*ptr_obj_dude, perkId);
+			result = fo::func::perk_can_add(*fo::ptr::obj_dude, perkId);
 		}
 		opHandler.setReturn(result);
 	} else {
@@ -186,7 +186,7 @@ static void __declspec(naked) op_set_perkbox_title() {
 		jnz  end;
 next:
 		mov  eax, ecx; // script
-		call interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov  ecx, eax;
 		call SetPerkboxTitle;
 end:
@@ -229,32 +229,32 @@ static void __declspec(naked) op_has_fake_perk() {
 		push ecx;
 		push edx;
 		push edi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  end;
 next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call HasFakePerk;
 end:
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  eax, edi;
+		mov  edx, VAR_TYPE_INT;
+		call fo::funcoffs::interpretPushShort_;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -265,32 +265,32 @@ static void __declspec(naked) op_has_fake_trait() {
 		push ecx;
 		push edx;
 		push edi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
+		mov  edi, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  end;
 next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
+		mov  ebx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call HasFakeTrait;
 end:
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, eax;
+		mov  eax, edi;
+		call fo::funcoffs::interpretPushLong_;
+		mov  eax, edi;
+		mov  edx, VAR_TYPE_INT;
+		call fo::funcoffs::interpretPushShort_;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -365,7 +365,7 @@ end:
 
 static void __declspec(naked) perk_can_add_hook() {
 	__asm {
-		call stat_pc_get_;
+		call fo::funcoffs::stat_pc_get_;
 		add  eax, PerkLevelMod;
 		js   jneg; // level < 0
 		retn;
@@ -398,17 +398,17 @@ end:
 }
 
 static void mf_add_trait() {
-	if ((*ptr_obj_dude)->protoId != PID_Player) {
+	if ((*fo::ptr::obj_dude)->protoId != PID_Player) {
 		opHandler.printOpcodeError("add_trait() - traits can be added only to the player.");
 		opHandler.setReturn(-1);
 		return;
 	}
 	long traitId = opHandler.arg(0).rawValue();
 	if (traitId >= TRAIT_fast_metabolism && traitId <= TRAIT_gifted) {
-		if (ptr_pc_trait[0] == -1) {
-			ptr_pc_trait[0] = traitId;
-		} else if (ptr_pc_trait[0] != traitId && ptr_pc_trait[1] == -1) {
-			ptr_pc_trait[1] = traitId;
+		if (fo::ptr::pc_trait[0] == -1) {
+			fo::ptr::pc_trait[0] = traitId;
+		} else if (fo::ptr::pc_trait[0] != traitId && fo::ptr::pc_trait[1] == -1) {
+			fo::ptr::pc_trait[1] = traitId;
 		} else {
 			opHandler.printOpcodeError("add_trait() - cannot add the trait ID: %d", traitId);
 		}

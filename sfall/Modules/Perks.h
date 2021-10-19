@@ -57,5 +57,5 @@ DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex);
 DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex);
 
 __forceinline bool DudeHasTrait(DWORD traitID) {
-	return (!IsTraitDisabled(traitID) && (ptr_pc_trait[0] == traitID || ptr_pc_trait[1] == traitID));
+	return (!IsTraitDisabled(traitID) && (fo::ptr::pc_trait[0] == traitID || fo::ptr::pc_trait[1] == traitID));
 }

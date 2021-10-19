@@ -75,7 +75,7 @@ static void __declspec(naked) MainMenuTextHook() {
 		mov  [esp + 4], eax;          // colour
 		mov  eax, esi;
 		mov  esi, edx;                // keep fallout buff
-		call win_print_;
+		call fo::funcoffs::win_print_;
 		// sfall print
 		mov  eax, esi;
 		call ds:[FO_VAR_text_width];
@@ -90,7 +90,7 @@ static void __declspec(naked) MainMenuTextHook() {
 		push edi;                    // ypos
 		xor  ebx, ebx;               // font
 		mov  eax, dword ptr ds:[FO_VAR_main_window]; // winptr
-		call win_print_;
+		call fo::funcoffs::win_print_;
 		jmp  MainMenuTextRet;
 	}
 }

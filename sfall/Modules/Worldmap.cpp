@@ -61,11 +61,11 @@ static void TimerReset() {
 	__asm push ecx;
 
 	const DWORD time = ONE_GAME_YEAR * 13;
-	*ptr_fallout_game_time -= time;
+	*fo::ptr::fallout_game_time -= time;
 	addedYears += 13;
 
 	// fix queue time
-	Queue* queue = *ptr_queue;
+	Queue* queue = *fo::ptr::queue;
 	while (queue) {
 		if (queue->time > time) {
 			queue->time -= time;
@@ -78,6 +78,7 @@ static void TimerReset() {
 }
 
 static __declspec(naked) void script_chk_timed_events_hack() {
+	using namespace fo;
 	__asm {
 		mov  eax, dword ptr ds:[FO_VAR_fallout_game_time];
 		inc  eax;
@@ -91,6 +92,7 @@ reset:
 }
 
 static __declspec(naked) void set_game_time_hack() {
+	using namespace fo;
 	__asm {
 		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
 		mov  edx, eax;
@@ -111,7 +113,7 @@ static void WorldMapFPS() {
 	do {
 		RunGlobalScripts3();
 		if (worldMapLongDelay) {
-			__asm call process_bk_;
+			__asm call fo::funcoffs::process_bk_;
 		}
 
 		DWORD tick; // current ticks
@@ -132,14 +134,14 @@ static void __declspec(naked) wmWorldMap_hook_patch1() {
 		call WorldMapFPS;
 		pop  dword ptr ds:[FO_VAR_mouse_buttons];
 		pop  dword ptr ds:[FO_VAR_last_buttons];
-		jmp  get_input_;
+		jmp  fo::funcoffs::get_input_;
 	}
 }
 
 static void __declspec(naked) wmWorldMap_hook_patch2() {
 	__asm {
 		call WorldMapFPS;
-		jmp  get_input_;
+		jmp  fo::funcoffs::get_input_;
 	}
 }
 
@@ -152,14 +154,14 @@ static void __declspec(naked) wmWorldMap_hook() {
 		mov  worldMapTicks, eax;
 		call RunGlobalScripts3; // scripts are run every ~15 ms (GetTickCount returns a difference of 14-16 ms)
 skipHook:
-		jmp  get_input_;
+		jmp  fo::funcoffs::get_input_;
 	}
 }
 
 static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
 		inc  dword ptr ds:[FO_VAR_wmLastRndTime];
-		jmp  wmPartyWalkingStep_;
+		jmp  fo::funcoffs::wmPartyWalkingStep_;
 	}
 }
 
@@ -173,7 +175,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 
 static void __declspec(naked) ViewportHook() {
 	__asm {
-		call wmWorldMapLoadTempData_;
+		call fo::funcoffs::wmWorldMapLoadTempData_;
 		mov  eax, ViewportX;
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 		mov  eax, ViewportY;
@@ -203,14 +205,15 @@ static DWORD __stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 }
 
 static __declspec(naked) void PathfinderFix() {
+	using namespace fo;
 	__asm {
 		push eax; // ticks
 		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, PERK_pathfinder;
-		call perk_level_;
+		call fo::funcoffs::perk_level_;
 		push eax;
 		call PathfinderCalc;
-		jmp  inc_game_time_;
+		jmp  fo::funcoffs::inc_game_time_;
 	}
 }
 
@@ -225,7 +228,7 @@ static void __declspec(naked) wmMapInit_hack() {
 		lea  edx, [esp + 0xA0 - 0x50 + 4];       // section
 		mov  ebx, automap;                       // key
 		lea  ecx, [esp + 0xA0 - 0x24 + 4];       // value buf
-		call config_get_string_;
+		call fo::funcoffs::config_get_string_;
 		test eax, eax;
 		jz   end;
 		mov  ecx, 2;                             // max index
@@ -233,7 +236,7 @@ static void __declspec(naked) wmMapInit_hack() {
 		lea  eax, [esp + 0xA0 - 0x24 + 4];       // key value
 		sub  esp, 4;
 		mov  edx, esp;                           // index buf
-		call strParseStrFromList_;
+		call fo::funcoffs::strParseStrFromList_;
 		cmp  eax, -1;
 		jz   skip;
 		mov  edx, [esp];                         // value index
@@ -259,14 +262,14 @@ jLoop:
 		mov  eax, edx;
 		sub  eax, ds:[FO_VAR_wmRndCursorFid];
 		mov  ds:[FO_VAR_wmRndCursorFid], eax;
-		call wmInterfaceRefresh_;
+		call fo::funcoffs::wmInterfaceRefresh_;
 		mov  eax, 200;
-		call block_for_tocks_;
+		call fo::funcoffs::block_for_tocks_;
 		dec  ecx;
 		jnz  jLoop;
 		mov  ds:[FO_VAR_wmEncounterIconShow], ecx;
 		pop  eax; // map id
-		jmp  map_load_idx_;
+		jmp  fo::funcoffs::map_load_idx_;
 	}
 }
 
@@ -288,16 +291,16 @@ static bool customPosition = false;
 
 static void __declspec(naked) main_load_new_hook() {
 	__asm {
-		call map_load_;
+		call fo::funcoffs::map_load_;
 		push edx;
 		sub  esp, 4; // buff outAreaID
 		mov  edx, esp;
 		mov  eax, dword ptr ds:[FO_VAR_map_number];
-		call wmMatchAreaContainingMapIdx_;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 		pop  eax; // area ID
 		cmp  customPosition, 0;
 		jnz  skip;
-		call wmTeleportToArea_;
+		call fo::funcoffs::wmTeleportToArea_;
 		pop  edx;
 		retn;
 skip:
@@ -503,7 +506,7 @@ void Worldmap_SetCarInterfaceArt(DWORD artIndex) {
 static const char* GetOverrideTerrainName(long x, long y) {
 	if (wmTerrainTypeNames.empty()) return nullptr;
 
-	long subTileID = x + y * (*ptr_wmNumHorizontalTiles * 7);
+	long subTileID = x + y * (*fo::ptr::wmNumHorizontalTiles * 7);
 	std::vector<std::pair<long, std::string>>::const_reverse_iterator it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
 		[=](const std::pair<long, std::string> &el) { return el.first == subTileID; }
 	);
@@ -512,20 +515,20 @@ static const char* GetOverrideTerrainName(long x, long y) {
 
 // x, y - position of the sub-tile on the world map
 void Worldmap_SetTerrainTypeName(long x, long y, const char* name) {
-	long subTileID = x + y * (*ptr_wmNumHorizontalTiles * 7);
+	long subTileID = x + y * (*fo::ptr::wmNumHorizontalTiles * 7);
 	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
 }
 
 // TODO: someone might need to know the name of a terrain type?
 /*const char* Worldmap_GetTerrainTypeName(long x, long y) {
 	const char* name = GetOverrideTerrainName(x, y);
-	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+	return (name) ? name : fo::fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
 }*/
 
 // Returns the name of the terrain type in the position of the player's marker on the world map
 const char* Worldmap_GetCurrentTerrainName() {
-	const char* name = GetOverrideTerrainName(*ptr_world_xpos / 50, *ptr_world_ypos / 50);
-	return (name) ? name : GetMessageStr(ptr_wmMsgFile, 1000 + wmGetCurrentTerrainType());
+	const char* name = GetOverrideTerrainName(*fo::ptr::world_xpos / 50, *fo::ptr::world_ypos / 50);
+	return (name) ? name : fo::util::GetMessageStr(fo::ptr::wmMsgFile, 1000 + fo::util::wmGetCurrentTerrainType());
 }
 
 bool Worldmap_AreaTitlesIsEmpty() {

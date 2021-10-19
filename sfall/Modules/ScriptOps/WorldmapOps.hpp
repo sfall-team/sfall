@@ -36,7 +36,7 @@ DWORD ForceEncounterRestore() {
 static void ForceEncounterEffects() {
 	if (ForceEncounterFlags & 0x10) { // _FadeOut flag
 		__asm mov  eax, FO_VAR_black_palette;
-		__asm call palette_fade_to_;
+		__asm call fo::funcoffs::palette_fade_to_;
 		return;
 	};
 
@@ -44,16 +44,16 @@ static void ForceEncounterEffects() {
 	if (ForceEncounterFlags & 4) return; // _NoIcon flag
 	long iconType = (ForceEncounterFlags & 8) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
 
-	var_setInt(FO_VAR_wmEncounterIconShow) = 1;
-	var_setInt(FO_VAR_wmRndCursorFid) = 0;
+	fo::var::setInt(FO_VAR_wmEncounterIconShow) = 1;
+	fo::var::setInt(FO_VAR_wmRndCursorFid) = 0;
 
 	for (size_t n = 8; n > 0; --n) {
-		long iconFidIndex = iconType - var_getInt(FO_VAR_wmRndCursorFid);
-		var_setInt(FO_VAR_wmRndCursorFid) = iconFidIndex;
-		__asm call wmInterfaceRefresh_;
-		fo_block_for_tocks(200);
+		long iconFidIndex = iconType - fo::var::getInt(FO_VAR_wmRndCursorFid);
+		fo::var::setInt(FO_VAR_wmRndCursorFid) = iconFidIndex;
+		__asm call fo::funcoffs::wmInterfaceRefresh_;
+		fo::func::block_for_tocks(200);
 	}
-	var_setInt(FO_VAR_wmEncounterIconShow) = 0;
+	fo::var::setInt(FO_VAR_wmEncounterIconShow) = 0;
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
@@ -64,12 +64,12 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 		jz   noCar;
 		mov  edx, FO_VAR_carCurrentArea;
 		mov  eax, ForceEncounterMapID;
-		call wmMatchAreaContainingMapIdx_;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 noCar:
 		call ForceEncounterEffects;
 		call ForceEncounterRestore;
 		push 0x4C0721; // return addr
-		jmp  map_load_idx_; // eax - mapID
+		jmp  fo::funcoffs::map_load_idx_; // eax - mapID
 	}
 }
 
@@ -174,27 +174,27 @@ static void __declspec(naked) op_set_map_time_multi() {
 		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
+		mov  ecx, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov  edx, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		cmp  dx, VAR_TYPE_FLOAT;
+		jz   paramWasFloat;
+		cmp  dx, VAR_TYPE_INT;
+		jnz  fail;
 		push eax;
 		fild dword ptr [esp];
 		fstp dword ptr [esp];
-		jmp end;
+		jmp  end;
 paramWasFloat:
 		push eax;
 end:
 		call SetMapMulti;
 fail:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -209,26 +209,26 @@ static void mf_set_map_enter_position() {
 	int rot = opHandler.arg(2).rawValue();
 
 	if (tile > -1 && tile < 40000) {
-		*ptr_tile = tile;
+		*fo::ptr::tile = tile;
 	}
 	if (elev > -1 && elev < 3) {
-		*ptr_elevation = elev;
+		*fo::ptr::elevation = elev;
 	}
 	if (rot > -1 && rot < 6) {
-		*ptr_rotation = rot;
+		*fo::ptr::rotation = rot;
 	}
 }
 
 static void mf_get_map_enter_position() {
 	DWORD id = CreateTempArray(3, 0);
-	arrays[id].val[0].set((long)*ptr_tile);
-	arrays[id].val[1].set((long)*ptr_elevation);
-	arrays[id].val[2].set((long)*ptr_rotation);
+	arrays[id].val[0].set((long)*fo::ptr::tile);
+	arrays[id].val[1].set((long)*fo::ptr::elevation);
+	arrays[id].val[2].set((long)*fo::ptr::rotation);
 	opHandler.setReturn(id);
 }
 
 static void mf_tile_by_position() {
-	opHandler.setReturn(fo_tile_num(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
+	opHandler.setReturn(fo::func::tile_num(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
 }
 
 static void mf_set_terrain_name() {

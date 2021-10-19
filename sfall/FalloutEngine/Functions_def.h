@@ -215,6 +215,7 @@ WRAP_WATCOM_FUNC3(long, stat_set_bonus, TGameObj*, critter, long, statID, long, 
 WRAP_WATCOM_FUNC2(void, skill_get_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_level, TGameObj*, critter, long, statId)
+WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount) // Adds experience points to PC
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 WRAP_WATCOM_FUNC2(long, tile_dist, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_dir, long, scrTile, long, dstTile)

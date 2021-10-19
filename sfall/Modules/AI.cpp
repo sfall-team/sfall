@@ -42,13 +42,13 @@ TGameObj* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(TGameObj* object
 		if (objTile == targetTile) return nullptr;
 
 		if (object->flags & ObjectFlag::MultiHex) {
-			long dir = fo_tile_dir(objTile, targetTile);
-			objTile = fo_tile_num_in_direction(objTile, dir, 1);
+			long dir = fo::func::tile_dir(objTile, targetTile);
+			objTile = fo::func::tile_num_in_direction(objTile, dir, 1);
 			if (objTile == targetTile) return nullptr; // just in case
 		}
 		// continue checking the line of fire from object tile to targetTile
 		TGameObj* obj = object; // for ignoring the object (multihex) when building the path
-		fo_make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)obj_shoot_blocking_at_);
+		fo::func::make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 
 		object = AIHelpers_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
 	}
@@ -58,7 +58,7 @@ TGameObj* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(TGameObj* object
 // Returns the friendly critter in the line of fire
 TGameObj* __stdcall AIHelpers_CheckFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	TGameObj* object = nullptr;
-	fo_make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)obj_shoot_blocking_at_);
+	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 	object = AIHelpers_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
 	return (object && object->IsCritter()) ? object : nullptr; // 0 - if there are no friendly critters
 }
@@ -69,24 +69,26 @@ bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, long 
 }
 
 bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, TGameObj* target) {
-	return AIHelpers_AttackInRange(source, weapon, fo_obj_dist(source, target));
+	return AIHelpers_AttackInRange(source, weapon, fo::func::obj_dist(source, target));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
+	using namespace fo;
 	__asm {
 		or   byte ptr [esi + combatState], CBTFLG_ReTarget; // set CombatStateFlag flag
-		jmp  ai_run_away_;
+		jmp  fo::funcoffs::ai_run_away_;
 	}
 }
 
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
+	using namespace fo;
 	__asm {
 		test byte ptr [ebp], CBTFLG_ReTarget; // CombatStateFlag flag (critter.combat_state)
 		jnz  reTarget;
-		jmp  critter_name_;
+		jmp  fo::funcoffs::critter_name_;
 reTarget:
 		and  byte ptr [ebp], ~(CBTFLG_InFlee | CBTFLG_ReTarget); // unset CombatStateFlag flags
 		xor  edi, edi;
@@ -99,7 +101,7 @@ reTarget:
 static void __declspec(naked) ai_try_attack_hook_runFix() {
 	__asm {
 		mov  ecx, [esi + combatState]; // save combat flags before ai_run_away
-		call ai_run_away_;
+		call fo::funcoffs::ai_run_away_;
 		mov  [esi + combatState], ecx; // restore combat flags
 		retn;
 	}
@@ -117,7 +119,7 @@ end:
 tryHeal:
 		push ecx;
 		push esi;                   // mov  eax, esi;
-		call sfgame_ai_check_drugs; // call ai_check_drugs_;
+		call sfgame_ai_check_drugs; // call fo::funcoffs::ai_check_drugs_;
 		pop  ecx;
 		cmp  [esi + health], edx;   // edx - minimum hp, below which NPC will run away
 		jge  end;
@@ -127,7 +129,7 @@ tryHeal:
 
 /*static void __declspec(naked) ai_check_drugs_hook() {
 	__asm {
-		call stat_level_;                            // current hp
+		call fo::funcoffs::stat_level_;              // current hp
 		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
 		mov  edx, [edx + 0x10];                      // min_hp
 		cmp  eax, edx;                               // curr_hp < cap.min_hp
@@ -137,8 +139,9 @@ tryHeal:
 }
 
 static void __declspec(naked) ai_check_drugs_hook_healing() {
+	using namespace fo;
 	__asm {
-		call ai_retrieve_object_;
+		call fo::funcoffs::ai_retrieve_object_;
 		cmp  [esp + 0x34 - 0x30 + 4], 2; // noInvenItem: is set to 2 that healing is required
 		jne  checkPid;
 		retn; // use drugs
@@ -161,7 +164,7 @@ checkHP:
 		add  ebx, [esi + health]; // source
 		mov  eax, esi;
 		mov  edx, STAT_max_hit_points;
-		call stat_level_;
+		call fo::funcoffs::stat_level_;
 		cmp  ebx, eax;
 		pop  eax;
 		jge  dontUse; // 10 + currHP >= maxHP
@@ -267,7 +270,7 @@ static long __fastcall ai_try_attack_switch_fix(TGameObj* target, long &hitMode,
 	if (source->critter.movePoints <= 0) return -1; // exit from ai_try_attack_
 	if (!weapon) return 1; // no weapon in inventory or hand slot, continue to search weapons on the map (call ai_switch_weapons_)
 
-	long _hitMode = fo_ai_pick_hit_mode(source, weapon, target);
+	long _hitMode = fo::func::ai_pick_hit_mode(source, weapon, target);
 	if (_hitMode != hitMode && _hitMode != ATKTYPE_PUNCH) {
 		if (sfgame_item_weapon_mp_cost(source, weapon, _hitMode, 0) <= source->critter.movePoints) {
 			hitMode = _hitMode;
@@ -276,10 +279,10 @@ static long __fastcall ai_try_attack_switch_fix(TGameObj* target, long &hitMode,
 	}
 
 	// does the NPC have other weapons in inventory?
-	TGameObj* item = fo_ai_search_inven_weap(source, 1, target); // search based on AP
+	TGameObj* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
 	if (item) {
 		// is using a close range weapon?
-		long wType = fo_item_w_subtype(item, ATKTYPE_RWEAPON_PRIMARY);
+		long wType = fo::func::item_w_subtype(item, ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= ATKSUBTYPE_MELEE) { // unarmed and melee weapons, check the distance before switching
 			if (!AIHelpers_AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
 		}
@@ -287,7 +290,7 @@ static long __fastcall ai_try_attack_switch_fix(TGameObj* target, long &hitMode,
 	}
 
 	// no other weapon in inventory
-	if (fo_item_w_range(source, ATKTYPE_PUNCH) >= fo_obj_dist(source, target)) {
+	if (fo::func::item_w_range(source, ATKTYPE_PUNCH) >= fo::func::obj_dist(source, target)) {
 		hitMode = ATKTYPE_PUNCH;
 		return 0; // change hit mode, continue attack cycle
 	}
@@ -305,7 +308,7 @@ static void __declspec(naked) ai_try_attack_hook_switch_fix() {
 		jle  noSwitch; // <= 0
 		mov  ecx, ebp;
 		mov  eax, esi;
-		jmp  ai_switch_weapons_;
+		jmp  fo::funcoffs::ai_switch_weapons_;
 noSwitch:
 		retn; // -1 - for exit from ai_try_attack_
 	}
@@ -320,11 +323,11 @@ static void __declspec(naked) RetryCombatHook() {
 	__asm {
 		mov  RetryCombatLastAP, 0;
 retry:
-		call combat_ai_;
+		call fo::funcoffs::combat_ai_;
 process:
 		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
 		jle  next;
-		call process_bk_;
+		call fo::funcoffs::process_bk_;
 		jmp  process;
 next:
 		mov  eax, [esi + movePoints];
@@ -351,21 +354,21 @@ static long __fastcall ai_weapon_reload_fix(TGameObj* weapon, TGameObj* ammo, TG
 	TGameObj* _ammo = ammo;
 
 	while (ammo) {
-		result = fo_item_w_reload(weapon, ammo);
+		result = fo::func::item_w_reload(weapon, ammo);
 		if (result != 0) return result; // 1 - reload done, -1 - can't reload
 
 		if (!proto) {
-			proto = GetProto(weapon->protoId);
+			proto = fo::util::GetProto(weapon->protoId);
 			maxAmmo = proto->item.weapon.maxAmmo;
 		}
 		if (weapon->item.charges >= maxAmmo) break; // magazine is full
 
 		long pidAmmo = ammo->protoId;
-		fo_obj_destroy(ammo);
+		fo::func::obj_destroy(ammo);
 		ammo = nullptr;
 
 		DWORD currentSlot = -1; // begin find at first slot
-		while (TGameObj* ammoFind = fo_inven_find_type(critter, item_type_ammo, &currentSlot)) {
+		while (TGameObj* ammoFind = fo::func::inven_find_type(critter, item_type_ammo, &currentSlot)) {
 			if (ammoFind->protoId == pidAmmo) {
 				ammo = ammoFind;
 				break;
@@ -373,13 +376,14 @@ static long __fastcall ai_weapon_reload_fix(TGameObj* weapon, TGameObj* ammo, TG
 		}
 	}
 	if (_ammo != ammo) {
-		fo_obj_destroy(ammo);
+		fo::func::obj_destroy(ammo);
 		return 1; // notifies the engine that the ammo has already been destroyed
 	}
 	return result;
 }
 
 static void __declspec(naked) item_w_reload_hook() {
+	using namespace fo;
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
 		je   skip;
@@ -390,7 +394,7 @@ static void __declspec(naked) item_w_reload_hook() {
 		pop  ecx;
 		retn;
 skip:
-		jmp  item_w_reload_;
+		jmp fo::funcoffs::item_w_reload_;
 	}
 }
 
@@ -402,7 +406,7 @@ static long __fastcall item_weapon_reload_cost_fix(TGameObj* source, TGameObj* w
 	aiReloadCost = sfgame_item_weapon_mp_cost(source, weapon, ATKTYPE_RWEAPON_RELOAD, 0);
 	//if (aiReloadCost > source->critter.movePoints) return -1; // not enough action points
 
-	return fo_ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
+	return fo::func::ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
 }
 
 static void __declspec(naked) ai_try_attack_hook_cost_reload() {
@@ -442,8 +446,8 @@ static void __declspec(naked) ai_try_attack_hook_cost2() {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 static long __fastcall CheckWeaponRangeAndApCost(TGameObj* source, TGameObj* target) {
-	long weaponRange = fo_item_w_range(source, ATKTYPE_RWEAPON_SECONDARY);
-	long targetDist  = fo_obj_dist(source, target);
+	long weaponRange = fo::func::item_w_range(source, ATKTYPE_RWEAPON_SECONDARY);
+	long targetDist  = fo::func::obj_dist(source, target);
 	if (targetDist > weaponRange) return 0; // don't use secondary mode
 
 	return (source->critter.movePoints >= sfgame_item_w_mp_cost(source, ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
@@ -451,7 +455,7 @@ static long __fastcall CheckWeaponRangeAndApCost(TGameObj* source, TGameObj* tar
 
 static void __declspec(naked) ai_pick_hit_mode_hook() {
 	__asm {
-		call caiHasWeapPrefType_;
+		call fo::funcoffs::caiHasWeapPrefType_;
 		test eax, eax;
 		jnz  evaluation;
 		retn;
@@ -464,7 +468,7 @@ evaluation:
 
 static void __declspec(naked) ai_danger_source_hook() {
 	__asm {
-		call combat_check_bad_shot_;
+		call fo::funcoffs::combat_check_bad_shot_;
 		cmp  dword ptr [esp + 56], 0x42B235 + 5; // called from combat_ai_
 		je   fix;
 		retn;
@@ -476,12 +480,13 @@ fix:	// check result
 }
 
 static void __declspec(naked) cai_perform_distance_prefs_hack() {
+	using namespace fo;
 	__asm {
 		mov  ecx, eax; // current distance to target
 		xor  ebx, ebx; // no called shot
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;
 		mov  eax, esi;
-		call item_mp_cost_;
+		call fo::funcoffs::item_mp_cost_;
 		mov  edx, [esi + movePoints];
 		sub  edx, eax; // ap - cost = free AP's
 		jle  moveAway; // <= 0
@@ -490,10 +495,10 @@ static void __declspec(naked) cai_perform_distance_prefs_hack() {
 		jge  skipMove; // distance >= 5?
 		// check combat rating
 		mov  eax, esi;
-		call combatai_rating_;
+		call fo::funcoffs::combatai_rating_;
 		mov  edx, eax; // source rating
 		mov  eax, edi;
-		call combatai_rating_;
+		call fo::funcoffs::combatai_rating_;
 		cmp  eax, edx; // target vs source rating
 		jl   skipMove; // target rating is low
 moveAway:
@@ -510,7 +515,7 @@ static void __declspec(naked) ai_move_away_hook() {
 	__asm {
 		test ebx, ebx;
 		jl   fix; // distance arg < 0
-		jmp  ai_cap_;
+		jmp  fo::funcoffs::ai_cap_;
 fix:
 		neg  ebx;
 		mov  eax, [esi + movePoints]; // Current Action Points
@@ -525,8 +530,8 @@ fix:
 
 static bool __fastcall RollFriendlyFire(TGameObj* target, TGameObj* attacker) {
 	if (AIHelpers_CheckFriendlyFire(target, attacker)) {
-		long dice = fo_roll_random(1, 10);
-		return (fo_stat_level(attacker, STAT_iq) >= dice); // true - is friendly
+		long dice = fo::func::roll_random(1, 10);
+		return (fo::func::stat_level(attacker, STAT_iq) >= dice); // true - is friendly
 	}
 	return false;
 }
@@ -540,7 +545,7 @@ static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() 
 		test al, al;
 		jnz  friendly;
 		popadc;
-		jmp  combat_ctd_init_;
+		jmp  fo::funcoffs::combat_ctd_init_;
 friendly:
 		lea  esp, [esp + 8 + 3*4];
 		jmp  safety_invalidate_weapon_burst_friendly; // "Friendly was in the way!"
@@ -548,8 +553,8 @@ friendly:
 }
 
 static long __fastcall CheckFireBurst(TGameObj* attacker, TGameObj* target, TGameObj* weapon) {
-	if (fo_item_w_anim_weap(weapon, ATKTYPE_RWEAPON_SECONDARY) == ANIM_fire_burst) {
-		return !fo_combat_safety_invalidate_weapon_func(attacker, weapon, ATKTYPE_RWEAPON_SECONDARY, target, 0, 0);
+	if (fo::func::item_w_anim_weap(weapon, ATKTYPE_RWEAPON_SECONDARY) == ANIM_fire_burst) {
+		return !fo::func::combat_safety_invalidate_weapon_func(attacker, weapon, ATKTYPE_RWEAPON_SECONDARY, target, 0, 0);
 	}
 	return 1; // allow
 }
@@ -598,7 +603,7 @@ static void __declspec(naked) combat_attack_hook() {
 		pop  edx;
 		pop  ecx;
 		pop  eax;
-		jmp  combat_attack_;
+		jmp  fo::funcoffs::combat_attack_;
 	}
 }
 

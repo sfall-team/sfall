@@ -80,7 +80,7 @@ static void __declspec(naked) ShowCreditsHook() {
 	InCredits = 1;
 	CreditsLine = 0;
 	//__asm mov  eax, creditsFile;
-	__asm call credits_;
+	__asm call fo::funcoffs::credits_;
 	InCredits = 0;
 	__asm retn;
 }
@@ -91,15 +91,15 @@ static DWORD __fastcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if (strlen(line)) {
 		if (line[0] == '#') {
 			line++;
-			*font = *ptr_name_font;
+			*font = *fo::ptr::name_font;
 			*colour = *(BYTE*)0x6A7F01;
 		} else if (line[0] == '@') {
 			line++;
-			*font = *ptr_title_font;
-			*colour = *ptr_title_color;
+			*font = *fo::ptr::title_font;
+			*colour = *fo::ptr::title_color;
 		} else {
-			*font = *ptr_name_font;
-			*colour = *ptr_name_color;
+			*font = *fo::ptr::name_font;
+			*colour = *fo::ptr::name_color;
 		}
 	}
 	strcpy_s(buf, 256, line);
@@ -120,7 +120,7 @@ static void __declspec(naked) CreditsNextLineHook_Top() {
 		inc  eax;
 		retn;
 fail:
-		jmp credits_get_next_line_;
+		jmp  fo::funcoffs::credits_get_next_line_;
 	}
 }
 
@@ -130,7 +130,7 @@ static void __declspec(naked) CreditsNextLineHook_Bottom() {
 		push eax;
 		push edx;
 		push ebx;
-		call credits_get_next_line_;  // call default function
+		call fo::funcoffs::credits_get_next_line_;  // call default function
 		test eax, eax;
 		pop  ebx;
 		pop  edx;

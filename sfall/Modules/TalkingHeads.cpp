@@ -84,16 +84,16 @@ bool Use32BitTalkingHeads = false;
 */
 
 static bool GetHeadFrmName(char* name) {
-	int headFid = (var_getInt(FO_VAR_lips_draw_head))
-	            ? *ptr_lipsFID
-	            : *ptr_fidgetFID;
+	int headFid = (fo::var::getInt(FO_VAR_lips_draw_head))
+	            ? *fo::ptr::lipsFID
+	            : *fo::ptr::fidgetFID;
 	int index = headFid & 0xFFF;
-	if (index >= ptr_art[OBJ_TYPE_HEAD].total) return true;
-	int ID2 = (var_getInt(FO_VAR_fidgetFp)) ? (headFid & 0xFF0000) >> 16 : reactionID;
+	if (index >= fo::ptr::art[OBJ_TYPE_HEAD].total) return true;
+	int ID2 = (fo::var::getInt(FO_VAR_fidgetFp)) ? (headFid & 0xFF0000) >> 16 : reactionID;
 	if (ID2 > 11) return true;
 	int ID1 = (ID2 == 1 || ID2 == 4 || ID2 == 7) ? (headFid & 0xF000) >> 12 : -1;
 	//if (ID1 > 3) ID1 = 3;
-	const char* headLst = ptr_art[OBJ_TYPE_HEAD].names;
+	const char* headLst = fo::ptr::art[OBJ_TYPE_HEAD].names;
 	char* fmt = (ID1 != -1) ? "%s%s%d" : "%s%s";
 	_snprintf(name, 8, fmt, &headLst[13 * index], headSuffix[ID2], ID1);
 	return false;
@@ -113,9 +113,9 @@ static bool LoadFrm(Frm* frm) {
 	tex_citr itr = texMap.find(frm->key);
 	if (itr == texMap.end()) {
 		// Loading head frames textures
-		var_setInt(FO_VAR_bk_disabled) = 1;
+		fo::var::setInt(FO_VAR_bk_disabled) = 1;
 		char buf[MAX_PATH];
-		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *ptr_patches, frm->path);
+		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *fo::ptr::patches, frm->path);
 		if (pathLen > 250) return false;
 
 		if (!(GetFileAttributes(frm->path) & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -129,10 +129,10 @@ static bool LoadFrm(Frm* frm) {
 				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;
 				frm->broken = 1;
-				var_setInt(FO_VAR_bk_disabled) = 0;
+				fo::var::setInt(FO_VAR_bk_disabled) = 0;
 				return false;
 			}
-			fo_process_bk(); // eliminate lag when loading textures
+			fo::func::process_bk(); // eliminate lag when loading textures
 		}
 		if (frm->magic != 0xABCD) { // frm file not patched
 			StrAppend(buf, "highlight.off", pathLen);
@@ -142,7 +142,7 @@ static bool LoadFrm(Frm* frm) {
 		}
 		frm->textures = textures;
 		texMap.insert(std::pair<const __int64, TextureData>(frm->key, TextureData(textures, frm->showHighlights, frm->bakedBackground, frm->frames)));
-		var_setInt(FO_VAR_bk_disabled) = 0;
+		fo::var::setInt(FO_VAR_bk_disabled) = 0;
 	} else {
 		// Use preloaded textures
 		frm->textures = itr->second.textures;
@@ -151,7 +151,7 @@ static bool LoadFrm(Frm* frm) {
 	}
 	// make mask image
 	for (int i = 0; i < frm->frames; i++) {
-		FrmFrameData* frame = fo_frame_ptr((FrmHeaderData*)frm, i, 0);
+		FrmFrameData* frame = fo::func::frame_ptr((FrmHeaderData*)frm, i, 0);
 		if (frm->bakedBackground) {
 			memset(frame->data, 255, frame->size);
 		} else {
@@ -174,10 +174,10 @@ static struct DialogWinPos {
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
-		FrmFrameData* frame = fo_frame_ptr((FrmHeaderData*)frm, frameno, 0);
+		FrmFrameData* frame = fo::func::frame_ptr((FrmHeaderData*)frm, frameno, 0);
 
 		if (dialogWinPos.x == -1) {
-			WINinfo* dialogWin = fo_GNW_find(*ptr_dialogueBackWindow);
+			WINinfo* dialogWin = fo::func::GNW_find(*fo::ptr::dialogueBackWindow);
 			dialogWinPos.x = dialogWin->rect.x;
 			dialogWinPos.y = dialogWin->rect.y;
 		}
@@ -228,7 +228,7 @@ static void __declspec(naked) TransTalkHook() {
 	__asm {
 		test showHighlights, 0xFF;
 		jnz  skip;
-		jmp  talk_to_translucent_trans_buf_to_buf_;
+		jmp  fo::funcoffs::talk_to_translucent_trans_buf_to_buf_;
 skip:
 		retn 0x18;
 	}
@@ -237,7 +237,7 @@ skip:
 static void __declspec(naked) gdPlayTransition_hook() {
 	__asm {
 		mov reactionID, ebx;
-		jmp art_id_;
+		jmp fo::funcoffs::art_id_;
 	}
 }
 
@@ -245,7 +245,7 @@ static void __declspec(naked) gdialogInitFromScript_hook() {
 	__asm {
 		cmp dword ptr ds:[FO_VAR_dialogue_head], -1;
 		jnz noScroll;
-		jmp tile_scroll_to_;
+		jmp fo::funcoffs::tile_scroll_to_;
 noScroll:
 		retn;
 	}
@@ -254,7 +254,7 @@ noScroll:
 void TalkingHeadsSetup() {
 	if (!GPUBlt) return;
 
-	var_setInt(FO_VAR_lips_draw_head) = 0; // fix for non-speaking heads
+	fo::var::setInt(FO_VAR_lips_draw_head) = 0; // fix for non-speaking heads
 	const DWORD transTalkAddr[] = {0x44AFB4, 0x44B00B};
 	HookCalls(TransTalkHook, transTalkAddr);
 	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm

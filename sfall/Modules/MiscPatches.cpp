@@ -36,13 +36,13 @@ static void __declspec(naked) WeaponAnimHook() {
 		je  c11;
 		cmp edx, 15;
 		je  c15;
-		jmp art_get_code_;
+		jmp fo::funcoffs::art_get_code_;
 c11:
 		mov edx, 16;
-		jmp art_get_code_;
+		jmp fo::funcoffs::art_get_code_;
 c15:
 		mov edx, 17;
-		jmp art_get_code_;
+		jmp fo::funcoffs::art_get_code_;
 	}
 }
 
@@ -60,12 +60,12 @@ static void __declspec(naked) register_object_take_out_hack() {
 		and  edx, 0xFFF;                          // Index
 		xor  eax, eax;
 		inc  eax;                                 // Obj_Type CRITTER
-		call art_id_;
+		call fo::funcoffs::art_id_;
 		mov  edx, eax;
 		xor  ebx, ebx;
 		dec  ebx;                                 // delay -1
 		pop  eax;                                 // critter
-		call register_object_change_fid_;
+		call fo::funcoffs::register_object_change_fid_;
 		pop  ecx;
 		xor  eax, eax;
 		retn;
@@ -83,13 +83,14 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 }
 
 static void __declspec(naked) action_use_skill_on_hook_science() {
+	using namespace fo;
 	__asm {
 		cmp esi, ds:[FO_VAR_obj_dude];
 		jne end;
 		mov eax, KILL_TYPE_robot;
 		retn;
 end:
-		jmp critter_kill_count_type_;
+		jmp fo::funcoffs::critter_kill_count_type_;
 	}
 }
 
@@ -97,16 +98,16 @@ static void __declspec(naked) intface_item_reload_hook() {
 	__asm {
 		push eax;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
-		call register_clear_;
+		call fo::funcoffs::register_clear_;
 		xor  edx, edx;       // ANIM_stand
 		xor  ebx, ebx;       // delay (unused)
 		lea  eax, [edx + 1]; // RB_UNRESERVED
-		call register_begin_;
+		call fo::funcoffs::register_begin_;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
-		call register_object_animate_;
-		call register_end_;
+		call fo::funcoffs::register_object_animate_;
+		call fo::funcoffs::register_end_;
 		pop  eax;
-		jmp  gsound_play_sfx_file_;
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
@@ -116,7 +117,7 @@ static void __declspec(naked) automap_hack() {
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, PID_MOTION_SENSOR;
-		call inven_pid_is_carried_ptr_;
+		call fo::funcoffs::inven_pid_is_carried_ptr_;
 		test eax, eax;
 		jz   fail;
 		mov  edx, eax;
@@ -127,15 +128,16 @@ fail:
 }
 
 static bool __fastcall SeeIsFront(TGameObj* source, TGameObj* target) {
-	long dir = source->rotation - fo_tile_dir(source->tile, target->tile);
+	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
 	if (dir < 0) dir = -dir;
 	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
-		return (fo_obj_dist(source, target) <= (fo_stat_level(source, STAT_pe) * 3));
+		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, STAT_pe) * 3));
 	}
 	return (dir == 0); // is directly in front
 }
 
 static void __declspec(naked) op_obj_can_see_obj_hook() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		mov  edi, [esp + 4]; // buf **outObject
@@ -155,14 +157,14 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 		// vanilla behavior
 		push 0x10;
 		push edi;
-		call make_straight_path_;
+		call fo::funcoffs::make_straight_path_;
 		retn 8;
 checkSee:
-		push eax;                    // keep source
-		push obj_shoot_blocking_at_; // check hex objects func pointer
-		push 0x20;                   // flags, 0x20 = check ShootThru
+		push eax;                                  // keep source
+		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
+		push 0x20;                                 // flags, 0x20 = check ShootThru
 		push edi;
-		call make_straight_path_func_; // overlapping if len(eax) == 0
+		call fo::funcoffs::make_straight_path_func_; // overlapping if len(eax) == 0
 		pop  ecx;            // source
 		mov  edx, [edi - 8]; // target
 		mov  ebx, [edi];     // blocking object
@@ -190,7 +192,7 @@ continue:
 
 static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	int slot = (mode > 0) ? 1 : 0;
-	ItemButtonItem* itemButton = &ptr_itemButtonItems[slot];
+	ItemButtonItem* itemButton = &fo::ptr::itemButtonItems[slot];
 	if ((DWORD)itemButton->item == itemPtr) {
 		int slotMode = itemButton->mode;
 		if (slotMode == 3 || slotMode == 4) {
@@ -209,16 +211,16 @@ static void __declspec(naked) display_stats_hook() {
 		mov  edx, eax;
 		pop  ecx;
 		pop  eax;
-		jmp  item_w_range_;
+		jmp  fo::funcoffs::item_w_range_;
 	}
 }
 
 static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
-	if (toSlot && GetItemType(item) != item_type_weapon && GetItemType(toSlot) != item_type_weapon) {
+	if (toSlot && fo::util::GetItemType(item) != item_type_weapon && fo::util::GetItemType(toSlot) != item_type_weapon) {
 		return;
 	}
-	ItemButtonItem* leftSlot  = &ptr_itemButtonItems[HANDSLOT_Left];
-	ItemButtonItem* rightSlot = &ptr_itemButtonItems[HANDSLOT_Right];
+	ItemButtonItem* leftSlot  = &fo::ptr::itemButtonItems[HANDSLOT_Left];
+	ItemButtonItem* rightSlot = &fo::ptr::itemButtonItems[HANDSLOT_Right];
 
 	if (toSlot == nullptr) { // copy to empty slot
 		ItemButtonItem* dstSlot;
@@ -237,7 +239,7 @@ static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
 		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
 		ItemButtonItem hands[2];
-		std::memcpy(hands, ptr_itemButtonItems, sizeof(ItemButtonItem) * 2);
+		std::memcpy(hands, fo::ptr::itemButtonItems, sizeof(ItemButtonItem) * 2);
 		hands[HANDSLOT_Left].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
 		hands[HANDSLOT_Left].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
 		hands[HANDSLOT_Right].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
@@ -273,29 +275,29 @@ static long pHitL, sHitL, modeL = -2;
 static long pHitR, sHitR, modeR = -2;
 
 static long intface_update_items_hack_begin() {
-	if (!ptr_itemButtonItems[HANDSLOT_Left].item && !fo_inven_left_hand(*ptr_obj_dude)) {
-		modeL = ptr_itemButtonItems[HANDSLOT_Left].mode;
-		pHitL = ptr_itemButtonItems[HANDSLOT_Left].primaryAttack;
-		sHitL = ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack;
+	if (!fo::ptr::itemButtonItems[HANDSLOT_Left].item && !fo::func::inven_left_hand(*fo::ptr::obj_dude)) {
+		modeL = fo::ptr::itemButtonItems[HANDSLOT_Left].mode;
+		pHitL = fo::ptr::itemButtonItems[HANDSLOT_Left].primaryAttack;
+		sHitL = fo::ptr::itemButtonItems[HANDSLOT_Left].secondaryAttack;
 	}
-	if (!ptr_itemButtonItems[HANDSLOT_Right].item && !fo_inven_right_hand(*ptr_obj_dude)) {
-		modeR = ptr_itemButtonItems[HANDSLOT_Right].mode;
-		pHitR = ptr_itemButtonItems[HANDSLOT_Right].primaryAttack;
-		sHitR = ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack;
+	if (!fo::ptr::itemButtonItems[HANDSLOT_Right].item && !fo::func::inven_right_hand(*fo::ptr::obj_dude)) {
+		modeR = fo::ptr::itemButtonItems[HANDSLOT_Right].mode;
+		pHitR = fo::ptr::itemButtonItems[HANDSLOT_Right].primaryAttack;
+		sHitR = fo::ptr::itemButtonItems[HANDSLOT_Right].secondaryAttack;
 	}
-	return *ptr_itemCurrentItem;
+	return *fo::ptr::itemCurrentItem;
 }
 
 static void intface_update_restore() {
-	if (modeL != -2 && pHitL == ptr_itemButtonItems[HANDSLOT_Left].primaryAttack &&
-	    sHitL == ptr_itemButtonItems[HANDSLOT_Left].secondaryAttack)
+	if (modeL != -2 && pHitL == fo::ptr::itemButtonItems[HANDSLOT_Left].primaryAttack &&
+	    sHitL == fo::ptr::itemButtonItems[HANDSLOT_Left].secondaryAttack)
 	{
-		ptr_itemButtonItems[HANDSLOT_Left].mode = modeL;
+		fo::ptr::itemButtonItems[HANDSLOT_Left].mode = modeL;
 	}
-	if (modeR != -2 && pHitR == ptr_itemButtonItems[HANDSLOT_Right].primaryAttack &&
-	    sHitR == ptr_itemButtonItems[HANDSLOT_Right].secondaryAttack)
+	if (modeR != -2 && pHitR == fo::ptr::itemButtonItems[HANDSLOT_Right].primaryAttack &&
+	    sHitR == fo::ptr::itemButtonItems[HANDSLOT_Right].secondaryAttack)
 	{
-		ptr_itemButtonItems[HANDSLOT_Right].mode = modeR;
+		fo::ptr::itemButtonItems[HANDSLOT_Right].mode = modeR;
 	}
 	modeL = -2;
 	modeR = -2;
@@ -315,25 +317,25 @@ static void __declspec(naked) endgame_movie_hook() {
 		je   playWalkMovie;
 		retn;
 playWalkMovie:
-		call stat_level_;
+		call fo::funcoffs::stat_level_;
 		xor  edx, edx;
 		add  eax, 10;
 		mov  ecx, eax;
 		mov  eax, 1500;
-		call pause_for_tocks_;
+		call fo::funcoffs::pause_for_tocks_;
 		mov  eax, ecx;
-		jmp  gmovie_play_;
+		jmp  fo::funcoffs::gmovie_play_;
 	}
 }
 
 static void __declspec(naked) ListDrvdStats_hook() {
 	static const DWORD ListDrvdStats_Ret = 0x4354D9;
 	__asm {
-		call IsRadInfluence;
+		call fo::util::IsRadInfluence;
 		test eax, eax;
 		jnz  influence;
 		mov  eax, ds:[FO_VAR_obj_dude];
-		jmp  critter_get_rads_;
+		jmp  fo::funcoffs::critter_get_rads_;
 influence:
 		xor  ecx, ecx;
 		mov  cl, ds:[FO_VAR_RedColor];
@@ -359,13 +361,13 @@ palColor:
 }
 
 static void __fastcall RemoveAllFloatTextObjects() {
-	long textCount = *ptr_text_object_index;
+	long textCount = *fo::ptr::text_object_index;
 	if (textCount > 0) {
 		for (long i = 0; i < textCount; i++) {
-			fo_mem_free(ptr_text_object_list[i]->unknown10);
-			fo_mem_free(ptr_text_object_list[i]);
+			fo::func::mem_free(fo::ptr::text_object_list[i]->unknown10);
+			fo::func::mem_free(fo::ptr::text_object_list[i]);
 		}
-		*ptr_text_object_index = 0;
+		*fo::ptr::text_object_index = 0;
 	}
 }
 
@@ -376,7 +378,7 @@ static void __declspec(naked) obj_move_to_tile_hook() {
 		call RemoveAllFloatTextObjects;
 		pop  edx;
 		pop  eax;
-		jmp  map_set_elevation_;
+		jmp  fo::funcoffs::map_set_elevation_;
 	}
 }
 
@@ -385,16 +387,16 @@ static void __declspec(naked) map_check_state_hook() {
 		push eax;
 		call RemoveAllFloatTextObjects;
 		pop  eax;
-		jmp  map_load_idx_;
+		jmp  fo::funcoffs::map_load_idx_;
 	}
 }
 
 static void __declspec(naked) obj_move_to_tile_hook_redraw() {
 	__asm {
 		mov  displayWinUpdateState, 1;
-		call tile_set_center_;
+		call fo::funcoffs::tile_set_center_;
 		mov  eax, ds:[FO_VAR_display_win];
-		jmp  win_draw_; // update black edges after tile_set_center_
+		jmp  fo::funcoffs::win_draw_; // update black edges after tile_set_center_
 	}
 }
 
@@ -402,7 +404,7 @@ static void __declspec(naked) map_check_state_hook_redraw() {
 	__asm {
 		cmp  displayWinUpdateState, 0;
 		je   obj_move_to_tile_hook_redraw;
-		jmp  tile_set_center_;
+		jmp  fo::funcoffs::tile_set_center_;
 	}
 }
 
@@ -695,19 +697,19 @@ static void __declspec(naked) wmMapMusicStart_hook() {
 	__asm {
 		push edx;
 		push eax;
-		call map_target_load_area_; // returns the area ID of the loaded map
+		call fo::funcoffs::map_target_load_area_; // returns the area ID of the loaded map
 		cmp  eax, cMusicArea;
 		mov  cMusicArea, eax;
 		jne  default;
 		mov  eax, [esp];
 		lea  edx, ds:[FO_VAR_background_fname_requested];
-		call stricmp_; // compare music file name
+		call fo::funcoffs::stricmp_; // compare music file name
 		test eax, eax;
 		jz   continuePlay;
 default:
 		pop  eax;
 		pop  edx;
-		jmp  gsound_background_play_level_music_;
+		jmp  fo::funcoffs::gsound_background_play_level_music_;
 continuePlay:
 		pop  eax;
 		pop  edx;
@@ -723,13 +725,13 @@ static void __declspec(naked) map_load_file_hook() {
 		test eax, eax;
 		jnz  playWind;
 		lea  eax, gameMapLoadingName;
-		call wmMapMatchNameToIdx_;
+		call fo::funcoffs::wmMapMatchNameToIdx_;
 		test eax, eax;
 		js   default; // -1
 		push edx;
 		sub  esp, 4;
 		mov  edx, esp;
-		call wmMatchAreaContainingMapIdx_;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 		pop  eax;
 		pop  edx;
 		cmp  eax, cMusicArea;
@@ -741,14 +743,14 @@ playWind:
 default:
 		mov  cMusicArea, eax;
 		pop  eax;
-		jmp  gsound_background_play_;
+		jmp  fo::funcoffs::gsound_background_play_;
 	}
 }
 
 static void __declspec(naked) wmSetMapMusic_hook() {
 	__asm {
 		mov  ds:[FO_VAR_background_fname_requested], 0;
-		jmp  wmMapMusicStart_;
+		jmp  fo::funcoffs::wmMapMusicStart_;
 	}
 }
 
@@ -763,8 +765,8 @@ static void PlayingMusicPatch() {
 static void __declspec(naked) main_death_scene_hook() {
 	__asm {
 		mov  eax, 101;
-		call text_font_;
-		jmp  debug_printf_;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -794,7 +796,7 @@ static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
 static void __declspec(naked) sf_display_print_alt() {
 	__asm {
 		push ecx;
-		push display_print_;
+		push fo::funcoffs::display_print_;
 		push eax; // message
 		call SplitPrintMessage;
 		pop  ecx;
@@ -805,7 +807,7 @@ static void __declspec(naked) sf_display_print_alt() {
 static void __declspec(naked) sf_inven_display_msg() {
 	__asm {
 		push ecx;
-		push inven_display_msg_;
+		push fo::funcoffs::inven_display_msg_;
 		push eax; // message
 		call SplitPrintMessage;
 		pop  ecx;
@@ -819,7 +821,7 @@ static void __declspec(naked) op_display_msg_hook() {
 		jne  debug;
 		retn;
 debug:
-		jmp  config_get_value_;
+		jmp  fo::funcoffs::config_get_value_;
 	}
 }
 
@@ -904,7 +906,7 @@ void MiscPatches_Init() {
 	}
 
 	// Set idle function
-	*ptr_idle_func = reinterpret_cast<void*>(Sleep);
+	*fo::ptr::idle_func = reinterpret_cast<void*>(Sleep);
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
 
 	BlockCall(0x4425E6); // Patch out ereg call

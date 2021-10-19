@@ -51,28 +51,28 @@ WINinfo* Interface_GetWindow(long winType) {
 	long winID = 0;
 	switch (winType) {
 	case WINTYPE_Inventory:
-		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = *ptr_i_wid;
+		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = *fo::ptr::i_wid;
 		break;
 	case WINTYPE_Dialog:
-		if (GetLoopFlags() & DIALOG) winID = *ptr_dialogueBackWindow;
+		if (GetLoopFlags() & DIALOG) winID = *fo::ptr::dialogueBackWindow;
 		break;
 	case WINTYPE_PipBoy:
-		if (GetLoopFlags() & PIPBOY) winID = *ptr_pip_win;
+		if (GetLoopFlags() & PIPBOY) winID = *fo::ptr::pip_win;
 		break;
 	case WINTYPE_WorldMap:
-		if (GetLoopFlags() & WORLDMAP) winID = *ptr_wmBkWin;
+		if (GetLoopFlags() & WORLDMAP) winID = *fo::ptr::wmBkWin;
 		break;
 	case WINTYPE_IfaceBar:
-		winID = *ptr_interfaceWindow;
+		winID = *fo::ptr::interfaceWindow;
 		break;
 	case WINTYPE_Character:
-		if (GetLoopFlags() & CHARSCREEN) winID = *ptr_edit_win;
+		if (GetLoopFlags() & CHARSCREEN) winID = *fo::ptr::edit_win;
 		break;
 	case WINTYPE_Skilldex:
-		if (GetLoopFlags() & SKILLDEX) winID = *ptr_skldxwin;
+		if (GetLoopFlags() & SKILLDEX) winID = *fo::ptr::skldxwin;
 		break;
 	case WINTYPE_EscMenu:
-		if (GetLoopFlags() & ESCMENU) winID = *ptr_optnwin;
+		if (GetLoopFlags() & ESCMENU) winID = *fo::ptr::optnwin;
 		break;
 	case WINTYPE_Automap:
 		if (GetLoopFlags() & AUTOMAP) winID = Interface_ActiveInterfaceWID();
@@ -80,7 +80,7 @@ WINinfo* Interface_GetWindow(long winType) {
 	default:
 		return (WINinfo*)(-1); // unsupported type
 	}
-	return (winID > 0) ? fo_GNW_find(winID) : nullptr;
+	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
 
 static long costAP = -1;
@@ -149,14 +149,14 @@ up:
 		jnz  run;
 		retn;
 run:
-		jmp  wmInterfaceScrollTabsStart_;
+		jmp  fo::funcoffs::wmInterfaceScrollTabsStart_;
 	}
 }
 
 static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 101; // normal text font
-		jmp  text_font_;
+		jmp  fo::funcoffs::text_font_;
 	}
 }
 
@@ -204,8 +204,8 @@ static struct DotStyle {
 } *dotStyle = nullptr;
 
 static void AddNewDot() {
-	dot_xpos = *ptr_world_xpos;
-	dot_ypos = *ptr_world_ypos;
+	dot_xpos = *fo::ptr::world_xpos;
+	dot_ypos = *fo::ptr::world_ypos;
 
 	long* terrain = *(long**)FO_VAR_world_subtile;
 	size_t id = (terrain) ? *terrain : 0;
@@ -239,22 +239,22 @@ static void __declspec(naked) DrawingDots() {
 		sub esp, __LOCAL_SIZE;
 	}
 
-	if (dot_xpos != *ptr_world_xpos || dot_ypos != *ptr_world_ypos) {
+	if (dot_xpos != *fo::ptr::world_xpos || dot_ypos != *fo::ptr::world_ypos) {
 		AddNewDot();
 	}
-	x_offset = 22 - *ptr_wmWorldOffsetX;
-	y_offset = 21 - *ptr_wmWorldOffsetY;
+	x_offset = 22 - *fo::ptr::wmWorldOffsetX;
+	y_offset = 21 - *fo::ptr::wmWorldOffsetY;
 
 	for (std::vector<DotPosition>::const_iterator it = dots.begin(); it != dots.end(); ++it) { // redraws all dots
-		if (it->x < *ptr_wmWorldOffsetX || it->y < *ptr_wmWorldOffsetY) continue; // the pixel is out of viewport
-		if (it->x > *ptr_wmWorldOffsetX + wmapViewPortWidth || it->y > *ptr_wmWorldOffsetY + wmapViewPortHeight) continue;
+		if (it->x < *fo::ptr::wmWorldOffsetX || it->y < *fo::ptr::wmWorldOffsetY) continue; // the pixel is out of viewport
+		if (it->x > *fo::ptr::wmWorldOffsetX + wmapViewPortWidth || it->y > *fo::ptr::wmWorldOffsetY + wmapViewPortHeight) continue;
 
 		long wmPixelX = (it->x + x_offset);
 		long wmPixelY = (it->y + y_offset);
 
 		wmPixelY *= wmapWinWidth;
 
-		BYTE* wmWinBuf = *ptr_wmBkWinBuf;
+		BYTE* wmWinBuf = *fo::ptr::wmBkWinBuf;
 		BYTE* wmWinBuf_xy = (wmPixelY + wmPixelX) + wmWinBuf;
 
 		// put pixel to interface window buffer
@@ -269,16 +269,16 @@ static void __declspec(naked) DrawingDots() {
 }
 
 static bool __stdcall PrintHotspotText(long x, long y, bool backgroundCopy = false) {
-	long area = *ptr_WorldMapCurrArea;
+	long area = *fo::ptr::WorldMapCurrArea;
 	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap_GetCustomAreaTitle(area) : (char*)Worldmap_GetCurrentTerrainName();
 	if (!text) return false;
 
 	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
 		backImageIsCopy = true;
-		SurfaceCopyToMem(x - HVRIMG_x_shift, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, *ptr_wmBkWinBuf, wmTmpBuffer.data());
+		fo::util::SurfaceCopyToMem(x - HVRIMG_x_shift, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, *fo::ptr::wmBkWinBuf, wmTmpBuffer.data());
 	}
 
-	long txtWidth = GetTextWidthFM(text);
+	long txtWidth = fo::util::GetTextWidthFM(text);
 	if (txtWidth > HVRIMG_width) txtWidth = HVRIMG_width;
 
 	// offset text position
@@ -292,23 +292,23 @@ static bool __stdcall PrintHotspotText(long x, long y, bool backgroundCopy = fal
 		long x_cut = abs(20 - x);
 		long width = 0;
 		do {
-			width += GetCharWidthFM(*text++);
+			width += fo::util::GetCharWidthFM(*text++);
 		} while (width < x_cut);
 		x += x_cut;
 	}*/
 
-	PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, *ptr_wmBkWinBuf); // shadow
-	PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *ptr_wmBkWinBuf);
+	fo::util::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, *fo::ptr::wmBkWinBuf); // shadow
+	fo::util::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *fo::ptr::wmBkWinBuf);
 
-	if (backgroundCopy) fo_wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
+	if (backgroundCopy) fo::func::wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
 	return true;
 }
 
 static void __declspec(naked) wmInterfaceRefresh_hook() {
-	if (colorDot && *ptr_target_xpos != -1) {
-		if (*ptr_In_WorldMap) {
+	if (colorDot && *fo::ptr::target_xpos != -1) {
+		if (*fo::ptr::In_WorldMap) {
 			DrawingDots();
-		} else if (!*ptr_target_xpos && !*ptr_target_ypos) {
+		} else if (!*fo::ptr::target_xpos && !*fo::ptr::target_ypos) {
 			// player stops moving
 			dots.clear();
 			// Reinitialize on next AddNewDot
@@ -320,11 +320,11 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 			}
 		}
 	}
-	if (isHoveringHotspot && !*ptr_In_WorldMap) {
-		PrintHotspotText(*ptr_world_xpos - *ptr_wmWorldOffsetX, *ptr_world_ypos - *ptr_wmWorldOffsetY);
+	if (isHoveringHotspot && !*fo::ptr::In_WorldMap) {
+		PrintHotspotText(*fo::ptr::world_xpos - *fo::ptr::wmWorldOffsetX, *fo::ptr::world_ypos - *fo::ptr::wmWorldOffsetY);
 		isHoveringHotspot = backImageIsCopy = false;
 	}
-	__asm jmp wmDrawCursorStopped_;
+	__asm jmp fo::funcoffs::wmDrawCursorStopped_;
 }
 
 static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
@@ -334,22 +334,22 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 
 	// mouse cursor is out of viewport area (the zero values of wmMouseX and wmMouseY correspond to the top-left corner of the worldmap interface)
 	if ((wmMouseX < 20 || wmMouseY < 20 || wmMouseX > wmapViewPortWidth + 15 || wmMouseY > wmapViewPortHeight + 20) == false) {
-		deltaX = abs((long)*ptr_world_xpos - (wmMouseX - deltaX + *ptr_wmWorldOffsetX));
-		deltaY = abs((long)*ptr_world_ypos - (wmMouseY - deltaY + *ptr_wmWorldOffsetY));
+		deltaX = abs((long)*fo::ptr::world_xpos - (wmMouseX - deltaX + *fo::ptr::wmWorldOffsetX));
+		deltaY = abs((long)*fo::ptr::world_ypos - (wmMouseY - deltaY + *fo::ptr::wmWorldOffsetY));
 	}
 
 	bool isHovered = isHoveringHotspot;
 	isHoveringHotspot = deltaX < 8 && deltaY < 6;
 	if (isHoveringHotspot != isHovered) { // if value has changed
 		// upper left corner
-		long y = *ptr_world_ypos - *ptr_wmWorldOffsetY;
-		long x = *ptr_world_xpos - *ptr_wmWorldOffsetX;
+		long y = *fo::ptr::world_ypos - *fo::ptr::wmWorldOffsetY;
+		long x = *fo::ptr::world_xpos - *fo::ptr::wmWorldOffsetX;
 		long x_offset = x - HVRIMG_x_shift;
 		if (!backImageIsCopy) {
 			if (!PrintHotspotText(x, y, true)) return;
 		} else {
 			// restore background image
-			DrawToSurface(x_offset, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, wmapWinHeight, *ptr_wmBkWinBuf, wmTmpBuffer.data());
+			fo::util::DrawToSurface(x_offset, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, wmapWinHeight, *fo::ptr::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
@@ -358,7 +358,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		rect.left = x_offset;
 		rect.right = x + HVRIMG_width;
 		rect.bottom = y + HVRIMG_height;
-		fo_win_draw_rect(*ptr_wmBkWin, &rect);
+		fo::func::win_draw_rect(*fo::ptr::wmBkWin, &rect);
 	}
 }
 
@@ -423,11 +423,11 @@ static void __declspec(naked) wmInterfaceInit_hook() {
 	static DWORD retAddr;
 	__asm {
 		pop  retAddr;
-		call win_register_button_;
+		call fo::funcoffs::win_register_button_;
 		push eax;
-		mov  ebx, gsound_red_butt_release_;
-		mov  edx, gsound_red_butt_press_;
-		call win_register_button_sound_func_;
+		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
+		mov  edx, fo::funcoffs::gsound_red_butt_press_;
+		call fo::funcoffs::win_register_button_sound_func_;
 		pop  eax;
 		jmp  retAddr;
 	}
@@ -560,30 +560,30 @@ static void SpeedInterfaceCounterAnimsPatch() {
 static bool IFACE_BAR_MODE = false;
 
 static long gmouse_handle_event_hook() {
-	long countWin = *ptr_num_windows;
-	long ifaceWin = *ptr_interfaceWindow;
+	long countWin = *fo::ptr::num_windows;
+	long ifaceWin = *fo::ptr::interfaceWindow;
 	WINinfo* win = nullptr;
 
 	for (int n = 1; n < countWin; n++) {
-		win = ptr_window[n];
+		win = fo::ptr::window[n];
 		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check the script windows
 			&& !(win->flags & WinFlags::Hidden)) {
 			RECT *rect = &win->wRect;
-			if (fo_mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
+			if (fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
 		}
 	}
 	if (IFACE_BAR_MODE) return 1;
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
-	win = fo_GNW_find(var_getInt(FO_VAR_display_win));
+	win = fo::func::GNW_find(fo::var::getInt(FO_VAR_display_win));
 	RECT *rect = &win->wRect;
-	return fo_mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
+	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
 		push 1; // bypass Transparent
 		mov  ecx, eax;
-		call GetTopWindowAtPos;
+		call fo::util::GetTopWindowAtPos;
 		mov  eax, [eax]; // wID
 		retn;
 	}
@@ -595,7 +595,7 @@ static void __declspec(naked) display_body_hook() {
 		cmp  ebx, 1; // check mode 0 or 1
 		jbe  fix;
 		xor  ebx, ebx;
-		jmp  art_id_;
+		jmp  fo::funcoffs::art_id_;
 fix:
 		dec  edx;     // USE.FRM
 		mov  ecx, 48; // INVBOX.FRM
@@ -603,7 +603,7 @@ fix:
 		cmovz edx, ecx;
 		xor  ebx, ebx;
 		xor  ecx, ecx;
-		jmp  art_id_;
+		jmp  fo::funcoffs::art_id_;
 	}
 }
 
