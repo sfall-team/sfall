@@ -20,7 +20,9 @@
 
 #include <psapi.h>
 
+#include "main.h"
 #include "FalloutEngine\Fallout2.h"
+
 #include "ModuleManager.h"
 #include "Modules\Module.h"
 #include "Modules\AI.h"
@@ -84,8 +86,6 @@
 #include "version.h"
 
 #include "HRP\Init.h"
-
-#include "main.h"
 
 ddrawDll ddraw;
 

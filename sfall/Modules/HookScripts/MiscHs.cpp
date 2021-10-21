@@ -12,7 +12,7 @@ namespace sfall
 
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
-	bool barterIsParty = (fo::var::getInt(FO_VAR_dialog_target_is_party) != 0);
+	bool barterIsParty = (fo::var::dialog_target_is_party != 0);
 	long computeCost = fo::func::barter_compute_value(source, target);
 
 	BeginHook();

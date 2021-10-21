@@ -18,7 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\Version.h"
+#include "..\version.h"
 
 #include "..\HRP\Init.h"
 
@@ -56,7 +56,7 @@ static void __declspec(naked) MainMenuHookTextYOffset() {
 	}
 }
 
-static long __fastcall main_menu_create_hook_print_text(long xPos, const char* text, long yPos, long color) {
+static void __fastcall main_menu_create_hook_print_text(long xPos, const char* text, long yPos, long color) {
 	long winId = fo::var::main_window;
 	if (!hrpIsEnabled) { // TODO: test w/o HRP
 		fo::Window* win = fo::var::window[winId];

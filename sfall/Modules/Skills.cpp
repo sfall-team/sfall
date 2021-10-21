@@ -421,4 +421,5 @@ void Skills::init() {
 void Skills::exit() {
 	delete[] multipliers;
 }
+
 }

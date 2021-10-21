@@ -428,7 +428,7 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 	}
 }
 
-// loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
+// loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
 	fo::Program* scriptPtr = (fullPath)
 	                       ? fo::func::allocateProgram(fileName)

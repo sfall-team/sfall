@@ -134,7 +134,7 @@ static void RunEditorInternal(SOCKET &s) {
 
 	InternalSend(s, reinterpret_cast<void*>(fo::var::game_global_vars), 4 * numGlobals);
 	InternalSend(s, reinterpret_cast<void*>(fo::var::map_global_vars), 4 * numMapVars);
-	InternalSend(s, sglobals, sizeof(GlobalVar)*numSGlobals);
+	InternalSend(s, sglobals, sizeof(GlobalVar) * numSGlobals);
 	InternalSend(s, arrays, numArrays * sizeof(sArray));
 	for (int i = 0; i < numCritters; i++) {
 		InternalSend(s, &vec[i][25], 4);

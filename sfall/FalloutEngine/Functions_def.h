@@ -32,7 +32,6 @@ WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y,
 WRAP_WATCOM_FFUNC4(long, determine_to_hit, fo::GameObject*, source, fo::GameObject*, target, long, bodyPart, long, hitMode)
 WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
 WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
-//WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
 WRAP_WATCOM_FFUNC3(fo::FrmFrameData*, frame_ptr, fo::FrmHeaderData*, frm, long, frame, long, direction)
 WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, fo::Window*, win, fo::BoundRect*, rect, long*, buffer)
 WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
@@ -71,6 +70,12 @@ WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, te
 WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
+
+//
+WRAP_WATCOM_FUNC1(fo::BlendColorTableData*, getColorBlendTable, long, color)
+WRAP_WATCOM_FUNC1(void, freeColorBlendTable, long, color)
+
+//WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(fo::AIcap*, ai_cap, fo::GameObject*, critter)
@@ -197,7 +202,7 @@ WRAP_WATCOM_FUNC1(void, obj_unjam_lock, fo::GameObject*, object)
 WRAP_WATCOM_FUNC1(long, partyMemberGetCurLevel, fo::GameObject*, obj)
 WRAP_WATCOM_FUNC1(void, pc_flag_on, long, flag)
 WRAP_WATCOM_FUNC2(void, perk_add_effect,  fo::GameObject*, critter, long, perkId)
-WRAP_WATCOM_FUNC2(long, perk_can_add,  fo::GameObject*, critter, long, perkId)
+WRAP_WATCOM_FUNC2(long, perk_can_add, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC2(long, perk_level, fo::GameObject*, critter, long, perkId)
 //WRAP_WATCOM_FUNC2(void, perk_remove_effect, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC6(long, pick_death, fo::GameObject*, attacker, fo::GameObject*, target, fo::GameObject*, weapon, long, amount, long, anim, long, hitFromBack)

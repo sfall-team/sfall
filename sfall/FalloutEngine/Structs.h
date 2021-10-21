@@ -1128,7 +1128,7 @@ struct AudioFile {
 // aka PartyMemberRecoveryList
 struct ObjectListData {
 	GameObject* object;
-	fo::ScriptInstance* script;
+	ScriptInstance* script;
 	long* localVarData;
 	ObjectListData* nextSaveList; // _itemSaveListHead
 };
@@ -1143,6 +1143,32 @@ struct QuestData {
 	long gvarIndex;
 	long displayThreshold;
 	long completedThreshold;
+};
+
+struct BlendColorTableData {
+	struct BlendData {
+		BYTE colors[256];
+	};
+	BlendData data[16]; // [0] - without blending (filled values from 0 to 255)
+};
+
+struct BlendColorTable {
+	long unk; // counter?
+	BlendColorTableData table;
+};
+
+static_assert(sizeof(BlendColorTable) == 4100, "Incorrect BlendColorTable definition.");
+
+struct FontData { // sizeof = 0x810
+	short field0;
+	short field2;
+	short field4;
+	short field6;
+	short field8;
+	short fieldA;
+	short fieldC;
+	char  eUnkArray[2046];
+	long  field80C;
 };
 
 #pragma pack(pop)

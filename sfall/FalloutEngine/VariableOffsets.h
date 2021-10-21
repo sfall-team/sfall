@@ -29,6 +29,8 @@
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
+#define FO_VAR_button_down_data           0x519500
+#define FO_VAR_button_up_data             0x5194FC
 #define FO_VAR_cap                        0x518064
 #define FO_VAR_carCurrentArea             0x672E68
 #define FO_VAR_carGasAmount               0x672E6C
@@ -107,6 +109,7 @@
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
 #define FO_VAR_gconfig_file_name          0x58E978
 #define FO_VAR_gcsd                       0x51094C
+#define FO_VAR_gCurrentFont               0x58E93C
 #define FO_VAR_gdBarterMod                0x51873C
 #define FO_VAR_gdialog_speech_playing     0x518710
 #define FO_VAR_gDialogMusicVol            0x5187D8
