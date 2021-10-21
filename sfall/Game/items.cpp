@@ -51,7 +51,7 @@ bool __fastcall Items::IsHealingItem(fo::GameObject* item) {
 }
 
 bool Items::UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item) {
-	bool result = (game::Items::item_d_take_drug(source, item) == -1); // HOOK_USEOBJON
+	bool result = (Items::item_d_take_drug(source, item) == -1); // HOOK_USEOBJON
 	if (result) {
 		fo::func::item_add_force(source, item, 1);
 	} else {

@@ -20,7 +20,6 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\FalloutEngine\EngineUtils.h"
 #include "..\SimplePatch.h"
 #include "..\Utils.h"
 #include "Graphics.h"

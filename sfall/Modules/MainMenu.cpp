@@ -18,7 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\Version.h"
+#include "..\version.h"
 
 #include "MainMenu.h"
 
@@ -108,7 +108,7 @@ void MainMenu::init() {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 30 + offset);
+		SafeWrite32(0x48187C, 30 + offset); // button
 		MainMenuTextOffset = offset;
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetY", 0)) {

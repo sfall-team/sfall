@@ -95,7 +95,7 @@ long GetGlobalVarInternal(__int64 val);
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
-// loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
+// loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
 // fileName - the script file name without extension (if fullPath is false) or a full file path (if fullPath is true)
 // fullPath - controls how fileName is used (see above)

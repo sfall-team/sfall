@@ -1128,7 +1128,7 @@ struct AudioFile {
 // aka PartyMemberRecoveryList
 struct ObjectListData {
 	GameObject* object;
-	fo::ScriptInstance* script;
+	ScriptInstance* script;
 	long* localVarData;
 	ObjectListData* nextSaveList; // _itemSaveListHead
 };

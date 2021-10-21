@@ -16,7 +16,7 @@
 
 /*
 	For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
-	because the compiler builds the better/optimized code when calling the engine functions
+	because the compiler can build a better/optimized code when calling the engine functions
 */
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC4(fo::GameObject*, ai_best_weapon, fo::GameObject*, source, fo::GameObject*, prevItem, fo::GameObject*, checkItem, fo::GameObject*, target)
@@ -65,6 +65,7 @@ WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // th
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, fo::Window*, window, fo::RectList**, rects, void*, buffer)
+WRAP_WATCOM_FFUNC6(void, win_print, long, winID, const char*, text, long, textWidth, long, xPos, long, yPos, long, colorFlags)
 WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
 WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 
@@ -195,7 +196,7 @@ WRAP_WATCOM_FUNC1(void, obj_unjam_lock, fo::GameObject*, object)
 WRAP_WATCOM_FUNC1(long, partyMemberGetCurLevel, fo::GameObject*, obj)
 WRAP_WATCOM_FUNC1(void, pc_flag_on, long, flag)
 WRAP_WATCOM_FUNC2(void, perk_add_effect,  fo::GameObject*, critter, long, perkId)
-WRAP_WATCOM_FUNC2(long, perk_can_add,  fo::GameObject*, critter, long, perkId)
+WRAP_WATCOM_FUNC2(long, perk_can_add, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC2(long, perk_level, fo::GameObject*, critter, long, perkId)
 //WRAP_WATCOM_FUNC2(void, perk_remove_effect, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC6(long, pick_death, fo::GameObject*, attacker, fo::GameObject*, target, fo::GameObject*, weapon, long, amount, long, anim, long, hitFromBack)

@@ -277,7 +277,7 @@ static DWORD getBlockingFunc(BlockType type) {
 	case BlockType::BLOCKING_TYPE_SIGHT:
 		return fo::funcoffs::obj_sight_blocking_at_; // w/o calling hook
 	//case 4:
-	//	return obj_scroll_blocking_at_;
+	//	return fo::funcoffs::obj_scroll_blocking_at_;
 	}
 }
 

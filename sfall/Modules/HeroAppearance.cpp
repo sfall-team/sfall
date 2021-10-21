@@ -26,7 +26,7 @@
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
-#include "..\Game\Inventory.h"
+#include "..\Game\inventory.h"
 
 #include "HeroAppearance.h"
 

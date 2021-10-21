@@ -134,7 +134,7 @@ void SkillSetTags(long* tags, long num) {
 }
 
 long GetItemType(fo::GameObject* item) {
-	return fo::util::GetProto(item->protoId)->item.type;
+	return GetProto(item->protoId)->item.type;
 }
 
 __declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
