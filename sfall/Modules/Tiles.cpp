@@ -24,6 +24,11 @@
 #include "..\Utils.h"
 //#include "FileSystem.h"
 
+#include "Tiles.h"
+
+namespace sfall
+{
+
 typedef int (__stdcall *functype)();
 
 static const DWORD Tiles_0E[] = {
@@ -77,7 +82,7 @@ static long lroundf(float num) {
 }
 
 static bool LoadMask() {
-	DbFile* file = fo::func::db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
+	fo::DbFile* file = fo::func::db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
 	if (!file) {
 		dlogr("AllowLargeTiles: Unable to open art\\tiles\\gridmask.frm file.", DL_INIT);
 		return false;
@@ -90,7 +95,7 @@ static bool LoadMask() {
 	return true;
 }
 
-static int __stdcall ProcessTile(sArt* tiles, int tile, int listPos) {
+static int __stdcall ProcessTile(fo::Art* tiles, int tile, int listPos) {
 	char buf[32] = "art\\tiles\\";
 	const char* name = &tiles->names[13 * tile];
 	for (size_t i = 10; ; i++) {
@@ -100,7 +105,7 @@ static int __stdcall ProcessTile(sArt* tiles, int tile, int listPos) {
 		if (c == '\0') break;
 	}
 
-	DbFile* artFile = fo::func::db_fopen(buf, "rb");
+	fo::DbFile* artFile = fo::func::db_fopen(buf, "rb");
 	if (!artFile) return 0;
 
 	fo::func::db_fseek(artFile, 0x3E, SEEK_SET); // frameData
@@ -140,7 +145,7 @@ exit:
 	}
 	long listID = listPos - tiles->total;
 
-	FrmFile frame;
+	fo::FrmFile frame;
 	fo::func::db_fseek(artFile, 0, SEEK_SET);
 	fo::func::db_freadByteCount(artFile, (BYTE*)&frame, 74);
 
@@ -167,7 +172,7 @@ exit:
 			}
 			sprintf(&buf[10], "zzz%04d.frm", listID++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
-			DbFile* file = fo::func::db_fopen(buf, "wb");
+			fo::DbFile* file = fo::func::db_fopen(buf, "wb");
 			fo::func::db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
 			fo::func::db_fclose(file);
 		}
@@ -186,13 +191,13 @@ static int __stdcall ArtInitHook() {
 	if (art_init()) return -1;
 	if (!LoadMask()) return 0;
 
-	sArt* tiles = &fo::ptr::art[4];
+	fo::Art* tiles = &fo::ptr::art[4];
 
 	long listpos = origTileCount = tiles->total;
 	overrides = new OverrideEntry*[listpos]();
 
 	if (tileMode == 2) {
-		DbFile* file = fo::func::db_fopen("art\\tiles\\xltiles.lst", "rt");
+		fo::DbFile* file = fo::func::db_fopen("art\\tiles\\xltiles.lst", "rt");
 		if (!file) return 0;
 
 		char buf[32];
@@ -324,4 +329,6 @@ void Tiles_Exit() {
 		for (size_t i = 0; i < origTileCount; i++) delete overrides[i]; // free OverrideEntry
 		delete[] overrides;
 	}
+}
+
 }

@@ -22,17 +22,20 @@
 
 #include "Objects.h"
 
+namespace sfall
+{
+
 static int unjamTimeState;
 static int maxCountLoadProto = 512;
 
 long Objects_uniqueID = UID_START; // current counter id, saving to sfallgv.sav
 
 bool Objects_IsUniqueID(long id) {
-	return (id > UID_START || (id >= PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
+	return (id > UID_START || (id >= fo::PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
 }
 
-static void SetScriptObjectID(TGameObj* obj) {
-	TScript* script;
+static void SetScriptObjectID(fo::GameObject* obj) {
+	fo::ScriptInstance* script;
 	if (fo::func::scr_ptr(obj->scriptId, &script) != -1) {
 		script->ownerObjectId = obj->id;
 	}
@@ -41,7 +44,7 @@ static void SetScriptObjectID(TGameObj* obj) {
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
-long __fastcall Objects_SetObjectUniqueID(TGameObj* obj) {
+long __fastcall Objects_SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
 	if (Objects_IsUniqueID(id)) return id;
 
@@ -52,7 +55,7 @@ long __fastcall Objects_SetObjectUniqueID(TGameObj* obj) {
 }
 
 // Assigns a unique ID in the negative range (0xFFFFFFF6 - 0x8FFFFFF7)
-long __fastcall Objects_SetSpecialID(TGameObj* obj) {
+long __fastcall Objects_SetSpecialID(fo::GameObject* obj) {
 	long id = obj->id;
 	if (id <= -10 || id > UID_START) return id;
 
@@ -63,14 +66,14 @@ long __fastcall Objects_SetSpecialID(TGameObj* obj) {
 	return id;
 }
 
-void Objects_SetNewEngineID(TGameObj* obj) {
+void Objects_SetNewEngineID(fo::GameObject* obj) {
 	if (obj->id > UID_START) return;
 	obj->id = fo::func::new_obj_id();
 	SetScriptObjectID(obj);
 }
 
 static void __declspec(naked) item_identical_hack() {
-	using namespace Fields;
+	using namespace fo::Fields;
 	__asm {
 		mov  ecx, [edi]; // item id
 		cmp  ecx, UID_START; // start unique ID
@@ -98,10 +101,10 @@ pickNewID: // skip PM range (18000 - 83535)
 // TODO: for items?
 static void map_fix_critter_id() {
 	long npcStartID = 4096; // 0x1000
-	TGameObj* obj = fo::func::obj_find_first();
+	fo::GameObject* obj = fo::func::obj_find_first();
 	while (obj) {
 		if (obj->IsCritter()) {
-			if (obj->id < PLAYER_ID) {
+			if (obj->id < fo::PLAYER_ID) {
 				obj->id = npcStartID++;
 				SetScriptObjectID(obj);
 			}
@@ -207,6 +210,7 @@ void __stdcall Objects_LoadProtoAutoMaxLimit() {
 
 // Places the PID_CORPSE_BLOOD object on the lower layer of objects on the tile
 static void __declspec(naked) obj_insert_hack() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		// engine code
@@ -261,4 +265,6 @@ void Objects_Init() {
 
 	// Place some objects on the lower z-layer of the tile
 	MakeCall(0x48D918, obj_insert_hack, 1);
+}
+
 }

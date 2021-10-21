@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 static void __declspec(naked) op_create_array() {
 	__asm {
 		pushaop;
@@ -488,13 +491,13 @@ static void __declspec(naked) op_stack_array() {
 
 // object LISTS
 struct sList {
-	TGameObj** obj;
+	fo::GameObject** obj;
 	DWORD len;
 	DWORD pos;
 
-	sList(const std::vector<TGameObj*>* vec) : pos(0) {
+	sList(const std::vector<fo::GameObject*>* vec) : pos(0) {
 		len = vec->size();
-		obj = new TGameObj*[len];
+		obj = new fo::GameObject*[len];
 		for (size_t i = 0; i < len; i++) {
 			obj[i] = (*vec)[i];
 		}
@@ -513,15 +516,15 @@ struct ListId {
 };
 static std::vector<ListId> mList;
 
-static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
+static void __stdcall FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 	if (type == 4) return; // LIST_TILES
 
 	vec.reserve(100);
 	if (type == 6) { // LIST_SPATIAL
 		for (int elev = 0; elev <= 2; elev++) {
-			TScript* scriptPtr = fo::func::scr_find_first_at(elev);
+			fo::ScriptInstance* scriptPtr = fo::func::scr_find_first_at(elev);
 			while (scriptPtr != nullptr) {
-				TGameObj* self_obj = scriptPtr->selfObject;
+				fo::GameObject* self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
 					self_obj = fo::func::scr_find_obj_from_program(scriptPtr->program);
 				}
@@ -540,7 +543,7 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	} else {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
-				TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
+				fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 				while (obj) {
 					DWORD otype = obj->Type();
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
@@ -554,7 +557,7 @@ static void __stdcall FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 }
 
 static DWORD __stdcall ListAsArray(DWORD type) {
-	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
+	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
 	size_t sz = vec.size();
 	DWORD id = CreateTempArray(sz, 0);
@@ -581,7 +584,7 @@ static void __declspec(naked) op_list_as_array() {
 }
 
 static DWORD __stdcall ListBegin(DWORD type) {
-	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
+	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
 	sList* list = new sList(&vec);
 	mList.push_back(list);
@@ -603,7 +606,7 @@ static void __declspec(naked) op_list_begin() {
 	_WRAP_OPCODE(op_list_begin2, 1, 1)
 }
 
-static TGameObj* __stdcall ListNext(sList* list) {
+static fo::GameObject* __stdcall ListNext(sList* list) {
 	return (!list || list->pos == list->len) ? 0 : list->obj[list->pos++];
 }
 
@@ -611,7 +614,7 @@ static void __stdcall op_list_next2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		TGameObj* obj = nullptr;
+		fo::GameObject* obj = nullptr;
 		DWORD id = idArg.rawValue();
 		if (id != 0) {
 			sList* list = nullptr;
@@ -658,4 +661,6 @@ static void __stdcall op_list_end2() {
 
 static void __declspec(naked) op_list_end() {
 	_WRAP_OPCODE(op_list_end2, 1, 0)
+}
+
 }

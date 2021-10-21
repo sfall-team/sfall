@@ -25,6 +25,9 @@
 
 #include "TalkingHeads.h"
 
+namespace sfall
+{
+
 #pragma pack(push, 1)
 struct Frm {
 	DWORD version;
@@ -88,12 +91,12 @@ static bool GetHeadFrmName(char* name) {
 	            ? *fo::ptr::lipsFID
 	            : *fo::ptr::fidgetFID;
 	int index = headFid & 0xFFF;
-	if (index >= fo::ptr::art[OBJ_TYPE_HEAD].total) return true;
+	if (index >= fo::ptr::art[fo::OBJ_TYPE_HEAD].total) return true;
 	int ID2 = (fo::var::getInt(FO_VAR_fidgetFp)) ? (headFid & 0xFF0000) >> 16 : reactionID;
 	if (ID2 > 11) return true;
 	int ID1 = (ID2 == 1 || ID2 == 4 || ID2 == 7) ? (headFid & 0xF000) >> 12 : -1;
 	//if (ID1 > 3) ID1 = 3;
-	const char* headLst = fo::ptr::art[OBJ_TYPE_HEAD].names;
+	const char* headLst = fo::ptr::art[fo::OBJ_TYPE_HEAD].names;
 	char* fmt = (ID1 != -1) ? "%s%s%d" : "%s%s";
 	_snprintf(name, 8, fmt, &headLst[13 * index], headSuffix[ID2], ID1);
 	return false;
@@ -151,7 +154,7 @@ static bool LoadFrm(Frm* frm) {
 	}
 	// make mask image
 	for (int i = 0; i < frm->frames; i++) {
-		FrmFrameData* frame = fo::func::frame_ptr((FrmHeaderData*)frm, i, 0);
+		fo::FrmFrameData* frame = fo::func::frame_ptr((fo::FrmHeaderData*)frm, i, 0);
 		if (frm->bakedBackground) {
 			memset(frame->data, 255, frame->size);
 		} else {
@@ -174,10 +177,10 @@ static struct DialogWinPos {
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
-		FrmFrameData* frame = fo::func::frame_ptr((FrmHeaderData*)frm, frameno, 0);
+		fo::FrmFrameData* frame = fo::func::frame_ptr((fo::FrmHeaderData*)frm, frameno, 0);
 
 		if (dialogWinPos.x == -1) {
-			WINinfo* dialogWin = fo::func::GNW_find(*fo::ptr::dialogueBackWindow);
+			fo::Window* dialogWin = fo::func::GNW_find(*fo::ptr::dialogueBackWindow);
 			dialogWinPos.x = dialogWin->rect.x;
 			dialogWinPos.y = dialogWin->rect.y;
 		}
@@ -280,4 +283,6 @@ void TalkingHeads_Exit() {
 			delete[] it->second.textures;
 		}
 	}
+}
+
 }

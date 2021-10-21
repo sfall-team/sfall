@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Translate_Init(const char* config);
 
 // Translates given string using sfall translation INI file and puts the result into given buffer
@@ -39,3 +42,5 @@ const char* Translate_CombatSaveBlockMessage();
 
 // BlockedCombat: "You cannot enter combat at this time."
 const char* Translate_CombatBlockMessage();
+
+}

@@ -21,14 +21,17 @@
 
 #include "Elevators.h"
 
+namespace sfall
+{
+
 static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50; // The maximum allowed for Elevator stub in the BIS mapper
 
 static DWORD elevatorType[elevatorCount] = {0};
-static sElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals
-static sElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
-static DWORD elevatorsBtnCount[elevatorCount] = {0};                       // _btncount
+static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals
+static fo::ElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
+static DWORD elevatorsBtnCount[elevatorCount] = {0};                          // _btncount
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
@@ -95,16 +98,16 @@ static void __declspec(naked) GetNumButtonsHook3() {
 }
 
 static void ResetElevators() {
-	//memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(sElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
-	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(sElevatorFrms) * (elevatorCount - vanillaElevatorCount));
+	//memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
+	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(fo::ElevatorFrms) * (elevatorCount - vanillaElevatorCount));
 	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
 }
 
 static void LoadElevators(const char* elevFile) {
 	//ResetElevators();
 
-	memcpy(elevatorExits, (void*)FO_VAR_retvals, sizeof(sElevatorExit) * vanillaElevatorCount * exitsPerElevator);
-	memcpy(elevatorsFrms, (void*)FO_VAR_intotal, sizeof(sElevatorFrms) * vanillaElevatorCount);
+	memcpy(elevatorExits, (void*)FO_VAR_retvals, sizeof(fo::ElevatorExit) * vanillaElevatorCount * exitsPerElevator);
+	memcpy(elevatorsFrms, (void*)FO_VAR_intotal, sizeof(fo::ElevatorFrms) * vanillaElevatorCount);
 	memcpy(elevatorsBtnCount, (void*)FO_VAR_btncnt, sizeof(DWORD) * vanillaElevatorCount);
 
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
@@ -166,4 +169,6 @@ void Elevators_Init() {
 		LoadElevators(elevPath.insert(0, ".\\").c_str());
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

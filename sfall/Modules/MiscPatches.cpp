@@ -24,6 +24,11 @@
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
+#include "MiscPatches.h"
+
+namespace sfall
+{
+
 static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
@@ -47,7 +52,7 @@ c15:
 }
 
 static void __declspec(naked) register_object_take_out_hack() {
-	using namespace Fields;
+	using namespace fo::Fields;
 	__asm {
 		push ecx;
 		push eax;
@@ -114,6 +119,7 @@ static void __declspec(naked) intface_item_reload_hook() {
 static void __declspec(naked) automap_hack() {
 	static const DWORD ScannerHookRet  = 0x41BC1D;
 	static const DWORD ScannerHookFail = 0x41BC65;
+	using fo::PID_MOTION_SENSOR;
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, PID_MOTION_SENSOR;
@@ -127,11 +133,11 @@ fail:
 	}
 }
 
-static bool __fastcall SeeIsFront(TGameObj* source, TGameObj* target) {
+static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target) {
 	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
 	if (dir < 0) dir = -dir;
 	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
-		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, STAT_pe) * 3));
+		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, fo::STAT_pe) * 3));
 	}
 	return (dir == 0); // is directly in front
 }
@@ -192,7 +198,7 @@ continue:
 
 static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	int slot = (mode > 0) ? 1 : 0;
-	ItemButtonItem* itemButton = &fo::ptr::itemButtonItems[slot];
+	fo::ItemButtonItem* itemButton = &fo::ptr::itemButtonItems[slot];
 	if ((DWORD)itemButton->item == itemPtr) {
 		int slotMode = itemButton->mode;
 		if (slotMode == 3 || slotMode == 4) {
@@ -215,38 +221,38 @@ static void __declspec(naked) display_stats_hook() {
 	}
 }
 
-static void __fastcall SwapHandSlots(TGameObj* item, TGameObj* &toSlot) {
-	if (toSlot && fo::util::GetItemType(item) != item_type_weapon && fo::util::GetItemType(toSlot) != item_type_weapon) {
+static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
+	if (toSlot && fo::util::GetItemType(item) != fo::item_type_weapon && fo::util::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
-	ItemButtonItem* leftSlot  = &fo::ptr::itemButtonItems[HANDSLOT_Left];
-	ItemButtonItem* rightSlot = &fo::ptr::itemButtonItems[HANDSLOT_Right];
+	fo::ItemButtonItem* leftSlot  = &fo::ptr::itemButtonItems[fo::HANDSLOT_Left];
+	fo::ItemButtonItem* rightSlot = &fo::ptr::itemButtonItems[fo::HANDSLOT_Right];
 
 	if (toSlot == nullptr) { // copy to empty slot
-		ItemButtonItem* dstSlot;
-		ItemButtonItem item;
+		fo::ItemButtonItem* dstSlot;
+		fo::ItemButtonItem item;
 		if ((int)&toSlot == FO_VAR_i_lhand) {
 			std::memcpy(&item, rightSlot, 0x14);
-			item.primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
-			item.secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
+			item.primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			item.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 			dstSlot = leftSlot; // Rslot > Lslot
 		} else {
 			std::memcpy(&item, leftSlot, 0x14);
-			item.primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
-			item.secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
+			item.primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			item.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 			dstSlot = rightSlot; // Lslot > Rslot;
 		}
 		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
-		ItemButtonItem hands[2];
-		std::memcpy(hands, fo::ptr::itemButtonItems, sizeof(ItemButtonItem) * 2);
-		hands[HANDSLOT_Left].primaryAttack   = ATKTYPE_RWEAPON_PRIMARY;
-		hands[HANDSLOT_Left].secondaryAttack = ATKTYPE_RWEAPON_SECONDARY;
-		hands[HANDSLOT_Right].primaryAttack   = ATKTYPE_LWEAPON_PRIMARY;
-		hands[HANDSLOT_Right].secondaryAttack = ATKTYPE_LWEAPON_SECONDARY;
+		fo::ItemButtonItem hands[2];
+		std::memcpy(hands, fo::ptr::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
+		hands[fo::HANDSLOT_Left].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[fo::HANDSLOT_Left].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[fo::HANDSLOT_Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[fo::HANDSLOT_Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		std::memcpy(leftSlot,  &hands[HANDSLOT_Right], 0x14); // Rslot > Lslot
-		std::memcpy(rightSlot, &hands[HANDSLOT_Left],  0x14); // Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[fo::HANDSLOT_Right], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[fo::HANDSLOT_Left],  0x14); // Lslot > Rslot
 	}
 }
 
@@ -275,29 +281,29 @@ static long pHitL, sHitL, modeL = -2;
 static long pHitR, sHitR, modeR = -2;
 
 static long intface_update_items_hack_begin() {
-	if (!fo::ptr::itemButtonItems[HANDSLOT_Left].item && !fo::func::inven_left_hand(*fo::ptr::obj_dude)) {
-		modeL = fo::ptr::itemButtonItems[HANDSLOT_Left].mode;
-		pHitL = fo::ptr::itemButtonItems[HANDSLOT_Left].primaryAttack;
-		sHitL = fo::ptr::itemButtonItems[HANDSLOT_Left].secondaryAttack;
+	if (!fo::ptr::itemButtonItems[fo::HANDSLOT_Left].item && !fo::func::inven_left_hand(*fo::ptr::obj_dude)) {
+		modeL = fo::ptr::itemButtonItems[fo::HANDSLOT_Left].mode;
+		pHitL = fo::ptr::itemButtonItems[fo::HANDSLOT_Left].primaryAttack;
+		sHitL = fo::ptr::itemButtonItems[fo::HANDSLOT_Left].secondaryAttack;
 	}
-	if (!fo::ptr::itemButtonItems[HANDSLOT_Right].item && !fo::func::inven_right_hand(*fo::ptr::obj_dude)) {
-		modeR = fo::ptr::itemButtonItems[HANDSLOT_Right].mode;
-		pHitR = fo::ptr::itemButtonItems[HANDSLOT_Right].primaryAttack;
-		sHitR = fo::ptr::itemButtonItems[HANDSLOT_Right].secondaryAttack;
+	if (!fo::ptr::itemButtonItems[fo::HANDSLOT_Right].item && !fo::func::inven_right_hand(*fo::ptr::obj_dude)) {
+		modeR = fo::ptr::itemButtonItems[fo::HANDSLOT_Right].mode;
+		pHitR = fo::ptr::itemButtonItems[fo::HANDSLOT_Right].primaryAttack;
+		sHitR = fo::ptr::itemButtonItems[fo::HANDSLOT_Right].secondaryAttack;
 	}
 	return *fo::ptr::itemCurrentItem;
 }
 
 static void intface_update_restore() {
-	if (modeL != -2 && pHitL == fo::ptr::itemButtonItems[HANDSLOT_Left].primaryAttack &&
-	    sHitL == fo::ptr::itemButtonItems[HANDSLOT_Left].secondaryAttack)
+	if (modeL != -2 && pHitL == fo::ptr::itemButtonItems[fo::HANDSLOT_Left].primaryAttack &&
+	    sHitL == fo::ptr::itemButtonItems[fo::HANDSLOT_Left].secondaryAttack)
 	{
-		fo::ptr::itemButtonItems[HANDSLOT_Left].mode = modeL;
+		fo::ptr::itemButtonItems[fo::HANDSLOT_Left].mode = modeL;
 	}
-	if (modeR != -2 && pHitR == fo::ptr::itemButtonItems[HANDSLOT_Right].primaryAttack &&
-	    sHitR == fo::ptr::itemButtonItems[HANDSLOT_Right].secondaryAttack)
+	if (modeR != -2 && pHitR == fo::ptr::itemButtonItems[fo::HANDSLOT_Right].primaryAttack &&
+	    sHitR == fo::ptr::itemButtonItems[fo::HANDSLOT_Right].secondaryAttack)
 	{
-		fo::ptr::itemButtonItems[HANDSLOT_Right].mode = modeR;
+		fo::ptr::itemButtonItems[fo::HANDSLOT_Right].mode = modeR;
 	}
 	modeL = -2;
 	modeR = -2;
@@ -913,7 +919,7 @@ void MiscPatches_Init() {
 
 	SafeWrite8(0x4810AB, CODETYPE_JumpShort); // Disable selfrun
 
-	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", GVAR_MODOC_SHITTY_DEATH);
+	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
 	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
@@ -997,4 +1003,6 @@ void MiscPatches_Init() {
 
 void MiscPatches_Exit() {
 	if (scriptDialog) delete[] scriptDialog;
+}
+
 }

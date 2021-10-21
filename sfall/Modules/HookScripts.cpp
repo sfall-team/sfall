@@ -29,17 +29,20 @@
 
 #include "HookScripts.h"
 
+namespace sfall
+{
+
 // Number of types of hooks
 static const int numHooks = HOOK_COUNT;
 
 // Struct for registered hook script
-struct sHookScript {
-	sScriptProgram prog;
+struct HookScript {
+	ScriptProgram prog;
 	int callback;        // procedure position in script's proc table
 	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
 };
 
-static std::vector<sHookScript> hooks[numHooks];
+static std::vector<HookScript> hooks[numHooks];
 
 DWORD initingHookScripts;
 
@@ -107,7 +110,7 @@ static void __stdcall BeginHook() {
 	devlog_f("Begin running hook, current depth: %d, current executable hook: %d\n", DL_HOOK, callDepth, currentRunHook);
 }
 
-static void __stdcall RunSpecificHookScript(sHookScript *hook) {
+static void __stdcall RunSpecificHookScript(HookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
@@ -204,7 +207,7 @@ static void __declspec(naked) ToHitHook() {
 }
 
 // 4.x backport
-static DWORD __fastcall AfterHitRollHook_Script(TComputeAttack &ctd, DWORD hitChance, DWORD hit) {
+static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
 	BeginHook();
 	argCount = 5;
 
@@ -219,7 +222,7 @@ static DWORD __fastcall AfterHitRollHook_Script(TComputeAttack &ctd, DWORD hitCh
 		hit = rets[0];
 		if (cRet > 1) {
 			ctd.bodyPart = rets[1];
-			if (cRet > 2) ctd.target = (TGameObj*)rets[2];
+			if (cRet > 2) ctd.target = (fo::GameObject*)rets[2];
 		}
 	}
 	EndHook();
@@ -228,6 +231,7 @@ static DWORD __fastcall AfterHitRollHook_Script(TComputeAttack &ctd, DWORD hitCh
 }
 
 static void __declspec(naked) AfterHitRollHook() {
+	using namespace fo;
 	__asm {
 		mov  ecx, esi;              // ctd
 		mov  edx, [esp + 0x18 + 4]; // hit chance
@@ -240,7 +244,7 @@ static void __declspec(naked) AfterHitRollHook() {
 	}
 }
 
-static long __stdcall CalcApCostHook_Script(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon) {
+static long __stdcall CalcApCostHook_Script(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
 	BeginHook();
 	argCount = 5;
 
@@ -258,7 +262,7 @@ static long __stdcall CalcApCostHook_Script(TGameObj* source, long hitMode, long
 	return cost;
 }
 
-long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon) {
+long __stdcall CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
 	return (HookHasScript(HOOK_CALCAPCOST))
 	       ? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
 	       : cost;
@@ -319,7 +323,7 @@ static void __declspec(naked) CalcApCostHook2() {
 }
 
 // 4.x backport
-static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target, TGameObj* attacker, TGameObj* weapon, int animation, int hitBack) {
+static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
 	BeginHook();
 	argCount = 5; // was 4
 
@@ -336,8 +340,8 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target,
 	if (cRet > 0) {
 		DWORD pid = rets[0];
 		args[0] = pid; // replace for HOOK_DEATHANIM2
-		TGameObj* object = nullptr;
-		if (fo::func::obj_pid_new((TGameObj*)&object, pid) != -1) { // create new object
+		fo::GameObject* object = nullptr;
+		if (fo::func::obj_pid_new((fo::GameObject*)&object, pid) != -1) { // create new object
 			createNewObj = true;
 			weapon = object; // replace pointer with newly created weapon object
 		}
@@ -399,7 +403,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 }
 
 // 4.x backport
-static void __fastcall ComputeDamageHook_Script(TComputeAttack &ctd, DWORD rounds, DWORD multiplier) {
+static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiplier) {
 	BeginHook();
 	argCount = 13;
 
@@ -451,7 +455,7 @@ static void __declspec(naked) ComputeDamageHook() {
 }
 
 static void __declspec(naked) OnDeathHook() {
-	using namespace Fields;
+	using namespace fo::Fields;
 	__asm {
 		push edx;
 		call BeginHook;
@@ -488,7 +492,7 @@ static void __declspec(naked) OnDeathHook2() {
 }
 
 // 4.x backport
-static void __fastcall FindTargetHook_Script(DWORD* target, TGameObj* attacker) {
+static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* attacker) {
 	BeginHook();
 	argCount = 5;
 
@@ -519,7 +523,7 @@ static void __declspec(naked) FindTargetHook() {
 	}
 }
 
-static long __stdcall UseObjOnHook_Script(TGameObj* source, TGameObj* item, TGameObj* target) {
+static long __stdcall UseObjOnHook_Script(fo::GameObject* source, fo::GameObject* item, fo::GameObject* target) {
 	BeginHook();
 	argCount = 3;
 
@@ -535,7 +539,7 @@ static long __stdcall UseObjOnHook_Script(TGameObj* source, TGameObj* item, TGam
 	return result; // -1 - default handler
 }
 
-long __stdcall UseObjOnHook_Invoke(TGameObj* source, TGameObj* item, TGameObj* target) {
+long __stdcall UseObjOnHook_Invoke(fo::GameObject* source, fo::GameObject* item, fo::GameObject* target) {
 	if (!HookHasScript(HOOK_USEOBJON)) return -1;
 	return UseObjOnHook_Script(source, item, target);
 }
@@ -620,7 +624,7 @@ defaultHandler:
 	}
 }
 /*
-static void RemoveInvenObjHook_Script(TGameObj* source, TGameObj* item, long count, long rmType) {
+static void RemoveInvenObjHook_Script(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
 	BeginHook();
 	argCount = 5;
 
@@ -634,7 +638,7 @@ static void RemoveInvenObjHook_Script(TGameObj* source, TGameObj* item, long cou
 	EndHook();
 }
 
-void RemoveInvenObjHook_Invoke(TGameObj* source, TGameObj* item, long count, long rmType) {
+void RemoveInvenObjHook_Invoke(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
 	if (HookHasScript(HOOK_REMOVEINVENOBJ)) RemoveInvenObjHook_Script(source, item, count, rmType);
 }
 */
@@ -680,7 +684,7 @@ static void __declspec(naked) RemoveObjHook() {
 
 // 4.x backport
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
-static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, register TGameObj* target, DWORD callAddr) {
+static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
 	bool barterIsParty = (*fo::ptr::dialog_target_is_party != 0);
 	long computeCost = fo::func::barter_compute_value(source, target);
 
@@ -691,12 +695,12 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 	args[1] = (DWORD)target;
 	args[2] = !barterIsParty ? computeCost : 0;
 
-	TGameObj* bTable = (TGameObj*)*fo::ptr::btable;
+	fo::GameObject* bTable = (fo::GameObject*)*fo::ptr::btable;
 	args[3] = (DWORD)bTable;
 	args[4] = fo::func::item_caps_total(bTable);
 	args[5] = fo::func::item_total_cost(bTable);
 
-	TGameObj* pTable = (TGameObj*)*fo::ptr::ptable;
+	fo::GameObject* pTable = (fo::GameObject*)*fo::ptr::ptable;
 	args[6] = (DWORD)pTable;
 
 	long pcCost = 0;
@@ -745,7 +749,7 @@ static void __declspec(naked) PC_BarterPriceHook() {
 		push edx;
 		push ecx;
 		//-------
-		push -1;                                 // address on call stack
+		push -1;                                       // address on call stack
 		mov  ecx, dword ptr ds:[FO_VAR_obj_dude];      // source
 		mov  edx, dword ptr ds:[FO_VAR_target_stack];  // target
 		call BarterPriceHook_Script;
@@ -934,7 +938,7 @@ static void __declspec(naked) ItemDamageHook() {
 }
 
 // 4.x backport
-int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds) {
+int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds) {
 	int result = 0;
 
 	BeginHook();
@@ -962,6 +966,7 @@ failed:
 }
 
 static void __declspec(naked) AmmoCostHook() {
+	using namespace fo;
 	__asm {
 		xor  ecx, ecx;             // type of hook (0)
 		cmp  dword ptr [esp + 0x1C + 4], ANIM_fire_burst;
@@ -1063,7 +1068,7 @@ defaultHandler:
 }
 
 // 4.x backport
-static __forceinline long __stdcall PerceptionRangeHook_Script(TGameObj* watcher, TGameObj* target, int type, long result) {
+static __forceinline long __stdcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type, long result) {
 	BeginHook();
 	argCount = 4;
 
@@ -1080,12 +1085,12 @@ static __forceinline long __stdcall PerceptionRangeHook_Script(TGameObj* watcher
 	return result;
 }
 
-long __stdcall PerceptionRangeHook_Invoke(TGameObj* watcher, TGameObj* target, long type, long result) {
+long __stdcall PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result) {
 	if (!HookHasScript(HOOK_WITHINPERCEPTION)) return result;
 	return PerceptionRangeHook_Script(watcher, target, type, result);
 }
 
-static long __fastcall PerceptionRange_Hook(TGameObj* watcher, TGameObj* target, int type) {
+static long __fastcall PerceptionRange_Hook(fo::GameObject* watcher, fo::GameObject* target, int type) {
 	return PerceptionRangeHook_Script(watcher, target, type, fo::func::is_within_perception(watcher, target));
 }
 
@@ -1140,8 +1145,8 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 }
 
 // 4.x backport
-static int __fastcall SwitchHandHook_Script(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
-	if (itemReplaced && fo::func::item_get_type(itemReplaced) == item_type_weapon && fo::func::item_get_type(item) == item_type_ammo) {
+static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
+	if (itemReplaced && fo::func::item_get_type(itemReplaced) == fo::item_type_weapon && fo::func::item_get_type(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 
@@ -1404,13 +1409,13 @@ skip:
 
 // 4.x backport
 /* Common InvenWield script hooks */
-static long __fastcall InvenWieldHook_Script(TGameObj* critter, TGameObj* item, long slot, long isWield, long isRemove) {
+static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameObject* item, long slot, long isWield, long isRemove) {
 	if (!isWield) {
 		// for the critter, the right slot is always the active slot
-		if (slot == INVEN_TYPE_LEFT_HAND && critter != *fo::ptr::obj_dude) return 1;
+		if (slot == fo::INVEN_TYPE_LEFT_HAND && critter != *fo::ptr::obj_dude) return 1;
 		// check the current active slot for the player
-		if (slot != INVEN_TYPE_WORN && critter == *fo::ptr::obj_dude) {
-			long _slot = (slot != INVEN_TYPE_LEFT_HAND);
+		if (slot != fo::INVEN_TYPE_WORN && critter == *fo::ptr::obj_dude) {
+			long _slot = (slot != fo::INVEN_TYPE_LEFT_HAND);
 			if (_slot != *fo::ptr::itemCurrentItem) return 1; // item in non-active slot
 		}
 	}
@@ -1455,8 +1460,8 @@ static void __declspec(naked) InvenWieldFuncHook() {
 	}
 
 	// right hand slot?
-	if (args[2] != INVEN_TYPE_RIGHT_HAND && fo::func::item_get_type((TGameObj*)args[1]) != item_type_armor) {
-		args[2] = INVEN_TYPE_LEFT_HAND;
+	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::func::item_get_type((fo::GameObject*)args[1]) != fo::item_type_armor) {
+		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
 	InvenWieldHook_ScriptPart(1); // wield event
 
@@ -1482,11 +1487,11 @@ static void __declspec(naked) InvenUnwieldFuncHook() {
 
 	// set slot
 	if (args[2] == 0) { // left hand slot?
-		args[2] = INVEN_TYPE_LEFT_HAND;
+		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
 
 	// get item
-	args[1] = (DWORD)fo::util::GetItemPtrSlot((TGameObj*)args[0], (InvenType)args[2]);
+	args[1] = (DWORD)fo::util::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]);
 
 	InvenWieldHook_ScriptPart(0); // unwield event
 
@@ -1502,6 +1507,7 @@ skip:
 }
 
 static void __declspec(naked) CorrectFidForRemovedItemHook() {
+	using namespace fo::ObjectFlag;
 	__asm {
 		HookBegin;
 		mov args[0], eax; // critter
@@ -1511,12 +1517,12 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	}
 
 	// set slot
-	if (args[2] & ObjectFlag::Right_Hand) {       // right hand slot
-		args[2] = INVEN_TYPE_RIGHT_HAND;
-	} else if (args[2] & ObjectFlag::Left_Hand) { // left hand slot
-		args[2] = INVEN_TYPE_LEFT_HAND;
+	if (args[2] & fo::ObjectFlag::Right_Hand) {       // right hand slot
+		args[2] = fo::INVEN_TYPE_RIGHT_HAND;
+	} else if (args[2] & fo::ObjectFlag::Left_Hand) { // left hand slot
+		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	} else {
-		args[2] = INVEN_TYPE_WORN;                // armor slot
+		args[2] = fo::INVEN_TYPE_WORN;                // armor slot
 	}
 
 	InvenWieldHook_ScriptPart(0, 1); // unwield event (armor by default)
@@ -1528,20 +1534,20 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	}
 }
 
-long __stdcall InvenWieldHook_Invoke(TGameObj* critter, TGameObj* item, long flags) {
+long __stdcall InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long flags) {
 	if (!HookHasScript(HOOK_INVENWIELD)) return 1;
 
-	long slot = INVEN_TYPE_WORN;
-	if (flags & ObjectFlag::Right_Hand) {       // right hand slot
-		slot = INVEN_TYPE_RIGHT_HAND;
-	} else if (flags & ObjectFlag::Left_Hand) { // left hand slot
-		slot = INVEN_TYPE_LEFT_HAND;
+	long slot = fo::INVEN_TYPE_WORN;
+	if (flags & fo::ObjectFlag::Right_Hand) {       // right hand slot
+		slot = fo::INVEN_TYPE_RIGHT_HAND;
+	} else if (flags & fo::ObjectFlag::Left_Hand) { // left hand slot
+		slot = fo::INVEN_TYPE_LEFT_HAND;
 	}
 	return InvenWieldHook_Script(critter, item, slot, 0, 0);
 }
 
 static void __declspec(naked) item_drop_all_hack() {
-	using namespace ObjectFlag;
+	using namespace fo::ObjectFlag;
 	__asm {
 		mov  ecx, 1;
 		push eax;
@@ -1566,6 +1572,7 @@ skip:
 
 // called from bugfixes for obj_drop_
 void __declspec(naked) InvenUnwield_HookDrop() { // ecx - critter, edx - item
+	using namespace fo;
 	using namespace Fields;
 	using namespace ObjectFlag;
 	__asm {
@@ -1605,6 +1612,8 @@ void __declspec(naked) InvenUnwield_HookMove() { // eax - item, edx - critter
 
 // called when unwelding dude weapon and armor
 static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
+	using namespace fo;
+	using namespace ObjectFlag;
 	__asm {
 		cmp  eax, ds:[FO_VAR_obj_dude];
 		je   runHook;
@@ -1718,9 +1727,9 @@ bool __stdcall HookHasScript(int hookId) {
 	return (!hooks[hookId].empty());
 }
 
-void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg) {
+void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	if (id >= numHooks || (id > HOOK_ADJUSTFID && id < HOOK_GAMEMODECHANGE)) return;
-	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
+	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
 			if (procNum == 0) hooks[id].erase(it); // unregister
 			return;
@@ -1728,15 +1737,15 @@ void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg)
 	}
 	if (procNum == 0) return; // prevent registration to first location in procedure when reusing "unregister" method
 
-	sScriptProgram *prog = GetGlobalScriptProgram(script);
+	ScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
 		dlog_f("Script: %s registered as hook ID %d\n", DL_HOOK, script->fileName, id);
-		sHookScript hook;
+		HookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
 
-		std::vector<sHookScript>::const_iterator c_it = hooks[id].cend();
+		std::vector<HookScript>::const_iterator c_it = hooks[id].cend();
 		if (specReg) {
 			c_it = hooks[id].cbegin();
 			hooksInfo[id].hsPosition++;
@@ -1767,12 +1776,12 @@ void LoadHookScript(const char* name, int id) {
 }
 
 static void InitHookScriptFile(const char* name, int id) {
-	sScriptProgram prog;
+	ScriptProgram prog;
 	dlog("> ", DL_HOOK);
 	dlog(name, DL_HOOK);
 	InitScriptProgram(prog, name);
 	if (prog.ptr) {
-		sHookScript hook;
+		HookScript hook;
 		hook.prog = prog;
 		hook.callback = -1;
 		hook.isGlobalScript = false;
@@ -2026,4 +2035,6 @@ void HookScripts_Init() {
 	HookCalls(CorrectFidForRemovedItemHook, fidRemovedItemHkAddr);
 	HookCall(0x45C4F6, op_move_obj_inven_to_obj_hook);
 	MakeCall(0x4778AF, item_drop_all_hack, 3);
+}
+
 }

@@ -18,5 +18,10 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Tiles_Init();
 void Tiles_Exit();
+
+}

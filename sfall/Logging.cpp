@@ -23,6 +23,9 @@
 
 #include <fstream>
 
+namespace sfall
+{
+
 static int DebugTypes = 0;
 static std::ofstream Log;
 
@@ -92,6 +95,8 @@ void LoggingInit() {
 	if (GetIntDefaultConfig("Debugging", "Fixes", 0)) {
 		DebugTypes |= DL_FIX;
 	}
+}
+
 }
 
 #endif

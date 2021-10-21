@@ -22,6 +22,9 @@
 
 #include "Books.h"
 
+namespace sfall
+{
+
 static int BooksCount = 0;
 static const int BooksMax = 50;
 
@@ -120,4 +123,6 @@ void Books_Init() {
 
 void Books_Exit() {
 	if (books) delete[] books;
+}
+
 }

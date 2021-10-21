@@ -22,6 +22,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\version.h"
 
+#include "Credits.h"
+
+namespace sfall
+{
+
 static DWORD InCredits = 0;
 static DWORD CreditsLine = 0;
 
@@ -55,6 +60,7 @@ static const char* ExtraLines[] = {
 	"Vennor",
 	"Oppen",
 	"Mr.Stalin",
+	"Ghosthack",
 	"",
 	"@Additional thanks to",
 	"Nirran",
@@ -64,6 +70,7 @@ static const char* ExtraLines[] = {
 	"Continuum",
 	"Drobovik",
 	"Burn",
+	"Lexx",
 	"Anyone who has used sfall in their own mods",
 	"The bug reporters and feature requesters",
 	"",
@@ -159,4 +166,6 @@ void Credits_Init() {
 	} else {
 		HookCall(0x42CB49, CreditsNextLineHook_Top);
 	}
+}
+
 }

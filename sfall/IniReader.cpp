@@ -20,6 +20,9 @@
 
 #include "IniReader.h"
 
+namespace sfall
+{
+
 DWORD modifiedIni;
 
 static const char* ddrawIni = ".\\ddraw.ini";
@@ -108,4 +111,6 @@ int __stdcall SetConfigInt(const char* section, const char* setting, int value) 
 
 void IniReader_Init() {
 	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
+}
+
 }

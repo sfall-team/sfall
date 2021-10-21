@@ -44,7 +44,7 @@ void dev_printf(...);
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);
 
-void __stdcall interpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType);
+void __stdcall interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
@@ -52,7 +52,7 @@ void __declspec() interpretError(const char* fmt, ...);
 
 long __stdcall tile_num(long x, long y);
 
-TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
+GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 
 // Creates a button on a given window
 // buttonType: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click

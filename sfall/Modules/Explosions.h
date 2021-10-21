@@ -18,8 +18,13 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Explosions_Init();
 void Explosions_OnGameLoad();
 void ResetExplosionSettings();
 
 int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
+
+}

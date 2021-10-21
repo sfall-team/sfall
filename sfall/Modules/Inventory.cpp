@@ -25,9 +25,13 @@
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\inventory.h"
+#include "..\Game\items.h"
 
 #include "Inventory.h"
+
+namespace sfall
+{
 
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
@@ -38,21 +42,21 @@ static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
-		TGameObj* item = fo::util::GetActiveItem();
+		fo::GameObject* item = fo::util::GetActiveItem();
 		if (!item) return;
 
-		if (fo::func::item_get_type(item) == item_type_weapon) {
+		if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 			long maxAmmo = fo::func::item_w_max_ammo(item);
 			long curAmmo = fo::func::item_w_curr_ammo(item);
 			if (maxAmmo != curAmmo) {
 				long &currentMode = fo::util::GetActiveItemMode();
 				long previusMode = currentMode;
-				currentMode = HANDMODE_Reload;
+				currentMode = fo::HANDMODE_Reload;
 				fo::func::intface_use_item();
-				if (previusMode != HANDMODE_Reload) {
+				if (previusMode != fo::HANDMODE_Reload) {
 					// return to previous active item mode (if it wasn't "reload")
 					currentMode = previusMode - 1;
-					if (currentMode < 0) currentMode = HANDMODE_Secondary_Aimed;
+					if (currentMode < 0) currentMode = fo::HANDMODE_Secondary_Aimed;
 					fo::func::intface_toggle_item_state();
 				}
 			}
@@ -64,15 +68,15 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static int __stdcall CritterGetMaxSize(TGameObj* critter) {
-	if (critter->protoId == PID_Player) return invSizeMaxLimit;
+static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
+	if (critter->protoId == fo::PID_Player) return invSizeMaxLimit;
 
 	if (sizeLimitMode != 3) { // selected mode 1 or 2
 		if (!(sizeLimitMode & 2) || !(fo::func::isPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0
 	}
 
 	int statSize = 0;
-	sProto* proto;
+	fo::Proto* proto;
 	if (fo::util::GetProto(critter->protoId, &proto)) {
 		statSize = proto->critter.base.unarmedDamage + proto->critter.bonus.unarmedDamage; // The unused stat in the base + extra block
 	}
@@ -90,7 +94,7 @@ static __declspec(naked) void critterIsOverloaded_hack() {
 		jz   skip;
 		push ebx;
 		mov  ebx, eax;           // ebx = MaxSize
-		call sfgame_item_total_size;
+		call game::Inventory::item_total_size;
 		cmp  eax, ebx;
 		setg al;                 // if CurrSize > MaxSize
 		and  eax, 0xFF;
@@ -101,10 +105,10 @@ end:
 	}
 }
 
-static int __fastcall CanAddedItems(TGameObj* critter, TGameObj* item, int count) {
+static int __fastcall CanAddedItems(fo::GameObject* critter, fo::GameObject* item, int count) {
 	int sizeMax = CritterGetMaxSize(critter);
 	if (sizeMax > 0) {
-		int totalSize = sfgame_item_total_size(critter) + (fo::func::item_size(item) * count);
+		int totalSize = game::Inventory::item_total_size(critter) + (fo::func::item_size(item) * count);
 		if (totalSize > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
 	}
 	return 0;
@@ -146,14 +150,14 @@ fail:
 	}
 }
 
-static int __fastcall BarterAttemptTransaction(TGameObj* critter, TGameObj* table) {
+static int __fastcall BarterAttemptTransaction(fo::GameObject* critter, fo::GameObject* table) {
 	int size = CritterGetMaxSize(critter);
 	if (size == 0) return 1;
 
-	int sizeTable = sfgame_item_total_size(table);
+	int sizeTable = game::Inventory::item_total_size(table);
 	if (sizeTable == 0) return 1;
 
-	size -= sfgame_item_total_size(critter);
+	size -= game::Inventory::item_total_size(critter);
 	return (sizeTable <= size) ? 1 : 0;
 }
 
@@ -220,7 +224,7 @@ static const char* InvenFmt1 = "%s %d/%d %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 static const char* InvenFmt3 = "%d/%d | %d/%d";
 
-static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DWORD &size, DWORD &sizeMax) {
+static void __cdecl DisplaySizeStats(fo::GameObject* critter, const char* &message, DWORD &size, DWORD &sizeMax) {
 	int limitMax = CritterGetMaxSize(critter);
 	if (limitMax == 0) {
 		strcpy(InvenFmt, InvenFmt2); // default fmt
@@ -228,7 +232,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 	}
 
 	sizeMax = limitMax;
-	size = sfgame_item_total_size(critter);
+	size = game::Inventory::item_total_size(critter);
 
 	const char* msg = fo::util::MessageSearch(fo::ptr::inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
@@ -238,6 +242,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 
 static __declspec(naked) void display_stats_hack() {
 	static const DWORD DisplayStatsRet = 0x4725E5;
+	using namespace fo;
 	__asm {
 		mov  ecx, esp;
 		sub  ecx, 4;
@@ -255,7 +260,7 @@ static __declspec(naked) void display_stats_hack() {
 }
 
 static char SizeMsgBuf[32];
-static const char* __stdcall SizeInfoMessage(TGameObj* item) {
+static const char* __stdcall SizeInfoMessage(fo::GameObject* item) {
 	int size = fo::func::item_size(item);
 	if (size == 1) {
 		const char* message = fo::util::MessageSearch(fo::ptr::proto_main_msg_file, 543);
@@ -295,7 +300,7 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 		call CritterGetMaxSize;
 		push eax;               // sizeMax
 		push ebx;
-		call sfgame_item_total_size;
+		call game::Inventory::item_total_size;
 		push eax;               // size
 		mov  eax, ebx;
 		mov  edx, STAT_carry_amt;
@@ -308,12 +313,12 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 static char superStimMsg[128];
 static const long SUPER_STIMPAK = 1;
 
-static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
-	if (item->protoId != sfgame_GetHealingPID(SUPER_STIMPAK) || !target || target->IsNotCritter()) {
+static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {
+	if (item->protoId != game::Items::GetHealingPID(SUPER_STIMPAK) || !target || target->IsNotCritter()) {
 		return 0;
 	}
 
-	long max_hp = fo::func::stat_level(target, STAT_max_hit_points);
+	long max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
 	if (target->critter.health < max_hp) return 0;
 
 	fo::func::display_print(superStimMsg);
@@ -614,7 +619,7 @@ void __fastcall SetInvenApCost(int cost) {
 }
 
 long __stdcall GetInvenApCost() {
-	long perkLevel = fo::func::perk_level(*fo::ptr::obj_dude, PERK_quick_pockets);
+	long perkLevel = fo::func::perk_level(*fo::ptr::obj_dude, fo::PERK_quick_pockets);
 	return invenApCost - (invenApQPReduction * perkLevel);
 }
 
@@ -735,4 +740,6 @@ void Inventory_Init() {
 	// Note: the flag is not checked for the metarule(METARULE_INVEN_UNWIELD_WHO, x) function
 	HookCall(0x45B0CE, op_inven_unwield_hook); // with fix to update interface slot after unwielding
 	HookCall(0x45693C, op_wield_obj_critter_hook);
+}
+
 }

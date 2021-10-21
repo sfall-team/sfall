@@ -1,5 +1,8 @@
 #include "SafeWrite.h"
 
+namespace sfall
+{
+
 static void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	DWORD oldProtect, data = (DWORD)func - (addr + 5);
 
@@ -100,4 +103,6 @@ void BlockCall(DWORD addr) {
 	VirtualProtect((void*)addr, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((DWORD*)addr) = 0x00441F0F; // long NOP (0F1F4400-XX)
 	VirtualProtect((void*)addr, 4, oldProtect, &oldProtect);
+}
+
 }

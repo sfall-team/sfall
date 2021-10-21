@@ -64,6 +64,9 @@ struct ddrawDll {
 	FARPROC SetAppCompatData;
 };
 
+namespace sfall
+{
+
 // global flag, indicating that debugging features of Sfall are enabled
 #ifndef NO_SFALL_DEBUG
 	extern bool isDebug;
@@ -91,4 +94,6 @@ __inline long GetIntHRPValue(DWORD addr) {
 
 __inline BYTE GetByteHRPValue(DWORD addr) {
 	return *reinterpret_cast<BYTE*>(HRPAddress(addr));
+}
+
 }

@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern bool UsingFileSystem;
 
 void FileSystem_Init();
@@ -42,3 +45,5 @@ DWORD __stdcall FSsize(DWORD id);
 DWORD __stdcall FSpos(DWORD id);
 void __stdcall FSseek(DWORD id, DWORD pos);
 void __stdcall FSresize(DWORD id, DWORD size);
+
+}

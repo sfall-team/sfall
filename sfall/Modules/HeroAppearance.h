@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern bool appModEnabled;
 
 void HeroAppearance_Init();
@@ -32,3 +35,5 @@ void __stdcall LoadHeroAppearance(void);
 void __stdcall SetNewCharAppearanceGlobals(void);
 
 void __stdcall RefreshPCArt();
+
+}

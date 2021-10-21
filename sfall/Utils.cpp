@@ -3,6 +3,9 @@
 
 #include "Utils.h"
 
+namespace sfall
+{
+
 WORD ByteSwapW(WORD w) {
 	return ((w & 0xFF) << 8) | ((w & 0xFF00) >> 8);
 }
@@ -78,3 +81,5 @@ void StrNormalizePath(char* path) {
 //long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use
 //	return (min + (std::rand() % (max - (min - 1))));
 //}
+
+}

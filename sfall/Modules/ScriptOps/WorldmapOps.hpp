@@ -20,6 +20,9 @@
 
 #include "Worldmap.h"
 
+namespace sfall
+{
+
 static DWORD ForceEncounterMapID = -1;
 static DWORD ForceEncounterFlags;
 
@@ -237,4 +240,6 @@ static void mf_set_terrain_name() {
 
 static void mf_set_town_title() {
 	Worldmap_SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
+}
+
 }

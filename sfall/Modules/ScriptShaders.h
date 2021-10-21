@@ -2,6 +2,9 @@
 
 #include "Graphics.h"
 
+namespace sfall
+{
+
 void ScriptShaders_Init();
 void ResetShaders();
 
@@ -26,3 +29,5 @@ void __stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, f
 
 int __stdcall GetShaderTexture(DWORD d, DWORD id);
 void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value);
+
+}

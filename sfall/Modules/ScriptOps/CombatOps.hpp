@@ -22,6 +22,9 @@
 #include "Combat.h"
 #include "KillCounter.h"
 
+namespace sfall
+{
+
 // Kill counters
 static bool extraKillCounter;
 
@@ -308,9 +311,11 @@ static void mf_attack_is_aimed() {
 }
 
 static void mf_combat_data() {
-	TComputeAttack* ctd = nullptr;
+	fo::ComputeAttackResult* ctd = nullptr;
 	if (*fo::ptr::combat_state & 1) {
 		ctd = fo::ptr::main_ctd;
 	}
 	opHandler.setReturn((DWORD)ctd, DATATYPE_INT);
+}
+
 }

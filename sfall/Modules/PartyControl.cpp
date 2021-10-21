@@ -28,6 +28,9 @@
 
 #include "PartyControl.h"
 
+namespace sfall
+{
+
 bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
@@ -38,7 +41,7 @@ static std::vector<WORD> Chars;
 static int delayedExperience;
 
 static struct DudeState {
-	TGameObj* obj_dude;
+	fo::GameObject* obj_dude;
 	DWORD art_vault_guy_num;
 	long traits[2];
 	char pc_name[32];
@@ -51,8 +54,8 @@ static struct DudeState {
 	DWORD sneak_working;
 	//DWORD sneak_queue_time;
 	DWORD itemCurrentItem;
-	ItemButtonItem itemButtonItems[2];
-	long perkLevelDataList[PERK_count];
+	fo::ItemButtonItem itemButtonItems[2];
+	long perkLevelDataList[fo::PERK_count];
 	//long addictGvar[8];
 	long tag_skill[4];
 	//DWORD bbox_sneak;
@@ -60,7 +63,7 @@ static struct DudeState {
 	DudeState() : obj_dude(nullptr) {}
 } realDude;
 
-static bool __stdcall IsInPidList(TGameObj* obj) {
+static bool __stdcall IsInPidList(fo::GameObject* obj) {
 	int pid = obj->protoId & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); ++it) {
 		if (*it == pid) {
@@ -85,15 +88,15 @@ static void SaveRealDudeState() {
 	realDude.obj_dude = *fo::ptr::obj_dude;
 	realDude.art_vault_guy_num = *fo::ptr::art_vault_guy_num;
 	realDude.itemCurrentItem = *fo::ptr::itemCurrentItem;
-	std::memcpy(realDude.itemButtonItems, fo::ptr::itemButtonItems, sizeof(ItemButtonItem) * 2);
+	std::memcpy(realDude.itemButtonItems, fo::ptr::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
 	std::memcpy(realDude.traits, fo::ptr::pc_trait, sizeof(long) * 2);
-	std::memcpy(realDude.perkLevelDataList, *fo::ptr::perkLevelDataList, sizeof(DWORD) * PERK_count);
+	std::memcpy(realDude.perkLevelDataList, *fo::ptr::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(realDude.pc_name, 32, fo::ptr::pc_name);
 	realDude.Level = *fo::ptr::Level_pc;
 	realDude.last_level = *fo::ptr::last_level;
 	realDude.Experience = *fo::ptr::Experience_pc;
 	realDude.free_perk = *fo::ptr::free_perk;
-	realDude.unspent_skill_points = fo::ptr::curr_pc_stat[PCSTAT_unspent_skill_points];
+	realDude.unspent_skill_points = fo::ptr::curr_pc_stat[fo::PCSTAT_unspent_skill_points];
 	realDude.sneak_working = *fo::ptr::sneak_working;
 	fo::util::SkillGetTags(realDude.tag_skill, 4);
 
@@ -105,7 +108,7 @@ static void SaveRealDudeState() {
 }
 
 // take control of the NPC
-static void TakeControlOfNPC(TGameObj* npc) {
+static void TakeControlOfNPC(fo::GameObject* npc) {
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Take control of critter.");
 
 	// remove skill tags
@@ -117,7 +120,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	fo::ptr::pc_trait[0] = fo::ptr::pc_trait[1] = -1;
 
 	// reset perks (except Awareness)
-	std::memset(&(*fo::ptr::perkLevelDataList)[0].perkData[1], 0, sizeof(DWORD) * (PERK_count - 1));
+	std::memset(&(*fo::ptr::perkLevelDataList)[0].perkData[1], 0, sizeof(DWORD) * (fo::PERK_count - 1));
 
 	// change level
 	int level = fo::func::isPartyMember(npc)
@@ -133,15 +136,15 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	// reset other stats
 	*fo::ptr::Experience_pc = 0;
 	*fo::ptr::free_perk = 0;
-	fo::ptr::curr_pc_stat[PCSTAT_unspent_skill_points] = 0;
+	fo::ptr::curr_pc_stat[fo::PCSTAT_unspent_skill_points] = 0;
 	*fo::ptr::sneak_working = 0;
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
 	if (fo::util::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
-		*fo::ptr::itemCurrentItem = HANDSLOT_Left;
+		*fo::ptr::itemCurrentItem = fo::HANDSLOT_Left;
 	} else {
-		*fo::ptr::itemCurrentItem = HANDSLOT_Right;
+		*fo::ptr::itemCurrentItem = fo::HANDSLOT_Right;
 	}
 
 	// switch main dude_obj pointers - this should be done last!
@@ -170,15 +173,15 @@ static void RestoreRealDudeState(bool redraw = true) {
 	*fo::ptr::art_vault_guy_num = realDude.art_vault_guy_num;
 
 	*fo::ptr::itemCurrentItem = realDude.itemCurrentItem;
-	std::memcpy(fo::ptr::itemButtonItems, realDude.itemButtonItems, sizeof(ItemButtonItem) * 2);
+	std::memcpy(fo::ptr::itemButtonItems, realDude.itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
 	std::memcpy(fo::ptr::pc_trait, realDude.traits, sizeof(long) * 2);
-	std::memcpy(*fo::ptr::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * PERK_count);
+	std::memcpy(*fo::ptr::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
 	strcpy_s(fo::ptr::pc_name, 32, realDude.pc_name);
 	*fo::ptr::Level_pc = realDude.Level;
 	*fo::ptr::last_level = realDude.last_level;
 	*fo::ptr::Experience_pc = realDude.Experience;
 	*fo::ptr::free_perk = realDude.free_perk;
-	fo::ptr::curr_pc_stat[PCSTAT_unspent_skill_points] = realDude.unspent_skill_points;
+	fo::ptr::curr_pc_stat[fo::PCSTAT_unspent_skill_points] = realDude.unspent_skill_points;
 	*fo::ptr::sneak_working = realDude.sneak_working;
 	fo::util::SkillSetTags(realDude.tag_skill, 4);
 
@@ -200,7 +203,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.\n");
 }
 
-static long __stdcall CombatTurn(TGameObj* obj) {
+static long __stdcall CombatTurn(fo::GameObject* obj) {
 	__asm {
 		mov  eax, obj;
 		call fo::funcoffs::combat_turn_;
@@ -208,7 +211,7 @@ static long __stdcall CombatTurn(TGameObj* obj) {
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static long __stdcall CombatWrapperInner(TGameObj* obj) {
+static long __stdcall CombatWrapperInner(fo::GameObject* obj) {
 	if ((obj != *fo::ptr::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo::func::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
@@ -250,9 +253,9 @@ static void __stdcall DisplayCantDoThat() {
 }
 
 // 1 skip handler, -1 don't skip
-int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
+int __fastcall PartyControl_SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
-	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == item_type_weapon) {
+	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = *fo::ptr::i_fid; //(*fo::ptr::obj_dude)->artFid;
 		long weaponCode = fo::util::AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
@@ -264,14 +267,14 @@ int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
 	return -1;
 }
 
-static long __fastcall GetRealDudePerk(TGameObj* source, long perk) {
+static long __fastcall GetRealDudePerk(fo::GameObject* source, long perk) {
 	if (isControllingNPC && source == realDude.obj_dude) {
 		return realDude.perkLevelDataList[perk];
 	}
 	return fo::func::perk_level(source, perk);
 }
 
-static long __fastcall GetRealDudeTrait(TGameObj* source, long trait) {
+static long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
 	if (isControllingNPC && source == realDude.obj_dude) {
 		return (trait == realDude.traits[0] || trait == realDude.traits[1]) ? 1 : 0;
 	}
@@ -394,7 +397,7 @@ bool PartyControl_IsNpcControlled() {
 	return isControllingNPC;
 }
 
-TGameObj* PartyControl_RealDudeObject() {
+fo::GameObject* PartyControl_RealDudeObject() {
 	return realDude.obj_dude != nullptr
 	       ? realDude.obj_dude
 	       : *fo::ptr::obj_dude;
@@ -406,7 +409,7 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	const char* fmt = "%s %d";
 	char lvlMsg[16], acMsg[16];
 
-	TGameObj* partyMember = *fo::ptr::dialog_target;
+	fo::GameObject* partyMember = *fo::ptr::dialog_target;
 	int xPos = 350;
 
 	int level = fo::func::partyMemberGetCurLevel(partyMember);
@@ -416,7 +419,7 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	int widthText = fo::util::GetTextWidth(lvlMsg);
 	fo::util::PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
 
-	int ac = fo::func::stat_level(partyMember, STAT_ac);
+	int ac = fo::func::stat_level(partyMember, fo::STAT_ac);
 	sprintf_s(acMsg, fmt, armorClassMsg, ac);
 
 	xPos -= fo::util::GetTextWidth(armorClassMsg) + 20;
@@ -512,4 +515,6 @@ void PartyControl_Init() {
 		Translate_Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

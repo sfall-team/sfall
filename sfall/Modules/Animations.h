@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall 
+{
+
 void Animations_Init();
 //void Animations_Exit();
 void ClearAllLockAnimSets();
+
+}

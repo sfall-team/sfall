@@ -20,6 +20,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Graphics.h"
 
+#include "BarBoxes.h"
+
+namespace sfall
+{
+
 static int boxCount;                      // current box count
 static int totalBoxCount, actualBoxCount; // total boxes and w/o vanilla
 static int initCount = 5;                 // init config counter (5 - vanilla box)
@@ -364,4 +369,6 @@ void __stdcall BarBoxes_RemoveBox(int i) {
 void BarBoxes_Exit() {
 	delete[] boxes;
 	delete[] boxText;
+}
+
 }

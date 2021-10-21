@@ -22,9 +22,12 @@
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
 
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\render.h"
 
 #include "Graphics.h"
+
+namespace sfall
+{
 
 #define UNUSEDFUNCTION { return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
@@ -1058,7 +1061,7 @@ public:
 	HRESULT __stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
-HRESULT __stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
+HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
 	// original resolution or HRP
@@ -1237,7 +1240,7 @@ public:
 
 	BYTE* Surface() { return surface; }
 
-	void CreateSurface(WINinfo* win, long winType) {
+	void CreateSurface(fo::Window* win, long winType) {
 		this->winType = winType;
 		this->surfWidth = win->width;
 		this->size = win->height * win->width;
@@ -1258,7 +1261,7 @@ public:
 		if (surface != nullptr) std::memset(surface, 0, size);
 	}
 
-	void ClearSurface(sRectangle &rect) {
+	void ClearSurface(Rectangle &rect) {
 		if (surface != nullptr) {
 			if (rect.width > surfWidth || rect.height > (size / surfWidth)) return; // going beyond the surface size
 			BYTE* surf = surface + (surfWidth * rect.y) + rect.x;
@@ -1295,7 +1298,7 @@ public:
 
 static long indexPosition = 0;
 
-void WinRender_CreateOverlaySurface(WINinfo* win, long winType) {
+void WinRender_CreateOverlaySurface(fo::Window* win, long winType) {
 	if (win->randY) return;
 	if (overlaySurfaces[indexPosition].winType == winType) {
 		overlaySurfaces[indexPosition].ClearSurface();
@@ -1306,33 +1309,33 @@ void WinRender_CreateOverlaySurface(WINinfo* win, long winType) {
 	win->randY = reinterpret_cast<long*>(&overlaySurfaces[indexPosition]);
 }
 
-BYTE* WinRender_GetOverlaySurface(WINinfo* win) {
+BYTE* WinRender_GetOverlaySurface(fo::Window* win) {
 	return reinterpret_cast<OverlaySurface*>(win->randY)->Surface();
 }
 
-void WinRender_ClearOverlay(WINinfo* win) {
+void WinRender_ClearOverlay(fo::Window* win) {
 	if (win->randY) reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface();
 }
 
-void WinRender_ClearOverlay(WINinfo* win, sRectangle &rect) {
+void WinRender_ClearOverlay(fo::Window* win, Rectangle &rect) {
 	if (win->randY) {
 		reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface(rect);
-		BoundRect updateRect = { rect.x, rect.y, rect.right(), rect.bottom() };
+		fo::BoundRect updateRect = { rect.x, rect.y, rect.right(), rect.bottom() };
 		updateRect.x += win->rect.x;
 		updateRect.y += win->rect.y;
 		updateRect.offx += win->rect.x;
 		updateRect.offy += win->rect.y;
-		sfgame_GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
+		game::Render::GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
 	}
 }
 
-void WinRender_DestroyOverlaySurface(WINinfo* win) {
+void WinRender_DestroyOverlaySurface(fo::Window* win) {
 	if (win->randY) {
 		OverlaySurface* overlay = reinterpret_cast<OverlaySurface*>(win->randY);
 		win->randY = nullptr;
 		overlay->winType = -1;
 		overlay->DestroySurface();
-		sfgame_GNW_win_refresh(win, &win->wRect, 0);
+		game::Render::GNW_win_refresh(win, &win->wRect, 0);
 	}
 }
 
@@ -1414,4 +1417,11 @@ void Graphics_Exit() {
 		}
 		CoUninitialize();
 	}
+}
+
+}
+
+// This should be in global namespace
+HRESULT __stdcall FakeDirectDrawCreate2(void* a, IDirectDraw** b, void* c) {
+	return sfall::InitFakeDirectDrawCreate(a, b, c);
 }

@@ -56,6 +56,9 @@
 
 #include "LoadGameHook.h"
 
+namespace sfall
+{
+
 #define _InLoop2(type, flag) __asm { \
 	__asm push flag                  \
 	__asm push type                  \
@@ -189,8 +192,8 @@ static DWORD __stdcall CombatSaveTest() {
 			fo::func::display_print(Translate_CombatSaveBlockMessage());
 			return 0;
 		}
-		int ap = fo::func::stat_level(*fo::ptr::obj_dude, STAT_max_move_points);
-		int bonusmove = fo::func::perk_level(*fo::ptr::obj_dude, PERK_bonus_move);
+		int ap = fo::func::stat_level(*fo::ptr::obj_dude, fo::STAT_max_move_points);
+		int bonusmove = fo::func::perk_level(*fo::ptr::obj_dude, fo::PERK_bonus_move);
 		if ((*fo::ptr::obj_dude)->critter.movePoints != ap || bonusmove * 2 != *fo::ptr::combat_free_move) {
 			fo::func::display_print(Translate_CombatSaveBlockMessage());
 			return 0;
@@ -378,6 +381,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	}
 	#endif
 	combat_ai_init_backup(); // BugFixes
+	//BugFixes_OnAfterGameInit();
 	RemoveSavFiles();
 	BarBoxes_SetMaxSlots();
 	Sound_OnAfterGameInit();
@@ -508,7 +512,7 @@ static void __declspec(naked) WorldMapHook_End() {
 	}
 }
 
-static void __fastcall CombatInternal(CombatGcsd* gcsd) {
+static void __fastcall CombatInternal(fo::CombatGcsd* gcsd) {
 	// OnCombatStart
 	AICombatClear();
 	SetInLoop(1, COMBAT);
@@ -892,4 +896,6 @@ void LoadGameHook_Init() {
 	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
 	HookCall(0x4457B1, gdialogUpdatePartyStatus_hook1); // set when a party member joins/leaves
 	HookCall(0x4457BC, gdialogUpdatePartyStatus_hook0); // unset
+}
+
 }

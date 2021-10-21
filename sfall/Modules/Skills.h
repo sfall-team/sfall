@@ -18,9 +18,14 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Skills_Init();
 void Skills_Exit();
 void Skills_OnGameLoad();
 
-void __stdcall SetSkillMax(TGameObj* critter, int maximum);
-void __stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod);
+void __stdcall SetSkillMax(fo::GameObject* critter, int maximum);
+void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+
+}

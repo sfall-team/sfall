@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void KillCounter_Init();
 
 bool UsingExtraKillTypes();
+
+}

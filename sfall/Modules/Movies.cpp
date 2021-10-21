@@ -29,6 +29,9 @@
 
 #include "Movies.h"
 
+namespace sfall
+{
+
 static DWORD MoviePtrs[MaxMovies];
 
 class CAllocator : public IVMRSurfaceAllocator9, IVMRImagePresenter9 {
@@ -622,3 +625,5 @@ void Movies_Init() {
 
 //void Movies_Exit() {
 //}
+
+}

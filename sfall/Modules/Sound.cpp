@@ -26,6 +26,9 @@
 
 #include "Sound.h"
 
+namespace sfall
+{
+
 #define WM_APP_DS_NOTIFY    0xA000
 #define SAFERELEASE(a)      { if (a) { a->Release(); } }
 
@@ -63,7 +66,7 @@ struct sDSSound {
 static std::vector<sDSSound*> playingSounds;
 static std::vector<sDSSound*> loopingSounds;
 
-static ACMSoundData* acmSoundData = nullptr; // currently loaded ACM file
+static fo::ACMSoundData* acmSoundData = nullptr; // currently loaded ACM file
 
 static std::tr1::unordered_map<std::string, std::wstring> soundsFiles;
 
@@ -561,7 +564,7 @@ static void __declspec(naked) soundLoad_hack_B() {
 	}
 }
 
-static AudioDecode* __fastcall SoundFormatChange(AudioDecode* decode/*, AudioFile* audio*/) {
+static fo::AudioDecode* __fastcall SoundFormatChange(fo::AudioDecode* decode/*, fo::AudioFile* audio*/) {
 	/*
 		example calculation
 		nBlockAlign = (nBitsPerSample / 8) * nChannels
@@ -929,7 +932,7 @@ rawFile:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static TGameObj* relativeObject;
+static fo::GameObject* relativeObject;
 
 static void __declspec(naked) gsound_compute_relative_volume_hook() {
 	__asm {
@@ -938,7 +941,7 @@ static void __declspec(naked) gsound_compute_relative_volume_hook() {
 	}
 }
 
-static long __fastcall SetVolumeAndPan(long volume, ACMSoundData* sound) {
+static long __fastcall SetVolumeAndPan(long volume, fo::ACMSoundData* sound) {
 	//if (!relativeObject) return volume;
 
 	long distance = fo::func::obj_dist(*fo::ptr::obj_dude, relativeObject);
@@ -1071,4 +1074,6 @@ void Sound_Init() {
 
 void Sound_Exit() {
 	if (soundwindow && GraphicsMode == 0) CoUninitialize();
+}
+
 }

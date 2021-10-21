@@ -24,6 +24,9 @@
 
 #include "FileSystem.h"
 
+namespace sfall
+{
+
 #define MAX_FILE_SIZE    0xA00000
 
 #pragma pack(push, 1)
@@ -36,11 +39,11 @@ struct fsFile {
 	BYTE isSave;
 };
 
-struct sOpenFile {
+struct OpenFile {
 	DWORD pos;  // current xread/xwrite position
 	fsFile* file;
 
-	sOpenFile(fsFile* pFile) {
+	OpenFile(fsFile* pFile) {
 		pos = 0;
 		file = pFile;
 	}
@@ -48,7 +51,7 @@ struct sOpenFile {
 
 struct sFile {
 	DWORD type;
-	sOpenFile* openFile;
+	OpenFile* openFile;
 };
 
 #pragma pack(pop)
@@ -85,7 +88,7 @@ static sFile* __stdcall xfopen(const char* path, const char* mode) {
 		if (!_stricmp(path, files[i].name)) {
 			sFile* file = new sFile();
 			file->type = 3;
-			file->openFile = new sOpenFile(&files[i]);
+			file->openFile = new OpenFile(&files[i]);
 			return file;
 		}
 	}
@@ -719,4 +722,6 @@ void FileSystem_Init() {
 	// xfopen_ - remove sprintf_ function calls that do nothing (probably just checking the filename for the '%' formatting char?)
 	BlockCall(0x4DEF12);
 	BlockCall(0x4DEF84);
+}
+
 }

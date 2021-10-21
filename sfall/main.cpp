@@ -23,8 +23,6 @@
 #include "main.h"
 #include "FalloutEngine\Fallout2.h"
 
-#include "Game\ReplacementFuncs.h"
-
 #include "Modules\AI.h"
 #include "Modules\Animations.h"
 #include "Modules\BarBoxes.h"
@@ -77,10 +75,14 @@
 
 #include "CRC.h"
 #include "Logging.h"
+#include "ReplacementFuncs.h"
 #include "Translate.h"
 #include "version.h"
 
 ddrawDll ddraw;
+
+namespace sfall
+{
 
 bool isDebug = false;
 
@@ -418,6 +420,8 @@ defaultIni:
 	InitModules();
 }
 
+}
+
 static bool LoadOriginalDll(DWORD dwReason) {
 	switch (dwReason) {
 		case DLL_PROCESS_ATTACH:
@@ -459,7 +463,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 
 bool __stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
-		SfallInit();
+		sfall::SfallInit();
 	}
 	return true;
 }

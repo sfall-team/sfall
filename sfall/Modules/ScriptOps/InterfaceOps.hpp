@@ -23,7 +23,10 @@
 #include "Graphics.h"
 #include "Interface.h"
 
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\render.h"
+
+namespace sfall
+{
 
 // input_functions
 static void __declspec(naked) op_input_funcs_available() {
@@ -190,7 +193,7 @@ static void __stdcall op_create_message_window2() {
 		SplitToBuffer(str, str_ptr, lines);
 
 		dialogShow = true;
-		fo::func::DialogOutEx(gTextBuffer, str_ptr, lines, DIALOGOUT_NORMAL);
+		fo::func::DialogOutEx(gTextBuffer, str_ptr, lines, fo::DIALOGOUT_NORMAL);
 		dialogShow = false;
 	} else {
 		OpcodeInvalidArgs("create_message_window");
@@ -208,7 +211,7 @@ static void mf_message_box() {
 	const char* str_ptr[4];
 	SplitToBuffer(opHandler.arg(0).asString(), str_ptr, lines);
 
-	long colors = 0x9191, flags = DIALOGOUT_NORMAL | DIALOGOUT_YESNO;
+	long colors = 0x9191, flags = fo::DIALOGOUT_NORMAL | fo::DIALOGOUT_YESNO;
 	if (opHandler.numArgs() > 1 && opHandler.arg(1).rawValue() != -1) flags = opHandler.arg(1).rawValue();
 	if (opHandler.numArgs() > 2) {
 		colors &= 0xFF00;
@@ -319,8 +322,8 @@ static void __stdcall op_is_iface_tag_active2() {
 					}
 				}
 			} else { // Sneak/Level/Addict
-				TGameObj* obj = *fo::ptr::obj_dude;
-				sProto* proto = fo::util::GetProto(obj->protoId);
+				fo::GameObject* obj = *fo::ptr::obj_dude;
+				fo::Proto* proto = fo::util::GetProto(obj->protoId);
 				int flagBit = 1 << tag;
 				result = ((proto->critter.critterFlags & flagBit) != 0);
 			}
@@ -347,8 +350,8 @@ static void mf_intface_redraw() {
 		if (winType == -1) {
 			fo::util::RefreshGNW(true); 
 		} else {
-			WINinfo* win = Interface_GetWindow(winType);
-			if (win && (int)win != -1) sfgame_GNW_win_refresh(win, &win->wRect, 0);
+			fo::Window* win = Interface_GetWindow(winType);
+			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
 		}
 	}
 }
@@ -379,9 +382,9 @@ static void mf_set_cursor_mode() {
 
 static void mf_display_stats() {
 	unsigned long flags = GetLoopFlags();
-	if (flags & INVENTORY) {
+	if (flags & LoopFlag::INVENTORY) {
 		fo::func::display_stats(); // calling the function outside of inventory screen will crash the game
-	} else if (flags & CHARSCREEN) {
+	} else if (flags & LoopFlag::CHARSCREEN) {
 		__asm {
 			mov  eax, ds:[FO_VAR_obj_dude];
 			call fo::funcoffs::stat_recalc_derived_;
@@ -447,12 +450,12 @@ static void mf_inventory_redraw() {
 static void mf_create_win() {
 	int flags = (opHandler.numArgs() > 5)
 	          ? opHandler.arg(5).rawValue()
-	          : WinFlags::MoveOnTop;
+	          : fo::WinFlags::MoveOnTop;
 
 	if (fo::func::createWindow(opHandler.arg(0).strValue(),
 	    opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // x, y
 	    opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
-	    (flags & WinFlags::Transparent) ? 0 : 256, flags) == -1)
+	    (flags & fo::WinFlags::Transparent) ? 0 : 256, flags) == -1)
 	{
 		opHandler.printOpcodeError("create_win() - couldn't create window.");
 		opHandler.setReturn(-1);
@@ -492,11 +495,11 @@ static void mf_hide_window() {
 static void mf_set_window_flag() {
 	long bitFlag = opHandler.arg(1).rawValue();
 	switch (bitFlag) {
-		case WinFlags::DontMoveTop:
-		case WinFlags::MoveOnTop:
-		case WinFlags::Hidden:
-		case WinFlags::Exclusive:
-		case WinFlags::Transparent:
+		case fo::WinFlags::DontMoveTop:
+		case fo::WinFlags::MoveOnTop:
+		case fo::WinFlags::Hidden:
+		case fo::WinFlags::Exclusive:
+		case fo::WinFlags::Transparent:
 			break;
 		default:
 			return; // unsupported set flag
@@ -506,7 +509,7 @@ static void mf_set_window_flag() {
 		const char* name = opHandler.arg(0).strValue();
 		for (size_t i = 0; i < 16; i++) {
 			if (_stricmp(name, fo::ptr::sWindows[i].name) == 0) {
-				WINinfo* win = fo::func::GNW_find(fo::ptr::sWindows[i].wID);
+				fo::Window* win = fo::func::GNW_find(fo::ptr::sWindows[i].wID);
 				if (mode) {
 					fo::ptr::sWindows[i].flags |= bitFlag;
 					win->flags |= bitFlag;
@@ -520,7 +523,7 @@ static void mf_set_window_flag() {
 		opHandler.printOpcodeError("set_window_flag() - window '%s' is not found.", name);
 	} else {
 		long wid = opHandler.arg(0).rawValue();
-		WINinfo* win = fo::func::GNW_find((wid > 0) ? wid : *fo::ptr::i_wid); // i_wid - set flag to current game interface window
+		fo::Window* win = fo::func::GNW_find((wid > 0) ? wid : *fo::ptr::i_wid); // i_wid - set flag to current game interface window
 		if (win == nullptr) return;
 		if (mode) {
 			win->flags |= bitFlag;
@@ -530,7 +533,7 @@ static void mf_set_window_flag() {
 	}
 }
 
-static void __fastcall FreeArtFile(FrmFile* frmPtr) {
+static void __fastcall FreeArtFile(fo::FrmFile* frmPtr) {
 	if (frmPtr->id == 'PCX') {
 		__asm mov  eax, frmPtr;
 		__asm mov  eax, [eax]frmPtr.pixelData;
@@ -542,8 +545,8 @@ static void __fastcall FreeArtFile(FrmFile* frmPtr) {
 	}
 }
 
-static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long direction, FrmFrameData* &framePtr, bool checkPCX) {
-	FrmFile* frmPtr = nullptr;
+static fo::FrmFile* __stdcall LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
+	fo::FrmFile* frmPtr = nullptr;
 	if (checkPCX) {
 		const char* pos = strrchr(file, '.');
 		if (pos && _stricmp(++pos, "PCX") == 0) {
@@ -551,7 +554,7 @@ static FrmFile* __stdcall LoadArtFile(const char* file, long frame, long directi
 			BYTE* data = fo::func::loadPCX(file, &w, &h);
 			if (!data) return nullptr;
 
-			frmPtr = reinterpret_cast<FrmFile*>(new BYTE[78]);
+			frmPtr = reinterpret_cast<fo::FrmFile*>(new BYTE[78]);
 			std::memset(frmPtr, 0, 74);
 
 			frmPtr->id = 'PCX';
@@ -575,7 +578,7 @@ static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
 
 	const char* artPathName = fo::func::art_get_name(_fid); // <cd>\art\type\file.frm
 
-	if (_fid >> 24 == OBJ_TYPE_CRITTER) {
+	if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
 		direction = (fid >> 28);
 		if (direction > 0 && !fo::func::db_access(artPathName)) {
 			artPathName = fo::func::art_get_name(fid); // .fr#
@@ -613,8 +616,8 @@ static long __stdcall DrawImage(OpcodeHandler& opHandler, bool isScaled, const c
 		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
 
-	FrmFrameData* framePtr;
-	FrmFile* frmPtr = LoadArtFile(file, opHandler.arg(1).rawValue(), direction, framePtr, !isID);
+	fo::FrmFrameData* framePtr;
+	fo::FrmFile* frmPtr = LoadArtFile(file, opHandler.arg(1).rawValue(), direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("%s() - cannot open the file: %s", metaruleName, file);
 		return -1;
@@ -667,7 +670,7 @@ static void mf_draw_image_scaled() {
 	opHandler.setReturn(DrawImage(opHandler, true, "draw_image_scaled"));
 }
 
-static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifaceWin, const char* metaruleName) {
+static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, fo::Window* ifaceWin, const char* metaruleName) {
 	const char* file = nullptr;
 	bool useShift = false;
 	long direction = -1, w = -1, h = -1;
@@ -677,7 +680,7 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 		long fid = opHandler.arg(1).rawValue();
 		if (fid == -1) return -1;
 
-		useShift = (((fid & 0xF000000) >> 24) == OBJ_TYPE_CRITTER);
+		useShift = (((fid & 0xF000000) >> 24) == fo::OBJ_TYPE_CRITTER);
 
 		char fileBuf[MAX_PATH];
 		direction = GetArtFIDFile(fid, fileBuf);
@@ -697,8 +700,8 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 	}
 	long frame = opHandler.arg(4).rawValue();
 
-	FrmFrameData* framePtr;
-	FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr, !isID);
+	fo::FrmFrameData* framePtr;
+	fo::FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr, !isID);
 	if (frmPtr == nullptr) {
 		opHandler.printOpcodeError("%s() - cannot open the file: %s", metaruleName, file);
 		return -1;
@@ -723,7 +726,7 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 	);
 
 	if (!(opHandler.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
-		sfgame_GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
+		game::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
 
 	FreeArtFile(frmPtr);
@@ -732,7 +735,7 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, WINinfo* ifac
 
 static void mf_interface_art_draw() {
 	long result = -1;
-	WINinfo* win = Interface_GetWindow(opHandler.arg(0).rawValue() & 0xFF);
+	fo::Window* win = Interface_GetWindow(opHandler.arg(0).rawValue() & 0xFF);
 	if (win && (int)win != -1) {
 		result = InterfaceDrawImage(opHandler, win, "interface_art_draw");
 	} else {
@@ -742,7 +745,7 @@ static void mf_interface_art_draw() {
 }
 
 static void mf_get_window_attribute() {
-	WINinfo* win = Interface_GetWindow(opHandler.arg(0).rawValue());
+	fo::Window* win = Interface_GetWindow(opHandler.arg(0).rawValue());
 	if (win == nullptr) {
 		if (opHandler.arg(1).rawValue() != 0) {
 			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
@@ -784,7 +787,7 @@ static void mf_get_window_attribute() {
 }
 
 static void mf_interface_print() { // same as vanilla PrintRect
-	WINinfo* win = Interface_GetWindow(opHandler.arg(1).rawValue());
+	fo::Window* win = Interface_GetWindow(opHandler.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
 		opHandler.printOpcodeError("interface_print() - the game interface window is not created or invalid window type number.");
 		opHandler.setReturn(-1);
@@ -829,7 +832,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) sfgame_GNW_win_refresh(win, &win->wRect, 0);
+	if (!(color & 0x1000000)) game::Render::GNW_win_refresh(win, &win->wRect, 0);
 }
 
 static void mf_win_fill_color() {
@@ -856,7 +859,7 @@ static void mf_win_fill_color() {
 static void mf_interface_overlay() {
 	long winType = opHandler.arg(0).rawValue();
 
-	WINinfo* win = Interface_GetWindow(winType);
+	fo::Window* win = Interface_GetWindow(winType);
 	if (!win || (int)win == -1) return;
 
 	switch (opHandler.arg(1).rawValue()) {
@@ -876,11 +879,13 @@ static void mf_interface_overlay() {
 			long y = opHandler.arg(3).rawValue();
 			if (x < 0 || y < 0) return;
 
-			sRectangle rect = { x, y, w, h };
+			Rectangle rect = { x, y, w, h };
 			WinRender_ClearOverlay(win, rect);
 		} else {
 			WinRender_ClearOverlay(win);
 		}
 		break;
 	}
+}
+
 }

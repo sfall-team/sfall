@@ -23,6 +23,9 @@
 #include "..\main.h"
 //#include "..\FalloutEngine\Fallout2.h"
 
+namespace sfall
+{
+
 #define MSG_FILE_COMBAT		(0x56D368)
 #define MSG_FILE_AI			(0x56D510)
 #define MSG_FILE_SCRNAME	(0x56D754)
@@ -44,9 +47,9 @@
 #define MSG_FILE_TRAIT		(0x66BE38)
 #define MSG_FILE_WORLDMAP	(0x672FB0)
 
-typedef std::tr1::unordered_map<int, MSGList*> ExtraGameMessageListsMap;
+typedef std::tr1::unordered_map<int, fo::MessageList*> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
-extern const MSGList* gameMsgFiles[];
+extern const fo::MessageList* gameMsgFiles[];
 
 void Message_Init();
 //void Message_Exit();
@@ -58,3 +61,5 @@ void ClearScriptAddedExtraGameMsg();
 const char* Message_GameLanguage();
 
 long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber);
+
+}

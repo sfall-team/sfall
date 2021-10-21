@@ -1,5 +1,8 @@
 #pragma once
 
+namespace sfall 
+{
+
 void BarBoxes_Init();
 void BarBoxes_Exit();
 void BarBoxes_OnGameLoad();
@@ -12,3 +15,5 @@ bool __stdcall BarBoxes_GetBox(int i);
 void __stdcall BarBoxes_AddBox(int i);
 void __stdcall BarBoxes_RemoveBox(int i);
 long __stdcall BarBoxes_AddExtraBox();
+
+}

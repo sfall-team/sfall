@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void LoadOrder_Init();
 void LoadOrder_OnGameLoad();
 void RemoveSavFiles();
@@ -28,3 +31,5 @@ extern long femaleMsgs;
 
 void CheckPlayerGender();
 void PlayerGenderCutsRestore();
+
+}

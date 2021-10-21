@@ -20,6 +20,9 @@
 
 #include "Translate.h"
 
+namespace sfall
+{
+
 static struct Translation {
 	char def[65];
 	char lang[170];
@@ -81,4 +84,6 @@ void Translate_Init(const char* config) {
 
 	MakeLangTranslationPath(config);
 	InitMessagesTranslate();
+}
+
 }

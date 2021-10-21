@@ -23,6 +23,9 @@
 
 #include "ExtraSaveSlots.h"
 
+namespace sfall
+{
+
 static long LSPageOffset = 0;
 static long LSButtDN = 0;
 static BYTE* SaveLoadSurface = nullptr;
@@ -99,7 +102,7 @@ static void SetPageNum() {
 	if (winRef == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = fo::func::GNW_find(winRef);
+	fo::Window *SaveLoadWin = fo::func::GNW_find(winRef);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
@@ -249,7 +252,7 @@ static void DrawPageText() {
 	if (*fo::ptr::lsgwin == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = fo::func::GNW_find(*fo::ptr::lsgwin);
+	fo::Window *SaveLoadWin = fo::func::GNW_find(*fo::ptr::lsgwin);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
@@ -431,7 +434,7 @@ static bool qFirst = true;
 
 static FILETIME ftPrevSlot;
 
-static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
+static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 	long currSlot = quickSaveSlot;
 
 	if (dontCheckSlot) {
@@ -476,7 +479,7 @@ static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
 
 	// Save to slot
 	*fo::ptr::slot_cursor = currSlot;
-	LSData* saveData = (LSData*)FO_VAR_LSData;
+	fo::LSData* saveData = (fo::LSData*)FO_VAR_LSData;
 	CreateSaveComment(saveData[currSlot].comment, dontCheckSlot != 0);
 	*fo::ptr::quick_done = 1;
 
@@ -558,4 +561,6 @@ void ExtraSaveSlots_Init() {
 
 void ExtraSaveSlots_Exit() {
 	if (SaveLoadSurface) delete[] SaveLoadSurface;
+}
+
 }

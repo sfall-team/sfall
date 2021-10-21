@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern char gameMapLoadingName[16];
 extern long gameInterfaceWID;
 
@@ -69,3 +72,5 @@ void SetLoopFlag(LoopFlag flag);
 void ClearLoopFlag(LoopFlag flag);
 
 void GetSavePath(char* buf, char* ftype);
+
+}

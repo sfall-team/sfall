@@ -25,6 +25,9 @@
 
 #include "SpeedPatch.h"
 
+namespace sfall
+{
+
 static const DWORD offsets[] = {
 	// GetTickCount calls
 	0x4C9375, // get_time_
@@ -128,7 +131,7 @@ static DWORD __stdcall FakeGetTickCount() {
 	// Multiply the tick count difference by the multiplier
 	long mode;
 	if (IsGameLoaded() && enabled &&
-	    (!(mode = GetLoopFlags()) || mode == COMBAT || mode == (COMBAT | PCOMBAT) || (mode & WORLDMAP)) && !slideShow)
+	    (!(mode = GetLoopFlags()) || mode == LoopFlag::COMBAT || mode == (LoopFlag::COMBAT | LoopFlag::PCOMBAT) || (mode & LoopFlag::WORLDMAP)) && !slideShow)
 	{
 		elapsed *= multi;
 		elapsed += tickCountFraction;
@@ -229,4 +232,6 @@ void SpeedPatch_Init() {
 
 void SpeedPatch_Exit() {
 	if (speed) delete[] speed;
+}
+
 }

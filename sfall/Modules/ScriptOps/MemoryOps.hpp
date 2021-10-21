@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 #define START_VALID_ADDR    0x410000
 #define END_VALID_ADDR      0x6B403F
 
@@ -165,7 +168,7 @@ end:
 	}
 }
 
-static void __fastcall WriteStringInternal(char* addr, long type, long strID, TProgram* script) {
+static void __fastcall WriteStringInternal(char* addr, long type, long strID, fo::Program* script) {
 	const char* str = fo::func::interpretGetString(script, type, strID);
 	while (*str) {
 		if (!addr[0] && addr[1]) break; // addr[1] as *(addr + 1)
@@ -206,7 +209,7 @@ end:
 	}
 }
 
-static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
+static void __fastcall CallOffsetInternal(fo::Program* script, DWORD func) {
 	func = (func >> 2) - 0x1d2;
 	DWORD args[5];
 	long illegalArg = 0;
@@ -246,4 +249,6 @@ static void __declspec(naked) op_call_offset() {
 		mov  ecx, esi;
 		retn;
 	}
+}
+
 }

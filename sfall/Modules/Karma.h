@@ -18,4 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Karma_Init();
+
+}

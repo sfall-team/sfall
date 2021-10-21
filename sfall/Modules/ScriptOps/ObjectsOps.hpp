@@ -22,6 +22,9 @@
 #include "Objects.h"
 #include "PartyControl.h"
 
+namespace sfall
+{
+
 static const char* protoFailedLoad = "%s() - failed to load a prototype ID: %d";
 
 static const char* nameNPCToInc;
@@ -29,7 +32,7 @@ static long pidNPCToInc;
 static bool onceNpcLoop;
 
 static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
-	TGameObj* mObj;
+	fo::GameObject* mObj;
 	__asm {
 		push edx;
 		mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
@@ -94,7 +97,7 @@ static void __stdcall op_get_npc_level2() {
 
 		if (findPid || name[0] != 0) {
 			DWORD pid = 0;
-			ObjectListData* members = *fo::ptr::partyMemberList;
+			fo::ObjectListData* members = *fo::ptr::partyMemberList;
 			for (DWORD i = 0; i < *fo::ptr::partyMemberCount; i++) {
 				if (!findPid) {
 					__asm {
@@ -138,7 +141,7 @@ static void __declspec(naked) op_get_npc_level() {
 }
 
 static void __stdcall op_remove_script2() {
-	TGameObj* object = opHandler.arg(0).asObject();
+	fo::GameObject* object = opHandler.arg(0).asObject();
 	if (object) {
 		if (object->scriptId != 0xFFFFFFFF) {
 			fo::func::scr_remove(object->scriptId);
@@ -160,10 +163,10 @@ static void __declspec(naked) op_remove_script() {
 }
 
 static void __stdcall op_set_script2() {
-	using Scripts::start;
-	using Scripts::map_enter_p_proc;
+	using fo::Scripts::start;
+	using fo::Scripts::map_enter_p_proc;
 
-	TGameObj* object = opHandler.arg(0).asObject();
+	fo::GameObject* object = opHandler.arg(0).asObject();
 	const ScriptValue &scriptIdxArg = opHandler.arg(1);
 
 	if (object && scriptIdxArg.isInt()) {
@@ -182,9 +185,9 @@ static void __stdcall op_set_script2() {
 			object->scriptId = 0xFFFFFFFF;
 		}
 		if (object->IsCritter()) {
-			scriptType = Scripts::SCRIPT_CRITTER;
+			scriptType = fo::Scripts::ScriptTypes::SCRIPT_CRITTER;
 		} else {
-			scriptType = Scripts::SCRIPT_ITEM;
+			scriptType = fo::Scripts::ScriptTypes::SCRIPT_ITEM;
 		}
 		fo::func::obj_new_sid_inst(object, scriptType, scriptIndex);
 
@@ -201,7 +204,7 @@ static void __declspec(naked) op_set_script() {
 }
 
 static void __stdcall op_create_spatial2() {
-	using Scripts::start;
+	using fo::Scripts::start;
 
 	const ScriptValue &scriptIdxArg = opHandler.arg(0),
 	                  &tileArg = opHandler.arg(1),
@@ -215,8 +218,8 @@ static void __stdcall op_create_spatial2() {
 		      radius = radiusArg.rawValue();
 
 		long scriptId;
-		TScript* scriptPtr;
-		if (fo::func::scr_new(&scriptId, Scripts::SCRIPT_SPATIAL) == -1 || fo::func::scr_ptr(scriptId, &scriptPtr) == -1) return;
+		fo::ScriptInstance* scriptPtr;
+		if (fo::func::scr_new(&scriptId, fo::Scripts::ScriptTypes::SCRIPT_SPATIAL) == -1 || fo::func::scr_ptr(scriptId, &scriptPtr) == -1) return;
 
 		// set spatial script properties:
 		scriptPtr->scriptIdx = scriptIndex - 1;
@@ -240,9 +243,9 @@ static void __declspec(naked) op_create_spatial() {
 #undef exec_script_proc
 
 static void mf_spatial_radius() {
-	TGameObj* spatialObj = opHandler.arg(0).asObject();
+	fo::GameObject* spatialObj = opHandler.arg(0).asObject();
 	if (spatialObj) {
-		TScript* script;
+		fo::ScriptInstance* script;
 		if (fo::func::scr_ptr(spatialObj->scriptId, &script) != -1) {
 			opHandler.setReturn(script->spatialRadius);
 		}
@@ -253,7 +256,7 @@ static void mf_spatial_radius() {
 }
 
 static void __stdcall op_get_script2() {
-	TGameObj* object = opHandler.arg(0).asObject();
+	fo::GameObject* object = opHandler.arg(0).asObject();
 	if (object) {
 		long scriptIndex = object->scriptIndex;
 		opHandler.setReturn((scriptIndex >= 0) ? ++scriptIndex : 0);
@@ -268,7 +271,7 @@ static void __declspec(naked) op_get_script() {
 }
 
 static void __stdcall op_set_critter_burst_disable2() {
-	TGameObj* critter = opHandler.arg(0).asObject();
+	fo::GameObject* critter = opHandler.arg(0).asObject();
 	const ScriptValue &disableArg = opHandler.arg(1);
 
 	if (critter && disableArg.isInt()) {
@@ -283,13 +286,13 @@ static void __declspec(naked) op_set_critter_burst_disable() {
 }
 
 static void __stdcall op_get_weapon_ammo_pid2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		long pid = -1;
-		sProto* proto;
+		fo::Proto* proto;
 		if (obj->IsItem() && fo::util::GetProto(obj->protoId, &proto)) {
 			long type = proto->item.type;
-			if (type == item_type_weapon || type == item_type_misc_item) {
+			if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
 				pid = obj->item.ammoPid;
 			}
 		}
@@ -305,16 +308,16 @@ static void __declspec(naked) op_get_weapon_ammo_pid() {
 }
 
 static void __stdcall op_set_weapon_ammo_pid2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &pidArg = opHandler.arg(1);
 
 	if (obj && pidArg.isInt()) {
 		if (obj->IsNotItem()) return;
 
-		sProto* proto;
+		fo::Proto* proto;
 		if (fo::util::GetProto(obj->protoId, &proto)) {
 			long type = proto->item.type;
-			if (type == item_type_weapon || type == item_type_misc_item) {
+			if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
 				obj->item.ammoPid = pidArg.rawValue();
 			}
 		} else {
@@ -330,7 +333,7 @@ static void __declspec(naked) op_set_weapon_ammo_pid() {
 }
 
 static void __stdcall op_get_weapon_ammo_count2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn((obj->IsItem()) ? obj->item.charges : 0);
 	} else {
@@ -344,7 +347,7 @@ static void __declspec(naked) op_get_weapon_ammo_count() {
 }
 
 static void __stdcall op_set_weapon_ammo_count2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &countArg = opHandler.arg(1);
 
 	if (obj && countArg.isInt()) {
@@ -382,7 +385,7 @@ static DWORD getBlockingFunc(BlockType type) {
 }
 
 static void __stdcall op_make_straight_path2() {
-	TGameObj* objFrom = opHandler.arg(0).asObject();
+	fo::GameObject* objFrom = opHandler.arg(0).asObject();
 	const ScriptValue &tileToArg = opHandler.arg(1),
 	                  &typeArg = opHandler.arg(2);
 
@@ -391,7 +394,7 @@ static void __stdcall op_make_straight_path2() {
 		BlockType type = (BlockType)typeArg.rawValue();
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
-		TGameObj* resultObj = nullptr;
+		fo::GameObject* resultObj = nullptr;
 		fo::func::make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, (DWORD*)&resultObj, flag, (void*)getBlockingFunc(type));
 		opHandler.setReturn(resultObj);
 	} else {
@@ -405,7 +408,7 @@ static void __declspec(naked) op_make_straight_path() {
 }
 
 static void __stdcall op_make_path2() {
-	TGameObj* objFrom = opHandler.arg(0).asObject();
+	fo::GameObject* objFrom = opHandler.arg(0).asObject();
 	const ScriptValue &tileToArg = opHandler.arg(1),
 	                  &typeArg = opHandler.arg(2);
 
@@ -443,8 +446,8 @@ static void __stdcall op_obj_blocking_at2() {
 		      elevation = elevArg.rawValue();
 		BlockType type = (BlockType)typeArg.rawValue();
 
-		TGameObj* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
-		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
+		fo::GameObject* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
+		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & fo::ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
 			// this check was added because the engine always does exactly this when using shoot blocking checks
 			resultObj = nullptr;
 		}
@@ -467,7 +470,7 @@ static void __stdcall op_tile_get_objects2() {
 		DWORD tile = tileArg.rawValue(),
 		      elevation = elevArg.rawValue();
 		DWORD arrayId = CreateTempArray(0, 4);
-		TGameObj* obj = fo::func::obj_find_first_at_tile(elevation, tile);
+		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elevation, tile);
 		while (obj) {
 			arrays[arrayId].push_back(reinterpret_cast<long>(obj));
 			obj = fo::func::obj_find_next_at_tile();
@@ -491,8 +494,8 @@ static void __stdcall op_get_party_members2() {
 		int actualCount = *fo::ptr::partyMemberCount;
 		DWORD arrayId = CreateTempArray(0, 4);
 		for (int i = 0; i < actualCount; i++) {
-			TGameObj* obj = (*fo::ptr::partyMemberList)[i].object;
-			if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & ObjectFlag::Mouse_3d))) {
+			fo::GameObject* obj = (*fo::ptr::partyMemberList)[i].object;
+			if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 				arrays[arrayId].push_back((long)obj);
 			}
 		}
@@ -508,13 +511,13 @@ static void __declspec(naked) op_get_party_members() {
 }
 
 static void mf_set_outline() {
-	TGameObj* obj = opHandler.arg(0).object();
+	fo::GameObject* obj = opHandler.arg(0).object();
 	int color = opHandler.arg(1).rawValue();
 	obj->outline = color;
 }
 
 static void mf_get_outline() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->outline);
 	} else {
@@ -524,13 +527,13 @@ static void mf_get_outline() {
 }
 
 static void mf_set_flags() {
-	TGameObj* obj = opHandler.arg(0).object();
+	fo::GameObject* obj = opHandler.arg(0).object();
 	int flags = opHandler.arg(1).rawValue();
 	obj->flags = flags;
 }
 
 static void mf_get_flags() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(obj->flags);
 	} else {
@@ -552,7 +555,7 @@ static void mf_car_gas_amount() {
 }
 
 static void mf_lock_is_jammed() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		opHandler.setReturn(fo::func::obj_lock_is_jammed(obj));
 	} else {
@@ -605,7 +608,7 @@ static void __stdcall op_get_proto_data2() {
 
 	if (pidArg.isInt() && offsetArg.isInt()) {
 		long result = -1;
-		sProto* protoPtr;
+		fo::Proto* protoPtr;
 		int pid = pidArg.rawValue();
 		if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.rawValue());
@@ -629,7 +632,7 @@ static void __stdcall op_set_proto_data2() {
 	                  &valueArg = opHandler.arg(2);
 
 	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) {
-		sProto* protoPtr;
+		fo::Proto* protoPtr;
 		int pid = pidArg.rawValue();
 		if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != -1) {
 			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
@@ -650,7 +653,7 @@ static void __declspec(naked) op_set_proto_data() {
 }
 
 static void mf_get_object_data() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &offsetArg = opHandler.arg(1);
 
 	if (obj && offsetArg.isInt()) {
@@ -668,7 +671,7 @@ static void mf_set_object_data() {
 }
 
 static void mf_set_unique_id() {
-	TGameObj* obj = opHandler.arg(0).object();
+	fo::GameObject* obj = opHandler.arg(0).object();
 	long id;
 	if (opHandler.arg(1).rawValue() == -1) {
 		id = fo::func::new_obj_id();
@@ -696,7 +699,7 @@ static void mf_objects_in_radius() {
 		long elev = elevArg.rawValue();
 		if (elev < 0) elev = 0; else if (elev > 2) elev = 2;
 
-		std::vector<TGameObj*> objects;
+		std::vector<fo::GameObject*> objects;
 		objects.reserve(25);
 		fo::util::GetObjectsTileRadius(objects, tileArg.rawValue(), radius, elev, type);
 		size_t sz = objects.size();
@@ -723,11 +726,13 @@ static void mf_npc_engine_level_up() {
 }
 
 static void mf_obj_is_openable() {
-	TGameObj* object = opHandler.arg(0).asObject();
+	fo::GameObject* object = opHandler.arg(0).asObject();
 	if (object) {
 		opHandler.setReturn(fo::util::ObjIsOpenable(object));
 	} else {
 		OpcodeInvalidArgs("obj_is_openable");
 		opHandler.setReturn(0);
 	}
+}
+
 }

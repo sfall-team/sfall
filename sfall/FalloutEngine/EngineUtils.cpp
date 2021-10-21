@@ -29,13 +29,13 @@ namespace fo
 namespace util
 {
 
-static MSGNode messageBuf;
+static fo::MessageNode messageBuf;
 
-const char* GetMessageStr(const MSGList* file, long messageId) {
+const char* GetMessageStr(const fo::MessageList* file, long messageId) {
 	return fo::func::getmsg(file, &messageBuf, messageId);
 }
 
-const char* MessageSearch(const MSGList* file, long messageId) {
+const char* MessageSearch(const fo::MessageList* file, long messageId) {
 	messageBuf.number = messageId;
 	if (fo::func::message_search(file, &messageBuf) == 1) {
 		return messageBuf.message;
@@ -43,9 +43,9 @@ const char* MessageSearch(const MSGList* file, long messageId) {
 	return nullptr;
 }
 
-MSGNode* GetMsgNode(MSGList* msgList, int msgNum) {
+fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgNum) {
 	if (msgList != nullptr && msgList->numMsgs > 0) {
-		MSGNode *msgNode = msgList->nodes;
+		fo::MessageNode *msgNode = msgList->nodes;
 		long last = msgList->numMsgs - 1;
 		long first = 0;
 		long mid;
@@ -65,8 +65,8 @@ MSGNode* GetMsgNode(MSGList* msgList, int msgNum) {
 }
 
 // Alternative version of getmsg_ function
-char* GetMsg(MSGList* msgList, int msgNum, int msgType) {
-	MSGNode *msgNode = GetMsgNode(msgList, msgNum);
+char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType) {
+	fo::MessageNode *msgNode = GetMsgNode(msgList, msgNum);
 	if (msgNode) {
 		if (msgType == 2) {
 			return msgNode->message;
@@ -77,9 +77,9 @@ char* GetMsg(MSGList* msgList, int msgNum, int msgType) {
 	return nullptr;
 }
 
-Queue* QueueFind(TGameObj* object, long type) {
+fo::Queue* QueueFind(fo::GameObject* object, long type) {
 	if (*fo::ptr::queue) {
-		Queue* queue = *fo::ptr::queue;
+		fo::Queue* queue = *fo::ptr::queue;
 		while (queue->object != object && queue->type != type) {
 			queue = queue->next;
 			if (!queue) break;
@@ -89,10 +89,10 @@ Queue* QueueFind(TGameObj* object, long type) {
 	return nullptr;
 }
 
-long AnimCodeByWeapon(TGameObj* weapon) {
+long AnimCodeByWeapon(fo::GameObject* weapon) {
 	if (weapon != nullptr) {
-		sProto* proto;
-		if (GetProto(weapon->protoId, &proto) && proto->item.type == item_type_weapon) {
+		fo::Proto* proto;
+		if (GetProto(weapon->protoId, &proto) && proto->item.type == fo::item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
 	}
@@ -102,11 +102,11 @@ long AnimCodeByWeapon(TGameObj* weapon) {
 bool CheckProtoID(DWORD pid) {
 	if (pid == 0) return false;
 	long type = pid >> 24;
-	if (type > OBJ_TYPE_MISC) return false;
+	if (type > fo::ObjType::OBJ_TYPE_MISC) return false;
 	return (static_cast<long>(pid & 0xFFFF) < fo::ptr::protoLists[type].totalCount);
 }
 
-bool GetProto(long pid, sProto** outProto) {
+bool GetProto(long pid, fo::Proto** outProto) {
 	return (fo::func::proto_ptr(pid, outProto) != -1);
 }
 
@@ -120,88 +120,88 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-long GetItemType(TGameObj* item) {
+long GetItemType(fo::GameObject* item) {
 	return GetProto(item->protoId)->item.type;
 }
 
-__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot) {
-	TGameObj* itemPtr = nullptr;
+__declspec(noinline) fo::GameObject* __stdcall GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
+	fo::GameObject* itemPtr = nullptr;
 	switch (slot) {
-	case INVEN_TYPE_LEFT_HAND:
+	case fo::InvenType::INVEN_TYPE_LEFT_HAND:
 		itemPtr = fo::func::inven_left_hand(critter);
 		break;
-	case INVEN_TYPE_RIGHT_HAND:
+	case fo::InvenType::INVEN_TYPE_RIGHT_HAND:
 		itemPtr = fo::func::inven_right_hand(critter);
 		break;
-	case INVEN_TYPE_WORN:
+	case fo::InvenType::INVEN_TYPE_WORN:
 		itemPtr = fo::func::inven_worn(critter);
 		break;
 	}
 	return itemPtr;
 }
 
-AttackType GetHandSlotPrimaryAttack(HandSlot slot) {
-	return (AttackType)fo::ptr::itemButtonItems[slot].primaryAttack;
+fo::AttackType GetHandSlotPrimaryAttack(fo::HandSlot slot) {
+	return (fo::AttackType)fo::ptr::itemButtonItems[slot].primaryAttack;
 }
 
-AttackType GetHandSlotSecondaryAttack(HandSlot slot) {
-	return (AttackType)fo::ptr::itemButtonItems[slot].secondaryAttack;
+fo::AttackType GetHandSlotSecondaryAttack(fo::HandSlot slot) {
+	return (fo::AttackType)fo::ptr::itemButtonItems[slot].secondaryAttack;
 }
 
-HandSlotMode GetHandSlotMode(HandSlot slot) {
-	return (HandSlotMode)fo::ptr::itemButtonItems[slot].mode;
+fo::HandSlotMode GetHandSlotMode(fo::HandSlot slot) {
+	return (fo::HandSlotMode)fo::ptr::itemButtonItems[slot].mode;
 }
 
 long& GetActiveItemMode() {
 	return fo::ptr::itemButtonItems[*fo::ptr::itemCurrentItem].mode;
 }
 
-TGameObj* GetActiveItem() {
+fo::GameObject* GetActiveItem() {
 	return fo::ptr::itemButtonItems[*fo::ptr::itemCurrentItem].item;
 }
 
-AttackType GetSlotHitMode(HandSlot hand) { // 0 - left, 1 - right
+fo::AttackType GetSlotHitMode(fo::HandSlot hand) { // 0 - left, 1 - right
 	switch (fo::ptr::itemButtonItems[hand].mode) {
-	case HANDMODE_Primary:
-	case HANDMODE_Primary_Aimed: // called shot
+	case fo::HANDMODE_Primary:
+	case fo::HANDMODE_Primary_Aimed: // called shot
 		return GetHandSlotPrimaryAttack(hand);
-	case HANDMODE_Secondary:
-	case HANDMODE_Secondary_Aimed: // called shot
+	case fo::HANDMODE_Secondary:
+	case fo::HANDMODE_Secondary_Aimed: // called shot
 		return GetHandSlotSecondaryAttack(hand);
-	case HANDMODE_Reload:
-		return (AttackType)(ATKTYPE_LWEAPON_RELOAD + hand);
+	case fo::HANDMODE_Reload:
+		return (fo::AttackType)(fo::AttackType::ATKTYPE_LWEAPON_RELOAD + hand);
 	}
-	return ATKTYPE_PUNCH;
+	return fo::AttackType::ATKTYPE_PUNCH;
 }
 
 long GetCurrentAttackMode() {
 	if (*fo::ptr::interfaceWindow != -1) {
-		return GetSlotHitMode((HandSlot)*fo::ptr::itemCurrentItem);
+		return GetSlotHitMode((fo::HandSlot)*fo::ptr::itemCurrentItem);
 	}
 	return -1;
 }
 
-AttackSubType GetWeaponType(DWORD weaponFlag) {
-	static const AttackSubType weapon_types[9] = {
-		ATKSUBTYPE_NONE,
-		ATKSUBTYPE_UNARMED,
-		ATKSUBTYPE_UNARMED,
-		ATKSUBTYPE_MELEE,
-		ATKSUBTYPE_MELEE,
-		ATKSUBTYPE_THROWING,
-		ATKSUBTYPE_GUNS,
-		ATKSUBTYPE_GUNS,
-		ATKSUBTYPE_GUNS
+fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
+	static const fo::AttackSubType weapon_types[9] = {
+		fo::ATKSUBTYPE_NONE,
+		fo::ATKSUBTYPE_UNARMED,
+		fo::ATKSUBTYPE_UNARMED,
+		fo::ATKSUBTYPE_MELEE,
+		fo::ATKSUBTYPE_MELEE,
+		fo::ATKSUBTYPE_THROWING,
+		fo::ATKSUBTYPE_GUNS,
+		fo::ATKSUBTYPE_GUNS,
+		fo::ATKSUBTYPE_GUNS
 	};
 	DWORD type = weaponFlag & 0xF;
-	return (type < 9) ? weapon_types[type] : ATKSUBTYPE_NONE;
+	return (type < 9) ? weapon_types[type] : fo::ATKSUBTYPE_NONE;
 }
 
-long ObjIsOpenable(TGameObj* object) {
+long ObjIsOpenable(fo::GameObject* object) {
 	long result = 0;
 	if (fo::func::obj_is_openable(object)) {
 		DWORD lock;
-		FrmHeaderData* frm = fo::func::art_ptr_lock(object->artFid, &lock);
+		fo::FrmHeaderData* frm = fo::func::art_ptr_lock(object->artFid, &lock);
 		if (frm) {
 			if (frm->numFrames > 1) result = 1;
 			fo::func::art_ptr_unlock(lock);
@@ -211,34 +211,34 @@ long ObjIsOpenable(TGameObj* object) {
 }
 
 bool HeroIsFemale() {
-	return (fo::func::stat_level(*fo::ptr::obj_dude, STAT_gender) == GENDER_FEMALE);
+	return (fo::func::stat_level(*fo::ptr::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence() {
-	QueueRadiationData* queue = (QueueRadiationData*)fo::func::queue_find_first(*fo::ptr::obj_dude, radiation_event);
+	fo::QueueRadiationData* queue = (fo::QueueRadiationData*)fo::func::queue_find_first(*fo::ptr::obj_dude, fo::radiation_event);
 	while (queue) {
 		if (queue->init && queue->level >= 2) return 1;
-		queue = (QueueRadiationData*)fo::func::queue_find_next(*fo::ptr::obj_dude, radiation_event);
+		queue = (fo::QueueRadiationData*)fo::func::queue_find_next(*fo::ptr::obj_dude, fo::radiation_event);
 	}
 	return 0;
 }
 
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid) {
-	TScript* script = nullptr;
+	fo::ScriptInstance* script = nullptr;
 	fo::func::scr_ptr(sid, &script);
 	return (script) ? script->numLocalVars : 0;
 }
 
 // Returns window by x/y coordinate (hidden windows are ignored)
-WINinfo* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans) {
+fo::Window* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans) {
 	long num = *fo::ptr::num_windows - 1;
 	if (num) {
-		int cflags = WinFlags::Hidden;
+		int cflags = fo::WinFlags::Hidden;
 		if (bypassTrans) cflags |= WinFlags::Transparent;
 		do {
-			WINinfo* win = fo::ptr::window[num];
+			fo::Window* win = fo::ptr::window[num];
 			if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
 				if (!(win->flags & cflags)) {
 					return win;
@@ -260,13 +260,13 @@ static long GetRangeTileNumbers(long sourceTile, long radius, long &outEnd) {
 }
 
 // Returns an array of objects within the specified radius from the source tile
-void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type) {
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type) {
 	long endTile;
 	for (long tile = GetRangeTileNumbers(sourceTile, radius, endTile); tile < endTile; tile++) {
-		TGameObj* obj = fo::func::obj_find_first_at_tile(elev, tile);
+		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
 		while (obj) {
 			if (type == -1 || type == obj->Type()) {
-				bool multiHex = (obj->flags & ObjectFlag::MultiHex) ? true : false;
+				bool multiHex = (obj->flags & fo::ObjectFlag::MultiHex) ? true : false;
 				if (fo::func::tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
 					objs.push_back(obj);
 				}
@@ -277,18 +277,18 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 }
 
 // Checks the blocking tiles and returns the first blocking object
-TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile) {
+fo::GameObject* CheckAroundBlockingTiles(fo::GameObject* source, long dstTile) {
 	long rotation = 5;
 	do {
 		long chkTile = fo::func::tile_num_in_direction(dstTile, rotation, 1);
-		TGameObj* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
+		fo::GameObject* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
 		if (obj) return obj;
 	} while (--rotation >= 0);
 
 	return nullptr;
 }
 
-TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile) {
+fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long dstTile) {
 	if (fo::func::tile_dist(source->tile, dstTile) > 1) {
 		return CheckAroundBlockingTiles(source, dstTile);
 	}
@@ -296,7 +296,7 @@ TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile) {
 	long dir = fo::func::tile_dir(source->tile, dstTile);
 
 	long chkTile = fo::func::tile_num_in_direction(dstTile, dir, 1);
-	TGameObj* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
+	fo::GameObject* obj = fo::func::obj_blocking_at(source, chkTile, source->elevation);
 	if (obj) return obj;
 
 	// +1 direction
@@ -395,7 +395,7 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 // Fills the specified interface window with index color
 bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
-	WINinfo* win = fo::func::GNW_find(winID);
+	fo::Window* win = fo::func::GNW_find(winID);
 	bool result = false;
 	if ((x + width) > win->width) {
 		width = win->width - x;
@@ -417,7 +417,7 @@ bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, 
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
-	WINinfo* win = fo::func::GNW_find(winID);
+	fo::Window* win = fo::func::GNW_find(winID);
 	std::memset(win->surface, 0, win->width * win->height);
 	if (refresh) {
 		fo::func::GNW_win_refresh(win, &win->rect, nullptr);
@@ -425,8 +425,8 @@ void ClearWindow(long winID, bool refresh) {
 }
 
 //---------------------------------------------------------
-void PrintFloatText(TGameObj* object, const char* text, long colorText, long colorOutline, long font) {
-	BoundRect rect;
+void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline, long font) {
+	fo::BoundRect rect;
 	if (!fo::func::text_object_create(object, text, font, colorText, colorOutline, &rect)) {
 		fo::func::tile_refresh_rect(&rect, object->elevation);
 	}
@@ -537,8 +537,8 @@ DWORD __stdcall GetMaxCharWidth() {
 //	return charWidth;
 }
 
-void RedrawObject(TGameObj* obj) {
-	BoundRect rect;
+void RedrawObject(fo::GameObject* obj) {
+	fo::BoundRect rect;
 	fo::func::obj_bound(obj, &rect);
 	fo::func::tile_refresh_rect(&rect, obj->elevation);
 }
@@ -547,7 +547,7 @@ void RedrawObject(TGameObj* obj) {
 void RefreshGNW(bool skipOwner) {
 	fo::var::setInt(FO_VAR_doing_refresh_all) = 1;
 	for (size_t i = 0; i < *fo::ptr::num_windows; i++) {
-		if (skipOwner && fo::ptr::window[i]->flags & WinFlags::OwnerFlag) continue;
+		if (skipOwner && fo::ptr::window[i]->flags & fo::WinFlags::OwnerFlag) continue;
 		fo::func::GNW_win_refresh(fo::ptr::window[i], fo::ptr::scr_size, 0);
 	}
 	fo::var::setInt(FO_VAR_doing_refresh_all) = 0;
@@ -555,7 +555,7 @@ void RefreshGNW(bool skipOwner) {
 
 //////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////
 
-static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
+static bool LoadFrmHeader(fo::UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
 		return false;
 	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
@@ -576,7 +576,7 @@ static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
 	return true;
 }
 
-static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
+static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
@@ -598,8 +598,8 @@ static bool LoadFrmFrame(UNLSTDfrm::Frame *frame, DbFile* frmStream) {
 	return true;
 }
 
-UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
+fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
 	const char *artfolder = fo::ptr::art[folderRef].path; // address of art type name
 	char frmPath[MAX_PATH];
@@ -610,9 +610,9 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 	}
 
-	UNLSTDfrm *frm = new UNLSTDfrm;
+	fo::UnlistedFrm *frm = new fo::UnlistedFrm;
 
-	DbFile* frmStream = fo::func::db_fopen(frmPath, "rb");
+	fo::DbFile* frmStream = fo::func::db_fopen(frmPath, "rb");
 
 	if (!frmStream && *fo::ptr::use_language) {
 		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
@@ -628,7 +628,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 		DWORD oriOffset_1st = frm->oriOffset[0];
 		DWORD oriOffset_new = 0;
-		frm->frames = new UNLSTDfrm::Frame[6 * frm->numFrames];
+		frm->frames = new fo::UnlistedFrm::Frame[6 * frm->numFrames];
 		for (int ori = 0; ori < 6; ori++) {
 			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
 				frm->oriOffset[ori] = oriOffset_new;

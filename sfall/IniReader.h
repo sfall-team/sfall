@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern DWORD modifiedIni;
 
 void IniReader_Init();
@@ -57,3 +60,5 @@ std::string __stdcall IniGetString(const char* section, const char* setting, con
 std::vector<std::string> __stdcall IniGetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
 int __stdcall SetConfigInt(const char* section, const char* setting, int value);
+
+}

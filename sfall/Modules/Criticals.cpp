@@ -24,6 +24,9 @@
 
 #include "Criticals.h"
 
+namespace sfall
+{
+
 static std::string critTableFile(".\\");
 
 const DWORD CritTableCount = 2 * 19 + 1;                   // Number of species in new critical table
@@ -40,9 +43,9 @@ static const char* critNames[] = {
 	"FailMessage",
 };
 
-static CritInfo baseCritTable[CritTableSize] = {0}; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
-static CritInfo critTable[CritTableSize];
-static CritInfo* playerCrit;
+static fo::CritInfo baseCritTable[CritTableSize] = {0}; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
+static fo::CritInfo critTable[CritTableSize];
+static fo::CritInfo* playerCrit;
 
 static bool Inited = false;
 
@@ -76,7 +79,7 @@ static int CritTableLoad() {
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
 		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
-		CritInfo* defaultTable = fo::ptr::crit_succ_eff;
+		fo::CritInfo* defaultTable = fo::ptr::crit_succ_eff;
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
@@ -99,9 +102,9 @@ static int CritTableLoad() {
 		}
 	} else {
 		dlog("Setting up critical hit table using RP fixes", DL_CRITICALS);
-		memcpy(baseCritTable, fo::ptr::crit_succ_eff, 19 * 6 * 9 * sizeof(CritInfo));
+		memcpy(baseCritTable, fo::ptr::crit_succ_eff, 19 * 6 * 9 * sizeof(fo::CritInfo));
 		//memset(&baseCritTable[6 * 9 * 19], 0, 19 * 6 * 9 * sizeof(CritInfo));
-		memcpy(&baseCritTable[6 * 9 * 38], fo::ptr::pc_crit_succ_eff, 6 * 9 * sizeof(CritInfo)); // PC crit table
+		memcpy(&baseCritTable[6 * 9 * 38], fo::ptr::pc_crit_succ_eff, 6 * 9 * sizeof(fo::CritInfo)); // PC crit table
 
 		if (mode == 3) {
 			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
@@ -153,6 +156,7 @@ static void CriticalTableOverride() {
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
 	if (mode == 2 || mode == 3) { // bug fixes
+		using namespace fo;
 		// Children
 		SetEntry(2, BODY_LegRight, 1, FlagsFail, 0);
 		SetEntry(2, BODY_LegRight, 1, Message,   5216);
@@ -180,20 +184,20 @@ static void CriticalTableOverride() {
 		SetEntry(5, BODY_Head,     4, StatCheck, -1);
 
 		// Radscorpions
-		SetEntry(6, BODY_LegRight, 1, FlagsFail, DAM_KNOCKED_DOWN);
+		SetEntry(6, BODY_LegRight, 1, FlagsFail, fo::DAM_KNOCKED_DOWN);
 
-		SetEntry(6, BODY_LegLeft,  1, FlagsFail, DAM_KNOCKED_DOWN);
+		SetEntry(6, BODY_LegLeft,  1, FlagsFail, fo::DAM_KNOCKED_DOWN);
 		SetEntry(6, BODY_LegLeft,  2, MsgFail,   5608);
 
 		// Centaurs
-		SetEntry(9, BODY_Torso,    3, FlagsFail, DAM_KNOCKED_DOWN);
+		SetEntry(9, BODY_Torso,    3, FlagsFail, fo::DAM_KNOCKED_DOWN);
 
 		// Deathclaws
-		SetEntry(13, BODY_LegLeft, 1, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, BODY_LegLeft, 2, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, BODY_LegLeft, 3, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, BODY_LegLeft, 4, FlagsFail, DAM_CRIP_LEG_LEFT);
-		SetEntry(13, BODY_LegLeft, 5, FlagsFail, DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 1, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 2, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 3, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 4, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
+		SetEntry(13, BODY_LegLeft, 5, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
 
 		// Big Bad Boss
 		SetEntry(18, BODY_Head,     0, Message,  5001);
@@ -256,31 +260,31 @@ static void CriticalTableOverride() {
 
 		// Fixes for uncalled tables
 		// Men
-		SetEntry(0, BODY_Uncalled, 2, Flags,     DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(0, BODY_Uncalled, 2, Flags,     fo::DAM_KNOCKED_DOWN | fo::DAM_BYPASS); // 0
 		SetEntry(0, BODY_Uncalled, 2, Message,   5019); // 5018
 
 		// Children
 		SetEntry(2, BODY_Uncalled, 1, DmgMult,   4);    // 3
-		SetEntry(2, BODY_Uncalled, 2, Flags,     DAM_KNOCKED_DOWN | DAM_BYPASS); // DAM_BYPASS
+		SetEntry(2, BODY_Uncalled, 2, Flags,     fo::DAM_KNOCKED_DOWN | fo::DAM_BYPASS); // fo::DAM_BYPASS
 		SetEntry(2, BODY_Uncalled, 2, Message,   5212); // 5211
 
 		// Centaurs
-		SetEntry(9, BODY_Uncalled, 3, FlagsFail, DAM_KNOCKED_DOWN); // 0
+		SetEntry(9, BODY_Uncalled, 3, FlagsFail, fo::DAM_KNOCKED_DOWN); // 0
 
 		// Geckos
 		SetEntry(15, BODY_Uncalled, 0, Message,  6701); // 6700
 		SetEntry(15, BODY_Uncalled, 1, Message,  6701); // 6700
-		SetEntry(15, BODY_Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(15, BODY_Uncalled, 2, Flags,    fo::DAM_KNOCKED_DOWN | fo::DAM_BYPASS); // 0
 		SetEntry(15, BODY_Uncalled, 2, Message,  6704); // 6700
 		SetEntry(15, BODY_Uncalled, 3, Message,  6704); // 6700
 		SetEntry(15, BODY_Uncalled, 4, Message,  6704); // 6700
 		SetEntry(15, BODY_Uncalled, 5, Message,  6704); // 6700
 
 		// Aliens
-		SetEntry(16, BODY_Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(16, BODY_Uncalled, 2, Flags,    fo::DAM_KNOCKED_DOWN | fo::DAM_BYPASS); // 0
 
 		// Giant Ants
-		SetEntry(17, BODY_Uncalled, 2, Flags,    DAM_KNOCKED_DOWN | DAM_BYPASS); // 0
+		SetEntry(17, BODY_Uncalled, 2, Flags,    fo::DAM_KNOCKED_DOWN | fo::DAM_BYPASS); // 0
 
 		// Big Bad Boss
 		SetEntry(18, BODY_Uncalled, 2, DmgMult,  3);    // 4
@@ -322,4 +326,6 @@ void Criticals_Init() {
 void CritLoad() {
 	if (!Inited) return;
 	memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table
+}
+
 }

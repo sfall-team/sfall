@@ -18,5 +18,10 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void EngineTweaks_Init();
 //void EngineTweaks_Exit();
+
+}

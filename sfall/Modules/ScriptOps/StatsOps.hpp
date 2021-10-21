@@ -23,6 +23,9 @@
 #include "Skills.h"
 #include "Stats.h"
 
+namespace sfall
+{
+
 const char* invalidStat = "%s() - stat number out of range.";
 const char* objNotCritter = "%s() - the object is not a critter.";
 
@@ -46,7 +49,7 @@ static void __stdcall op_set_pc_base_stat2() {
 
 	if (statArg.isInt() && valArg.isInt()) {
 		int stat = statArg.rawValue();
-		if (stat >= 0 && stat < STAT_max_stat) {
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			((long*)FO_VAR_pc_proto)[9 + stat] = valArg.rawValue();
 		} else {
 			opHandler.printOpcodeError(invalidStat, "set_pc_base_stat");
@@ -66,7 +69,7 @@ static void __stdcall op_set_pc_extra_stat2() {
 
 	if (statArg.isInt() && valArg.isInt()) {
 		int stat = statArg.rawValue();
-		if (stat >= 0 && stat < STAT_max_stat) {
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			((long*)FO_VAR_pc_proto)[44 + stat] = valArg.rawValue();
 		} else {
 			opHandler.printOpcodeError(invalidStat, "set_pc_extra_stat");
@@ -86,7 +89,7 @@ static void __stdcall op_get_pc_base_stat2() {
 
 	if (statArg.isInt()) {
 		int stat = statArg.rawValue();
-		if (stat >= 0 && stat < STAT_max_stat) {
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			value = ((long*)FO_VAR_pc_proto)[9 + stat];
 		} else {
 			opHandler.printOpcodeError(invalidStat, "get_pc_base_stat");
@@ -108,7 +111,7 @@ static void __stdcall op_get_pc_extra_stat2() {
 
 	if (statArg.isInt()) {
 		int stat = statArg.rawValue();
-		if (stat >= 0 && stat < STAT_max_stat) {
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
 			value = ((long*)FO_VAR_pc_proto)[44 + stat];
 		} else {
 			opHandler.printOpcodeError(invalidStat, "get_pc_extra_stat");
@@ -124,15 +127,15 @@ static void __declspec(naked) op_get_pc_extra_stat() {
 }
 
 static void __stdcall op_set_critter_base_stat2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1),
 	                  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
-			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = fo::util::GetProto(obj->protoId);
+			if (stat >= 0 && stat < fo::STAT_max_stat) {
+				fo::Proto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_base_stat");
@@ -150,15 +153,15 @@ static void __declspec(naked) op_set_critter_base_stat() {
 }
 
 static void __stdcall op_set_critter_extra_stat2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1),
 	                  &valArg = opHandler.arg(2);
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
-			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = fo::util::GetProto(obj->protoId);
+			if (stat >= 0 && stat < fo::STAT_max_stat) {
+				fo::Proto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_extra_stat");
@@ -177,14 +180,14 @@ static void __declspec(naked) op_set_critter_extra_stat() {
 
 static void __stdcall op_get_critter_base_stat2() {
 	int result = 0;
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1);
 
 	if (obj && statArg.isInt()) {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
-			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = fo::util::GetProto(obj->protoId);
+			if (stat >= 0 && stat < fo::STAT_max_stat) {
+				fo::Proto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[9 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_base_stat");
@@ -204,14 +207,14 @@ static void __declspec(naked) op_get_critter_base_stat() {
 
 static void __stdcall op_get_critter_extra_stat2() {
 	int result = 0;
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &statArg = opHandler.arg(1);
 
 	if (obj && statArg.isInt()) {
 		if (obj->IsCritter()) {
 			int stat = statArg.rawValue();
-			if (stat >= 0 && stat < STAT_max_stat) {
-				sProto* proto = fo::util::GetProto(obj->protoId);
+			if (stat >= 0 && stat < fo::STAT_max_stat) {
+				fo::Proto* proto = fo::util::GetProto(obj->protoId);
 				if (proto != nullptr) result = ((long*)proto)[44 + stat];
 			} else {
 				opHandler.printOpcodeError(invalidStat, "get_critter_extra_stat");
@@ -426,7 +429,7 @@ fail:
 }
 
 static void __stdcall op_set_critter_current_ap2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &apArg = opHandler.arg(1);
 
 	if (obj && apArg.isInt()) {
@@ -489,7 +492,7 @@ end:
 }
 
 static void __stdcall op_set_critter_hit_chance_mod2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1),
 	                  &modArg = opHandler.arg(2);
 
@@ -527,7 +530,7 @@ end:
 }
 
 static void __stdcall op_set_critter_pickpocket_mod2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1),
 	                  &modArg = opHandler.arg(2);
 
@@ -565,7 +568,7 @@ end:
 }
 
 static void __stdcall op_set_critter_skill_mod2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &maxArg = opHandler.arg(1);
 
 	if (obj && maxArg.isInt()) {
@@ -793,4 +796,6 @@ static void __stdcall op_set_xp_mod2() {
 
 static void __declspec(naked) op_set_xp_mod() {
 	_WRAP_OPCODE(op_set_xp_mod2, 1, 0)
+}
+
 }

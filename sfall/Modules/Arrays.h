@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <Windows.h>
 
+namespace sfall
+{
+
 #define ARRAY_MAX_STRING        (255)  // maximum length of string to be stored as array key or value
 #define ARRAY_MAX_SIZE       (100000)  // maximum number of array elements,
                                        // so total maximum memory/disk footprint of one array is: 16 + (ARRAY_MAX_STRING + 8) * ARRAY_MAX_SIZE
@@ -211,3 +214,5 @@ void __stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
 long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);
 
 sArrayVar* __stdcall GetRawArray(DWORD id);
+
+}

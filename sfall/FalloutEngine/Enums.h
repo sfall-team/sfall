@@ -17,6 +17,10 @@
  */
 
 #pragma once
+#pragma warning(disable: 4482) // nonstandard extension used: enum 'name' used in qualified name (C++11)
+
+namespace fo
+{
 
 enum Animation : long
 {
@@ -948,3 +952,5 @@ enum DialogOutFlags : long
 	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons
 	DIALOGOUT_CLEAN      = 0x20  // no buttons
 };
+
+}

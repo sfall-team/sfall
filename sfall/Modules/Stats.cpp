@@ -22,13 +22,16 @@
 
 #include "Stats.h"
 
+namespace sfall
+{
+
 static bool engineDerivedStats = true;
 static bool derivedHPwBonus = false; // recalculate the hit points with bonus stat values
 
-static DWORD statMaximumsPC[STAT_max_stat];
-static DWORD statMinimumsPC[STAT_max_stat];
-static DWORD statMaximumsNPC[STAT_max_stat];
-static DWORD statMinimumsNPC[STAT_max_stat];
+static DWORD statMaximumsPC[fo::STAT_max_stat];
+static DWORD statMinimumsPC[fo::STAT_max_stat];
+static DWORD statMaximumsNPC[fo::STAT_max_stat];
+static DWORD statMinimumsNPC[fo::STAT_max_stat];
 
 static DWORD xpTable[99];
 
@@ -39,11 +42,11 @@ DWORD extraApAcBonus = 4;
 static struct StatFormula {
 	long base;
 	long min;
-	long shift[STAT_lu + 1];
-	double multi[STAT_lu + 1];
-} statFormulas[STAT_max_derived + 1] = {0};
+	long shift[fo::STAT_lu + 1];
+	double multi[fo::STAT_lu + 1];
+} statFormulas[fo::STAT_max_derived + 1] = {0};
 
-static TGameObj* cCritter;
+static fo::GameObject* cCritter;
 
 static void __declspec(naked) stat_level_hack() {
 	static const DWORD StatLevelHack_Ret = 0x4AEF52;
@@ -57,7 +60,7 @@ static void __declspec(naked) stat_level_hack() {
 
 static int __fastcall check_stat_level(int value, DWORD stat) {
 	int valLimit;
-	if (cCritter->protoId == PID_Player) {
+	if (cCritter->protoId == fo::PID_Player) {
 		valLimit = statMinimumsPC[stat];
 		if (value < valLimit) return valLimit;
 		valLimit = statMaximumsPC[stat];
@@ -120,6 +123,7 @@ static void __declspec(naked) GetNextLevelXPHook() {
 }
 
 static void __declspec(naked) CalcApToAcBonus() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		xor  eax, eax;
@@ -144,27 +148,27 @@ end:
 
 static long __stdcall RecalcStat(int stat, int statsValue[]) {
 	double sum = 0;
-	for (int i = STAT_st; i <= STAT_lu; i++) {
+	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
 		sum += (statsValue[i] + statFormulas[stat].shift[i]) * statFormulas[stat].multi[i];
 	}
 	long calcStatValue = statFormulas[stat].base + (int)floor(sum);
 	return (calcStatValue < statFormulas[stat].min) ? statFormulas[stat].min : calcStatValue;
 }
 
-static void __stdcall StatRecalcDerived(TGameObj* critter) {
+static void __stdcall StatRecalcDerived(fo::GameObject* critter) {
 	long* proto;
-	if (fo::func::proto_ptr(critter->protoId, (sProto**)&proto) == -1) return;
+	if (fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) == -1) return;
 
 	int baseStats[7], levelStats[7];
-	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
+	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
 		levelStats[stat] = fo::func::stat_level(critter, stat);
 		if (!derivedHPwBonus) baseStats[stat] = fo::func::stat_get_base(critter, stat);
 	}
 
-	((sProto*)proto)->critter.base.health = RecalcStat(STAT_max_hit_points, (derivedHPwBonus) ? levelStats : baseStats);
+	((fo::Proto*)proto)->critter.base.health = RecalcStat(fo::Stat::STAT_max_hit_points, (derivedHPwBonus) ? levelStats : baseStats);
 
-	for (int stat = STAT_max_move_points; stat <= STAT_poison_resist; stat++) {
-		if (stat >= STAT_dmg_thresh && stat <= STAT_dmg_resist_explosion) continue;
+	for (int stat = fo::Stat::STAT_max_move_points; stat <= fo::Stat::STAT_poison_resist; stat++) {
+		if (stat >= fo::Stat::STAT_dmg_thresh && stat <= fo::Stat::STAT_dmg_resist_explosion) continue;
 		// offset from base_stat_srength
 		proto[9 + stat] = RecalcStat(stat, levelStats);
 	}
@@ -182,20 +186,20 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 	}
 }
 
-void Stats_UpdateHPStat(TGameObj* critter) {
+void Stats_UpdateHPStat(fo::GameObject* critter) {
 	if (engineDerivedStats) return;
 
-	sProto* proto;
+	fo::Proto* proto;
 	if (fo::func::proto_ptr(critter->protoId, &proto) == -1) return;
 
 	auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
 
 	double sum = 0;
-	for (int stat = STAT_st; stat <= STAT_lu; stat++) {
-		sum += (getStatFunc(critter, stat) + statFormulas[STAT_max_hit_points].shift[stat]) * statFormulas[STAT_max_hit_points].multi[stat];
+	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
+		sum += (getStatFunc(critter, stat) + statFormulas[fo::Stat::STAT_max_hit_points].shift[stat]) * statFormulas[fo::Stat::STAT_max_hit_points].multi[stat];
 	}
-	long calcStatValue = statFormulas[STAT_max_hit_points].base + (int)floor(sum);
-	if (calcStatValue < statFormulas[STAT_max_hit_points].min) calcStatValue = statFormulas[STAT_max_hit_points].min;
+	long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
+	if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
 
 	if (proto->critter.base.health != calcStatValue) {
 		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
@@ -245,9 +249,9 @@ void __fastcall critter_check_poison_fix() {
 	if (PartyControl_IsNpcControlled()) {
 		// since another critter is being controlled, we can't apply the poison effect to it
 		// instead, we add the "poison" event to dude again, which will be triggered when dude returns to the player's control
-		fo::func::queue_clear_type(poison_event, nullptr);
-		TGameObj* dude = PartyControl_RealDudeObject();
-		fo::func::queue_add(10, dude, nullptr, poison_event);
+		fo::func::queue_clear_type(fo::QueueType::poison_event, nullptr);
+		fo::GameObject* dude = PartyControl_RealDudeObject();
+		fo::func::queue_add(10, dude, nullptr, fo::QueueType::poison_event);
 	}
 }
 
@@ -290,6 +294,7 @@ static void __declspec(naked) critter_check_rads_hack() {
 
 // reduced code from 4.x HOOK_ADJUSTRADS
 void __declspec(naked) critter_adjust_rads_hack() {
+	using namespace fo;
 	using namespace Fields;
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_Player; // critter.pid
@@ -304,7 +309,7 @@ notDude:
 ////////////////////////////////////////////////////////////////////////////////
 
 static void StatsReset() {
-	for (size_t i = 0; i < STAT_max_stat; i++) {
+	for (size_t i = 0; i < fo::STAT_max_stat; i++) {
 		statMaximumsPC[i] = statMaximumsNPC[i] = fo::ptr::stat_data[i].maxValue;
 		statMinimumsPC[i] = statMinimumsNPC[i] = fo::ptr::stat_data[i].minValue;
 	}
@@ -324,6 +329,8 @@ void Stats_OnGameLoad() {
 }
 
 void Stats_Init() {
+	using namespace fo;
+
 	StatsReset();
 
 	MakeJump(0x4AEF4D, stat_level_hack);
@@ -401,13 +408,13 @@ void Stats_Init() {
 
 			char key[6], buf2[256], buf3[256];
 
-			for (int i = STAT_max_hit_points; i <= STAT_poison_resist; i++) {
-				if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
+			for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
+				if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 				_itoa(i, key, 10);
 				statFormulas[i].base = IniGetInt(key, "base", statFormulas[i].base, statFile);
 				statFormulas[i].min = IniGetInt(key, "min", statFormulas[i].min, statFile);
-				for (int j = 0; j < STAT_max_hit_points; j++) {
+				for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
 					sprintf(buf2, "shift%d", j);
 					statFormulas[i].shift[j] = IniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
 					sprintf(buf2, "multi%d", j);
@@ -421,39 +428,41 @@ void Stats_Init() {
 }
 
 long __stdcall GetStatMax(int stat, int isNPC) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		return (isNPC) ? statMaximumsNPC[stat] : statMaximumsPC[stat];
 	}
 	return 0;
 }
 
 long __stdcall GetStatMin(int stat, int isNPC) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		return (isNPC) ? statMinimumsNPC[stat] : statMinimumsPC[stat];
 	}
 	return 0;
 }
 
 void __stdcall SetPCStatMax(int stat, int value) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMaximumsPC[stat] = value;
 	}
 }
 
 void __stdcall SetPCStatMin(int stat, int value) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMinimumsPC[stat] = value;
 	}
 }
 
 void __stdcall SetNPCStatMax(int stat, int value) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMaximumsNPC[stat] = value;
 	}
 }
 
 void __stdcall SetNPCStatMin(int stat, int value) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		statMinimumsNPC[stat] = value;
 	}
+}
+
 }

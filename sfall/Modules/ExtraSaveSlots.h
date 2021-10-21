@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void ExtraSaveSlots_Init();
 void ExtraSaveSlots_Exit();
 
@@ -27,3 +30,5 @@ void ExtraSaveSlots_SetSaveSlot(long page, long slot);
 long ExtraSaveSlots_GetQuickSavePage();
 long ExtraSaveSlots_GetQuickSaveSlot();
 void ExtraSaveSlots_SetQuickSaveSlot(long page, long slot, long check);
+
+}

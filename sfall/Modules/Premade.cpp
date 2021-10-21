@@ -20,7 +20,12 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Message.h"
 
-static PremadeChar* premade;
+#include "Premade.h"
+
+namespace sfall
+{
+
+static fo::PremadeChar* premade;
 
 static const char* __fastcall GetLangPremadePath(const char* premadePath) {
 	static char premadeLangPath[56]; // premade\<language>\combat.bio
@@ -50,7 +55,7 @@ static const char* __fastcall PremadeGCD(const char* premadePath) {
 	return (path && fo::func::db_access(path)) ? path : premadePath;
 }
 
-static DbFile* __fastcall PremadeBIO(const char* premadePath, const char* mode) {
+static fo::DbFile* __fastcall PremadeBIO(const char* premadePath, const char* mode) {
 	premadePath = GetLangPremadePath(premadePath);
 	return (premadePath) ? fo::func::db_fopen(premadePath, mode) : nullptr;
 }
@@ -86,7 +91,7 @@ void Premade_Init() {
 	if (!premadePaths.empty() && !premadeFids.empty()) {
 		dlog("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());
-		premade = new PremadeChar[count];
+		premade = new fo::PremadeChar[count];
 		for (int i = 0; i < count; i++) {
 			std::string path = "premade\\" + premadePaths[i];
 			if (path.size() > 19) {
@@ -108,4 +113,6 @@ void Premade_Init() {
 	// Add language path for premade GCD/BIO files
 	HookCall(0x4A8B44, select_display_bio_hook);
 	HookCall(0x4A7D91, select_update_display_hook);
+}
+
 }

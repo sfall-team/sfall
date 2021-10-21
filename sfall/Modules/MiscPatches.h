@@ -18,5 +18,10 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void MiscPatches_Init();
 void MiscPatches_Exit();
+
+}

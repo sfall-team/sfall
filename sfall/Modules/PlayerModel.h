@@ -18,7 +18,12 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern char defaultMaleModelName[65];
 extern char defaultFemaleModelName[65];
 
 void PlayerModel_Init();
+
+}

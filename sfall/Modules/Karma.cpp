@@ -23,6 +23,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 
+#include "Karma.h"
+
+namespace sfall
+{
+
 struct KarmaFrmSetting {
 	DWORD frm;
 	int points;
@@ -34,7 +39,7 @@ static char karmaGainMsg[128];
 static char karmaLossMsg[128];
 
 static DWORD __stdcall DrawCard() {
-	int reputation = (*fo::ptr::game_global_vars)[GVAR_PLAYER_REPUTATION];
+	int reputation = (*fo::ptr::game_global_vars)[fo::GVAR_PLAYER_REPUTATION];
 	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
 		if (reputation < it->points) {
 			return it->frm;
@@ -120,4 +125,6 @@ static void ApplyKarmaFRMsPatch() {
 void Karma_Init() {
 	ApplyDisplayKarmaChangesPatch();
 	ApplyKarmaFRMsPatch();
+}
+
 }

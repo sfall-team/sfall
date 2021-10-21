@@ -2,6 +2,11 @@
 #include "..\SafeWrite.h"
 #include "ScriptExtender.h"
 
+#include "Input.h"
+
+namespace sfall
+{
+
 void Input_Init() {
 	//if (GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
@@ -9,4 +14,6 @@ void Input_Init() {
 		availableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
+}
+
 }

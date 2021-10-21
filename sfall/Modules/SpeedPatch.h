@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void SpeedPatch_Init();
 void SpeedPatch_Exit();
 
@@ -25,3 +28,5 @@ extern DWORD getTickCountOffs;
 
 // sfall implementation of the GetTickCount() function
 DWORD SpeedPatch_getTickCount();
+
+}

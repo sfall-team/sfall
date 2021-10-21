@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void DamageMod_Init();
 
-long DamageMod_GetHtHMinDamageBonus(TGameObj* source);
+long DamageMod_GetHtHMinDamageBonus(fo::GameObject* source);
+
+}

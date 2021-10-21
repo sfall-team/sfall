@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Console_Init();
 void Console_Exit();
 void Console_OnGameLoad();
+
+}

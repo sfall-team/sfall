@@ -25,6 +25,9 @@
 #include "..\main.h"
 #include "ScriptExtender.h"
 
+namespace sfall
+{
+
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
 // Prefix all function handlers with mf_ and add them to sfall_metarule_table.
 // DO NOT add arguments and/or return values to function handlers!
@@ -269,3 +272,5 @@ metaruleOpcode(7, 8)
 metaruleOpcode(8, 9)
 
 #undef metaruleOpcode
+
+}

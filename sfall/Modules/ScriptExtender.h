@@ -30,13 +30,13 @@ enum SfallDataType : unsigned long {
 };
 
 typedef struct {
-	TProgram* ptr;
-	int procLookup[Scripts::count];
+	fo::Program* ptr;
+	int procLookup[fo::Scripts::ScriptProc::count];
 	bool initialized;
-} sScriptProgram;
+} ScriptProgram;
 
 #pragma pack(push, 8)
-struct sGlobalVar {
+struct GlobalVar {
 	__int64 id;
 	__int32 val;
 	__int32 unused;
@@ -58,45 +58,45 @@ bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
 
 int GetNumGlobals();
-void GetGlobals(sGlobalVar* globals);
-void SetGlobals(sGlobalVar* globals);
+void GetGlobals(GlobalVar* globals);
+void SetGlobals(GlobalVar* globals);
 
 long __stdcall SetGlobalVar(const char* var, int val);
 
 long __stdcall GetGlobalVar(const char* var);
 
-// loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
+// loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
 // fileName - the script file name without extension
-void InitScriptProgram(sScriptProgram &prog, const char* fileName);
+void InitScriptProgram(ScriptProgram &prog, const char* fileName);
 
 // init program after load, needs to be called once
-void RunScriptProgram(sScriptProgram &prog);
+void RunScriptProgram(ScriptProgram &prog);
 
 // execute script by specific proc name
-void RunScriptProc(sScriptProgram* prog, const char* procName);
+void RunScriptProc(ScriptProgram* prog, const char* procName);
 
 // execute script proc by procId from define.h
-void RunScriptProc(sScriptProgram* prog, long procId);
+void RunScriptProc(ScriptProgram* prog, long procId);
 
-int RunScriptStartProc(sScriptProgram* prog);
+int RunScriptStartProc(ScriptProgram* prog);
 
 long GetScriptReturnValue();
 long GetResetScriptReturnValue();
 
-void AddProgramToMap(sScriptProgram &prog);
-sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
+void AddProgramToMap(ScriptProgram &prog);
+ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
-void __stdcall AddTimerEventScripts(TProgram* script, long time, long param);
-void __stdcall RemoveTimerEventScripts(TProgram* script, long param);
-void __stdcall RemoveTimerEventScripts(TProgram* script);
+void __stdcall AddTimerEventScripts(fo::Program* script, long time, long param);
+void __stdcall RemoveTimerEventScripts(fo::Program* script, long param);
+void __stdcall RemoveTimerEventScripts(fo::Program* script);
 
-int __stdcall ScriptHasLoaded(TProgram* script);
+int __stdcall ScriptHasLoaded(fo::Program* script);
 
 // loads and initializes script file (for normal game scripts)
 long __fastcall InitScript(long sid);
 
-const char* __stdcall ObjectName_GetName(TGameObj* object);
+const char* __stdcall ObjectName_GetName(fo::GameObject* object);
 void __stdcall ObjectName_SetName(long sid, const char* name);
 void ObjectNameReset();
 

@@ -20,6 +20,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "ExtraSaveSlots.h"
 
+#include "MetaruleExtender.h"
+
+namespace sfall
+{
+
 #define HorriganEncounterDays                   (0x4C06EA)
 #define HorriganEncounterCheck                  (0x4C06D8)
 
@@ -119,4 +124,6 @@ void MetaruleExtender_Init() {
 	HorriganEncounterDefaultDays = *(BYTE*)HorriganEncounterDays;
 
 	MakeCall(0x457322, op_metarule3_hack);
+}
+
 }

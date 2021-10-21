@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2019  The sfall team
+ *    Copyright (C) 2008-2017  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -24,6 +24,11 @@
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "SpeedPatch.h"
+
+#include "Worldmap.h"
+
+namespace sfall
+{
 
 static DWORD AutomapPipboyList[AUTOMAP_MAX];
 
@@ -60,12 +65,12 @@ end:
 static void TimerReset() {
 	__asm push ecx;
 
-	const DWORD time = ONE_GAME_YEAR * 13;
+	const DWORD time = fo::TicksTime::ONE_GAME_YEAR * 13;
 	*fo::ptr::fallout_game_time -= time;
 	addedYears += 13;
 
 	// fix queue time
-	Queue* queue = *fo::ptr::queue;
+	fo::Queue* queue = *fo::ptr::queue;
 	while (queue) {
 		if (queue->time > time) {
 			queue->time -= time;
@@ -522,7 +527,7 @@ void Worldmap_SetTerrainTypeName(long x, long y, const char* name) {
 // TODO: someone might need to know the name of a terrain type?
 /*const char* Worldmap_GetTerrainTypeName(long x, long y) {
 	const char* name = GetOverrideTerrainName(x, y);
-	return (name) ? name : fo::fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+	return (name) ? name : fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
 }*/
 
 // Returns the name of the terrain type in the position of the player's marker on the world map
@@ -561,4 +566,6 @@ void Worldmap_Init() {
 
 	// Add a flashing icon to the Horrigan encounter
 	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
+}
+
 }

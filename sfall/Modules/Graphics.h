@@ -22,6 +22,9 @@
 #include <d3dx9.h>
 #include <ddraw.h>
 
+namespace sfall
+{
+
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 extern IDirectDrawSurface* primarySurface;
@@ -56,11 +59,11 @@ void Gfx_ReleaseMovieTexture();
 void Gfx_RefreshGraphics();
 void __stdcall Gfx_ForceGraphicsRefresh(DWORD d);
 
-void WinRender_CreateOverlaySurface(WINinfo* win, long winType);
-void WinRender_DestroyOverlaySurface(WINinfo* win);
-void WinRender_ClearOverlay(WINinfo* win);
-void WinRender_ClearOverlay(WINinfo* win, sRectangle &rect);
-BYTE* WinRender_GetOverlaySurface(WINinfo* win);
+void WinRender_CreateOverlaySurface(fo::Window* win, long winType);
+void WinRender_DestroyOverlaySurface(fo::Window* win);
+void WinRender_ClearOverlay(fo::Window* win);
+void WinRender_ClearOverlay(fo::Window* win, Rectangle &rect);
+BYTE* WinRender_GetOverlaySurface(fo::Window* win);
 
 __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
 	long x = rect->left;
@@ -162,3 +165,5 @@ static const char* gpuEffectL8 =
 	"{"
 	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
 	"}";
+
+}

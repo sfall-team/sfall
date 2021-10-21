@@ -256,13 +256,35 @@
     <ClInclude Include="FalloutEngine\VarPointers_def.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Game\ReplacementFuncs.h">
+    <ClInclude Include="Game\combatAI.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\inventory.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\items.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\objects.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\render.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\skills.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\stats.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\tilemap.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="CRC.h" />
     <ClInclude Include="IniReader.h" />
     <ClInclude Include="InputFuncs.h" />
     <ClInclude Include="Logging.h" />
+    <ClInclude Include="ReplacementFuncs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SafeWrite.h" />
     <ClInclude Include="SimplePatch.h" />
@@ -435,7 +457,28 @@
     <ClCompile Include="FalloutEngine\VarPointers.cpp">
       <Filter>FalloutEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Game\ReplacementFuncs.cpp">
+    <ClCompile Include="Game\combatAI.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\inventory.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\items.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\objects.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\render.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\skills.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\stats.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\tilemap.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="CRC.cpp" />

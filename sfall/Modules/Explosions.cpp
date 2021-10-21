@@ -24,6 +24,13 @@
 #include "Arrays.h"
 #include "ScriptExtender.h"
 
+#include "Explosions.h"
+
+namespace sfall
+{
+
+using namespace fo::Fields;
+
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
 static bool explosionsDamageReset = false;
@@ -32,7 +39,6 @@ static bool explosionMaxTargetReset = false;
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
 static void __declspec(naked) ranged_attack_lighting_fix() {
 	static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
-	using namespace Fields;
 	__asm {
 		mov  eax, [esp + 40];             // source projectile ptr - 1st arg
 		mov  ecx, [eax + lightIntensity]; // check existing light intensity
@@ -175,11 +181,11 @@ static void __stdcall SetExplosionRadius(int arg1, int arg2) {
 static void __stdcall SetExplosionDamage(int pid, int min, int max) {
 	explosionsDamageReset = true;
 	switch (pid) {
-		case PID_DYNAMITE:
+		case fo::ProtoID::PID_DYNAMITE:
 			SafeWrite32(dynamite_min_dmg_addr, min);
 			SafeWrite32(dynamite_max_dmg_addr, max);
 			break;
-		case PID_PLASTIC_EXPLOSIVES:
+		case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
 			SafeWrite32(plastic_min_dmg_addr, min);
 			SafeWrite32(plastic_max_dmg_addr, max);
 			break;
@@ -189,11 +195,11 @@ static void __stdcall SetExplosionDamage(int pid, int min, int max) {
 static int __stdcall GetExplosionDamage(int pid) {
 	DWORD min = 0, max = 0;
 	switch (pid) {
-		case PID_DYNAMITE:
+		case fo::ProtoID::PID_DYNAMITE:
 			min = *(DWORD*)dynamite_min_dmg_addr;
 			max = *(DWORD*)dynamite_max_dmg_addr;
 			break;
-		case PID_PLASTIC_EXPLOSIVES:
+		case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
 			min = *(DWORD*)plastic_min_dmg_addr;
 			max = *(DWORD*)plastic_max_dmg_addr;
 			break;
@@ -246,10 +252,10 @@ int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 		case EXPL_GET_EXPLOSION_DAMAGE:
 			return GetExplosionDamage(arg1);
 		case EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE:
-			SetExplosionDamage(PID_DYNAMITE, arg1, arg2);
+			SetExplosionDamage(fo::ProtoID::PID_DYNAMITE, arg1, arg2);
 			return 0;
 		case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
-			SetExplosionDamage(PID_PLASTIC_EXPLOSIVES, arg1, arg2);
+			SetExplosionDamage(fo::ProtoID::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
 			return 0;
 		case EXPL_SET_EXPLOSION_MAX_TARGET:
 			if (arg1 > 0 && arg1 < 7) {
@@ -278,7 +284,7 @@ void ResetExplosionSettings() {
 	// explosion radiuses
 	SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 	// explosion dmgtype
-	SafeWriteBatch<BYTE>(DMG_explosion, explosion_dmg_check_adr);
+	SafeWriteBatch<BYTE>(fo::DamageType::DMG_explosion, explosion_dmg_check_adr);
 	// explosion max target count
 	if (explosionMaxTargetReset) {
 		SafeWrite8(0x423C93, 6);
@@ -322,4 +328,6 @@ void Explosions_Init() {
 	dynamite_minDmg = SimplePatch<DWORD>(dynamite_min_dmg_addr, "Misc", "Dynamite_DmgMin", 30, 0, dynamite_maxDmg);
 	plastic_maxDmg = SimplePatch<DWORD>(plastic_max_dmg_addr, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
 	plastic_minDmg = SimplePatch<DWORD>(plastic_min_dmg_addr, "Misc", "PlasticExplosive_DmgMin", 40, 0, plastic_maxDmg);
+}
+
 }

@@ -20,6 +20,9 @@
 
 #include <cmath>
 
+namespace sfall
+{
+
 static void __stdcall op_div2() {
 	const ScriptValue &dividend = opHandler.arg(0),
 	                  &divisor = opHandler.arg(1);
@@ -240,4 +243,6 @@ static void mf_floor2() {
 		OpcodeInvalidArgs("floor2");
 		opHandler.setReturn(0);
 	}
+}
+
 }

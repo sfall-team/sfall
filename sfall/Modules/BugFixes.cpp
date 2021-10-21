@@ -2,7 +2,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\objects.h"
 
 #include "HookScripts.h"
 #include "LoadGameHook.h"
@@ -11,6 +11,10 @@
 
 #include "BugFixes.h"
 
+namespace sfall
+{
+
+using namespace fo;
 using namespace Fields;
 using namespace ObjectFlag;
 
@@ -77,20 +81,20 @@ void BugFixes_Initialization() {
 	SafeWriteBytes(0x4CA9DC, (BYTE*)&data, 5); // mouse_get_position_
 }
 
-static std::vector<AIcap> aiCapsBackup;
+static std::vector<fo::AIcap> aiCapsBackup;
 
 void combat_ai_init_backup() {
 	long num_caps = *fo::ptr::num_caps;
 	AIcap* caps = *fo::ptr::cap;
 
 	aiCapsBackup.resize(num_caps);
-	std::memcpy(&aiCapsBackup[0], caps, num_caps * sizeof(AIcap));
+	std::memcpy(&aiCapsBackup[0], caps, num_caps * sizeof(fo::AIcap));
 }
 
 static void combat_ai_reset() {
 	long num_caps = *fo::ptr::num_caps;
 	AIcap* caps = *fo::ptr::cap;
-	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(AIcap));
+	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(fo::AIcap));
 }
 
 // fix for vanilla negate operator not working on floats
@@ -1093,10 +1097,10 @@ skip:
 
 // used when the player leaves the map and the time has been advanced in the map_exit_p_proc procedure
 // in that case, the critter_wake_up_ function will not work properly and the critter will remain in the prone position
-static void __fastcall sf_critter_wake_clear(TGameObj* critter) {
+static void __fastcall sf_critter_wake_clear(fo::GameObject* critter) {
 	if (critter->IsCritter()) {
-		critter->critter.damageFlags &= ~(DAM_KNOCKED_DOWN | DAM_KNOCKED_OUT);
-		critter->artFid = fo::func::art_id(OBJ_TYPE_CRITTER, critter->artFid & 0xFFF, 0, (critter->artFid & 0xF000) >> 12, critter->rotation + 1);
+		critter->critter.damageFlags &= ~(fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
+		critter->artFid = fo::func::art_id(fo::ObjType::OBJ_TYPE_CRITTER, critter->artFid & 0xFFF, 0, (critter->artFid & 0xF000) >> 12, critter->rotation + 1);
 		//fo::func::obj_change_fid(critter, artID, 0);
 	}
 }
@@ -1256,7 +1260,7 @@ inCombat:
 }
 
 static void __declspec(naked) action_explode_hack() {
-	using namespace Scripts;
+	using namespace fo::Scripts;
 	__asm {
 		mov  edx, destroy_p_proc
 		mov  eax, [esi + scriptId]                // pobj.sid
@@ -1504,7 +1508,7 @@ static void __declspec(naked) combat_load_hook_critter() {
 		push ecx;
 		mov  edx, OBJ_TYPE_CRITTER;
 		mov  ecx, eax;
-		call sfgame_FindObjectFromID;
+		call game::Objects::FindObjectFromID;
 		pop  ecx;
 		retn;
 	}
@@ -1515,7 +1519,7 @@ static void __declspec(naked) combat_load_hook_item() {
 		push ecx;
 		mov  edx, OBJ_TYPE_ITEM;
 		mov  ecx, eax;
-		call sfgame_FindObjectFromID;
+		call game::Objects::FindObjectFromID;
 		pop  ecx;
 		retn;
 	}
@@ -1657,8 +1661,8 @@ end:
 }
 
 //zero damage insta death criticals fix (moved from compute_damage hook)
-static void __fastcall InstantDeathFix(TComputeAttack &ctd) {
-	if (ctd.targetDamage == 0 && (ctd.targetFlags & DAM_DEAD)) {
+static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
+	if (ctd.targetDamage == 0 && (ctd.targetFlags & fo::DamageFlag::DAM_DEAD)) {
 		ctd.targetDamage++; // set 1 hp damage
 	}
 }
@@ -2151,26 +2155,26 @@ skip:
 static void __stdcall combat_attack_gcsd() {
 	if ((*fo::ptr::gcsd)->changeFlags & 2) { // only for AttackComplexFix
 		long flags = (*fo::ptr::gcsd)->flagsSource;
-		if (flags & DAM_PRESERVE_FLAGS) {
-			flags &= ~DAM_PRESERVE_FLAGS;
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
 			flags |= (*fo::ptr::main_ctd).attackerFlags;
 		} else {
-			flags |= (*fo::ptr::main_ctd).attackerFlags & (DAM_HIT | DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
+			flags |= (*fo::ptr::main_ctd).attackerFlags & (fo::DamageFlag::DAM_HIT | fo::DamageFlag::DAM_DEAD); // don't unset DAM_HIT and DAM_DEAD flags
 		}
 		(*fo::ptr::main_ctd).attackerFlags = flags;
 	}
 	if ((*fo::ptr::gcsd)->changeFlags & 1) {
 		long flags = (*fo::ptr::gcsd)->flagsTarget;
-		if (flags & DAM_PRESERVE_FLAGS) {
-			flags &= ~DAM_PRESERVE_FLAGS;
+		if (flags & fo::DamageFlag::DAM_PRESERVE_FLAGS) {
+			flags &= ~fo::DamageFlag::DAM_PRESERVE_FLAGS;
 			flags |= (*fo::ptr::main_ctd).targetFlags;
 		} else {
-			flags |= (*fo::ptr::main_ctd).targetFlags & DAM_DEAD; // don't unset DAM_DEAD flag (fix death animation)
+			flags |= (*fo::ptr::main_ctd).targetFlags & fo::DamageFlag::DAM_DEAD; // don't unset DAM_DEAD flag (fix death animation)
 		}
 		(*fo::ptr::main_ctd).targetFlags = flags;
 	}
 
-	if ((*fo::ptr::main_ctd).attackerFlags & DAM_HIT) {
+	if ((*fo::ptr::main_ctd).attackerFlags & fo::DamageFlag::DAM_HIT) {
 		long damage = (*fo::ptr::main_ctd).targetDamage;
 		(*fo::ptr::main_ctd).targetDamage += (*fo::ptr::gcsd)->bonusDamage;
 		if ((*fo::ptr::main_ctd).targetDamage < (*fo::ptr::gcsd)->minDamage) {
@@ -2186,7 +2190,7 @@ static void __stdcall combat_attack_gcsd() {
 		if (damage > (*fo::ptr::main_ctd).targetDamage && (*fo::ptr::main_ctd).target->IsCritter()) {
 			long cHP = (*fo::ptr::main_ctd).target->critter.health;
 			if (cHP > (*fo::ptr::gcsd)->maxDamage && cHP <= damage) {
-				(*fo::ptr::main_ctd).targetFlags &= ~DAM_DEAD; // unset
+				(*fo::ptr::main_ctd).targetFlags &= ~fo::DamageFlag::DAM_DEAD; // unset
 			}
 		}
 	}
@@ -2631,7 +2635,7 @@ end:
 	}
 }
 
-static bool __fastcall combat_should_end_check_fix(long dudeTeam, TGameObj* critter, TGameObj* target) {
+static bool __fastcall combat_should_end_check_fix(long dudeTeam, fo::GameObject* critter, fo::GameObject* target) {
 	// target: the current target of the critter (does not need to be checked for null)
 
 	if (critter->critter.teamNum == dudeTeam) { // critter is in the player's team
@@ -2704,8 +2708,8 @@ static void __declspec(naked) map_check_state_hook() {
 	}
 }
 
-static long __fastcall MultiHexPlacement(TGameObj* source) {
-	//if (!(source->flags & ObjectFlag::MultiHex)) return 0;
+static long __fastcall MultiHexPlacement(fo::GameObject* source) {
+	//if (!(source->flags & fo::ObjectFlag::MultiHex)) return 0;
 	long elevation = (*fo::ptr::obj_dude)->elevation;
 	long dudeTile = (*fo::ptr::obj_dude)->tile;
 	long dudeRot = ((*fo::ptr::obj_dude)->rotation + 3) % 6; // invert rotation
@@ -2867,7 +2871,7 @@ look:
 }
 
 static void FixCreateBarterButton() {
-	const long artID = OBJ_TYPE_INTRFACE << 24;
+	const long artID = fo::OBJ_TYPE_INTRFACE << 24;
 	*(BYTE**)FO_VAR_dialog_red_button_up_buf = fo::func::art_ptr_lock_data(artID | 96, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_up_key);
 	*(BYTE**)FO_VAR_dialog_red_button_down_buf = fo::func::art_ptr_lock_data(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
 }
@@ -3091,7 +3095,7 @@ static bool createObjectSidStartFix = false;
 
 static void __declspec(naked) op_create_object_sid_hack() {
 	static const char* proDbgMsg = "\nError: attempt to create object with PID of %d: %s!";
-	using Scripts::start;
+	using fo::Scripts::start;
 	__asm {
 		mov  ebx, [esp + 0x50 - 0x20 + 4]; // createObj
 		test ebx, ebx;
@@ -3129,7 +3133,16 @@ noObject:
 		jmp  end;
 	}
 }
+/*
+// Missing game initialization
+void BugFixes_OnBeforeGameInit() {
+	Initialization();
+}
 
+void BugFixes_OnAfterGameInit() {
+	combat_ai_init_backup();
+}
+*/
 void BugFixes_OnGameLoad() {
 	dudeIsAnimDeath = false;
 	combat_ai_reset();
@@ -3860,7 +3873,7 @@ void BugFixes_Init()
 
 	// Fix for trying to loot corpses with the "NoSteal" flag
 	MakeCall(0x4123F8, action_loot_container_hack, 1);
-	SafeWrite8(0x4123F2, 0x64); // protoId
+	SafeWrite8(0x4123F2, CommonObj::protoId);
 	BlockCall(0x4123F3);
 
 	// Fix the music volume when entering the dialog
@@ -3933,7 +3946,7 @@ void BugFixes_Init()
 	// when calculating the hit chance penalty of ranged attacks in determine_to_hit_func_ engine function
 	const DWORD isShotBlockedAddr[] = {0x426D46, 0x426D4E};
 	SafeWriteBatch<BYTE>(0x41, isShotBlockedAddr); // edi > ecx (replace target with object critter)
-	SafeWrite8(0x426D48, DAM_DEAD | DAM_KNOCKED_DOWN | DAM_KNOCKED_OUT);
+	SafeWrite8(0x426D48, fo::DAM_DEAD | fo::DAM_KNOCKED_DOWN | fo::DAM_KNOCKED_OUT);
 
 	// Fix broken Print() script function
 	HookCall(0x461AD4, (void*)fo::funcoffs::windowOutput_);
@@ -3954,4 +3967,6 @@ void BugFixes_Init()
 
 	// Fix to prevent the main menu music from stopping when entering the load game screen
 	BlockCall(0x480B25);
+}
+
 }

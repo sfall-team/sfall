@@ -25,6 +25,11 @@
 #include "LoadGameHook.h"
 #include "Worldmap.h"
 
+#include "Interface.h"
+
+namespace sfall
+{
+
 long Interface_ActiveInterfaceWID() {
 	return gameInterfaceWID;
 }
@@ -47,7 +52,7 @@ enum WinNameType {
 	WINTYPE_Barter    = 54
 };
 
-WINinfo* Interface_GetWindow(long winType) {
+fo::Window* Interface_GetWindow(long winType) {
 	long winID = 0;
 	switch (winType) {
 	case WINTYPE_Inventory:
@@ -78,7 +83,7 @@ WINinfo* Interface_GetWindow(long winType) {
 		if (GetLoopFlags() & AUTOMAP) winID = Interface_ActiveInterfaceWID();
 		break;
 	default:
-		return (WINinfo*)(-1); // unsupported type
+		return (fo::Window*)(-1); // unsupported type
 	}
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
@@ -562,12 +567,12 @@ static bool IFACE_BAR_MODE = false;
 static long gmouse_handle_event_hook() {
 	long countWin = *fo::ptr::num_windows;
 	long ifaceWin = *fo::ptr::interfaceWindow;
-	WINinfo* win = nullptr;
+	fo::Window* win = nullptr;
 
 	for (int n = 1; n < countWin; n++) {
 		win = fo::ptr::window[n];
-		if ((win->wID == ifaceWin || (win->flags & WinFlags::ScriptWindow && !(win->flags & WinFlags::Transparent))) // also check the script windows
-			&& !(win->flags & WinFlags::Hidden)) {
+		if ((win->wID == ifaceWin || (win->flags & fo::WinFlags::ScriptWindow && !(win->flags & fo::WinFlags::Transparent))) // also check the script windows
+			&& !(win->flags & fo::WinFlags::Hidden)) {
 			RECT *rect = &win->wRect;
 			if (fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
 		}
@@ -611,18 +616,18 @@ static void InterfaceWindowPatch() {
 	dlog("Applying flags patch for interface windows.", DL_INIT);
 
 	// Remove MoveOnTop flag for interfaces
-	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
-	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ WinFlags::MoveOnTop); // Automap
+	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ fo::WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
+	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ fo::WinFlags::MoveOnTop); // Automap
 
 	// Set OwnerFlag flag
-	SafeWrite8(0x4D5EBF, WinFlags::OwnerFlag); // win_init_ (main win)
-	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | WinFlags::OwnerFlag); // _display_win (map win)
-	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | WinFlags::OwnerFlag); // gmovie_play_ (movie win)
+	SafeWrite8(0x4D5EBF, fo::WinFlags::OwnerFlag); // win_init_ (main win)
+	SafeWrite8(0x481CEC, (*(BYTE*)0x481CEC) | fo::WinFlags::OwnerFlag); // _display_win (map win)
+	SafeWrite8(0x44E7D2, (*(BYTE*)0x44E7D2) | fo::WinFlags::OwnerFlag); // gmovie_play_ (movie win)
 
 	// Remove OwnerFlag flag
-	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ WinFlags::OwnerFlag); // createWindow_
+	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ fo::WinFlags::OwnerFlag); // createWindow_
 	// Remove OwnerFlag and Transparent flags
-	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (WinFlags::Transparent | WinFlags::OwnerFlag)); // addWindow_
+	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (fo::WinFlags::Transparent | fo::WinFlags::OwnerFlag)); // addWindow_
 
 	dlogr(" Done", DL_INIT);
 
@@ -697,4 +702,6 @@ void Interface_Init() {
 
 void Interface_Exit() {
 	if (dotStyle) delete[] dotStyle;
+}
+
 }

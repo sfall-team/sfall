@@ -20,6 +20,9 @@
 
 #include <Windows.h>
 
+namespace sfall 
+{
+
 extern bool useScrollWheel;
 extern bool middleMouseDown;
 
@@ -180,3 +183,5 @@ void MouseDeviceUnacquire(bool mode);
  *  Alternate names for keys originally not used on US keyboards.
  */
 #define DIK_CIRCUMFLEX      DIK_PREVTRACK       /* Japanese keyboard */
+
+}

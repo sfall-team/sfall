@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 struct ChanceModifier {
 	long id;
 	int maximum;
@@ -43,15 +46,17 @@ void Combat_Init();
 void Combat_OnGameLoad();
 void BodypartHitChances();
 
-long __fastcall Combat_check_item_ammo_cost(TGameObj* weapon, AttackType hitMode);
-bool __stdcall Combat_IsBurstDisabled(TGameObj* critter);
+long __fastcall Combat_check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode);
+bool __stdcall Combat_IsBurstDisabled(fo::GameObject* critter);
 
 void __stdcall SetBlockCombat(long toggle);
 
-void __stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
-void __stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode);
-void __stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);
+void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode);
+void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode);
 
-void __stdcall SetNoBurstMode(TGameObj* critter, bool on);
+void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
 void __stdcall DisableAimedShots(DWORD pid);
 void __stdcall ForceAimedShots(DWORD pid);
+
+}

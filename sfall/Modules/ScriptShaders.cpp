@@ -24,16 +24,19 @@
 
 #include "ScriptShaders.h"
 
+namespace sfall
+{
+
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
 static size_t shadersSize;
 static bool globalShadersActive = false;
 
-struct sGlobalShader {
+struct GlobalShader {
 	std::string gShaderFile;
 	bool badShader;
 
-	sGlobalShader(std::string file) {
+	GlobalShader(std::string file) {
 		gShaderFile = std::move(file);
 		badShader = false;
 	}
@@ -49,7 +52,7 @@ struct sShader {
 	sShader() : Effect(0), ehTicks(0), mode(0), mode2(0), Active(false) {}
 };
 
-static std::vector<sGlobalShader> gShaderFiles;
+static std::vector<GlobalShader> gShaderFiles;
 static std::vector<sShader> shaders;
 static std::vector<IDirect3DTexture9*> shaderTextures;
 
@@ -106,7 +109,7 @@ int __stdcall LoadShader(const char* file) {
 
 void ScriptShaders_LoadGlobalShader() {
 	if (!globalShadersActive) return;
-	for (std::vector<sGlobalShader>::iterator it = gShaderFiles.begin(); it != gShaderFiles.end(); ++it) {
+	for (std::vector<GlobalShader>::iterator it = gShaderFiles.begin(); it != gShaderFiles.end(); ++it) {
 		if (it->badShader) continue;
 		long index = LoadShader(it->gShaderFile.c_str());
 		if (index != -1) {
@@ -220,8 +223,10 @@ void ScriptShaders_Release() {
 void ScriptShaders_Init() {
 	if (GraphicsMode) {
 		for each (const std::string& shaderFile in GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
-			if (shaderFile.length() > 3) gShaderFiles.push_back(sGlobalShader(shaderFile));
+			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
 		}
 		globalShadersActive = !gShaderFiles.empty();
 	}
+}
+
 }

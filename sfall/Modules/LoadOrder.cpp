@@ -19,6 +19,11 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "LoadOrder.h"
+
+namespace sfall
+{
+
 long femaleMsgs;
 
 static const char* cutsEndGameFemale = "text\\%s\\cuts_female\\";
@@ -105,21 +110,21 @@ static void __declspec(naked) gnw_main_hack() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
-	PathNode* paths = *fo::ptr::paths; // curr.node (beginning of the chain of paths)
-	PathNode* pPaths = paths;          // prev.node
+static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
+	fo::PathNode* paths = *fo::ptr::paths; // curr.node (beginning of the chain of paths)
+	fo::PathNode* _paths = paths;          // prev.node
 
 	while (paths) {
 		if (_stricmp(paths->path, pathPatches) == 0) { // found path
-			PathNode* nextPaths = paths->next;         // pointer to the node of the next path
+			fo::PathNode* nextPaths = paths->next;     // pointer to the node of the next path
 // TODO: need to check if this condition is used correctly (everything seems to be in order here)
-			if (paths != pPaths)
-				pPaths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
+			if (paths != _paths)
+				_paths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
 			else                                       // if the current node is equal to the previous node
 				*fo::ptr::paths = nextPaths;           // set the next node at the beginning of the chain
 			return paths;                              // return the pointer of the current removed node (save the pointer)
 		}
-		pPaths = paths;      // prev.node <- curr.node
+		_paths = paths;      // prev.node <- curr.node
 		paths = paths->next; // take a pointer to the next path from the current node
 	}
 	return nullptr; // it's possible that this will create an exceptional situation for the game, although such a situation should not arise
@@ -157,12 +162,12 @@ end:
 }
 
 static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
-	PathNode* master_patches = *fo::ptr::master_db_handle;
+	fo::PathNode* master_patches = *fo::ptr::master_db_handle;
 
 	fo::func::db_init(sfallRes, 0);
 
-	PathNode* critter_patches = *fo::ptr::critter_db_handle;
-	PathNode* paths = *fo::ptr::paths;    // beginning of the chain of paths
+	fo::PathNode* critter_patches = *fo::ptr::critter_db_handle;
+	fo::PathNode* paths = *fo::ptr::paths;    // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
 	if (critter_patches) {
 		critter_patches->next = paths;    // critter_patches.next -> paths
@@ -176,7 +181,7 @@ static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
 	IniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
-	PathNode* node = *fo::ptr::paths;
+	fo::PathNode* node = *fo::ptr::paths;
 	while (node->next) {
 		if (!strcmp(node->path, masterPatch)) break;
 		node = node->next;
@@ -230,7 +235,7 @@ static void __fastcall ExistSavPrototype(long pid, char* path) {
 }
 
 static long __fastcall CheckProtoType(long pid, char* path) {
-	if (pid >> 24 != OBJ_TYPE_CRITTER) return 0;
+	if (pid >> 24 != fo::OBJ_TYPE_CRITTER) return 0;
 	return ChangePrototypeExt(path);
 }
 
@@ -376,7 +381,7 @@ artNotExist:
 	}
 }
 
-static DbFile* __fastcall LoadFont(const char* font, const char* mode) {
+static fo::DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	char file[128];
 	const char* lang;
 	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
@@ -471,4 +476,6 @@ void LoadOrder_Init() {
 		0x441D58  // FMLoadFont_
 	};
 	HookCalls(load_font_hook, loadFontAddr);
+}
+
 }

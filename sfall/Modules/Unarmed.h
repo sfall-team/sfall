@@ -18,11 +18,16 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Unarmed_Init();
 //void Unarmed_Exit();
 
-long Unarmed_GetHitAPCost(AttackType hit);
-long Unarmed_GetDamage(AttackType hit, long &minOut, long &maxOut);
-const char* Unarmed_GetName(AttackType hit);
+long Unarmed_GetHitAPCost(fo::AttackType hit);
+long Unarmed_GetDamage(fo::AttackType hit, long &minOut, long &maxOut);
+const char* Unarmed_GetName(fo::AttackType hit);
 
-AttackType Unarmed_GetStoredHitMode(HandSlot slot);
+fo::AttackType Unarmed_GetStoredHitMode(fo::HandSlot slot);
+
+}

@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern long PerkLevelMod;
 extern bool perkHeaveHoModTweak;
 
@@ -58,4 +61,6 @@ DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex);
 
 __forceinline bool DudeHasTrait(DWORD traitID) {
 	return (!IsTraitDisabled(traitID) && (fo::ptr::pc_trait[0] == traitID || fo::ptr::pc_trait[1] == traitID));
+}
+
 }

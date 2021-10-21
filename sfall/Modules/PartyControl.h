@@ -18,15 +18,20 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern bool npcAutoLevelEnabled;
 extern bool npcEngineLevelUp;
 
 void PartyControl_Init();
 void PartyControl_OnGameLoad();
 
-int __fastcall PartyControl_SwitchHandHook(TGameObj* item);
+int __fastcall PartyControl_SwitchHandHook(fo::GameObject* item);
 
 bool PartyControl_IsNpcControlled();
 
 // Returns pointer to "real" dude, which is different from "dude_obj" when controlling another critter
-TGameObj* PartyControl_RealDudeObject();
+fo::GameObject* PartyControl_RealDudeObject();
+
+}

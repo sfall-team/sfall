@@ -18,13 +18,16 @@
 
 #pragma once
 
+namespace sfall
+{
+
 extern float experienceMod;
 extern DWORD standardApAcBonus;
 extern DWORD extraApAcBonus;
 
 void Stats_Init();
 void Stats_OnGameLoad();
-void Stats_UpdateHPStat(TGameObj* critter);
+void Stats_UpdateHPStat(fo::GameObject* critter);
 
 long __stdcall GetStatMax(int stat, int isNPC);
 long __stdcall GetStatMin(int stat, int isNPC);
@@ -33,3 +36,5 @@ void __stdcall SetPCStatMax(int stat, int value);
 void __stdcall SetPCStatMin(int stat, int value);
 void __stdcall SetNPCStatMax(int stat, int value);
 void __stdcall SetNPCStatMin(int stat, int value);
+
+}

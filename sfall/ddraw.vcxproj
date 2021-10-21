@@ -74,6 +74,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include\</AdditionalIncludeDirectories>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -126,6 +128,8 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
+      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include\</AdditionalIncludeDirectories>
@@ -178,6 +182,8 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
+      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -224,7 +230,14 @@
     <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h" />
     <ClInclude Include="FalloutEngine\VarPointers.h" />
     <ClInclude Include="FalloutEngine\VarPointers_def.h" />
-    <ClInclude Include="Game\ReplacementFuncs.h" />
+    <ClInclude Include="Game\combatAI.h" />
+    <ClInclude Include="Game\inventory.h" />
+    <ClInclude Include="Game\items.h" />
+    <ClInclude Include="Game\objects.h" />
+    <ClInclude Include="Game\render.h" />
+    <ClInclude Include="Game\skills.h" />
+    <ClInclude Include="Game\stats.h" />
+    <ClInclude Include="Game\tilemap.h" />
     <ClInclude Include="IniReader.h" />
     <ClInclude Include="InputFuncs.h" />
     <ClInclude Include="Logging.h" />
@@ -296,6 +309,7 @@
     <ClInclude Include="Modules\Tiles.h" />
     <ClInclude Include="Modules\Unarmed.h" />
     <ClInclude Include="Modules\Worldmap.h" />
+    <ClInclude Include="ReplacementFuncs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SafeWrite.h" />
     <ClInclude Include="SimplePatch.h" />
@@ -311,7 +325,14 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
     <ClCompile Include="FalloutEngine\VarPointers.cpp" />
-    <ClCompile Include="Game\ReplacementFuncs.cpp" />
+    <ClCompile Include="Game\combatAI.cpp" />
+    <ClCompile Include="Game\inventory.cpp" />
+    <ClCompile Include="Game\items.cpp" />
+    <ClCompile Include="Game\objects.cpp" />
+    <ClCompile Include="Game\render.cpp" />
+    <ClCompile Include="Game\skills.cpp" />
+    <ClCompile Include="Game\stats.cpp" />
+    <ClCompile Include="Game\tilemap.cpp" />
     <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Logging.cpp" />

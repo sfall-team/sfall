@@ -28,6 +28,9 @@
 
 #include "DebugEditor.h"
 
+namespace sfall
+{
+
 enum DECode {
 	CODE_SET_GLOBAL  = 0,
 	CODE_SET_MAPVAR  = 1,
@@ -102,7 +105,7 @@ static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
-			TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
+			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
 				if (obj->IsCritter()) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
@@ -123,7 +126,7 @@ static void RunEditorInternal(SOCKET &s) {
 	InternalSend(s, &numArrays, 4);
 	InternalSend(s, &numCritters, 4);
 
-	sGlobalVar* sglobals = new sGlobalVar[numSGlobals];
+	GlobalVar* sglobals = new GlobalVar[numSGlobals];
 	GetGlobals(sglobals);
 
 	sArray* arrays = new sArray[numArrays];
@@ -131,7 +134,7 @@ static void RunEditorInternal(SOCKET &s) {
 
 	InternalSend(s, reinterpret_cast<void*>(*fo::ptr::game_global_vars), 4 * numGlobals);
 	InternalSend(s, reinterpret_cast<void*>(*fo::ptr::map_global_vars), 4 * numMapVars);
-	InternalSend(s, sglobals, sizeof(sGlobalVar) * numSGlobals);
+	InternalSend(s, sglobals, sizeof(GlobalVar) * numSGlobals);
 	InternalSend(s, arrays, numArrays * sizeof(sArray));
 	for (int i = 0; i < numCritters; i++) {
 		InternalSend(s, &vec[i][25], 4);
@@ -539,4 +542,6 @@ void DebugEditorKeyPressedHook(DWORD scanCode, bool pressed) {
 	if (debugEditorKey != 0 && scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 		RunDebugEditor();
 	}
+}
+
 }

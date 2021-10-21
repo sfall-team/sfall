@@ -17,9 +17,13 @@
  */
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\version.h"
+
+#include "MainMenu.h"
+
+namespace sfall
+{
 
 #ifdef NDEBUG
 static const char* VerString1 = "SFALL " VERSION_STRING;
@@ -127,4 +131,6 @@ void MainMenu_Init() {
 	}
 	OverrideColour2 = GetConfigInt("Misc", "MainMenuBigFontColour", 0) & 0xFF;
 	if (OverrideColour2) SafeWrite32(0x481906, (DWORD)&OverrideColour2);
+}
+
 }

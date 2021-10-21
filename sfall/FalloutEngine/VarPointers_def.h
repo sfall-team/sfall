@@ -1,9 +1,9 @@
 // List of all engine variables and their types.
-// Used to generate ptr_varname pointers.
+// Used to generate fo::ptr::ptr_name pointers.
 
 PTR_(aiInfoList,                 DWORD)
 PTR_(ambient_light,              DWORD)
-PTR_(art,                        sArt) // array of 11 sArt
+PTR_(art,                        fo::Art) // array of 11 Art
 PTR_(art_name,                   DWORD)
 PTR_(art_vault_guy_num,          DWORD)
 PTR_(art_vault_person_nums,      DWORD)
@@ -14,20 +14,20 @@ PTR_(BlueColor,                  BYTE)
 PTR_(bottom_line,                DWORD)
 PTR_(btable,                     DWORD)
 PTR_(btncnt,                     DWORD)
-PTR_(cap,                        AIcap*) // dynamic array
+PTR_(cap,                        fo::AIcap*) // dynamic array
 PTR_(carCurrentArea,             DWORD)
 PTR_(carGasAmount,               long) // from 0 to 80000
 PTR_(cmap,                       DWORD)
 PTR_(colorTable,                 DWORD)
 PTR_(combat_free_move,           DWORD)
-PTR_(combat_list,                TGameObj**) // dynamic array
-PTR_(combat_obj,                 TGameObj*)
+PTR_(combat_list,                fo::GameObject**) // dynamic array
+PTR_(combat_obj,                 fo::GameObject*)
 PTR_(combat_state,               DWORD)
-PTR_(combat_turn_obj,            TGameObj*)
+PTR_(combat_turn_obj,            fo::GameObject*)
 PTR_(combat_turn_running,        DWORD)
 PTR_(combatNumTurns,             DWORD)
-PTR_(crit_succ_eff,              CritInfo)  // array: 20 critters with 9 body parts and 6 effects each
-PTR_(critter_db_handle,          PathNode*)
+PTR_(crit_succ_eff,              fo::CritInfo)  // array: 20 critters with 9 body parts and 6 effects each
+PTR_(critter_db_handle,          fo::PathNode*)
 PTR_(critterClearObj,            DWORD)
 PTR_(crnt_func,                  DWORD)
 PTR_(cur_id,                     DWORD)
@@ -36,12 +36,12 @@ PTR_(curr_anim_counter,          DWORD)
 PTR_(curr_font_num,              DWORD)
 PTR_(curr_pc_stat,               long) // array of size == PCSTAT_max_pc_stat
 PTR_(curr_stack,                 DWORD)
-PTR_(currentProgram,             TProgram*)
+PTR_(currentProgram,             fo::Program*)
 PTR_(cursor_line,                DWORD)
 PTR_(DARK_GREY_Color,            BYTE)
 PTR_(DarkGreenColor,             BYTE)
 PTR_(DarkGreenGreyColor,         BYTE)
-PTR_(dialog_target,              TGameObj*)
+PTR_(dialog_target,              fo::GameObject*)
 PTR_(dialog_target_is_party,     DWORD)
 PTRC(dialogueBackWindow,         DWORD)
 PTR_(drugInfoList,               DWORD)
@@ -62,7 +62,7 @@ PTR_(frame_time,                 DWORD)
 PTR_(free_perk,                  char)
 PTR_(game_global_vars,           long*)  // dynamic array of size == num_game_global_vars
 PTR_(game_user_wants_to_quit,    DWORD)
-PTR_(gcsd,                       CombatGcsd*)
+PTR_(gcsd,                       fo::CombatGcsd*)
 PTR_(gdBarterMod,                DWORD)
 PTR_(gdNumOptions,               DWORD)
 PTR_(gIsSteal,                   DWORD)
@@ -78,22 +78,22 @@ PTR_(holo_flag,                  DWORD)
 PTR_(holopages,                  DWORD)
 PTR_(hot_line_count,             DWORD)
 PTR_(i_fid,                      DWORD)
-PTR_(i_lhand,                    TGameObj*)
-PTR_(i_rhand,                    TGameObj*)
+PTR_(i_lhand,                    fo::GameObject*)
+PTR_(i_rhand,                    fo::GameObject*)
 PTRC(i_wid,                      DWORD)
-PTR_(i_worn,                     TGameObj*)
+PTR_(i_worn,                     fo::GameObject*)
 PTR_(idle_func,                  void*)
 PTR_(In_WorldMap,                DWORD) // moving on WorldMap
 PTR_(info_line,                  DWORD)
 PTRC(interfaceWindow,            DWORD)
 PTR_(intfaceEnabled,             DWORD)
 PTR_(intotal,                    DWORD)
-PTR_(inven_dude,                 TGameObj*)
+PTR_(inven_dude,                 fo::GameObject*)
 PTR_(inven_pid,                  DWORD)
 PTR_(inven_scroll_dn_bid,        DWORD)
 PTR_(inven_scroll_up_bid,        DWORD)
-PTR_(inventry_message_file,      MSGList)
-PTR_(itemButtonItems,            ItemButtonItem) // array of 2 ItemButtonItem, 0 - left, 1 - right
+PTR_(inventry_message_file,      fo::MessageList)
+PTR_(itemButtonItems,            fo::ItemButtonItem) // array of 2 ItemButtonItem, 0 - left, 1 - right
 PTR_(itemCurrentItem,            long)  // 0 - left, 1 - right
 PTR_(kb_lock_flags,              DWORD)
 PTR_(language,                   char) // array of 32 char
@@ -109,13 +109,13 @@ PTR_(list_total,                 DWORD)
 PTR_(loadingGame,                DWORD)
 PTR_(LSData,                     DWORD)
 PTR_(lsgwin,                     DWORD)
-PTR_(main_ctd,                   TComputeAttack)
+PTR_(main_ctd,                   fo::ComputeAttackResult)
 PTR_(main_death_voiceover_done,  DWORD)
 PTR_(main_window,                DWORD)
 PTR_(map_elevation,              DWORD)
 PTR_(map_global_vars,            long*)  // array
 PTR_(map_number,                 DWORD)
-PTR_(master_db_handle,           PathNode*)
+PTR_(master_db_handle,           fo::PathNode*)
 PTR_(master_volume,              DWORD)
 PTR_(max,                        DWORD)
 PTR_(maxScriptNum,               long)
@@ -136,8 +136,8 @@ PTR_(num_caps,                   DWORD)
 PTR_(num_game_global_vars,       DWORD)
 PTR_(num_map_global_vars,        DWORD)
 PTR_(num_windows,                DWORD)
-PTR_(obj_dude,                   TGameObj*)
-PTR_(objectTable,                ObjectTable*) // array of 40000 pointers
+PTR_(obj_dude,                   fo::GameObject*)
+PTR_(objectTable,                fo::ObjectTable*) // array of 40000 pointers
 PTR_(objItemOutlineState,        DWORD)
 PTR_(optionRect,                 DWORD)
 PTR_(optionsButtonDown,          DWORD)
@@ -147,44 +147,44 @@ PTR_(optionsButtonUp,            DWORD)
 PTR_(optionsButtonUp1,           DWORD)
 PTR_(optionsButtonUpKey,         DWORD)
 PTRC(optnwin,                    DWORD)
-PTR_(outlined_object,            TGameObj*)
+PTR_(outlined_object,            fo::GameObject*)
 PTR_(partyMemberAIOptions,       DWORD)
 PTR_(partyMemberCount,           DWORD)
 PTR_(partyMemberLevelUpInfoList, DWORD*)
-PTR_(partyMemberList,            ObjectListData*) // dynamic array
+PTR_(partyMemberList,            fo::ObjectListData*) // dynamic array
 PTR_(partyMemberMaxCount,        DWORD)
 PTR_(partyMemberPidList,         DWORD*) // dynamic array
 PTR_(patches,                    char*)
-PTR_(paths,                      PathNode*)  // array
-PTR_(pc_crit_succ_eff,           CritInfo) // array: 9 body parts, 6 effects
+PTR_(paths,                      fo::PathNode*)  // array
+PTR_(pc_crit_succ_eff,           fo::CritInfo) // array: 9 body parts, 6 effects
 PTR_(pc_kill_counts,             DWORD)
 PTR_(pc_name,                    char) // array of 32 char
-PTR_(pc_proto,                   sProto)
+PTR_(pc_proto,                   fo::Proto)
 PTR_(pc_trait,                   long) // 2 of them
 PTR_(PeanutButter,               BYTE)
-PTR_(perk_data,                  PerkInfo) // array of size == PERK_count
-PTR_(perkLevelDataList,          PartyMemberPerkListData*) // dynamic array, limited to (PERK_Count * partyMemberMaxCount)
+PTR_(perk_data,                  fo::PerkInfo) // array of size == PERK_count
+PTR_(perkLevelDataList,          fo::PartyMemberPerkListData*) // dynamic array, limited to (PERK_Count * partyMemberMaxCount)
 PTRC(pip_win,                    DWORD)
-PTR_(pipboy_message_file,        MSGList)
+PTR_(pipboy_message_file,        fo::MessageList)
 PTR_(pipmesg,                    DWORD)
 PTR_(preload_list_index,         DWORD)
 PTR_(procTableStrs,              const char*)  // table of procId (from define.h) => procName map
-PTR_(proto_main_msg_file,        MSGList)
-PTR_(proto_msg_files,            MSGList)  // array of 6 elements
-PTR_(protoLists,                 ProtoList) // array of 11 elements
+PTR_(proto_main_msg_file,        fo::MessageList)
+PTR_(proto_msg_files,            fo::MessageList)  // array of 6 elements
+PTR_(protoLists,                 fo::ProtoList) // array of 11 elements
 PTR_(ptable,                     DWORD)
 PTR_(pud,                        DWORD)
-PTR_(queue,                      Queue*)
+PTR_(queue,                      fo::Queue*)
 PTR_(quick_done,                 DWORD)
 PTR_(read_callback,              DWORD)
-PTR_(rectList,                   RectList*)
+PTR_(rectList,                   fo::RectList*)
 PTR_(RedColor,                   BYTE)
-PTR_(retvals,                    sElevatorExit) // array: 24 elevators, 4 exits each
+PTR_(retvals,                    fo::ElevatorExit) // array: 24 elevators, 4 exits each
 PTR_(rotation,                   DWORD)
 PTR_(sampleRate,                 DWORD)
-PTR_(scr_size,                   BoundRect)
-PTR_(scriptListInfo,             ScriptListInfoItem*)  // dynamic array
-PTR_(skill_data,                 SkillInfo) // array of size == SKILL_count
+PTR_(scr_size,                   fo::BoundRect)
+PTR_(scriptListInfo,             fo::ScriptListInfoItem*)  // dynamic array
+PTR_(skill_data,                 fo::SkillInfo) // array of size == SKILL_count
 PTRC(skldxwin,                   DWORD)
 PTR_(slot_cursor,                DWORD)
 PTR_(sndfx_volume,               DWORD)
@@ -196,10 +196,10 @@ PTR_(square,                     DWORD)
 PTR_(squares,                    DWORD*)
 PTR_(stack,                      DWORD) // array of 10 DWORD
 PTR_(stack_offset,               DWORD) // array of 10 DWORD
-PTR_(stat_data,                  StatInfo) // array of size == STAT_real_max_stat
+PTR_(stat_data,                  fo::StatInfo) // array of size == STAT_real_max_stat
 PTR_(stat_flag,                  DWORD)
-PTR_(subtitleList,               SubTitleList*)
-PTR_(sWindows,                   sWindow) // array of 16 sWindow
+PTR_(subtitleList,               fo::SubTitleList*)
+PTR_(sWindows,                   fo::sWindow) // array of 16 sWindow
 PTR_(Tag_,                       DWORD)
 PTR_(tag_skill,                  DWORD)
 PTR_(target_curr_stack,          DWORD)
@@ -214,25 +214,25 @@ PTR_(text_height,                DWORD)
 PTR_(text_max,                   DWORD)
 PTR_(text_mono_width,            DWORD)
 PTR_(text_object_index,          DWORD)
-PTR_(text_object_list,           FloatText*) // array of 20 FloatText*
+PTR_(text_object_list,           fo::FloatText*) // array of 20 FloatText*
 PTR_(text_spacing,               DWORD)
 PTR_(text_to_buf,                DWORD)
 PTR_(text_width,                 DWORD)
 PTR_(tile,                       DWORD)
 PTR_(title_color,                DWORD)
 PTR_(title_font,                 DWORD)
-PTR_(trait_data,                 TraitInfo) // array of size == TRAIT_count
+PTR_(trait_data,                 fo::TraitInfo) // array of size == TRAIT_count
 PTR_(use_language,               DWORD)
 PTR_(view_page,                  DWORD)
 PTR_(wd_obj,                     DWORD)
-PTR_(window,                     WINinfo*) // array of 50 WINinfo*
+PTR_(window,                     fo::Window*) // array of 50 Window*
 PTR_(window_index,               DWORD) // array of 50 DWORD
 PTR_(WhiteColor,                 BYTE)
 PTR_(wmAreaInfoList,             DWORD)
 PTRC(wmBkWin,                    DWORD)
 PTR_(wmBkWinBuf,                 BYTE*)
 PTR_(wmLastRndTime,              DWORD)
-PTR_(wmMsgFile,                  MSGList)
+PTR_(wmMsgFile,                  fo::MessageList)
 PTR_(wmNumHorizontalTiles,       DWORD)
 PTR_(wmWorldOffsetX,             long)
 PTR_(wmWorldOffsetY,             long)

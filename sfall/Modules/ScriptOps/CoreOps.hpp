@@ -20,6 +20,9 @@
 
 #include "..\version.h"
 
+namespace sfall
+{
+
 static void __stdcall op_typeof2() {
 	opHandler.setReturn(static_cast<int>(opHandler.arg(0).type()));
 }
@@ -318,4 +321,6 @@ static void __declspec(naked) op_sfall_ver_build() {
 		mov  edx, VERSION_BUILD;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
+}
+
 }

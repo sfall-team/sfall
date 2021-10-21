@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Worldmap_Init();
 void Worldmap_OnGameLoad();
 
@@ -37,3 +40,5 @@ void Worldmap_SetCustomAreaTitle(long areaID, const char* msg);
 long Worldmap_AreaMarkStateIsNoRadius();
 
 void __stdcall SetMapMulti(float value);
+
+}

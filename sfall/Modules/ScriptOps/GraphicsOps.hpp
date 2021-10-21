@@ -22,6 +22,9 @@
 #include "Graphics.h"
 #include "ScriptShaders.h"
 
+namespace sfall
+{
+
 static void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
 		cmp  GraphicsMode, 3;
@@ -450,4 +453,6 @@ end:
 		mov  ecx, esi;
 		retn;
 	}
+}
+
 }

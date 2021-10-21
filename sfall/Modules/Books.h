@@ -18,5 +18,10 @@
 
 #pragma once
 
+namespace sfall 
+{
+
 void Books_Init();
 void Books_Exit();
+
+}

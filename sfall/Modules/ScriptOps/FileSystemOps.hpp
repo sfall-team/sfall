@@ -20,6 +20,9 @@
 
 #include "FileSystem.h"
 
+namespace sfall
+{
+
 //file system functions
 static void __stdcall op_fs_create2() {
 	const ScriptValue &pathArg = opHandler.arg(0),
@@ -275,4 +278,6 @@ static void __stdcall op_fs_resize2() {
 
 static void __declspec(naked) op_fs_resize() {
 	_WRAP_OPCODE(op_fs_resize2, 2, 0)
+}
+
 }

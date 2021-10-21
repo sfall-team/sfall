@@ -26,6 +26,9 @@
 #ifndef NO_SFALL_DEBUG
 #include <stdio.h>
 
+namespace sfall
+{
+
 void dlog(const char* msg);
 void dlog(const char* msg, int type);
 void dlogr(const char* msg, int type);
@@ -39,6 +42,8 @@ void devlog_f(...);
 #endif
 
 void LoggingInit();
+
+}
 #else
 #define dlog(a,b)
 #define dlogr(a,b)

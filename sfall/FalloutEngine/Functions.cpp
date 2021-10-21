@@ -113,7 +113,7 @@ void __declspec(naked) debug_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
 }
 
-void __stdcall interpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType) {
+void __stdcall interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType) {
 	__asm {
 		mov  esi, scriptPtr;
 		mov  edx, val;
@@ -143,7 +143,7 @@ long __stdcall tile_num(long x, long y) {
 	__asm pop  ebx;
 }
 
-TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func) {
+GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
 	__asm {
 		mov  eax, ecx;
 		mov  ebx, elevation;

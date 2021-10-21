@@ -21,6 +21,11 @@
 #include "..\main.h"
 #include "..\Utils.h"
 
+#include "Reputations.h"
+
+namespace sfall
+{
+
 #pragma pack(push, 1)
 struct CityRep {
 	DWORD globalID;
@@ -56,4 +61,6 @@ void Reputations_Init() {
 
 void Reputations_Exit() {
 	if (repList) delete[] repList;
+}
+
 }

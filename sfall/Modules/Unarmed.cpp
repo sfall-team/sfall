@@ -24,10 +24,15 @@
 
 #include "DamageMod.h"
 
+#include "Unarmed.h"
+
+namespace sfall
+{
+
 static struct {
-	AttackType primaryHit;
-	AttackType secondaryHit;
-	HandSlotMode mode;
+	fo::AttackType primaryHit;
+	fo::AttackType secondaryHit;
+	fo::HandSlotMode mode;
 } slotHitData[2];
 
 std::string hitNames[14];
@@ -69,20 +74,20 @@ private:
 	};
 
 	// sorted in descending order of the required stats in group hits
-	SortHits sortHits[Hits::count - ATKTYPE_STRONGPUNCH];
+	SortHits sortHits[Hits::count - fo::AttackType::ATKTYPE_STRONGPUNCH];
 
 	HitsData hit[Hits::count];
 
 	long skillLevel; // SKILL_UNARMED_COMBAT
-	long psStat[STAT_base_count];
+	long psStat[fo::Stat::STAT_base_count];
 
 public:
 	class Types{
 		public: enum : long {
-			punch         = ATKTYPE_PUNCH,
-			kick          = ATKTYPE_KICK,
+			punch         = fo::AttackType::ATKTYPE_PUNCH,
+			kick          = fo::AttackType::ATKTYPE_KICK,
 
-			strong_punch  = ATKTYPE_STRONGPUNCH,
+			strong_punch  = fo::AttackType::ATKTYPE_STRONGPUNCH,
 			hammer_punch,
 			haymaker,
 			jab,
@@ -102,36 +107,36 @@ public:
 		// punch primary 1
 		hit[Types::strong_punch].reqLevel = 1;
 		hit[Types::strong_punch].reqSkill = 55;
-		hit[Types::strong_punch].reqStat[STAT_ag] = 6;
+		hit[Types::strong_punch].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::strong_punch].bonusDamage = 3;
 		// primary 2
 		hit[Types::hammer_punch].reqLevel = 6;
 		hit[Types::hammer_punch].reqSkill = 75;
-		hit[Types::hammer_punch].reqStat[STAT_st] = 5;
-		hit[Types::hammer_punch].reqStat[STAT_ag] = 6;
+		hit[Types::hammer_punch].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::hammer_punch].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::hammer_punch].bonusDamage = 5;
 		hit[Types::hammer_punch].bonusCrit = 5;
 		// primary 3
 		hit[Types::haymaker].reqLevel = 9;
 		hit[Types::haymaker].reqSkill = 100;
-		hit[Types::haymaker].reqStat[STAT_st] = 5;
-		hit[Types::haymaker].reqStat[STAT_ag] = 7;
+		hit[Types::haymaker].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::haymaker].reqStat[fo::Stat::STAT_ag] = 7;
 		hit[Types::haymaker].bonusDamage = 7;
 		hit[Types::haymaker].bonusCrit = 15;
 
 		// punch secondary 1
 		hit[Types::jab].reqLevel = 5;
 		hit[Types::jab].reqSkill = 75;
-		hit[Types::jab].reqStat[STAT_st] = 5;
-		hit[Types::jab].reqStat[STAT_ag] = 7;
+		hit[Types::jab].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::jab].reqStat[fo::Stat::STAT_ag] = 7;
 		hit[Types::jab].bonusDamage = 3;
 		hit[Types::jab].bonusCrit = 10;
 		hit[Types::jab].isSecondary = true;
 		// secondary 2
 		hit[Types::palm_strike].reqLevel = 12;
 		hit[Types::palm_strike].reqSkill = 115;
-		hit[Types::palm_strike].reqStat[STAT_st] = 5;
-		hit[Types::palm_strike].reqStat[STAT_ag] = 7;
+		hit[Types::palm_strike].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::palm_strike].reqStat[fo::Stat::STAT_ag] = 7;
 		hit[Types::palm_strike].bonusDamage = 7;
 		hit[Types::palm_strike].bonusCrit = 20;
 		hit[Types::palm_strike].apCost = 6;
@@ -140,8 +145,8 @@ public:
 		// secondary 3
 		hit[Types::piercing_strike].reqLevel = 16;
 		hit[Types::piercing_strike].reqSkill = 130;
-		hit[Types::piercing_strike].reqStat[STAT_st] = 5;
-		hit[Types::piercing_strike].reqStat[STAT_ag] = 7;
+		hit[Types::piercing_strike].reqStat[fo::Stat::STAT_st] = 5;
+		hit[Types::piercing_strike].reqStat[fo::Stat::STAT_ag] = 7;
 		hit[Types::piercing_strike].bonusDamage = 10;
 		hit[Types::piercing_strike].bonusCrit = 40;
 		hit[Types::piercing_strike].apCost = 8;
@@ -151,20 +156,20 @@ public:
 		// kick primary 1
 		hit[Types::strong_kick].reqLevel = 1;
 		hit[Types::strong_kick].reqSkill = 40;
-		hit[Types::strong_kick].reqStat[STAT_ag] = 6;
+		hit[Types::strong_kick].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::strong_kick].bonusDamage = 5;
 		hit[Types::strong_kick].apCost = 4;
 		// primary 2
 		hit[Types::snap_kick].reqLevel = 6;
 		hit[Types::snap_kick].reqSkill = 60;
-		hit[Types::snap_kick].reqStat[STAT_ag] = 6;
+		hit[Types::snap_kick].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::snap_kick].bonusDamage = 7;
 		hit[Types::snap_kick].apCost = 4;
 		// primary 3
 		hit[Types::power_kick].reqLevel = 9;
 		hit[Types::power_kick].reqSkill = 80;
-		hit[Types::power_kick].reqStat[STAT_st] = 6;
-		hit[Types::power_kick].reqStat[STAT_ag] = 6;
+		hit[Types::power_kick].reqStat[fo::Stat::STAT_st] = 6;
+		hit[Types::power_kick].reqStat[fo::Stat::STAT_ag] = 6;
 		hit[Types::power_kick].bonusDamage = 9;
 		hit[Types::power_kick].bonusCrit = 5;
 		hit[Types::power_kick].apCost = 4;
@@ -172,16 +177,16 @@ public:
 		// kick secondary 1
 		hit[Types::hip_kick].reqLevel = 6;
 		hit[Types::hip_kick].reqSkill = 60;
-		hit[Types::hip_kick].reqStat[STAT_st] = 6;
-		hit[Types::hip_kick].reqStat[STAT_ag] = 7;
+		hit[Types::hip_kick].reqStat[fo::Stat::STAT_st] = 6;
+		hit[Types::hip_kick].reqStat[fo::Stat::STAT_ag] = 7;
 		hit[Types::hip_kick].bonusDamage = 7;
 		hit[Types::hip_kick].apCost = 7;
 		hit[Types::hip_kick].isSecondary = true;
 		// secondary 2
 		hit[Types::hook_kick].reqLevel = 12;
 		hit[Types::hook_kick].reqSkill = 100;
-		hit[Types::hook_kick].reqStat[STAT_st] = 6;
-		hit[Types::hook_kick].reqStat[STAT_ag] = 7;
+		hit[Types::hook_kick].reqStat[fo::Stat::STAT_st] = 6;
+		hit[Types::hook_kick].reqStat[fo::Stat::STAT_ag] = 7;
 		hit[Types::hook_kick].bonusDamage = 9;
 		hit[Types::hook_kick].bonusCrit = 10;
 		hit[Types::hook_kick].apCost = 7;
@@ -190,8 +195,8 @@ public:
 		// secondary 3
 		hit[Types::piercing_kick].reqLevel = 15;
 		hit[Types::piercing_kick].reqSkill = 125;
-		hit[Types::piercing_kick].reqStat[STAT_st] = 6;
-		hit[Types::piercing_kick].reqStat[STAT_ag] = 8;
+		hit[Types::piercing_kick].reqStat[fo::Stat::STAT_st] = 6;
+		hit[Types::piercing_kick].reqStat[fo::Stat::STAT_ag] = 8;
 		hit[Types::piercing_kick].bonusDamage = 12;
 		hit[Types::piercing_kick].bonusCrit = 50;
 		hit[Types::piercing_kick].apCost = 9;
@@ -199,15 +204,15 @@ public:
 		hit[Types::piercing_kick].isSecondary = true;
 	}
 
-	HitsData& Hit(AttackType i) { return hit[i]; }
+	HitsData& Hit(fo::AttackType i) { return hit[i]; }
 
 	// Get hit by index
 	HitsData& Hit(size_t index) { return hit[index]; }
 
-	AttackType GetSortHit(size_t index) { return (AttackType)sortHits[index].hit; }
+	fo::AttackType GetSortHit(size_t index) { return (fo::AttackType)sortHits[index].hit; }
 
 	void Sort() {
-		for (char i = ATKTYPE_STRONGPUNCH, j = 0; i < Hits::count; i++, j++) {
+		for (char i = fo::AttackType::ATKTYPE_STRONGPUNCH, j = 0; i < Hits::count; i++, j++) {
 			sortHits[j].level = (char)hit[i].reqLevel;
 			sortHits[j].hit = i;
 		}
@@ -225,7 +230,7 @@ public:
 
 	void GetDudeStats(long sLevel) {
 		skillLevel = sLevel;
-		for (size_t stat = 0; stat < STAT_base_count; stat++) {
+		for (size_t stat = 0; stat < fo::Stat::STAT_base_count; stat++) {
 			psStat[stat] = fo::func::stat_level(*fo::ptr::obj_dude, stat);
 		}
 	}
@@ -236,9 +241,9 @@ public:
 
 Hits unarmed;
 
-static bool UnarmedReqStats(AttackType hit) {
+static bool UnarmedReqStats(fo::AttackType hit) {
 	if (unarmed.SkillLevel() >= unarmed.Hit(hit).reqSkill && (long)*fo::ptr::Level_pc >= unarmed.Hit(hit).reqLevel) {
-		for (size_t stat = 0; stat < STAT_base_count; stat++) {
+		for (size_t stat = 0; stat < fo::Stat::STAT_base_count; stat++) {
 			if (unarmed.Hit(hit).reqStat[stat] <= 0) continue;
 			if (unarmed.Hit(hit).reqStat[stat] > unarmed.DudeStat(stat)) {
 				return false;
@@ -249,20 +254,20 @@ static bool UnarmedReqStats(AttackType hit) {
 	return false;
 }
 
-static AttackType GetPunchingHit(bool isPrimary) {
+static fo::AttackType GetPunchingHit(bool isPrimary) {
 	for (size_t i = 0; i < 6; i++) {
-		AttackType hit = unarmed.GetSortHit(i);
+		fo::AttackType hit = unarmed.GetSortHit(i);
 		if (unarmed.Hit(hit).isSecondary != isPrimary && UnarmedReqStats(hit)) return hit;
 	}
-	return ATKTYPE_PUNCH;
+	return fo::AttackType::ATKTYPE_PUNCH;
 }
 
 // Punch hits
 static void __fastcall check_unarmed_left_slot(long skillLevel) {
 	unarmed.GetDudeStats(skillLevel);
 
-	fo::ptr::itemButtonItems[HANDSLOT_Left].primaryAttack = GetPunchingHit(true);
-	fo::ptr::itemButtonItems[HANDSLOT_Left].secondaryAttack = GetPunchingHit(false);
+	fo::ptr::itemButtonItems[fo::HANDSLOT_Left].primaryAttack = GetPunchingHit(true);
+	fo::ptr::itemButtonItems[fo::HANDSLOT_Left].secondaryAttack = GetPunchingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_punch() {
@@ -272,18 +277,18 @@ static void __declspec(naked) intface_update_items_hack_punch() {
 	}
 }
 
-static AttackType GetKickingHit(bool isPrimary) {
+static fo::AttackType GetKickingHit(bool isPrimary) {
 	for (size_t i = 6; i < 12; i++) {
-		AttackType hit = unarmed.GetSortHit(i);
+		fo::AttackType hit = unarmed.GetSortHit(i);
 		if (unarmed.Hit(hit).isSecondary != isPrimary && UnarmedReqStats(hit)) return hit;
 	}
-	return ATKTYPE_KICK;
+	return fo::AttackType::ATKTYPE_KICK;
 }
 
 // Kick hits
 static void check_unarmed_right_slot() {
-	fo::ptr::itemButtonItems[HANDSLOT_Right].primaryAttack = GetKickingHit(true);
-	fo::ptr::itemButtonItems[HANDSLOT_Right].secondaryAttack = GetKickingHit(false);
+	fo::ptr::itemButtonItems[fo::HANDSLOT_Right].primaryAttack = GetKickingHit(true);
+	fo::ptr::itemButtonItems[fo::HANDSLOT_Right].secondaryAttack = GetKickingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_kick() {
@@ -293,7 +298,7 @@ static void __declspec(naked) intface_update_items_hack_kick() {
 	}
 }
 
-static long __fastcall get_unarmed_crit_chance(long &chanceOut, AttackType hit) {
+static long __fastcall get_unarmed_crit_chance(long &chanceOut, fo::AttackType hit) {
 	chanceOut = unarmed.Hit(hit).bonusCrit;
 	return (chanceOut > 0)
 	       ? 0x4239F4  //
@@ -310,9 +315,9 @@ static void __declspec(naked) compute_attack_hack() {
 	}
 }
 
-static long __fastcall get_unarmed_damage(TGameObj* source, AttackType hit, long &minOut, long &maxOut) {
+static long __fastcall get_unarmed_damage(fo::GameObject* source, fo::AttackType hit, long &minOut, long &maxOut) {
 	minOut = unarmed.Hit(hit).minDamage + DamageMod_GetHtHMinDamageBonus(source);
-	maxOut = unarmed.Hit(hit).maxDamage + fo::func::stat_level(source, STAT_melee_dmg);
+	maxOut = unarmed.Hit(hit).maxDamage + fo::func::stat_level(source, fo::Stat::STAT_melee_dmg);
 	return unarmed.Hit(hit).bonusDamage;
 }
 
@@ -332,73 +337,73 @@ static void __declspec(naked) item_w_damage_hack() {
 	}
 }
 
-static long __fastcall check_unarmed_penetrate(AttackType hit) {
+static long __fastcall check_unarmed_penetrate(fo::AttackType hit) {
 	return static_cast<long>(unarmed.Hit(hit).isPenetrate);
 }
 
-long Unarmed_GetHitAPCost(AttackType hit) {
+long Unarmed_GetHitAPCost(fo::AttackType hit) {
 	return unarmed.Hit(hit).apCost;
 }
 
-long Unarmed_GetDamage(AttackType hit, long &minOut, long &maxOut) {
+long Unarmed_GetDamage(fo::AttackType hit, long &minOut, long &maxOut) {
 	minOut = unarmed.Hit(hit).minDamage;
 	maxOut = unarmed.Hit(hit).maxDamage;
 	return unarmed.Hit(hit).bonusDamage;
 }
 
-const char* Unarmed_GetName(AttackType hit) {
-	if (hit > ATKTYPE_PIERCINGKICK) return nullptr;
+const char* Unarmed_GetName(fo::AttackType hit) {
+	if (hit > fo::AttackType::ATKTYPE_PIERCINGKICK) return nullptr;
 
 	switch (hit) {
-	case ATKTYPE_PUNCH:
-	case ATKTYPE_KICK:
+	case fo::AttackType::ATKTYPE_PUNCH:
+	case fo::AttackType::ATKTYPE_KICK:
 		return (!hitNames[hit - 4].empty()) ? hitNames[hit - 4].c_str() : nullptr;
 	default:
-		return (hit >= ATKTYPE_STRONGPUNCH && !hitNames[hit - 6].empty()) ? hitNames[hit - 6].c_str() : nullptr;
+		return (hit >= fo::AttackType::ATKTYPE_STRONGPUNCH && !hitNames[hit - 6].empty()) ? hitNames[hit - 6].c_str() : nullptr;
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static AttackType GetPunchingHit() {
-	unarmed.GetDudeStats(fo::func::skill_level(*fo::ptr::obj_dude, SKILL_UNARMED_COMBAT));
+static fo::AttackType GetPunchingHit() {
+	unarmed.GetDudeStats(fo::func::skill_level(*fo::ptr::obj_dude, fo::Skill::SKILL_UNARMED_COMBAT));
 	return GetPunchingHit(true);
 }
 
-static AttackType GetKickingHit() {
-	//unarmed.GetDudeStats(fo::func::skill_level(*fo::ptr::obj_dude, SKILL_UNARMED_COMBAT));
+static fo::AttackType GetKickingHit() {
+	//unarmed.GetDudeStats(fo::func::skill_level(*fo::ptr::obj_dude, fo::Skill::SKILL_UNARMED_COMBAT));
 	return GetKickingHit(true);
 }
 
 static void SlotsStoreCurrentHitMode() {
-	slotHitData[HANDSLOT_Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(HANDSLOT_Left);
-	slotHitData[HANDSLOT_Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(HANDSLOT_Left);
-	slotHitData[HANDSLOT_Left].mode = fo::util::GetHandSlotMode(HANDSLOT_Left);
+	slotHitData[fo::HANDSLOT_Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HANDSLOT_Left);
+	slotHitData[fo::HANDSLOT_Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HANDSLOT_Left);
+	slotHitData[fo::HANDSLOT_Left].mode = fo::util::GetHandSlotMode(fo::HANDSLOT_Left);
 
-	slotHitData[HANDSLOT_Right].primaryHit   = fo::util::GetHandSlotPrimaryAttack(HANDSLOT_Right);
-	slotHitData[HANDSLOT_Right].secondaryHit = fo::util::GetHandSlotSecondaryAttack(HANDSLOT_Right);
-	slotHitData[HANDSLOT_Right].mode = fo::util::GetHandSlotMode(HANDSLOT_Right);
+	slotHitData[fo::HANDSLOT_Right].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HANDSLOT_Right);
+	slotHitData[fo::HANDSLOT_Right].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HANDSLOT_Right);
+	slotHitData[fo::HANDSLOT_Right].mode = fo::util::GetHandSlotMode(fo::HANDSLOT_Right);
 }
 
-AttackType Unarmed_GetStoredHitMode(HandSlot slot) {
-	AttackType hit;
+fo::AttackType Unarmed_GetStoredHitMode(fo::HandSlot slot) {
+	fo::AttackType hit;
 
 	switch (slotHitData[slot].mode) {
-	case HANDMODE_Primary:
-	case HANDMODE_Primary_Aimed: // called shot
+	case fo::HANDMODE_Primary:
+	case fo::HANDMODE_Primary_Aimed: // called shot
 		hit = slotHitData[slot].primaryHit;
 		break;
-	case HANDMODE_Secondary:
-	case HANDMODE_Secondary_Aimed: // called shot
+	case fo::HANDMODE_Secondary:
+	case fo::HANDMODE_Secondary_Aimed: // called shot
 		hit = slotHitData[slot].secondaryHit;
 		break;
 	}
 
-	if (hit < ATKTYPE_STRONGPUNCH && hit != ATKTYPE_PUNCH && hit != ATKTYPE_KICK) {
-		hit = (slot == HANDSLOT_Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
+	if (hit < fo::AttackType::ATKTYPE_STRONGPUNCH && hit != fo::AttackType::ATKTYPE_PUNCH && hit != fo::AttackType::ATKTYPE_KICK) {
+		hit = (slot == fo::HANDSLOT_Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
 
 		slotHitData[slot].primaryHit = hit;
-		slotHitData[slot].mode = HANDMODE_Primary;
+		slotHitData[slot].mode = fo::HANDMODE_Primary;
 	}
 	return hit;
 }
@@ -439,7 +444,7 @@ void Unarmed_Init() {
 			char stat[6] = "Stat0";
 			char sHit[4] = "0";
 			for (size_t i = 0; i < Hits::count; _itoa(++i, sHit, 10)) {
-				if (i < ATKTYPE_STRONGPUNCH && i != ATKTYPE_PUNCH && i != ATKTYPE_KICK) continue;
+				if (i < fo::ATKTYPE_STRONGPUNCH && i != fo::ATKTYPE_PUNCH && i != fo::ATKTYPE_KICK) continue;
 
 				auto& hit = unarmed.Hit(i);
 
@@ -470,7 +475,7 @@ void Unarmed_Init() {
 				val = IniGetInt(sHit, "Secondary", -1, file);
 				if (val >= 0) hit.isSecondary = (val != 0);
 
-				for (size_t s = 0; s < STAT_base_count; _itoa(++s, &stat[4], 10)) {
+				for (size_t s = 0; s < fo::Stat::STAT_base_count; _itoa(++s, &stat[4], 10)) {
 					val = IniGetInt(sHit, stat, -1, file);
 					if (val >= 0) hit.reqStat[s] = val;
 				}
@@ -524,3 +529,5 @@ void Unarmed_Init() {
 
 //void Unarmed_Exit() {
 //}
+
+}

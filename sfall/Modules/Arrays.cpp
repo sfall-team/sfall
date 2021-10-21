@@ -6,6 +6,9 @@
 
 #include "Arrays.h"
 
+namespace sfall
+{
+
 /*
 	GLOBAL variable for arrays
 */
@@ -798,4 +801,6 @@ long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
 sArrayVar* __stdcall GetRawArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	return (it != arrays.end()) ? &it->second : nullptr;
+}
+
 }

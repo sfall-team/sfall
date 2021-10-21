@@ -20,6 +20,9 @@
 
 #include "Perks.h"
 
+namespace sfall
+{
+
 static void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		movzx edx, byte ptr ds:[FO_VAR_free_perk];
@@ -57,7 +60,7 @@ static void __stdcall op_get_perk_available2() {
 
 	if (perkIdArg.isInt()) {
 		int result = 0, perkId = perkIdArg.rawValue();
-		if (perkId >= 0 && perkId < PERK_count) {
+		if (perkId >= 0 && perkId < fo::PERK_count) {
 			result = fo::func::perk_can_add(*fo::ptr::obj_dude, perkId);
 		}
 		opHandler.setReturn(result);
@@ -398,13 +401,13 @@ end:
 }
 
 static void mf_add_trait() {
-	if ((*fo::ptr::obj_dude)->protoId != PID_Player) {
+	if ((*fo::ptr::obj_dude)->protoId != fo::PID_Player) {
 		opHandler.printOpcodeError("add_trait() - traits can be added only to the player.");
 		opHandler.setReturn(-1);
 		return;
 	}
 	long traitId = opHandler.arg(0).rawValue();
-	if (traitId >= TRAIT_fast_metabolism && traitId <= TRAIT_gifted) {
+	if (traitId >= fo::TRAIT_fast_metabolism && traitId <= fo::TRAIT_gifted) {
 		if (fo::ptr::pc_trait[0] == -1) {
 			fo::ptr::pc_trait[0] = traitId;
 		} else if (fo::ptr::pc_trait[0] != traitId && fo::ptr::pc_trait[1] == -1) {
@@ -415,4 +418,6 @@ static void mf_add_trait() {
 	} else {
 		opHandler.printOpcodeError("add_trait() - invalid trait ID.");
 	}
+}
+
 }

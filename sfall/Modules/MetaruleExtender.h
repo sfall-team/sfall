@@ -18,5 +18,10 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void MetaruleExtender_Init();
 void MetaruleExtenderReset();
+
+}

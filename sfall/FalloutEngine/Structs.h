@@ -23,12 +23,20 @@
 
 #include "Enums.h"
 
-struct sRectangle {
+namespace sfall
+{
+
+struct Rectangle {
 	long x, y, width, height;
 
 	long right() { return x + (width - 1); }
 	long bottom() { return y + (height - 1); }
 };
+
+}
+
+namespace fo
+{
 
 /******************************************************************************/
 /* FALLOUT2.EXE structs should be placed here  */
@@ -36,11 +44,11 @@ struct sRectangle {
 
 #pragma pack(push, 1)
 
-struct TGameObj;
-struct TProgram;
-struct TScript;
+struct GameObject;
+struct Program;
+struct ScriptInstance;
 
-struct sArt {
+struct Art {
 	long flags;
 	char path[16];
 	char* names;
@@ -56,8 +64,8 @@ struct AnimationSet {
 
 	struct Animation {
 		long animType;
-		TGameObj* source;
-		TGameObj* target;
+		GameObject* source;
+		GameObject* target;
 		long data1;
 		long elevation;
 		long animCode;
@@ -74,7 +82,7 @@ static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition."
 
 struct AnimationSad {
 	long flags;
-	TGameObj* source;
+	GameObject* source;
 	long fid;
 	long animCode;
 	long ticks;
@@ -116,7 +124,7 @@ struct RectList {
 };
 
 // Game objects (items, critters, etc.), including those stored in inventories.
-struct TGameObj {
+struct GameObject {
 	long id;
 	long tile;
 	long x;
@@ -131,13 +139,13 @@ struct TGameObj {
 	long invenSize;
 	long invenMax;
 	struct InvenItem {
-		TGameObj *object;
+		GameObject *object;
 		long count;
 	} *invenTable;
 
 	union {
 		struct {
-			MiscFlags miscFlags; // aka updated_flags
+			fo::MiscFlags miscFlags; // aka updated_flags
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
@@ -156,28 +164,28 @@ struct TGameObj {
 			long aiPacket;
 			long teamNum;
 			// current target or the attacker who caused damage in the previous combat turn
-			TGameObj* whoHitMe;
+			GameObject* whoHitMe;
 			long health;
 			long rads;
 			long poison;
 
 			inline bool IsDead() {
-				return ((damageFlags & DAM_DEAD) != 0);
+				return ((damageFlags & DamageFlag::DAM_DEAD) != 0);
 			}
 			inline bool IsNotDead() {
-				return ((damageFlags & DAM_DEAD) == 0);
+				return ((damageFlags & DamageFlag::DAM_DEAD) == 0);
 			}
 			inline bool IsActive() {
-				return ((damageFlags & (DAM_KNOCKED_OUT | DAM_LOSE_TURN)) == 0);
+				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
 			}
 			inline bool IsNotActive() {
-				return ((damageFlags & (DAM_KNOCKED_OUT | DAM_LOSE_TURN)) != 0);
+				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
 			inline bool IsActiveNotDead() {
-				return ((damageFlags & (DAM_DEAD | DAM_KNOCKED_OUT | DAM_LOSE_TURN)) == 0);
+				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
 			}
 			inline bool IsNotActiveOrDead() {
-				return ((damageFlags & (DAM_DEAD | DAM_KNOCKED_OUT | DAM_LOSE_TURN)) != 0);
+				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
 			inline bool IsFleeing() {
 				return ((combatState & CBTFLG_InFlee) != 0);
@@ -193,9 +201,9 @@ struct TGameObj {
 		} critter;
 
 		struct {
-			MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
-			MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
-			long unused[9];         // offset 0x40 (not saved)
+			fo::MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
+			fo::MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
+			long unused[9];             // offset 0x40 (not saved)
 		} scenery;
 	};
 
@@ -205,7 +213,7 @@ struct TGameObj {
 	long lightIntensity;
 	DWORD outline;
 	long scriptId; // SID 0x0Y00XXXX: Y - type: 0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter; XXXX - ID number (1-32000); 0xFFFFFFFF no attached script
-	TGameObj* owner; // not saved
+	GameObject* owner; // not saved
 	long scriptIndex;
 
 	inline char Type() {
@@ -216,38 +224,38 @@ struct TGameObj {
 	}
 
 	inline bool IsCritter() {
-		return (Type() == OBJ_TYPE_CRITTER);
+		return (Type() == fo::ObjType::OBJ_TYPE_CRITTER);
 	}
 	inline bool IsNotCritter() {
-		return (Type() != OBJ_TYPE_CRITTER);
+		return (Type() != fo::ObjType::OBJ_TYPE_CRITTER);
 	}
 	inline bool IsItem() {
-		return (Type() == OBJ_TYPE_ITEM);
+		return (Type() == fo::ObjType::OBJ_TYPE_ITEM);
 	}
 	inline bool IsNotItem() {
-		return (Type() != OBJ_TYPE_ITEM);
+		return (Type() != fo::ObjType::OBJ_TYPE_ITEM);
 	}
 };
 
 // Results of compute_attack_() function.
-struct TComputeAttack {
-	TGameObj* attacker;
+struct ComputeAttackResult {
+	GameObject* attacker;
 	long hitMode;
-	TGameObj* weapon;
+	GameObject* weapon;
 	long field_C;
 	long attackerDamage;
 	long attackerFlags;
 	long numRounds;
 	long message;
-	TGameObj* target;
+	GameObject* target;
 	long targetTile;
 	long bodyPart;
 	long targetDamage;
 	long targetFlags;
 	long knockbackValue;
-	TGameObj* mainTarget;
+	GameObject* mainTarget;
 	long numExtras;
-	TGameObj* extraTarget[6];
+	GameObject* extraTarget[6];
 	long extraBodyPart[6];
 	long extraDamage[6];
 	long extraFlags[6];
@@ -255,8 +263,8 @@ struct TComputeAttack {
 };
 
 struct CombatGcsd {
-	TGameObj* source;
-	TGameObj* target;
+	GameObject* source;
+	GameObject* target;
 	long freeAP;
 	long bonusToHit;
 	long bonusDamage;
@@ -268,23 +276,23 @@ struct CombatGcsd {
 };
 
 // Script instance attached to an object or tile (spatial script).
-struct TScript {
+struct ScriptInstance {
 	long id; // same as sid
 	long next;
 	long elevationAndTile; // first 3 bits - elevation, rest - tile number
 	long spatialRadius;
 	long flags;
 	long scriptIdx; // script index in scripts.lst?
-	TProgram *program;
+	Program *program;
 	long ownerObjectId;
 	long localVarOffset; // data
 	long numLocalVars;
 	long returnValue;
 	long action;
 	long fixedParam;
-	TGameObj *selfObject;
-	TGameObj *sourceObject;
-	TGameObj *targetObject;
+	GameObject *selfObject;
+	GameObject *sourceObject;
+	GameObject *targetObject;
 	long actionNum;
 	long scriptOverrides;
 	long field_48; // unknown
@@ -295,7 +303,7 @@ struct TScript {
 };
 
 // Script run-time data
-struct TProgram {
+struct Program {
 	const char* fileName; // path and file name of the script "scripts\*.int"
 	long *codeStackPtr;
 	long field_8;
@@ -323,16 +331,16 @@ struct TProgram {
 	long shouldRemove;
 };
 
-static_assert(sizeof(TProgram) == 140, "Incorrect TProgram definition.");
+static_assert(sizeof(Program) == 140, "Incorrect Program definition.");
 
 struct ProgramList {
-	TProgram* progPtr;
+	Program* progPtr;
 	ProgramList* next;
 	ProgramList* prev;
 };
 
 struct ItemButtonItem {
-	TGameObj* item;
+	GameObject* item;
 	union {
 		long flags;
 		struct {
@@ -378,13 +386,13 @@ struct DbFile {
 	void* handle;
 };
 
-struct sElevatorExit {
+struct ElevatorExit {
 	long id;
 	long elevation;
 	long tile;
 };
 
-struct sElevatorFrms {
+struct ElevatorFrms {
 	DWORD main;
 	DWORD buttons;
 };
@@ -460,7 +468,7 @@ struct FrmFile {            // sizeof 2954
 static_assert(sizeof(FrmFile) == 2954, "Incorrect FrmFile definition.");
 
 // structures for loading unlisted frms
-struct UNLSTDfrm {
+struct UnlistedFrm {
 	DWORD version;
 	WORD FPS;
 	WORD actionFrame;
@@ -492,7 +500,7 @@ struct UNLSTDfrm {
 		}
 	} *frames;
 
-	UNLSTDfrm() {
+	UnlistedFrm() {
 		version = 0;
 		FPS = 0;
 		actionFrame = 0;
@@ -505,20 +513,20 @@ struct UNLSTDfrm {
 		frameAreaSize = 0;
 		frames = nullptr;
 	}
-	~UNLSTDfrm() {
+	~UnlistedFrm() {
 		if (frames != nullptr)
 			delete[] frames;
 	}
 };
 
 //for holding a message
-struct MSGNode {
+struct MessageNode {
 	long number;
 	long flags;
 	char* audio;
 	char* message;
 
-	MSGNode() {
+	MessageNode() {
 		number = 0;
 		flags = 0;
 		audio = nullptr;
@@ -527,15 +535,15 @@ struct MSGNode {
 };
 
 //for holding msg array
-typedef struct MSGList {
+typedef struct MessageList {
 	long numMsgs;
-	MSGNode *nodes;
+	MessageNode *nodes;
 
-	MSGList() {
+	MessageList() {
 		nodes = nullptr;
 		numMsgs = 0;
 	}
-} MSGList;
+} MessageList;
 
 struct CritInfo {
 	union {
@@ -599,7 +607,7 @@ struct PathNode {
 };
 
 struct ObjectTable {
-	TGameObj* object;
+	GameObject*  object;
 	ObjectTable* nextObject;
 };
 
@@ -623,7 +631,7 @@ struct ProtoList {
 };
 
 // In-memory PROTO structure, not the same as PRO file format.
-struct sProto {
+struct Proto {
 	struct Tile {
 		long scriptId;
 		Material material;
@@ -832,7 +840,7 @@ struct sProto {
 	};
 };
 
-static_assert(offsetof(sProto, item) + offsetof(sProto::Item, material) == 0x6C, "Incorrect sProto definition.");
+static_assert(offsetof(Proto, item) + offsetof(Proto::Item, material) == 0x6C, "Incorrect Proto definition.");
 
 struct ScriptListInfoItem {
 	char fileName[16];
@@ -850,7 +858,7 @@ struct WinRegion { // sizeof = 0x88 (0x8C in the engine code)
 	long  field_38;
 	long  field_3C;
 	long  field_40;
-	TProgram* procScript;
+	Program* procScript;
 	long  proc_48;
 	long  proc_4C;
 	long  procEnter;
@@ -870,7 +878,7 @@ struct WinRegion { // sizeof = 0x88 (0x8C in the engine code)
 };
 
 //for holding window info
-struct WINinfo {
+struct Window {
 	long wID; // window position in the _window_index array
 	long flags;
 	union {
@@ -970,7 +978,7 @@ struct AIcap {
 struct Queue {
 	DWORD time;
 	long  type;
-	TGameObj* object;
+	GameObject* object;
 	DWORD* data;
 	Queue* next;
 };
@@ -982,18 +990,18 @@ struct QueueRadiationData {
 
 struct QueueDrugData {
 	DWORD pid;
-	Stat stat0;
-	Stat stat1;
-	Stat stat2;
+	fo::Stat stat0;
+	fo::Stat stat1;
+	fo::Stat stat2;
 	long amount0;
 	long amount1;
 	long amount2;
 };
 
 struct QueueAddictData {
-	long  wait;   // 1 - waiting for applying the addiction effects (perk is not active yet)
+	long  wait;      // 1 - waiting for applying the addiction effects (perk is not active yet)
 	DWORD drugPid;
-	Perk  perkId; // effect of addiction
+	fo::Perk perkId; // effect of addiction
 };
 
 struct DrugInfoList {
@@ -1101,14 +1109,14 @@ struct AudioFile {
 
 // aka PartyMemberRecoveryList
 struct ObjectListData {
-	TGameObj* object;
-	TScript* script;
+	GameObject* object;
+	ScriptInstance* script;
 	long* localVarData;
 	ObjectListData* nextSaveList; // _itemSaveListHead
 };
 
 struct PartyMemberPerkListData {
-	long perkData[PERK_count];
+	long perkData[fo::Perk::PERK_count];
 };
 
 struct QuestData {
@@ -1120,3 +1128,5 @@ struct QuestData {
 };
 
 #pragma pack(pop)
+
+}

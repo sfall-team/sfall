@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 static char regAnimCombatCheck = 1;
 
 void __stdcall RegAnimCombatCheck(DWORD newValue) {
@@ -55,7 +58,7 @@ static void __declspec(naked) op_reg_anim_combat_check() {
 }
 
 static void __stdcall op_reg_anim_destroy2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
 		if (!checkCombatMode()) {
 			fo::func::register_object_must_erase(obj);
@@ -70,7 +73,7 @@ static void __declspec(naked) op_reg_anim_destroy() {
 }
 
 static void __stdcall op_reg_anim_animate_and_hide2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &animIdArg = opHandler.arg(1),
 	                  &delayArg = opHandler.arg(2);
 
@@ -91,7 +94,7 @@ static void __declspec(naked) op_reg_anim_animate_and_hide() {
 }
 
 static void __stdcall op_reg_anim_light2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &radiusArg = opHandler.arg(1),
 	                  &delayArg = opHandler.arg(2);
 
@@ -117,7 +120,7 @@ static void __declspec(naked) op_reg_anim_light() {
 }
 
 static void __stdcall op_reg_anim_change_fid2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &fidArg = opHandler.arg(1),
 	                  &delayArg = opHandler.arg(2);
 
@@ -138,7 +141,7 @@ static void __declspec(naked) op_reg_anim_change_fid() {
 }
 
 static void __stdcall op_reg_anim_take_out2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &holdFrameArg = opHandler.arg(1),
 	                  &nothingArg = opHandler.arg(2);
 
@@ -159,7 +162,7 @@ static void __declspec(naked) op_reg_anim_take_out() {
 }
 
 static void __stdcall op_reg_anim_turn_towards2() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	const ScriptValue &tileArg = opHandler.arg(1),
 	                  &nothingArg = opHandler.arg(2);
 
@@ -244,4 +247,6 @@ fail:
 
 static void mf_art_cache_flush() {
 	__asm call fo::funcoffs::art_flush_;
+}
+
 }

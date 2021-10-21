@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Sound_Init();
 void Sound_Exit();
 void WipeSounds();
@@ -29,3 +32,5 @@ void __stdcall StopSfallSound(DWORD id);
 long Sound_CalculateVolumeDB(long masterVolume, long passVolume);
 
 void Sound_SoundLostFocus(long isActive);
+
+}

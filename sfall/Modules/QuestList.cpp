@@ -19,6 +19,11 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "QuestList.h"
+
+namespace sfall
+{
+
 enum ExitCode : int {
 	EXITCODE_Break = -1,
 	EXITCODE_Normal,
@@ -348,7 +353,7 @@ static void RegisterButtonSound() {
 }
 
 static void LoadArtButton(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) { // indexArt - index from intrface.lst
-	long artId = fo::func::art_id(OBJ_TYPE_INTRFACE, indexArt, 0, 0, 0);
+	long artId = fo::func::art_id(fo::ArtType::OBJ_TYPE_INTRFACE, indexArt, 0, 0, 0);
 	*(BYTE**)buttonMem = fo::func::art_ptr_lock_data(artId, 0, 0, (DWORD*)buttonKey); // first texture memory address
 }
 
@@ -435,11 +440,11 @@ skip:
 	}
 }
 
-static void __fastcall QuestListSort(QuestData* questList, size_t numElements) {
+static void __fastcall QuestListSort(fo::QuestData* questList, size_t numElements) {
 	if (numElements <= 1) return;
 
-	QuestData* tmpList = new QuestData[numElements];
-	std::memcpy(tmpList, questList, numElements * sizeof(QuestData));
+	fo::QuestData* tmpList = new fo::QuestData[numElements];
+	std::memcpy(tmpList, questList, numElements * sizeof(fo::QuestData));
 
 	long locStart = 1500; // message number from which the locations starting
 	size_t leftStart = 0;
@@ -519,7 +524,7 @@ void __stdcall QuestList_AddQuestFailureValue(long globalVarNum, long failureThr
 	}
 }
 
-static BYTE __fastcall CheckQuestFailureState(QuestData* quest, BYTE completeColor) {
+static BYTE __fastcall CheckQuestFailureState(fo::QuestData* quest, BYTE completeColor) {
 	if (questFailures.empty()) return completeColor;
 
 	const BYTE failureColor = 137; // dark red
@@ -570,4 +575,6 @@ void QuestList_Init() {
 
 	// Replace the qsort_ unstable sorting function with a simple stable sorting algorithm
 	HookCall(0x49A7C2, quest_init_hook);
+}
+
 }

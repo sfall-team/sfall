@@ -18,7 +18,12 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void QuestList_Init();
 void ResetQuests();
 
 void __stdcall QuestList_AddQuestFailureValue(long globalVarNum, long failureThreshold);
+
+}

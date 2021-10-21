@@ -34,36 +34,36 @@ namespace util
 {
 
 // rect_free_ function for inline implementation
-__forceinline void rect_free(RectList* rect) {
-	RectList* front = *fo::ptr::rectList;
+__forceinline void rect_free(fo::RectList* rect) {
+	fo::RectList* front = *fo::ptr::rectList;
 	*fo::ptr::rectList = rect;
 	rect->nextRect = front;
 }
 
 // returns message string from given file or "Error" when not found
-const char* GetMessageStr(const MSGList* fileAddr, long messageId);
+const char* GetMessageStr(const fo::MessageList* file, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* MessageSearch(const MSGList* fileAddr, long messageId);
+const char* MessageSearch(const fo::MessageList* file, long messageId);
 
-MSGNode* GetMsgNode(MSGList* msgList, int msgNum);
+fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgNum);
 
-char* GetMsg(MSGList* msgList, int msgNum, int msgType);
+char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType);
 
-Queue* QueueFind(TGameObj* object, long type);
+fo::Queue* QueueFind(fo::GameObject* object, long type);
 
 // returns weapon animation code
-long AnimCodeByWeapon(TGameObj* weapon);
+long AnimCodeByWeapon(fo::GameObject* weapon);
 
 bool CheckProtoID(DWORD pid);
 
 // returns False if the prototype does not exist, or pointer to prototype by PID in the outProto argument
-bool GetProto(long pid, sProto** outProto);
+bool GetProto(long pid, fo::Proto** outProto);
 
 // returns pointer to prototype by PID
 // Note: use this function if you need to get the proto immediately without extra checks
-__forceinline sProto* GetProto(long pid) {
-	sProto* proto;
+__forceinline fo::Proto* GetProto(long pid) {
+	fo::Proto* proto;
 	fo::func::proto_ptr(pid, &proto);
 	return proto;
 }
@@ -74,26 +74,26 @@ void SkillGetTags(long* result, long num);
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(long* tags, long num);
 
-long GetItemType(TGameObj* item);
+long GetItemType(fo::GameObject* item);
 
-__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, InvenType slot);
+__declspec(noinline) fo::GameObject* __stdcall GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot);
 
-AttackType GetHandSlotPrimaryAttack(HandSlot slot);
-AttackType GetHandSlotSecondaryAttack(HandSlot slot);
-HandSlotMode GetHandSlotMode(HandSlot slot);
+fo::AttackType GetHandSlotPrimaryAttack(fo::HandSlot slot);
+fo::AttackType GetHandSlotSecondaryAttack(fo::HandSlot slot);
+fo::HandSlotMode GetHandSlotMode(fo::HandSlot slot);
 
 long& GetActiveItemMode();
 
-TGameObj* GetActiveItem();
+fo::GameObject* GetActiveItem();
 
 // Hand: 0 - left, 1 - right
-AttackType GetSlotHitMode(HandSlot hand);
+fo::AttackType GetSlotHitMode(fo::HandSlot hand);
 
 long GetCurrentAttackMode();
 
-AttackSubType GetWeaponType(DWORD weaponFlag);
+fo::AttackSubType GetWeaponType(DWORD weaponFlag);
 
-long ObjIsOpenable(TGameObj* object);
+long ObjIsOpenable(fo::GameObject* object);
 
 bool HeroIsFemale();
 
@@ -104,15 +104,15 @@ long __fastcall IsRadInfluence();
 long GetScriptLocalVars(long sid);
 
 // Returns window by x/y coordinate (hidden windows are ignored)
-WINinfo* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans = false);
+fo::Window* __fastcall GetTopWindowAtPos(long xPos, long yPos, bool bypassTrans = false);
 
 // Returns an array of objects within the specified radius from the source tile
-void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1);
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1);
 
 // Checks the blocking tiles and returns the first blocking object
-TGameObj* CheckAroundBlockingTiles(TGameObj* source, long dstTile);
+fo::GameObject* CheckAroundBlockingTiles(fo::GameObject* source, long dstTile);
 
-TGameObj* __fastcall MultiHexMoveIsBlocking(TGameObj* source, long dstTile);
+fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long dstTile);
 
 long wmGetCurrentTerrainType();
 
@@ -130,7 +130,7 @@ bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);
 
-void PrintFloatText(TGameObj* object, const char* text, long colorText, long colorOutline = 207, long font = 101);
+void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline = 207, long font = 101);
 
 // Print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
@@ -157,12 +157,12 @@ DWORD __stdcall GetCharGapWidth();
 DWORD __stdcall GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
-void RedrawObject(TGameObj* obj);
+void RedrawObject(fo::GameObject* obj);
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner = false);
 
-UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
+fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 
 }
 }

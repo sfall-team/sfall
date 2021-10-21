@@ -30,6 +30,9 @@
 #include "ScriptExtender.h"
 #include "Sound.h"
 
+namespace sfall
+{
+
 /*
  *	Misc operators
  */
@@ -684,4 +687,6 @@ static void mf_set_scr_name() {
 	if (sid == -1) return;
 
 	ObjectName_SetName(sid, opHandler.arg(0).strValue());
+}
+
 }

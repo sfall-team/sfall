@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Criticals_Init();
 void CritLoad();
 
@@ -26,3 +29,5 @@ extern const DWORD CritTableCount;
 void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
 DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
 void __stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+
+}

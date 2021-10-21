@@ -20,17 +20,22 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 
+namespace sfall
+{
+
 void AI_Init();
 void AICombatClear();
 
 // Returns the friendly critter or any blocking object in the line of fire
-TGameObj* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(TGameObj* object, long targetTile, long team);
+fo::GameObject* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
 
 // Returns the friendly critter in the line of fire
-TGameObj* __stdcall AIHelpers_CheckFriendlyFire(TGameObj* target, TGameObj* attacker);
+fo::GameObject* __stdcall AIHelpers_CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
 
-bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, long distance);
-bool __stdcall AIHelpers_AttackInRange(TGameObj* source, TGameObj* weapon, TGameObj* target);
+bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
+bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target);
 
-TGameObj* __stdcall AIGetLastAttacker(TGameObj* target);
-TGameObj* __stdcall AIGetLastTarget(TGameObj* source);
+fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
+fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
+
+}

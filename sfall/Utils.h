@@ -4,6 +4,9 @@
 #include <sstream>
 #include <vector>
 
+namespace sfall 
+{
+
 // splits a string by given delimiter
 // taken from: http://stackoverflow.com/a/236803/4331475
 template <typename T>
@@ -37,3 +40,5 @@ const char* strfind(const char* source, const char* word);
 void StrNormalizePath(char* path);
 
 //long GetRandom(long min, long max);
+
+}

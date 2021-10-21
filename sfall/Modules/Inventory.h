@@ -18,9 +18,14 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void Inventory_Init();
 void InventoryReset();
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed);
 
 long __stdcall GetInvenApCost();
 void __fastcall SetInvenApCost(int cost);
+
+}

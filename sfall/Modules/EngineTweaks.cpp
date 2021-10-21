@@ -19,18 +19,25 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\items.h"
+
+#include "EngineTweaks.h"
+
+namespace sfall
+{
 
 void EngineTweaks_Init() {
 	std::string tweaksFile = GetConfigString("Misc", "TweaksFile", "", MAX_PATH);
 	if (!tweaksFile.empty()) {
 		const char* cTweaksFile = tweaksFile.insert(0, ".\\").c_str();
 
-		sfgame_SetHealingPID(0, IniGetInt("Items", "STIMPAK", PID_STIMPAK, cTweaksFile));
-		sfgame_SetHealingPID(1, IniGetInt("Items", "SUPER_STIMPAK", PID_SUPER_STIMPAK, cTweaksFile));
-		sfgame_SetHealingPID(2, IniGetInt("Items", "HEALING_POWDER", PID_HEALING_POWDER, cTweaksFile));
+		game::Items::SetHealingPID(0, IniGetInt("Items", "STIMPAK", fo::PID_STIMPAK, cTweaksFile));
+		game::Items::SetHealingPID(1, IniGetInt("Items", "SUPER_STIMPAK", fo::PID_SUPER_STIMPAK, cTweaksFile));
+		game::Items::SetHealingPID(2, IniGetInt("Items", "HEALING_POWDER", fo::PID_HEALING_POWDER, cTweaksFile));
 	}
 }
 
 //void EngineTweaks_Exit() {
 //}
+
+}

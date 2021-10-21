@@ -19,6 +19,11 @@
 #include "..\main.h"
 #include "..\Logging.h"
 
+#include "BurstMods.h"
+
+namespace sfall
+{
+
 static long compute_spray_center_mult;
 static long compute_spray_center_div;
 static long compute_spray_target_mult;
@@ -83,4 +88,6 @@ void BurstMods_Init() {
 		MakeJump(0x4234F1, compute_spray_rounds_distribution);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

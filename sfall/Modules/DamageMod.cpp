@@ -22,7 +22,12 @@
 #include "..\Logging.h"
 #include "Unarmed.h"
 
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\stats.h"
+
+#include "DamageMod.h"
+
+namespace sfall
+{
 
 static int formula;
 
@@ -425,14 +430,14 @@ static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 static bool bonusHtHDamageFix = true;
 static bool displayBonusDamage = false;
 
-static long __fastcall GetHtHDamage(TGameObj* source, long &meleeDmg, long handOffset) {
+static long __fastcall GetHtHDamage(fo::GameObject* source, long &meleeDmg, long handOffset) {
 	long min, max;
 
-	AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? HANDSLOT_Left : HANDSLOT_Right);
+	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HANDSLOT_Left : fo::HANDSLOT_Right);
 	long bonus = Unarmed_GetDamage(hit, min, max);
 	meleeDmg += max + bonus;
 
-	long perkBonus = sfgame_perk_level(source, PERK_bonus_hth_damage) << 1;
+	long perkBonus = game::Stats::perk_level(source, fo::Perk::PERK_bonus_hth_damage) << 1;
 	if (!displayBonusDamage) meleeDmg -= perkBonus;
 	if (displayBonusDamage && bonusHtHDamageFix) min += perkBonus;
 
@@ -440,7 +445,7 @@ static long __fastcall GetHtHDamage(TGameObj* source, long &meleeDmg, long handO
 }
 
 static const char* __fastcall GetHtHName(long handOffset) {
-	AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? HANDSLOT_Left : HANDSLOT_Right);
+	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HANDSLOT_Left : fo::HANDSLOT_Right);
 	return Unarmed_GetName(hit);
 }
 
@@ -465,9 +470,9 @@ customName:
 	}
 }
 
-long DamageMod_GetHtHMinDamageBonus(TGameObj* source) {
+long DamageMod_GetHtHMinDamageBonus(fo::GameObject* source) {
 	return (bonusHtHDamageFix)
-	       ? sfgame_perk_level(source, PERK_bonus_hth_damage) << 1 // Multiply by 2
+	       ? game::Stats::perk_level(source, fo::Perk::PERK_bonus_hth_damage) << 1 // Multiply by 2
 	       : 0;
 }
 
@@ -522,4 +527,6 @@ void DamageMod_Init() {
 	SafeWrite8(0x472552, 0x98 + 4);
 	SafeWrite8(0x47255F, 0x0C + 4);
 	SafeWrite8(0x472568, 0x10 + 4);
+}
+
 }

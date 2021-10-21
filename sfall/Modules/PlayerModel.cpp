@@ -21,6 +21,11 @@
 #include "..\Logging.h"
 #include "..\SafeWrite.h"
 
+#include "PlayerModel.h"
+
+namespace sfall
+{
+
 static char startMaleModelName[33]   = {};
 char defaultMaleModelName[65]        = {};
 static char startFemaleModelName[33] = {};
@@ -48,4 +53,6 @@ void PlayerModel_Init() {
 	dlog("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x418B6D, (DWORD)&defaultFemaleModelName);
 	dlogr(" Done", DL_INIT);
+}
+
 }

@@ -25,6 +25,11 @@
 #include "Combat.h"
 #include "Objects.h"
 
+#include "Skills.h"
+
+namespace sfall
+{
+
 #define SKILL_MIN_LIMIT    (-128)
 
 struct SkillModifier {
@@ -49,7 +54,7 @@ struct SkillModifier {
 static std::vector<SkillModifier> skillMaxMods;
 static SkillModifier baseSkillMax;
 
-static BYTE skillCosts[512 * SKILL_count];
+static BYTE skillCosts[512 * fo::SKILL_count];
 static DWORD basedOnPoints;
 static double* multipliers = nullptr;
 
@@ -71,7 +76,7 @@ energy:
 	}
 }
 
-static int __fastcall PickpocketMod(int base, TGameObj* critter) {
+static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
 		if (critter->id == pickpocketMods[i].id) {
 			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
@@ -93,7 +98,7 @@ static void __declspec(naked) skill_check_stealing_hack() {
 	}
 }
 
-static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
+static int __fastcall CheckSkillMax(fo::GameObject* critter, int base) {
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
 		if (critter->id == skillMaxMods[i].id) {
 			return min(base, skillMaxMods[i].maximum);
@@ -102,7 +107,7 @@ static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
 	return min(base, baseSkillMax.maximum);
 }
 
-static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
+static int __fastcall SkillNegative(fo::GameObject* critter, int base, int skill) {
 	int rawPoints = skillNegPoints;
 	if (rawPoints) {
 		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
@@ -178,7 +183,7 @@ static void __declspec(naked) skill_inc_point_hack() {
 	}
 }
 
-static int __fastcall GetStatBonus(TGameObj* critter, const SkillInfo* info, int skill, int points) {
+static int __fastcall GetStatBonus(fo::GameObject* critter, const fo::SkillInfo* info, int skill, int points) {
 	double result = 0;
 	for (int i = 0; i < 7; i++) {
 		result += fo::func::stat_level(critter, i) * multipliers[skill * 7 + i];
@@ -258,7 +263,7 @@ skip:
 	}
 }
 
-void __stdcall SetSkillMax(TGameObj* critter, int maximum) {
+void __stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
 	if ((DWORD)critter == -1) {
 		baseSkillMax.maximum = maximum;
 		return;
@@ -278,7 +283,7 @@ void __stdcall SetSkillMax(TGameObj* critter, int maximum) {
 	skillMaxMods.push_back(sm);
 }
 
-void __stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
+void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
 	if ((DWORD)critter == -1) {
 		basePickpocket.maximum = maximum;
 		basePickpocket.mod = mod;
@@ -336,14 +341,14 @@ void Skills_Init() {
 	char buf[512], key[16];
 	std::string skillsFile = GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
 	if (!skillsFile.empty()) {
-		SkillInfo *skills = fo::ptr::skill_data;
+		fo::SkillInfo *skills = fo::ptr::skill_data;
 
 		const char* file = skillsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(file) == INVALID_FILE_ATTRIBUTES) return;
 
-		multipliers = new double[7 * SKILL_count]();
+		multipliers = new double[7 * fo::SKILL_count]();
 
-		for (int i = 0; i < SKILL_count; i++) {
+		for (int i = 0; i < fo::SKILL_count; i++) {
 			sprintf(key, "Skill%d", i);
 			if (IniGetString("Skills", key, "", buf, 64, file)) {
 				char* tok = strtok(buf, "|");
@@ -422,4 +427,6 @@ void Skills_Init() {
 
 void Skills_Exit() {
 	delete[] multipliers;
+}
+
 }

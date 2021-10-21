@@ -24,9 +24,12 @@
 
 #include "Message.h"
 
-#define CASTMSG(adr) reinterpret_cast<MSGList*>(adr)
+namespace sfall
+{
 
-const MSGList* gameMsgFiles[] = {
+#define CASTMSG(adr) reinterpret_cast<fo::MessageList*>(adr)
+
+const fo::MessageList* gameMsgFiles[] = {
 	CASTMSG(MSG_FILE_COMBAT),
 	CASTMSG(MSG_FILE_AI),
 	CASTMSG(MSG_FILE_SCRNAME),
@@ -65,7 +68,7 @@ static long heroIsFemale = -1;
 
 // Searches the special character in the text and removes the text depending on the player's gender
 // example: <MaleText^FemaleText>
-static long __fastcall ReplaceGenderWord(MSGNode* msgData, DWORD* msgFile) {
+static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFile) {
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
 	if (heroIsFemale < 0) heroIsFemale = fo::util::HeroIsFemale();
 
@@ -112,7 +115,7 @@ static long __fastcall ReplaceGenderWord(MSGNode* msgData, DWORD* msgFile) {
 	// set flag
 	unsigned long outValue;
 	fo::func::message_find(msgFile, msgData->number, &outValue);
-	((MSGNode*)(msgFile[1] + (outValue * 16)))->flags |= MSG_GENDER_CHECK_FLG;
+	((fo::MessageNode*)(msgFile[1] + (outValue * 16)))->flags |= MSG_GENDER_CHECK_FLG;
 
 	return 1;
 }
@@ -168,9 +171,9 @@ void ReadExtraGameMsgFiles() {
 				number = std::stoi(it->substr(n + 1), nullptr, 0);
 			}
 			path += ".msg";
-			MSGList* list = new MSGList();
+			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, path.c_str()) == 1) {
-				gExtraGameMsgLists.insert(std::pair<const int, MSGList*>(0x2000 + number, list));
+				gExtraGameMsgLists.insert(std::pair<const int, fo::MessageList*>(0x2000 + number, list));
 			} else {
 				delete list;
 			}
@@ -188,7 +191,7 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 
 	std::string path("game\\");
 	path += msgName;
-	MSGList* list = new MSGList();
+	fo::MessageList* list = new fo::MessageList();
 	if (!fo::func::message_load(list, path.c_str())) {
 		// change current language folder
 		//path.insert(0, "..\\english\\");
@@ -198,7 +201,7 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 		//}
 	}
 	if (msgNumber == 0) msgNumber = msgNumCounter++;
-	gExtraGameMsgLists.insert(std::pair<const int, MSGList*>(msgNumber, list));
+	gExtraGameMsgLists.insert(std::pair<const int, fo::MessageList*>(msgNumber, list));
 	return msgNumber;
 }
 
@@ -245,3 +248,5 @@ void Message_Init() {
 //void Message_Exit() {
 	//gExtraGameMsgLists.clear();
 //}
+
+}

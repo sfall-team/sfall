@@ -22,6 +22,9 @@
 
 #include "Console.h"
 
+namespace sfall
+{
+
 static std::ofstream consoleFile;
 static long printCount = 0;
 
@@ -69,4 +72,6 @@ void Console_Init() {
 
 void Console_Exit() {
 	if (consoleFile.is_open()) consoleFile.close();
+}
+
 }

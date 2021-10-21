@@ -1,5 +1,8 @@
 #pragma once
 
+namespace sfall
+{
+
 enum CodeType : BYTE {
 	CODETYPE_Ret       = 0xC3,
 	CODETYPE_Call      = 0xE8,
@@ -81,4 +84,6 @@ void MakeJumps(void* func, ForwardIteratorType begin, ForwardIteratorType end) {
 template <size_t N>
 void MakeJumps(void* func, const DWORD (&addrs)[N]) {
 	MakeJumps(func, std::begin(addrs), std::end(addrs));
+}
+
 }

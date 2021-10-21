@@ -18,4 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 void MainMenu_Init();
+
+}

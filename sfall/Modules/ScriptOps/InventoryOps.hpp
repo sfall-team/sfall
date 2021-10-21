@@ -19,7 +19,10 @@
 #pragma once
 
 #include "Inventory.h"
-#include "..\Game\ReplacementFuncs.h"
+#include "..\Game\inventory.h"
+
+namespace sfall
+{
 
 static void __declspec(naked) op_active_hand() {
 	__asm {
@@ -55,7 +58,7 @@ static void __stdcall op_obj_is_carrying_obj2() {
 	const ScriptValue &invenObjArg = opHandler.arg(0),
 	                  &itemObjArg = opHandler.arg(1);
 
-	TGameObj *invenObj = invenObjArg.asObject(),
+	fo::GameObject *invenObj = invenObjArg.asObject(),
 	         *itemObj = itemObjArg.asObject();
 
 	int count = 0;
@@ -77,7 +80,7 @@ static void __declspec(naked) op_obj_is_carrying_obj() {
 }
 
 static void mf_critter_inven_obj2() {
-	TGameObj* critter = opHandler.arg(0).asObject();
+	fo::GameObject* critter = opHandler.arg(0).asObject();
 	const ScriptValue &slotArg = opHandler.arg(1);
 
 	if (critter && slotArg.isInt()) {
@@ -105,7 +108,7 @@ static void mf_critter_inven_obj2() {
 }
 
 static void mf_item_weight() {
-	TGameObj* item = opHandler.arg(0).asObject();
+	fo::GameObject* item = opHandler.arg(0).asObject();
 	if (item) {
 		opHandler.setReturn(fo::func::item_weight(item));
 	} else {
@@ -115,9 +118,9 @@ static void mf_item_weight() {
 }
 
 static void mf_get_current_inven_size() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	fo::GameObject* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(sfgame_item_total_size(obj));
+		opHandler.setReturn(game::Inventory::item_total_size(obj));
 	} else {
 		OpcodeInvalidArgs("get_current_inven_size");
 		opHandler.setReturn(0);
@@ -125,13 +128,13 @@ static void mf_get_current_inven_size() {
 }
 
 static void mf_unwield_slot() {
-	InvenType slot = static_cast<InvenType>(opHandler.arg(1).rawValue());
-	if (slot < INVEN_TYPE_WORN || slot > INVEN_TYPE_LEFT_HAND) {
+	fo::InvenType slot = static_cast<fo::InvenType>(opHandler.arg(1).rawValue());
+	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
 		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
 		opHandler.setReturn(-1);
 		return;
 	}
-	TGameObj* critter = opHandler.arg(0).object();
+	fo::GameObject* critter = opHandler.arg(0).object();
 	if (critter->IsNotCritter()) {
 		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
 		opHandler.setReturn(-1);
@@ -140,17 +143,17 @@ static void mf_unwield_slot() {
 	bool isDude = (critter == *fo::ptr::obj_dude);
 	bool update = false;
 	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
-		if (fo::func::inven_unwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
+		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::HANDSLOT_Left : fo::HANDSLOT_Right) == 0) {
 			update = isDude;
 		}
 	} else {
 		// force unwield for opened inventory
 		bool forceAdd = false;
-		TGameObj* item = nullptr;
-		if (slot != INVEN_TYPE_WORN) {
+		fo::GameObject* item = nullptr;
+		if (slot != fo::INVEN_TYPE_WORN) {
 			if (!isDude) return;
 			long* itemRef = nullptr;
-			if (slot == INVEN_TYPE_LEFT_HAND) {
+			if (slot == fo::INVEN_TYPE_LEFT_HAND) {
 				item = *fo::ptr::i_lhand;
 				itemRef = (long*)FO_VAR_i_lhand;
 			} else {
@@ -158,7 +161,7 @@ static void mf_unwield_slot() {
 				itemRef = (long*)FO_VAR_i_rhand;
 			}
 			if (item) {
-				if (!sfgame_correctFidForRemovedItem(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? ObjectFlag::Left_Hand : ObjectFlag::Right_Hand)) {
+				if (!game::Inventory::correctFidForRemovedItem(critter, item, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::ObjectFlag::Left_Hand : fo::ObjectFlag::Right_Hand)) {
 					return;
 				}
 				*itemRef = 0;
@@ -174,7 +177,7 @@ static void mf_unwield_slot() {
 				forceAdd = true;
 			}
 			if (item) {
-				if (!sfgame_correctFidForRemovedItem(critter, item, ObjectFlag::Worn)) {
+				if (!game::Inventory::correctFidForRemovedItem(critter, item, fo::ObjectFlag::Worn)) {
 					if (forceAdd) *fo::ptr::i_worn = item;
 					return;
 				}
@@ -184,4 +187,6 @@ static void mf_unwield_slot() {
 		if (forceAdd) fo::func::item_add_force(critter, item, 1);
 	}
 	if (update) fo::func::intface_update_items(0, -1, -1);
+}
+
 }

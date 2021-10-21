@@ -33,7 +33,8 @@
 
 #include "InputFuncs.h"
 
-typedef HRESULT (__stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
+namespace sfall
+{
 
 IDirectInputDeviceA* MouseDevice;
 
@@ -426,17 +427,7 @@ public:
 	}
 };
 
-HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
-	HMODULE dinput = LoadLibraryA("dinput.dll");
-	if (!dinput || dinput == INVALID_HANDLE_VALUE) return -1;
-	DInputCreateProc proc = (DInputCreateProc)GetProcAddress(dinput, "DirectInputCreateA");
-	if (!proc) return -1;
-
-	HRESULT hr = proc(a, b, c, d);
-	if (FAILED(hr)) return hr;
-
-	*c = (IDirectInputA*)new FakeDirectInput(*c);
-
+inline void InitInputFeatures() {
 	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
 	wheelMod = GetConfigInt("Input", "ScrollMod", 0);
@@ -453,6 +444,25 @@ HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c,
 	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
 
 	keyboardLayout = GetKeyboardLayout(0);
+}
+
+}
+
+typedef HRESULT (__stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
+
+// This should be in global namespace
+HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
+	HMODULE dinput = LoadLibraryA("dinput.dll");
+	if (!dinput || dinput == INVALID_HANDLE_VALUE) return -1;
+	DInputCreateProc proc = (DInputCreateProc)GetProcAddress(dinput, "DirectInputCreateA");
+	if (!proc) return -1;
+
+	HRESULT hr = proc(a, b, c, d);
+	if (FAILED(hr)) return hr;
+
+	*c = (IDirectInputA*)new sfall::FakeDirectInput(*c);
+
+	sfall::InitInputFeatures();
 
 	return hr;
 }

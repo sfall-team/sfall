@@ -18,6 +18,11 @@
 
 #pragma once
 
+#include "..\FalloutEngine\Structs.h"
+
+namespace sfall
+{
+
 enum HookType
 {
 	HOOK_TOHIT            = 0,
@@ -59,7 +64,7 @@ void __stdcall SetHSArg(DWORD id, DWORD value);
 void __stdcall SetHSReturn(DWORD d);
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void __stdcall RegisterHook(TProgram* script, int id, int procNum, bool specReg);
+void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
 
 void __stdcall RunHookScriptsAtProc(DWORD procId);
 
@@ -76,7 +81,7 @@ void __stdcall GameModeChangeHook(DWORD exit);
 void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 void __stdcall MouseClickHook(DWORD button, bool pressed);
 
-int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds);
+int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
@@ -85,7 +90,9 @@ void __stdcall SetRemoveObjectType(long rmType);
 
 void __stdcall AdjustFidHook(DWORD vanillaFid);
 
-long __stdcall CalcApCostHook_Invoke(TGameObj* source, long hitMode, long isCalled, long cost, TGameObj* weapon);
-long __stdcall UseObjOnHook_Invoke(TGameObj* source, TGameObj* item, TGameObj* target);
-long __stdcall PerceptionRangeHook_Invoke(TGameObj* watcher, TGameObj* target, long type, long result);
-long __stdcall InvenWieldHook_Invoke(TGameObj* critter, TGameObj* item, long flags);
+long __stdcall CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
+long __stdcall UseObjOnHook_Invoke(fo::GameObject* source, fo::GameObject* item, fo::GameObject* target);
+long __stdcall PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result);
+long __stdcall InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long flags);
+
+}

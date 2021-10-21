@@ -20,6 +20,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
+#include "Animations.h"
+
+namespace sfall
+{
+
 enum AnimFlags {
 	e_Priority  = 0x001,
 	e_InCombat  = 0x002,
@@ -36,13 +41,13 @@ static int animationLimit = 32;
 static int lockLimit;
 
 //pointers to new animation struct arrays
-static std::vector<AnimationSet> sf_anim_set;
-static std::vector<AnimationSad> sf_sad;
+static std::vector<fo::AnimationSet> sf_anim_set;
+static std::vector<fo::AnimationSad> sf_sad;
 
 static std::vector<int8_t> lockAnimSet;
 
-static AnimationSet* animSet = (AnimationSet*)FO_VAR_anim_set;
-static AnimationSad* animSad = (AnimationSad*)FO_VAR_sad;
+static fo::AnimationSet* animSet = (fo::AnimationSet*)FO_VAR_anim_set;
+static fo::AnimationSad* animSad = (fo::AnimationSad*)FO_VAR_sad;
 
 static const DWORD animPCMove[] = {
 	0x416E11, 0x416F64, 0x417143, 0x41725C, 0x4179CC,
@@ -178,7 +183,7 @@ static long appendSlot = -2;
 */
 static long __fastcall CopyRegistry(long checkSlot) {
 	long currRegSlot = *fo::ptr::curr_anim_set;
-	if (!(animSet[currRegSlot].flags & e_Reserved)) return 0;
+	if (!(animSet[currRegSlot].flags & AnimFlags::e_Reserved)) return 0;
 
 	if (currRegSlot == checkSlot) { // this will be bug!
 		#ifndef NDEBUG
@@ -198,7 +203,7 @@ static long __fastcall CopyRegistry(long checkSlot) {
 		if (animType < 4) return 0; // don't add to "move to" types of animations
 	}
 
-	long totalRegAnims = (animSet[checkSlot].flags & e_Append) ? currRegAnims : lastAnim + currRegAnims;
+	long totalRegAnims = (animSet[checkSlot].flags & AnimFlags::e_Append) ? currRegAnims : lastAnim + currRegAnims;
 	if (totalRegAnims >= 55) return 0; // not enough slots for animations
 
 	// copy the animations of the registered slot to the slot with the existing animations
@@ -206,7 +211,7 @@ static long __fastcall CopyRegistry(long checkSlot) {
 		devlog_f("\n copy slot: animSet[%d].anim[%d] >> animSet[%d].anim[%d]", 0, currRegSlot, i, checkSlot, lastAnim);
 		animSet[checkSlot].animations[lastAnim++] = animSet[currRegSlot].animations[i];
 	}
-	animSet[checkSlot].flags |= animSet[currRegSlot].flags | e_Append | e_Suspend; // set flags
+	animSet[checkSlot].flags |= animSet[currRegSlot].flags | AnimFlags::e_Append | AnimFlags::e_Suspend; // set flags
 	animSet[currRegSlot].flags = 0;
 
 	*fo::ptr::curr_anim_counter = totalRegAnims; // set the current number of registered animations in the slot
@@ -243,9 +248,9 @@ skip:
 // sets the counter to the index of the anim_# slot with the added animation
 static long __fastcall anim_cleanup_sub(long currAnims) {
 	//long currAnims = *fo::ptr::curr_anim_counter;
-	AnimationSet* set = &animSet[*fo::ptr::curr_anim_set];
-	if (set->flags & e_Append) {
-		set->flags ^= e_Append;
+	fo::AnimationSet* set = &animSet[*fo::ptr::curr_anim_set];
+	if (set->flags & AnimFlags::e_Append) {
+		set->flags ^= AnimFlags::e_Append;
 		if (set->currentAnim == -1000 || set->totalAnimCount >= currAnims) return -1;
 		return set->totalAnimCount;
 	}
@@ -269,7 +274,7 @@ static void __fastcall CheckAppendReg(long, long totalAnims) {
 	if (slot != *fo::ptr::curr_anim_set) return;
 
 	//long totalAnims = *fo::ptr::curr_anim_counter;
-	AnimationSet* set = &animSet[slot];
+	fo::AnimationSet* set = &animSet[slot];
 
 	#ifndef NDEBUG
 	devlog_f("\nregister_end: anim_set: %d, total_anim: %d", 0, slot, totalAnims);
@@ -402,7 +407,7 @@ static void __declspec(naked) anim_stop_hack() {
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef NDEBUG
 static void __fastcall ClearDataAnimations(long slot) {
-	std::memset(animSet[slot].animations, 0, sizeof(AnimationSet) - 16);
+	std::memset(animSet[slot].animations, 0, sizeof(fo::AnimationSet) - 16);
 }
 #endif
 
@@ -448,6 +453,7 @@ end:
 }
 
 static void __declspec(naked) action_climb_ladder_hook() {
+	using namespace fo;
 	__asm {
 		cmp  word ptr [edi + 0x40], 0xFFFF; // DestTile
 		je   skip;
@@ -485,7 +491,7 @@ skip:
 static void __declspec(naked) obj_use_container_hook() {
 	static const DWORD obj_use_container_Ret = 0x49D012;
 	static const DWORD obj_use_container_ExitRet = 0x49D069;
-	using namespace Fields;
+	using namespace fo::Fields;
 	__asm {
 		cmp  dword ptr [ecx + currFrame], 1; // grave type containers in the open state?
 		je   skip;                           // skip animation
@@ -520,11 +526,11 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<BYTE>(aniMax, animMaxCheck);
 
 	//Max animations checks - animation struct size * max num of animations (old 2656*32=84992)
-	SafeWriteBatch<DWORD>(sizeof(AnimationSet) * aniMax, animMaxSizeCheck);
+	SafeWriteBatch<DWORD>(sizeof(fo::AnimationSet) * aniMax, animMaxSizeCheck);
 
 	//divert old animation structure list pointers to newly allocated memory
 
-	AnimationSet* animSetAddr = &sf_anim_set[0];
+	fo::AnimationSet* animSetAddr = &sf_anim_set[0];
 
 	//old addr 0x54C1B4
 	SafeWrite32(0x413A9E, (DWORD)&animSetAddr->currentAnim); // anim_reset_
@@ -610,3 +616,5 @@ void Animations_Init() {
 
 //void Animations_Exit() {
 //}
+
+}

@@ -20,6 +20,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\version.h"
 
+#include "KillCounter.h"
+
+namespace sfall
+{
+
 static bool usingExtraKillTypes = false;
 
 static DWORD __declspec(naked) ReadKillCounter() {
@@ -73,4 +78,6 @@ void KillCounter_Init() {
 		KillCounterInit();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

@@ -20,6 +20,9 @@
 
 #include "Message.h"
 
+namespace sfall
+{
+
 // compares strings case-insensitive with specifics for Fallout
 static bool __stdcall FalloutStringCompare(const char* str1, const char* str2, long codePage) {
 	while (true) {
@@ -536,4 +539,6 @@ static void mf_string_to_case() {
 	std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), opHandler.arg(1).rawValue() ? ::toupper : ::tolower);
 
 	opHandler.setReturn(strToCase.c_str());
+}
+
 }
