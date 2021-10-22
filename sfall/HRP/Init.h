@@ -13,7 +13,8 @@ class HRP {
 public:
 	static void init();
 
-	static bool BuiltIn;
+	// Built-in high resolution patch
+	static bool Enabled;
 
 	static long ScreenWidth();
 	static long ScreenHeight();

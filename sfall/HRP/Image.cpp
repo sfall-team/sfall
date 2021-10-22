@@ -14,15 +14,15 @@ namespace sfall
 long Image::GetAspectSize(long &dW, long &dH, float sW, float sH) {
 	float width = (float)dW;
 	float height = (float)dH;
-	float aspectD = (float)dW / dH; // 1280/720 = 1.77
-	float aspectS = sW / sH;        // 640/480 = 1.33
+	float aspectD = (float)dW / dH;
+	float aspectS = sW / sH;
 
-	if (aspectD < aspectS) { // d960/720 = 1.3333 | s1280/720 = 1.77
-		dH = (long)((sH / sW) * dW); // set new height  720 / 1280 = 0,5625 * 960 = 540 (960x540)
-		return (long)(((height - dH) / 2) * dW); // shift y-offset center: 720 - 540 / 2 =
+	if (aspectD < aspectS) {
+		dH = (long)((sH / sW) * dW);             // set new height
+		return (long)(((height - dH) / 2) * dW); // shift y-offset center
 	} else if (aspectD > aspectS) {
-		dW = (long)((dH / sH) * sW); // set new wight  (720 / 480) * 640 = 960 (960x720)
-		return (long)((width - dW) / 2); // shift x-offset center: 1280 - 959 / 2 = 160
+		dW = (long)((dH / sH) * sW);     // set new width
+		return (long)((width - dW) / 2); // shift x-offset center
 	}
 	return 0;
 }
@@ -98,7 +98,7 @@ void Image::TransScale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWi
 // Simplified implementation of FMtext_to_buf_ engine function with text scaling
 void Image::ScaleText(BYTE* dstSurf, const char* text, long txtWidth, long dstWidth, long colorFlags, float scaleFactor) {
 	if (*text) {
-		if (scaleFactor <= 0.0f) scaleFactor = 1.0f;
+		if (scaleFactor < 0.5f) scaleFactor = 0.5f;
 
 		txtWidth = std::lround(txtWidth * scaleFactor);
 		float step = 1.0f / scaleFactor;
@@ -119,7 +119,7 @@ void Image::ScaleText(BYTE* dstSurf, const char* text, long txtWidth, long dstWi
 
 			int fontWidth = std::lround(fWidth * scaleFactor);
 
-			BYTE* _surface = &surface[fontWidth] + (*(DWORD*)&font->field0 >> 16); // position of the next character
+			BYTE* _surface = &surface[fontWidth] + (*((DWORD*)&font->field0) >> 16); // position of the next character
 			if ((_surface - dstSurf) > txtWidth) break; // something went wrong (out of size)
 
 			int fontHeight = *((DWORD*)&font->fieldC + 2 * charText) >> 16;
@@ -133,6 +133,7 @@ void Image::ScaleText(BYTE* dstSurf, const char* text, long txtWidth, long dstWi
 			// copy character pixels
 			for (int h = 0; h < fontHeight; h++) {
 				float fw = 0.0f;
+				int count = 0;
 				for (int w = 0; w < fontWidth; w++) {
 					// replace the pixel of the image with the color from the blending table
 					*dstPixels++ = blendTable->data[*fontPixels].colors[*dstPixels]; // pixel of the color index
@@ -141,13 +142,15 @@ void Image::ScaleText(BYTE* dstSurf, const char* text, long txtWidth, long dstWi
 					if (fw >= 1.0f) {
 						fw -= 1.0f;
 						fontPixels++;
+						count++;
 					}
 				}
 				fh += step;
 				if (fh < 1.0f) {
-					fontPixels -= fWidth;
+					fontPixels -= count;
 				} else {
 					fh -= 1.0f;
+					fontPixels += (fWidth - count);
 				}
 				dstPixels += dstWidth - fontWidth;
 			}

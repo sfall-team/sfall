@@ -25,7 +25,7 @@ namespace sfall
 long MainMenuScreen::MAIN_MENU_SIZE;
 
 bool MainMenuScreen::USE_HIRES_IMAGES;
-bool MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU;
+bool MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU; // if the value is false and USE_HIRES_IMAGES is false, btnBackgroundFrm and buttons with text labels are not scaled
 long MainMenuScreen::MENU_BG_OFFSET_X = 29;
 long MainMenuScreen::MENU_BG_OFFSET_Y = 19;
 
@@ -33,6 +33,16 @@ static fo::UnlistedFrm* mainBackgroundFrm;
 static fo::UnlistedFrm* btnBackgroundFrm;
 
 static long mainmenuWidth = 640;
+static float scaleFactor = 1.0f; // for buttons and text
+static float scaleXFactor = 1.0f;
+
+static long GetXOffset() {
+	return (scaleXFactor > 1.0f) ? std::lround(15 * scaleXFactor) : 0;
+}
+
+static long GetYOffset() {
+	return (scaleXFactor > 1.0f) ? std::lround(9 * scaleXFactor) : 0;
+}
 
 // draw image to main menu window
 static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long w, long h, long srcW, BYTE* dst, long dstW) {
@@ -55,8 +65,6 @@ static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long w, long h, 
 
 	if (stretch) {
 		Image::Scale(src, sw, sh, dst, w, h);
-	/*} else if (MainMenuScreen::MAIN_MENU_SIZE == 2) {
-		Image::Scale(src, sw, sh, dst, HRP::ScreenWidth(), HRP::ScreenHeight());*/ // scale to the size of the set game resolution
 	} else {
 		fo::func::buf_to_buf(src, sw, sh, sw, dst, dstW); // direct copy
 	}
@@ -65,11 +73,13 @@ static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long w, long h, 
 	if (btnBackgroundFrm) {
 		sh = btnBackgroundFrm->frames->height;
 		sw = btnBackgroundFrm->frames->width;
-		dst += (MainMenuScreen::MENU_BG_OFFSET_Y * dstW) + MainMenuScreen::MENU_BG_OFFSET_X;
 
 		if (MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU) {
-			fo::func::trans_cscale(btnBackgroundFrm->frames->indexBuff, sw, sh, sw, dst, (long)(sw * 1.5f), (long)(sh * 1.5f), dstW);
+			scaleFactor *= 1.6f; // additional scaling
+			dst += (MainMenuScreen::MENU_BG_OFFSET_Y * dstW) + MainMenuScreen::MENU_BG_OFFSET_X;
+			fo::func::trans_cscale(btnBackgroundFrm->frames->indexBuff, sw, sh, sw, dst, (long)(sw * scaleFactor), (long)(sh * scaleFactor), dstW);
 		} else {
+			dst += ((MainMenuScreen::MENU_BG_OFFSET_Y + GetYOffset()) * dstW) + MainMenuScreen::MENU_BG_OFFSET_X + GetXOffset();
 			fo::func::trans_buf_to_buf(btnBackgroundFrm->frames->indexBuff, sw, sh, sw, dst, dstW); // direct copy
 		}
 	}
@@ -117,7 +127,7 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 				x -= y * mainmenuWidth;
 			}
 		} else {
-			// ???
+			// nothing???
 		}
 	} else if (MainMenuScreen::MAIN_MENU_SIZE == 2) {
 		w = HRP::ScreenWidth();
@@ -128,6 +138,14 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 		x += (HRP::ScreenWidth() / 2) - (w / 2);
 		y += (HRP::ScreenHeight() / 2) - (h / 2);
 	}
+
+	// set scaling factor
+	// is not scaled if USE_HIRES_IMAGES is used and the SCALE_BUTTONS_AND_TEXT_MENU option is disabled
+	if (MainMenuScreen::USE_HIRES_IMAGES == false || (MainMenuScreen::USE_HIRES_IMAGES && MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU)) {
+		scaleFactor = h / (float)sh;
+		//scaleFactor = std::round(scaleFactor * 100.0f) / 100.0f;
+	}
+	scaleXFactor = HRP::ScreenWidth() / (float)640; // TODO: find out how Mash's HRP gets the coefficient for button offsets for different game resolutions
 
 	MainMenu::mTextOffset = MainMenu::mXOffset;
 	if (MainMenu::mYOffset) MainMenu::mTextOffset += (MainMenu::mYOffset * w);
@@ -164,82 +182,94 @@ static void __declspec(naked) main_menu_create_hook_win_print() {
 }
 
 static void __fastcall TextScale(long xOffset, const char* text, long yPos, long color) {
-	xOffset *= 1.5f;
-	yPos *= 1.5f;
+	if (MainMenuScreen::USE_HIRES_IMAGES) {
+		xOffset += GetXOffset();
+		yPos += GetYOffset();
+	}
+
+	xOffset = (long)(xOffset * scaleFactor);
+	yPos = (long)(yPos * scaleFactor);
 	yPos *= mainmenuWidth;
-	yPos += MainMenu::mTextOffset; // (TODO: check)
+	yPos += MainMenu::mTextOffset; // TODO: check
 
 	Image::ScaleText(
 		(BYTE*)(fo::var::getInt(FO_VAR_main_window_buf) + yPos + xOffset),
-		text, fo::util::GetTextWidth(text), mainmenuWidth, color, 1.5f
+		text, fo::util::GetTextWidth(text), mainmenuWidth, color, scaleFactor
 	);
 }
 
 // buttons text print
 static void __declspec(naked) main_menu_create_hook_text_to_buf() {
-	__asm { // eax:xOffset, ebp:yPos, edx:text, ebx:txtWidth
-		cmp  MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU, 1;
-		jne  noScale;
-		push [esp + 4]; // color
-		push ebp;
-		mov  ecx, eax;
-		call TextScale;
-		retn 4;
-noScale:
+	__asm { // eax:xOffset, ebp:yPos, edx:text, ebx:txtWidth (640-txtWidth)-1
+		cmp  scaleFactor, 1.0f;
+		jne  scale;
 		mov  ecx, mainmenuWidth;
 		imul ebp, ecx; // yPos * width
 		add  eax, ds:[FO_VAR_main_window_buf];
 		add  eax, MainMenu::mTextOffset;
 		add  eax, ebp;
 		jmp  dword ptr ds:[FO_VAR_text_to_buf];
+scale:
+		push [esp + 4]; // color
+		push ebp;
+		mov  ecx, eax;
+		call TextScale;
+		retn 4;
 	}
 }
 
-BYTE* buttonImageData;
+static BYTE* buttonImageData;
 
-static long __fastcall ButtonScale(long &xPos, long yPos, BYTE* &upImageData, BYTE* &downImageData) {
+static long __fastcall ButtonScale(long &width, long xPos, BYTE* &upImageData, BYTE* &downImageData, long &yPos) {
+	if (MainMenuScreen::USE_HIRES_IMAGES) {
+		xPos += GetXOffset();
+		yPos += GetYOffset();
+	}
+	int sWidth = (int)(width * scaleFactor);
+
 	if (!buttonImageData) {
-		buttonImageData = new BYTE[(39 * 39) * 2]();
-
-		BYTE* buttonUpData = *(BYTE**)FO_VAR_button_up_data;
-		BYTE* buttonDownData = *(BYTE**)FO_VAR_button_down_data;
+		int size = sWidth * sWidth;
+		buttonImageData = new BYTE[size * 2]; // two images
 
 		// up
-		fo::func::trans_cscale(buttonUpData, 26, 26, 26, buttonImageData, 39, 39, 39);
-
+		Image::Scale(*(BYTE**)FO_VAR_button_up_data, width, width, buttonImageData, sWidth, sWidth);
 		// down
-		BYTE* down = &buttonImageData[39 * 39];
-		fo::func::trans_cscale(buttonDownData, 26, 26, 26, down, 39, 39, 39);
+		BYTE* downImage = &buttonImageData[size];
+		Image::Scale(*(BYTE**)FO_VAR_button_down_data, width, width, downImage, sWidth, sWidth);
 
 		upImageData = buttonImageData;
-		downImageData = down;
+		downImageData = downImage;
 
 		fo::var::setInt(FO_VAR_button_up_data) = (long)buttonImageData;
-		fo::var::setInt(FO_VAR_button_down_data) = (long)down;
+		fo::var::setInt(FO_VAR_button_down_data) = (long)downImage;
 	}
-	xPos *= 1.5f;
-	return yPos * 1.5f;
+	width = sWidth;
+	yPos = (long)(yPos * scaleFactor);
+	return (long)(xPos * scaleFactor);
 }
 
 static void __declspec(naked) main_menu_create_hook_register_button() {
 	__asm { // eax:_main_window, edx:Xpos, ebx:Ypos, ecx:Width
-		cmp  MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU, 1;
-		jne  noScale;
+		cmp  scaleFactor, 1.0f;
+		jne  scale;
+		jmp  fo::funcoffs::win_register_button_;
+scale:
+		push ecx;                  // width
+		mov  ecx, esp;             // width ref
+		push ebx;                  // Ypos
+		push esp;                  // Ypos ref
+		lea  ebx, [esp + 28 + 12]; // button_down_data ref
 		push ebx;
-		mov  ecx, esp;            // xPos
-		lea  ebx, [esp + 24 + 4]; // button_up_data
-		push ebx;
-		lea  ebx, [esp + 28 + 8]; // button_down_data
+		lea  ebx, [esp + 24 + 16]; // button_up_data ref
 		push ebx;
 		call ButtonScale;
-		mov  edx, eax;
-		pop  ebx;
 		// set scale size
-		mov  ecx, 39;        // width
-		mov  [esp + 4], ecx; // height
+		mov  edx, eax;             // out Xpos
+		pop  ebx;                  // out Ypos
+		pop  ecx;                  // out width
+		mov  [esp + 4], ecx;       // height
 		mov  eax, ds:[FO_VAR_main_window];
-noScale:
-		jmp fo::funcoffs::win_register_button_;
+		jmp  fo::funcoffs::win_register_button_;
 	}
 }
 
@@ -269,6 +299,7 @@ void MainMenuScreen::init() {
 	HookCall(0x481680, main_menu_create_hook_add_win);
 	HookCall(0x481704, main_menu_create_hook_buf_to_buf);
 	HookCall(0x481767, main_menu_create_hook_win_print);
+	HookCall(0x481883, main_menu_create_hook_register_button);
 	MakeCall(0x481933, main_menu_create_hook_text_to_buf, 1);
 
 	// imul ebp, edx, 640 -> mov ebp, edx
@@ -276,8 +307,6 @@ void MainMenuScreen::init() {
 	SafeWrite32(0x481914, 0x90909090);
 
 	SafeWrite16(0x48192D, 0x9090);
-
-	HookCall(0x481883, main_menu_create_hook_register_button);
 
 	LoadGameHook::OnBeforeGameStart() += FreeMainMenuImages;
 	LoadGameHook::OnBeforeGameClose() += FreeMainMenuImages;

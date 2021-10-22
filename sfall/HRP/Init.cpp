@@ -21,7 +21,7 @@ static const char* f2ResIni = ".\\f2_res.ini";
 static long SCR_WIDTH  = 640;
 static long SCR_HEIGHT = 480;
 
-bool HRP::BuiltIn;
+bool HRP::Enabled;
 
 long HRP::ScreenWidth()  { return SCR_WIDTH; }
 long HRP::ScreenHeight() { return SCR_HEIGHT; }
@@ -40,7 +40,7 @@ void HRP::init() {
 		//ExitProcess(-1);
 		return;
 	}
-	BuiltIn = true;
+	Enabled = true;
 
 	// Read config
 
