@@ -35,25 +35,21 @@ int DamageMod::formula;
 // Integer division w/ round half to even for Glovz's damage formula
 // Prerequisite: both dividend and divisor must be positive integers (should already be handled in the main function)
 static long DivRound(long dividend, long divisor) {
-	if (dividend == divisor) return 1;
-
-	if (dividend < divisor) {
-		dividend <<= 1; // multiply by 2
-		return (dividend <= divisor) ? 0 : 1;
-	} else {
-		long quotient = dividend / divisor;
-		dividend %= divisor; // get the remainder
-		// check the remainder
-		if (dividend) {
-			dividend <<= 1; // multiply by 2
-			if (dividend > divisor) {
-				quotient++;
-			} else if (dividend == divisor) {
-				if ((quotient & 1) != 0) quotient++; // round half to even
-			}
-		}
-		return quotient;
+	if (dividend <= divisor) {
+		// if equal then return 1
+		return (dividend != divisor && (dividend << 1) <= divisor) ? 0 : 1;
 	}
+
+	long quotient = dividend / divisor;
+	dividend %= divisor; // get the remainder
+
+	// check the remainder
+	if (dividend == 0) return quotient;
+
+	dividend <<= 1; // multiply by 2
+
+	// if equal then round to even
+	return (dividend > divisor || (dividend == divisor && (quotient & 1))) ? ++quotient : quotient;
 }
 
 // Damage Fix v5 (with v5.1 Damage Multiplier tweak) by Glovz 2014.04.16.xx.xx
@@ -62,8 +58,10 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 
 	long ammoY = fo::func::item_w_dam_div(ctd.weapon);      // ammoY value (divisor)
 	if (ammoY <= 0) ammoY = 1;
+
 	long ammoX = fo::func::item_w_dam_mult(ctd.weapon);     // ammoX value
 	if (ammoX <= 0) ammoX = 1;
+
 	long ammoDRM = fo::func::item_w_dr_adjust(ctd.weapon);  // ammoDRM value
 	if (ammoDRM > 0) ammoDRM = -ammoDRM;
 
