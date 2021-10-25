@@ -31,12 +31,12 @@ static const char* VerString1 = "SFALL " VERSION_STRING;
 static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
 #endif
 
-static DWORD MainMenuYOffset;
-static DWORD MainMenuTextOffset;
+static long MainMenuYOffset;
+static long MainMenuTextOffset; // sum: x + (y * w)
 
 static long OverrideColour, OverrideColour2;
 
-static void __declspec(naked) MainMenuButtonYHook() {
+static void __declspec(naked) MainMenuHookButtonYOffset() {
 	static const DWORD MainMenuButtonYHookRet = 0x48184A;
 	__asm {
 		xor edi, edi;
@@ -46,57 +46,22 @@ static void __declspec(naked) MainMenuButtonYHook() {
 	}
 }
 
-static void __declspec(naked) MainMenuTextYHook() {
+static void __declspec(naked) MainMenuHookTextYOffset() {
 	__asm {
 		add eax, MainMenuTextOffset;
 		jmp dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
-static void __declspec(naked) FontColour() {
-	__asm {
-		test OverrideColour, 0xFF;
-		jnz  override;
-		movzx eax, byte ptr ds:[0x6A8B33];
-		or   eax, 0x6000000;
-		retn;
-override:
-		mov  eax, OverrideColour;
-		retn;
-	}
-}
+static void __fastcall main_menu_create_hook_print_text(long xPos, const char* text, long yPos, long color) {
+	long winId = *fo::ptr::main_window;
+	if (OverrideColour) color = OverrideColour;
 
-static void __declspec(naked) MainMenuTextHook() {
-	static const DWORD MainMenuTextRet = 0x4817B0;
-	__asm {
-		mov  esi, eax;                // winptr
-		mov  ebp, ecx;                // keep xpos
-		mov  edi, [esp];              // ypos
-		mov  eax, edi;
-		sub  eax, 12;                 // shift y position up by 12
-		mov  [esp], eax;
-		call FontColour;
-		mov  [esp + 4], eax;          // colour
-		mov  eax, esi;
-		mov  esi, edx;                // keep fallout buff
-		call fo::funcoffs::win_print_;
-		// sfall print
-		mov  eax, esi;
-		call ds:[FO_VAR_text_width];
-		add  ebp, eax;               // xpos shift (right align)
-		call FontColour;
-		push eax;                    // colour
-		mov  edx, VerString1;        // msg
-		mov  eax, edx;
-		call ds:[FO_VAR_text_width];
-		mov  ecx, ebp;               // xpos
-		sub  ecx, eax;               // left shift position
-		push edi;                    // ypos
-		xor  ebx, ebx;               // font
-		mov  eax, dword ptr ds:[FO_VAR_main_window]; // winptr
-		call fo::funcoffs::win_print_;
-		jmp  MainMenuTextRet;
-	}
+	long fWidth = fo::util::GetTextWidth(text);
+	fo::func::win_print(winId, text, fWidth, xPos, yPos - 12, color); // fallout print
+
+	long sWidth = fo::util::GetTextWidth(VerString1);
+	fo::func::win_print(winId, VerString1, sWidth, xPos + fWidth - sWidth, yPos, color); // sfall print
 }
 
 void MainMenu_Init() {
@@ -114,13 +79,13 @@ void MainMenu_Init() {
 	if (offset = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
 		MainMenuYOffset = offset;
 		MainMenuTextOffset += offset * 640;
-		MakeJump(0x481844, MainMenuButtonYHook);
+		MakeJump(0x481844, MainMenuHookButtonYOffset);
 	}
 	if (MainMenuTextOffset) {
-		MakeCall(0x481933, MainMenuTextYHook, 1);
+		MakeCall(0x481933, MainMenuHookTextYOffset, 1);
 	}
 
-	MakeJump(0x4817AB, MainMenuTextHook);
+	HookCall(0x4817AB, main_menu_create_hook_print_text);
 
 	OverrideColour = GetConfigInt("Misc", "MainMenuFontColour", 0);
 	if (OverrideColour & 0xFF) {
