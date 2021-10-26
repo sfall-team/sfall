@@ -29,6 +29,8 @@
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
+#define FO_VAR_buf_length_2               0x66BE14
+#define FO_VAR_buf_width_2                0x66BE30
 #define FO_VAR_button_down_data           0x519500
 #define FO_VAR_button_up_data             0x5194FC
 #define FO_VAR_cap                        0x518064

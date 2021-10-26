@@ -219,6 +219,7 @@ scale:
 }
 
 static BYTE* buttonImageData;
+static BYTE* downButtonImageData; // reference
 
 static long __fastcall ButtonScale(long &width, long xPos, BYTE* &upImageData, BYTE* &downImageData, long &yPos) {
 	if (MainMenuScreen::USE_HIRES_IMAGES) {
@@ -234,15 +235,15 @@ static long __fastcall ButtonScale(long &width, long xPos, BYTE* &upImageData, B
 		// up
 		Image::Scale(*(BYTE**)FO_VAR_button_up_data, width, width, buttonImageData, sWidth, sWidth);
 		// down
-		BYTE* downImage = &buttonImageData[size];
-		Image::Scale(*(BYTE**)FO_VAR_button_down_data, width, width, downImage, sWidth, sWidth);
+		downButtonImageData = &buttonImageData[size];
+		Image::Scale(*(BYTE**)FO_VAR_button_down_data, width, width, downButtonImageData, sWidth, sWidth);
 
-		upImageData = buttonImageData;
-		downImageData = downImage;
-
-		fo::var::setInt(FO_VAR_button_up_data) = (long)buttonImageData;
-		fo::var::setInt(FO_VAR_button_down_data) = (long)downImage;
+		//fo::var::setInt(FO_VAR_button_up_data) = (long)buttonImageData;
+		//fo::var::setInt(FO_VAR_button_down_data) = (long)downButtonImageData;
 	}
+	upImageData = buttonImageData;
+	downImageData = downButtonImageData;
+
 	width = sWidth;
 	yPos = (long)(yPos * scaleFactor);
 	return (long)(xPos * scaleFactor);
