@@ -225,8 +225,8 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 	if (toSlot && fo::util::GetItemType(item) != fo::item_type_weapon && fo::util::GetItemType(toSlot) != fo::item_type_weapon) {
 		return;
 	}
-	fo::ItemButtonItem* leftSlot  = &fo::ptr::itemButtonItems[fo::HANDSLOT_Left];
-	fo::ItemButtonItem* rightSlot = &fo::ptr::itemButtonItems[fo::HANDSLOT_Right];
+	fo::ItemButtonItem* leftSlot  = &fo::ptr::itemButtonItems[fo::HandSlot::Left];
+	fo::ItemButtonItem* rightSlot = &fo::ptr::itemButtonItems[fo::HandSlot::Right];
 
 	if (toSlot == nullptr) { // copy to empty slot
 		fo::ItemButtonItem* dstSlot;
@@ -246,13 +246,13 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 	} else { // swap slots
 		fo::ItemButtonItem hands[2];
 		std::memcpy(hands, fo::ptr::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-		hands[fo::HANDSLOT_Left].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		hands[fo::HANDSLOT_Left].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		hands[fo::HANDSLOT_Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		hands[fo::HANDSLOT_Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		hands[fo::HandSlot::Left].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[fo::HandSlot::Left].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[fo::HandSlot::Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		std::memcpy(leftSlot,  &hands[fo::HANDSLOT_Right], 0x14); // Rslot > Lslot
-		std::memcpy(rightSlot, &hands[fo::HANDSLOT_Left],  0x14); // Lslot > Rslot
+		std::memcpy(leftSlot,  &hands[fo::HandSlot::Right], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[fo::HandSlot::Left],  0x14); // Lslot > Rslot
 	}
 }
 
@@ -281,29 +281,29 @@ static long pHitL, sHitL, modeL = -2;
 static long pHitR, sHitR, modeR = -2;
 
 static long intface_update_items_hack_begin() {
-	if (!fo::ptr::itemButtonItems[fo::HANDSLOT_Left].item && !fo::func::inven_left_hand(*fo::ptr::obj_dude)) {
-		modeL = fo::ptr::itemButtonItems[fo::HANDSLOT_Left].mode;
-		pHitL = fo::ptr::itemButtonItems[fo::HANDSLOT_Left].primaryAttack;
-		sHitL = fo::ptr::itemButtonItems[fo::HANDSLOT_Left].secondaryAttack;
+	if (!fo::ptr::itemButtonItems[fo::HandSlot::Left].item && !fo::func::inven_left_hand(*fo::ptr::obj_dude)) {
+		modeL = fo::ptr::itemButtonItems[fo::HandSlot::Left].mode;
+		pHitL = fo::ptr::itemButtonItems[fo::HandSlot::Left].primaryAttack;
+		sHitL = fo::ptr::itemButtonItems[fo::HandSlot::Left].secondaryAttack;
 	}
-	if (!fo::ptr::itemButtonItems[fo::HANDSLOT_Right].item && !fo::func::inven_right_hand(*fo::ptr::obj_dude)) {
-		modeR = fo::ptr::itemButtonItems[fo::HANDSLOT_Right].mode;
-		pHitR = fo::ptr::itemButtonItems[fo::HANDSLOT_Right].primaryAttack;
-		sHitR = fo::ptr::itemButtonItems[fo::HANDSLOT_Right].secondaryAttack;
+	if (!fo::ptr::itemButtonItems[fo::HandSlot::Right].item && !fo::func::inven_right_hand(*fo::ptr::obj_dude)) {
+		modeR = fo::ptr::itemButtonItems[fo::HandSlot::Right].mode;
+		pHitR = fo::ptr::itemButtonItems[fo::HandSlot::Right].primaryAttack;
+		sHitR = fo::ptr::itemButtonItems[fo::HandSlot::Right].secondaryAttack;
 	}
 	return *fo::ptr::itemCurrentItem;
 }
 
 static void intface_update_restore() {
-	if (modeL != -2 && pHitL == fo::ptr::itemButtonItems[fo::HANDSLOT_Left].primaryAttack &&
-	    sHitL == fo::ptr::itemButtonItems[fo::HANDSLOT_Left].secondaryAttack)
+	if (modeL != -2 && pHitL == fo::ptr::itemButtonItems[fo::HandSlot::Left].primaryAttack &&
+	    sHitL == fo::ptr::itemButtonItems[fo::HandSlot::Left].secondaryAttack)
 	{
-		fo::ptr::itemButtonItems[fo::HANDSLOT_Left].mode = modeL;
+		fo::ptr::itemButtonItems[fo::HandSlot::Left].mode = modeL;
 	}
-	if (modeR != -2 && pHitR == fo::ptr::itemButtonItems[fo::HANDSLOT_Right].primaryAttack &&
-	    sHitR == fo::ptr::itemButtonItems[fo::HANDSLOT_Right].secondaryAttack)
+	if (modeR != -2 && pHitR == fo::ptr::itemButtonItems[fo::HandSlot::Right].primaryAttack &&
+	    sHitR == fo::ptr::itemButtonItems[fo::HandSlot::Right].secondaryAttack)
 	{
-		fo::ptr::itemButtonItems[fo::HANDSLOT_Right].mode = modeR;
+		fo::ptr::itemButtonItems[fo::HandSlot::Right].mode = modeR;
 	}
 	modeL = -2;
 	modeR = -2;
@@ -452,7 +452,7 @@ static void ScienceOnCrittersPatch() {
 		HookCall(0x41276E, action_use_skill_on_hook_science);
 		break;
 	case 2:
-		SafeWrite8(0x41276A, CODETYPE_JumpShort);
+		SafeWrite8(0x41276A, CodeType::JumpShort);
 		break;
 	}
 }
@@ -501,7 +501,7 @@ static void InstantWeaponEquipPatch() {
 	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, PutAwayWeapon); // jmps
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon); // jmps
 		BlockCall(0x472AD5); //
 		BlockCall(0x472AE0); // invenUnwieldFunc_
 		BlockCall(0x472AF0); //
@@ -513,7 +513,7 @@ static void InstantWeaponEquipPatch() {
 static void DontTurnOffSneakIfYouRunPatch() {
 	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
-		SafeWrite8(0x418135, CODETYPE_JumpShort);
+		SafeWrite8(0x418135, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -574,7 +574,7 @@ static void EncounterTableSizePatch() {
 static void DisablePipboyAlarmPatch() {
 	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
-		SafeWrite8(0x499518, CODETYPE_Ret);
+		SafeWrite8(0x499518, CodeType::Ret);
 		SafeWrite8(0x443601, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
@@ -691,7 +691,7 @@ static void F1EngineBehaviorPatch() {
 	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
-		SafeWrite8(0x477C71, CODETYPE_JumpShort); // disable halving the weight for power armor items
+		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight for power armor items
 		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
 		dlogr(" Done", DL_INIT);
 	}
@@ -838,7 +838,7 @@ static void EngineOptimizationPatches() {
 	// Remove redundant/duplicate code
 	BlockCall(0x45EBBF); // intface_redraw_
 	BlockCall(0x4A4859); // exec_script_proc_
-	SafeMemSet(0x455189, CODETYPE_Nop, 11); // op_create_object_sid_
+	SafeMemSet(0x455189, CodeType::Nop, 11); // op_create_object_sid_
 
 	// Improve performance of the data conversion of script interpreter
 	// mov eax, [edx+eax]; bswap eax; ret;
@@ -917,7 +917,7 @@ void MiscPatches_Init() {
 
 	BlockCall(0x4425E6); // Patch out ereg call
 
-	SafeWrite8(0x4810AB, CODETYPE_JumpShort); // Disable selfrun
+	SafeWrite8(0x4810AB, CodeType::JumpShort); // Disable selfrun
 
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
@@ -932,7 +932,7 @@ void MiscPatches_Init() {
 	// Remove hardcoding for city areas 45 and 46 (AREA_FAKE_VAULT_13)
 	if (GetConfigInt("Misc", "DisableSpecialAreas", 0)) {
 		dlog("Applying disable special areas handling patch.", DL_INIT);
-		SafeWrite8(0x4C0576, CODETYPE_JumpShort);
+		SafeWrite8(0x4C0576, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 

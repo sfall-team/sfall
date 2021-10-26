@@ -23,7 +23,7 @@ static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, 
 	*((DWORD*)(addr + 1)) = data;
 
 	for (size_t i = 0; i < len; i++) {
-		*((BYTE*)(addrMem + i)) = CODETYPE_Nop;
+		*((BYTE*)(addrMem + i)) = CodeType::Nop;
 	}
 	VirtualProtect((void*)addr, protectLen, oldProtect, &oldProtect);
 }
@@ -74,19 +74,19 @@ void HookCall(DWORD addr, void* func) {
 }
 
 void MakeCall(DWORD addr, void* func) {
-	SafeWriteFunc(CODETYPE_Call, addr, func);
+	SafeWriteFunc(CodeType::Call, addr, func);
 }
 
 void MakeCall(DWORD addr, void* func, size_t len) {
-	SafeWriteFunc(CODETYPE_Call, addr, func, len);
+	SafeWriteFunc(CodeType::Call, addr, func, len);
 }
 
 void MakeJump(DWORD addr, void* func) {
-	SafeWriteFunc(CODETYPE_Jump, addr, func);
+	SafeWriteFunc(CodeType::Jump, addr, func);
 }
 
 void MakeJump(DWORD addr, void* func, size_t len) {
-	SafeWriteFunc(CODETYPE_Jump, addr, func, len);
+	SafeWriteFunc(CodeType::Jump, addr, func, len);
 }
 
 void SafeMemSet(DWORD addr, BYTE val, size_t len) {

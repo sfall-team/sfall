@@ -173,7 +173,7 @@ void __stdcall Objects_SetAutoUnjamLockTime(DWORD time) {
 		}
 		unjamTimeState = 1;
 	} else {
-		SafeWrite8(0x4831DA, CODETYPE_JumpShort); // disable auto unjam
+		SafeWrite8(0x4831DA, CodeType::JumpShort); // disable auto unjam
 		unjamTimeState = 2;
 	}
 }
@@ -250,7 +250,7 @@ void Objects_OnGameLoad() {
 
 void Objects_Init() {
 	HookCall(0x4A38A5, new_obj_id_hook);
-	SafeWrite8(0x4A38B3, CODETYPE_Nop); // fix ID increment
+	SafeWrite8(0x4A38B3, CodeType::Nop); // fix ID increment
 
 	// Fix the ID range check for item objects with IDs in the negative range
 	// Special ID values are assigned in the negative range

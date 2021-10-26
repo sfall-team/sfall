@@ -331,7 +331,7 @@ void Skills_Init() {
 	SafeWrite32(0x4ABC6B, 0x90909090);
 
 	// Remove the unspent skill points limit
-	SafeWrite8(0x43C2B9, CODETYPE_JumpShort); // UpdateLevel_
+	SafeWrite8(0x43C2B9, CodeType::JumpShort); // UpdateLevel_
 
 	// Add an additional 'Energy Weapon' flag to the weapon flags (offset 0x0018)
 	// Weapon Flags:

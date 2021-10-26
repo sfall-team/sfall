@@ -806,7 +806,7 @@ void LoadGameHook_Init() {
 		pipBoyAvailableAtGameStart = true;
 		break;
 	case 2:
-		SafeWrite8(0x497011, CODETYPE_JumpShort); // skip the vault suit movie check
+		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
 		break;
 	}
 

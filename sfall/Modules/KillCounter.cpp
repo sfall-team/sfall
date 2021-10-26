@@ -50,8 +50,8 @@ static void KillCounterInit() {
 
 	// Overwrite the critter_kill_count_inc_ function that increments the kill counter
 	MakeCall(0x42D89C, IncKillCounter, 1);
-	SafeWrite8(0x42D88E, 0x45);         // lea edx, [eax * 2]
-	SafeWrite8(0x42D899, CODETYPE_Nop); // inc ebx > nop
+	SafeWrite8(0x42D88E, 0x45);          // lea edx, [eax * 2]
+	SafeWrite8(0x42D899, CodeType::Nop); // inc ebx > nop
 
 	const DWORD extraKillTypesCountAddr[] = {
 		0x42D8AF, // critter_kill_count_

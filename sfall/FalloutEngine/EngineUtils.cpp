@@ -162,13 +162,13 @@ fo::GameObject* GetActiveItem() {
 
 fo::AttackType GetSlotHitMode(fo::HandSlot hand) { // 0 - left, 1 - right
 	switch (fo::ptr::itemButtonItems[hand].mode) {
-	case fo::HANDMODE_Primary:
-	case fo::HANDMODE_Primary_Aimed: // called shot
+	case fo::HandSlotMode::Primary:
+	case fo::HandSlotMode::Primary_Aimed: // called shot
 		return GetHandSlotPrimaryAttack(hand);
-	case fo::HANDMODE_Secondary:
-	case fo::HANDMODE_Secondary_Aimed: // called shot
+	case fo::HandSlotMode::Secondary:
+	case fo::HandSlotMode::Secondary_Aimed: // called shot
 		return GetHandSlotSecondaryAttack(hand);
-	case fo::HANDMODE_Reload:
+	case fo::HandSlotMode::Reload:
 		return (fo::AttackType)(fo::AttackType::ATKTYPE_LWEAPON_RELOAD + hand);
 	}
 	return fo::AttackType::ATKTYPE_PUNCH;
@@ -183,18 +183,18 @@ long GetCurrentAttackMode() {
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
 	static const fo::AttackSubType weapon_types[9] = {
-		fo::ATKSUBTYPE_NONE,
-		fo::ATKSUBTYPE_UNARMED,
-		fo::ATKSUBTYPE_UNARMED,
-		fo::ATKSUBTYPE_MELEE,
-		fo::ATKSUBTYPE_MELEE,
-		fo::ATKSUBTYPE_THROWING,
-		fo::ATKSUBTYPE_GUNS,
-		fo::ATKSUBTYPE_GUNS,
-		fo::ATKSUBTYPE_GUNS
+		fo::AttackSubType::NONE,
+		fo::AttackSubType::UNARMED,
+		fo::AttackSubType::UNARMED,
+		fo::AttackSubType::MELEE,
+		fo::AttackSubType::MELEE,
+		fo::AttackSubType::THROWING,
+		fo::AttackSubType::GUNS,
+		fo::AttackSubType::GUNS,
+		fo::AttackSubType::GUNS
 	};
 	DWORD type = weaponFlag & 0xF;
-	return (type < 9) ? weapon_types[type] : fo::ATKSUBTYPE_NONE;
+	return (type < 9) ? weapon_types[type] : fo::AttackSubType::NONE;
 }
 
 long ObjIsOpenable(fo::GameObject* object) {

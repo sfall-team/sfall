@@ -143,7 +143,7 @@ static void mf_unwield_slot() {
 	bool isDude = (critter == *fo::ptr::obj_dude);
 	bool update = false;
 	if (slot && (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
-		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::HANDSLOT_Left : fo::HANDSLOT_Right) == 0) {
+		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::Left : fo::Right) == 0) {
 			update = isDude;
 		}
 	} else {

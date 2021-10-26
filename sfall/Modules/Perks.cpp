@@ -879,7 +879,7 @@ static void PerkEngineInit() {
 
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
-	SafeWrite8(0x43C2EC, CODETYPE_JumpShort); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
+	SafeWrite8(0x43C2EC, CodeType::JumpShort); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
 }
 
 static void PerkSetup() {
@@ -1105,7 +1105,7 @@ static void __declspec(naked) item_w_called_shot_hack() {
 		call fo::funcoffs::item_hit_with_; // get pointer to weapon
 		mov  edx, ecx;
 		call fo::funcoffs::item_w_subtype_;
-		cmp  eax, ATKSUBTYPE_THROWING;     // is weapon type GUNS or THROWING?
+		cmp  eax, THROWING;                // is weapon type GUNS or THROWING?
 		jge  checkRange;                   // yes
 		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
 checkRange:
@@ -1142,7 +1142,7 @@ static void FastShotTraitFix() {
 		dlog("Applying Fast Shot trait patch (Fallout 1 behavior).", DL_INIT);
 		/* Implemented in sfall item_w_mp_cost function */
 		//HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
-		//SafeWrite16(0x478C9E, CODETYPE_JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
+		//SafeWrite16(0x478C9E, CodeType::JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
 		goto done;
 	default:
 		dlog("Applying Fast Shot trait fix.", DL_INIT);

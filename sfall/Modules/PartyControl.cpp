@@ -142,9 +142,9 @@ static void TakeControlOfNPC(fo::GameObject* npc) {
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
 	if (fo::util::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
-		*fo::ptr::itemCurrentItem = fo::HANDSLOT_Left;
+		*fo::ptr::itemCurrentItem = fo::HandSlot::Left;
 	} else {
-		*fo::ptr::itemCurrentItem = fo::HANDSLOT_Right;
+		*fo::ptr::itemCurrentItem = fo::HandSlot::Right;
 	}
 
 	// switch main dude_obj pointers - this should be done last!
@@ -447,7 +447,7 @@ static void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite8(0x495CFB, CODETYPE_JumpShort); // jmps 0x495D28 (skip random check)
+		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
 	}
 }

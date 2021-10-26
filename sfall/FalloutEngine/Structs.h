@@ -188,7 +188,7 @@ struct GameObject {
 				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
 			inline bool IsFleeing() {
-				return ((combatState & CBTFLG_InFlee) != 0);
+				return ((combatState & CombatStateFlag::InFlee) != 0);
 			}
 
 			inline void decreaseAP(long value) {

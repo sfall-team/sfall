@@ -1084,8 +1084,9 @@ static void __declspec(naked) op_critter_state_hack() {
 // if the combat ends before the turn passes to the critter, the DAM_KNOCKOUT_WOKEN flag will remain set
 // therefore the flag for the critter is removed before the combat_turn_ execution, as well as when the combat ends in combat_over_
 static void __declspec(naked) critter_wake_up_hack() {
+	using fo::InCombat;
 	__asm {
-		or   byte ptr [eax], CBTFLG_InCombat; // combat_data.combat_state
+		or   byte ptr [eax], InCombat; // combat_data.combat_state
 		test dl, DAM_KNOCKED_OUT;      // is critter knocked out?
 		jz   skip;                     // No
 		or   dword ptr [ebx + damageFlags], DAM_KNOCKOUT_WOKEN; // game is in combat, set the flag
@@ -1137,6 +1138,7 @@ end:
 // when loading the map
 static void __declspec(naked) obj_load_func_hack() {
 	static const DWORD obj_load_func_Ret = 0x488F14;
+	using fo::InCombat;
 	__asm {
 		test word ptr [eax + flags], Temp; // engine code
 		jz   fix;
@@ -1146,7 +1148,7 @@ fix:
 		and  edi, 0x0F000000;
 		cmp  edi, OBJ_TYPE_CRITTER << 24;
 		jne  skip;
-		test byte ptr [eax + combatState], CBTFLG_InCombat;
+		test byte ptr [eax + combatState], InCombat;
 		jnz  skip;     // do nothing if the critter has the flag set
 		test byte ptr [eax + damageFlags], DAM_DEAD;
 		jnz  skip;     // is dead
@@ -2262,7 +2264,7 @@ static void __declspec(naked) JesseContainerFid() {
 static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
 		call fo::funcoffs::item_w_subtype_;
-		cmp  eax, ATKSUBTYPE_THROWING;
+		cmp  eax, THROWING;
 		jne  fix;
 		retn;
 fix:
@@ -2270,7 +2272,7 @@ fix:
 		mov  edx, [esi + ammoPid];
 		test edx, edx;
 		js   skip;
-		mov  eax, ATKSUBTYPE_GUNS; // set GUNS if has ammo pid
+		mov  eax, GUNS; // set GUNS if has ammo pid
 skip:
 		retn;
 	}
@@ -2640,12 +2642,12 @@ static bool __fastcall combat_should_end_check_fix(long dudeTeam, fo::GameObject
 
 	if (critter->critter.teamNum == dudeTeam) { // critter is in the player's team
 		// EnemyOutOfRange - set when the critter does not want (can't continue) combat or has left the combat due to exceeding the max distance
-		if ((target->critter.combatState & CBTFLG_EnemyOutOfRange) == false && target->critter.IsNotDead()) return false;
+		if ((target->critter.combatState & fo::CombatStateFlag::EnemyOutOfRange) == false && target->critter.IsNotDead()) return false;
 	} else {
 		if (target->critter.teamNum == dudeTeam) return false; // don't end combat: target is from the player's team
 		// for other targets
 		if (target->critter.IsNotDead()) return false; // don't end combat: target is still alive
-		//if (critter->critter.combatState & CBTFLG_InCombat) return false; // critter is in combat
+		//if (critter->critter.combatState & fo::CombatStateFlag::InCombat) return false; // critter is in combat
 	}
 	return true; // check next critter
 }
@@ -2858,7 +2860,7 @@ fix:
 		call fo::funcoffs::proto_ptr_;
 		mov  edx, [esp];
 		add  esp, 4;
-		test [edx + 0x20], CFLG_NoSteal; // critter flags
+		test [edx + 0x20], NoSteal; // critter flags
 		jnz  look;
 		retn;
 look:
@@ -3187,7 +3189,7 @@ void BugFixes_Init()
 		// // removes this line by making unconditional jump:
 		// if ( who == obj_dude )
 		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
-		SafeWrite8(0x424527, CODETYPE_JumpShort); // in detemine_to_hit_func_()
+		SafeWrite8(0x424527, CodeType::JumpShort); // in detemine_to_hit_func_()
 		dlogr(" Done", DL_FIX);
 	//}
 
@@ -3241,7 +3243,7 @@ void BugFixes_Init()
 		// Fix for move_obj_inven_to_obj function
 		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
 		SafeWrite16(0x45C496, 0x9090);
-		SafeWrite8(0x45C4A3, CODETYPE_JumpNZ); // jmp > jnz
+		SafeWrite8(0x45C4A3, CodeType::JumpNZ); // jmp > jnz
 		// Fix for drop_obj function
 		HookCall(0x49B965, obj_drop_hook);
 		dlogr(" Done", DL_FIX);
@@ -3356,7 +3358,7 @@ void BugFixes_Init()
 
 	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
 		dlog("Applying shiv patch.", DL_FIX);
-		SafeWrite8(0x477B2B, CODETYPE_JumpShort);
+		SafeWrite8(0x477B2B, CodeType::JumpShort);
 		dlogr(" Done", DL_FIX);
 	//}
 
@@ -3366,7 +3368,7 @@ void BugFixes_Init()
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
 		SafeWrite32(0x46B35D, 0x90909090);
 		const DWORD execProcWarnAddr[] = {0x46DBF1, 0x46DDC4};
-		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, execProcWarnAddr); // Disable warnings
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, execProcWarnAddr); // Disable warnings
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_FIX);
 	//}
@@ -3591,8 +3593,8 @@ void BugFixes_Init()
 	// Fix broken obj_can_hear_obj function
 	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_FIX);
-		SafeWrite8(0x4583D8, 0x3B);           // jz loc_458414
-		SafeWrite8(0x4583DE, CODETYPE_JumpZ); // jz loc_458414
+		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
+		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz loc_458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_FIX);
 	}
@@ -3614,7 +3616,7 @@ void BugFixes_Init()
 
 	// Fix for the encounter description being displayed in two lines instead of one
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
-	SafeWrite8(0x4C1015, CODETYPE_Nop);
+	SafeWrite8(0x4C1015, CodeType::Nop);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
 	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
@@ -3660,7 +3662,7 @@ void BugFixes_Init()
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_FIX);
 		const DWORD activeGeigerAddr[] = {0x42D424, 0x42D444};
-		SafeWriteBatch<BYTE>(CODETYPE_JumpZ, activeGeigerAddr); // jnz > jz
+		SafeWriteBatch<BYTE>(CodeType::JumpZ, activeGeigerAddr); // jnz > jz
 		dlogr(" Done", DL_FIX);
 	}
 	// Display a pop-up message box about death from radiation
@@ -3676,8 +3678,8 @@ void BugFixes_Init()
 	//		MakeCall(0x4286C7, ai_check_drugs_hack_use);
 	//	}
 	//	// Fix to allow using only the drugs listed in chem_primary_desire and healing drugs (stimpaks and healing powder)
-	//	SafeWrite8(0x4286B1, CODETYPE_JumpZ);  // jnz > jz (ai_check_drugs_)
-	//	SafeWrite8(0x4286C5, CODETYPE_JumpNZ); // jz > jnz (ai_check_drugs_)
+	//	SafeWrite8(0x4286B1, CodeType::JumpZ);  // jnz > jz (ai_check_drugs_)
+	//	SafeWrite8(0x4286C5, CodeType::JumpNZ); // jz > jnz (ai_check_drugs_)
 	//	dlogr(" Done", DL_FIX);
 	//}
 
@@ -3705,13 +3707,13 @@ void BugFixes_Init()
 		MakeCall(0x456D9A, op_attack_hook_flags);
 		SafeWrite16(0x456DA7, 0x8489); // mov [gcsd.changeFlags], 1 > mov [gcsd.changeFlags], eax
 		SafeWrite8(0x456DAB, 0);
-		SafeWrite8(0x456DAE, CODETYPE_Nop);
+		SafeWrite8(0x456DAE, CodeType::Nop);
 		dlogr(" Done", DL_FIX);
 	} else {
 		// Fix setting result flags argument for the target
 		SafeWrite16(0x456D95, 0xED85); // cmp eax, ebp > test ebp, ebp
 	}
-	SafeWrite8(0x456D9F, CODETYPE_JumpNZ); // jz > jnz
+	SafeWrite8(0x456D9F, CodeType::JumpNZ); // jz > jnz
 	// Fix result flags for the attacker and the target when calling attack_complex function
 	// also set/unset the DAM_DEAD flag when changing the minimum/maximum damage to the target
 	// and fix minimum damage still being applied to the target when the attacker misses
@@ -3929,7 +3931,7 @@ void BugFixes_Init()
 		0xF6, 0x47, 0x25, 0x08, // test [edi + 0x25], MultiHex_
 	};
 	SafeWriteBytes(0x42A0E6, codeData2, 8); // ai_move_steps_closer_
-	SafeWrite8(0x42A0F2, CODETYPE_JumpZ);   // jmp > jz
+	SafeWrite8(0x42A0F2, CodeType::JumpZ);  // jmp > jz
 
 	// Fix to prevent the execution of critter_p_proc and game events when playing movies (same as when the dialog is active)
 	HookCall(0x4A3C89, doBkProcesses_hook);

@@ -1052,7 +1052,7 @@ void Sound_Init() {
 		HookCall(0x42B849, ai_print_msg_hook);
 
 		if (isDebug && GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
-			SafeWrite8(0x42B6F5, CODETYPE_JumpShort); // bypass chance
+			SafeWrite8(0x42B6F5, CodeType::JumpShort); // bypass chance
 		}
 	}
 
@@ -1065,7 +1065,7 @@ void Sound_Init() {
 	}
 
 	if (GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
-		SafeMemSet(0x45020C, CODETYPE_Nop, 6); // gsound_reset_
+		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
 		SafeWrite32(0x45212C, 250); // delay start
 		SafeWrite32(0x450ADE, 500); // delay stop
 		fadeBgMusic = true;

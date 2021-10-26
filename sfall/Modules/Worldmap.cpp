@@ -336,8 +336,8 @@ static void WorldLimitsPatches() {
 
 	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
-		if (*((BYTE*)0x4BF3BB) != CODETYPE_JumpShort) {
-			SafeWrite8(0x4BF3BB, CODETYPE_JumpShort);
+		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
+			SafeWrite8(0x4BF3BB, CodeType::JumpShort);
 		}
 		dlogr(" Done", DL_INIT);
 	//}
@@ -360,8 +360,8 @@ static void TimeLimitPatch() {
 				0x4A3547  // inc_game_time_in_seconds_
 			};
 			MakeCalls(TimerReset, timerResetAddr);
-			SafeMemSet(0x4A34F4, CODETYPE_Nop, 16);
-			SafeMemSet(0x4A354C, CODETYPE_Nop, 16);
+			SafeMemSet(0x4A34F4, CodeType::Nop, 16);
+			SafeMemSet(0x4A354C, CodeType::Nop, 16);
 		} else {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);

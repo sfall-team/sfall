@@ -43,7 +43,7 @@ bool __fastcall Items::IsHealingItem(fo::GameObject* item) {
 
 	fo::Proto* proto;
 	if (fo::util::GetProto(item->protoId, &proto)) {
-		return (proto->item.flagsExt & fo::IFLG_HealingItem) != 0;
+		return (proto->item.flagsExt & fo::ItemFlags::HealingItem) != 0;
 	}
 	return false;
 }
@@ -97,7 +97,7 @@ long __stdcall Items::item_weapon_range(fo::GameObject* source, fo::GameObject* 
 	if (isSecondMode) flagExt = (flagExt >> 4);
 	long type = fo::util::GetWeaponType(flagExt);
 
-	if (type == fo::ATKSUBTYPE_THROWING) {
+	if (type == fo::AttackSubType::THROWING) {
 		long heaveHoMod = Stats::perk_level(source, fo::Perk::PERK_heave_ho);
 		long stRange = fo::func::stat_level(source, fo::Stat::STAT_st);
 
@@ -135,14 +135,14 @@ static long __stdcall item_w_mp_cost_sub(fo::GameObject* source, fo::GameObject*
 			cost--;
 		} else if (fastShotTweak == 2) { // Alternative behavior (allowed for all attacks)
 			cost--;
-		} else if (fastShotTweak < 2 && type > fo::ATKSUBTYPE_MELEE && fo::func::item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
+		} else if (fastShotTweak < 2 && type > fo::AttackSubType::MELEE && fo::func::item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
 			cost--;
 		}
 	}
-	if ((type == fo::ATKSUBTYPE_MELEE || type == fo::ATKSUBTYPE_UNARMED) && Stats::perk_level(source, fo::Perk::PERK_bonus_hth_attacks)) {
+	if ((type == fo::AttackSubType::MELEE || type == fo::AttackSubType::UNARMED) && Stats::perk_level(source, fo::Perk::PERK_bonus_hth_attacks)) {
 		cost--;
 	}
-	if (type == fo::ATKSUBTYPE_GUNS && Stats::perk_level(source, fo::Perk::PERK_bonus_rate_of_fire)) {
+	if (type == fo::AttackSubType::GUNS && Stats::perk_level(source, fo::Perk::PERK_bonus_rate_of_fire)) {
 		cost--;
 	}
 	if (cost < 1) cost = 1;

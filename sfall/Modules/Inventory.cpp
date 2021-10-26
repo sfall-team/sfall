@@ -51,12 +51,12 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 			if (maxAmmo != curAmmo) {
 				long &currentMode = fo::util::GetActiveItemMode();
 				long previusMode = currentMode;
-				currentMode = fo::HANDMODE_Reload;
+				currentMode = fo::HandSlotMode::Reload;
 				fo::func::intface_use_item();
-				if (previusMode != fo::HANDMODE_Reload) {
+				if (previusMode != fo::HandSlotMode::Reload) {
 					// return to previous active item mode (if it wasn't "reload")
 					currentMode = previusMode - 1;
-					if (currentMode < 0) currentMode = fo::HANDMODE_Secondary_Aimed;
+					if (currentMode < 0) currentMode = fo::HandSlotMode::Secondary_Aimed;
 					fo::func::intface_toggle_item_state();
 				}
 			}
@@ -635,7 +635,7 @@ void Inventory_Init() {
 		if (sizeLimitMode >= 4) {
 			sizeLimitMode -= 4;
 			// item_total_weight_ patch
-			SafeWrite8(0x477EB3, CODETYPE_JumpShort);
+			SafeWrite8(0x477EB3, CodeType::JumpShort);
 			const DWORD itemTotalWtAddr[] = {0x477EF5, 0x477F11, 0x477F29};
 			SafeWriteBatch<BYTE>(0, itemTotalWtAddr);
 		}

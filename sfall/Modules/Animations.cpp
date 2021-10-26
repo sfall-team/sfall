@@ -579,7 +579,7 @@ void Animations_Init() {
 	SafeWrite16(0x413DD4, 0x4478); // js 0x413E1A
 	MakeCall(0x413CE8, register_end_hack_begin, 1);
 	SafeWrite16(0x413D0B, 0xC689); // and dl, not 8 > mov esi, eax (keep offset to anim_set slot)
-	SafeWrite8(0x413D0D, CODETYPE_Nop);
+	SafeWrite8(0x413D0D, CodeType::Nop);
 	#endif
 
 	// Implement a temporary lock on an animation slot after it is cleared by the register_clear_ function
@@ -595,7 +595,7 @@ void Animations_Init() {
 
 	// Fix for calling anim() functions in combat
 	MakeCall(0x415DE2, anim_set_end_hack, 1);
-	SafeWrite8(0x415DEB, CODETYPE_JumpShort); // jz > jmp
+	SafeWrite8(0x415DEB, CodeType::JumpShort); // jz > jmp
 
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);

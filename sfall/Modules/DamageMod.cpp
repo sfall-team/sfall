@@ -433,7 +433,7 @@ static bool displayBonusDamage = false;
 static long __fastcall GetHtHDamage(fo::GameObject* source, long &meleeDmg, long handOffset) {
 	long min, max;
 
-	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HANDSLOT_Left : fo::HANDSLOT_Right);
+	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
 	long bonus = Unarmed_GetDamage(hit, min, max);
 	meleeDmg += max + bonus;
 
@@ -445,7 +445,7 @@ static long __fastcall GetHtHDamage(fo::GameObject* source, long &meleeDmg, long
 }
 
 static const char* __fastcall GetHtHName(long handOffset) {
-	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HANDSLOT_Left : fo::HANDSLOT_Right);
+	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
 	return Unarmed_GetName(hit);
 }
 

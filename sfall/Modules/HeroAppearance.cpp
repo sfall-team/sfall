@@ -1517,7 +1517,7 @@ static void EnableHeroAppearanceMod() {
 	HookCall(0x42613A, FixPcCriticalHitMsg);
 
 	// Force Criticals For Testing
-	//SafeMemSet(0x423A8F, CODETYPE_Nop, 8);
+	//SafeMemSet(0x423A8F, CodeType::Nop, 8);
 }
 
 static void HeroAppearanceModExit() {

@@ -81,7 +81,7 @@ bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* w
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	using namespace fo;
 	__asm {
-		or   byte ptr [esi + combatState], CBTFLG_ReTarget; // set CombatStateFlag flag
+		or   byte ptr [esi + combatState], ReTarget; // set CombatStateFlag flag
 		jmp  fo::funcoffs::ai_run_away_;
 	}
 }
@@ -90,11 +90,11 @@ static void __declspec(naked) combat_ai_hook_FleeFix() {
 	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
 	using namespace fo;
 	__asm {
-		test byte ptr [ebp], CBTFLG_ReTarget; // CombatStateFlag flag (critter.combat_state)
+		test byte ptr [ebp], ReTarget; // CombatStateFlag flag (critter.combat_state)
 		jnz  reTarget;
 		jmp  fo::funcoffs::critter_name_;
 reTarget:
-		and  byte ptr [ebp], ~(CBTFLG_InFlee | CBTFLG_ReTarget); // unset CombatStateFlag flags
+		and  byte ptr [ebp], ~(InFlee | ReTarget); // unset CombatStateFlag flags
 		xor  edi, edi;
 		mov  dword ptr [esi + whoHitMe], edi;
 		add  esp, 4;
@@ -288,7 +288,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 	if (item) {
 		// is using a close range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
-		if (wType <= fo::ATKSUBTYPE_MELEE) { // unarmed and melee weapons, check the distance before switching
+		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
 			if (!AIHelpers_AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function

@@ -71,8 +71,8 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				break;
 			}
 
-			if (game::Items::IsHealingItem(itemFind) && !game::Items::item_remove_mult(source, itemFind, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
-				if (!game::Items::UseDrugItemFunc(source, itemFind)) {                                                   // HOOK_USEOBJON
+			if (Items::IsHealingItem(itemFind) && !Items::item_remove_mult(source, itemFind, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+				if (!Items::UseDrugItemFunc(source, itemFind)) {                                             // HOOK_USEOBJON
 					drugWasUsed = true;
 				}
 
@@ -121,8 +121,8 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 				// if the preference counter is less than 3, then AI can use the drug
 				if (counter < 3) {
 					// if the item is NOT a healing drug
-					if (!game::Items::IsHealingItem(item) && !game::Items::item_remove_mult(source, item, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
-						if (!game::Items::UseDrugItemFunc(source, item)) {                                                // HOOK_USEOBJON
+					if (!Items::IsHealingItem(item) && !Items::item_remove_mult(source, item, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+						if (!Items::UseDrugItemFunc(source, item)) {                                          // HOOK_USEOBJON
 							drugWasUsed = true;
 							usedCount++;
 						}
@@ -150,15 +150,15 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 
 			// [FIX] Prevent the use of healing drugs when not necessary
 			// noInvenDrug: is set to 2 that healing is required
-			if (lastItem && noInvenDrug != 2 && game::Items::IsHealingItem(lastItem)) {
+			if (lastItem && noInvenDrug != 2 && Items::IsHealingItem(lastItem)) {
 				long maxHP = fo::func::stat_level(source, fo::Stat::STAT_max_hit_points);
 				if (10 + source->critter.health >= maxHP) { // quick check current HP
 					return; // exit: don't use healing item
 				}
 			}
 
-			if (lastItem && !game::Items::item_remove_mult(source, lastItem, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
-				if (!game::Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr;     // HOOK_USEOBJON
+			if (lastItem && !Items::item_remove_mult(source, lastItem, 1, 0x4286F0)) { // HOOK_REMOVEINVENOBJ
+				if (!Items::UseDrugItemFunc(source, lastItem)) lastItem = nullptr;     // HOOK_USEOBJON
 
 				source->critter.decreaseAP(aiUseItemAPCost);
 			}
@@ -193,8 +193,8 @@ void CombatAI::init() {
 
 	// Change ai_can_use_drug_ function code to check healing items
 	sf::MakeCall(0x429BDE, ai_can_use_drug_hack, 6);
-	sf::SafeWrite8(0x429BE9, sf::CODETYPE_JumpNZ);    // jz > jnz
-	sf::SafeWrite8(0x429BF1, sf::CODETYPE_JumpShort); // jnz > jmp
+	sf::SafeWrite8(0x429BE9, sf::CodeType::JumpNZ);    // jz > jnz
+	sf::SafeWrite8(0x429BF1, sf::CodeType::JumpShort); // jnz > jmp
 
 	drugUsePerfFixMode = sf::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
 	if (drugUsePerfFixMode > 0) sf::dlogr("Applying AI drug use preference fix.", DL_FIX);

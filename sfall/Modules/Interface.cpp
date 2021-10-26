@@ -686,7 +686,7 @@ void Interface_Init() {
 
 	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
-		SafeWriteBatch<BYTE>(CODETYPE_JumpShort, windowRoundingAddr);
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, windowRoundingAddr);
 	}
 
 	DrawActionPointsNumber();

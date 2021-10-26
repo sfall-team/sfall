@@ -53,8 +53,8 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 		case SET_HORRIGAN_ENCOUNTER: {
 			long argValue = args[0];        // arg1
 			if (argValue <= 0) {            // disable Horrigan encounter
-				if (*(BYTE*)HorriganEncounterCheck == CODETYPE_JumpNZ) {
-					SafeWrite8(HorriganEncounterCheck, CODETYPE_JumpShort); // skip the Horrigan encounter check
+				if (*(BYTE*)HorriganEncounterCheck == CodeType::JumpNZ) {
+					SafeWrite8(HorriganEncounterCheck, CodeType::JumpShort); // skip the Horrigan encounter check
 					HorriganEncounterDisabled = true;
 				}
 			} else {
@@ -115,7 +115,7 @@ void MetaruleExtenderReset() {
 	}
 	if (HorriganEncounterDisabled) {
 		HorriganEncounterDisabled = false;
-		SafeWrite8(HorriganEncounterCheck, CODETYPE_JumpNZ); // enable
+		SafeWrite8(HorriganEncounterCheck, CodeType::JumpNZ); // enable
 	}
 }
 

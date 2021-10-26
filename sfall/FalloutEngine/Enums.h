@@ -101,55 +101,55 @@ enum AnimCommand : long
 };
 
 enum BodyPart : long {
-	BODY_Head     = 0,
-	BODY_ArmLeft  = 1,
-	BODY_ArmRight = 2,
-	BODY_Torso    = 3,
-	BODY_LegRight = 4,
-	BODY_LegLeft  = 5,
-	BODY_Eyes     = 6,
-	BODY_Groin    = 7,
-	BODY_Uncalled = 8
+	Head     = 0,
+	ArmLeft  = 1,
+	ArmRight = 2,
+	Torso    = 3,
+	LegRight = 4,
+	LegLeft  = 5,
+	Eyes     = 6,
+	Groin    = 7,
+	Uncalled = 8
 };
 
 enum CritterFlags : long
 {
-	CFLG_Sneak        = 0x01,   // Can sneak ? (unused)
-	CFLG_Barter       = 0x02,   // Can trade with
-	CFLG_Level        = 0x04,   // Level received ? (unused)
-	CFLG_Addict       = 0x08,   // Drug addiction ? (unused)
-	CFLG_NoSteal      = 0x20,   // Can't be stolen from
-	CFLG_NoDrop       = 0x40,   // Doesn't drop items
-	CFLG_NoLimbs      = 0x80,   // Can't lose limbs
-	CFLG_NoAges       = 0x100,  // Dead body does not disappear
-	CFLG_NoHeal       = 0x200,  // Damage is not healed with time
-	CFLG_Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
-	CFLG_NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
-	CFLG_SpecialDeath = 0x1000, // Has a special type of death
-	CFLG_RangeHtH     = 0x2000, // Has extra hand-to-hand range
-	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
+	Sneak        = 0x01,   // Can sneak ? (unused)
+	Barter       = 0x02,   // Can trade with
+	Level        = 0x04,   // Level received ? (unused)
+	Addict       = 0x08,   // Drug addiction ? (unused)
+	NoSteal      = 0x20,   // Can't be stolen from
+	NoDrop       = 0x40,   // Doesn't drop items
+	NoLimbs      = 0x80,   // Can't lose limbs
+	NoAges       = 0x100,  // Dead body does not disappear
+	NoHeal       = 0x200,  // Damage is not healed with time
+	Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
+	NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
+	SpecialDeath = 0x1000, // Has a special type of death
+	RangeHtH     = 0x2000, // Has extra hand-to-hand range
+	NoKnockBack  = 0x4000, // Can't be knocked back
 };
 
 enum ItemFlags : unsigned long // for FlagsExt
 {
 	// Weapon Flags:
-	IFLG_BigGun       = 0x00000100,
-	IFLG_TwoHand      = 0x00000200,
-	IFLG_EnergyGun    = 0x00000400, // sfall flag
+	BigGun       = 0x00000100,
+	TwoHand      = 0x00000200,
+	EnergyGun    = 0x00000400, // sfall flag
 
 	// Action Flags:
-	IFLG_Use          = 0x00000800, // object can be used
+	Use          = 0x00000800, // object can be used
 
-	IFLG_HealingItem  = 0x04000000, // sfall healing drug flag
-	IFLG_HiddenItem   = 0x08000000  // item is hidden
+	HealingItem  = 0x04000000, // sfall healing drug flag
+	HiddenItem   = 0x08000000  // item is hidden
 };
 
 enum MiscFlags : unsigned long
 {
-	MISCFLG_Opened    = 0x00000001,
-	MISCFLG_CantUse   = 0x00000010, // determines whether the weapon can be used in combat (sfall flag)
-	MISCFLG_Locked    = 0x02000000,
-	MISCFLG_Jammed    = 0x04000000,
+	Opened       = 0x00000001,
+	CantUse      = 0x00000010, // determines whether the weapon can be used in combat (sfall flag)
+	Locked       = 0x02000000,
+	Jammed       = 0x04000000,
 };
 
 enum DamageFlag : unsigned long
@@ -681,11 +681,11 @@ enum AttackType : long
 
 enum AttackSubType : long
 {
-	ATKSUBTYPE_NONE           = 0,
-	ATKSUBTYPE_UNARMED        = 1,
-	ATKSUBTYPE_MELEE          = 2,
-	ATKSUBTYPE_THROWING       = 3,
-	ATKSUBTYPE_GUNS           = 4
+	NONE                      = 0,
+	UNARMED                   = 1,
+	MELEE                     = 2,
+	THROWING                  = 3,
+	GUNS                      = 4
 };
 
 enum KillType : long
@@ -739,19 +739,19 @@ enum TicksTime : unsigned long
 
 enum HandSlot : unsigned long
 {
-	HANDSLOT_Left         = 0,
-	HANDSLOT_Right        = 1
+	Left                  = 0,
+	Right                 = 1
 };
 
 enum HandSlotMode : long
 {
-	HANDMODE_Unset           = 0,
-	HANDMODE_Primary         = 1,
-	HANDMODE_Primary_Aimed   = 2,
-	HANDMODE_Secondary       = 3,
-	HANDMODE_Secondary_Aimed = 4,
-	HANDMODE_Reload          = 5,
-	HANDMODE_UnkMode         = 6
+	Unset                 = 0,
+	Primary               = 1,
+	Primary_Aimed         = 2,
+	Secondary             = 3,
+	Secondary_Aimed       = 4,
+	Reload                = 5,
+	UnkMode               = 6
 };
 
 enum RollResult
@@ -764,10 +764,10 @@ enum RollResult
 
 enum CombatStateFlag : long
 {
-	CBTFLG_InCombat        = 1,
-	CBTFLG_EnemyOutOfRange = 2,
-	CBTFLG_InFlee          = 4,
-	CBTFLG_ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
+	InCombat        = 1,
+	EnemyOutOfRange = 2,
+	InFlee          = 4,
+	ReTarget        = 8 // sfall flag (set in ai_try_attack_ before run away)
 };
 
 // Names of structure offsets used in the assembler code

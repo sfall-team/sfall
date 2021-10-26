@@ -359,7 +359,7 @@ static void __stdcall PreparePlayMovie() {
 	// if subtitles are disabled then mve videos will not be played
 	if (fo::var::getInt(FO_VAR_subtitles) || !*fo::ptr::subtitleList) {
 		// patching MVE_rmStepMovie_ for game subtitles
-		SafeWrite8(0x4F5F40, CODETYPE_Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
+		SafeWrite8(0x4F5F40, CodeType::Ret); // blocking sfShowFrame_ for disabling the display of mve video frames
 
 		// TODO
 

@@ -1382,10 +1382,10 @@ void Graphics_Init() {
 
 		if (hrpVersionValid) {
 			// Patch HRP to show the mouse cursor over the window title
-			if (GraphicsMode == 5) SafeWrite8(HRPAddress(0x10027142), CODETYPE_JumpShort);
+			if (GraphicsMode == 5) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
 
 			// Patch HRP to fix the issue of displaying a palette color with index 255 for images (splash screens, ending slides)
-			SafeWrite8(HRPAddress(0x1000F8C7), CODETYPE_JumpShort);
+			SafeWrite8(HRPAddress(0x1000F8C7), CodeType::JumpShort);
 		}
 
 		textureFilter = GetConfigInt("Graphics", "TextureFilter", 1);

@@ -918,7 +918,7 @@ loopObject:
 		je   nextObject;                          // No
 		test byte ptr [ecx + damageFlags], DAM_DEAD; // source.results & DAM_DEAD?
 		jz   nextObject;                          // No
-		mov  edx, CFLG_NoSteal;                   // _Steal flag
+		mov  edx, NoSteal;                        // _Steal flag
 		mov  eax, [ecx + protoId];                // eax = source.pid
 		call fo::funcoffs::critter_flag_check_;
 		test eax, eax;                            // Can't be stolen from?

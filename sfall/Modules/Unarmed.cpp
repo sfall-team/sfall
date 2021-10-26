@@ -266,8 +266,8 @@ static fo::AttackType GetPunchingHit(bool isPrimary) {
 static void __fastcall check_unarmed_left_slot(long skillLevel) {
 	unarmed.GetDudeStats(skillLevel);
 
-	fo::ptr::itemButtonItems[fo::HANDSLOT_Left].primaryAttack = GetPunchingHit(true);
-	fo::ptr::itemButtonItems[fo::HANDSLOT_Left].secondaryAttack = GetPunchingHit(false);
+	fo::ptr::itemButtonItems[fo::HandSlot::Left].primaryAttack = GetPunchingHit(true);
+	fo::ptr::itemButtonItems[fo::HandSlot::Left].secondaryAttack = GetPunchingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_punch() {
@@ -287,8 +287,8 @@ static fo::AttackType GetKickingHit(bool isPrimary) {
 
 // Kick hits
 static void check_unarmed_right_slot() {
-	fo::ptr::itemButtonItems[fo::HANDSLOT_Right].primaryAttack = GetKickingHit(true);
-	fo::ptr::itemButtonItems[fo::HANDSLOT_Right].secondaryAttack = GetKickingHit(false);
+	fo::ptr::itemButtonItems[fo::HandSlot::Right].primaryAttack = GetKickingHit(true);
+	fo::ptr::itemButtonItems[fo::HandSlot::Right].secondaryAttack = GetKickingHit(false);
 }
 
 static void __declspec(naked) intface_update_items_hack_kick() {
@@ -376,34 +376,34 @@ static fo::AttackType GetKickingHit() {
 }
 
 static void SlotsStoreCurrentHitMode() {
-	slotHitData[fo::HANDSLOT_Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HANDSLOT_Left);
-	slotHitData[fo::HANDSLOT_Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HANDSLOT_Left);
-	slotHitData[fo::HANDSLOT_Left].mode = fo::util::GetHandSlotMode(fo::HANDSLOT_Left);
+	slotHitData[fo::HandSlot::Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HandSlot::Left);
+	slotHitData[fo::HandSlot::Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HandSlot::Left);
+	slotHitData[fo::HandSlot::Left].mode = fo::util::GetHandSlotMode(fo::HandSlot::Left);
 
-	slotHitData[fo::HANDSLOT_Right].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HANDSLOT_Right);
-	slotHitData[fo::HANDSLOT_Right].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HANDSLOT_Right);
-	slotHitData[fo::HANDSLOT_Right].mode = fo::util::GetHandSlotMode(fo::HANDSLOT_Right);
+	slotHitData[fo::HandSlot::Right].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HandSlot::Right);
+	slotHitData[fo::HandSlot::Right].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HandSlot::Right);
+	slotHitData[fo::HandSlot::Right].mode = fo::util::GetHandSlotMode(fo::HandSlot::Right);
 }
 
 fo::AttackType Unarmed_GetStoredHitMode(fo::HandSlot slot) {
 	fo::AttackType hit;
 
 	switch (slotHitData[slot].mode) {
-	case fo::HANDMODE_Primary:
-	case fo::HANDMODE_Primary_Aimed: // called shot
+	case fo::HandSlotMode::Primary:
+	case fo::HandSlotMode::Primary_Aimed: // called shot
 		hit = slotHitData[slot].primaryHit;
 		break;
-	case fo::HANDMODE_Secondary:
-	case fo::HANDMODE_Secondary_Aimed: // called shot
+	case fo::HandSlotMode::Secondary:
+	case fo::HandSlotMode::Secondary_Aimed: // called shot
 		hit = slotHitData[slot].secondaryHit;
 		break;
 	}
 
 	if (hit < fo::AttackType::ATKTYPE_STRONGPUNCH && hit != fo::AttackType::ATKTYPE_PUNCH && hit != fo::AttackType::ATKTYPE_KICK) {
-		hit = (slot == fo::HANDSLOT_Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
+		hit = (slot == fo::HandSlot::Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
 
 		slotHitData[slot].primaryHit = hit;
-		slotHitData[slot].mode = fo::HANDMODE_Primary;
+		slotHitData[slot].mode = fo::HandSlotMode::Primary;
 	}
 	return hit;
 }
@@ -492,7 +492,7 @@ void Unarmed_Init() {
 	// Get critical chance hack
 	MakeJump(0x42394D, compute_attack_hack);
 	SafeWrite16(0x423A03, 0xC839); // cmp eax, 50 -> cmp eax, ecx
-	SafeWrite8(0x423A05, CODETYPE_Nop);
+	SafeWrite8(0x423A05, CodeType::Nop);
 
 	// Get damage hack
 	MakeJump(0x478492, item_w_damage_hack);
@@ -501,7 +501,7 @@ void Unarmed_Init() {
 	SafeWrite8(0x4248B4, 0x4E); // mov ecx, [hit]
 	MakeCall(0x4248B6, check_unarmed_penetrate, 5);
 	SafeWrite16(0x4248C1, 0x01F8); // cmp eax, 1
-	SafeWrite8(0x4248C8, CODETYPE_JumpShort);
+	SafeWrite8(0x4248C8, CodeType::JumpShort);
 
 	// Store the current values of unarmed attack modes when opening the player's inventory
 	HookCall(0x46E8D4, handle_inventory_hook);

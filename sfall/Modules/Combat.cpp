@@ -125,7 +125,7 @@ static void __declspec(naked) ai_can_use_weapon_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
-		test dword ptr [esi + miscFlags], MISCFLG_CantUse;
+		test dword ptr [esi + miscFlags], CantUse;
 		jnz  cantUse;
 		mov  eax, [edi + damageFlags];
 		retn;
@@ -145,7 +145,7 @@ static void __declspec(naked) can_use_weapon_hook() {
 		je   checkFlag;
 		retn; // eax - type
 checkFlag:
-		test dword ptr [edx + miscFlags], MISCFLG_CantUse;
+		test dword ptr [edx + miscFlags], CantUse;
 		jnz  cantUse;
 		retn; // eax - type
 cantUse:
@@ -160,7 +160,7 @@ static void __declspec(naked) combat_check_bad_shot_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
-		test dword ptr [ecx + miscFlags], MISCFLG_CantUse;
+		test dword ptr [ecx + miscFlags], CantUse;
 		jnz  cantUse;
 		mov  eax, [esi + damageFlags];
 		test al, DAM_CRIP_ARM_LEFT;
@@ -570,9 +570,9 @@ static void BodypartHitReadConfig() {
 }
 
 static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
-	using namespace fo;
+	using fo::Uncalled;
 	__asm {
-		mov  ebx, BODY_Uncalled; // replace Body_Torso with Body_Uncalled
+		mov  ebx, Uncalled; // replace Body_Torso with Body_Uncalled
 		jmp  fo::funcoffs::determine_to_hit_;
 	}
 }
@@ -692,10 +692,10 @@ void Combat_Init() {
 	BodypartHitReadConfig();
 
 	// Remove the dependency of Body_Torso from Body_Uncalled
-	SafeWrite8(0x423830, CODETYPE_JumpShort); // compute_attack_
+	SafeWrite8(0x423830, CodeType::JumpShort); // compute_attack_
 	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
-	SafeWrite8(0x42A713, fo::BODY_Groin); // Body_Uncalled > Body_Groin (ai_called_shot_)
-	SafeWriteBatch<BYTE>(fo::BODY_Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
+	SafeWrite8(0x42A713, fo::BodyPart::Groin); // Body_Uncalled > Body_Groin (ai_called_shot_)
+	SafeWriteBatch<BYTE>(fo::BodyPart::Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
 	const DWORD pickHitBodypartAddr[] = {0x429E8C, 0x429ECC, 0x429F09};
 	HookCalls(ai_pick_hit_mode_hook_bodypart, pickHitBodypartAddr);
 }

@@ -442,7 +442,7 @@ static void DebugModePatch() {
 			SafeWrite32(0x4C6D9C, (DWORD)debugLog);
 			if (dbgMode & 1) {
 				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
-				SafeWrite8(0x4C6EF2, CODETYPE_JumpShort);
+				SafeWrite8(0x4C6EF2, CodeType::JumpShort);
 				SafeWrite8(0x4C7034, 0x0);
 				MakeCall(0x4DC319, win_debug_hook, 2);
 			}
@@ -458,7 +458,7 @@ static void DebugModePatch() {
 		HookCall(0x419B65, art_data_size_hook);
 		// checks the animation code, if ANIM_walk then skip printing the debug message
 		HookCall(0x419AA0, art_data_size_hook_check);
-		SafeWrite8(0x419B61, CODETYPE_JumpNZ); // jz > jnz
+		SafeWrite8(0x419B61, CodeType::JumpNZ); // jz > jnz
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
 		if (dbgMode > 1) {
@@ -492,7 +492,7 @@ static void DebugModePatch() {
 static void DontDeleteProtosPatch() {
 	if (GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, CODETYPE_JumpShort);
+		SafeWrite8(0x48007E, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
 	}
 }
