@@ -113,56 +113,55 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 	}
 }
 
-// YAAM
-void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty) {
-	int ammoDiv = fo::func::item_w_dam_div(ctd.weapon);     // Retrieve Ammo Divisor
-	int ammoMult = fo::func::item_w_dam_mult(ctd.weapon);   // Retrieve Ammo Dividend
+// YAAM v1.1a by Haenlomal 2010.05.13
+void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, long rounds, long armorDT, long armorDR, long bonusRangedDamage, long multiplyDamage, long difficulty) {
+	if (rounds <= 0) return;
+
+	long ammoDiv = fo::func::item_w_dam_div(ctd.weapon);    // Retrieve Ammo Divisor
+	long ammoMult = fo::func::item_w_dam_mult(ctd.weapon);  // Retrieve Ammo Dividend
 
 	multiplyDamage *= ammoMult;                             // Damage Multipler = Critical Multipler * Ammo Dividend
-	int ammoDivisor = 1 * ammoDiv;                          // Ammo Divisor = 1 * Ammo Divisor
 
-	int ammoDT = fo::func::item_w_dr_adjust(ctd.weapon);    // Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
+	long ammoDT = fo::func::item_w_dr_adjust(ctd.weapon);   // Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
 
 	// Start of damage calculation loop
-	for (int i = 0; i < rounds; i++) {                      // Check number of hits
-		int rawDamage = fo::func::item_w_damage(ctd.attacker, ctd.hitMode); // Retrieve Raw Damage
+	for (long i = 0; i < rounds; i++) {                     // Check number of hits
+		long rawDamage = fo::func::item_w_damage(ctd.attacker, ctd.hitMode); // Retrieve Raw Damage
 		rawDamage += bonusRangedDamage;                     // Raw Damage = Raw Damage + Bonus Ranged Damage
 
-		int calcDT = armorDT - ammoDT;                      // DT = armor DT - ammo DT
-		if (calcDT < 0) calcDT = 0;
-
-		rawDamage -= calcDT;                                // Raw Damage = Raw Damage - DT
+		long calcDT = armorDT - ammoDT;                     // DT = armor DT - ammo DT
+		if (calcDT > 0) rawDamage -= calcDT;                // Raw Damage = Raw Damage - DT
 		if (rawDamage <= 0) continue;                       // Is Raw Damage <= 0? If yes, skip damage calculation and go to bottom of loop
 
 		rawDamage *= multiplyDamage;                        // Raw Damage = Raw Damage * Damage Multiplier
-		if (ammoDivisor != 0) {                             // avoid divide by zero error
-			rawDamage /= ammoDivisor;                       // Raw Damage = Raw Damage / Ammo Divisor
+		if (ammoDiv != 0) {                                 // avoid divide by zero error
+			rawDamage /= ammoDiv;                           // Raw Damage = Raw Damage / Ammo Divisor
 		}
 		rawDamage /= 2;                                     // Raw Damage = Raw Damage / 2 (related to critical hit damage multiplier bonus)
 		rawDamage *= difficulty;                            // Raw Damage = Raw Damage * combat difficulty setting (75 if wimpy, 100 if normal or if attacker is player, 125 if rough)
 		rawDamage /= 100;                                   // Raw Damage = Raw Damage / 100
 
-		calcDT = armorDT - ammoDT;                          // DT = armor DT - ammo DT
 		if (calcDT >= 0) {                                  // Is DT >= 0?
 			calcDT = 0;                                     // If yes, set DT = 0
 		} else {
 			calcDT *= 10;                                   // Otherwise, DT = DT * 10 (note that this should be a negative value)
 		}
 
-		int calcDR = armorDR + calcDT;                      // DR = armor DR + DT (note that DT should be less than or equal to zero)
+		long calcDR = armorDR + calcDT;                     // DR = armor DR + DT (note that DT should be less than or equal to zero)
 		if (calcDR >= 100) {                                // Is DR >= 100?
 			continue;                                       // If yes, damage will be zero, so stop calculating and go to bottom of loop
 		} else if (calcDR < 0) {                            // Is DR >= 0?
 			calcDR = 0;                                     // If no, set DR = 0
 		}
 
-		int resistedDamage =  calcDR * rawDamage;           // Otherwise, Resisted Damage = DR * Raw Damage
+		long resistedDamage = calcDR * rawDamage;           // Otherwise, Resisted Damage = DR * Raw Damage
 		resistedDamage /= 100;                              // Resisted Damage = Resisted Damage / 100
 		rawDamage -= resistedDamage;                        // Raw Damage = Raw Damage - Resisted Damage
 
 		if (rawDamage > 0) accumulatedDamage += rawDamage;  // Accumulated Damage = Accumulated Damage + Raw Damage
 	}
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // Display melee damage w/o PERK_bonus_hth_damage bonus
