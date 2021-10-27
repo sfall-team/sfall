@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable: 4482) // nonstandard extension used: enum 'name' used in qualified name (C++11)
 
 namespace sfall
 {

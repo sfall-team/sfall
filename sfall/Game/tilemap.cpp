@@ -4,8 +4,6 @@
  *
  */
 
-//#include <array>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
