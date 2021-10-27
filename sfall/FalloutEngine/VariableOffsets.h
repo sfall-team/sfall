@@ -30,6 +30,7 @@
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
 #define FO_VAR_buf_length_2               0x66BE14
+#define FO_VAR_buf_rect_2                 0x66BBD4
 #define FO_VAR_buf_width_2                0x66BE30
 #define FO_VAR_button_down_data           0x519500
 #define FO_VAR_button_up_data             0x5194FC
@@ -76,6 +77,7 @@
 #define FO_VAR_disp_curr                  0x56FB48
 #define FO_VAR_disp_init                  0x51850C
 #define FO_VAR_disp_start                 0x56FB54
+#define FO_VAR_display_buf                0x631D50
 #define FO_VAR_display_string_buf         0x56DBFC
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
@@ -257,6 +259,7 @@
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC
 #define FO_VAR_rectList                   0x51DEF4
+#define FO_VAR_refresh_enabled            0x51D968
 #define FO_VAR_retvals                    0x43EA7C
 #define FO_VAR_rm_FrameCount              0x6B36A8
 #define FO_VAR_rotation                   0x631D34
@@ -268,6 +271,8 @@
 #define FO_VAR_script_engine_running      0x51C714
 #define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
+#define FO_VAR_scroll_blocking_on         0x51D954
+#define FO_VAR_scroll_limiting_on         0x51D958
 #define FO_VAR_skill_data                 0x51D118
 #define FO_VAR_skldxwin                   0x668140
 #define FO_VAR_slot_cursor                0x5193B8
@@ -277,6 +282,7 @@
 #define FO_VAR_sound_music_path2          0x518E7C
 #define FO_VAR_speech_volume              0x518E8C
 #define FO_VAR_square                     0x631E40
+#define FO_VAR_square_rect                0x66BDE4 // _square_y
 #define FO_VAR_squares                    0x66BE08
 #define FO_VAR_stack                      0x59E86C
 #define FO_VAR_stack_offset               0x59E844
@@ -304,6 +310,11 @@
 #define FO_VAR_text_to_buf                0x51E3B8
 #define FO_VAR_text_width                 0x51E3C0
 #define FO_VAR_tile                       0x631D30
+#define FO_VAR_tile_center_tile           0x66BE34
+#define FO_VAR_tile_offx                  0x66BDFC
+#define FO_VAR_tile_offy                  0x66BDF8
+#define FO_VAR_tile_x                     0x66BE18
+#define FO_VAR_tile_y                     0x66BE1C
 #define FO_VAR_title_color                0x56D750
 #define FO_VAR_title_font                 0x56D748
 #define FO_VAR_trait_data                 0x51DB84

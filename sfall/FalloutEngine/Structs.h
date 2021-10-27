@@ -109,6 +109,13 @@ struct AnimationSad {
 
 static_assert(sizeof(AnimationSad) == 3240, "Incorrect AnimationSad definition.");
 
+struct SquareRect {
+	long y;
+	long x;
+	long offx;
+	long offy;
+};
+
 // Bounding rectangle, used by tile_refresh_rect and related functions.
 struct BoundRect {
 	long x;

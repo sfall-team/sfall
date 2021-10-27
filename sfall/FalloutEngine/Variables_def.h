@@ -203,6 +203,7 @@ VAR_(sound_music_path1,          char*)
 VAR_(sound_music_path2,          char*)
 VAR_(speech_volume,              DWORD)
 VAR_(square,                     DWORD)
+VAR_(square_rect,                fo::SquareRect) // _square_y
 VAR_(squares,                    DWORD*)
 VARA(stack,                      DWORD, 10)
 VARA(stack_offset,               DWORD, 10)

@@ -13,6 +13,8 @@ class EdgeBorder {
 public:
 	static void init();
 
+	static long GetCenterTile(long tile, long mapLevel);
+	static long CheckBorder(long tile);
 };
 
 }
