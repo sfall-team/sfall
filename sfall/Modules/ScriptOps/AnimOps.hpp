@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "Explosions.h"
+
 namespace sfall
 {
 

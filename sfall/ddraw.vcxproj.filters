@@ -100,6 +100,9 @@
     <ClInclude Include="Modules\LoadOrder.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\MainLoopHook.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
     <ClInclude Include="Modules\MainMenu.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -377,6 +380,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\LoadOrder.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\MainLoopHook.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\MainMenu.cpp">

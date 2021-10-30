@@ -27,9 +27,10 @@
 #include "..\Translate.h"
 #include "..\version.h"
 #include "Arrays.h"
-#include "Explosions.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
+#include "MainLoopHook.h"
+
 #include "ScriptExtender.h"
 
 using namespace sfall;
@@ -37,7 +38,6 @@ using namespace sfall;
 
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId);
 
-static void RunGlobalScripts1();
 static void ClearEventsOnMapExit();
 
 // variables for new opcodes
@@ -457,7 +457,6 @@ DWORD availableGlobalScriptTypes = 0;
 static DWORD isGlobalScriptLoading = 0;
 static bool isGameReset;
 bool alwaysFindScripts;
-bool displayWinUpdateState = false;
 
 fo::ScriptInstance overrideScript = {0};
 
@@ -727,54 +726,6 @@ override: // for scr_find_obj_from_program_
 		mov  [edx], eax;
 		mov  esi, [eax]; // script.id
 		xor  eax, eax;
-		retn;
-	}
-}
-
-/**
-	Do some cleaning after each combat attack action
-*/
-static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack
-	ResetExplosionSettings();
-}
-
-static void __declspec(naked) MainGameLoopHook() {
-	__asm {
-		push ecx;
-		call fo::funcoffs::get_input_;
-		push edx;
-		push eax;
-		call RunGlobalScripts1;
-		mov  displayWinUpdateState, 0; // reset
-		pop  eax;
-		pop  edx;
-		pop  ecx;
-		retn;
-	}
-}
-
-static void __declspec(naked) CombatLoopHook() {
-	__asm {
-		push ecx;
-		push edx;
-		//push eax;
-		call RunGlobalScripts1;
-		//pop  eax;
-		pop  edx;
-		call fo::funcoffs::get_input_;
-		pop  ecx; // fix to prevent the combat turn from being skipped after using Alt+Tab
-		retn;
-	}
-}
-
-static void __declspec(naked) AfterCombatAttackHook() {
-	__asm {
-		push ecx;
-		push edx;
-		call AfterCombatAttack;
-		pop  edx;
-		pop  ecx;
-		mov  eax, 1;
 		retn;
 	}
 }
@@ -1222,7 +1173,7 @@ static void ResetStateAfterFrame() {
 	RegAnimCombatCheck(1);
 }
 
-static void RunGlobalScripts1() {
+void RunGlobalScripts1() {
 	if (idle > -1) Sleep(idle);
 
 	if (toggleHighlightsKey) {
@@ -1653,10 +1604,6 @@ void ScriptExtender_Init() {
 
 	alwaysFindScripts = isDebug && (GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
-
-	HookCall(0x480E7B, MainGameLoopHook); // hook the main game loop
-	HookCall(0x422845, CombatLoopHook);   // hook the combat loop
-	MakeCall(0x4230D5, AfterCombatAttackHook);
 
 	MakeJump(0x4A390C, scr_find_sid_from_program_hack);
 	MakeJump(0x4A5E34, scr_ptr_hack);

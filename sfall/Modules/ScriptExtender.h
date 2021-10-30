@@ -50,6 +50,7 @@ void LoadGlobalScripts();
 void InitGlobalScripts();
 bool __stdcall IsGameScript(const char* filename);
 
+void RunGlobalScripts1();
 void RunGlobalScripts2();
 void RunGlobalScripts3();
 void __stdcall RunGlobalScriptsAtProc(DWORD procId);
@@ -103,5 +104,4 @@ void ObjectNameReset();
 // variables
 extern DWORD availableGlobalScriptTypes;
 extern bool alwaysFindScripts;
-extern bool displayWinUpdateState;
 extern bool scriptExtOnMapLeave;

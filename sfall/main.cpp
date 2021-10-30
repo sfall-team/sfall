@@ -50,6 +50,7 @@
 #include "Modules\KillCounter.h"
 #include "Modules\LoadGameHook.h"
 #include "Modules\LoadOrder.h"
+#include "Modules\MainLoopHook.h"
 #include "Modules\MainMenu.h"
 #include "Modules\Message.h"
 #include "Modules\MetaruleExtender.h"
@@ -121,6 +122,9 @@ static void InitModules() {
 
 	dlogr("Running LoadGameHook_Init().", DL_INIT);
 	LoadGameHook_Init();
+
+	dlogr("Running MainLoopHook_Init().", DL_INIT);
+	MainLoopHook_Init();
 
 	dlogr("Running EngineTweaks_Init().", DL_INIT);
 	EngineTweaks_Init();
