@@ -115,7 +115,7 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 
 // YAAM v1.1a by Haenlomal 2010.05.13
 void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, long rounds, long armorDT, long armorDR, long bonusRangedDamage, long multiplyDamage, long difficulty) {
-	if (rounds <= 0) return;
+	if (rounds <= 0) return;                                // Check number of hits
 
 	long ammoDiv = fo::func::item_w_dam_div(ctd.weapon);    // Retrieve Ammo Divisor
 	long ammoMult = fo::func::item_w_dam_mult(ctd.weapon);  // Retrieve Ammo Dividend
@@ -124,13 +124,29 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 
 	long ammoDT = fo::func::item_w_dr_adjust(ctd.weapon);   // Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
 
+	long calcDT = armorDT - ammoDT;                         // DT = armor DT - ammo DT
+	long _calcDT = calcDT;
+
+	if (calcDT >= 0) {                                      // Is DT >= 0?
+		_calcDT = 0;                                        // If yes, set DT = 0
+	} else {
+		_calcDT *= 10;                                      // Otherwise, DT = DT * 10 (note that this should be a negative value)
+		calcDT = 0;
+	}
+
+	long calcDR = armorDR + _calcDT;                        // DR = armor DR + DT (note that DT should be less than or equal to zero)
+	if (calcDR < 0) {                                       // Is DR >= 0?
+		calcDR = 0;                                         // If no, set DR = 0
+	} else if (calcDR >= 100) {                             // Is DR >= 100?
+		return;                                             // If yes, damage will be zero, so stop calculating and go to bottom of loop
+	}
+
 	// Start of damage calculation loop
-	for (long i = 0; i < rounds; i++) {                     // Check number of hits
+	for (long i = 0; i < rounds; i++) {
 		long rawDamage = fo::func::item_w_damage(ctd.attacker, ctd.hitMode); // Retrieve Raw Damage
 		rawDamage += bonusRangedDamage;                     // Raw Damage = Raw Damage + Bonus Ranged Damage
 
-		long calcDT = armorDT - ammoDT;                     // DT = armor DT - ammo DT
-		if (calcDT > 0) rawDamage -= calcDT;                // Raw Damage = Raw Damage - DT
+		rawDamage -= calcDT;                                // Raw Damage = Raw Damage - DT
 		if (rawDamage <= 0) continue;                       // Is Raw Damage <= 0? If yes, skip damage calculation and go to bottom of loop
 
 		rawDamage *= multiplyDamage;                        // Raw Damage = Raw Damage * Damage Multiplier
@@ -140,19 +156,6 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 		rawDamage /= 2;                                     // Raw Damage = Raw Damage / 2 (related to critical hit damage multiplier bonus)
 		rawDamage *= difficulty;                            // Raw Damage = Raw Damage * combat difficulty setting (75 if wimpy, 100 if normal or if attacker is player, 125 if rough)
 		rawDamage /= 100;                                   // Raw Damage = Raw Damage / 100
-
-		if (calcDT >= 0) {                                  // Is DT >= 0?
-			calcDT = 0;                                     // If yes, set DT = 0
-		} else {
-			calcDT *= 10;                                   // Otherwise, DT = DT * 10 (note that this should be a negative value)
-		}
-
-		long calcDR = armorDR + calcDT;                     // DR = armor DR + DT (note that DT should be less than or equal to zero)
-		if (calcDR >= 100) {                                // Is DR >= 100?
-			continue;                                       // If yes, damage will be zero, so stop calculating and go to bottom of loop
-		} else if (calcDR < 0) {                            // Is DR >= 0?
-			calcDR = 0;                                     // If no, set DR = 0
-		}
 
 		long resistedDamage = calcDR * rawDamage;           // Otherwise, Resisted Damage = DR * Raw Damage
 		resistedDamage /= 100;                              // Resisted Damage = Resisted Damage / 100

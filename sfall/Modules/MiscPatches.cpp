@@ -890,7 +890,7 @@ void MiscPatches::init() {
 	if (IniReader::GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
 		SafeWrite32(0x418867, 0x90909090);
-		SafeWrite32(0x418872, 261); // setup default for 512 MB system memory
+		SafeWrite32(0x418872, 261); // default for 512 MB system memory by installer
 		dlogr(" Done", DL_INIT);
 	}
 
