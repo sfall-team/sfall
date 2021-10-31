@@ -6,6 +6,7 @@
 
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Modules\LoadGameHook.h"
 
 #include "ViewMap.h"
 
@@ -22,7 +23,7 @@ static struct Edge {
 	RECT tileRect_3;
 	RECT rect_4;
 	long field_48;
-	Edge* prevEdgeData_4C; // unused? (used in 3.06)
+	Edge* prevEdgeData; // unused? (used in 3.06)
 	Edge* nextEdgeData_50;
 
 	void Release() {
@@ -43,12 +44,12 @@ static struct Edge {
 Edge* CurrentMapEdge;
 
 long EdgeVersion;
-long isLoadingMapEdge;
+bool isLoadingMapEdge;
 bool isDefaultSetEdge;
 
 // Implementation from HRP by Mash
 static void CalcEdgeData(Edge* edgeData, long w, long h) {
-	long x = 0, y = 0;
+	long x, y;
 
 	ViewMap::GetTileCoordOffset(edgeData->tileRect_3.left, x, y);
 	edgeData->rect_1.left = x;
@@ -119,7 +120,7 @@ static void CalcEdgeData(Edge* edgeData, long w, long h) {
 }
 
 static void SetDefaultEdgeData() {
-	long w = 0, h = 0;
+	long w, h;
 	ViewMap::GetMapWindowSize(w, h);
 
 	if (MapEdgeData == nullptr) MapEdgeData = new Edge[3];
@@ -131,7 +132,7 @@ static void SetDefaultEdgeData() {
 		edge->tileRect_3.top = 0;
 		edge->tileRect_3.right = 39800;
 		edge->tileRect_3.bottom = 39999;
-		edge->prevEdgeData_4C = nullptr;
+		edge->prevEdgeData = nullptr;
 
 		CalcEdgeData(edge, w, h);
 
@@ -149,11 +150,11 @@ static void SetDefaultEdgeData() {
 
 // Implementation from HRP by Mash
 static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
-	char edgPath[32];
+	char edgPath[33];
 
 	char* posDot = std::strchr(mapName, '.');
 	*posDot = '\0';
-	std::sprintf(edgPath, "%s.edg", mapName); //maps
+	std::sprintf(edgPath, "maps\\%s.edg", mapName);
 	*posDot = '.';
 
 	fo::DbFile* file = fo::func::db_fopen(edgPath, "rb");
@@ -177,7 +178,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 	getValue = 0;
 	if (fo::func::db_freadInt(file, &getValue) || getValue) return file; // unknown for now
 
-	long w = 0, h = 0;
+	long w, h;
 	ViewMap::GetMapWindowSize(w, h);
 
 	if (MapEdgeData) {
@@ -193,7 +194,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 		Edge* edgeData = &MapEdgeData[mapLevel];
 
 		if (EdgeVersion) {
-			// load a rectangle?
+			// load rectangle data (version 1)
 			if (fo::func::db_freadIntCount(file, (DWORD*)&edgeData->rect_4, 4) || fo::func::db_freadInt(file, (DWORD*)&edgeData->field_48)) {
 				return file; // read error
 			}
@@ -207,28 +208,25 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 
 		if (getValue == mapLevel) {
 			while (true) {
-				long result = fo::func::db_freadIntCount(file, (DWORD*)&edgeData->tileRect_3, 4); // load the rectangle
+				long result = fo::func::db_freadIntCount(file, (DWORD*)&edgeData->tileRect_3, 4); // load rectangle data
 				if (result != 0) return file; // read error
 
 				CalcEdgeData(edgeData, w, h);
 
-				if (fo::func::db_freadInt(file, &getValue)) {
+				if (fo::func::db_freadInt(file, &getValue)) { // are there more rectangles on the current map level?
 					// the end of file is reached (read error)
 					if (mapLevel != 2) return file;
 
 					getValue = -1;
 					break; // next level
 				}
+				if (getValue != mapLevel) break; // next level
 
-				if (getValue == mapLevel) { // there are more rectangles for the current map level
-					Edge *edge = new Edge;
-					edge->nextEdgeData_50 = nullptr;
-					edge->rect_4 = edgeData->rect_4; // rect copy
-					edgeData->nextEdgeData_50 = edge;
-					edgeData = edge;
-					continue; // next read
-				}
-				break; // next level
+				Edge *edge = new Edge;
+				edge->nextEdgeData_50 = nullptr;
+				edge->rect_4 = edgeData->rect_4; // rect copy
+				edgeData->nextEdgeData_50 = edge;
+				edgeData = edge;
 			}
 		}
 	} while (++mapLevel < 3);
@@ -237,30 +235,13 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 	return 0;
 }
 
-static void __fastcall LoadMapEdgeFile(char* mapName) {
-	isLoadingMapEdge = 0;
+static void __fastcall LoadMapEdgeFile() {
+	//isLoadingMapEdge = 0;
 
-	fo::DbFile* file = LoadMapEdgeFileSub(mapName);
+	fo::DbFile* file = LoadMapEdgeFileSub(LoadGameHook::mapLoadingName);
 	if (file) { // load error
 		fo::func::db_fclose(file);
 		SetDefaultEdgeData();
-	}
-}
-
-// open map file
-static void __declspec(naked) map_load_hook_db_fopen() {
-	__asm {
-		push ecx;
-		mov  ecx, eax; // mapName
-		call fo::funcoffs::db_fopen_;
-		test eax, eax;
-		jz   fail;
-		push eax;
-		call LoadMapEdgeFile;
-		pop  eax;
-fail:
-		pop  ecx;
-		retn;
 	}
 }
 
@@ -268,7 +249,7 @@ fail:
 long EdgeBorder::GetCenterTile(long tile, long mapLevel) {
 	if (!isDefaultSetEdge) SetDefaultEdgeData(); // needed at game initialization
 
-	long x = 0, y = 0;
+	long x, y;
 	ViewMap::GetTileCoordOffset(tile, x, y);
 
 	Edge* edgeData = &MapEdgeData[mapLevel];
@@ -381,7 +362,7 @@ long EdgeBorder::CheckBorder(long tile) {
 }
 
 void EdgeBorder::init() {
-	HookCall(0x482AE1, map_load_hook_db_fopen);
+	LoadGameHook::OnBeforeMapLoad() += LoadMapEdgeFile;
 }
 
 }

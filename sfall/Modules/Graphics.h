@@ -58,6 +58,7 @@ public:
 
 	static DWORD mode;
 	static DWORD GPUBlt;
+	static bool IsWindowMode;
 
 	static HWND GetFalloutWindowInfo(RECT* rect);
 	static long GetGameWidthRes();

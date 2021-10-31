@@ -394,6 +394,7 @@
     <ClInclude Include="HRP\ViewMap\ViewMap.h">
       <Filter>HRP\ViewMap</Filter>
     </ClInclude>
+    <ClInclude Include="WinProc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -723,6 +724,7 @@
     <ClCompile Include="HRP\ViewMap\ViewMap.cpp">
       <Filter>HRP\ViewMap</Filter>
     </ClCompile>
+    <ClCompile Include="WinProc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

@@ -15,6 +15,9 @@ public:
 
 	static long SCROLL_DIST_X;
 	static long SCROLL_DIST_Y;
+	static bool IGNORE_PLAYER_SCROLL_LIMITS;
+	static bool IGNORE_MAP_EDGES;
+	static bool EDGE_CLIPPING_ON;
 
 	static long MapDisplayWinHalfWidth;
 	static long MapDisplayWinHalfHeight;

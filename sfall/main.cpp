@@ -18,8 +18,6 @@
 
 #pragma comment(lib, "psapi.lib")
 
-#include <psapi.h>
-
 #include "main.h"
 #include "FalloutEngine\Fallout2.h"
 
@@ -84,6 +82,7 @@
 #include "ReplacementFuncs.h"
 #include "Translate.h"
 #include "version.h"
+#include "WinProc.h"
 
 #include "HRP\Init.h"
 
@@ -97,10 +96,8 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
-static DWORD hrpDLLBaseAddr = 0x10000000;
-
 DWORD HRPAddress(DWORD addr) {
-	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
+	return (HRP::hrpDLLBaseAddr + (addr & 0xFFFFF));
 }
 
 char falloutConfigName[65];
@@ -180,15 +177,6 @@ static void InitModules() {
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
-static void LoadHRPModule() {
-	static const DWORD loadFunc = 0x4FE1D0;
-	HMODULE dll;
-	__asm call loadFunc; // get HRP loading address
-	__asm mov  dll, eax;
-	if (dll != NULL) hrpDLLBaseAddr = (DWORD)dll;
-	dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, dll);
-}
-
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
 	char buf[MAX_PATH];
@@ -223,10 +211,19 @@ static void SfallInit() {
 	char filepath[MAX_PATH];
 	GetModuleFileName(0, filepath, MAX_PATH);
 
+	SetCursor(LoadCursorA(0, IDC_ARROW));
+	ShowCursor(1);
+
 	if (!CRC(filepath)) return;
 
 	LoggingInit();
 	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+
+	hrpIsEnabled = HRP::CheckExternalPatch();
+	if (!hrpIsEnabled)
+		WinProc::init();
+	else
+		ShowCursor(0);
 
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
@@ -283,17 +280,6 @@ static void SfallInit() {
 	} else {
 defaultIni:
 		IniReader::SetDefaultConfigFile();
-	}
-
-	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-	if (hrpIsEnabled) {
-		LoadHRPModule();
-		MODULEINFO info;
-		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
-			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
-				hrpVersionValid = true;
-			}
-		}
 	}
 	std::srand(GetTickCount());
 

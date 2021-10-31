@@ -6,6 +6,7 @@
 
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Modules\LoadGameHook.h"
 
 #include "EdgeBorder.h"
 
@@ -16,6 +17,9 @@ namespace sfall
 
 long ViewMap::SCROLL_DIST_X;
 long ViewMap::SCROLL_DIST_Y;
+bool ViewMap::IGNORE_PLAYER_SCROLL_LIMITS;
+bool ViewMap::IGNORE_MAP_EDGES;
+bool ViewMap::EDGE_CLIPPING_ON;
 
 static long mapDisplayWinWidthMod;
 static long mapDisplayWinHeightMod;
@@ -71,17 +75,17 @@ static long __fastcall tile_set_center(long tile, long modeFlags) {
 	if (modeFlags) tile = EdgeBorder::GetCenterTile(tile, mapElevation);
 
 	if (!(modeFlags & 2) && fo::var::getInt(FO_VAR_scroll_limiting_on)) {
-		long x = 0, y = 0;
+		long x, y;
 		ViewMap::GetTileCoord(tile, x, y);
 
-		long dudeX = 0, dudeY = 0;
+		long dudeX, dudeY;
 		ViewMap::GetTileCoord(fo::var::obj_dude->tile, dudeX, dudeY);
 
 		long distanceX = 16 * std::abs(x - dudeX);
 		long distanceY = 12 * std::abs(y - dudeY);
 
 		if (distanceX >= ViewMap::SCROLL_DIST_X || distanceY >= ViewMap::SCROLL_DIST_Y) { // doesn't seem to work
-			long centerX = 0, centerY = 0;
+			long centerX, centerY;
 			ViewMap::GetTileCoord(fo::var::getInt(FO_VAR_tile_center_tile), centerX, centerY);
 
 			if ((16 * std::abs(centerX - tile)) < distanceX || (12 * std::abs(centerY - dudeY)) < distanceY) {
@@ -158,10 +162,16 @@ void ViewMap::init() {
 	MakeJump(fo::funcoffs::tile_set_center_, tile_set_center_hack_replacement); // 0x4B12F8
 	MakeJump(fo::funcoffs::tile_scroll_to_, tile_set_center_hack_replacement);
 
-	// Dev block tile_set_border_
-	//BlockCall(0x4B11A3); // tile_init_
 
 	EdgeBorder::init();
+
+	LoadGameHook::OnAfterGameInit() += []() {
+		if (IGNORE_PLAYER_SCROLL_LIMITS) fo::var::setInt(FO_VAR_scroll_limiting_on) = 0;
+		if (IGNORE_MAP_EDGES) fo::var::setInt(FO_VAR_scroll_blocking_on) = 0;
+	};
+
+	// Dev block tile_set_border_
+	//BlockCall(0x4B11A3); // tile_init_
 }
 
 }
