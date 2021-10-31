@@ -80,12 +80,17 @@ aJmp:
 		cmp  edx, eax;                        // compare the dividend value to the divisor value
 		jl   lrThan;                          // the dividend is less than the divisor then goto lrThan
 		jg   grThan;                          // the dividend is greater than the divisor then goto grThan
-		jmp  setOne;                          // if the two values are equal then goto setOne
+		mov  eax, 1;                          // if the two values are equal then set the quotient value to 1
+		jmp  endDiv;                          // goto endDiv
 lrThan:
 		shl  edx, 1;                          // multiply dividend value by 2
 		cmp  edx, eax;                        // compare the dividend value to the divisor value
-		jle  setZero;                         // if the dividend value is less than or equal to the divisor value then goto setZero
-		jmp  setOne;                          // if the dividend value is greater than the divisor value then goto setOne
+		jle  setZero;                         // if the dividend is less than or equal to the divisor then goto setZero
+		mov  eax, 1;                          // if the dividend is greater than the divisor then set the quotient value to 1
+		jmp  endDiv;                          // goto endDiv
+setZero:
+		xor  eax, eax;                        // clear value
+		jmp  endDiv;                          // goto endDiv
 grThan:
 		mov  ebp, eax;                        // assign the divisor value
 		mov  eax, edx;                        // assign the dividend value
@@ -95,18 +100,12 @@ grThan:
 		jz   endDiv;                          // if the remainder value is equal to 0 then goto endDiv
 		shl  edx, 1;                          // multiply the remainder value by 2
 		cmp  edx, ebp;                        // compare the remainder value to the divisor value
-		jl   endDiv;                          // if the remainder value is less than the divisor value then goto endDiv
-		jg   addOne;                          // if the remainder value is greater than the divisor value then goto addOne
+		jl   endDiv;                          // if the remainder is less than the divisor then goto endDiv
+		jg   addOne;                          // if the remainder is greater than the divisor then goto addOne
 		test al, 1;                           // check if the quotient value is even or odd
 		jz   endDiv;                          // if the quotient value is even goto endDiv
 addOne:
 		inc  eax;                             // add 1 to the quotient value
-		jmp  endDiv;                          // goto endDiv
-setOne:
-		mov  eax, 1;                          // set the quotient value to 1
-		jmp  endDiv;                          // goto endDiv
-setZero:
-		xor  eax, eax;                        // clear value
 endDiv:
 		cmp  dword ptr ss:[esp + 0x30], 2;    // compare value to 2
 		je   divTwo;                          // goto divTwo
@@ -231,7 +230,7 @@ end:
 
 // YAAM v1.1a by Haenlomal 2010.05.13
 static __declspec(naked) void DamageYAAM() {
-	static long ammoDT;
+	static long calcDT, calcDR;
 	__asm {
 		mov  ebx, dword ptr ss:[esp + 0x1C];  // Get number of hits
 		xor  ecx, ecx;                        // Set loop counter to zero
@@ -241,37 +240,51 @@ static __declspec(naked) void DamageYAAM() {
 		mov  edx, dword ptr ss:[esp + 0x24];  // Get Critical Multiplier (passed in as argument to function)
 		call fo::funcoffs::item_w_dam_mult_;  // Retrieve Ammo Dividend
 		imul edx, eax;                        // Damage Multipler = Critical Multipler * Ammo Dividend
+		mov  dword ptr ss:[esp + 0x24], edx;  // Store Damage Multiplier
 		mov  eax, dword ptr ds:[esi + 0x8];   // Get pointer to critter's weapon
 		call fo::funcoffs::item_w_dam_div_;   // Retrieve Ammo Divisor
 		imul ebp, eax;                        // Ammo Divisor = 1 * Ammo Divisor (ebp set to 1 earlier in function)
-		mov  dword ptr ss:[esp + 0x24], edx;  // Store Damage Multiplier
 		mov  eax, dword ptr ds:[esi + 0x8];   // Get pointer to critter's weapon
 		call fo::funcoffs::item_w_dr_adjust_; // Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
-		mov  ammoDT, eax;                     // Store to the variable for later use
-ajmp:                                         // Start of damage calculation loop
+		mov  edx, dword ptr ss:[esp + 0x28];  // Get armor DT
+		sub  edx, eax;                        // DT = armor DT - ammo DT
+		test edx, edx;                        // Is DT >= 0?
+		jns  ajmp;                            // If yes, skip next instructions
+		mov  eax, 10;
+		imul eax, edx;                        // Otherwise, DT = DT * 10 (note that this should be a negative value)
+		mov  calcDT, 0;                       // Store new DT (zero)
+		jmp  bjmp;
+ajmp:
+		mov  calcDT, edx;                     // Store calculated DT
+		xor  eax, eax;                        // Set DT to zero for DR calculation
+bjmp:
+		mov  edx, dword ptr ss:[esp + 0x2C];  // Get armor DR
+		add  edx, eax;                        // DR = armor DR + DT (note that DT should be less than or equal to zero)
+		test edx, edx;                        // Is DR >= 0?
+		jns  cjmp;
+		mov  calcDR, 0;                       // If no, set DR = 0
+		jmp  djmp;
+cjmp:
+		cmp  edx, 100;                        // Is DR >= 100?
+		jge  end;                             // If yes, damage will be zero, so stop calculating and exit
+		mov  calcDR, edx;                     // Store DR
+djmp:                                         // Start of damage calculation loop
 		mov  edx, dword ptr ds:[esi + 0x4];   // Get hit mode of weapon being used by attacker
 		mov  eax, dword ptr ds:[esi];         // Get pointer to critter
 		mov  ebx, dword ptr ss:[esp + 0x18];  // Get Bonus Ranged Damage
 		call fo::funcoffs::item_w_damage_;    // Retrieve Raw Damage
 		add  ebx, eax;                        // Raw Damage = Raw Damage + Bonus Ranged Damage
-		mov  edx, dword ptr ss:[esp + 0x28];  // Get armor DT
-		mov  eax, ammoDT;                     // Retrieve ammo DT
-		sub  edx, eax;                        // DT = armor DT - ammo DT
-		mov  dword ptr ss:[esp + 0x30], edx;  // Store DT
-		test edx, edx;                        // Is DT <= 0?
-		jle  bjmp;                            // If yes, skip the next instruction
-		sub  ebx, edx;                        // Raw Damage = Raw Damage - DT
-bjmp:
+		sub  ebx, calcDT;                     // Raw Damage = Raw Damage - DT
 		test ebx, ebx;                        // Is Raw Damage <= 0?
-		jle  ijmp;                            // If yes, skip damage calculation and go to bottom of loop
+		jle  fjmp;                            // If yes, skip damage calculation and go to bottom of loop
 		imul ebx, dword ptr ss:[esp + 0x24];  // Otherwise, Raw Damage = Raw Damage * Damage Multiplier
 		test ebp, ebp;                        // Is Ammo Divisor == 0?
-		jz   djmp;                            // If yes, avoid divide by zero error
+		jz   ejmp;                            // If yes, avoid divide by zero error
 		mov  eax, ebx;
 		cdq;
 		idiv ebp;
 		mov  ebx, eax;                        // Otherwise, Raw Damage = Raw Damage / Ammo Divisor
-djmp:
+ejmp:
 		mov  eax, ebx;
 		cdq;
 		sub  eax, edx;
@@ -283,23 +296,7 @@ djmp:
 		cdq;
 		idiv ebx;
 		mov  ebx, eax;                        // Raw Damage = Raw Damage / 100
-		mov  edx, dword ptr ss:[esp + 0x30];  // Get stored DT
-		test edx, edx;                        // Is DT >= 0?
-		jns  ejmp;                            // If yes, set DT = 0
-		mov  eax, 10;
-		imul eax, edx;                        // Otherwise, DT = DT * 10 (note that this should be a negative value)
-		jmp  fjmp;
-ejmp:
-		xor  eax, eax;
-fjmp:
-		mov  edx, dword ptr ss:[esp + 0x2C];  // Get armor DR
-		add  edx, eax;                        // DR = armor DR + DT (note that DT should be less than or equal to zero)
-		cmp  edx, 100;                        // Is DR >= 100?
-		jge  ijmp;                            // If yes, damage will be zero, so stop calculating and go to bottom of loop
-		test edx, edx;                        // Otherwise, is DR >= 0?
-		jns  hjmp;
-		xor  edx, edx;                        // If no, set DR = 0
-hjmp:
+		mov  edx, calcDR;                     // Get calculated DR (note that this should be a nonnegative integer less than 100)
 		imul edx, ebx;                        // Otherwise, Resisted Damage = DR * Raw Damage
 		mov  dword ptr ss:[esp + 0x30], 100;
 		mov  eax, edx;
@@ -307,13 +304,13 @@ hjmp:
 		idiv dword ptr ss:[esp + 0x30];       // Resisted Damage = Resisted Damage / 100
 		sub  ebx, eax;                        // Raw Damage = Raw Damage - Resisted Damage
 		test ebx, ebx;                        // Is Raw Damage <= 0?
-		jle  ijmp;                            // If yes, don't accumulate damage
+		jle  fjmp;                            // If yes, don't accumulate damage
 		add  dword ptr ds:[edi], ebx;         // Otherwise, Accumulated Damage = Accumulated Damage + Raw Damage
-ijmp:
+fjmp:
 		mov  eax, dword ptr ss:[esp + 0x1C];  // Get number of hits
 		inc  ecx;                             // counter += 1
 		cmp  ecx, eax;                        // Is counter < number of hits?
-		jl   ajmp;                            // If yes, go back to start of damage calcuation loop (calculate damage for next hit)
+		jl   djmp;                            // If yes, go back to start of damage calcuation loop (calculate damage for next hit)
 end:
 		jmp  DamageFunctionReturn;            // Otherwise, exit loop
 	}
