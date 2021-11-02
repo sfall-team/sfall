@@ -8,11 +8,13 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Utils.h"
 #include "..\Modules\LoadOrder.h"
 
 #include "viewmap\ViewMap.h"
 #include "SplashScreen.h"
 #include "MainMenu.h"
+#include "InterfaceBar.h"
 
 #include "Init.h"
 
@@ -31,7 +33,7 @@ long HRP::ScreenHeight() { return SCR_HEIGHT; }
 
 DWORD HRP::hrpDLLBaseAddr = 0x10000000;
 
-static void LoadHRPModule() {
+static void GetHRPModule() {
 	static const DWORD loadFunc = 0x4FE1D0;
 	HMODULE dll;
 	__asm call loadFunc; // get HRP loading address
@@ -43,7 +45,7 @@ static void LoadHRPModule() {
 bool HRP::CheckExternalPatch() {
 	bool isEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if Mash's HRP is enabled
 	if (isEnabled) {
-		LoadHRPModule();
+		GetHRPModule();
 		MODULEINFO info;
 		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)HRP::hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
 			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
@@ -89,8 +91,8 @@ void HRP::init() {
 	//END_SLIDE_SIZE
 	//HELP_SCRN_SIZE
 
-	std::string x = IniReader::GetString("MAPS", "SCROLL_DIST_X", "480", 16, f2ResIni);
-	std::string y = IniReader::GetString("MAPS", "SCROLL_DIST_Y", "400", 16, f2ResIni);
+	std::string x = trim(IniReader::GetString("MAPS", "SCROLL_DIST_X", "480", 16, f2ResIni));
+	std::string y = trim(IniReader::GetString("MAPS", "SCROLL_DIST_Y", "400", 16, f2ResIni));
 	ViewMap::SCROLL_DIST_X = (x == "HALF_SCRN") ? (SCR_WIDTH / 2) + 32 : std::atol(x.c_str());
 	ViewMap::SCROLL_DIST_Y = (y == "HALF_SCRN") ? (SCR_HEIGHT / 2) + 24 : std::atol(y.c_str());
 
@@ -105,15 +107,21 @@ void HRP::init() {
 	);
 
 	// Inject hacks
+	SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile > _mapEntranceTileNum)
 
 	// Set resolution for GNW95_init_mode_ex_
 	SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
 	SafeWrite32(0x4CAD66, SCR_HEIGHT); // 480
 
+	// Allow overriding temporary black window (main_load_new_)
+	SafeWrite32(0x480D6C, SCR_HEIGHT);
+	SafeWrite32(0x480D84, SCR_WIDTH);
+
 	// Inits
 	SplashScreen::init();
 	MainMenuScreen::init();
 	ViewMap::init();
+	IFaceBar::init();
 }
 
 }

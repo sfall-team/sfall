@@ -12,6 +12,7 @@
 namespace sfall
 {
 
+static long reqGameQuit;
 static bool cCursorShow = true;
 
 static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -90,9 +91,21 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 		return 0;
 
 	case WM_CLOSE:
-		break;
+		__asm {
+			call fo::funcoffs::main_menu_is_shown_;
+			test eax, eax;
+			jnz  skip;
+			call fo::funcoffs::game_quit_with_confirm_;
+		skip:
+			mov  reqGameQuit, eax;
+		}
+		return 0;
 	}
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
+}
+
+static long __stdcall main_menu_loop_hook() {
+	return (!reqGameQuit) ? fo::func::get_input() : 27; // ESC code
 }
 
 void WinProc::SetWindowProc() {
@@ -101,6 +114,7 @@ void WinProc::SetWindowProc() {
 
 void WinProc::init() {
 	MakeJump(0x4DE9FC, WindowProc); // WindowProc_
+	HookCall(0x481B2A, main_menu_loop_hook);
 
 	//SafeWrite8(0x4DEB0D, 1); // for test
 }

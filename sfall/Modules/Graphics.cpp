@@ -1058,7 +1058,7 @@ public:
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
-		char captionText[128];
+		char windowTitle[128];
 		window = a;
 
 		if (!d3d9Device) {
@@ -1069,11 +1069,11 @@ public:
 
 		if (Graphics::mode >= 5) {
 			if (ResWidth != gWidth || ResHeight != gHeight) {
-				std::sprintf(captionText, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
+				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
 			} else {
-				std::sprintf(captionText, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
+				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
 			}
-			SetWindowTextA(a, captionText);
+			SetWindowTextA(a, windowTitle);
 
 			SetWindowLongA(a, GWL_STYLE, windowStyle);
 			RECT r;
