@@ -54,10 +54,13 @@ static long DivRound(long dividend, long divisor) {
 
 // Damage Fix v5 (with v5.1 Damage Multiplier tweak) by Glovz 2014.04.16.xx.xx
 void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, long rounds, long armorDT, long armorDR, long bonusRangedDamage, long multiplyDamage, long difficulty) {
-	if (rounds <= 0) return;
+	if (rounds <= 0) return;                                // check the number of hits
 
 	long ammoY = fo::func::item_w_dam_div(ctd.weapon);      // ammoY value (divisor)
 	if (ammoY <= 0) ammoY = 1;
+
+	long calcDT = armorDT;
+	if (armorDT > 0) calcDT = DivRound(armorDT, ammoY);     // compare the armorDT value to 0
 
 	long ammoX = fo::func::item_w_dam_mult(ctd.weapon);     // ammoX value
 	if (ammoX <= 0) ammoX = 1;
@@ -65,30 +68,32 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 	long ammoDRM = fo::func::item_w_dr_adjust(ctd.weapon);  // ammoDRM value
 	if (ammoDRM > 0) ammoDRM = -ammoDRM;
 
+	long calcDR = armorDR;
+	if (armorDR > 0) {                                      // compare the armorDR value to 0
+		if (difficulty > 100) {                             // if the CD value is greater than 100
+			calcDR -= 20;                                   // subtract 20 from the armorDR value
+		} else if (difficulty < 100) {                      // if the CD value is less than 100
+			calcDR += 20;                                   // add 20 to the armorDR value
+		}
+		calcDR += ammoDRM;                                  // add the ammoDRM value to the armorDR value
+		calcDR = DivRound(calcDR, ammoX);                   // goto divTwo
+		if (calcDR >= 100) return;                          // if armorDR >= 100, stop damage calculation and exit
+	}
+
 	// start of damage calculation loop
-	for (long i = 0; i < rounds; i++) {                     // check the number of hits
+	for (long i = 0; i < rounds; i++) {
 		long rawDamage = fo::func::item_w_damage(ctd.attacker, ctd.hitMode); // get the raw damage value
 		rawDamage += bonusRangedDamage;                     // add the bonus ranged damage value to the RD value
 		if (rawDamage <= 0) continue;                       // if raw damage <= 0, skip damage calculation and go to bottom of loop
 
 		if (armorDT > 0) {                                  // compare the armorDT value to 0
-			long calcDT = DivRound(armorDT, ammoY);
 			rawDamage -= calcDT;                            // subtract the new armorDT value from the RD value
 			if (rawDamage <= 0) continue;                   // if raw damage <= 0, skip damage calculation and go to bottom of loop
 		}
 
 		if (armorDR > 0) {                                  // compare the armorDR value to 0
-			long calcDR = armorDR;
-			if (difficulty > 100) {                         // if the CD value is greater than 100
-				calcDR -= 20;                               // subtract 20 from the armorDR value
-			} else if (difficulty < 100) {                  // if the CD value is less than 100
-				calcDR += 20;                               // add 20 to the armorDR value
-			}
-			calcDR += ammoDRM;                              // add the ammoDRM value to the armorDR value
-			calcDR = DivRound(calcDR, ammoX);               // goto divTwo
-			if (calcDR >= 100) continue;                    // if armorDR >= 100, skip damage calculation and go to bottom of loop
-
-			long resistedDamage = DivRound(calcDR * rawDamage, 100); // goto divThree
+			long resistedDamage = calcDR * rawDamage;
+			resistedDamage = DivRound(resistedDamage, 100); // goto divThree
 			rawDamage -= resistedDamage;                    // subtract the damage resisted value from the RD value
 			if (rawDamage <= 0) continue;                   // if raw damage <= 0, skip damage calculation and go to bottom of loop
 		}
@@ -138,7 +143,7 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 	if (calcDR < 0) {                                       // Is DR >= 0?
 		calcDR = 0;                                         // If no, set DR = 0
 	} else if (calcDR >= 100) {                             // Is DR >= 100?
-		return;                                             // If yes, damage will be zero, so stop calculating and go to bottom of loop
+		return;                                             // If yes, damage will be zero, so stop calculating and exit
 	}
 
 	// Start of damage calculation loop
