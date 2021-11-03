@@ -15,39 +15,19 @@
 namespace sfall
 {
 
-static struct Edge {
-	POINT center; // x/y center of current map screen?
-	RECT borderRect;
-	RECT rect_2;
-	RECT tileRect;
-	RECT squareRect;
-	long field_48;      // unknown
-	Edge* prevEdgeData; // unused (used in 3.06)
-	Edge* nextEdgeData;
-
-	void Release() {
-		Edge* edge = nextEdgeData;
-		while (edge) {
-			Edge* edgeNext = edge->nextEdgeData;
-			delete edge;
-			edge = edgeNext;
-		};
-	}
-
-	~Edge() {
-		Release();
-	}
-} *MapEdgeData;
+static EdgeBorder::Edge* MapEdgeData;
 
 // reference
-Edge* currentMapEdge;
+EdgeBorder::Edge* currentMapEdge;
+
+EdgeBorder::Edge* EdgeBorder::CurrentMapEdge() { return currentMapEdge; }
 
 static long edgeVersion; // 0 - version 1 (obsolete), 1 - version 2 (current)
 bool isLoadingMapEdge;
 bool isDefaultSetEdge;
 
 // Implementation from HRP by Mash
-static void CalcEdgeData(Edge* edgeData, long w, long h) {
+static void CalcEdgeData(EdgeBorder::Edge* edgeData, long w, long h) {
 	long x, y;
 
 	ViewMap::GetTileCoordOffset(edgeData->tileRect.left, x, y); // upper left corner?
@@ -117,10 +97,10 @@ static void SetDefaultEdgeData() {
 	long w, h;
 	ViewMap::GetWinMapHalfSize(w, h);
 
-	if (MapEdgeData == nullptr) MapEdgeData = new Edge[3];
+	if (MapEdgeData == nullptr) MapEdgeData = new EdgeBorder::Edge[3];
 
 	for (size_t i = 0; i < 3; i++) {
-		Edge* edge = &MapEdgeData[i];
+		EdgeBorder::Edge* edge = &MapEdgeData[i];
 
 		edge->tileRect.left = 199;
 		edge->tileRect.top = 0;
@@ -180,12 +160,12 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 		MapEdgeData[1].Release();
 		MapEdgeData[2].Release();
 	} else {
-		MapEdgeData = new Edge[3];
+		MapEdgeData = new EdgeBorder::Edge[3];
 	}
 
 	long mapLevel = 0;
 	do {
-		Edge* edgeData = &MapEdgeData[mapLevel];
+		EdgeBorder::Edge* edgeData = &MapEdgeData[mapLevel];
 
 		if (edgeVersion) {
 			// load rectangle data (version 2)
@@ -216,7 +196,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 				}
 				if (getValue != mapLevel) break; // next level
 
-				Edge *edge = new Edge;
+				EdgeBorder::Edge *edge = new EdgeBorder::Edge;
 				edge->nextEdgeData = nullptr;
 				edge->squareRect = edgeData->squareRect; // rect copy
 				edgeData->nextEdgeData = edge;

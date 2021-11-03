@@ -315,6 +315,7 @@
     <ClInclude Include="HRP\MainMenu.h" />
     <ClInclude Include="HRP\SplashScreen.h" />
     <ClInclude Include="HRP\ViewMap\EdgeBorder.h" />
+    <ClInclude Include="HRP\ViewMap\EdgeClipping.h" />
     <ClInclude Include="HRP\ViewMap\ViewMap.h" />
     <ClInclude Include="IniReader.h" />
     <ClInclude Include="Modules\CritterPoison.h" />
@@ -440,6 +441,7 @@
     <ClCompile Include="HRP\MainMenu.cpp" />
     <ClCompile Include="HRP\SplashScreen.cpp" />
     <ClCompile Include="HRP\ViewMap\EdgeBorder.cpp" />
+    <ClCompile Include="HRP\ViewMap\EdgeClipping.cpp" />
     <ClCompile Include="HRP\ViewMap\ViewMap.cpp" />
     <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="Modules\CritterPoison.cpp" />

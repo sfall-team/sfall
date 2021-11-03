@@ -10,6 +10,7 @@
 
 #include "..\Init.h"
 #include "EdgeBorder.h"
+#include "EdgeClipping.h"
 
 #include "ViewMap.h"
 
@@ -174,6 +175,7 @@ void ViewMap::init() {
 	SafeWrite32(0x45C886, (DWORD)&obj_on_screen_rect); // replace rectangle in op_obj_on_screen_
 
 	EdgeBorder::init();
+	EdgeClipping::init();
 
 	LoadGameHook::OnAfterGameInit() += []() {
 		if (IGNORE_PLAYER_SCROLL_LIMITS) fo::var::setInt(FO_VAR_scroll_limiting_on) = 0;
