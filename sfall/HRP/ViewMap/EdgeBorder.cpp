@@ -16,13 +16,13 @@ namespace sfall
 {
 
 static struct Edge {
-	POINT center; // x/y center of borderRect
+	POINT center; // x/y center of current map screen?
 	RECT borderRect;
 	RECT rect_2;
 	RECT tileRect;
-	RECT rect_4;
-	long field_48;
-	Edge* prevEdgeData; // unused? (used in 3.06)
+	RECT squareRect;
+	long field_48;      // unknown
+	Edge* prevEdgeData; // unused (used in 3.06)
 	Edge* nextEdgeData;
 
 	void Release() {
@@ -40,9 +40,9 @@ static struct Edge {
 } *MapEdgeData;
 
 // reference
-Edge* CurrentMapEdge;
+Edge* currentMapEdge;
 
-static long edgeVersion;
+static long edgeVersion; // 0 - version 1 (obsolete), 1 - version 2 (current)
 bool isLoadingMapEdge;
 bool isDefaultSetEdge;
 
@@ -50,10 +50,10 @@ bool isDefaultSetEdge;
 static void CalcEdgeData(Edge* edgeData, long w, long h) {
 	long x, y;
 
-	ViewMap::GetTileCoordOffset(edgeData->tileRect.left, x, y);
+	ViewMap::GetTileCoordOffset(edgeData->tileRect.left, x, y); // upper left corner?
 	edgeData->borderRect.left = x;
 
-	ViewMap::GetTileCoordOffset(edgeData->tileRect.right, x, y);
+	ViewMap::GetTileCoordOffset(edgeData->tileRect.right, x, y); // upper right corner?
 	edgeData->borderRect.right = x;
 
 	ViewMap::GetTileCoordOffset(edgeData->tileRect.top, x, y);
@@ -115,7 +115,7 @@ static void CalcEdgeData(Edge* edgeData, long w, long h) {
 
 static void SetDefaultEdgeData() {
 	long w, h;
-	ViewMap::GetMapWindowSize(w, h);
+	ViewMap::GetWinMapHalfSize(w, h);
 
 	if (MapEdgeData == nullptr) MapEdgeData = new Edge[3];
 
@@ -129,10 +129,10 @@ static void SetDefaultEdgeData() {
 
 		CalcEdgeData(edge, w, h);
 
-		edge->rect_4.left = 99;
-		edge->rect_4.top = 0;
-		edge->rect_4.right = 0;
-		edge->rect_4.bottom = 99;
+		edge->squareRect.left = 99;
+		edge->squareRect.top = 0;
+		edge->squareRect.right = 0;
+		edge->squareRect.bottom = 99;
 
 		edge->field_48 = 0;
 		edge->prevEdgeData = nullptr;
@@ -153,7 +153,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 
 	fo::DbFile* file = fo::func::db_fopen(edgPath, "rb");
 	if (!file) {
-		SetDefaultEdgeData();
+		SetDefaultEdgeData(); // TODO: support for original blockers
 		return file;
 	}
 
@@ -163,17 +163,17 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 
 	fo::func::db_freadInt(file, &getValue);
 	if (getValue == 1) {
-		edgeVersion = 0;
+		edgeVersion = 0; // old
 	} else {
-		if (getValue != 2) return file;
+		if (getValue != 2) return file; // incorrect version
 		edgeVersion = 1;
 	}
 
 	getValue = 0;
-	if (fo::func::db_freadInt(file, &getValue) || getValue) return file; // unknown for now
+	if (fo::func::db_freadInt(file, &getValue) || getValue) return file; // error, incorrect map level
 
 	long w, h;
-	ViewMap::GetMapWindowSize(w, h);
+	ViewMap::GetWinMapHalfSize(w, h);
 
 	if (MapEdgeData) {
 		MapEdgeData[0].Release();
@@ -188,15 +188,15 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 		Edge* edgeData = &MapEdgeData[mapLevel];
 
 		if (edgeVersion) {
-			// load rectangle data (version 1) - unused/obsolete?
-			if (fo::func::db_freadIntCount(file, (DWORD*)&edgeData->rect_4, 4) || fo::func::db_freadInt(file, (DWORD*)&edgeData->field_48)) {
+			// load rectangle data (version 2)
+			if (fo::func::db_freadIntCount(file, (DWORD*)&edgeData->squareRect, 4) || fo::func::db_freadInt(file, (DWORD*)&edgeData->field_48)) {
 				return file; // read error
 			}
 		} else {
-			edgeData->rect_4.left = 99;
-			edgeData->rect_4.top = 0;
-			edgeData->rect_4.right = 0;
-			edgeData->rect_4.bottom = 99;
+			edgeData->squareRect.left = 99;
+			edgeData->squareRect.top = 0;
+			edgeData->squareRect.right = 0;
+			edgeData->squareRect.bottom = 99;
 			edgeData->field_48 = 0;
 		}
 
@@ -218,7 +218,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 
 				Edge *edge = new Edge;
 				edge->nextEdgeData = nullptr;
-				edge->rect_4 = edgeData->rect_4; // rect copy
+				edge->squareRect = edgeData->squareRect; // rect copy
 				edgeData->nextEdgeData = edge;
 				edgeData = edge;
 			}
@@ -243,11 +243,11 @@ static void __fastcall LoadMapEdgeFile() {
 long EdgeBorder::GetCenterTile(long tile, long mapLevel) {
 	if (!isDefaultSetEdge) SetDefaultEdgeData(); // needed at game initialization
 
-	long x, y;
-	ViewMap::GetTileCoordOffset(tile, x, y);
+	long tX, tY;
+	ViewMap::GetTileCoordOffset(tile, tX, tY);
 
 	Edge* edgeData = &MapEdgeData[mapLevel];
-	CurrentMapEdge = edgeData;
+	currentMapEdge = edgeData;
 
 	long mapWinW = fo::var::getInt(FO_VAR_buf_width_2);
 	long mapWinH = fo::var::getInt(FO_VAR_buf_length_2);
@@ -256,45 +256,44 @@ long EdgeBorder::GetCenterTile(long tile, long mapLevel) {
 	//std::memset((void*)fo::var::getInt(FO_VAR_display_buf), 0, mapWinW * mapWinH); // can use the _buf_size variable instead of multiplication
 	//fo::func::win_draw(fo::var::getInt(FO_VAR_display_win));
 
-	long width = (mapWinW / 2) - 1;
-	long height = (mapWinH / 2) + 1;
-
 	if (edgeData->nextEdgeData) {
+		long width = (mapWinW / 2) - 1;
+		long height = (mapWinH / 2) + 1;
 		Edge* edge = edgeData;
 
-		while (x >= (edge->rect_2.left + width) || x <= (edge->rect_2.right + width) ||
-		       y <= (edge->rect_2.top - height) || y >= (edge->rect_2.bottom - height))
+		while (tX >= (edge->rect_2.left + width) || tX <= (edge->rect_2.right + width) ||
+		       tY <= (edge->rect_2.top - height) || tY >= (edge->rect_2.bottom - height))
 		{
 			edge = edgeData->nextEdgeData;
 			if (!edge) break;
 
 			edgeData = edge;
-			CurrentMapEdge = edge;
+			currentMapEdge = edge;
 		}
 	}
 
-	long left = edgeData->borderRect.left;
-	if (x <= left) {
-		long right = edgeData->borderRect.right;
-		if (x >= right) {
-			edgeData->center.x = x;
+	long leftX = edgeData->borderRect.left;
+	if (tX <= leftX) {
+		long rightX = edgeData->borderRect.right;
+		if (tX >= rightX) {
+			edgeData->center.x = tX;
 		} else {
-			edgeData->center.y = right;
+			edgeData->center.x = rightX;
 		}
 	} else {
-		edgeData->center.x = left;
+		edgeData->center.x = leftX;
 	}
 
-	long bottom = edgeData->borderRect.bottom;
-	if (y <= bottom) {
-		long top = edgeData->borderRect.top;
-		if (y >= top) {
-			edgeData->center.y = y;
+	long bottomY = edgeData->borderRect.bottom;
+	if (tY <= bottomY) {
+		long topY = edgeData->borderRect.top;
+		if (tY >= topY) {
+			edgeData->center.y = tY;
 		} else {
-			edgeData->center.y = top;
+			edgeData->center.y = topY;
 		}
 	} else {
-		edgeData->center.y = bottom;
+		edgeData->center.y = bottomY;
 	}
 
 	ViewMap::mapModHeight = 0;
@@ -324,37 +323,30 @@ long EdgeBorder::CheckBorder(long tile) {
 	long x, y;
 	ViewMap::GetTileCoordOffset(tile, x, y);
 
-	if (x > CurrentMapEdge->borderRect.left   || x < CurrentMapEdge->borderRect.right ||
-	    y > CurrentMapEdge->borderRect.bottom || y < CurrentMapEdge->borderRect.top)
+	if (x > currentMapEdge->borderRect.left   || x < currentMapEdge->borderRect.right ||
+	    y > currentMapEdge->borderRect.bottom || y < currentMapEdge->borderRect.top)
 	{
 		return 0; // block
 	}
 
-	long _mapModWidth = ViewMap::mapModWidth;
-	long _mapModHeight = ViewMap::mapModHeight;
+	long mapModWidth = ViewMap::mapModWidth;
+	long mapModHeight = ViewMap::mapModHeight;
 	ViewMap::mapModHeight = 0;
 	ViewMap::mapModWidth = 0;
 
-	long modWidth = 0;
-	long modHeight = 0;
-
-	if (x == CurrentMapEdge->borderRect.left) {
-		modWidth = -ViewMap::mapWidthModSize;
-		ViewMap::mapModWidth = modWidth;
-	} else if (x == CurrentMapEdge->borderRect.right) {
-		modWidth = ViewMap::mapWidthModSize;
-		ViewMap::mapModWidth = modWidth;
+	if (x == currentMapEdge->borderRect.left) {
+		ViewMap::mapModWidth = -ViewMap::mapWidthModSize;
+	} else if (x == currentMapEdge->borderRect.right) {
+		ViewMap::mapModWidth = ViewMap::mapWidthModSize;
 	}
 
-	if (y == CurrentMapEdge->borderRect.top) {
-		modHeight = -ViewMap::mapHeightModSize;
-		ViewMap::mapModHeight = modHeight;
-	} else if (y == CurrentMapEdge->borderRect.bottom) {
-		modHeight = ViewMap::mapHeightModSize;
-		ViewMap::mapModHeight = modHeight;
+	if (y == currentMapEdge->borderRect.top) {
+		ViewMap::mapModHeight = -ViewMap::mapHeightModSize;
+	} else if (y == currentMapEdge->borderRect.bottom) {
+		ViewMap::mapModHeight = ViewMap::mapHeightModSize;
 	}
 
-	return (_mapModWidth != modWidth || _mapModHeight != modHeight) ? 1 : -1; // 1 - for redrawing map
+	return (mapModWidth != ViewMap::mapModWidth || mapModHeight != ViewMap::mapModHeight) ? 1 : -1; // 1 - for redrawing map
 }
 
 void EdgeBorder::init() {

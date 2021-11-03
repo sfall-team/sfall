@@ -27,7 +27,7 @@ public:
 	static void GetCoordFromOffset(long &inOutX, long &inOutY);
 	static void GetTileCoord(long tile, long &outX, long &outY);
 	static void GetTileCoordOffset(long tile, long &outX, long &outY);
-	static void GetMapWindowSize(long &outW, long &outH);
+	static void GetWinMapHalfSize(long &outW, long &outH);
 };
 
 }
