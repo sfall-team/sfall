@@ -72,8 +72,7 @@ WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long,
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
 
 //
-WRAP_WATCOM_FUNC1(fo::BlendColorTableData*, getColorBlendTable, long, color)
-WRAP_WATCOM_FUNC1(void, freeColorBlendTable, long, color)
+
 
 //WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
 
@@ -108,13 +107,15 @@ WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, EndLoad, fo::DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procPosition)
+WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procNum)
 WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(long, folder_print_seperator, const char*, text)
 WRAP_WATCOM_FUNC1(const char*, findCurrentProc, fo::Program*, program) // Returns the name of current procedure by program pointer
 WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
+WRAP_WATCOM_FUNC1(void, freeColorBlendTable, long, color)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC0(long, get_input)
+WRAP_WATCOM_FUNC1(fo::BlendColorTableData*, getColorBlendTable, long, color)
 // Searches for message ID in given message file and places result in result argument
 WRAP_WATCOM_FUNC3(const char*, getmsg, const fo::MessageList*, fileAddr, fo::MessageNode*, result, long, messageId)
 WRAP_WATCOM_FUNC1(void, gdialogDisplayMsg, const char*, message)
@@ -271,12 +272,13 @@ WRAP_WATCOM_FUNC0(void, tile_refresh_display) // Redraws the whole screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, fo::BoundRect*, boundRect, long, elevation) // Redraws the given rectangle on screen
 WRAP_WATCOM_FUNC1(long, trait_level, long, traitID)
 WRAP_WATCOM_FUNC6(long, win_add, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
-WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)
-WRAP_WATCOM_FUNC1(void, win_hide, DWORD, winRef)
-WRAP_WATCOM_FUNC1(BYTE*, win_get_buf, DWORD, winRef)
+WRAP_WATCOM_FUNC1(void, win_delete, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_draw, DWORD, winRef)
 WRAP_WATCOM_FUNC2(void, win_draw_rect, DWORD, winRef, RECT*, rect)
-WRAP_WATCOM_FUNC1(void, win_delete, DWORD, winRef)
+WRAP_WATCOM_FUNC1(BYTE*, win_get_buf, DWORD, winRef)
+WRAP_WATCOM_FUNC2(long, win_get_top_win, long, x, long, y)
+WRAP_WATCOM_FUNC1(void, win_hide, DWORD, winRef)
+WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)
 WRAP_WATCOM_FUNC0(long, windowWidth)
 WRAP_WATCOM_FUNC1(void, wmCarUseGas, long, gasAmount)
 WRAP_WATCOM_FUNC1(long, wmEvalTileNumForPlacement, long, tile)

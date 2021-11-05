@@ -107,15 +107,19 @@ void HRP::init() {
 	);
 
 	// Inject hacks
-	SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile > _mapEntranceTileNum)
+	SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile to _mapEntranceTileNum)
 
-	// Set resolution for GNW95_init_mode_ex_
+	// Set the resolution for GNW95_init_mode_ex_
 	SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
 	SafeWrite32(0x4CAD66, SCR_HEIGHT); // 480
 
-	// Allow overriding temporary black window (main_load_new_)
+	// Set the resolution for the overlapping temporary black window when loading/starting the game
+	// main_load_new_
 	SafeWrite32(0x480D6C, SCR_HEIGHT);
 	SafeWrite32(0x480D84, SCR_WIDTH);
+	// gnw_main_
+	SafeWrite32(0x480AFA, SCR_HEIGHT); // -100 for ifacebar?
+	SafeWrite32(0x480B04, SCR_WIDTH);
 
 	// Inits
 	SplashScreen::init();

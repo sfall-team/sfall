@@ -229,14 +229,14 @@ long EdgeBorder::GetCenterTile(long tile, long mapLevel) {
 	Edge* edgeData = &MapEdgeData[mapLevel];
 	currentMapEdge = edgeData;
 
-	long mapWinW = fo::var::getInt(FO_VAR_buf_width_2);
-	long mapWinH = fo::var::getInt(FO_VAR_buf_length_2);
-
-	// fill with black, why? (black flickering appears if this is turned on)
-	//std::memset((void*)fo::var::getInt(FO_VAR_display_buf), 0, mapWinW * mapWinH); // can use the _buf_size variable instead of multiplication
-	//fo::func::win_draw(fo::var::getInt(FO_VAR_display_win));
+	// clear unreconstructed areas when EDGE_CLIPPING is enabled (maybe there is another way to do this, and not every time)
+	std::memset((void*)fo::var::getInt(FO_VAR_display_buf), 0, fo::var::getInt(FO_VAR_buf_size));
+	//fo::func::win_draw(fo::var::getInt(FO_VAR_display_win)); // for test
 
 	if (edgeData->nextEdgeData) {
+		long mapWinW = fo::var::getInt(FO_VAR_buf_width_2);
+		long mapWinH = fo::var::getInt(FO_VAR_buf_length_2);
+
 		long width = (mapWinW / 2) - 1;
 		long height = (mapWinH / 2) + 1;
 		Edge* edge = edgeData;
