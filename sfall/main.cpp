@@ -287,7 +287,7 @@ static void __declspec(naked) WinMain_hook() {
 	}
 }
 
-static void LoadHRPModule() {
+static void GetHRPModule() {
 	static const DWORD loadFunc = 0x4FE1D0;
 	HMODULE dll;
 	__asm call loadFunc; // get HRP loading address
@@ -396,7 +396,7 @@ defaultIni:
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
-		LoadHRPModule();
+		GetHRPModule();
 		MODULEINFO info;
 		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
 			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {

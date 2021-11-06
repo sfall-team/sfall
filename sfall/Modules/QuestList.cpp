@@ -25,10 +25,10 @@ namespace sfall
 {
 
 enum ExitCode : int {
-	EXITCODE_Break = -1,
-	EXITCODE_Normal,
-	EXITCODE_Error,
-	EXITCODE_NextQuest
+	Break = -1,
+	Normal,
+	Error,
+	NextQuest
 };
 
 static int questsButtonsType;
@@ -182,7 +182,7 @@ static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const cha
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {
-		if (pageFlag) return EXITCODE_Break; // pages are already counted
+		if (pageFlag) return ExitCode::Break; // pages are already counted
 		// count the number of pages
 		fo::func::_word_wrap(text, width, buf, count);
 
@@ -193,28 +193,28 @@ static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const cha
 		} else {
 			*fo::ptr::cursor_line += lines;
 		}
-		return EXITCODE_NextQuest;
+		return ExitCode::NextQuest;
 	}
 
 	// check if current quest is in range
 	if (look_quests < first_quest_page) { // check lower range
-		return EXITCODE_NextQuest;
+		return ExitCode::NextQuest;
 	}
 	if (look_quests > last_quest_page) {  // check upper range
-		return EXITCODE_Break;           // exit from quests loop
+		return ExitCode::Break;           // exit from quests loop
 	}
 
-	if (fo::func::_word_wrap(text, width, buf, count) == -1) return EXITCODE_Error; // error wrap
+	if (fo::func::_word_wrap(text, width, buf, count) == -1) return ExitCode::Error; // error wrap
 
 	if (!pageFlag || last_quest_page == INT_MAX) {        // pages have not been calculated yet
 		// check whether the text of the quest leaves the current page
 		int lines = 2 * ((int)*count - 1);
 		if (*fo::ptr::cursor_line + lines >= *fo::ptr::bottom_line) {
 			AddPage(lines); // quest does not fit in the current page, we add a page
-			return EXITCODE_NextQuest;
+			return ExitCode::NextQuest;
 		}
 	}
-	return EXITCODE_Normal;
+	return ExitCode::Normal;
 }
 
 static void __declspec(naked) PipStatus_hack_print() {

@@ -202,9 +202,9 @@ static struct sDSTexture {
 } movieInterface;
 
 enum AviState : long {
-	AVISTATE_Stop,
-	AVISTATE_ReadyToPlay,
-	AVISTATE_Playing
+	Stop,
+	ReadyToPlay,
+	Playing
 };
 
 static AviState aviPlayState;
@@ -218,7 +218,7 @@ static void PlayMovie(sDSTexture* movie) {
 }
 
 static void StopMovie() {
-	aviPlayState = AVISTATE_Stop;
+	aviPlayState = AviState::Stop;
 	Gfx_SetMovieTexture(false);
 	movieInterface.pControl->Stop();
 	if (fo::var::getInt(FO_VAR_subtitles) == 0) fo::util::RefreshGNW(); // Note: it is only necessary when in the game
@@ -302,11 +302,11 @@ static __int64 endMoviePosition;
 static DWORD __fastcall PlayMovieLoop() {
 	static bool onlyOnce = false;
 
-	if (aviPlayState == AVISTATE_ReadyToPlay) {
-		aviPlayState = AVISTATE_Playing;
+	if (aviPlayState == AviState::ReadyToPlay) {
+		aviPlayState = AviState::Playing;
 		PlayMovie(&movieInterface);
 		onlyOnce = false;
-	} else if (aviPlayState == AVISTATE_Stop) { // when device is lost
+	} else if (aviPlayState == AviState::Stop) { // when device is lost
 		return 0;
 	}
 
@@ -422,7 +422,7 @@ static DWORD __fastcall PrepareLoadMovie(const DWORD id) {
 	HookCall(0x44E937, gmovie_play_hook);       // looping call moviePlaying_
 
 	movieInterface.pSeek->GetStopPosition(&endMoviePosition);
-	aviPlayState = AVISTATE_ReadyToPlay;
+	aviPlayState = AviState::ReadyToPlay;
 
 	return 1; // for playing AVI
 }
@@ -440,7 +440,7 @@ static void __stdcall PlayMovieRestore() {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
 		if (backgroundVolume) backgroundVolume = fo::func::gsound_background_volume_get_set(backgroundVolume); // restore volume
 	}
-	aviPlayState = AVISTATE_Stop;
+	aviPlayState = AviState::Stop;
 	FreeMovie(&movieInterface);
 }
 
@@ -478,7 +478,7 @@ return:
 
 static void __declspec(naked) gmovie_play_hook_stop() {
 	__asm {
-		cmp  aviPlayState, AVISTATE_Playing;
+		cmp  aviPlayState, Playing;
 		jne  skip;
 		mov  ebx, ecx;
 		call StopMovie;
@@ -547,7 +547,7 @@ static __declspec(naked) void LostFocus() {
 
 	Sound_SoundLostFocus(isActive);
 
-	if (aviPlayState == AVISTATE_Playing) {
+	if (aviPlayState == AviState::Playing) {
 		if (isActive)
 			movieInterface.pControl->Run();
 		else if (GraphicsMode == 4)

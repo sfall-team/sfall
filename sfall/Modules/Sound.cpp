@@ -33,25 +33,25 @@ namespace sfall
 #define SAFERELEASE(a)      { if (a) { a->Release(); } }
 
 enum SoundType : DWORD {
-	SNDTYPE_sfx_loop    = 0, // sfall
-	SNDTYPE_sfx_single  = 1, // sfall
-	SNDTYPE_game_sfx    = 2,
-	SNDTYPE_game_master = 3
+	sfx_loop    = 0, // sfall
+	sfx_single  = 1, // sfall
+	game_sfx    = 2,
+	game_master = 3
 };
 
 enum SoundMode : long {
-	SNDMODE_single_play  = 0, // uses sfx volume
-	SNDMODE_loop_play    = 1, // uses sfx volume
-	SNDMODE_music_play   = 2, // uses background volume
-	SNDMODE_speech_play  = 3, // uses speech volume
-	SNDMODE_engine_music_play = -1 // used when playing game music in an alternative format (not used from scripts)
+	single_play  = 0, // uses sfx volume
+	loop_play    = 1, // uses sfx volume
+	music_play   = 2, // uses background volume
+	speech_play  = 3, // uses speech volume
+	engine_music_play = -1 // used when playing game music in an alternative format (not used from scripts)
 };
 
 enum SoundFlags : DWORD {
-	SNDFLAG_looping = 0x10000000,
-	SNDFLAG_on_stop = 0x20000000,
-	SNDFLAG_restore = 0x40000000, // restore background game music on stop play
-	SNDFLAG_engine  = 0x80000000
+	looping = 0x10000000,
+	on_stop = 0x20000000,
+	restore = 0x40000000, // restore background game music on stop play
+	engine  = 0x80000000
 };
 
 struct sDSSound {
@@ -109,7 +109,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 		long id = l;
 		sDSSound* sound = nullptr;
 		size_t i;
-		if (id & SNDFLAG_looping) {
+		if (id & SoundFlags::looping) {
 			for (i = 0; i < loopingSounds.size(); i++) {
 				if (loopingSounds[i]->id == id) {
 					sound = loopingSounds[i];
@@ -133,12 +133,12 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 		while (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
 			sound->pEvent->FreeEventParams(e, p1, p2);
 			if (e == EC_COMPLETE) {
-				if (sound->id & SNDFLAG_looping) {
+				if (sound->id & SoundFlags::looping) {
 					LONGLONG pos = 0;
 					sound->pSeek->SetPositions(&pos, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
 					sound->pControl->Run();
 				} else {
-					if (sound->id & SNDFLAG_on_stop) { // speech sound playback is completed
+					if (sound->id & SoundFlags::on_stop) { // speech sound playback is completed
 						*fo::ptr::main_death_voiceover_done = 1;
 						*fo::ptr::endgame_subtitle_done = 1;
 						lipsPlaying = false;
@@ -241,20 +241,20 @@ static void __cdecl SetSoundVolume(sDSSound* sound, SoundType type, long passVol
 	long volume, sfxVolume, masterVolume = *fo::ptr::master_volume;
 
 	volume = Sound_CalculateVolumeDB(masterVolume, passVolume);
-	if (type == SNDTYPE_game_master) sfxVolume = Sound_CalculateVolumeDB(masterVolume, *fo::ptr::sndfx_volume);
+	if (type == SoundType::game_master) sfxVolume = Sound_CalculateVolumeDB(masterVolume, *fo::ptr::sndfx_volume);
 
 	if (sound) {
 		sound->pAudio->put_Volume(volume);
 	} else {
-		if (type == SNDTYPE_game_sfx) sfxVolume = volume;
-		bool sfx_or_master = (type == SNDTYPE_game_sfx || type == SNDTYPE_game_master);
+		if (type == SoundType::game_sfx) sfxVolume = volume;
+		bool sfx_or_master = (type == SoundType::game_sfx || type == SoundType::game_master);
 		for (size_t i = 0; i < loopingSounds.size(); i++) {
 			if (sfx_or_master) {
-				if ((loopingSounds[i]->id & 0xF0000000) == SNDFLAG_looping) { // only for sfx loop mode
+				if ((loopingSounds[i]->id & 0xF0000000) == SoundFlags::looping) { // only for sfx loop mode
 					loopingSounds[i]->pAudio->put_Volume(sfxVolume);
 					continue;
 				} else
-					if (type == SNDTYPE_game_sfx) continue;
+					if (type == SoundType::game_sfx) continue;
 			}
 			loopingSounds[i]->pAudio->put_Volume(volume);
 		}
@@ -270,9 +270,9 @@ static bool IsMute(SoundMode mode) {
 	//if (*fo::ptr::master_volume == 0) return true;
 
 	switch (mode) {
-	case SNDMODE_single_play:
+	case SoundMode::single_play:
 		return (*fo::ptr::sndfx_volume == 0);
-	case SNDMODE_speech_play:
+	case SoundMode::speech_play:
 		return (*fo::ptr::speech_volume == 0);
 	default:
 		return (*fo::ptr::background_volume == 0);
@@ -291,7 +291,7 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 	if (!soundwindow) CreateSndWnd();
 
 	if (IsMute(mode)) return nullptr;
-	bool isLoop = (mode != SNDMODE_single_play && mode != SNDMODE_speech_play);
+	bool isLoop = (mode != SoundMode::single_play && mode != SoundMode::speech_play);
 
 	sDSSound* sound = new sDSSound();
 
@@ -302,7 +302,7 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 	}
 	sound->pGraph->QueryInterface(IID_IMediaControl, (void**)&sound->pControl);
 
-	if (mode == SNDMODE_speech_play || isLoop)
+	if (mode == SoundMode::speech_play || isLoop)
 		sound->pGraph->QueryInterface(IID_IMediaSeeking, (void**)&sound->pSeek);
 	else
 		sound->pSeek = nullptr;
@@ -312,14 +312,14 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 	sound->pControl->RenderFile((BSTR)pathFile);
 
 	sound->id = (isLoop) ? ++loopID : ++playID;
-	if (isLoop) sound->id |= SNDFLAG_looping; // sfx loop sound
+	if (isLoop) sound->id |= SoundFlags::looping; // sfx loop sound
 
 	switch (mode) {
-	case SNDMODE_engine_music_play:
-		sound->id |= SNDFLAG_engine; // engine play
+	case SoundMode::engine_music_play:
+		sound->id |= SoundFlags::engine; // engine play
 		break;
-	case SNDMODE_music_play:
-		sound->id |= SNDFLAG_restore; // restore background game music on stop
+	case SoundMode::music_play:
+		sound->id |= SoundFlags::restore; // restore background game music on stop
 		if (backgroundMusic)
 			StopSfallSound(backgroundMusic->id);
 		else {
@@ -327,9 +327,9 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 		}
 		backgroundMusic = sound;
 		break;
-	case SNDMODE_speech_play:
+	case SoundMode::speech_play:
 		sound->pSeek->SetTimeFormat(&TIME_FORMAT_SAMPLE);
-		sound->id |= SNDFLAG_on_stop;
+		sound->id |= SoundFlags::on_stop;
 		break;
 	}
 
@@ -337,11 +337,11 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 	sound->pControl->Run();
 
 	if (isLoop) {
-		SetSoundVolume(sound, SNDTYPE_sfx_loop, ((mode == SNDMODE_loop_play) ? *fo::ptr::sndfx_volume : *fo::ptr::background_volume) - adjustVolume);
+		SetSoundVolume(sound, SoundType::sfx_loop, ((mode == SoundMode::loop_play) ? *fo::ptr::sndfx_volume : *fo::ptr::background_volume) - adjustVolume);
 		loopingSounds.push_back(sound);
 	} else {
-		SetSoundVolume(sound, SNDTYPE_sfx_single, ((mode == SNDMODE_speech_play) ? *fo::ptr::speech_volume : *fo::ptr::sndfx_volume) - adjustVolume);
-		if (mode == SNDMODE_speech_play) speechSound = sound;
+		SetSoundVolume(sound, SoundType::sfx_single, ((mode == SoundMode::speech_play) ? *fo::ptr::speech_volume : *fo::ptr::sndfx_volume) - adjustVolume);
+		if (mode == SoundMode::speech_play) speechSound = sound;
 		if (isPaused) {
 			sound->pControl->Pause(); // for delayed playback
 		}
@@ -351,29 +351,29 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 }
 
 enum PlayType : signed char {
-	PLAYTYPE_sfx    = 0,
-	PLAYTYPE_music  = 1,
-	PLAYTYPE_lips   = 2,
-	PLAYTYPE_speech = 3,
-	PLAYTYPE_slides = 4 // speech for endgame slideshow
+	sfx    = 0,
+	music  = 1,
+	lips   = 2,
+	speech = 3,
+	slides = 4 // speech for endgame slideshow
 };
 
 static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFile) {
-	if (playType == PLAYTYPE_music && backgroundMusic != nullptr) {
+	if (playType == PlayType::music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
 		StopSfallSound(backgroundMusic->id);
 		backgroundMusic = nullptr;
 	}
 	if (!hasFile) return false;
 
-	if (playType == PLAYTYPE_music) {
-		backgroundMusic = PlayingSound(file, SNDMODE_engine_music_play); // background music loop
+	if (playType == PlayType::music) {
+		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music loop
 		if (!backgroundMusic) return false;
 	} else {
-		if (!PlayingSound(file, ((playType >= PLAYTYPE_lips) ? SNDMODE_speech_play : SNDMODE_single_play), 0, (playType == PLAYTYPE_slides))) {
+		if (!PlayingSound(file, ((playType >= PlayType::lips) ? SoundMode::speech_play : SoundMode::single_play), 0, (playType == PlayType::slides))) {
 			return false;
 		}
-		if (playType == PLAYTYPE_lips) {
+		if (playType == PlayType::lips) {
 			lipsPlaying = true;
 			return false;
 		}
@@ -388,7 +388,7 @@ static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
 static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playType, std::string &pathFile) {
 	size_t len = 0;
 	wchar_t wPath[MAX_PATH];
-	if (playType != PLAYTYPE_music) {
+	if (playType != PlayType::music) {
 		char* master_patches = *fo::ptr::patches; // all sfx/speech sounds must be placed in patches folder
 		while (master_patches[len]) wPath[len] = master_patches[len++];
 		wPath[len++] = L'\\';
@@ -434,10 +434,10 @@ static void __fastcall MakeMusicPath(const char* file) {
 	char pathBuf[MAX_PATH];
 
 	sprintf_s(pathBuf, pathFmt, *fo::ptr::sound_music_path1, file);
-	if (SoundFileLoad(PLAYTYPE_music, pathBuf)) return;
+	if (SoundFileLoad(PlayType::music, pathBuf)) return;
 
 	sprintf_s(pathBuf, pathFmt, *fo::ptr::sound_music_path2, file);
-	SoundFileLoad(PLAYTYPE_music, pathBuf);
+	SoundFileLoad(PlayType::music, pathBuf);
 }
 
 DWORD __stdcall PlaySfallSound(const char* path, long mode) {
@@ -454,7 +454,7 @@ DWORD __stdcall PlaySfallSound(const char* path, long mode) {
 
 	short volAdjust = (mode & 0x7FFF0000) >> 16;
 	mode &= 0xF;
-	if (mode > SNDMODE_music_play) mode = SNDMODE_music_play;
+	if (mode > SoundMode::music_play) mode = SoundMode::music_play;
 	sDSSound* sound = PlayingSound(buf, (SoundMode)mode, volAdjust);
 
 	return (mode && sound) ? sound->id : 0;
@@ -468,7 +468,7 @@ void __stdcall StopSfallSound(DWORD id) {
 			sound->pControl->Stop();
 			FreeSound(sound);
 			loopingSounds.erase(loopingSounds.begin() + i);
-			if (!(id & SNDFLAG_engine) && id & SNDFLAG_restore) {
+			if (!(id & SoundFlags::engine) && id & SoundFlags::restore) {
 				__asm call fo::funcoffs::gsound_background_restart_last_;
 			}
 			return;
@@ -504,7 +504,7 @@ skip:
 		je   playACM;
 		pushadc;
 		cmp  esi, 0x450926 + 5; // called from gsound_background_play_
-		sete cl;                // PLAYTYPE_sfx / PLAYTYPE_music
+		sete cl;                // PlayType::sfx / PlayType::music
 		je   load;
 		cmp  esi, 0x47B6B5 + 5; // called from lips_make_speech_
 		je   jlips;
@@ -514,7 +514,7 @@ skip:
 		sete cl;
 		inc  cl;
 jlips:
-		add  cl, 2; // PLAYTYPE_lips / PLAYTYPE_speech / PLAYTYPE_slides
+		add  cl, 2; // PlayType::lips / PlayType::speech / PlayType::slides
 load:
 		mov  edx, eax; // eax - path to file
 		call SoundFileLoad;
@@ -793,7 +793,7 @@ static void __declspec(naked) gsound_background_volume_set_hack() {
 		jz   skip;
 		push edx;
 		push eax;
-		push 0;   // SNDTYPE_sfx_loop
+		push 0;   // SoundType::sfx_loop
 		push ecx; // set volume for background music
 		call SetSoundVolume;
 		add  esp, 8;
@@ -812,7 +812,7 @@ static void __declspec(naked) gsound_master_volume_set_hack() {
 		push ecx;
 		push edx;
 		push dword ptr ds:[FO_VAR_background_volume];
-		push 3; // SNDTYPE_game_master
+		push 3; // SoundType::game_master
 		push 0; // set volume for all sounds
 		call SetSoundVolume;
 		add  esp, 12;
@@ -829,7 +829,7 @@ static void __declspec(naked) gsound_set_sfx_volume_hack() {
 		push edx;
 		mov  dword ptr ds:[FO_VAR_sndfx_volume], eax;
 		push eax;
-		push 2; // SNDTYPE_game_sfx
+		push 2; // SoundType::game_sfx
 		push 0; // set volume for all sounds
 		call SetSoundVolume;
 		add  esp, 12;
