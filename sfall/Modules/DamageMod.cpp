@@ -59,17 +59,16 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 	long ammoY = fo::func::item_w_dam_div(ctd.weapon);      // ammoY value (divisor)
 	if (ammoY <= 0) ammoY = 1;
 
-	long calcDT = armorDT;
-	if (armorDT > 0) calcDT = DivRound(armorDT, ammoY);     // compare the armorDT value to 0
-
 	long ammoX = fo::func::item_w_dam_mult(ctd.weapon);     // ammoX value
 	if (ammoX <= 0) ammoX = 1;
 
 	long ammoDRM = fo::func::item_w_dr_adjust(ctd.weapon);  // ammoDRM value
-	if (ammoDRM > 0) ammoDRM = -ammoDRM;
+	if (ammoDRM > 0) ammoDRM = -ammoDRM;                    // to negative
+
+	long calcDT = (armorDT > 0) ? DivRound(armorDT, ammoY) : armorDT;
 
 	long calcDR = armorDR;
-	if (armorDR > 0) {                                      // compare the armorDR value to 0
+	if (armorDR > 0) {
 		if (difficulty > 100) {                             // if the CD value is greater than 100
 			calcDR -= 20;                                   // subtract 20 from the armorDR value
 		} else if (difficulty < 100) {                      // if the CD value is less than 100
@@ -77,7 +76,7 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 		}
 		calcDR += ammoDRM;                                  // add the ammoDRM value to the armorDR value
 		calcDR = DivRound(calcDR, ammoX);                   // goto divTwo
-		if (calcDR >= 100) return;                          // if armorDR >= 100, stop damage calculation and exit
+		if (calcDR >= 100) return;                          // if armorDR >= 100, skip damage calculation
 	}
 
 	// start of damage calculation loop
@@ -143,7 +142,7 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 	if (calcDR < 0) {                                       // Is DR >= 0?
 		calcDR = 0;                                         // If no, set DR = 0
 	} else if (calcDR >= 100) {                             // Is DR >= 100?
-		return;                                             // If yes, damage will be zero, so stop calculating and exit
+		return;                                             // If yes, damage will be zero, so stop calculating
 	}
 
 	// Start of damage calculation loop
