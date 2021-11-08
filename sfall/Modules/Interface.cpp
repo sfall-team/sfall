@@ -35,51 +35,51 @@ long Interface_ActiveInterfaceWID() {
 }
 
 enum WinNameType {
-	WINTYPE_Inventory = 0, // any inventory window (player/loot/use/barter)
-	WINTYPE_Dialog    = 1,
-	WINTYPE_PipBoy    = 2,
-	WINTYPE_WorldMap  = 3,
-	WINTYPE_IfaceBar  = 4, // the interface bar
-	WINTYPE_Character = 5,
-	WINTYPE_Skilldex  = 6,
-	WINTYPE_EscMenu   = 7, // escape menu
-	WINTYPE_Automap   = 8,
+	Inventory = 0, // any inventory window (player/loot/use/barter)
+	Dialog    = 1,
+	PipBoy    = 2,
+	WorldMap  = 3,
+	IfaceBar  = 4, // the interface bar
+	Character = 5,
+	Skilldex  = 6,
+	EscMenu   = 7, // escape menu
+	Automap   = 8,
 
 	// Inventory types
-	WINTYPE_Inven     = 50, // player inventory
-	WINTYPE_Loot      = 51,
-	WINTYPE_Use       = 53,
-	WINTYPE_Barter    = 54
+	Inven     = 50, // player inventory
+	Loot      = 51,
+	Use       = 53,
+	Barter    = 54
 };
 
 fo::Window* Interface_GetWindow(long winType) {
 	long winID = 0;
 	switch (winType) {
-	case WINTYPE_Inventory:
+	case WinNameType::Inventory:
 		if (GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) winID = *fo::ptr::i_wid;
 		break;
-	case WINTYPE_Dialog:
+	case WinNameType::Dialog:
 		if (GetLoopFlags() & DIALOG) winID = *fo::ptr::dialogueBackWindow;
 		break;
-	case WINTYPE_PipBoy:
+	case WinNameType::PipBoy:
 		if (GetLoopFlags() & PIPBOY) winID = *fo::ptr::pip_win;
 		break;
-	case WINTYPE_WorldMap:
+	case WinNameType::WorldMap:
 		if (GetLoopFlags() & WORLDMAP) winID = *fo::ptr::wmBkWin;
 		break;
-	case WINTYPE_IfaceBar:
+	case WinNameType::IfaceBar:
 		winID = *fo::ptr::interfaceWindow;
 		break;
-	case WINTYPE_Character:
+	case WinNameType::Character:
 		if (GetLoopFlags() & CHARSCREEN) winID = *fo::ptr::edit_win;
 		break;
-	case WINTYPE_Skilldex:
+	case WinNameType::Skilldex:
 		if (GetLoopFlags() & SKILLDEX) winID = *fo::ptr::skldxwin;
 		break;
-	case WINTYPE_EscMenu:
+	case WinNameType::EscMenu:
 		if (GetLoopFlags() & ESCMENU) winID = *fo::ptr::optnwin;
 		break;
-	case WINTYPE_Automap:
+	case WinNameType::Automap:
 		if (GetLoopFlags() & AUTOMAP) winID = Interface_ActiveInterfaceWID();
 		break;
 	default:
@@ -175,18 +175,18 @@ static const long wmapViewPortHeight = 443;
 static bool showTerrainType = false;
 
 enum DotStyleDefault {
-	STYDEF_DotLen   = 2,
-	STYDEF_SpaceLen = 2
+	DotLen   = 2,
+	SpaceLen = 2
 };
 
 enum TerrainHoverImage {
-	HVRIMG_width  = 200,
-	HVRIMG_height = 15,
-	HVRIMG_size = HVRIMG_width * HVRIMG_height,
-	HVRIMG_x_shift = (HVRIMG_width / 4) + 25 // adjust x position
+	width  = 200,
+	height = 15,
+	size = width * height,
+	x_shift = (width / 4) + 25 // adjust x position
 };
 
-static std::tr1::array<unsigned char, HVRIMG_size> wmTmpBuffer;
+static std::tr1::array<unsigned char, TerrainHoverImage::size> wmTmpBuffer;
 static bool isHoveringHotspot = false;
 static bool backImageIsCopy = false;
 
@@ -197,8 +197,8 @@ struct DotPosition {
 static std::vector<DotPosition> dots;
 
 static unsigned char colorDot = 0;
-static long spaceLen = STYDEF_SpaceLen;
-static long dotLen   = STYDEF_DotLen;
+static long spaceLen = DotStyleDefault::SpaceLen;
+static long dotLen   = DotStyleDefault::DotLen;
 static long dot_xpos = 0;
 static long dot_ypos = 0;
 static size_t terrainCount = 0;
@@ -224,12 +224,12 @@ static void AddNewDot() {
 	if (dotLen <= 0 && spaceLen) {
 		spaceLen--;
 		if (!spaceLen) { // set dot length
-			dotLen = (id < terrainCount) ? dotStyle[id].dotLen : STYDEF_DotLen;
+			dotLen = (id < terrainCount) ? dotStyle[id].dotLen : DotStyleDefault::DotLen;
 		};
 		return;
 	}
 	dotLen--;
-	spaceLen = (id < terrainCount) ? dotStyle[id].spaceLen : STYDEF_SpaceLen;
+	spaceLen = (id < terrainCount) ? dotStyle[id].spaceLen : DotStyleDefault::SpaceLen;
 
 	DotPosition dot;
 	dot.x = dot_xpos;
@@ -280,11 +280,11 @@ static bool __stdcall PrintHotspotText(long x, long y, bool backgroundCopy = fal
 
 	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
 		backImageIsCopy = true;
-		fo::util::SurfaceCopyToMem(x - HVRIMG_x_shift, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, *fo::ptr::wmBkWinBuf, wmTmpBuffer.data());
+		fo::util::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *fo::ptr::wmBkWinBuf, wmTmpBuffer.data());
 	}
 
 	long txtWidth = fo::util::GetTextWidthFM(text);
-	if (txtWidth > HVRIMG_width) txtWidth = HVRIMG_width;
+	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
 	// offset text position
 	y += 4;
@@ -320,8 +320,8 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 			if (terrainCount)
 				dotLen = spaceLen = 99;
 			else {
-				dotLen = STYDEF_DotLen;
-				spaceLen = STYDEF_SpaceLen;
+				dotLen = DotStyleDefault::DotLen;
+				spaceLen = DotStyleDefault::SpaceLen;
 			}
 		}
 	}
@@ -349,20 +349,20 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		// upper left corner
 		long y = *fo::ptr::world_ypos - *fo::ptr::wmWorldOffsetY;
 		long x = *fo::ptr::world_xpos - *fo::ptr::wmWorldOffsetX;
-		long x_offset = x - HVRIMG_x_shift;
+		long x_offset = x - TerrainHoverImage::x_shift;
 		if (!backImageIsCopy) {
 			if (!PrintHotspotText(x, y, true)) return;
 		} else {
 			// restore background image
-			fo::util::DrawToSurface(x_offset, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, wmapWinHeight, *fo::ptr::wmBkWinBuf, wmTmpBuffer.data());
+			fo::util::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, *fo::ptr::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
 		RECT rect;
 		rect.top = y;
 		rect.left = x_offset;
-		rect.right = x + HVRIMG_width;
-		rect.bottom = y + HVRIMG_height;
+		rect.right = x + TerrainHoverImage::width;
+		rect.bottom = y + TerrainHoverImage::height;
 		fo::func::win_draw_rect(*fo::ptr::wmBkWin, &rect);
 	}
 }
@@ -502,8 +502,8 @@ static void WorldMapInterfacePatch() {
 					if (len < 1) len = 1; else if (len > 10) len = 10;
 					dotStyle[i].spaceLen = len;
 				} else {
-					dotStyle[i].dotLen = STYDEF_DotLen;
-					dotStyle[i].spaceLen = STYDEF_SpaceLen;
+					dotStyle[i].dotLen = DotStyleDefault::DotLen;
+					dotStyle[i].spaceLen = DotStyleDefault::SpaceLen;
 				}
 				pair.clear();
 			}
