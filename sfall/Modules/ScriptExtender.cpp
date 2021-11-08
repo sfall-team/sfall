@@ -948,6 +948,7 @@ end:
 
 // loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 void InitScriptProgram(ScriptProgram &prog, const char* fileName) {
+	prog.initialized = false;
 	fo::Program* scriptPtr = fo::func::loadProgram(fileName);
 
 	if (scriptPtr) {
@@ -957,14 +958,13 @@ void InitScriptProgram(ScriptProgram &prog, const char* fileName) {
 		for (int i = 0; i < fo::Scripts::ScriptProc::count; ++i) {
 			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
-		prog.initialized = false;
 	} else {
 		prog.ptr = nullptr;
 	}
 }
 
 void RunScriptProgram(ScriptProgram &prog) {
-	if (!prog.initialized) {
+	if (!prog.initialized && prog.ptr) {
 		fo::func::runProgram(prog.ptr);
 		fo::func::interpret(prog.ptr, -1);
 		prog.initialized = true;

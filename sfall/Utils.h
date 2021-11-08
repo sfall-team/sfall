@@ -29,11 +29,11 @@ std::vector<std::string> split(const std::string &s, char delim);
 
 std::string trim(const std::string& str);
 
+void trim(char* str);
+
 void ToLowerCase(std::string& line);
 
 bool isSpace(char c);
-
-void strtrim(char* str);
 
 const char* strfind(const char* source, const char* word);
 

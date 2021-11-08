@@ -46,7 +46,7 @@ static std::string __stdcall getString(const char* section, const char* setting,
 
 static std::vector<std::string> __stdcall getList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
 	std::vector<std::string> list = split(getString(section, setting, defaultValue, bufSize, iniFile), delimiter);
-	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
+	std::transform(list.cbegin(), list.cend(), list.begin(), (std::string (*)(const std::string&))trim);
 	return list;
 }
 

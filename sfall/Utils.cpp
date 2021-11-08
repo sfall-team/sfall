@@ -29,15 +29,7 @@ std::string trim(const std::string& str) {
 	return str.substr(first, (last - first + 1));
 }
 
-void ToLowerCase(std::string& line) {
-	std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-}
-
-bool isSpace(char c) {
-	return (c == ' ' || c == '\t' /*|| c == '\n' || c == '\r'*/);
-}
-
-void strtrim(char* str) {
+void trim(char* str) {
 	if (str[0] == 0) return;
 	int len = strlen(str) - 1;
 
@@ -53,6 +45,14 @@ void strtrim(char* str) {
 			str[j] = str[j + i]; // shift all chars (including null char) to the left
 		} while (++j <= len);
 	}
+}
+
+void ToLowerCase(std::string& line) {
+	std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+}
+
+bool isSpace(char c) {
+	return (c == ' ' || c == '\t' /*|| c == '\n' || c == '\r'*/);
 }
 
 // returns position, find word must be lowercase
