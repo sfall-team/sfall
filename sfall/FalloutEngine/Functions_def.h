@@ -60,6 +60,7 @@ WRAP_WATCOM_FFUNC4(long, register_object_run_to_object, fo::GameObject*, source,
 WRAP_WATCOM_FFUNC3(long, register_object_play_sfx, fo::GameObject*, object, const char*, sfxName, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
+WRAP_WATCOM_FFUNC3(long, square_coord, long, square, long*, outX, long*, outY)
 WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
 WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)

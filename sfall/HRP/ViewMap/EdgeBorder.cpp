@@ -16,15 +16,15 @@ namespace sfall
 {
 
 static EdgeBorder::Edge* MapEdgeData;
-
-// reference
-EdgeBorder::Edge* currentMapEdge;
-
-EdgeBorder::Edge* EdgeBorder::CurrentMapEdge() { return currentMapEdge; }
+static EdgeBorder::Edge* currentMapEdge; // reference
 
 static long edgeVersion; // 0 - version 1 (obsolete), 1 - version 2 (current)
-bool isLoadingMapEdge;
-bool isDefaultSetEdge;
+static bool isDefaultSetEdge;
+//bool isLoadingMapEdge;
+
+long EdgeBorder::EdgeVersion() { return edgeVersion; }
+
+EdgeBorder::Edge* EdgeBorder::CurrentMapEdge() { return currentMapEdge; }
 
 // Implementation from HRP by Mash
 static void CalcEdgeData(EdgeBorder::Edge* edgeData, long w, long h) {
@@ -67,7 +67,7 @@ static void CalcEdgeData(EdgeBorder::Edge* edgeData, long w, long h) {
 	long rectH = (edgeData->borderRect.bottom - edgeData->borderRect.top) / 2;
 	long _rectH = rectH;
 	if (rectH % 24) {
-		rectH -= rectH % 24; // truncate
+		rectH -= rectH % 24;
 		_rectH = rectH + 24;
 	}
 	if (rectH < h) {
@@ -78,7 +78,6 @@ static void CalcEdgeData(EdgeBorder::Edge* edgeData, long w, long h) {
 		edgeData->borderRect.bottom -= h;
 	}
 
-	// borderRect: right is less than left
 	if ((edgeData->borderRect.left < edgeData->borderRect.right) || (edgeData->borderRect.left - edgeData->borderRect.right) == 32) {
 		edgeData->borderRect.left = edgeData->borderRect.right;
 	}
@@ -197,6 +196,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 				if (getValue != mapLevel) break; // next level
 
 				EdgeBorder::Edge *edge = new EdgeBorder::Edge;
+				edge->prevEdgeData = edgeData;
 				edge->nextEdgeData = nullptr;
 				edge->squareRect = edgeData->squareRect; // rect copy
 				edgeData->nextEdgeData = edge;
@@ -303,8 +303,8 @@ long EdgeBorder::CheckBorder(long tile) {
 	long x, y;
 	ViewMap::GetTileCoordOffset(tile, x, y);
 
-	if (x > currentMapEdge->borderRect.left   || x < currentMapEdge->borderRect.right ||
-	    y > currentMapEdge->borderRect.bottom || y < currentMapEdge->borderRect.top)
+	if (x > currentMapEdge->borderRect.left || x < currentMapEdge->borderRect.right ||
+	    y < currentMapEdge->borderRect.top  || y > currentMapEdge->borderRect.bottom)
 	{
 		return 0; // block
 	}

@@ -19,7 +19,7 @@ static RECT mapVisibleArea;
 
 // Returns -1 if the scrRect is not in the rectangle of inRect (same as rect_inside_bound_)
 static __inline long rect_inside_bound(RECT* srcRect, RECT* inRect, RECT* outRect) {
-	*outRect = *srcRect;  // srcRect copy to outRect
+	if (srcRect != outRect) *outRect = *srcRect; // srcRect copy to outRect
 
 	if (inRect->right  < srcRect->left  ||
 	    inRect->left   > srcRect->right ||
@@ -111,7 +111,7 @@ static long __fastcall rect_inside_bound_clip(RECT* srcRect, RECT* inRect, RECT*
 
 	if (ViewMap::EDGE_CLIPPING_ON) {
 		if (CheckRect(outRect)) { // when do you need the fill below?
-			long height = outRect->bottom - outRect->top + 1;
+			long height = (outRect->bottom - outRect->top) + 1;
 			if (height > 0) {
 				long width = (outRect->right - outRect->left) + 1;
 				if (width > 0) {
@@ -139,7 +139,7 @@ static void __declspec(naked) refresh_game_hook_rect_inside_bound() {
 static long __fastcall rect_inside_bound_scroll_clip(RECT* srcRect, RECT* inRect, RECT* outRect) {
 	long height = (srcRect->bottom - srcRect->top) + 1;
 	if (height > 0) {
-		long width = srcRect->right - srcRect->left + 1;
+		long width = (srcRect->right - srcRect->left) + 1;
 		if (width > 0) {
 			ClearRect(width, height, srcRect);
 		}
@@ -159,9 +159,10 @@ static void __declspec(naked) map_scroll_refresh_game_hook_rect_inside_bound() {
 }
 
 static long __fastcall MouseCheckArea(long x, long y) {
-	if (x < (mapVisibleArea.left) || x > (mapVisibleArea.right) || y < mapVisibleArea.top || y >= mapVisibleArea.bottom) {
+	if (!ViewMap::EDGE_CLIPPING_ON) return 0;
+	if (x < mapVisibleArea.left || x > mapVisibleArea.right || y < mapVisibleArea.top || y >= mapVisibleArea.bottom) {
 		if (fo::func::win_get_top_win(x, y) == fo::var::getInt(FO_VAR_display_win)) {
-			return -7;
+			return 40000;
 		}
 	}
 	return 0;
@@ -186,7 +187,8 @@ check:
 		jnz  set;
 		retn;
 set:
-		mov  ebx, eax;
+		mov  ebx, -7;
+		//mov  ecx, 3;
 		retn;
 	}
 }
