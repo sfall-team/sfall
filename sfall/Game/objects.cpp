@@ -31,7 +31,7 @@ fo::GameObject* __fastcall Objects::FindObjectFromID(long id, long type) {
 	return nullptr;
 }
 
-void Objects::init() {
-}
+//void Objects::init() {
+//}
 
 }

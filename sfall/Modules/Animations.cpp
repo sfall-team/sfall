@@ -616,8 +616,8 @@ void Animations::init() {
 	MakeCall(0x419A17, art_alias_fid_hack);
 
 	// Fix for grave type containers in the open state not executing the use_p_proc procedure
-	if (IniReader::GetConfigInt("Misc", "GraveUseProcFix", 0) != 0) {
-		dlog("Applying use_p_proc fix for grave type containers.", DL_INIT);
+	if (IniReader::GetConfigInt("Misc", "GraveContainersFix", 0)) {
+		dlog("Applying grave type containers fix.", DL_INIT);
 		HookCall(0x49CFAC, obj_use_container_hook);
 		SafeWrite16(0x4122D9, 0x9090); // action_get_an_object_
 		dlogr(" Done", DL_INIT);
