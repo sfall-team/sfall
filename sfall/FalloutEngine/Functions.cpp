@@ -137,10 +137,9 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_;
 }
 
-long __stdcall tile_num(long x, long y) {
-	__asm push ebx; // don't delete (bug in tile_num_)
-	WRAP_WATCOM_CALL2(tile_num_, x, y);
-	__asm pop  ebx;
+long __fastcall tile_num(long x, long y) {
+	__asm xor ebx, ebx; // don't delete (bug in tile_num_)
+	WRAP_WATCOM_FCALL2(tile_num_, x, y);
 }
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {

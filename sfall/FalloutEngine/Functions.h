@@ -50,7 +50,7 @@ void __stdcall interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
-long __stdcall tile_num(long x, long y);
+long __fastcall tile_num(long x, long y);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 
