@@ -20,7 +20,9 @@
 
 #include <psapi.h>
 
+#include "main.h"
 #include "FalloutEngine\Fallout2.h"
+
 #include "ModuleManager.h"
 #include "Modules\Module.h"
 #include "Modules\AI.h"
@@ -53,8 +55,8 @@
 #include "Modules\KillCounter.h"
 #include "Modules\LoadGameHook.h"
 #include "Modules\LoadOrder.h"
-#include "Modules\MainMenu.h"
 #include "Modules\MainLoopHook.h"
+#include "Modules\MainMenu.h"
 #include "Modules\Message.h"
 #include "Modules\MetaruleExtender.h"
 #include "Modules\MiscPatches.h"
@@ -82,8 +84,6 @@
 #include "ReplacementFuncs.h"
 #include "Translate.h"
 #include "version.h"
-
-#include "main.h"
 
 ddrawDll ddraw;
 
@@ -178,7 +178,7 @@ static void InitModules() {
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
-static void LoadHRPModule() {
+static void GetHRPModule() {
 	static const DWORD loadFunc = 0x4FE1D0;
 	HMODULE dll;
 	__asm call loadFunc; // get HRP loading address
@@ -285,7 +285,7 @@ defaultIni:
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
-		LoadHRPModule();
+		GetHRPModule();
 		MODULEINFO info;
 		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
 			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {

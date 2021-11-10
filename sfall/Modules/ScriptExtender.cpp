@@ -428,8 +428,9 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 	}
 }
 
-// loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
+// loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
+	prog.initialized = false;
 	fo::Program* scriptPtr = (fullPath)
 	                       ? fo::func::allocateProgram(fileName)
 	                       : fo::func::loadProgram(fileName);
@@ -441,14 +442,13 @@ void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath)
 		for (int i = 0; i < fo::Scripts::ScriptProc::count; ++i) {
 			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
-		prog.initialized = false;
 	} else {
 		prog.ptr = nullptr;
 	}
 }
 
 void RunScriptProgram(ScriptProgram &prog) {
-	if (!prog.initialized) {
+	if (!prog.initialized && prog.ptr) {
 		fo::func::runProgram(prog.ptr);
 		fo::func::interpret(prog.ptr, -1);
 		prog.initialized = true;
@@ -565,8 +565,8 @@ static void PrepareGlobalScriptsListByMask() {
 			}
 		}
 		fo::func::db_free_file_list(&filenames, 0);
-		globalScripts.reserve(globalScriptFilesList.size());
 	}
+	globalScripts.reserve(globalScriptFilesList.size());
 }
 
 // this runs before the game was loaded/started

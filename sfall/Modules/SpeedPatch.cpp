@@ -176,6 +176,8 @@ void TimerInit() {
 	GetLocalTime(&time);
 	SystemTimeToFileTime(&time, (FILETIME*)&startTime);
 
+	if (!modKey[0]) return;
+
 	speed = new SpeedCfg[10];
 
 	char buf[2], spKey[10] = "SpeedKey#";
@@ -189,45 +191,46 @@ void TimerInit() {
 }
 
 void SpeedPatch::init() {
+	int init = IniReader::GetConfigInt("Speed", "SpeedMultiInitial", 100);
+
 	if (IniReader::GetConfigInt("Speed", "Enable", 0)) {
 		modKey[0] = IniReader::GetConfigInt("Input", "SpeedModKey", 0);
-		int init = IniReader::GetConfigInt("Speed", "SpeedMultiInitial", 100);
-		if (init == 100 && !modKey[0]) return;
-
-		dlog("Applying speed patch.", DL_INIT);
-
-		switch (modKey[0]) {
-		case -1:
-			modKey[0] = DIK_LCONTROL;
-			modKey[1] = DIK_RCONTROL;
-			break;
-		case -2:
-			modKey[0] = DIK_LMENU;
-			modKey[1] = DIK_RMENU;
-			break;
-		case -3:
-			modKey[0] = DIK_LSHIFT;
-			modKey[1] = DIK_RSHIFT;
-			break;
-		default:
-			modKey[1] = 0;
-		}
-
-		multi = init / 100.0f;
 		toggleKey = IniReader::GetConfigInt("Input", "SpeedToggleKey", 0);
-
-		getTickCountOffs = (DWORD)&FakeGetTickCount;
-		getLocalTimeOffs = (DWORD)&FakeGetLocalTime;
-
-		for (int i = 0; i < sizeof(offsets) / 4; i++) {
-			SafeWrite32(offsets[i], (DWORD)&getTickCountOffs);
-		}
-		SafeWrite32(0x4FDF58, (DWORD)&getLocalTimeOffs);
-		HookCall(0x4A433E, scripts_check_state_hook);
-
-		TimerInit();
-		dlogr(" Done", DL_INIT);
 	}
+	if (init == 100 && !modKey[0]) return;
+
+	dlog("Applying speed patch.", DL_INIT);
+
+	switch (modKey[0]) {
+	case -1:
+		modKey[0] = DIK_LCONTROL;
+		modKey[1] = DIK_RCONTROL;
+		break;
+	case -2:
+		modKey[0] = DIK_LMENU;
+		modKey[1] = DIK_RMENU;
+		break;
+	case -3:
+		modKey[0] = DIK_LSHIFT;
+		modKey[1] = DIK_RSHIFT;
+		break;
+	default:
+		modKey[1] = 0;
+	}
+
+	multi = init / 100.0f;
+
+	getTickCountOffs = (DWORD)&FakeGetTickCount;
+	getLocalTimeOffs = (DWORD)&FakeGetLocalTime;
+
+	for (int i = 0; i < sizeof(offsets) / 4; i++) {
+		SafeWrite32(offsets[i], (DWORD)&getTickCountOffs);
+	}
+	SafeWrite32(0x4FDF58, (DWORD)&getLocalTimeOffs);
+	HookCall(0x4A433E, scripts_check_state_hook);
+
+	TimerInit();
+	dlogr(" Done", DL_INIT);
 }
 
 void SpeedPatch::exit() {

@@ -88,9 +88,9 @@ void op_set_movie_path(OpcodeContext& ctx) {
 void op_get_year(OpcodeContext& ctx) {
 	int year = 0;
 	__asm {
-		xor eax, eax;
-		xor edx, edx;
-		lea ebx, year;
+		xor  eax, eax;
+		xor  edx, edx;
+		lea  ebx, year;
 		call fo::funcoffs::game_time_date_;
 	}
 	ctx.setReturn(year);

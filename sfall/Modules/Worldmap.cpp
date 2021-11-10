@@ -562,7 +562,7 @@ bool Worldmap::LoadData(HANDLE file) {
 		ReadFile(file, &mID, 4, &sizeRead, 0);
 		ReadFile(file, &elevData, sizeof(levelRest), &sizeRead, 0);
 		if (sizeRead != sizeof(levelRest)) return true;
-		mapRestInfo.emplace(mID, elevData);
+		mapRestInfo.insert(std::make_pair(mID, elevData));
 	}
 	if (count && !restMap) {
 		HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
@@ -637,7 +637,7 @@ void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
 			elev++;
 		}
 		elevData.level[elev] = canRest;
-		mapRestInfo.emplace(mapId, elevData);
+		mapRestInfo.insert(std::make_pair(mapId, elevData));
 	}
 }
 
@@ -670,7 +670,7 @@ void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
 // TODO: someone might need to know the name of a terrain type?
 /*const char* Worldmap::GetTerrainTypeName(long x, long y) {
 	const char* name = GetOverrideTerrainName(x, y);
-	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+	return (name) ? name : fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
 }*/
 
 // Returns the name of the terrain type in the position of the player's marker on the world map

@@ -20,7 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\Version.h"
+#include "..\version.h"
 
 #include "Credits.h"
 

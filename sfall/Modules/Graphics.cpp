@@ -19,6 +19,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "..\version.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
 
@@ -94,7 +95,7 @@ static bool windowInit = false;
 static long windowLeft = 0;
 static long windowTop = 0;
 static HWND window;
-static DWORD windowStyle = WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX;
+static DWORD windowStyle = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
 
 static int windowData;
 
@@ -115,7 +116,7 @@ static IDirect3DSurface9* backBuffer;
 
 static IDirect3DVertexBuffer9* vertexOrigRes;
 static IDirect3DVertexBuffer9* vertexSfallRes;
-static IDirect3DVertexBuffer9* vertexMovie;
+static IDirect3DVertexBuffer9* vertexMovie; // for AVI
 
 static IDirect3DTexture9* paletteTex;
 static IDirect3DTexture9* gpuPalette;
@@ -1053,6 +1054,7 @@ public:
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
+		char windowTitle[128];
 		window = a;
 
 		if (!d3d9Device) {
@@ -1062,7 +1064,14 @@ public:
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
 		if (Graphics::mode >= 5) {
-			SetWindowLong(a, GWL_STYLE, windowStyle);
+			if (ResWidth != gWidth || ResHeight != gHeight) {
+				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
+			} else {
+				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
+			}
+			SetWindowTextA(a, windowTitle);
+
+			SetWindowLongA(a, GWL_STYLE, windowStyle);
 			RECT r;
 			r.left = 0;
 			r.right = gWidth;
@@ -1071,7 +1080,7 @@ public:
 			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
 			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1191,7 +1200,7 @@ static __declspec(naked) void game_init_hook() {
 	}
 }
 
-static __declspec(naked) void GNW95_SetPaletteEntries_hack() {
+static __declspec(naked) void GNW95_SetPaletteEntries_replacement() {
 	LPPALETTEENTRY palette;
 	DWORD startIndex;
 	DWORD count;
@@ -1213,7 +1222,7 @@ static __declspec(naked) void GNW95_SetPaletteEntries_hack() {
 	}
 }
 
-static __declspec(naked) void GNW95_SetPalette_hack() {
+static __declspec(naked) void GNW95_SetPalette_replacement() {
 	LPPALETTEENTRY palette;
 	__asm {
 		push ecx;
@@ -1268,8 +1277,8 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_hack); // 0x4CB311
-		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_hack); // 0x4CB568
+		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
+		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
 		if (hrpVersionValid) {
 			// Patch HRP to show the mouse cursor over the window title

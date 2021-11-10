@@ -686,7 +686,7 @@ static void PartyMemberSkillPatch() {
 	// Note: this will cause the party member to apply his/her skill when you use First Aid/Doctor skill on the player, but only if
 	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
 	// this option without a global script that overrides First Aid/Doctor functions has very limited usefulness
-	if (IniReader::GetConfigInt("Misc", "PartyMemberSkillFix", 0) != 0) {
+	if (IniReader::GetConfigInt("Misc", "PartyMemberSkillFix", 0)) {
 		dlog("Applying party member using First Aid/Doctor skill patch.", DL_INIT);
 		HookCall(0x412836, action_use_skill_on_hook);
 		dlogr(" Done", DL_INIT);
@@ -890,7 +890,7 @@ void MiscPatches::init() {
 	if (IniReader::GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
 		SafeWrite32(0x418867, 0x90909090);
-		SafeWrite32(0x418872, 256);
+		SafeWrite32(0x418872, 261); // default for 512 MB system memory by installer
 		dlogr(" Done", DL_INIT);
 	}
 
