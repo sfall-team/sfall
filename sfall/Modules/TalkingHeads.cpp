@@ -144,7 +144,7 @@ static bool LoadFrm(Frm* frm) {
 			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->bakedBackground = 1; // fills entire frame surface with a key-color
 		}
 		frm->textures = textures;
-		texMap.insert(std::pair<const __int64, TextureData>(frm->key, TextureData(textures, frm->showHighlights, frm->bakedBackground, frm->frames)));
+		texMap.insert(std::make_pair(frm->key, TextureData(textures, frm->showHighlights, frm->bakedBackground, frm->frames)));
 		fo::var::setInt(FO_VAR_bk_disabled) = 0;
 	} else {
 		// Use preloaded textures

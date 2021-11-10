@@ -173,7 +173,7 @@ void ReadExtraGameMsgFiles() {
 			path += ".msg";
 			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, path.c_str()) == 1) {
-				gExtraGameMsgLists.insert(std::pair<const int, fo::MessageList*>(0x2000 + number, list));
+				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
 			}
@@ -201,7 +201,7 @@ long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber) {
 		//}
 	}
 	if (msgNumber == 0) msgNumber = msgNumCounter++;
-	gExtraGameMsgLists.insert(std::pair<const int, fo::MessageList*>(msgNumber, list));
+	gExtraGameMsgLists.insert(std::make_pair(msgNumber, list));
 	return msgNumber;
 }
 

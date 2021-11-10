@@ -412,7 +412,7 @@ static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playTy
 		hasFile = true;
 		break;
 	}
-	soundsFiles.insert(std::pair<const std::string, std::wstring>(std::move(pathFile), (hasFile) ? wPath : L""));
+	soundsFiles.insert(std::make_pair(std::move(pathFile), (hasFile) ? wPath : L""));
 
 	return PrePlaySoundFile(playType, wPath, hasFile);
 }

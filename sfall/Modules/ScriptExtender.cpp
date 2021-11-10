@@ -542,7 +542,7 @@ static void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 				it->second.counter = 0;
 			}
 		} else {
-			selfOverrideMap.insert(std::pair<fo::Program* const, SelfOverrideObj>(script, obj));
+			selfOverrideMap.insert(std::make_pair(script, obj));
 		}
 	} else if (isFind) {
 		selfOverrideMap.erase(it);
@@ -1478,7 +1478,7 @@ static long lastItemPid = -1;
 void __stdcall ObjectName_SetName(long sid, const char* name) {
 	if (sid == lastNameSid) lastNameSid = -1;
 	if (!name) name = "";
-	overrideScrName.insert(std::pair<const int, std::string>(sid, name));
+	overrideScrName.insert(std::make_pair(sid, name));
 }
 
 const char* __stdcall ObjectName_GetName(fo::GameObject* object) {
