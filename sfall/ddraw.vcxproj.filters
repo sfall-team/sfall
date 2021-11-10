@@ -401,6 +401,9 @@
     <ClInclude Include="HRP\ViewMap\EdgeClipping.h">
       <Filter>HRP\ViewMap</Filter>
     </ClInclude>
+    <ClInclude Include="HRP\Dialog.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -736,6 +739,9 @@
     </ClCompile>
     <ClCompile Include="HRP\ViewMap\EdgeClipping.cpp">
       <Filter>HRP\ViewMap</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\Dialog.cpp">
+      <Filter>HRP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

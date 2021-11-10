@@ -164,6 +164,7 @@ static void __declspec(naked) tile_scroll_to_hack_replacement() {
 	}
 }
 
+// Implementation from HRP 3.0.6 by Mash
 static long __fastcall square_rect_render_floor(long y, long id, long x) {
 	if (x < 0 || x >= square_width || y < 0 || y >= square_length) return -1;
 
@@ -192,6 +193,7 @@ skipDraw:
 	}
 }
 
+// Implementation from HRP 3.0.6 by Mash
 static long __fastcall square_rect_render_roof(long y, long id, long x) {
 	if (x < 0 || x >= square_width || y < 0 || y >= square_length) return -1;
 
@@ -243,6 +245,7 @@ skipDraw:
 	}
 }
 
+// Implementation from HRP 3.0.6 by Mash
 static void __fastcall square_obj_render(fo::BoundRect* rect, long tag) {
 	if (EdgeBorder::EdgeVersion() == 0) return;
 
@@ -267,10 +270,10 @@ static void __fastcall square_obj_render(fo::BoundRect* rect, long tag) {
 	do {
 		long X = x2;
 		do {
-			if (X > edge->squareRect.left   && ((edge->field_48 >> 24) & 1) == tag ||
-			    Y < edge->squareRect.top    && ((edge->field_48 >> 16) & 1) == tag ||
-			    X < edge->squareRect.right  && ((edge->field_48 >>  8) & 1) == tag ||
-			    Y > edge->squareRect.bottom && (edge->field_48 & 1) == tag)
+			if (X > edge->squareRect.left   && ((edge->clipData >> 24) & 1) == tag ||
+			    Y < edge->squareRect.top    && ((edge->clipData >> 16) & 1) == tag ||
+			    X < edge->squareRect.right  && ((edge->clipData >>  8) & 1) == tag ||
+			    Y > edge->squareRect.bottom && (edge->clipData & 1) == tag)
 			{
 				long s_x, s_y;
 				fo::func::square_coord(X + sY, &s_x, &s_y);
@@ -282,7 +285,7 @@ static void __fastcall square_obj_render(fo::BoundRect* rect, long tag) {
 					call fo::funcoffs::floor_draw_;
 				}
 			}
-		} while (++X < x0);
+		} while (++X < x0); // x < right
 
 		sY += square_width;
 	} while (++Y < y3); // y < bottom
@@ -290,8 +293,8 @@ static void __fastcall square_obj_render(fo::BoundRect* rect, long tag) {
 
 static void __declspec(naked) obj_render_pre_roof_hack_0() {
 	__asm {
-		lea  ecx, [esp + 4];
 		mov  edx, 0;
+		lea  ecx, [esp + 4];
 		call square_obj_render;
 		mov  edi, [esp + 0x2C + 4];
 		test edi, edi;
@@ -301,8 +304,8 @@ static void __declspec(naked) obj_render_pre_roof_hack_0() {
 
 static void __declspec(naked) obj_render_pre_roof_hack_1() {
 	__asm {
-		lea  ecx, [esp + 4];
 		mov  edx, 1;
+		lea  ecx, [esp + 4];
 		call square_obj_render;
 		pop  eax; // ret addr
 		add  esp, 0x44;

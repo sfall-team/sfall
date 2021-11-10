@@ -113,7 +113,7 @@ static void SetDefaultEdgeData() {
 		edge->squareRect.right = 0;
 		edge->squareRect.bottom = 99;
 
-		edge->field_48 = 0;
+		edge->clipData = 0;
 		edge->prevEdgeData = nullptr;
 		edge->nextEdgeData = nullptr;
 	}
@@ -168,7 +168,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 
 		if (edgeVersion) {
 			// load rectangle data (version 2)
-			if (fo::func::db_freadIntCount(file, (DWORD*)&edgeData->squareRect, 4) || fo::func::db_freadInt(file, (DWORD*)&edgeData->field_48)) {
+			if (fo::func::db_freadIntCount(file, (DWORD*)&edgeData->squareRect, 4) || fo::func::db_freadInt(file, (DWORD*)&edgeData->clipData)) {
 				return file; // read error
 			}
 		} else {
@@ -176,7 +176,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 			edgeData->squareRect.top = 0;
 			edgeData->squareRect.right = 0;
 			edgeData->squareRect.bottom = 99;
-			edgeData->field_48 = 0;
+			edgeData->clipData = 0;
 		}
 
 		if (getValue == mapLevel) {
@@ -229,7 +229,7 @@ long EdgeBorder::GetCenterTile(long tile, long mapLevel) {
 	Edge* edgeData = &MapEdgeData[mapLevel];
 	currentMapEdge = edgeData;
 
-	// clear unreconstructed areas when EDGE_CLIPPING is enabled (maybe there is another way to do this, and not every time)
+	// clear unreferenced areas when EDGE_CLIPPING is enabled (maybe there is another way to do this, and not every time)
 	std::memset((void*)fo::var::getInt(FO_VAR_display_buf), 0, fo::var::getInt(FO_VAR_buf_size));
 	//fo::func::win_draw(fo::var::getInt(FO_VAR_display_win)); // for test
 

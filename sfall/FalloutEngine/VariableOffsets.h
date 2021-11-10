@@ -19,6 +19,7 @@
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
 #define FO_VAR_attack_str                 0x56D624
+#define FO_VAR_backgrndRects              0x518748
 #define FO_VAR_background_fname_requested 0x596FC2
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0

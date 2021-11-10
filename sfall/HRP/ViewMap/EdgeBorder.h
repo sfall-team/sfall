@@ -16,8 +16,8 @@ public:
 		RECT borderRect; // right is less than left
 		RECT rect_2;
 		RECT tileRect;
-		RECT squareRect;
-		long field_48;      // unknown
+		RECT squareRect;    // angel clipping
+		long clipData;      // angel clip type
 		Edge* prevEdgeData; // unused (used in 3.06)
 		Edge* nextEdgeData;
 

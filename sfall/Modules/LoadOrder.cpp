@@ -488,8 +488,8 @@ static void SfallResourceFile() {
 
 // last: master.dat < critter.dat < [add here] < sfall.dat < patchXXX.dat
 void LoadOrder::AddResourcePatches(std::string &dat, std::string &patches) {
-	patchFiles.push_back(std::move(dat));
-	patchFiles.push_back(std::move(patches));
+	if (!dat.empty()) patchFiles.push_back(std::move(dat));
+	if (!patches.empty()) patchFiles.push_back(std::move(patches));
 }
 
 void LoadOrder::init() {
