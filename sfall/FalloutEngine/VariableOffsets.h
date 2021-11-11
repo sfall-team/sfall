@@ -144,6 +144,8 @@
 #define FO_VAR_i_lhand                    0x59E958
 #define FO_VAR_i_rhand                    0x59E968
 #define FO_VAR_i_wid                      0x59E964
+#define FO_VAR_i_wid_max_x                0x59E974
+#define FO_VAR_i_wid_max_y                0x59E970 
 #define FO_VAR_i_worn                     0x59E954
 #define FO_VAR_idle_func                  0x51E234
 #define FO_VAR_In_WorldMap                0x672E1C
@@ -156,6 +158,7 @@
 #define FO_VAR_inven_scroll_dn_bid        0x5190E8
 #define FO_VAR_inven_scroll_up_bid        0x5190E4
 #define FO_VAR_inventry_message_file      0x59E814
+#define FO_VAR_iscr_data                  0x519068
 #define FO_VAR_itemButtonItems            0x5970F8
 #define FO_VAR_itemCurrentItem            0x518F78
 #define FO_VAR_kb_lock_flags              0x51E2EA

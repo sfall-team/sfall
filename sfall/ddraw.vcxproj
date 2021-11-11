@@ -313,6 +313,7 @@
     <ClInclude Include="HRP\Image.h" />
     <ClInclude Include="HRP\Init.h" />
     <ClInclude Include="HRP\InterfaceBar.h" />
+    <ClInclude Include="HRP\Inventory.h" />
     <ClInclude Include="HRP\MainMenu.h" />
     <ClInclude Include="HRP\SplashScreen.h" />
     <ClInclude Include="HRP\ViewMap\EdgeBorder.h" />
@@ -440,6 +441,7 @@
     <ClCompile Include="HRP\Image.cpp" />
     <ClCompile Include="HRP\Init.cpp" />
     <ClCompile Include="HRP\InterfaceBar.cpp" />
+    <ClCompile Include="HRP\Inventory.cpp" />
     <ClCompile Include="HRP\MainMenu.cpp" />
     <ClCompile Include="HRP\SplashScreen.cpp" />
     <ClCompile Include="HRP\ViewMap\EdgeBorder.cpp" />

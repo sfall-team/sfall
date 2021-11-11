@@ -102,6 +102,7 @@ VAR_(inven_pid,                  DWORD)
 VAR_(inven_scroll_dn_bid,        DWORD)
 VAR_(inven_scroll_up_bid,        DWORD)
 VAR_(inventry_message_file,      fo::MessageList)
+VARA(iscr_data,                  fo::InventScrData, 6)
 VARA(itemButtonItems,            fo::ItemButtonItem, 2) // 0 - left, 1 - right
 VAR_(itemCurrentItem,            long)  // 0 - left, 1 - right
 VAR_(kb_lock_flags,              DWORD)

@@ -16,6 +16,7 @@
 #include "MainMenu.h"
 #include "InterfaceBar.h"
 #include "Dialog.h"
+#include "Inventory.h"
 
 #include "Init.h"
 
@@ -146,6 +147,7 @@ void HRP::init() {
 	ViewMap::init();
 	IFaceBar::init();
 	Dialog::init();
+	Inventory::init();
 }
 
 }

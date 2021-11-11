@@ -404,6 +404,9 @@
     <ClInclude Include="HRP\Dialog.h">
       <Filter>HRP</Filter>
     </ClInclude>
+    <ClInclude Include="HRP\Inventory.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -741,6 +744,9 @@
       <Filter>HRP\ViewMap</Filter>
     </ClCompile>
     <ClCompile Include="HRP\Dialog.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\Inventory.cpp">
       <Filter>HRP</Filter>
     </ClCompile>
   </ItemGroup>
