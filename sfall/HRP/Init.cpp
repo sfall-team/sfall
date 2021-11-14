@@ -58,7 +58,62 @@ bool HRP::CheckExternalPatch() {
 	return isEnabled;
 }
 
+static void __declspec(naked) mem_copy() {
+	__asm {
+		cmp  edx, eax;
+		jz   end;
+
+		push ecx;
+		push esi;
+		push edi;
+		mov  ecx, ebx;
+		jnb  forward;
+
+		lea  esi, [edx + ecx];
+//		and  ebx, 3;
+		cmp  esi, eax;
+		jbe  forward; // src <= dst
+
+		// backward copy
+		dec  esi; //lea     esi, [edi - 1];
+		lea  edi, [eax + ecx]; // dst + num
+
+		std;
+		dec  edi;
+		dec  esi;
+		dec  edi;
+		shr  ecx, 1;
+		rep movsw;
+
+		adc  ecx, ecx;
+		inc  esi;
+		inc  edi;
+//		mov  ecx, ebx;
+		rep movsb
+		cld;
+		pop  edi;
+		pop  esi;
+		pop  ecx;
+end:
+		retn;
+
+forward:
+		and  ebx, 3;
+		mov  esi, edx;
+		mov  edi, eax;
+		shr  ecx, 2;
+		rep movsd;
+		mov  ecx, ebx;
+		rep movsb;
+		pop  edi;
+		pop  esi;
+		pop  ecx;
+		retn;
+	}
+}
+
 void HRP::init() {
+	//HookCall(0x482899, mem_copy);
 	//SafeWrite16(0x4B2EA8, 0x9090); // _show_grid
 
 	if (!hrpIsEnabled && IniReader::GetIntDefaultConfig("Main", "HiResMode", 1) == 0) return; // vanilla game mode
@@ -103,6 +158,11 @@ void HRP::init() {
 	ViewMap::IGNORE_PLAYER_SCROLL_LIMITS = (IniReader::GetInt("MAPS", "IGNORE_PLAYER_SCROLL_LIMITS", 0, f2ResIni) != 0);
 	ViewMap::IGNORE_MAP_EDGES = (IniReader::GetInt("MAPS", "IGNORE_MAP_EDGES", 0, f2ResIni) != 0);
 	ViewMap::EDGE_CLIPPING_ON = (IniReader::GetInt("MAPS", "EDGE_CLIPPING_ON", 1, f2ResIni) != 0);
+
+	IFaceBar::IFACE_BAR_MODE = IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, f2ResIni);
+	IFaceBar::IFACE_BAR_SIDE_ART = IniReader::GetInt("IFACE", "IFACE_BAR_SIDE_ART", 2, f2ResIni);
+	IFaceBar::IFACE_BAR_WIDTH = IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
+	IFaceBar::IFACE_BAR_SIDES_ORI = IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni);
 
 	Dialog::DIALOG_SCRN_ART_FIX = (IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_ART_FIX", 1, f2ResIni) != 0);
 	Dialog::DIALOG_SCRN_BACKGROUND = (IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_BACKGROUND", 0, f2ResIni) != 0);

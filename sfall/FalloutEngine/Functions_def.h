@@ -72,10 +72,8 @@ WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long,
 
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
 
-//
-
-
 //WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
+WRAP_WATCOM_FFUNC8(void, cscale, BYTE*, src, long, sWidth, long, sHeight, long, sStride, BYTE*, dst, long, width, long, height, long, stride)
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(fo::AIcap*, ai_cap, fo::GameObject*, critter)
