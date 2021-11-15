@@ -386,7 +386,7 @@ static void SlotsStoreCurrentHitMode() {
 }
 
 fo::AttackType Unarmed_GetStoredHitMode(fo::HandSlot slot) {
-	fo::AttackType hit;
+	fo::AttackType hit = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 
 	switch (slotHitData[slot].mode) {
 	case fo::HandSlotMode::Primary:

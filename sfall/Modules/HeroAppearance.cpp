@@ -87,28 +87,28 @@ static bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, L
 	LineNode *NextLine = StartLine->next;
 
 	DWORD lineWidth = 0, wordWidth = 0, i = 0;
-	char CurrentChar;
+	unsigned char currentChar;
 
 	while (TextMsg[i] != '\0') {
-		CurrentChar = TextMsg[i++];
+		currentChar = TextMsg[i++];
 
-		int cWidth = fo::util::GetCharWidth(CurrentChar) + GapWidth;
+		int cWidth = fo::util::GetCharWidth(currentChar) + GapWidth;
 		lineWidth += cWidth;
 		wordWidth += cWidth;
 
 		if (lineWidth <= WrapWidth) {
-			if (isspace(CurrentChar) || CurrentChar == '-') {
+			if (isspace(currentChar) || currentChar == '-') {
 				NextLine->offset = i;
 				wordWidth = 0;
 			}
 		} else {
-			if (isspace(CurrentChar)) {
+			if (isspace(currentChar)) {
 				NextLine->offset = i;
 				wordWidth = 0;
 			}
 			lineWidth = wordWidth;
 			wordWidth = 0;
-			CurrentChar = '\0';
+			currentChar = '\0';
 			*lineNum += 1;
 			NextLine->next = new LineNode;
 			NextLine = NextLine->next;
