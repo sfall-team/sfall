@@ -4,22 +4,27 @@ namespace sfall
 {
 
 enum UniqueID : long {
-	UID_START = 0x0FFFFFFF, // start at 0x10000000
-	UID_END   = 0x7FFFFFFF
+	Start = 0x0FFFFFFF, // start at 0x10000000
+	End   = 0x7FFFFFFF
 };
 
-extern long Objects_uniqueID;
+class Objects {
+public:
+	static const char* name() { return "Objects"; }
+	static void init();
 
-void Objects_Init();
-void Objects_OnGameLoad();
+	static void OnGameLoad();
 
-bool Objects_IsUniqueID(long id);
+	static long uniqueID;
 
-long __fastcall Objects_SetObjectUniqueID(fo::GameObject* obj);
-long __fastcall Objects_SetSpecialID(fo::GameObject* obj);
-void Objects_SetNewEngineID(fo::GameObject* obj);
+	static bool IsUniqueID(long id);
 
-void __stdcall Objects_SetAutoUnjamLockTime(DWORD time);
-void __stdcall Objects_LoadProtoAutoMaxLimit();
+	static long __fastcall SetObjectUniqueID(fo::GameObject* obj);
+	static long __fastcall SetSpecialID(fo::GameObject* obj);
+	static void SetNewEngineID(fo::GameObject* obj);
+
+	static void __stdcall SetAutoUnjamLockTime(DWORD time);
+	static void __stdcall LoadProtoAutoMaxLimit();
+};
 
 }

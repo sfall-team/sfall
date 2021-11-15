@@ -21,26 +21,29 @@
 namespace sfall
 {
 
-void Translate_Init(const char* config);
+class Translate {
+public:
+	static void init(const char* config);
 
-// Translates given string using sfall translation INI file and puts the result into given buffer
-size_t __stdcall Translate_Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+	// Translates given string using sfall translation INI file and puts the result into given buffer
+	static size_t __stdcall Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
-// Translates given string using sfall translation INI file
-std::string __stdcall Translate_Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+	// Translates given string using sfall translation INI file
+	static std::string __stdcall Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
-// Translates given list of strings using sfall translation INI file
-std::vector<std::string> __stdcall Translate_GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
+	// Translates given list of strings using sfall translation INI file
+	static std::vector<std::string> __stdcall GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
 
-/* Messages */
+	/* Messages */
 
-// SaveSfallDataFail: "ERROR saving extended savegame information!"
-const char* Translate_SfallSaveDataFailure();
+	// SaveSfallDataFail: "ERROR saving extended savegame information!"
+	static const char* SfallSaveDataFailure();
 
-// SaveInCombat: "Cannot save at this time."
-const char* Translate_CombatSaveBlockMessage();
+	// SaveInCombat: "Cannot save at this time."
+	static const char* CombatSaveBlockMessage();
 
-// BlockedCombat: "You cannot enter combat at this time."
-const char* Translate_CombatBlockMessage();
+	// BlockedCombat: "You cannot enter combat at this time."
+	static const char* CombatBlockMessage();
+};
 
 }

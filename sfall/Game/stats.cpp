@@ -19,7 +19,7 @@ namespace sf = sfall;
 static bool smallFrameTraitFix = false;
 
 int __stdcall Stats::trait_level(DWORD traitID) {
-	return sf::DudeHasTrait(traitID);
+	return sf::Perks::DudeHasTrait(traitID);
 }
 
 // Wrapper of perk_level_ function, for quickly skipping other critters
@@ -36,9 +36,9 @@ int __stdcall Stats::trait_adjust_stat(DWORD statID) {
 	if (statID > fo::STAT_max_derived) return 0;
 
 	int result = 0;
-	if (sf::TraitsModEnable()) {
-		if (fo::ptr::pc_trait[0] != -1) result += sf::GetTraitStatBonus(statID, 0);
-		if (fo::ptr::pc_trait[1] != -1) result += sf::GetTraitStatBonus(statID, 1);
+	if (sf::Perks::TraitsModEnable()) {
+		if (fo::ptr::pc_trait[0] != -1) result += sf::Perks::GetTraitStatBonus(statID, 0);
+		if (fo::ptr::pc_trait[1] != -1) result += sf::Perks::GetTraitStatBonus(statID, 1);
 	}
 
 	switch (statID) {
@@ -124,7 +124,7 @@ void Stats::init() {
 	sf::MakeJump(fo::funcoffs::trait_adjust_stat_, trait_adjust_stat_replacement); // 0x4B3C7C
 
 	// Fix the carry weight penalty of the Small Frame trait not being applied to bonus Strength points
-	smallFrameTraitFix = (sf::GetConfigInt("Misc", "SmallFrameFix", 0) != 0);
+	smallFrameTraitFix = (sf::IniReader::GetConfigInt("Misc", "SmallFrameFix", 0) != 0);
 }
 
 }

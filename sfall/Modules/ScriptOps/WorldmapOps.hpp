@@ -193,7 +193,7 @@ static void __declspec(naked) op_set_map_time_multi() {
 paramWasFloat:
 		push eax;
 end:
-		call SetMapMulti;
+		call Worldmap::SetMapMulti;
 fail:
 		pop  edx;
 		pop  ecx;
@@ -203,7 +203,7 @@ fail:
 }
 
 static void mf_set_car_intface_art() {
-	Worldmap_SetCarInterfaceArt(opHandler.arg(0).rawValue());
+	Worldmap::SetCarInterfaceArt(opHandler.arg(0).rawValue());
 }
 
 static void mf_set_map_enter_position() {
@@ -235,11 +235,11 @@ static void mf_tile_by_position() {
 }
 
 static void mf_set_terrain_name() {
-	Worldmap_SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
+	Worldmap::SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
 }
 
 static void mf_set_town_title() {
-	Worldmap_SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
+	Worldmap::SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
 }
 
 }

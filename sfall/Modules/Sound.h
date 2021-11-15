@@ -21,16 +21,22 @@
 namespace sfall
 {
 
-void Sound_Init();
-void Sound_Exit();
-void WipeSounds();
-void Sound_OnAfterGameInit();
+class Sound {
+public:
+	static const char* name() { return "Sounds"; }
+	static void init();
+	static void exit();
 
-DWORD __stdcall PlaySfallSound(const char* path, long mode);
-void __stdcall StopSfallSound(DWORD id);
+	static void OnGameLoad();
+	static void OnAfterGameInit();
+	static void OnBeforeGameClose();
 
-long Sound_CalculateVolumeDB(long masterVolume, long passVolume);
+	static DWORD __stdcall PlaySfallSound(const char* path, long mode);
+	static void __stdcall StopSfallSound(DWORD id);
 
-void Sound_SoundLostFocus(long isActive);
+	static long CalculateVolumeDB(long masterVolume, long passVolume);
+
+	static void SoundLostFocus(long isActive);
+};
 
 }

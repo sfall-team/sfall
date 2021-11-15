@@ -253,7 +253,7 @@ static void __stdcall DisplayCantDoThat() {
 }
 
 // 1 skip handler, -1 don't skip
-int __fastcall PartyControl_SwitchHandHook(fo::GameObject* item) {
+int __fastcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
 	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = *fo::ptr::i_fid; //(*fo::ptr::obj_dude)->artFid;
@@ -393,11 +393,11 @@ static void PartyControlReset() {
 	realDude.obj_dude = nullptr;
 }
 
-bool PartyControl_IsNpcControlled() {
+bool PartyControl::IsNpcControlled() {
 	return isControllingNPC;
 }
 
-fo::GameObject* PartyControl_RealDudeObject() {
+fo::GameObject* PartyControl::RealDudeObject() {
 	return realDude.obj_dude != nullptr
 	       ? realDude.obj_dude
 	       : *fo::ptr::obj_dude;
@@ -444,7 +444,7 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 }
 
 static void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
+	npcAutoLevelEnabled = IniReader::GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
@@ -452,7 +452,7 @@ static void NpcAutoLevelPatch() {
 	}
 }
 
-void PartyControl_OnGameLoad() {
+void PartyControl::OnGameLoad() {
 	PartyControlReset();
 	if (!npcEngineLevelUp) {
 		npcEngineLevelUp = true;
@@ -460,14 +460,14 @@ void PartyControl_OnGameLoad() {
 	}
 }
 
-void PartyControl_Init() {
-	Mode = GetConfigInt("Misc", "ControlCombat", 0);
+void PartyControl::init() {
+	Mode = IniReader::GetConfigInt("Misc", "ControlCombat", 0);
 	if (Mode > 2) Mode = 0;
 	if (Mode > 0) {
 		dlogr("Initializing party control...", DL_INIT);
 		char pidbuf[512];
 		pidbuf[511] = 0;
-		if (GetConfigString("Misc", "ControlCombatPIDList", "", pidbuf, 511)) {
+		if (IniReader::GetConfigString("Misc", "ControlCombatPIDList", "", pidbuf, 511)) {
 			char* ptr = pidbuf;
 			char* comma;
 			while (true) {
@@ -504,15 +504,15 @@ void PartyControl_Init() {
 
 	NpcAutoLevelPatch();
 
-	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3) ? 1 : 0;
+	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3) ? 1 : 0;
 
 	// Display party member's current level & AC & addict flag
-	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
+	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
-		Translate_Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
-		Translate_Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
-		Translate_Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
 }

@@ -80,19 +80,19 @@ void devlog_f(...) {}
 void LoggingInit() {
 	Log.open("sfall-log.txt", std::ios_base::out | std::ios_base::trunc);
 
-	if (GetIntDefaultConfig("Debugging", "Init", 0)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Init", 0)) {
 		DebugTypes |= DL_INIT;
 	}
-	if (GetIntDefaultConfig("Debugging", "Hook", 0)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Hook", 0)) {
 		DebugTypes |= DL_HOOK;
 	}
-	if (GetIntDefaultConfig("Debugging", "Script", 0)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Script", 0)) {
 		DebugTypes |= DL_SCRIPT;
 	}
-	if (GetIntDefaultConfig("Debugging", "Criticals", 0)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Criticals", 0)) {
 		DebugTypes |= DL_CRITICALS;
 	}
-	if (GetIntDefaultConfig("Debugging", "Fixes", 0)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "Fixes", 0)) {
 		DebugTypes |= DL_FIX;
 	}
 }

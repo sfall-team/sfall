@@ -123,7 +123,7 @@ static void WorldMapFPS() {
 
 		DWORD tick; // current ticks
 		do {
-			tick = SpeedPatch_getTickCount();
+			tick = SpeedPatch::getTickCount();
 		} while (tick == prevTicks); // delay ~15 ms
 		prevTicks = tick;
 
@@ -153,7 +153,7 @@ static void __declspec(naked) wmWorldMap_hook_patch2() {
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		call ds:[getTickCountOffs]; // current ticks
+		call ds:[SpeedPatch::getTickCountOffs]; // current ticks
 		cmp  eax, worldMapTicks;
 		je   skipHook;
 		mov  worldMapTicks, eax;
@@ -280,7 +280,7 @@ jLoop:
 
 // Fallout 1 behavior: No radius for uncovered locations on the world map
 // for the mark_area_known script function when the mark_state argument of the function is set to 3
-long __declspec(naked) Worldmap_AreaMarkStateIsNoRadius() {
+long __declspec(naked) Worldmap::AreaMarkStateIsNoRadius() {
 	__asm {
 		xor  eax, eax;
 		cmp  esi, 3; // esi - mark_state value
@@ -321,20 +321,20 @@ end:
 }
 
 static void WorldLimitsPatches() {
-	DWORD data = GetConfigInt("Misc", "LocalMapXLimit", 0);
+	DWORD data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data) {
 		dlog("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x4B13B9, data);
 		dlogr(" Done", DL_INIT);
 	}
-	data = GetConfigInt("Misc", "LocalMapYLimit", 0);
+	data = IniReader::GetConfigInt("Misc", "LocalMapYLimit", 0);
 	if (data) {
 		dlog("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x4B13C7, data);
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
 			SafeWrite8(0x4BF3BB, CodeType::JumpShort);
@@ -344,7 +344,7 @@ static void WorldLimitsPatches() {
 }
 
 static void TimeLimitPatch() {
-	int limit = GetConfigInt("Misc", "TimeLimit", 13);
+	int limit = IniReader::GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2 || limit == -3) {
 		addYear = true;
 		MakeCall(0x4A33B8, TimeDateFix, 1); // game_time_date_
@@ -372,10 +372,10 @@ static void TimeLimitPatch() {
 
 static void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
-	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
+	if (IniReader::GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
 		if (fpsPatchOK) {
-			int delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
+			int delay = IniReader::GetConfigInt("Misc", "WorldMapDelay2", 66);
 			worldMapDelay = max(1, delay);
 			dlogr(" Done", DL_INIT);
 		} else {
@@ -396,9 +396,9 @@ static void WorldmapFpsPatch() {
 		availableGlobalScriptTypes |= 2;
 	}
 
-	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
-		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
+		WorldMapEncounterRate = IniReader::GetConfigInt("Misc", "WorldMapEncounterRate", 5);
 		SafeWrite32(0x4C232D, 0xB8); // mov eax, 0; (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
@@ -407,30 +407,30 @@ static void WorldmapFpsPatch() {
 }
 
 static void PathfinderFixInit() {
-	//if (GetConfigInt("Misc", "PathfinderFix", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "PathfinderFix", 0)) {
 		dlog("Applying Pathfinder patch.", DL_INIT);
 		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
 		HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
-		mapMultiMod = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
+		mapMultiMod = (double)IniReader::GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
 		dlogr(" Done", DL_INIT);
 	//}
 }
 
 static void StartingStatePatches() {
-	int date = GetConfigInt("Misc", "StartYear", -1);
+	int date = IniReader::GetConfigInt("Misc", "StartYear", -1);
 	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	int month = GetConfigInt("Misc", "StartMonth", -1);
+	int month = IniReader::GetConfigInt("Misc", "StartMonth", -1);
 	if (month >= 0) {
 		if (month > 11) month = 11;
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, month);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetConfigInt("Misc", "StartDay", -1);
+	date = IniReader::GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
 		if (month == 1 && date > 28) { // for February
 			date = 28; // set 29th day
@@ -442,7 +442,7 @@ static void StartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	long xPos = GetConfigInt("Misc", "StartXPos", -1);
+	long xPos = IniReader::GetConfigInt("Misc", "StartXPos", -1);
 	if (xPos != -1) {
 		if (xPos < 0) xPos = 0;
 		dlog("Applying starting x position patch.", DL_INIT);
@@ -451,7 +451,7 @@ static void StartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 		customPosition = true;
 	}
-	long yPos = GetConfigInt("Misc", "StartYPos", -1);
+	long yPos = IniReader::GetConfigInt("Misc", "StartYPos", -1);
 	if (yPos != -1) {
 		if (yPos < 0) yPos = 0;
 		dlog("Applying starting y position patch.", DL_INIT);
@@ -465,7 +465,7 @@ static void StartingStatePatches() {
 	// also initialize the value of the current area for METARULE_CURRENT_TOWN metarule function
 	HookCall(0x480DC0, main_load_new_hook);
 
-	xPos = GetConfigInt("Misc", "ViewXPos", -1);
+	xPos = IniReader::GetConfigInt("Misc", "ViewXPos", -1);
 	if (xPos != -1) {
 		if (xPos < 0) xPos = 0;
 		ViewportX = xPos;
@@ -473,7 +473,7 @@ static void StartingStatePatches() {
 		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
 		dlogr(" Done", DL_INIT);
 	}
-	yPos = GetConfigInt("Misc", "ViewYPos", -1);
+	yPos = IniReader::GetConfigInt("Misc", "ViewYPos", -1);
 	if (yPos != -1) {
 		if (yPos < 0) yPos = 0;
 		ViewportY = yPos;
@@ -492,19 +492,19 @@ static void PipBoyAutomapsPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void __stdcall SetMapMulti(float value) {
+void __stdcall Worldmap::SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 
-void Worldmap_SetAddedYears(DWORD years) {
+void Worldmap::SetAddedYears(DWORD years) {
 	addedYears = years;
 }
 
-DWORD Worldmap_GetAddedYears(bool isCheck) {
+DWORD Worldmap::GetAddedYears(bool isCheck) {
 	return (isCheck && !addYear) ? 0 : addedYears;
 }
 
-void Worldmap_SetCarInterfaceArt(DWORD artIndex) {
+void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
 	SafeWrite32(0x4C2D9B, artIndex);
 }
 
@@ -519,44 +519,44 @@ static const char* GetOverrideTerrainName(long x, long y) {
 }
 
 // x, y - position of the sub-tile on the world map
-void Worldmap_SetTerrainTypeName(long x, long y, const char* name) {
+void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
 	long subTileID = x + y * (*fo::ptr::wmNumHorizontalTiles * 7);
 	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
 }
 
 // TODO: someone might need to know the name of a terrain type?
-/*const char* Worldmap_GetTerrainTypeName(long x, long y) {
+/*const char* Worldmap::GetTerrainTypeName(long x, long y) {
 	const char* name = GetOverrideTerrainName(x, y);
 	return (name) ? name : fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
 }*/
 
 // Returns the name of the terrain type in the position of the player's marker on the world map
-const char* Worldmap_GetCurrentTerrainName() {
+const char* Worldmap::GetCurrentTerrainName() {
 	const char* name = GetOverrideTerrainName(*fo::ptr::world_xpos / 50, *fo::ptr::world_ypos / 50);
 	return (name) ? name : fo::util::GetMessageStr(fo::ptr::wmMsgFile, 1000 + fo::util::wmGetCurrentTerrainType());
 }
 
-bool Worldmap_AreaTitlesIsEmpty() {
+bool Worldmap::AreaTitlesIsEmpty() {
 	return wmAreaHotSpotTitle.empty();
 }
 
-void Worldmap_SetCustomAreaTitle(long areaID, const char* msg) {
+void Worldmap::SetCustomAreaTitle(long areaID, const char* msg) {
 	wmAreaHotSpotTitle[areaID] = msg;
 }
 
-const char* Worldmap_GetCustomAreaTitle(long areaID) {
-	if (Worldmap_AreaTitlesIsEmpty()) return nullptr;
+const char* Worldmap::GetCustomAreaTitle(long areaID) {
+	if (AreaTitlesIsEmpty()) return nullptr;
 	const std::tr1::unordered_map<long, std::string>::iterator &it = wmAreaHotSpotTitle.find(areaID);
 	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }
 
-void Worldmap_OnGameLoad() {
-	Worldmap_SetCarInterfaceArt(433); // set index
+void Worldmap::OnGameLoad() {
+	SetCarInterfaceArt(433); // set index
 	wmTerrainTypeNames.clear();
 	wmAreaHotSpotTitle.clear();
 }
 
-void Worldmap_Init() {
+void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();

@@ -194,7 +194,7 @@ static void __declspec(naked) ToHitHook() {
 	}
 	argCount = 8;
 
-	args[7] = determineHitChance;
+	args[7] = Combat::determineHitChance;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
@@ -1158,7 +1158,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	args[2] = (DWORD)itemReplaced;
 
 	RunHookScript(HOOK_INVENTORYMOVE);
-	int result = PartyControl_SwitchHandHook(item);
+	int result = PartyControl::SwitchHandHook(item);
 	if (result != -1) {
 		cRetTmp = 0;
 		SetHSReturn(result);

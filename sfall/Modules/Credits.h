@@ -21,6 +21,10 @@
 namespace sfall
 {
 
-void Credits_Init();
+class Credits {
+public:
+	static const char* name() { return "Credits"; }
+	static void init();
+};
 
 }

@@ -21,12 +21,16 @@
 namespace sfall
 {
 
-extern char gameMapLoadingName[16];
-extern long gameInterfaceWID;
+class LoadGameHook {
+public:
+	static const char* name() { return "LoadGameHook"; }
+	static void init();
 
-void LoadGameHook_Init();
+	static bool IsMapLoading();
 
-bool IsMapLoading();
+	static char mapLoadingName[16];
+	static long interfaceWID;
+};
 
 // True if game was started, false when on the main menu
 bool IsGameLoaded();

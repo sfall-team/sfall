@@ -53,15 +53,15 @@ static void __declspec(naked) display_print_hack() {
 	}
 }
 
-void Console_OnGameLoad() {
+void Console::OnGameLoad() {
 	if (consoleFile.is_open()) {
 		printCount = 0;
 		consoleFile.flush();
 	}
 }
 
-void Console_Init() {
-	std::string path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
+void Console::init() {
+	std::string path = IniReader::GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {
@@ -70,7 +70,7 @@ void Console_Init() {
 	}
 }
 
-void Console_Exit() {
+void Console::exit() {
 	if (consoleFile.is_open()) consoleFile.close();
 }
 

@@ -98,184 +98,188 @@ DWORD HRPAddress(DWORD addr) {
 
 char falloutConfigName[65];
 
+static void ModuleInitLog(const char* name) {
+	dlog_f("Initializing module %s...\n", DL_INIT, name);
+}
+
 static void InitModules() {
 	dlogr("In InitModules", DL_MAIN);
 
 	// fixes should be applied at the beginning
-	dlogr("Running BugFixes_Init().", DL_INIT);
-	BugFixes_Init();
+	ModuleInitLog(BugFixes::name());
+	BugFixes::init();
 
-	dlogr("Running SpeedPatch_Init().", DL_INIT);
-	SpeedPatch_Init();
+	ModuleInitLog(SpeedPatch::name());
+	SpeedPatch::init();
 
-	dlogr("Running Graphics_Init().", DL_INIT);
-	Graphics_Init();
+	ModuleInitLog(Graphics::name());
+	Graphics::init();
 
-	dlogr("Running Input_Init().", DL_INIT);
-	Input_Init();
+	ModuleInitLog(Input::name());
+	Input::init();
 
-	dlogr("Running FileSystem_Init().", DL_INIT);
-	FileSystem_Init();
+	ModuleInitLog(FileSystem::name());
+	FileSystem::init();
 
-	dlogr("Running LoadOrder_Init().", DL_INIT);
-	LoadOrder_Init();
+	ModuleInitLog(LoadOrder::name());
+	LoadOrder::init();
 
-	dlogr("Running LoadGameHook_Init().", DL_INIT);
-	LoadGameHook_Init();
+	ModuleInitLog(LoadGameHook::name());
+	LoadGameHook::init();
 
-	dlogr("Running MainLoopHook_Init().", DL_INIT);
-	MainLoopHook_Init();
+	ModuleInitLog(MainLoopHook::name());
+	MainLoopHook::init();
 
-	dlogr("Running EngineTweaks_Init().", DL_INIT);
-	EngineTweaks_Init();
+	ModuleInitLog(EngineTweaks::name());
+	EngineTweaks::init();
 
-	dlogr("Running Books_Init().", DL_INIT);
-	Books_Init();
+	ModuleInitLog(Books::name());
+	Books::init();
 
-	dlogr("Running Criticals_Init().", DL_INIT);
-	Criticals_Init();
+	ModuleInitLog(Criticals::name());
+	Criticals::init();
 
-	dlogr("Running Elevators_Init().", DL_INIT);
-	Elevators_Init();
+	ModuleInitLog(Elevators::name());
+	Elevators::init();
 
-	dlogr("Running Unarmed_Init().", DL_INIT);
-	Unarmed_Init();
+	ModuleInitLog(Unarmed::name());
+	Unarmed::init();
 
-	dlogr("Running Animations_Init().", DL_INIT);
-	Animations_Init();
+	ModuleInitLog(Animations::name());
+	Animations::init();
 
-	dlogr("Running BarBoxes_Init().", DL_INIT);
-	BarBoxes_Init();
+	ModuleInitLog(BarBoxes::name());
+	BarBoxes::init();
 
-	dlogr("Running Explosions_Init().", DL_INIT);
-	Explosions_Init();
+	ModuleInitLog(Explosions::name());
+	Explosions::init();
 
-	dlogr("Running Message_Init().", DL_INIT);
-	Message_Init();
+	ModuleInitLog(Message::name());
+	Message::init();
 
-	dlogr("Running Interface_Init().", DL_INIT);
-	Interface_Init();
+	ModuleInitLog(Interface::name());
+	Interface::init();
 
-	dlogr("Running Worldmap_Init().", DL_INIT);
-	Worldmap_Init();
+	ModuleInitLog(Worldmap::name());
+	Worldmap::init();
 
-	dlogr("Running Tiles_Init().", DL_INIT);
-	Tiles_Init();
+	ModuleInitLog(Tiles::name());
+	Tiles::init();
 
-	dlogr("Running Movies_Init().", DL_INIT);
-	Movies_Init();
+	ModuleInitLog(Movies::name());
+	Movies::init();
 
-	dlogr("Running Sound_Init().", DL_INIT);
-	Sound_Init();
+	ModuleInitLog(Sound::name());
+	Sound::init();
 
-	dlogr("Running MiscPatches_Init().", DL_INIT);
-	MiscPatches_Init();
+	ModuleInitLog(MiscPatches::name());
+	MiscPatches::init();
 
-	dlogr("Running AI_Init().", DL_INIT);
-	AI_Init();
+	ModuleInitLog(AI::name());
+	AI::init();
 
-	dlogr("Running DamageMod_Init().", DL_INIT);
-	DamageMod_Init();
+	ModuleInitLog(DamageMod::name());
+	DamageMod::init();
 
-	dlogr("Running BurstMods_Init().", DL_INIT);
-	BurstMods_Init();
+	ModuleInitLog(BurstMods::name());
+	BurstMods::init();
 
-	dlogr("Running Inventory_Init().", DL_INIT);
-	Inventory_Init();
+	ModuleInitLog(Inventory::name());
+	Inventory::init();
 
-	dlogr("Running Objects_Init().", DL_INIT);
-	Objects_Init();
+	ModuleInitLog(Objects::name());
+	Objects::init();
 
-	dlogr("Running Stats_Init().", DL_INIT);
-	Stats_Init();
+	ModuleInitLog(Stats::name());
+	Stats::init();
 
-	dlogr("Running Perks_Init().", DL_INIT);
-	Perks_Init();
+	ModuleInitLog(Perks::name());
+	Perks::init();
 
-	dlogr("Running Skills_Init().", DL_INIT);
-	Skills_Init();
+	ModuleInitLog(Skills::name());
+	Skills::init();
 
-	dlogr("Running PartyControl_Init().", DL_INIT);
-	PartyControl_Init();
+	ModuleInitLog(PartyControl::name());
+	PartyControl::init();
 
-	dlogr("Running Combat_Init().", DL_INIT);
-	Combat_Init();
+	ModuleInitLog(Combat::name());
+	Combat::init();
 
-	dlogr("Running PlayerModel_Init().", DL_INIT);
-	PlayerModel_Init();
+	ModuleInitLog(PlayerModel::name());
+	PlayerModel::init();
 
-	dlogr("Running Karma_Init().", DL_INIT);
-	Karma_Init();
+	ModuleInitLog(Karma::name());
+	Karma::init();
 
-	dlogr("Running Premade_Init().", DL_INIT);
-	Premade_Init();
+	ModuleInitLog(Premade::name());
+	Premade::init();
 
-	dlogr("Running Reputations_Init().", DL_INIT);
-	Reputations_Init();
+	ModuleInitLog(Reputations::name());
+	Reputations::init();
 
-	dlogr("Running KillCounter_Init().", DL_INIT);
-	KillCounter_Init();
+	ModuleInitLog(KillCounter::name());
+	KillCounter::init();
 
-	dlogr("Running MainMenu_Init().", DL_INIT);
-	MainMenu_Init();
+	ModuleInitLog(MainMenu::name());
+	MainMenu::init();
 
-	dlogr("Running HeroAppearance_Init().", DL_INIT);
-	HeroAppearance_Init();
+	ModuleInitLog(HeroAppearance::name());
+	HeroAppearance::init();
 
-	dlogr("Running TalkingHeads_Init().", DL_INIT);
-	TalkingHeads_Init();
+	ModuleInitLog(TalkingHeads::name());
+	TalkingHeads::init();
 
-	dlogr("Running ScriptShaders_Init().", DL_INIT);
-	ScriptShaders_Init();
+	ModuleInitLog(ScriptShaders::name());
+	ScriptShaders::init();
 
-	dlogr("Running ExtraSaveSlots_Init().", DL_INIT);
-	ExtraSaveSlots_Init();
+	ModuleInitLog(ExtraSaveSlots::name());
+	ExtraSaveSlots::init();
 
-	dlogr("Running QuestList_Init().", DL_INIT);
-	QuestList_Init();
+	ModuleInitLog(QuestList::name());
+	QuestList::init();
 
-	dlogr("Running Credits_Init().", DL_INIT);
-	Credits_Init();
+	ModuleInitLog(Credits::name());
+	Credits::init();
 
-	dlogr("Running Console_Init().", DL_INIT);
-	Console_Init();
+	ModuleInitLog(Console::name());
+	Console::init();
 
 	// most of modules should be initialized before running the script handlers
-	dlogr("Running MetaruleExtender_Init().", DL_INIT);
-	MetaruleExtender_Init();
+	ModuleInitLog(MetaruleExtender::name());
+	MetaruleExtender::init();
 
-	dlogr("Running HookScripts_Init().", DL_INIT);
+	ModuleInitLog("HookScripts");
 	HookScripts_Init();
 
-	dlogr("Running ScriptExtender_Init().", DL_INIT);
+	ModuleInitLog("ScriptExtender");
 	ScriptExtender_Init();
 
-	dlogr("Running DebugEditor_Init().", DL_INIT);
-	DebugEditor_Init();
+	ModuleInitLog(DebugEditor::name());
+	DebugEditor::init();
 
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
 static void __stdcall OnExit() {
-	SpeedPatch_Exit();
-	Graphics_Exit();
-	//EngineTweaks_Exit();
-	Books_Exit();
-	//Unarmed_Exit();
-	//Animations_Exit();
-	BarBoxes_Exit();
-	//Message_Exit();
-	Interface_Exit();
-	Tiles_Exit();
-	//Movies_Exit();
-	Sound_Exit();
-	MiscPatches_Exit();
-	Skills_Exit();
-	Reputations_Exit();
-	HeroAppearance_Exit();
-	TalkingHeads_Exit();
-	ExtraSaveSlots_Exit();
-	Console_Exit();
+	SpeedPatch::exit();
+	Graphics::exit();
+	//EngineTweaks::exit();
+	Books::exit();
+	//Unarmed::exit();
+	//Animations:exit();
+	BarBoxes::exit();
+	//Message::exit();
+	Interface::exit();
+	Tiles::exit();
+	//Movies::exit();
+	Sound::exit();
+	MiscPatches::exit();
+	Skills::exit();
+	Reputations::exit();
+	HeroAppearance::exit();
+	TalkingHeads::exit();
+	ExtraSaveSlots::exit();
+	Console::exit();
 }
 
 static void __declspec(naked) WinMain_hook() {
@@ -338,8 +342,8 @@ static void SfallInit() {
 	HookCall(0x4DE7D2, WinMain_hook);
 
 	// enabling debugging features
-	isDebug = (GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
-	if (!isDebug || !GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
+	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
+	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -357,7 +361,7 @@ static void SfallInit() {
 	// ini file override
 	bool cmdlineexists = false;
 	char* cmdline = GetCommandLineA();
-	if (GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
+	if (IniReader::GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
 		while (cmdline[0] == ' ') cmdline++;
 		bool InQuote = false;
 		int count = -1;
@@ -383,7 +387,7 @@ static void SfallInit() {
 		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-			SetConfigFile(cmdline);
+			IniReader::SetConfigFile(cmdline);
 		} else {
 			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
 			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
@@ -391,7 +395,7 @@ static void SfallInit() {
 		}
 	} else {
 defaultIni:
-		SetDefaultConfigFile();
+		IniReader::SetDefaultConfigFile();
 	}
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
@@ -406,9 +410,9 @@ defaultIni:
 	}
 	//std::srand(GetTickCount());
 
-	IniReader_Init();
+	IniReader::init();
 
-	if (GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
+	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
 		dlog("Applying config file patch.", DL_INIT);
 		const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
 		SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, configFileAddr);
@@ -418,7 +422,7 @@ defaultIni:
 		std::strcpy(falloutConfigName, (const char*)FO_VAR_fallout_config);
 	}
 
-	Translate_Init(falloutConfigName);
+	Translate::init(falloutConfigName);
 
 	InitReplacementHacks();
 	InitModules();

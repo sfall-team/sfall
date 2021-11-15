@@ -43,7 +43,7 @@ static void __declspec(naked) op_set_inven_ap_cost() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, eax;
-		call SetInvenApCost;
+		call Inventory::SetInvenApCost;
 end:
 		mov  ecx, esi;
 		retn;
@@ -51,7 +51,7 @@ end:
 }
 
 static void mf_get_inven_ap_cost() {
-	opHandler.setReturn(GetInvenApCost());
+	opHandler.setReturn(Inventory::GetInvenApCost());
 }
 
 static void __stdcall op_obj_is_carrying_obj2() {

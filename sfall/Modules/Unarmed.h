@@ -21,13 +21,17 @@
 namespace sfall
 {
 
-void Unarmed_Init();
-//void Unarmed_Exit();
+class Unarmed {
+public:
+	static const char* name() { return "Unarmed"; }
+	static void init();
+	//static void exit();
 
-long Unarmed_GetHitAPCost(fo::AttackType hit);
-long Unarmed_GetDamage(fo::AttackType hit, long &minOut, long &maxOut);
-const char* Unarmed_GetName(fo::AttackType hit);
+	static long GetHitAPCost(fo::AttackType hit);
+	static long GetDamage(fo::AttackType hit, long &minOut, long &maxOut);
+	static const char* GetName(fo::AttackType hit);
 
-fo::AttackType Unarmed_GetStoredHitMode(fo::HandSlot slot);
+	static fo::AttackType GetStoredHitMode(fo::HandSlot slot);
+};
 
 }

@@ -5,17 +5,22 @@
 namespace sfall
 {
 
-void ScriptShaders_Init();
-void ResetShaders();
+class ScriptShaders {
+public:
+	static const char* name() { return "ScriptShaders"; }
+	static void init();
 
-size_t ScriptShaders_Count();
+	static void OnGameLoad();
 
-void ScriptShaders_Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2, IDirect3DTexture9* sTex2);
-void ScriptShaders_OnResetDevice();
-void ScriptShaders_OnLostDevice();
-void ScriptShaders_Release();
+	static size_t Count();
 
-void ScriptShaders_LoadGlobalShader();
+	static void Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2, IDirect3DTexture9* sTex2);
+	static void OnResetDevice();
+	static void OnLostDevice();
+	static void Release();
+
+	static void LoadGlobalShader();
+};
 
 int __stdcall LoadShader(const char*);
 void __stdcall ActivateShader(DWORD);

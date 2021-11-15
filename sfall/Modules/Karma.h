@@ -21,6 +21,10 @@
 namespace sfall
 {
 
-void Karma_Init();
+class Karma {
+public:
+	static const char* name() { return "Karma"; }
+	static void init();
+};
 
 }

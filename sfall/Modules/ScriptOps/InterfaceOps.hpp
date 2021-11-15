@@ -262,7 +262,7 @@ end:
 }
 
 static void mf_add_iface_tag() {
-	int result = BarBoxes_AddExtraBox();
+	int result = BarBoxes::AddExtraBox();
 	if (result == -1) opHandler.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
 	opHandler.setReturn(result);
 }
@@ -275,7 +275,7 @@ static void __stdcall op_show_iface_tag2() {
 			__asm mov  eax, tag;
 			__asm call fo::funcoffs::pc_flag_on_;
 		} else {
-			BarBoxes_AddBox(tag);
+			BarBoxes::AddBox(tag);
 		}
 	} else {
 		OpcodeInvalidArgs("show_iface_tag");
@@ -294,7 +294,7 @@ static void __stdcall op_hide_iface_tag2() {
 			__asm mov  eax, tag;
 			__asm call fo::funcoffs::pc_flag_off_;
 		} else {
-			BarBoxes_RemoveBox(tag);
+			BarBoxes::RemoveBox(tag);
 		}
 	} else {
 		OpcodeInvalidArgs("hide_iface_tag");
@@ -328,7 +328,7 @@ static void __stdcall op_is_iface_tag_active2() {
 				result = ((proto->critter.critterFlags & flagBit) != 0);
 			}
 		} else {
-			result = BarBoxes_GetBox(tag);
+			result = BarBoxes::GetBox(tag);
 		}
 		opHandler.setReturn(result);
 	} else {
@@ -350,7 +350,7 @@ static void mf_intface_redraw() {
 		if (winType == -1) {
 			fo::util::RefreshGNW(true); 
 		} else {
-			fo::Window* win = Interface_GetWindow(winType);
+			fo::Window* win = Interface::GetWindow(winType);
 			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
 		}
 	}
@@ -406,10 +406,10 @@ static void mf_display_stats() {
 
 static void mf_set_iface_tag_text() {
 	int boxTag = opHandler.arg(0).rawValue();
-	int maxBox = BarBoxes_MaxBox();
+	int maxBox = BarBoxes::MaxBox();
 
 	if (boxTag > 4 && boxTag <= maxBox) {
-		BarBoxes_SetText(boxTag, opHandler.arg(1).strValue(), opHandler.arg(2).rawValue());
+		BarBoxes::SetText(boxTag, opHandler.arg(1).strValue(), opHandler.arg(2).rawValue());
 	} else {
 		opHandler.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
 		opHandler.setReturn(-1);
@@ -719,7 +719,7 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, fo::Window* i
 	int width  = (w >= 0) ? w : framePtr->width;
 	int height = (h >= 0) ? h : framePtr->height;
 
-	BYTE* surface = (ifaceWin->randY) ? WinRender_GetOverlaySurface(ifaceWin) : ifaceWin->surface;
+	BYTE* surface = (ifaceWin->randY) ? WindowRender::GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
 	fo::func::trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
 	                       surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
@@ -735,7 +735,7 @@ static long __stdcall InterfaceDrawImage(OpcodeHandler& opHandler, fo::Window* i
 
 static void mf_interface_art_draw() {
 	long result = -1;
-	fo::Window* win = Interface_GetWindow(opHandler.arg(0).rawValue() & 0xFF);
+	fo::Window* win = Interface::GetWindow(opHandler.arg(0).rawValue() & 0xFF);
 	if (win && (int)win != -1) {
 		result = InterfaceDrawImage(opHandler, win, "interface_art_draw");
 	} else {
@@ -745,7 +745,7 @@ static void mf_interface_art_draw() {
 }
 
 static void mf_get_window_attribute() {
-	fo::Window* win = Interface_GetWindow(opHandler.arg(0).rawValue());
+	fo::Window* win = Interface::GetWindow(opHandler.arg(0).rawValue());
 	if (win == nullptr) {
 		if (opHandler.arg(1).rawValue() != 0) {
 			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
@@ -787,7 +787,7 @@ static void mf_get_window_attribute() {
 }
 
 static void mf_interface_print() { // same as vanilla PrintRect
-	fo::Window* win = Interface_GetWindow(opHandler.arg(1).rawValue());
+	fo::Window* win = Interface::GetWindow(opHandler.arg(1).rawValue());
 	if (win == nullptr || (int)win == -1) {
 		opHandler.printOpcodeError("interface_print() - the game interface window is not created or invalid window type number.");
 		opHandler.setReturn(-1);
@@ -820,7 +820,7 @@ static void mf_interface_print() { // same as vanilla PrintRect
 	BYTE* surface;
 	if (win->randY) { // if a surface was created, the engine will draw on it
 		surface = win->surface;
-		win->surface = WinRender_GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
+		win->surface = WindowRender::GetOverlaySurface(win); // replace the surface for the windowWrapLineWithSpacing_ function
 	}
 
 	if (color & 0x10000) { // shadow (textshadow)
@@ -859,15 +859,15 @@ static void mf_win_fill_color() {
 static void mf_interface_overlay() {
 	long winType = opHandler.arg(0).rawValue();
 
-	fo::Window* win = Interface_GetWindow(winType);
+	fo::Window* win = Interface::GetWindow(winType);
 	if (!win || (int)win == -1) return;
 
 	switch (opHandler.arg(1).rawValue()) {
 	case 0:
-		WinRender_DestroyOverlaySurface(win);
+		WindowRender::DestroyOverlaySurface(win);
 		break;
 	case 1:
-		WinRender_CreateOverlaySurface(win, winType);
+		WindowRender::CreateOverlaySurface(win, winType);
 		break;
 	case 2: // clear
 		if (opHandler.numArgs() > 2) {
@@ -880,9 +880,9 @@ static void mf_interface_overlay() {
 			if (x < 0 || y < 0) return;
 
 			Rectangle rect = { x, y, w, h };
-			WinRender_ClearOverlay(win, rect);
+			WindowRender::ClearOverlay(win, rect);
 		} else {
-			WinRender_ClearOverlay(win);
+			WindowRender::ClearOverlay(win);
 		}
 		break;
 	}

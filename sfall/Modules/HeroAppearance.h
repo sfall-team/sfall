@@ -21,10 +21,14 @@
 namespace sfall
 {
 
-extern bool appModEnabled;
+class HeroAppearance {
+public:
+	static const char* name() { return "HeroAppearance"; }
+	static void init();
+	static void exit();
 
-void HeroAppearance_Init();
-void HeroAppearance_Exit();
+	static bool appModEnabled;
+};
 
 void __stdcall AdjustHeroArmorArt(DWORD fid);
 

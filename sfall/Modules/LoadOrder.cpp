@@ -179,7 +179,7 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 /*
 static void __fastcall game_init_databases_hook1() {
 	char masterPatch[MAX_PATH];
-	IniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
+	IniReader::GetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
 
 	fo::PathNode* node = *fo::ptr::paths;
 	while (node->next) {
@@ -192,7 +192,7 @@ static void __fastcall game_init_databases_hook1() {
 }
 */
 static void MultiPatchesPatch() {
-	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4);          // Disable check
@@ -335,7 +335,7 @@ end:
 #define _F_SAV            (const char*)0x50A480
 #define _F_PROTO_CRITTERS (const char*)0x50A490
 
-void RemoveSavFiles() {
+static void RemoveSavFiles() {
 	fo::func::MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
 
@@ -359,7 +359,7 @@ skip:
 	}
 }
 
-void __declspec(naked) LoadOrder_art_get_name_hack() {
+void __declspec(naked) LoadOrder::art_get_name_hack() {
 	static const DWORD art_get_name_Alias = 0x41944A;
 	__asm {
 		mov  eax, FO_VAR_art_name;
@@ -422,16 +422,20 @@ static void SfallResourceFile() {
 	}
 }
 
-void LoadOrder_OnGameLoad() {
+void LoadOrder::OnAfterGameInit() {
+	RemoveSavFiles();
+}
+
+void LoadOrder::OnGameLoad() {
 	savPrototypes.clear();
 	RemoveSavFiles();
 }
 
-void LoadOrder_Init() {
+void LoadOrder::init() {
 	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
 	MultiPatchesPatch();
 
-	//if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
@@ -442,7 +446,7 @@ void LoadOrder_Init() {
 	//	HookCall(0x44436D, game_init_databases_hook1);
 	//}
 
-	femaleMsgs = GetConfigInt("Misc", "FemaleDialogMsgs", 0);
+	femaleMsgs = IniReader::GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
 		dlog("Applying alternative female dialog files patch.", DL_INIT);
 		MakeJump(0x4A6BCD, scr_get_dialog_msg_file_hack1);
@@ -457,8 +461,8 @@ void LoadOrder_Init() {
 	// first check the existence of the art file of the current critter and then replace the art alias if file not found
 	HookCall(0x419440, art_get_name_hook);
 	SafeWrite16(0x419521, 0x003B); // jmp 0x419560
-	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0) <= 0) { // Hero Appearance mod uses an alternative code
-		MakeCall(0x419560, LoadOrder_art_get_name_hack);
+	if (IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0) <= 0) { // Hero Appearance mod uses an alternative code
+		MakeCall(0x419560, art_get_name_hack);
 	}
 
 	dlog("Applying party member protos save/load patch.", DL_INIT);

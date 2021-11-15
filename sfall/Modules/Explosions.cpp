@@ -306,15 +306,15 @@ static void ResetExplosionDamage() {
 	explosionsDamageReset = false;
 }
 
-void Explosions_OnGameLoad() {
+void Explosions::OnGameLoad() {
 	ResetExplosionRadius();
 	ResetExplosionDamage();
 }
 
-void Explosions_Init() {
+void Explosions::init() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
-	lightingEnabled = GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
+	lightingEnabled = IniReader::GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
 	if (lightingEnabled) {
 		dlog("Applying Explosion changes.", DL_INIT);
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);

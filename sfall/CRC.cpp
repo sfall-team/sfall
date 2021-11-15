@@ -90,7 +90,7 @@ bool CRC(const char* filepath) {
 
 	DWORD size = GetFileSize(h, 0);
 
-	if (size != ExpectedSize && GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0) == 0) {
+	if (size != ExpectedSize && IniReader::GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0) == 0) {
 		CloseHandle(h);
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
@@ -113,7 +113,7 @@ bool CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	std::vector<std::string> extraCrcList = GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
+	std::vector<std::string> extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
 	if (!extraCrcList.empty()) {
 		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) -> bool {
 			DWORD testedCrc = strtoul(testCrcStr.c_str(), 0, 16);

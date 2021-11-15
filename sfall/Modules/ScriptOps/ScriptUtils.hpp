@@ -484,12 +484,12 @@ static void __stdcall op_message_str_game2() {
 		if (fileId >= 0) {
 			int msgId = msgIdArg.rawValue();
 			if (fileId < 20) { // main msg files
-				msg = fo::util::GetMessageStr(gameMsgFiles[fileId], msgId);
+				msg = fo::util::GetMessageStr(Message::gameMsgFiles[fileId], msgId);
 			} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 				msg = fo::util::GetMessageStr(&fo::ptr::proto_msg_files[fileId - 0x1000], msgId);
 			} else if (fileId >= 0x2000) { // Extra game message files.
-				ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
-				if (it != gExtraGameMsgLists.end()) {
+				ExtraGameMessageListsMap::iterator it = Message::gExtraGameMsgLists.find(fileId);
+				if (it != Message::gExtraGameMsgLists.end()) {
 					msg = fo::util::GetMsg(it->second, msgId, 2);
 				}
 			}
@@ -507,7 +507,7 @@ static void __declspec(naked) op_message_str_game() {
 }
 
 static void mf_add_extra_msg_file() {
-	long result = Message_AddExtraMsgFile(opHandler.arg(0).strValue(), (opHandler.numArgs() == 2) ? opHandler.arg(1).rawValue() : 0);
+	long result = Message::AddExtraMsgFile(opHandler.arg(0).strValue(), (opHandler.numArgs() == 2) ? opHandler.arg(1).rawValue() : 0);
 	switch (result) {
 	case -1 :
 		opHandler.printOpcodeError("add_extra_msg_file() - cannot add message file with the specified number.");

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2013  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -21,17 +21,22 @@
 namespace sfall
 {
 
+class PartyControl {
+public:
+	static const char* name() { return "PartyControl"; }
+	static void init();
+
+	static void OnGameLoad();
+
+	static int __fastcall SwitchHandHook(fo::GameObject* item);
+
+	static bool IsNpcControlled();
+
+	// Returns pointer to "real" dude, which is different from "dude_obj" when controlling another critter
+	static fo::GameObject* RealDudeObject();
+};
+
 extern bool npcAutoLevelEnabled;
 extern bool npcEngineLevelUp;
-
-void PartyControl_Init();
-void PartyControl_OnGameLoad();
-
-int __fastcall PartyControl_SwitchHandHook(fo::GameObject* item);
-
-bool PartyControl_IsNpcControlled();
-
-// Returns pointer to "real" dude, which is different from "dude_obj" when controlling another critter
-fo::GameObject* PartyControl_RealDudeObject();
 
 }

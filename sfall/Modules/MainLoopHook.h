@@ -3,8 +3,12 @@
 namespace sfall
 {
 
-extern bool displayWinUpdateState;
+class MainLoopHook {
+public:
+	static const char* name() { return "MainLoopHook"; }
+	static void init();
 
-void MainLoopHook_Init();
+	static bool displayWinUpdateState;
+};
 
 }

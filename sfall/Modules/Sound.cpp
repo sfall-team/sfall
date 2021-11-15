@@ -91,7 +91,7 @@ static void FreeSound(sDSSound* sound) {
 	delete sound;
 }
 
-void WipeSounds() {
+static void WipeSounds() {
 	std::vector<sDSSound*>::const_iterator it;
 	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) FreeSound(*it);
 	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) FreeSound(*it);
@@ -157,7 +157,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 
 static void CreateSndWnd() {
 	dlog("Creating sfall sound callback window.", DL_INIT);
-	if (GraphicsMode == 0) CoInitialize(0);
+	if (Graphics::mode == 0) CoInitialize(0);
 
 	WNDCLASSEX wcx;
 	std::memset(&wcx, 0, sizeof(wcx));
@@ -220,7 +220,7 @@ void __stdcall ResumeAllSfallSound() {
 	}
 }
 
-long Sound_CalculateVolumeDB(long masterVolume, long passVolume) {
+long Sound::CalculateVolumeDB(long masterVolume, long passVolume) {
 	if (masterVolume <= 0 || passVolume <= 0) return -9999; // mute
 
 	const int volOffset = -100;  // adjust the maximum volume
@@ -240,8 +240,8 @@ long Sound_CalculateVolumeDB(long masterVolume, long passVolume) {
 static void __cdecl SetSoundVolume(sDSSound* sound, SoundType type, long passVolume) {
 	long volume, sfxVolume, masterVolume = *fo::ptr::master_volume;
 
-	volume = Sound_CalculateVolumeDB(masterVolume, passVolume);
-	if (type == SoundType::game_master) sfxVolume = Sound_CalculateVolumeDB(masterVolume, *fo::ptr::sndfx_volume);
+	volume = Sound::CalculateVolumeDB(masterVolume, passVolume);
+	if (type == SoundType::game_master) sfxVolume = Sound::CalculateVolumeDB(masterVolume, *fo::ptr::sndfx_volume);
 
 	if (sound) {
 		sound->pAudio->put_Volume(volume);
@@ -321,7 +321,7 @@ static sDSSound* PlayingSound(const wchar_t* pathFile, SoundMode mode, long adju
 	case SoundMode::music_play:
 		sound->id |= SoundFlags::restore; // restore background game music on stop
 		if (backgroundMusic)
-			StopSfallSound(backgroundMusic->id);
+			Sound::StopSfallSound(backgroundMusic->id);
 		else {
 			__asm call fo::funcoffs::gsound_background_stop_;
 		}
@@ -361,7 +361,7 @@ enum PlayType : signed char {
 static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFile) {
 	if (playType == PlayType::music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
-		StopSfallSound(backgroundMusic->id);
+		Sound::StopSfallSound(backgroundMusic->id);
 		backgroundMusic = nullptr;
 	}
 	if (!hasFile) return false;
@@ -440,7 +440,7 @@ static void __fastcall MakeMusicPath(const char* file) {
 	SoundFileLoad(PlayType::music, pathBuf);
 }
 
-DWORD __stdcall PlaySfallSound(const char* path, long mode) {
+DWORD __stdcall Sound::PlaySfallSound(const char* path, long mode) {
 	wchar_t buf[MAX_PATH];
 	size_t len = 0;
 
@@ -460,7 +460,7 @@ DWORD __stdcall PlaySfallSound(const char* path, long mode) {
 	return (mode && sound) ? sound->id : 0;
 }
 
-void __stdcall StopSfallSound(DWORD id) {
+void __stdcall Sound::StopSfallSound(DWORD id) {
 	if (!(id & 0xFFFFFF)) return;
 	for (size_t i = 0; i < loopingSounds.size(); i++) {
 		if (loopingSounds[i]->id == id) {
@@ -743,7 +743,7 @@ static void __declspec(naked) gmovie_play_hook_stop() {
 		push ecx;
 		push edx;
 		push eax;
-		call StopSfallSound;
+		call Sound::StopSfallSound;
 		xor  eax, eax;
 		mov  backgroundMusic, eax;
 		pop  edx;
@@ -839,7 +839,7 @@ static void __declspec(naked) gsound_set_sfx_volume_hack() {
 	}
 }
 
-void Sound_SoundLostFocus(long isActive) {
+void Sound::SoundLostFocus(long isActive) {
 	if (!loopingSounds.empty() || !playingSounds.empty()) {
 		if (isActive) {
 			ResumeAllSfallSound();
@@ -981,15 +981,22 @@ static const int SampleRate = 44100; // 44.1kHz
 
 static bool fadeBgMusic = false;
 
-void Sound_OnAfterGameInit() {
+void Sound::OnAfterGameInit() {
 	*fo::ptr::sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
 	if (fadeBgMusic) fo::var::setInt(FO_VAR_gsound_background_fade) = 1;
 }
 
-void Sound_Init() {
+void Sound::OnGameLoad() {
+	WipeSounds();
+}
+
+void Sound::OnBeforeGameClose() {
+	WipeSounds();
+}
+
+void Sound::init() {
 	// Set the 44.1kHz sample rate for the primary sound buffer
 	SafeWrite32(0x44FDBC, SampleRate);
-	// Sound_OnAfterGameInit will be run after game initialization
 
 	// Enable support for panning sfx sounds and reduce the sound volume for an object located on a different elevation of the map
 	SafeWrite8(0x45237E, (*(BYTE*)0x45237E) | 4); // set mode for DSBCAPS_CTRLPAN
@@ -1004,7 +1011,7 @@ void Sound_Init() {
 
 	void* soundLoad_func = soundLoad_hack_B;
 
-	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
+	int allowDShowSound = IniReader::GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
 		soundLoad_func = soundLoad_hack_A; // main hook
 
@@ -1042,16 +1049,16 @@ void Sound_Init() {
 	};
 	HookCalls(audioOpen_hook, audioOpenAddr);
 
-	int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0);
+	int sBuff = IniReader::GetConfigInt("Sound", "NumSoundBuffers", 0);
 	if (sBuff > 4) {
 		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 	}
 
-	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
+	if (IniReader::GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
 		HookCall(0x42B849, ai_print_msg_hook);
 
-		if (isDebug && GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
+		if (isDebug && IniReader::GetIntDefaultConfig("Debugging", "Test_ForceFloats", 0)) {
 			SafeWrite8(0x42B6F5, CodeType::JumpShort); // bypass chance
 		}
 	}
@@ -1059,12 +1066,12 @@ void Sound_Init() {
 	// Support for ACM audio file playback and volume control for the soundplay script function
 	HookCall(0x4661B3, soundStartInterpret_hook);
 
-	if (GetConfigInt("Sound", "AutoSearchSFX", 1)) {
+	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
 		const DWORD sfxlInitAddr[] = {0x4A9999, 0x4A9B34};
 		HookCalls(sfxl_init_hook, sfxlInitAddr);
 	}
 
-	if (GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
+	if (IniReader::GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
 		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
 		SafeWrite32(0x45212C, 250); // delay start
 		SafeWrite32(0x450ADE, 500); // delay stop
@@ -1072,8 +1079,8 @@ void Sound_Init() {
 	}
 }
 
-void Sound_Exit() {
-	if (soundwindow && GraphicsMode == 0) CoUninitialize();
+void Sound::exit() {
+	if (soundwindow && Graphics::mode == 0) CoUninitialize();
 }
 
 }

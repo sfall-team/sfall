@@ -66,19 +66,19 @@ static void __declspec(naked) compute_spray_rounds_distribution() {
 	}
 }
 
-void BurstMods_Init() {
-	if (GetConfigInt("Misc", "ComputeSprayMod", 0)) {
+void BurstMods::init() {
+	if (IniReader::GetConfigInt("Misc", "ComputeSprayMod", 0)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
-		compute_spray_center_mult = GetConfigInt("Misc", "ComputeSpray_CenterMult", 1);
-		compute_spray_center_div  = GetConfigInt("Misc", "ComputeSpray_CenterDiv", 3);
+		compute_spray_center_mult = IniReader::GetConfigInt("Misc", "ComputeSpray_CenterMult", 1);
+		compute_spray_center_div  = IniReader::GetConfigInt("Misc", "ComputeSpray_CenterDiv", 3);
 		if (compute_spray_center_div < 1) {
 			compute_spray_center_div = 1;
 		}
 		if (compute_spray_center_mult > compute_spray_center_div) {
 			compute_spray_center_mult = compute_spray_center_div;
 		}
-		compute_spray_target_mult = GetConfigInt("Misc", "ComputeSpray_TargetMult", 1);
-		compute_spray_target_div  = GetConfigInt("Misc", "ComputeSpray_TargetDiv", 2);
+		compute_spray_target_mult = IniReader::GetConfigInt("Misc", "ComputeSpray_TargetMult", 1);
+		compute_spray_target_div  = IniReader::GetConfigInt("Misc", "ComputeSpray_TargetDiv", 2);
 		if (compute_spray_target_div < 1) {
 			compute_spray_target_div = 1;
 		}

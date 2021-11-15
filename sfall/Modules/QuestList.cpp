@@ -514,7 +514,7 @@ static long FindGVarQuestFailure(long globalVarNum) {
 	return -1;
 }
 
-void __stdcall QuestList_AddQuestFailureValue(long globalVarNum, long failureThreshold) {
+void __stdcall QuestList::AddQuestFailureValue(long globalVarNum, long failureThreshold) {
 	long index = FindGVarQuestFailure(globalVarNum);
 	if (index == -1) {
 		QuestFailure qf = { globalVarNum, failureThreshold };
@@ -548,21 +548,21 @@ static void __declspec(naked) PipStatus_hack() {
 	}
 }
 
-void ResetQuests() {
+void QuestList::ResetQuests() {
 	questFailures.clear();
 }
 
-void QuestList_Init() {
+void QuestList::init() {
 	MakeCall(0x498222, PipStatus_hack, 1);
 
-	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
+	questsButtonsType = IniReader::GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
 		dlog("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
-		questsScrollButtonsX = GetConfigInt("Misc", "QuestsScrollButtonsX", 140);
+		questsScrollButtonsX = IniReader::GetConfigInt("Misc", "QuestsScrollButtonsX", 140);
 		if (questsScrollButtonsX < 0 || questsScrollButtonsX > 618) questsScrollButtonsX = 140;
-		questsScrollButtonsY = GetConfigInt("Misc", "QuestsScrollButtonsY", 334);
+		questsScrollButtonsY = IniReader::GetConfigInt("Misc", "QuestsScrollButtonsY", 334);
 		if (questsScrollButtonsY < 0 || questsScrollButtonsY > 434) questsScrollButtonsY = 334;
 
 		pageQuest.reserve(4); // init

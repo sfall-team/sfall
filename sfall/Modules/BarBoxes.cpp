@@ -25,7 +25,7 @@
 namespace sfall
 {
 
-static int boxCount;                      // current box count
+int BarBoxes::boxCount;                   // current box count
 static int totalBoxCount, actualBoxCount; // total boxes and w/o vanilla
 static int initCount = 5;                 // init config counter (5 - vanilla box)
 static int sizeBox, setBoxIndex = 5;
@@ -165,11 +165,7 @@ static void ResetBoxes() {
 	//SafeWriteBytes(0x461243, restoreData, 5);
 }
 
-int __stdcall BarBoxes_MaxBox() {
-	return boxCount - 1;
-}
-
-void __stdcall BarBoxes_SetText(int box, const char* text, DWORD color) {
+void __stdcall BarBoxes::SetText(int box, const char* text, DWORD color) {
 	setBoxIndex = box;
 	boxes[box].colour = color;
 	box -= 5;
@@ -227,8 +223,8 @@ static void SetEngine(int count) {
 	}
 }
 
-long BarBoxes_SetMaxSlots() {
-	long scrWidth = Gfx_GetGameWidthRes();
+static long SetMaxSlots() {
+	long scrWidth = Graphics::GetGameWidthRes();
 
 	int slots = scrWidth / 127;
 	if (++slots > 16) {
@@ -247,7 +243,7 @@ long BarBoxes_SetMaxSlots() {
 
 static long __fastcall GetOffsetX(int width) {
 	int x_offset = 0;
-	if (BarBoxes_SetMaxSlots() > 640 && width > ifaceWidth) {
+	if (SetMaxSlots() > 640 && width > ifaceWidth) {
 		x_offset -= (width - ifaceWidth) / 2;
 	}
 	return x_offset;
@@ -264,7 +260,11 @@ static void __declspec(naked) refresh_box_bar_win_hack() {
 	}
 }
 
-void BarBoxes_OnGameLoad() {
+void BarBoxes::OnAfterGameInit() {
+	SetMaxSlots();
+}
+
+void BarBoxes::OnGameLoad() {
 	ResetBoxes();
 	if (initCount != totalBoxCount) {
 		boxCount = initCount;
@@ -272,8 +272,8 @@ void BarBoxes_OnGameLoad() {
 	}
 }
 
-void BarBoxes_Init() {
-	initCount += GetConfigInt("Misc", "BoxBarCount", 5);
+void BarBoxes::init() {
+	initCount += IniReader::GetConfigInt("Misc", "BoxBarCount", 5);
 	if (initCount < 5)  initCount = 5; // exclude the influence of negative values from the config
 	if (initCount > 100) initCount = 100;
 
@@ -287,7 +287,7 @@ void BarBoxes_Init() {
 		boxes[i].msg = 100 + i;
 	}
 
-	std::string boxBarColors = GetConfigString("Misc", "BoxBarColours", "", actualBoxCount + 1);
+	std::string boxBarColors = IniReader::GetConfigString("Misc", "BoxBarColours", "", actualBoxCount + 1);
 	for (size_t i = 0; i < boxBarColors.size(); i++) {
 		if (boxBarColors[i] == '1') {
 			boxes[i + 5].colour = 1; // red color
@@ -306,15 +306,15 @@ void BarBoxes_Init() {
 	MakeCall(0x4615FA, refresh_box_bar_win_hack);
 	SafeWriteBatch<DWORD>((DWORD)newBoxSlot, bboxSlotAddr); // _bboxslot
 
-	ifaceWidth = IniGetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
+	ifaceWidth = IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
 	if (ifaceWidth < 640) ifaceWidth = 640;
 }
 
-long __stdcall BarBoxes_AddExtraBox() {
+long __stdcall BarBoxes::AddExtraBox() {
 	if (boxCount < totalBoxCount) {
 		actualBoxCount++;
 		boxCount++;
-		return BarBoxes_MaxBox(); // just return the number of the previously added box
+		return MaxBox(); // just return the number of the previously added box
 	}
 	if (totalBoxCount > 126) return -1; // limit is exceeded
 
@@ -346,27 +346,27 @@ long __stdcall BarBoxes_AddExtraBox() {
 	actualBoxCount++;
 
 	SetEngine(totalBoxCount);
-	return BarBoxes_MaxBox(); // current number of added box
+	return MaxBox(); // current number of added box
 }
 
-bool __stdcall BarBoxes_GetBox(int i) {
-	if (i < 5 || i > BarBoxes_MaxBox()) return false;
+bool __stdcall BarBoxes::GetBox(int i) {
+	if (i < 5 || i > BarBoxes::MaxBox()) return false;
 	return boxText[i - 5].isActive;
 }
 
-void __stdcall BarBoxes_AddBox(int i) {
-	if (i < 5 || i > BarBoxes_MaxBox()) return;
+void __stdcall BarBoxes::AddBox(int i) {
+	if (i < 5 || i > BarBoxes::MaxBox()) return;
 	boxText[i - 5].isActive = true;
 	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
-void __stdcall BarBoxes_RemoveBox(int i) {
-	if (i < 5 || i > BarBoxes_MaxBox()) return;
+void __stdcall BarBoxes::RemoveBox(int i) {
+	if (i < 5 || i > BarBoxes::MaxBox()) return;
 	boxText[i - 5].isActive = false;
 	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
-void BarBoxes_Exit() {
+void BarBoxes::exit() {
 	delete[] boxes;
 	delete[] boxText;
 }

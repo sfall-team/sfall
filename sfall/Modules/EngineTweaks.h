@@ -21,7 +21,11 @@
 namespace sfall
 {
 
-void EngineTweaks_Init();
-//void EngineTweaks_Exit();
+class EngineTweaks {
+public:
+	static const char* name() { return "EngineTweaks"; }
+	static void init();
+	//static void exit();
+};
 
 }

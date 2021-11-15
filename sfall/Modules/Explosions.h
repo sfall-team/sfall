@@ -21,8 +21,14 @@
 namespace sfall
 {
 
-void Explosions_Init();
-void Explosions_OnGameLoad();
+class Explosions {
+public:
+	static const char* name() { return "Explosions"; }
+	static void init();
+
+	static void OnGameLoad();
+};
+
 void ResetExplosionSettings();
 
 int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);

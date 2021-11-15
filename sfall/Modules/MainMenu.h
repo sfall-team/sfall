@@ -21,6 +21,10 @@
 namespace sfall
 {
 
-void MainMenu_Init();
+class MainMenu {
+public:
+	static const char* name() { return "MainMenu"; }
+	static void init();
+};
 
 }

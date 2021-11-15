@@ -21,6 +21,10 @@
 namespace sfall
 {
 
-void BurstMods_Init();
+class BurstMods {
+public:
+	static const char* name() { return "BurstMods"; }
+	static void init();
+};
 
 }

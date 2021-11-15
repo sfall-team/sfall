@@ -48,18 +48,24 @@ namespace sfall
 #define MSG_FILE_WORLDMAP	(0x672FB0)
 
 typedef std::tr1::unordered_map<int, fo::MessageList*> ExtraGameMessageListsMap;
-extern ExtraGameMessageListsMap gExtraGameMsgLists;
-extern const fo::MessageList* gameMsgFiles[];
 
-void Message_Init();
-//void Message_Exit();
+class Message {
+public:
+	static const char* name() { return "Message"; }
+	static void init();
+	//static void exit();
+
+	static const char* GameLanguage();
+
+	static ExtraGameMessageListsMap gExtraGameMsgLists;
+	static const fo::MessageList* gameMsgFiles[];
+
+	static long __stdcall AddExtraMsgFile(const char* msgName, long msgNumber);
+};
+
 void FallbackEnglishLoadMsgFiles();
 void ReadExtraGameMsgFiles();
 void ClearReadExtraGameMsgFiles();
 void ClearScriptAddedExtraGameMsg();
-
-const char* Message_GameLanguage();
-
-long __stdcall Message_AddExtraMsgFile(const char* msgName, long msgNumber);
 
 }

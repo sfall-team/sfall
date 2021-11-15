@@ -35,16 +35,16 @@ static struct Translation {
 	}
 } translationIni;
 
-size_t __stdcall Translate_Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return IniGetString(section, setting, defaultValue, buffer, bufSize, translationIni.File());
+size_t __stdcall Translate::Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
+	return IniReader::GetString(section, setting, defaultValue, buffer, bufSize, translationIni.File());
 }
 
-std::string __stdcall Translate_Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return std::move(IniGetString(section, setting, defaultValue, bufSize, translationIni.File()));
+std::string __stdcall Translate::Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return std::move(IniReader::GetString(section, setting, defaultValue, bufSize, translationIni.File()));
 }
 
-std::vector<std::string> __stdcall Translate_GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return std::move(IniGetList(section, setting, defaultValue, bufSize, delimiter, translationIni.File()));
+std::vector<std::string> __stdcall Translate::GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
+	return std::move(IniReader::GetList(section, setting, defaultValue, bufSize, delimiter, translationIni.File()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,8 +54,8 @@ static void MakeLangTranslationPath(const char* config) {
 	char fileConfig[65] = ".\\";
 	std::strcpy(&fileConfig[2], config);
 
-	IniGetString("system", "language", "english", language, 32, fileConfig);
-	IniGetString("system", "master_patches", "data", patches, 65, fileConfig);
+	IniReader::GetString("system", "language", "english", language, 32, fileConfig);
+	IniReader::GetString("system", "master_patches", "data", patches, 65, fileConfig);
 
 	const char* iniDef = translationIni.def;
 	while (*iniDef == '\\' || *iniDef == '/' || *iniDef == '.') iniDef++; // skip first characters
@@ -68,19 +68,19 @@ static char saveSfallDataFailMsg[128];
 static char combatSaveFailureMsg[128];
 static char combatBlockedMessage[128];
 
-const char* Translate_SfallSaveDataFailure()   { return &saveSfallDataFailMsg[0]; }
-const char* Translate_CombatSaveBlockMessage() { return &combatSaveFailureMsg[0]; }
-const char* Translate_CombatBlockMessage()     { return &combatBlockedMessage[0]; }
+const char* Translate::SfallSaveDataFailure()   { return &saveSfallDataFailMsg[0]; }
+const char* Translate::CombatSaveBlockMessage() { return &combatSaveFailureMsg[0]; }
+const char* Translate::CombatBlockMessage()     { return &combatBlockedMessage[0]; }
 
 static void InitMessagesTranslate() {
-	Translate_Get("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
-	Translate_Get("sfall", "SaveInCombat", "Cannot save at this time.", combatSaveFailureMsg);
-	Translate_Get("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! "
-	              "Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
+	Translate::Get("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
+	Translate::Get("sfall", "SaveInCombat", "Cannot save at this time.", combatSaveFailureMsg);
+	Translate::Get("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! "
+	               "Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
 }
 
-void Translate_Init(const char* config) {
-	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni.def, 65);
+void Translate::init(const char* config) {
+	IniReader::GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni.def, 65);
 
 	MakeLangTranslationPath(config);
 	InitMessagesTranslate();

@@ -436,8 +436,8 @@ static bool displayBonusDamage = false;
 static long __fastcall GetHtHDamage(fo::GameObject* source, long &meleeDmg, long handOffset) {
 	long min, max;
 
-	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
-	long bonus = Unarmed_GetDamage(hit, min, max);
+	fo::AttackType hit = Unarmed::GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
+	long bonus = Unarmed::GetDamage(hit, min, max);
 	meleeDmg += max + bonus;
 
 	long perkBonus = game::Stats::perk_level(source, fo::Perk::PERK_bonus_hth_damage) << 1;
@@ -448,8 +448,8 @@ static long __fastcall GetHtHDamage(fo::GameObject* source, long &meleeDmg, long
 }
 
 static const char* __fastcall GetHtHName(long handOffset) {
-	fo::AttackType hit = Unarmed_GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
-	return Unarmed_GetName(hit);
+	fo::AttackType hit = Unarmed::GetStoredHitMode((handOffset == 0) ? fo::HandSlot::Left : fo::HandSlot::Right);
+	return Unarmed::GetName(hit);
 }
 
 static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
@@ -473,14 +473,14 @@ customName:
 	}
 }
 
-long DamageMod_GetHtHMinDamageBonus(fo::GameObject* source) {
+long DamageMod::GetHtHMinDamageBonus(fo::GameObject* source) {
 	return (bonusHtHDamageFix)
 	       ? game::Stats::perk_level(source, fo::Perk::PERK_bonus_hth_damage) << 1 // Multiply by 2
 	       : 0;
 }
 
-void DamageMod_Init() {
-	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
+void DamageMod::init() {
+	if (formula = IniReader::GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
 		case 1:
 		case 2:
@@ -492,8 +492,8 @@ void DamageMod_Init() {
 		}
 	}
 
-	bonusHtHDamageFix = GetConfigInt("Misc", "BonusHtHDamageFix", 1) != 0;
-	displayBonusDamage = GetConfigInt("Misc", "DisplayBonusDamage", 0) != 0;
+	bonusHtHDamageFix = IniReader::GetConfigInt("Misc", "BonusHtHDamageFix", 1) != 0;
+	displayBonusDamage = IniReader::GetConfigInt("Misc", "DisplayBonusDamage", 0) != 0;
 
 	if (bonusHtHDamageFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);

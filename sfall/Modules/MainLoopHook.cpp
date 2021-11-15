@@ -8,10 +8,10 @@
 namespace sfall
 {
 
-bool displayWinUpdateState = false;
+bool MainLoopHook::displayWinUpdateState = false;
 
 static void MainGameLoopResetStates() {
-	displayWinUpdateState = false;
+	MainLoopHook::displayWinUpdateState = false;
 }
 
 static void __stdcall MainGameLoop() { // OnMainLoop
@@ -67,7 +67,7 @@ static void __declspec(naked) AfterCombatAttackHook() {
 	}
 }
 
-void MainLoopHook_Init() {
+void MainLoopHook::init() {
 	HookCall(0x480E7B, MainGameLoopHook);       // hook the main game loop
 	HookCall(0x422845, CombatLoopHook);         // hook the combat loop
 	MakeCall(0x4230D5, AfterCombatAttackHook);

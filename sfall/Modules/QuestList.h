@@ -21,9 +21,14 @@
 namespace sfall
 {
 
-void QuestList_Init();
-void ResetQuests();
+class QuestList {
+public:
+	static const char* name() { return "QuestList"; }
+	static void init();
 
-void __stdcall QuestList_AddQuestFailureValue(long globalVarNum, long failureThreshold);
+	static void ResetQuests();
+
+	static void __stdcall AddQuestFailureValue(long globalVarNum, long failureThreshold);
+};
 
 }

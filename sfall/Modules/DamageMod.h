@@ -21,8 +21,12 @@
 namespace sfall
 {
 
-void DamageMod_Init();
+class DamageMod {
+public:
+	static const char* name() { return "DamageMod"; }
+	static void init();
 
-long DamageMod_GetHtHMinDamageBonus(fo::GameObject* source);
+	static long GetHtHMinDamageBonus(fo::GameObject* source);
+};
 
 }

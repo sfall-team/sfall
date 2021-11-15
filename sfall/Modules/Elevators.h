@@ -21,6 +21,10 @@
 namespace sfall
 {
 
-void Elevators_Init();
+class Elevators {
+public:
+	static const char* name() { return "Elevators"; }
+	static void init();
+};
 
 }

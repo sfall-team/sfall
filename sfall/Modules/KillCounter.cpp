@@ -68,12 +68,12 @@ static void KillCounterInit() {
 	SafeWrite32(0x42D9DD, 1488); // critter_kill_info_
 }
 
-bool UsingExtraKillTypes() {
+bool KillCounter::UsingExtraKillTypes() {
 	return usingExtraKillTypes;
 }
 
-void KillCounter_Init() {
-	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
+void KillCounter::init() {
+	if (IniReader::GetConfigInt("Misc", "ExtraKillTypes", 0)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
 		KillCounterInit();
 		dlogr(" Done", DL_INIT);

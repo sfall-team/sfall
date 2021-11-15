@@ -36,8 +36,8 @@ struct CityRep {
 // C-array is neccessary, because it is used by game engine
 static CityRep* repList = nullptr;
 
-void Reputations_Init() {
-	std::vector<std::string> cityRepList = GetConfigList("Misc", "CityRepsList", "", 512);
+void Reputations::init() {
+	std::vector<std::string> cityRepList = IniReader::GetConfigList("Misc", "CityRepsList", "", 512);
 	size_t count = cityRepList.size();
 	if (count) {
 		repList = new CityRep[count];
@@ -59,7 +59,7 @@ void Reputations_Init() {
 	}
 }
 
-void Reputations_Exit() {
+void Reputations::exit() {
 	if (repList) delete[] repList;
 }
 

@@ -40,14 +40,20 @@ struct ChanceModifier {
 	}
 };
 
-extern long determineHitChance;
+class Combat {
+public:
+	static const char* name() { return "Combat"; }
+	static void init();
 
-void Combat_Init();
-void Combat_OnGameLoad();
-void BodypartHitChances();
+	static void OnGameLoad();
+	static void OnBeforeGameStart();
 
-long __fastcall Combat_check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode);
-bool __stdcall Combat_IsBurstDisabled(fo::GameObject* critter);
+	static long determineHitChance;
+
+	static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode);
+
+	static bool __stdcall IsBurstDisabled(fo::GameObject* critter);
+};
 
 void __stdcall SetBlockCombat(long toggle);
 

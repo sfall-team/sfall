@@ -392,13 +392,13 @@ isLock:
 	}
 }
 
-void ClearAllLockAnimSets() {
+static void ClearAllLock() {
 	std::fill(lockAnimSet.begin(), lockAnimSet.end(), 0);
 }
 
 static void __declspec(naked) anim_stop_hack() {
 	__asm {
-		call ClearAllLockAnimSets;
+		call ClearAllLock;
 		mov  edx, 1;
 		retn;
 	}
@@ -507,7 +507,7 @@ notDude:
 	}
 }
 
-void ApplyAnimationsAtOncePatches(signed char aniMax) {
+static void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//allocate memory to store larger animation struct arrays
 	sf_anim_set.resize(aniMax + 1); // include a dummy
 	sf_sad.resize(aniMax + 1); // -8?
@@ -562,8 +562,12 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>((DWORD)&animSad->pathData[0].tile, sad_28);
 }
 
-void Animations_Init() {
-	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
+void Animations::OnGameLoad() {
+	ClearAllLock();
+}
+
+void Animations::init() {
+	animationLimit = IniReader::GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit < 32) animationLimit = 32;
 	if (animationLimit > 32) {
 		if (animationLimit > 127) animationLimit = 127;
@@ -610,7 +614,7 @@ void Animations_Init() {
 	MakeCall(0x419A17, art_alias_fid_hack);
 
 	// Fix for grave type containers in the open state not executing the use_p_proc procedure
-	if (GetConfigInt("Misc", "GraveContainersFix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "GraveContainersFix", 0)) {
 		dlog("Applying grave type containers fix.", DL_INIT);
 		HookCall(0x49CFAC, obj_use_container_hook);
 		SafeWrite16(0x4122D9, 0x9090); // action_get_an_object_
@@ -618,7 +622,7 @@ void Animations_Init() {
 	}
 }
 
-//void Animations_Exit() {
+//void Animations::exit() {
 //}
 
 }

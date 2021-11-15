@@ -3,17 +3,21 @@
 namespace sfall
 {
 
-void BugFixes_Init();
-void BugFixes_OnGameLoad();
-//void BugFixes_OnBeforeGameInit();
-void BugFixes_Initialization();
-//void BugFixes_OnAfterGameInit();
-void combat_ai_init_backup();
+class BugFixes {
+public:
+	static const char* name() { return "BugFixes"; }
+	static void init();
 
-void BugFixes_DrugsSaveFix(HANDLE file);
-bool BugFixes_DrugsLoadFix(HANDLE file);
-void ResetBodyState();
+	static void OnGameLoad();
+	static void OnBeforeGameInit();
+	static void OnAfterGameInit();
+
+	static void DrugsSaveFix(HANDLE file);
+	static bool DrugsLoadFix(HANDLE file);
+};
 
 extern int tagSkill4LevelBase;
+
+void ResetBodyState();
 
 }

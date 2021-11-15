@@ -26,7 +26,7 @@
 namespace sfall
 {
 
-long PerkLevelMod = 0;
+long Perks::PerkLevelMod = 0;
 
 static const int maxNameLen = 64;   // don't change size
 static const int maxDescLen = 512;  // don't change size
@@ -97,7 +97,7 @@ static void __declspec(naked) LevelUpHack() {
 		test ecx, ecx;
 		jnz  afterSkilled;
 		push TRAIT_skilled;
-		call IsTraitDisabled;
+		call Perks::IsTraitDisabled;
 		test al, al;
 		jnz  notSkilled;
 		mov  eax, TRAIT_skilled;
@@ -138,7 +138,7 @@ void __stdcall RestoreDefaultPerks() {
 	IgnoringDefaultPerks = 0;
 }
 
-void __fastcall SetPerkboxTitle(const char* name) {
+void __fastcall Perks::SetPerkboxTitle(const char* name) {
 	if (name[0] == '\0') {
 		PerkBoxTitle[0] = 0;
 		SafeWrite32(0x43C77D, 0x488CB);
@@ -148,7 +148,7 @@ void __fastcall SetPerkboxTitle(const char* name) {
 	}
 }
 
-void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc) {
+void __stdcall Perks::SetSelectablePerk(const char* name, int active, int image, const char* desc) {
 	if (active < 0) return;
 	if (active > 1) active = 1;
 	size_t size = fakeSelectablePerks.size();
@@ -179,7 +179,7 @@ void __stdcall SetSelectablePerk(const char* name, int active, int image, const 
 	}
 }
 
-void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc) {
+void __stdcall Perks::SetFakePerk(const char* name, int level, int image, const char* desc) {
 	if (level < 0) return;
 	if (level > 100) level = 100;
 	size_t size = fakePerks.size();
@@ -210,7 +210,7 @@ void __stdcall SetFakePerk(const char* name, int level, int image, const char* d
 	}
 }
 
-void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc) {
+void __stdcall Perks::SetFakeTrait(const char* name, int active, int image, const char* desc) {
 	if (active < 0) return;
 	if (active > 1) active = 1;
 	size_t size = fakeTraits.size();
@@ -625,9 +625,9 @@ static void __declspec(naked) HeaveHoHook() {
 	}
 }
 
-bool perkHeaveHoModTweak = false;
+bool Perks::perkHeaveHoModTweak = false;
 
-void __stdcall ApplyHeaveHoFix() { // not really a fix
+void __stdcall Perks::ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	perks[fo::Perk::PERK_heave_ho].strengthMin = 0;
 	perkHeaveHoModTweak = true;
@@ -792,41 +792,41 @@ static void EnginePerkBonusInit() {
 }
 
 static void ReadPerksBonuses(const char* perksFile) {
-	int wScopeRangeMod = IniGetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
+	int wScopeRangeMod = IniReader::GetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
 	if (wScopeRangeMod != 8) enginePerks.setWeaponScopeRangePenalty(wScopeRangeMod);
-	wScopeRangeMod = IniGetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
+	wScopeRangeMod = IniReader::GetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
 	if (wScopeRangeMod != 5) enginePerks.setWeaponScopeRangeBonus(wScopeRangeMod);
 
-	int wLongRangeBonus = IniGetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
+	int wLongRangeBonus = IniReader::GetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
 	if (wLongRangeBonus != 4) enginePerks.setWeaponLongRangeBonus(wLongRangeBonus);
 
-	int wAccurateBonus = IniGetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
+	int wAccurateBonus = IniReader::GetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
 	if (wAccurateBonus != 20) enginePerks.setWeaponAccurateBonus(wAccurateBonus);
 
-	int wHandlingBonus = IniGetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
+	int wHandlingBonus = IniReader::GetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
 	if (wHandlingBonus != 3) enginePerks.setWeaponHandlingBonus(wHandlingBonus);
 
-	int masterTraderBonus = IniGetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
+	int masterTraderBonus = IniReader::GetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
 	if (masterTraderBonus != 25) enginePerks.setMasterTraderBonus(masterTraderBonus);
 
-	int salesmanBonus = IniGetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
+	int salesmanBonus = IniReader::GetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
 	if (salesmanBonus != 20) enginePerks.setSalesmanBonus(salesmanBonus);
 
-	int livingAnatomyBonus = IniGetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
+	int livingAnatomyBonus = IniReader::GetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
 	if (livingAnatomyBonus != 5) enginePerks.setLivingAnatomyBonus(livingAnatomyBonus);
 
-	int pyromaniacBonus = IniGetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
+	int pyromaniacBonus = IniReader::GetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
 	if (pyromaniacBonus != 5) enginePerks.setPyromaniacBonus(pyromaniacBonus);
 
-	int stonewallPercent = IniGetInt("PerksTweak", "StonewallPercent", 50, perksFile);
+	int stonewallPercent = IniReader::GetInt("PerksTweak", "StonewallPercent", 50, perksFile);
 	if (stonewallPercent != 50) enginePerks.setStonewallPercent(stonewallPercent);
 
-	int demolitionExpertBonus = IniGetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
+	int demolitionExpertBonus = IniReader::GetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
 	if (demolitionExpertBonus != 10) enginePerks.setDemolitionExpertBonus(demolitionExpertBonus);
 
-	int vaultCityInoculationsBonus = IniGetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
+	int vaultCityInoculationsBonus = IniReader::GetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
 	if (vaultCityInoculationsBonus != 10) enginePerks.setVaultCityInoculationsPoisonBonus(vaultCityInoculationsBonus);
-	vaultCityInoculationsBonus = IniGetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
+	vaultCityInoculationsBonus = IniReader::GetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
 	if (vaultCityInoculationsBonus != 10) enginePerks.setVaultCityInoculationsRadBonus(vaultCityInoculationsBonus);
 }
 
@@ -898,46 +898,46 @@ static void PerkSetup() {
 		char num[4];
 		for (int i = 0; i < fo::Perk::PERK_count; i++) {
 			_itoa(i, num, 10);
-			if (IniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
+			if (IniReader::GetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				perks[i].name = &Name[i * maxNameLen];
 			}
-			if (IniGetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
+			if (IniReader::GetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
 				perks[i].description = &Desc[i * descLen];
 			}
 			int value;
-			value = IniGetInt(num, "Image", -99999, perksFile);
+			value = IniReader::GetInt(num, "Image", -99999, perksFile);
 			if (value != -99999) perks[i].image = value;
-			value = IniGetInt(num, "Ranks", -99999, perksFile);
+			value = IniReader::GetInt(num, "Ranks", -99999, perksFile);
 			if (value != -99999) perks[i].ranks = value;
-			value = IniGetInt(num, "Level", -99999, perksFile);
+			value = IniReader::GetInt(num, "Level", -99999, perksFile);
 			if (value != -99999) perks[i].levelMin = value;
-			value = IniGetInt(num, "Stat", -99999, perksFile);
+			value = IniReader::GetInt(num, "Stat", -99999, perksFile);
 			if (value != -99999) perks[i].stat = value;
-			value = IniGetInt(num, "StatMag", -99999, perksFile);
+			value = IniReader::GetInt(num, "StatMag", -99999, perksFile);
 			if (value != -99999) perks[i].statMod = value;
-			value = IniGetInt(num, "Skill1", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill1", -99999, perksFile);
 			if (value != -99999) perks[i].skill1 = value;
-			value = IniGetInt(num, "Skill1Mag", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill1Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill1Min = value;
-			value = IniGetInt(num, "Type", -99999, perksFile);
+			value = IniReader::GetInt(num, "Type", -99999, perksFile);
 			if (value != -99999) perks[i].skillOperator = value;
-			value = IniGetInt(num, "Skill2", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill2", -99999, perksFile);
 			if (value != -99999) perks[i].skill2 = value;
-			value = IniGetInt(num, "Skill2Mag", -99999, perksFile);
+			value = IniReader::GetInt(num, "Skill2Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill2Min = value;
-			value = IniGetInt(num, "STR", -99999, perksFile);
+			value = IniReader::GetInt(num, "STR", -99999, perksFile);
 			if (value != -99999) perks[i].strengthMin = value;
-			value = IniGetInt(num, "PER", -99999, perksFile);
+			value = IniReader::GetInt(num, "PER", -99999, perksFile);
 			if (value != -99999) perks[i].perceptionMin = value;
-			value = IniGetInt(num, "END", -99999, perksFile);
+			value = IniReader::GetInt(num, "END", -99999, perksFile);
 			if (value != -99999) perks[i].enduranceMin = value;
-			value = IniGetInt(num, "CHR", -99999, perksFile);
+			value = IniReader::GetInt(num, "CHR", -99999, perksFile);
 			if (value != -99999) perks[i].charismaMin = value;
-			value = IniGetInt(num, "INT", -99999, perksFile);
+			value = IniReader::GetInt(num, "INT", -99999, perksFile);
 			if (value != -99999) perks[i].intelligenceMin = value;
-			value = IniGetInt(num, "AGL", -99999, perksFile);
+			value = IniReader::GetInt(num, "AGL", -99999, perksFile);
 			if (value != -99999) perks[i].agilityMin = value;
-			value = IniGetInt(num, "LCK", -99999, perksFile);
+			value = IniReader::GetInt(num, "LCK", -99999, perksFile);
 			if (value != -99999) perks[i].luckMin = value;
 		}
 	}
@@ -946,19 +946,19 @@ static void PerkSetup() {
 
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
-int __stdcall TraitsModEnable() {
+int __stdcall Perks::TraitsModEnable() {
 	return traitsEnable;
 }
 
-bool __stdcall IsTraitDisabled(int traitID) {
+bool __stdcall Perks::IsTraitDisabled(int traitID) {
 	return disableTraits[traitID];
 }
 
-DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex) {
+DWORD __stdcall Perks::GetTraitStatBonus(int statID, int traitIndex) {
 	return traitStatBonuses[statID * fo::Trait::TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
-DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex) {
+DWORD __stdcall Perks::GetTraitSkillBonus(int skillID, int traitIndex) {
 	return traitSkillBonuses[skillID * fo::Trait::TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
@@ -987,17 +987,17 @@ static void PerkAndTraitSetup() {
 	char* num2 = &num[1];
 	for (int i = 0; i < fo::Trait::TRAIT_count; i++) {
 		_itoa_s(i, num2, 4, 10);
-		if (IniGetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
+		if (IniReader::GetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
 			traits[i].name = &tName[i * maxNameLen];
 		}
-		if (IniGetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
+		if (IniReader::GetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
 			traits[i].description = &tDesc[i * descLen];
 		}
 		int value;
-		value = IniGetInt(num, "Image", -99999, perksFile);
+		value = IniReader::GetInt(num, "Image", -99999, perksFile);
 		if (value != -99999) traits[i].image = value;
 
-		if (IniGetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
+		if (IniReader::GetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
@@ -1009,7 +1009,7 @@ static void PerkAndTraitSetup() {
 			}
 		}
 
-		if (IniGetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
+		if (IniReader::GetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
@@ -1021,7 +1021,7 @@ static void PerkAndTraitSetup() {
 			}
 		}
 
-		if (IniGetInt(num, "NoHardcode", 0, perksFile)) {
+		if (IniReader::GetInt(num, "NoHardcode", 0, perksFile)) {
 			disableTraits[i] = true;
 			switch (i) {
 			case fo::Trait::TRAIT_one_hander:
@@ -1125,7 +1125,7 @@ cantUse:
 }
 
 static void FastShotTraitFix() {
-	switch (GetConfigInt("Misc", "FastShotFix", 0)) {
+	switch (IniReader::GetConfigInt("Misc", "FastShotFix", 0)) {
 	case 1:
 		dlog("Applying Fast Shot trait patch (Haenlomal's tweak).", DL_INIT);
 		MakeJump(0x478E79, item_w_called_shot_hack);
@@ -1155,27 +1155,27 @@ static void FastShotTraitFix() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void __fastcall SetPerkValue(int id, int param, int value) {
+void __fastcall Perks::SetPerkValue(int id, int param, int value) {
 	if (id < 0 || id >= fo::Perk::PERK_count) return;
 	*(DWORD*)((DWORD)(&perks[id]) + param) = value;
 	perksReInit = true;
 }
 
-void __stdcall SetPerkName(int id, const char* value) {
+void __stdcall Perks::SetPerkName(int id, const char* value) {
 	if (id < 0 || id >= fo::Perk::PERK_count) return;
 	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
 	perks[id].name = &Name[maxNameLen * id];
 	perksReInit = true;
 }
 
-void __stdcall SetPerkDesc(int id, const char* value) {
+void __stdcall Perks::SetPerkDesc(int id, const char* value) {
 	if (id < 0 || id >= fo::Perk::PERK_count) return;
 	strncpy_s(&Desc[id * descLen], descLen, value, _TRUNCATE);
 	perks[id].description = &Desc[descLen * id];
 	perksReInit = true;
 }
 
-void PerksReset() {
+void Perks::Reset() {
 	fakeTraits.clear();
 	fakePerks.clear();
 	fakeSelectablePerks.clear();
@@ -1190,21 +1190,21 @@ void PerksReset() {
 
 	// Reset some settable game values back to the defaults
 	// Perk level mod
-	PerkLevelMod = 0;
+	Perks::PerkLevelMod = 0;
 	// Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
 	// Swift Learner bonus
 	SafeWrite32(0x4AFAE2, 100);
 	// Restore 'Heave Ho' modify fix
-	if (perkHeaveHoModTweak) {
+	if (Perks::perkHeaveHoModTweak) {
 		SafeWrite8(0x478AC4, 0xBA);
 		SafeWrite32(0x478AC5, 0x23);
-		perkHeaveHoModTweak = false;
+		Perks::perkHeaveHoModTweak = false;
 	}
 	if (perksReInit) PerkSetup(); // restore perk data
 }
 
-void PerksSave(HANDLE file) {
+void Perks::Save(HANDLE file) {
 	DWORD unused, count = fakeTraits.size();
 	WriteFile(file, &count, 4, &unused, 0);
 	for (DWORD i = 0; i < count; i++) {
@@ -1222,7 +1222,7 @@ void PerksSave(HANDLE file) {
 	}
 }
 
-bool PerksLoad(HANDLE file) {
+bool Perks::Load(HANDLE file) {
 	DWORD count, size;
 	ReadFile(file, &count, 4, &size, 0);
 	if (size != 4) return false;
@@ -1252,7 +1252,7 @@ void __stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD __stdcall HasFakePerk(const char* name) {
+DWORD __stdcall Perks::HasFakePerk(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
 		if (!strcmp(name, fakePerks[i].Name)) {
@@ -1262,7 +1262,7 @@ DWORD __stdcall HasFakePerk(const char* name) {
 	return 0;
 }
 
-DWORD __stdcall HasFakeTrait(const char* name) {
+DWORD __stdcall Perks::HasFakeTrait(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		if (!strcmp(name, fakeTraits[i].Name)) {
@@ -1308,7 +1308,7 @@ void PerksAcceptCharScreen() {
 	}
 }
 
-void Perks_Init() {
+void Perks::init() {
 	FastShotTraitFix();
 
 	// Disable losing unused perks
@@ -1328,13 +1328,13 @@ void Perks_Init() {
 	// Perk and Trait init
 	HookCall(0x44272E, game_init_hook);
 
-	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
+	if (IniReader::GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
 		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
-		perksEnable = IniGetInt("Perks", "Enable", 1, perksFile);
-		traitsEnable = IniGetInt("Traits", "Enable", 1, perksFile);
+		perksEnable = IniReader::GetInt("Perks", "Enable", 1, perksFile);
+		traitsEnable = IniReader::GetInt("Traits", "Enable", 1, perksFile);
 
 		// Engine perks settings
 		ReadPerksBonuses(perksFile);

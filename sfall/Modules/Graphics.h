@@ -29,72 +29,79 @@ extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 extern IDirectDrawSurface* primarySurface;
 
-extern DWORD GraphicsMode;
-extern DWORD GPUBlt;
+class Graphics {
+public:
+	static const char* name() { return "Graphics"; }
+	static void init();
+	static void exit();
 
-extern bool Gfx_PlayAviMovie;
-extern bool Gfx_AviMovieWidthFit;
+	static DWORD mode;
+	static DWORD GPUBlt;
 
-void Graphics_Init();
-void Graphics_Exit();
+	static HWND GetFalloutWindowInfo(RECT* rect);
+	static long GetGameWidthRes();
+	static long GetGameHeightRes();
 
-HWND Gfx_GetFalloutWindowInfo(RECT* rect);
-long Gfx_GetGameWidthRes();
-long Gfx_GetGameHeightRes();
+	static int __stdcall GetShaderVersion();
 
-int __stdcall Gfx_GetShaderVersion();
+	static const float* rcpresGet();
 
-const float* Gfx_rcpresGet();
+	static void SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
+	static void SetHeadTechnique();
+	static void SetDefaultTechnique();
 
-void Gfx_SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
-void Gfx_SetHeadTechnique();
-void Gfx_SetDefaultTechnique();
+	static void ShowMovieFrame(IDirect3DTexture9* movieTex);
 
-void Gfx_ShowMovieFrame(IDirect3DTexture9* movieTex);
+	static void SetMovieTexture(bool state);
+	static HRESULT CreateMovieTexture(D3DSURFACE_DESC &desc);
+	static void ReleaseMovieTexture();
 
-void Gfx_SetMovieTexture(bool state);
-HRESULT Gfx_CreateMovieTexture(D3DSURFACE_DESC &desc);
-void Gfx_ReleaseMovieTexture();
+	static bool PlayAviMovie;
+	static bool AviMovieWidthFit;
 
-void Gfx_RefreshGraphics();
-void __stdcall Gfx_ForceGraphicsRefresh(DWORD d);
+	static void RefreshGraphics();
+	static void __stdcall ForceGraphicsRefresh(DWORD d);
 
-void WinRender_CreateOverlaySurface(fo::Window* win, long winType);
-void WinRender_DestroyOverlaySurface(fo::Window* win);
-void WinRender_ClearOverlay(fo::Window* win);
-void WinRender_ClearOverlay(fo::Window* win, Rectangle &rect);
-BYTE* WinRender_GetOverlaySurface(fo::Window* win);
+	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
+		long x = rect->left;
+		long y = rect->top;
+		if (Graphics::mode == 0) {
+			__asm {
+				xor  eax, eax;
+				push y;
+				push x;
+				push height;
+				push width;
+				push eax; // yFrom
+				push eax; // xFrom
+				push eax; // heightFrom
+				push widthFrom;
+				push surface;
+				call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
+				add  esp, 9*4;
+			}
+		} else {
+			DDSURFACEDESC desc;
+			RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
 
-__forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
-	long x = rect->left;
-	long y = rect->top;
-	if (GraphicsMode == 0) {
-		__asm {
-			xor  eax, eax;
-			push y;
-			push x;
-			push height;
-			push width;
-			push eax; // yFrom
-			push eax; // xFrom
-			push eax; // heightFrom
-			push widthFrom;
-			push surface;
-			call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
-			add  esp, 9*4;
+			if (primarySurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
+
+			if (Graphics::GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
+			fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
+
+			primarySurface->Unlock(desc.lpSurface);
 		}
-	} else {
-		DDSURFACEDESC desc;
-		RECT lockRect = { x, y, rect->right + 1, rect->bottom + 1 };
-
-		if (primarySurface->Lock(&lockRect, &desc, 0, 0)) return; // lock error
-
-		if (GPUBlt == 0) desc.lpSurface = (BYTE*)desc.lpSurface + (desc.lPitch * y) + x;
-		fo::func::buf_to_buf(surface, width, height, widthFrom, (BYTE*)desc.lpSurface, desc.lPitch);
-
-		primarySurface->Unlock(desc.lpSurface);
 	}
-}
+};
+
+class WindowRender {
+public:
+	static void CreateOverlaySurface(fo::Window* win, long winType);
+	static void DestroyOverlaySurface(fo::Window* win);
+	static void ClearOverlay(fo::Window* win);
+	static void ClearOverlay(fo::Window* win, Rectangle &rect);
+	static BYTE* GetOverlaySurface(fo::Window* win);
+};
 
 static const char* gpuEffectA8 =
 	"texture image;"

@@ -41,7 +41,7 @@ static int __fastcall DrugPidPop() {
 	return pid;
 }
 
-void BugFixes_DrugsSaveFix(HANDLE file) {
+void BugFixes::DrugsSaveFix(HANDLE file) {
 	DWORD sizeWrite, count = drugsPid.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
 	if (!count) return;
@@ -53,7 +53,7 @@ void BugFixes_DrugsSaveFix(HANDLE file) {
 	return;
 }
 
-bool BugFixes_DrugsLoadFix(HANDLE file) {
+bool BugFixes::DrugsLoadFix(HANDLE file) {
 	DWORD count, sizeRead;
 	ReadFile(file, &count, 4, &sizeRead, 0);
 	if (sizeRead != 4) return false;
@@ -73,7 +73,7 @@ void ResetBodyState() {
 	__asm mov weightOnBody, 0;
 }
 
-void BugFixes_Initialization() {
+static void Initialization() {
 	// Restore calling original engine functions from HRP hacks (there is no difference in HRP functions)
 	__int64 data = 0xC189565153;
 	SafeWriteBytes(0x4D78CC, (BYTE*)&data, 5); // win_get_top_win_
@@ -83,9 +83,9 @@ void BugFixes_Initialization() {
 
 static std::vector<fo::AIcap> aiCapsBackup;
 
-void combat_ai_init_backup() {
+static void combat_ai_init_backup() {
 	long num_caps = *fo::ptr::num_caps;
-	AIcap* caps = *fo::ptr::cap;
+	fo::AIcap* caps = *fo::ptr::cap;
 
 	aiCapsBackup.resize(num_caps);
 	std::memcpy(&aiCapsBackup[0], caps, num_caps * sizeof(fo::AIcap));
@@ -93,7 +93,7 @@ void combat_ai_init_backup() {
 
 static void combat_ai_reset() {
 	long num_caps = *fo::ptr::num_caps;
-	AIcap* caps = *fo::ptr::cap;
+	fo::AIcap* caps = *fo::ptr::cap;
 	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(fo::AIcap));
 }
 
@@ -2533,7 +2533,7 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
 	static long isNoRadius;
 
-	isNoRadius = Worldmap_AreaMarkStateIsNoRadius(); // F1 behavior radius
+	isNoRadius = Worldmap::AreaMarkStateIsNoRadius(); // F1 behavior radius
 	__asm {
 		mov  [ecx + 0x40], esi; // wmAreaInfoList.visited
 		test esi, esi;          // mark "unknown" state
@@ -3109,7 +3109,7 @@ static void __declspec(naked) op_create_object_sid_hack() {
 		mov  eax, esi;
 		retn;
 init:
-		call IsMapLoading;
+		call LoadGameHook::IsMapLoading;
 		test al, al;
 		jnz  end; // yes - initialization will be performed by engine functions
 		cmp  createObjectSidStartFix, 0;
@@ -3135,25 +3135,25 @@ noObject:
 		jmp  end;
 	}
 }
-/*
+
 // Missing game initialization
-void BugFixes_OnBeforeGameInit() {
+void BugFixes::OnBeforeGameInit() {
 	Initialization();
 }
 
-void BugFixes_OnAfterGameInit() {
+void BugFixes::OnAfterGameInit() {
 	combat_ai_init_backup();
 }
-*/
-void BugFixes_OnGameLoad() {
+
+void BugFixes::OnGameLoad() {
 	dudeIsAnimDeath = false;
 	combat_ai_reset();
 }
 
-void BugFixes_Init()
+void BugFixes::init()
 {
 	#ifndef NDEBUG
-	if (GetIntDefaultConfig("Debugging", "BugFixes", 1) == 0) return;
+	if (IniReader::GetIntDefaultConfig("Debugging", "BugFixes", 1) == 0) return;
 	#endif
 
 	// Fix vanilla negate operator for float values
@@ -3169,19 +3169,19 @@ void BugFixes_Init()
 	SafeWrite16(0x46A4E7, 0x04DB);
 
 	// Fix for vanilla division operator treating negative integers as unsigned
-	if (GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
+	if (IniReader::GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
 		dlog("Applying division operator fix.", DL_FIX);
 		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
 		dlogr(" Done", DL_FIX);
 	}
 
-	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_FIX);
 		//MakeJump(0x42394D, compute_attack_hack); - implementation moved to Unarmed module
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_FIX);
 		// https://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
@@ -3205,7 +3205,7 @@ void BugFixes_Init()
 
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
-	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_FIX);
 		const DWORD writeScriptNodeAddr[] = {0x4A596A, 0x4A59C1};
 		HookCalls(scr_write_ScriptNode_hook, writeScriptNodeAddr);
@@ -3216,7 +3216,7 @@ void BugFixes_Init()
 	MakeCall(0x49BE70, obj_use_power_on_car_hack);
 
 	// Fix for being able to charge the car by using cells on other scenery/critters
-	if (GetConfigInt("Misc", "CarChargingFix", 1)) {
+	if (IniReader::GetConfigInt("Misc", "CarChargingFix", 1)) {
 		dlog("Applying car charging fix.", DL_FIX);
 		MakeJump(0x49C36D, protinst_default_use_item_hack);
 		dlogr(" Done", DL_FIX);
@@ -3236,7 +3236,7 @@ void BugFixes_Init()
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
 	// The same happens if you just order NPC to remove the armor through dialogue.
-	//if (GetConfigInt("Misc", "ArmorCorruptsNPCStatsFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "ArmorCorruptsNPCStatsFix", 1)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_FIX);
 		HookCall(0x495F3B, partyMemberCopyLevelInfo_hook_stat_level);
 		HookCall(0x45419B, correctFidForRemovedItem_hook_adjust_ac);
@@ -3255,7 +3255,7 @@ void BugFixes_Init()
 	dlogr(" Done", DL_FIX);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
-	//if (GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
 		dlog("Applying 9 dialog options patch.", DL_FIX);
 		MakeCall(0x447021, gdProcessUpdate_hack, 1);
 		dlogr(" Done", DL_FIX);
@@ -3280,7 +3280,7 @@ void BugFixes_Init()
 	dlogr(" Done", DL_FIX);
 
 	// Fix for not counting in the weight/size of equipped items on NPC when stealing or bartering
-	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "NPCWeightFix", 1)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_FIX);
 		MakeCall(0x473B4E, loot_container_hack);
 		HookCall(0x4758AB, barter_inventory_hook);
@@ -3296,7 +3296,7 @@ void BugFixes_Init()
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
 
-	//if (GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
 		dlog("Applying inventory reverse order issues fix.", DL_FIX);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
@@ -3310,7 +3310,7 @@ void BugFixes_Init()
 	//}
 
 	// Enable party members with level 6 protos to reach level 6
-	//if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "NPCStage6Fix", 1)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_FIX);
 		MakeJump(0x493CE9, NPCStage6Fix1); // partyMember_init_
 		MakeJump(0x494224, NPCStage6Fix2); // partyMemberGetAIOptions_
@@ -3319,32 +3319,32 @@ void BugFixes_Init()
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "NPCLevelFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "NPCLevelFix", 1)) {
 		dlog("Applying NPC level fix.", DL_FIX);
 		HookCall(0x495BC9, (void*)0x495E51); // jz 0x495E7F > jz 0x495E51
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "BlackSkilldexFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "BlackSkilldexFix", 1)) {
 		dlog("Applying black Skilldex patch.", DL_FIX);
 		HookCall(0x497D0F, PipStatus_AddHotLines_hook);
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "FixWithdrawalPerkDescCrash", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "FixWithdrawalPerkDescCrash", 1)) {
 		dlog("Applying withdrawal perk description crash fix.", DL_FIX);
 		HookCall(0x47A501, perform_withdrawal_start_display_print_hook);
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "JetAntidoteFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "JetAntidoteFix", 1)) {
 		dlog("Applying Jet Antidote fix.", DL_FIX);
 		// Fix for Jet antidote not being removed after removing the addiction effect (when using the item)
 		MakeJump(0x47A013, (void*)0x47A168); // item_d_take_drug_
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "NPCDrugAddictionFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "NPCDrugAddictionFix", 1)) {
 		dlog("Applying NPC's drug addiction fix.", DL_FIX);
 		// proper checks for NPC's addiction instead of always using global vars
 		const DWORD itemTakeDrugHkAddr[] = {0x479FBC, 0x47A0AE};
@@ -3356,13 +3356,13 @@ void BugFixes_Init()
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "ShivPatch", 1)) {
 		dlog("Applying shiv patch.", DL_FIX);
 		SafeWrite8(0x477B2B, CodeType::JumpShort);
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "ImportedProcedureFix", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "ImportedProcedureFix", 0)) {
 		dlog("Applying imported procedure patch.", DL_FIX);
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
@@ -3376,14 +3376,14 @@ void BugFixes_Init()
 	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 
 	// Update the AC counter
-	//if (GetConfigInt("Misc", "WieldObjCritterFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "WieldObjCritterFix", 1)) {
 		dlog("Applying wield_obj_critter fix.", DL_FIX);
 		SafeWrite8(0x456912, 0x1E); // jnz 0x456931
 		HookCall(0x45697F, op_wield_obj_critter_adjust_ac_hook);
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_FIX);
 		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
 		//const DWORD multiHexPathAddr[] = {0x42901F, 0x429170};
@@ -3398,7 +3398,7 @@ void BugFixes_Init()
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
 		dlog("Applying Dodgy Door Fix.", DL_FIX);
 		MakeCall(0x4113D3, action_melee_hack, 2);
 		MakeCall(0x411BC9, action_ranged_hack, 2);
@@ -3419,7 +3419,7 @@ void BugFixes_Init()
 
 	// Fix for "NPC turns into a container" bug
 	// https://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-123#post-4065716
-	//if (GetConfigInt("Misc", "NPCTurnsIntoContainerFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "NPCTurnsIntoContainerFix", 1)) {
 		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_FIX);
 		MakeJump(0x42E46E, critter_wake_clear_hack);
 		MakeCall(0x488EF3, obj_load_func_hack, 1);
@@ -3442,7 +3442,7 @@ void BugFixes_Init()
 	dlogr(" Done", DL_FIX);
 
 	// Fix for being unable to sell used geiger counters or stealth boys
-	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
+	if (IniReader::GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_FIX);
 		const DWORD itemQueuedAddr[] = {0x478115, 0x478138}; // item_queued_ (will return the found item)
 		SafeWriteBatch<BYTE>(0xBA, itemQueuedAddr);
@@ -3466,20 +3466,20 @@ void BugFixes_Init()
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
 
-	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "PrintToFileFix", 1)) {
 		dlog("Applying print to file fix.", DL_FIX);
 		MakeCall(0x4C67D4, db_get_file_list_hack);
 		dlogr(" Done", DL_FIX);
 	//}
 
 	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
-	//if (GetConfigInt("Misc", "gdBarterDispFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "gdBarterDispFix", 1)) {
 		dlog("Applying gdialog_mod_barter display fix.", DL_FIX);
 		HookCall(0x448250, gdActivateBarter_hook);
 		dlogr(" Done", DL_FIX);
 	//}
 
-	//if (GetConfigInt("Misc", "BagBackpackFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "BagBackpackFix", 1)) {
 		dlog("Applying fix for bag/backpack bugs.", DL_FIX);
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
@@ -3510,7 +3510,7 @@ void BugFixes_Init()
 	HookCall(0x4211C0, combat_load_hook_item);
 
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
-	//if (GetConfigInt("Misc", "BonusMoveFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "BonusMoveFix", 1)) {
 		dlog("Applying fix for Bonus Move exploit.", DL_FIX);
 		HookCall(0x420E93, combat_load_hook);
 		MakeCall(0x422A06, combat_turn_hack);
@@ -3525,7 +3525,7 @@ void BugFixes_Init()
 	MakeCall(0x424CD2, apply_damage_hack);
 
 	// Fix for the double damage effect of Silent Death perk not being applied to critical hits
-	//if (GetConfigInt("Misc", "SilentDeathFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "SilentDeathFix", 1)) {
 		dlog("Applying Silent Death patch.", DL_FIX);
 		SafeWrite8(0x4238DF, 0x8C); // jl loc_423A0D
 		HookCall(0x423A99, compute_attack_hook);
@@ -3567,7 +3567,7 @@ void BugFixes_Init()
 	dlogr(" Done", DL_FIX);
 
 	// Display full item description for weapon/ammo in the barter screen
-	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
+	showItemDescription = (IniReader::GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
 	if (showItemDescription) {
 		dlog("Applying full item description in barter patch.", DL_FIX);
 		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
@@ -3575,7 +3575,7 @@ void BugFixes_Init()
 	}
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
-	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
+	if (IniReader::GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
 		dlog("Applying Swift Learner exp display patch.", DL_FIX);
 		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
 		HookCall(0x4221E2, combat_give_exps_hook);
@@ -3591,7 +3591,7 @@ void BugFixes_Init()
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
 	// Fix broken obj_can_hear_obj function
-	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_FIX);
 		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
 		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz loc_458414
@@ -3599,7 +3599,7 @@ void BugFixes_Init()
 		dlogr(" Done", DL_FIX);
 	}
 
-	if (GetConfigInt("Misc", "AIBestWeaponFix", 1)) {
+	if (IniReader::GetConfigInt("Misc", "AIBestWeaponFix", 1)) {
 		dlog("Applying AI best weapon choice fix.", DL_FIX);
 		// Fix for the incorrect item being checked for the presence of weapon perks
 		HookCall(0x42954B, ai_best_weapon_hook);
@@ -3640,7 +3640,7 @@ void BugFixes_Init()
 	dlogr(" Done", DL_FIX);
 
 	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
-	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "StartGDialogFix", 0)) {
 		dlog("Applying start_gdialog argument fix.", DL_FIX);
 		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_FIX);
@@ -3657,9 +3657,9 @@ void BugFixes_Init()
 	// Radiation fixes
 	MakeCall(0x42D6C3, process_rads_hack, 1); // prevents player's death if a stat is less than 1 when removing radiation effects
 	HookCall(0x42D67A, process_rads_hook);    // fix for the same effect message being displayed when removing radiation effects
-	radEffectsMsgNum = GetConfigInt("Misc", "RadEffectsRemovalMsg", radEffectsMsgNum);
+	radEffectsMsgNum = IniReader::GetConfigInt("Misc", "RadEffectsRemovalMsg", radEffectsMsgNum);
 	// Display messages about radiation for the active geiger counter
-	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
+	if (IniReader::GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_FIX);
 		const DWORD activeGeigerAddr[] = {0x42D424, 0x42D444};
 		SafeWriteBatch<BYTE>(CodeType::JumpZ, activeGeigerAddr); // jnz > jz
@@ -3668,7 +3668,7 @@ void BugFixes_Init()
 	// Display a pop-up message box about death from radiation
 	HookCall(0x42D733, process_rads_hook_msg);
 
-	//int drugUsePerfFix = GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	//int drugUsePerfFix = IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
 	//if (drugUsePerfFix > 0) {
 	//	dlog("Applying AI drug use preference fix.", DL_FIX);
 	//	if (drugUsePerfFix == 1) {
@@ -3696,7 +3696,7 @@ void BugFixes_Init()
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
 	// called_shot - additional damage when hitting the target
 	// num_attacks - the number of free action points on the first turn only
-	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
+	if (IniReader::GetConfigInt("Misc", "AttackComplexFix", 0)) {
 		dlog("Applying attack_complex arguments fix.", DL_FIX);
 		HookCall(0x456D4A, op_attack_hook);
 		SafeWrite8(0x456D61, 0x74); // mov [gcsd.free_move], esi
@@ -3803,7 +3803,7 @@ void BugFixes_Init()
 	// up an item due to not enough space in the inventory
 	HookCall(0x49B6E7, obj_pickup_hook);
 	HookCall(0x49B71C, obj_pickup_hook_message);
-	Translate_Get("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessage, 65);
+	Translate::Get("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessage, 65);
 
 	// Fix for anim_move_to_tile_ engine function ignoring the distance argument for the player
 	HookCall(0x416D44, anim_move_to_tile_hook);
@@ -3814,7 +3814,7 @@ void BugFixes_Init()
 	MakeCall(0x411DF7, action_climb_ladder_hack); // bug caused by anim_move_to_tile_ fix
 
 	// Partial fix for incorrect positioning after exiting small/medium locations (e.g. Ghost Farm)
-	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "SmallLocExitFix", 1)) {
 		dlog("Applying fix for incorrect positioning after exiting small/medium locations.", DL_FIX);
 		MakeJump(0x4C5A41, wmTeleportToArea_hack);
 		dlogr(" Done", DL_FIX);
@@ -3830,7 +3830,7 @@ void BugFixes_Init()
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
 	// Fix to prevent using number keys to enter unvisited areas on a town map
-	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
+	if (IniReader::GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
 		dlog("Applying town map hotkeys patch.", DL_FIX);
 		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 		dlogr(" Done", DL_FIX);
@@ -3842,7 +3842,7 @@ void BugFixes_Init()
 
 	// Fix for the car being lost when entering a location via the Town/World button and then leaving on foot
 	// (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to the world map)
-	if (GetConfigInt("Misc", "CarPlacedTileFix", 1)) {
+	if (IniReader::GetConfigInt("Misc", "CarPlacedTileFix", 1)) {
 		dlog("Applying car placed tile fix.", DL_FIX);
 		MakeCall(0x4C2367,  wmInterfaceInit_hack);
 		dlogr(" Done", DL_FIX);
@@ -3860,7 +3860,7 @@ void BugFixes_Init()
 	HookCall(0x458B3D, op_critter_add_trait_hook);
 
 	// Fix to prevent corpses from blocking line of fire
-	//if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
 		dlog("Applying fix for corpses blocking line of fire.", DL_FIX);
 		MakeJump(0x48B994, obj_shoot_blocking_at_hack0);
 		MakeJump(0x48BA04, obj_shoot_blocking_at_hack1);
@@ -3962,7 +3962,7 @@ void BugFixes_Init()
 	HookCall(0x4B6C13, checkAllRegions_hook);
 
 	// Fix for the script attached to an object not being initialized properly upon object creation
-	createObjectSidStartFix = (GetConfigInt("Misc", "CreateObjectSidFix", 0) != 0);
+	createObjectSidStartFix = (IniReader::GetConfigInt("Misc", "CreateObjectSidFix", 0) != 0);
 	MakeCall(0x4551C0, op_create_object_sid_hack, 1);
 	// Fix the error handling in create_object_sid function to prevent a crash when the proto is missing
 	SafeWrite8(0x45507B, 0x51); // jz 0x4550CD

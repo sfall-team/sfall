@@ -3,12 +3,17 @@
 namespace sfall
 {
 
-void Interface_Init();
-void Interface_Exit();
-void Interface_OnGameLoad();
-void Interface_OnBeforeGameInit();
+class Interface {
+public:
+	static const char* name() { return "Interface"; }
+	static void init();
+	static void exit();
 
-long Interface_ActiveInterfaceWID();
-fo::Window* Interface_GetWindow(long winType);
+	static void OnGameLoad();
+	static void OnBeforeGameInit();
+
+	static long ActiveInterfaceWID();
+	static fo::Window* GetWindow(long winType);
+};
 
 }

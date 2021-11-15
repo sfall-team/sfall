@@ -40,7 +40,7 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
-void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
+void Inventory::KeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		fo::GameObject* item = fo::util::GetActiveItem();
 		if (!item) return;
@@ -613,24 +613,24 @@ inline static void ApplyInvenApCostPatch() {
 	onlyOnceAP = true;
 }
 
-void __fastcall SetInvenApCost(int cost) {
+void __fastcall Inventory::SetInvenApCost(int cost) {
 	invenApCost = cost;
 	if (!onlyOnceAP) ApplyInvenApCostPatch();
 }
 
-long __stdcall GetInvenApCost() {
+long __stdcall Inventory::GetInvenApCost() {
 	long perkLevel = fo::func::perk_level(*fo::ptr::obj_dude, fo::PERK_quick_pockets);
 	return invenApCost - (invenApQPReduction * perkLevel);
 }
 
-void InventoryReset() {
+void Inventory::Reset() {
 	invenApCost = invenApCostDef;
 }
 
-void Inventory_Init() {
+void Inventory::init() {
 	long widthWeight = 135;
 
-	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
+	sizeLimitMode = IniReader::GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
 		if (sizeLimitMode >= 4) {
 			sizeLimitMode -= 4;
@@ -639,7 +639,7 @@ void Inventory_Init() {
 			const DWORD itemTotalWtAddr[] = {0x477EF5, 0x477F11, 0x477F29};
 			SafeWriteBatch<BYTE>(0, itemTotalWtAddr);
 		}
-		invSizeMaxLimit = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
+		invSizeMaxLimit = IniReader::GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
 		// Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, item_add_mult_hack); // jle addr
@@ -685,26 +685,26 @@ void Inventory_Init() {
 	// Adjust the maximum text width of the unarmed attack display on the inventory screen
 	SafeWrite8(0x472576, 150);
 
-	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
-		Translate_Get("sfall", "SuperStimExploitMsg", "You cannot use this item on someone who is not injured!", superStimMsg);
+	if (IniReader::GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
+		Translate::Get("sfall", "SuperStimExploitMsg", "You cannot use this item on someone who is not injured!", superStimMsg);
 		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 
-	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
+	reloadWeaponKey = IniReader::GetConfigInt("Input", "ReloadWeaponKey", 0);
 
-	invenApCost = invenApCostDef = GetConfigInt("Misc", "InventoryApCost", 4);
-	invenApQPReduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
+	invenApCost = invenApCostDef = IniReader::GetConfigInt("Misc", "InventoryApCost", 4);
+	invenApQPReduction = IniReader::GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
 	if (invenApCostDef != 4 || invenApQPReduction != 2) {
 		ApplyInvenApCostPatch();
 	}
 
-	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
+	if (IniReader::GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeCall(0x4736C6, inven_action_cursor_hack);
 		HookCall(0x4772AA, item_add_mult_hook);
 	}
 
 	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
-	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", -1);
+	int ReloadReserve = IniReader::GetConfigInt("Misc", "ReloadReserve", -1);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
 		SafeWrite32(0x476563, 0x097EC139);        // cmp  ecx, eax; jle  0x476570
@@ -712,14 +712,14 @@ void Inventory_Init() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 
-	itemFastMoveKey = GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
+	itemFastMoveKey = IniReader::GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
 		// Do not call the 'Move Items' window when taking items from containers or corpses
-		skipFromContainer = GetConfigInt("Input", "FastMoveFromContainer", 0);
+		skipFromContainer = IniReader::GetConfigInt("Input", "FastMoveFromContainer", 0);
 	}
 
-	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
+	if (IniReader::GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
 		MakeCall(0x4768A3, do_move_timer_hack);
 	}
 

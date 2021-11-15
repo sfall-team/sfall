@@ -3,7 +3,11 @@
 namespace sfall
 {
 
-void Reputations_Init();
-void Reputations_Exit();
+class Reputations {
+public:
+	static const char* name() { return "Reputations"; }
+	static void init();
+	static void exit();
+};
 
 }

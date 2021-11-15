@@ -59,7 +59,7 @@ struct sFile {
 std::vector<fsFile> files;
 
 static DWORD loadedFiles = 0; // used for internal sfall data
-bool UsingFileSystem = false;
+bool FileSystem::UsingFileSystem = false;
 
 static long __stdcall xfclose(sFile* file) {
 	delete file->openFile;
@@ -414,7 +414,7 @@ end:
 	}
 }
 
-void FileSystemReset() {
+void FileSystem::Reset() {
 	if (files.empty()) return;
 	for (DWORD i = loadedFiles; i < files.size(); i++) {
 		if (files[i].data) delete[] files[i].data;
@@ -426,7 +426,7 @@ void FileSystemReset() {
 	}
 }
 
-void FileSystemSave(HANDLE h) {
+void FileSystem::Save(HANDLE h) {
 	DWORD count = 0, unused;
 	for (DWORD i = loadedFiles; i < files.size(); i++) {
 		if (files[i].isSave && files[i].data) count++;
@@ -707,12 +707,12 @@ void __stdcall FSresize(DWORD id, DWORD size) {
 	delete[] buf;
 }
 
-bool FileSystemIsEmpty() {
+bool FileSystem::IsEmpty() {
 	return (int)(files.size() - loadedFiles) <= 0;
 }
 
-void FileSystem_Init() {
-	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
+void FileSystem::init() {
+	if (IniReader::GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
 		UsingFileSystem = true;
 	}

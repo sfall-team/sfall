@@ -21,31 +21,49 @@
 namespace sfall
 {
 
-extern long PerkLevelMod;
-extern bool perkHeaveHoModTweak;
+class Perks {
+private:
+	static bool __stdcall IsTraitDisabled(int traitID);
 
-void Perks_Init();
-void PerksReset();
-void PerksSave(HANDLE file);
-bool PerksLoad(HANDLE file);
+public:
+	static const char* name() { return "Perks"; }
+	static void init();
+
+	static void Reset();
+
+	// Enable the modification of the stats/skills for traits by using the perks ini file
+	static int __stdcall TraitsModEnable();
+	static DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex);
+	static DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex);
+
+	static void Save(HANDLE file);
+	static bool Load(HANDLE file);
+
+	static void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
+	static void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
+	static void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
+
+	static DWORD __stdcall HasFakePerk(const char* name);
+	static DWORD __stdcall HasFakeTrait(const char* name);
+
+	static long PerkLevelMod;
+
+	static void __fastcall SetPerkValue(int id, int param, int value);
+	static void __fastcall SetPerkboxTitle(const char* name);
+	static void __stdcall SetPerkName(int id, const char* value);
+	static void __stdcall SetPerkDesc(int id, const char* value);
+
+	static __forceinline bool DudeHasTrait(DWORD traitID) {
+		return (!IsTraitDisabled(traitID) && (fo::ptr::pc_trait[0] == traitID || fo::ptr::pc_trait[1] == traitID));
+	}
+
+	static bool perkHeaveHoModTweak;
+	static void __stdcall ApplyHeaveHoFix();
+};
 
 void PerksEnterCharScreen();
 void PerksCancelCharScreen();
 void PerksAcceptCharScreen();
-
-void __stdcall ApplyHeaveHoFix();
-
-void __fastcall SetPerkValue(int id, int param, int value);
-void __fastcall SetPerkboxTitle(const char* name);
-void __stdcall SetPerkName(int id, const char* value);
-void __stdcall SetPerkDesc(int id, const char* value);
-
-void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
-void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
-void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
-
-DWORD __stdcall HasFakePerk(const char* name);
-DWORD __stdcall HasFakeTrait(const char* name);
 
 void __stdcall IgnoreDefaultPerks();
 void __stdcall RestoreDefaultPerks();
@@ -53,14 +71,5 @@ void __stdcall AddPerkMode(DWORD mode);
 void __stdcall ClearSelectablePerks();
 
 void __stdcall SetPerkFreq(int i);
-
-int __stdcall TraitsModEnable();
-bool __stdcall IsTraitDisabled(int traitID);
-DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex);
-DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex);
-
-__forceinline bool DudeHasTrait(DWORD traitID) {
-	return (!IsTraitDisabled(traitID) && (fo::ptr::pc_trait[0] == traitID || fo::ptr::pc_trait[1] == traitID));
-}
 
 }

@@ -21,7 +21,11 @@
 namespace sfall 
 {
 
-void Books_Init();
-void Books_Exit();
+class Books {
+public:
+	static const char* name() { return "Books"; }
+	static void init();
+	static void exit();
+};
 
 }

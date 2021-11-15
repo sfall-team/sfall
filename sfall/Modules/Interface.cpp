@@ -30,8 +30,8 @@
 namespace sfall
 {
 
-long Interface_ActiveInterfaceWID() {
-	return gameInterfaceWID;
+long Interface::ActiveInterfaceWID() {
+	return LoadGameHook::interfaceWID;
 }
 
 enum WinNameType {
@@ -52,7 +52,7 @@ enum WinNameType {
 	Barter    = 54
 };
 
-fo::Window* Interface_GetWindow(long winType) {
+fo::Window* Interface::GetWindow(long winType) {
 	long winID = 0;
 	switch (winType) {
 	case WinNameType::Inventory:
@@ -80,7 +80,7 @@ fo::Window* Interface_GetWindow(long winType) {
 		if (GetLoopFlags() & ESCMENU) winID = *fo::ptr::optnwin;
 		break;
 	case WinNameType::Automap:
-		if (GetLoopFlags() & AUTOMAP) winID = Interface_ActiveInterfaceWID();
+		if (GetLoopFlags() & AUTOMAP) winID = ActiveInterfaceWID();
 		break;
 	default:
 		return (fo::Window*)(-1); // unsupported type
@@ -275,7 +275,7 @@ static void __declspec(naked) DrawingDots() {
 
 static bool __stdcall PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 	long area = *fo::ptr::WorldMapCurrArea;
-	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap_GetCustomAreaTitle(area) : (char*)Worldmap_GetCurrentTerrainName();
+	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap::GetCustomAreaTitle(area) : (char*)Worldmap::GetCurrentTerrainName();
 	if (!text) return false;
 
 	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
@@ -333,7 +333,7 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 }
 
 static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
-	if (!showTerrainType && Worldmap_AreaTitlesIsEmpty()) return;
+	if (!showTerrainType && Worldmap::AreaTitlesIsEmpty()) return;
 
 	long deltaX = 20, deltaY = 20;
 
@@ -439,7 +439,7 @@ static void __declspec(naked) wmInterfaceInit_hook() {
 }
 
 static void WorldMapInterfacePatch() {
-	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
+	if (IniReader::GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
@@ -460,14 +460,14 @@ static void WorldMapInterfacePatch() {
 	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 
-	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
 		const DWORD scrollCityListAddr[] = {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D};
 		HookCalls(ScrollCityListFix, scrollCityListAddr);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
+	DWORD wmSlots = IniReader::GetConfigInt("Misc", "WorldMapSlots", 0);
 	if (wmSlots && wmSlots < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
@@ -479,14 +479,14 @@ static void WorldMapInterfacePatch() {
 	}
 
 	// Fallout 1 features, travel markers and displaying terrain types or town titles
-	if (GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
+	if (IniReader::GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
 		dlog("Applying world map travel markers patch.", DL_INIT);
 
-		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
+		int color = IniReader::GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
 		if (color > 228) color = 228; else if (color < 1) color = 1; // no palette animation colors
 		colorDot = color;
 
-		std::vector<std::string> dotList = GetConfigList("Interface", "TravelMarkerStyles", "", 512);
+		std::vector<std::string> dotList = IniReader::GetConfigList("Interface", "TravelMarkerStyles", "", 512);
 		if (!dotList.empty()) {
 			terrainCount = dotList.size();
 			dotStyle = new DotStyle[terrainCount];
@@ -511,7 +511,7 @@ static void WorldMapInterfacePatch() {
 		dots.reserve(512);
 		dlogr(" Done", DL_INIT);
 	}
-	showTerrainType = (GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0);
+	showTerrainType = (IniReader::GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0);
 	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
 	MakeCall(0x4BFE84, wmWorldMap_hack);
 
@@ -548,7 +548,7 @@ negative:
 }
 
 static void SpeedInterfaceCounterAnimsPatch() {
-	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
+	switch (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
 	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
 		MakeJump(0x460BA1, intface_rotate_numbers_hack);
@@ -651,7 +651,7 @@ static void InterfaceWindowPatch() {
 }
 
 static void InventoryCharacterRotationSpeedPatch() {
-	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
+	long setting = IniReader::GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
 		SafeWrite32(0x47066B, setting);
@@ -670,21 +670,21 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-void Interface_OnBeforeGameInit() {
+void Interface::OnBeforeGameInit() {
 	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 }
 
-void Interface_OnGameLoad() {
+void Interface::OnGameLoad() {
 	dots.clear();
 }
 
-void Interface_Init() {
+void Interface::init() {
 	InterfaceWindowPatch();
 	InventoryCharacterRotationSpeedPatch();
 	UIAnimationSpeedPatch();
 
-	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+	if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, windowRoundingAddr);
 	}
@@ -697,10 +697,9 @@ void Interface_Init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	// Interface_OnBeforeGameInit will be run before game initialization
 }
 
-void Interface_Exit() {
+void Interface::exit() {
 	if (dotStyle) delete[] dotStyle;
 }
 

@@ -21,12 +21,16 @@
 namespace sfall
 {
 
-void SpeedPatch_Init();
-void SpeedPatch_Exit();
+class SpeedPatch {
+public:
+	static const char* name() { return "SpeedPatch"; }
+	static void init();
+	static void exit();
 
-extern DWORD getTickCountOffs;
+	static DWORD getTickCountOffs;
 
-// sfall implementation of the GetTickCount() function
-DWORD SpeedPatch_getTickCount();
+	// sfall implementation of the GetTickCount() function
+	static DWORD getTickCount();
+};
 
 }

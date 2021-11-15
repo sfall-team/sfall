@@ -21,13 +21,18 @@
 namespace sfall
 {
 
-void Criticals_Init();
-void CritLoad();
+class Criticals {
+public:
+	static const char* name() { return "Criticals"; }
+	static void init();
 
-extern const DWORD CritTableCount;
+	static void CritLoad();
 
-void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
-DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
-void __stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+	static const DWORD critTableCount;
+
+	static void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
+	static DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+	static void __stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+};
 
 }

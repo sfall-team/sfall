@@ -55,9 +55,9 @@ static const DWORD offsets[] = {
 
 static DWORD getLocalTimeOffs;
 
-DWORD getTickCountOffs = (DWORD)&GetTickCount;
+DWORD SpeedPatch::getTickCountOffs = (DWORD)&GetTickCount;
 
-DWORD SpeedPatch_getTickCount() {
+DWORD SpeedPatch::getTickCount() {
 	return ((DWORD (__stdcall*)())getTickCountOffs)();
 }
 
@@ -185,17 +185,17 @@ void TimerInit() {
 	for (int i = 0; i < 10; i++) {
 		_itoa(i, buf, 10);
 		spKey[8] = spMulti[10] = buf[0];
-		speed[i].key = GetConfigInt("Input", spKey, 0);
-		speed[i].multiplier = GetConfigInt("Speed", spMulti, 0) / 100.0f;
+		speed[i].key = IniReader::GetConfigInt("Input", spKey, 0);
+		speed[i].multiplier = IniReader::GetConfigInt("Speed", spMulti, 0) / 100.0f;
 	}
 }
 
-void SpeedPatch_Init() {
-	int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
+void SpeedPatch::init() {
+	int init = IniReader::GetConfigInt("Speed", "SpeedMultiInitial", 100);
 
-	if (GetConfigInt("Speed", "Enable", 0)) {
-		modKey[0] = GetConfigInt("Input", "SpeedModKey", 0);
-		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
+	if (IniReader::GetConfigInt("Speed", "Enable", 0)) {
+		modKey[0] = IniReader::GetConfigInt("Input", "SpeedModKey", 0);
+		toggleKey = IniReader::GetConfigInt("Input", "SpeedToggleKey", 0);
 	}
 	if (init == 100 && !modKey[0]) return;
 
@@ -233,7 +233,7 @@ void SpeedPatch_Init() {
 	dlogr(" Done", DL_INIT);
 }
 
-void SpeedPatch_Exit() {
+void SpeedPatch::exit() {
 	if (speed) delete[] speed;
 }
 

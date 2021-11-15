@@ -21,9 +21,13 @@
 namespace sfall
 {
 
+class PlayerModel {
+public:
+	static const char* name() { return "PlayerModel"; }
+	static void init();
+};
+
 extern char defaultMaleModelName[65];
 extern char defaultFemaleModelName[65];
-
-void PlayerModel_Init();
 
 }

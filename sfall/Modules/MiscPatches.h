@@ -21,7 +21,11 @@
 namespace sfall
 {
 
-void MiscPatches_Init();
-void MiscPatches_Exit();
+class MiscPatches {
+public:
+	static const char* name() { return "MiscPatches"; }
+	static void init();
+	static void exit();
+};
 
 }

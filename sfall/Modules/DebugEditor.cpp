@@ -61,7 +61,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	if (GraphicsMode != 0) fo::func::process_bk();
+	if (Graphics::mode != 0) fo::func::process_bk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
@@ -427,7 +427,7 @@ static const DWORD addrNewLineChar[] = {
 };
 
 static void DebugModePatch() {
-	int dbgMode = GetIntDefaultConfig("Debugging", "DebugMode", 0);
+	int dbgMode = IniReader::GetIntDefaultConfig("Debugging", "DebugMode", 0);
 	if (dbgMode > 0) {
 		dlog("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -450,7 +450,7 @@ static void DebugModePatch() {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
 
-		if (GetIntDefaultConfig("Debugging", "HideObjIsNullMsg", 0)) {
+		if (IniReader::GetIntDefaultConfig("Debugging", "HideObjIsNullMsg", 0)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
 
@@ -490,7 +490,7 @@ static void DebugModePatch() {
 }
 
 static void DontDeleteProtosPatch() {
-	if (GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, CodeType::JumpShort);
 		dlogr(" Done", DL_INIT);
@@ -518,7 +518,7 @@ void CheckTimerResolution() {
 }
 */
 
-void DebugEditor_Init() {
+void DebugEditor::init() {
 	DebugModePatch();
 
 	// Notifies and prints a debug message about a corrupted proto file to debug.log
@@ -535,10 +535,10 @@ void DebugEditor_Init() {
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
 
-	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
+	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
 }
 
-void DebugEditorKeyPressedHook(DWORD scanCode, bool pressed) {
+void DebugEditor::KeyPressedHook(DWORD scanCode, bool pressed) {
 	if (debugEditorKey != 0 && scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 		RunDebugEditor();
 	}

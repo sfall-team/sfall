@@ -29,7 +29,7 @@ static void __stdcall Draw(fo::Window* win, BYTE* surface, long width, long heig
 	}
 
 	if (!win->randY) return;
-	surface = &sf::WinRender_GetOverlaySurface(win)[rect.left - win->rect.x] + ((rect.top - win->rect.y) * win->width);
+	surface = &sf::WindowRender::GetOverlaySurface(win)[rect.left - win->rect.x] + ((rect.top - win->rect.y) * win->width);
 
 	if (toBuffer) {
 		fo::func::trans_buf_to_buf(surface, width, height, widthFrom, &toBuffer[rect.left - updateRect->left] + ((rect.top - updateRect->top) * toWidth), toWidth);
@@ -58,7 +58,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 			}*/
 			int h = (updateRect->bottom - updateRect->top) + 1;
 
-			sf::UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
+			sf::Graphics::UpdateDDSurface(GetBuffer(), w, h, w, updateRect); // update the entire rectangle area
 
 		} else {
 			fo::func::mouse_show(); // for updating background cursor area
@@ -81,7 +81,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 				int wRect = (rects->wRect.right - rects->wRect.left) + 1;
 				int hRect = (rects->wRect.bottom - rects->wRect.top) + 1;
 
-				sf::UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
+				sf::Graphics::UpdateDDSurface(&GetBuffer()[rects->wRect.left - updateRect->left] + (rects->wRect.top - updateRect->top) * w, wRect, hRect, w, &rects->wRect);
 
 				fo::RectList* free = rects;
 				rects = rects->nextRect;
@@ -117,7 +117,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 	}
 
 	int widthFrom = win->width;
-	int toWidth = (toBuffer) ? (updateRect->right - updateRect->left) + 1 : sf::Gfx_GetGameWidthRes();
+	int toWidth = (toBuffer) ? (updateRect->right - updateRect->left) + 1 : sf::Graphics::GetGameWidthRes();
 
 	fo::func::win_clip(win, &rects, toBuffer);
 
@@ -153,7 +153,7 @@ void __fastcall Render::GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE*
 			int height = (rects->rect.offy - rects->rect.y) + 1;
 			int widthFrom = toWidth;
 
-			sf::UpdateDDSurface(&GetBuffer()[rects->rect.x] + (rects->rect.y * widthFrom), width, height, widthFrom, &rects->wRect);
+			sf::Graphics::UpdateDDSurface(&GetBuffer()[rects->rect.x] + (rects->rect.y * widthFrom), width, height, widthFrom, &rects->wRect);
 		}
 		fo::RectList* next = rects->nextRect;
 		fo::util::rect_free(rects);

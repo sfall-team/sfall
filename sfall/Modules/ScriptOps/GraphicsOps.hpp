@@ -27,7 +27,7 @@ namespace sfall
 
 static void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
-		cmp  GraphicsMode, 3;
+		cmp  Graphics::mode, 3;
 		seta dl;
 		and  edx, 0xFF;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -399,7 +399,7 @@ end:
 static void __declspec(naked) op_get_shader_version() {
 	__asm {
 		mov  esi, ecx;
-		call Gfx_GetShaderVersion;
+		call Graphics::GetShaderVersion;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
@@ -448,7 +448,7 @@ static void __declspec(naked) op_force_graphics_refresh() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call Gfx_ForceGraphicsRefresh;
+		call Graphics::ForceGraphicsRefresh;
 end:
 		mov  ecx, esi;
 		retn;

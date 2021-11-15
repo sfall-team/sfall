@@ -3,6 +3,10 @@
 namespace sfall
 {
 
-void Input_Init();
+class Input {
+public:
+	static const char* name() { return "InputPatch"; }
+	static void init();
+};
 
 }

@@ -32,11 +32,11 @@ static BYTE* SaveLoadSurface = nullptr;
 
 static const char* filename = "%s\\savegame\\slotdat.ini";
 
-long ExtraSaveSlots_GetSaveSlot() {
+long ExtraSaveSlots::GetSaveSlot() {
 	return LSPageOffset + *fo::ptr::slot_cursor;
 }
 
-void ExtraSaveSlots_SetSaveSlot(long page, long slot) {
+void ExtraSaveSlots::SetSaveSlot(long page, long slot) {
 	if (page >= 0 && page <= 9990) LSPageOffset = page - (page % 10);
 	if (slot >= 0 && slot < 10) *fo::ptr::slot_cursor = slot;
 }
@@ -62,11 +62,11 @@ static void LoadPageOffsets() {
 
 	sprintf_s(LoadPath, MAX_PATH, filename, *fo::ptr::patches);
 
-	*fo::ptr::slot_cursor = IniGetInt("POSITION", "ListNum", 0, LoadPath);
+	*fo::ptr::slot_cursor = IniReader::GetInt("POSITION", "ListNum", 0, LoadPath);
 	if (*fo::ptr::slot_cursor > 9) {
 		*fo::ptr::slot_cursor = 0;
 	}
-	LSPageOffset = IniGetInt("POSITION", "PageOffset", 0, LoadPath);
+	LSPageOffset = IniReader::GetInt("POSITION", "PageOffset", 0, LoadPath);
 	if (LSPageOffset > 9990) {
 		LSPageOffset = 0;
 	}
@@ -515,15 +515,15 @@ skip:	// if AutoQuickSavePage is disabled (set to less than 0)
 	}
 }
 
-long ExtraSaveSlots_GetQuickSavePage() {
+long ExtraSaveSlots::GetQuickSavePage() {
 	return quickSavePage;
 }
 
-long ExtraSaveSlots_GetQuickSaveSlot() {
+long ExtraSaveSlots::GetQuickSaveSlot() {
 	return quickSaveSlot;
 }
 
-void ExtraSaveSlots_SetQuickSaveSlot(long page, long slot, long check) {
+void ExtraSaveSlots::SetQuickSaveSlot(long page, long slot, long check) {
 	if (page < 0) {
 		quickSavePage = -1;
 	} else if (page <= 9990) {
@@ -533,20 +533,20 @@ void ExtraSaveSlots_SetQuickSaveSlot(long page, long slot, long check) {
 	dontCheckSlot = check;
 }
 
-void ExtraSaveSlots_Init() {
-	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
+void ExtraSaveSlots::init() {
+	bool extraSaveSlots = (IniReader::GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
 		dlog("Applying extra save slots patch.", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}
 
-	quickSavePageCount = GetConfigInt("Misc", "AutoQuickSave", 0);
+	quickSavePageCount = IniReader::GetConfigInt("Misc", "AutoQuickSave", 0);
 	if (quickSavePageCount > 0) {
 		dlog("Applying auto quick save patch.", DL_INIT);
 		if (quickSavePageCount > 10) quickSavePageCount = 10;
 
-		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 1);
+		quickSavePage = IniReader::GetConfigInt("Misc", "AutoQuickSavePage", 1);
 		if (quickSavePage > 999) quickSavePage = 999;
 
 		if (extraSaveSlots && quickSavePage >= 0) {
@@ -559,7 +559,7 @@ void ExtraSaveSlots_Init() {
 	}
 }
 
-void ExtraSaveSlots_Exit() {
+void ExtraSaveSlots::exit() {
 	if (SaveLoadSurface) delete[] SaveLoadSurface;
 }
 

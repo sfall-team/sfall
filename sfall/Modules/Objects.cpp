@@ -28,10 +28,10 @@ namespace sfall
 static int unjamTimeState;
 static int maxCountLoadProto = 512;
 
-long Objects_uniqueID = UID_START; // current counter id, saving to sfallgv.sav
+long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
-bool Objects_IsUniqueID(long id) {
-	return (id > UID_START || (id >= fo::PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
+bool Objects::IsUniqueID(long id) {
+	return (id > UniqueID::Start || (id >= fo::PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
 }
 
 static void SetScriptObjectID(fo::GameObject* obj) {
@@ -44,30 +44,30 @@ static void SetScriptObjectID(fo::GameObject* obj) {
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
-long __fastcall Objects_SetObjectUniqueID(fo::GameObject* obj) {
+long __fastcall Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (Objects_IsUniqueID(id)) return id;
+	if (IsUniqueID(id)) return id;
 
-	if ((DWORD)Objects_uniqueID >= (DWORD)UID_END) Objects_uniqueID = UID_START;
-	obj->id = ++Objects_uniqueID;
+	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
+	obj->id = ++uniqueID;
 	SetScriptObjectID(obj);
-	return Objects_uniqueID;
+	return uniqueID;
 }
 
 // Assigns a unique ID in the negative range (0xFFFFFFF6 - 0x8FFFFFF7)
-long __fastcall Objects_SetSpecialID(fo::GameObject* obj) {
+long __fastcall Objects::SetSpecialID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (id <= -10 || id > UID_START) return id;
+	if (id <= -10 || id > UniqueID::Start) return id;
 
-	if ((DWORD)Objects_uniqueID >= (DWORD)UID_END) Objects_uniqueID = UID_START;
-	id = -9 - (++Objects_uniqueID - UID_START);
+	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
+	id = -9 - (++uniqueID - UniqueID::Start);
 	obj->id = id;
 	SetScriptObjectID(obj);
 	return id;
 }
 
-void Objects_SetNewEngineID(fo::GameObject* obj) {
-	if (obj->id > UID_START) return;
+void Objects::SetNewEngineID(fo::GameObject* obj) {
+	if (obj->id > UniqueID::Start) return;
 	obj->id = fo::func::new_obj_id();
 	SetScriptObjectID(obj);
 }
@@ -76,7 +76,7 @@ static void __declspec(naked) item_identical_hack() {
 	using namespace fo::Fields;
 	__asm {
 		mov  ecx, [edi]; // item id
-		cmp  ecx, UID_START; // start unique ID
+		cmp  ecx, Start; // start unique ID
 		jg   notIdentical;
 		mov  eax, [esi + scriptId];
 		cmp  eax, ebx;
@@ -108,7 +108,7 @@ static void map_fix_critter_id() {
 				obj->id = npcStartID++;
 				SetScriptObjectID(obj);
 			}
-			Stats_UpdateHPStat(obj);
+			Stats::UpdateHPStat(obj);
 		}
 		obj = fo::func::obj_find_next();
 	}
@@ -142,7 +142,7 @@ fix:
 		push ecx;
 		push edx;
 		mov  ecx, edi;
-		call Objects_SetSpecialID;
+		call Objects::SetSpecialID;
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -154,7 +154,7 @@ notItem:
 		push ecx;
 		push edx;
 		mov  ecx, edi;
-		call Objects_SetObjectUniqueID;
+		call Objects::SetObjectUniqueID;
 		pop  edx;
 		pop  ecx;
 end:
@@ -163,7 +163,7 @@ end:
 	}
 }
 
-void __stdcall Objects_SetAutoUnjamLockTime(DWORD time) {
+void __stdcall Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
 	if (time > 0) {
@@ -204,7 +204,7 @@ end:
 	}
 }
 
-void __stdcall Objects_LoadProtoAutoMaxLimit() {
+void __stdcall Objects::LoadProtoAutoMaxLimit() {
 	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 
@@ -243,12 +243,12 @@ skip:
 	}
 }
 
-void Objects_OnGameLoad() {
+void Objects::OnGameLoad() {
 	RestoreObjUnjamAllLocks();
 	//*fo::ptr::cur_id = 4;
 }
 
-void Objects_Init() {
+void Objects::init() {
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, CodeType::Nop); // fix ID increment
 

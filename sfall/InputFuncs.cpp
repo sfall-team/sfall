@@ -194,7 +194,7 @@ public:
 
 	// Only called for the mouse
 	HRESULT __stdcall GetDeviceState(DWORD a, LPVOID b) {
-		Gfx_RefreshGraphics();
+		Graphics::RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
 		}
@@ -301,8 +301,8 @@ public:
 					keysDown[buf[i].dwOfs] = state;
 				}
 				// OnKeyPressed
-				InventoryKeyPressedHook(buf[i].dwOfs, (state > 0));
-				DebugEditorKeyPressedHook(buf[i].dwOfs, (state > 0));
+				Inventory::KeyPressedHook(buf[i].dwOfs, (state > 0));
+				DebugEditor::KeyPressedHook(buf[i].dwOfs, (state > 0));
 			}
 			return hr;
 		}
@@ -428,20 +428,20 @@ public:
 };
 
 inline void InitInputFeatures() {
-	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
-	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
-	wheelMod = GetConfigInt("Input", "ScrollMod", 0);
+	reverseMouse = IniReader::GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
+	useScrollWheel = IniReader::GetConfigInt("Input", "UseScrollWheel", 1) != 0;
+	wheelMod = IniReader::GetConfigInt("Input", "ScrollMod", 0);
 
-	long MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
+	long MouseSpeed = IniReader::GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
 		adjustMouseSpeed = true;
 		mouseSpeedMod = ((double)MouseSpeed) / 100.0;
 	}
 
-	middleMouseKey = GetConfigInt("Input", "MiddleMouse", DIK_B);
+	middleMouseKey = IniReader::GetConfigInt("Input", "MiddleMouse", DIK_B);
 
-	backgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
-	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
+	backgroundKeyboard = IniReader::GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
+	backgroundMouse = IniReader::GetConfigInt("Input", "BackgroundMouse", 0) != 0;
 
 	keyboardLayout = GetKeyboardLayout(0);
 }

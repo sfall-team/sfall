@@ -181,10 +181,10 @@ static DWORD __stdcall GetIniSetting(const char* str, DWORD isString) {
 	}
 	if (isString) {
 		gTextBuffer[0] = 0;
-		IniGetString(section, key, "", gTextBuffer, 256, file);
+		IniReader::GetString(section, key, "", gTextBuffer, 256, file);
 		return (DWORD)&gTextBuffer[0];
 	} else {
-		return IniGetInt(section, key, -1, file);
+		return IniReader::GetInt(section, key, -1, file);
 	}
 }
 
@@ -314,10 +314,10 @@ static void __stdcall op_set_critical_table2() {
 		      slot = slotArg.rawValue(),
 		      element = elementArg.rawValue();
 
-		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "set_critical_table");
 		} else {
-			SetCriticalTable(critter, bodypart, slot, element, valueArg.rawValue());
+			Criticals::SetCriticalTable(critter, bodypart, slot, element, valueArg.rawValue());
 		}
 	} else {
 		OpcodeInvalidArgs("set_critical_table");
@@ -340,10 +340,10 @@ static void __stdcall op_get_critical_table2() {
 		      slot = slotArg.rawValue(),
 		      element = elementArg.rawValue();
 
-		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "get_critical_table");
 		} else {
-			opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element));
+			opHandler.setReturn(Criticals::GetCriticalTable(critter, bodypart, slot, element));
 		}
 	} else {
 		OpcodeInvalidArgs("get_critical_table");
@@ -367,10 +367,10 @@ static void __stdcall op_reset_critical_table2() {
 		      slot = slotArg.rawValue(),
 		      element = elementArg.rawValue();
 
-		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "reset_critical_table");
 		} else {
-			ResetCriticalTable(critter, bodypart, slot, element);
+			Criticals::ResetCriticalTable(critter, bodypart, slot, element);
 		}
 	} else {
 		OpcodeInvalidArgs("reset_critical_table");
@@ -474,7 +474,7 @@ static void __stdcall op_play_sfall_sound2() {
 	if (fileArg.isString() && modeArg.isInt()) {
 		DWORD soundID = 0;
 		long mode = modeArg.rawValue();
-		if (mode >= 0) soundID = PlaySfallSound(fileArg.strValue(), mode);
+		if (mode >= 0) soundID = Sound::PlaySfallSound(fileArg.strValue(), mode);
 		opHandler.setReturn(soundID);
 	} else {
 		OpcodeInvalidArgs("play_sfall_sound");
@@ -491,7 +491,7 @@ static void __declspec(naked) op_stop_sfall_sound() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call StopSfallSound;
+		call Sound::StopSfallSound;
 end:
 		mov  ecx, esi;
 		retn;
@@ -527,7 +527,7 @@ fail:
 
 static void __declspec(naked) op_modified_ini() {
 	__asm {
-		mov  edx, modifiedIni;
+		mov  edx, IniReader::modifiedIni;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -679,7 +679,7 @@ static void mf_get_ini_section() {
 }
 
 static void mf_set_quest_failure_value() {
-	QuestList_AddQuestFailureValue(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
+	QuestList::AddQuestFailureValue(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
 }
 
 static void mf_set_scr_name() {

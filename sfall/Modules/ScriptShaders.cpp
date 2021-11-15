@@ -56,7 +56,7 @@ static std::vector<GlobalShader> gShaderFiles;
 static std::vector<sShader> shaders;
 static std::vector<IDirect3DTexture9*> shaderTextures;
 
-size_t ScriptShaders_Count() {
+size_t ScriptShaders::Count() {
 	return shadersSize;
 }
 
@@ -70,7 +70,7 @@ void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int __stdcall LoadShader(const char* file) {
-	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
+	if (!Graphics::mode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
 	sprintf_s(buf, "%s\\shaders\\%s", (*fo::ptr::master_db_handle)->path, file); // *fo::ptr::patches
 	for (DWORD d = 0; d < shadersSize; d++) {
@@ -85,7 +85,7 @@ int __stdcall LoadShader(const char* file) {
 	sShader shader = sShader();
 	if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shader.Effect, 0))) return -1;
 
-	shader.Effect->SetFloatArray("rcpres", Gfx_rcpresGet(), 2);
+	shader.Effect->SetFloatArray("rcpres", Graphics::rcpresGet(), 2);
 
 	for (int i = 1; i < 128; i++) {
 		const char* name;
@@ -107,14 +107,14 @@ int __stdcall LoadShader(const char* file) {
 	return shadersSize - 1;
 }
 
-void ScriptShaders_LoadGlobalShader() {
+void ScriptShaders::LoadGlobalShader() {
 	if (!globalShadersActive) return;
 	for (std::vector<GlobalShader>::iterator it = gShaderFiles.begin(); it != gShaderFiles.end(); ++it) {
 		if (it->badShader) continue;
 		long index = LoadShader(it->gShaderFile.c_str());
 		if (index != -1) {
-			shaders[index].Effect->SetInt("w", Gfx_GetGameWidthRes());
-			shaders[index].Effect->SetInt("h", Gfx_GetGameHeightRes());
+			shaders[index].Effect->SetInt("w", Graphics::GetGameWidthRes());
+			shaders[index].Effect->SetInt("h", Graphics::GetGameHeightRes());
 			shaders[index].Active = true;
 			dlog_f("Global shader file %s is loaded.\n", DL_INIT, it->gShaderFile.c_str());
 		} else {
@@ -171,14 +171,14 @@ void __stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
 	shaders[d].Effect->SetTexture(param, shaderTextures[value]);
 }
 
-void ResetShaders() {
+static void ResetShaders() {
 	for (DWORD d = 0; d < shadersSize; d++) SAFERELEASE(shaders[d].Effect);
 	shaders.clear();
 	shadersSize = 0;
-	ScriptShaders_LoadGlobalShader();
+	ScriptShaders::LoadGlobalShader();
 }
 
-void ScriptShaders_Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2, IDirect3DTexture9* sTex2) {
+void ScriptShaders::Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2, IDirect3DTexture9* sTex2) {
 	for (int i = shadersSize - 1; i >= 0; i--) {
 		if (!shaders[i].Effect || !shaders[i].Active) continue;
 		if (shaders[i].mode2 && !(shaders[i].mode2 & GetLoopFlags())) continue;
@@ -201,28 +201,32 @@ void ScriptShaders_Refresh(IDirect3DSurface9* sSurf1, IDirect3DSurface9* sSurf2,
 	}
 }
 
-void ScriptShaders_OnResetDevice() {
+void ScriptShaders::OnResetDevice() {
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (shaders[d].Effect) shaders[d].Effect->OnResetDevice();
 	}
 }
 
-void ScriptShaders_OnLostDevice() {
+void ScriptShaders::OnLostDevice() {
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (shaders[d].Effect) shaders[d].Effect->OnLostDevice();
 	}
 }
 
-void ScriptShaders_Release() {
+void ScriptShaders::Release() {
 	globalShadersActive = false;
 	ResetShaders();
 	for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
 	shaderTextures.clear();
 }
 
-void ScriptShaders_Init() {
-	if (GraphicsMode) {
-		for each (const std::string& shaderFile in GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
+void ScriptShaders::OnGameLoad() {
+	ResetShaders();
+}
+
+void ScriptShaders::init() {
+	if (Graphics::mode) {
+		for each (const std::string& shaderFile in IniReader::GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
 			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
 		}
 		globalShadersActive = !gShaderFiles.empty();

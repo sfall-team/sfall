@@ -21,12 +21,18 @@
 namespace sfall
 {
 
-extern bool UsingFileSystem;
+class FileSystem {
+public:
+	static const char* name() { return "FileSystem"; }
+	static void init();
 
-void FileSystem_Init();
-void FileSystemReset();
-void FileSystemSave(HANDLE h);
-bool FileSystemIsEmpty();
+	static void Reset();
+
+	static bool UsingFileSystem;
+	// save FileSystem data to a save game file
+	static void Save(HANDLE h);
+	static bool IsEmpty();
+};
 
 DWORD __stdcall FScreate(const char* path, int size);
 DWORD __stdcall FScreateFromData(const char* path, void* data, int size);

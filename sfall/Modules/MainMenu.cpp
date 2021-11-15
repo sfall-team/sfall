@@ -64,19 +64,19 @@ static void __fastcall main_menu_create_hook_print_text(long xPos, const char* t
 	fo::func::win_print(winId, VerString1, sWidth, xPos + fWidth - sWidth, yPos, color); // sfall print
 }
 
-void MainMenu_Init() {
+void MainMenu::init() {
 	int offset;
-	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
+	if (offset = IniReader::GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
 		SafeWrite32(0x481753, 15 + offset);
 	}
-	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
+	if (offset = IniReader::GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
-	if (offset = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
+	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
 		SafeWrite32(0x48187C, 30 + offset); // button
 		MainMenuTextOffset = offset;
 	}
-	if (offset = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
+	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
 		MainMenuYOffset = offset;
 		MainMenuTextOffset += offset * 640;
 		MakeJump(0x481844, MainMenuHookButtonYOffset);
@@ -87,14 +87,14 @@ void MainMenu_Init() {
 
 	HookCall(0x4817AB, main_menu_create_hook_print_text);
 
-	OverrideColour = GetConfigInt("Misc", "MainMenuFontColour", 0);
+	OverrideColour = IniReader::GetConfigInt("Misc", "MainMenuFontColour", 0);
 	if (OverrideColour & 0xFF) {
 		OverrideColour &= 0x00FF00FF;
 		OverrideColour |= 0x06000000;
 		unsigned char flags = static_cast<unsigned char>((OverrideColour & 0xFF0000) >> 16);
 		if (!(flags & 1)) SafeWrite32(0x481748, (DWORD)&OverrideColour);
 	}
-	OverrideColour2 = GetConfigInt("Misc", "MainMenuBigFontColour", 0) & 0xFF;
+	OverrideColour2 = IniReader::GetConfigInt("Misc", "MainMenuBigFontColour", 0) & 0xFF;
 	if (OverrideColour2) SafeWrite32(0x481906, (DWORD)&OverrideColour2);
 }
 

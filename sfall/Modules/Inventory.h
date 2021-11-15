@@ -21,11 +21,16 @@
 namespace sfall
 {
 
-void Inventory_Init();
-void InventoryReset();
-void InventoryKeyPressedHook(DWORD dxKey, bool pressed);
+class Inventory {
+public:
+	static const char* name() { return "Inventory"; }
+	static void init();
 
-long __stdcall GetInvenApCost();
-void __fastcall SetInvenApCost(int cost);
+	static void Reset();
+	static void KeyPressedHook(DWORD dxKey, bool pressed);
+
+	static long __stdcall GetInvenApCost();
+	static void __fastcall SetInvenApCost(int cost);
+};
 
 }

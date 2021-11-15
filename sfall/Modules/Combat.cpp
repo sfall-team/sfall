@@ -67,7 +67,7 @@ struct KnockbackModifier {
 	double value;
 };
 
-long determineHitChance; // the value of hit chance w/o any cap
+long Combat::determineHitChance; // the value of hit chance w/o any cap
 
 static std::vector<long> noBursts; // critter id
 
@@ -89,7 +89,7 @@ static bool checkWeaponAmmoCost;
 static bool combatDisabled;
 
 static void __stdcall CombatBlocked() {
-	fo::func::display_print(Translate_CombatBlockMessage());
+	fo::func::display_print(Translate::CombatBlockMessage());
 }
 
 static void __declspec(naked) intface_use_item_hook() {
@@ -179,7 +179,7 @@ void __stdcall SetBlockCombat(long toggle) {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Compares the cost (required count of rounds) for one shot with the current amount of ammo to make an attack or other checks
-long __fastcall Combat_check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
+long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
 	long currAmmo = fo::func::item_w_curr_ammo(weapon);
 	if (!checkWeaponAmmoCost || currAmmo <= 0) return currAmmo;
 
@@ -205,7 +205,7 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 		push edx;
 		push ecx;      // weapon
 		mov  edx, edi; // hitMode
-		call Combat_check_item_ammo_cost;
+		call Combat::check_item_ammo_cost;
 		pop  ecx;
 		pop  edx;
 		retn;
@@ -219,7 +219,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		push ecx;
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY; // hitMode
 		mov  ecx, eax;                     // weapon
-		call Combat_check_item_ammo_cost;  // enough ammo?
+		call Combat::check_item_ammo_cost; // enough ammo?
 		pop  ecx;
 		retn;
 	}
@@ -332,7 +332,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 }
 
 static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
-	determineHitChance = base;
+	Combat::determineHitChance = base;
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (critter->id == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
@@ -351,7 +351,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 	}
 }
 
-bool __stdcall Combat_IsBurstDisabled(fo::GameObject* critter) {
+bool __stdcall Combat::IsBurstDisabled(fo::GameObject* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
 		if (noBursts[i] == critter->id) return true;
 	}
@@ -359,7 +359,7 @@ bool __stdcall Combat_IsBurstDisabled(fo::GameObject* critter) {
 }
 
 static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject* weapon, fo::AIcap* cap) {
-	if (Combat_IsBurstDisabled(critter)) {
+	if (Combat::IsBurstDisabled(critter)) {
 		long anim = fo::func::item_w_anim_weap(weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY);
 		if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
@@ -412,8 +412,8 @@ void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DW
 	}
 
 	long id = (mode == 0)
-	        ? Objects_SetSpecialID(object)
-	        : Objects_SetObjectUniqueID(object);
+	        ? Objects::SetSpecialID(object)
+	        : Objects::SetObjectUniqueID(object);
 
 	KnockbackModifier mod = { id, type, (double)val };
 	for (size_t i = 0; i < mods->size(); i++) {
@@ -443,7 +443,7 @@ void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode) {
 	for (size_t i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
-			if (mode == 0) Objects_SetNewEngineID(object); // revert to engine range id
+			if (mode == 0) Objects::SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -456,7 +456,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 		return;
 	}
 	if (critter->IsNotCritter()) return;
-	long id = Objects_SetObjectUniqueID(critter);
+	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
 			hitChanceMods[i].maximum = maximum;
@@ -474,7 +474,7 @@ void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
 	if (critter->protoId == fo::PID_Player || critter->IsNotCritter()) return;
 
-	long id = Objects_SetObjectUniqueID(critter);
+	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
 		if (noBursts[i] == id) {
 			if (!on) noBursts.erase(noBursts.begin() + i); // off
@@ -544,7 +544,7 @@ void __stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
-void BodypartHitChances() {
+static void BodypartHitChances() {
 	using fo::ptr::hit_location_penalty;
 	hit_location_penalty[0] = bodyPartHit.Head;
 	hit_location_penalty[1] = bodyPartHit.Left_Arm;
@@ -558,15 +558,15 @@ void BodypartHitChances() {
 }
 
 static void BodypartHitReadConfig() {
-	bodyPartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head",          -40));
-	bodyPartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm",      -30));
-	bodyPartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm",     -30));
-	bodyPartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso",           0));
-	bodyPartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg",     -20));
-	bodyPartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg",      -20));
-	bodyPartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes",          -60));
-	bodyPartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin",         -30));
-	bodyPartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
+	bodyPartHit.Head      = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Head",          -40));
+	bodyPartHit.Left_Arm  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Left_Arm",      -30));
+	bodyPartHit.Right_Arm = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Right_Arm",     -30));
+	bodyPartHit.Torso     = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso",           0));
+	bodyPartHit.Right_Leg = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Right_Leg",     -20));
+	bodyPartHit.Left_Leg  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Left_Leg",      -20));
+	bodyPartHit.Eyes      = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Eyes",          -60));
+	bodyPartHit.Groin     = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Groin",         -30));
+	bodyPartHit.Uncalled  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
 }
 
 static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
@@ -642,7 +642,11 @@ static void CombatProcPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void Combat_OnGameLoad() {
+void Combat::OnBeforeGameStart() {
+	BodypartHitChances(); // set on start & load
+}
+
+void Combat::OnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
@@ -653,7 +657,7 @@ void Combat_OnGameLoad() {
 	forcedAS.clear();
 }
 
-void Combat_Init() {
+void Combat::init() {
 	HookCall(0x45F626, intface_use_item_hook); // jnz hook
 	HookCall(0x4432A6, game_handle_input_hook);
 
@@ -679,7 +683,7 @@ void Combat_Init() {
 	// Disables secondary burst attacks for the critter
 	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
 
-	checkWeaponAmmoCost = (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0) != 0);
+	checkWeaponAmmoCost = (IniReader::GetConfigInt("Misc", "CheckWeaponAmmoCost", 0) != 0);
 	if (checkWeaponAmmoCost) {
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x4266E9, combat_check_bad_shot_hook);

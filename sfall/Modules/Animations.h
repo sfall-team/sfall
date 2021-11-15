@@ -21,8 +21,13 @@
 namespace sfall 
 {
 
-void Animations_Init();
-//void Animations_Exit();
-void ClearAllLockAnimSets();
+class Animations {
+public:
+	static const char* name() { return "Animations"; }
+	static void init();
+	//static void exit();
+
+	static void OnGameLoad();
+};
 
 }

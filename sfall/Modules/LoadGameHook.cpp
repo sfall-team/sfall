@@ -77,11 +77,11 @@ static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
 static bool onLoadingMap = false;
 
-char gameMapLoadingName[16]; // current loading/loaded map name
+char LoadGameHook::mapLoadingName[16]; // current loading/loaded map name
 
-long gameInterfaceWID = -1;
+long LoadGameHook::interfaceWID = -1;
 
-bool IsMapLoading() {
+bool LoadGameHook::IsMapLoading() {
 	return onLoadingMap;
 }
 
@@ -129,10 +129,10 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 }
 
 static void __stdcall RunOnBeforeGameStart() {
-	CritLoad();
+	Criticals::CritLoad();
 	ReadExtraGameMsgFiles();
 	if (pipBoyAvailableAtGameStart) fo::ptr::gmovie_played_list[3] = true; // PipBoy aquiring video
-	BodypartHitChances(); // set on start & load
+	Combat::OnBeforeGameStart();
 	LoadGlobalScripts(); // loading sfall scripts
 }
 
@@ -143,7 +143,7 @@ static void __stdcall RunOnAfterGameStarted() {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *fo::ptr::patches, ExtraSaveSlots_GetSaveSlot() + 1, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *fo::ptr::patches, ExtraSaveSlots::GetSaveSlot() + 1, ftype); //add SuperSave Page offset
 }
 
 static void __stdcall SaveGame2() {
@@ -156,22 +156,22 @@ static void __stdcall SaveGame2() {
 	HANDLE h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		SaveGlobals(h);
-		WriteFile(h, &Objects_uniqueID, 4, &size, 0); // save unique id counter
-		data = Worldmap_GetAddedYears(false) << 16; // save to high bytes (short)
+		WriteFile(h, &Objects::uniqueID, 4, &size, 0); // save unique id counter
+		data = Worldmap::GetAddedYears(false) << 16; // save to high bytes (short)
 		WriteFile(h, &data, 4, &size, 0);
-		PerksSave(h);
+		Perks::Save(h);
 		SaveArrays(h);
-		BugFixes_DrugsSaveFix(h);
+		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
 	}
 
-	if (FileSystemIsEmpty()) return;
+	if (FileSystem::IsEmpty()) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		FileSystemSave(h);
+		FileSystem::Save(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -181,21 +181,21 @@ static void __stdcall SaveGame2() {
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
-	fo::func::display_print(Translate_SfallSaveDataFailure());
+	fo::func::display_print(Translate::SfallSaveDataFailure());
 	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
 
 static DWORD __stdcall CombatSaveTest() {
-	if (!saveInCombatFix && !PartyControl_IsNpcControlled()) return 1;
+	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
-		if (saveInCombatFix == 2 || PartyControl_IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			fo::func::display_print(Translate_CombatSaveBlockMessage());
+		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
+			fo::func::display_print(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 		int ap = fo::func::stat_level(*fo::ptr::obj_dude, fo::STAT_max_move_points);
 		int bonusmove = fo::func::perk_level(*fo::ptr::obj_dude, fo::PERK_bonus_move);
 		if ((*fo::ptr::obj_dude)->critter.movePoints != ap || bonusmove * 2 != *fo::ptr::combat_free_move) {
-			fo::func::display_print(Translate_CombatSaveBlockMessage());
+			fo::func::display_print(Translate::CombatSaveBlockMessage());
 			return 0;
 		}
 	}
@@ -244,12 +244,12 @@ static bool __stdcall LoadGame_Before() {
 		if (LoadGlobals(h)) goto errorLoad;
 		long uID = 0;
 		ReadFile(h, &uID, 4, &size, 0);
-		if (uID > UID_START) Objects_uniqueID = uID;
+		if (uID > UniqueID::Start) Objects::uniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
-		Worldmap_SetAddedYears(data >> 16);
-		if (size != 4 || !PerksLoad(h)) goto errorLoad;
+		Worldmap::SetAddedYears(data >> 16);
+		if (size != 4 || !Perks::Load(h)) goto errorLoad;
 		long result = LoadArrays(h); // 1 - old save, -1 - broken save
-		if (result == -1 || (!result && BugFixes_DrugsLoadFix(h))) goto errorLoad;
+		if (result == -1 || (!result && BugFixes::DrugsLoadFix(h))) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
@@ -268,30 +268,30 @@ errorLoad:
 static bool __stdcall GameReset(DWORD isGameLoad) {
 	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		// OnGameReset
-		BugFixes_OnGameLoad();
-		if (GraphicsMode) {
-			Gfx_ForceGraphicsRefresh(0); // disable refresh
-			ResetShaders();
+		BugFixes::OnGameLoad();
+		if (Graphics::mode) {
+			Graphics::ForceGraphicsRefresh(0); // disable refresh
+			ScriptShaders::OnGameLoad();
 		}
-		FileSystemReset();
-		LoadOrder_OnGameLoad();
-		ClearAllLockAnimSets();
-		BarBoxes_OnGameLoad();
-		Explosions_OnGameLoad();
+		FileSystem::Reset();
+		LoadOrder::OnGameLoad();
+		Animations::OnGameLoad();
+		BarBoxes::OnGameLoad();
+		Explosions::OnGameLoad();
 		ClearScriptAddedExtraGameMsg();
-		Interface_OnGameLoad();
-		Worldmap_OnGameLoad();
-		WipeSounds();
-		InventoryReset();
-		Objects_OnGameLoad();
-		Stats_OnGameLoad();
-		PerksReset();
-		Skills_OnGameLoad();
-		PartyControl_OnGameLoad();
-		Combat_OnGameLoad();
-		ResetQuests();
-		Console_OnGameLoad();
-		MetaruleExtenderReset();
+		Interface::OnGameLoad();
+		Worldmap::OnGameLoad();
+		Sound::OnGameLoad();
+		Inventory::Reset();
+		Objects::OnGameLoad();
+		Stats::OnGameLoad();
+		Perks::Reset();
+		Skills::OnGameLoad();
+		PartyControl::OnGameLoad();
+		Combat::OnGameLoad();
+		QuestList::ResetQuests();
+		Console::OnGameLoad();
+		MetaruleExtender::Reset();
 		ScriptExtender_OnGameLoad();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
@@ -346,7 +346,7 @@ static void __stdcall NewGame_Before() {
 static void __stdcall NewGame_After() {
 	dlogr("New Game started.", DL_MAIN);
 	// OnAfterNewGame
-	if (appModEnabled) {
+	if (HeroAppearance::appModEnabled) {
 		SetNewCharAppearanceGlobals();
 		LoadHeroAppearance();
 	}
@@ -365,8 +365,8 @@ static void __declspec(naked) main_load_new_hook() {
 }
 
 static void __stdcall GameInitialization() { // OnBeforeGameInit
-	BugFixes_Initialization();
-	Interface_OnBeforeGameInit();
+	BugFixes::OnBeforeGameInit();
+	Interface::OnBeforeGameInit();
 }
 
 static void __stdcall game_init_hook() { // OnGameInit
@@ -380,12 +380,11 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 		return;
 	}
 	#endif
-	combat_ai_init_backup(); // BugFixes
-	//BugFixes_OnAfterGameInit();
-	RemoveSavFiles();
-	BarBoxes_SetMaxSlots();
-	Sound_OnAfterGameInit();
-	if (Use32BitTalkingHeads) TalkingHeadsSetup();
+	BugFixes::OnAfterGameInit();
+	LoadOrder::OnAfterGameInit();
+	BarBoxes::OnAfterGameInit();
+	Sound::OnAfterGameInit();
+	if (TalkingHeads::Use32Bit) TalkingHeads::OnAfterGameInit();
 	BuildSortedIndexList();
 }
 
@@ -395,7 +394,7 @@ static void __stdcall GameExit() { // OnGameExit
 
 static void __stdcall GameClose() { // OnBeforeGameClose
 	ClearReadExtraGameMsgFiles();
-	WipeSounds();
+	Sound::OnBeforeGameClose();
 }
 
 static void __stdcall MapLoadHook() { // OnBeforeMapLoad
@@ -475,9 +474,9 @@ static void __declspec(naked) game_close_hook() {
 static void __declspec(naked) map_load_hook() {
 	__asm {
 		mov  esi, ebx;
-		lea  edi, gameMapLoadingName;
+		lea  edi, LoadGameHook::mapLoadingName;
 		mov  ecx, 4;
-		rep  movsd; // copy the name of the loaded map to gameMapLoadingName
+		rep  movsd; // copy the name of the loaded map to mapLoadingName
 		mov  onLoadingMap, 1;
 		push eax;
 		push edx;
@@ -514,14 +513,14 @@ static void __declspec(naked) WorldMapHook_End() {
 
 static void __fastcall CombatInternal(fo::CombatGcsd* gcsd) {
 	// OnCombatStart
-	AICombatClear();
+	AI::AICombatClear();
 	SetInLoop(1, COMBAT);
 
 	__asm mov  eax, gcsd;
 	__asm call fo::funcoffs::combat_;
 
 	// OnCombatEnd
-	AICombatClear();
+	AI::AICombatClear();
 	SetInLoop(0, COMBAT);
 }
 
@@ -717,7 +716,7 @@ static void __declspec(naked) AutomapHook_Start() {
 		call fo::funcoffs::gmouse_set_cursor_;
 		test edx, edx;
 		jnz  skip;
-		mov  gameInterfaceWID, ebp;
+		mov  LoadGameHook::interfaceWID, ebp;
 		_InLoop(1, AUTOMAP);
 skip:
 		retn;
@@ -727,7 +726,7 @@ skip:
 static void __declspec(naked) AutomapHook_End() {
 	__asm {
 		_InLoop(0, AUTOMAP);
-		mov gameInterfaceWID, -1
+		mov LoadGameHook::interfaceWID, -1
 		jmp fo::funcoffs::win_delete_;
 	}
 }
@@ -797,11 +796,11 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
 	}
 }
 
-void LoadGameHook_Init() {
-	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
+void LoadGameHook::init() {
+	saveInCombatFix = IniReader::GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 
-	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
+	switch (IniReader::GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		pipBoyAvailableAtGameStart = true;
 		break;
@@ -810,7 +809,7 @@ void LoadGameHook_Init() {
 		break;
 	}
 
-	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
+	if (IniReader::GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		disableHorrigan = true;
 	}
 

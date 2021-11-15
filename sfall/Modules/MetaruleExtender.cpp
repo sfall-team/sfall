@@ -68,19 +68,19 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 			__asm call fo::funcoffs::kb_clear_;
 			break;
 		case GET_CURRENT_SAVE_SLOT:
-			result = ExtraSaveSlots_GetSaveSlot();
+			result = ExtraSaveSlots::GetSaveSlot();
 			break;
 		case SET_CURRENT_SAVE_SLOT:
-			ExtraSaveSlots_SetSaveSlot(args[0], args[1]);
+			ExtraSaveSlots::SetSaveSlot(args[0], args[1]);
 			break;
 		case GET_CURRENT_QSAVE_PAGE:
-			result = ExtraSaveSlots_GetQuickSavePage();
+			result = ExtraSaveSlots::GetQuickSavePage();
 			break;
 		case GET_CURRENT_QSAVE_SLOT:
-			result = ExtraSaveSlots_GetQuickSaveSlot();
+			result = ExtraSaveSlots::GetQuickSaveSlot();
 			break;
 		case SET_CURRENT_QSAVE_SLOT:
-			ExtraSaveSlots_SetQuickSaveSlot(args[0], args[1], args[2]);
+			ExtraSaveSlots::SetQuickSaveSlot(args[0], args[1], args[2]);
 			break;
 		default:
 			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
@@ -109,7 +109,7 @@ extended:
 	}
 }
 
-void MetaruleExtenderReset() {
+void MetaruleExtender::Reset() {
 	if (HorriganEncounterSetDays != HorriganEncounterDefaultDays) {
 		SafeWrite8(HorriganEncounterDays, HorriganEncounterDefaultDays);
 	}
@@ -119,7 +119,7 @@ void MetaruleExtenderReset() {
 	}
 }
 
-void MetaruleExtender_Init() {
+void MetaruleExtender::init() {
 	// Keep default value
 	HorriganEncounterDefaultDays = *(BYTE*)HorriganEncounterDays;
 

@@ -21,8 +21,12 @@
 namespace sfall
 {
 
-void KillCounter_Init();
+class KillCounter {
+public:
+	static const char* name() { return "KillCounter"; }
+	static void init();
 
-bool UsingExtraKillTypes();
+	static bool UsingExtraKillTypes();
+};
 
 }

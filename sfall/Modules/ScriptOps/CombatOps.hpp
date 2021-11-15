@@ -264,7 +264,7 @@ static void __declspec(naked) op_get_last_attacker() {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
 		push eax;
-		call AIGetLastAttacker;
+		call AI::AIGetLastAttacker;
 		mov  edx, eax;
 		mov  ecx, esi;
 end:
@@ -281,7 +281,7 @@ static void __declspec(naked) op_get_last_target() {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
 		push eax;
-		call AIGetLastTarget;
+		call AI::AIGetLastTarget;
 		mov  edx, eax;
 		mov  ecx, esi;
 end:

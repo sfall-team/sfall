@@ -33,7 +33,7 @@
 namespace sfall
 {
 
-bool appModEnabled = false; // check if Appearance mod enabled for script fuctions
+bool HeroAppearance::appModEnabled = false; // check if Appearance mod enabled for script functions
 
 const char* appearancePathFmt = "Appearance\\h%cR%02dS%02d%s";
 
@@ -245,7 +245,7 @@ static void __declspec(naked) CheckHeroExist() {
 	__asm {
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jg   checkArt;
-		jmp  LoadOrder_art_get_name_hack;
+		jmp  LoadOrder::art_get_name_hack;
 checkArt:
 		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
 		call fo::funcoffs::db_access_;    // check art file exists
@@ -272,7 +272,7 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 
 // adjust armor art if num below hero art range
 void __stdcall AdjustHeroArmorArt(DWORD fid) {
-	if ((fid & 0xF000000) == (fo::ObjType::OBJ_TYPE_CRITTER << 24) && !PartyControl_IsNpcControlled()) {
+	if ((fid & 0xF000000) == (fo::ObjType::OBJ_TYPE_CRITTER << 24) && !PartyControl::IsNpcControlled()) {
 		DWORD fidBase = fid & 0xFFF;
 		if (fidBase <= critterListSize) {
 			*fo::ptr::i_fid += critterListSize;
@@ -406,7 +406,7 @@ void __stdcall RefreshPCArt() {
 }
 
 void __stdcall LoadHeroAppearance() {
-	if (!appModEnabled) return;
+	if (!HeroAppearance::appModEnabled) return;
 
 	GetAppearanceGlobals(&currentRaceVal, &currentStyleVal);
 	LoadHeroDat(currentRaceVal, currentStyleVal, true);
@@ -415,7 +415,7 @@ void __stdcall LoadHeroAppearance() {
 }
 
 void __stdcall SetNewCharAppearanceGlobals() {
-	if (!appModEnabled) return;
+	if (!HeroAppearance::appModEnabled) return;
 
 	if (currentRaceVal > 0 || currentStyleVal > 0) {
 		SetAppearanceGlobals(currentRaceVal, currentStyleVal);
@@ -424,7 +424,7 @@ void __stdcall SetNewCharAppearanceGlobals() {
 
 // op_set_hero_style
 void __stdcall SetHeroStyle(int newStyleVal) {
-	if (!appModEnabled || newStyleVal == currentStyleVal) return;
+	if (!HeroAppearance::appModEnabled || newStyleVal == currentStyleVal) return;
 
 	if (LoadHeroDat(currentRaceVal, newStyleVal, true) != 0) { // if new style cannot be set
 		if (currentRaceVal == 0 && newStyleVal == 0) {
@@ -441,7 +441,7 @@ void __stdcall SetHeroStyle(int newStyleVal) {
 
 // op_set_hero_race
 void __stdcall SetHeroRace(int newRaceVal) {
-	if (!appModEnabled || newRaceVal == currentRaceVal) return;
+	if (!HeroAppearance::appModEnabled || newRaceVal == currentRaceVal) return;
 
 	if (LoadHeroDat(newRaceVal, 0, true) != 0) { // if new race fails with style at 0
 		if (newRaceVal == 0) {
@@ -651,7 +651,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 
 // op_hero_select_win
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
-	if (!appModEnabled) return;
+	if (!HeroAppearance::appModEnabled) return;
 
 	fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
@@ -709,11 +709,11 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 		char titleText[16];
 		char doneText[16];
 		if (isStyle) {
-			Translate_Get("AppearanceMod", "StyleText", "Style", titleText, 16);
+			Translate::Get("AppearanceMod", "StyleText", "Style", titleText, 16);
 		} else {
-			Translate_Get("AppearanceMod", "RaceText", "Race", titleText, 16);
+			Translate::Get("AppearanceMod", "RaceText", "Race", titleText, 16);
 		}
-		Translate_Get("AppearanceMod", "DoneBtn", "Done", doneText, 16);
+		Translate::Get("AppearanceMod", "DoneBtn", "Done", doneText, 16);
 		RaceStyleBtn = titleText;
 		DoneBtn = doneText;
 	}
@@ -1233,8 +1233,8 @@ static void __declspec(naked) FixCharScrnBack() {
 		} else {
 			// Get alternate text from ini if available (TODO: remove this in the future)
 			char RaceText[8], StyleText[8];
-			Translate_Get("AppearanceMod", "RaceText", "Race", RaceText, 8);
-			Translate_Get("AppearanceMod", "StyleText", "Style", StyleText, 8);
+			Translate::Get("AppearanceMod", "RaceText", "Race", RaceText, 8);
+			Translate::Get("AppearanceMod", "StyleText", "Style", StyleText, 8);
 			RaceBtn = RaceText;
 			StyleBtn = StyleText;
 		}
@@ -1394,7 +1394,7 @@ static void __fastcall SaveGCDAppearance(fo::DbFile *FileStream) {
 }
 
 static void EnableHeroAppearanceMod() {
-	appModEnabled = true;
+	HeroAppearance::appModEnabled = true;
 
 	// setup paths
 	heroPathPtr[0] = new fo::PathNode();
@@ -1521,7 +1521,7 @@ static void EnableHeroAppearanceMod() {
 }
 
 static void HeroAppearanceModExit() {
-	if (!appModEnabled) return;
+	if (!HeroAppearance::appModEnabled) return;
 
 	delete[] heroPathPtr[0]->path;
 	delete[] heroPathPtr[1]->path;
@@ -1534,8 +1534,8 @@ static void HeroAppearanceModExit() {
 	delete racePathPtr[1];
 }
 
-void HeroAppearance_Init() {
-	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
+void HeroAppearance::init() {
+	int heroAppearanceMod = IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
@@ -1549,7 +1549,7 @@ void HeroAppearance_Init() {
 	}
 }
 
-void HeroAppearance_Exit() {
+void HeroAppearance::exit() {
 	HeroAppearanceModExit();
 }
 

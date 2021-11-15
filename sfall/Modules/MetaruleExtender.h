@@ -21,7 +21,12 @@
 namespace sfall
 {
 
-void MetaruleExtender_Init();
-void MetaruleExtenderReset();
+class MetaruleExtender {
+public:
+	static const char* name() { return "MetaruleExtender"; }
+	static void init();
+
+	static void Reset();
+};
 
 }

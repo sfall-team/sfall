@@ -196,7 +196,7 @@ void CombatAI::init() {
 	sf::SafeWrite8(0x429BE9, sf::CodeType::JumpNZ);    // jz > jnz
 	sf::SafeWrite8(0x429BF1, sf::CodeType::JumpShort); // jnz > jmp
 
-	drugUsePerfFixMode = sf::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	drugUsePerfFixMode = sf::IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
 	if (drugUsePerfFixMode > 0) sf::dlogr("Applying AI drug use preference fix.", DL_FIX);
 }
 

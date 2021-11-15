@@ -40,7 +40,7 @@ static std::tr1::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 ////////////////////////////////// AI HELPERS //////////////////////////////////
 
 // Returns the friendly critter or any blocking object in the line of fire
-fo::GameObject* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team) {
+fo::GameObject* __stdcall AIHelpers::CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team) {
 	if (object && object->IsCritter() && object->critter.teamNum != team) { // is not friendly fire
 		long objTile = object->tile;
 		if (objTile == targetTile) return nullptr;
@@ -54,26 +54,26 @@ fo::GameObject* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(fo::GameOb
 		fo::GameObject* obj = object; // for ignoring the object (multihex) when building the path
 		fo::func::make_straight_path_func(object, objTile, targetTile, 0, (DWORD*)&obj, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 
-		object = AIHelpers_CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
+		object = CheckShootAndFriendlyInLineOfFire(obj, targetTile, team);
 	}
 	return object; // friendly critter, any object or null
 }
 
 // Returns the friendly critter in the line of fire
-fo::GameObject* __stdcall AIHelpers_CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
+fo::GameObject* __stdcall AIHelpers::CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
 	fo::GameObject* object = nullptr;
 	fo::func::make_straight_path_func(attacker, attacker->tile, target->tile, 0, (DWORD*)&object, 0x20, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-	object = AIHelpers_CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
+	object = CheckShootAndFriendlyInLineOfFire(object, target->tile, attacker->critter.teamNum);
 	return (object && object->IsCritter()) ? object : nullptr; // 0 - if there are no friendly critters
 }
 
-bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance) {
+bool __stdcall AIHelpers::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance) {
 	if (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) >= distance) return true;
 	return (game::Items::item_weapon_range(source, weapon, fo::AttackType::ATKTYPE_RWEAPON_SECONDARY) >= distance);
 }
 
-bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target) {
-	return AIHelpers_AttackInRange(source, weapon, fo::func::obj_dist(source, target));
+bool __stdcall AIHelpers::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target) {
+	return AIHelpers::AttackInRange(source, weapon, fo::func::obj_dist(source, target));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -289,7 +289,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 		// is using a close range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
-			if (!AIHelpers_AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
+			if (!AIHelpers::AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
 		}
 		return 1; // all good, execute vanilla behavior of ai_switch_weapons_ function
 	}
@@ -534,7 +534,7 @@ fix:
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* attacker) {
-	if (AIHelpers_CheckFriendlyFire(target, attacker)) {
+	if (AIHelpers::CheckFriendlyFire(target, attacker)) {
 		long dice = fo::func::roll_random(1, 10);
 		return (fo::func::stat_level(attacker, fo::STAT_iq) >= dice); // true - is friendly
 	}
@@ -612,19 +612,19 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
-void AICombatClear() {
+void AI::AICombatClear() {
 	targets.clear();
 	sources.clear();
 }
 
-void AI_Init() {
+void AI::init() {
 	const DWORD combatAttackAddr[] = {
 		0x426A95, // combat_attack_this_
 		0x42A796  // ai_attack_
 	};
 	HookCalls(combat_attack_hook, combatAttackAddr);
 
-	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
+	RetryCombatMinAP = IniReader::GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, RetryCombatHook); // combat_turn_
@@ -633,7 +633,7 @@ void AI_Init() {
 
 	/////////////////////// Combat behavior AI fixes ///////////////////////
 	#ifndef NDEBUG
-	if (GetIntDefaultConfig("Debugging", "AIFixes", 1) == 0) return;
+	if (IniReader::GetIntDefaultConfig("Debugging", "AIFixes", 1) == 0) return;
 	#endif
 
 	// Fix for NPCs not fully reloading a weapon if it has an ammo capacity more than a box of ammo
@@ -708,12 +708,12 @@ void AI_Init() {
 	MakeCall(0x42A8D9, ai_try_attack_hack_check_safe_weapon);
 }
 
-fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target) {
+fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
 	iter itr = sources.find(target);
 	return (itr != sources.end()) ? itr->second : 0;
 }
 
-fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source) {
+fo::GameObject* __stdcall AI::AIGetLastTarget(fo::GameObject* source) {
 	iter itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
 }

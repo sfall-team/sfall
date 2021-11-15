@@ -3,10 +3,15 @@
 namespace sfall
 {
 
-extern bool Use32BitTalkingHeads;
+class TalkingHeads {
+public:
+	static const char* name() { return "TalkingHeads"; }
+	static void init();
+	static void exit();
 
-void TalkingHeads_Init();
-void TalkingHeads_Exit();
-void TalkingHeadsSetup();
+	static void OnAfterGameInit();
+
+	static bool Use32Bit;
+};
 
 }

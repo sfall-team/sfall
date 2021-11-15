@@ -34,16 +34,16 @@ static const char* __fastcall GetLangPremadePath(const char* premadePath) {
 
 	if (isDefault) return nullptr;
 	if (len == 0) {
-		len = std::strlen(Message_GameLanguage());
+		len = std::strlen(Message::GameLanguage());
 		if (len == 0 || len >= 32) {
 			isDefault = true;
 			return nullptr;
 		}
-		isDefault = (_stricmp(Message_GameLanguage(), "english") == 0);
+		isDefault = (_stricmp(Message::GameLanguage(), "english") == 0);
 		if (isDefault) return nullptr;
 
 		std::strncpy(premadeLangPath, premadePath, 8);
-		std::strcpy(&premadeLangPath[8], Message_GameLanguage());
+		std::strcpy(&premadeLangPath[8], Message::GameLanguage());
 	}
 	std::strcpy(&premadeLangPath[8 + len], &premadePath[7]);
 
@@ -85,9 +85,9 @@ static void __declspec(naked) select_update_display_hook() {
 	}
 }
 
-void Premade_Init() {
-	std::vector<std::string> premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
-	std::vector<std::string> premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
+void Premade::init() {
+	std::vector<std::string> premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
+	std::vector<std::string> premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (!premadePaths.empty() && !premadeFids.empty()) {
 		dlog("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());

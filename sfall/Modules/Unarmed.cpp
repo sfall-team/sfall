@@ -316,7 +316,7 @@ static void __declspec(naked) compute_attack_hack() {
 }
 
 static long __fastcall get_unarmed_damage(fo::GameObject* source, fo::AttackType hit, long &minOut, long &maxOut) {
-	minOut = unarmed.Hit(hit).minDamage + DamageMod_GetHtHMinDamageBonus(source);
+	minOut = unarmed.Hit(hit).minDamage + DamageMod::GetHtHMinDamageBonus(source);
 	maxOut = unarmed.Hit(hit).maxDamage + fo::func::stat_level(source, fo::Stat::STAT_melee_dmg);
 	return unarmed.Hit(hit).bonusDamage;
 }
@@ -341,17 +341,17 @@ static long __fastcall check_unarmed_penetrate(fo::AttackType hit) {
 	return static_cast<long>(unarmed.Hit(hit).isPenetrate);
 }
 
-long Unarmed_GetHitAPCost(fo::AttackType hit) {
+long Unarmed::GetHitAPCost(fo::AttackType hit) {
 	return unarmed.Hit(hit).apCost;
 }
 
-long Unarmed_GetDamage(fo::AttackType hit, long &minOut, long &maxOut) {
+long Unarmed::GetDamage(fo::AttackType hit, long &minOut, long &maxOut) {
 	minOut = unarmed.Hit(hit).minDamage;
 	maxOut = unarmed.Hit(hit).maxDamage;
 	return unarmed.Hit(hit).bonusDamage;
 }
 
-const char* Unarmed_GetName(fo::AttackType hit) {
+const char* Unarmed::GetName(fo::AttackType hit) {
 	if (hit > fo::AttackType::ATKTYPE_PIERCINGKICK) return nullptr;
 
 	switch (hit) {
@@ -385,7 +385,7 @@ static void SlotsStoreCurrentHitMode() {
 	slotHitData[fo::HandSlot::Right].mode = fo::util::GetHandSlotMode(fo::HandSlot::Right);
 }
 
-fo::AttackType Unarmed_GetStoredHitMode(fo::HandSlot slot) {
+fo::AttackType Unarmed::GetStoredHitMode(fo::HandSlot slot) {
 	fo::AttackType hit = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 
 	switch (slotHitData[slot].mode) {
@@ -431,13 +431,13 @@ static void __declspec(naked) statPCAddExperienceCheckPMs_hook() {
 	}
 }
 
-void Unarmed_Init() {
+void Unarmed::init() {
 	// Update unarmed attack after leveling up
 	HookCall(0x4AFC15, statPCAddExperienceCheckPMs_hook);
 
 	unarmed = Hits();
 
-	std::string unarmedFile = GetConfigString("Misc", "UnarmedFile", "", MAX_PATH);
+	std::string unarmedFile = IniReader::GetConfigString("Misc", "UnarmedFile", "", MAX_PATH);
 	if (!unarmedFile.empty()) {
 		const char* file = unarmedFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(file) != INVALID_FILE_ATTRIBUTES) { // check if file exists
@@ -448,35 +448,35 @@ void Unarmed_Init() {
 
 				auto& hit = unarmed.Hit(i);
 
-				int val = IniGetInt(sHit, "ReqLevel", -1, file);
+				int val = IniReader::GetInt(sHit, "ReqLevel", -1, file);
 				if (val >= 0) hit.reqLevel = val;
 
-				val =  IniGetInt(sHit, "SkillLevel", -1, file);
+				val =  IniReader::GetInt(sHit, "SkillLevel", -1, file);
 				if (val >= 0) hit.reqSkill = val;
 
-				val = IniGetInt(sHit, "MinDamage", -1, file);
+				val = IniReader::GetInt(sHit, "MinDamage", -1, file);
 				if (val > 0) hit.minDamage = val;
 
-				val = IniGetInt(sHit, "MaxDamage", -1, file);
+				val = IniReader::GetInt(sHit, "MaxDamage", -1, file);
 				if (val > 0) hit.maxDamage = val;
 
-				val = IniGetInt(sHit, "BonusDamage", -1, file);
+				val = IniReader::GetInt(sHit, "BonusDamage", -1, file);
 				if (val >= 0) hit.bonusDamage = val;
 
-				val = IniGetInt(sHit, "BonusCrit", -1, file);
+				val = IniReader::GetInt(sHit, "BonusCrit", -1, file);
 				if (val >= 0) hit.bonusCrit = val;
 
-				val = IniGetInt(sHit, "APCost", -1, file);
+				val = IniReader::GetInt(sHit, "APCost", -1, file);
 				if (val > 0) hit.apCost = val;
 
-				val = IniGetInt(sHit, "Penetrate", -1, file);
+				val = IniReader::GetInt(sHit, "Penetrate", -1, file);
 				if (val >= 0) hit.isPenetrate = (val != 0);
 
-				val = IniGetInt(sHit, "Secondary", -1, file);
+				val = IniReader::GetInt(sHit, "Secondary", -1, file);
 				if (val >= 0) hit.isSecondary = (val != 0);
 
 				for (size_t s = 0; s < fo::Stat::STAT_base_count; _itoa(++s, &stat[4], 10)) {
-					val = IniGetInt(sHit, stat, -1, file);
+					val = IniReader::GetInt(sHit, stat, -1, file);
 					if (val >= 0) hit.reqStat[s] = val;
 				}
 				stat[4] = '0';
@@ -523,11 +523,11 @@ void Unarmed_Init() {
 		"PiercingKick"
 	};
 	for (size_t i = 0; i < 14; i++) {
-		hitNames[i] = Translate_Get("Unarmed", setting[i], "", 17);
+		hitNames[i] = Translate::Get("Unarmed", setting[i], "", 17);
 	}
 }
 
-//void Unarmed_Exit() {
+//void Unarmed::exit() {
 //}
 
 }

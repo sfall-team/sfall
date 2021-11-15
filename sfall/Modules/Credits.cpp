@@ -158,10 +158,10 @@ morelines:
 	}
 }
 
-void Credits_Init() {
+void Credits::init() {
 	const DWORD showCreditsAddr[] = {0x480C49, 0x43F881};
 	HookCalls(ShowCreditsHook, showCreditsAddr);
-	if (GetConfigInt("Misc", "CreditsAtBottom", 0)) {
+	if (IniReader::GetConfigInt("Misc", "CreditsAtBottom", 0)) {
 		HookCall(0x42CB49, CreditsNextLineHook_Bottom);
 	} else {
 		HookCall(0x42CB49, CreditsNextLineHook_Top);

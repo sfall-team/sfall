@@ -29,8 +29,8 @@ namespace sfall
 
 static std::string critTableFile(".\\");
 
-const DWORD CritTableCount = 2 * 19 + 1;                   // Number of species in new critical table
-static const DWORD CritTableSize = 6 * 9 * CritTableCount; // Number of entries in new critical table
+const DWORD Criticals::critTableCount = 2 * 19 + 1;                   // Number of species in new critical table
+static const DWORD CritTableSize = 6 * 9 * Criticals::critTableCount; // Number of entries in new critical table
 static DWORD mode;
 
 static const char* critNames[] = {
@@ -51,7 +51,7 @@ static bool Inited = false;
 
 static const char* errorTable = "\nError: %s - function requires enabling OverrideCriticalTable in ddraw.ini.";
 
-void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
+void __stdcall Criticals::SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) {
 		fo::func::debug_printf(errorTable, "set_critical_table()");
 		return;
@@ -59,7 +59,7 @@ void __stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = value;
 }
 
-DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
+DWORD __stdcall Criticals::GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
 		fo::func::debug_printf(errorTable, "get_critical_table()");
 		return 0;
@@ -67,7 +67,7 @@ DWORD __stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWOR
 	return critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
 }
 
-void __stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
+void __stdcall Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
 		fo::func::debug_printf(errorTable, "reset_critical_table()");
 		return;
@@ -88,7 +88,7 @@ static int CritTableLoad() {
 					int slot1 = crit + part * 6 + critter * 9 * 6; // default effect
 					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6; // new effect
 					for (int i = 0; i < 7; i++) {
-						baseCritTable[slot2].values[i] = IniGetInt(section, critNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
+						baseCritTable[slot2].values[i] = IniReader::GetInt(section, critNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
 						if (isDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
@@ -110,14 +110,14 @@ static int CritTableLoad() {
 			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
 			if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 			char buf[32], buf2[32], buf3[32];
-			for (int critter = 0; critter < CritTableCount; critter++) {
+			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = IniGetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
+				if (!(all = IniReader::GetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!IniGetInt(buf, buf2, 0, critTableFile.c_str())) continue;
+						if (!IniReader::GetInt(buf, buf2, 0, critTableFile.c_str())) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -125,7 +125,7 @@ static int CritTableLoad() {
 						int slot = crit + part * 6 + critter * 9 * 6;
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
-							baseCritTable[slot].values[i] = IniGetInt(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
+							baseCritTable[slot].values[i] = IniReader::GetInt(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
 						}
 					}
 				}
@@ -303,7 +303,7 @@ static void CriticalTableOverride() {
 #undef SetEntry
 
 static void RemoveCriticalTimeLimitsPatch() {
-	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
+	if (IniReader::GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x424118, CodeType::JumpShort); // jump to 0x424131
 		const DWORD rollChkCritAddr[] = {0x4A3052, 0x4A3093};
@@ -312,18 +312,18 @@ static void RemoveCriticalTimeLimitsPatch() {
 	}
 }
 
-void Criticals_Init() {
-	mode = GetConfigInt("Misc", "OverrideCriticalTable", 2);
+void Criticals::init() {
+	mode = IniReader::GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
-		critTableFile += GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
+		critTableFile += IniReader::GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
 		CriticalTableOverride();
 	}
 
 	RemoveCriticalTimeLimitsPatch();
 }
 
-void CritLoad() {
+void Criticals::CritLoad() {
 	if (!Inited) return;
 	memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table
 }

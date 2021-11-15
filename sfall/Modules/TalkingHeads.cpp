@@ -79,7 +79,7 @@ static const char* headSuffix[] = { "gv", "gf", "gn", "ng", "nf", "nb", "bn", "b
 static BYTE showHighlights;
 static long reactionID;
 
-bool Use32BitTalkingHeads = false;
+bool TalkingHeads::Use32Bit = false;
 
 /*             Head FID
  0-000-1000-00000000-0000-000000000000
@@ -184,18 +184,18 @@ static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 			dialogWinPos.x = dialogWin->rect.x;
 			dialogWinPos.y = dialogWin->rect.y;
 		}
-		Gfx_SetHeadTex(frm->textures[frameno],
-		               frame->width,
-		               frame->height,
-		               frame->x + frm->xshift + dialogWinPos.x,
-		               frame->y + frm->yshift + dialogWinPos.y
+		Graphics::SetHeadTex(frm->textures[frameno],
+		                     frame->width,
+		                     frame->height,
+		                     frame->x + frm->xshift + dialogWinPos.x,
+		                     frame->y + frm->yshift + dialogWinPos.y
 		);
 		showHighlights = frm->showHighlights;
 		return;
 	}
 loadFail:
 	showHighlights = 0; // show vanilla highlights
-	Gfx_SetDefaultTechnique();
+	Graphics::SetDefaultTechnique();
 }
 
 static void __declspec(naked) gdDisplayFrame_hack() {
@@ -215,7 +215,7 @@ static void __declspec(naked) gdDisplayFrame_hack() {
 
 void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
-		call Gfx_SetDefaultTechnique;
+		call Graphics::SetDefaultTechnique;
 		mov  showHighlights, 0;
 		//mov  dword ptr ds:[dialogWinPos], -1; // uncomment if the dialog window position is supposed to change
 		pop  ebp;
@@ -254,8 +254,8 @@ noScroll:
 	}
 }
 
-void TalkingHeadsSetup() {
-	if (!GPUBlt) return;
+void TalkingHeads::OnAfterGameInit() {
+	if (!Graphics::GPUBlt) return;
 
 	fo::var::setInt(FO_VAR_lips_draw_head) = 0; // fix for non-speaking heads
 	const DWORD transTalkAddr[] = {0x44AFB4, 0x44B00B};
@@ -265,16 +265,16 @@ void TalkingHeadsSetup() {
 	HookCall(0x44768B, gdPlayTransition_hook);
 }
 
-void TalkingHeads_Init() {
+void TalkingHeads::init() {
 	// Disable centering the screen if NPC has talking head
 	HookCall(0x445224, gdialogInitFromScript_hook);
 
-	if (GraphicsMode && GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
-		Use32BitTalkingHeads = true;
+	if (Graphics::mode && IniReader::GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
+		TalkingHeads::Use32Bit = true;
 	}
 }
 
-void TalkingHeads_Exit() {
+void TalkingHeads::exit() {
 	if (!texMap.empty()) {
 		for (tex_citr it = texMap.begin(); it != texMap.end(); ++it) {
 			for (int i = 0; i < it->second.frames; i++) {

@@ -101,7 +101,7 @@ long __stdcall Items::item_weapon_range(fo::GameObject* source, fo::GameObject* 
 		long heaveHoMod = Stats::perk_level(source, fo::Perk::PERK_heave_ho);
 		long stRange = fo::func::stat_level(source, fo::Stat::STAT_st);
 
-		if (sf::perkHeaveHoModTweak) {
+		if (sf::Perks::perkHeaveHoModTweak) {
 			stRange *= 3;
 			if (stRange > range) stRange = range;
 			return stRange + (heaveHoMod * 6);
@@ -129,7 +129,7 @@ static long __stdcall item_w_mp_cost_sub(fo::GameObject* source, fo::GameObject*
 
 	long type = fo::func::item_w_subtype(item, hitMode);
 
-	if (source->protoId == fo::ProtoID::PID_Player && sf::DudeHasTrait(fo::Trait::TRAIT_fast_shot)) {
+	if (source->protoId == fo::ProtoID::PID_Player && sf::Perks::DudeHasTrait(fo::Trait::TRAIT_fast_shot)) {
 		// Alternative behaviors of the Fast Shot trait
 		if (item && fastShotTweak > 2) { // Fallout 1 behavior (allowed for all weapons)
 			cost--;
@@ -217,7 +217,7 @@ long __fastcall Items::item_w_mp_cost(fo::GameObject* source, fo::AttackType hit
 	// unarmed hits
 	long cost = unarmedAPCost;
 	if (hitMode == fo::AttackType::ATKTYPE_PUNCH || hitMode == fo::AttackType::ATKTYPE_KICK || hitMode >= fo::AttackType::ATKTYPE_STRONGPUNCH) {
-		cost = sf::Unarmed_GetHitAPCost(hitMode);
+		cost = sf::Unarmed::GetHitAPCost(hitMode);
 	}
 
 	// return cost
@@ -248,7 +248,7 @@ void Items::init() {
 	// Replace the item_w_mp_cost_ function with the sfall implementation
 	sf::MakeJump(fo::funcoffs::item_w_mp_cost_ + 1, item_w_mp_cost_hack); // 0x478B25
 
-	fastShotTweak = sf::GetConfigInt("Misc", "FastShotFix", 0);
+	fastShotTweak = sf::IniReader::GetConfigInt("Misc", "FastShotFix", 0);
 }
 
 }

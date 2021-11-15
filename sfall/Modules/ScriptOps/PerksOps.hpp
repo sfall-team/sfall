@@ -79,7 +79,7 @@ static void __stdcall op_set_perk_name2() {
 	                  &stringArg = opHandler.arg(1);
 
 	if (perkIdArg.isInt() && stringArg.isString()) {
-		SetPerkName(perkIdArg.rawValue(), stringArg.strValue());
+		Perks::SetPerkName(perkIdArg.rawValue(), stringArg.strValue());
 	} else {
 		OpcodeInvalidArgs("set_perk_name");
 	}
@@ -94,7 +94,7 @@ static void __stdcall op_set_perk_desc2() {
 	                  &stringArg = opHandler.arg(1);
 
 	if (perkIdArg.isInt() && stringArg.isString()) {
-		SetPerkDesc(perkIdArg.rawValue(), stringArg.strValue());
+		Perks::SetPerkDesc(perkIdArg.rawValue(), stringArg.strValue());
 	} else {
 		OpcodeInvalidArgs("set_perk_desc");
 	}
@@ -118,7 +118,7 @@ static void __declspec(naked) op_set_perk_value() {
 		push ecx;      // value
 		mov  edx, edi; // param (offset)
 		mov  ecx, eax; // perk id
-		call SetPerkValue;
+		call Perks::SetPerkValue;
 end:
 		pop  ecx;
 		pop  edi;
@@ -133,7 +133,7 @@ static void __stdcall op_set_selectable_perk2() {
 	                  &descArg = opHandler.arg(3);
 
 	if (nameArg.isString() && activeArg.isInt() && imageArg.isInt() && descArg.isString()) {
-		SetSelectablePerk(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
+		Perks::SetSelectablePerk(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
 	} else {
 		OpcodeInvalidArgs("set_selectable_perk");
 	}
@@ -150,7 +150,7 @@ static void __stdcall op_set_fake_perk2() {
 	                  &descArg = opHandler.arg(3);
 
 	if (nameArg.isString() && levelArg.isInt() && imageArg.isInt() && descArg.isString()) {
-		SetFakePerk(nameArg.strValue(), levelArg.rawValue(), imageArg.rawValue(), descArg.strValue());
+		Perks::SetFakePerk(nameArg.strValue(), levelArg.rawValue(), imageArg.rawValue(), descArg.strValue());
 	} else {
 		OpcodeInvalidArgs("set_fake_perk");
 	}
@@ -167,7 +167,7 @@ static void __stdcall op_set_fake_trait2() {
 	                  &descArg = opHandler.arg(3);
 
 	if (nameArg.isString() && activeArg.isInt() && imageArg.isInt() && descArg.isString()) {
-		SetFakeTrait(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
+		Perks::SetFakeTrait(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
 	} else {
 		OpcodeInvalidArgs("set_fake_trait");
 	}
@@ -191,7 +191,7 @@ next:
 		mov  eax, ecx; // script
 		call fo::funcoffs::interpretGetString_;
 		mov  ecx, eax;
-		call SetPerkboxTitle;
+		call Perks::SetPerkboxTitle;
 end:
 		mov  ecx, esi;
 		pop  ebx;
@@ -246,7 +246,7 @@ next:
 		mov  eax, edi;
 		call fo::funcoffs::interpretGetString_;
 		push eax;
-		call HasFakePerk;
+		call Perks::HasFakePerk;
 end:
 		mov  edx, eax;
 		mov  eax, edi;
@@ -282,7 +282,7 @@ next:
 		mov  eax, edi;
 		call fo::funcoffs::interpretGetString_;
 		push eax;
-		call HasFakeTrait;
+		call Perks::HasFakeTrait;
 end:
 		mov  edx, eax;
 		mov  eax, edi;
@@ -347,7 +347,7 @@ end:
 static void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
 		mov  esi, ecx;
-		call ApplyHeaveHoFix;
+		call Perks::ApplyHeaveHoFix;
 		mov  ecx, esi;
 		retn;
 	}
@@ -369,7 +369,7 @@ end:
 static void __declspec(naked) perk_can_add_hook() {
 	__asm {
 		call fo::funcoffs::stat_pc_get_;
-		add  eax, PerkLevelMod;
+		add  eax, Perks::PerkLevelMod;
 		js   jneg; // level < 0
 		retn;
 jneg:
@@ -381,7 +381,7 @@ jneg:
 static void __fastcall SetPerkLevelMod(long mod) {
 	static bool perkLevelModPatch = false;
 	if (mod < -25 || mod > 25) return;
-	PerkLevelMod = mod;
+	Perks::PerkLevelMod = mod;
 
 	if (perkLevelModPatch) return;
 	perkLevelModPatch = true;

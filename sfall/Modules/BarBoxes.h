@@ -3,17 +3,25 @@
 namespace sfall 
 {
 
-void BarBoxes_Init();
-void BarBoxes_Exit();
-void BarBoxes_OnGameLoad();
-long BarBoxes_SetMaxSlots();
+class BarBoxes {
+private:
+	static int boxCount;
 
-int  __stdcall BarBoxes_MaxBox();
-void __stdcall BarBoxes_SetText(int box, const char* text, DWORD color);
+public:
+	static const char* name() { return "BarBoxes"; }
+	static void init();
+	static void exit();
 
-bool __stdcall BarBoxes_GetBox(int i);
-void __stdcall BarBoxes_AddBox(int i);
-void __stdcall BarBoxes_RemoveBox(int i);
-long __stdcall BarBoxes_AddExtraBox();
+	static void OnGameLoad();
+	static void OnAfterGameInit();
+
+	static int  MaxBox() { return boxCount - 1; }
+	static void __stdcall SetText(int box, const char* text, DWORD color);
+
+	static bool __stdcall GetBox(int i);
+	static void __stdcall AddBox(int i);
+	static void __stdcall RemoveBox(int i);
+	static long __stdcall AddExtraBox();
+};
 
 }

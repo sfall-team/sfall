@@ -21,7 +21,11 @@
 namespace sfall
 {
 
-void Tiles_Init();
-void Tiles_Exit();
+class Tiles {
+public:
+	static const char* name() { return "Tiles"; }
+	static void init();
+	static void exit();
+};
 
 }

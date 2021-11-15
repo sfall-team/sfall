@@ -21,16 +21,22 @@
 namespace sfall
 {
 
-extern float experienceMod;
-extern DWORD standardApAcBonus;
-extern DWORD extraApAcBonus;
+class Stats {
+public:
+	static const char* name() { return "Stats"; }
+	static void init();
 
-void Stats_Init();
-void Stats_OnGameLoad();
-void Stats_UpdateHPStat(fo::GameObject* critter);
+	static void OnGameLoad();
 
-long __stdcall GetStatMax(int stat, int isNPC);
-long __stdcall GetStatMin(int stat, int isNPC);
+	static float experienceMod;
+	static DWORD standardApAcBonus;
+	static DWORD extraApAcBonus;
+
+	static long __stdcall GetStatMax(int stat, int isNPC);
+	static long __stdcall GetStatMin(int stat, int isNPC);
+
+	static void UpdateHPStat(fo::GameObject* critter);
+};
 
 void __stdcall SetPCStatMax(int stat, int value);
 void __stdcall SetPCStatMin(int stat, int value);

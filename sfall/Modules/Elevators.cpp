@@ -116,23 +116,23 @@ static void LoadElevators(const char* elevFile) {
 	if (elevFile && GetFileAttributes(elevFile) != INVALID_FILE_ATTRIBUTES) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			int type = IniGetInt(section, "Image", elevatorType[i], elevFile);
+			int type = IniReader::GetInt(section, "Image", elevatorType[i], elevFile);
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
-				int cBtn = IniGetInt(section, "ButtonCount", 2, elevFile);
+				int cBtn = IniReader::GetInt(section, "ButtonCount", 2, elevFile);
 				if (cBtn < 2) cBtn = 2;
 				elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
 			}
-			elevatorsFrms[i].main = IniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
-			elevatorsFrms[i].buttons = IniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
+			elevatorsFrms[i].main = IniReader::GetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+			elevatorsFrms[i].buttons = IniReader::GetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
 				sprintf(setting, "ID%d", j + 1);
-				elevatorExits[i][j].id = IniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
+				elevatorExits[i][j].id = IniReader::GetInt(section, setting, elevatorExits[i][j].id, elevFile);
 				sprintf(setting, "Elevation%d", j + 1);
-				elevatorExits[i][j].elevation = IniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
+				elevatorExits[i][j].elevation = IniReader::GetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
 				sprintf(setting, "Tile%d", j + 1);
-				elevatorExits[i][j].tile = IniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
+				elevatorExits[i][j].tile = IniReader::GetInt(section, setting, elevatorExits[i][j].tile, elevFile);
 			}
 		}
 	}
@@ -161,8 +161,8 @@ static void ElevatorsInit() {
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
 }
 
-void Elevators_Init() {
-	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
+void Elevators::init() {
+	std::string elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
 	if (!elevPath.empty()) {
 		dlog("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();

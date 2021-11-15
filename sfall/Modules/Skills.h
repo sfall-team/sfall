@@ -21,9 +21,14 @@
 namespace sfall
 {
 
-void Skills_Init();
-void Skills_Exit();
-void Skills_OnGameLoad();
+class Skills {
+public:
+	static const char* name() { return "Skills"; }
+	static void init();
+	static void exit();
+
+	static void OnGameLoad();
+};
 
 void __stdcall SetSkillMax(fo::GameObject* critter, int maximum);
 void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);

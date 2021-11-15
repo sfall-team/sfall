@@ -21,6 +21,10 @@
 namespace sfall
 {
 
-void Premade_Init();
+class Premade {
+public:
+	static const char* name() { return "Premade"; }
+	static void init();
+};
 
 }

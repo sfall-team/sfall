@@ -21,14 +21,18 @@
 namespace sfall
 {
 
-void ExtraSaveSlots_Init();
-void ExtraSaveSlots_Exit();
+class ExtraSaveSlots {
+public:
+	static const char* name() { return "SuperSave"; }
+	static void init();
+	static void exit();
 
-long ExtraSaveSlots_GetSaveSlot();
-void ExtraSaveSlots_SetSaveSlot(long page, long slot);
+	static long GetSaveSlot();
+	static void SetSaveSlot(long page, long slot);
 
-long ExtraSaveSlots_GetQuickSavePage();
-long ExtraSaveSlots_GetQuickSaveSlot();
-void ExtraSaveSlots_SetQuickSaveSlot(long page, long slot, long check);
+	static long GetQuickSavePage();
+	static long GetQuickSaveSlot();
+	static void SetQuickSaveSlot(long page, long slot, long check);
+};
 
 }

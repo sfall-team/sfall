@@ -21,10 +21,14 @@
 namespace sfall
 {
 
+class Movies {
+public:
+	static const char* name() { return "Movies"; }
+	static void init();
+	//static void exit();
+};
+
 static const int MaxMovies = 32;
 extern char MoviePaths[MaxMovies * 65];
-
-void Movies_Init();
-//void Movies_Exit();
 
 }

@@ -21,8 +21,13 @@
 namespace sfall
 {
 
-void Console_Init();
-void Console_Exit();
-void Console_OnGameLoad();
+class Console {
+public:
+	static const char* name() { return "Console"; }
+	static void init();
+	static void exit();
+
+	static void OnGameLoad();
+};
 
 }

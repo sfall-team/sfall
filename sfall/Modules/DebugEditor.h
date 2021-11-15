@@ -3,7 +3,12 @@
 namespace sfall
 {
 
-void DebugEditor_Init();
-void DebugEditorKeyPressedHook(DWORD scanCode, bool pressed);
+class DebugEditor {
+public:
+	static const char* name() { return "Debug Editor"; }
+	static void init();
+
+	static void KeyPressedHook(DWORD scanCode, bool pressed);
+};
 
 }

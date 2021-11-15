@@ -122,7 +122,7 @@ DWORD __stdcall Inventory::adjust_fid() {
 	if ((*fo::ptr::inven_dude)->TypeFid() == fo::OBJ_TYPE_CRITTER) {
 		DWORD indexNum;
 		DWORD weaponAnimCode = 0;
-		if (sf::PartyControl_IsNpcControlled()) {
+		if (sf::PartyControl::IsNpcControlled()) {
 			// if NPC is under control, use current FID of critter
 			indexNum = (*fo::ptr::inven_dude)->artFid & 0xFFF;
 		} else {
@@ -159,7 +159,7 @@ DWORD __stdcall Inventory::adjust_fid() {
 	}
 	*fo::ptr::i_fid = fid;
 	// OnAdjustFid
-	if (sf::appModEnabled) sf::AdjustHeroArmorArt(fid);
+	if (sf::HeroAppearance::appModEnabled) sf::AdjustHeroArmorArt(fid);
 	sf::AdjustFidHook(fid); // should be called last
 	return *fo::ptr::i_fid;
 }

@@ -20,14 +20,14 @@ namespace sf = sfall;
 
 int __stdcall Skills::trait_adjust_skill(DWORD skillID) {
 	int result = 0;
-	if (sf::TraitsModEnable()) {
-		if (fo::ptr::pc_trait[0] != -1) result += sf::GetTraitSkillBonus(skillID, 0);
-		if (fo::ptr::pc_trait[1] != -1) result += sf::GetTraitSkillBonus(skillID, 1);
+	if (sf::Perks::TraitsModEnable()) {
+		if (fo::ptr::pc_trait[0] != -1) result += sf::Perks::GetTraitSkillBonus(skillID, 0);
+		if (fo::ptr::pc_trait[1] != -1) result += sf::Perks::GetTraitSkillBonus(skillID, 1);
 	}
 
-	if (sf::DudeHasTrait(fo::TRAIT_gifted)) result -= 10;
+	if (sf::Perks::DudeHasTrait(fo::TRAIT_gifted)) result -= 10;
 
-	if (sf::DudeHasTrait(fo::TRAIT_good_natured)) {
+	if (sf::Perks::DudeHasTrait(fo::TRAIT_good_natured)) {
 		if (skillID <= fo::SKILL_THROWING) {
 			result -= 10;
 		} else if (skillID == fo::SKILL_FIRST_AID || skillID == fo::SKILL_DOCTOR || skillID == fo::SKILL_CONVERSANT || skillID == fo::SKILL_BARTER) {

@@ -547,7 +547,7 @@ static void mf_outlined_object() {
 }
 
 static void mf_real_dude_obj() {
-	opHandler.setReturn(PartyControl_RealDudeObject());
+	opHandler.setReturn(PartyControl::RealDudeObject());
 }
 
 static void mf_car_gas_amount() {
@@ -574,7 +574,7 @@ static void mf_set_unjam_locks_time() {
 		opHandler.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
 		opHandler.setReturn(-1);
 	} else {
-		Objects_SetAutoUnjamLockTime(time);
+		Objects::SetAutoUnjamLockTime(time);
 	}
 }
 
@@ -637,7 +637,7 @@ static void __stdcall op_set_proto_data2() {
 		if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != -1) {
 			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
 			if (!protoMaxLimitPatch) {
-				Objects_LoadProtoAutoMaxLimit();
+				Objects::LoadProtoAutoMaxLimit();
 				protoMaxLimitPatch = true;
 			}
 		} else {
@@ -677,7 +677,7 @@ static void mf_set_unique_id() {
 		id = fo::func::new_obj_id();
 		obj->id = id;
 	} else {
-		id = Objects_SetObjectUniqueID(obj);
+		id = Objects::SetObjectUniqueID(obj);
 	}
 	opHandler.setReturn(id);
 }

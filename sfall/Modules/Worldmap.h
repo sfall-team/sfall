@@ -21,24 +21,28 @@
 namespace sfall
 {
 
-void Worldmap_Init();
-void Worldmap_OnGameLoad();
+class Worldmap {
+public:
+	static const char* name() { return "Worldmap"; }
+	static void init();
 
-void Worldmap_SetCarInterfaceArt(DWORD artIndex);
+	static void OnGameLoad();
 
-DWORD Worldmap_GetAddedYears(bool isCheck = true);
-void Worldmap_SetAddedYears(DWORD years);
+	static void SetCarInterfaceArt(DWORD artIndex);
 
-void Worldmap_SetTerrainTypeName(long x, long y, const char* name);
-//const char* Worldmap_GetTerrainTypeName(long x, long y);
-const char* Worldmap_GetCurrentTerrainName();
+	static DWORD GetAddedYears(bool isCheck = true);
+	static void SetAddedYears(DWORD years);
 
-bool Worldmap_AreaTitlesIsEmpty();
-const char* Worldmap_GetCustomAreaTitle(long areaID);
-void Worldmap_SetCustomAreaTitle(long areaID, const char* msg);
+	static void SetTerrainTypeName(long x, long y, const char* name);
+	//static const char* GetTerrainTypeName(long x, long y);
+	static const char* GetCurrentTerrainName();
 
-long Worldmap_AreaMarkStateIsNoRadius();
+	static bool AreaTitlesIsEmpty();
+	static const char* GetCustomAreaTitle(long areaID);
+	static void SetCustomAreaTitle(long areaID, const char* msg);
 
-void __stdcall SetMapMulti(float value);
+	static long AreaMarkStateIsNoRadius();
+	static void __stdcall SetMapMulti(float value);
+};
 
 }

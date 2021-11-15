@@ -1578,23 +1578,23 @@ void ScriptExtender_OnGameLoad() {
 }
 
 void ScriptExtender_Init() {
-	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
+	toggleHighlightsKey = IniReader::GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
-		highlightContainers = GetConfigInt("Input", "HighlightContainers", 0);
-		highlightCorpses = GetConfigInt("Input", "HighlightCorpses", 0);
-		outlineColor = GetConfigInt("Input", "OutlineColor", 0x10);
+		highlightContainers = IniReader::GetConfigInt("Input", "HighlightContainers", 0);
+		highlightCorpses = IniReader::GetConfigInt("Input", "HighlightCorpses", 0);
+		outlineColor = IniReader::GetConfigInt("Input", "OutlineColor", 0x10);
 		if (outlineColor < 1) outlineColor = 0x40;
-		motionScanner = GetConfigInt("Misc", "MotionScannerFlags", 1);
-		Translate_Get("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
-		Translate_Get("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
+		motionScanner = IniReader::GetConfigInt("Misc", "MotionScannerFlags", 1);
+		Translate::Get("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
+		Translate::Get("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
 		HookCall(0x44BD1C, obj_remove_outline_hook); // gmouse_bk_process_
 		HookCall(0x44E559, obj_remove_outline_hook); // gmouse_remove_item_outline_
 	}
 
-	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
+	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle > 30) idle = 30;
 
-	arraysBehavior = GetConfigInt("Misc", "ArraysBehavior", 1);
+	arraysBehavior = IniReader::GetConfigInt("Misc", "ArraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
@@ -1602,7 +1602,7 @@ void ScriptExtender_Init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	alwaysFindScripts = isDebug && (GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
+	alwaysFindScripts = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, scr_find_sid_from_program_hack);
@@ -1653,9 +1653,9 @@ void ScriptExtender_Init() {
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
-	SetExtraKillCounter(UsingExtraKillTypes());
+	SetExtraKillCounter(KillCounter::UsingExtraKillTypes());
 
-	if (int unsafe = GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {
+	if (int unsafe = IniReader::GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {
 		if (unsafe == 2) checkValidMemAddr = false;
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = op_write_byte;

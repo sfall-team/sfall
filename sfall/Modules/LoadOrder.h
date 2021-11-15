@@ -21,11 +21,16 @@
 namespace sfall
 {
 
-void LoadOrder_Init();
-void LoadOrder_OnGameLoad();
-void RemoveSavFiles();
+class LoadOrder {
+public:
+	static const char* name() { return "LoadOrder"; }
+	static void init();
 
-void LoadOrder_art_get_name_hack();
+	static void OnGameLoad();
+	static void OnAfterGameInit();
+
+	static void art_get_name_hack();
+};
 
 extern long femaleMsgs;
 

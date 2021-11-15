@@ -92,21 +92,21 @@ end:
 }
 
 static void ApplyDisplayKarmaChangesPatch() {
-	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
+	if (IniReader::GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		Translate_Get("sfall", "KarmaGain", "You gained %d karma.", karmaGainMsg);
-		Translate_Get("sfall", "KarmaLoss", "You lost %d karma.", karmaLossMsg);
+		Translate::Get("sfall", "KarmaGain", "You gained %d karma.", karmaGainMsg);
+		Translate::Get("sfall", "KarmaLoss", "You lost %d karma.", karmaLossMsg);
 		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void ApplyKarmaFRMsPatch() {
-	std::vector<std::string> karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
+	std::vector<std::string> karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "", 512);
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
 		dlog("Applying karma FRM patch.", DL_INIT);
-		std::vector<std::string> karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
+		std::vector<std::string> karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "", 512);
 
 		karmaFrms.resize(countFrm);
 		size_t countPoints = karmaPointsList.size();
@@ -122,7 +122,7 @@ static void ApplyKarmaFRMsPatch() {
 	}
 }
 
-void Karma_Init() {
+void Karma::init() {
 	ApplyDisplayKarmaChangesPatch();
 	ApplyKarmaFRMsPatch();
 }

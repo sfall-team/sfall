@@ -23,19 +23,27 @@
 namespace sfall
 {
 
-void AI_Init();
-void AICombatClear();
+class AI {
+public:
+	static const char* name() { return "AI"; }
+	static void init();
 
-// Returns the friendly critter or any blocking object in the line of fire
-fo::GameObject* __stdcall AIHelpers_CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
+	static void AICombatClear();
 
-// Returns the friendly critter in the line of fire
-fo::GameObject* __stdcall AIHelpers_CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
+	static fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
+	static fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
+};
 
-bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
-bool __stdcall AIHelpers_AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target);
+class AIHelpers {
+public:
+	// Returns the friendly critter or any blocking object in the line of fire
+	static fo::GameObject* __stdcall CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
 
-fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
-fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
+	// Returns the friendly critter in the line of fire
+	static fo::GameObject* __stdcall CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
+
+	static bool __stdcall AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
+	static bool __stdcall AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target);
+};
 
 }

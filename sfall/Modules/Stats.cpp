@@ -35,9 +35,9 @@ static DWORD statMinimumsNPC[fo::STAT_max_stat];
 
 static DWORD xpTable[99];
 
-float experienceMod = 1.0f; // set_xp_mod func
-DWORD standardApAcBonus = 4;
-DWORD extraApAcBonus = 4;
+float Stats::experienceMod = 1.0f; // set_xp_mod func
+DWORD Stats::standardApAcBonus = 4;
+DWORD Stats::extraApAcBonus = 4;
 
 static struct StatFormula {
 	long base;
@@ -135,12 +135,12 @@ static void __declspec(naked) CalcApToAcBonus() {
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::perk_level_;
-		imul eax, extraApAcBonus;    // bonus = perkLvl * extraApBonus
-		imul eax, edi;               // perkBonus = bonus * curAP
+		imul eax, Stats::extraApAcBonus;    // bonus = perkLvl * extraApBonus
+		imul eax, edi;                      // perkBonus = bonus * curAP
 standard:
-		imul edi, standardApAcBonus; // stdBonus = curAP * standardApBonus
-		add  eax, edi;               // bonus = perkBonus + stdBonus
-		shr  eax, 2;                 // acBonus = bonus / 4
+		imul edi, Stats::standardApAcBonus; // stdBonus = curAP * standardApBonus
+		add  eax, edi;                      // bonus = perkBonus + stdBonus
+		shr  eax, 2;                        // acBonus = bonus / 4
 end:
 		retn;
 	}
@@ -186,7 +186,7 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 	}
 }
 
-void Stats_UpdateHPStat(fo::GameObject* critter) {
+void Stats::UpdateHPStat(fo::GameObject* critter) {
 	if (engineDerivedStats) return;
 
 	fo::Proto* proto;
@@ -246,11 +246,11 @@ allow:
 //////////////////////////////// CRITTER POISON ////////////////////////////////
 
 void __fastcall critter_check_poison_fix() {
-	if (PartyControl_IsNpcControlled()) {
+	if (PartyControl::IsNpcControlled()) {
 		// since another critter is being controlled, we can't apply the poison effect to it
 		// instead, we add the "poison" event to dude again, which will be triggered when dude returns to the player's control
 		fo::func::queue_clear_type(fo::QueueType::poison_event, nullptr);
-		fo::GameObject* dude = PartyControl_RealDudeObject();
+		fo::GameObject* dude = PartyControl::RealDudeObject();
 		fo::func::queue_add(10, dude, nullptr, fo::QueueType::poison_event);
 	}
 }
@@ -315,7 +315,7 @@ static void StatsReset() {
 	}
 }
 
-void Stats_OnGameLoad() {
+void Stats::OnGameLoad() {
 	StatsReset();
 	// Reset some settable game values back to the defaults
 	standardApAcBonus = 4;
@@ -328,7 +328,7 @@ void Stats_OnGameLoad() {
 	SafeWrite8(0x43C27A, 5);
 }
 
-void Stats_Init() {
+void Stats::init() {
 	using namespace fo;
 
 	StatsReset();
@@ -353,7 +353,7 @@ void Stats_Init() {
 	MakeCall(0x42D3B0, critter_adjust_rads_hack, 1);
 	SafeWrite16(0x42D3B6, 0xC085); // test eax, eax
 
-	std::vector<std::string> xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
+	std::vector<std::string> xpTableList = IniReader::GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
 		HookCall(0x434AA7, GetNextLevelXPHook);
@@ -370,11 +370,11 @@ void Stats_Init() {
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
-	std::string statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
+	std::string statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
-			derivedHPwBonus = (IniGetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
+			derivedHPwBonus = (IniReader::GetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
 			engineDerivedStats = false;
 			MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 
@@ -412,14 +412,14 @@ void Stats_Init() {
 				if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 				_itoa(i, key, 10);
-				statFormulas[i].base = IniGetInt(key, "base", statFormulas[i].base, statFile);
-				statFormulas[i].min = IniGetInt(key, "min", statFormulas[i].min, statFile);
+				statFormulas[i].base = IniReader::GetInt(key, "base", statFormulas[i].base, statFile);
+				statFormulas[i].min = IniReader::GetInt(key, "min", statFormulas[i].min, statFile);
 				for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
 					sprintf(buf2, "shift%d", j);
-					statFormulas[i].shift[j] = IniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
+					statFormulas[i].shift[j] = IniReader::GetInt(key, buf2, statFormulas[i].shift[j], statFile);
 					sprintf(buf2, "multi%d", j);
 					_gcvt(statFormulas[i].multi[j], 16, buf3);
-					IniGetString(key, buf2, buf3, buf2, 256, statFile);
+					IniReader::GetString(key, buf2, buf3, buf2, 256, statFile);
 					statFormulas[i].multi[j] = atof(buf2);
 				}
 			}
@@ -427,14 +427,14 @@ void Stats_Init() {
 	}
 }
 
-long __stdcall GetStatMax(int stat, int isNPC) {
+long __stdcall Stats::GetStatMax(int stat, int isNPC) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		return (isNPC) ? statMaximumsNPC[stat] : statMaximumsPC[stat];
 	}
 	return 0;
 }
 
-long __stdcall GetStatMin(int stat, int isNPC) {
+long __stdcall Stats::GetStatMin(int stat, int isNPC) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		return (isNPC) ? statMinimumsNPC[stat] : statMinimumsPC[stat];
 	}

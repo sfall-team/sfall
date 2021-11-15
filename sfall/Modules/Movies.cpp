@@ -50,7 +50,7 @@ private:
 	HRESULT __stdcall TerminateDevice(DWORD_PTR dwID) {
 		dlog_f("\nTerminate Device id: %d\n", DL_INIT, dwID);
 
-		Gfx_ReleaseMovieTexture();
+		Graphics::ReleaseMovieTexture();
 
 		for (std::vector<IDirect3DSurface9*>::iterator it = surfaces.begin(); it != surfaces.end(); ++it) {
 			SAFERELEASE((*it));
@@ -108,7 +108,7 @@ private:
 		desc.Height = lpAllocInfo->dwHeight;
 		desc.Format = lpAllocInfo->Format;
 
-		if (Gfx_CreateMovieTexture(desc) != D3D_OK) {
+		if (Graphics::CreateMovieTexture(desc) != D3D_OK) {
 			dlogr(" Failed to create movie texture!", DL_INIT);
 		} else {
 			initialized = true;
@@ -130,7 +130,7 @@ private:
 
 	HRESULT __stdcall StartPresenting(DWORD_PTR dwUserID) {
 		dlog("\nStart Presenting.", DL_INIT);
-		Gfx_SetMovieTexture(true);
+		Graphics::SetMovieTexture(true);
 		startPresenting = true;
 		return S_OK;
 	}
@@ -145,7 +145,7 @@ private:
 		if (startPresenting) {
 			IDirect3DTexture9* tex;
 			lpPresInfo->lpSurf->GetContainer(IID_IDirect3DTexture9, (LPVOID*)&tex);
-			Gfx_ShowMovieFrame(tex);
+			Graphics::ShowMovieFrame(tex);
 		}
 		return S_OK;
 	}
@@ -213,13 +213,13 @@ static DWORD backgroundVolume = 0;
 static void PlayMovie(sDSTexture* movie) {
 	movie->pControl->Run();
 	movie->pAudio->put_Volume(
-		Sound_CalculateVolumeDB(*fo::ptr::master_volume, (backgroundVolume) ? backgroundVolume : *fo::ptr::background_volume)
+		Sound::CalculateVolumeDB(*fo::ptr::master_volume, (backgroundVolume) ? backgroundVolume : *fo::ptr::background_volume)
 	);
 }
 
 static void StopMovie() {
 	aviPlayState = AviState::Stop;
-	Gfx_SetMovieTexture(false);
+	Graphics::SetMovieTexture(false);
 	movieInterface.pControl->Stop();
 	if (fo::var::getInt(FO_VAR_subtitles) == 0) fo::util::RefreshGNW(); // Note: it is only necessary when in the game
 }
@@ -527,7 +527,7 @@ static void __declspec(naked) op_play_gmovie_hack() {
 }
 
 void SkipOpeningMoviesPatch() {
-	int skipOpening = GetConfigInt("Misc", "SkipOpeningMovies", 0);
+	int skipOpening = IniReader::GetConfigInt("Misc", "SkipOpeningMovies", 0);
 	if (skipOpening) {
 		dlog("Skipping opening movies.", DL_INIT);
 		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
@@ -545,12 +545,12 @@ static __declspec(naked) void LostFocus() {
 		mov  isActive, eax;
 	}
 
-	Sound_SoundLostFocus(isActive);
+	Sound::SoundLostFocus(isActive);
 
 	if (aviPlayState == AviState::Playing) {
 		if (isActive)
 			movieInterface.pControl->Run();
-		else if (GraphicsMode == 4)
+		else if (Graphics::mode == 4)
 			BreakMovie();
 		else
 			movieInterface.pControl->Pause();
@@ -562,7 +562,7 @@ static __declspec(naked) void LostFocus() {
 	}
 }
 
-void Movies_Init() {
+void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
 	//if (*((DWORD*)0x00518DA0) != 0x00503300) {
@@ -580,9 +580,9 @@ void Movies_Init() {
 
 		_itoa_s(i + 1, &optName[5], 3, 10);
 		if (i < DEFAULT_MOVIES) {
-			GetConfigString("Misc", optName, fo::ptr::movie_list[i], &MoviePaths[index], 65);
+			IniReader::GetConfigString("Misc", optName, fo::ptr::movie_list[i], &MoviePaths[index], 65);
 		} else {
-			GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
+			IniReader::GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
 		}
 	}
 	dlog(".", DL_INIT);
@@ -596,10 +596,10 @@ void Movies_Init() {
 		WIP: Task
 		Implement subtitle output from the need to play an mve file in the background.
 	*/
-	if (GraphicsMode != 0) {
-		int allowDShowMovies = GetConfigInt("Graphics", "AllowDShowMovies", 0);
+	if (Graphics::mode != 0) {
+		int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
-			Gfx_AviMovieWidthFit = (allowDShowMovies >= 2);
+			Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
 			MakeJump(0x44E690, gmovie_play_hack);
 			HookCall(0x44E993, gmovie_play_hook_stop);
 			/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
@@ -610,7 +610,7 @@ void Movies_Init() {
 	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
 	days = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, days);
-	Artimer1DaysCheckTimer = GetConfigInt("Misc", "MovieTimer_artimer1", 90);
+	Artimer1DaysCheckTimer = IniReader::GetConfigInt("Misc", "MovieTimer_artimer1", 90);
 	if (Artimer1DaysCheckTimer != 90) {
 		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];
@@ -623,7 +623,7 @@ void Movies_Init() {
 	SkipOpeningMoviesPatch();
 }
 
-//void Movies_Exit() {
+//void Movies::exit() {
 //}
 
 }
