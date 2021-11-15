@@ -562,7 +562,7 @@ bool Worldmap::LoadData(HANDLE file) {
 		ReadFile(file, &mID, 4, &sizeRead, 0);
 		ReadFile(file, &elevData, sizeof(levelRest), &sizeRead, 0);
 		if (sizeRead != sizeof(levelRest)) return true;
-		mapRestInfo.insert(std::make_pair(mID, elevData));
+		mapRestInfo.emplace(mID, elevData);
 	}
 	if (count && !restMap) {
 		HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
@@ -637,7 +637,7 @@ void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
 			elev++;
 		}
 		elevData.level[elev] = canRest;
-		mapRestInfo.insert(std::make_pair(mapId, elevData));
+		mapRestInfo.emplace(mapId, elevData);
 	}
 }
 

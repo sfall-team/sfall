@@ -1244,7 +1244,7 @@ void PerksReset() {
 	if (perksReInit) PerkSetup(); // restore perk data
 }
 
-void Perks::save(HANDLE file) {
+void Perks::Save(HANDLE file) {
 	DWORD unused, count = fakeTraits.size();
 	WriteFile(file, &count, 4, &unused, 0);
 	for (DWORD i = 0; i < count; i++) {
@@ -1262,7 +1262,7 @@ void Perks::save(HANDLE file) {
 	}
 }
 
-bool Perks::load(HANDLE file) {
+bool Perks::Load(HANDLE file) {
 	DWORD count, size;
 	ReadFile(file, &count, 4, &size, 0);
 	if (size != 4) return false;

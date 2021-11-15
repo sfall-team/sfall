@@ -298,7 +298,7 @@ void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mo
 	pickpocketMods.emplace_back(id, maximum, mod);
 }
 
-static void Skills_OnGameLoad() {
+static void ResetOnGameLoad() {
 	pickpocketMods.clear();
 	basePickpocket.SetDefault();
 
@@ -330,7 +330,7 @@ void Skills::init() {
 	// 0x00000400 - Energy Weapon (forces weapon to use Energy Weapons skill)
 	HookCall(0x47831E, item_w_skill_hook);
 
-	LoadGameHook::OnGameReset() += Skills_OnGameLoad;
+	LoadGameHook::OnGameReset() += ResetOnGameLoad;
 
 	char buf[512], key[16];
 	auto skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "", MAX_PATH);

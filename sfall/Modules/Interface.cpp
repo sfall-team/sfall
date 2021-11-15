@@ -120,10 +120,10 @@ skip:
 
 static void __declspec(naked) intface_init_hack() {
 	__asm {
-		add eax, 9276 - (54 / 2); // x offset
-		mov edx, 144 - 90;        // width
-		add [esp + 4], edx;
-		add [esp + 0x10 + 4], edx;
+		add  eax, 9276 - (54 / 2); // x offset
+		mov  edx, 144 - 90;        // width
+		add  [esp + 4], edx;
+		add  [esp + 0x10 + 4], edx;
 		retn;
 	}
 }
@@ -158,8 +158,9 @@ static void ActionPointsBarPatch() {
 	} else {
 		APBarRectPatch();
 	}
-	SafeWrite32(0x45E343, (DWORD)&movePointBackground);
-	SafeWrite32(0x45EE3F, (DWORD)&movePointBackground);
+	// intface_init_
+	SafeWriteBatch<DWORD>((DWORD)&movePointBackground, {0x45E343, 0x45EE3F});
+	// intface_update_move_points_
 	SafeWriteBatch<BYTE>(16, {0x45EE55, 0x45EE7B, 0x45EE82, 0x45EE9C, 0x45EEA0});
 	SafeWriteBatch<DWORD>(9276 - (54 / 2), {0x45EE33, 0x45EEC8, 0x45EF16});
 
