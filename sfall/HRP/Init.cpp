@@ -162,7 +162,7 @@ void HRP::init() {
 	IFaceBar::IFACE_BAR_MODE = IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDE_ART = IniReader::GetInt("IFACE", "IFACE_BAR_SIDE_ART", 2, f2ResIni);
 	IFaceBar::IFACE_BAR_WIDTH = IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
-	IFaceBar::IFACE_BAR_SIDES_ORI = IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni);
+	IFaceBar::IFACE_BAR_SIDES_ORI = (IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni) != 0);
 
 	Dialog::DIALOG_SCRN_ART_FIX = (IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_ART_FIX", 1, f2ResIni) != 0);
 	Dialog::DIALOG_SCRN_BACKGROUND = (IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_BACKGROUND", 0, f2ResIni) != 0);

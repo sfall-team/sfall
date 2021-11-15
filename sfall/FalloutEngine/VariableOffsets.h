@@ -95,6 +95,7 @@
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
+#define FO_VAR_endWindowRect              0x518FA0
 #define FO_VAR_Experience_pc              0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_config             0x50281C
@@ -152,7 +153,7 @@
 #define FO_VAR_In_WorldMap                0x672E1C
 #define FO_VAR_info_line                  0x5707D0
 #define FO_VAR_interfaceWindow            0x519024
-#define FO_VAR_intface_full_wid           0x56FB4C
+#define FO_VAR_intface_full_width         0x56FB4C
 #define FO_VAR_intfaceEnabled             0x518F10
 #define FO_VAR_intotal                    0x43E95C
 #define FO_VAR_inven_dude                 0x519058
@@ -162,6 +163,7 @@
 #define FO_VAR_inventry_message_file      0x59E814
 #define FO_VAR_iscr_data                  0x519068
 #define FO_VAR_itemButtonItems            0x5970F8
+#define FO_VAR_itemButtonRect             0x518F7C
 #define FO_VAR_itemCurrentItem            0x518F78
 #define FO_VAR_kb_lock_flags              0x51E2EA
 #define FO_VAR_language                   0x56C970  // aka _darn_foreign_sub_path

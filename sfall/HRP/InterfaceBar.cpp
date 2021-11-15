@@ -6,6 +6,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Modules\LoadGameHook.h"
 
 #include "Init.h"
 //#include "Image.h"
@@ -18,11 +19,13 @@ namespace sfall
 long IFaceBar::IFACE_BAR_MODE; // 1 - the bottom of the map view window extends to the base of the screen and is overlapped by the IFACE Bar
 long IFaceBar::IFACE_BAR_SIDE_ART;
 long IFaceBar::IFACE_BAR_WIDTH;
-long IFaceBar::IFACE_BAR_SIDES_ORI; // 1 - Iface-bar side graphics extend from the Screen edges to the Iface-Bar
+bool IFaceBar::IFACE_BAR_SIDES_ORI; // 1 - Iface-bar side graphics extend from the Screen edges to the Iface-Bar
+long IFaceBar::ALTERNATE_AMMO_METRE;
 
 static long xPosition;
 static long yPosition;
 static long xOffset;
+static long xyOffsetCBtn;
 static long xyOffsetAP;
 
 bool IFaceBar::UseExpandAPBar = false;
@@ -43,7 +46,10 @@ static class Panels {
 		long width = win->width;
 		if (width > frm->frames->width) width = frm->frames->width;
 		BYTE* scr = frm->frames->indexBuff;
-		if (win->wRect.left <= 0) scr += (frm->frames->width - win->width); // set the position to the right side 
+
+		// set the position to the right side
+		if (!IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left <= 0) scr += (frm->frames->width - win->width);
+		if (IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left > xPosition) scr += (frm->frames->width - win->width);
 
 		fo::func::cscale(scr, width, frm->frames->height, frm->frames->width, win->surface, win->width, win->height, win->width);
 
@@ -88,7 +94,7 @@ static long __fastcall IntfaceWinCreate(long height, long yPos, long xPos, long 
 
 		panels = new Panels(leftID, rightID);
 	}
-	return fo::func::win_add(xPos, yPos, width, height, 55, flags);
+	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
 static void __declspec(naked) intface_init_hook_win_add() {
@@ -179,6 +185,14 @@ static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE*
 	if (HRP::ScreenWidth() >= IFaceBar::IFACE_BAR_WIDTH) {
 		xOffset = IFaceBar::IFACE_BAR_WIDTH - 640;
 		xyOffsetAP = 15 * xOffset;
+		xyOffsetCBtn = 39 * xOffset;
+
+		fo::var::endWindowRect.x += xOffset;
+		fo::var::endWindowRect.offx += xOffset;
+		fo::var::movePointRect.x += xOffset;
+		fo::var::movePointRect.offx += xOffset;
+		fo::var::itemButtonRect.x += xOffset;
+		fo::var::itemButtonRect.offx += xOffset;
 
 		char file[33];
 		std::sprintf(file, "HR_IFACE_%i%s.frm", IFaceBar::IFACE_BAR_WIDTH, ((IFaceBar::UseExpandAPBar) ? "E" : ""));
@@ -210,7 +224,7 @@ static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE*
 	return -1;
 }
 
-static void __declspec(naked) intface_init_hook_buf_to_buf() {
+static void __declspec(naked) intface_init_hook_buf_to_buf_ART() {
 	__asm {
 		pop  ebx;
 		call InterfaceArt;
@@ -223,7 +237,7 @@ default:
 	}
 }
 
-static void __declspec(naked) intface_init_hook_buf_to_buf_1() {
+static void __declspec(naked) intface_init_hook_buf_to_buf() {
 	__asm {
 		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
 		mov  [esp + 0xC + 4], eax; // from width
@@ -243,7 +257,27 @@ static void __declspec(naked) intface_update_move_points_hook_buf_to_buf() {
 	}
 }
 
-static void __declspec(naked) intface_init_hack_at_win_register_button() {
+static void __declspec(naked) combat_buttons_buf_to_buf() {
+	__asm {
+		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
+		mov  [esp + 0x14 + 4], eax; // to width
+		mov  eax, xyOffsetCBtn;
+		add  [esp + 0x10 + 4], eax; // to += 39 * (IFaceBar::IFACE_BAR_WIDTH - 640)
+		jmp  fo::funcoffs::buf_to_buf_;
+	}
+}
+
+static void __declspec(naked) combat_buttons_trans_buf_to_buf() {
+	__asm {
+		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
+		mov  [esp + 0x14 + 4], eax; // to width
+		mov  eax, xyOffsetCBtn;
+		add  [esp + 0x10 + 4], eax; // to += 39 * (IFaceBar::IFACE_BAR_WIDTH - 640)
+		jmp  fo::funcoffs::trans_buf_to_buf_;
+	}
+}
+
+static void __declspec(naked) intface_win_register_button() {
 	__asm {
 		add  edx, xOffset;
 		jmp  fo::funcoffs::win_register_button_;
@@ -261,7 +295,7 @@ static void __declspec(naked) display_init_hack() {
 }
 
 static void __cdecl display_init_hook_buf_to_buf(BYTE* scr, long w, long h, long srcWidth, BYTE* dispBuff, long dstWidth) {
-	fo::var::setInt(FO_VAR_intface_full_wid) = IFaceBar::IFACE_BAR_WIDTH;
+	fo::var::setInt(FO_VAR_intface_full_width) = IFaceBar::IFACE_BAR_WIDTH;
 	fo::var::disp_rect.offx = IFaceBar::IFACE_BAR_WIDTH - 451;
 
 	fo::Window* ifaceWin = fo::func::GNW_find(fo::var::interfaceWindow);
@@ -285,36 +319,116 @@ static void __declspec(naked) display_redraw_hack() {
 	}
 }
 
+static void __declspec(naked) DisplayReset() {
+	__asm { // ebx: 100, ecx: 0
+		mov  eax, IFaceBar::display_string_buf;
+jloop:
+		mov  [eax], cl;
+		lea  eax, [eax + 256];
+		dec  ebx;
+		jnz  jloop;
+		jmp  fo::funcoffs::display_redraw_;
+	}
+}
+
+static void __declspec(naked) intface_rotate_numbers_hack() {
+	__asm {
+		imul edx, IFaceBar::IFACE_BAR_WIDTH; // y * width
+		mov  eax, xOffset;
+		add  [esp + 0x1C + 4], eax; // x + offset
+		mov  eax, edx;
+		retn;
+	}
+}
+
+static void __declspec(naked) intface_rotate_numbers_hook_buf_to_buf() {
+	__asm {
+		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
+		mov  [esp + 0x14 + 4], eax; // to width
+		jmp  fo::funcoffs::buf_to_buf_;
+	}
+}
+
+static void __declspec(naked) intface_draw_ammo_lights_hack() {
+	__asm {
+		add  eax, xOffset;
+		mov  esi, eax;
+		test dl, 1;
+		retn;
+	}
+}
+
+void IFaceBar::Hide() {
+	InterfaceHide(fo::var::getInt(FO_VAR_interfaceWindow));
+}
+
+void IFaceBar::Show() {
+	InterfaceShow(fo::var::getInt(FO_VAR_interfaceWindow));
+}
+
 void IFaceBar::init() {
 	if (IFACE_BAR_WIDTH < 640) {
 		IFACE_BAR_WIDTH = 640;
 	} else if (IFACE_BAR_WIDTH > 640) {
 		display_width = IFaceBar::IFACE_BAR_WIDTH - 473; // message display width (800-473=327)
-		display_string_buf = new char[100 * 256]();
+		display_string_buf = new char[100 * 256];
 
-		HookCall(0x45D950, intface_init_hook_buf_to_buf);
-		HookCall(0x45E35C, intface_init_hook_buf_to_buf_1);
+		HookCall(0x45D950, intface_init_hook_buf_to_buf_ART);
+		HookCall(0x45E35C, intface_init_hook_buf_to_buf);
 
 		HookCalls(intface_update_move_points_hook_buf_to_buf, {0x45EE43, 0x45EEDF, 0x45EF2D});
 
-		HookCalls(intface_init_hack_at_win_register_button, {0x45DA0E, 0x45DAED, 0x45DC0D, 0x45DD44, 0x45DE33, 0x45DF22, 0x45E0B5, 0x45E1EF});
-		HookCall(0x460883, intface_init_hack_at_win_register_button); // intface_create_end_turn_button_
-		HookCall(0x4609E3, intface_init_hack_at_win_register_button); // intface_create_end_combat_button_
+		HookCalls(intface_win_register_button, {
+			0x45DA0E, 0x45DAED, 0x45DC0D, 0x45DD44, 0x45DE33, 0x45DF22, 0x45E0B5, 0x45E1EF, // intface_init_
+			0x460883, // intface_create_end_turn_button_
+			0x4609E3, // intface_create_end_combat_button_
+		});
 
+		HookCalls(combat_buttons_buf_to_buf, {
+			0x45FA2A, 0x45FA7B, // intface_end_window_open_
+			0x45FB87, 0x45FBD1, // intface_end_window_close_
+		});
+		// intface_end_buttons_enable_, intface_end_buttons_disable_
+		HookCalls(combat_buttons_trans_buf_to_buf, {0x45FC72, 0x45FD06});
+
+		// display_init_  hacks
 		MakeCall(0x43166F, display_init_hack);
 		HookCall(0x431704, display_init_hook_buf_to_buf);
-		//HookCall(0x43173A, display_init_hook_win_register_button);
-		//HookCall(0x431785, display_init_hook_win_register_button);
-
 		SafeWrite32(0x43172A, display_width);
 		SafeWrite32(0x431770, display_width);
 
-		// display_redraw_
+		HookCalls(DisplayReset, {
+			0x4317EE, // display_init_
+			0x431841  // display_reset_
+		});
+		// jle > jmp
+		SafeWrite8(0x4317C1, CodeType::JumpShort); // display_init_
+		SafeWrite8(0x431814, CodeType::JumpShort); // display_reset_
+
+		// display_redraw_ hacks
 		MakeCall(0x431B19, display_redraw_hack);
 		SafeWrite32(0x431AB9, display_width);
 		SafeWrite32(0x431AC0, display_width);
 		SafeWrite32(0x431B3B, display_width);
 		SafeWrite32(0x431B36, (DWORD)display_string_buf);
+
+		// rotate numbers hacks
+		MakeCall(0x460BF3, intface_rotate_numbers_hack, 4);
+		// remove 'shl eax, 7'
+		SafeWrite16(0x460C02, 0x9090);
+		SafeWrite8(0x460C04, 0x90);
+
+		HookCalls(intface_rotate_numbers_hook_buf_to_buf, {
+			0x460CC4, 0x460CF8, 0x460D2C, 0x460D75, 0x460EA1, 0x460EF1, 0x460F47,
+			0x460FA0, 0x460FDD, 0x461010, 0x461060, 0x461085, 0x4610AB, 0x4610EC
+		});
+
+		if (ALTERNATE_AMMO_METRE == 0) {
+			// intface_draw_ammo_lights_ hacks
+			MakeCall(0x460AA6, intface_draw_ammo_lights_hack);
+			SafeWriteBatch<DWORD>(IFACE_BAR_WIDTH, {0x460AC8, 0x460AD8, 0x460AE3});
+			SafeWrite32(0x460AB4, 26 * IFACE_BAR_WIDTH); // y position
+		}
 	}
 
 	HookCall(0x45D8BC, intface_init_hook_win_add);
@@ -322,9 +436,14 @@ void IFaceBar::init() {
 	HookCall(0x4AC260, skilldex_start_hook_win_add);
 
 	HookCall(0x45EA48, intface_show_hook_win_show);
-	HookCall(0x45E3F5, intface_win_hide); // intface_reset_
-	HookCall(0x45E8FB, intface_win_hide); // intface_load_
-	HookCall(0x45E9FD, intface_win_hide); // intface_hide_
+	HookCalls(intface_win_hide, {
+		0x45E3F5, // intface_reset_
+		0x45E8FB, // intface_load_
+		0x45E9FD  // intface_hide_
+	});
+
+//	if (ALTERNATE_AMMO_METRE > 0) {
+//	}
 
 	if (IFACE_BAR_MODE > 0) {
 		// Set view map height to game resolution
@@ -337,6 +456,13 @@ void IFaceBar::init() {
 		// remove subtract 100
 		SafeWrite8(0x48284F, 0);
 	}
+
+	LoadGameHook::OnBeforeGameClose() += []() {
+		if (IFACE_BAR_WIDTH > 640) {
+			delete[] display_string_buf;
+			delete panels;
+		}
+	};
 }
 
 }

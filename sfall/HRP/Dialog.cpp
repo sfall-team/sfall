@@ -9,6 +9,7 @@
 #include "..\Modules\LoadGameHook.h"
 
 #include "Init.h"
+#include "InterfaceBar.h"
 #include "ViewMap\ViewMap.h"
 
 #include "Dialog.h"
@@ -30,9 +31,7 @@ static long yPosition;
 static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long color, long flags) {
 	if (Dialog::DIALOG_SCRN_BACKGROUND) {
 		fo::func::win_hide(fo::var::getInt(FO_VAR_display_win));
-
-		// hide panels
-
+		IFaceBar::Hide();
 		yPos += 50;
 	}
 
@@ -66,7 +65,7 @@ static void __declspec(naked) gdCreateHeadWindow_hook_win_add() {
 static void ShowMapWindow() {
 	fo::func::win_show(fo::var::getInt(FO_VAR_display_win));
 	fo::func::win_draw(fo::var::getInt(FO_VAR_display_win));
-	// show panels
+	IFaceBar::Show();
 }
 
 static void __declspec(naked) gdDestroyHeadWindow_hook_win_delete() {
@@ -228,7 +227,7 @@ void Dialog::init() {
 	});
 
 	// gdCustomSelect_
-	long yoffset = (DIALOG_SCRN_BACKGROUND) ? 100 : 200; // shifted the window up so that the window with the selected parameters was visible
+	long yoffset = (DIALOG_SCRN_BACKGROUND) ? 100 : 200; // shifted the window up so that the window with the selected options was visible
 	SafeWrite32(0x44A03E, HRP::ScreenHeight() - yoffset);
 	SafeWrite32(0x44A02A, HRP::ScreenWidth());
 
