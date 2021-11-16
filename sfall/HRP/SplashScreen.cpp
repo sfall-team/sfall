@@ -20,7 +20,7 @@ namespace sfall
 // 2 - image will stretch to fill the screen
 long SplashScreen::SPLASH_SCRN_SIZE;
 
-static void __cdecl game_splash_screen_hook_scr_blit(BYTE* srcPixels, long srcWidth, long srcHeight, long srcX, long srcY, long width, long height, long x, long y) {
+static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWidth, long srcHeight, long srcX, long srcY, long width, long height, long x, long y) {
 	RECT rect;
 	long w = Graphics::GetGameWidthRes();
 	long h = Graphics::GetGameHeightRes();
@@ -72,9 +72,36 @@ static void __cdecl game_splash_screen_hook_scr_blit(BYTE* srcPixels, long srcWi
 	Graphics::UpdateDDSurface(srcPixels, srcWidth, srcHeight, srcWidth, &rect);
 }
 
-void SplashScreen::init() {
+// Fixes colored screen border when the index 0 of the palette contains a color with a non-black (zero) value
+static void __fastcall Clear(fo::PALETTE* palette) {
+	long minValue = (palette->B + palette->G + palette->R);
+	if (minValue == 0) return;
 
-	MakeCall(0x44451E, game_splash_screen_hook_scr_blit, 1);
+	long index = 0;
+
+	// search index of the darkest color in the palette
+	for (size_t i = 1; i < 256; i++)
+	{
+		long rgbVal = palette[i].B + palette[i].G + palette[i].R;
+		if (rgbVal < minValue) {
+			minValue = rgbVal;
+			index = i;
+		}
+	}
+	if (index != 0) Graphics::BackgroundClearColor(index);
+}
+
+static void __declspec(naked) game_splash_screen_hook() {
+	__asm {
+		call fo::funcoffs::db_fclose_;
+		mov  ecx, ebp; // .rix palette
+		jmp  Clear;
+	}
+}
+
+void SplashScreen::init() {
+	HookCall(0x4444FC, game_splash_screen_hook);
+	MakeCall(0x44451E, game_splash_screen_hack_scr_blit, 1);
 }
 
 }

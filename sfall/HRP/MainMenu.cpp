@@ -93,6 +93,8 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 	long offset = 0;
 	long sw = w, sh = h;
 
+	Graphics::BackgroundClearColor(0);
+
 	if (MainMenuScreen::USE_HIRES_IMAGES) {
 		if (!mainBackgroundFrm) {
 			mainBackgroundFrm = fo::util::LoadUnlistedFrm("HR_MAINMENU.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
@@ -237,9 +239,6 @@ static long __fastcall ButtonScale(long &width, long xPos, BYTE* &upImageData, B
 		// down
 		downButtonImageData = &buttonImageData[size];
 		Image::Scale(*(BYTE**)FO_VAR_button_down_data, width, width, downButtonImageData, sWidth, sWidth);
-
-		//fo::var::setInt(FO_VAR_button_up_data) = (long)buttonImageData;
-		//fo::var::setInt(FO_VAR_button_down_data) = (long)downButtonImageData;
 	}
 	upImageData = buttonImageData;
 	downImageData = downButtonImageData;

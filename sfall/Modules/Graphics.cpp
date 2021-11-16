@@ -79,12 +79,6 @@ static struct PALCOLOR {
 		};
 	};
 } *palette;
-
-struct PALETTE { // F2 palette
-	BYTE B;
-	BYTE G;
-	BYTE R;
-};
 #pragma pack(pop)
 
 //static bool paletteInit = false;
@@ -661,7 +655,7 @@ public:
 		if (primary && Graphics::GPUBlt) {
 			// use the mainTex texture as source buffer
 		} else {
-			lockTarget = new BYTE[ResWidth * ResHeight];
+			lockTarget = new BYTE[ResWidth * ResHeight]();
 		}
 	}
 
@@ -748,7 +742,13 @@ public:
 	HRESULT __stdcall GetOverlayPosition(LPLONG, LPLONG) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetPalette(LPDIRECTDRAWPALETTE *) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetPixelFormat(LPDDPIXELFORMAT) { UNUSEDFUNCTION; }
-	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
+
+	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC a) {
+		*a = surfaceDesc;
+		a->lpSurface = lockTarget;
+		return DD_OK;
+	}
+
 	HRESULT __stdcall Initialize(LPDIRECTDRAW, LPDDSURFACEDESC) { UNUSEDFUNCTION; }
 	HRESULT __stdcall IsLost() { UNUSEDFUNCTION; }
 
@@ -939,7 +939,7 @@ public:
 		if (!windowInit || (long)c <= 0) return DDERR_INVALIDPARAMS;
 		//palCounter++;
 
-		PALETTE* destPal = (PALETTE*)d;
+		fo::PALETTE* destPal = (fo::PALETTE*)d;
 
 		if (Graphics::GPUBlt) {
 			D3DLOCKED_RECT pal;
@@ -1067,14 +1067,14 @@ public:
 		}
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
-		if (Graphics::mode >= 5) {
-			if (ResWidth != gWidth || ResHeight != gHeight) {
-				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
-			} else {
-				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
-			}
-			SetWindowTextA(a, windowTitle);
+		if (ResWidth != gWidth || ResHeight != gHeight) {
+			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
+		} else {
+			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
+		}
+		SetWindowTextA(a, windowTitle);
 
+		if (Graphics::mode >= 5) {
 			SetWindowLongA(a, GWL_STYLE, windowStyle);
 			RECT r;
 			r.left = 0;
@@ -1256,6 +1256,19 @@ void Graphics::RefreshGraphics() {
 void __stdcall Graphics::ForceGraphicsRefresh(DWORD d) {
 	if (!d3d9Device) return;
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
+}
+
+void Graphics::BackgroundClearColor(long indxColor) {
+	if (GPUBlt) {
+		D3DLOCKED_RECT buf;
+		mainTex->LockRect(0, &buf, 0, D3DLOCK_DISCARD);
+		std::memset(buf.pBits, indxColor, ResWidth * ResHeight);
+		mainTex->UnlockRect(0);
+	} else {
+		DDSURFACEDESC desc;
+		primarySurface->GetSurfaceDesc(&desc);
+		std::memset(desc.lpSurface, indxColor, ResWidth * ResHeight);
+	}
 }
 
 void Graphics::init() {

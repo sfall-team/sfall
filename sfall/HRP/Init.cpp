@@ -57,7 +57,7 @@ bool HRP::CheckExternalPatch() {
 	}
 	return isEnabled;
 }
-
+/*
 static void __declspec(naked) mem_copy() {
 	__asm {
 		cmp  edx, eax;
@@ -111,7 +111,7 @@ forward:
 		retn;
 	}
 }
-
+*/
 void HRP::init() {
 	//HookCall(0x482899, mem_copy);
 	//SafeWrite16(0x4B2EA8, 0x9090); // _show_grid
