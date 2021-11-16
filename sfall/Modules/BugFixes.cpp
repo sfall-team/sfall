@@ -67,7 +67,8 @@ bool BugFixes::DrugsLoadFix(HANDLE file) {
 	}
 	return false;
 }
-///////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
 
 void ResetBodyState() {
 	__asm mov critterBody, 0;
@@ -3110,6 +3111,20 @@ skip:
 	}
 }
 
+static void __declspec(naked) win_show_hack() {
+	__asm {
+		xor  ebx, ebx;
+		lea  edx, [esi + 0x8]; // window.rect
+		mov  eax, esi;
+		call fo::funcoffs::GNW_win_refresh_;
+		pop  esi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
+		retn;
+	}
+}
+
 static bool createObjectSidStartFix = false;
 
 static void __declspec(naked) op_create_object_sid_hack() {
@@ -3955,6 +3970,9 @@ void BugFixes::init()
 	// Fix for the "Leave" event procedure of the window region not being triggered when the cursor moves to a non-scripted window
 	MakeJump(0x4B6C3B, checkAllRegions_hack);
 	HookCall(0x4B6C13, checkAllRegions_hook);
+
+	// Fix for the window with the "DontMoveTop" flag not being redrawn after the show function call if it is not the topmost one
+	MakeJump(0x4D6E04, win_show_hack);
 
 	// Fix for the script attached to an object not being initialized properly upon object creation
 	createObjectSidStartFix = (IniReader::GetConfigInt("Misc", "CreateObjectSidFix", 0) != 0);
