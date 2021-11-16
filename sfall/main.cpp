@@ -248,8 +248,8 @@ static void InitModules() {
 	ModuleInitLog(MetaruleExtender::name());
 	MetaruleExtender::init();
 
-	ModuleInitLog("HookScripts");
-	HookScripts_Init();
+	ModuleInitLog(HookScripts::name());
+	HookScripts::init();
 
 	ModuleInitLog("ScriptExtender");
 	ScriptExtender_Init();

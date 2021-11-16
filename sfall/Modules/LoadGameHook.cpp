@@ -115,7 +115,7 @@ void ClearLoopFlag(LoopFlag flag) {
 }
 
 static void __stdcall GameModeChange(DWORD state) { // OnGameModeChange
-	GameModeChangeHook(state);
+	HookCommon::GameModeChangeHook(state);
 }
 
 void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {

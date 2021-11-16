@@ -35,6 +35,8 @@ namespace sfall
 // Number of types of hooks
 static const int numHooks = HOOK_COUNT;
 
+DWORD HookScripts::initingHookScripts;
+
 // Struct for registered hook script
 struct HookScript {
 	ScriptProgram prog;
@@ -43,8 +45,6 @@ struct HookScript {
 };
 
 static std::vector<HookScript> hooks[numHooks];
-
-DWORD initingHookScripts;
 
 static const int maxArgs = 16; // Maximum number of hook arguments
 static const int maxRets = 8;  // Maximum number of return values
@@ -87,6 +87,35 @@ static struct HooksPositionInfo {
 
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
+
+DWORD __stdcall HookCommon::GetHSArgCount() {
+	return argCount;
+}
+
+DWORD __stdcall HookCommon::GetHSArg() {
+	return (cArg == argCount) ? 0 : args[cArg++];
+}
+
+void __stdcall HookCommon::SetHSArg(DWORD id, DWORD value) {
+	if (id < argCount) args[id] = value;
+}
+
+DWORD* __stdcall HookCommon::GetHSArgs() {
+	return args;
+}
+
+DWORD __stdcall HookCommon::GetHSArgAt(DWORD id) {
+	return args[id];
+}
+
+void __stdcall HookCommon::SetHSReturn(DWORD value) {
+	if (cRetTmp < maxRets) {
+		rets[cRetTmp++] = value;
+	}
+	if (cRetTmp > cRet) {
+		cRet = cRetTmp;
+	}
+}
 
 static void __stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
@@ -206,7 +235,6 @@ static void __declspec(naked) ToHitHook() {
 	}
 }
 
-// 4.x backport
 static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
 	BeginHook();
 	argCount = 5;
@@ -263,7 +291,7 @@ static long __stdcall CalcApCostHook_Script(fo::GameObject* source, long hitMode
 }
 
 long __stdcall CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon) {
-	return (HookHasScript(HOOK_CALCAPCOST))
+	return (HookScripts::HookHasScript(HOOK_CALCAPCOST))
 	       ? CalcApCostHook_Script(source, hitMode, isCalled, cost, weapon)
 	       : cost;
 }
@@ -322,7 +350,6 @@ static void __declspec(naked) CalcApCostHook2() {
 	}
 }
 
-// 4.x backport
 static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
 	BeginHook();
 	argCount = 5; // was 4
@@ -402,7 +429,6 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	}
 }
 
-// 4.x backport
 static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiplier) {
 	BeginHook();
 	argCount = 13;
@@ -491,7 +517,6 @@ static void __declspec(naked) OnDeathHook2() {
 	__asm retn;
 }
 
-// 4.x backport
 static void __fastcall FindTargetHook_Script(DWORD* target, fo::GameObject* attacker) {
 	BeginHook();
 	argCount = 5;
@@ -540,7 +565,7 @@ static long __stdcall UseObjOnHook_Script(fo::GameObject* source, fo::GameObject
 }
 
 long __stdcall UseObjOnHook_Invoke(fo::GameObject* source, fo::GameObject* item, fo::GameObject* target) {
-	if (!HookHasScript(HOOK_USEOBJON)) return -1;
+	if (!HookScripts::HookHasScript(HOOK_USEOBJON)) return -1;
 	return UseObjOnHook_Script(source, item, target);
 }
 
@@ -639,7 +664,7 @@ static void RemoveInvenObjHook_Script(fo::GameObject* source, fo::GameObject* it
 }
 
 void RemoveInvenObjHook_Invoke(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
-	if (HookHasScript(HOOK_REMOVEINVENOBJ)) RemoveInvenObjHook_Script(source, item, count, rmType);
+	if (HookScripts::HookHasScript(HOOK_REMOVEINVENOBJ)) RemoveInvenObjHook_Script(source, item, count, rmType);
 }
 */
 static long rmObjType = -1;
@@ -682,7 +707,6 @@ static void __declspec(naked) RemoveObjHook() {
 	}
 }
 
-// 4.x backport
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
 	bool barterIsParty = (*fo::ptr::dialog_target_is_party != 0);
@@ -937,7 +961,6 @@ static void __declspec(naked) ItemDamageHook() {
 	__asm jmp fo::funcoffs::roll_random_;
 }
 
-// 4.x backport
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds) {
 	int result = 0;
 
@@ -982,8 +1005,8 @@ skip:
 	}
 }
 
-void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!IsGameLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
+void __stdcall HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
+	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}
 	BeginHook();
@@ -999,8 +1022,8 @@ void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	EndHook();
 }
 
-void __stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsGameLoaded() || !HookHasScript(HOOK_MOUSECLICK)) {
+void __stdcall HookCommon::MouseClickHook(DWORD button, bool pressed) {
+	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
 		return;
 	}
 	BeginHook();
@@ -1067,7 +1090,6 @@ defaultHandler:
 	}
 }
 
-// 4.x backport
 static __forceinline long __stdcall PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type, long result) {
 	BeginHook();
 	argCount = 4;
@@ -1086,7 +1108,7 @@ static __forceinline long __stdcall PerceptionRangeHook_Script(fo::GameObject* w
 }
 
 long __stdcall PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result) {
-	if (!HookHasScript(HOOK_WITHINPERCEPTION)) return result;
+	if (!HookScripts::HookHasScript(HOOK_WITHINPERCEPTION)) return result;
 	return PerceptionRangeHook_Script(watcher, target, type, result);
 }
 
@@ -1144,7 +1166,6 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 	}
 }
 
-// 4.x backport
 static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
 	if (itemReplaced && fo::func::item_get_type(itemReplaced) == fo::item_type_weapon && fo::func::item_get_type(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
@@ -1161,7 +1182,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	int result = PartyControl::SwitchHandHook(item);
 	if (result != -1) {
 		cRetTmp = 0;
-		SetHSReturn(result);
+		HookCommon::SetHSReturn(result);
 	}
 	result = (cRet > 0) ? rets[0] : -1;
 	EndHook();
@@ -1407,7 +1428,6 @@ skip:
 	}
 }
 
-// 4.x backport
 /* Common InvenWield script hooks */
 static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameObject* item, long slot, long isWield, long isRemove) {
 	if (!isWield) {
@@ -1535,7 +1555,7 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 }
 
 long __stdcall InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long flags) {
-	if (!HookHasScript(HOOK_INVENWIELD)) return 1;
+	if (!HookScripts::HookHasScript(HOOK_INVENWIELD)) return 1;
 
 	long slot = fo::INVEN_TYPE_WORN;
 	if (flags & fo::ObjectFlag::Right_Hand) {       // right hand slot
@@ -1659,7 +1679,6 @@ noArmor:
 	}
 }
 
-// 4.x backport
 void __stdcall AdjustFidHook(DWORD vanillaFid) {
 	BeginHook();
 	argCount = 2;
@@ -1674,11 +1693,10 @@ void __stdcall AdjustFidHook(DWORD vanillaFid) {
 	EndHook();
 }
 
-// 4.x backport
 static unsigned long previousGameMode = 0;
 
-void __stdcall GameModeChangeHook(DWORD exit) {
-	if (HookHasScript(HOOK_GAMEMODECHANGE)) {
+void __stdcall HookCommon::GameModeChangeHook(DWORD exit) {
+	if (HookScripts::HookHasScript(HOOK_GAMEMODECHANGE)) {
 		BeginHook();
 		argCount = 2;
 		args[0] = exit;
@@ -1690,44 +1708,15 @@ void __stdcall GameModeChangeHook(DWORD exit) {
 }
 // END HOOKS
 
-static void HookCommon_Reset() {
+void HookCommon::Reset() {
 	previousGameMode = 0;
 }
 
-DWORD __stdcall GetHSArgCount() {
-	return argCount;
-}
-
-DWORD __stdcall GetHSArg() {
-	return (cArg == argCount) ? 0 : args[cArg++];
-}
-
-void __stdcall SetHSArg(DWORD id, DWORD value) {
-	if (id < argCount) args[id] = value;
-}
-
-DWORD* __stdcall GetHSArgs() {
-	return args;
-}
-
-DWORD __stdcall GetHSArgAt(DWORD id) {
-	return args[id];
-}
-
-void __stdcall SetHSReturn(DWORD value) {
-	if (cRetTmp < maxRets) {
-		rets[cRetTmp++] = value;
-	}
-	if (cRetTmp > cRet) {
-		cRet = cRetTmp;
-	}
-}
-
-bool __stdcall HookHasScript(int hookId) {
+bool __stdcall HookScripts::HookHasScript(int hookId) {
 	return (!hooks[hookId].empty());
 }
 
-void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
+void __stdcall HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	if (id >= numHooks || (id > HOOK_ADJUSTFID && id < HOOK_GAMEMODECHANGE)) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
@@ -1755,7 +1744,7 @@ void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specR
 }
 
 // run specific event procedure for all hook scripts
-void __stdcall RunHookScriptsAtProc(DWORD procId) {
+void __stdcall HookScripts::RunHookScriptsAtProc(DWORD procId) {
 	for (int i = 0; i < numHooks; i++) {
 		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
 			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int
@@ -1763,7 +1752,7 @@ void __stdcall RunHookScriptsAtProc(DWORD procId) {
 	}
 }
 
-void LoadHookScript(const char* name, int id) {
+void HookScripts::LoadHookScript(const char* name, int id) {
 	char filePath[MAX_PATH];
 
 	sprintf(filePath, "scripts\\%s.int", name);
@@ -1794,48 +1783,48 @@ static void InitHookScriptFile(const char* name, int id) {
 	//return (prog.ptr != nullptr);
 }
 
-void LoadHookScripts() {
+void HookScripts::LoadHookScripts() {
 	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	static bool hooksFilesLoaded = false;
 	if (!hooksFilesLoaded) { // hook files are already put in the list
 		hookScriptFilesList.clear();
 
-		LoadHookScript("hs_tohit", HOOK_TOHIT);
-		LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
-		LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
-		LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
-		LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
-		LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
-		LoadHookScript("hs_ondeath", HOOK_ONDEATH);
-		LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
-		LoadHookScript("hs_useobjon", HOOK_USEOBJON);
-		LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
-		LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
-		LoadHookScript("hs_movecost", HOOK_MOVECOST);
-		LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
-		LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
-		LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
-		LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
-		LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
-		LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
-		LoadHookScript("hs_useobj", HOOK_USEOBJ);
-		LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-		LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-		LoadHookScript("hs_useskill", HOOK_USESKILL);
-		LoadHookScript("hs_steal", HOOK_STEAL);
-		LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
-		LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
-		LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
-		LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
-		LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+		HookScripts::LoadHookScript("hs_tohit", HOOK_TOHIT);
+		HookScripts::LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+		HookScripts::LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+		HookScripts::LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
+		HookScripts::LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+		HookScripts::LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+		HookScripts::LoadHookScript("hs_ondeath", HOOK_ONDEATH);
+		HookScripts::LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+		HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+		HookScripts::LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+		HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+		HookScripts::LoadHookScript("hs_movecost", HOOK_MOVECOST);
+		HookScripts::LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
+		HookScripts::LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
+		HookScripts::LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
+		HookScripts::LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
+		HookScripts::LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+		HookScripts::LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+		HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
+		HookScripts::LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+		HookScripts::LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+		HookScripts::LoadHookScript("hs_useskill", HOOK_USESKILL);
+		HookScripts::LoadHookScript("hs_steal", HOOK_STEAL);
+		HookScripts::LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+		HookScripts::LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+		HookScripts::LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+		HookScripts::LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+		HookScripts::LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 		hooksFilesLoaded = !alwaysFindScripts;
 	}
 	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
-void InitHookScripts() {
+void HookScripts::InitHookScripts() {
 	// Note: here isGlobalScriptLoading must be already set, this should allow to register global exported variables
 	dlogr("Running hook scripts...", DL_HOOK);
 
@@ -1853,15 +1842,15 @@ void InitHookScripts() {
 	initingHookScripts = 0;
 }
 
-void HookScriptClear() {
+void HookScripts::HookScriptClear() {
 	for (int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
 	std::memset(hooksInfo, 0, numHooks * sizeof(HooksPositionInfo));
-	HookCommon_Reset();
+	HookCommon::Reset();
 }
 
-void HookScripts_Init() {
+void HookScripts::init() {
 	dlogr("Injecting all game hooks.", DL_HOOK|DL_INIT);
 	// HOOK_TOHIT
 	const DWORD toHitHkAddr[] = {

@@ -259,7 +259,7 @@ public:
 		int numButtons = formatLock ? 8 : 4;
 		for (int i = 0; i < numButtons; i++) {
 			if ((MouseState.rgbButtons[i] & 0x80) != (keysDown[256 + i] & 0x80)) { // state changed
-				MouseClickHook(i, (MouseState.rgbButtons[i] & 0x80) > 0);
+				HookCommon::MouseClickHook(i, (MouseState.rgbButtons[i] & 0x80) > 0);
 			}
 			keysDown[256 + i] = MouseState.rgbButtons[i];
 		}
@@ -293,7 +293,7 @@ public:
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
 
-				KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 
 				if ((signed)dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;

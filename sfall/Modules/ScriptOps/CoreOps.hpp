@@ -137,7 +137,7 @@ static void __declspec(naked) op_get_sfall_global_float() {
 static void __declspec(naked) op_get_sfall_arg() {
 	__asm {
 		mov  esi, ecx;
-		call GetHSArg;
+		call HookCommon::GetHSArg;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
@@ -152,10 +152,10 @@ static void mf_get_sfall_arg_at() {
 	if (idArg.isInt()) {
 		long argVal = 0;
 		long id = idArg.rawValue();
-		if (id >= static_cast<long>(GetHSArgCount()) || id < 0) {
+		if (id >= static_cast<long>(HookCommon::GetHSArgCount()) || id < 0) {
 			opHandler.printOpcodeError("get_sfall_arg_at() - invalid value for argument.");
 		} else {
-			argVal = GetHSArgAt(id);
+			argVal = HookCommon::GetHSArgAt(id);
 		}
 		opHandler.setReturn(argVal);
 	} else {
@@ -165,9 +165,9 @@ static void mf_get_sfall_arg_at() {
 }
 
 static DWORD __stdcall GetSfallArgs() {
-	DWORD argCount = GetHSArgCount();
+	DWORD argCount = HookCommon::GetHSArgCount();
 	DWORD id = CreateTempArray(argCount, 0);
-	DWORD* args = GetHSArgs();
+	DWORD* args = HookCommon::GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);
 	}
@@ -191,7 +191,7 @@ static void __stdcall op_set_sfall_arg2() {
 	                  &valArg = opHandler.arg(1);
 
 	if (argNumArg.isInt() && valArg.isInt()) {
-		SetHSArg(argNumArg.rawValue(), valArg.rawValue());
+		HookCommon::SetHSArg(argNumArg.rawValue(), valArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("set_sfall_arg");
 	}
@@ -206,7 +206,7 @@ static void __declspec(naked) op_set_sfall_return() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call SetHSReturn;
+		call HookCommon::SetHSReturn;
 end:
 		mov  ecx, esi;
 		retn;
@@ -228,7 +228,7 @@ static void __declspec(naked) op_game_loaded() {
 
 static void __declspec(naked) op_init_hook() {
 	__asm {
-		mov  edx, initingHookScripts;
+		mov  edx, HookScripts::initingHookScripts;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
@@ -250,7 +250,7 @@ static void __stdcall op_register_hook2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		RegisterHook(opHandler.program(), idArg.rawValue(), -1, false);
+		HookScripts::RegisterHook(opHandler.program(), idArg.rawValue(), -1, false);
 	} else {
 		OpcodeInvalidArgs("register_hook");
 	}
@@ -265,7 +265,7 @@ static void __stdcall op_register_hook_proc2() {
 	                  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
+		HookScripts::RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
 	} else {
 		OpcodeInvalidArgs("register_hook_proc");
 	}
@@ -280,7 +280,7 @@ static void __stdcall op_register_hook_proc_spec2() {
 	                  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);
+		HookScripts::RegisterHook(opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);
 	} else {
 		OpcodeInvalidArgs("register_hook_proc_spec");
 	}

@@ -56,30 +56,41 @@ enum HookType
 	HOOK_COUNT
 };
 
-DWORD __stdcall GetHSArgCount();
-DWORD __stdcall GetHSArg();
-DWORD __stdcall GetHSArgAt(DWORD id);
-DWORD* __stdcall GetHSArgs();
-void __stdcall SetHSArg(DWORD id, DWORD value);
-void __stdcall SetHSReturn(DWORD d);
+class HookScripts {
+public:
+	static const char* name() { return "HookScripts"; }
+	static void init();
 
-// register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
+	static DWORD initingHookScripts;
 
-void __stdcall RunHookScriptsAtProc(DWORD procId);
+	static void LoadHookScript(const char* name, int id);
+	static void LoadHookScripts();
+	static void InitHookScripts();
+	static void HookScriptClear();
 
-extern DWORD initingHookScripts;
+	static bool __stdcall HookHasScript(int hookId);
 
-void HookScripts_Init();
-void LoadHookScripts();
-void InitHookScripts();
-void HookScriptClear();
+	// register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
+	static void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
 
-bool __stdcall HookHasScript(int hookId);
+	static void __stdcall RunHookScriptsAtProc(DWORD procId);
+};
 
-void __stdcall GameModeChangeHook(DWORD exit);
-void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
-void __stdcall MouseClickHook(DWORD button, bool pressed);
+class HookCommon {
+public:
+	static DWORD __stdcall GetHSArgCount();
+	static DWORD __stdcall GetHSArg();
+	static DWORD __stdcall GetHSArgAt(DWORD id);
+	static DWORD* __stdcall GetHSArgs();
+	static void __stdcall SetHSArg(DWORD id, DWORD value);
+	static void __stdcall SetHSReturn(DWORD d);
+
+	static void __stdcall GameModeChangeHook(DWORD exit);
+	static void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
+	static void __stdcall MouseClickHook(DWORD button, bool pressed);
+
+	static void Reset();
+};
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 
