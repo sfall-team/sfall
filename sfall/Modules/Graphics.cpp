@@ -76,12 +76,6 @@ static struct PALCOLOR {
 		};
 	};
 } *palette;
-
-struct PALETTE { // F2 palette
-	BYTE B;
-	BYTE G;
-	BYTE R;
-};
 #pragma pack(pop)
 
 //static bool paletteInit = false;
@@ -636,7 +630,7 @@ public:
 		if (primary && Graphics::GPUBlt) {
 			// use the mainTex texture as source buffer
 		} else {
-			lockTarget = new BYTE[ResWidth * ResHeight];
+			lockTarget = new BYTE[ResWidth * ResHeight]();
 		}
 	}
 
@@ -914,7 +908,7 @@ public:
 		if (!windowInit || (long)c <= 0) return DDERR_INVALIDPARAMS;
 		//palCounter++;
 
-		PALETTE* destPal = (PALETTE*)d;
+		fo::PALETTE* destPal = (fo::PALETTE*)d;
 
 		if (Graphics::GPUBlt) {
 			D3DLOCKED_RECT pal;
@@ -1042,14 +1036,14 @@ public:
 		}
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
-		if (Graphics::mode >= 5) {
-			if (ResWidth != gWidth || ResHeight != gHeight) {
-				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
-			} else {
-				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
-			}
-			SetWindowTextA(a, windowTitle);
+		if (ResWidth != gWidth || ResHeight != gHeight) {
+			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
+		} else {
+			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
+		}
+		SetWindowTextA(a, windowTitle);
 
+		if (Graphics::mode >= 5) {
 			SetWindowLongA(a, GWL_STYLE, windowStyle);
 			RECT r;
 			r.left = 0;

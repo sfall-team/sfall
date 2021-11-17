@@ -48,6 +48,12 @@ struct GameObject;
 struct Program;
 struct ScriptInstance;
 
+struct PALETTE { // F2 palette
+	BYTE B;
+	BYTE G;
+	BYTE R;
+};
+
 struct Art {
 	long flags;
 	char path[16];
@@ -513,9 +519,9 @@ struct UnlistedFrm {
 		frameAreaSize = 0;
 		frames = nullptr;
 	}
+
 	~UnlistedFrm() {
-		if (frames != nullptr)
-			delete[] frames;
+		if (frames != nullptr) delete[] frames;
 	}
 };
 
