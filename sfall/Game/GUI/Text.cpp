@@ -54,7 +54,7 @@ static long GetPositionWidth(const char* text, long width) {
 static void __fastcall DisplayPrintLineBreak(const char* message) {
 	if (*message == 0 || !fo::var::getInt(FO_VAR_disp_init)) return;
 
-	sfall::Console::PrintFile(message);
+	sf::Console::PrintFile(message);
 
 	const long max_lines = 100; // aka FO_VAR_max
 	long max_disp_chars = 256;  // HRP value (vanilla 80)
