@@ -12,8 +12,10 @@
 
 #include "EdgeClipping.h"
 
-namespace sfall
+namespace HRP
 {
+
+namespace sf = sfall;
 
 static RECT mapVisibleArea;
 
@@ -217,12 +219,12 @@ static void __declspec(naked) obj_render_post_roof_hook_rect_inside_bound() {
 }
 
 void EdgeClipping::init() {
-	HookCall(0x4B15F6, refresh_game_hook_rect_inside_bound);
-	HookCall(0x483EF0, map_scroll_refresh_game_hook_rect_inside_bound);
-	MakeCall(0x44E481, gmouse_check_scrolling_hack); // from HRP 3.06 (TODO: redo the implementation so that the scrolling of the map works)
+	sf::HookCall(0x4B15F6, refresh_game_hook_rect_inside_bound);
+	sf::HookCall(0x483EF0, map_scroll_refresh_game_hook_rect_inside_bound);
+	sf::MakeCall(0x44E481, gmouse_check_scrolling_hack); // from HRP 3.06 (TODO: redo the implementation so that the scrolling of the map works)
 
 	// Prevents rendering of "post roof" objects (fixes the red pixels from the hex cursor remaining at the edges of the cropped part of the map)
-	HookCall(0x489802, obj_render_post_roof_hook_rect_inside_bound);
+	sf::HookCall(0x489802, obj_render_post_roof_hook_rect_inside_bound);
 }
 
 }

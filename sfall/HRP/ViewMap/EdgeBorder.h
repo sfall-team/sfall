@@ -6,12 +6,13 @@
 
 #pragma once
 
-namespace sfall
+namespace HRP
 {
 
 class EdgeBorder {
 public:
-	struct Edge {
+	class Edge {
+	public:
 		POINT center;    // x/y center of current map screen?
 		RECT borderRect; // right is less than left
 		RECT rect_2;
@@ -30,6 +31,7 @@ public:
 			};
 		}
 
+	private:
 		~Edge() {
 			Release();
 		}

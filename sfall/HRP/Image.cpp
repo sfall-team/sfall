@@ -8,7 +8,7 @@
 
 #include "Image.h"
 
-namespace sfall
+namespace HRP
 {
 
 long Image::GetAspectSize(long &dW, long &dH, float sW, float sH) {

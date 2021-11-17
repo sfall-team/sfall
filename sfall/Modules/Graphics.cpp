@@ -533,7 +533,7 @@ void Graphics::SetMovieTexture(bool state) {
 
 		subtitleShow = false;
 	} else if (aviAspect < winAspect) {
-		if (Graphics::AviMovieWidthFit || (hrpIsEnabled && GetIntHRPValue(HRP_VAR_MOVIE_SIZE) == 2)) {
+		if (Graphics::AviMovieWidthFit || (HRP::Setting::ExternalEnabled() && GetIntHRPValue(HRP_VAR_MOVIE_SIZE) == 2)) {
 			//desc.Width = gWidth; // scales the movie surface to screen width
 		} else {
 			// scales width proportionally and places the movie surface at the center of the window along the X-axis
@@ -1099,8 +1099,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
 	// original resolution or HRP
-	ResWidth  = HRP::ScreenWidth();  //*(DWORD*)0x4CAD6B; // 640
-	ResHeight = HRP::ScreenHeight(); //*(DWORD*)0x4CAD66; // 480
+	ResWidth  = HRP::Setting::ScreenWidth();  //*(DWORD*)0x4CAD6B; // 640
+	ResHeight = HRP::Setting::ScreenHeight(); //*(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 
@@ -1298,12 +1298,12 @@ void Graphics::init() {
 		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
 		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
-		if (hrpVersionValid) {
+		if (HRP::Setting::VersionIsValid) {
 			// Patch HRP to show the mouse cursor over the window title
-			if (Graphics::mode == 5) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
+			if (Graphics::mode == 5) SafeWrite8(HRP::Setting::GetAddress(0x10027142), CodeType::JumpShort);
 
 			// Patch HRP to fix the issue of displaying a palette color with index 255 for images (splash screens, ending slides)
-			SafeWrite8(HRPAddress(0x1000F8C7), CodeType::JumpShort);
+			SafeWrite8(HRP::Setting::GetAddress(0x1000F8C7), CodeType::JumpShort);
 		}
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);

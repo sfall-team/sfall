@@ -14,8 +14,10 @@
 
 #include "Dialog.h"
 
-namespace sfall
+namespace HRP
 {
+
+namespace sf = sfall;
 
 static const long width = 640; // art
 static long scr_width = 639;
@@ -187,7 +189,7 @@ static void UnloadDialogArt() {
 
 void Dialog::init() {
 	// replace width size for buffers functons
-	SafeWriteBatch(&scr_width, {
+	sf::SafeWriteBatch(&scr_width, {
 		0x447201, 0x447248, //0x44716F,         // gdCreateHeadWindow_
 		0x4459F0, 0x445A0C, //0x44597A,         // gdReviewInit_
 		0x445DA7, 0x445DD1,                     // gdReviewDisplay_
@@ -217,8 +219,8 @@ void Dialog::init() {
 		0x4733DF, 0x47343A,                     // inven_action_cursor_
 	});
 
-	HookCall(0x44718F, gdCreateHeadWindow_hook_win_add);
-	HookCalls(GeneralDialogWinAdd, {
+	sf::HookCall(0x44718F, gdCreateHeadWindow_hook_win_add);
+	sf::HookCalls(GeneralDialogWinAdd, {
 		0x445997, // gdReviewInit_
 		0x44A6E4, // gdialog_window_create_
 		0x448333, // gdialog_barter_create_win_
@@ -228,48 +230,48 @@ void Dialog::init() {
 
 	// gdCustomSelect_
 	long yoffset = (DIALOG_SCRN_BACKGROUND) ? 100 : 200; // shifted the window up so that the window with the selected options was visible
-	SafeWrite32(0x44A03E, HRP::ScreenHeight() - yoffset);
-	SafeWrite32(0x44A02A, HRP::ScreenWidth());
+	sf::SafeWrite32(0x44A03E, Setting::ScreenHeight() - yoffset);
+	sf::SafeWrite32(0x44A02A, Setting::ScreenWidth());
 
-	HookCall(0x4462A7, gdProcess_hook_win_add);
-	HookCall(0x446387, gdProcess_hook_win_add);
+	sf::HookCall(0x4462A7, gdProcess_hook_win_add);
+	sf::HookCall(0x446387, gdProcess_hook_win_add);
 
-	HookCall(0x447900, hook_buf_to_buf); // demo_copy_options_
-	HookCall(0x447A46, hook_buf_to_buf); // gDialogRefreshOptionsRect_
+	sf::HookCall(0x447900, hook_buf_to_buf); // demo_copy_options_
+	sf::HookCall(0x447A46, hook_buf_to_buf); // gDialogRefreshOptionsRect_
 
-	HookCall(0x44AF39, gdDisplayFrame_hook_buf_to_buf);
+	sf::HookCall(0x44AF39, gdDisplayFrame_hook_buf_to_buf);
 
 	// Barter interface hacks
-	HookCall(0x46EDC9, setup_inventory_hook_win_add);
-	MakeCall(0x46EDD8, setup_inventory_hack);
-	HookCalls(barter_move_hook_mouse_click_in, {
+	sf::HookCall(0x46EDC9, setup_inventory_hook_win_add);
+	sf::MakeCall(0x46EDD8, setup_inventory_hack);
+	sf::HookCalls(barter_move_hook_mouse_click_in, {
 		0x474F76, 0x474FF9, // barter_move_inventory_
 		0x475241, 0x4752C2, // barter_move_from_table_inventory_
 		0x449661            // gdControl_ (custom disposition button)
 	});
 
-	if (DIALOG_SCRN_BACKGROUND) HookCall(0x4472D8, gdDestroyHeadWindow_hook_win_delete);
+	if (DIALOG_SCRN_BACKGROUND) sf::HookCall(0x4472D8, gdDestroyHeadWindow_hook_win_delete);
 
 	if (DIALOG_SCRN_ART_FIX) {
-		HookCall(0x44AB79, talk_to_refresh_background_window_hook_buf_to_buf);
+		sf::HookCall(0x44AB79, talk_to_refresh_background_window_hook_buf_to_buf);
 
 		// gdCreateHeadWindow_
-		SafeWrite16(0x447255, 0xD269);
-		SafeWrite32(0x447257, 19); // y
-		SafeWrite8(0x44725B, 0x90);
-		SafeWrite16(0x44725C, 0x3EB);
+		sf::SafeWrite16(0x447255, 0xD269);
+		sf::SafeWrite32(0x447257, 19); // y
+		sf::SafeWrite8(0x44725B, 0x90);
+		sf::SafeWrite16(0x44725C, 0x3EB);
 		// gdDisplayFrame_
-		SafeWrite8(0x44AF9D, 20);   //  15 to 20
-		SafeWrite32(0x44AFEB, 219); // 214 to 219
-		SafeWrite32(0x44AF47, 19);  //  14 to 19
-		SafeWrite32(0x44AF51, 219); // 214 to 219
+		sf::SafeWrite8(0x44AF9D, 20);   //  15 to 20
+		sf::SafeWrite32(0x44AFEB, 219); // 214 to 219
+		sf::SafeWrite32(0x44AF47, 19);  //  14 to 19
+		sf::SafeWrite32(0x44AF51, 219); // 214 to 219
 
 		for (size_t i = 0; i < 8; i++) {
 			fo::var::backgrndRects[i].y += 5;
 			fo::var::backgrndRects[i].offy += 5;
 		}
 
-		LoadGameHook::OnGameExit() += UnloadDialogArt;
+		sf::LoadGameHook::OnGameExit() += UnloadDialogArt;
 	}
 }
 

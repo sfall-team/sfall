@@ -147,13 +147,13 @@ static void APBarRectPatch() {
 }
 
 static void ActionPointsBarPatch() {
-	IFaceBar::UseExpandAPBar = true;
+	HRP::IFaceBar::UseExpandAPBar = true;
 
 	dlog("Applying expanded action points bar patch.", DL_INIT);
-	if (hrpIsEnabled) {
+	if (HRP::Setting::ExternalEnabled()) {
 		// check valid data
-		if (hrpVersionValid && !_stricmp((const char*)HRPAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
-			SafeWriteStr(HRPAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
+		if (HRP::Setting::VersionIsValid && !_stricmp((const char*)HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
 		} else {
 			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
@@ -837,7 +837,7 @@ static void WorldMapInterfacePatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (hrpIsEnabled && hrpVersionValid) {
+	if (HRP::Setting::ExternalEnabled() && HRP::Setting::VersionIsValid) {
 		if (worldmapInterface = IniReader::GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
@@ -1056,7 +1056,7 @@ void Interface::init() {
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	LoadGameHook::OnBeforeGameInit() += []() {
-		if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+		if (HRP::Setting::VersionIsValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 	};
 }

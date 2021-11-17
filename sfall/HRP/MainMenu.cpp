@@ -16,8 +16,10 @@
 
 #include "MainMenu.h"
 
-namespace sfall
+namespace HRP
 {
+
+namespace sf = sfall;
 
 // 0 - main-menu image will display at its original size
 // 1 - main-menu image will stretch to fit the screen while maintaining its aspect ratio
@@ -93,7 +95,7 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 	long offset = 0;
 	long sw = w, sh = h;
 
-	Graphics::BackgroundClearColor(0);
+	sf::Graphics::BackgroundClearColor(0);
 
 	if (MainMenuScreen::USE_HIRES_IMAGES) {
 		if (!mainBackgroundFrm) {
@@ -108,13 +110,13 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 
 	if (MainMenuScreen::MAIN_MENU_SIZE != 2) {
 		if (mainBackgroundFrm || MainMenuScreen::MAIN_MENU_SIZE == 1) {
-			w = HRP::ScreenWidth();
-			h = HRP::ScreenHeight();
+			w = Setting::ScreenWidth();
+			h = Setting::ScreenHeight();
 
 			offset = Image::GetAspectSize(w, h, (float)sw, (float)sh);
 
-			if (w > HRP::ScreenWidth()) w = HRP::ScreenWidth();
-			if (h > HRP::ScreenHeight()) h = HRP::ScreenHeight();
+			if (w > Setting::ScreenWidth()) w = Setting::ScreenWidth();
+			if (h > Setting::ScreenHeight()) h = Setting::ScreenHeight();
 
 			mainmenuWidth = w;
 		}
@@ -132,13 +134,13 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 			// nothing???
 		}
 	} else if (MainMenuScreen::MAIN_MENU_SIZE == 2) {
-		w = HRP::ScreenWidth();
-		h = HRP::ScreenHeight();
+		w = Setting::ScreenWidth();
+		h = Setting::ScreenHeight();
 		mainmenuWidth = w;
 	} else {
 		// centering
-		x += (HRP::ScreenWidth() / 2) - (w / 2);
-		y += (HRP::ScreenHeight() / 2) - (h / 2);
+		x += (Setting::ScreenWidth() / 2) - (w / 2);
+		y += (Setting::ScreenHeight() / 2) - (h / 2);
 	}
 
 	// set scaling factor
@@ -147,10 +149,10 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 		scaleFactor = h / (float)sh;
 		//scaleFactor = std::round(scaleFactor * 100.0f) / 100.0f;
 	}
-	scaleXFactor = HRP::ScreenWidth() / (float)640; // TODO: find out how Mash's HRP gets the coefficient for button offsets for different game resolutions
+	scaleXFactor = Setting::ScreenWidth() / (float)640; // TODO: find out how Mash's HRP gets the coefficient for button offsets for different game resolutions
 
-	MainMenu::mTextOffset = MainMenu::mXOffset;
-	if (MainMenu::mYOffset) MainMenu::mTextOffset += (MainMenu::mYOffset * w);
+	sf::MainMenu::mTextOffset = sf::MainMenu::mXOffset;
+	if (sf::MainMenu::mYOffset) sf::MainMenu::mTextOffset += (sf::MainMenu::mYOffset * w);
 
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
@@ -192,7 +194,7 @@ static void __fastcall TextScale(long xOffset, const char* text, long yPos, long
 	xOffset = (long)(xOffset * scaleFactor);
 	yPos = (long)(yPos * scaleFactor);
 	yPos *= mainmenuWidth;
-	yPos += MainMenu::mTextOffset; // TODO: check
+	yPos += sf::MainMenu::mTextOffset; // TODO: check
 
 	Image::ScaleText(
 		(BYTE*)(fo::var::getInt(FO_VAR_main_window_buf) + yPos + xOffset),
@@ -208,7 +210,7 @@ static void __declspec(naked) main_menu_create_hook_text_to_buf() {
 		mov  ecx, mainmenuWidth;
 		imul ebp, ecx; // yPos * width
 		add  eax, ds:[FO_VAR_main_window_buf];
-		add  eax, MainMenu::mTextOffset;
+		add  eax, sf::MainMenu::mTextOffset;
 		add  eax, ebp;
 		jmp  dword ptr ds:[FO_VAR_text_to_buf];
 scale:
@@ -292,24 +294,24 @@ void MainMenuScreen::init() {
 	if (MENU_BG_OFFSET_X < 0) MENU_BG_OFFSET_X = 0;
 	if (MENU_BG_OFFSET_Y < 0) MENU_BG_OFFSET_Y = 0;
 
-	// Main menu window size
-	//SafeWrite32(0x481674, HRP::ScreenHeight());
-	//SafeWrite32(0x48167A, HRP::ScreenWidth());
+	// Mainmenu window size
+	//sf::SafeWrite32(0x481674, HRP::ScreenHeight());
+	//sf::SafeWrite32(0x48167A, HRP::ScreenWidth());
 
-	HookCall(0x481680, main_menu_create_hook_add_win);
-	HookCall(0x481704, main_menu_create_hook_buf_to_buf);
-	HookCall(0x481767, main_menu_create_hook_win_print);
-	HookCall(0x481883, main_menu_create_hook_register_button);
-	MakeCall(0x481933, main_menu_create_hook_text_to_buf, 1);
+	sf::HookCall(0x481680, main_menu_create_hook_add_win);
+	sf::HookCall(0x481704, main_menu_create_hook_buf_to_buf);
+	sf::HookCall(0x481767, main_menu_create_hook_win_print);
+	sf::HookCall(0x481883, main_menu_create_hook_register_button);
+	sf::MakeCall(0x481933, main_menu_create_hook_text_to_buf, 1);
 
 	// imul ebp, edx, 640 -> mov ebp, edx
-	SafeWrite16(0x481912, 0xD589);
-	SafeWrite32(0x481914, 0x90909090);
+	sf::SafeWrite16(0x481912, 0xD589);
+	sf::SafeWrite32(0x481914, 0x90909090);
 
-	SafeWrite16(0x48192D, 0x9090);
+	sf::SafeWrite16(0x48192D, 0x9090);
 
-	LoadGameHook::OnBeforeGameStart() += FreeMainMenuImages;
-	LoadGameHook::OnBeforeGameClose() += FreeMainMenuImages;
+	sf::LoadGameHook::OnBeforeGameStart() += FreeMainMenuImages;
+	sf::LoadGameHook::OnBeforeGameClose() += FreeMainMenuImages;
 }
 
 }

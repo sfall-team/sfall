@@ -12,8 +12,10 @@
 
 #include "SplashScreen.h"
 
-namespace sfall
+namespace HRP
 {
+
+namespace sf = sfall;
 
 // 0 - image will display at its original size
 // 1 - image will stretch to fit the screen while maintaining its aspect ratio
@@ -22,8 +24,8 @@ long SplashScreen::SPLASH_SCRN_SIZE;
 
 static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWidth, long srcHeight, long srcX, long srcY, long width, long height, long x, long y) {
 	RECT rect;
-	long w = Graphics::GetGameWidthRes();
-	long h = Graphics::GetGameHeightRes();
+	long w = sf::Graphics::GetGameWidthRes();
+	long h = sf::Graphics::GetGameHeightRes();
 
 	// TODO: Load an alternative 32-bit BMP image or DirectX texture
 	// stretch texture for DirectX
@@ -43,19 +45,19 @@ static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWi
 		rect.bottom = (y + h) - 1;
 		rect.left = x;
 		rect.right = (rect.left + w) - 1;
-		Graphics::UpdateDDSurface(resizeBuff, w, h, w, &rect);
+		sf::Graphics::UpdateDDSurface(resizeBuff, w, h, w, &rect);
 
 		delete[] resizeBuff;
 		return;
 	} else if (SplashScreen::SPLASH_SCRN_SIZE == 2) {
-		BYTE* resizeBuff = new BYTE[Graphics::GetGameWidthRes() * Graphics::GetGameHeightRes()];
-		Image::Scale(srcPixels, srcWidth, srcHeight, resizeBuff, Graphics::GetGameWidthRes(), Graphics::GetGameHeightRes());
+		BYTE* resizeBuff = new BYTE[sf::Graphics::GetGameWidthRes() * sf::Graphics::GetGameHeightRes()];
+		Image::Scale(srcPixels, srcWidth, srcHeight, resizeBuff, sf::Graphics::GetGameWidthRes(), sf::Graphics::GetGameHeightRes());
 
 		rect.top = 0;
 		rect.left = 0;
-		rect.right = Graphics::GetGameWidthRes() - 1;
-		rect.bottom = Graphics::GetGameHeightRes() - 1;
-		Graphics::UpdateDDSurface(resizeBuff, Graphics::GetGameWidthRes(), Graphics::GetGameHeightRes(), Graphics::GetGameWidthRes(), &rect);
+		rect.right =sf:: Graphics::GetGameWidthRes() - 1;
+		rect.bottom = sf::Graphics::GetGameHeightRes() - 1;
+		sf::Graphics::UpdateDDSurface(resizeBuff, sf::Graphics::GetGameWidthRes(), sf::Graphics::GetGameHeightRes(), sf::Graphics::GetGameWidthRes(), &rect);
 
 		delete[] resizeBuff;
 		return;
@@ -63,13 +65,13 @@ static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWi
 
 	// original size to center screen
 
-	rect.left = (Graphics::GetGameWidthRes() / 2) - (srcWidth / 2) + x;
+	rect.left = (sf::Graphics::GetGameWidthRes() / 2) - (srcWidth / 2) + x;
 	rect.right = (rect.left + srcWidth) - 1 ;
 
-	rect.top = (Graphics::GetGameHeightRes() / 2) - (srcHeight / 2) + y;
+	rect.top = (sf::Graphics::GetGameHeightRes() / 2) - (srcHeight / 2) + y;
 	rect.bottom = (rect.top + srcHeight) - 1;
 
-	Graphics::UpdateDDSurface(srcPixels, srcWidth, srcHeight, srcWidth, &rect);
+	sf::Graphics::UpdateDDSurface(srcPixels, srcWidth, srcHeight, srcWidth, &rect);
 }
 
 // Fixes colored screen border when the index 0 of the palette contains a color with a non-black (zero) value
@@ -88,7 +90,7 @@ static void __fastcall Clear(fo::PALETTE* palette) {
 			index = i;
 		}
 	}
-	if (index != 0) Graphics::BackgroundClearColor(index);
+	if (index != 0) sf::Graphics::BackgroundClearColor(index);
 }
 
 static void __declspec(naked) game_splash_screen_hook() {
@@ -100,8 +102,8 @@ static void __declspec(naked) game_splash_screen_hook() {
 }
 
 void SplashScreen::init() {
-	HookCall(0x4444FC, game_splash_screen_hook);
-	MakeCall(0x44451E, game_splash_screen_hack_scr_blit, 1);
+	sf::HookCall(0x4444FC, game_splash_screen_hook);
+	sf::MakeCall(0x44451E, game_splash_screen_hack_scr_blit, 1);
 }
 
 }

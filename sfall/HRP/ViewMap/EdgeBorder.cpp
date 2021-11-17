@@ -12,8 +12,10 @@
 
 #include "EdgeBorder.h"
 
-namespace sfall
+namespace HRP
 {
+
+namespace sf = sfall;
 
 static EdgeBorder::Edge* MapEdgeData;
 static EdgeBorder::Edge* currentMapEdge; // reference
@@ -212,7 +214,7 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 static void __fastcall LoadMapEdgeFile() {
 	//isLoadingMapEdge = 0;
 
-	fo::DbFile* file = LoadMapEdgeFileSub(LoadGameHook::mapLoadingName);
+	fo::DbFile* file = LoadMapEdgeFileSub(sf::LoadGameHook::mapLoadingName);
 	if (file) { // load error
 		fo::func::db_fclose(file);
 		SetDefaultEdgeData();
@@ -330,7 +332,7 @@ long EdgeBorder::CheckBorder(long tile) {
 }
 
 void EdgeBorder::init() {
-	LoadGameHook::OnBeforeMapLoad() += LoadMapEdgeFile;
+	sf::LoadGameHook::OnBeforeMapLoad() += LoadMapEdgeFile;
 }
 
 }

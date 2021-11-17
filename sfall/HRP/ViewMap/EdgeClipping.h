@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace sfall
+namespace HRP
 {
 
 class EdgeClipping {

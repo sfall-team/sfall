@@ -6,18 +6,20 @@
 
 #pragma once
 
-namespace sfall
+namespace HRP
 {
 
-class HRP {
+class Setting {
 public:
 	static void init();
 
-	static DWORD hrpDLLBaseAddr;
+	static DWORD GetAddress(DWORD addr);
+	static bool VersionIsValid; // HRP 4.1.8 version validation
 	static bool CheckExternalPatch();
+	static bool ExternalEnabled();
 
 	// Built-in high resolution patch
-	static bool Enabled;
+	static bool IsEnabled();
 
 	static long ScreenWidth();
 	static long ScreenHeight();

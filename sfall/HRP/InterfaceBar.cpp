@@ -13,8 +13,10 @@
 
 #include "InterfaceBar.h"
 
-namespace sfall
+namespace HRP
 {
+
+namespace sf = sfall;
 
 long IFaceBar::IFACE_BAR_MODE; // 1 - the bottom of the map view window extends to the base of the screen and is overlapped by the IFACE Bar
 long IFaceBar::IFACE_BAR_SIDE_ART;
@@ -82,17 +84,17 @@ public:
 static long __fastcall IntfaceWinCreate(long height, long yPos, long xPos, long width, long color, long flags) {
 	if (width != IFaceBar::IFACE_BAR_WIDTH) width = IFaceBar::IFACE_BAR_WIDTH;
 
-	yPos += HRP::ScreenHeight() - 479; // yPos:379 = 479-100
-	xPos += (HRP::ScreenWidth() - width) / 2;
+	yPos += Setting::ScreenHeight() - 479; // yPos:379 = 479-100
+	xPos += (Setting::ScreenWidth() - width) / 2;
 
 	xPosition = xPos;
 	yPosition = yPos;
 
 	flags |= fo::WinFlags::DontMoveTop;
 
-	if (IFaceBar::IFACE_BAR_MODE == 0 && IFaceBar::IFACE_BAR_SIDE_ART && HRP::ScreenWidth() > IFaceBar::IFACE_BAR_WIDTH) {
+	if (IFaceBar::IFACE_BAR_MODE == 0 && IFaceBar::IFACE_BAR_SIDE_ART && Setting::ScreenWidth() > IFaceBar::IFACE_BAR_WIDTH) {
 		long leftID = fo::func::win_add(0, yPos, xPos, height, 0, flags);
-		long rightID = fo::func::win_add(xPos + width, yPos, HRP::ScreenWidth() - (xPos + width), height, 0, flags);
+		long rightID = fo::func::win_add(xPos + width, yPos, Setting::ScreenWidth() - (xPos + width), height, 0, flags);
 
 		panels = new Panels(leftID, rightID);
 	}
@@ -184,7 +186,7 @@ static void InterfaceArtScale(BYTE* scr, long w, long h, BYTE* dst, long dh) {
 }
 
 static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE* dst, long dstWidth) {
-	if (HRP::ScreenWidth() >= IFaceBar::IFACE_BAR_WIDTH) {
+	if (Setting::ScreenWidth() >= IFaceBar::IFACE_BAR_WIDTH) {
 		xOffset = IFaceBar::IFACE_BAR_WIDTH - 640;
 		xyOffsetAP = 15 * xOffset;
 		xyOffsetCBtn = 39 * xOffset;
@@ -375,70 +377,70 @@ void IFaceBar::init() {
 		display_width = IFaceBar::IFACE_BAR_WIDTH - 473; // message display width (800-473=327)
 		display_string_buf = new char[100 * 256];
 
-		HookCall(0x45D950, intface_init_hook_buf_to_buf_ART);
-		HookCall(0x45E35C, intface_init_hook_buf_to_buf);
+		sf::HookCall(0x45D950, intface_init_hook_buf_to_buf_ART);
+		sf::HookCall(0x45E35C, intface_init_hook_buf_to_buf);
 
-		HookCalls(intface_update_move_points_hook_buf_to_buf, {0x45EE43, 0x45EEDF, 0x45EF2D});
+		sf::HookCalls(intface_update_move_points_hook_buf_to_buf, {0x45EE43, 0x45EEDF, 0x45EF2D});
 
-		HookCalls(intface_win_register_button, {
+		sf::HookCalls(intface_win_register_button, {
 			0x45DA0E, 0x45DAED, 0x45DC0D, 0x45DD44, 0x45DE33, 0x45DF22, 0x45E0B5, 0x45E1EF, // intface_init_
 			0x460883, // intface_create_end_turn_button_
 			0x4609E3, // intface_create_end_combat_button_
 		});
 
-		HookCalls(combat_buttons_buf_to_buf, {
+		sf::HookCalls(combat_buttons_buf_to_buf, {
 			0x45FA2A, 0x45FA7B, // intface_end_window_open_
 			0x45FB87, 0x45FBD1, // intface_end_window_close_
 		});
 		// intface_end_buttons_enable_, intface_end_buttons_disable_
-		HookCalls(combat_buttons_trans_buf_to_buf, {0x45FC72, 0x45FD06});
+		sf::HookCalls(combat_buttons_trans_buf_to_buf, {0x45FC72, 0x45FD06});
 
 		// display_init_  hacks
-		MakeCall(0x43166F, display_init_hack);
-		HookCall(0x431704, display_init_hook_buf_to_buf);
-		SafeWrite32(0x43172A, display_width);
-		SafeWrite32(0x431770, display_width);
+		sf::MakeCall(0x43166F, display_init_hack);
+		sf::HookCall(0x431704, display_init_hook_buf_to_buf);
+		sf::SafeWrite32(0x43172A, display_width);
+		sf::SafeWrite32(0x431770, display_width);
 
-		HookCalls(DisplayReset, {
+		sf::HookCalls(DisplayReset, {
 			0x4317EE, // display_init_
 			0x431841  // display_reset_
 		});
 		// jle > jmp
-		SafeWrite8(0x4317C1, CodeType::JumpShort); // display_init_
-		SafeWrite8(0x431814, CodeType::JumpShort); // display_reset_
+		sf::SafeWrite8(0x4317C1, sf::CodeType::JumpShort); // display_init_
+		sf::SafeWrite8(0x431814, sf::CodeType::JumpShort); // display_reset_
 
 		// display_redraw_ hacks
-		MakeCall(0x431B19, display_redraw_hack);
-		SafeWrite32(0x431AB9, display_width);
-		SafeWrite32(0x431AC0, display_width);
-		SafeWrite32(0x431B3B, display_width);
-		SafeWrite32(0x431B36, (DWORD)display_string_buf);
+		sf::MakeCall(0x431B19, display_redraw_hack);
+		sf::SafeWrite32(0x431AB9, display_width);
+		sf::SafeWrite32(0x431AC0, display_width);
+		sf::SafeWrite32(0x431B3B, display_width);
+		sf::SafeWrite32(0x431B36, (DWORD)display_string_buf);
 
 		// rotate numbers hacks
-		MakeCall(0x460BF3, intface_rotate_numbers_hack, 4);
+		sf::MakeCall(0x460BF3, intface_rotate_numbers_hack, 4);
 		// remove 'shl eax, 7'
-		SafeWrite16(0x460C02, 0x9090);
-		SafeWrite8(0x460C04, 0x90);
+		sf::SafeWrite16(0x460C02, 0x9090);
+		sf::SafeWrite8(0x460C04, 0x90);
 
-		HookCalls(intface_rotate_numbers_hook_buf_to_buf, {
+		sf::HookCalls(intface_rotate_numbers_hook_buf_to_buf, {
 			0x460CC4, 0x460CF8, 0x460D2C, 0x460D75, 0x460EA1, 0x460EF1, 0x460F47,
 			0x460FA0, 0x460FDD, 0x461010, 0x461060, 0x461085, 0x4610AB, 0x4610EC
 		});
 
 		if (ALTERNATE_AMMO_METRE == 0) {
 			// intface_draw_ammo_lights_ hacks
-			MakeCall(0x460AA6, intface_draw_ammo_lights_hack);
-			SafeWriteBatch<DWORD>(IFACE_BAR_WIDTH, {0x460AC8, 0x460AD8, 0x460AE3});
-			SafeWrite32(0x460AB4, 26 * IFACE_BAR_WIDTH); // y position
+			sf::MakeCall(0x460AA6, intface_draw_ammo_lights_hack);
+			sf::SafeWriteBatch<DWORD>(IFACE_BAR_WIDTH, {0x460AC8, 0x460AD8, 0x460AE3});
+			sf::SafeWrite32(0x460AB4, 26 * IFACE_BAR_WIDTH); // y position
 		}
 	}
 
-	HookCall(0x45D8BC, intface_init_hook_win_add);
-	HookCall(0x4615FF, refresh_box_bar_win_hook_win_add);
-	HookCall(0x4AC260, skilldex_start_hook_win_add);
+	sf::HookCall(0x45D8BC, intface_init_hook_win_add);
+	sf::HookCall(0x4615FF, refresh_box_bar_win_hook_win_add);
+	sf::HookCall(0x4AC260, skilldex_start_hook_win_add);
 
-	HookCall(0x45EA48, intface_show_hook_win_show);
-	HookCalls(intface_win_hide, {
+	sf::HookCall(0x45EA48, intface_show_hook_win_show);
+	sf::HookCalls(intface_win_hide, {
 		0x45E3F5, // intface_reset_
 		0x45E8FB, // intface_load_
 		0x45E9FD  // intface_hide_
@@ -450,16 +452,16 @@ void IFaceBar::init() {
 	if (IFACE_BAR_MODE > 0) {
 		// Set view map height to game resolution
 		// replace subtract 99 with add 1
-		SafeWrite8(0x481CDF, 1);
-		SafeWrite8(0x481E2E, 1);
+		sf::SafeWrite8(0x481CDF, 1);
+		sf::SafeWrite8(0x481E2E, 1);
 		// replace subtract 99 with add 1
-		SafeWrite8(0x481DC3, -1);
-		SafeWrite8(0x4827A9, -1);
+		sf::SafeWrite8(0x481DC3, -1);
+		sf::SafeWrite8(0x4827A9, -1);
 		// remove subtract 100
-		SafeWrite8(0x48284F, 0);
+		sf::SafeWrite8(0x48284F, 0);
 	}
 
-	LoadGameHook::OnBeforeGameClose() += []() {
+	sf::LoadGameHook::OnBeforeGameClose() += []() {
 		if (IFACE_BAR_WIDTH > 640) {
 			delete[] display_string_buf;
 			delete panels;

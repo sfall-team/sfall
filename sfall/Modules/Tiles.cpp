@@ -308,9 +308,9 @@ void Tiles::init() {
 		SafeWriteBatch<BYTE>(0x3F, Tiles_3F);
 		SafeWriteBatch<BYTE>(0x40, Tiles_40);
 		SafeWriteBatch<BYTE>(0xC0, Tiles_C0);
-		if (hrpVersionValid) { // Check HRP 4.1.8
-			SafeWrite8(HRPAddress(0x1000E1C0), 0x40);
-			SafeWrite8(HRPAddress(0x1000E1DA), 0x3F);
+		if (HRP::Setting::VersionIsValid) { // Check HRP 4.1.8
+			SafeWrite8(HRP::Setting::GetAddress(0x1000E1C0), 0x40);
+			SafeWrite8(HRP::Setting::GetAddress(0x1000E1DA), 0x3F);
 		}
 		dlogr(" Done", DL_INIT);
 	}
