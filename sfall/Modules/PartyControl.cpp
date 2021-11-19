@@ -203,6 +203,16 @@ static void RestoreRealDudeState(bool redraw = true) {
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.\n");
 }
 
+static void __stdcall CenterScreenOnDude() {
+	using namespace fo::Fields;
+	__asm {
+		mov  edx, 1;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  eax, [eax + tile];
+		call fo::funcoffs::tile_set_center_;
+	}
+}
+
 static long __stdcall CombatTurn(fo::GameObject* obj) {
 	__asm {
 		mov  eax, obj;
@@ -216,6 +226,7 @@ static long __stdcall CombatWrapperInner(fo::GameObject* obj) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
+		CenterScreenOnDude();
 
 		// Do combat turn
 		long turnResult = CombatTurn(obj);
