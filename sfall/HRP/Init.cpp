@@ -17,6 +17,9 @@
 #include "InterfaceBar.h"
 #include "Dialog.h"
 #include "Inventory.h"
+#include "Character.h"
+#include "LoadSave.h"
+#include "MiscInterface.h"
 
 #include "Init.h"
 
@@ -31,6 +34,7 @@ static DWORD baseDLLAddr = 0; // 0x10000000
 bool Setting::VersionIsValid = false;
 
 static bool enabled;
+static bool SCALE_2X;
 static long SCR_WIDTH  = 640;
 static long SCR_HEIGHT = 480;
 
@@ -40,10 +44,10 @@ long Setting::ScreenHeight() { return SCR_HEIGHT; }
 
 static void GetHRPModule() {
 	static const DWORD loadFunc = 0x4FE1D0;
-	HMODULE dll;
+	//HMODULE dll;
 	__asm call loadFunc; // get HRP loading address
 	__asm mov  baseDLLAddr, eax;
-	sf::dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, dll);
+	sf::dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, baseDLLAddr);
 }
 
 bool Setting::CheckExternalPatch() {
@@ -146,7 +150,17 @@ void Setting::init() {
 
 	// = IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni);
 	// = IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni);
-	// = IniReader::GetInt("Main", "SCALE_2X", 0, f2ResIni);
+	/*
+	if (IniReader::GetInt("Main", "SCALE_2X", 0, f2ResIni)) {
+		SCR_WIDTH /= 2;
+		SCR_HEIGHT /= 2;
+
+		if (SCR_WIDTH < 640) SCR_WIDTH = 640;
+		if (SCR_HEIGHT < 480) SCR_HEIGHT = 480;
+
+		SCALE_2X = true;
+	};
+	*/
 
 	//gDirectDrawMode = IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni) == 1;
 
@@ -193,6 +207,8 @@ void Setting::init() {
 	/* Inject hacks */
 	sf::SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile to _mapEntranceTileNum)
 
+	sf::SafeWrite8(0x480AF6, 0x10); // gnw_main_
+
 	if (SCR_WIDTH != 640 || SCR_HEIGHT != 480) {
 		// Set the resolution for GNW95_init_mode_ex_
 		sf::SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
@@ -203,7 +219,7 @@ void Setting::init() {
 		sf::SafeWrite32(0x480D6C, SCR_HEIGHT);
 		sf::SafeWrite32(0x480D84, SCR_WIDTH);
 		// gnw_main_
-		sf::SafeWrite32(0x480AFA, SCR_HEIGHT); // -100 for ifacebar?
+		sf::SafeWrite32(0x480AFA, SCR_HEIGHT);
 		sf::SafeWrite32(0x480B04, SCR_WIDTH);
 		// LoadGame_
 		sf::SafeWrite32(0x47C6E0, SCR_HEIGHT);
@@ -219,6 +235,9 @@ void Setting::init() {
 	IFaceBar::init();
 	Dialog::init();
 	Inventory::init();
+	Character::init();
+	LoadSave::init();
+	MiscInterface::init();
 }
 
 }

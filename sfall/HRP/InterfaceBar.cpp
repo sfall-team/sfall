@@ -103,10 +103,9 @@ static long __fastcall IntfaceWinCreate(long height, long yPos, long xPos, long 
 
 static void __declspec(naked) intface_init_hook_win_add() {
 	__asm {
-		pop  ebp; // ret addr
-		push ebx; // width
-		push eax; // xPos
-		push ebp;
+		xchg ebx, [esp]; // width
+		push eax;        // xPos
+		push ebx;        // ret addr
 		jmp  IntfaceWinCreate;
 	}
 }
