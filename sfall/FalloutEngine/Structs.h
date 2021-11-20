@@ -461,6 +461,12 @@ public:
 	BYTE data[1]; // begin frame image data
 } FrmFrameData;
 
+// for one frame
+struct FrmData {
+	FrmHeaderData header;
+	FrmFrameData frame;
+};
+
 struct FrmFile {            // sizeof 2954
 	long id;                // 0x00
 	short fps;              // 0x04

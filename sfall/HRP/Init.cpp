@@ -20,6 +20,8 @@
 #include "Character.h"
 #include "LoadSave.h"
 #include "MiscInterface.h"
+#include "Worldmap.h"
+#include "HelpScreen.h"
 
 #include "Init.h"
 
@@ -171,9 +173,9 @@ void Setting::init() {
 	MainMenuScreen::MAIN_MENU_SIZE = sf::IniReader::GetInt("MAINMENU", "MAIN_MENU_SIZE", 1, f2ResIni);
 
 	SplashScreen::SPLASH_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "SPLASH_SCRN_SIZE", 1, f2ResIni);
+	HelpScreen::HELP_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "HELP_SCRN_SIZE", 0, f2ResIni);
 	//DEATH_SCRN_SIZE
 	//END_SLIDE_SIZE
-	//HELP_SCRN_SIZE
 
 	std::string x = sf::trim(sf::IniReader::GetString("MAPS", "SCROLL_DIST_X", "480", 16, f2ResIni));
 	std::string y = sf::trim(sf::IniReader::GetString("MAPS", "SCROLL_DIST_Y", "400", 16, f2ResIni));
@@ -207,8 +209,6 @@ void Setting::init() {
 	/* Inject hacks */
 	sf::SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile to _mapEntranceTileNum)
 
-	sf::SafeWrite8(0x480AF6, 0x10); // gnw_main_
-
 	if (SCR_WIDTH != 640 || SCR_HEIGHT != 480) {
 		// Set the resolution for GNW95_init_mode_ex_
 		sf::SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
@@ -227,17 +227,20 @@ void Setting::init() {
 		sf::SafeWrite32(0x47C703, SCR_WIDTH);
 		sf::SafeWrite32(0x47C70D, SCR_HEIGHT);
 	}
+	if (sf::isDebug) sf::SafeWrite8(0x480AF6, fo::WinFlags::Hidden); // gnw_main_
 
 	// Inits
 	SplashScreen::init();
 	MainMenuScreen::init();
 	ViewMap::init();
+	Worldmap::init();
 	IFaceBar::init();
 	Dialog::init();
 	Inventory::init();
 	Character::init();
 	LoadSave::init();
 	MiscInterface::init();
+	HelpScreen::init();
 }
 
 }

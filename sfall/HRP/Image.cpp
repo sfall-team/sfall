@@ -11,6 +11,23 @@
 namespace HRP
 {
 
+long Image::GetDarkColor(fo::PALETTE* palette) {
+	long minValue = (palette->B + palette->G + palette->R);
+	if (minValue == 0) return 0;
+
+	long index = 0;
+
+	// search index of the darkest color in the palette
+	for (size_t i = 1; i < 256; i++) {
+		long rgbVal = palette[i].B + palette[i].G + palette[i].R;
+		if (rgbVal < minValue) {
+			minValue = rgbVal;
+			index = i;
+		}
+	}
+	return index;
+}
+
 long Image::GetAspectSize(long &dW, long &dH, float sW, float sH) {
 	float width = (float)dW;
 	float height = (float)dH;
@@ -28,13 +45,15 @@ long Image::GetAspectSize(long &dW, long &dH, float sW, float sH) {
 }
 
 // Resizes src image to dWidth/dHeight size
-void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, long dHeight) {
+void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, long dHeight, long dPitch) {
 	if (dWidth <= 0 || dHeight <= 0) return;
 
 	float sw = (float)sWidth;
 	float sh = (float)sHeight;
 	float xStep = sw / dWidth;
 	float hStep = sh / dHeight;
+
+	if (dPitch > 0) dPitch -= dWidth;
 
 	float sy = 0.0f;
 	do {
@@ -45,6 +64,7 @@ void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, 
 			sx += xStep;
 			if (sx >= sw) sx = sw - 1.0f;
 		} while (--w);
+		dst += dPitch;
 
 		if (sHeight) {
 			sy += hStep;

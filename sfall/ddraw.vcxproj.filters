@@ -416,6 +416,12 @@
     <ClInclude Include="HRP\MiscInterface.h">
       <Filter>HRP</Filter>
     </ClInclude>
+    <ClInclude Include="HRP\HelpScreen.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
+    <ClInclude Include="HRP\Worldmap.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -765,6 +771,12 @@
       <Filter>HRP</Filter>
     </ClCompile>
     <ClCompile Include="HRP\MiscInterface.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\HelpScreen.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\Worldmap.cpp">
       <Filter>HRP</Filter>
     </ClCompile>
   </ItemGroup>
