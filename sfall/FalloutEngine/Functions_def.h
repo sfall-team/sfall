@@ -124,6 +124,7 @@ WRAP_WATCOM_FUNC1(fo::GameObject*, inven_right_hand, fo::GameObject*, critter) /
 WRAP_WATCOM_FUNC2(fo::GameObject*, inven_pid_is_carried_ptr, fo::GameObject*, invenObj, long, pid)
 WRAP_WATCOM_FUNC2(long, inven_unwield, fo::GameObject*, critter, long, slot)
 WRAP_WATCOM_FUNC1(fo::GameObject*, inven_worn, fo::GameObject*, critter) // Critter worn item (armor)
+WRAP_WATCOM_FUNC0(long, is_pc_sneak_working)
 WRAP_WATCOM_FUNC2(long, is_within_perception, fo::GameObject*, source, fo::GameObject*, target)
 WRAP_WATCOM_FUNC1(long, isPartyMember, fo::GameObject*, obj)
 WRAP_WATCOM_FUNC1(long, item_c_curr_size, fo::GameObject*, critter)

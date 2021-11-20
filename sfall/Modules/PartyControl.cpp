@@ -206,10 +206,10 @@ static void RestoreRealDudeState(bool redraw = true) {
 static void __stdcall CenterScreenOnDude() {
 	using namespace fo::Fields;
 	__asm {
-		mov  edx, 1;
+		mov  edx, 3;
 		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  eax, [eax + tile];
-		call fo::funcoffs::tile_set_center_;
+		call fo::funcoffs::tile_scroll_to_;
 	}
 }
 
@@ -222,7 +222,11 @@ static long __stdcall CombatTurn(fo::GameObject* obj) {
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static long __stdcall CombatWrapperInner(fo::GameObject* obj) {
-	if ((obj != *fo::ptr::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo::func::isPartyMember(obj))) {
+	if (obj == *fo::ptr::obj_dude) {
+		if (*fo::ptr::combatNumTurns != 0) {
+			CenterScreenOnDude();
+		}
+	} else if ((Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo::func::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
