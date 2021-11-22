@@ -1110,7 +1110,7 @@ static void __fastcall sf_critter_wake_clear(fo::GameObject* critter) {
 static void __declspec(naked) critter_wake_up_hook() {
 	__asm {
 		mov  ecx, eax;
-		test scriptExtOnMapLeave, 1;
+		test ScriptExtender::OnMapLeave, 1;
 		jnz  sf_critter_wake_clear;
 		jmp  fo::funcoffs::dude_standup_;
 	}
@@ -3129,7 +3129,7 @@ init:
 		jnz  end; // yes - initialization will be performed by engine functions
 		cmp  createObjectSidStartFix, 0;
 		jne  runStart;
-		call InitScript;
+		call ScriptExtender::InitScript;
 		mov  edx, ebx;
 		mov  eax, esi;
 		retn;

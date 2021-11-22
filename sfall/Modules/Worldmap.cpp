@@ -393,7 +393,7 @@ static void WorldmapFpsPatch() {
 			func = wmWorldMap_hook_patch2;
 		}
 		HookCall(0x4BFE5D, func); // wmWorldMap_
-		availableGlobalScriptTypes |= 2;
+		::sfall::availableGlobalScriptTypes |= 2;
 	}
 
 	if (IniReader::GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {

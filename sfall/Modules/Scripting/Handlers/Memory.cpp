@@ -16,9 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\AsmMacros.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\SafeWrite.h"
+
+#include "Memory.h"
 
 namespace sfall
+{
+namespace script
 {
 
 #define START_VALID_ADDR    0x410000
@@ -26,8 +32,7 @@ namespace sfall
 
 bool checkValidMemAddr = true;
 
-// memory_reading_funcs
-static void __declspec(naked) op_read_byte() {
+void __declspec(naked) op_read_byte() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -43,7 +48,7 @@ error:
 	}
 }
 
-static void __declspec(naked) op_read_short() {
+void __declspec(naked) op_read_short() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -59,7 +64,7 @@ error:
 	}
 }
 
-static void __declspec(naked) op_read_int() {
+void __declspec(naked) op_read_int() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -75,7 +80,7 @@ error:
 	}
 }
 
-static void __declspec(naked) op_read_string() {
+void __declspec(naked) op_read_string() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -91,7 +96,7 @@ error:
 	}
 }
 
-static void __declspec(naked) op_write_byte() {
+void __declspec(naked) op_write_byte() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -117,7 +122,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_write_short() {
+void __declspec(naked) op_write_short() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -143,7 +148,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_write_int() {
+void __declspec(naked) op_write_int() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -177,7 +182,7 @@ static void __fastcall WriteStringInternal(char* addr, long type, long strID, fo
 	*addr = 0;
 }
 
-static void __declspec(naked) op_write_string() {
+void __declspec(naked) op_write_string() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // str value
@@ -241,7 +246,7 @@ static void __fastcall CallOffsetInternal(fo::Program* script, DWORD func) {
 	}
 }
 
-static void __declspec(naked) op_call_offset() {
+void __declspec(naked) op_call_offset() {
 	__asm {
 		mov  esi, ecx;
 		mov  ecx, eax;
@@ -251,4 +256,5 @@ static void __declspec(naked) op_call_offset() {
 	}
 }
 
+}
 }

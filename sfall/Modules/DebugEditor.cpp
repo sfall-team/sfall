@@ -21,10 +21,10 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
-#include "Arrays.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
+#include "Scripting\Arrays.h"
 
 #include "DebugEditor.h"
 
@@ -118,7 +118,7 @@ static void RunEditorInternal(SOCKET &s) {
 	int numGlobals = *fo::ptr::num_game_global_vars;
 	int numMapVars = *fo::ptr::num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
-	int numArrays = GetNumArrays();
+	int numArrays = script::GetNumArrays();
 
 	InternalSend(s, &numGlobals, 4);
 	InternalSend(s, &numMapVars, 4);
@@ -130,7 +130,7 @@ static void RunEditorInternal(SOCKET &s) {
 	GetGlobals(sglobals);
 
 	sArray* arrays = new sArray[numArrays];
-	GetArrays((int*)arrays);
+	script::GetArrays((int*)arrays);
 
 	InternalSend(s, reinterpret_cast<void*>(*fo::ptr::game_global_vars), 4 * numGlobals);
 	InternalSend(s, reinterpret_cast<void*>(*fo::ptr::map_global_vars), 4 * numMapVars);
@@ -174,13 +174,13 @@ static void RunEditorInternal(SOCKET &s) {
 			{
 				InternalRecv(s, &id, 4);
 				DWORD *types = new DWORD[arrays[id].size * 2]; // type, len
-				DEGetArray(arrays[id].id, types, nullptr);
+				script::DEGetArray(arrays[id].id, types, nullptr);
 				int dataLen = 0;
 				for (long i = 0; i < arrays[id].size; i++) {
 					dataLen += types[i * 2 + 1];
 				}
 				char *data = new char[dataLen];
-				DEGetArray(arrays[id].id, nullptr, data);
+				script::DEGetArray(arrays[id].id, nullptr, data);
 				InternalSend(s, types, arrays[id].size * 8);
 				InternalSend(s, data, dataLen);
 				delete[] data;
@@ -193,7 +193,7 @@ static void RunEditorInternal(SOCKET &s) {
 				InternalRecv(s, &val, 4); // len data
 				char *data = new char[val];
 				InternalRecv(s, data, val);
-				DESetArray(arrays[id].id, nullptr, data);
+				script::DESetArray(arrays[id].id, nullptr, data);
 				delete[] data;
 			}
 			break;

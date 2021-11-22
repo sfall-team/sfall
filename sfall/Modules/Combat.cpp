@@ -387,24 +387,12 @@ void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DW
 	std::vector<KnockbackModifier>* mods;
 	switch (mode) {
 	case 0:
-		if (object->IsNotItem()) {
-			fo::func::debug_printf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
-			return;
-		}
 		mods = &mWeapons;
 		break;
 	case 1:
-		if (object->IsNotCritter()) {
-			fo::func::debug_printf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
-			return;
-		}
 		mods = &mTargets;
 		break;
 	case 2:
-		if (object->IsNotCritter()) {
-			fo::func::debug_printf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
-			return;
-		}
 		mods = &mAttackers;
 		break;
 	default:

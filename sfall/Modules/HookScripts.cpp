@@ -1726,7 +1726,7 @@ void __stdcall HookScripts::RegisterHook(fo::Program* script, int id, int procNu
 	}
 	if (procNum == 0) return; // prevent registration to first location in procedure when reusing "unregister" method
 
-	ScriptProgram *prog = GetGlobalScriptProgram(script);
+	ScriptProgram *prog = ScriptExtender::GetGlobalScriptProgram(script);
 	if (prog) {
 		dlog_f("Script: %s registered as hook ID %d\n", DL_HOOK, script->fileName, id);
 		HookScript hook;
@@ -1775,7 +1775,7 @@ static void InitHookScriptFile(const char* name, int id) {
 		hook.callback = -1;
 		hook.isGlobalScript = false;
 		hooks[id].push_back(hook);
-		AddProgramToMap(prog);
+		ScriptExtender::AddProgramToMap(prog);
 		dlogr(" Done", DL_HOOK);
 	} else {
 		dlogr(" Error!", DL_HOOK);

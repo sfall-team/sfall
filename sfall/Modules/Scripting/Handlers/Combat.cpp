@@ -16,21 +16,25 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\AsmMacros.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\AI.h"
+#include "..\..\Combat.h"
+#include "..\..\KillCounter.h"
 
-#include "AI.h"
 #include "Combat.h"
-#include "KillCounter.h"
 
 namespace sfall
+{
+namespace script
 {
 
 // Kill counters
 static bool extraKillCounter;
 
-static void SetExtraKillCounter(bool value) { extraKillCounter = value; }
+void SetExtraKillCounter(bool value) { extraKillCounter = value; }
 
-static void __declspec(naked) op_get_kill_counter() {
+void __declspec(naked) op_get_kill_counter() {
 	__asm {
 		_GET_ARG_INT(fail); // get kill type value
 		cmp  extraKillCounter, 1;
@@ -53,7 +57,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_mod_kill_counter() {
+void __declspec(naked) op_mod_kill_counter() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get mod value
@@ -78,120 +82,45 @@ end:
 	}
 }
 
-//Knockback
-static void __declspec(naked) SetKnockback() {
-	__asm {
-		sub esp, 0xC;
-		mov ecx, eax;
-		//Get args
-		call fo::funcoffs::interpretPopShort_; //First arg type
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //First arg
-		mov [esp + 8], eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_; //Second arg type
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //Second arg
-		mov [esp + 4], eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_; //Third arg type
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //Third arg
-		mov [esp], eax;
-		//Error check
-		cmp di, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		fild [esp + 8];
-		fstp [esp + 8];
-paramWasFloat:
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
-		call KnockbackSetMod;
-		jmp end;
-fail:
-		add esp, 0x10;
-end:
-		popaop;
-		retn;
+void op_set_object_knockback(OpcodeContext& ctx) {
+	int mode = 0;
+	switch (ctx.opcode()) {
+	case 0x196:
+		mode = 1;
+		break;
+	case 0x197:
+		mode = 2;
+		break;
 	}
+	fo::GameObject* object = ctx.arg(0).object();
+	if (mode) {
+		if (object->IsNotCritter()) {
+			ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getOpcodeName());
+			return;
+		}
+	} else {
+		if (object->IsNotItem()) {
+			ctx.printOpcodeError("%s() - the object is not an item.", ctx.getOpcodeName());
+			return;
+		}
+	}
+	KnockbackSetMod(object, ctx.arg(1).rawValue(), ctx.arg(2).asFloat(), mode);
 }
 
-static void __declspec(naked) op_set_weapon_knockback() {
-	__asm {
-		pushaop;
-		push 0;
-		jmp SetKnockback;
+void op_remove_object_knockback(OpcodeContext& ctx) {
+	int mode = 0;
+	switch (ctx.opcode()) {
+	case 0x199:
+		mode = 1;
+		break;
+	case 0x19a:
+		mode = 2;
+		break;
 	}
+	KnockbackRemoveMod(ctx.arg(0).object(), mode);
 }
 
-static void __declspec(naked) op_set_target_knockback() {
-	__asm {
-		pushaop;
-		push 1;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) op_set_attacker_knockback() {
-	__asm {
-		pushaop;
-		push 2;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) RemoveKnockback() {
-	__asm {
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call KnockbackRemoveMod;
-		jmp end;
-fail:
-		add esp, 4;
-end:
-		popaop;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_remove_weapon_knockback() {
-	__asm {
-		pushaop;
-		push 0;
-		jmp RemoveKnockback;
-	}
-}
-
-static void __declspec(naked) op_remove_target_knockback() {
-	__asm {
-		pushaop;
-		push 1;
-		jmp RemoveKnockback;
-	}
-}
-
-static void __declspec(naked) op_remove_attacker_knockback() {
-	__asm {
-		pushaop;
-		push 2;
-		jmp RemoveKnockback;
-	}
-}
-
-static void __declspec(naked) op_get_bodypart_hit_modifier() {
+void __declspec(naked) op_get_bodypart_hit_modifier() {
 	__asm {
 		_GET_ARG_INT(fail); // get body value
 		cmp  eax, 8; // Body_Head - Body_Uncalled
@@ -206,7 +135,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_set_bodypart_hit_modifier() {
+void __declspec(naked) op_set_bodypart_hit_modifier() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get body value
@@ -223,19 +152,11 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_attack_type() {
-	__asm {
-		mov  esi, ecx;
-		call fo::util::GetCurrentAttackMode;
-		mov  edx, eax;
-		mov  eax, ebx;
-		_RET_VAL_INT;
-		mov  ecx, esi;
-		retn;
-	}
+void op_get_attack_type(OpcodeContext& ctx) {
+	ctx.setReturn(fo::util::GetCurrentAttackMode());
 }
 
-static void __declspec(naked) op_force_aimed_shots() {
+void __declspec(naked) op_force_aimed_shots() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -247,7 +168,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_disable_aimed_shots() {
+void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -259,7 +180,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_last_attacker() {
+void __declspec(naked) op_get_last_attacker() {
 	__asm {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
@@ -276,7 +197,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_get_last_target() {
+void __declspec(naked) op_get_last_target() {
 	__asm {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
@@ -293,7 +214,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_block_combat() {
+void __declspec(naked) op_block_combat() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -305,17 +226,18 @@ end:
 	}
 }
 
-static void mf_attack_is_aimed() {
+void mf_attack_is_aimed(OpcodeContext& ctx) {
 	DWORD isAimed, unused;
-	opHandler.setReturn(!fo::func::intface_get_attack(&unused, &isAimed) ? isAimed : 0);
+	ctx.setReturn(!fo::func::intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
-static void mf_combat_data() {
+void mf_combat_data(OpcodeContext& ctx) {
 	fo::ComputeAttackResult* ctd = nullptr;
 	if (*fo::ptr::combat_state & 1) {
 		ctd = fo::ptr::main_ctd;
 	}
-	opHandler.setReturn((DWORD)ctd, DATATYPE_INT);
+	ctx.setReturn((DWORD)ctd, DATATYPE_INT);
 }
 
+}
 }

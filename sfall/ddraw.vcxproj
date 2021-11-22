@@ -127,7 +127,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CallingConvention>Cdecl</CallingConvention>
+      <CallingConvention>StdCall</CallingConvention>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -181,7 +181,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
-      <CallingConvention>Cdecl</CallingConvention>
+      <CallingConvention>StdCall</CallingConvention>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -244,7 +244,6 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\Animations.h" />
-    <ClInclude Include="Modules\Arrays.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
     <ClInclude Include="Modules\Books.h" />
     <ClInclude Include="Modules\BugFixes.h" />
@@ -284,23 +283,27 @@
     <ClInclude Include="Modules\QuestList.h" />
     <ClInclude Include="Modules\Reputations.h" />
     <ClInclude Include="Modules\ScriptExtender.h" />
-    <ClInclude Include="Modules\ScriptOps\AnimOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\CombatOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\CoreOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\FileSystemOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\GraphicsOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\InterfaceOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\InventoryOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\MathOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\MemoryOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\MetaruleOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\MiscOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\ObjectsOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\PerksOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\ScriptArrays.hpp" />
-    <ClInclude Include="Modules\ScriptOps\ScriptUtils.hpp" />
-    <ClInclude Include="Modules\ScriptOps\StatsOps.hpp" />
-    <ClInclude Include="Modules\ScriptOps\WorldmapOps.hpp" />
+    <ClInclude Include="Modules\Scripting\Arrays.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Anims.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Arrays.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Combat.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Core.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Graphics.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Interface.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Inventory.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Memory.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Metarule.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Misc.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Objects.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Perks.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Stats.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Utils.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h" />
+    <ClInclude Include="Modules\Scripting\OpcodeContext.h" />
+    <ClInclude Include="Modules\Scripting\Opcodes.h" />
+    <ClInclude Include="Modules\Scripting\ScriptValue.h" />
     <ClInclude Include="Modules\ScriptShaders.h" />
     <ClInclude Include="Modules\Skills.h" />
     <ClInclude Include="Modules\Sound.h" />
@@ -340,7 +343,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Modules\AI.cpp" />
     <ClCompile Include="Modules\Animations.cpp" />
-    <ClCompile Include="Modules\Arrays.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />
     <ClCompile Include="Modules\Books.cpp" />
     <ClCompile Include="Modules\BugFixes.cpp" />
@@ -380,6 +382,27 @@
     <ClCompile Include="Modules\QuestList.cpp" />
     <ClCompile Include="Modules\Reputations.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
+    <ClCompile Include="Modules\Scripting\Arrays.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Anims.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Arrays.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Core.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\FileSystem.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Graphics.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Interface.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Memory.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Metarule.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Misc.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Objects.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Perks.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Stats.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Utils.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Worldmap.cpp" />
+    <ClCompile Include="Modules\Scripting\OpcodeContext.cpp" />
+    <ClCompile Include="Modules\Scripting\Opcodes.cpp" />
+    <ClCompile Include="Modules\Scripting\ScriptValue.cpp" />
     <ClCompile Include="Modules\ScriptShaders.cpp" />
     <ClCompile Include="Modules\Skills.cpp" />
     <ClCompile Include="Modules\Sound.cpp" />

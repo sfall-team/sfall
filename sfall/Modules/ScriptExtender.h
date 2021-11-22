@@ -21,19 +21,52 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
 
-// TODO: replace with enum class
-enum SfallDataType : unsigned long {
-	DATATYPE_NONE  = 0,
-	DATATYPE_INT   = 1,
-	DATATYPE_FLOAT = 2,
-	DATATYPE_STR   = 3,
-};
+namespace sfall
+{
 
 typedef struct {
 	fo::Program* ptr;
 	int procLookup[fo::Scripts::ScriptProc::count];
 	bool initialized;
 } ScriptProgram;
+
+class ScriptExtender{
+public:
+	static const char* name() { return "ScriptExtender"; }
+	static void init();
+
+	static void OnGameLoad();
+
+	static bool OnMapLeave;
+
+	static char gTextBuffer[5120];
+
+	// returns the size of the global text buffer
+	inline static const long TextBufferSize() { return sizeof(gTextBuffer); }
+
+	static long GetScriptReturnValue();
+	static long GetResetScriptReturnValue();
+
+	static void AddProgramToMap(ScriptProgram &prog);
+	static ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
+
+	static void __stdcall AddTimerEventScripts(fo::Program* script, long time, long param);
+	static void __stdcall RemoveTimerEventScripts(fo::Program* script, long param);
+	static void __stdcall RemoveTimerEventScripts(fo::Program* script);
+
+	static int __stdcall ScriptHasLoaded(fo::Program* script);
+
+	// loads and initializes script file (for normal game scripts)
+	static long __fastcall InitScript(long sid);
+};
+
+class ObjectName {
+public:
+	static const char* __stdcall GetName(fo::GameObject* object);
+	static void __stdcall SetName(long sid, const char* name);
+
+	static void Reset();
+};
 
 #pragma pack(push, 8)
 struct GlobalVar {
@@ -43,8 +76,9 @@ struct GlobalVar {
 };
 #pragma pack(pop)
 
-void ScriptExtender_Init();
-void ScriptExtender_OnGameLoad();
+void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
+void __fastcall SetGlobalScriptType(fo::Program* script, int type);
+
 void BuildSortedIndexList();
 void LoadGlobalScripts();
 void InitGlobalScripts();
@@ -63,8 +97,13 @@ void GetGlobals(GlobalVar* globals);
 void SetGlobals(GlobalVar* globals);
 
 long __stdcall SetGlobalVar(const char* var, int val);
+void __stdcall SetGlobalVarInt(DWORD var, int val);
 
 long __stdcall GetGlobalVar(const char* var);
+long __stdcall GetGlobalVarInt(DWORD var);
+long __stdcall GetGlobalVarInternal(__int64 val);
+
+void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
 // loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
@@ -82,26 +121,8 @@ void RunScriptProc(ScriptProgram* prog, long procId);
 
 int RunScriptStartProc(ScriptProgram* prog);
 
-long GetScriptReturnValue();
-long GetResetScriptReturnValue();
-
-void AddProgramToMap(ScriptProgram &prog);
-ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
-
-void __stdcall AddTimerEventScripts(fo::Program* script, long time, long param);
-void __stdcall RemoveTimerEventScripts(fo::Program* script, long param);
-void __stdcall RemoveTimerEventScripts(fo::Program* script);
-
-int __stdcall ScriptHasLoaded(fo::Program* script);
-
-// loads and initializes script file (for normal game scripts)
-long __fastcall InitScript(long sid);
-
-const char* __stdcall ObjectName_GetName(fo::GameObject* object);
-void __stdcall ObjectName_SetName(long sid, const char* name);
-void ObjectNameReset();
-
 // variables
 extern DWORD availableGlobalScriptTypes;
 extern bool alwaysFindScripts;
-extern bool scriptExtOnMapLeave;
+
+}

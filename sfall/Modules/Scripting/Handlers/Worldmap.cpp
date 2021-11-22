@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,11 +16,21 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\AsmMacros.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+
+#include "..\..\..\SafeWrite.h"
+#include "..\..\LoadGameHook.h"
+#include "..\..\ScriptExtender.h"
+#include "..\..\Worldmap.h"
+#include "..\Arrays.h"
+#include "..\OpcodeContext.h"
 
 #include "Worldmap.h"
 
 namespace sfall
+{
+namespace script
 {
 
 static DWORD ForceEncounterMapID = -1;
@@ -76,47 +86,31 @@ noCar:
 	}
 }
 
-static void __stdcall op_force_encounter2() {
+void op_force_encounter(OpcodeContext& cxt) {
 	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
-	const ScriptValue &mapIDArg = opHandler.arg(0);
-	if (mapIDArg.isInt()) {
-		DWORD flags = 0;
-		if (opHandler.numArgs() > 1) {
-			const ScriptValue &flagsArg = opHandler.arg(1);
-			if (!flagsArg.isInt()) goto invalidArgs;
-			flags = flagsArg.rawValue();
-			if (flags & 2) { // _Lock flag
-				flags |= (1 << 31); // set bit 31
-			} else {
-				flags &= ~(1 << 31);
-			}
-		}
-		DWORD mapID = mapIDArg.rawValue();
-		if (mapID < 0) {
-			opHandler.printOpcodeError("force_encounter/force_encounter_with_flags() - invalid map number.");
-			return;
-		}
-		if (ForceEncounterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
-
-		ForceEncounterMapID = mapID;
-		ForceEncounterFlags = flags;
-	} else {
-invalidArgs:
-		OpcodeInvalidArgs("force_encounter/force_encounter_with_flags");
+	DWORD mapID = cxt.arg(0).rawValue();
+	if (mapID < 0) {
+		cxt.printOpcodeError("%s() - invalid map number.", cxt.getOpcodeName());
+		return;
 	}
-}
+	if (ForceEncounterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
 
-static void __declspec(naked) op_force_encounter() {
-	_WRAP_OPCODE(op_force_encounter2, 1, 0)
-}
-
-static void __declspec(naked) op_force_encounter_with_flags() {
-	_WRAP_OPCODE(op_force_encounter2, 2, 0)
+	ForceEncounterMapID = mapID;
+	DWORD flags = 0;
+	if (cxt.numArgs() > 1) {
+		flags = cxt.arg(1).rawValue();
+		if (flags & 2) { // _Lock flag
+			flags |= (1 << 31); // set bit 31
+		} else {
+			flags &= ~(1 << 31);
+		}
+	}
+	ForceEncounterFlags = flags;
 }
 
 // world_map_functions
-static void __declspec(naked) op_in_world_map() {
+void __declspec(naked) op_in_world_map() {
 	__asm {
 		mov  esi, ecx;
 		call InWorldMap;
@@ -128,7 +122,7 @@ static void __declspec(naked) op_in_world_map() {
 	}
 }
 
-static void __declspec(naked) op_get_game_mode() {
+void __declspec(naked) op_get_game_mode() {
 	__asm {
 		mov  esi, ecx;
 		call GetLoopFlags;
@@ -140,7 +134,7 @@ static void __declspec(naked) op_get_game_mode() {
 	}
 }
 
-static void __declspec(naked) op_get_world_map_x_pos() {
+void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
 		mov  edx, ds:[FO_VAR_world_xpos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -148,7 +142,7 @@ static void __declspec(naked) op_get_world_map_x_pos() {
 	}
 }
 
-static void __declspec(naked) op_get_world_map_y_pos() {
+void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
 		mov  edx, ds:[FO_VAR_world_ypos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -156,7 +150,7 @@ static void __declspec(naked) op_get_world_map_y_pos() {
 	}
 }
 
-static void __declspec(naked) op_set_world_map_pos() {
+void __declspec(naked) op_set_world_map_pos() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get y value
@@ -172,44 +166,18 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_map_time_multi() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov  ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov  edx, eax;
-		mov  eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp  dx, VAR_TYPE_FLOAT;
-		jz   paramWasFloat;
-		cmp  dx, VAR_TYPE_INT;
-		jnz  fail;
-		push eax;
-		fild dword ptr [esp];
-		fstp dword ptr [esp];
-		jmp  end;
-paramWasFloat:
-		push eax;
-end:
-		call Worldmap::SetMapMulti;
-fail:
-		pop  edx;
-		pop  ecx;
-		pop  ebx;
-		retn;
-	}
+void op_set_map_time_multi(OpcodeContext& ctx) {
+	Worldmap::SetMapMulti(ctx.arg(0).asFloat());
 }
 
-static void mf_set_car_intface_art() {
-	Worldmap::SetCarInterfaceArt(opHandler.arg(0).rawValue());
+void mf_set_car_intface_art(OpcodeContext& ctx) {
+	Worldmap::SetCarInterfaceArt(ctx.arg(0).rawValue());
 }
 
-static void mf_set_map_enter_position() {
-	int tile = opHandler.arg(0).rawValue();
-	int elev = opHandler.arg(1).rawValue();
-	int rot = opHandler.arg(2).rawValue();
+void mf_set_map_enter_position(OpcodeContext& ctx) {
+	int tile = ctx.arg(0).rawValue();
+	int elev = ctx.arg(1).rawValue();
+	int rot = ctx.arg(2).rawValue();
 
 	if (tile > -1 && tile < 40000) {
 		*fo::ptr::tile = tile;
@@ -222,24 +190,25 @@ static void mf_set_map_enter_position() {
 	}
 }
 
-static void mf_get_map_enter_position() {
+void mf_get_map_enter_position(OpcodeContext& ctx) {
 	DWORD id = CreateTempArray(3, 0);
 	arrays[id].val[0].set((long)*fo::ptr::tile);
 	arrays[id].val[1].set((long)*fo::ptr::elevation);
 	arrays[id].val[2].set((long)*fo::ptr::rotation);
-	opHandler.setReturn(id);
+	ctx.setReturn(id);
 }
 
-static void mf_tile_by_position() {
-	opHandler.setReturn(fo::func::tile_num(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
+void mf_tile_by_position(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
-static void mf_set_terrain_name() {
-	Worldmap::SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
+void mf_set_terrain_name(OpcodeContext& ctx) {
+	Worldmap::SetTerrainTypeName(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).strValue());
 }
 
-static void mf_set_town_title() {
-	Worldmap::SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
+void mf_set_town_title(OpcodeContext& ctx) {
+	Worldmap::SetCustomAreaTitle(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
+}
 }

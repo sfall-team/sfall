@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,16 +16,23 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\AsmMacros.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
 
-//#include "..\InputFuncs.h"
+#include "..\..\..\main.h"
+//#include "..\..\..\InputFuncs.h"
+#include "..\..\Graphics.h"
+#include "..\..\ScriptExtender.h"
+#include "..\..\ScriptShaders.h"
+
 #include "Graphics.h"
-#include "ScriptShaders.h"
 
 namespace sfall
 {
+namespace script
+{
 
-static void __declspec(naked) op_graphics_funcs_available() {
+void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
 		cmp  Graphics::mode, 3;
 		seta dl;
@@ -35,7 +42,7 @@ static void __declspec(naked) op_graphics_funcs_available() {
 	}
 }
 
-static void __declspec(naked) op_load_shader() {
+void __declspec(naked) op_load_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -74,7 +81,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_free_shader() {
+void __declspec(naked) op_free_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -86,7 +93,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_activate_shader() {
+void __declspec(naked) op_activate_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -98,7 +105,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_deactivate_shader() {
+void __declspec(naked) op_deactivate_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -110,7 +117,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_shader_texture() {
+void __declspec(naked) op_get_shader_texture() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -162,7 +169,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_int() {
+void __declspec(naked) op_set_shader_int() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -219,7 +226,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_texture() {
+void __declspec(naked) op_set_shader_texture() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -276,7 +283,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_float() {
+void __declspec(naked) op_set_shader_float() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -338,7 +345,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_vector() {
+void __declspec(naked) op_set_shader_vector() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -396,7 +403,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_shader_version() {
+void __declspec(naked) op_get_shader_version() {
 	__asm {
 		mov  esi, ecx;
 		call Graphics::GetShaderVersion;
@@ -408,7 +415,7 @@ static void __declspec(naked) op_get_shader_version() {
 	}
 }
 
-static void __declspec(naked) op_set_shader_mode() {
+void __declspec(naked) op_set_shader_mode() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -443,7 +450,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_force_graphics_refresh() {
+void __declspec(naked) op_force_graphics_refresh() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -455,4 +462,5 @@ end:
 	}
 }
 
+}
 }

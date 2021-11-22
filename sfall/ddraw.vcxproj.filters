@@ -7,11 +7,14 @@
     <Filter Include="FalloutEngine">
       <UniqueIdentifier>{ca9ea406-b424-4f8b-a638-2a0d745bf5a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Modules\ScriptOps">
-      <UniqueIdentifier>{2a3c4631-74b7-42d2-bde9-b0869e9e6439}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Game">
       <UniqueIdentifier>{4ad124ba-a384-4ce7-8b02-efbbf10bfb5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Scripting">
+      <UniqueIdentifier>{a66b35fb-50a8-48f1-b132-1d05338a7ea3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Scripting\Handlers">
+      <UniqueIdentifier>{70a7a0e2-5bd4-4802-a8db-ad2d49ba6afd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -20,9 +23,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Animations.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Arrays.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\BarBoxes.h">
@@ -142,56 +142,68 @@
     <ClInclude Include="Modules\ScriptExtender.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\AnimOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Arrays.h">
+      <Filter>Modules\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\CombatOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Anims.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\CoreOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Arrays.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\FileSystemOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Combat.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\GraphicsOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Core.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\InterfaceOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\InventoryOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Graphics.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\MathOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Interface.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\MemoryOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Inventory.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\MetaruleOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Math.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\MiscOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Memory.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\ObjectsOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Metarule.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\PerksOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Misc.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\ScriptArrays.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Objects.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\ScriptUtils.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Perks.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\StatsOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Stats.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\ScriptOps\WorldmapOps.hpp">
-      <Filter>Modules\ScriptOps</Filter>
+    <ClInclude Include="Modules\Scripting\Handlers\Utils.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\OpcodeContext.h">
+      <Filter>Modules\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\Opcodes.h">
+      <Filter>Modules\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\ScriptValue.h">
+      <Filter>Modules\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="Modules\ScriptShaders.h">
       <Filter>Modules</Filter>
@@ -302,9 +314,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Animations.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Arrays.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\BarBoxes.cpp">
@@ -423,6 +432,69 @@
     </ClCompile>
     <ClCompile Include="Modules\ScriptExtender.cpp">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Arrays.cpp">
+      <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Anims.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Arrays.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Core.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\FileSystem.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Graphics.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Interface.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Math.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Memory.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Metarule.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Misc.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Objects.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Perks.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Stats.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Utils.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Worldmap.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\OpcodeContext.cpp">
+      <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Opcodes.cpp">
+      <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\ScriptValue.cpp">
+      <Filter>Modules\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="Modules\ScriptShaders.cpp">
       <Filter>Modules</Filter>

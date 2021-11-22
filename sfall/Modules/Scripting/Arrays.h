@@ -1,12 +1,14 @@
 #pragma once
 
-#include "..\main.h"
-
 #include <functional>
 #include <unordered_map>
 #include <Windows.h>
 
+#include "ScriptValue.h"
+
 namespace sfall
+{
+namespace script
 {
 
 #define ARRAY_MAX_STRING        (255)  // maximum length of string to be stored as array key or value
@@ -20,11 +22,11 @@ namespace sfall
 #define ARRAY_ACTION_SHUFFLE    (-5)
 
 
-// TODO: rewrite
+// TODO: rewrite (or replace with ScriptValue)
 class sArrayElement
 {
 public:
-	DWORD type; // DATATYPE_*
+	DataType type;
 	DWORD len; // for strings
 	union {
 		long  intVal;
@@ -34,14 +36,14 @@ public:
 
 	sArrayElement();
 	// this constructor does not copy strings (for performance), use set() for actual array elements
-	sArrayElement(DWORD _val, DWORD _dataType);
+	sArrayElement(DWORD _val, DataType _dataType);
 	sArrayElement(const long&);
 
 	// free string resource from memory, has to be called manually when deleting element
 	void clearData();
 
 	// set* methods will actually COPY strings, use this when acquiring data from the scripting engine
-	void setByType(DWORD val, DWORD dataType);
+	void setByType(DWORD val, DataType dataType);
 
 	void sArrayElement::set( const sArrayElement &el )
 	{
@@ -58,7 +60,7 @@ public:
 		return getHashStatic(*(DWORD*)&intVal, type);
 	}
 
-	DWORD static getHashStatic(DWORD value, DWORD type);
+	DWORD static getHashStatic(DWORD value, DataType type);
 
 	bool operator < (const sArrayElement &el) const;
 };
@@ -95,7 +97,8 @@ typedef std::tr1::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sA
 	This class represents sfall array
 	It can be both list (normal array) and map (associative)
 
-	TODO: rewrite for better interface (especially associate arrays)
+	TODO: rewrite for better interface (especially associate arrays), get rid of ad-hoc solutions
+		Maybe use unordered_map with vector to track insertion order?
 */
 class sArrayVar
 {
@@ -163,9 +166,6 @@ void GetArrays(int* arrays);
 void DEGetArray(int id, DWORD* types, char* data);
 void DESetArray(int id, const DWORD* types, const char* data);
 
-const char* __stdcall GetSfallTypeName(DWORD dataType);
-DWORD __stdcall getSfallTypeByScriptType(DWORD varType);
-DWORD __stdcall getScriptTypeBySfallType(DWORD dataType);
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
 DWORD __stdcall CreateArray(int len, DWORD flags);
 
@@ -181,38 +181,39 @@ void DeleteAllTempArrays();
 /*
 	op_get_array_key can be used to iterate over all keys in associative array
 */
-DWORD __stdcall GetArrayKey(DWORD id, int index, DWORD* resultType);
+ScriptValue __stdcall GetArrayKey(DWORD id, int index);
 
 // get array element by index (list) or key (map)
-DWORD __stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType);
+ScriptValue __stdcall GetArray(DWORD id, const ScriptValue& key);
 
 // set array element by index or key (with checking the existence of the array ID)
-void __stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
+void __stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // set array element by index or key
-void __stdcall setArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
+void __stdcall setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // number of elements in list or pairs in map
 int __stdcall LenArray(DWORD id);
 
 // change array size (only works with list)
-void __stdcall ResizeArray(DWORD id, int newlen);
+long __stdcall ResizeArray(DWORD id, int newlen);
 
 // make temporary array persistent
 void __stdcall FixArray(DWORD id);
 
 // searches for a given element in array and returns it's index (for list) or key (for map) or int(-1) if not found
-int __stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType);
+ScriptValue __stdcall ScanArray(DWORD id, const ScriptValue& val);
 
 // get saved array by it's key
-DWORD __stdcall LoadArray(DWORD key, DWORD keyType);
+DWORD __stdcall LoadArray(const ScriptValue& key);
 
 // make array saved into the savegame with associated key
-void __stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
+void __stdcall SaveArray(const ScriptValue& key, DWORD id);
 
 // special function that powers array expressions
-long __stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);
+long __stdcall StackArray(const ScriptValue& key, const ScriptValue& val);
 
 sArrayVar* __stdcall GetRawArray(DWORD id);
 
+}
 }

@@ -24,7 +24,6 @@
 #include "..\version.h"
 #include "AI.h"
 #include "Animations.h"
-#include "Arrays.h"
 #include "BugFixes.h"
 #include "BarBoxes.h"
 #include "Combat.h"
@@ -47,6 +46,7 @@
 #include "Perks.h"
 #include "QuestList.h"
 #include "ScriptExtender.h"
+#include "Scripting\Arrays.h"
 #include "ScriptShaders.h"
 #include "Skills.h"
 #include "Sound.h"
@@ -157,10 +157,10 @@ static void __stdcall SaveGame2() {
 	if (h != INVALID_HANDLE_VALUE) {
 		SaveGlobals(h);
 		WriteFile(h, &Objects::uniqueID, 4, &size, 0); // save unique id counter
-		data = Worldmap::GetAddedYears(false) << 16; // save to high bytes (short)
+		data = Worldmap::GetAddedYears(false) << 16;   // save to high bytes (short)
 		WriteFile(h, &data, 4, &size, 0);
 		Perks::Save(h);
-		SaveArrays(h);
+		script::SaveArrays(h);
 		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
@@ -248,7 +248,7 @@ static bool __stdcall LoadGame_Before() {
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap::SetAddedYears(data >> 16);
 		if (size != 4 || !Perks::Load(h)) goto errorLoad;
-		long result = LoadArrays(h); // 1 - old save, -1 - broken save
+		long result = script::LoadArrays(h); // 1 - old save, -1 - broken save
 		if (result == -1 || (!result && BugFixes::DrugsLoadFix(h))) goto errorLoad;
 		CloseHandle(h);
 	} else {
@@ -292,7 +292,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		QuestList::ResetQuests();
 		Console::OnGameLoad();
 		MetaruleExtender::Reset();
-		ScriptExtender_OnGameLoad();
+		ScriptExtender::OnGameLoad();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
 			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
@@ -398,7 +398,7 @@ static void __stdcall GameClose() { // OnBeforeGameClose
 }
 
 static void __stdcall MapLoadHook() { // OnBeforeMapLoad
-	ObjectNameReset();
+	ObjectName::Reset();
 }
 
 static void __declspec(naked) main_init_system_hook() {

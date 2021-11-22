@@ -11,7 +11,7 @@ void Input::init() {
 	//if (IniReader::GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
 		SafeWriteStr(0x50FB70, "ddraw.dll");
-		availableGlobalScriptTypes |= 1;
+		::sfall::availableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
 }

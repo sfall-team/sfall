@@ -251,8 +251,8 @@ static void InitModules() {
 	ModuleInitLog(HookScripts::name());
 	HookScripts::init();
 
-	ModuleInitLog("ScriptExtender");
-	ScriptExtender_Init();
+	ModuleInitLog(ScriptExtender::name());
+	ScriptExtender::init();
 
 	ModuleInitLog(DebugEditor::name());
 	DebugEditor::init();

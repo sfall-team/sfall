@@ -21,7 +21,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 #include "..\SimplePatch.h"
-#include "Arrays.h"
+#include "Scripting\Arrays.h"
 #include "ScriptExtender.h"
 
 #include "Explosions.h"
@@ -205,9 +205,9 @@ static int __stdcall GetExplosionDamage(int pid) {
 			break;
 	}
 
-	DWORD arrayId = CreateTempArray(2, 0);
-	arrays[arrayId].val[0] = min;
-	arrays[arrayId].val[1] = max;
+	DWORD arrayId = script::CreateTempArray(2, 0);
+	script::arrays[arrayId].val[0] = min;
+	script::arrays[arrayId].val[1] = max;
 
 	return arrayId;
 }

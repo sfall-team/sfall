@@ -16,29 +16,35 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\AsmMacros.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\LoadGameHook.h"
+#include "..\..\Inventory.h"
+
+#include "..\..\..\Game\inventory.h"
 
 #include "Inventory.h"
-#include "..\Game\inventory.h"
 
 namespace sfall
 {
+namespace script
+{
 
-static void __declspec(naked) op_active_hand() {
+void __declspec(naked) op_active_hand() {
 	__asm {
 		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-static void __declspec(naked) op_toggle_active_hand() {
+void __declspec(naked) op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
 		jmp fo::funcoffs::intface_toggle_items_;
 	}
 }
 
-static void __declspec(naked) op_set_inven_ap_cost() {
+void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -50,16 +56,16 @@ end:
 	}
 }
 
-static void mf_get_inven_ap_cost() {
-	opHandler.setReturn(Inventory::GetInvenApCost());
+void mf_get_inven_ap_cost(OpcodeContext& ctx) {
+	ctx.setReturn(Inventory::GetInvenApCost());
 }
 
-static void __stdcall op_obj_is_carrying_obj2() {
-	const ScriptValue &invenObjArg = opHandler.arg(0),
-	                  &itemObjArg = opHandler.arg(1);
+void op_obj_is_carrying_obj(OpcodeContext& ctx) {
+	const ScriptValue &invenObjArg = ctx.arg(0),
+	                  &itemObjArg = ctx.arg(1);
 
-	fo::GameObject *invenObj = invenObjArg.asObject(),
-	         *itemObj = itemObjArg.asObject();
+	fo::GameObject *invenObj = invenObjArg.object(),
+	               *itemObj = itemObjArg.object();
 
 	int count = 0;
 	if (invenObj != nullptr && itemObj != nullptr) {
@@ -69,75 +75,50 @@ static void __stdcall op_obj_is_carrying_obj2() {
 				break;
 			}
 		}
-	} else {
-		OpcodeInvalidArgs("obj_is_carrying_obj");
 	}
-	opHandler.setReturn(count);
+	ctx.setReturn(count);
 }
 
-static void __declspec(naked) op_obj_is_carrying_obj() {
-	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
-}
-
-static void mf_critter_inven_obj2() {
-	fo::GameObject* critter = opHandler.arg(0).asObject();
-	const ScriptValue &slotArg = opHandler.arg(1);
-
-	if (critter && slotArg.isInt()) {
-		int slot = slotArg.rawValue();
-		switch (slot) {
-		case 0:
-			opHandler.setReturn(fo::func::inven_worn(critter));
-			break;
-		case 1:
-			opHandler.setReturn(fo::func::inven_right_hand(critter));
-			break;
-		case 2:
-			opHandler.setReturn(fo::func::inven_left_hand(critter));
-			break;
-		case -2:
-			opHandler.setReturn(critter->invenSize);
-			break;
-		default:
-			opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
-		}
-	} else {
-		OpcodeInvalidArgs("critter_inven_obj2");
-		opHandler.setReturn(0);
+void mf_critter_inven_obj2(OpcodeContext& ctx) {
+	fo::GameObject* critter = ctx.arg(0).object();
+	int slot = ctx.arg(1).rawValue();
+	switch (slot) {
+	case 0:
+		ctx.setReturn(fo::func::inven_worn(critter));
+		break;
+	case 1:
+		ctx.setReturn(fo::func::inven_right_hand(critter));
+		break;
+	case 2:
+		ctx.setReturn(fo::func::inven_left_hand(critter));
+		break;
+	case -2:
+		ctx.setReturn(critter->invenSize);
+		break;
+	default:
+		ctx.printOpcodeError("%s() - invalid type.", ctx.getMetaruleName());
 	}
 }
 
-static void mf_item_weight() {
-	fo::GameObject* item = opHandler.arg(0).asObject();
-	if (item) {
-		opHandler.setReturn(fo::func::item_weight(item));
-	} else {
-		OpcodeInvalidArgs("item_weight");
-		opHandler.setReturn(0);
-	}
+void mf_item_weight(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::item_weight(ctx.arg(0).object()));
 }
 
-static void mf_get_current_inven_size() {
-	fo::GameObject* obj = opHandler.arg(0).asObject();
-	if (obj) {
-		opHandler.setReturn(game::Inventory::item_total_size(obj));
-	} else {
-		OpcodeInvalidArgs("get_current_inven_size");
-		opHandler.setReturn(0);
-	}
+void mf_get_current_inven_size(OpcodeContext& ctx) {
+	ctx.setReturn(game::Inventory::item_total_size(ctx.arg(0).object()));
 }
 
-static void mf_unwield_slot() {
-	fo::InvenType slot = static_cast<fo::InvenType>(opHandler.arg(1).rawValue());
+void mf_unwield_slot(OpcodeContext& ctx) {
+	fo::InvenType slot = static_cast<fo::InvenType>(ctx.arg(1).rawValue());
 	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
-		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
-		opHandler.setReturn(-1);
+		ctx.printOpcodeError("%s() - incorrect slot number.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
-	fo::GameObject* critter = opHandler.arg(0).object();
+	fo::GameObject* critter = ctx.arg(0).object();
 	if (critter->IsNotCritter()) {
-		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
-		opHandler.setReturn(-1);
+		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
 	bool isDude = (critter == *fo::ptr::obj_dude);
@@ -189,4 +170,5 @@ static void mf_unwield_slot() {
 	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
+}
 }
