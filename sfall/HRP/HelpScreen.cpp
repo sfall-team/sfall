@@ -36,8 +36,8 @@ static void __cdecl game_help_hook_buf_to_buf(fo::FrmData* frm, long w, long h, 
 	w = Setting::ScreenWidth();
 	h = Setting::ScreenHeight();
 
-	if (HelpScreen::HELP_SCRN_SIZE) {
-		if (HelpScreen::HELP_SCRN_SIZE == 1 || width > w || height > h) {
+	if (HelpScreen::HELP_SCRN_SIZE || width > w || height > h) {
+		if (HelpScreen::HELP_SCRN_SIZE == 1) {
 			long x = Image::GetAspectSize(w, h, (float)width, (float)height);
 			long y = 0;
 			if (x >= w) { // extract x/y image position
@@ -62,8 +62,9 @@ void HelpScreen::init() {
 	sf::HookCall(0x44401D, game_help_hook_buf_to_buf);
 
 	// game_help_
-	sf::HookCall(0x443FEE, (void*)fo::funcoffs::art_ptr_lock_); // replace art_ptr_lock_data_ to art_ptr_lock_
+	sf::HookCall(0x443FEE, (void*)fo::funcoffs::art_ptr_lock_); // replace art_ptr_lock_data_ with art_ptr_lock_
 	sf::SafeWrite16(0x443FEC, 0xCA89); // mov edx, ecx
+
 	// game_help_
 	sf::BlockCall(0x444039); // block loadColorTable_
 }

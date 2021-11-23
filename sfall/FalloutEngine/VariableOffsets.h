@@ -95,6 +95,7 @@
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
+#define FO_VAR_endgame_window_buffer      0x570BF0
 #define FO_VAR_endWindowRect              0x518FA0
 #define FO_VAR_Experience_pc              0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0

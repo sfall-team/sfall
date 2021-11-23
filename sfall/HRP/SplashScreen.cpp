@@ -24,51 +24,43 @@ long SplashScreen::SPLASH_SCRN_SIZE;
 
 static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWidth, long srcHeight, long srcX, long srcY, long width, long height, long x, long y) {
 	RECT rect;
-	long w = sf::Graphics::GetGameWidthRes();
-	long h = sf::Graphics::GetGameHeightRes();
+	long w = Setting::ScreenWidth();
+	long h = Setting::ScreenHeight();
 
 	// TODO: Load an alternative 32-bit BMP image or DirectX texture
 	// stretch texture for DirectX
-	if (SplashScreen::SPLASH_SCRN_SIZE == 1 || srcWidth > w || srcHeight > h) {
-		x = Image::GetAspectSize(w, h, (float)srcWidth, (float)srcHeight);
+	if (SplashScreen::SPLASH_SCRN_SIZE || srcWidth > w || srcHeight > h) {
+		if (SplashScreen::SPLASH_SCRN_SIZE == 1) {
+			x = Image::GetAspectSize(w, h, (float)srcWidth, (float)srcHeight);
+			if (x >= w) { // extract x/y image position
+				y = x / w;
+				x -= y * w;
+			}
 
+			rect.top = y;
+			rect.bottom = (y + h) - 1;
+			rect.left = x;
+			rect.right = (rect.left + w) - 1;
+		} else {
+			rect.top = 0;
+			rect.left = 0;
+			rect.right = w - 1;
+			rect.bottom = h - 1;
+		}
 		BYTE* resizeBuff = new BYTE[w * h];
 		Image::Scale(srcPixels, srcWidth, srcHeight, resizeBuff, w, h);
 
-		// extract x/y image position
-		if (x >= w) {
-			y = x / w;
-			x -= y * w;
-		}
-
-		rect.top = y;
-		rect.bottom = (y + h) - 1;
-		rect.left = x;
-		rect.right = (rect.left + w) - 1;
 		sf::Graphics::UpdateDDSurface(resizeBuff, w, h, w, &rect);
 
 		delete[] resizeBuff;
 		return;
-	} else if (SplashScreen::SPLASH_SCRN_SIZE == 2) {
-		BYTE* resizeBuff = new BYTE[sf::Graphics::GetGameWidthRes() * sf::Graphics::GetGameHeightRes()];
-		Image::Scale(srcPixels, srcWidth, srcHeight, resizeBuff, sf::Graphics::GetGameWidthRes(), sf::Graphics::GetGameHeightRes());
-
-		rect.top = 0;
-		rect.left = 0;
-		rect.right =sf:: Graphics::GetGameWidthRes() - 1;
-		rect.bottom = sf::Graphics::GetGameHeightRes() - 1;
-		sf::Graphics::UpdateDDSurface(resizeBuff, sf::Graphics::GetGameWidthRes(), sf::Graphics::GetGameHeightRes(), sf::Graphics::GetGameWidthRes(), &rect);
-
-		delete[] resizeBuff;
-		return;
 	}
-
 	// original size to center screen
 
-	rect.left = (sf::Graphics::GetGameWidthRes() / 2) - (srcWidth / 2) + x;
+	rect.left = ((Setting::ScreenWidth() - srcWidth) / 2) + x;
 	rect.right = (rect.left + srcWidth) - 1 ;
 
-	rect.top = (sf::Graphics::GetGameHeightRes() / 2) - (srcHeight / 2) + y;
+	rect.top = ((Setting::ScreenHeight() - srcHeight) / 2) + y;
 	rect.bottom = (rect.top + srcHeight) - 1;
 
 	sf::Graphics::UpdateDDSurface(srcPixels, srcWidth, srcHeight, srcWidth, &rect);

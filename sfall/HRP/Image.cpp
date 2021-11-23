@@ -45,7 +45,7 @@ long Image::GetAspectSize(long &dW, long &dH, float sW, float sH) {
 }
 
 // Resizes src image to dWidth/dHeight size
-void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, long dHeight, long dPitch) {
+void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, long dHeight, long dPitch, long sPitch) {
 	if (dWidth <= 0 || dHeight <= 0) return;
 
 	float sw = (float)sWidth;
@@ -53,25 +53,30 @@ void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, 
 	float xStep = sw / dWidth;
 	float hStep = sh / dHeight;
 
+	if (sPitch > 0) sWidth = sPitch;
 	if (dPitch > 0) dPitch -= dWidth;
 
 	float sy = 0.0f;
 	do {
 		float sx = 0.0f;
-		int w = dWidth;
+		int x = 0, w = dWidth;
 		do {
-			*dst++ = *(src + std::lround(sx)); // copy pixel
-			sx += xStep;
-			if (sx >= sw) sx = sw - 1.0f;
+			*dst++ = *(src + x); // copy pixel
+			if (x < sw) {
+				sx += xStep;
+				if (sx >= 1.0f) {
+					x += (int)sx;
+					sx -= (int)sx;
+				}
+			}
 		} while (--w);
 		dst += dPitch;
 
 		if (sHeight) {
 			sy += hStep;
-			float y = std::round(sy);
-			if (y >= 1.0f && --sHeight) {
-				src += sWidth * (int)y;
-				sy -= y;
+			if (sy >= 1.0f && --sHeight) {
+				src += (sWidth * (int)sy);
+				sy -= (int)sy;
 			}
 		}
 	}

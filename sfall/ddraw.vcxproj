@@ -310,6 +310,7 @@
     <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Game\tilemap.h" />
     <ClInclude Include="HRP\Character.h" />
+    <ClInclude Include="HRP\DeathScreen.h" />
     <ClInclude Include="HRP\Dialog.h" />
     <ClInclude Include="HRP\HelpScreen.h" />
     <ClInclude Include="HRP\Image.h" />
@@ -319,6 +320,7 @@
     <ClInclude Include="HRP\LoadSave.h" />
     <ClInclude Include="HRP\MainMenu.h" />
     <ClInclude Include="HRP\MiscInterface.h" />
+    <ClInclude Include="HRP\SlidesScreen.h" />
     <ClInclude Include="HRP\SplashScreen.h" />
     <ClInclude Include="HRP\ViewMap\EdgeBorder.h" />
     <ClInclude Include="HRP\ViewMap\EdgeClipping.h" />
@@ -443,6 +445,7 @@
     <ClCompile Include="Game\stats.cpp" />
     <ClCompile Include="Game\tilemap.cpp" />
     <ClCompile Include="HRP\Character.cpp" />
+    <ClCompile Include="HRP\DeathScreen.cpp" />
     <ClCompile Include="HRP\Dialog.cpp" />
     <ClCompile Include="HRP\HelpScreen.cpp" />
     <ClCompile Include="HRP\Image.cpp" />
@@ -452,6 +455,7 @@
     <ClCompile Include="HRP\LoadSave.cpp" />
     <ClCompile Include="HRP\MainMenu.cpp" />
     <ClCompile Include="HRP\MiscInterface.cpp" />
+    <ClCompile Include="HRP\SlidesScreen.cpp" />
     <ClCompile Include="HRP\SplashScreen.cpp" />
     <ClCompile Include="HRP\ViewMap\EdgeBorder.cpp" />
     <ClCompile Include="HRP\ViewMap\EdgeClipping.cpp" />

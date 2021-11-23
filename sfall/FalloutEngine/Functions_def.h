@@ -104,6 +104,7 @@ WRAP_WATCOM_FUNC1(long, critterIsOverloaded, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
+WRAP_WATCOM_FUNC2(void, endgame_load_palette, long, artType, long, fid)
 WRAP_WATCOM_FUNC1(void, EndLoad, fo::DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procNum)

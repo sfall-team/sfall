@@ -852,6 +852,16 @@ static void EngineOptimizationPatches() {
 	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
 	SafeWrite8(0x4D6310, 0x90);
 	BlockCall(0x4D6319);
+
+	// Reduce excessive delays in the save/load game screens
+	SafeWriteBatch<BYTE>(16, { // 41 to 16 ms
+		0x47D00D, // LoadGame_
+		0x47C1FD  // SaveGame_
+	});
+	// LoadGame_
+	SafeWrite8(0x47CF0D, 195 + 10); // jz +10
+	// SaveGame_
+	SafeWrite8(0x47C135, 140 + 10); // jz +10
 }
 
 void MiscPatches::init() {
@@ -954,10 +964,12 @@ void MiscPatches::init() {
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
 
-	// Corrects the height of the black background for death screen subtitles
-	if (!HRP::Setting::ExternalEnabled()) SafeWrite32(0x48134D, 38 - (640 * 3)); // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-	if (!HRP::Setting::ExternalEnabled() || HRP::Setting::VersionIsValid) SafeWrite8(0x481345, 4); // main_death_scene_
-	if (HRP::Setting::VersionIsValid) SafeWrite8(HRP::Setting::GetAddress(0x10011738), 10);
+	if (!HRP::Setting::IsEnabled()) {
+		// Corrects the height of the black background for death screen subtitles
+		if (!HRP::Setting::ExternalEnabled()) SafeWrite32(0x48134D, 38 - (640 * 3)); // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+		if (!HRP::Setting::ExternalEnabled() || HRP::Setting::VersionIsValid) SafeWrite8(0x481345, 4); // main_death_scene_
+		if (HRP::Setting::VersionIsValid) SafeWrite8(HRP::Setting::GetAddress(0x10011738), 10);
+	}
 
 	F1EngineBehaviorPatch();
 	DialogueFix();
