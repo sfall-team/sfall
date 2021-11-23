@@ -120,10 +120,10 @@ void op_get_npc_level(OpcodeContext& ctx) {
 		}
 		if (pid) {
 			DWORD* pidList = *fo::ptr::partyMemberPidList;
-			DWORD* lvlUpInfo = *fo::ptr::partyMemberLevelUpInfoList;
+			DWORD* levelUpInfoList = *fo::ptr::partyMemberLevelUpInfoList;
 			for (DWORD j = 0; j < *fo::ptr::partyMemberMaxCount; j++) {
 				if (pidList[j] == pid) {
-					level = lvlUpInfo[j * 3];
+					level = levelUpInfoList[j * 3];
 					break;
 				}
 			}

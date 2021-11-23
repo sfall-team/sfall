@@ -661,7 +661,7 @@ sfall_funcX metarule functions
 
 ----
 #### inventory_redraw
-`void sfall_func0("inventory_redraw")`<br>
+`void sfall_func0("inventory_redraw")`\
 `void sfall_func1("inventory_redraw", int invSide)`
 - Redraws inventory list in the inventory/use inventory item on/loot/barter screens
 - `invSide` specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens), -1 - both sides (same as without argument)
@@ -673,7 +673,7 @@ sfall_funcX metarule functions
 
 ----
 #### create_win
-`void sfall_func5("create_win", string winName, int x, int y, int width, int height)`<br>
+`void sfall_func5("create_win", string winName, int x, int y, int width, int height)`\
 `void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)`
 - Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window
 - `MoveOnTop` flag allows the created window to be placed on top of the game interface
