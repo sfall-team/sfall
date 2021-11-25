@@ -32,36 +32,36 @@ public:
 	static void SetConfigFile(const char* iniFile);
 
 	// Gets the integer value from the default config (i.e. ddraw.ini)
-	static int __stdcall GetIntDefaultConfig(const char* section, const char* setting, int defaultValue);
+	static int GetIntDefaultConfig(const char* section, const char* setting, int defaultValue);
 
 	// Gets a list of values separated by the delimiter from the default config (i.e. ddraw.ini)
-	static std::vector<std::string> __stdcall GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter);
+	static std::vector<std::string> GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter);
 
 	// Gets the integer value from sfall configuration INI file
-	static int __stdcall GetConfigInt(const char* section, const char* setting, int defaultValue);
+	static int GetConfigInt(const char* section, const char* setting, int defaultValue);
 
 	// Gets the string value from sfall configuration INI file with trim function
-	static std::string __stdcall GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+	static std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
 	// Loads the string value from sfall configuration INI file into the provided buffer
-	static size_t __stdcall GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+	static size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 	// Parses the comma-separated list from the settings from sfall configuration INI file
-	static std::vector<std::string> __stdcall GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+	static std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
 	// Gets the integer value from given INI file
-	static int __stdcall GetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
+	static int GetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
 
 	// Gets the string value from given INI file
-	static size_t __stdcall GetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile);
+	static size_t GetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile);
 
 	// Gets the string value from given INI file
-	static std::string __stdcall GetString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
+	static std::string GetString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
 
 	// Parses the comma-separated list setting from given INI file
-	static std::vector<std::string> __stdcall GetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
+	static std::vector<std::string> GetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
-	static int __stdcall SetConfigInt(const char* section, const char* setting, int value);
+	static int SetConfigInt(const char* section, const char* setting, int value);
 };
 
 }

@@ -29,7 +29,7 @@ namespace script
 
 static char regAnimCombatCheck = 1;
 
-void __stdcall RegAnimCombatCheck(DWORD newValue) {
+void RegAnimCombatCheck(DWORD newValue) {
 	char oldValue = regAnimCombatCheck;
 	regAnimCombatCheck = (newValue > 0);
 	if (oldValue != regAnimCombatCheck) {

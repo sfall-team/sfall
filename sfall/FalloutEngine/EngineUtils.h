@@ -76,7 +76,7 @@ void SkillSetTags(long* tags, long num);
 
 long GetItemType(fo::GameObject* item);
 
-__declspec(noinline) fo::GameObject* __stdcall GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot);
+__declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot);
 
 fo::AttackType GetHandSlotPrimaryAttack(fo::HandSlot slot);
 fo::AttackType GetHandSlotSecondaryAttack(fo::HandSlot slot);
@@ -125,7 +125,7 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
 // Fills the specified interface window with index color
-bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor);
+bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor);
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);
@@ -133,28 +133,28 @@ void ClearWindow(long winID, bool refresh = true);
 void PrintFloatText(fo::GameObject* object, const char* text, long colorText, long colorOutline = 207, long font = 101);
 
 // Print text to surface
-void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
-void __stdcall PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 
 // gets the height of the currently selected font
-DWORD __stdcall GetTextHeight();
+DWORD GetTextHeight();
 
 // gets the length of a string using the currently selected font
-DWORD __stdcall GetTextWidth(const char* textMsg);
-DWORD __stdcall GetTextWidthFM(const char* textMsg);
+DWORD GetTextWidth(const char* textMsg);
+DWORD GetTextWidthFM(const char* textMsg);
 
 // get width of Char for current font
-DWORD __stdcall GetCharWidth(BYTE charVal);
-DWORD __stdcall GetCharWidthFM(BYTE charVal);
+DWORD GetCharWidth(BYTE charVal);
+DWORD GetCharWidthFM(BYTE charVal);
 
 // get maximum string length for current font - if all characters were maximum width
-DWORD __stdcall GetMaxTextWidth(const char* textMsg);
+DWORD GetMaxTextWidth(const char* textMsg);
 
 // get number of pixels between characters for current font
-DWORD __stdcall GetCharGapWidth();
+DWORD GetCharGapWidth();
 
 // get maximum character width for current font
-DWORD __stdcall GetMaxCharWidth();
+DWORD GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(fo::GameObject* obj);

@@ -17,7 +17,7 @@ namespace game
 namespace sf = sfall;
 
 // Implementation of is_within_perception_ engine function with the HOOK_WITHINPERCEPTION hook
-long __stdcall Objects::is_within_perception(fo::GameObject* watcher, fo::GameObject* target, long hookType) {
+long Objects::is_within_perception(fo::GameObject* watcher, fo::GameObject* target, long hookType) {
 	return sf::PerceptionRangeHook_Invoke(watcher, target, hookType, fo::func::is_within_perception(watcher, target));
 }
 

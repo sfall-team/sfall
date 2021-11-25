@@ -351,7 +351,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 	}
 }
 
-bool __stdcall Combat::IsBurstDisabled(fo::GameObject* critter) {
+bool Combat::IsBurstDisabled(fo::GameObject* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
 		if (noBursts[i] == critter->id) return true;
 	}

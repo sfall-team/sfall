@@ -163,7 +163,7 @@ end:
 	}
 }
 
-void __stdcall Objects::SetAutoUnjamLockTime(DWORD time) {
+void Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
 	if (time > 0) {
@@ -204,7 +204,7 @@ end:
 	}
 }
 
-void __stdcall Objects::LoadProtoAutoMaxLimit() {
+void Objects::LoadProtoAutoMaxLimit() {
 	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 

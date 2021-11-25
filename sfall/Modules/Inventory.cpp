@@ -618,7 +618,7 @@ void __fastcall Inventory::SetInvenApCost(int cost) {
 	if (!onlyOnceAP) ApplyInvenApCostPatch();
 }
 
-long __stdcall Inventory::GetInvenApCost() {
+long Inventory::GetInvenApCost() {
 	long perkLevel = fo::func::perk_level(*fo::ptr::obj_dude, fo::PERK_quick_pockets);
 	return invenApCost - (invenApQPReduction * perkLevel);
 }

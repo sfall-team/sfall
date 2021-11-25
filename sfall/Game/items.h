@@ -13,24 +13,24 @@ class Items {
 public:
 	static void init();
 
-	static long __stdcall GetHealingPID(long index);
-	static void __stdcall SetHealingPID(long index, long pid);
+	static long GetHealingPID(long index);
+	static void SetHealingPID(long index, long pid);
 
 	static bool __fastcall IsHealingItem(fo::GameObject* item);
 
 	// True - use failed
-	static bool __stdcall UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item);
+	static bool UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item);
 
 	// Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
-	static long __stdcall item_d_take_drug(fo::GameObject* source, fo::GameObject* item);
+	static long item_d_take_drug(fo::GameObject* source, fo::GameObject* item);
 
-	static long __stdcall item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType);
+	static long item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType);
 
-	static long __stdcall item_count(fo::GameObject* who, fo::GameObject* item);
+	static long item_count(fo::GameObject* who, fo::GameObject* item);
 
-	static long __stdcall item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode);
+	static long item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode);
 
-	//static long __stdcall item_w_range(fo::GameObject* source, long hitMode);
+	//static long item_w_range(fo::GameObject* source, long hitMode);
 
 	// Implementation of item_w_primary_mp_cost_ and item_w_secondary_mp_cost_ engine functions in a single function with the HOOK_CALCAPCOST hook
 	// Note: Use only for weapons

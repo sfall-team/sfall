@@ -44,7 +44,7 @@ void dev_printf(...);
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);
 
-void __stdcall interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
+void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION

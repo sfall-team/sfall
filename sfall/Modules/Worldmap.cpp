@@ -492,7 +492,7 @@ static void PipBoyAutomapsPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void __stdcall Worldmap::SetMapMulti(float value) {
+void Worldmap::SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 

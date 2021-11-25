@@ -30,7 +30,7 @@ namespace script
 {
 
 // compares strings case-insensitive with specifics for Fallout
-static bool __stdcall FalloutStringCompare(const char* str1, const char* str2, long codePage) {
+static bool FalloutStringCompare(const char* str1, const char* str2, long codePage) {
 	while (true) {
 		unsigned char c1 = *str1;
 		unsigned char c2 = *str2;

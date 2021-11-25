@@ -18,12 +18,12 @@ namespace sf = sfall;
 
 static bool smallFrameTraitFix = false;
 
-int __stdcall Stats::trait_level(DWORD traitID) {
+int Stats::trait_level(DWORD traitID) {
 	return sf::Perks::DudeHasTrait(traitID);
 }
 
 // Wrapper of perk_level_ function, for quickly skipping other critters
-int __stdcall Stats::perk_level(fo::GameObject* source, DWORD perkID) {
+int Stats::perk_level(fo::GameObject* source, DWORD perkID) {
 	if (source != *fo::ptr::obj_dude) return 0;
 	return fo::func::perk_level(source, perkID);
 }

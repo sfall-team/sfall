@@ -27,11 +27,11 @@ static const int unarmedAPCost = 3; // engine default unarmed AP cost
 
 static std::tr1::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
 
-long __stdcall Items::GetHealingPID(long index) {
+long Items::GetHealingPID(long index) {
 	return healingItemPids[index];
 }
 
-void __stdcall Items::SetHealingPID(long index, long pid) {
+void Items::SetHealingPID(long index, long pid) {
 	healingItemPids[index] = pid;
 }
 
@@ -48,7 +48,7 @@ bool __fastcall Items::IsHealingItem(fo::GameObject* item) {
 	return false;
 }
 
-bool __stdcall Items::UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item) {
+bool Items::UseDrugItemFunc(fo::GameObject* source, fo::GameObject* item) {
 	bool result = (Items::item_d_take_drug(source, item) == -1); // HOOK_USEOBJON
 	if (result) {
 		fo::func::item_add_force(source, item, 1);
@@ -61,19 +61,19 @@ bool __stdcall Items::UseDrugItemFunc(fo::GameObject* source, fo::GameObject* it
 }
 
 // Implementation of item_d_take_ engine function with the HOOK_USEOBJON hook
-long __stdcall Items::item_d_take_drug(fo::GameObject* source, fo::GameObject* item) {
+long Items::item_d_take_drug(fo::GameObject* source, fo::GameObject* item) {
 	if (sf::UseObjOnHook_Invoke(source, item, source) == -1) { // default handler
 		return fo::func::item_d_take_drug(source, item);
 	}
 	return -1; // cancel the drug use
 }
 
-long __stdcall Items::item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
+long Items::item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
 	sf::SetRemoveObjectType(rmType);
 	return fo::func::item_remove_mult(source, item, count);
 }
 
-long __stdcall Items::item_count(fo::GameObject* who, fo::GameObject* item) {
+long Items::item_count(fo::GameObject* who, fo::GameObject* item) {
 	for (int i = 0; i < who->invenSize; i++) {
 		fo::GameObject::InvenItem* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
@@ -86,7 +86,7 @@ long __stdcall Items::item_count(fo::GameObject* who, fo::GameObject* item) {
 	return 0;
 }
 
-long __stdcall Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	fo::Proto* wProto;
 	if (!fo::util::GetProto(weapon->protoId, &wProto)) return 0;
 
@@ -117,13 +117,13 @@ long __stdcall Items::item_weapon_range(fo::GameObject* source, fo::GameObject* 
 }
 
 // TODO
-//long __stdcall Items::item_w_range(fo::GameObject* source, long hitMode) {
+//long Items::item_w_range(fo::GameObject* source, long hitMode) {
 //	return item_weapon_range(source, fo::func::item_hit_with(source, hitMode), hitMode);
 //}
 
 static int fastShotTweak;
 
-static long __stdcall item_w_mp_cost_sub(fo::GameObject* source, fo::GameObject* item, long hitMode, long isCalled, long cost) {
+static long item_w_mp_cost_sub(fo::GameObject* source, fo::GameObject* item, long hitMode, long isCalled, long cost) {
 	if (isCalled) cost++;
 	if (cost < 0) cost = 0;
 

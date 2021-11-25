@@ -23,7 +23,7 @@ namespace sfall
 
 class Perks {
 private:
-	static bool __stdcall IsTraitDisabled(int traitID);
+	static bool IsTraitDisabled(int traitID);
 
 public:
 	static const char* name() { return "Perks"; }
@@ -32,26 +32,26 @@ public:
 	static void Reset();
 
 	// Enable the modification of the stats/skills for traits by using the perks ini file
-	static int __stdcall TraitsModEnable();
-	static DWORD __stdcall GetTraitStatBonus(int statID, int traitIndex);
-	static DWORD __stdcall GetTraitSkillBonus(int skillID, int traitIndex);
+	static int TraitsModEnable();
+	static DWORD GetTraitStatBonus(int statID, int traitIndex);
+	static DWORD GetTraitSkillBonus(int skillID, int traitIndex);
 
 	static void Save(HANDLE file);
 	static bool Load(HANDLE file);
 
-	static void __stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
-	static void __stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
-	static void __stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
+	static void SetSelectablePerk(const char* name, int active, int image, const char* desc);
+	static void SetFakePerk(const char* name, int level, int image, const char* desc);
+	static void SetFakeTrait(const char* name, int active, int image, const char* desc);
 
-	static DWORD __stdcall HasFakePerk(const char* name);
-	static DWORD __stdcall HasFakeTrait(const char* name);
+	static DWORD HasFakePerk(const char* name);
+	static DWORD HasFakeTrait(const char* name);
 
 	static long PerkLevelMod;
 
 	static void __fastcall SetPerkValue(int id, int param, int value);
 	static void __fastcall SetPerkboxTitle(const char* name);
-	static void __stdcall SetPerkName(int id, const char* value);
-	static void __stdcall SetPerkDesc(int id, const char* value);
+	static void SetPerkName(int id, const char* value);
+	static void SetPerkDesc(int id, const char* value);
 
 	static __forceinline bool DudeHasTrait(DWORD traitID) {
 		return (!IsTraitDisabled(traitID) && (fo::ptr::pc_trait[0] == traitID || fo::ptr::pc_trait[1] == traitID));

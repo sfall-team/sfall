@@ -124,7 +124,7 @@ long GetItemType(fo::GameObject* item) {
 	return GetProto(item->protoId)->item.type;
 }
 
-__declspec(noinline) fo::GameObject* __stdcall GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
+__declspec(noinline) fo::GameObject* GetItemPtrSlot(fo::GameObject* critter, fo::InvenType slot) {
 	fo::GameObject* itemPtr = nullptr;
 	switch (slot) {
 	case fo::InvenType::INVEN_TYPE_LEFT_HAND:
@@ -394,7 +394,7 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 //}
 
 // Fills the specified interface window with index color
-bool __stdcall WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
+bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
 	bool result = false;
 	if ((x + width) > win->width) {
@@ -433,7 +433,7 @@ void PrintFloatText(fo::GameObject* object, const char* text, long colorText, lo
 }
 
 // print text to surface
-void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
@@ -448,7 +448,7 @@ void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD y
 	}
 }
 
-void __stdcall PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
@@ -465,7 +465,7 @@ void __stdcall PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos,
 
 //---------------------------------------------------------
 //gets the height of the currently selected font
-DWORD __stdcall GetTextHeight() {
+DWORD GetTextHeight() {
 //	DWORD TxtHeight;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_height]; //get text height
@@ -476,27 +476,27 @@ DWORD __stdcall GetTextHeight() {
 
 //---------------------------------------------------------
 //gets the length of a string using the currently selected font
-DWORD __stdcall GetTextWidth(const char* TextMsg) {
+DWORD GetTextWidth(const char* TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_width]; //get text width
 	}
 }
 
-DWORD __stdcall GetTextWidthFM(const char* TextMsg) {
+DWORD GetTextWidthFM(const char* TextMsg) {
 	return fo::func::FMtext_width(TextMsg); //get text width
 }
 
 //---------------------------------------------------------
 //get width of Char for current font
-DWORD __stdcall GetCharWidth(BYTE charVal) {
+DWORD GetCharWidth(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
 		call dword ptr ds:[FO_VAR_text_char_width];
 	}
 }
 
-DWORD __stdcall GetCharWidthFM(BYTE charVal) {
+DWORD GetCharWidthFM(BYTE charVal) {
 	__asm {
 		mov  al, charVal;
 		call fo::funcoffs::FMtext_char_width_;
@@ -505,7 +505,7 @@ DWORD __stdcall GetCharWidthFM(BYTE charVal) {
 
 //---------------------------------------------------------
 //get maximum string length for current font - if all characters were maximum width
-DWORD __stdcall GetMaxTextWidth(const char* TextMsg) {
+DWORD GetMaxTextWidth(const char* TextMsg) {
 //	DWORD msgWidth;
 	__asm {
 		mov  eax, TextMsg;
@@ -517,7 +517,7 @@ DWORD __stdcall GetMaxTextWidth(const char* TextMsg) {
 
 //---------------------------------------------------------
 //get number of pixels between characters for current font
-DWORD __stdcall GetCharGapWidth() {
+DWORD GetCharGapWidth() {
 //	DWORD gapWidth;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_spacing];
@@ -528,7 +528,7 @@ DWORD __stdcall GetCharGapWidth() {
 
 //---------------------------------------------------------
 //get maximum character width for current font
-DWORD __stdcall GetMaxCharWidth() {
+DWORD GetMaxCharWidth() {
 //	DWORD charWidth = 0;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_max];

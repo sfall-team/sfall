@@ -26,13 +26,13 @@ public:
 	static void init(const char* config);
 
 	// Translates given string using sfall translation INI file and puts the result into given buffer
-	static size_t __stdcall Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+	static size_t Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 	// Translates given string using sfall translation INI file
-	static std::string __stdcall Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+	static std::string Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
 	// Translates given list of strings using sfall translation INI file
-	static std::vector<std::string> __stdcall GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
+	static std::vector<std::string> GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize = 256);
 
 	/* Messages */
 

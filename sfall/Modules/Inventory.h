@@ -29,7 +29,7 @@ public:
 	static void Reset();
 	static void KeyPressedHook(DWORD dxKey, bool pressed);
 
-	static long __stdcall GetInvenApCost();
+	static long GetInvenApCost();
 	static void __fastcall SetInvenApCost(int cost);
 };
 

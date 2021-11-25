@@ -32,8 +32,8 @@ public:
 	static DWORD standardApAcBonus;
 	static DWORD extraApAcBonus;
 
-	static long __stdcall GetStatMax(int stat, int isNPC);
-	static long __stdcall GetStatMin(int stat, int isNPC);
+	static long GetStatMax(int stat, int isNPC);
+	static long GetStatMin(int stat, int isNPC);
 
 	static void UpdateHPStat(fo::GameObject* critter);
 };

@@ -88,23 +88,23 @@ static struct HooksPositionInfo {
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
 
-DWORD __stdcall HookCommon::GetHSArgCount() {
+DWORD HookCommon::GetHSArgCount() {
 	return argCount;
 }
 
-DWORD __stdcall HookCommon::GetHSArg() {
+DWORD HookCommon::GetHSArg() {
 	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
-void __stdcall HookCommon::SetHSArg(DWORD id, DWORD value) {
+void HookCommon::SetHSArg(DWORD id, DWORD value) {
 	if (id < argCount) args[id] = value;
 }
 
-DWORD* __stdcall HookCommon::GetHSArgs() {
+DWORD* HookCommon::GetHSArgs() {
 	return args;
 }
 
-DWORD __stdcall HookCommon::GetHSArgAt(DWORD id) {
+DWORD HookCommon::GetHSArgAt(DWORD id) {
 	return args[id];
 }
 
@@ -1695,7 +1695,7 @@ void __stdcall AdjustFidHook(DWORD vanillaFid) {
 
 static unsigned long previousGameMode = 0;
 
-void __stdcall HookCommon::GameModeChangeHook(DWORD exit) {
+void HookCommon::GameModeChangeHook(DWORD exit) {
 	if (HookScripts::HookHasScript(HOOK_GAMEMODECHANGE)) {
 		BeginHook();
 		argCount = 2;
@@ -1712,11 +1712,11 @@ void HookCommon::Reset() {
 	previousGameMode = 0;
 }
 
-bool __stdcall HookScripts::HookHasScript(int hookId) {
+bool HookScripts::HookHasScript(int hookId) {
 	return (!hooks[hookId].empty());
 }
 
-void __stdcall HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
+void HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	if (id >= numHooks || (id > HOOK_ADJUSTFID && id < HOOK_GAMEMODECHANGE)) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
@@ -1744,7 +1744,7 @@ void __stdcall HookScripts::RegisterHook(fo::Program* script, int id, int procNu
 }
 
 // run specific event procedure for all hook scripts
-void __stdcall HookScripts::RunHookScriptsAtProc(DWORD procId) {
+void HookScripts::RunHookScriptsAtProc(DWORD procId) {
 	for (int i = 0; i < numHooks; i++) {
 		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
 			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int

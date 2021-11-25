@@ -31,7 +31,7 @@ public:
 	static void OnAfterGameInit();
 	static void OnBeforeGameClose();
 
-	static DWORD __stdcall PlaySfallSound(const char* path, long mode);
+	static DWORD PlaySfallSound(const char* path, long mode);
 	static void __stdcall StopSfallSound(DWORD id);
 
 	static long CalculateVolumeDB(long masterVolume, long passVolume);

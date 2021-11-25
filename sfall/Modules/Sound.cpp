@@ -358,7 +358,7 @@ enum PlayType : signed char {
 	slides = 4 // speech for endgame slideshow
 };
 
-static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFile) {
+static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFile) {
 	if (playType == PlayType::music && backgroundMusic != nullptr) {
 		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
 		Sound::StopSfallSound(backgroundMusic->id);
@@ -385,7 +385,7 @@ static bool __stdcall PrePlaySoundFile(PlayType playType, const wchar_t* file, b
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
 
 // TODO: Add DirectSound support for wav format
-static bool __stdcall SearchAlternativeFormats(const char* path, PlayType playType, std::string &pathFile) {
+static bool SearchAlternativeFormats(const char* path, PlayType playType, std::string &pathFile) {
 	size_t len = 0;
 	wchar_t wPath[MAX_PATH];
 	if (playType != PlayType::music) {
@@ -440,7 +440,7 @@ static void __fastcall MakeMusicPath(const char* file) {
 	SoundFileLoad(PlayType::music, pathBuf);
 }
 
-DWORD __stdcall Sound::PlaySfallSound(const char* path, long mode) {
+DWORD Sound::PlaySfallSound(const char* path, long mode) {
 	wchar_t buf[MAX_PATH];
 	size_t len = 0;
 

@@ -60,7 +60,7 @@ public:
 	static ExtraGameMessageListsMap gExtraGameMsgLists;
 	static const fo::MessageList* gameMsgFiles[];
 
-	static long __stdcall AddExtraMsgFile(const char* msgName, long msgNumber);
+	static long AddExtraMsgFile(const char* msgName, long msgNumber);
 };
 
 void FallbackEnglishLoadMsgFiles();

@@ -23,8 +23,8 @@ public:
 	static long __fastcall SetSpecialID(fo::GameObject* obj);
 	static void SetNewEngineID(fo::GameObject* obj);
 
-	static void __stdcall SetAutoUnjamLockTime(DWORD time);
-	static void __stdcall LoadProtoAutoMaxLimit();
+	static void SetAutoUnjamLockTime(DWORD time);
+	static void LoadProtoAutoMaxLimit();
 };
 
 }

@@ -37,13 +37,13 @@ public:
 class AIHelpers {
 public:
 	// Returns the friendly critter or any blocking object in the line of fire
-	static fo::GameObject* __stdcall CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
+	static fo::GameObject* CheckShootAndFriendlyInLineOfFire(fo::GameObject* object, long targetTile, long team);
 
 	// Returns the friendly critter in the line of fire
-	static fo::GameObject* __stdcall CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
+	static fo::GameObject* CheckFriendlyFire(fo::GameObject* target, fo::GameObject* attacker);
 
-	static bool __stdcall AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
-	static bool __stdcall AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target);
+	static bool AttackInRange(fo::GameObject* source, fo::GameObject* weapon, long distance);
+	static bool AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo::GameObject* target);
 };
 
 }

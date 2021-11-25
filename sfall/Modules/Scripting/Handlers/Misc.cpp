@@ -101,7 +101,7 @@ void __declspec(naked) op_eax_available() {
 	}
 }
 
-static int __stdcall ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
+static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
 	key = strstr(iniString, "|");
 	if (!key) return -1;
 
@@ -126,7 +126,7 @@ static int __stdcall ParseIniSetting(const char* iniString, const char* &key, ch
 	return 1;
 }
 
-static DWORD __stdcall GetIniSetting(const char* str, bool isString) {
+static DWORD GetIniSetting(const char* str, bool isString) {
 	const char* key;
 	char section[33], file[128];
 

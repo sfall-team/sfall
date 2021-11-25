@@ -230,7 +230,7 @@ end:
 }
 
 // Called right before savegame slot is being loaded
-static bool __stdcall LoadGame_Before() {
+static bool LoadGame_Before() {
 	RunOnBeforeGameStart();
 
 	char buf[MAX_PATH];

@@ -167,13 +167,13 @@ void DEGetArray(int id, DWORD* types, char* data);
 void DESetArray(int id, const DWORD* types, const char* data);
 
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
-DWORD __stdcall CreateArray(int len, DWORD flags);
+DWORD CreateArray(int len, DWORD flags);
 
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
-DWORD __stdcall CreateTempArray(DWORD len, DWORD flags);
+DWORD CreateTempArray(DWORD len, DWORD flags);
 
 // destroys array
-void __stdcall FreeArray(DWORD id);
+void FreeArray(DWORD id);
 
 // destroy all temp arrays
 void DeleteAllTempArrays();
@@ -181,39 +181,39 @@ void DeleteAllTempArrays();
 /*
 	op_get_array_key can be used to iterate over all keys in associative array
 */
-ScriptValue __stdcall GetArrayKey(DWORD id, int index);
+ScriptValue GetArrayKey(DWORD id, int index);
 
 // get array element by index (list) or key (map)
-ScriptValue __stdcall GetArray(DWORD id, const ScriptValue& key);
+ScriptValue GetArray(DWORD id, const ScriptValue& key);
 
 // set array element by index or key (with checking the existence of the array ID)
-void __stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // set array element by index or key
-void __stdcall setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
+void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // number of elements in list or pairs in map
-int __stdcall LenArray(DWORD id);
+int LenArray(DWORD id);
 
 // change array size (only works with list)
-long __stdcall ResizeArray(DWORD id, int newlen);
+long ResizeArray(DWORD id, int newlen);
 
 // make temporary array persistent
-void __stdcall FixArray(DWORD id);
+void FixArray(DWORD id);
 
 // searches for a given element in array and returns it's index (for list) or key (for map) or int(-1) if not found
-ScriptValue __stdcall ScanArray(DWORD id, const ScriptValue& val);
+ScriptValue ScanArray(DWORD id, const ScriptValue& val);
 
 // get saved array by it's key
-DWORD __stdcall LoadArray(const ScriptValue& key);
+DWORD LoadArray(const ScriptValue& key);
 
 // make array saved into the savegame with associated key
-void __stdcall SaveArray(const ScriptValue& key, DWORD id);
+void SaveArray(const ScriptValue& key, DWORD id);
 
 // special function that powers array expressions
-long __stdcall StackArray(const ScriptValue& key, const ScriptValue& val);
+long StackArray(const ScriptValue& key, const ScriptValue& val);
 
-sArrayVar* __stdcall GetRawArray(DWORD id);
+sArrayVar* GetRawArray(DWORD id);
 
 }
 }

@@ -52,7 +52,7 @@ public:
 
 	static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode);
 
-	static bool __stdcall IsBurstDisabled(fo::GameObject* critter);
+	static bool IsBurstDisabled(fo::GameObject* critter);
 };
 
 void __stdcall SetBlockCombat(long toggle);

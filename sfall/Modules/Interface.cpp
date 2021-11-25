@@ -273,7 +273,7 @@ static void __declspec(naked) DrawingDots() {
 	}
 }
 
-static bool __stdcall PrintHotspotText(long x, long y, bool backgroundCopy = false) {
+static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 	long area = *fo::ptr::WorldMapCurrArea;
 	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap::GetCustomAreaTitle(area) : (char*)Worldmap::GetCurrentTerrainName();
 	if (!text) return false;

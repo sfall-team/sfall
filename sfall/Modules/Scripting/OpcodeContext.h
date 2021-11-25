@@ -156,11 +156,11 @@ public:
 	// handles opcode using default instance
 	static void __stdcall handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, char argNum, bool hasReturn);
 
-	//static const char* __stdcall getSfallTypeName(DWORD dataType);
+	//static const char* getSfallTypeName(DWORD dataType);
 
-	static DataType __stdcall getSfallTypeByScriptType(DWORD varType);
+	static DataType getSfallTypeByScriptType(DWORD varType);
 
-	static DWORD __stdcall getScriptTypeBySfallType(DataType dataType);
+	static DWORD getScriptTypeBySfallType(DataType dataType);
 
 private:
 	std::tr1::array<ScriptValue, OP_MAX_ARGUMENTS> _args;

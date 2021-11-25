@@ -384,7 +384,7 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 	TODO: move somewhere else
 */
 
-DWORD __stdcall CreateArray(int len, DWORD flags) {
+DWORD CreateArray(int len, DWORD flags) {
 	flags = (flags & ~1); // reset 1 bit
 	if (len < 0) {
 		flags |= ARRAYFLAG_ASSOC;
@@ -409,13 +409,13 @@ DWORD __stdcall CreateArray(int len, DWORD flags) {
 	return nextArrayID++;
 }
 
-DWORD __stdcall CreateTempArray(DWORD len, DWORD flags) {
+DWORD CreateTempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
 	temporaryArrays.insert(id);
 	return id;
 }
 
-void __stdcall FreeArray(DWORD id) {
+void FreeArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	if (it != arrays.end()) {
 		if (it->second.key.intVal) savedArrays.erase(it->second.key);
@@ -433,7 +433,7 @@ void DeleteAllTempArrays() {
 	}
 }
 
-ScriptValue __stdcall GetArrayKey(DWORD id, int index) {
+ScriptValue GetArrayKey(DWORD id, int index) {
 	if (!ArrayExists(id) || index < -1 || index > arrays[id].size()) {
 		return ScriptValue(0);
 	}
@@ -460,7 +460,7 @@ ScriptValue __stdcall GetArrayKey(DWORD id, int index) {
 	}
 }
 
-ScriptValue __stdcall GetArray(DWORD id, const ScriptValue& key) {
+ScriptValue GetArray(DWORD id, const ScriptValue& key) {
 	if (!ArrayExists(id)) return 0;
 
 	int el;
@@ -491,7 +491,7 @@ ScriptValue __stdcall GetArray(DWORD id, const ScriptValue& key) {
 	return ScriptValue(0);
 }
 
-void __stdcall setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
+void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
 		sArrayElement sEl(key.rawValue(), key.type());
@@ -537,11 +537,11 @@ void __stdcall setArray(DWORD id, const ScriptValue& key, const ScriptValue& val
 	}
 }
 
-void __stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
 	if (ArrayExists(id)) setArray(id, key, val, allowUnset);
 }
 
-int __stdcall LenArray(DWORD id) {
+int LenArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	return (it != arrays.end()) ? it->second.size() : -1;
 }
@@ -602,7 +602,7 @@ static void MapSort(sArrayVar& arr, int type) {
 	}
 }
 
-long __stdcall ResizeArray(DWORD id, int newlen) {
+long ResizeArray(DWORD id, int newlen) {
 	if (newlen == -1 || !ArrayExists(id)) return 0;
 
 	sArrayVar &arr = arrays[id];
@@ -645,11 +645,11 @@ long __stdcall ResizeArray(DWORD id, int newlen) {
 	return 0;
 }
 
-void __stdcall FixArray(DWORD id) {
+void FixArray(DWORD id) {
 	temporaryArrays.erase(id);
 }
 
-ScriptValue __stdcall ScanArray(DWORD id, const ScriptValue& val) {
+ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
 	if (!ArrayExists(id)) {
 		return ScriptValue(-1);
 	}
@@ -673,7 +673,7 @@ ScriptValue __stdcall ScanArray(DWORD id, const ScriptValue& val) {
 	return ScriptValue(-1);
 }
 
-DWORD __stdcall LoadArray(const ScriptValue& key) {
+DWORD LoadArray(const ScriptValue& key) {
 	if (!key.isInt() || key.rawValue() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 
@@ -699,7 +699,7 @@ DWORD __stdcall LoadArray(const ScriptValue& key) {
 	return 0; // not found
 }
 
-void __stdcall SaveArray(const ScriptValue& key, DWORD id) {
+void SaveArray(const ScriptValue& key, DWORD id) {
 	array_itr it, itArray = arrays.find(id); // arrayId => arrayVar
 	if (itArray != arrays.end()) {
 		if (!key.isInt() || key.rawValue() != 0) {
@@ -736,7 +736,7 @@ void __stdcall SaveArray(const ScriptValue& key, DWORD id) {
 
 	Should always return 0!
 */
-long __stdcall StackArray(const ScriptValue& key, const ScriptValue& val) {
+long StackArray(const ScriptValue& key, const ScriptValue& val) {
 	if (stackArrayId == 0 || !ArrayExists(stackArrayId)) return 0;
 
 	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
@@ -748,7 +748,7 @@ long __stdcall StackArray(const ScriptValue& key, const ScriptValue& val) {
 	return 0;
 }
 
-sArrayVar* __stdcall GetRawArray(DWORD id) {
+sArrayVar* GetRawArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	return (it != arrays.end()) ? &it->second : nullptr;
 }

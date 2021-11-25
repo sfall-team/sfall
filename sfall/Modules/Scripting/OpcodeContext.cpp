@@ -183,7 +183,7 @@ void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opc
 }
 
 /*
-const char* __stdcall OpcodeContext::getSfallTypeName(DWORD dataType) {
+const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
 		case DATATYPE_NONE:
 			return "(none)";
@@ -199,7 +199,7 @@ const char* __stdcall OpcodeContext::getSfallTypeName(DWORD dataType) {
 }
 */
 
-DataType __stdcall OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
+DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	switch (varType & 0xFFFF) {
 		case VAR_TYPE_STR2:
 		case VAR_TYPE_STR:
@@ -212,7 +212,7 @@ DataType __stdcall OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	}
 }
 
-DWORD __stdcall OpcodeContext::getScriptTypeBySfallType(DataType dataType) {
+DWORD OpcodeContext::getScriptTypeBySfallType(DataType dataType) {
 	switch (dataType) {
 		case DATATYPE_STR:
 			return VAR_TYPE_STR;

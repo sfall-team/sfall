@@ -35,15 +35,15 @@ static struct Translation {
 	}
 } translationIni;
 
-size_t __stdcall Translate::Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
+size_t Translate::Get(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
 	return IniReader::GetString(section, setting, defaultValue, buffer, bufSize, translationIni.File());
 }
 
-std::string __stdcall Translate::Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+std::string Translate::Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return std::move(IniReader::GetString(section, setting, defaultValue, bufSize, translationIni.File()));
 }
 
-std::vector<std::string> __stdcall Translate::GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
+std::vector<std::string> Translate::GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
 	return std::move(IniReader::GetList(section, setting, defaultValue, bufSize, delimiter, translationIni.File()));
 }
 

@@ -16,12 +16,12 @@ public:
 	static void OnAfterGameInit();
 
 	static int  MaxBox() { return boxCount - 1; }
-	static void __stdcall SetText(int box, const char* text, DWORD color);
+	static void SetText(int box, const char* text, DWORD color);
 
-	static bool __stdcall GetBox(int i);
-	static void __stdcall AddBox(int i);
-	static void __stdcall RemoveBox(int i);
-	static long __stdcall AddExtraBox();
+	static bool GetBox(int i);
+	static void AddBox(int i);
+	static void RemoveBox(int i);
+	static long AddExtraBox();
 };
 
 }

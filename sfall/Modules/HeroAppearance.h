@@ -30,7 +30,7 @@ public:
 	static bool appModEnabled;
 };
 
-void __stdcall AdjustHeroArmorArt(DWORD fid);
+void AdjustHeroArmorArt(DWORD fid);
 
 void __stdcall HeroSelectWindow(int raceStyleFlag);
 void __stdcall SetHeroStyle(int newStyleVal);

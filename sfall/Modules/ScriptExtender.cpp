@@ -145,7 +145,7 @@ long ScriptExtender::GetResetScriptReturnValue() {
 	return val;
 }
 
-static __forceinline long __stdcall FindProgram(fo::Program* program) {
+static __forceinline long FindProgram(fo::Program* program) {
 	std::tr1::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(program);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
@@ -387,11 +387,11 @@ static void SetGlobalVarInternal(__int64 var, int val) {
 	}
 }
 
-void __stdcall SetGlobalVarInt(DWORD var, int val) {
+void SetGlobalVarInt(DWORD var, int val) {
 	SetGlobalVarInternal(static_cast<__int64>(var), val);
 }
 
-long __stdcall SetGlobalVar(const char* var, int val) {
+long SetGlobalVar(const char* var, int val) {
 	if (strlen(var) != 8) {
 		return -1;
 	}
@@ -399,16 +399,16 @@ long __stdcall SetGlobalVar(const char* var, int val) {
 	return 0;
 }
 
-long __stdcall GetGlobalVarInternal(__int64 val) {
+long GetGlobalVarInternal(__int64 val) {
 	glob_citr itr = globalVars.find(val);
 	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
-long __stdcall GetGlobalVarInt(DWORD var) {
+long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(static_cast<__int64>(var));
 }
 
-long __stdcall GetGlobalVar(const char* var) {
+long GetGlobalVar(const char* var) {
 	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
@@ -570,7 +570,7 @@ ScriptProgram* ScriptExtender::GetGlobalScriptProgram(fo::Program* scriptPtr) {
 	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
 
-bool __stdcall IsGameScript(const char* filename) {
+bool IsGameScript(const char* filename) {
 	for (int i = 1; filename[i]; ++i) if (i > 7) return false; // script name is more than 8 characters
 	// script name is 8 characters, try to find this name in the array of game scripts
 	long mid, left = 0, right = *fo::ptr::maxScriptNum;
@@ -916,7 +916,7 @@ static DWORD script_chk_timed_events_hook() {
 	return (!*fo::ptr::queue && timerEventScripts.empty());
 }
 
-void __stdcall ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
+void ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
 	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	TimedEvent timer;
 	timer.isActive = true;
@@ -927,14 +927,14 @@ void __stdcall ScriptExtender::AddTimerEventScripts(fo::Program* script, long ti
 	timerEventScripts.sort(TimedEvent());
 }
 
-void __stdcall ScriptExtender::RemoveTimerEventScripts(fo::Program* script, long param) {
+void ScriptExtender::RemoveTimerEventScripts(fo::Program* script, long param) {
 	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
 		return timer.script == scriptProg && timer.fixed_param == param;
 	});
 }
 
-void __stdcall ScriptExtender::RemoveTimerEventScripts(fo::Program* script) {
+void ScriptExtender::RemoveTimerEventScripts(fo::Program* script) {
 	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
 	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
 		return timer.script == scriptProg;
@@ -942,7 +942,7 @@ void __stdcall ScriptExtender::RemoveTimerEventScripts(fo::Program* script) {
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
-void __stdcall RunGlobalScriptsAtProc(DWORD procId) {
+void RunGlobalScriptsAtProc(DWORD procId) {
 	for (size_t i = 0; i < globalScripts.size(); i++) {
 		if (globalScripts[i].mode != 0 && globalScripts[i].mode != 3) continue;
 		RunScriptProc(&globalScripts[i].prog, procId);
@@ -1065,7 +1065,7 @@ static long lastNamePid = -1;
 static long lastNameSid = -1;
 static long lastItemPid = -1;
 
-void __stdcall ObjectName::SetName(long sid, const char* name) {
+void ObjectName::SetName(long sid, const char* name) {
 	if (sid == lastNameSid) lastNameSid = -1;
 	if (!name) name = "";
 	overrideScrName.insert(std::make_pair(sid, name));

@@ -173,12 +173,12 @@ static DWORD set_expl_radius_rocket  = 3;
 
 static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_art_adr[0]);
 
-static void __stdcall SetExplosionRadius(int arg1, int arg2) {
+static void SetExplosionRadius(int arg1, int arg2) {
 	SafeWrite32(explosion_radius_grenade, arg1);
 	SafeWrite32(explosion_radius_rocket, arg2);
 }
 
-static void __stdcall SetExplosionDamage(int pid, int min, int max) {
+static void SetExplosionDamage(int pid, int min, int max) {
 	explosionsDamageReset = true;
 	switch (pid) {
 		case fo::ProtoID::PID_DYNAMITE:
@@ -192,7 +192,7 @@ static void __stdcall SetExplosionDamage(int pid, int min, int max) {
 	}
 }
 
-static int __stdcall GetExplosionDamage(int pid) {
+static int GetExplosionDamage(int pid) {
 	DWORD min = 0, max = 0;
 	switch (pid) {
 		case fo::ProtoID::PID_DYNAMITE:

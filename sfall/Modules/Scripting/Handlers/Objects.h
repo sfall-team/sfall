@@ -79,8 +79,6 @@ void mf_unjam_lock(OpcodeContext&);
 
 void mf_set_unjam_locks_time(OpcodeContext&);
 
-//void mf_item_make_explosive(OpcodeContext&);
-
 void mf_get_dialog_object(OpcodeContext&);
 
 void mf_obj_under_cursor(OpcodeContext&);

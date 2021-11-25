@@ -470,7 +470,7 @@ static void __fastcall FreeArtFile(fo::FrmFile* frmPtr) {
 	}
 }
 
-static fo::FrmFile* __stdcall LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
+static fo::FrmFile* LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
 	fo::FrmFile* frmPtr = nullptr;
 	if (checkPCX) {
 		const char* pos = strrchr(file, '.');
@@ -497,7 +497,7 @@ static fo::FrmFile* __stdcall LoadArtFile(const char* file, long frame, long dir
 	return frmPtr;
 }
 
-static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
+static long GetArtFIDFile(long fid, char* outFilePath) {
 	long direction = 0;
 	long _fid = fid & 0xFFFFFFF;
 
@@ -521,7 +521,7 @@ static long __stdcall GetArtFIDFile(long fid, char* outFilePath) {
 	return direction;
 }
 
-static long __stdcall DrawImage(OpcodeContext& ctx, bool isScaled) {
+static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || fo::var::getInt(FO_VAR_currentWindow) == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		return 0;
@@ -595,7 +595,7 @@ void mf_draw_image_scaled(OpcodeContext& ctx) {
 	ctx.setReturn(DrawImage(ctx, true));
 }
 
-static long __stdcall InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
+static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	const char* file = nullptr;
 	bool useShift = false;
 	long direction = -1, w = -1, h = -1;

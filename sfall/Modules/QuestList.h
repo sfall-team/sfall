@@ -28,7 +28,7 @@ public:
 
 	static void ResetQuests();
 
-	static void __stdcall AddQuestFailureValue(long globalVarNum, long failureThreshold);
+	static void AddQuestFailureValue(long globalVarNum, long failureThreshold);
 };
 
 }

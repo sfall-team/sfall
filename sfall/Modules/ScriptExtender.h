@@ -50,9 +50,9 @@ public:
 	static void AddProgramToMap(ScriptProgram &prog);
 	static ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
-	static void __stdcall AddTimerEventScripts(fo::Program* script, long time, long param);
-	static void __stdcall RemoveTimerEventScripts(fo::Program* script, long param);
-	static void __stdcall RemoveTimerEventScripts(fo::Program* script);
+	static void AddTimerEventScripts(fo::Program* script, long time, long param);
+	static void RemoveTimerEventScripts(fo::Program* script, long param);
+	static void RemoveTimerEventScripts(fo::Program* script);
 
 	static int __stdcall ScriptHasLoaded(fo::Program* script);
 
@@ -63,7 +63,7 @@ public:
 class ObjectName {
 public:
 	static const char* __stdcall GetName(fo::GameObject* object);
-	static void __stdcall SetName(long sid, const char* name);
+	static void SetName(long sid, const char* name);
 
 	static void Reset();
 };
@@ -82,12 +82,12 @@ void __fastcall SetGlobalScriptType(fo::Program* script, int type);
 void BuildSortedIndexList();
 void LoadGlobalScripts();
 void InitGlobalScripts();
-bool __stdcall IsGameScript(const char* filename);
+bool IsGameScript(const char* filename);
 
 void RunGlobalScripts1();
 void RunGlobalScripts2();
 void RunGlobalScripts3();
-void __stdcall RunGlobalScriptsAtProc(DWORD procId);
+void RunGlobalScriptsAtProc(DWORD procId);
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
@@ -96,12 +96,12 @@ int GetNumGlobals();
 void GetGlobals(GlobalVar* globals);
 void SetGlobals(GlobalVar* globals);
 
-long __stdcall SetGlobalVar(const char* var, int val);
-void __stdcall SetGlobalVarInt(DWORD var, int val);
+long SetGlobalVar(const char* var, int val);
+void SetGlobalVarInt(DWORD var, int val);
 
-long __stdcall GetGlobalVar(const char* var);
-long __stdcall GetGlobalVarInt(DWORD var);
-long __stdcall GetGlobalVarInternal(__int64 val);
+long GetGlobalVar(const char* var);
+long GetGlobalVarInt(DWORD var);
+long GetGlobalVarInternal(__int64 val);
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 

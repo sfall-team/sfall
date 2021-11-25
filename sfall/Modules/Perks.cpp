@@ -148,7 +148,7 @@ void __fastcall Perks::SetPerkboxTitle(const char* name) {
 	}
 }
 
-void __stdcall Perks::SetSelectablePerk(const char* name, int active, int image, const char* desc) {
+void Perks::SetSelectablePerk(const char* name, int active, int image, const char* desc) {
 	if (active < 0) return;
 	if (active > 1) active = 1;
 	size_t size = fakeSelectablePerks.size();
@@ -179,7 +179,7 @@ void __stdcall Perks::SetSelectablePerk(const char* name, int active, int image,
 	}
 }
 
-void __stdcall Perks::SetFakePerk(const char* name, int level, int image, const char* desc) {
+void Perks::SetFakePerk(const char* name, int level, int image, const char* desc) {
 	if (level < 0) return;
 	if (level > 100) level = 100;
 	size_t size = fakePerks.size();
@@ -210,7 +210,7 @@ void __stdcall Perks::SetFakePerk(const char* name, int level, int image, const 
 	}
 }
 
-void __stdcall Perks::SetFakeTrait(const char* name, int active, int image, const char* desc) {
+void Perks::SetFakeTrait(const char* name, int active, int image, const char* desc) {
 	if (active < 0) return;
 	if (active > 1) active = 1;
 	size_t size = fakeTraits.size();
@@ -946,19 +946,19 @@ static void PerkSetup() {
 
 /////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
-int __stdcall Perks::TraitsModEnable() {
+int Perks::TraitsModEnable() {
 	return traitsEnable;
 }
 
-bool __stdcall Perks::IsTraitDisabled(int traitID) {
+bool Perks::IsTraitDisabled(int traitID) {
 	return disableTraits[traitID];
 }
 
-DWORD __stdcall Perks::GetTraitStatBonus(int statID, int traitIndex) {
+DWORD Perks::GetTraitStatBonus(int statID, int traitIndex) {
 	return traitStatBonuses[statID * fo::Trait::TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
-DWORD __stdcall Perks::GetTraitSkillBonus(int skillID, int traitIndex) {
+DWORD Perks::GetTraitSkillBonus(int skillID, int traitIndex) {
 	return traitSkillBonuses[skillID * fo::Trait::TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
@@ -1161,14 +1161,14 @@ void __fastcall Perks::SetPerkValue(int id, int param, int value) {
 	perksReInit = true;
 }
 
-void __stdcall Perks::SetPerkName(int id, const char* value) {
+void Perks::SetPerkName(int id, const char* value) {
 	if (id < 0 || id >= fo::Perk::PERK_count) return;
 	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
 	perks[id].name = &Name[maxNameLen * id];
 	perksReInit = true;
 }
 
-void __stdcall Perks::SetPerkDesc(int id, const char* value) {
+void Perks::SetPerkDesc(int id, const char* value) {
 	if (id < 0 || id >= fo::Perk::PERK_count) return;
 	strncpy_s(&Desc[id * descLen], descLen, value, _TRUNCATE);
 	perks[id].description = &Desc[descLen * id];
@@ -1252,7 +1252,7 @@ void __stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD __stdcall Perks::HasFakePerk(const char* name) {
+DWORD Perks::HasFakePerk(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
 		if (!strcmp(name, fakePerks[i].Name)) {
@@ -1262,7 +1262,7 @@ DWORD __stdcall Perks::HasFakePerk(const char* name) {
 	return 0;
 }
 
-DWORD __stdcall Perks::HasFakeTrait(const char* name) {
+DWORD Perks::HasFakeTrait(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		if (!strcmp(name, fakeTraits[i].Name)) {

@@ -146,7 +146,7 @@ end:
 	}
 }
 
-static long __stdcall RecalcStat(int stat, int statsValue[]) {
+static long RecalcStat(int stat, int statsValue[]) {
 	double sum = 0;
 	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
 		sum += (statsValue[i] + statFormulas[stat].shift[i]) * statFormulas[stat].multi[i];
@@ -427,14 +427,14 @@ void Stats::init() {
 	}
 }
 
-long __stdcall Stats::GetStatMax(int stat, int isNPC) {
+long Stats::GetStatMax(int stat, int isNPC) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		return (isNPC) ? statMaximumsNPC[stat] : statMaximumsPC[stat];
 	}
 	return 0;
 }
 
-long __stdcall Stats::GetStatMin(int stat, int isNPC) {
+long Stats::GetStatMin(int stat, int isNPC) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		return (isNPC) ? statMinimumsNPC[stat] : statMinimumsPC[stat];
 	}

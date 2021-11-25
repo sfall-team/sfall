@@ -68,24 +68,24 @@ public:
 	static void InitHookScripts();
 	static void HookScriptClear();
 
-	static bool __stdcall HookHasScript(int hookId);
+	static bool HookHasScript(int hookId);
 
 	// register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-	static void __stdcall RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
+	static void RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
 
-	static void __stdcall RunHookScriptsAtProc(DWORD procId);
+	static void RunHookScriptsAtProc(DWORD procId);
 };
 
 class HookCommon {
 public:
-	static DWORD __stdcall GetHSArgCount();
-	static DWORD __stdcall GetHSArg();
-	static DWORD __stdcall GetHSArgAt(DWORD id);
-	static DWORD* __stdcall GetHSArgs();
-	static void __stdcall SetHSArg(DWORD id, DWORD value);
+	static DWORD GetHSArgCount();
+	static DWORD GetHSArg();
+	static DWORD GetHSArgAt(DWORD id);
+	static DWORD* GetHSArgs();
+	static void SetHSArg(DWORD id, DWORD value);
 	static void __stdcall SetHSReturn(DWORD d);
 
-	static void __stdcall GameModeChangeHook(DWORD exit);
+	static void GameModeChangeHook(DWORD exit);
 	static void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 	static void __stdcall MouseClickHook(DWORD button, bool pressed);
 

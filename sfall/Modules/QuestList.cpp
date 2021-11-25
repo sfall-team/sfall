@@ -514,7 +514,7 @@ static long FindGVarQuestFailure(long globalVarNum) {
 	return -1;
 }
 
-void __stdcall QuestList::AddQuestFailureValue(long globalVarNum, long failureThreshold) {
+void QuestList::AddQuestFailureValue(long globalVarNum, long failureThreshold) {
 	long index = FindGVarQuestFailure(globalVarNum);
 	if (index == -1) {
 		QuestFailure qf = { globalVarNum, failureThreshold };

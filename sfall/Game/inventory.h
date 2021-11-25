@@ -16,9 +16,7 @@ public:
 	static void init();
 
 	// Custom implementation of correctFidForRemovedItem_ engine function with the HOOK_INVENWIELD hook
-	static long __stdcall correctFidForRemovedItem(fo::GameObject* critter, fo::GameObject* item, long flags);
-
-	//static DWORD __fastcall item_weight(fo::GameObject* item);
+	static long correctFidForRemovedItem(fo::GameObject* critter, fo::GameObject* item, long flags);
 
 	// This function returns the size of the occupied inventory space for the object or critter
 	// - difference from the item_c_curr_size_ function: includes the size of equipped items for the critter

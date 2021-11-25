@@ -51,7 +51,7 @@ static bool Inited = false;
 
 static const char* errorTable = "\nError: %s - function requires enabling OverrideCriticalTable in ddraw.ini.";
 
-void __stdcall Criticals::SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
+void Criticals::SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) {
 		fo::func::debug_printf(errorTable, "set_critical_table()");
 		return;
@@ -59,7 +59,7 @@ void __stdcall Criticals::SetCriticalTable(DWORD critter, DWORD bodypart, DWORD 
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = value;
 }
 
-DWORD __stdcall Criticals::GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
+DWORD Criticals::GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
 		fo::func::debug_printf(errorTable, "get_critical_table()");
 		return 0;
@@ -67,7 +67,7 @@ DWORD __stdcall Criticals::GetCriticalTable(DWORD critter, DWORD bodypart, DWORD
 	return critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
 }
 
-void __stdcall Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
+void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) {
 		fo::func::debug_printf(errorTable, "reset_critical_table()");
 		return;

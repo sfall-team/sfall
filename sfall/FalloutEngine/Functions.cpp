@@ -113,7 +113,7 @@ void __declspec(naked) debug_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
 }
 
-void __stdcall interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType) {
+void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType) {
 	__asm {
 		mov  esi, scriptPtr;
 		mov  edx, val;

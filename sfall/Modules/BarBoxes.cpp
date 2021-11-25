@@ -165,7 +165,7 @@ static void ResetBoxes() {
 	//SafeWriteBytes(0x461243, restoreData, 5);
 }
 
-void __stdcall BarBoxes::SetText(int box, const char* text, DWORD color) {
+void BarBoxes::SetText(int box, const char* text, DWORD color) {
 	setBoxIndex = box;
 	boxes[box].colour = color;
 	box -= 5;
@@ -310,7 +310,7 @@ void BarBoxes::init() {
 	if (ifaceWidth < 640) ifaceWidth = 640;
 }
 
-long __stdcall BarBoxes::AddExtraBox() {
+long BarBoxes::AddExtraBox() {
 	if (boxCount < totalBoxCount) {
 		actualBoxCount++;
 		boxCount++;
@@ -349,18 +349,18 @@ long __stdcall BarBoxes::AddExtraBox() {
 	return MaxBox(); // current number of added box
 }
 
-bool __stdcall BarBoxes::GetBox(int i) {
+bool BarBoxes::GetBox(int i) {
 	if (i < 5 || i > BarBoxes::MaxBox()) return false;
 	return boxText[i - 5].isActive;
 }
 
-void __stdcall BarBoxes::AddBox(int i) {
+void BarBoxes::AddBox(int i) {
 	if (i < 5 || i > BarBoxes::MaxBox()) return;
 	boxText[i - 5].isActive = true;
 	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
-void __stdcall BarBoxes::RemoveBox(int i) {
+void BarBoxes::RemoveBox(int i) {
 	if (i < 5 || i > BarBoxes::MaxBox()) return;
 	boxText[i - 5].isActive = false;
 	__asm call fo::funcoffs::refresh_box_bar_win_;

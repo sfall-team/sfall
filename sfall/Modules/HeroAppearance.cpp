@@ -271,7 +271,7 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 }
 
 // adjust armor art if num below hero art range
-void __stdcall AdjustHeroArmorArt(DWORD fid) {
+void AdjustHeroArmorArt(DWORD fid) {
 	if ((fid & 0xF000000) == (fo::ObjType::OBJ_TYPE_CRITTER << 24) && !PartyControl::IsNpcControlled()) {
 		DWORD fidBase = fid & 0xFFF;
 		if (fidBase <= critterListSize) {

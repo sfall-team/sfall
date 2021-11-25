@@ -95,7 +95,7 @@ static bool LoadMask() {
 	return true;
 }
 
-static int __stdcall ProcessTile(fo::Art* tiles, int tile, int listPos) {
+static int ProcessTile(fo::Art* tiles, int tile, int listPos) {
 	char buf[32] = "art\\tiles\\";
 	const char* name = &tiles->names[13 * tile];
 	for (size_t i = 10; ; i++) {
