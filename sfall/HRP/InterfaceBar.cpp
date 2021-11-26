@@ -82,7 +82,7 @@ public:
 } *panels;
 
 static long __fastcall IntfaceWinCreate(long height, long yPos, long xPos, long width, long color, long flags) {
-	if (width != IFaceBar::IFACE_BAR_WIDTH) width = IFaceBar::IFACE_BAR_WIDTH;
+	if (Setting::ScreenWidth() >= IFaceBar::IFACE_BAR_WIDTH) width = IFaceBar::IFACE_BAR_WIDTH;
 
 	yPos += Setting::ScreenHeight() - 479; // yPos:379 = 479-100
 	xPos += (Setting::ScreenWidth() - width) / 2;

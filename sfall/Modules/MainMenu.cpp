@@ -81,17 +81,17 @@ void MainMenu::init() {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 30 + offset); // button
 		mXOffset = offset;
-		mTextOffset = offset;
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
 		mYOffset = offset;
-		mTextOffset += offset * 640;
-		MakeJump(0x481844, MainMenuHookButtonYOffset);
 	}
-	if (!HRP::Setting::IsEnabled() && mTextOffset) {
-		MakeCall(0x481933, MainMenuHookTextYOffset, 1);
+	if (!HRP::Setting::IsEnabled()) {
+		if (mXOffset) SafeWrite32(0x48187C, 30 + mXOffset); // button
+		if (mYOffset) MakeJump(0x481844, MainMenuHookButtonYOffset);
+
+		mTextOffset = mXOffset + (mYOffset * 640);
+		if (mTextOffset) MakeCall(0x481933, MainMenuHookTextYOffset, 1);
 	}
 
 	HookCall(0x4817AB, main_menu_create_hook_print_text);
