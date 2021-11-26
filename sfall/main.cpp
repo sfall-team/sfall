@@ -83,6 +83,7 @@
 #include "Logging.h"
 #include "ReplacementFuncs.h"
 #include "Translate.h"
+#include "Utils.h"
 #include "version.h"
 
 ddrawDll ddraw;
@@ -244,37 +245,28 @@ static void SfallInit() {
 	}
 
 	// ini file override
-	bool cmdlineexists = false;
-	char* cmdline = GetCommandLineA();
-	if (IniReader::GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
-		while (cmdline[0] == ' ') cmdline++;
-		bool InQuote = false;
-		int count = -1;
+	std::string overrideIni;
 
-		while (true) {
-			count++;
-			if (cmdline[count] == 0) break;;
-			if (cmdline[count] == ' ' && !InQuote) break;
-			if (cmdline[count] == '"') {
-				InQuote = !InQuote;
-				if (!InQuote) break;
-			}
-		}
-		if (cmdline[count] != 0) {
-			count++;
-			while (cmdline[count] == ' ') count++;
-			cmdline = &cmdline[count];
-			cmdlineexists = true;
-		}
+	std::string cmdline(GetCommandLineA());
+	ToLowerCase(cmdline);
+
+	size_t n = cmdline.find(".ini");
+	if (n != std::string::npos && (n + 4) < cmdline.length() && cmdline[n + 4] != ' ') {
+		n = cmdline.find(".ini", n + 4);
+	}
+	if (n != std::string::npos) {
+		size_t m = n + 3;
+		while (n > 0 && cmdline[n] != ' ') n--;
+		if (n > 0) overrideIni = cmdline.substr(n + 1, m - n);
 	}
 
-	if (cmdlineexists && *cmdline != 0) {
-		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+	if (!overrideIni.empty()) {
+		HANDLE h = CreateFileA(overrideIni.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-			IniReader::SetConfigFile(cmdline);
+			IniReader::SetConfigFile(overrideIni.c_str());
 		} else {
-			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
+			MessageBoxA(0, "You gave a command line argument to Fallout, but the configuration ini file was not found.\n"
 			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}
