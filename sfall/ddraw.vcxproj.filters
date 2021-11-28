@@ -431,6 +431,9 @@
     <ClInclude Include="HRP\CreditsScreen.h">
       <Filter>HRP</Filter>
     </ClInclude>
+    <ClInclude Include="HRP\MoviesScreen.h">
+      <Filter>HRP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -795,6 +798,9 @@
       <Filter>HRP</Filter>
     </ClCompile>
     <ClCompile Include="HRP\CreditsScreen.cpp">
+      <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="HRP\MoviesScreen.cpp">
       <Filter>HRP</Filter>
     </ClCompile>
   </ItemGroup>

@@ -321,6 +321,7 @@
     <ClInclude Include="HRP\LoadSave.h" />
     <ClInclude Include="HRP\MainMenu.h" />
     <ClInclude Include="HRP\MiscInterface.h" />
+    <ClInclude Include="HRP\MoviesScreen.h" />
     <ClInclude Include="HRP\SlidesScreen.h" />
     <ClInclude Include="HRP\SplashScreen.h" />
     <ClInclude Include="HRP\ViewMap\EdgeBorder.h" />
@@ -457,6 +458,7 @@
     <ClCompile Include="HRP\LoadSave.cpp" />
     <ClCompile Include="HRP\MainMenu.cpp" />
     <ClCompile Include="HRP\MiscInterface.cpp" />
+    <ClCompile Include="HRP\MoviesScreen.cpp" />
     <ClCompile Include="HRP\SlidesScreen.cpp" />
     <ClCompile Include="HRP\SplashScreen.cpp" />
     <ClCompile Include="HRP\ViewMap\EdgeBorder.cpp" />

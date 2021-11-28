@@ -10,6 +10,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Utils.h"
 #include "..\Modules\LoadOrder.h"
+#include "..\Translate.h"
 
 #include "viewmap\ViewMap.h"
 #include "SplashScreen.h"
@@ -25,6 +26,7 @@
 #include "DeathScreen.h"
 #include "SlidesScreen.h"
 #include "CreditsScreen.h"
+#include "MoviesScreen.h"
 
 #include "Init.h"
 
@@ -75,6 +77,45 @@ DWORD Setting::GetAddress(DWORD addr) {
 
 bool Setting::ExternalEnabled() {
 	return (baseDLLAddr != 0);
+}
+
+static std::string GetBackupFileName(const char* runFileName, bool wait) {
+	std::string bakExeName(runFileName);
+	size_t n = bakExeName.rfind('.');
+	if (n != std::string::npos) {
+		bakExeName.replace(n, 4, ".hrp");
+		while (remove(bakExeName.c_str()) != 0 && wait) Sleep(1000); // delete .hrp (if it exists)
+	}
+	return bakExeName;
+}
+
+static bool DisableExtHRP(const char* runFileName, std::string &cmdline) {
+	std::string bakExeName = std::move(GetBackupFileName(runFileName, false));
+	if (bakExeName.empty()) return false;
+
+	std::rename(runFileName, bakExeName.c_str());  // rename the process file to .hrp
+	CopyFileA(bakExeName.c_str(), runFileName, 0); // restore .exe (already unoccupied by a running process)
+
+	FILE* ft = fopen(runFileName,"r+b");
+	if (!ft) return false;
+	fseek(ft, 0xD4880, SEEK_SET); // 0x4E4480
+
+	BYTE restore[] = {0xC7, 0x05, 0x88, 0x27, 0x6B, 0x00, 0x00, 0xE7, 0x4D, 0x00};
+	fwrite(restore, 1, sizeof(restore), ft);
+
+	fseek(ft, 0xEE5C0, SEEK_SET);
+	BYTE restore1[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	fwrite(restore1, 1, sizeof(restore1), ft);
+	fclose(ft);
+
+	cmdline.append(" -restart");
+
+	MessageBoxA(0, "High Resolution Patch has been successfully deactivated.", "sfall", MB_TASKMODAL | MB_ICONINFORMATION);
+
+	ShellExecuteA(0, 0, runFileName, cmdline.c_str(), 0, SW_SHOWDEFAULT); // restart game
+	return true;
 }
 
 /*
@@ -132,7 +173,8 @@ forward:
 	}
 }
 */
-void Setting::init() {
+
+void Setting::init(const char* exeFileName, std::string &cmdline) {
 	//HookCall(0x482899, mem_copy);
 	//SafeWrite16(0x4B2EA8, 0x9090); // _show_grid
 
@@ -144,14 +186,30 @@ void Setting::init() {
 	if (SCR_WIDTH < 640) SCR_WIDTH = 640;
 	if (SCR_HEIGHT < 480) SCR_HEIGHT = 480;
 
+	if (cmdline.find(" -restart") != std::string::npos) {
+		GetBackupFileName(exeFileName, true); // delete after restart
+	}
+
 	if (Setting::ExternalEnabled()) {
-		// You have both the built-in and external HRP enabled at the same time. It is recommended to turn off the external HRP by Mash.
-		// To continue using the external HRP, disable the HiResMode option in ddraw.ini
+		char infoMsg[512];
+		sf::Translate::Get("sfall", "HiResInfo",
+			"Attention:\nThis version of sfall has its own integrated High Resolution mode patch, which is compatible with the High Resolution Patch by Mash.\n\n"
+			"Now you can disable the external HRP to get new graphic improvements from sfall.\n"
+			"In order to continue using the High Resolution Patch by Mash without seeing this message, disable the \"HiResMode\" option in the ddraw.ini file.\n\n"
+			"Do you want to disable the High Resolution Patch by Mash?", infoMsg, 512);
+
+		if (MessageBoxA(0, infoMsg, "sfall: Incompatibility of High Resolution patches", MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
+			if (!DisableExtHRP(exeFileName, cmdline)) {
+				MessageBoxA(0, "An error occurred while trying to deactivate the High Resolution Patch.", "sfall", MB_TASKMODAL | MB_ICONERROR);
+			} else {
+				ExitProcess(EXIT_SUCCESS); //std::exit(EXIT_SUCCESS);
+			}
+		}
 		return;
 	}
 	enabled = true;
 
-	// Read config
+	// Read High Resolution config
 
 	// = IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni);
 	// = IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni);
@@ -166,7 +224,6 @@ void Setting::init() {
 		SCALE_2X = true;
 	};
 	*/
-
 	//gDirectDrawMode = IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni) == 1;
 
 	MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU = (sf::IniReader::GetInt("MAINMENU", "SCALE_BUTTONS_AND_TEXT_MENU", 0, f2ResIni) != 0);
@@ -179,7 +236,7 @@ void Setting::init() {
 	HelpScreen::HELP_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "HELP_SCRN_SIZE", 0, f2ResIni);
 	DeathScreen::DEATH_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "DEATH_SCRN_SIZE", 1, f2ResIni);
 	SlidesScreen::END_SLIDE_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "END_SLIDE_SIZE", 1, f2ResIni);
-	//MoviesScreen::MOVIE_SIZE = sf::IniReader::GetInt("MOVIES", "MOVIE_SIZE", 1, f2ResIni);
+	MoviesScreen::MOVIE_SIZE = sf::IniReader::GetInt("MOVIES", "MOVIE_SIZE", 1, f2ResIni);
 
 	std::string x = sf::trim(sf::IniReader::GetString("MAPS", "SCROLL_DIST_X", "480", 16, f2ResIni));
 	std::string y = sf::trim(sf::IniReader::GetString("MAPS", "SCROLL_DIST_Y", "400", 16, f2ResIni));
@@ -248,6 +305,7 @@ void Setting::init() {
 	DeathScreen::init();
 	SlidesScreen::init();
 	CreditsScreen::init();
+	MoviesScreen::init();
 }
 
 }

@@ -45,7 +45,7 @@ void CreditsScreen::init() {
 
 	sf::MakeCall(0x42CAAE, credits_hack);
 
-	DWORD patchWidth[] = {
+	sf::SafeWriteBatch<DWORD>(Setting::ScreenWidth(), {
 		0x42CA18, // _text_to_buf
 		0x42CB1C,
 		0x42CB79, // textWidth < ScreenWidth
@@ -53,8 +53,7 @@ void CreditsScreen::init() {
 		0x42CBCB, 0x42CBEC,
 		0x42CCD9,
 		0x42CD1D, 0x42CD55
-	};
-	sf::SafeWriteBatch<DWORD>(Setting::ScreenWidth(), patchWidth);
+	});
 
 	size_t screenBufSize = Setting::ScreenWidth() * Setting::ScreenHeight();
 	size_t screenBufSize0 = screenBufSize - Setting::ScreenWidth();
