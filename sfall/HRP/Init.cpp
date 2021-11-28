@@ -104,9 +104,7 @@ static bool DisableExtHRP(const char* runFileName, std::string &cmdline) {
 	fwrite(restore, 1, sizeof(restore), ft);
 
 	fseek(ft, 0xEE5C0, SEEK_SET);
-	BYTE restore1[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	BYTE restore1[39] = {0};
 	fwrite(restore1, 1, sizeof(restore1), ft);
 	fclose(ft);
 
@@ -193,12 +191,12 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (Setting::ExternalEnabled()) {
 		char infoMsg[512];
 		sf::Translate::Get("sfall", "HiResInfo",
-			"Attention:\nThis version of sfall has its own integrated High Resolution mode patch, which is compatible with the High Resolution Patch by Mash.\n\n"
-			"Now you can disable the external HRP to get new graphic improvements from sfall.\n"
-			"In order to continue using the High Resolution Patch by Mash without seeing this message, disable the \"HiResMode\" option in the ddraw.ini file.\n\n"
+			"This version of sfall has its own integrated High Resolution mode patch, which is compatible with the High Resolution Patch by Mash.\n\n"
+			"If you want to continue using the High Resolution Patch by Mash without seeing this message, disable the \"HiResMode\" option in the ddraw.ini file.\n"
+			"Or you can disable the external HRP to get new graphic improvements from sfall.\n\n"
 			"Do you want to disable the High Resolution Patch by Mash?", infoMsg, 512);
 
-		if (MessageBoxA(0, infoMsg, "sfall: Incompatibility of High Resolution patches", MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
+		if (MessageBoxA(0, infoMsg, "sfall: Conflict of High Resolution patches", MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
 			if (!DisableExtHRP(exeFileName, cmdline)) {
 				MessageBoxA(0, "An error occurred while trying to deactivate the High Resolution Patch.", "sfall", MB_TASKMODAL | MB_ICONERROR);
 			} else {
