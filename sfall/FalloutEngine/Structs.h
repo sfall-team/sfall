@@ -1036,17 +1036,14 @@ struct DrugInfoList {
 
 struct FloatText {
 	long  flags;
-	void* unknown0;
-	long  unknown1;
-	long  unknown2;
-	long  unknown3;
-	long  unknown4;
-	long  unknown5;
-	long  unknown6;
-	long  unknown7;
-	long  unknown8;
-	long  unknown9;
-	void* unknown10;
+	GameObject* owner;
+	long  time;
+	long  lines;
+	long  x_off;
+	long  y_off;
+	long  tile_num;
+	sfall::Rectangle rect;
+	BYTE* buffer;
 };
 
 struct SubTitleList {

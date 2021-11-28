@@ -387,7 +387,7 @@ static void __fastcall RemoveAllFloatTextObjects() {
 	long textCount = fo::var::text_object_index;
 	if (textCount > 0) {
 		for (long i = 0; i < textCount; i++) {
-			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
+			fo::func::mem_free(fo::var::text_object_list[i]->buffer);
 			fo::func::mem_free(fo::var::text_object_list[i]);
 		}
 		fo::var::text_object_index = 0;
@@ -411,6 +411,52 @@ static void __declspec(naked) map_check_state_hook() {
 		call RemoveAllFloatTextObjects;
 		pop  eax;
 		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
+// Frees up space in the array to create a text object
+static void __fastcall RemoveFloatTextObject(fo::GameObject* source) {
+	size_t index = 0;
+	size_t textCount = fo::var::text_object_index;
+	long minTime = fo::var::text_object_list[0]->time;
+
+	for (size_t i = 1; i < textCount; i++) {
+		if (fo::var::text_object_list[i]->owner == source) {
+			index = i;
+			break;
+		}
+		if (fo::var::text_object_list[i]->time < minTime) {
+			minTime = fo::var::text_object_list[i]->time;
+			index = i;
+		}
+	}
+	fo::FloatText* tObj = fo::var::text_object_list[index];
+
+	fo::func::tile_coord(tObj->tile_num, &tObj->rect.x, &tObj->rect.y);
+	tObj->rect.y += tObj->y_off;
+	tObj->rect.x += tObj->x_off;
+
+	fo::BoundRect rect;
+	rect.x = tObj->rect.x;
+	rect.y = tObj->rect.y;
+	rect.offx = tObj->rect.width + tObj->rect.x - 1;
+	rect.offy = tObj->rect.height + tObj->rect.y - 1;
+
+	fo::func::mem_free(tObj->buffer);
+	fo::func::mem_free(tObj);
+
+	// copy the last element of the array to the place of the removed one
+	if (--textCount > index) fo::var::text_object_list[index] = fo::var::text_object_list[textCount];
+	fo::var::text_object_index--;
+
+	fo::func::tile_refresh_rect(&rect, fo::var::map_elevation);
+}
+
+static void __declspec(naked) text_object_create_hack() {
+	__asm {
+		mov  ecx, eax;
+		push 0x4B03A6; // ret addr
+		jmp  RemoveFloatTextObject;
 	}
 }
 
@@ -958,6 +1004,9 @@ void MiscPatches::init() {
 	// Remove floating text messages after moving to another map or elevation
 	HookCall(0x48A94B, obj_move_to_tile_hook);
 	HookCall(0x4836BB, map_check_state_hook);
+
+	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
+	HookCall(0x4B03A1, text_object_create_hack); // jge hack
 
 	// Redraw the screen to update black edges of the map (HRP bug)
 	// https://github.com/phobos2077/sfall/issues/282
