@@ -54,12 +54,9 @@ static void __cdecl endgame_display_image_hook_buf_to_buf(BYTE* src, long w, lon
 
 	if (SlidesScreen::END_SLIDE_SIZE || width > w || height > h) {
 		if (SlidesScreen::END_SLIDE_SIZE == 1) {
-			long x = Image::GetAspectSize(w, h, (float)width, (float)height);
+			long x = 0;
 			long y = 0;
-			if (x >= w) { // extract x/y image position
-				y = x / w;
-				x -= y * w;
-			}
+			Image::GetAspectSize(width, height, &x, &y, w, h);
 			if (x || y) dst += x + (y * Setting::ScreenWidth());
 		}
 		bottomPos = h;
@@ -125,7 +122,7 @@ static void __declspec(naked) endgame_show_subtitles_hook_buf_fill() {
 
 static void __fastcall endgame_pan_desert_hook_buf_fill(long, long, fo::FrmData* frm) {
 	frmArt = frm;
-	fo::func::endgame_load_palette(fo::ArtType::OBJ_TYPE_INTRFACE, 327); // panning desert image (DP.FRM) 
+	fo::func::endgame_load_palette(fo::ArtType::OBJ_TYPE_INTRFACE, 327); // panning desert image (DP.FRM)
 	if (SlidesScreen::END_SLIDE_SIZE != 2) {
 		color = Image::GetDarkColor((fo::PALETTE*)FO_VAR_cmap);
 		std::memset((void*)fo::var::getInt(FO_VAR_endgame_window_buffer), color, Setting::ScreenWidth() * Setting::ScreenHeight());
@@ -140,12 +137,9 @@ static void __cdecl endgame_pan_desert_hook_buf_to_buf(BYTE* src, long w, long h
 	if (SlidesScreen::END_SLIDE_SIZE == 1) {
 		long width = Setting::ScreenWidth();
 		long height = Setting::ScreenHeight();
-		long x = Image::GetAspectSize(width, height, (float)w, (float)h);
+		long x = 0;
 		long y = 0;
-		if (x >= width) { // extract x/y image position
-			y = x / width;
-			x -= y * width;
-		}
+		Image::GetAspectSize(w, h, &x, &y, width, height);
 		if (x || y) dst += x + (y * Setting::ScreenWidth());
 		bottomPos = height;
 

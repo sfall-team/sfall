@@ -56,7 +56,7 @@ bool Graphics::IsWindowMode;
 bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
 
-static DWORD yoffset;
+//static DWORD yoffset;
 //static DWORD xoffset;
 
 bool DeviceLost = false;
@@ -643,19 +643,27 @@ class FakeDirectDrawSurface : IDirectDrawSurface {
 private:
 	ULONG Refs;
 	bool isPrimary;
+
 	BYTE* lockTarget = nullptr;
 	RECT* lockRect;
+
+	// size for secondary (mve) surface
+	DWORD m_width;
+	DWORD m_height;
 
 public:
 	static bool IsPlayMovie;
 
-	FakeDirectDrawSurface(bool primary) {
+	FakeDirectDrawSurface(bool primary, DDSURFACEDESC* desc) {
 		Refs = 1;
 		isPrimary = primary;
-		if (primary && Graphics::GPUBlt) {
-			// use the mainTex texture as source buffer
+		if (primary) {
+			if (Graphics::GPUBlt == 0) lockTarget = new BYTE[ResWidth * ResHeight]();
+			// for enabled GPUBlt, use the mainTex texture as source buffer
 		} else {
-			lockTarget = new BYTE[ResWidth * ResHeight]();
+			m_width = desc->dwWidth;
+			m_height = desc->dwHeight;
+			lockTarget = new BYTE[m_width * m_height];
 		}
 	}
 
@@ -678,11 +686,12 @@ public:
 	HRESULT __stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 	HRESULT __stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
 
-	HRESULT __stdcall Blt(LPRECT dst, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) { // called 0x4868DA movie_MVE_ShowFrame_ (used for game movies, only for w/o HRP)
-		mveDesc.dwHeight = (dst->bottom - dst->top);
-		yoffset = (ResHeight - mveDesc.dwHeight) / 2;
-		mveDesc.lPitch = (dst->right - dst->left);
+	// called 0x4868DA movie_MVE_ShowFrame_ used for game movies (only for w/o HRP by Mash)
+	HRESULT __stdcall Blt(LPRECT dst, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) {
+		mveDesc.dwHeight = scr->bottom; //(dst->bottom - dst->top);
+		mveDesc.lPitch = scr->right; //(dst->right - dst->left);
 		//xoffset = (ResWidth - mveDesc.lPitch) / 2;
+		//yoffset = (ResHeight - mveDesc.dwHeight) / 2;
 
 		//dlog_f("\nBlt: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 
@@ -698,11 +707,11 @@ public:
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 
 		if (Graphics::GPUBlt) {
-			fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
-			//char* pBits = (char*)dRect.pBits;
-			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
-			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
-			//}
+			if (d != 0) {
+				fo::func::cscale(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dst->right - dst->left, dst->bottom - dst->top, dRect.Pitch);
+			} else {
+				fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
+			}
 		} else {
 			int pitch = dRect.Pitch / 4;
 			DWORD* pBits = (DWORD*)dRect.pBits;
@@ -718,6 +727,11 @@ public:
 		}
 		mainTex->UnlockRect(0);
 		d3d9Device->UpdateTexture(mainTex, mainTexD);
+
+		//IDirect3DSurface9 *mSurf, *mSurfD;
+		//mainTex->GetSurfaceLevel(0, &mSurf);
+		//mainTexD->GetSurfaceLevel(0, &mSurfD);
+		//d3d9Device->StretchRect(mSurf, 0, mSurfD, 0, D3DTEXF_LINEAR);
 
 		//mainTexLock = false;
 		//if (Graphics::PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
@@ -756,8 +770,8 @@ public:
 		0x4CB887 GNW95_ShowRect_      [c=1]
 		0x48699D movieShowFrame_      [c=1]
 		0x4CBBFA GNW95_zero_vid_mem_  [c=1] (clear surface)
-		0x4F5E91/0x4F5EBB sub_4F5E60  [c=0] (from MVE_rmStepMovie_)
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
+		0x4F5E91/0x4F5EBB nf_mve_buf_lock [c=0] (from MVE_rmStepMovie_)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
 		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
@@ -776,11 +790,12 @@ public:
 				b->lpSurface = lockTarget;
 			}
 		} else {
-			mveDesc.lPitch = fo::var::getInt(FO_VAR_lastMovieW);
-			mveDesc.dwHeight = fo::var::getInt(FO_VAR_lastMovieH);
-			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
+			mveDesc.dwWidth = m_width;
+			mveDesc.lPitch = m_width; //fo::var::getInt(FO_VAR_lastMovieW);
+			mveDesc.dwHeight = m_height; //fo::var::getInt(FO_VAR_lastMovieH);
 			*b = mveDesc;
 			b->lpSurface = lockTarget;
+			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 		}
 		return DD_OK;
 	}
@@ -839,8 +854,9 @@ public:
 		0x4CB8F0 GNW95_ShowRect_      (common game, primary)
 		0x486A87 movieShowFrame_
 		0x4CBC5A GNW95_zero_vid_mem_  (clear surface)
-		0x4F5ECC sub_4F5E60           (from MVE_rmStepMovie_)
+		0x4F5ECC nf_mve_buf_lock      (from MVE_rmStepMovie_)
 		0x4868BA movie_MVE_ShowFrame_ (capture never call)
+		0x4F5EFA/0x4F5F0B nf_mve_buf_unlock (from MVE_rmStepMovie_)
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		if (!isPrimary) return DD_OK;
@@ -1034,11 +1050,11 @@ public:
 		0x4CB094 GNW95_init_DirectDraw_ (primary surface)
 		0x4F5DD4/0x4F5DF9 nfConfig_     (mve surface)
 	*/
-	HRESULT __stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
-		if (a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE && a->dwFlags == DDSD_CAPS) {
-			*b = primarySurface = (IDirectDrawSurface*)new FakeDirectDrawSurface(true);
+	HRESULT __stdcall CreateSurface(LPDDSURFACEDESC desc, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
+		if (desc->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE && desc->dwFlags == DDSD_CAPS) {
+			*b = primarySurface = (IDirectDrawSurface*)new FakeDirectDrawSurface(true, nullptr);
 		} else {
-			*b = (IDirectDrawSurface*)new FakeDirectDrawSurface(false);
+			*b = (IDirectDrawSurface*)new FakeDirectDrawSurface(false, desc);
 		}
 		return DD_OK;
 	}

@@ -31,11 +31,8 @@ static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWi
 	// stretch texture for DirectX
 	if (SplashScreen::SPLASH_SCRN_SIZE || srcWidth > w || srcHeight > h) {
 		if (SplashScreen::SPLASH_SCRN_SIZE == 1) {
-			x = Image::GetAspectSize(w, h, (float)srcWidth, (float)srcHeight);
-			if (x >= w) { // extract x/y image position
-				y = x / w;
-				x -= y * w;
-			}
+			x = 0;
+			Image::GetAspectSize(srcWidth, srcHeight, &x, &y, w, h);
 
 			rect.top = y;
 			rect.bottom = (y + h) - 1;

@@ -38,12 +38,9 @@ static void __cdecl game_help_hook_buf_to_buf(fo::FrmData* frm, long w, long h, 
 
 	if (HelpScreen::HELP_SCRN_SIZE || width > w || height > h) {
 		if (HelpScreen::HELP_SCRN_SIZE == 1) {
-			long x = Image::GetAspectSize(w, h, (float)width, (float)height);
+			long x = 0;
 			long y = 0;
-			if (x >= w) { // extract x/y image position
-				y = x / w;
-				x -= y * w;
-			}
+			Image::GetAspectSize(width, height, &x, &y, w, h);
 			if (x || y) dst += x + (y * Setting::ScreenWidth());
 		}
 		Image::Scale(frm->frame.data, width, height, dst, w, h, Setting::ScreenWidth());

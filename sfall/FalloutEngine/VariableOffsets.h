@@ -173,6 +173,8 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_lastMovieH                 0x638E64
 #define FO_VAR_lastMovieW                 0x638E68
+#define FO_VAR_lastMovieX                 0x638E6C
+#define FO_VAR_lastMovieY                 0x638E70
 #define FO_VAR_lastTime                   0x56FB58
 #define FO_VAR_lastWin                    0x51DD80
 #define FO_VAR_Level_pc                   0x6681B0
@@ -212,6 +214,9 @@
 #define FO_VAR_movePointRect              0x518FD4
 #define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
+#define FO_VAR_mve_win_rect               0x638E10
+#define FO_VAR_mveBH                      0x6B402F
+#define FO_VAR_mveBW                      0x6B3CFC
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_critter               0x51833C
 #define FO_VAR_name_font                  0x56D74C
@@ -299,6 +304,7 @@
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_subtitleH                  0x638EA0
 #define FO_VAR_subtitleList               0x638E74
 #define FO_VAR_subtitles                  0x663974
 #define FO_VAR_sWindows                   0x6727B0
@@ -338,6 +344,7 @@
 #define FO_VAR_wmBkWin                    0x51DE14
 #define FO_VAR_wmBkWinBuf                 0x51DE24
 #define FO_VAR_wmEncounterIconShow        0x672E48
+#define FO_VAR_wmInterfaceWasInitialized  0x51DE38
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxAreaNum               0x51DDFC
 #define FO_VAR_wmMaxMapNum                0x51DE10

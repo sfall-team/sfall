@@ -28,18 +28,25 @@ long Image::GetDarkColor(fo::PALETTE* palette) {
 	return index;
 }
 
-long Image::GetAspectSize(long &dW, long &dH, float sW, float sH) {
+long Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH) {
+	float sWf = (float)sW;
+	float sHf = (float)sH;
+
 	float width = (float)dW;
 	float height = (float)dH;
 	float aspectD = (float)dW / dH;
-	float aspectS = sW / sH;
+	float aspectS = sWf / sHf;
 
 	if (aspectD < aspectS) {
-		dH = (long)((sH / sW) * dW);             // set new height
-		return (long)(((height - dH) / 2) * dW); // shift y-offset center
+		dH = (long)((sHf / sWf) * dW);       // set new height
+		long cy = (long)((height - dH) / 2); // shift y-offset center
+		if (y) *y = cy;
+		return cy * width;
 	} else if (aspectD > aspectS) {
-		dW = (long)((dH / sH) * sW);     // set new width
-		return (long)((width - dW) / 2); // shift x-offset center
+		dW = (long)((dH / sHf) * sWf);      // set new width
+		long cx = (long)((width - dW) / 2); // shift x-offset center
+		if (x) *x = cx;
+		return cx;
 	}
 	return 0;
 }
@@ -81,43 +88,6 @@ void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, 
 		}
 	}
 	while (--dHeight);
-}
-
-// Fixme
-void Image::TransScale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWigth, long dHeight, long dPitch, long tranColorIdx) {
-	if (dWigth <= 0 || dHeight <= 0) return;
-
-	float sw = (float)sWidth;
-	float sh = (float)sHeight;
-	float xStep = sw / dWigth;
-	float hStep = sh / dHeight;
-
-	long height = dHeight;
-	dPitch -= dWigth;
-
-	float sy = 0.0f;
-	do {
-		float sx = 0.0f;
-		int w = dWigth;
-		do {
-			BYTE pixel = *(src + std::lround(sx));
-			if (pixel != tranColorIdx) *dst = pixel;
-			dst++;
-			sx += xStep;
-			if (sx >= sw) sx = sw - 1.0f;
-		} while (--w);
-
-		if (sHeight) {
-			sy += hStep;
-			float y = std::round(sy);
-			if (y >= 1.0f && --sHeight) {
-				src += sWidth * (int)y;
-				sy -= y;
-			}
-		}
-		dst += dPitch;
-	}
-	while (--height);
 }
 
 // Simplified implementation of FMtext_to_buf_ engine function with text scaling
