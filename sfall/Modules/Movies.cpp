@@ -560,10 +560,6 @@ static __declspec(naked) void LostFocus() {
 void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
-	//if (*((DWORD*)0x00518DA0) != 0x00503300) {
-	//	dlog("Error: The value at address 0x001073A0 is not equal to 0x00503300.", DL_INIT);
-	//}
-
 	// Pause and resume movie/sound playback when the game loses focus
 	fo::func::set_focus_func(LostFocus);
 
@@ -590,13 +586,13 @@ void Movies::init() {
 		WIP: Task
 		Implement subtitle output from the need to play an mve file in the background.
 	*/
-	if (Graphics::mode != 0) {
+	if (Graphics::mode >= 4) {
 		int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
 			Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
 			MakeJump(0x44E690, gmovie_play_hack);
 			HookCall(0x44E993, gmovie_play_hook_stop);
-			/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
+			/* NOTE: At this address 0x487781 (movieStart_), HRP changes the callback procedure to display mve frames. */
 		}
 	}
 	dlogr(" Done", DL_INIT);

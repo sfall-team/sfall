@@ -434,6 +434,9 @@
     <ClInclude Include="HRP\MoviesScreen.h">
       <Filter>HRP</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\SubModules\DirectDraw.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -802,6 +805,9 @@
     </ClCompile>
     <ClCompile Include="HRP\MoviesScreen.cpp">
       <Filter>HRP</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\DirectDraw.cpp">
+      <Filter>Modules\SubModules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

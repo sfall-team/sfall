@@ -18,14 +18,16 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\InputFuncs.h"
-#include "..\version.h"
+//#include "..\InputFuncs.h"
+#include "..\WinProc.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
 
+#include "SubModules\DirectDraw.h"
 #include "SubModules\WindowRender.h"
 
 #include "..\HRP\Init.h"
+#include "..\HRP\MoviesScreen.h"
 
 #include "Graphics.h"
 
@@ -49,15 +51,15 @@ IDirectDrawPalette* primaryPalette = nullptr; // aka _GNW95_DDPrimaryPalette
 static DWORD ResWidth;
 static DWORD ResHeight;
 
+static DWORD gWidth;
+static DWORD gHeight;
+
 DWORD Graphics::GPUBlt;
 DWORD Graphics::mode;
 bool Graphics::IsWindowMode;
 
 bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
-
-//static DWORD yoffset;
-//static DWORD xoffset;
 
 bool DeviceLost = false;
 //static bool mainTexLock = false; // for preventing a crash during the locked state of the texture
@@ -67,34 +69,10 @@ static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
 static D3DSURFACE_DESC movieDesc;
 
-#pragma pack(push, 1)
-static struct PALCOLOR {
-	union {
-		DWORD xRGB;
-		struct {
-			BYTE R;
-			BYTE G;
-			BYTE B;
-			BYTE x;
-		};
-	};
-} *palette;
-#pragma pack(pop)
-
-//static bool paletteInit = false;
-
-static DWORD gWidth;
-static DWORD gHeight;
-
-static long moveWindowKey[2];
+static DirectDraw::PALCOLOR* palette;
 
 static bool windowInit = false;
-static long windowLeft = 0;
-static long windowTop = 0;
 static HWND window;
-static DWORD windowStyle = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
-
-static int windowData;
 
 static DWORD ShaderVersion;
 
@@ -146,16 +124,6 @@ static VertexFormat ShaderVertices[] = {
 	{639.5, 479.5, 0, 1, 1, 1}  // 3 - bottom right
 };
 
-HWND Graphics::GetFalloutWindowInfo(RECT* rect) {
-	if (rect) {
-		rect->left = windowLeft;
-		rect->top = windowTop;
-		rect->right = gWidth;
-		rect->bottom = gHeight;
-	}
-	return window;
-}
-
 long Graphics::GetGameWidthRes() {
 	return (fo::var::scr_size.offx - fo::var::scr_size.x) + 1;
 }
@@ -173,14 +141,6 @@ static void WindowInit() {
 	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 	ScriptShaders::LoadGlobalShader();
-}
-
-static void SetWindowToCenter() {
-	RECT desktop;
-	GetWindowRect(GetDesktopWindow(), &desktop);
-
-	windowLeft = (desktop.right / 2) - (gWidth  / 2);
-	windowTop  = (desktop.bottom / 2) - (gHeight / 2);
 }
 
 // pixel size for the current game resolution
@@ -264,7 +224,7 @@ static void ResetDevice(bool create) {
 			                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
 			Graphics::GPUBlt = 0;
 		}
-		if (Graphics::GPUBlt == 0) palette = new PALCOLOR[256];
+		if (Graphics::GPUBlt == 0) palette = new DirectDraw::PALCOLOR[256];
 
 		#if !(NDEBUG) && !(_DEBUG)
 			D3DXCreateFontA(d3d9Device, 24, 0, 500, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &font); // create a font
@@ -379,48 +339,7 @@ static void DrawFPS() {}
 #endif
 
 static void Present() {
-	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
-	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
-	{
-		int winX, winY;
-		GetMouse(&winX, &winY);
-		windowLeft += winX;
-		windowTop += winY;
-
-		RECT r, r2;
-		r.left = windowLeft;
-		r.right = windowLeft + gWidth;
-		r.top = windowTop;
-		r.bottom = windowTop + gHeight;
-		AdjustWindowRect(&r, WS_CAPTION | WS_BORDER, false);
-
-		r.right -= (r.left - windowLeft);
-		r.left = windowLeft;
-		r.bottom -= (r.top - windowTop);
-		r.top = windowTop;
-
-		if (GetWindowRect(GetShellWindow(), &r2)) {
-			if (r.right > r2.right) {
-				DWORD move = r.right - r2.right;
-				windowLeft -= move;
-				r.right -= move;
-			} else if (r.left < r2.left) {
-				DWORD move = r2.left - r.left;
-				windowLeft += move;
-				r.right += move;
-			}
-			if (r.bottom > r2.bottom) {
-				DWORD move = r.bottom - r2.bottom;
-				windowTop -= move;
-				r.bottom -= move;
-			} else if (r.top < r2.top) {
-				DWORD move = r2.top - r.top;
-				windowTop += move;
-				r.bottom += move;
-			}
-		}
-		MoveWindow(window, windowLeft, windowTop, r.right - windowLeft, r.bottom - windowTop, true);
-	}
+	WinProc::Moving();
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 		#ifndef NDEBUG
@@ -969,9 +888,9 @@ public:
 			}
 			// copy and swap color B <> R
 			do {
-				((PALCOLOR*)pal.pBits)[b].R = destPal->R << 2;
-				((PALCOLOR*)pal.pBits)[b].G = destPal->G << 2;
-				((PALCOLOR*)pal.pBits)[b].B = destPal->B << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].R = destPal->R << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].G = destPal->G << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].B = destPal->B << 2;
 				destPal++;
 				b++;
 			} while (--c);
@@ -1074,36 +993,23 @@ public:
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
-		char windowTitle[128];
 		window = a;
+		WinProc::SetHWND(window);
 
-		if (!d3d9Device) {
-			CoInitialize(0);
-			ResetDevice(true); // create
-		}
-		dlog("Creating D3D9 Device window...", DL_MAIN);
+		if (d3d9Device) return DD_OK;
 
-		if (ResWidth != gWidth || ResHeight != gHeight) {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
-		} else {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
-		}
-		SetWindowTextA(a, windowTitle);
+		CoInitialize(0);
+		ResetDevice(true); // create
+
+		//dlog("Creating D3D9 Device window...", DL_MAIN);
+		WinProc::SetTitle(gWidth, gHeight);
 
 		if (Graphics::mode >= 5) {
-			SetWindowLongA(a, GWL_STYLE, windowStyle);
-			RECT r;
-			r.left = 0;
-			r.right = gWidth;
-			r.top = 0;
-			r.bottom = gHeight;
-			AdjustWindowRect(&r, windowStyle, false);
-			r.right -= r.left;
-			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			long windowStyle = (Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
+			WinProc::SetStyle(windowStyle);
 		}
 
-		dlogr(" Done", DL_MAIN);
+		//dlogr(" Done", DL_MAIN);
 		return DD_OK;
 	}
 
@@ -1161,34 +1067,10 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
-		if (moveWindowKey[0] < 0) {
-			switch (moveWindowKey[0]) {
-			case -1:
-				moveWindowKey[0] = DIK_LCONTROL;
-				moveWindowKey[1] = DIK_RCONTROL;
-				break;
-			case -2:
-				moveWindowKey[0] = DIK_LMENU;
-				moveWindowKey[1] = DIK_RMENU;
-				break;
-			case -3:
-				moveWindowKey[0] = DIK_LSHIFT;
-				moveWindowKey[1] = DIK_RSHIFT;
-				break;
-			default:
-				moveWindowKey[0] = 0;
-			}
-		} else {
-			moveWindowKey[0] &= 0xFF;
-		}
-		windowData = IniReader::GetConfigInt("Graphics", "WindowData", -1);
-		if (windowData > 0) {
-			windowLeft = windowData >> 16;
-			windowTop = windowData & 0xFFFF;
-		} else if (windowData == -1) {
-			SetWindowToCenter();
-		}
+		WinProc::SetMoveKeys();
+
+		WinProc::SetSize(gWidth, gHeight);
+		WinProc::LoadPosition();
 	}
 
 	rcpres[0] = 1.0f / (float)gWidth;
@@ -1275,39 +1157,49 @@ void __stdcall Graphics::ForceGraphicsRefresh(DWORD d) {
 }
 
 void Graphics::BackgroundClearColor(long indxColor) {
-	if (GPUBlt) {
-		D3DLOCKED_RECT buf;
-		mainTex->LockRect(0, &buf, 0, D3DLOCK_DISCARD);
-		std::memset(buf.pBits, indxColor, ResWidth * ResHeight);
-		mainTex->UnlockRect(0);
+	if (Graphics::mode >= 4) {
+		if (GPUBlt) {
+			D3DLOCKED_RECT buf;
+			mainTex->LockRect(0, &buf, 0, D3DLOCK_DISCARD);
+			std::memset(buf.pBits, indxColor, ResWidth * ResHeight);
+			mainTex->UnlockRect(0);
+		} else {
+			DDSURFACEDESC desc;
+			primarySurface->GetSurfaceDesc(&desc);
+			std::memset(desc.lpSurface, indxColor, ResWidth * ResHeight);
+		}
 	} else {
-		DDSURFACEDESC desc;
-		primarySurface->GetSurfaceDesc(&desc);
-		std::memset(desc.lpSurface, indxColor, ResWidth * ResHeight);
+		//
 	}
 }
 
 void Graphics::init() {
-	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
+	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 4);
+	if (gMode >= 4) Graphics::mode = gMode;
+
 	if (Graphics::mode == 6) {
-		windowStyle = WS_OVERLAPPED;
-	} else if (Graphics::mode != 4 && Graphics::mode != 5) {
+		//windowStyle = WS_OVERLAPPED;
+	} else if (Graphics::mode < 0 && Graphics::mode > 5) {
 		Graphics::mode = 0;
 	}
-	IsWindowMode = (mode == 5 || mode == 6);
+	//IsWindowMode = (mode == 2 || mode == 5 || mode == 6);
 
-	if (Graphics::mode) {
+	// DirectX9 mode
+	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
-			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-			               "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+			dlogr(" Failed", DL_INIT);
+			MessageBoxA(0, "Switching back to DirectDraw mode.\n"
+			               "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
+			               "Install an up to date version of DirectX 9.0c.", "Error", MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
-			ExitProcess(-1);
-		} else {
-			FreeLibrary(h);
+			Graphics::mode -= 3; //ExitProcess(-1);
+			goto DDInit;
 		}
+		FreeLibrary(h);
+
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
@@ -1328,20 +1220,19 @@ void Graphics::init() {
 		LoadGameHook::OnGameReset() += []() {
 			ForceGraphicsRefresh(0); // disable refresh
 		};
+	} else {
+DDInit:
+		if (HRP::Setting::IsEnabled()) DirectDraw::init(Graphics::mode);
 	}
+
+	if (HRP::Setting::IsEnabled()) HRP::MoviesScreen::SetDrawMode(Graphics::mode < 4);
 
 	WindowRender::init();
 }
 
 void Graphics::exit() {
-	if (Graphics::mode) {
-		RECT rect;
-		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
-			int data = rect.top | (rect.left << 16);
-			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
-		}
-		CoUninitialize();
-	}
+	WinProc::SavePosition(Graphics::mode);
+	if (Graphics::mode >= 4) CoUninitialize();
 }
 
 }

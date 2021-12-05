@@ -12,8 +12,10 @@ namespace HRP
 class MoviesScreen {
 public:
 	static void init();
-	
+
 	static long MOVIE_SIZE;
+
+	static void SetDrawMode(bool mode);
 };
 
 }

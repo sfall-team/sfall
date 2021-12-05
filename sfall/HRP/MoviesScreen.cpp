@@ -21,6 +21,7 @@ namespace sf = sfall;
 long MoviesScreen::MOVIE_SIZE;
 
 static RECT movieToSize;
+//static bool useDDraw = false;
 
 static void __fastcall SetMovieSize() {
 	long sWidth = Setting::ScreenWidth();
@@ -68,7 +69,7 @@ static void __declspec(naked) nfConfig_hack() {
 }
 
 // surface: _nf_mve_buf1
-static long __cdecl movie_MVE_ShowFrame(IDirectDrawSurface* surface, int bW, int bH, int x, int y, int w, int h) {
+static void __cdecl movie_MVE_ShowFrame(IDirectDrawSurface* surface, int bW, int bH, int x, int y, int w, int h) {
 	RECT movieSize;
 	movieSize.left = x;
 	movieSize.right = x + bW;
@@ -82,7 +83,27 @@ static long __cdecl movie_MVE_ShowFrame(IDirectDrawSurface* surface, int bW, int
 	//FO_VAR_lastMovieBW = bW
 	//FO_VAR_lastMovieBH = bH
 
-	return surface->Blt(&movieToSize, surface, &movieSize, MoviesScreen::MOVIE_SIZE, 0); // for sfall DX9
+	surface->Blt(&movieToSize, surface, &movieSize, MoviesScreen::MOVIE_SIZE, 0); // for sfall DX9
+}
+
+// surface: _nf_mve_buf1
+static void __cdecl movieShowFrame(IDirectDrawSurface* surface, int bW, int bH, int x, int y, int w, int h) {
+	//if (fo::var::getInt(FO_VAR_GNWWin) == -1) return;
+
+	RECT movieSize;
+	movieSize.left = x;
+	movieSize.right = x + bW;
+	movieSize.top = y;
+	movieSize.bottom = y + bH;
+
+	fo::var::setInt(FO_VAR_lastMovieX) = movieToSize.left;
+	fo::var::setInt(FO_VAR_lastMovieY) = movieToSize.top;
+	fo::var::setInt(FO_VAR_lastMovieW) = movieToSize.right - movieToSize.left;
+	fo::var::setInt(FO_VAR_lastMovieH) = movieToSize.bottom - movieToSize.top;
+	//FO_VAR_lastMovieBW = bW
+	//FO_VAR_lastMovieBH = bH
+
+	//surface->Blt(&movieToSize, surface, &movieSize, MoviesScreen::MOVIE_SIZE, 0);
 }
 
 // Adjust Y position
@@ -146,6 +167,17 @@ skip:
 	}
 }
 
+// Direct output to texture is used for DirectX9, and buffered method (output to GNWWin window) is used for DirectDraw
+void MoviesScreen::SetDrawMode(bool mode) {
+	//useDDraw = mode;
+	// movieStart_ hack
+	if (mode) {
+		sf::SafeWrite8(0x487781, sf::CodeType::JumpShort); // force Buffered
+	} else {
+		sf::SafeWrite16(0x487781, 0x9090); // force Direct
+	}
+}
+
 void MoviesScreen::init() {
 
 	if (MOVIE_SIZE < 0) MOVIE_SIZE = 0;
@@ -158,20 +190,13 @@ void MoviesScreen::init() {
 	//sf::SafeWrite8(0x44E7DE, 55); // for debugging
 
 	// movieStart_
-	// Direct output to texture is used for DirectX9, and buffered method (output to GNWWin window) is used for DirectDraw
-	if (0) {
-		sf::SafeWrite8(0x487781, sf::CodeType::JumpShort); // force Buffered
-	} else {
-		sf::SafeWrite16(0x487781, 0x9090); // force Direct
-	}
-
-	sf::SafeWrite32(0x4877D0, (DWORD)&movie_MVE_ShowFrame); // replace movie_MVE_ShowFrame_ with sfall function
+	sf::SafeWrite32(0x4877D0, (DWORD)&movie_MVE_ShowFrame); // replace engine movie_MVE_ShowFrame_ with sfall function (for DX9)
+	sf::SafeWrite32(0x487813, (DWORD)&movieShowFrame);      // replace engine movieShowFrame_ with sfall function (for DD7)
 
 	sf::MakeCall(0x4F5D40, nfConfig_hack);
 
 	// openSubtitle_
 	sf::HookCall(0x48738E, Setting::ScreenWidth); // replace windowGetXres_
-
 	// doSubtitle_ hacks
 	sf::SafeWrite32(0x487580, Setting::ScreenHeight());
 	sf::HookCall(0x4875BE, doSubtitle_hook);

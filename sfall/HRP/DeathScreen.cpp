@@ -46,11 +46,6 @@ static void __cdecl main_death_scene_hook_buf_to_buf(fo::FrmData* frm, long w, l
 			long x = 0;
 			long y = 0;
 			Image::GetAspectSize(width, height, &x, &y, w, h);
-
-			//if (x >= w) { // extract x/y image position
-			//	y = x / w;
-			//	x -= y * w;
-			//}
 			if (x || y) {
 				dst += x + (y * Setting::ScreenWidth());
 			}
