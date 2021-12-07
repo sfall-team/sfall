@@ -16,10 +16,10 @@ public:
 	static void SetWindowProc();
 
 	static void SetHWND(HWND _window);
-	static void SetSize(long w, long h);
 	static void SetTitle(long gWidth, long gHeight);
+	static void SetSize(long w, long h);
 
-	//Sets the window style and its position
+	// Sets the window style and its position
 	static void SetStyle(long windowStyle);
 
 	static void SetMoveKeys();
@@ -28,6 +28,8 @@ public:
 	static void SetToCenter(long wWidth, long wHeight, long* outX, long* outY);
 	static void LoadPosition();
 	static void SavePosition(long mode);
+
+	static const POINT* GetClientPos();
 };
 
 }

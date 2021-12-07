@@ -17,6 +17,7 @@ namespace sfall
 
 static HWND window;
 static Rectangle win;
+static POINT client;
 
 static long moveWindowKey[2];
 static long windowData;
@@ -37,6 +38,11 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 		__asm xor  eax, eax;
 		__asm call fo::funcoffs::exit_;
 		return 1;
+
+	case WM_MOVE:
+		client.x = LOWORD(lParam);
+		client.y = HIWORD(lParam);
+		break;
 
 	case WM_ERASEBKGND:
 		if (bkgndErased || !window) return 1;
@@ -135,7 +141,7 @@ void WinProc::SetHWND(HWND _window) {
 
 void WinProc::SetSize(long w, long h) {
 	win.x = 0;
-	win.x = 0;
+	win.y = 0;
 	win.width = w;
 	win.height = h;
 }
@@ -258,6 +264,10 @@ void WinProc::SavePosition(long mode) {
 		int data = rect.top | (rect.left << 16);
 		if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
 	}
+}
+
+const POINT* WinProc::GetClientPos() {
+	return &client;
 }
 
 void WinProc::init() {

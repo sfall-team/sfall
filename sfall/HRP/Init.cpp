@@ -110,8 +110,8 @@ static bool DisableExtHRP(const char* runFileName, std::string &cmdline) {
 	// 0x4FE1C0 - 0x4FE1E7
 	std::fseek(ft, 0xEE5C0, SEEK_SET);
 
-	DWORD restore1[10] = {0};
-	_fwrite_nolock(restore1, 4, sizeof(restore1), ft);
+	BYTE restore1[39] = {0};
+	_fwrite_nolock(restore1, 1, sizeof(restore1), ft);
 
 	std::fclose(ft);
 	cmdline.append(" -restart");

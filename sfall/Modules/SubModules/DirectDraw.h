@@ -23,7 +23,7 @@ namespace sfall
 
 class DirectDraw {
 public:
-	static void init(long);
+	static void init();
 
 	#pragma pack(push, 1)
 	struct PALCOLOR {
