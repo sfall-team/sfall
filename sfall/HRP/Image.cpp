@@ -41,7 +41,7 @@ long Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH
 		dH = (long)((sHf / sWf) * dW);       // set new height
 		long cy = (long)((height - dH) / 2); // shift y-offset center
 		if (y) *y = cy;
-		return cy * width;
+		return (long)(cy * width);
 	} else if (aspectD > aspectS) {
 		dW = (long)((dH / sHf) * sWf);      // set new width
 		long cx = (long)((width - dW) / 2); // shift x-offset center

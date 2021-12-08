@@ -42,15 +42,15 @@ static DWORD baseDLLAddr = 0; // 0x10000000
 bool Setting::VersionIsValid = false;
 
 static bool enabled;
-static bool SCALE_2X;
 static long SCR_WIDTH  = 640;
 static long SCR_HEIGHT = 480;
-
-static long GRAPHICS_MODE = 2;
+static long COLOUR_BITS = 32;
+static bool SCALE_2X;
 
 bool Setting::IsEnabled()    { return enabled; }
 long Setting::ScreenWidth()  { return SCR_WIDTH; }
 long Setting::ScreenHeight() { return SCR_HEIGHT; }
+long Setting::ColorBits()    { return COLOUR_BITS; }
 
 static void GetHRPModule() {
 	static const DWORD loadFunc = 0x4FE1D0;
@@ -105,13 +105,13 @@ static bool DisableExtHRP(const char* runFileName, std::string &cmdline) {
 	std::fseek(ft, 0xD4880, SEEK_SET); // 0x4E4480
 
 	BYTE restore[] = {0xC7, 0x05, 0x88, 0x27, 0x6B, 0x00, 0x00, 0xE7, 0x4D, 0x00};
-	_fwrite_nolock(restore, 1, sizeof(restore), ft);
+	_fwrite_nolock(restore, 1, 10, ft);
 
 	// 0x4FE1C0 - 0x4FE1E7
 	std::fseek(ft, 0xEE5C0, SEEK_SET);
 
-	BYTE restore1[39] = {0};
-	_fwrite_nolock(restore1, 1, sizeof(restore1), ft);
+	DWORD restore1[10] = {0};
+	_fwrite_nolock(restore1, 4, 10, ft);
 
 	std::fclose(ft);
 	cmdline.append(" -restart");
@@ -207,7 +207,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 		// replace \n for translated message
 		for (size_t i = 0; i < sizeof(infoMsg); i++) {
-			if (infoMsg[i] == '\0') break;
+			if (infoMsg[i] == '\n' || infoMsg[i] == '\0') break;
 			if (infoMsg[i] == '\\' && infoMsg[i + 1] == 'n') {
 				infoMsg[i] = ' ';
 				infoMsg[++i] = '\n';
@@ -239,12 +239,21 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	*/
 
 	int windowed = (sf::IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni) != 0) ? 1 : 0;
-	if (windowed && sf::IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni)) windowed += 1;
+	if (windowed && sf::IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni)) {
+		windowed += 1;
+		SCR_WIDTH  = GetSystemMetrics(SM_CXSCREEN);
+		SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+	}
 
 	int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni);
 	if (gMode < 0 || gMode > 2) gMode = 2;
 	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla 16(24) bit)
 	if (gMode == 2) sf::Graphics::mode = 4 + windowed; // DX9: 4 or 5/6 (sfall)
+
+	if (sf::Graphics::mode == 1) {
+		COLOUR_BITS = sf::IniReader::GetInt("Main", "COLOUR_BITS", 32, f2ResIni);
+		if (COLOUR_BITS != 32 && COLOUR_BITS != 24 && COLOUR_BITS != 16) COLOUR_BITS = 32;
+	}
 
 	MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU = (sf::IniReader::GetInt("MAINMENU", "SCALE_BUTTONS_AND_TEXT_MENU", 0, f2ResIni) != 0);
 	MainMenuScreen::USE_HIRES_IMAGES = (sf::IniReader::GetInt("MAINMENU", "USE_HIRES_IMAGES", 1, f2ResIni) != 0);

@@ -89,7 +89,7 @@ public:
 	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
 		long x = rect->left;
 		long y = rect->top;
-		if (Graphics::mode < 4) { // DirecrDraw
+		if (Graphics::mode < 4) { // DirectDraw
 			__asm {
 				xor  eax, eax;
 				push y;

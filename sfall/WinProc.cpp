@@ -103,8 +103,8 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 			__asm {
 				mov  eax, 1;
 				call fo::funcoffs::GNW95_hook_input_;
-				//mov  eax, FO_VAR_scr_size;
-				//call fo::funcoffs::win_refresh_all_;
+				mov  eax, FO_VAR_scr_size;
+				call fo::funcoffs::win_refresh_all_;
 			}
 		} else{
 			// ClipCursor(0);

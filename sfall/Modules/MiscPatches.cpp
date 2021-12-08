@@ -859,9 +859,9 @@ static void EngineOptimizationPatches() {
 		0x47C1FD  // SaveGame_
 	});
 	// LoadGame_
-	SafeWrite8(0x47CF0D, 195 + 10); // jz +10
+	SafeWrite8(0x47CF0D, 195 + 10); // jz 0x47CFDE
 	// SaveGame_
-	SafeWrite8(0x47C135, 140 + 10); // jz +10
+	SafeWrite8(0x47C135, 140 + 10); // jz 0x47C1CF
 }
 
 void MiscPatches::init() {

@@ -30,26 +30,25 @@
 namespace sfall
 {
 
-class DirectDrawChild;
+class DirectDrawObj;
 
-class IConvertPalette {
-public:
-	virtual DWORD PaletteToRGB(BYTE r, BYTE g, BYTE b) = 0;
-	virtual void BufToSurface(BYTE* src, int sPitch, int x, int y, int width, int height, DDSURFACEDESC2* desc) = 0;
-};
-
-DirectDrawChild* draw = nullptr;
 static bool paletteInitialized = false;
+static DirectDrawObj* ddObject = nullptr;
 
-class DirectDrawChild {
+class DirectDrawObj {
 private:
-	class ConvertPalette32 : public IConvertPalette {
+	class IConvertPalette {
 	public:
-		virtual DWORD PaletteToRGB(BYTE r, BYTE g, BYTE b) {
+		virtual DWORD PaletteToRGB(BYTE r, BYTE g, BYTE b) = 0;
+		virtual void BufToSurface(BYTE* src, int sPitch, int x, int y, int width, int height, DDSURFACEDESC2* desc) = 0;
+	};
+
+	class ConvertPalette32 : public IConvertPalette {
+		DWORD PaletteToRGB(BYTE r, BYTE g, BYTE b) {
 			return (r << 16) | (g << 8) | b;
 		}
 
-		virtual void BufToSurface(BYTE* src, int sPitch, int x, int y, int width, int height, DDSURFACEDESC2* desc) {
+		void BufToSurface(BYTE* src, int sPitch, int x, int y, int width, int height, DDSURFACEDESC2* desc) {
 			int dPitch = desc->lPitch >> 2;
 			DWORD* dst = (DWORD*)desc->lpSurface;
 			dst += (x + (y * dPitch));
@@ -58,7 +57,7 @@ private:
 			dPitch -= width;
 			while (height--) {
 				int x = width;
-				while (x--) *dst++ = draw->paletteRGB[*src++].xRGB;
+				while (x--) *dst++ = ddObject->paletteRGB[*src++].xRGB;
 				src += sPitch;
 				dst += dPitch;
 			};
@@ -66,7 +65,6 @@ private:
 	};
 
 	class ConvertPalette16 : public IConvertPalette {
-	public:
 		// R5G6B5
 		DWORD PaletteToRGB(BYTE r, BYTE g, BYTE b) {
 			DWORD color = r / 8;
@@ -76,7 +74,19 @@ private:
 			return color | (b / 8);
 		}
 
-		virtual void BufToSurface(BYTE* src, int sPitch, int x, int y, int width, int height, DDSURFACEDESC2* desc) {
+		void BufToSurface(BYTE* src, int sPitch, int x, int y, int width, int height, DDSURFACEDESC2* desc) {
+			int dPitch = desc->lPitch >> 1;
+			WORD* dst = (WORD*)desc->lpSurface;
+			dst += (x + (y * dPitch));
+
+			sPitch -= width;
+			dPitch -= width;
+			while (height--) {
+				int x = width;
+				while (x--) *dst++ = (WORD)(ddObject->paletteRGB[*src++].xRGB);
+				src += sPitch;
+				dst += dPitch;
+			};
 		}
 	};
 
@@ -91,26 +101,19 @@ private:
 		}
 	};
 
-	BYTE* buffSurface;
-
-	~DirectDrawChild() {
-		delete[] paletteRGB;
-		delete[] buffSurface;
-		delete[] convertFunc;
-	}
+	BYTE* buffSurface; // intermediate buffer for updating image colors
 
 public:
-	IDirectDraw7* ddObject; // same as _GNW95_DDObject
-	IDirectDrawSurface7* ddPrimarySurface;
-	IDirectDrawSurface7* ddBackSurface;
-	//IDirectDrawSurface7* ddBuffSurface;
-	IDirectDrawPalette* ddPalette;
-	IDirectDrawClipper* ddClipper;
+	IDirectDraw7* ddContext = nullptr; // same as _GNW95_DDObject
+	IDirectDrawSurface7* ddPrimarySurface = nullptr;
+	IDirectDrawSurface7* ddBackSurface = nullptr;
+	IDirectDrawPalette* ddPalette = nullptr;
+	IDirectDrawClipper* ddClipper = nullptr;
 
 	DirectDraw::PALCOLOR* paletteRGB;
 	IConvertPalette* convertFunc;
 
-	DirectDrawChild(long dwWidth, long dwHeight) {
+	DirectDrawObj(long dwWidth, long dwHeight) {
 		buffSurface = new BYTE[dwWidth * dwHeight];
 		paletteRGB = new DirectDraw::PALCOLOR[256]();
 	}
@@ -123,7 +126,7 @@ public:
 		convertFunc = new ConvertPalette32();
 	}
 
-	void SetDrawHightColor(long bits) {
+	void SetDrawHighColor(long bits) {
 		if (bits == 0x7E0) { // 0000011111100000
 			convertFunc = new ConvertPalette16();
 		} else {
@@ -143,7 +146,7 @@ public:
 	void UpdateSurface() {
 		DDSURFACEDESC2 desc;
 		//std::memset(&desc, 0, sizeof(DDSURFACEDESC2));
-		desc.dwSize = sizeof(DDSURFACEDESC2);
+		desc.dwSize = sizeof(DDSURFACEDESC);
 
 		while (true) {
 			HRESULT hr = ddBackSurface->Lock(0, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, 0);
@@ -164,8 +167,13 @@ public:
 		// Draw
 		while (ddPrimarySurface->Blt(&primRect, ddBackSurface, 0, DDBLT_WAIT, 0) == DDERR_SURFACELOST) ddPrimarySurface->Restore();
 	}
-};
 
+	~DirectDrawObj() {
+		delete[] paletteRGB;
+		delete[] buffSurface;
+		delete convertFunc;
+	}
+};
 
 void SetWindow(HWND window) {
 	WinProc::SetHWND(window);
@@ -179,37 +187,32 @@ void SetWindow(HWND window) {
 	}
 }
 
-static long __stdcall DirectDrawInit(DWORD, IDirectDraw7* _ddObject, DWORD) {
+static long __stdcall DirectDrawInit(DWORD, IDirectDraw7** _ddContext, DWORD) {
 	HWND window = (HWND)fo::var::getInt(FO_VAR_GNW95_hwnd);
 	SetWindow(window);
 
-	draw = new DirectDrawChild(HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight());
+	ddObject = new DirectDrawObj(HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight());
 
-	HRESULT hr = DirectDrawCreateEx(NULL, (LPVOID*)&draw->ddObject, IID_IDirectDraw7, NULL);
+	HRESULT hr = DirectDrawCreateEx(NULL, (LPVOID*)&ddObject->ddContext, IID_IDirectDraw7, NULL);
 	if (FAILED(hr)) return -1;
 
 	DDSURFACEDESC2 ddsd;
 	std::memset(&ddsd, 0, sizeof(DDSURFACEDESC2));
 	ddsd.dwSize = sizeof(DDSURFACEDESC2);
-	draw->ddObject->GetDisplayMode(&ddsd);
+	ddObject->ddContext->GetDisplayMode(&ddsd);
 
 	if (ddsd.ddpfPixelFormat.dwRGBBitCount == 8) {
 		MessageBoxA(window, "The current 8-bit video mode is not supported.", "sfall: DirectDraw", 0);
 		return -1;
 	}
-	_ddObject = draw->ddObject;
 
-	if (ddsd.ddpfPixelFormat.dwRGBBitCount != 32) {
-		draw->SetDrawHightColor(ddsd.ddpfPixelFormat.dwGBitMask);
-	} else {
-		draw->SetDrawTrueColor();
-	}
+	*_ddContext = ddObject->ddContext;
 
-	hr = draw->ddObject->SetCooperativeLevel(window, (Graphics::IsWindowedMode) ? DDSCL_NORMAL : (DDSCL_FULLSCREEN | DDSCL_EXCLUSIVE | DDSCL_MULTITHREADED));
+	hr = ddObject->ddContext->SetCooperativeLevel(window, (Graphics::IsWindowedMode) ? DDSCL_NORMAL : (DDSCL_FULLSCREEN | DDSCL_EXCLUSIVE | DDSCL_MULTITHREADED));
 	if (FAILED(hr)) return -1;
 
 	if (!Graphics::IsWindowedMode) {
-		hr = draw->ddObject->SetDisplayMode(HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), 32, 0, 0);
+		hr = ddObject->ddContext->SetDisplayMode(HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), HRP::Setting::ColorBits(), 0, 0);
 		if (FAILED(hr)) return -1;
 	}
 
@@ -218,17 +221,28 @@ static long __stdcall DirectDrawInit(DWORD, IDirectDraw7* _ddObject, DWORD) {
 	ddsd.dwFlags = DDSD_CAPS;
 	ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
 
-	hr = draw->ddObject->CreateSurface(&ddsd, &draw->ddPrimarySurface, 0);
+	hr = ddObject->ddContext->CreateSurface(&ddsd, &ddObject->ddPrimarySurface, 0);
 	if (FAILED(hr)) return -1;
 
-	fo::var::setInt(0x51E2B4) = (DWORD)draw->ddPrimarySurface; //FO_VAR_GNW95_DDPrimarySurface
-	fo::var::setInt(0x51E2B8) = (DWORD)draw->ddPrimarySurface; //FO_VAR_GNW95_DDRestoreSurface
+	fo::var::setInt(0x51E2B4) = (DWORD)ddObject->ddPrimarySurface; //FO_VAR_GNW95_DDPrimarySurface
+	fo::var::setInt(0x51E2B8) = (DWORD)ddObject->ddPrimarySurface; //FO_VAR_GNW95_DDRestoreSurface
+
+	DDPIXELFORMAT pxf;
+	std::memset(&pxf, 0, sizeof(DDPIXELFORMAT));
+	pxf.dwSize = sizeof(DDPIXELFORMAT);
+	ddObject->ddPrimarySurface->GetPixelFormat(&pxf);
+
+	if (pxf.dwRGBBitCount < 24) {
+		ddObject->SetDrawHighColor(pxf.dwGBitMask);
+	} else {
+		ddObject->SetDrawTrueColor();
+	}
 
 	// Create DirectDraw clipper for windowed mode
 	if (Graphics::IsWindowedMode) {
-		draw->ddObject->CreateClipper(0, &draw->ddClipper, 0);
-		draw->ddClipper->SetHWnd(0, window);
-		hr = draw->ddPrimarySurface->SetClipper(draw->ddClipper);
+		ddObject->ddContext->CreateClipper(0, &ddObject->ddClipper, 0);
+		ddObject->ddClipper->SetHWnd(0, window);
+		hr = ddObject->ddPrimarySurface->SetClipper(ddObject->ddClipper);
 		if (FAILED(hr)) return -1;
 	}
 
@@ -240,26 +254,20 @@ static long __stdcall DirectDrawInit(DWORD, IDirectDraw7* _ddObject, DWORD) {
 	ddsd.dwWidth = HRP::Setting::ScreenWidth();
 	ddsd.dwHeight = HRP::Setting::ScreenHeight();
 
-	hr = draw->ddObject->CreateSurface(&ddsd, &draw->ddBackSurface, 0);
+	hr = ddObject->ddContext->CreateSurface(&ddsd, &ddObject->ddBackSurface, 0);
 
-	//ddsd.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;// | DDSD_PIXELFORMAT;
+	//ddsd.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT | DDSD_PIXELFORMAT;
 	//ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
 	//ddsd.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
 	//ddsd.ddpfPixelFormat.dwFlags = DDPF_RGB | DDPF_PALETTEINDEXED8;
 	//ddsd.ddpfPixelFormat.dwRGBBitCount = 8;
-	//hr = ddObject->CreateSurface(&ddsd, &ddBuffSurface, 0);
-
+	//hr = ddContext->CreateSurface(&ddsd, &ddBuffSurface, 0);
 	if (FAILED(hr)) return -1;
 
-	// set greyscale (delete)
-	//for (size_t i = 0; i < 256; i++) {
-	//	paletteRGB[i].xRGB = (i << 24);// | (i << 16) | (i << 8) | i;
-	//}
-
-	hr = draw->ddObject->CreatePalette(DDPCAPS_ALLOW256 | DDPCAPS_8BIT, (PALETTEENTRY*)draw->paletteRGB, &draw->ddPalette, 0);
+	hr = ddObject->ddContext->CreatePalette(DDPCAPS_ALLOW256 | DDPCAPS_8BIT, (PALETTEENTRY*)ddObject->paletteRGB, &ddObject->ddPalette, 0);
 	if (FAILED(hr)) return -1;
 
-	fo::var::setInt(0x51E2BC) = (DWORD)draw->ddPalette; // FO_VAR_GNW95_DDPrimaryPalette
+	fo::var::setInt(0x51E2BC) = (DWORD)ddObject->ddPalette; // FO_VAR_GNW95_DDPrimaryPalette
 
 	return 0;
 }
@@ -270,30 +278,31 @@ static void __cdecl GNW95_ShowRect(BYTE* srcSurface, int sWidth, int sHeight, in
 	if (sHeight > 0 && sWidth > 0 && fo::var::getInt(FO_VAR_GNW95_isActive)) {
 		BYTE* src = srcSurface;
 		src += sX + (sY * sWidth);
-		fo::func::buf_to_buf(src, width, height, sWidth, draw->BufferSurface() + (x + (y * HRP::Setting::ScreenWidth())), HRP::Setting::ScreenWidth());
+		fo::func::buf_to_buf(src, width, height, sWidth, ddObject->BufferSurface() + (x + (y * HRP::Setting::ScreenWidth())), HRP::Setting::ScreenWidth());
 
 		DDSURFACEDESC2 desc;
-		//std::memset(&desc, 0, sizeof(DDSURFACEDESC));
-		desc.dwSize = sizeof(DDSURFACEDESC2);
+		//std::memset(&desc, 0, sizeof(DDSURFACEDESC2));
+		desc.dwSize = sizeof(DDSURFACEDESC);
 
 		while (true) {
-			HRESULT hr = draw->ddBackSurface->Lock(0, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, 0);
+			// NOTE: Not locking the entire surface reduces the performance
+			HRESULT hr = ddObject->ddBackSurface->Lock(0, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, 0);
 			if (!hr) break;
 			// 0x887601C2
-			if (hr != DDERR_SURFACELOST || draw->ddBackSurface->Restore()) return;
+			if (hr != DDERR_SURFACELOST || ddObject->ddBackSurface->Restore()) return;
 		}
 
 		if ((y + height) > (int)desc.dwHeight) {
-			if (y > (int)desc.dwHeight) BREAKPOINT; //return;
+			if (y > (int)desc.dwHeight) BREAKPOINT;
 			height = desc.dwHeight - y;
 		}
 		if ((x + width) > (int)desc.dwWidth) {
-			if (x > (int)desc.dwWidth) BREAKPOINT; // return;
+			if (x > (int)desc.dwWidth) BREAKPOINT;
 			width = desc.dwWidth - x;
 		}
 
-		draw->convertFunc->BufToSurface(src, sWidth, x, y, width, height, &desc);
-		draw->ddBackSurface->Unlock(0);
+		ddObject->convertFunc->BufToSurface(src, sWidth, x, y, width, height, &desc);
+		ddObject->ddBackSurface->Unlock(0);
 
 		RECT backRect;
 		backRect.left = x;
@@ -309,20 +318,24 @@ static void __cdecl GNW95_ShowRect(BYTE* srcSurface, int sWidth, int sHeight, in
 		primRect.bottom = win->y + y + height;
 
 		// Draw
-		while (draw->ddPrimarySurface->Blt(&primRect, draw->ddBackSurface, &backRect, DDBLT_WAIT, 0) == DDERR_SURFACELOST) draw->ddPrimarySurface->Restore();
+		while (ddObject->ddPrimarySurface->Blt(&primRect, ddObject->ddBackSurface, &backRect, DDBLT_WAIT, 0) == DDERR_SURFACELOST) ddObject->ddPrimarySurface->Restore();
 	}
 }
 
 static void __cdecl GNW95_zero_vid_mem() {
-
+/*
+	Apparently, surface cleaning is not required.
+	At least I don't observe any residual garbage.
+	This is also not used in HRP by Mash.
+*/
 }
 
 static void __fastcall SetPalette(fo::PALETTE* pal, long start, long count) {
-	draw->UpdatePalette(pal, start, count);
+	ddObject->UpdatePalette(pal, start, count);
 
 	if (count > 0) {
 		if (paletteInitialized) {
-			draw->UpdateSurface();
+			ddObject->UpdateSurface();
 		} else {
 			__asm mov  eax, FO_VAR_scr_size;
 			__asm call fo::funcoffs::win_refresh_all_;
@@ -362,17 +375,45 @@ static __declspec(naked) void game_init_hook_palette_init() {
 	}
 }
 
-static IDirectDraw7* GNW95_reset_mode_hack() {
-	draw->ddBackSurface->Release();
-	if (draw->ddClipper) {
-		draw->ddClipper->Release();
-		draw->ddClipper = nullptr;
-	}
-	draw->ddPrimarySurface = nullptr;
-	draw->ddPalette = nullptr;
-	draw->ddBackSurface = nullptr;
+//static __declspec(naked) void loadColorTable_hook() {
+//	__asm {
+//		call
+//		jmp  fo::funcoffs::rebuildColorBlendTables_;
+//	}
+//}
 
-	return draw->ddObject;
+static HRESULT __stdcall nfConfig_hack_crate_surface(DDSURFACEDESC* desc, LPDIRECTDRAWSURFACE7* nf_mve, long) {
+	DDSURFACEDESC2 desc2;
+	std::memcpy(&desc2, desc, sizeof(DDSURFACEDESC));
+	std::memset(&desc2.ddsCaps.dwCaps2, 0, sizeof(DDSURFACEDESC2) - sizeof(DDSURFACEDESC));
+
+	desc2.dwSize = sizeof(DDSURFACEDESC2);
+	return ddObject->ddContext->CreateSurface(&desc2, nf_mve, 0);
+}
+
+static IDirectDraw7* GNW95_reset_mode_hack() {
+	if (ddObject->ddBackSurface) {
+		ddObject->ddBackSurface->Release();
+		ddObject->ddBackSurface = nullptr;
+	}
+	if (ddObject->ddClipper) {
+		ddObject->ddClipper->Release();
+		ddObject->ddClipper = nullptr;
+	}
+	ddObject->ddPrimarySurface = nullptr;
+	ddObject->ddPalette = nullptr;
+
+	return ddObject->ddContext;
+}
+
+void DirectDraw::Clear(long iColor) {
+	std::memset(ddObject->BufferSurface(), iColor, HRP::Setting::ScreenWidth() * HRP::Setting::ScreenHeight());
+
+	//DDBLTFX fx;
+	//std::memset(&fx, 0, sizeof(DDBLTFX));
+	//fx.dwSize = sizeof(DDBLTFX);
+	//fx.dwFillColor = ddObject->paletteRGB[iColor].xRGB;
+	//HRESULT hr = ddObject->ddBackSurface->Blt(0, 0, 0, DDBLT_COLORFILL | DDBLT_WAIT, &fx);
 }
 
 void DirectDraw::init() {
@@ -389,10 +430,20 @@ void DirectDraw::init() {
 	SafeWrite32(0x4CAE77, (DWORD)&GNW95_zero_vid_mem); // replace engine GNW95_zero_vid_mem_ with sfall function
 
 	HookCall(0x44260C, game_init_hook_palette_init);
+	//HookCall(0x4C7A8D, loadColorTable_hook);
+
 	MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_hack_replacement); // 0x4CB310
 	MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_hack_replacement); // 0x4CB568
 
 	MakeCall(0x4CB1FD, GNW95_reset_mode_hack);
+
+	// nfConfig_
+	MakeCall(0x4F5DD1, nfConfig_hack_crate_surface, 1);
+	MakeCall(0x4F5DF6, nfConfig_hack_crate_surface, 1);
+}
+
+void DirectDraw::exit() {
+	if (ddObject) delete ddObject;
 }
 
 }
