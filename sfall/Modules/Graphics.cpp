@@ -994,13 +994,6 @@ public:
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
 		window = a;
 		WinProc::SetHWND(window);
-
-		if (d3d9Device) return DD_OK;
-
-		CoInitialize(0);
-		ResetDevice(true); // create
-
-		//dlog("Creating D3D9 Device window...", DL_MAIN);
 		WinProc::SetTitle(gWidth, gHeight);
 
 		if (Graphics::mode >= 5) {
@@ -1008,7 +1001,10 @@ public:
 			WinProc::SetStyle(windowStyle);
 		}
 
-		//dlogr(" Done", DL_MAIN);
+		if (!d3d9Device) {
+			CoInitialize(0);
+			ResetDevice(true); // create
+		}
 		return DD_OK;
 	}
 
@@ -1066,8 +1062,6 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		WinProc::SetMoveKeys();
-
 		WinProc::SetSize(gWidth, gHeight);
 		WinProc::LoadPosition();
 	}
@@ -1189,12 +1183,11 @@ void Graphics::init() {
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			dlogr(" Failed", DL_INIT);
-			MessageBoxA(0, "Switching back to DirectDraw mode.\n"
-			               "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-			               "Install an up to date version of DirectX 9.0c.", "Error", MB_TASKMODAL | MB_ICONERROR);
+			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
+			               "Switch back to DirectDraw mode, or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
-			Graphics::mode -= 3; //ExitProcess(-1);
-			goto DDInit;
+			ExitProcess(-1);
+			return;
 		}
 		FreeLibrary(h);
 
@@ -1218,10 +1211,10 @@ void Graphics::init() {
 		LoadGameHook::OnGameReset() += []() {
 			ForceGraphicsRefresh(0); // disable refresh
 		};
-	} else {
-DDInit:
-		if (HRP::Setting::IsEnabled()) DirectDraw::init();
+	} else if (HRP::Setting::IsEnabled()) {
+		DirectDraw::init();
 	}
+	if (Graphics::mode == 5 || Graphics::mode == 2) WinProc::SetMoveKeys();
 
 	if (HRP::Setting::IsEnabled()) HRP::MoviesScreen::SetDrawMode(Graphics::mode < 4);
 

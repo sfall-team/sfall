@@ -26,6 +26,21 @@ static long reqGameQuit;
 static bool cCursorShow = true;
 static bool bkgndErased = false;
 
+void __stdcall WinProc::MessageWindow() {
+	tagMSG msg;
+	while (PeekMessageA(&msg, 0, 0, 0, 0)) {
+		if (GetMessageA(&msg, 0, 0, 0)) {
+			TranslateMessage(&msg);
+			DispatchMessageA(&msg);
+		}
+	}
+}
+
+void __stdcall WinProc::WaitMessageWindow() {
+	MsgWaitForMultipleObjectsEx(0, 0, 1, 0xFF, 0);
+	MessageWindow();
+}
+
 static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	RECT rect;
 	//POINT point;

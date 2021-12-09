@@ -417,9 +417,6 @@ void DirectDraw::Clear(long iColor) {
 }
 
 void DirectDraw::init() {
-
-	if (Graphics::mode == 2) WinProc::SetMoveKeys();
-
 	// GNW95_init_DirectDraw_
 	MakeCall(0x4CAFE6, DirectDrawInit, 1); // GNW95_init_DirectDraw_
 	SafeWrite8(0x4CAFEE, CodeType::Jump);

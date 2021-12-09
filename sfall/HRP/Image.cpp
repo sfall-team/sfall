@@ -32,19 +32,19 @@ long Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH
 	float sWf = (float)sW;
 	float sHf = (float)sH;
 
-	float width = (float)dW;
-	float height = (float)dH;
+	long  width = dW;
+	long  height = dH;
 	float aspectD = (float)dW / dH;
 	float aspectS = sWf / sHf;
 
 	if (aspectD < aspectS) {
-		dH = (long)((sHf / sWf) * dW);       // set new height
-		long cy = (long)((height - dH) / 2); // shift y-offset center
+		dH = (long)((sHf / sWf) * dW); // set new height
+		long cy = (height - dH) / 2;   // shift y-offset center
 		if (y) *y = cy;
-		return (long)(cy * width);
+		return cy * width;
 	} else if (aspectD > aspectS) {
-		dW = (long)((dH / sHf) * sWf);      // set new width
-		long cx = (long)((width - dW) / 2); // shift x-offset center
+		dW = (long)((dH / sHf) * sWf); // set new width
+		long cx = (width - dW) / 2;    // shift x-offset center
 		if (x) *x = cx;
 		return cx;
 	}
@@ -55,12 +55,10 @@ long Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH
 void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, long dHeight, long dPitch, long sPitch) {
 	if (dWidth <= 0 || dHeight <= 0) return;
 
-	float sw = (float)sWidth;
-	float sh = (float)sHeight;
-	float xStep = sw / dWidth;
-	float hStep = sh / dHeight;
+	float xStep = (float)sWidth / dWidth;
+	float hStep = (float)sHeight / dHeight;
 
-	if (sPitch > 0) sWidth = sPitch;
+	if (sPitch <= 0) sPitch = sWidth;
 	if (dPitch > 0) dPitch -= dWidth;
 
 	float sy = 0.0f;
@@ -69,7 +67,7 @@ void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, 
 		int x = 0, w = dWidth;
 		do {
 			*dst++ = *(src + x); // copy pixel
-			if (x < sw) {
+			if (x < sWidth) {
 				sx += xStep;
 				if (sx >= 1.0f) {
 					x += (int)sx;
@@ -82,7 +80,7 @@ void Image::Scale(BYTE* src, long sWidth, long sHeight, BYTE* dst, long dWidth, 
 		if (sHeight) {
 			sy += hStep;
 			if (sy >= 1.0f && --sHeight) {
-				src += (sWidth * (int)sy);
+				src += (sPitch * (int)sy);
 				sy -= (int)sy;
 			}
 		}

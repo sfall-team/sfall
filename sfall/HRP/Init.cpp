@@ -10,8 +10,11 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 #include "..\Utils.h"
+#include "..\WinProc.h"
 #include "..\Modules\Graphics.h"
 #include "..\Modules\LoadOrder.h"
+
+#include "..\Modules\SubModules\WindowRender.h"
 
 #include "viewmap\ViewMap.h"
 #include "SplashScreen.h"
@@ -122,6 +125,27 @@ static bool DisableExtHRP(const char* runFileName, std::string &cmdline) {
 	return true;
 }
 
+static __declspec(naked) void fadeSystemPalette_hook() {
+	__asm {
+		call fo::funcoffs::setSystemPalette_;
+		jmp  sfall::WinProc::MessageWindow;
+	}
+}
+
+static __declspec(naked) void combat_turn_run_hook() {
+	__asm {
+		call sfall::WinProc::WaitMessageWindow;
+		jmp  fo::funcoffs::process_bk_;
+	}
+}
+
+static __declspec(naked) void gmouse_bk_process() {
+	__asm {
+		call sfall::WinProc::WaitMessageWindow;
+		jmp  fo::funcoffs::gmouse_bk_process_;
+	}
+}
+
 /*
 static void __declspec(naked) mem_copy() {
 	__asm {
@@ -182,9 +206,9 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	//HookCall(0x482899, mem_copy);
 	//SafeWrite16(0x4B2EA8, 0x9090); // _show_grid
 
-	bool resMode = sf::IniReader::GetIntDefaultConfig("Main", "HiResMode", 1) != 0;
+	bool hiResMode = sf::IniReader::GetIntDefaultConfig("Main", "HiResMode", 1) != 0;
 
-	if (!Setting::ExternalEnabled() && !resMode) return; // vanilla game mode
+	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
 
 	SCR_WIDTH  = sf::IniReader::GetInt("Main", "SCR_WIDTH", 640, f2ResIni);
 	SCR_HEIGHT = sf::IniReader::GetInt("Main", "SCR_HEIGHT", 480, f2ResIni);
@@ -195,7 +219,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (cmdline.find(" -restart") != std::string::npos) {
 		GetBackupFileName(exeFileName, true); // delete after restart
 	}
-	if (resMode == false) return;
+	if (hiResMode == false) return;
 
 	if (Setting::ExternalEnabled()) {
 		char infoMsg[512];
@@ -223,6 +247,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		return;
 	}
 	enabled = true;
+	sf::dlog("Applying built-in High Resolution Patch.", DL_MAIN);
 
 	// Read High Resolution config
 
@@ -247,7 +272,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni);
 	if (gMode < 0 || gMode > 2) gMode = 2;
-	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla 16(24) bit)
+	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla)
 	if (gMode == 2) sf::Graphics::mode = 4 + windowed; // DX9: 4 or 5/6 (sfall)
 
 	if (sf::Graphics::mode == 1) {
@@ -284,6 +309,10 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	Dialog::DIALOG_SCRN_ART_FIX = (sf::IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_ART_FIX", 1, f2ResIni) != 0);
 	Dialog::DIALOG_SCRN_BACKGROUND = (sf::IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_BACKGROUND", 0, f2ResIni) != 0);
 
+	if (sf::IniReader::GetInt("OTHER_SETTINGS", "FADE_TIME_RECALCULATE_ON_FADE", 0, f2ResIni)) {
+		sf::WindowRender::EnableRecalculateFadeSteps();
+	}
+
 	if (sf::IniReader::GetInt("OTHER_SETTINGS", "BARTER_PC_INV_DROP_FIX", 1, f2ResIni)) {
 		// barter_move_from_table_inventory_
 		if (fo::var::getInt(0x47523D) == 80)  sf::SafeWrite32(0x47523D, 100); // x_start
@@ -297,6 +326,16 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	);
 
 	/* Inject hacks */
+	if (sf::IniReader::GetInt("INPUT", "EXTRA_WIN_MSG_CHECKS", 0, f2ResIni)) {
+		sf::HookCall(0x4C73B1, fadeSystemPalette_hook);
+		sf::HookCall(0x4227E5, combat_turn_run_hook);
+		sf::HookCalls(gmouse_bk_process, {
+			0x460EB1, 0x460EFF, 0x460F55, 0x460FAE, 0x46101E, 0x4610FA, // intface_rotate_numbers_
+			0x45FA4E, // intface_end_window_open_
+			0x45FBA7, // intface_end_window_close_
+		});
+	}
+
 	sf::SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile to _mapEntranceTileNum)
 
 	if (SCR_WIDTH != 640 || SCR_HEIGHT != 480) {
@@ -335,6 +374,8 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	SlidesScreen::init();
 	CreditsScreen::init();
 	MoviesScreen::init();
+
+	sf::dlogr(" Done", DL_MAIN);
 }
 
 }

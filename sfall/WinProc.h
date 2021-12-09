@@ -13,6 +13,9 @@ class WinProc {
 public:
 	static void init();
 
+	static void __stdcall MessageWindow();
+	static void __stdcall WaitMessageWindow();
+
 	static void SetWindowProc();
 
 	static void SetHWND(HWND _window);
