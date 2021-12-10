@@ -1187,7 +1187,6 @@ void Graphics::init() {
 			               "Switch back to DirectDraw mode, or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
-			return;
 		}
 		FreeLibrary(h);
 

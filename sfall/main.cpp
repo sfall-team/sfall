@@ -53,8 +53,8 @@
 #include "Modules\KillCounter.h"
 #include "Modules\LoadGameHook.h"
 #include "Modules\LoadOrder.h"
-#include "Modules\MainMenu.h"
 #include "Modules\MainLoopHook.h"
+#include "Modules\MainMenu.h"
 #include "Modules\Message.h"
 #include "Modules\MetaruleExtender.h"
 #include "Modules\MiscPatches.h"
@@ -185,7 +185,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
 					               "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
 					               "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
+					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", 0, MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -211,7 +211,6 @@ static void SfallInit() {
 	if (!CRC(filepath)) return;
 
 	LoggingInit();
-	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
 	if (!HRP::Setting::CheckExternalPatch()) {
 		WinProc::init();
@@ -221,6 +220,9 @@ static void SfallInit() {
 
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
+
+	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+
 	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
@@ -258,7 +260,7 @@ static void SfallInit() {
 			CloseHandle(h);
 			IniReader::SetConfigFile(overrideIni.c_str());
 		} else {
-			MessageBoxA(0, "You gave a command line argument to Fallout, but the configuration file was not found.\n"
+			MessageBoxA(0, "You gave a command line argument to Fallout, but the configuration ini file was not found.\n"
 			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}

@@ -27,7 +27,7 @@ static bool cCursorShow = true;
 static bool bkgndErased = false;
 
 void __stdcall WinProc::MessageWindow() {
-	tagMSG msg;
+	MSG msg;
 	while (PeekMessageA(&msg, 0, 0, 0, 0)) {
 		if (GetMessageA(&msg, 0, 0, 0)) {
 			TranslateMessage(&msg);
@@ -57,6 +57,11 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 	case WM_MOVE:
 		client.x = LOWORD(lParam);
 		client.y = HIWORD(lParam);
+		break;
+
+	case WM_WINDOWPOSCHANGED:
+		win.x = ((WINDOWPOS*)lParam)->x;
+		win.y = ((WINDOWPOS*)lParam)->y;
 		break;
 
 	case WM_ERASEBKGND:
@@ -155,8 +160,6 @@ void WinProc::SetHWND(HWND _window) {
 }
 
 void WinProc::SetSize(long w, long h) {
-	win.x = 0;
-	win.y = 0;
 	win.width = w;
 	win.height = h;
 }
@@ -214,44 +217,44 @@ void WinProc::Moving() {
 	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
 	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
 	{
-		int winX, winY;
-		GetMouse(&winX, &winY);
-		win.x += winX;
-		win.y += winY;
+		int mx, my;
+		GetMouse(&mx, &my);
+		win.x += mx;
+		win.y += my;
 
-		RECT r, r2;
-		r.left = win.x;
-		r.right = win.x + win.width;
-		r.top = win.y;
-		r.bottom = win.y + win.height;
-		AdjustWindowRect(&r, WS_CAPTION, false);
+		RECT toRect, curRect;
+		toRect.left = win.x;
+		toRect.right = win.x + win.width;
+		toRect.top = win.y;
+		toRect.bottom = win.y + win.height;
+		AdjustWindowRect(&toRect, WS_CAPTION, false);
 
-		r.right -= (r.left - win.x);
-		r.left = win.x;
-		r.bottom -= (r.top - win.y);
-		r.top = win.y;
+		toRect.right -= (toRect.left - win.x);
+		toRect.left = win.x;
+		toRect.bottom -= (toRect.top - win.y);
+		toRect.top = win.y;
 
-		if (GetWindowRect(GetShellWindow(), &r2)) {
-			if (r.right > r2.right) {
-				DWORD move = r.right - r2.right;
+		if (GetWindowRect(GetShellWindow(), &curRect)) {
+			if (toRect.right > curRect.right) {
+				DWORD move = toRect.right - curRect.right;
 				win.x -= move;
-				r.right -= move;
-			} else if (r.left < r2.left) {
-				DWORD move = r2.left - r.left;
+				toRect.right -= move;
+			} else if (toRect.left < curRect.left) {
+				DWORD move = curRect.left - toRect.left;
 				win.x += move;
-				r.right += move;
+				toRect.right += move;
 			}
-			if (r.bottom > r2.bottom) {
-				DWORD move = r.bottom - r2.bottom;
+			if (toRect.bottom > curRect.bottom) {
+				DWORD move = toRect.bottom - curRect.bottom;
 				win.y -= move;
-				r.bottom -= move;
-			} else if (r.top < r2.top) {
-				DWORD move = r2.top - r.top;
+				toRect.bottom -= move;
+			} else if (toRect.top < curRect.top) {
+				DWORD move = curRect.top - toRect.top;
 				win.y += move;
-				r.bottom += move;
+				toRect.bottom += move;
 			}
 		}
-		MoveWindow(window, win.x, win.y, r.right - win.x, r.bottom - win.y, true);
+		MoveWindow(window, win.x, win.y, toRect.right - win.x, toRect.bottom - win.y, true);
 	}
 }
 

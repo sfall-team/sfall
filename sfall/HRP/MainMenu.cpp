@@ -70,8 +70,8 @@ static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long sw, long sh
 		long y = MainMenuScreen::MENU_BG_OFFSET_Y;
 
 		if (MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU) {
-			x += (long)(x * scaleFactor);
-			y += (long)(y * scaleFactor);
+			x = (long)(x * scaleFactor);
+			y = (long)(y * scaleFactor);
 		}
 
 		x += (long)(sf::MainMenu::mXOffset * scaleWidth) + offsetX;
@@ -207,7 +207,7 @@ static void __fastcall TextScale(long xPos, const char* text, long yPos, long co
 // buttons text print
 static void __declspec(naked) main_menu_create_hook_text_to_buf() {
 	__asm { // eax:xOffset (0), ebp:yPos, edx:text, ebx:txtWidth (640-txtWidth)-1
-		cmp  scaleFactor, 1.0f;
+		cmp  scaleFactor, 0x3F800000; // 1.0f
 		jne  scale;
 		mov  ecx, mainmenuWidth;
 		imul ebp, ecx; // yPos * width

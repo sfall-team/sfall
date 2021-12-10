@@ -32,7 +32,7 @@ static const DWORD ExpectedSize = 0x00122800;
 static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
 
 static void inline MessageFail(const char* a) {
-	MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR);
+	MessageBoxA(0, a, 0, MB_TASKMODAL | MB_ICONERROR);
 	ExitProcess(1);
 }
 
