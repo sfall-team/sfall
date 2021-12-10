@@ -139,7 +139,7 @@ void WindowRender::DestroyOverlaySurface(fo::Window* win) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static double fadeMulti;
+static float fadeMulti;
 
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
@@ -153,11 +153,12 @@ static __declspec(naked) void palette_fade_to_hook() {
 }
 
 void WindowRender::init() {
-	fadeMulti = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
-	if (fadeMulti != 100) {
+	int multi = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
+	if (multi != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		HookCall(0x493B16, palette_fade_to_hook);
-		fadeMulti = ((double)fadeMulti) / 100.0;
+		if (multi <= 0) multi = 1;
+		fadeMulti = multi / 100.0f;
 		dlogr(" Done", DL_INIT);
 	}
 
