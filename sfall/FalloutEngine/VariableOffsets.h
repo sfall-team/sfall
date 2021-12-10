@@ -57,6 +57,7 @@
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
 #define FO_VAR_debug_func                 0x51DF04
+#define FO_VAR_deviceInit                 0x668164 // sound
 #define FO_VAR_dialog_red_button_down_buf 0x58F4A4
 #define FO_VAR_dialog_red_button_down_key 0x58F4BC
 #define FO_VAR_dialog_red_button_up_buf   0x58F4AC
@@ -173,6 +174,7 @@
 #define FO_VAR_mapEntranceTileNum         0x51955C
 #define FO_VAR_master_db_handle           0x58E948
 #define FO_VAR_master_volume              0x518E84
+#define FO_VAR_masterVol                  0x668154
 #define FO_VAR_max                        0x56FB50 // always equal 100
 #define FO_VAR_max_disp                   0x56FB40
 #define FO_VAR_maxScriptNum               0x51C7CC

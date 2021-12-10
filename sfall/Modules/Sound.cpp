@@ -977,6 +977,19 @@ static void __declspec(naked) sfxl_init_hook() {
 	}
 }
 
+static void __declspec(naked) internalSoundFade_hack() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_masterVol], 0;
+		je   stop;
+		mov  ebp, ds:[FO_VAR_deviceInit];
+		retn;
+stop:
+		add  esp, 4;
+		mov  eax, 0x4AE9AA; // error result
+		jmp  eax;
+	}
+}
+
 static const int SampleRate = 44100; // 44.1kHz
 
 static bool fadeBgMusic = false;
@@ -1037,6 +1050,8 @@ void Sound::init() {
 		HookCall(0x447B68, gdialog_bk_hook);
 		MakeCall(0x4450C5, gdialogFreeSpeech_hack, 2);
 
+		// Prepare
+		LoadLibraryA("quartz.dll");
 		CreateSndWnd();
 	}
 
@@ -1075,6 +1090,7 @@ void Sound::init() {
 		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
 		SafeWrite32(0x45212C, 250); // delay start
 		SafeWrite32(0x450ADE, 500); // delay stop
+		MakeCall(0x4AE991, internalSoundFade_hack, 1);
 		fadeBgMusic = true;
 	}
 }

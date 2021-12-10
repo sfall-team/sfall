@@ -1344,7 +1344,7 @@ void WindowRender::DestroyOverlaySurface(fo::Window* win) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static double fadeMulti;
+static float fadeMulti;
 
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
@@ -1371,12 +1371,12 @@ void Graphics::init() {
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-			               "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+			               "Switch back to mode 0, or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
-		} else {
-			FreeLibrary(h);
 		}
+		FreeLibrary(h);
+
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
@@ -1395,11 +1395,12 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	fadeMulti = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
-	if (fadeMulti != 100) {
+	int multi = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
+	if (multi != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		HookCall(0x493B16, palette_fade_to_hook);
-		fadeMulti = ((double)fadeMulti) / 100.0;
+		if (multi <= 0) multi = 1;
+		fadeMulti = multi / 100.0f;
 		dlogr(" Done", DL_INIT);
 	}
 
