@@ -250,9 +250,14 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 	auto& dadData = m_dadData.begin();
 	size_t pathCounter = 1;
 	sfChild childData;
-
 	long node = 0;
+
 	if (maxNodes > maxPathNodes) maxNodes = maxPathNodes;
+
+	// Tweak for NumPathNodes option
+	if (maxNodes > 10000 && srcObject != fo::var::obj_dude && maxNodes == maxPathNodes) {
+		maxNodes = 10000; // limit for NPCs (maybe need less)
+	}
 
 	// search path tiles
 	while (true) {
