@@ -22,7 +22,13 @@ long IFaceBar::IFACE_BAR_MODE; // 1 - the bottom of the map view window extends 
 long IFaceBar::IFACE_BAR_SIDE_ART;
 long IFaceBar::IFACE_BAR_WIDTH;
 bool IFaceBar::IFACE_BAR_SIDES_ORI; // 1 - Iface-bar side graphics extend from the Screen edges to the Iface-Bar
+
+// 1 - Single colour, the colours used can be set below with the ALTERNATE_AMMO_LIGHT and ALTERNATE_AMMO_DARK options
+// 2 - Changes colour depending how much ammo remains in your current weapon
+// 3 - Divides the metre into several differently coloured sections
 long IFaceBar::ALTERNATE_AMMO_METRE;
+BYTE IFaceBar::ALTERNATE_AMMO_LIGHT;
+BYTE IFaceBar::ALTERNATE_AMMO_DARK;
 
 static long xPosition;
 static long yPosition;
@@ -361,6 +367,112 @@ static void __declspec(naked) intface_draw_ammo_lights_hack() {
 	}
 }
 
+///////////////////////////// Alternate Ammo Metre /////////////////////////////
+
+static void GetAmmoMetreColors(long yPercent, BYTE &outClr1, BYTE &outClr2) {
+	if (IFaceBar::ALTERNATE_AMMO_METRE == 1) {
+		outClr1 = IFaceBar::ALTERNATE_AMMO_LIGHT;
+		outClr2 = IFaceBar::ALTERNATE_AMMO_DARK;
+		return;
+	}
+
+	if (yPercent < 15) { // 20%
+		outClr1 = 136;
+		outClr2 = 181;
+	} else if (yPercent < 29) { // 40%
+		outClr1 = 132;
+		outClr2 = 140;
+	} else if (yPercent < 43) { // 60%
+		outClr1 = 145;
+		outClr2 = 154;
+	} else if (yPercent < 57) { // 80%
+		outClr1 = 58;
+		outClr2 = 66;
+	} else {
+		outClr1 = 215;
+		outClr2 = 75;
+	}
+}
+
+static void __fastcall DrawAlternateAmmoMetre(long x, long y) {
+	fo::Window* win = fo::func::GNW_find(fo::var::interfaceWindow);
+
+	x += xOffset - 2;
+	long startOffset = x + (25 * win->width);
+	BYTE* surface = win->surface + startOffset;
+
+	*(DWORD*)surface = 0x0F0F0F0F;
+	surface[4] = 15;
+	surface += win->width;
+
+	if (y < 70) {
+		// empty
+		long count = ((69 - y) / 2) + 1;
+		do {
+			surface[0] = 11;
+			surface[1] = 13;
+			surface[2] = 13;
+			surface[3] = 13;
+			surface[4] = 15;
+			surface += win->width;
+
+			surface[0] = 11;
+			surface[1] = 15;
+			surface[2] = 15;
+			surface[3] = 15;
+			surface[4] = 15;
+			surface += win->width;
+		} while (--count);
+	}
+
+	if (y > 0) {
+		BYTE lColor, dColor;
+		GetAmmoMetreColors(y, lColor, dColor);
+
+		do {
+			surface[0] = 11;
+			surface[1] = lColor;
+			surface[2] = lColor;
+			surface[3] = lColor;
+			surface[4] = dColor;
+			surface += win->width;
+
+			surface[0] = 11;
+			surface[1] = dColor;
+			surface[2] = dColor;
+			surface[3] = dColor;
+			surface[4] = dColor;
+			surface += win->width;
+
+			y -= 2;
+			if (IFaceBar::ALTERNATE_AMMO_METRE == 3) GetAmmoMetreColors(y, lColor, dColor);
+		} while (y > 0);
+	}
+
+	*(DWORD*)surface = 0x0A0A0A0A;
+	surface[4] = 10;
+
+	fo::BoundRect rect;
+	rect.x = x;
+	rect.y = 26;
+	rect.offx = x + 3;
+	rect.offy = 26 + 70;
+
+	fo::func::win_draw_rect(fo::var::interfaceWindow, (RECT*)&rect);
+}
+
+static void __declspec(naked) intface_update_ammo_lights_hook() {
+	__asm {
+		push ecx;
+		mov  ecx, eax;
+		call DrawAlternateAmmoMetre;
+		pop  ecx;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void IFaceBar::Hide() {
 	InterfaceHide(fo::var::getInt(FO_VAR_interfaceWindow));
 }
@@ -445,8 +557,10 @@ void IFaceBar::init() {
 		0x45E9FD  // intface_hide_
 	});
 
-//	if (ALTERNATE_AMMO_METRE > 0) {
-//	}
+	if (ALTERNATE_AMMO_METRE) {
+		if (ALTERNATE_AMMO_METRE < 0 || ALTERNATE_AMMO_METRE > 3) ALTERNATE_AMMO_METRE = 1;
+		sf::HookCall(0x45F954, intface_update_ammo_lights_hook); // replace intface_draw_ammo_lights_
+	}
 
 	if (IFACE_BAR_MODE > 0) {
 		// Set view map height to game resolution

@@ -4,6 +4,8 @@
  *
  */
 
+#pragma comment(lib, "psapi.lib")
+
 #include <psapi.h>
 
 #include "..\main.h"
@@ -13,8 +15,9 @@
 #include "..\WinProc.h"
 #include "..\Modules\Graphics.h"
 #include "..\Modules\LoadOrder.h"
-
 #include "..\Modules\SubModules\WindowRender.h"
+
+#include "..\Game\tilemap.h"
 
 #include "viewmap\ViewMap.h"
 #include "SplashScreen.h"
@@ -56,10 +59,7 @@ long Setting::ScreenHeight() { return SCR_HEIGHT; }
 long Setting::ColorBits()    { return COLOUR_BITS; }
 
 static void GetHRPModule() {
-	static const DWORD loadFunc = 0x4FE1D0;
-	//HMODULE dll;
-	__asm call loadFunc; // get HRP loading address
-	__asm mov  baseDLLAddr, eax;
+	baseDLLAddr = (DWORD)GetModuleHandleA("f2_res.dll");
 	sf::dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, baseDLLAddr);
 }
 
@@ -141,7 +141,11 @@ static __declspec(naked) void combat_turn_run_hook() {
 
 static __declspec(naked) void gmouse_bk_process() {
 	__asm {
+		push edx;
+		push ecx;
 		call sfall::WinProc::WaitMessageWindow;
+		pop  ecx;
+		pop  edx;
 		jmp  fo::funcoffs::gmouse_bk_process_;
 	}
 }
@@ -306,12 +310,19 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	IFaceBar::IFACE_BAR_WIDTH = sf::IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDES_ORI = (sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni) != 0);
 
+	IFaceBar::ALTERNATE_AMMO_METRE = sf::IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, f2ResIni);
+	IFaceBar::ALTERNATE_AMMO_LIGHT = (BYTE)sf::IniReader::GetInt("IFACE", "ALTERNATE_AMMO_LIGHT", 196, f2ResIni);
+	IFaceBar::ALTERNATE_AMMO_DARK = (BYTE)sf::IniReader::GetInt("IFACE", "ALTERNATE_AMMO_DARK", 75, f2ResIni);
+
 	Dialog::DIALOG_SCRN_ART_FIX = (sf::IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_ART_FIX", 1, f2ResIni) != 0);
 	Dialog::DIALOG_SCRN_BACKGROUND = (sf::IniReader::GetInt("OTHER_SETTINGS", "DIALOG_SCRN_BACKGROUND", 0, f2ResIni) != 0);
 
 	if (sf::IniReader::GetInt("OTHER_SETTINGS", "FADE_TIME_RECALCULATE_ON_FADE", 0, f2ResIni)) {
 		sf::WindowRender::EnableRecalculateFadeSteps();
 	}
+
+	int nodes = sf::IniReader::GetInt("MAPS", "NumPathNodes", 1, f2ResIni);
+	if (nodes > 1) game::Tilemap::SetPathMaxNodes((nodes < 20) ? nodes * 2000 : 40000);
 
 	if (sf::IniReader::GetInt("OTHER_SETTINGS", "BARTER_PC_INV_DROP_FIX", 1, f2ResIni)) {
 		// barter_move_from_table_inventory_
@@ -330,9 +341,9 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		sf::HookCall(0x4C73B1, fadeSystemPalette_hook);
 		sf::HookCall(0x4227E5, combat_turn_run_hook);
 		sf::HookCalls(gmouse_bk_process, {
-			0x460EB1, 0x460EFF, 0x460F55, 0x460FAE, 0x46101E, 0x4610FA, // intface_rotate_numbers_
-			0x45FA4E, // intface_end_window_open_
-			0x45FBA7, // intface_end_window_close_
+			0x460EB0, 0x460EFE, 0x460F54, 0x460FAD, 0x46101D, 0x4610F9, // intface_rotate_numbers_
+			0x45FA4D, // intface_end_window_open_
+			0x45FBA6, // intface_end_window_close_
 		});
 	}
 

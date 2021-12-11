@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma comment(lib, "psapi.lib")
-
 #include "main.h"
 #include "FalloutEngine\Fallout2.h"
 
@@ -212,16 +210,16 @@ static void SfallInit() {
 
 	LoggingInit();
 
+	// enabling debugging features
+	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
+
+	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+
 	if (!HRP::Setting::CheckExternalPatch()) {
 		WinProc::init();
 	} else {
 		ShowCursor(0);
 	}
-
-	// enabling debugging features
-	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
-
-	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
 	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
