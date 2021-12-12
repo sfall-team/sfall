@@ -96,7 +96,7 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
-static DWORD hrpDLLBaseAddr = 0x10000000;
+static DWORD hrpDLLBaseAddr = 0; // 0x10000000
 
 DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
@@ -180,12 +180,8 @@ static void InitModules() {
 }
 
 static void GetHRPModule() {
-	static const DWORD loadFunc = 0x4FE1D0;
-	HMODULE dll;
-	__asm call loadFunc; // get HRP loading address
-	__asm mov  dll, eax;
-	if (dll != NULL) hrpDLLBaseAddr = (DWORD)dll;
-	dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, dll);
+	hrpDLLBaseAddr = (DWORD)GetModuleHandleA("f2_res.dll");
+	if (hrpDLLBaseAddr) dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, hrpDLLBaseAddr);
 }
 
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
@@ -281,7 +277,7 @@ defaultIni:
 	if (hrpIsEnabled) {
 		GetHRPModule();
 		MODULEINFO info;
-		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
+		if (hrpDLLBaseAddr && GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
 			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
 				hrpVersionValid = true;
 			}

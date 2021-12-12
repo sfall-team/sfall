@@ -96,10 +96,10 @@ public:
 				push width;
 				push eax; // yFrom
 				push eax; // xFrom
-				push eax; // heightFrom
+				push height; // heightFrom
 				push widthFrom;
 				push surface;
-				call ds:[FO_VAR_scr_blit]; // GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
+				call ds:[FO_VAR_scr_blit]; // call GNW95_ShowRect_(int from, int widthFrom, int heightFrom, int xFrom, int yFrom, int width, int height, int x, int y)
 				add  esp, 9*4;
 			}
 		} else {
