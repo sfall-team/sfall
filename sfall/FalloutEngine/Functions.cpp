@@ -69,6 +69,14 @@ void dev_printf(...) {}
 	__asm push arg7                                                       \
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+#define WRAP_WATCOM_CALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	__asm push arg8                                                             \
+	WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+
+#define WRAP_WATCOM_CALL9(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+	__asm push arg9                                                                   \
+	WRAP_WATCOM_CALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
 // defines wrappers for __fastcall
 #define WRAP_WATCOM_FCALL1(offs, arg1) \
 	__asm mov eax, ecx                 \
@@ -435,6 +443,21 @@ long __fastcall get_game_config_string(const char** outValue, const char* sectio
 #define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
 		WRAP_WATCOM_CALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
+	}
+
+#define WRAP_WATCOM_FUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
+		WRAP_WATCOM_CALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	}
+
+#define WRAP_WATCOM_FUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
+		WRAP_WATCOM_CALL8(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	}
+
+#define WRAP_WATCOM_FUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9) { \
+		WRAP_WATCOM_CALL9(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
 	}
 
 
