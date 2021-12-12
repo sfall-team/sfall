@@ -426,10 +426,10 @@ static void __fastcall DrawAlternateAmmoMetre(long x, long y) {
 	}
 
 	if (y > 0) {
-		BYTE lColor, dColor;
-		GetAmmoMetreColors(y, lColor, dColor);
-
+		BYTE dColor, lColor = 0;
 		do {
+			if (lColor = 0 || IFaceBar::ALTERNATE_AMMO_METRE == 3) GetAmmoMetreColors(y, lColor, dColor);
+
 			surface[0] = 11;
 			surface[1] = lColor;
 			surface[2] = lColor;
@@ -445,10 +445,8 @@ static void __fastcall DrawAlternateAmmoMetre(long x, long y) {
 			surface += win->width;
 
 			y -= 2;
-			if (IFaceBar::ALTERNATE_AMMO_METRE == 3) GetAmmoMetreColors(y, lColor, dColor);
 		} while (y > 0);
 	}
-
 	*(DWORD*)surface = 0x0A0A0A0A;
 	surface[4] = 10;
 
@@ -482,9 +480,9 @@ void IFaceBar::Show() {
 }
 
 void IFaceBar::init() {
-	if (IFACE_BAR_WIDTH < 640) {
-		IFACE_BAR_WIDTH = 640;
-	} else if (IFACE_BAR_WIDTH > 640) {
+	if (IFACE_BAR_WIDTH > 640 && Setting::ScreenWidth() > 640) {
+		if (IFACE_BAR_WIDTH > Setting::ScreenWidth()) IFACE_BAR_WIDTH = Setting::ScreenWidth();
+
 		display_width = IFaceBar::IFACE_BAR_WIDTH - 473; // message display width (800-473=327)
 		display_string_buf = new char[100 * 256];
 
@@ -544,6 +542,8 @@ void IFaceBar::init() {
 			sf::SafeWriteBatch<DWORD>(IFACE_BAR_WIDTH, {0x460AC8, 0x460AD8, 0x460AE3});
 			sf::SafeWrite32(0x460AB4, 26 * IFACE_BAR_WIDTH); // y position
 		}
+	} else {
+		IFACE_BAR_WIDTH = 640;
 	}
 
 	sf::HookCall(0x45D8BC, intface_init_hook_win_add);

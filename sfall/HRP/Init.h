@@ -24,6 +24,7 @@ public:
 	static long ScreenWidth();
 	static long ScreenHeight();
 	static long ColorBits();
+	static char ScaleX2();
 };
 
 }

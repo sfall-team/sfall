@@ -51,16 +51,17 @@ static bool enabled;
 static long SCR_WIDTH  = 640;
 static long SCR_HEIGHT = 480;
 static long COLOUR_BITS = 32;
-static bool SCALE_2X;
+static char SCALE_2X;
 
 bool Setting::IsEnabled()    { return enabled; }
 long Setting::ScreenWidth()  { return SCR_WIDTH; }
 long Setting::ScreenHeight() { return SCR_HEIGHT; }
 long Setting::ColorBits()    { return COLOUR_BITS; }
+char Setting::ScaleX2()      { return SCALE_2X; }
 
 static void GetHRPModule() {
 	baseDLLAddr = (DWORD)GetModuleHandleA("f2_res.dll");
-	sf::dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, baseDLLAddr);
+	if (baseDLLAddr) sf::dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, baseDLLAddr);
 }
 
 bool Setting::CheckExternalPatch() {
@@ -68,7 +69,7 @@ bool Setting::CheckExternalPatch() {
 	if (isEnabled) {
 		GetHRPModule();
 		MODULEINFO info;
-		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)baseDLLAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
+		if (baseDLLAddr && GetModuleInformation(GetCurrentProcess(), (HMODULE)baseDLLAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
 			if (sf::GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)GetAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
 				VersionIsValid = true;
 			}
@@ -282,6 +283,12 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (sf::Graphics::mode == 1) {
 		COLOUR_BITS = sf::IniReader::GetInt("Main", "COLOUR_BITS", 32, f2ResIni);
 		if (COLOUR_BITS != 32 && COLOUR_BITS != 24 && COLOUR_BITS != 16) COLOUR_BITS = 32;
+	}
+
+	if (SCR_HEIGHT >= 960 && SCR_WIDTH >= 1280 && sf::IniReader::GetInt("Main", "SCALE_2X", 0, f2ResIni)) {
+		SCR_WIDTH /= 2;
+		SCR_HEIGHT /= 2;
+		SCALE_2X = 1;
 	}
 
 	MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU = (sf::IniReader::GetInt("MAINMENU", "SCALE_BUTTONS_AND_TEXT_MENU", 0, f2ResIni) != 0);

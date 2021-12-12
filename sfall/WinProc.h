@@ -19,8 +19,8 @@ public:
 	static void SetWindowProc();
 
 	static void SetHWND(HWND _window);
-	static void SetTitle(long gWidth, long gHeight);
-	static void SetSize(long w, long h);
+	static void SetTitle(long wWidth, long wHeight, long gMode);
+	static void SetSize(long w, long h, char scaleX2);
 
 	// Sets the window style and its position
 	static void SetStyle(long windowStyle);

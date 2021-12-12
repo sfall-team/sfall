@@ -159,12 +159,16 @@ void WinProc::SetHWND(HWND _window) {
 	window = _window;
 }
 
-void WinProc::SetSize(long w, long h) {
+void WinProc::SetSize(long w, long h, char scaleX2) {
+	if (scaleX2) {
+		w *= 2;
+		h *= 2;
+	}
 	win.width = w;
 	win.height = h;
 }
 
-// Sets the window style and its position
+// Sets the window style and its position/size
 void WinProc::SetStyle(long windowStyle) {
 	SetWindowLongA(window, GWL_STYLE, windowStyle);
 	RECT r;
@@ -175,16 +179,19 @@ void WinProc::SetStyle(long windowStyle) {
 	AdjustWindowRect(&r, windowStyle, false);
 	r.right -= r.left;
 	r.bottom -= r.top;
-	SetWindowPos(window, HWND_NOTOPMOST, win.x, win.y, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+	SetWindowPos(window, HWND_NOTOPMOST, win.x, win.y, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS);
 }
 
-void WinProc::SetTitle(long wWidth, long wHeight) {
+void WinProc::SetTitle(long wWidth, long wHeight, long gMode) {
 	char windowTitle[128];
+	char mode[4] = "DX9";
+	if (gMode < 4) std::strcpy(mode, "DD7");
 
 	if (HRP::Setting::ScreenWidth() != wWidth || HRP::Setting::ScreenHeight() != wHeight) {
-		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), wWidth, wHeight);
+		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i  [%s]",
+			(const char*)0x50AF08, HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), wWidth, wHeight, mode);
 	} else {
-		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
+		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  [%s]", (const char*)0x50AF08, mode);
 	}
 	SetWindowTextA(window, windowTitle);
 }
@@ -293,8 +300,6 @@ void WinProc::init() {
 	MakeJump(0x4DE9FC, WindowProc); // WindowProc_
 
 	HookCall(0x481B2A, main_menu_loop_hook);
-
-	//SafeWrite8(0x4DEB0D, 1); // for test
 }
 
 }
