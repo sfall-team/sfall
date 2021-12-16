@@ -364,9 +364,7 @@ static void DrawFPS() {}
 #endif
 
 static void Present() {
-	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
-	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
-	{
+	if (moveWindowKey[0] != 0 && (KeyDown(moveWindowKey[0]) || (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))) {
 		int mx, my;
 		GetMouse(&mx, &my);
 		windowLeft += mx;
