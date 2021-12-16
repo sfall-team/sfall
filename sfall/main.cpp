@@ -93,6 +93,8 @@ namespace sfall
 
 bool isDebug = false;
 
+bool versionCHI = false;
+
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
@@ -272,6 +274,8 @@ static void SfallInit() {
 defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
+
+	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {

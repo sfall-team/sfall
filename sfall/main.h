@@ -82,6 +82,8 @@ namespace sfall
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
+extern bool versionCHI;
+
 extern bool hrpIsEnabled;
 extern bool hrpVersionValid;
 

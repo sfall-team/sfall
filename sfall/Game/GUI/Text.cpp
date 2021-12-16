@@ -173,7 +173,7 @@ static void __declspec(naked) sf_inven_display_msg() {
 void Text::init() {
 	// Support for the newline control character '\n' in the object description in pro_*.msg files
 	void* printFunc = sf_display_print; // for vanilla and HRP 4.1.8
-	if (sf::hrpIsEnabled && !sf::hrpVersionValid) {
+	if (sf::versionCHI || (sf::hrpIsEnabled && !sf::hrpVersionValid)) {
 		printFunc = sf_display_print_alt;
 	}
 	sf::SafeWriteBatch<DWORD>((DWORD)printFunc, {0x46ED87, 0x49AD7A}); // setup_inventory_, obj_examine_

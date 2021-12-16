@@ -20,7 +20,7 @@ VAR_(btncnt,                     DWORD)
 VARD(cap,                        fo::AIcap) // dynamic array
 VAR_(carCurrentArea,             DWORD)
 VAR_(carGasAmount,               long) // from 0 to 80000
-VAR_(cmap,                       DWORD)
+VARA(cmap,                       fo::PALETTE, 256)
 VAR_(colorTable,                 DWORD)
 VAR_(combat_end_due_to_load,     DWORD)
 VAR_(combat_free_move,           DWORD)
