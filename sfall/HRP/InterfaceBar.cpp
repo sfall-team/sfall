@@ -565,13 +565,13 @@ void IFaceBar::init() {
 	if (IFACE_BAR_MODE > 0) {
 		// Set view map height to game resolution
 		// replace subtract 99 with add 1
-		sf::SafeWrite8(0x481CDF, 1);
-		sf::SafeWrite8(0x481E2E, 1);
+		sf::SafeWrite8(0x481CDF, 1); // iso_init_
+		sf::SafeWrite8(0x481E2E, 1); // iso_init_
 		// replace subtract 99 with add 1
-		sf::SafeWrite8(0x481DC3, -1);
-		sf::SafeWrite8(0x4827A9, -1);
+		sf::SafeWrite8(0x481DC3, -1); // iso_init_
+		sf::SafeWrite8(0x4827A9, -1); // map_scroll_
 		// remove subtract 100
-		sf::SafeWrite8(0x48284F, 0);
+		sf::SafeWrite8(0x48284F, 0); // map_scroll_
 	}
 
 	sf::LoadGameHook::OnBeforeGameClose() += []() {

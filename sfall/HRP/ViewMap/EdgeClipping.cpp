@@ -7,6 +7,7 @@
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
 
+#include "..\InterfaceBar.h"
 #include "EdgeBorder.h"
 #include "ViewMap.h"
 
@@ -218,13 +219,69 @@ static void __declspec(naked) obj_render_post_roof_hook_rect_inside_bound() {
 	}
 }
 
+static long rightLimit = -1;
+
+static long __fastcall gmouse_scr_offy_map_limit() {
+	rightLimit = -1;
+
+	long bottom = fo::var::scr_size.offy;
+	if (bottom > mapVisibleArea.bottom) {
+		return mapVisibleArea.bottom + 1 + 99; // +99 takes into account the subtraction in the engine
+	}
+
+	if (IFaceBar::IFACE_BAR_MODE) {
+		long x, y;
+		fo::func::mouse_get_position(&x, &y);
+		fo::Window* win = fo::func::GNW_find(fo::var::interfaceWindow);
+
+		if ((x + 25) > win->rect.offx || (x + 68) < win->rect.x) {
+			bottom += 100; // does not enter the interface area
+		} else if ((x + 25) < win->rect.x) {
+			bottom += 100;
+			rightLimit = win->rect.x;
+		}
+	}
+	return bottom;
+}
+
+static void __declspec(naked) gmouse_scr_offx_map_limit() {
+	__asm {
+		mov  eax, ds:[FO_VAR_scr_size + 8]; // scr_size.offx
+		cmp  eax, mapVisibleArea.right;
+		jle  skip;
+		mov  eax, mapVisibleArea.right;
+		//inc  eax;
+		retn;
+skip:
+		cmp  rightLimit, eax;
+		cmovb eax, rightLimit;
+		retn;
+	}
+}
+
+long EdgeClipping::CheckMapClipping() {
+	if (!ViewMap::EDGE_CLIPPING_ON) return 1;
+	return fo::func::mouse_click_in(mapVisibleArea.left, mapVisibleArea.top, mapVisibleArea.right, mapVisibleArea.bottom);
+}
+
 void EdgeClipping::init() {
 	sf::HookCall(0x4B15F6, refresh_game_hook_rect_inside_bound);
+
 	sf::HookCall(0x483EF0, map_scroll_refresh_game_hook_rect_inside_bound);
 	sf::MakeCall(0x44E481, gmouse_check_scrolling_hack); // from HRP 3.06 (TODO: redo the implementation so that the scrolling of the map works)
 
-	// Prevents rendering of "post roof" objects (fixes the red pixels from the hex cursor remaining at the edges of the cropped part of the map)
+	// Prevents the rendering of "post roof" objects (fixes the red pixels from the hex cursor remaining at the edges of the cropped part of the map)
 	sf::HookCall(0x489802, obj_render_post_roof_hook_rect_inside_bound);
+
+	// Limits the creation of the list of action icons beyond the visible map area or the bottom panel of the interface bar
+	// (this should be removed after changing the implementation of the list of action icons)
+	// gmouse_handle_event_
+	sf::MakeCall(0x44C597, gmouse_scr_offy_map_limit);
+	sf::MakeCall(0x44C5AC, gmouse_scr_offx_map_limit);
+	// the same thing, only when hovering the cursor over objects
+	// gmouse_bk_process_
+	sf::MakeCall(0x44BA40, gmouse_scr_offy_map_limit);
+	sf::MakeCall(0x44BA55, gmouse_scr_offx_map_limit);
 }
 
 }

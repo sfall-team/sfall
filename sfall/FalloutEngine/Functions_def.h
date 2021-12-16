@@ -29,6 +29,7 @@ WRAP_WATCOM_FFUNC3(void, check_for_death, fo::GameObject*, critter, long, amount
 WRAP_WATCOM_FFUNC6(long, combat_safety_invalidate_weapon_func, fo::GameObject*, source, fo::GameObject*, weapon, long, hitMode, fo::GameObject*, targetA, DWORD*, outSafeRange, fo::GameObject*, targetB)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, fo::GameObject*, critter, fo::GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
+WRAP_WATCOM_FFUNC8(void, cscale, BYTE*, src, long, sWidth, long, sHeight, long, sStride, BYTE*, dst, long, width, long, height, long, stride)
 WRAP_WATCOM_FFUNC4(long, determine_to_hit, fo::GameObject*, source, fo::GameObject*, target, long, bodyPart, long, hitMode)
 WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
 WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
@@ -73,7 +74,6 @@ WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long,
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
 
 //WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
-WRAP_WATCOM_FFUNC8(void, cscale, BYTE*, src, long, sWidth, long, sHeight, long, sStride, BYTE*, dst, long, width, long, height, long, stride)
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(fo::AIcap*, ai_cap, fo::GameObject*, critter)

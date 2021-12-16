@@ -328,6 +328,7 @@
 #define FO_VAR_text_width                 0x51E3C0
 #define FO_VAR_tile                       0x631D30
 #define FO_VAR_tile_center_tile           0x66BE34
+#define FO_VAR_tile_mask                  0x66B9C4
 #define FO_VAR_tile_offx                  0x66BDFC
 #define FO_VAR_tile_offy                  0x66BDF8
 #define FO_VAR_tile_x                     0x66BE18

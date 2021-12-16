@@ -17,12 +17,11 @@ namespace HRP
 
 namespace sf = sfall;
 
-static EdgeBorder::Edge* MapEdgeData;
+static EdgeBorder::Edge* MapEdgeData = nullptr;
 static EdgeBorder::Edge* currentMapEdge; // reference
 
 static long edgeVersion; // 0 - version 1 (obsolete), 1 - version 2 (current)
-static bool isDefaultSetEdge;
-//bool isLoadingMapEdge;
+static bool isSetDefaultEdge;
 
 long EdgeBorder::EdgeVersion() { return edgeVersion; }
 
@@ -120,7 +119,7 @@ static void SetDefaultEdgeData() {
 		edge->nextEdgeData = nullptr;
 	}
 	edgeVersion = 0;
-	isDefaultSetEdge = true;
+	isSetDefaultEdge = true;
 }
 
 // Implementation from HRP by Mash
@@ -212,8 +211,6 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 }
 
 static void __fastcall LoadMapEdgeFile() {
-	//isLoadingMapEdge = 0;
-
 	fo::DbFile* file = LoadMapEdgeFileSub(sf::LoadGameHook::mapLoadingName);
 	if (file) { // load error
 		fo::func::db_fclose(file);
@@ -223,7 +220,7 @@ static void __fastcall LoadMapEdgeFile() {
 
 // Implementation from HRP by Mash
 long EdgeBorder::GetCenterTile(long tile, long mapLevel) {
-	if (!isDefaultSetEdge) SetDefaultEdgeData(); // needed at game initialization
+	if (!isSetDefaultEdge) SetDefaultEdgeData(); // needed at game initialization
 
 	long tX, tY;
 	ViewMap::GetTileCoordOffset(tile, tX, tY);
@@ -333,6 +330,8 @@ long EdgeBorder::CheckBorder(long tile) {
 
 void EdgeBorder::init() {
 	sf::LoadGameHook::OnBeforeMapLoad() += LoadMapEdgeFile;
+
+	sf::LoadGameHook::OnBeforeGameClose() += []() { delete[] MapEdgeData; };
 }
 
 }

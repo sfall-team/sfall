@@ -229,7 +229,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (Setting::ExternalEnabled()) {
 		char infoMsg[512];
 		sf::Translate::Get("sfall", "HiResInfo",
-			"This version of sfall has its own integrated High Resolution mode patch, which is compatible with the High Resolution Patch by Mash.\n\n"
+			"This version of sfall has its own integrated High Resolution mode patch, which is compatible with the settings of the High Resolution Patch by Mash.\n\n"
 			"If you want to continue using the High Resolution Patch by Mash without seeing this message, disable the 'HiResMode' option in the ddraw.ini file.\n"
 			"Or you can disable the external HRP to get new graphic improvements from sfall.\n\n"
 			"Do you want to disable the High Resolution Patch by Mash?", infoMsg, 512);
@@ -256,18 +256,6 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	// Read High Resolution config
 
-	/*
-	if (IniReader::GetInt("Main", "SCALE_2X", 0, f2ResIni)) {
-		SCR_WIDTH /= 2;
-		SCR_HEIGHT /= 2;
-
-		if (SCR_WIDTH < 640) SCR_WIDTH = 640;
-		if (SCR_HEIGHT < 480) SCR_HEIGHT = 480;
-
-		SCALE_2X = true;
-	};
-	*/
-
 	int windowed = (sf::IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni) != 0) ? 1 : 0;
 	if (windowed && sf::IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni)) {
 		windowed += 1;
@@ -285,9 +273,14 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		if (COLOUR_BITS != 32 && COLOUR_BITS != 24 && COLOUR_BITS != 16) COLOUR_BITS = 32;
 	}
 
-	if (SCR_HEIGHT >= 960 && SCR_WIDTH >= 1280 && sf::IniReader::GetInt("Main", "SCALE_2X", 0, f2ResIni)) {
-		SCR_WIDTH /= 2;
-		SCR_HEIGHT /= 2;
+	if (sf::IniReader::GetInt("Main", "SCALE_2X", 0, f2ResIni)) {
+		if (SCR_HEIGHT < 960 && SCR_WIDTH < 1280) {
+			SCR_WIDTH = 640;
+			SCR_HEIGHT = 480;
+		} else {
+			SCR_WIDTH /= 2;
+			SCR_HEIGHT /= 2;
+		}
 		SCALE_2X = 1;
 	}
 

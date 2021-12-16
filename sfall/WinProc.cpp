@@ -70,12 +70,12 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 		break;
 
 	case WM_PAINT:
-		if (GetUpdateRect(hWnd, &rect, 0) != 0) {
+		if (window && GetUpdateRect(hWnd, &rect, 0) != 0) { // it's unclear under what conditions the redrawing is required
 			rect.right -= 1;
 			rect.bottom -= 1;
 			__asm {
-				//lea  eax, rect;
-				//call fo::funcoffs::win_refresh_all_;
+				lea  eax, rect;
+				call fo::funcoffs::win_refresh_all_;
 			}
 		}
 		break;
@@ -221,9 +221,7 @@ void WinProc::SetMoveKeys() {
 }
 
 void WinProc::Moving() {
-	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
-	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
-	{
+	if (moveWindowKey[0] != 0 && (KeyDown(moveWindowKey[0]) || (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))) {
 		int mx, my;
 		GetMouse(&mx, &my);
 		win.x += mx;
