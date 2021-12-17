@@ -119,6 +119,7 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
+#define FO_VAR_GNW95_hDDrawLib            0x51E44C
 #define FO_VAR_GNW95_isActive             0x51E444
 #define FO_VAR_GNW95_repeat_delay         0x51E240
 #define FO_VAR_GNW95_repeat_rate          0x51E23C

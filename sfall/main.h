@@ -39,6 +39,7 @@
 #include "IniReader.h"
 
 struct ddrawDll {
+	HMODULE sfall;
 	HMODULE dll;
 	FARPROC DirectDrawEnumerateExA;
 	FARPROC DirectDrawCreate;

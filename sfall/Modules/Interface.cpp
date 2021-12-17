@@ -940,7 +940,9 @@ static long gmouse_handle_event_hook() {
 			if (fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
 		}
 	}
+
 	if (IFACE_BAR_MODE) return 1;
+
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
 	win = fo::func::GNW_find(fo::var::getInt(FO_VAR_display_win));
 	RECT *rect = &win->wRect;
