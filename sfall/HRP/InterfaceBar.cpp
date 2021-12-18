@@ -35,8 +35,7 @@ static long yPosition;
 static long xOffset;
 static long xyOffsetCBtn;
 static long xyOffsetAP;
-
-bool IFaceBar::UseExpandAPBar = false;
+static bool expandAPBar = false;
 
 long IFaceBar::display_width = 0; // width of the area for text output
 char* IFaceBar::display_string_buf = (char*)FO_VAR_display_string_buf;
@@ -204,7 +203,7 @@ static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE*
 		fo::var::itemButtonRect.offx += xOffset;
 
 		char file[33];
-		std::sprintf(file, "HR_IFACE_%i%s.frm", IFaceBar::IFACE_BAR_WIDTH, ((IFaceBar::UseExpandAPBar) ? "E" : ""));
+		std::sprintf(file, "HR_IFACE_%i%s.frm", IFaceBar::IFACE_BAR_WIDTH, ((expandAPBar) ? "E" : ""));
 
 		auto* frm = fo::util::LoadUnlistedFrm(file, fo::ArtType::OBJ_TYPE_INTRFACE);
 		if (frm && frm->frames->width == IFaceBar::IFACE_BAR_WIDTH) {
@@ -218,7 +217,7 @@ static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE*
 		}
 
 		// no required file, use the default one provided by HRP
-		if (!frm) frm = fo::util::LoadUnlistedFrm(((IFaceBar::UseExpandAPBar) ? "HR_IFACE_800E.frm" : "HR_IFACE_800.frm"), fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (!frm) frm = fo::util::LoadUnlistedFrm(((expandAPBar) ? "HR_IFACE_800E.frm" : "HR_IFACE_800.frm"), fo::ArtType::OBJ_TYPE_INTRFACE);
 
 		if (frm) {
 			// scale the 800px wide interface to the width of IFACE_BAR_WIDTH
@@ -470,6 +469,10 @@ static void __declspec(naked) intface_update_ammo_lights_hook() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+void IFaceBar::SetExpandAPBar() {
+	expandAPBar = true;
+}
 
 void IFaceBar::Hide() {
 	InterfaceHide(fo::var::getInt(FO_VAR_interfaceWindow));

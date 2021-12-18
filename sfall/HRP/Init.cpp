@@ -330,7 +330,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		if (fo::var::getInt(0x475231) == 144) sf::SafeWrite32(0x475231, 164); // x_end
 	}
 
-	// add before sfall.dat and after critter.dat
+	// add: patchXXX.dat > sfall.dat > [add here] > critter.dat > master.dat
 	sf::LoadOrder::AddResourcePatches(
 		sf::IniReader::GetString("Main", "f2_res_dat", "f2_res.dat", MAX_PATH, f2ResIni),
 		sf::IniReader::GetString("Main", "f2_res_patches", "", MAX_PATH, f2ResIni)

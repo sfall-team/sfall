@@ -1166,7 +1166,7 @@ void Graphics::BackgroundClearColor(long indxColor) {
 }
 
 void Graphics::init() {
-	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 4);
+	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 0);
 	if (gMode >= 4) Graphics::mode = gMode;
 
 	if (Graphics::mode < 0 || Graphics::mode > 6) {
@@ -1174,7 +1174,6 @@ void Graphics::init() {
 	}
 	IsWindowedMode = (mode == 2 || mode == 3 || mode == 5 || mode == 6);
 
-	// DirectX9 mode
 	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"

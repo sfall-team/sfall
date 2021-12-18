@@ -184,8 +184,8 @@ void WinProc::SetStyle(long windowStyle) {
 
 void WinProc::SetTitle(long wWidth, long wHeight, long gMode) {
 	char windowTitle[128];
-	char mode[4] = "DX9";
-	if (gMode < 4) std::strcpy(mode, "DD7");
+	char mode[4] = "DD7";
+	if (gMode >= 4) std::strcpy(mode, "DX9");
 
 	if (HRP::Setting::ScreenWidth() != wWidth || HRP::Setting::ScreenHeight() != wHeight) {
 		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i  [%s]",
