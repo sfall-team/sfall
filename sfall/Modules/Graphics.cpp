@@ -135,16 +135,6 @@ static VertexFormat ShaderVertices[] = {
 	{639.5, 479.5, 0, 1, 1, 1}  // 3 - bottom right
 };
 
-HWND Graphics::GetFalloutWindowInfo(RECT* rect) {
-	if (rect) {
-		rect->left = windowLeft;
-		rect->top = windowTop;
-		rect->right = gWidth;
-		rect->bottom = gHeight;
-	}
-	return window;
-}
-
 long Graphics::GetGameWidthRes() {
 	return (fo::ptr::scr_size->offx - fo::ptr::scr_size->x) + 1;
 }

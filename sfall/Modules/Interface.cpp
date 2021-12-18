@@ -672,11 +672,6 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-void Interface::OnBeforeGameInit() {
-	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
-	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
-}
-
 void Interface::OnGameLoad() {
 	dots.clear();
 }
@@ -699,6 +694,8 @@ void Interface::init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
+	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
+	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 }
 
 void Interface::exit() {

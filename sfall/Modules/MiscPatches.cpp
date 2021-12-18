@@ -859,7 +859,7 @@ static void __declspec(naked) sf_inven_display_msg() {
 static void __declspec(naked) sf_display_print_alt() {
 	__asm {
 		push ecx;
-		push fo::funcoffs::display_print_;
+		push fo::funcoffs::display_print_; // func replaced by HRP
 		push eax; // message
 		call SplitPrintMessage;
 		pop  ecx;

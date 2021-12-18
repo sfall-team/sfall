@@ -366,7 +366,6 @@ static void __declspec(naked) main_load_new_hook() {
 
 static void __stdcall GameInitialization() { // OnBeforeGameInit
 	BugFixes::OnBeforeGameInit();
-	Interface::OnBeforeGameInit();
 }
 
 static void __stdcall game_init_hook() { // OnGameInit

@@ -10,7 +10,6 @@ public:
 	static void exit();
 
 	static void OnGameLoad();
-	static void OnBeforeGameInit();
 
 	static long ActiveInterfaceWID();
 	static fo::Window* GetWindow(long winType);

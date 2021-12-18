@@ -138,7 +138,7 @@ static void __declspec(naked) game_init_databases_hack1() {
 		mov  ecx, [esp + 0x104 + 4]; // path_patches
 		call RemoveDatabase;
 skip:
-		mov  ds:[FO_VAR_master_db_handle], eax;   // the pointer of master_patches node will be saved here
+		mov  ds:[FO_VAR_master_db_handle], eax; // the pointer of master_patches node will be saved here
 		retn;
 	}
 }
@@ -151,21 +151,21 @@ static void __declspec(naked) game_init_databases_hack2() {
 		mov  eax, ds:[FO_VAR_master_db_handle];   // pointer to master_patches node
 		mov  eax, [eax];                          // eax = master_patches.path
 		call fo::funcoffs::xremovepath_;
-		dec  eax;                                 // remove path (critter_patches == master_patches)?
-		jz   end;                                 // Yes (jump if 0)
+		dec  eax;                                 // 1 = remove path (critter_patches == master_patches)?
+		jz   end;                                 // yes (jump if removed)
 		mov  ecx, [esp + 0x104 + 4];              // path_patches
 		call RemoveDatabase;
 end:
 		mov  ds:[FO_VAR_critter_db_handle], eax;  // the pointer of critter_patches node will be saved here
+		xor  ebx, ebx;
+		lea  eax, [sfallRes];
+		call fo::funcoffs::db_init_; // init sfall resource file
 		retn;
 	}
 }
 
 static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	fo::PathNode* master_patches = *fo::ptr::master_db_handle;
-
-	fo::func::db_init(sfallRes, 0);
-
 	fo::PathNode* critter_patches = *fo::ptr::critter_db_handle;
 	fo::PathNode* paths = *fo::ptr::paths;    // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
@@ -175,6 +175,26 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
 	*fo::ptr::paths = master_patches;     // set master_patches node at the beginning of the chain of paths
+
+	// remove paths that are identical to master_patches (usually the DATA folder)
+	fo::PathNode* parentPath = *fo::ptr::paths;
+	paths = parentPath->next;
+	while (paths) {
+		if (!paths->isDat && _stricmp(paths->path, (*fo::ptr::paths)->path) == 0) {
+			fo::PathNode* nextPaths = paths->next;
+			__asm {
+				mov  eax, [paths];
+				call fo::funcoffs::nfree_; // free path string
+				mov  eax, paths;
+				call fo::funcoffs::nfree_; // free self
+			}
+			parentPath->next = nextPaths;
+			paths = nextPaths;
+		} else {
+			parentPath = paths;
+			paths = paths->next;
+		}
+	}
 }
 /*
 static void __fastcall game_init_databases_hook1() {
@@ -187,8 +207,6 @@ static void __fastcall game_init_databases_hook1() {
 		node = node->next;
 	}
 	*fo::ptr::master_db_handle = node; // set pointer to master_patches node
-
-	fo::func::db_init(sfallRes, 0);
 }
 */
 static void MultiPatchesPatch() {
@@ -432,7 +450,7 @@ void LoadOrder::OnGameLoad() {
 }
 
 void LoadOrder::init() {
-	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
+	SfallResourceFile(); // Add external sfall resource file (load order: > patchXXX.dat > sfall.dat > ... [last])
 	MultiPatchesPatch();
 
 	//if (IniReader::GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
