@@ -17,9 +17,9 @@ public:
 	static int  MaxBox() { return boxCount - 1; }
 	static void SetText(int box, const char* text, DWORD color);
 
-	static bool GetBox(int);
-	static void AddBox(int);
-	static void RemoveBox(int);
+	static bool GetBox(int i);
+	static void AddBox(int i);
+	static void RemoveBox(int i);
 	static long AddExtraBox();
 };
 

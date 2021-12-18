@@ -41,6 +41,7 @@
 #include "HRP\Init.h"
 
 struct ddrawDll {
+	HMODULE sfall;
 	HMODULE dll;
 	FARPROC DirectDrawEnumerateExA;
 	FARPROC DirectDrawCreate;
@@ -83,6 +84,8 @@ namespace sfall
 // Macros for quick replacement of assembler opcodes pushad/popad
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
+
+extern bool versionCHI;
 
 extern char falloutConfigName[65];
 

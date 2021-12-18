@@ -182,9 +182,9 @@ void op_create_spatial(OpcodeContext& ctx) {
 	using fo::Scripts::start;
 
 	DWORD scriptIndex = ctx.arg(0).rawValue(),
-		tile = ctx.arg(1).rawValue(),
-		elevation = ctx.arg(2).rawValue(),
-		radius = ctx.arg(3).rawValue();
+	      tile = ctx.arg(1).rawValue(),
+	      elevation = ctx.arg(2).rawValue(),
+	      radius = ctx.arg(3).rawValue();
 
 	long scriptId;
 	fo::ScriptInstance* scriptPtr;
@@ -311,7 +311,7 @@ void op_make_path(OpcodeContext& ctx) {
 
 void op_obj_blocking_at(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).rawValue(),
-		  elevation = ctx.arg(1).rawValue();
+	      elevation = ctx.arg(1).rawValue();
 	BlockType type = (BlockType)ctx.arg(2).rawValue();
 
 	fo::GameObject* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));

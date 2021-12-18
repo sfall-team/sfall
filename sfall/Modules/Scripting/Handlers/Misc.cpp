@@ -195,10 +195,10 @@ end:
 static const char* valueOutRange = "%s() - argument values out of range.";
 
 void op_set_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).rawValue(),
-		bodypart  = ctx.arg(1).rawValue(),
-		slot      = ctx.arg(2).rawValue(),
-		element   = ctx.arg(3).rawValue();
+	DWORD critter  = ctx.arg(0).rawValue(),
+	      bodypart = ctx.arg(1).rawValue(),
+	      slot     = ctx.arg(2).rawValue(),
+	      element  = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
@@ -208,10 +208,10 @@ void op_set_critical_table(OpcodeContext& ctx) {
 }
 
 void op_get_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).rawValue(),
-		bodypart  = ctx.arg(1).rawValue(),
-		slot      = ctx.arg(2).rawValue(),
-		element   = ctx.arg(3).rawValue();
+	DWORD critter  = ctx.arg(0).rawValue(),
+	      bodypart = ctx.arg(1).rawValue(),
+	      slot     = ctx.arg(2).rawValue(),
+	      element  = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
@@ -221,10 +221,10 @@ void op_get_critical_table(OpcodeContext& ctx) {
 }
 
 void op_reset_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).rawValue(),
-		bodypart  = ctx.arg(1).rawValue(),
-		slot      = ctx.arg(2).rawValue(),
-		element   = ctx.arg(3).rawValue();
+	DWORD critter  = ctx.arg(0).rawValue(),
+	      bodypart = ctx.arg(1).rawValue(),
+	      slot     = ctx.arg(2).rawValue(),
+	      element  = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());

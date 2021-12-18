@@ -188,10 +188,10 @@ static void __declspec(naked) display_print_line_break_extHRP() {
 void Text::init() {
 	void* printFunc = display_print_line_break; // for vanilla and HRP 4.1.8
 
-	if (HRP::Setting::IsEnabled()) {
+	if (!sf::versionCHI && HRP::Setting::IsEnabled()) {
 		sf::MakeJump(fo::funcoffs::display_print_, display_print_hack_replacemet); // 0x43186C
 	} else {
-		if (HRP::Setting::ExternalEnabled() && !HRP::Setting::VersionIsValid) {
+		if (sf::versionCHI || (HRP::Setting::ExternalEnabled() && !HRP::Setting::VersionIsValid)) {
 			printFunc = display_print_line_break_extHRP;
 		}
 	}
