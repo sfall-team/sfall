@@ -148,17 +148,6 @@ static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
 	}
 }
 
-static void __declspec(naked) sf_display_print_alt() {
-	__asm {
-		push ecx;
-		push fo::funcoffs::display_print_;
-		push eax; // message
-		call SplitPrintMessage;
-		pop  ecx;
-		retn;
-	}
-}
-
 static void __declspec(naked) sf_inven_display_msg() {
 	__asm {
 		push ecx;
@@ -170,12 +159,24 @@ static void __declspec(naked) sf_inven_display_msg() {
 	}
 }
 
+static void __declspec(naked) sf_display_print_alt() {
+	__asm {
+		push ecx;
+		push fo::funcoffs::display_print_; // func replaced by HRP
+		push eax; // message
+		call SplitPrintMessage;
+		pop  ecx;
+		retn;
+	}
+}
+
 void Text::init() {
-	// Support for the newline control character '\n' in the object description in pro_*.msg files
 	void* printFunc = sf_display_print; // for vanilla and HRP 4.1.8
 	if (sf::versionCHI || (sf::hrpIsEnabled && !sf::hrpVersionValid)) {
 		printFunc = sf_display_print_alt;
 	}
+
+	// Support for the newline control character '\n' in the object description in pro_*.msg files
 	sf::SafeWriteBatch<DWORD>((DWORD)printFunc, {0x46ED87, 0x49AD7A}); // setup_inventory_, obj_examine_
 	sf::SafeWrite32(0x472F9A, (DWORD)&sf_inven_display_msg); // inven_obj_examine_func_
 }

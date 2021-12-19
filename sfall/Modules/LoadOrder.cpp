@@ -138,7 +138,7 @@ static void __declspec(naked) game_init_databases_hack1() {
 		mov  ecx, [esp + 0x104 + 4]; // path_patches
 		call RemoveDatabase;
 skip:
-		mov  ds:[FO_VAR_master_db_handle], eax;   // the pointer of master_patches node will be saved here
+		mov  ds:[FO_VAR_master_db_handle], eax; // the pointer of master_patches node will be saved here
 		retn;
 	}
 }
@@ -151,8 +151,8 @@ static void __declspec(naked) game_init_databases_hack2() {
 		mov  eax, ds:[FO_VAR_master_db_handle];   // pointer to master_patches node
 		mov  eax, [eax];                          // eax = master_patches.path
 		call fo::funcoffs::xremovepath_;
-		dec  eax;                                 // remove path (critter_patches == master_patches)?
-		jz   end;                                 // Yes (jump if 0)
+		dec  eax;                                 // 1 = remove path (critter_patches == master_patches)?
+		jz   end;                                 // yes (jump if removed)
 		mov  ecx, [esp + 0x104 + 4];              // path_patches
 		call RemoveDatabase;
 end:
@@ -184,6 +184,26 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
+
+	// remove paths that are identical to master_patches (usually the DATA folder)
+	fo::PathNode* parentPath = fo::var::paths;
+	paths = parentPath->next;
+	while (paths) {
+		if (!paths->isDat && _stricmp(paths->path, fo::var::paths->path) == 0) {
+			auto nextPaths = paths->next;
+			__asm {
+				mov  eax, [paths];
+				call fo::funcoffs::nfree_; // free path string
+				mov  eax, paths;
+				call fo::funcoffs::nfree_; // free self
+			}
+			parentPath->next = nextPaths;
+			paths = nextPaths;
+		} else {
+			parentPath = paths;
+			paths = paths->next;
+		}
+	}
 }
 /*
 static void __fastcall game_init_databases_hook1() {

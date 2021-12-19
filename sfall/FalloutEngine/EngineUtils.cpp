@@ -494,7 +494,7 @@ void PrintFloatText(fo::GameObject* object, const char* text, long colorText, lo
 
 // print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
-	DWORD posOffset = yPos * toWidth + xPos;
+	DWORD posOffset = (yPos * toWidth) + xPos;
 	__asm {
 		xor  eax, eax;
 		mov  al, colorIndex;
@@ -504,12 +504,12 @@ void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD
 		mov  eax, toSurface;
 		mov  ecx, toWidth;
 		add  eax, posOffset;
-		call dword ptr ds:[FO_VAR_text_to_buf];
+		call dword ptr ds:[FO_VAR_text_to_buf]; // calls FMtext_to_buf_ or GNW_text_to_buf_
 	}
 }
 
 void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
-	DWORD posOffset = yPos * toWidth + xPos;
+	DWORD posOffset = (yPos * toWidth) + xPos;
 	__asm {
 		xor  eax, eax;
 		mov  al, colorIndex;

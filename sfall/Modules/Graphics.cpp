@@ -56,11 +56,7 @@ DWORD Graphics::mode;
 bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
 
-//static DWORD yoffset;
-//static DWORD xoffset;
-
 bool DeviceLost = false;
-//static bool mainTexLock = false; // for preventing a crash during the locked state of the texture
 static char textureFilter; // 1 - auto, 2 - force
 
 static DDSURFACEDESC surfaceDesc;
@@ -139,16 +135,6 @@ static VertexFormat ShaderVertices[] = {
 	{639.5, 479.5, 0, 1, 1, 1}  // 3 - bottom right
 };
 
-HWND Graphics::GetFalloutWindowInfo(RECT* rect) {
-	if (rect) {
-		rect->left = windowLeft;
-		rect->top = windowTop;
-		rect->right = gWidth;
-		rect->bottom = gHeight;
-	}
-	return window;
-}
-
 long Graphics::GetGameWidthRes() {
 	return (fo::var::scr_size.offx - fo::var::scr_size.x) + 1;
 }
@@ -195,12 +181,10 @@ static void ResetDevice(bool create) {
 	GetDisplayMode(dispMode);
 
 	params.BackBufferCount = 1;
-	params.BackBufferFormat = dispMode.Format; // (Graphics::mode != 4) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
+	params.BackBufferFormat = dispMode.Format;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
 	params.EnableAutoDepthStencil = false;
-	//params.MultiSampleQuality = 0;
-	//params.MultiSampleType = D3DMULTISAMPLE_NONE;
 	params.Windowed = (Graphics::mode != 4);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
@@ -272,7 +256,6 @@ static void ResetDevice(bool create) {
 		d3d9Device->Reset(&params);
 		if (gpuBltEffect) gpuBltEffect->OnResetDevice();
 		ScriptShaders::OnResetDevice();
-		//mainTexLock = false;
 	}
 
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_DEFAULT, &mainTexD, 0);
@@ -342,8 +325,6 @@ static DWORD lastTime = GetTickCount();
 static long frameCount;
 static long elapsedTime;
 static long fps;
-//static long palCounter;
-//static long lockCounter;
 
 static void CalcFPS() {
 	frameCount++;
@@ -560,26 +541,26 @@ void Graphics::ShowMovieFrame(IDirect3DTexture9* tex) {
 	d3d9Device->SetRenderTarget(0, backBuffer);
 
 	d3d9Device->BeginScene();
-	//if (!mainTexLock) {
-		if (ScriptShaders::Count() && Graphics::GPUBlt) {
-			d3d9Device->SetTexture(0, sTex2);
-		} else {
-			d3d9Device->SetTexture(0, mainTexD);
-		}
-		d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
 
-		// for showing subtitles
-		if (Graphics::GPUBlt) {
-			UINT passes;
-			gpuBltEffect->Begin(&passes, 0);
-			gpuBltEffect->BeginPass(0);
-		}
-		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-		if (Graphics::GPUBlt) {
-			gpuBltEffect->EndPass();
-			gpuBltEffect->End();
-		}
-	//}
+	if (ScriptShaders::Count() && Graphics::GPUBlt) {
+		d3d9Device->SetTexture(0, sTex2);
+	} else {
+		d3d9Device->SetTexture(0, mainTexD);
+	}
+	d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
+
+	// for showing subtitles
+	if (Graphics::GPUBlt) {
+		UINT passes;
+		gpuBltEffect->Begin(&passes, 0);
+		gpuBltEffect->BeginPass(0);
+	}
+	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+	if (Graphics::GPUBlt) {
+		gpuBltEffect->EndPass();
+		gpuBltEffect->End();
+	}
+
 	// for avi movie
 	d3d9Device->SetTexture(0, movieTex);
 	d3d9Device->SetStreamSource(0, vertexMovie, 0, sizeof(VertexFormat));
@@ -679,15 +660,12 @@ public:
 
 	// called 0x4868DA movie_MVE_ShowFrame_ used for game movies (only for w/o HRP by Mash)
 	HRESULT __stdcall Blt(LPRECT dst, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) {
-		mveDesc.dwHeight = scr->bottom; //(dst->bottom - dst->top);
-		mveDesc.lPitch = scr->right; //(dst->right - dst->left);
-		//xoffset = (ResWidth - mveDesc.lPitch) / 2;
-		//yoffset = (ResHeight - mveDesc.dwHeight) / 2;
+		mveDesc.dwHeight = scr->bottom;
+		mveDesc.lPitch = scr->right;
 
 		//dlog_f("\nBlt: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 
 		IsPlayMovie = true;
-		//mainTexLock = true;
 
 		BYTE* lockTarget = ((FakeDirectDrawSurface*)b)->lockTarget;
 
@@ -724,7 +702,6 @@ public:
 		//mainTexD->GetSurfaceLevel(0, &mSurfD);
 		//d3d9Device->StretchRect(mSurf, 0, mSurfD, 0, D3DTEXF_LINEAR);
 
-		//mainTexLock = false;
 		//if (Graphics::PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
 
 		Refresh();
@@ -766,7 +743,6 @@ public:
 				D3DLOCKED_RECT buf;
 				if (SUCCEEDED(mainTex->LockRect(0, &buf, lockRect, D3DLOCK_NO_DIRTY_UPDATE))) {
 					mainTex->AddDirtyRect(lockRect);
-					//mainTexLock = true;
 					b->lpSurface = buf.pBits;
 					b->lPitch = buf.Pitch;
 				}
@@ -809,8 +785,6 @@ public:
 		}
 		if (DeviceLost) return DD_OK;
 
-		//mainTexLock = true;
-
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, 0, 0);
 
@@ -831,7 +805,7 @@ public:
 
 		mainTex->UnlockRect(0);
 		d3d9Device->UpdateTexture(mainTex, mainTexD);
-		//mainTexLock = false;
+
 		return DD_OK;
 	}
 
@@ -845,11 +819,8 @@ public:
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		if (!isPrimary) return DD_OK;
-		//lockCounter++;
 
 		if (Graphics::GPUBlt == 0) {
-			//mainTexLock = true;
-
 			D3DLOCKED_RECT dRect;
 			mainTex->LockRect(0, &dRect, lockRect, D3DLOCK_NO_DIRTY_UPDATE);
 			mainTex->AddDirtyRect(lockRect);
@@ -887,8 +858,8 @@ public:
 				}
 			}
 		}
-		/*if (mainTexLock)*/ mainTex->UnlockRect(0);
-		//mainTexLock = false;
+
+		mainTex->UnlockRect(0);
 		d3d9Device->UpdateTexture(mainTex, mainTexD);
 
 		if (!IsPlayMovie && !Graphics::PlayAviMovie) {
@@ -938,7 +909,6 @@ public:
 	*/
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY d) { // used to set palette for splash screen, fades, subtitles
 		if (!paletteInit || (long)c <= 0) return DDERR_INVALIDPARAMS;
-		//palCounter++;
 
 		fo::PALETTE* destPal = (fo::PALETTE*)d;
 
@@ -971,6 +941,7 @@ public:
 				destPal++;
 				b++;
 			} while (--c);
+
 			primarySurface->SetPalette(0); // update texture
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
 		}
