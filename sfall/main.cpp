@@ -16,10 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma comment(lib, "psapi.lib")
-
-#include <psapi.h>
-
 #include "main.h"
 #include "FalloutEngine\Fallout2.h"
 
@@ -85,6 +81,9 @@
 #include "Translate.h"
 #include "Utils.h"
 #include "version.h"
+#include "WinProc.h"
+
+#include "HRP\Init.h"
 
 ddrawDll ddraw;
 
@@ -94,15 +93,6 @@ namespace sfall
 bool isDebug = false;
 
 bool versionCHI = false;
-
-bool hrpIsEnabled = false;
-bool hrpVersionValid = false; // HRP 4.1.8 version validation
-
-static DWORD hrpDLLBaseAddr = 0; // 0x10000000
-
-DWORD HRPAddress(DWORD addr) {
-	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
-}
 
 char falloutConfigName[65];
 
@@ -181,11 +171,6 @@ static void InitModules() {
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
-static void GetHRPModule() {
-	hrpDLLBaseAddr = (DWORD)GetModuleHandleA("f2_res.dll");
-	if (hrpDLLBaseAddr) dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, hrpDLLBaseAddr);
-}
-
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
 	char buf[MAX_PATH];
@@ -218,6 +203,9 @@ static HMODULE SfallInit() {
 	char filepath[MAX_PATH];
 	GetModuleFileName(0, filepath, MAX_PATH);
 
+	SetCursor(LoadCursorA(0, IDC_ARROW));
+	ShowCursor(1);
+
 	if (!CRC(filepath)) return 0;
 
 	LoggingInit();
@@ -226,6 +214,10 @@ static HMODULE SfallInit() {
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 
 	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+
+	if (!HRP::Setting::CheckExternalPatch()) {
+		WinProc::init();
+	}
 
 	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
 		int is64bit;
@@ -275,16 +267,6 @@ defaultIni:
 
 	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
 
-	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-	if (hrpIsEnabled) {
-		GetHRPModule();
-		MODULEINFO info;
-		if (hrpDLLBaseAddr && GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
-			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
-				hrpVersionValid = true;
-			}
-		}
-	}
 	std::srand(GetTickCount());
 
 	IniReader::init();
@@ -299,9 +281,12 @@ defaultIni:
 	}
 
 	Translate::init(falloutConfigName);
+	HRP::Setting::init(filepath, cmdline);
 
 	InitReplacementHacks();
 	InitModules();
+
+	if (HRP::Setting::ExternalEnabled()) ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
 	return ddraw.sfall;

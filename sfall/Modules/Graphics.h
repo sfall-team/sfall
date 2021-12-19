@@ -58,6 +58,7 @@ public:
 
 	static DWORD mode;
 	static DWORD GPUBlt;
+	static bool IsWindowedMode;
 
 	static long GetGameWidthRes();
 	static long GetGameHeightRes();
@@ -83,10 +84,12 @@ public:
 	static void RefreshGraphics();
 	static void __stdcall ForceGraphicsRefresh(DWORD d);
 
+	static void BackgroundClearColor(long indxColor);
+
 	static __forceinline void UpdateDDSurface(BYTE* surface, int width, int height, int widthFrom, RECT* rect) {
 		long x = rect->left;
 		long y = rect->top;
-		if (Graphics::mode == 0) {
+		if (Graphics::mode < 4) { // DirectDraw
 			__asm {
 				xor  eax, eax;
 				push y;

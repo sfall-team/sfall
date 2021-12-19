@@ -19,6 +19,7 @@
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
 #define FO_VAR_attack_str                 0x56D624
+#define FO_VAR_backgrndRects              0x518748
 #define FO_VAR_background_fname_requested 0x596FC2
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
@@ -29,6 +30,12 @@
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
+#define FO_VAR_buf_length_2               0x66BE14
+#define FO_VAR_buf_rect_2                 0x66BBD4
+#define FO_VAR_buf_size                   0x6610A0
+#define FO_VAR_buf_width_2                0x66BE30
+#define FO_VAR_button_down_data           0x519500
+#define FO_VAR_button_up_data             0x5194FC
 #define FO_VAR_cap                        0x518064
 #define FO_VAR_carCurrentArea             0x672E68
 #define FO_VAR_carGasAmount               0x672E6C
@@ -72,7 +79,9 @@
 #define FO_VAR_dialogueWindow             0x518744
 #define FO_VAR_disp_curr                  0x56FB48
 #define FO_VAR_disp_init                  0x51850C
+#define FO_VAR_disp_rect                  0x518510
 #define FO_VAR_disp_start                 0x56FB54
+#define FO_VAR_display_buf                0x631D50
 #define FO_VAR_display_string_buf         0x56DBFC
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
@@ -87,6 +96,8 @@
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
+#define FO_VAR_endgame_window_buffer      0x570BF0
+#define FO_VAR_endWindowRect              0x518FA0
 #define FO_VAR_Experience_pc              0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_config             0x50281C
@@ -108,6 +119,7 @@
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
 #define FO_VAR_gconfig_file_name          0x58E978
 #define FO_VAR_gcsd                       0x51094C
+#define FO_VAR_gCurrentFont               0x58E93C
 #define FO_VAR_gdBarterMod                0x51873C
 #define FO_VAR_gdialog_speech_playing     0x518710
 #define FO_VAR_gDialogMusicVol            0x5187D8
@@ -119,7 +131,11 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
+#define FO_VAR_GNW95_DDPrimaryPalette     0x51E2BC
+#define FO_VAR_GNW95_DDPrimarySurface     0x51E2B4
+#define FO_VAR_GNW95_DDRestoreSurface     0x51E2B8
 #define FO_VAR_GNW95_hDDrawLib            0x51E44C
+#define FO_VAR_GNW95_hwnd                 0x51E434 // main hwnd window
 #define FO_VAR_GNW95_isActive             0x51E444
 #define FO_VAR_GNW95_repeat_delay         0x51E240
 #define FO_VAR_GNW95_repeat_rate          0x51E23C
@@ -136,11 +152,14 @@
 #define FO_VAR_i_lhand                    0x59E958
 #define FO_VAR_i_rhand                    0x59E968
 #define FO_VAR_i_wid                      0x59E964
+#define FO_VAR_i_wid_max_x                0x59E974
+#define FO_VAR_i_wid_max_y                0x59E970 
 #define FO_VAR_i_worn                     0x59E954
 #define FO_VAR_idle_func                  0x51E234
 #define FO_VAR_In_WorldMap                0x672E1C
 #define FO_VAR_info_line                  0x5707D0
 #define FO_VAR_interfaceWindow            0x519024
+#define FO_VAR_intface_full_width         0x56FB4C
 #define FO_VAR_intfaceEnabled             0x518F10
 #define FO_VAR_intotal                    0x43E95C
 #define FO_VAR_inven_dude                 0x519058
@@ -148,7 +167,9 @@
 #define FO_VAR_inven_scroll_dn_bid        0x5190E8
 #define FO_VAR_inven_scroll_up_bid        0x5190E4
 #define FO_VAR_inventry_message_file      0x59E814
+#define FO_VAR_iscr_data                  0x519068
 #define FO_VAR_itemButtonItems            0x5970F8
+#define FO_VAR_itemButtonRect             0x518F7C
 #define FO_VAR_itemCurrentItem            0x518F78
 #define FO_VAR_kb_lock_flags              0x51E2EA
 #define FO_VAR_language                   0x56C970  // aka _darn_foreign_sub_path
@@ -157,6 +178,8 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_lastMovieH                 0x638E64
 #define FO_VAR_lastMovieW                 0x638E68
+#define FO_VAR_lastMovieX                 0x638E6C
+#define FO_VAR_lastMovieY                 0x638E70
 #define FO_VAR_lastTime                   0x56FB58
 #define FO_VAR_lastWin                    0x51DD80
 #define FO_VAR_Level_pc                   0x6681B0
@@ -197,6 +220,9 @@
 #define FO_VAR_movePointRect              0x518FD4
 #define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
+#define FO_VAR_mve_win_rect               0x638E10
+#define FO_VAR_mveBH                      0x6B402F
+#define FO_VAR_mveBW                      0x6B3CFC
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_critter               0x51833C
 #define FO_VAR_name_font                  0x56D74C
@@ -255,6 +281,7 @@
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC
 #define FO_VAR_rectList                   0x51DEF4
+#define FO_VAR_refresh_enabled            0x51D968
 #define FO_VAR_retvals                    0x43EA7C
 #define FO_VAR_rm_FrameCount              0x6B36A8
 #define FO_VAR_rotation                   0x631D34
@@ -266,6 +293,8 @@
 #define FO_VAR_script_engine_running      0x51C714
 #define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
+#define FO_VAR_scroll_blocking_on         0x51D954
+#define FO_VAR_scroll_limiting_on         0x51D958
 #define FO_VAR_skill_data                 0x51D118
 #define FO_VAR_skldxwin                   0x668140
 #define FO_VAR_slot_cursor                0x5193B8
@@ -275,11 +304,13 @@
 #define FO_VAR_sound_music_path2          0x518E7C
 #define FO_VAR_speech_volume              0x518E8C
 #define FO_VAR_square                     0x631E40
+#define FO_VAR_square_rect                0x66BDE4 // _square_y
 #define FO_VAR_squares                    0x66BE08
 #define FO_VAR_stack                      0x59E86C
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_subtitleH                  0x638EA0
 #define FO_VAR_subtitleList               0x638E74
 #define FO_VAR_subtitles                  0x663974
 #define FO_VAR_sWindows                   0x6727B0
@@ -302,6 +333,12 @@
 #define FO_VAR_text_to_buf                0x51E3B8
 #define FO_VAR_text_width                 0x51E3C0
 #define FO_VAR_tile                       0x631D30
+#define FO_VAR_tile_center_tile           0x66BE34
+#define FO_VAR_tile_mask                  0x66B9C4
+#define FO_VAR_tile_offx                  0x66BDFC
+#define FO_VAR_tile_offy                  0x66BDF8
+#define FO_VAR_tile_x                     0x66BE18
+#define FO_VAR_tile_y                     0x66BE1C
 #define FO_VAR_title_color                0x56D750
 #define FO_VAR_title_font                 0x56D748
 #define FO_VAR_trait_data                 0x51DB84
@@ -314,6 +351,7 @@
 #define FO_VAR_wmBkWin                    0x51DE14
 #define FO_VAR_wmBkWinBuf                 0x51DE24
 #define FO_VAR_wmEncounterIconShow        0x672E48
+#define FO_VAR_wmInterfaceWasInitialized  0x51DE38
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxAreaNum               0x51DDFC
 #define FO_VAR_wmMaxMapNum                0x51DE10

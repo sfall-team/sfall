@@ -61,6 +61,7 @@ WRAP_WATCOM_FFUNC4(long, register_object_run_to_object, fo::GameObject*, source,
 WRAP_WATCOM_FFUNC3(long, register_object_play_sfx, fo::GameObject*, object, const char*, sfxName, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
+WRAP_WATCOM_FFUNC3(long, square_coord, long, square, long*, outX, long*, outY)
 WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
 WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
@@ -71,6 +72,8 @@ WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, te
 WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
 
 WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
+
+//WRAP_WATCOM_FFUNC6(void, drawScaledBuf, BYTE*, dst, long, dstW, long, dstH, const BYTE*, src, long, w, long, h)
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(fo::AIcap*, ai_cap, fo::GameObject*, critter)
@@ -101,6 +104,7 @@ WRAP_WATCOM_FUNC1(long, critterIsOverloaded, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
+WRAP_WATCOM_FUNC2(void, endgame_load_palette, long, artType, long, fid)
 WRAP_WATCOM_FUNC1(void, EndLoad, fo::DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procNum)
@@ -108,8 +112,10 @@ WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(long, folder_print_seperator, const char*, text)
 WRAP_WATCOM_FUNC1(const char*, findCurrentProc, fo::Program*, program) // Returns the name of current procedure by program pointer
 WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
+WRAP_WATCOM_FUNC1(void, freeColorBlendTable, long, color)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC0(long, get_input)
+WRAP_WATCOM_FUNC1(fo::BlendColorTableData*, getColorBlendTable, long, color)
 // Searches for message ID in given message file and places result in result argument
 WRAP_WATCOM_FUNC3(const char*, getmsg, const fo::MessageList*, fileAddr, fo::MessageNode*, result, long, messageId)
 WRAP_WATCOM_FUNC1(void, gdialogDisplayMsg, const char*, message)
@@ -270,6 +276,7 @@ WRAP_WATCOM_FUNC1(void, win_delete, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_draw, DWORD, winRef)
 WRAP_WATCOM_FUNC2(void, win_draw_rect, DWORD, winRef, RECT*, rect)
 WRAP_WATCOM_FUNC1(BYTE*, win_get_buf, DWORD, winRef)
+WRAP_WATCOM_FUNC2(long, win_get_top_win, long, x, long, y)
 WRAP_WATCOM_FUNC1(void, win_hide, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)
 WRAP_WATCOM_FUNC0(long, windowWidth)

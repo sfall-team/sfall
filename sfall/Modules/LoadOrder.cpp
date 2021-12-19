@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Utils.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 
@@ -37,6 +38,7 @@ static DWORD format;
 static bool cutsPatch   = false;
 
 static std::vector<std::string> patchFiles;
+static std::vector<std::string> sfPatchFiles;
 static std::vector<int> savPrototypes;
 
 static void PlayerGenderCutsRestore() {
@@ -110,6 +112,15 @@ static void __declspec(naked) gnw_main_hack() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static void __stdcall InitSystemPatches() {
+	for (auto it = sfPatchFiles.begin(); it != sfPatchFiles.end(); ++it) {
+		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
+	}
+	// free memory
+	sfPatchFiles.clear();
+	sfPatchFiles.shrink_to_fit();
+}
+
 static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	auto paths = fo::var::paths; // curr.node (beginning of the chain of paths)
 	auto _paths = paths;         // prev.node
@@ -157,6 +168,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		call RemoveDatabase;
 end:
 		mov  ds:[FO_VAR_critter_db_handle], eax;  // the pointer of critter_patches node will be saved here
+		call InitSystemPatches;
 		retn;
 	}
 }
@@ -503,11 +515,23 @@ static void SfallResourceFile() {
 		} while (FindNextFileA(hFind, &findData));
 		FindClose(hFind);
 	}
-	patchFiles.push_back(sfallRes);
+	sfPatchFiles.push_back(sfallRes);
+}
+
+void LoadOrder::AddResourcePatches(std::string &dat, std::string &patches) {
+	if (!dat.empty()) sfPatchFiles.push_back(std::move(dat));
+	if (!patches.empty()) {
+		size_t pos = patches.find('\\');
+		while (pos != std::string::npos) {
+			patches.replace(pos, 1, " ");
+			pos = patches.find('\\', pos + 1);
+		}
+		sfPatchFiles.push_back(std::move(trim(patches)));
+	}
 }
 
 void LoadOrder::init() {
-	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
+	SfallResourceFile(); // Add external sfall resource file (load order: > patchXXX.dat > sfall.dat > ... [last])
 	GetExtraPatches();
 	MultiPatchesPatch();
 

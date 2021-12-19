@@ -20,19 +20,22 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\version.h"
 
+#include "..\HRP\Init.h"
+
 #include "MainMenu.h"
 
 namespace sfall
 {
 
 #ifdef NDEBUG
-static const char* VerString1 = "SFALL " VERSION_STRING;
+static const char* VerString1 = "SFALL w/ HRP " VERSION_STRING;
 #else
-static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
+static const char* VerString1 = "SFALL w/ HRP " VERSION_STRING " Debug Build";
 #endif
 
-static long MainMenuYOffset;
-static long MainMenuTextOffset; // sum: x + (y * w)
+long MainMenu::mXOffset;
+long MainMenu::mYOffset;
+long MainMenu::mTextOffset; // sum: x + (y * w)
 
 static long OverrideColour, OverrideColour2;
 
@@ -41,20 +44,25 @@ static void __declspec(naked) MainMenuHookButtonYOffset() {
 	__asm {
 		xor edi, edi;
 		xor esi, esi;
-		mov ebp, MainMenuYOffset;
+		mov ebp, MainMenu::mYOffset;
 		jmp MainMenuButtonYHookRet;
 	}
 }
 
 static void __declspec(naked) MainMenuHookTextYOffset() {
 	__asm {
-		add eax, MainMenuTextOffset;
+		add eax, MainMenu::mTextOffset;
 		jmp dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
 static void __fastcall main_menu_create_hook_print_text(long xPos, const char* text, long yPos, long color) {
 	long winId = fo::var::main_window;
+	if (!HRP::Setting::ExternalEnabled() && HRP::Setting::IsEnabled()) {
+		fo::Window* win = fo::var::window[winId];
+		yPos = ((yPos - 460) - 20) + win->height;
+		xPos = ((xPos - 615) - 25) + win->width;
+	}
 	if (OverrideColour) color = OverrideColour;
 
 	long fWidth = fo::util::GetTextWidth(text);
@@ -73,16 +81,17 @@ void MainMenu::init() {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 30 + offset); // button
-		MainMenuTextOffset = offset;
+		mXOffset = offset;
 	}
 	if (offset = IniReader::GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
-		MainMenuYOffset = offset;
-		MainMenuTextOffset += offset * 640;
-		MakeJump(0x481844, MainMenuHookButtonYOffset);
+		mYOffset = offset;
 	}
-	if (MainMenuTextOffset) {
-		MakeCall(0x481933, MainMenuHookTextYOffset, 1);
+	if (!HRP::Setting::IsEnabled()) {
+		if (mXOffset) SafeWrite32(0x48187C, 30 + mXOffset); // button
+		if (mYOffset) MakeJump(0x481844, MainMenuHookButtonYOffset);
+
+		mTextOffset = mXOffset + (mYOffset * 640);
+		if (mTextOffset) MakeCall(0x481933, MainMenuHookTextYOffset, 1);
 	}
 
 	HookCall(0x4817AB, main_menu_create_hook_print_text);

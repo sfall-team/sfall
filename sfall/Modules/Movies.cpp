@@ -586,7 +586,7 @@ void Movies::init() {
 		WIP: Task
 		Implement subtitle output from the need to play an mve file in the background.
 	*/
-	if (Graphics::mode != 0) {
+	if (Graphics::mode >= 4) {
 		int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
 		if (allowDShowMovies > 0) {
 			Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);

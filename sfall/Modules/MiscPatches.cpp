@@ -1013,10 +1013,12 @@ void MiscPatches::init() {
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
 
-	// Corrects the height of the black background for death screen subtitles
-	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
-	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
+	if (!HRP::Setting::IsEnabled()) {
+		// Corrects the height of the black background for death screen subtitles
+		if (!HRP::Setting::ExternalEnabled()) SafeWrite32(0x48134D, 38 - (640 * 3)); // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+		if (!HRP::Setting::ExternalEnabled() || HRP::Setting::VersionIsValid) SafeWrite8(0x481345, 4); // main_death_scene_
+		if (HRP::Setting::VersionIsValid) SafeWrite8(HRP::Setting::GetAddress(0x10011738), 10);
+	}
 
 	F1EngineBehaviorPatch();
 	DialogueFix();

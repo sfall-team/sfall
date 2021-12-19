@@ -142,8 +142,12 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
+void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth);
+
 // Fills the specified interface window with index color
 bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor);
+
+void FillRect(BYTE* surface, long x, long y, long width, long height, long wPitch, BYTE indexColor);
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);

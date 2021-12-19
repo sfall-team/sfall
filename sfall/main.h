@@ -38,6 +38,8 @@
 #include "Logging.h"
 #include "IniReader.h"
 
+#include "HRP\Init.h"
+
 struct ddrawDll {
 	HMODULE sfall;
 	HMODULE dll;
@@ -85,19 +87,14 @@ namespace sfall
 
 extern bool versionCHI;
 
-extern bool hrpIsEnabled;
-extern bool hrpVersionValid;
-
 extern char falloutConfigName[65];
 
-DWORD HRPAddress(DWORD addr);
-
 __inline long GetIntHRPValue(DWORD addr) {
-	return *reinterpret_cast<DWORD*>(HRPAddress(addr));
+	return *reinterpret_cast<DWORD*>(HRP::Setting::GetAddress(addr));
 }
 
 __inline BYTE GetByteHRPValue(DWORD addr) {
-	return *reinterpret_cast<BYTE*>(HRPAddress(addr));
+	return *reinterpret_cast<BYTE*>(HRP::Setting::GetAddress(addr));
 }
 
 }

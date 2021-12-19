@@ -167,6 +167,16 @@ long __fastcall tile_num(long x, long y) {
 	WRAP_WATCOM_FCALL2(tile_num_, x, y);
 }
 
+void __fastcall square_xy(long x, long y, long* outSX, long* outSY) {
+	__asm {
+		xor  ebx, ebx; // don't delete (bug in square_xy_)
+		mov  eax, ecx;
+		push outSY;
+		mov  ecx, outSX;
+		call fo::funcoffs::square_xy_;
+	}
+}
+
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
 	__asm {
 		mov  eax, ecx;

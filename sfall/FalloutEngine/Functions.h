@@ -54,6 +54,8 @@ void __declspec() interpretError(const char* fmt, ...);
 
 long __fastcall tile_num(long x, long y);
 
+void __fastcall square_xy(long x, long y, long* outSX, long* outSY);
+
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 
 // Creates a button on a given window

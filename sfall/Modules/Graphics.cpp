@@ -18,12 +18,15 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\InputFuncs.h"
-#include "..\version.h"
+#include "..\WinProc.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
 
+#include "SubModules\DirectDraw.h"
 #include "SubModules\WindowRender.h"
+
+#include "..\HRP\Init.h"
+#include "..\HRP\MoviesScreen.h"
 
 #include "Graphics.h"
 
@@ -52,6 +55,7 @@ static DWORD gHeight;
 
 DWORD Graphics::GPUBlt;
 DWORD Graphics::mode;
+bool Graphics::IsWindowedMode;
 
 bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
@@ -63,28 +67,10 @@ static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
 static D3DSURFACE_DESC movieDesc;
 
-#pragma pack(push, 1)
-static struct PALCOLOR {
-	union {
-		DWORD xRGB;
-		struct {
-			BYTE R;
-			BYTE G;
-			BYTE B;
-			BYTE x;
-		};
-	};
-} *palette;
-#pragma pack(pop)
-
+static DirectDraw::PALCOLOR* palette;
 static bool paletteInit = false;
 
-static long windowLeft = 0;
-static long windowTop = 0;
 static HWND window;
-
-static long moveWindowKey[2];
-static long windowData;
 
 static DWORD ShaderVersion;
 
@@ -104,6 +90,7 @@ static IDirect3DSurface9* backBuffer;
 static IDirect3DVertexBuffer9* vertexOrigRes;
 static IDirect3DVertexBuffer9* vertexSfallRes;
 static IDirect3DVertexBuffer9* vertexMovie; // for AVI
+//static IDirect3DVertexBuffer9* vertexStaticScreen; // splash/death/endslides
 
 static IDirect3DTexture9* paletteTex;
 static IDirect3DTexture9* gpuPalette;
@@ -152,14 +139,6 @@ static void WindowInit() {
 	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 	ScriptShaders::LoadGlobalShader();
-}
-
-static void SetWindowToCenter() {
-	RECT desktop;
-	GetWindowRect(GetDesktopWindow(), &desktop);
-
-	windowLeft = (desktop.right / 2) - (gWidth  / 2);
-	windowTop  = (desktop.bottom / 2) - (gHeight / 2);
 }
 
 // pixel size for the current game resolution
@@ -241,7 +220,7 @@ static void ResetDevice(bool create) {
 			                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
 			Graphics::GPUBlt = 0;
 		}
-		if (Graphics::GPUBlt == 0) palette = new PALCOLOR[256];
+		if (Graphics::GPUBlt == 0) palette = new DirectDraw::PALCOLOR[256];
 
 		#if !(NDEBUG) && !(_DEBUG)
 			D3DXCreateFontA(d3d9Device, 24, 0, 500, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &font); // create a font
@@ -353,46 +332,7 @@ static void DrawFPS() {}
 #endif
 
 static void Present() {
-	if (moveWindowKey[0] != 0 && (KeyDown(moveWindowKey[0]) || (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))) {
-		int mx, my;
-		GetMouse(&mx, &my);
-		windowLeft += mx;
-		windowTop += my;
-
-		RECT toRect, curRect;
-		toRect.left = windowLeft;
-		toRect.right = windowLeft + gWidth;
-		toRect.top = windowTop;
-		toRect.bottom = windowTop + gHeight;
-		AdjustWindowRect(&toRect, WS_CAPTION, false);
-
-		toRect.right -= (toRect.left - windowLeft);
-		toRect.left = windowLeft;
-		toRect.bottom -= (toRect.top - windowTop);
-		toRect.top = windowTop;
-
-		if (GetWindowRect(GetShellWindow(), &curRect)) {
-			if (toRect.right > curRect.right) {
-				DWORD move = toRect.right - curRect.right;
-				windowLeft -= move;
-				toRect.right -= move;
-			} else if (toRect.left < curRect.left) {
-				DWORD move = curRect.left - toRect.left;
-				windowLeft += move;
-				toRect.right += move;
-			}
-			if (toRect.bottom > curRect.bottom) {
-				DWORD move = toRect.bottom - curRect.bottom;
-				windowTop -= move;
-				toRect.bottom -= move;
-			} else if (toRect.top < curRect.top) {
-				DWORD move = curRect.top - toRect.top;
-				windowTop += move;
-				toRect.bottom += move;
-			}
-		}
-		MoveWindow(window, windowLeft, windowTop, toRect.right - windowLeft, toRect.bottom - windowTop, true);
-	}
+	WinProc::Moving();
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 		#ifndef NDEBUG
@@ -505,7 +445,7 @@ void Graphics::SetMovieTexture(bool state) {
 
 		subtitleShow = false;
 	} else if (aviAspect < winAspect) {
-		if (Graphics::AviMovieWidthFit || (hrpIsEnabled && GetIntHRPValue(HRP_VAR_MOVIE_SIZE) == 2)) {
+		if (Graphics::AviMovieWidthFit || (HRP::Setting::ExternalEnabled() && GetIntHRPValue(HRP_VAR_MOVIE_SIZE) == 2)) {
 			//desc.Width = gWidth; // scales the movie surface to screen width
 		} else {
 			// scales width proportionally and places the movie surface at the center of the window along the X-axis
@@ -724,7 +664,13 @@ public:
 	HRESULT __stdcall GetOverlayPosition(LPLONG, LPLONG) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetPalette(LPDIRECTDRAWPALETTE *) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetPixelFormat(LPDDPIXELFORMAT) { UNUSEDFUNCTION; }
-	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
+
+	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC a) {
+		*a = surfaceDesc;
+		a->lpSurface = lockTarget;
+		return DD_OK;
+	}
+
 	HRESULT __stdcall Initialize(LPDIRECTDRAW, LPDDSURFACEDESC) { UNUSEDFUNCTION; }
 	HRESULT __stdcall IsLost() { UNUSEDFUNCTION; }
 
@@ -924,9 +870,9 @@ public:
 			}
 			// copy and swap color B <> R
 			do {
-				((PALCOLOR*)pal.pBits)[b].R = destPal->R << 2;
-				((PALCOLOR*)pal.pBits)[b].G = destPal->G << 2;
-				((PALCOLOR*)pal.pBits)[b].B = destPal->B << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].R = destPal->R << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].G = destPal->G << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].B = destPal->B << 2;
 				destPal++;
 				b++;
 			} while (--c);
@@ -1030,37 +976,19 @@ public:
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
-		char windowTitle[128];
 		window = a;
+		WinProc::SetHWND(window);
+		WinProc::SetTitle(gWidth, gHeight, Graphics::mode);
+
+		if (Graphics::mode >= 5) {
+			long windowStyle = (Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
+			WinProc::SetStyle(windowStyle);
+		}
 
 		if (!d3d9Device) {
 			CoInitialize(0);
 			ResetDevice(true); // create
 		}
-		dlog("Creating D3D9 Device window...", DL_MAIN);
-
-		if (ResWidth != gWidth || ResHeight != gHeight) {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
-		} else {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
-		}
-		SetWindowTextA(a, windowTitle);
-
-		if (Graphics::mode >= 5) {
-			long windowStyle = (Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
-			SetWindowLongA(a, GWL_STYLE, windowStyle);
-			RECT r;
-			r.left = 0;
-			r.right = gWidth;
-			r.top = 0;
-			r.bottom = gHeight;
-			AdjustWindowRect(&r, windowStyle, false);
-			r.right -= r.left;
-			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-		}
-
-		dlogr(" Done", DL_MAIN);
 		return DD_OK;
 	}
 
@@ -1072,8 +1000,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
 	// original resolution or HRP
-	ResWidth = *(DWORD*)0x4CAD6B;  // 640
-	ResHeight = *(DWORD*)0x4CAD66; // 480
+	ResWidth  = HRP::Setting::ScreenWidth();  //*(DWORD*)0x4CAD6B; // 640
+	ResHeight = HRP::Setting::ScreenHeight(); //*(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 
@@ -1117,36 +1045,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
-	if (Graphics::mode == 5) {
-		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
-		if (moveWindowKey[0] < 0) {
-			switch (moveWindowKey[0]) {
-			case -1:
-				moveWindowKey[0] = DIK_LCONTROL;
-				moveWindowKey[1] = DIK_RCONTROL;
-				break;
-			case -2:
-				moveWindowKey[0] = DIK_LMENU;
-				moveWindowKey[1] = DIK_RMENU;
-				break;
-			case -3:
-				moveWindowKey[0] = DIK_LSHIFT;
-				moveWindowKey[1] = DIK_RSHIFT;
-				break;
-			default:
-				moveWindowKey[0] = 0;
-			}
-		} else {
-			moveWindowKey[0] &= 0xFF;
-		}
-		windowData = IniReader::GetConfigInt("Graphics", "WindowData", -1);
-		if (windowData > 0) {
-			windowLeft = windowData >> 16;
-			windowTop = windowData & 0xFFFF;
-		} else if (windowData == -1) {
-			SetWindowToCenter();
-		}
-	}
+	WinProc::SetSize(gWidth, gHeight, 0);
+	if (Graphics::mode == 5) WinProc::LoadPosition();
 
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
@@ -1231,20 +1131,41 @@ void __stdcall Graphics::ForceGraphicsRefresh(DWORD d) {
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
-void Graphics::init() {
-	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
-	if (Graphics::mode < 4 || Graphics::mode > 6) {
-		Graphics::mode = 0;
+void Graphics::BackgroundClearColor(long indxColor) {
+	if (Graphics::mode < 4) {
+		DirectDraw::Clear(indxColor);
+		return;
 	}
 
-	if (Graphics::mode) {
+	if (GPUBlt) {
+		D3DLOCKED_RECT buf;
+		mainTex->LockRect(0, &buf, 0, D3DLOCK_DISCARD);
+		std::memset(buf.pBits, indxColor, ResWidth * ResHeight);
+		mainTex->UnlockRect(0);
+	} else {
+		DDSURFACEDESC desc;
+		primarySurface->GetSurfaceDesc(&desc);
+		std::memset(desc.lpSurface, indxColor, ResWidth * ResHeight);
+	}
+}
+
+void Graphics::init() {
+	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 0);
+	if (gMode >= 4) Graphics::mode = gMode;
+
+	if (Graphics::mode < 0 || Graphics::mode > 6) {
+		Graphics::mode = 0;
+	}
+	IsWindowedMode = (mode == 2 || mode == 3 || mode == 5 || mode == 6);
+
+	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
 		HMODULE h = LoadLibraryExA(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			dlogr(" Failed", DL_INIT);
 			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-			               "Switch back to mode 0, or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
+			               "Switch back to DirectDraw (Mode=0), or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
 		}
@@ -1256,12 +1177,12 @@ void Graphics::init() {
 		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
 		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
-		if (hrpVersionValid) {
+		if (HRP::Setting::VersionIsValid) {
 			// Patch HRP to show the mouse cursor over the window title
-			if (Graphics::mode == 5) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
+			if (Graphics::mode == 5) SafeWrite8(HRP::Setting::GetAddress(0x10027142), CodeType::JumpShort);
 
 			// Patch HRP to fix the issue of displaying a palette color with index 255 for images (splash screens, ending slides)
-			SafeWrite8(HRPAddress(0x1000F8C7), CodeType::JumpShort);
+			SafeWrite8(HRP::Setting::GetAddress(0x1000F8C7), CodeType::JumpShort);
 		}
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
@@ -1270,19 +1191,27 @@ void Graphics::init() {
 		LoadGameHook::OnGameReset() += []() {
 			ForceGraphicsRefresh(0); // disable refresh
 		};
+	} else if (HRP::Setting::IsEnabled()) {
+		DirectDraw::init();
+	}
+	if (Graphics::mode == 5 || Graphics::mode == 2) WinProc::SetMoveKeys();
+
+	if (HRP::Setting::IsEnabled()) {
+		HRP::MoviesScreen::SetDrawMode(Graphics::mode < 4);
+
+		// Reassign the WindowProc function to avoid an unnecessary jump from the engine code
+		LoadGameHook::OnBeforeGameInit() += []() { WinProc::SetWindowProc(); };
 	}
 
 	WindowRender::init();
 }
 
 void Graphics::exit() {
-	if (Graphics::mode) {
-		RECT rect;
-		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
-			int data = rect.top | (rect.left << 16);
-			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
-		}
+	WinProc::SavePosition(Graphics::mode);
+	if (Graphics::mode >= 4) {
 		CoUninitialize();
+	} else {
+		DirectDraw::exit();
 	}
 }
 

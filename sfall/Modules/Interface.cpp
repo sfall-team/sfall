@@ -26,6 +26,9 @@
 #include "LoadGameHook.h"
 #include "Worldmap.h"
 
+#include "..\HRP\InterfaceBar.h"
+#include "..\HRP\viewmap\EdgeClipping.h"
+
 #include "Interface.h"
 
 namespace sfall
@@ -145,11 +148,13 @@ static void APBarRectPatch() {
 }
 
 static void ActionPointsBarPatch() {
+	HRP::IFaceBar::SetExpandAPBar();
+
 	dlog("Applying expanded action points bar patch.", DL_INIT);
-	if (hrpIsEnabled) {
+	if (HRP::Setting::ExternalEnabled()) {
 		// check valid data
-		if (hrpVersionValid && !_stricmp((const char*)HRPAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
-			SafeWriteStr(HRPAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
+		if (HRP::Setting::VersionIsValid && !_stricmp((const char*)HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
 		} else {
 			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
@@ -299,7 +304,7 @@ static const DWORD wmViewportEndBottom[] = {
 	0x4C429A, 0x4C4378, 0x4C4413,                               // wmDrawCursorStopped_
 	0x4C44BE,                                                   // wmCursorIsVisible_
 };
-
+/*
 static void __declspec(naked) wmInterfaceInit_hack() {
 	static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
 	__asm {
@@ -309,7 +314,7 @@ static void __declspec(naked) wmInterfaceInit_hack() {
 		jmp  wmInterfaceInit_Ret;
 	}
 }
-
+*/
 static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
 	__asm {
 		mov  edx, [esp + 0x10 - 0x10 + 4];
@@ -427,7 +432,7 @@ static void WorldmapViewportPatch() {
 	SafeWriteBatch<DWORD>(135, {0x4C23BD, 0x4C2408}); // use unused worldmap.frm for new world map interface (wmInterfaceInit_)
 
 	// x/y axis offset of interface window
-	MakeJump(0x4C23A2, wmInterfaceInit_hack);
+	//MakeJump(0x4C23A2, wmInterfaceInit_hack);
 	// size of the created window/buffer
 	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH, wmWinWidth); // width
 	SafeWrite32(0x4C238B, WMAP_WIN_HEIGHT);            // height (wmInterfaceInit_)
@@ -833,7 +838,7 @@ static void WorldMapInterfacePatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (hrpIsEnabled && hrpVersionValid) {
+	if (HRP::Setting::IsEnabled() || HRP::Setting::VersionIsValid) { // was available only for 4.1.8?
 		if (worldmapInterface = IniReader::GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
@@ -925,9 +930,10 @@ static void SpeedInterfaceCounterAnimsPatch() {
 	}
 }
 
-static bool IFACE_BAR_MODE = false;
-
 static long gmouse_handle_event_hook() {
+	// check whether the player clicks on the clipping area of the map
+	if (!HRP::EdgeClipping::CheckMapClipping()) return 0; // block
+
 	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
 	fo::Window* win = nullptr;
@@ -941,7 +947,7 @@ static long gmouse_handle_event_hook() {
 		}
 	}
 
-	if (IFACE_BAR_MODE) return 1;
+	if (HRP::IFaceBar::IFACE_BAR_MODE) return 1;
 
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
 	win = fo::func::GNW_find(fo::var::getInt(FO_VAR_display_win));
@@ -1053,8 +1059,8 @@ void Interface::init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
-	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
+	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 }
 
 void Interface::exit() {
