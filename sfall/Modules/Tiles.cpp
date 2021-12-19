@@ -32,8 +32,14 @@ namespace sfall
 typedef int (__stdcall *functype)();
 
 static const DWORD Tiles_0E[] = {
-	0x484255, 0x48429D, 0x484377, 0x484385, 0x48A897, 0x48A89A, 0x4B2231,
-	0x4B2374, 0x4B2381, 0x4B2480, 0x4B248D, 0x4B2A7C, 0x4B2BDA,
+	0x484255, 0x48429D, // square_reset_
+	0x484377, 0x484385, // square_load_
+	0x48A897, 0x48A89A, // obj_move_to_tile_
+	0x4B2231,           // square_render_roof_
+	0x4B2374, 0x4B2381, // roof_fill_on_
+	0x4B2480, 0x4B248D, // tile_fill_roof_
+	0x4B2A7C,           // square_render_floor_
+	0x4B2BDA,           // square_roof_intersect_
 };
 
 static const DWORD Tiles_3F[] = {
@@ -281,11 +287,11 @@ static void __declspec(naked) art_get_name_hack() {
 		sar  eax, 24;
 		cmp  eax, OBJ_TYPE_TILE;
 		jne  end;
-		mov  esi, edx;
 		mov  ebp, edx;
-		and  esi, 0x3FFF;
+		mov  esi, edx;
 		and  ebp, 0xC000;
-		sar  ebp, 0x0E;
+		and  esi, 0x3FFF;
+		sar  ebp, 14;
 end:
 		test esi, esi;
 		retn;
@@ -309,8 +315,8 @@ void Tiles::init() {
 		SafeWriteBatch<BYTE>(0x40, Tiles_40);
 		SafeWriteBatch<BYTE>(0xC0, Tiles_C0);
 		if (HRP::Setting::VersionIsValid) { // Check HRP 4.1.8
-			SafeWrite8(HRP::Setting::GetAddress(0x1000E1C0), 0x40);
-			SafeWrite8(HRP::Setting::GetAddress(0x1000E1DA), 0x3F);
+			SafeWrite8(HRP::Setting::GetAddress(0x1000E1C0), 0x40); // 4000 > 16384
+			SafeWrite8(HRP::Setting::GetAddress(0x1000E1DA), 0x3F); // and esi, 0x3FFF
 		}
 		dlogr(" Done", DL_INIT);
 	}

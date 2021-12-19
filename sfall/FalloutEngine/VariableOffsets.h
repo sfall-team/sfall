@@ -131,6 +131,9 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
+#define FO_VAR_GNW95_DDPrimaryPalette     0x51E2BC
+#define FO_VAR_GNW95_DDPrimarySurface     0x51E2B4
+#define FO_VAR_GNW95_DDRestoreSurface     0x51E2B8
 #define FO_VAR_GNW95_hDDrawLib            0x51E44C
 #define FO_VAR_GNW95_hwnd                 0x51E434 // main hwnd window
 #define FO_VAR_GNW95_isActive             0x51E444

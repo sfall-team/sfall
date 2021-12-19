@@ -217,8 +217,6 @@ static HMODULE SfallInit() {
 
 	if (!HRP::Setting::CheckExternalPatch()) {
 		WinProc::init();
-	} else {
-		ShowCursor(0);
 	}
 
 	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
@@ -287,6 +285,8 @@ defaultIni:
 
 	InitReplacementHacks();
 	InitModules();
+
+	if (HRP::Setting::ExternalEnabled()) ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
 	return ddraw.sfall;

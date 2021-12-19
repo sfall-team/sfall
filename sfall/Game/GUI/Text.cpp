@@ -177,7 +177,7 @@ static void __declspec(naked) inven_display_msg_line_break() {
 static void __declspec(naked) display_print_line_break_extHRP() {
 	__asm {
 		push ecx;
-		push fo::funcoffs::display_print_; // func replaced by Mash HRP
+		push fo::funcoffs::display_print_; // func replaced by Mash's HRP
 		push eax; // message
 		call SplitPrintMessage;
 		pop  ecx;

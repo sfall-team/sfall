@@ -198,10 +198,7 @@ static void __fastcall TextScale(long xPos, const char* text, long yPos, long co
 	yPos *= mainmenuWidth;
 	yPos += sf::MainMenu::mTextOffset;
 
-	Image::ScaleText(
-		(BYTE*)(fo::var::getInt(FO_VAR_main_window_buf) + yPos + xPos),
-		text, fo::util::GetTextWidth(text), mainmenuWidth, color, scaleFactor
-	);
+	Image::ScaleText((BYTE*)(fo::var::getInt(FO_VAR_main_window_buf) + yPos + xPos), text, fo::util::GetTextWidth(text), mainmenuWidth, color, scaleFactor);
 }
 
 // buttons text print
@@ -210,10 +207,10 @@ static void __declspec(naked) main_menu_create_hook_text_to_buf() {
 		cmp  scaleFactor, 0x3F800000; // 1.0f
 		jne  scale;
 		mov  ecx, mainmenuWidth;
-		imul ebp, ecx; // yPos * width
+		imul ebp, ecx; // yPos *= width
 		add  eax, ds:[FO_VAR_main_window_buf];
 		add  eax, sf::MainMenu::mTextOffset;
-		add  eax, ebp;
+		add  eax, ebp; // + yPos
 		jmp  dword ptr ds:[FO_VAR_text_to_buf];
 scale:
 		push [esp + 4]; // color
@@ -307,10 +304,11 @@ void MainMenuScreen::init() {
 	sf::HookCall(0x481883, main_menu_create_hook_register_button);
 	sf::MakeCall(0x481933, main_menu_create_hook_text_to_buf, 1);
 
-	// imul ebp, edx, 640 -> mov ebp, edx
+	// main_menu_create_
+	// imul ebp, edx, 640 > mov ebp, edx
 	sf::SafeWrite16(0x481912, 0xD589);
 	sf::SafeWrite32(0x481914, 0x90909090);
-
+	// main_menu_create_
 	sf::SafeWrite16(0x48192D, 0x9090);
 
 	sf::LoadGameHook::OnBeforeGameStart() += FreeMainMenuImages;

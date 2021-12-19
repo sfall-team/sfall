@@ -18,7 +18,7 @@ public:
 	static bool CheckExternalPatch();
 	static bool ExternalEnabled();
 
-	// Built-in high resolution patch
+	// Built-in High Resolution Patch
 	static bool IsEnabled();
 
 	static long ScreenWidth();

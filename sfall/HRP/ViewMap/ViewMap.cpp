@@ -159,7 +159,7 @@ static void __declspec(naked) tile_set_center_hack_replacement() {
 
 static void __declspec(naked) tile_scroll_to_hack_replacement() {
 	__asm {
-		mov  edx, 3; // modeFlags is always 2
+		mov  edx, 3; // modeFlags
 		jmp  tile_set_center_hack_replacement;
 	}
 }
@@ -435,7 +435,7 @@ void ViewMap::init() {
 	else if (SCROLL_DIST_Y < 240) SCROLL_DIST_Y = 240;
 
 	sf::MakeJump(fo::funcoffs::tile_set_center_, tile_set_center_hack_replacement); // 0x4B12F8
-	sf::MakeJump(fo::funcoffs::tile_scroll_to_, tile_scroll_to_hack_replacement);  // 0x4B3924
+	sf::MakeJump(fo::funcoffs::tile_scroll_to_, tile_scroll_to_hack_replacement);   // 0x4B3924
 
 	sf::HookCall(0x4B2AC0, square_render_floor_hook_art_id);
 	sf::HookCall(0x4B2261, square_render_roof_hook_art_id);

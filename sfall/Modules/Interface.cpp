@@ -1059,7 +1059,7 @@ void Interface::init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	HookCall(0x44C018, gmouse_handle_event_hook); // (replaces hack function from HRP by Mash)
+	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
 	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 }
 

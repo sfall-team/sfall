@@ -197,7 +197,7 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
 
-	// remove paths that are identical to master_patches (i.e. the DATA folder)
+	// remove paths that are identical to master_patches (usually the DATA folder)
 	fo::PathNode* parentPath = fo::var::paths;
 	paths = parentPath->next;
 	while (paths) {

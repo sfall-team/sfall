@@ -127,7 +127,7 @@ public:
 	}
 
 	void SetDrawHighColor(long bits) {
-		if (bits == 0x7E0) { // 0000011111100000
+		if (bits == 0x7E0) { // R5G6B5 (0000011111100000)
 			convertFunc = new ConvertPalette16();
 		} else {
 			convertFunc = new ConvertPalette15();
@@ -232,8 +232,8 @@ static long __stdcall DirectDrawInit(DWORD, IDirectDraw7** _ddContext, DWORD) {
 	hr = ddObject->ddContext->CreateSurface(&ddsd, &ddObject->ddPrimarySurface, 0);
 	if (FAILED(hr)) return -1;
 
-	fo::var::setInt(0x51E2B4) = (DWORD)ddObject->ddPrimarySurface; //FO_VAR_GNW95_DDPrimarySurface
-	fo::var::setInt(0x51E2B8) = (DWORD)ddObject->ddPrimarySurface; //FO_VAR_GNW95_DDRestoreSurface
+	fo::var::setInt(FO_VAR_GNW95_DDPrimarySurface) = (DWORD)ddObject->ddPrimarySurface;
+	fo::var::setInt(FO_VAR_GNW95_DDRestoreSurface) = (DWORD)ddObject->ddPrimarySurface;
 
 	DDPIXELFORMAT pxf;
 	std::memset(&pxf, 0, sizeof(DDPIXELFORMAT));
@@ -275,7 +275,7 @@ static long __stdcall DirectDrawInit(DWORD, IDirectDraw7** _ddContext, DWORD) {
 	hr = ddObject->ddContext->CreatePalette(DDPCAPS_ALLOW256 | DDPCAPS_8BIT, (PALETTEENTRY*)ddObject->paletteRGB, &ddObject->ddPalette, 0);
 	if (FAILED(hr)) return -1;
 
-	fo::var::setInt(0x51E2BC) = (DWORD)ddObject->ddPalette; // FO_VAR_GNW95_DDPrimaryPalette
+	fo::var::setInt(FO_VAR_GNW95_DDPrimaryPalette) = (DWORD)ddObject->ddPalette;
 
 	return 0;
 }
@@ -300,14 +300,14 @@ static void __cdecl GNW95_ShowRect(BYTE* srcSurface, int sWidth, int sHeight, in
 			if (hr != DDERR_SURFACELOST || ddObject->ddBackSurface->Restore()) return;
 		}
 
-		if ((y + height) > (int)desc.dwHeight) {
-			if (y > (int)desc.dwHeight) BREAKPOINT;
-			height = desc.dwHeight - y;
-		}
-		if ((x + width) > (int)desc.dwWidth) {
-			if (x > (int)desc.dwWidth) BREAKPOINT;
-			width = desc.dwWidth - x;
-		}
+		//if ((y + height) > (int)desc.dwHeight) {
+		//	if (y > (int)desc.dwHeight) BREAKPOINT;
+		//	height = desc.dwHeight - y;
+		//}
+		//if ((x + width) > (int)desc.dwWidth) {
+		//	if (x > (int)desc.dwWidth) BREAKPOINT;
+		//	width = desc.dwWidth - x;
+		//}
 
 		ddObject->convertFunc->BufToSurface(src, sWidth, x, y, width, height, &desc);
 		ddObject->ddBackSurface->Unlock(0);
@@ -332,8 +332,7 @@ static void __cdecl GNW95_ShowRect(BYTE* srcSurface, int sWidth, int sHeight, in
 
 static void __cdecl GNW95_zero_vid_mem() {
 /*
-	Apparently, surface cleaning is not required.
-	At least I don't observe any residual garbage.
+	Surface cleaning is not required.
 	This is also not used in HRP by Mash.
 */
 }

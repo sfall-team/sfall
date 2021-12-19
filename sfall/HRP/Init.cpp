@@ -151,66 +151,7 @@ static __declspec(naked) void gmouse_bk_process() {
 	}
 }
 
-/*
-static void __declspec(naked) mem_copy() {
-	__asm {
-		cmp  edx, eax;
-		jz   end;
-
-		push ecx;
-		push esi;
-		push edi;
-		mov  ecx, ebx;
-		jnb  forward;
-
-		lea  esi, [edx + ecx];
-//		and  ebx, 3;
-		cmp  esi, eax;
-		jbe  forward; // src <= dst
-
-		// backward copy
-		dec  esi; //lea     esi, [edi - 1];
-		lea  edi, [eax + ecx]; // dst + num
-
-		std;
-		dec  edi;
-		dec  esi;
-		dec  edi;
-		shr  ecx, 1;
-		rep movsw;
-
-		adc  ecx, ecx;
-		inc  esi;
-		inc  edi;
-//		mov  ecx, ebx;
-		rep movsb
-		cld;
-		pop  edi;
-		pop  esi;
-		pop  ecx;
-end:
-		retn;
-
-forward:
-		and  ebx, 3;
-		mov  esi, edx;
-		mov  edi, eax;
-		shr  ecx, 2;
-		rep movsd;
-		mov  ecx, ebx;
-		rep movsb;
-		pop  edi;
-		pop  esi;
-		pop  ecx;
-		retn;
-	}
-}
-*/
-
 void Setting::init(const char* exeFileName, std::string &cmdline) {
-	//HookCall(0x482899, mem_copy);
-	//SafeWrite16(0x4B2EA8, 0x9090); // _show_grid
-
 	bool hiResMode = sf::IniReader::GetIntDefaultConfig("Main", "HiResMode", 1) != 0;
 
 	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
