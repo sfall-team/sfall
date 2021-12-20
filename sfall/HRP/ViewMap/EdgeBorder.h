@@ -17,10 +17,10 @@ public:
 		RECT borderRect; // right is less than left
 		RECT rect_2;
 		RECT tileRect;
-		RECT squareRect;    // angel clipping
-		long clipData;      // angel clip type
-		Edge* prevEdgeData; // unused (used in 3.06)
-		Edge* nextEdgeData;
+		RECT squareRect; // angel clipping
+		long clipData;   // angel clip type
+		Edge* prevEdgeData = nullptr; // unused (used in 3.06)
+		Edge* nextEdgeData = nullptr;
 
 		void Release() {
 			Edge* edge = nextEdgeData;
@@ -28,6 +28,7 @@ public:
 				Edge* edgeNext = edge->nextEdgeData;
 				delete edge;
 				edge = edgeNext;
+				nextEdgeData = nullptr;
 			};
 		}
 

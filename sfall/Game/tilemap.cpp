@@ -220,7 +220,7 @@ static __inline long DistanceFromPositions(long sX, long sY, long tX, long tY) {
 }
 
 // optimized version with added args
-// type: 1 - tile path, 0 - rotation path
+// type: 0 - rotation path, 1 - tile path
 // maxNodes: limiting the building of a path
 long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTile, long targetTile, long type, long maxNodes, void* arrayRef, long checkTargetTile, void* blockFunc) {
 	if (checkTargetTile && fo::func::obj_blocking_at_wrapper(srcObject, targetTile, srcObject->elevation, blockFunc)) return 0;
@@ -256,7 +256,7 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 
 	// Tweak for NumPathNodes option
 	if (maxNodes > 10000 && srcObject != fo::var::obj_dude && maxNodes == maxPathNodes) {
-		maxNodes = 10000; // limit for NPCs (maybe need less)
+		maxNodes = 10000; // limit for NPCs
 	}
 
 	// search path tiles
@@ -357,7 +357,8 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 				*arrayR++ = childData.rotation;
 			}
 		}
-		while (childData.from_tile != dadData->tile) --dadData; // search a linked tile 'from -> tile'
+		// search a linked tile 'from -> tile'
+		while (dadData->from_tile != -1 && childData.from_tile != dadData->tile) --dadData;
 		childData = *dadData;
 	} while (++pathLen < 800);
 

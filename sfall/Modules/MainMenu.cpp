@@ -28,9 +28,9 @@ namespace sfall
 {
 
 #ifdef NDEBUG
-static const char* VerString1 = "SFALL w/ HRP " VERSION_STRING;
+static const char* VerString1 = "SFALL " VERSION_STRING;
 #else
-static const char* VerString1 = "SFALL w/ HRP " VERSION_STRING " Debug Build";
+static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
 #endif
 
 long MainMenu::mXOffset;
