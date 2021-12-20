@@ -309,7 +309,6 @@ WRAP_WATCOM_FUNC2(long, db_dir_entry, const char*, fileName, DWORD*, sizeOut) //
 // Searches files in DB by given path/filename mask and stores result in fileList
 // fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
 WRAP_WATCOM_FUNC2(long, db_get_file_list, const char*, searchMask, char***, fileList) // Returns number of elements in *fileList
-WRAP_WATCOM_FUNC2(long, db_init, const char*, path_dat, const char*, path_patches)
 WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
 WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 

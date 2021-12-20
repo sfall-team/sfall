@@ -52,6 +52,7 @@ static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
 static DWORD debugEditorKey = 0;
+static DWORD showMapGridKey = 0;
 
 struct sArray {
 	DWORD id;
@@ -61,7 +62,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	if (Graphics::mode != 0) fo::func::process_bk();
+	if (Graphics::mode != 0) fo::func::process_bk(); // test for mode 1/2 (from built-in HRP)
 }
 
 static bool SetBlocking(SOCKET s, bool block) {
@@ -530,12 +531,26 @@ void DebugEditor::init() {
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
 
-	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
-	if (debugEditorKey != 0) {
+	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0) & 0xFF;
+	if (debugEditorKey) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 				RunDebugEditor();
 			}
+		};
+	}
+
+	showMapGridKey = IniReader::GetIntDefaultConfig("Debugging", "ShowMapGridKey", 0) & 0xFF;
+	if (showMapGridKey) {
+		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
+			if (scanCode == showMapGridKey && pressed && IsGameLoaded()) {
+				__asm call fo::funcoffs::grid_toggle_;
+				fo::func::tile_refresh_display();
+			}
+		};
+		LoadGameHook::OnAfterGameInit() += []() {
+			fo::var::setInt(FO_VAR_tile_refresh) = fo::funcoffs::refresh_mapper_;
+			//fo::var::setInt(FO_VAR_map_scroll_refresh) = fo::funcoffs::map_scroll_refresh_mapper_;
 		};
 	}
 }

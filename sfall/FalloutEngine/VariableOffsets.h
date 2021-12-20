@@ -199,6 +199,7 @@
 #define FO_VAR_map_global_vars            0x51956C
 #define FO_VAR_map_name                   0x631D58
 #define FO_VAR_map_number                 0x631D88
+#define FO_VAR_map_scroll_refresh         0x519540
 #define FO_VAR_map_state                  0x631D28
 #define FO_VAR_mapEntranceElevation       0x519558
 #define FO_VAR_mapEntranceTileNum         0x51955C
@@ -337,6 +338,7 @@
 #define FO_VAR_tile_mask                  0x66B9C4
 #define FO_VAR_tile_offx                  0x66BDFC
 #define FO_VAR_tile_offy                  0x66BDF8
+#define FO_VAR_tile_refresh               0x51D964
 #define FO_VAR_tile_x                     0x66BE18
 #define FO_VAR_tile_y                     0x66BE1C
 #define FO_VAR_title_color                0x56D750

@@ -52,6 +52,8 @@ DWORD __fastcall interpretGetValue(Program* scriptPtr, DWORD &outType);
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
+long __fastcall db_init(const char* path_dat, const char* path_patches);
+
 long __fastcall tile_num(long x, long y);
 
 void __fastcall square_xy(long x, long y, long* outSX, long* outSY);
