@@ -29,6 +29,7 @@
 #include "Combat.h"
 #include "Console.h"
 #include "Criticals.h"
+#include "DebugEditor.h"
 #include "Explosions.h"
 #include "ExtraSaveSlots.h"
 #include "FileSystem.h"
@@ -385,6 +386,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	Sound::OnAfterGameInit();
 	if (TalkingHeads::Use32Bit) TalkingHeads::OnAfterGameInit();
 	BuildSortedIndexList();
+	DebugEditor::OnAfterGameInit();
 }
 
 static void __stdcall GameExit() { // OnGameExit

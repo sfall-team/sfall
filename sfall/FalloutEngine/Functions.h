@@ -50,6 +50,8 @@ void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
+long __fastcall db_init(const char* path_dat, const char* path_patches);
+
 long __fastcall tile_num(long x, long y);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);

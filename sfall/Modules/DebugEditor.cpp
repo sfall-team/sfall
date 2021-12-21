@@ -51,7 +51,8 @@ enum DECode {
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
-static DWORD debugEditorKey = 0;
+static DWORD debugEditorKey;
+static DWORD mapGridToggleKey;
 
 struct sArray {
 	DWORD id;
@@ -518,6 +519,13 @@ void CheckTimerResolution() {
 }
 */
 
+void DebugEditor::OnAfterGameInit() {
+	if (mapGridToggleKey) {
+		fo::var::setInt(FO_VAR_tile_refresh) = fo::funcoffs::refresh_mapper_;
+		//fo::var::setInt(FO_VAR_map_scroll_refresh) = fo::funcoffs::map_scroll_refresh_mapper_;
+	}
+}
+
 void DebugEditor::init() {
 	DebugModePatch();
 
@@ -536,11 +544,17 @@ void DebugEditor::init() {
 	DontDeleteProtosPatch();
 
 	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
+	mapGridToggleKey = IniReader::GetIntDefaultConfig("Debugging", "MapGridToggleKey", 0);
 }
 
 void DebugEditor::KeyPressedHook(DWORD scanCode, bool pressed) {
-	if (debugEditorKey != 0 && scanCode == debugEditorKey && pressed && IsGameLoaded()) {
+	if (debugEditorKey && scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 		RunDebugEditor();
+	}
+
+	if (mapGridToggleKey && scanCode == mapGridToggleKey && pressed && IsGameLoaded()) {
+		__asm call fo::funcoffs::grid_toggle_;
+		fo::func::tile_refresh_display();
 	}
 }
 
