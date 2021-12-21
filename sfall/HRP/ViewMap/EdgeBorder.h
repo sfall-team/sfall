@@ -28,8 +28,8 @@ public:
 				Edge* edgeNext = edge->nextEdgeData;
 				delete edge;
 				edge = edgeNext;
-				nextEdgeData = nullptr;
 			};
+			nextEdgeData = nullptr;
 		}
 
 		~Edge() {

@@ -51,8 +51,8 @@ enum DECode {
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
-static DWORD debugEditorKey = 0;
-static DWORD showMapGridKey = 0;
+static DWORD debugEditorKey;
+static DWORD mapGridToggleKey;
 
 struct sArray {
 	DWORD id;
@@ -531,7 +531,7 @@ void DebugEditor::init() {
 	if (!isDebug) return;
 	DontDeleteProtosPatch();
 
-	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0) & 0xFF;
+	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {
@@ -540,10 +540,10 @@ void DebugEditor::init() {
 		};
 	}
 
-	showMapGridKey = IniReader::GetIntDefaultConfig("Debugging", "ShowMapGridKey", 0) & 0xFF;
-	if (showMapGridKey) {
+	mapGridToggleKey = IniReader::GetIntDefaultConfig("Debugging", "MapGridToggleKey", 0);
+	if (mapGridToggleKey) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
-			if (scanCode == showMapGridKey && pressed && IsGameLoaded()) {
+			if (scanCode == mapGridToggleKey && pressed && IsGameLoaded()) {
 				__asm call fo::funcoffs::grid_toggle_;
 				fo::func::tile_refresh_display();
 			}

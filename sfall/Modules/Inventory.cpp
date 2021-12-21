@@ -36,8 +36,8 @@ static Delegate<DWORD> onAdjustFid;
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
 
-static DWORD reloadWeaponKey = 0;
-static DWORD itemFastMoveKey = 0;
+static DWORD reloadWeaponKey;
+static DWORD itemFastMoveKey;
 static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {

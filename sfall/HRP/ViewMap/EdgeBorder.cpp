@@ -197,9 +197,9 @@ static fo::DbFile* LoadMapEdgeFileSub(char* mapName) {
 				if (getValue != mapLevel) break; // next level
 
 				EdgeBorder::Edge *edge = new EdgeBorder::Edge;
-				edge->clipData = 0;
 				edge->prevEdgeData = edgeData;
 				edge->nextEdgeData = nullptr;
+				edge->clipData = 0;
 				edge->squareRect = edgeData->squareRect; // rect copy
 				edgeData->nextEdgeData = edge;
 				edgeData = edge;
