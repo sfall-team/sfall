@@ -46,12 +46,12 @@ static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static void ClearEventsOnMapExit();
 
-static DWORD toggleHighlightsKey;
 static DWORD highlightingToggled = 0;
-static DWORD highlightContainers = 0;
-static DWORD highlightCorpses = 0;
+static DWORD toggleHighlightsKey;
+static DWORD highlightContainers;
+static DWORD highlightCorpses;
 static DWORD motionScanner;
-static int outlineColor = 0x10;
+static int outlineColor;
 static char highlightFail1[128];
 static char highlightFail2[128];
 
@@ -763,6 +763,17 @@ static void ResetStateAfterFrame() {
 	RegAnimCombatCheck(1);
 }
 
+static inline void RunGlobalScripts(int mode1, int mode2) {
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (globalScripts[i].repeat
+			&& (globalScripts[i].mode == mode1 || globalScripts[i].mode == mode2)
+			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
+			RunScript(&globalScripts[i]);
+		}
+	}
+	ResetStateAfterFrame();
+}
+
 void RunGlobalScripts1() {
 	if (idle > -1) Sleep(idle);
 
@@ -777,11 +788,15 @@ void RunGlobalScripts1() {
 							highlightingToggled = fo::func::item_m_dec_charges(scanner) + 1;
 							fo::func::intface_redraw();
 							if (!highlightingToggled) fo::func::display_print(highlightFail2);
-						} else highlightingToggled = 1;
+						} else {
+							highlightingToggled = 1;
+						}
 					} else {
 						fo::func::display_print(highlightFail1);
 					}
-				} else highlightingToggled = 1;
+				} else {
+					highlightingToggled = 1;
+				}
 				if (highlightingToggled) obj_outline_all_items_on();
 				else highlightingToggled = 2;
 			}
@@ -790,42 +805,21 @@ void RunGlobalScripts1() {
 			highlightingToggled = 0;
 		}
 	}
-	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (globalScripts[i].repeat
-			&& (globalScripts[i].mode == 0 || globalScripts[i].mode == 3)
-			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
-			RunScript(&globalScripts[i]);
-		}
-	}
-	ResetStateAfterFrame();
+	RunGlobalScripts(0, 3);
 }
 
 void RunGlobalScripts2() {
 	if (IsGameLoaded()) {
 		if (idle > -1) Sleep(idle);
 
-		for (size_t i = 0; i < globalScripts.size(); i++) {
-			if (globalScripts[i].repeat
-				&& globalScripts[i].mode == 1
-				&& ++globalScripts[i].count >= globalScripts[i].repeat) {
-				RunScript(&globalScripts[i]);
-			}
-		}
-		ResetStateAfterFrame();
+		RunGlobalScripts(1, 1);
 	}
 }
 
 void RunGlobalScripts3() {
 	if (idle > -1) Sleep(idle);
 
-	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (globalScripts[i].repeat
-			&& (globalScripts[i].mode == 2 || globalScripts[i].mode == 3)
-			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
-			RunScript(&globalScripts[i]);
-		}
-	}
-	ResetStateAfterFrame();
+	RunGlobalScripts(2, 3);
 }
 
 static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {

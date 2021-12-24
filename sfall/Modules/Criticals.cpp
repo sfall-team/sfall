@@ -323,7 +323,7 @@ void Criticals::init() {
 	RemoveCriticalTimeLimitsPatch();
 }
 
-void Criticals::CritLoad() {
+void Criticals::ApplyCritTable() {
 	if (!Inited) return;
 	memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table
 }

@@ -130,7 +130,7 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 }
 
 static void __stdcall RunOnBeforeGameStart() {
-	Criticals::CritLoad();
+	Criticals::ApplyCritTable();
 	ReadExtraGameMsgFiles();
 	if (pipBoyAvailableAtGameStart) fo::ptr::gmovie_played_list[3] = true; // PipBoy aquiring video
 	Combat::OnBeforeGameStart();

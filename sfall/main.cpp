@@ -329,6 +329,9 @@ static HMODULE SfallInit() {
 	char filepath[MAX_PATH];
 	GetModuleFileName(0, filepath, MAX_PATH);
 
+	SetCursor(LoadCursorA(0, IDC_ARROW));
+	ShowCursor(1);
+
 	if (!CRC(filepath)) return 0;
 
 	LoggingInit();
@@ -340,7 +343,7 @@ static HMODULE SfallInit() {
 
 	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
-	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
+	if (!isDebug || IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -414,6 +417,8 @@ defaultIni:
 
 	InitReplacementHacks();
 	InitModules();
+
+	if (hrpDLLBaseAddr) ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
 	return ddraw.sfall;

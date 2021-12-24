@@ -28,10 +28,13 @@
 namespace sfall
 {
 
-static const DWORD ExpectedSize = 0x00122800;
-static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
+static const DWORD ExpectedSize = 1189888;
+static const DWORD ExpectedCRC[] = {
+	0xE1680293, // US 1.02d
+	0xEF34F989  // US 1.02d + HRP
+};
 
-static void inline MessageFail(const char* a) {
+static void inline ExitMessageFail(const char* a) {
 	MessageBoxA(0, a, 0, MB_TASKMODAL | MB_ICONERROR);
 	ExitProcess(1);
 }
@@ -72,11 +75,11 @@ static const DWORD CRC_table[256] = {
 };
 
 static DWORD crcInternal(BYTE* data, DWORD size) {
-	DWORD crc = 0xffffffff;
+	DWORD crc = 0xFFFFFFFF;
 	for (DWORD i = 0; i < size; i++) {
 		crc = CRC_table[(((BYTE)(crc)) ^ data[i])] ^ (crc >> 8);
 	}
-	return crc ^ 0xffffffff;
+	return crc ^ 0xFFFFFFFF;
 }
 
 bool CRC(const char* filepath) {
@@ -84,7 +87,8 @@ bool CRC(const char* filepath) {
 
 	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h == INVALID_HANDLE_VALUE) {
-		MessageFail("Cannot open fallout2.exe for CRC check.");
+		sprintf_s(buf, "Cannot open %s for CRC check.", filepath);
+		ExitMessageFail(buf);
 		return false;
 	}
 
@@ -94,8 +98,8 @@ bool CRC(const char* filepath) {
 		CloseHandle(h);
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
-		               "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
-		MessageFail(buf);
+		               "%s has an unexpected size.\nExpected %d bytes but got %d bytes.", filepath, ExpectedSize, size);
+		ExitMessageFail(buf);
 		return false;
 	}
 
@@ -123,8 +127,8 @@ bool CRC(const char* filepath) {
 	if (!matchedCRC) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
-		               "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
-		MessageFail(buf);
+		               "%s has an unexpected CRC.\nExpected 0x%x but got 0x%x.", filepath, ExpectedCRC[0], crc);
+		ExitMessageFail(buf);
 	}
 	return matchedCRC;
 }

@@ -26,7 +26,7 @@ public:
 	static const char* name() { return "Criticals"; }
 	static void init();
 
-	static void CritLoad();
+	static void ApplyCritTable();
 
 	static const DWORD critTableCount;
 
