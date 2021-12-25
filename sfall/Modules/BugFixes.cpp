@@ -270,42 +270,28 @@ static void __declspec(naked) item_wd_process_hack() {
 		retn;
 jetAddict:
 		push ecx;
-		xor  edx, edx;    // init (0 - effects of addiction have already been applied)
+		xor  edx, edx;    // wait (0 - effects of addiction have already been applied)
 		mov  eax, ecx;    // critter (any party members or dude)
 		push [ebx + 0x4]; // queue_addict.drugPid (PID_JET)
 		mov  ebx, 10080;  // time (7 days)
 		mov  ecx, esi;    // addict perk (PERK_add_jet)
 		call fo::funcoffs::insert_withdrawal_;
 		pop  ecx;
-		mov  [esp], 0x47A3FB; // return addr
+		mov  [esp], 0x47A3FB; // ret addr
 		retn;
 	}
 }
 
-// replaces the item_d_check_addict_ function in item_d_take_drug_ with an alternative implementation
-static void __declspec(naked) item_d_take_drug_hook() { // eax - pid, esi - critter
+static void __declspec(naked) item_d_take_drug_hook() {
 	__asm {
-		mov  edx, addict_event;                   // type = addiction
-		cmp  eax, -1;                             // Has drug_pid?
-		jne  skip;                                // No
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
-		jmp  fo::funcoffs::queue_find_first_;     // return queue of player addiction
-skip:
-		mov  ebx, eax;                            // ebx = drug_pid
-		mov  eax, esi;                            // eax = who
-		call fo::funcoffs::queue_find_first_;
-		test eax, eax;                            // Has something in the list?
-		jz   end;                                 // No
-loopQueue:
-		cmp  ebx, dword ptr [eax + 0x4];          // drug_pid == queue_addict.drug_pid?
-		je   end;                                 // Has specific addiction
-		mov  eax, esi;                            // eax = who
-		mov  edx, addict_event;                   // type = addiction
-		call fo::funcoffs::queue_find_next_;
-		test eax, eax;                            // Has something in the list?
-		jnz  loopQueue;
-end:
-		retn; // return null or pointer to queue_addict
+		push edx;
+		push ecx;
+		mov  edx, eax; // item pid
+		mov  ecx, esi; // critter
+		call fo::util::CheckAddictByPid;
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
@@ -519,38 +505,28 @@ skip:
 	}
 }
 
+static void __fastcall CheckAddiction(fo::GameObject* critter) {
+	fo::func::queue_remove_this(critter, fo::QueueType::drug_effect_event);
+
+	for (size_t i = 0; i < 9; i++) {
+		long pid = fo::ptr::drugInfoList[i].itemPid;
+
+		fo::QueueAddictData* queue = fo::util::CheckAddictByPid(critter, pid);
+		if (queue && queue->wait == 0) { // Has addiction and it is active
+			fo::func::perk_add_effect(critter, queue->perkId);
+		}
+	}
+}
+
 static void __declspec(naked) partyMemberIncLevels_hook() {
 	__asm {
-		mov  ebx, eax;                            // party member pointer
+		mov  ebx, eax; // party member pointer
 		call fo::funcoffs::partyMemberCopyLevelInfo_;
 		cmp  eax, -1;
 		je   end;
-		xor  edx, edx;                            // queue type (0)
-		mov  eax, ebx;                            // source
-		call fo::funcoffs::queue_remove_this_;
-		push ecx;
-		push edi;
-		push esi;
-		mov  ecx, 8;
-		mov  edi, FO_VAR_drugInfoList;
-		mov  esi, ebx;                            // pointer for fixed item_d_check_addict_
-loopAddict:
-		mov  eax, dword ptr [edi];                // eax = drug pid
-		call fo::funcoffs::item_d_check_addict_;
-		test eax, eax;                            // Has addiction?
-		jz   noAddict;                            // No
-		cmp  dword ptr [eax], 0;                  // queue_addict.wait
-		jne  noAddict;                            // Addiction is not active yet
-		mov  edx, dword ptr [eax + 0x8];          // queue_addict.perk
-		mov  eax, ebx;
-		call fo::funcoffs::perk_add_effect_;
-noAddict:
-		lea  edi, [edi + 12];
-		dec  ecx;
-		jnz  loopAddict;
-		pop  esi;
-		pop  edi;
-		pop  ecx;
+		xchg ecx, ebx; // ecx <> ebx
+		call CheckAddiction;
+		mov  ecx, ebx;
 end:
 		retn;
 	}
@@ -3363,7 +3339,7 @@ void BugFixes::init()
 		dlog("Applying NPC's drug addiction fix.", DL_FIX);
 		// proper checks for NPC's addiction instead of always using global vars
 		const DWORD itemTakeDrugHkAddr[] = {0x479FBC, 0x47A0AE};
-		HookCalls(item_d_take_drug_hook, itemTakeDrugHkAddr);
+		HookCalls(item_d_take_drug_hook, itemTakeDrugHkAddr); // replace item_d_check_addict_ function calls with sfall implementation
 		MakeCall(0x479FCA, item_d_take_drug_hack, 2);
 		// just add a new "addict" event every 7 days (the previous one is deleted) until the Jet addiction is removed by the antidote
 		// Note: for critters who are not party members, any addiction is removed after leaving the map

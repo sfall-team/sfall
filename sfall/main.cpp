@@ -388,9 +388,10 @@ static HMODULE SfallInit() {
 defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
+	//std::srand(GetTickCount());
 
-	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-	if (hrpIsEnabled) {
+	bool isEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
+	if (isEnabled) {
 		GetHRPModule();
 		MODULEINFO info;
 		if (hrpDLLBaseAddr && GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
@@ -399,7 +400,7 @@ defaultIni:
 			}
 		}
 	}
-	//std::srand(GetTickCount());
+	hrpIsEnabled = (hrpDLLBaseAddr != 0);
 
 	IniReader::init();
 
@@ -418,7 +419,7 @@ defaultIni:
 	InitReplacementHacks();
 	InitModules();
 
-	if (hrpDLLBaseAddr) ShowCursor(0);
+	if (hrpIsEnabled) ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
 	return ddraw.sfall;

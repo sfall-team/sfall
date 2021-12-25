@@ -44,7 +44,7 @@ PTR_(DarkGreenGreyColor,         BYTE)
 PTR_(dialog_target,              fo::GameObject*)
 PTR_(dialog_target_is_party,     DWORD)
 PTRC(dialogueBackWindow,         DWORD)
-PTR_(drugInfoList,               DWORD)
+PTR_(drugInfoList,               fo::DrugInfoList) // array of 9 DrugInfoList
 PTR_(DullPinkColor,              BYTE)
 PTRC(edit_win,                   DWORD)
 PTR_(Educated,                   DWORD)

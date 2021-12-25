@@ -97,6 +97,9 @@ long ObjIsOpenable(fo::GameObject* object);
 
 bool HeroIsFemale();
 
+// Alternative implementation of item_d_check_addict_ engine function with critter argument and returned addict queue data
+fo::QueueAddictData* __fastcall CheckAddictByPid(fo::GameObject* critter, long pid);
+
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();
 

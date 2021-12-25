@@ -327,7 +327,7 @@ FUNC(item_c_curr_size_,               0x479A20)
 FUNC(item_c_max_size_,                0x479A00)
 FUNC(item_caps_total_,                0x47A6A8)
 FUNC(item_count_,                     0x47808C)
-FUNC(item_d_check_addict_,            0x47A640)
+FUNC(item_d_check_addict_,            0x47A640) // only for dude
 FUNC(item_d_take_drug_,               0x479F60)
 FUNC(item_drop_all_,                  0x477804)
 FUNC(item_get_type_,                  0x477AFC)

@@ -176,6 +176,7 @@ WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, fo::GameObject*, object) // Checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, fo::GameObject*, object)
 WRAP_WATCOM_FUNC1(long, partyMemberGetCurLevel, fo::GameObject*, obj)
+WRAP_WATCOM_FUNC2(void, perk_add_effect,  fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC2(long, perk_can_add, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC2(long, perk_level, fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC6(long, pick_death, fo::GameObject*, attacker, fo::GameObject*, target, fo::GameObject*, weapon, long, amount, long, anim, long, hitFromBack)
