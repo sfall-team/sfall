@@ -112,6 +112,37 @@ static void __declspec(naked) gnw_main_hack() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// compares paths without the trailing '\' character
+static bool PatchesCompare(const char* p1, const char* p2) {
+	size_t len1 = std::strlen(p1);
+	size_t len2 = std::strlen(p2);
+
+	if (len1 == 0 || len2 == 0) return false;
+
+	// R-Trim
+	while (p1[len1 - 1] == '\\') len1--;
+	while (p2[len2 - 1] == '\\') len2--;
+
+	if (len1 != len2) return false;
+
+	size_t n = 0;
+	while (true) {
+		unsigned char c1 = p1[n];
+		unsigned char c2 = p2[n];
+
+		// upper to lower case for standard ASCII
+		if (c1 >= 'A' && c1 <= 'Z') c1 |= 32;
+		if (c2 >= 'A' && c2 <= 'Z') c2 |= 32;
+
+		if (c1 != c2) return false;
+
+		n++;
+		if (n > len1 || n > len2) return false;
+		if (n == len1 && n == len2) break; // paths are matched
+	}
+	return true;
+}
+
 static void __stdcall InitSystemPatches() {
 	for (auto it = sfPatchFiles.begin(); it != sfPatchFiles.end(); ++it) {
 		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
@@ -197,11 +228,11 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
 
-	// remove paths that are identical to master_patches (usually the DATA folder)
+	// remove paths that are identical to master_patches (usually the "DATA" folder)
 	fo::PathNode* parentPath = fo::var::paths;
 	paths = parentPath->next;
 	while (paths) {
-		if (!paths->isDat && _stricmp(paths->path, fo::var::paths->path) == 0) {
+		if (!paths->isDat && PatchesCompare(paths->path, fo::var::paths->path)) {
 			auto nextPaths = paths->next;
 			__asm {
 				mov  eax, [paths];
@@ -520,14 +551,7 @@ static void SfallResourceFile() {
 
 void LoadOrder::AddResourcePatches(std::string &dat, std::string &patches) {
 	if (!dat.empty()) sfPatchFiles.push_back(std::move(dat));
-	if (!patches.empty()) {
-		size_t pos = patches.find('\\');
-		while (pos != std::string::npos) {
-			patches.replace(pos, 1, " ");
-			pos = patches.find('\\', pos + 1);
-		}
-		sfPatchFiles.push_back(std::move(trim(patches)));
-	}
+	if (!patches.empty()) sfPatchFiles.push_back(std::move(trim(patches)));
 }
 
 void LoadOrder::init() {

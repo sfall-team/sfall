@@ -1870,7 +1870,7 @@ FUNC(item_caps_total_,                0x47A6A8)
 FUNC(item_compact_,                   0x4775D8)
 FUNC(item_cost_,                      0x477CAC)
 FUNC(item_count_,                     0x47808C)
-FUNC(item_d_check_addict_,            0x47A640)
+FUNC(item_d_check_addict_,            0x47A640) // only for dude
 FUNC(item_d_clear_,                   0x47A178)
 FUNC(item_d_load_,                    0x47A1D0)
 FUNC(item_d_process_,                 0x47A198)

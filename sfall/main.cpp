@@ -264,10 +264,9 @@ static HMODULE SfallInit() {
 defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
+	std::srand(GetTickCount());
 
 	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
-
-	std::srand(GetTickCount());
 
 	IniReader::init();
 

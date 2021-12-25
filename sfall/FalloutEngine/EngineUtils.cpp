@@ -227,13 +227,21 @@ bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }
 
-long CheckAddictByPid(fo::GameObject* critter, long pid) {
-	__asm {
-		mov  eax, pid;
-		mov  esi, critter;
-		call fo::funcoffs::item_d_check_addict_;
+// Alternative implementation of item_d_check_addict_ engine function with critter argument and returned addict queue data
+fo::QueueAddictData* __fastcall CheckAddictByPid(fo::GameObject* critter, long pid) {
+	if (pid == -1) {
+		// return queue of player addiction
+		return (fo::QueueAddictData*)fo::func::queue_find_first(fo::var::obj_dude, fo::QueueType::addict_event);
 	}
-	/* keyword 'return' is not needed, the compiler will do everything correctly */
+
+	fo::QueueAddictData* queue = (fo::QueueAddictData*)fo::func::queue_find_first(critter, fo::QueueType::addict_event);
+	if (!queue) return queue; // null
+
+	while (queue->drugPid != pid) {
+		queue = (fo::QueueAddictData*)fo::func::queue_find_next(critter, fo::QueueType::addict_event);
+		if (!queue) break;
+	}
+	return queue; // return null or pointer to queue_addict
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
