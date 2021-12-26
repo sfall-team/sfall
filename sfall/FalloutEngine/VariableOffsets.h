@@ -88,8 +88,8 @@
 #define FO_VAR_doing_refresh_all          0x6ADF38
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
-#define FO_VAR_editor_message_file        0x56FCA8
 #define FO_VAR_edit_win                   0x57060C
+#define FO_VAR_editor_message_file        0x56FCA8
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_EncounterMapID             0x672E4C
@@ -100,6 +100,7 @@
 #define FO_VAR_endWindowRect              0x518FA0
 #define FO_VAR_Experience_pc              0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
+#define FO_VAR_fadeEventHandle            0x51D480
 #define FO_VAR_fallout_config             0x50281C
 #define FO_VAR_fallout_game_time          0x51C720
 #define FO_VAR_fidgetFID                  0x5186F4

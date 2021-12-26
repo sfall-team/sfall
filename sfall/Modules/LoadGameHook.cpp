@@ -351,7 +351,7 @@ static void __stdcall game_init_hook() {
 static void __stdcall GameInitialized(int initResult) {
 	#ifdef NDEBUG
 	if (!initResult) {
-		MessageBoxA(0, "Game initialization failed!", "Error", MB_TASKMODAL | MB_ICONERROR);
+		MessageBoxA(0, "Game initialization failed!", 0, MB_TASKMODAL | MB_ICONERROR);
 		return;
 	}
 	#endif

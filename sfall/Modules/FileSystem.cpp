@@ -704,6 +704,57 @@ bool FileSystem::IsEmpty() {
 	return (int)(files.size() - loadedFiles) <= 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static const DWORD __set_errno_ = 0x4E11F5;
+
+static void __stdcall OpenFail() {
+	MessageBoxA(0, "Failed to open file.\nToo many open files.", 0, MB_TASKMODAL | MB_ICONERROR);
+}
+
+static void __declspec(naked) sopen_hook() {
+	__asm {
+		call __set_errno_;
+		jmp  OpenFail;
+	}
+}
+
+#ifndef NDEBUG
+long openfiles = 0; // current number of open files
+
+void __stdcall OpenLog(const char* file, long id) {
+	openfiles++;
+	dlog_f(">> Open %s(%d) [%d]\n", 0, file, id, openfiles);
+}
+
+void __stdcall CloseLog(long id) {
+	dlog_f("<< Close id:%d [%d]\n", 0, id, openfiles);
+	openfiles--;
+}
+
+static void __declspec(naked) OpenFileLog() {
+	__asm {
+		pushadc;
+		push eax;
+		push ebp;
+		call OpenLog;
+		popadc;
+		call dword ptr ds:[0x51E758]; // __InitAccessH
+		retn;
+	}
+}
+
+static void __declspec(naked) CloseFileLog() {
+	__asm {
+		pushadc;
+		push eax;
+		call CloseLog;
+		popadc;
+		retn;
+	}
+}
+#endif
+
 void FileSystem::init() {
 	if (IniReader::GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
@@ -717,6 +768,13 @@ void FileSystem::init() {
 	// xfopen_ - remove sprintf_ function calls that do nothing (probably just checking the filename for the '%' formatting char?)
 	BlockCall(0x4DEF12);
 	BlockCall(0x4DEF84);
+
+	// Debug message "Failed to open file"
+	HookCall(0x4EE0EC, sopen_hook);
+
+	// DEV Testing: Check open/close file descriptors
+	//MakeCall(0x4EE216, OpenFileLog, 1);
+	//MakeCall(0x4EB814, CloseFileLog, 1);
 }
 
 }

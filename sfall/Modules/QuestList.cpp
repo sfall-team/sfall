@@ -269,7 +269,7 @@ static void __declspec(naked) PrintPages() {
 		push eax;
 
 		push format;
-		lea  eax, [bufPage];
+		lea  eax, bufPage;
 		push eax;                           // text buf
 		call fo::funcoffs::sprintf_;
 		add  esp, 0x18;
@@ -278,7 +278,7 @@ static void __declspec(naked) PrintPages() {
 		mov  dword ptr ds:[FO_VAR_cursor_line], ebx;
 		mov  bl, byte ptr ds:[FO_VAR_GreenColor];
 		mov  edx, 0x21;
-		lea  eax, [bufPage];
+		lea  eax, bufPage;
 		jmp  fo::funcoffs::pip_print_;
 	}
 }

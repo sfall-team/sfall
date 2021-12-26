@@ -117,13 +117,11 @@ static bool PatchesCompare(const char* p1, const char* p2) {
 	size_t len1 = std::strlen(p1);
 	size_t len2 = std::strlen(p2);
 
-	if (len1 == 0 || len2 == 0) return false;
-
 	// R-Trim
-	while (p1[len1 - 1] == '\\') len1--;
-	while (p2[len2 - 1] == '\\') len2--;
+	while (len1 > 0 && p1[len1 - 1] == '\\') len1--;
+	while (len2 > 0 && p2[len2 - 1] == '\\') len2--;
 
-	if (len1 != len2) return false;
+	if (len1 != len2 || len1 == 0 || len2 == 0) return false;
 
 	size_t n = 0;
 	while (true) {
@@ -134,10 +132,8 @@ static bool PatchesCompare(const char* p1, const char* p2) {
 		if (c1 >= 'A' && c1 <= 'Z') c1 |= 32;
 		if (c2 >= 'A' && c2 <= 'Z') c2 |= 32;
 
-		if (c1 != c2) return false;
+		if (c1 != c2 || ++n > len1 || n > len2) return false;
 
-		n++;
-		if (n > len1 || n > len2) return false;
 		if (n == len1 && n == len2) break; // paths are matched
 	}
 	return true;
