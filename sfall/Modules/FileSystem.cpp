@@ -711,6 +711,21 @@ bool FileSystem::IsEmpty() {
 	return (int)(files.size() - loadedFiles) <= 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static const DWORD __set_errno_ = 0x4E11F5;
+
+static void __stdcall OpenFail() {
+	MessageBoxA(0, "Failed to open file.\nToo many open files.", 0, MB_TASKMODAL | MB_ICONERROR);
+}
+
+static void __declspec(naked) sopen_hook() {
+	__asm {
+		call __set_errno_;
+		jmp  OpenFail;
+	}
+}
+
 void FileSystem::init() {
 	if (IniReader::GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
@@ -722,6 +737,9 @@ void FileSystem::init() {
 	// xfopen_ - remove sprintf_ function calls that do nothing (probably just checking the filename for the '%' formatting char?)
 	BlockCall(0x4DEF12);
 	BlockCall(0x4DEF84);
+
+	// Debug message "Failed to open file"
+	HookCall(0x4EE0EC, sopen_hook);
 }
 
 }

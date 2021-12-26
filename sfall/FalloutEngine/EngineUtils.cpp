@@ -222,11 +222,8 @@ fo::QueueAddictData* __fastcall CheckAddictByPid(fo::GameObject* critter, long p
 	}
 
 	fo::QueueAddictData* queue = (fo::QueueAddictData*)fo::func::queue_find_first(critter, fo::QueueType::addict_event);
-	if (!queue) return queue; // null
-
-	while (queue->drugPid != pid) {
+	while (queue && queue->drugPid != pid) {
 		queue = (fo::QueueAddictData*)fo::func::queue_find_next(critter, fo::QueueType::addict_event);
-		if (!queue) break;
 	}
 	return queue; // return null or pointer to queue_addict
 }

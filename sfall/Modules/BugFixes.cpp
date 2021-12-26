@@ -1709,7 +1709,7 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		lea  eax, [messageBuffer];
+		lea  eax, messageBuffer;
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1728,7 +1728,7 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		sub  eax, 2;
 		mov  byte ptr messageBuffer[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		lea  eax, [messageBuffer];
+		lea  eax, messageBuffer;
 skip:
 		jmp  ObjExamineFuncWeapon_Ret;
 	}
