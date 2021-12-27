@@ -31,7 +31,7 @@ namespace sfall
 static const DWORD ExpectedSize = 1189888;
 static const DWORD ExpectedCRC[] = {
 	0xE1680293, // US 1.02d
-	0xEF34F989  // US 1.02d + HRP
+	0xEF34F989  // US 1.02d + HRP by Mash
 };
 
 static void inline ExitMessageFail(const char* a) {
@@ -87,21 +87,11 @@ bool CRC(const char* filepath) {
 
 	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h == INVALID_HANDLE_VALUE) {
-		sprintf_s(buf, "Cannot open %s for CRC check.", filepath);
-		ExitMessageFail(buf);
+		ExitMessageFail("Cannot open the game executable for CRC check.");
 		return false;
 	}
 
 	DWORD size = GetFileSize(h, 0);
-
-	if (size != ExpectedSize && IniReader::GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0) == 0) {
-		CloseHandle(h);
-		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
-		               "Was expecting '" TARGETVERSION "'.\n\n"
-		               "%s has an unexpected size.\nExpected %d bytes but got %d bytes.", filepath, ExpectedSize, size);
-		ExitMessageFail(buf);
-		return false;
-	}
 
 	DWORD crc;
 	BYTE* bytes = new BYTE[size];
@@ -128,6 +118,13 @@ bool CRC(const char* filepath) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
 		               "%s has an unexpected CRC.\nExpected 0x%x but got 0x%x.", filepath, ExpectedCRC[0], crc);
+
+		if (size == ExpectedSize) {
+			if (MessageBoxA(0, buf, "CRC mismatch", MB_TASKMODAL | MB_ICONWARNING | MB_ABORTRETRYIGNORE) != IDIGNORE) {
+				ExitProcess(1);
+			}
+			return true;
+		}
 		ExitMessageFail(buf);
 	}
 	return matchedCRC;
