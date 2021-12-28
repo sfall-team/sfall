@@ -343,7 +343,7 @@ static HMODULE SfallInit() {
 
 	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
-	if (!isDebug || IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
+	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
