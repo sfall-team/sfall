@@ -706,13 +706,12 @@ bool FileSystem::IsEmpty() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static const DWORD __set_errno_ = 0x4E11F5;
-
 static void __stdcall OpenFail() {
 	MessageBoxA(0, "Failed to open file.\nToo many open files.", 0, MB_TASKMODAL | MB_ICONERROR);
 }
 
 static void __declspec(naked) sopen_hook() {
+	static const DWORD __set_errno_ = 0x4E11F5;
 	__asm {
 		call __set_errno_;
 		jmp  OpenFail;
@@ -720,16 +719,14 @@ static void __declspec(naked) sopen_hook() {
 }
 
 #ifndef NDEBUG
-long openfiles = 0; // current number of open files
+static long openfiles = 0; // current number of open files
 
-void __stdcall OpenLog(const char* file, long id) {
-	openfiles++;
-	dlog_f(">> Open %s(%d) [%d]\n", 0, file, id, openfiles);
+static void __stdcall OpenLog(const char* file, long id) {
+	dlog_f(">> Open %s(%d) [%d]\n", 0, file, id, ++openfiles);
 }
 
-void __stdcall CloseLog(long id) {
-	dlog_f("<< Close id:%d [%d]\n", 0, id, openfiles);
-	openfiles--;
+static void __stdcall CloseLog(long id) {
+	dlog_f("<< Close id:%d [%d]\n", 0, id, openfiles--);
 }
 
 static void __declspec(naked) OpenFileLog() {
@@ -769,7 +766,7 @@ void FileSystem::init() {
 	BlockCall(0x4DEF12);
 	BlockCall(0x4DEF84);
 
-	// Debug message "Failed to open file"
+	// Error message "Failed to open file"
 	HookCall(0x4EE0EC, sopen_hook);
 
 	// DEV Testing: Check open/close file descriptors

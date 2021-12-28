@@ -74,12 +74,23 @@ static const DWORD CRC_table[256] = {
 	0x1886B265, 0x12D9FF10, 0x0C38288F, 0x066765FA, 0x0C435932, 0x061C1447, 0x18FDC3D8, 0x12A28EAD
 };
 
-static DWORD crcInternal(BYTE* data, DWORD size) {
+static DWORD CalcCRCInternal(BYTE* data, DWORD size) {
 	DWORD crc = 0xFFFFFFFF;
 	for (DWORD i = 0; i < size; i++) {
 		crc = CRC_table[(((BYTE)(crc)) ^ data[i])] ^ (crc >> 8);
 	}
 	return crc ^ 0xFFFFFFFF;
+}
+
+static bool CheckExtraCRC(DWORD crc) {
+	auto extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
+	if (!extraCrcList.empty()) {
+		return std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
+			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
+			return testedCrc && crc == testedCrc; // return for lambda
+		});
+	}
+	return false;
 }
 
 bool CRC(const char* filepath) {
@@ -98,30 +109,27 @@ bool CRC(const char* filepath) {
 	ReadFile(h, bytes, size, &crc, 0);
 	CloseHandle(h);
 
-	crc = crcInternal(bytes, size);
+	crc = CalcCRCInternal(bytes, size);
 	delete[] bytes;
 
 	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {
 		if (crc == ExpectedCRC[i]) return true;
 	}
 
-	bool matchedCRC = false;
-
-	auto extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
-	if (!extraCrcList.empty()) {
-		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
-			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
-			return testedCrc && crc == testedCrc; // return for lambda
-		});
-	}
+Retry:
+	bool matchedCRC = CheckExtraCRC(crc);
 	if (!matchedCRC) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
 		               "%s has an unexpected CRC.\nExpected 0x%x but got 0x%x.", filepath, ExpectedCRC[0], crc);
 
 		if (size == ExpectedSize) {
-			if (MessageBoxA(0, buf, "CRC mismatch", MB_TASKMODAL | MB_ICONWARNING | MB_ABORTRETRYIGNORE) != IDIGNORE) {
+			switch (MessageBoxA(0, buf, "CRC Mismatch", MB_TASKMODAL | MB_ICONWARNING | MB_ABORTRETRYIGNORE)) {
+			case IDABORT:
 				ExitProcess(1);
+				break;
+			case IDRETRY:
+				goto Retry;
 			}
 			return true;
 		}

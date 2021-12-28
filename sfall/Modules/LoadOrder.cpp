@@ -547,7 +547,7 @@ static void SfallResourceFile() {
 
 void LoadOrder::AddResourcePatches(std::string &dat, std::string &patches) {
 	if (!dat.empty()) sfPatchFiles.push_back(std::move(dat));
-	if (!patches.empty()) sfPatchFiles.push_back(std::move(trim(patches)));
+	if (!patches.empty()) sfPatchFiles.push_back(std::move(patches));
 }
 
 void LoadOrder::init() {
