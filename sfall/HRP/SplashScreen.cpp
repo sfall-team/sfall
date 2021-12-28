@@ -42,7 +42,12 @@ static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWi
 	}
 
 	if (SplashScreen::SPLASH_SCRN_SIZE || srcWidth > w || srcHeight > h) {
-		if (SplashScreen::SPLASH_SCRN_SIZE == 1) {
+		if (SplashScreen::SPLASH_SCRN_SIZE == 2) {
+			rect.top = 0;
+			rect.left = 0;
+			rect.right = w - 1;
+			rect.bottom = h - 1;
+		} else {
 			x = 0;
 			Image::GetAspectSize(srcWidth, srcHeight, &x, &y, w, h);
 
@@ -50,11 +55,6 @@ static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWi
 			rect.bottom = (y + h) - 1;
 			rect.left = x;
 			rect.right = (rect.left + w) - 1;
-		} else {
-			rect.top = 0;
-			rect.left = 0;
-			rect.right = w - 1;
-			rect.bottom = h - 1;
 		}
 		BYTE* resizeBuff = new BYTE[w * h];
 		Image::Scale(srcPixels, srcWidth, srcHeight, resizeBuff, w, h);
@@ -97,7 +97,7 @@ static fo::DbFile* __fastcall ReadRIX(fo::DbFile* file, fo::PALETTE* palette) {
 		size_t size = rixWidth * rixHeight;
 		rixBuffer = new BYTE[size];
 
-		fo::func::db_fseek(file, 4 + 768, SEEK_CUR);
+		fo::func::db_fseek(file, 2 + 768, SEEK_CUR);
 		fo::func::db_fread(rixBuffer, 1, size, file);
 	}
 	Clear(palette);

@@ -42,7 +42,7 @@ static void __cdecl main_death_scene_hook_buf_to_buf(fo::FrmData* frm, long w, l
 	h = Setting::ScreenHeight();
 
 	if (DeathScreen::DEATH_SCRN_SIZE || width > w || height > h) {
-		if (DeathScreen::DEATH_SCRN_SIZE == 1) {
+		if (DeathScreen::DEATH_SCRN_SIZE <= 1) {
 			long x = 0;
 			long y = 0;
 			Image::GetAspectSize(width, height, &x, &y, w, h);

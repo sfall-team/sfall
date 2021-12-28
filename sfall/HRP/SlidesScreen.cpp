@@ -53,7 +53,7 @@ static void __cdecl endgame_display_image_hook_buf_to_buf(BYTE* src, long w, lon
 	if (SlidesScreen::END_SLIDE_SIZE != 2) std::memset(dst, color, w * h);
 
 	if (SlidesScreen::END_SLIDE_SIZE || width > w || height > h) {
-		if (SlidesScreen::END_SLIDE_SIZE == 1) {
+		if (SlidesScreen::END_SLIDE_SIZE <= 1) {
 			long x = 0;
 			long y = 0;
 			Image::GetAspectSize(width, height, &x, &y, w, h);

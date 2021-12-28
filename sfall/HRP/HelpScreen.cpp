@@ -37,7 +37,7 @@ static void __cdecl game_help_hook_buf_to_buf(fo::FrmData* frm, long w, long h, 
 	h = Setting::ScreenHeight();
 
 	if (HelpScreen::HELP_SCRN_SIZE || width > w || height > h) {
-		if (HelpScreen::HELP_SCRN_SIZE == 1) {
+		if (HelpScreen::HELP_SCRN_SIZE <= 1) {
 			long x = 0;
 			long y = 0;
 			Image::GetAspectSize(width, height, &x, &y, w, h);
