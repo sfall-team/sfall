@@ -234,6 +234,8 @@ static void __fastcall game_init_databases_hook1() {
 		node = node->next;
 	}
 	*fo::ptr::master_db_handle = node; // set pointer to master_patches node
+
+	fo::func::db_init(sfallRes, 0);
 }
 */
 static void MultiPatchesPatch() {

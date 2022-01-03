@@ -180,7 +180,6 @@ static void ResetDevice(bool create) {
 	params.BackBufferFormat = dispMode.Format;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
-	params.EnableAutoDepthStencil = false;
 	params.Windowed = (Graphics::mode != 4);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
@@ -715,7 +714,7 @@ public:
 		0x4F5E91/0x4F5EBB nf_mve_buf_lock [c=0] (from MVE_rmStepMovie_)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST (0x887601C2)
 		if (isPrimary) {
 			lockRect = a;
 			if (Graphics::GPUBlt) {
@@ -747,10 +746,14 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			if (Graphics::GPUBlt) SetGPUPalette(); // restore palette
+			// restore palette
+			if (Graphics::GPUBlt) {
+				paletteTex->AddDirtyRect(0);
+				SetGPUPalette();
+			}
 			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
-		return DeviceLost;
+		return (DeviceLost) ? DD_FALSE : DD_OK;
 	}
 
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }

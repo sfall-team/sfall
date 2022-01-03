@@ -419,7 +419,7 @@ defaultIni:
 	InitReplacementHacks();
 	InitModules();
 
-	if (hrpIsEnabled) ShowCursor(0);
+	ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
 	return ddraw.sfall;
