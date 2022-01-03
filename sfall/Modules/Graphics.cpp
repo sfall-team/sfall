@@ -42,6 +42,12 @@ namespace sfall
 #if !(NDEBUG) && !(_DEBUG)
 static LPD3DXFONT font;
 static RECT fontPosition;
+
+#define FPSOnLostDevice  font->OnLostDevice();
+#define FPSOnResetDevice font->OnResetDevice();
+#else
+#define FPSOnLostDevice
+#define FPSOnResetDevice
 #endif
 
 IDirectDrawSurface* primarySurface = nullptr; // aka _GNW95_DDPrimarySurface
@@ -222,7 +228,7 @@ static void ResetDevice(bool create) {
 		if (Graphics::GPUBlt == 0) palette = new DirectDraw::PALCOLOR[256];
 
 		#if !(NDEBUG) && !(_DEBUG)
-			D3DXCreateFontA(d3d9Device, 24, 0, 500, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &font); // create a font
+			D3DXCreateFontA(d3d9Device, 24, 0, 500, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &font);
 
 			fontPosition.top = 10;
 			fontPosition.left = 10;
@@ -234,6 +240,7 @@ static void ResetDevice(bool create) {
 		d3d9Device->Reset(&params);
 		if (gpuBltEffect) gpuBltEffect->OnResetDevice();
 		ScriptShaders::OnResetDevice();
+		FPSOnResetDevice
 	}
 
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_DEFAULT, &mainTexD, 0);
@@ -352,6 +359,7 @@ static void Present() {
 		Graphics::ReleaseMovieTexture();
 		if (gpuBltEffect) gpuBltEffect->OnLostDevice();
 		ScriptShaders::OnLostDevice();
+		FPSOnLostDevice
 	}
 	CalcFPS();
 }
@@ -599,6 +607,8 @@ public:
 
 	// called 0x4868DA movie_MVE_ShowFrame_ used for game movies (only for w/o HRP by Mash)
 	HRESULT __stdcall Blt(LPRECT dst, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) {
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST;
+
 		mveDesc.dwHeight = scr->bottom;
 		mveDesc.lPitch = scr->right;
 
@@ -732,7 +742,6 @@ public:
 			primaryPalette = a;
 			return DD_OK; // prevents executing the function when called from outside of sfall
 		}
-		if (DeviceLost) return DD_OK;
 
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, 0, 0);
@@ -753,7 +762,7 @@ public:
 		}
 
 		mainTex->UnlockRect(0);
-		d3d9Device->UpdateTexture(mainTex, mainTexD);
+		if (!DeviceLost) d3d9Device->UpdateTexture(mainTex, mainTexD);
 
 		return DD_OK;
 	}
@@ -880,7 +889,7 @@ public:
 				b++;
 			} while (--c);
 			paletteTex->UnlockRect(0);
-			SetGPUPalette();
+			if (!DeviceLost) SetGPUPalette();
 		} else {
 			// copy and swap color B <> R
 			do {
