@@ -39,6 +39,7 @@ static void inline ExitMessageFail(const char* a) {
 	ExitProcess(1);
 }
 
+// Precomputed CRC32C table
 static const DWORD CRC_table[256] = {
 	0x00000000, 0x0A5F4D75, 0x14BE9AEA, 0x1EE1D79F, 0x14C5EB57, 0x1E9AA622, 0x007B71BD, 0x0A243CC8,
 	0x1433082D, 0x1E6C4558, 0x008D92C7, 0x0AD2DFB2, 0x00F6E37A, 0x0AA9AE0F, 0x14487990, 0x1E1734E5,
