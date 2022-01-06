@@ -334,23 +334,29 @@ playWalkMovie:
 	}
 }
 
+static long __fastcall GetRadHighlightColor(bool selected) {
+	if (fo::util::IsRadInfluence()) {
+		return (selected) ? *fo::ptr::LightRedColor : *fo::ptr::RedColor;
+	}
+	if ((*fo::ptr::obj_dude)->critter.rads == 0 && fo::util::GetRadiationEvent(0)) {
+		return (selected) ? *fo::ptr::WhiteColor : *fo::ptr::NearWhiteColor;
+	}
+	return 0;
+}
+
 static void __declspec(naked) ListDrvdStats_hook() {
-	static const DWORD ListDrvdStats_Ret = 0x4354D9;
 	__asm {
-		call fo::util::IsRadInfluence;
+		cmp  dword ptr [esp], 0x4354BE + 5; // from called
+		sete cl;
+		call GetRadHighlightColor;
 		test eax, eax;
-		jnz  influence;
+		jnz  skip;
 		mov  eax, ds:[FO_VAR_obj_dude];
 		jmp  fo::funcoffs::critter_get_rads_;
-influence:
-		xor  ecx, ecx;
-		mov  cl, ds:[FO_VAR_RedColor];
-		cmp  dword ptr [esp], 0x4354BE + 5;
-		jne  skip;
-		mov  cl, 131; // color index for selected
 skip:
-		add  esp, 4;
-		jmp  ListDrvdStats_Ret;
+		mov  ecx, eax;
+		mov  dword ptr [esp], 0x4354D9; // ListDrvdStats_
+		retn;
 	}
 }
 
@@ -1005,7 +1011,8 @@ void MiscPatches::init() {
 	SafeWriteBatch<DWORD>((DWORD)&sf_display_print_alt, displayPrintAltAddr);
 	SafeWrite32(0x472F9A, (DWORD)&sf_inven_display_msg); // inven_obj_examine_func_
 
-	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	// Highlight "Radiated" in red when the player is under the influence of negative effects of radiation
+	// also highlight in gray when the player still has an impending radiation effect
 	const DWORD listDrvdStatsAddr[] = {0x43549C, 0x4354BE};
 	HookCalls(ListDrvdStats_hook, listDrvdStatsAddr);
 
