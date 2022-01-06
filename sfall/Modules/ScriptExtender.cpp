@@ -944,14 +944,6 @@ void ScriptExtender::init() {
 	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle > 30) idle = 30;
 
-	arraysBehavior = IniReader::GetConfigInt("Misc", "ArraysBehavior", 1);
-	if (arraysBehavior > 0) {
-		arraysBehavior = 1; // only 1 and 0 allowed at this time
-		dlogr("New arrays behavior enabled.", DL_SCRIPT);
-	} else {
-		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
-	}
-
 	iniConfigFolder = IniReader::GetConfigString("Scripts", "IniConfigFolder", "", 64);
 	size_t len = iniConfigFolder.length();
 	if (len) {
