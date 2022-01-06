@@ -304,6 +304,10 @@ void MainMenuScreen::init() {
 	sf::HookCall(0x481883, main_menu_create_hook_register_button);
 	sf::MakeCall(0x481933, main_menu_create_hook_text_to_buf, 1);
 
+	if (MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU) {
+		sf::SafeWrite32(0x4818A9, (DWORD)&buttonImageData); // main_menu_create_
+	}
+
 	// main_menu_create_
 	// imul ebp, edx, 640 > mov ebp, edx
 	sf::SafeWrite16(0x481912, 0xD589);

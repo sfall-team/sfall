@@ -23,17 +23,17 @@ public:
 		Edge* nextEdgeData = nullptr;
 
 		void Release() {
-			Edge* edge = nextEdgeData;
+			Edge* edge = this->nextEdgeData;
 			while (edge) {
 				Edge* edgeNext = edge->nextEdgeData;
 				delete edge;
 				edge = edgeNext;
 			};
-			nextEdgeData = nullptr;
+			this->nextEdgeData = nullptr;
 		}
 
 		~Edge() {
-			Release();
+			if (nextEdgeData) delete nextEdgeData;
 		}
 	};
 

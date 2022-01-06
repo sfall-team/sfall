@@ -152,6 +152,8 @@ static __declspec(naked) void gmouse_bk_process() {
 }
 
 void Setting::init(const char* exeFileName, std::string &cmdline) {
+	ViewMap::RedrawFix();
+
 	bool hiResMode = sf::IniReader::GetIntDefaultConfig("Main", "HiResMode", 1) != 0;
 
 	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode

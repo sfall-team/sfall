@@ -22,7 +22,6 @@
 #include "..\Translate.h"
 
 #include "LoadGameHook.h"
-#include "MainLoopHook.h"
 
 #include "MiscPatches.h"
 
@@ -351,23 +350,29 @@ playWalkMovie:
 	}
 }
 
+static long __fastcall GetRadHighlightColor(bool selected) {
+	if (fo::util::IsRadInfluence()) {
+		return (selected) ? fo::var::LightRedColor : fo::var::RedColor;
+	}
+	if (fo::var::obj_dude->critter.rads == 0 && fo::util::GetRadiationEvent(0)) {
+		return (selected) ? fo::var::WhiteColor : fo::var::NearWhiteColor;
+	}
+	return 0;
+}
+
 static void __declspec(naked) ListDrvdStats_hook() {
-	static const DWORD ListDrvdStats_Ret = 0x4354D9;
 	__asm {
-		call fo::util::IsRadInfluence;
+		cmp  dword ptr [esp], 0x4354BE + 5; // from called
+		sete cl;
+		call GetRadHighlightColor;
 		test eax, eax;
-		jnz  influence;
+		jnz  skip;
 		mov  eax, ds:[FO_VAR_obj_dude];
 		jmp  fo::funcoffs::critter_get_rads_;
-influence:
-		xor  ecx, ecx;
-		mov  cl, ds:[FO_VAR_RedColor];
-		cmp  dword ptr [esp], 0x4354BE + 5;
-		jne  skip;
-		mov  cl, 131; // color index for selected
 skip:
-		add  esp, 4;
-		jmp  ListDrvdStats_Ret;
+		mov  ecx, eax;
+		mov  dword ptr [esp], 0x4354D9; // ListDrvdStats_
+		retn;
 	}
 }
 
@@ -457,23 +462,6 @@ static void __declspec(naked) text_object_create_hack() {
 		mov  ecx, eax;
 		push 0x4B03A6; // ret addr
 		jmp  RemoveFloatTextObject;
-	}
-}
-
-static void __declspec(naked) obj_move_to_tile_hook_redraw() {
-	__asm {
-		mov  MainLoopHook::displayWinUpdateState, 1;
-		call fo::funcoffs::tile_set_center_;
-		mov  eax, ds:[FO_VAR_display_win];
-		jmp  fo::funcoffs::win_draw_; // update black edges after tile_set_center_
-	}
-}
-
-static void __declspec(naked) map_check_state_hook_redraw() {
-	__asm {
-		cmp  MainLoopHook::displayWinUpdateState, 0;
-		je   obj_move_to_tile_hook_redraw;
-		jmp  fo::funcoffs::tile_set_center_;
 	}
 }
 
@@ -995,7 +983,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	// Highlight "Radiated" in red when the player is under the influence of negative effects of radiation
+	// also highlight in gray when the player still has an impending radiation effect
 	HookCalls(ListDrvdStats_hook, {0x43549C, 0x4354BE});
 
 	// Allow setting custom colors from the game palette for object outlines
@@ -1007,11 +996,6 @@ void MiscPatches::init() {
 
 	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
 	HookCall(0x4B03A1, text_object_create_hack); // jge hack
-
-	// Redraw the screen to update black edges of the map (HRP bug)
-	// https://github.com/phobos2077/sfall/issues/282
-	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
-	HookCall(0x483726, map_check_state_hook_redraw);
 
 	if (!HRP::Setting::IsEnabled()) {
 		// Corrects the height of the black background for death screen subtitles

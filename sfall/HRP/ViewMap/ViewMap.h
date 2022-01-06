@@ -12,6 +12,7 @@ namespace HRP
 class ViewMap {
 public:
 	static void init();
+	static void RedrawFix();
 
 	static long SCROLL_DIST_X;
 	static long SCROLL_DIST_Y;
