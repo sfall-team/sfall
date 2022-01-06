@@ -681,10 +681,10 @@ void Interface::init() {
 	InventoryCharacterRotationSpeedPatch();
 	UIAnimationSpeedPatch();
 
-	if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, windowRoundingAddr);
-	}
+	//}
 
 	DrawActionPointsNumber();
 	WorldMapInterfacePatch();

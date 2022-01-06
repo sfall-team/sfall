@@ -15,7 +15,7 @@ namespace script
 /*
 	GLOBAL variable for arrays
 */
-DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent arrays don't get stored in savegames by default
+//DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent arrays don't get stored in savegames by default
 
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
@@ -400,10 +400,10 @@ DWORD CreateArray(int len, DWORD flags) {
 	while (ArrayExists(nextArrayID)) nextArrayID++;
 	if (nextArrayID == 0) nextArrayID++;
 
-	if (arraysBehavior == 0) {
-		var.key = sArrayElement(nextArrayID, DATATYPE_INT);
-		savedArrays[var.key] = nextArrayID;
-	}
+	//if (arraysBehavior == 0) {
+	//	var.key = sArrayElement(nextArrayID, DATATYPE_INT);
+	//	savedArrays[var.key] = nextArrayID;
+	//}
 	stackArrayId = nextArrayID;
 	arrays[nextArrayID] = var;
 	return nextArrayID++;
