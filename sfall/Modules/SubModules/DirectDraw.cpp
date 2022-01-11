@@ -146,10 +146,10 @@ public:
 	void UpdateSurface() {
 		DDSURFACEDESC2 desc;
 		//std::memset(&desc, 0, sizeof(DDSURFACEDESC2));
-		desc.dwSize = sizeof(DDSURFACEDESC);
+		desc.dwSize = sizeof(DDSURFACEDESC2);
 
 		while (true) {
-			HRESULT hr = ddBackSurface->Lock(0, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, 0);
+			HRESULT hr = ddBackSurface->Lock(0, &desc, DDLOCK_WAIT, 0);
 			if (!hr) break;
 			if (hr != DDERR_SURFACELOST || ddBackSurface->Restore()) return;
 		}
@@ -290,11 +290,11 @@ static void __cdecl GNW95_ShowRect(BYTE* srcSurface, int sWidth, int sHeight, in
 
 		DDSURFACEDESC2 desc;
 		//std::memset(&desc, 0, sizeof(DDSURFACEDESC2));
-		desc.dwSize = sizeof(DDSURFACEDESC);
+		desc.dwSize = sizeof(DDSURFACEDESC2);
 
 		while (true) {
 			// NOTE: Not locking the entire surface reduces the performance
-			HRESULT hr = ddObject->ddBackSurface->Lock(0, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, 0);
+			HRESULT hr = ddObject->ddBackSurface->Lock(0, &desc, DDLOCK_WAIT, 0);
 			if (!hr) break;
 			// 0x887601C2
 			if (hr != DDERR_SURFACELOST || ddObject->ddBackSurface->Restore()) return;

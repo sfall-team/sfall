@@ -28,6 +28,8 @@ public:
 	const char* name() { return "MiscPatches"; }
 	void init();
 	void exit() override;
+
+	static void SetIdle(int value);
 };
 
 }

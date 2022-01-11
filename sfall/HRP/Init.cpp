@@ -15,6 +15,7 @@
 #include "..\WinProc.h"
 #include "..\Modules\Graphics.h"
 #include "..\Modules\LoadOrder.h"
+#include "..\Modules\MiscPatches.h"
 #include "..\Modules\SubModules\WindowRender.h"
 
 #include "..\Game\tilemap.h"
@@ -150,7 +151,15 @@ static __declspec(naked) void gmouse_bk_process() {
 		jmp  fo::funcoffs::gmouse_bk_process_;
 	}
 }
-
+/*
+static __declspec(naked) void GNW95_process_message_hack() {
+	__asm {
+		call sfall::WinProc::WaitMessageWindow;
+		xor  eax, eax;
+		retn
+	}
+}
+*/
 void Setting::init(const char* exeFileName, std::string &cmdline) {
 	ViewMap::RedrawFix();
 
@@ -288,6 +297,11 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 			0x45FA4D, // intface_end_window_open_
 			0x45FBA6, // intface_end_window_close_
 		});
+	}
+
+	if (sf::IniReader::GetInt("OTHER_SETTINGS", "CPU_USAGE_FIX", 1, f2ResIni) != 0) {
+		//sf::MakeCall(0x4C9DA9, GNW95_process_message_hack, 11); // implementation by Mash
+		sf::MiscPatches::SetIdle(1);
 	}
 
 	sf::SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile to _mapEntranceTileNum)
