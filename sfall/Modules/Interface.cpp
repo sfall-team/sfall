@@ -681,6 +681,7 @@ void Interface::init() {
 	InventoryCharacterRotationSpeedPatch();
 	UIAnimationSpeedPatch();
 
+	// Remove window position rounding for script-created windows
 	//if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		const DWORD windowRoundingAddr[] = {0x4D6EDD, 0x4D6F12};
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, windowRoundingAddr);

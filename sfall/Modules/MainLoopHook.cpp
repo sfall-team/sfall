@@ -15,12 +15,12 @@ static void MainGameLoopResetStates() {
 }
 
 static void __stdcall MainGameLoop() { // OnMainLoop
-	RunGlobalScripts1();
+	RunGlobalScriptsOnMainLoop();
 	MainGameLoopResetStates();
 }
 
 static void __stdcall CombatLoop() { // OnCombatLoop
-	RunGlobalScripts1();
+	RunGlobalScriptsOnMainLoop();
 }
 
 static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack

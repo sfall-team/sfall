@@ -280,7 +280,7 @@ public:
 			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
 
-		RunGlobalScripts2();
+		RunGlobalScriptsOnInput();
 
 		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);

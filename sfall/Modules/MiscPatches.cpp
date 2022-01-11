@@ -29,11 +29,22 @@
 namespace sfall
 {
 
+static int idle = -1;
+
 static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
 static int* scriptDialog = nullptr;
+
+static void __declspec(naked) GNW95_process_message_hack() {
+	__asm {
+		push idle;
+		call Sleep;
+		cmp  ds:[FO_VAR_GNW95_isActive], 0;
+		retn;
+	}
+}
 
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
@@ -977,6 +988,10 @@ void MiscPatches::init() {
 	// Set idle function
 	*fo::ptr::idle_func = reinterpret_cast<void*>(Sleep);
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
+
+	int ms = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
+	if (ms > idle) idle = (ms > 30) ? 30 : ms;
+	if (idle >= 0) MakeCall(0x4C9CF8, GNW95_process_message_hack, 2);
 
 	BlockCall(0x4425E6); // Patch out ereg call
 

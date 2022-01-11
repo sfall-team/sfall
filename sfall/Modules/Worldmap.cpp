@@ -51,6 +51,10 @@ static float scriptMapMulti = 1.0f;
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
 
+static void __stdcall WorldmapLoopHook() { // OnWorldmapLoop
+	RunGlobalScriptsOnWorldMap();
+}
+
 static __declspec(naked) void TimeDateFix() {
 	__asm {
 		test edi, edi; // year buf
@@ -116,7 +120,7 @@ end:
 static void WorldMapFPS() {
 	DWORD prevTicks = worldMapTicks; // previous ticks
 	do {
-		RunGlobalScripts3();
+		WorldmapLoopHook();
 		if (worldMapLongDelay) {
 			__asm call fo::funcoffs::process_bk_;
 		}
@@ -157,7 +161,7 @@ static void __declspec(naked) wmWorldMap_hook() {
 		cmp  eax, worldMapTicks;
 		je   skipHook;
 		mov  worldMapTicks, eax;
-		call RunGlobalScripts3; // scripts are run every ~15 ms (GetTickCount returns a difference of 14-16 ms)
+		call WorldmapLoopHook; // hook is called every ~15 ms (GetTickCount returns a difference of 14-16 ms)
 skipHook:
 		jmp  fo::funcoffs::get_input_;
 	}

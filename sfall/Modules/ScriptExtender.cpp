@@ -55,8 +55,6 @@ static int outlineColor;
 static char highlightFail1[128];
 static char highlightFail2[128];
 
-static int idle;
-
 char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for script functions
 
 bool ScriptExtender::OnMapLeave;
@@ -774,9 +772,7 @@ static inline void RunGlobalScripts(int mode1, int mode2) {
 	ResetStateAfterFrame();
 }
 
-void RunGlobalScripts1() {
-	if (idle > -1) Sleep(idle);
-
+void RunGlobalScriptsOnMainLoop() {
 	if (toggleHighlightsKey) {
 		// 0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
@@ -808,17 +804,13 @@ void RunGlobalScripts1() {
 	RunGlobalScripts(0, 3);
 }
 
-void RunGlobalScripts2() {
+void RunGlobalScriptsOnInput() {
 	if (IsGameLoaded()) {
-		if (idle > -1) Sleep(idle);
-
 		RunGlobalScripts(1, 1);
 	}
 }
 
-void RunGlobalScripts3() {
-	if (idle > -1) Sleep(idle);
-
+void RunGlobalScriptsOnWorldMap() {
 	RunGlobalScripts(2, 3);
 }
 
@@ -1174,9 +1166,6 @@ void ScriptExtender::init() {
 		HookCall(0x44BD1C, obj_remove_outline_hook); // gmouse_bk_process_
 		HookCall(0x44E559, obj_remove_outline_hook); // gmouse_remove_item_outline_
 	}
-
-	idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1 && idle > 30) idle = 30;
 
 	alwaysFindScripts = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);

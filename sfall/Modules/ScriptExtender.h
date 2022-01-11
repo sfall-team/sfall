@@ -84,9 +84,9 @@ void LoadGlobalScripts();
 void InitGlobalScripts();
 bool IsGameScript(const char* filename);
 
-void RunGlobalScripts1();
-void RunGlobalScripts2();
-void RunGlobalScripts3();
+void RunGlobalScriptsOnMainLoop();
+void RunGlobalScriptsOnInput();
+void RunGlobalScriptsOnWorldMap();
 void RunGlobalScriptsAtProc(DWORD procId);
 
 bool LoadGlobals(HANDLE h);
