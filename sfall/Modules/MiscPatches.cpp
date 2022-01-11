@@ -37,10 +37,14 @@ static char versionString[65] = {};
 
 static int* scriptDialog = nullptr;
 
+static void __stdcall Sleep2(DWORD dwMilliseconds) {
+	Sleep(dwMilliseconds);
+}
+
 static void __declspec(naked) GNW95_process_message_hack() {
 	__asm {
 		push idle;
-		call Sleep;
+		call Sleep2;
 		cmp  ds:[FO_VAR_GNW95_isActive], 0;
 		retn;
 	}
