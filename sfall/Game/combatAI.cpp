@@ -37,7 +37,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 		long hpPercent = 50;
 		long chance = 0;
 
-		switch ((fo::AIpref::chem_use_mode)cap->chem_use) {
+		switch (cap->chem_use) {
 		case fo::AIpref::CHEM_stims_when_hurt_little: // use only healing drugs
 			hpPercent = 60;
 			break;
@@ -130,7 +130,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 						source->critter.decreaseAP(aiUseItemAPCost);
 						slot = -1;
 
-						fo::AIpref::chem_use_mode chemUse = (fo::AIpref::chem_use_mode)cap->chem_use;
+						fo::AIpref::ChemUse chemUse = cap->chem_use;
 						if (chemUse == fo::AIpref::CHEM_sometimes ||
 						    (chemUse == fo::AIpref::CHEM_anytime && usedCount >= 2))
 						{

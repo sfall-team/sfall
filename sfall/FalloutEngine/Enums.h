@@ -22,6 +22,46 @@
 namespace fo
 {
 
+// Some FO2 PIDs possibly used by engine
+enum ProtoID : unsigned long
+{
+	PID_POWERED_ARMOR                   = 3,
+	PID_STIMPAK                         = 40,
+	PID_BOTTLE_CAPS                     = 41,
+	PID_DYNAMITE                        = 51,
+	PID_GEIGER_COUNTER                  = 52,
+	PID_STEALTH_BOY                     = 54,
+	PID_MOTION_SENSOR                   = 59,
+	PID_PLASTIC_EXPLOSIVES              = 85,
+	PID_SUPER_STIMPAK                   = 144,
+	PID_ACTIVE_DYNAMITE                 = 206,
+	PID_ACTIVE_GEIGER_COUNTER           = 207,
+	PID_ACTIVE_MOTION_SENSOR            = 208,
+	PID_ACTIVE_PLASTIC_EXPLOSIVE        = 209,
+	PID_ACTIVE_STEALTH_BOY              = 210,
+	PID_HARDENED_POWER_ARMOR            = 232,
+	PID_JET                             = 259,
+	PID_JET_ANTIDOTE                    = 260,
+	PID_HEALING_POWDER                  = 273,
+	PID_ADVANCED_POWER_ARMOR            = 348,
+	PID_ADVANCED_POWER_ARMOR_MK2        = 349,
+	PID_SOLAR_SCORCHER                  = 390,
+	PID_CAR_TRUNK                       = 455,
+	PID_JESSE_CONTAINER                 = 467, // Engine item
+
+	// critter
+	PID_Player                          = 0x01000000,
+	PID_GORIS                           = 0x01000098,
+
+	// scenery
+	PID_RAD_GOO_1                       = 0x020003D9,
+	PID_RAD_GOO_4                       = 0x020003DC,
+	PID_DRIVABLE_CAR                    = 0x020003F1, // index 1009
+
+	// misc type
+	PID_CORPSE_BLOOD                    = 0x05000004,
+};
+
 enum Animation : long
 {
 	ANIM_stand = 0,
@@ -286,43 +326,6 @@ enum ArtType : char
 	OBJ_TYPE_HEAD       = 8,
 	OBJ_TYPE_BACKGROUND = 9,
 	OBJ_TYPE_SKILLDEX   = 10
-};
-
-// Some FO2 PIDs possibly used by engine
-enum ProtoID : unsigned long
-{
-	PID_POWERED_ARMOR = 3,
-	PID_STIMPAK = 40,
-	PID_BOTTLE_CAPS = 41,
-	PID_DYNAMITE = 51,
-	PID_GEIGER_COUNTER = 52,
-	PID_STEALTH_BOY = 54,
-	PID_MOTION_SENSOR = 59,
-	PID_PLASTIC_EXPLOSIVES = 85,
-	PID_SUPER_STIMPAK = 144,
-	PID_ACTIVE_DYNAMITE = 206,
-	PID_ACTIVE_GEIGER_COUNTER = 207,
-	PID_ACTIVE_PLASTIC_EXPLOSIVE = 209,
-	PID_ACTIVE_STEALTH_BOY = 210,
-	PID_HARDENED_POWER_ARMOR = 232,
-	PID_JET = 259,
-	PID_HEALING_POWDER = 273,
-	PID_ADVANCED_POWER_ARMOR = 348,
-	PID_ADVANCED_POWER_ARMOR_MK2 = 349,
-	PID_SOLAR_SCORCHER = 390,
-	PID_CAR_TRUNK = 455,
-	PID_JESSE_CONTAINER = 467,
-
-	// critter
-	PID_Player = 0x01000000,
-
-	// scenery
-	PID_RAD_GOO_1 = 0x020003D9,
-	PID_RAD_GOO_4 = 0x020003DC,
-	PID_DRIVABLE_CAR = 0x020003F1, // index 1009
-
-	// misc type
-	PID_CORPSE_BLOOD = 0x05000004,
 };
 
 //XXXXXXXXXXXXXXXXXXXXX
@@ -851,8 +854,9 @@ namespace WinFlags {
 }
 
 namespace AIpref {
-	enum distance : long
+	enum Distance : long
 	{
+		DIST_unset                   = -1,
 		DIST_stay_close              = 0, // the attacker will stay at a distance no more than 5 hexes from the player (behavior only for party members, defined in ai_move_steps_closer, cai_perform_distance_prefs)
 		DIST_charge                  = 1, // AI will always try to get close to its target before or after attack
 		DIST_snipe                   = 2, // keep distance, when the distance between the attacker and the target decreases, the attacker will try to move away from the target to a distance of up to 10 hexes
@@ -861,7 +865,7 @@ namespace AIpref {
 	};
 
 	// presets for party members
-	enum disposition : long
+	enum Disposition : long
 	{
 		DISP_none                    = -1,
 		DISP_custom                  = 0,
@@ -871,7 +875,7 @@ namespace AIpref {
 		DISP_berserk                 = 4
 	};
 
-	enum attack_who : long
+	enum AttackWho : long
 	{
 		ATKWHO_no_attack_mode        = -1,
 		ATKWHO_whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
@@ -881,7 +885,7 @@ namespace AIpref {
 		ATKWHO_closest               = 4, // only attack near targets
 	};
 
-	enum run_away_mode : long
+	enum RunAway : long
 	{
 		AWAY_none                    = -1, // get the value from the cap.min_hp (in cai_get_min_hp_)
 		AWAY_coward                  = 0,  // 0%
@@ -892,9 +896,10 @@ namespace AIpref {
 		AWAY_never                   = 5   // 100%
 	};
 
-	enum weapon_pref : long
+	enum WeaponPref : long
 	{
-		WEAPON_no_pref               = 0,
+		WEAPON_unset                 = -1, // same as no_pref
+		WEAPON_no_pref               = 0,  // Guns > ...
 		WEAPON_melee                 = 1,
 		WEAPON_melee_over_ranged     = 2,
 		WEAPON_ranged_over_melee     = 3,
@@ -904,7 +909,7 @@ namespace AIpref {
 		WEAPON_random                = 7  // not available for party member in control panel
 	};
 
-	enum area_attack_mode : long
+	enum AreaAttack : long
 	{
 		AREA_no_pref                 = -1, // special logic for NPC (not available for party member in control panel)
 		AREA_always                  = 0,
@@ -914,8 +919,9 @@ namespace AIpref {
 		AREA_be_absolutely_sure      = 4,  // 95% hit chance
 	};
 
-	enum chem_use_mode : long
+	enum ChemUse : long
 	{
+		CHEM_unset                  = -1,
 		CHEM_clean                   = 0,
 		CHEM_stims_when_hurt_little  = 1,
 		CHEM_stims_when_hurt_lots    = 2,

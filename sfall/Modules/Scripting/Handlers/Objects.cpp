@@ -240,7 +240,7 @@ void op_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	if (fo::util::GetProto(obj->protoId, &proto)) {
 		long type = proto->item.type;
 		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
-			obj->item.ammoPid = ctx.arg(1).rawValue();
+			obj->item.ammoPid = (fo::ProtoID)ctx.arg(1).rawValue();
 		}
 	} else {
 		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), obj->protoId);
