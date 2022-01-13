@@ -64,6 +64,7 @@ static void __declspec(naked) ai_can_use_weapon_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
+		mov  ebp, ebx;
 		test dword ptr [esi + miscFlags], CantUse;
 		jnz  cantUse;
 		mov  eax, [edi + damageFlags];

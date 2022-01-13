@@ -437,6 +437,9 @@
     <ClInclude Include="Modules\SubModules\DirectDraw.h">
       <Filter>Modules\SubModules</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\GamePids.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

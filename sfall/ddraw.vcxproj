@@ -292,6 +292,7 @@
     <ClInclude Include="FalloutEngine\Fallout2.h" />
     <ClInclude Include="FalloutEngine\FunctionOffsets.h" />
     <ClInclude Include="FalloutEngine\FunctionOffsets_def.h" />
+    <ClInclude Include="FalloutEngine\GamePids.h" />
     <ClInclude Include="FalloutEngine\Structs.h" />
     <ClInclude Include="FalloutEngine\EngineUtils.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />

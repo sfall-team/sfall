@@ -184,11 +184,11 @@ struct GameObject {
 
 	union {
 		struct {
-			fo::MiscFlags miscFlags; // aka updated_flags
+			MiscFlags miscFlags; // aka updated_flags
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
-			long ammoPid;
+			ProtoID ammoPid;
 			long unused[8]; // offset 0x44 (not saved)
 		} item;
 
@@ -240,13 +240,13 @@ struct GameObject {
 		} critter;
 
 		struct {
-			fo::MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
-			fo::MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
+			MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
+			MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
 			long unused[9];             // offset 0x40 (not saved)
 		} scenery;
 	};
 
-	DWORD protoId; // object PID
+	ProtoID protoId; // object PID
 	long cid; // combat ID (don't change while in combat)
 	long lightDistance;
 	long lightIntensity;
@@ -1000,24 +1000,16 @@ struct AIcap {
 	long outline_color;
 	long chance_message;
 	long combat_message_data[24];
-	long area_attack_mode;
-	long run_away_mode;
-	long best_weapon;
-	long distance;
-	long attack_who;
-	long chem_use;
+	AIpref::AreaAttack area_attack_mode;
+	AIpref::RunAway run_away_mode;
+	AIpref::WeaponPref pref_weapon;
+	AIpref::Distance distance;
+	AIpref::AttackWho attack_who;
+	AIpref::ChemUse chem_use;
 	long chem_primary_desire[3];
-	long disposition;
+	AIpref::Disposition disposition;
 	const char* body_type;    // unused
 	const char* general_type; // unused
-
-	inline AIpref::distance getDistance() {
-		return (AIpref::distance)distance;
-	}
-	inline AIpref::run_away_mode getRunAwayMode() {
-		return (AIpref::run_away_mode)run_away_mode;
-	}
-
 };
 
 struct Queue {

@@ -744,8 +744,8 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 		validTarget->outline = outlineColor;
 
 		fo::AIcap* cap = fo::func::ai_cap(partyMember);
-		if (cap->disposition == fo::AIpref::disposition::custom) {
-			cap->attack_who = (long)fo::AIpref::attack_who::whomever;
+		if (cap->disposition == fo::AIpref::Disposition::custom) {
+			cap->attack_who = fo::AIpref::AttackWho::whomever;
 		}
 
 		// floating text messages
