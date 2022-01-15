@@ -21,8 +21,11 @@ static long yPosition;
 static long __fastcall CommonWinAdd(long height, long width, long color, long flags) {
 	xPosition = (Setting::ScreenWidth() - width) / 2;
 	yPosition = (Setting::ScreenHeight() - height) / 2;
-	if (sf::IsGameLoaded()) yPosition -= 50;
 
+	if (sf::IsGameLoaded()) {
+		yPosition -= 50;
+		if (yPosition < 0) yPosition = 0;
+	}
 	return fo::func::win_add(xPosition, yPosition, width, height, color, flags);
 }
 

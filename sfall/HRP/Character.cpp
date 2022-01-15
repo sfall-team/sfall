@@ -24,6 +24,8 @@ static long __fastcall CharacterWinAdd(long height, long yPos, long xPos, long w
 	yPos += (Setting::ScreenHeight() - height) / 2;
 	xPos += (Setting::ScreenWidth() - width) / 2;
 
+	if (yPos < 0) yPos = 0;
+
 	xPosition = xPos;
 	yPosition = yPos;
 
@@ -50,6 +52,7 @@ static void __declspec(naked) CharacterInputWinAddHook() {
 static long __fastcall DialogBoxWinAdd(long height, long yPos, long xPos, long width, long color, long flags) {
 	yPos = (Setting::ScreenHeight() - height) / 2;
 	xPos = (Setting::ScreenWidth() - width) / 2;
+
 	if (sf::IsGameLoaded()) yPos -= 50;
 
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);

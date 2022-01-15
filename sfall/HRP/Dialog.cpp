@@ -40,10 +40,12 @@ static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long c
 	long mapWinW = fo::var::getInt(FO_VAR_buf_width_2) / 2;
 	long mapWinH = fo::var::getInt(FO_VAR_buf_length_2) / 2;
 
-	yPos += mapWinH - (height / 2); // yPos:0 = 480 - art_frame_length
 	xPos += mapWinW - (width / 2);  // xPos:0
-	xPosition = xPos;
+	yPos += mapWinH - (height / 2); // yPos:0 = 480 - art_frame_length
+	if (yPos < 0) yPos = 0;
+
 	yPosition = yPos;
+	xPosition = xPos;
 
 	// item move window
 	fo::var::iscr_data[4].x = xPos + 185;

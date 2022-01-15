@@ -63,6 +63,7 @@ enum ProtoID : unsigned long
 	PID_LEATHER_ARMOR_MK_II             = 379,
 	PID_METAL_ARMOR_MK_II               = 380,
 	PID_COMBAT_ARMOR_MK_II              = 381,
+	PID_BRIDGEKEEPERS_ROBE              = 524,
 
 	/******************************************************************
 	***************       Weapons                       ***************
@@ -161,11 +162,18 @@ enum ProtoID : unsigned long
 	PID_PLASMA_PISTOL_EXT_CART          = 406,
 	PID_MEGA_POWER_FIST                 = 407,
 	PID_HOLY_HAND_GRENADE               = 421,  // Special don't use this
+	PID_GOLD_NUGGET                     = 423,
+	PID_URANIUM_ORE                     = 426,
 	PID_FLAME_BREATH                    = 427,
-	PID_RING_BOXING_GLOVES              = 496,
-	PID_RING_PLATED_BOXING_GLOVES       = 497,
+	PID_REFINED_ORE                     = 486,
+	PID_SPECIAL_BOXING_GLOVES           = 496, // DO NOT USE, SPECIAL, VERY VERY SPECIAL, GOT IT?
+	PID_SPECIAL_PLATED_BOXING_GLOVES    = 497, // NO YOU CANNOT USE THIS, NO I SAID
+	PID_GUN_TURRET_WEAPON               = 498,
 	PID_FN_FAL_HPFA                     = 500,
-	PID_TYPHON_TREASURE                 = 519,
+	PID_LIL_JESUS_WEAPON                = 517,
+	PID_DUAL_MINIGUN                    = 518,
+	PID_HEAVY_DUAL_MINIGUN              = 520,
+	PID_WAKIZASHI_BLADE                 = 522,
 
 	/******************************************************************
 	***************       Ammo                          ***************
@@ -272,8 +280,20 @@ enum ProtoID : unsigned long
 	PID_LF_GRAVESITE_1                  = 374,
 	PID_LF_GRAVESITE_2                  = 375,
 	PID_LF_GRAVESITE_3                  = 376,
-
+	PID_STONE_HEAD                      = 425,
+	PID_WAGON_RED                       = 434,
+	PID_WAGON_GREY                      = 435,
+	PID_CAR_TRUNK                       = 455,
 	PID_JESSE_CONTAINER                 = 467, // Engine item
+	PID_WALL_SAFE                       = 501,
+	PID_FLOOR_SAFE                      = 502,
+	PID_POOL_TABLE_1                    = 510,
+	PID_POOL_TABLE_2                    = 511,
+	PID_POOL_TABLE_3                    = 512,
+	PID_POOL_TABLE_4                    = 513,
+	PID_POOL_TABLE_5                    = 514,
+	PID_POOL_TABLE_6                    = 515,
+	PID_POOR_BOX                        = 521,
 
 	/******************************************************************
 	***************       Books                         ***************
@@ -297,13 +317,14 @@ enum ProtoID : unsigned long
 
 	PID_DYNAMITE                        = 51,
 	PID_GEIGER_COUNTER                  = 52,
-	PID_STEALTH_BOY                     = 54,  // Disabled FO2
+	PID_STEALTH_BOY                     = 54,
 	PID_MOTION_SENSOR                   = 59,
 	PID_MULTI_TOOL                      = 75,
 	PID_ELECTRONIC_LOCKPICKS            = 77,
 	PID_LOCKPICKS                       = 84,
 	PID_PLASTIC_EXPLOSIVES              = 85,
 	PID_ROPE                            = 127,
+	PID_SUPER_TOOL_KIT                  = 308,
 	PID_EXP_LOCKPICK_SET                = 410,
 	PID_ELEC_LOCKPICK_MKII              = 411,
 
@@ -360,7 +381,6 @@ enum ProtoID : unsigned long
 	PID_BOX_OF_NOODLES                  = 226,
 	PID_FROZEN_DINNER                   = 227,
 	PID_MOTIVATOR                       = 229,
-	PID_JAIL_KEY                        = 456,
 	PID_ANNA_GOLD_LOCKET                = 252,
 	PID_CAR_FUEL_CELL_CONTROLLER        = 253,
 	PID_CAR_FUEL_INJECTION              = 254,
@@ -395,7 +415,6 @@ enum ProtoID : unsigned long
 	PID_YELLOW_REACTOR_KEYCARD          = 305,
 	PID_RED_REACTOR_KEYCARD             = 306,
 	PID_PLASMA_TRANSFORMER              = 307,
-	PID_SUPER_TOOL_KIT                  = 308,
 	PID_TALISMAN                        = 309,
 	PID_GAMMA_GULP_BEER                 = 310,
 	PID_ROENTGEN_RUM                    = 311,
@@ -436,17 +455,11 @@ enum ProtoID : unsigned long
 	PID_MINE_PART                       = 419, // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
 	PID_MORNING_STAR_MINE               = 420,
 	PID_EXCAVATOR_CHIP                  = 422,
-	PID_GOLD_NUGGET                     = 423,
-	PID_STONE_HEAD                      = 425,
-	PID_URANIUM_ORE                     = 426,
-	PID_FIRE_GECKO_FLAME_WEAPON         = 427,
 	PID_GOLD_TOOTH                      = 429,
 	PID_HOWITZER_SHELL                  = 430,
 	PID_RAMIREZ_BOX_CLOSED              = 431,
 	PID_RAMIREZ_BOX_OPEN                = 432,
 	PID_MIRROR_SHADES                   = 433,
-	PID_WAGON_RED                       = 434,
-	PID_WAGON_GREY                      = 435,
 	PID_DECK_OF_CARDS                   = 436,
 	PID_MARKED_DECK_OF_CARDS            = 437,
 	PID_TEMPLE_KEY                      = 438,
@@ -466,7 +479,6 @@ enum ProtoID : unsigned long
 	PID_TORN_PAPER_3                    = 452,
 	PID_PASSWORD_PAPER                  = 453,
 	PID_EXPLOSIVE_SWITCH                = 454,
-	PID_CAR_TRUNK                       = 455,
 	PID_CELL_DOOR_KEY                   = 456,
 	PID_ELRON_FIELD_REP                 = 457,
 	PID_ENCLAVE_HOLODISK_5              = 458,
@@ -482,21 +494,19 @@ enum ProtoID : unsigned long
 	PID_ROT_GUT                         = 469,
 	PID_BALL_GAG                        = 470,
 	PID_BECKY_BOOK                      = 471,
-	PID_NAV_COMPUTER_PARTS              = 479,
 	PID_ELRON_MEMBER_HOLO               = 472,
 	PID_MUTATED_TOE                     = 473,
 	PID_DAISIES                         = 474,
 	PID_ENLIGHTENED_ONE_LETTER          = 476,
 	PID_BROADCAST_HOLODISK              = 477,
 	PID_SIERRA_MISSION_HOLODISK         = 478,
-	PID_NAVCOM_PARTS                    = 479,
+	PID_NAV_COMPUTER_PARTS              = 479,
 	PID_KITTY_SEX_DRUG_AGILITY          = 480,  // + 1 agility for 1 hr
 	PID_KITTY_SEX_DRUG_INTELLIGENCE     = 481,  // + 1 iq for 1 hr
 	PID_KITTY_SEX_DRUG_STRENGTH         = 482,  // + 1 strength for 1 hr
 	PID_FALLOUT_2_HINTBOOK              = 483,  // no touchy
 	PID_PLAYERS_EAR                     = 484,
 	PID_MASTICATORS_EAR                 = 485,
-	PID_REFINED_ORE                     = 486,
 	PID_MEMO_FROM_FRANCIS               = 487,
 	PID_K9_MOTIVATOR                    = 488,
 	PID_SPECIAL_BOXER_WEAPON            = 489,
@@ -506,34 +516,17 @@ enum ProtoID : unsigned long
 	PID_ELRON_TEACH_HOLO                = 493,
 	PID_KOKOWEEF_MINE_SCRIP             = 494,
 	PID_PRES_ACCESS_KEY                 = 495,
-	PID_SPECIAL_BOXING_GLOVES           = 496, // DO NOT USE, SPECIAL, VERY VERY SPECIAL, GOT IT?
-	PID_SPECIAL_PLATED_BOXING_GLOVES    = 497, // NO YOU CANNOT USE THIS, NO I SAID
-	PID_GUN_TURRET_WEAPON               = 498,
 	PID_DERMAL_PIP_BOY_DISK             = 499, // AGAIN, VERY SPECIAL, NOT FOR YOU
-	PID_WALL_SAFE                       = 501,
-	PID_FLOOR_SAFE                      = 502,
-	PID_BLUE_MEMORY_MODULE              = 503,
-	PID_GREEN_MEMORY_MODULE             = 504,
-	PID_RED_MEMORY_MODULE               = 505,
-	PID_YELLOW_MEMORY_MODULE            = 506,
+	PID_MEM_CHIP_BLUE                   = 503,
+	PID_MEM_CHIP_GREEN                  = 504,
+	PID_MEM_CHIP_RED                    = 505,
+	PID_MEM_CHIP_YELLOW                 = 506,
 	PID_DECOMPOSING_BODY                = 507,
 	PID_BLOW_UP_DOLL                    = 508,
 	PID_POPPED_BLOW_UP_DOLL             = 509,
-	PID_POOL_TABLE_1                    = 510,
-	PID_POOL_TABLE_2                    = 511,
-	PID_POOL_TABLE_3                    = 512,
-	PID_POOL_TABLE_4                    = 513,
-	PID_POOL_TABLE_5                    = 514,
-	PID_POOL_TABLE_6                    = 515,
 	PID_PIP_BOY_MEDICAL_ENHANCER        = 516,
-	PID_LIL_JESUS_WEAPON                = 517,
-	PID_DUAL_MINIGUN                    = 518,
-	PID_REAL_BOTTLE_CAPS                = 519,
-	PID_HEAVY_DUAL_MINIGUN              = 520,
-	PID_POOR_BOX                        = 521,
-	PID_WAKIZASHI_BLADE                 = 522,
+	PID_TYPHON_TREASURE                 = 519,
 	PID_SURVEY_MAP                      = 523,
-	PID_BRIDGEKEEPERS_ROBE              = 524,
 
 	/******************************************************************
 	***************       Active Items                  ***************

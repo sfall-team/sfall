@@ -138,8 +138,8 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 		mainmenuWidth = w;
 	} else {
 		// centering
-		x += (Setting::ScreenWidth() - w) / 2;
-		y += (Setting::ScreenHeight() - h) / 2;
+		x = (Setting::ScreenWidth() - w) / 2;
+		y = (Setting::ScreenHeight() - h) / 2;
 	}
 
 	// set scaling factor

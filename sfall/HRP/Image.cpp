@@ -118,7 +118,7 @@ void Image::ScaleText(BYTE* dstSurf, const char* text, long txtWidth, long dstWi
 			int fontHeight = *((DWORD*)&font->fieldC + 2 * charText) >> 16;
 
 			BYTE* dstPixels = &surface[dstWidth * (font->field0 - fontHeight)]; //
-			BYTE* fontPixels = (BYTE*) (*(DWORD*)&font->eUnkArray[8 * charText + 2] + font->field80C);
+			BYTE* fontPixels = (BYTE*)(*(DWORD*)&font->eUnkArray[8 * charText + 2] + font->field80C);
 
 			fontHeight = std::lround(fontHeight * scaleFactor);
 			float fh = 0.0f;

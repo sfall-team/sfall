@@ -19,11 +19,13 @@ static long xPosition;
 static long yPosition;
 
 static long __fastcall LoadSaveWinAdd(long height, long yPos, long xPos, long width, long color, long flags) {
-	if (sf::IsGameLoaded()) yPos -= 50;
-
-	yPos += (Setting::ScreenHeight() - height) / 2;
 	xPos += (Setting::ScreenWidth() - width) / 2;
+	yPos += (Setting::ScreenHeight() - height) / 2;
 
+	if (sfall::IsGameLoaded()) {
+		yPos -= 50;
+		if (yPos < 0) yPos = 0;
+	}
 	xPosition = xPos;
 	yPosition = yPos;
 
