@@ -276,12 +276,6 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	int nodes = sf::IniReader::GetInt("MAPS", "NumPathNodes", 1, f2ResIni);
 	if (nodes > 1) game::Tilemap::SetPathMaxNodes((nodes < 20) ? nodes * 2000 : 40000);
 
-	if (sf::IniReader::GetInt("OTHER_SETTINGS", "BARTER_PC_INV_DROP_FIX", 1, f2ResIni)) {
-		// barter_move_from_table_inventory_
-		if (fo::var::getInt(0x47523D) == 80)  sf::SafeWrite32(0x47523D, 100); // x_start
-		if (fo::var::getInt(0x475231) == 144) sf::SafeWrite32(0x475231, 164); // x_end
-	}
-
 	// add: patchXXX.dat > sfall.dat > [add here] > critter.dat > master.dat
 	sf::LoadOrder::AddResourcePatches(
 		sf::IniReader::GetString("Main", "f2_res_dat", "f2_res.dat", MAX_PATH, f2ResIni),
