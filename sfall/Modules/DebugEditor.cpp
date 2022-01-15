@@ -21,7 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
-#include "Graphics.h"
+//#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
@@ -60,10 +60,6 @@ struct sArray {
 	long  size;
 	long  flag;
 };
-
-static void DEGameWinRedraw() {
-	if (Graphics::mode != 0) fo::func::process_bk(); // test for mode 1/2 (from built-in HRP)
-}
 
 static bool SetBlocking(SOCKET s, bool block) {
 	DWORD d = !block;
@@ -226,7 +222,7 @@ static void RunEditorInternal(SOCKET &s) {
 			}
 			break;
 		}
-		DEGameWinRedraw();
+		__asm call fo::funcoffs::GNW95_process_message_;
 	}
 
 	SetGlobals(sglobals);
