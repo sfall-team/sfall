@@ -650,6 +650,13 @@ static void InterfaceWindowPatch() {
 	// Increase the max text width of the information card on the character screen
 	const DWORD drawCardAddr[] = {0x43ACD5, 0x43DD37}; // 136, 133
 	SafeWriteBatch<BYTE>(145, drawCardAddr);
+
+	// Increase the width of the mouse drop area from 64px to 80px for the PC's and NPC's inventory on the barter screen
+	// barter_move_from_table_inventory_
+	SafeWrite32(0x47523D, 98);       // x_start was 80
+	SafeWrite32(0x475231, 98 + 80);  // x_end   was 144
+	SafeWrite32(0x4752BE, 460);      // x_start was 475
+	SafeWrite32(0x4752B2, 460 + 80); // x_end   was 539
 }
 
 static void InventoryCharacterRotationSpeedPatch() {
