@@ -34,6 +34,9 @@
     <Filter Include="HRP\ViewMap">
       <UniqueIdentifier>{d15672c6-4446-4325-8e14-a1143f26fc23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HLSL">
+      <UniqueIdentifier>{2fe2bab1-d5fc-4986-bd21-cbf61eabbd34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -443,6 +446,12 @@
     <ClInclude Include="FalloutEngine\GamePids.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="HLSL\A8PixelShader.h">
+      <Filter>HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="HLSL\L8PixelShader.h">
+      <Filter>HLSL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -821,5 +830,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="HLSL\A8PixelShader.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\L8PixelShader.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

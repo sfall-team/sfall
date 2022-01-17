@@ -82,6 +82,18 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">false</GenerateManifest>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">false</GenerateManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -123,6 +135,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" debug "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -176,6 +199,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" release "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">
     <ClCompile>
@@ -229,6 +263,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" releasexp "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">
     <ClCompile>
@@ -283,6 +328,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" devxp "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CheckAddress.h" />
@@ -311,6 +367,8 @@
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Game\tilemap.h" />
+    <ClInclude Include="HLSL\A8PixelShader.h" />
+    <ClInclude Include="HLSL\L8PixelShader.h" />
     <ClInclude Include="HRP\Character.h" />
     <ClInclude Include="HRP\CreditsScreen.h" />
     <ClInclude Include="HRP\DeathScreen.h" />
@@ -577,6 +635,20 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="HLSL\A8PixelShader.hlsl">
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gpuEffectA8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gpuEffectA8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">gpuEffectA8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">gpuEffectA8</VariableName>
+    </FxCompile>
+    <FxCompile Include="HLSL\L8PixelShader.hlsl">
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gpuEffectL8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gpuEffectL8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">gpuEffectL8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">gpuEffectL8</VariableName>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

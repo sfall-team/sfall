@@ -28,6 +28,9 @@
 #include "..\HRP\Init.h"
 #include "..\HRP\MoviesScreen.h"
 
+#include "..\HLSL\A8PixelShader.h"
+#include "..\HLSL\L8PixelShader.h"
+
 #include "Graphics.h"
 
 namespace sfall
@@ -197,8 +200,9 @@ static void ResetDevice(bool create) {
 		bool A8IsSupported = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
 
 		if (Graphics::GPUBlt) {
-			const char* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
-			if (D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0) == D3D_OK) {
+			const BYTE* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
+			const UINT size = (A8IsSupported) ? sizeof(gpuEffectA8) : sizeof(gpuEffectL8);
+			if (D3DXCreateEffect(d3d9Device, shader, size, 0, 0, 0, 0, &gpuBltEffect, 0) == D3D_OK) {
 				gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
 				gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
 				// for head textures
