@@ -150,6 +150,9 @@
     <ClInclude Include="FalloutEngine\Variables.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\Variables_def.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
     <ClInclude Include="Modules\Scripting\ScriptValue.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
@@ -818,8 +821,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
-    <None Include="FalloutEngine\Variables_def.h">
-      <Filter>FalloutEngine</Filter>
-    </None>
   </ItemGroup>
 </Project>

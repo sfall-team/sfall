@@ -298,6 +298,7 @@
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h" />
     <ClInclude Include="FalloutEngine\Variables.h" />
+    <ClInclude Include="FalloutEngine\Variables_def.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
     <ClInclude Include="Game\AI\AIHelpers.h" />
@@ -573,7 +574,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
-    <None Include="FalloutEngine\Variables_def.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

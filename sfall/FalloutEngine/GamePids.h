@@ -166,8 +166,8 @@ enum ProtoID : unsigned long
 	PID_URANIUM_ORE                     = 426,
 	PID_FLAME_BREATH                    = 427,
 	PID_REFINED_ORE                     = 486,
-	PID_SPECIAL_BOXING_GLOVES           = 496, // DO NOT USE, SPECIAL, VERY VERY SPECIAL, GOT IT?
-	PID_SPECIAL_PLATED_BOXING_GLOVES    = 497, // NO YOU CANNOT USE THIS, NO I SAID
+	PID_SPECIAL_BOXING_GLOVES           = 496,  // DO NOT USE, SPECIAL, VERY VERY SPECIAL, GOT IT?
+	PID_SPECIAL_PLATED_BOXING_GLOVES    = 497,  // NO YOU CANNOT USE THIS, NO I SAID
 	PID_GUN_TURRET_WEAPON               = 498,
 	PID_FN_FAL_HPFA                     = 500,
 	PID_LIL_JESUS_WEAPON                = 517,
@@ -284,7 +284,7 @@ enum ProtoID : unsigned long
 	PID_WAGON_RED                       = 434,
 	PID_WAGON_GREY                      = 435,
 	PID_CAR_TRUNK                       = 455,
-	PID_JESSE_CONTAINER                 = 467, // Engine item
+	PID_JESSE_CONTAINER                 = 467,  // Engine item
 	PID_WALL_SAFE                       = 501,
 	PID_FLOOR_SAFE                      = 502,
 	PID_POOL_TABLE_1                    = 510,
@@ -333,7 +333,7 @@ enum ProtoID : unsigned long
 	******************************************************************/
 
 	PID_BOTTLE_CAPS                     = 41,
-	PID_RESERVED_ITEM00                 = 50, // Reserved item! Don't use! Broken!
+	PID_RESERVED_ITEM00                 = 50,  // Reserved item! Don't use! Broken!
 	PID_WATER_CHIP                      = 55,
 	PID_DOG_TAGS                        = 56,
 	PID_ELECTRONIC_BUG                  = 57,
@@ -448,11 +448,11 @@ enum ProtoID : unsigned long
 	PID_OIL_CAN                         = 412,
 	PID_STABLES_ID_BADGE                = 413,
 	PID_VAULT_13_SHACK_KEY              = 414,
-	PID_SPECTACLES                      = 415, // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
-	PID_EMPTY_JET                       = 416, // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
-	PID_OXYGEN_TANK                     = 417, // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
-	PID_POISON_TANK                     = 418, // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
-	PID_MINE_PART                       = 419, // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
+	PID_SPECTACLES                      = 415,  // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
+	PID_EMPTY_JET                       = 416,  // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
+	PID_OXYGEN_TANK                     = 417,  // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
+	PID_POISON_TANK                     = 418,  // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
+	PID_MINE_PART                       = 419,  // DO NOT USE THIS IN YOUR SCRIPTS, THIS IS SPECIAL CASE
 	PID_MORNING_STAR_MINE               = 420,
 	PID_EXCAVATOR_CHIP                  = 422,
 	PID_GOLD_TOOTH                      = 429,
@@ -516,7 +516,7 @@ enum ProtoID : unsigned long
 	PID_ELRON_TEACH_HOLO                = 493,
 	PID_KOKOWEEF_MINE_SCRIP             = 494,
 	PID_PRES_ACCESS_KEY                 = 495,
-	PID_DERMAL_PIP_BOY_DISK             = 499, // AGAIN, VERY SPECIAL, NOT FOR YOU
+	PID_DERMAL_PIP_BOY_DISK             = 499,  // AGAIN, VERY SPECIAL, NOT FOR YOU
 	PID_MEM_CHIP_BLUE                   = 503,
 	PID_MEM_CHIP_GREEN                  = 504,
 	PID_MEM_CHIP_RED                    = 505,
