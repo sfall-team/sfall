@@ -48,8 +48,10 @@ namespace FalloutClient {
         }
 
         public static string[] ShowEditor(DebugEditor form, string[] names, DataType[] types, string[] values, bool isMap = false) {
+            form.redrawTimer.Start();
             EditorWindow editor = new EditorWindow(names, types, values, isMap);
             editor.ShowDialog();
+            form.redrawTimer.Stop();
             if (editor.save) {
                 if (valueInHex) editor.ConvertValues(false);
                 return editor.values;
@@ -70,8 +72,10 @@ namespace FalloutClient {
         }
 
         public static string[] ShowEditor(DebugEditor form, string[] lvalues) {
+            form.redrawTimer.Start();
             EditorWindow editor = new EditorWindow(lvalues);
             editor.ShowDialog();
+            form.redrawTimer.Stop();
             if (editor.save) {
                 if (valueInHex) editor.ConvertValues(false);
                 return editor.values;

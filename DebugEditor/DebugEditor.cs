@@ -137,6 +137,7 @@ namespace FalloutClient {
                 sr.Close();
             }
             Redraw();
+            redrawTimer.Start();
         }
 
         private void DebugEditor_FormClosing(object sender, FormClosingEventArgs e) {
@@ -188,6 +189,7 @@ namespace FalloutClient {
             default:
                 return;
             }
+            redrawTimer.Stop();
             if (e.ColumnIndex == 2) {
                 string str = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 int val;
@@ -211,11 +213,13 @@ namespace FalloutClient {
                     connection.WriteInt(converter.GetAsInt(val));
                 }
             }
+            redrawTimer.Start();
         }
 
         private void bEdit_Click(object sender, EventArgs e) {
             if (dataGridView1.SelectedRows.Count == 0) return;
             int i = (int)dataGridView1.SelectedRows[0].Tag;
+            redrawTimer.Stop();
             switch (mode) {
             case Mode.Arrays: {
                     DataType[] types = new DataType[connection.ArrayLengths[i]];
@@ -333,6 +337,7 @@ namespace FalloutClient {
                 }
                 break;
             }
+            redrawTimer.Start();
         }
 
         private void bCrittersLvar_Click(object sender, EventArgs e) {
@@ -380,6 +385,10 @@ namespace FalloutClient {
 
         private void dataGridView1_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
             dataGridView1.Rows[e.RowIndex].Tag = e.RowIndex;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e) {
+            connection.WriteDataType(DataTypeSend.RedrawGame);
         }
     }
 }

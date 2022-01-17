@@ -32,6 +32,7 @@ namespace FalloutClient {
         SetArray = 10,
         GetLocal = 11,
         SetLocal = 12,
-        Exit = 254
+        Exit = 254,
+        RedrawGame = 255
     }
 }
