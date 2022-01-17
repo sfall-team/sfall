@@ -19,48 +19,10 @@
 #pragma once
 #pragma warning(disable: 4482) // nonstandard extension used: enum 'name' used in qualified name (C++11)
 
+#include "GamePids.h"
+
 namespace fo
 {
-
-// Some FO2 PIDs possibly used by engine
-enum ProtoID : unsigned long
-{
-	PID_POWERED_ARMOR                   = 3,
-	PID_STIMPAK                         = 40,
-	PID_BOTTLE_CAPS                     = 41,
-	PID_DYNAMITE                        = 51,
-	PID_GEIGER_COUNTER                  = 52,
-	PID_STEALTH_BOY                     = 54,
-	PID_MOTION_SENSOR                   = 59,
-	PID_PLASTIC_EXPLOSIVES              = 85,
-	PID_SUPER_STIMPAK                   = 144,
-	PID_ACTIVE_DYNAMITE                 = 206,
-	PID_ACTIVE_GEIGER_COUNTER           = 207,
-	PID_ACTIVE_MOTION_SENSOR            = 208,
-	PID_ACTIVE_PLASTIC_EXPLOSIVE        = 209,
-	PID_ACTIVE_STEALTH_BOY              = 210,
-	PID_HARDENED_POWER_ARMOR            = 232,
-	PID_JET                             = 259,
-	PID_JET_ANTIDOTE                    = 260,
-	PID_HEALING_POWDER                  = 273,
-	PID_ADVANCED_POWER_ARMOR            = 348,
-	PID_ADVANCED_POWER_ARMOR_MK2        = 349,
-	PID_SOLAR_SCORCHER                  = 390,
-	PID_CAR_TRUNK                       = 455,
-	PID_JESSE_CONTAINER                 = 467, // Engine item
-
-	// critter
-	PID_Player                          = 0x01000000,
-	PID_GORIS                           = 0x01000098,
-
-	// scenery
-	PID_RAD_GOO_1                       = 0x020003D9,
-	PID_RAD_GOO_4                       = 0x020003DC,
-	PID_DRIVABLE_CAR                    = 0x020003F1, // index 1009
-
-	// misc type
-	PID_CORPSE_BLOOD                    = 0x05000004,
-};
 
 enum Animation : long
 {

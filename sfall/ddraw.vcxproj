@@ -225,6 +225,7 @@
     <ClInclude Include="FalloutEngine\FunctionOffsets_def.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="FalloutEngine\GamePids.h" />
     <ClInclude Include="FalloutEngine\Structs.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h" />

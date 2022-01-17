@@ -256,6 +256,9 @@
     <ClInclude Include="FalloutEngine\Functions_def.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\GamePids.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
     <ClInclude Include="FalloutEngine\Structs.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
