@@ -196,12 +196,10 @@ static void ResetDevice(bool create) {
 	static D3DFORMAT textureFormat = D3DFMT_X8R8G8B8;
 
 	if (create) {
-		bool A8_IsSupport = false;
-
 		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
 			MessageBoxA(window, "Failed to create hardware vertex processing device.\nUsing software vertex processing instead.",
-			                    "D3D9 Device", MB_TASKMODAL | MB_ICONWARNING);
+			                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
 			software = true;
 			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
 		}
@@ -213,29 +211,38 @@ static void ResetDevice(bool create) {
 		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
 		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
 
+		bool A8IsSupported = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
+
 		if (Graphics::GPUBlt) {
-			d3d9Device->CreateTexture(256, 1, 1, 0, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &paletteTex, 0);
+			const char* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
+			if (D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0) == D3D_OK) {
+				gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
+				gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
+				// for head textures
+				gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
+				gpuBltHeadSize = gpuBltEffect->GetParameterByName(0, "size");
+				gpuBltHeadCorner = gpuBltEffect->GetParameterByName(0, "corner");
 
-			A8_IsSupport = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
-			textureFormat = (A8_IsSupport) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
+				Graphics::SetDefaultTechnique();
 
-			const char* shader = (A8_IsSupport) ? gpuEffectA8 : gpuEffectL8;
-			D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0);
-			gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
-			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
-			// for head textures
-			gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
-			gpuBltHeadSize = gpuBltEffect->GetParameterByName(0, "size");
-			gpuBltHeadCorner = gpuBltEffect->GetParameterByName(0, "corner");
+				d3d9Device->CreateTexture(256, 1, 1, 0, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &paletteTex, 0);
 
-			Graphics::SetDefaultTechnique();
+				textureFormat = (A8IsSupported) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
+			} else {
+				MessageBoxA(window, "Failed to create shader effects.\nSwitching to CPU for the palette conversion.",
+				                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
+				if (mainTex) SAFERELEASE(mainTex); // release D3DFMT_A8 format texture
+				Graphics::GPUBlt = 0;
+				A8IsSupported = false;
+			}
 		}
 
-		if (!A8_IsSupport && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0) != D3D_OK) {
+		if (!A8IsSupported && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0) != D3D_OK) {
 			textureFormat = D3DFMT_X8R8G8B8;
 			d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0);
-			MessageBoxA(window, "GPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.",
-			                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
+			MessageBoxA(window, "Texture format error.\nGPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.\n"
+			                    "Set 'GPUBlt' option to CPU to bypass this warning message.",
+			                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
 			Graphics::GPUBlt = 0;
 		}
 		if (Graphics::GPUBlt == 0) palette = new PALCOLOR[256];
