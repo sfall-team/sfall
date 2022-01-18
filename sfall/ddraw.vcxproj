@@ -642,20 +642,12 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gpuEffectA8</VariableName>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">gpuEffectA8</VariableName>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">gpuEffectA8</VariableName>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="HLSL\L8PixelShader.hlsl">
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gpuEffectL8</VariableName>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gpuEffectL8</VariableName>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">gpuEffectL8</VariableName>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">gpuEffectL8</VariableName>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

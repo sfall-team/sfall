@@ -26,6 +26,7 @@
 #include "SubModules\WindowRender.h"
 
 #include "..\HRP\Init.h"
+#include "..\HRP\Image.h"
 #include "..\HRP\MoviesScreen.h"
 
 #include "..\HLSL\A8PixelShader.h"
@@ -115,6 +116,8 @@ static D3DXHANDLE gpuBltHighlightSize;
 static D3DXHANDLE gpuBltHighlightCorner;
 static D3DXHANDLE gpuBltShowHighlight;
 
+static BYTE* mveScaleSurface = nullptr;
+
 static float rcpres[2];
 
 #define _VERTEXFORMAT D3DFVF_XYZRHW|D3DFVF_TEX1
@@ -197,7 +200,7 @@ static void ResetDevice(bool create) {
 		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
 		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
 
-		bool A8IsSupported = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
+		bool A8IsSupported = Graphics::GPUBlt && (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
 
 		if (Graphics::GPUBlt) {
 			const BYTE* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
@@ -627,7 +630,7 @@ public:
 
 		IsPlayMovie = true;
 
-		BYTE* lockTarget = ((FakeDirectDrawSurface*)b)->lockTarget;
+		BYTE* mveSurface = ((FakeDirectDrawSurface*)b)->lockTarget;
 
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, dst, D3DLOCK_NO_DIRTY_UPDATE);
@@ -637,16 +640,26 @@ public:
 
 		if (Graphics::GPUBlt) {
 			if (d != 0) {
-				fo::func::cscale(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dst->right - dst->left, dst->bottom - dst->top, dRect.Pitch);
+				HRP::Image::Scale(mveSurface, width, mveDesc.dwHeight, (BYTE*)dRect.pBits, dst->right - dst->left, dst->bottom - dst->top, dRect.Pitch);
 			} else {
-				fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
+				fo::func::buf_to_buf(mveSurface, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
 			}
 		} else {
+			int height = mveDesc.dwHeight;
+
+			if (d != 0) { // scale
+				if (!mveScaleSurface) mveScaleSurface = new BYTE[ResWidth * ResHeight];
+				width = dst->right - dst->left;
+				height = dst->bottom - dst->top;
+
+				HRP::Image::Scale(mveSurface, mveDesc.lPitch, mveDesc.dwHeight, mveScaleSurface, width, height, ResWidth);
+				mveSurface = mveScaleSurface;
+			}
+
 			int pitch = dRect.Pitch / 4;
 			DWORD* pBits = (DWORD*)dRect.pBits;
-			BYTE* target = lockTarget;
+			BYTE* target = mveSurface;
 
-			int height = mveDesc.dwHeight;
 			while (height--) {
 				int x = width;
 				while (x--) pBits[x] = palette[target[x]].xRGB;
@@ -1236,6 +1249,7 @@ void Graphics::exit() {
 	} else {
 		DirectDraw::exit();
 	}
+	if (mveScaleSurface) delete[] mveScaleSurface;
 }
 
 }

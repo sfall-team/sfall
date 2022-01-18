@@ -167,8 +167,13 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
 
-	SCR_WIDTH  = sf::IniReader::GetInt("Main", "SCR_WIDTH", 640, f2ResIni);
-	SCR_HEIGHT = sf::IniReader::GetInt("Main", "SCR_HEIGHT", 480, f2ResIni);
+	SCR_WIDTH  = sf::IniReader::GetInt("Main", "SCR_WIDTH", 0, f2ResIni);
+	SCR_HEIGHT = sf::IniReader::GetInt("Main", "SCR_HEIGHT", 0, f2ResIni);
+
+	if (SCR_WIDTH == 0 || SCR_HEIGHT == 0) {
+		SCR_WIDTH  = sf::IniReader::GetConfigInt("Graphics", "GraphicsWidth", 640);
+		SCR_HEIGHT = sf::IniReader::GetConfigInt("Graphics", "GraphicsHeight", 480);
+	}
 
 	if (SCR_WIDTH < 640) SCR_WIDTH = 640;
 	if (SCR_HEIGHT < 480) SCR_HEIGHT = 480;
