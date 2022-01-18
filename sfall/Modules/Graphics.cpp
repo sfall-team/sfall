@@ -666,7 +666,7 @@ public:
 
 		IsPlayMovie = true;
 
-		BYTE* lockTarget = ((FakeDirectDrawSurface*)b)->lockTarget;
+		BYTE* mveSurface = ((FakeDirectDrawSurface*)b)->lockTarget;
 
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, dst, D3DLOCK_NO_DIRTY_UPDATE);
@@ -675,17 +675,13 @@ public:
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 
 		if (Graphics::GPUBlt) {
-			if (d != 0) {
-				fo::func::cscale(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dst->right - dst->left, dst->bottom - dst->top, dRect.Pitch);
-			} else {
-				fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
-			}
+			fo::func::buf_to_buf(mveSurface, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
 		} else {
+			int height = mveDesc.dwHeight;
 			int pitch = dRect.Pitch / 4;
 			DWORD* pBits = (DWORD*)dRect.pBits;
-			BYTE* target = lockTarget;
+			BYTE* target = mveSurface;
 
-			int height = mveDesc.dwHeight;
 			while (height--) {
 				int x = width;
 				while (x--) pBits[x] = palette[target[x]].xRGB;
