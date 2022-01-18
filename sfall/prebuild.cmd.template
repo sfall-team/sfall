@@ -1,0 +1,7 @@
+@ECHO OFF
+
+rem full path to the D3D shader compiler
+SET fxc_path=C:\DXSDK\Utilities\bin\x86
+
+%fxc_path%\fxc.exe /nologo /T fx_2_0 /Fh HLSL\A8PixelShader.h /Vn gpuEffectA8 HLSL\A8PixelShader.hlsl
+%fxc_path%\fxc.exe /nologo /T fx_2_0 /Fh HLSL\L8PixelShader.h /Vn gpuEffectL8 HLSL\L8PixelShader.hlsl

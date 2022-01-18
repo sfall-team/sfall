@@ -25,6 +25,9 @@
 
 #include "..\Game\render.h"
 
+#include "..\HLSL\A8PixelShader.h"
+#include "..\HLSL\L8PixelShader.h"
+
 #include "Graphics.h"
 
 namespace sfall
@@ -211,11 +214,12 @@ static void ResetDevice(bool create) {
 		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
 		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
 
-		bool A8IsSupported = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
+		bool A8IsSupported = Graphics::GPUBlt && (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
 
 		if (Graphics::GPUBlt) {
-			const char* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
-			if (D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0) == D3D_OK) {
+			const BYTE* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
+			const UINT size = (A8IsSupported) ? sizeof(gpuEffectA8) : sizeof(gpuEffectL8);
+			if (D3DXCreateEffect(d3d9Device, shader, size, 0, 0, 0, 0, &gpuBltEffect, 0) == D3D_OK) {
 				gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
 				gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
 				// for head textures

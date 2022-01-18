@@ -16,6 +16,9 @@
     <Filter Include="Modules\Scripting\Handlers">
       <UniqueIdentifier>{70a7a0e2-5bd4-4802-a8db-ad2d49ba6afd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HLSL">
+      <UniqueIdentifier>{c9051acd-801a-4856-bd62-b2c95ac33c2e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -310,6 +313,12 @@
     <ClInclude Include="Translate.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
+    <ClInclude Include="HLSL\A8PixelShader.h">
+      <Filter>HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="HLSL\L8PixelShader.h">
+      <Filter>HLSL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -574,6 +583,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
+    <None Include="HLSL\A8PixelShader.hlsl">
+      <Filter>HLSL</Filter>
+    </None>
+    <None Include="HLSL\L8PixelShader.hlsl">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

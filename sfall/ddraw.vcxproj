@@ -64,6 +64,9 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateManifest>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">false</GenerateManifest>
+    <ExecutablePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -106,6 +109,9 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" debug "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"$(ProjectDir)prebuild.cmd"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -160,6 +166,9 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" release "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"$(ProjectDir)prebuild.cmd"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">
     <ClCompile>
@@ -214,6 +223,9 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" devxp "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"$(ProjectDir)prebuild.cmd"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CRC.h" />
@@ -239,6 +251,8 @@
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Game\tilemap.h" />
+    <ClInclude Include="HLSL\A8PixelShader.h" />
+    <ClInclude Include="HLSL\L8PixelShader.h" />
     <ClInclude Include="IniReader.h" />
     <ClInclude Include="InputFuncs.h" />
     <ClInclude Include="Logging.h" />
@@ -424,6 +438,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
+    <None Include="HLSL\A8PixelShader.hlsl" />
+    <None Include="HLSL\L8PixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
