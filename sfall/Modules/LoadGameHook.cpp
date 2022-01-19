@@ -41,6 +41,7 @@
 #include "LoadOrder.h"
 #include "Message.h"
 #include "MetaruleExtender.h"
+#include "MiscPatches.h"
 #include "Movies.h"
 #include "Objects.h"
 #include "PartyControl.h"
@@ -283,6 +284,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		Interface::OnGameLoad();
 		Worldmap::OnGameLoad();
 		Sound::OnGameLoad();
+		MiscPatches::OnGameLoad();
 		Inventory::Reset();
 		Objects::OnGameLoad();
 		Stats::OnGameLoad();

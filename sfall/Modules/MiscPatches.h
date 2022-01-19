@@ -26,6 +26,8 @@ public:
 	static const char* name() { return "MiscPatches"; }
 	static void init();
 	static void exit();
+
+	static void OnGameLoad();
 };
 
 }
