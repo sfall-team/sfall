@@ -188,7 +188,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		sf::Translate::Get("sfall", "HiResInfo",
 			"This version of sfall has its own integrated High Resolution Patch mode, which is compatible with the settings of the High Resolution Patch by Mash.\n\n"
 			"If you want to continue using the Hi-Res Patch by Mash without seeing this message, disable the 'HiResMode' option in ddraw.ini.\n"
-			"Or you can disable the external Hi-Res Patch to get new graphic improvements from sfall.\n\n"
+			"Or you can disable the external Hi-Res Patch to get new graphics improvements from sfall.\n\n"
 			"Do you want to disable the High Resolution Patch by Mash?", infoMsg, 512);
 
 		// replace \n for translated message
