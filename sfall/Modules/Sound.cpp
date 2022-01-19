@@ -1106,7 +1106,7 @@ void Sound::init() {
 		MakeCall(0x4450C5, gdialogFreeSpeech_hack, 2);
 
 		// Prepare
-		LoadLibraryA("quartz.dll");
+		//LoadLibraryA("quartz.dll");
 		CreateSndWnd();
 	}
 

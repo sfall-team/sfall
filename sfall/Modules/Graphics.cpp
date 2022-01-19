@@ -680,12 +680,11 @@ public:
 			int height = mveDesc.dwHeight;
 			int pitch = dRect.Pitch / 4;
 			DWORD* pBits = (DWORD*)dRect.pBits;
-			BYTE* target = mveSurface;
 
 			while (height--) {
 				int x = width;
-				while (x--) pBits[x] = palette[target[x]].xRGB;
-				target += width;
+				while (x--) pBits[x] = palette[mveSurface[x]].xRGB;
+				mveSurface += width;
 				pBits += pitch;
 			}
 		}
