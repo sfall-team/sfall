@@ -227,13 +227,27 @@ bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }
 
-long CheckAddictByPid(fo::GameObject* critter, long pid) {
-	__asm {
-		mov  eax, pid;
-		mov  esi, critter;
-		call fo::funcoffs::item_d_check_addict_;
+// Alternative implementation of item_d_check_addict_ engine function with critter argument and returned addict queue data
+fo::QueueAddictData* __fastcall CheckAddictByPid(fo::GameObject* critter, long pid) {
+	if (pid == -1) {
+		// return queue of player addiction
+		return (fo::QueueAddictData*)fo::func::queue_find_first(fo::var::obj_dude, fo::QueueType::addict_event);
 	}
-	/* keyword 'return' is not needed, the compiler will do everything correctly */
+
+	fo::QueueAddictData* queue = (fo::QueueAddictData*)fo::func::queue_find_first(critter, fo::QueueType::addict_event);
+	while (queue && queue->drugPid != pid) {
+		queue = (fo::QueueAddictData*)fo::func::queue_find_next(critter, fo::QueueType::addict_event);
+	}
+	return queue; // return null or pointer to queue_addict
+}
+
+fo::QueueRadiationData* __fastcall GetRadiationEvent(long type) {
+	fo::QueueRadiationData* queue = (fo::QueueRadiationData*)fo::func::queue_find_first(fo::var::obj_dude, fo::radiation_event);
+	while (queue) {
+		if (queue->init == type) return queue;
+		queue = (fo::QueueRadiationData*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
+	}
+	return nullptr;
 }
 
 // Checks whether the player is under the influence of negative effects of radiation
@@ -326,7 +340,7 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
 		while (obj) {
 			if (type == -1 || type == obj->Type()) {
-				bool multiHex = (obj->flags & fo::ObjectFlag::MultiHex) ? true : false;
+				char multiHex = (obj->flags & fo::ObjectFlag::MultiHex) ? 1 : 0;
 				if (fo::func::tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
 					objs.push_back(obj);
 				}
@@ -389,6 +403,7 @@ long wmGetCurrentTerrainType() {
 }
 
 //---------------------------------------------------------
+// TODO: Review SurfaceCopyToMem/DrawToSurface functions
 // copy the area from the interface buffer to the data array
 void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem) {
 	fromSurface += fromY * fromWidth + fromX;
@@ -448,10 +463,10 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-//void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
-//	BYTE* surf = surface + (y * surfWidth) + x;
-//	fo::func::wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
-//}
+void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
+	BYTE* surf = surface + (y * surfWidth) + x;
+	fo::func::wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
+}
 
 // Fills the specified interface window with index color
 bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
@@ -475,6 +490,14 @@ bool WinFillRect(long winID, long x, long y, long width, long height, BYTE index
 	return result;
 }
 
+void FillRect(BYTE* surface, long x, long y, long width, long height, long wPitch, BYTE indexColor) {
+	surface += (wPitch * y) + x;
+	while (height--) {
+		std::memset(surface, indexColor, width);
+		surface += wPitch;
+	};
+}
+
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh) {
 	fo::Window* win = fo::func::GNW_find(winID);
@@ -494,7 +517,7 @@ void PrintFloatText(fo::GameObject* object, const char* text, long colorText, lo
 
 // print text to surface
 void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
-	DWORD posOffset = yPos * toWidth + xPos;
+	DWORD posOffset = (yPos * toWidth) + xPos;
 	__asm {
 		xor  eax, eax;
 		mov  al, colorIndex;
@@ -504,12 +527,12 @@ void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD
 		mov  eax, toSurface;
 		mov  ecx, toWidth;
 		add  eax, posOffset;
-		call dword ptr ds:[FO_VAR_text_to_buf];
+		call dword ptr ds:[FO_VAR_text_to_buf]; // calls FMtext_to_buf_ or GNW_text_to_buf_
 	}
 }
 
 void PrintTextFM(const char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
-	DWORD posOffset = yPos * toWidth + xPos;
+	DWORD posOffset = (yPos * toWidth) + xPos;
 	__asm {
 		xor  eax, eax;
 		mov  al, colorIndex;

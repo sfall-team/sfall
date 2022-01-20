@@ -152,8 +152,6 @@ typedef std::pair<DWORD, sArrayVar> array_pair;
 // auto-incremented ID
 extern DWORD nextArrayID;
 
-extern DWORD arraysBehavior;
-
 // saved arrays: arrayKey => arrayId
 extern ArrayKeysMap savedArrays;
 

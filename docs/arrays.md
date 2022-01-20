@@ -51,7 +51,7 @@ Both array types have their pros and cons and are suited for different tasks.
 
 ## Arrays syntax
 
-Basically arrays are implemented using number of new operators (scripting functions). But for ease of use, there are some new syntax elements:
+Basically arrays are implemented using number of new operators (script functions). But for ease of use, there are some new syntax elements:
 
 * Accessing elements. Use square brackets:
   ```js
@@ -73,8 +73,8 @@ Basically arrays are implemented using number of new operators (scripting functi
   // create map:
   {5: "Five", "health": 50, "speed": 0.252}
   ```
-  __NOTES:__
-  Make sure to call `fix_array` if you want new array to be available in the next frame or `save_array` if you want to use it for a longer period (see next section for details).
+  __NOTE:__
+  Make sure to call `fix_array` if you want the new array to be available in the next frame or `save_array` if you want to use it for a longer period (see next section for details).
 
 * Iterating in loop. Use `foreach` key word like this:
   ```js
@@ -88,7 +88,7 @@ Basically arrays are implemented using number of new operators (scripting functi
   end
   ```
 
-See "scripting_docs\compiler\sslc_readme.txt" file for full information on new SSL syntax features.
+See "scripting_docs\compiler\sslc_readme.html" file for full information on new SSL syntax features.
 
 ## Storing arrays
 
@@ -238,12 +238,11 @@ _*mixed means any type_
 
 For those who used arrays in their mods before sfall 3.4:
 
-* There is an INI parameter **arraysBehavior** in **Misc** section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that `create_array` will create permanent arrays which are "saved" by default and their ID is also permanent. It is 1 by default.
+* There is an INI parameter **ArraysBehavior** in **Misc** section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that `create_array` will create permanent arrays which are "saved" by default and their IDs are also permanent. It is 1 by default.
 
-* If `arraysBehaviour=0`:
-  Arrays are created and manipulated with the `xxx_array` functions. An array must first be created with `create_array` or `temp_array`, specifying how many data elements the array can hold. You can store any of ints, floats and strings in an array, and can mix all 3 in a single array. The id returned by `create/temp_array` can then be used with the other array functions. Arrays are shared between all scripts. (i.e. you can call `create_array` from one script, and then use the returned id from another script.) They are also saved across savegames. Arrays created with `temp_array` will be automatically freed at the end of the frame. These functions are safe, in that supplying a bad id or trying to access out of range elements will not crash the script. `create_array` is the only function that returns a permanent array, all other functions which return arrays (`string_split`, `list_as_array` etc,) all return temp arrays. You can use `fix_array` to make a temp array permanent.
+* __NOTE:__ Starting from sfall 4.3.3/3.8.33, the **ArraysBehavior** option is removed, and arrays always work in **ArraysBehavior=1** mode. Make sure to review your scripts if you need to save arrays into savegames.
 
-* How savegame compatibility is handled?<br>
-  Saved arrays are stored in **sfallgv.sav** file (in savegame) in new (more flexible) format, just after the old arrays. So basically, when you load older savegame, sfall will load arrays from old format and save them to new format on next game save. If you load savegame made with sfall 3.4 using sfall 3.3 (for example), game shouldn't crash, but all arrays will be lost.
+* How savegame compatibility is handled?\
+  Saved arrays are stored in **sfallgv.sav** file (in savegame) in new (more flexible) format, just after the old arrays. So basically, when you load older savegame, sfall will load arrays from old format and save them to new format on next game save. If you load savegame made with sfall 3.4 using sfall 3.3 (for example), the game shouldn't crash, but all arrays will be lost.
 
 * Previously you had to specify size in bytes for array elements. This parameter is now ignored and you can store strings of arbitrary length in arrays.

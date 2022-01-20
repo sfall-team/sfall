@@ -52,7 +52,11 @@ DWORD __fastcall interpretGetValue(Program* scriptPtr, DWORD &outType);
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
+long __fastcall db_init(const char* path_dat, const char* path_patches);
+
 long __fastcall tile_num(long x, long y);
+
+void __fastcall square_xy(long x, long y, long* outSX, long* outSY);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 
@@ -106,6 +110,15 @@ long __fastcall get_game_config_string(const char** outValue, const char* sectio
 #define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
 
+#define WRAP_WATCOM_FUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
+
+#define WRAP_WATCOM_FUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8);
+
+#define WRAP_WATCOM_FUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9);
+
 
 #define WRAP_WATCOM_FFUNC1(retType, name, arg1t, arg1) \
 	retType __fastcall name(arg1t arg1);
@@ -143,7 +156,9 @@ long __fastcall get_game_config_string(const char** outValue, const char* sectio
 #undef WRAP_WATCOM_FUNC4
 #undef WRAP_WATCOM_FUNC5
 #undef WRAP_WATCOM_FUNC6
-//#undef WRAP_WATCOM_FUNC7
+#undef WRAP_WATCOM_FUNC7
+#undef WRAP_WATCOM_FUNC8
+#undef WRAP_WATCOM_FUNC9
 
 #undef WRAP_WATCOM_FFUNC1
 #undef WRAP_WATCOM_FFUNC2

@@ -38,7 +38,10 @@
 #include "Logging.h"
 #include "IniReader.h"
 
+#include "HRP\Init.h"
+
 struct ddrawDll {
+	HMODULE sfall;
 	HMODULE dll;
 	FARPROC DirectDrawEnumerateExA;
 	FARPROC DirectDrawCreate;
@@ -82,19 +85,16 @@ namespace sfall
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
-extern bool hrpIsEnabled;
-extern bool hrpVersionValid;
+extern bool versionCHI;
 
 extern char falloutConfigName[65];
 
-DWORD HRPAddress(DWORD addr);
-
 __inline long GetIntHRPValue(DWORD addr) {
-	return *reinterpret_cast<DWORD*>(HRPAddress(addr));
+	return *reinterpret_cast<DWORD*>(HRP::Setting::GetAddress(addr));
 }
 
 __inline BYTE GetByteHRPValue(DWORD addr) {
-	return *reinterpret_cast<BYTE*>(HRPAddress(addr));
+	return *reinterpret_cast<BYTE*>(HRP::Setting::GetAddress(addr));
 }
 
 }

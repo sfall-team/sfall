@@ -28,14 +28,18 @@
 namespace sfall
 {
 
-static const DWORD ExpectedSize = 0x00122800;
-static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
+static const DWORD ExpectedSize = 1189888;
+static const DWORD ExpectedCRC[] = {
+	0xE1680293, // US 1.02d
+	0xEF34F989  // US 1.02d + HRP by Mash
+};
 
-static void inline MessageFail(const char* a) {
-	MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR);
+static void inline ExitMessageFail(const char* a) {
+	MessageBoxA(0, a, 0, MB_TASKMODAL | MB_ICONERROR);
 	ExitProcess(1);
 }
 
+// Precomputed CRC32C table
 static const DWORD CRC_table[256] = {
 	0x00000000, 0x0A5F4D75, 0x14BE9AEA, 0x1EE1D79F, 0x14C5EB57, 0x1E9AA622, 0x007B71BD, 0x0A243CC8,
 	0x1433082D, 0x1E6C4558, 0x008D92C7, 0x0AD2DFB2, 0x00F6E37A, 0x0AA9AE0F, 0x14487990, 0x1E1734E5,
@@ -71,12 +75,23 @@ static const DWORD CRC_table[256] = {
 	0x1886B265, 0x12D9FF10, 0x0C38288F, 0x066765FA, 0x0C435932, 0x061C1447, 0x18FDC3D8, 0x12A28EAD
 };
 
-static DWORD crcInternal(BYTE* data, DWORD size) {
-	DWORD crc = 0xffffffff;
+static DWORD CalcCRCInternal(BYTE* data, DWORD size) {
+	DWORD crc = 0xFFFFFFFF;
 	for (DWORD i = 0; i < size; i++) {
 		crc = CRC_table[(((BYTE)(crc)) ^ data[i])] ^ (crc >> 8);
 	}
-	return crc ^ 0xffffffff;
+	return crc ^ 0xFFFFFFFF;
+}
+
+static bool CheckExtraCRC(DWORD crc) {
+	auto extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
+	if (!extraCrcList.empty()) {
+		return std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
+			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
+			return testedCrc && crc == testedCrc; // return for lambda
+		});
+	}
+	return false;
 }
 
 bool CRC(const char* filepath) {
@@ -84,47 +99,42 @@ bool CRC(const char* filepath) {
 
 	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h == INVALID_HANDLE_VALUE) {
-		MessageFail("Cannot open fallout2.exe for CRC check.");
+		ExitMessageFail("Cannot open the game executable for CRC check.");
 		return false;
 	}
 
 	DWORD size = GetFileSize(h, 0);
-
-	if (size != ExpectedSize && IniReader::GetIntDefaultConfig("Debugging", "SkipSizeCheck", 0) == 0) {
-		CloseHandle(h);
-		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
-		               "Was expecting '" TARGETVERSION "'.\n\n"
-		               "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
-		MessageFail(buf);
-		return false;
-	}
 
 	DWORD crc;
 	BYTE* bytes = new BYTE[size];
 	ReadFile(h, bytes, size, &crc, 0);
 	CloseHandle(h);
 
-	crc = crcInternal(bytes, size);
+	crc = CalcCRCInternal(bytes, size);
 	delete[] bytes;
 
 	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {
 		if (crc == ExpectedCRC[i]) return true;
 	}
 
-	bool matchedCRC = false;
-
-	auto extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
-	if (!extraCrcList.empty()) {
-		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
-			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
-			return testedCrc && crc == testedCrc; // return for lambda
-		});
-	}
+Retry:
+	bool matchedCRC = CheckExtraCRC(crc);
 	if (!matchedCRC) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
 		               "Was expecting '" TARGETVERSION "'.\n\n"
-		               "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
-		MessageFail(buf);
+		               "%s has an unexpected CRC.\nExpected 0x%x but got 0x%x.", filepath, ExpectedCRC[0], crc);
+
+		if (size == ExpectedSize) {
+			switch (MessageBoxA(0, buf, "CRC Mismatch", MB_TASKMODAL | MB_ICONWARNING | MB_ABORTRETRYIGNORE)) {
+			case IDABORT:
+				ExitProcess(1);
+				break;
+			case IDRETRY:
+				goto Retry;
+			}
+			return true;
+		}
+		ExitMessageFail(buf);
 	}
 	return matchedCRC;
 }

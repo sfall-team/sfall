@@ -66,6 +66,10 @@ int IniReader::GetIntDefaultConfig(const char* section, const char* setting, int
 	return getInt(section, setting, defaultValue, ddrawIni);
 }
 
+std::string IniReader::GetStringDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return getString(section, setting, defaultValue, bufSize, ddrawIni);
+}
+
 std::vector<std::string> IniReader::GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter) {
 	return getList(section, setting, defaultValue, bufSize, delimiter, ddrawIni);
 }
@@ -105,8 +109,11 @@ std::vector<std::string> IniReader::GetList(const char* section, const char* set
 int IniReader::SetConfigInt(const char* section, const char* setting, int value) {
 	char buf[33];
 	_itoa_s(value, buf, 33, 10);
-	int result = WritePrivateProfileStringA(section, setting, buf, ini);
-	return result;
+	return WritePrivateProfileStringA(section, setting, buf, ini);
+}
+
+int IniReader::SetDefaultConfigString(const char* section, const char* setting, const char* value) {
+	return WritePrivateProfileStringA(section, setting, value, ddrawIni);
 }
 
 void IniReader::init() {

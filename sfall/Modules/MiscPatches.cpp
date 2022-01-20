@@ -22,18 +22,28 @@
 #include "..\Translate.h"
 
 #include "LoadGameHook.h"
-#include "MainLoopHook.h"
 
 #include "MiscPatches.h"
 
 namespace sfall
 {
 
+static int idle = -1;
+
 static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
 static int* scriptDialog = nullptr;
+
+static void __declspec(naked) GNW95_process_message_hack() {
+	__asm {
+		push idle;
+		call Sleep;
+		cmp  ds:[FO_VAR_GNW95_isActive], 0;
+		retn;
+	}
+}
 
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
@@ -351,23 +361,29 @@ playWalkMovie:
 	}
 }
 
+static long __fastcall GetRadHighlightColor(bool selected) {
+	if (fo::util::IsRadInfluence()) {
+		return (selected) ? fo::var::LightRedColor : fo::var::RedColor;
+	}
+	if (fo::var::obj_dude->critter.rads == 0 && fo::util::GetRadiationEvent(0)) {
+		return (selected) ? fo::var::WhiteColor : fo::var::NearWhiteColor;
+	}
+	return 0;
+}
+
 static void __declspec(naked) ListDrvdStats_hook() {
-	static const DWORD ListDrvdStats_Ret = 0x4354D9;
 	__asm {
-		call fo::util::IsRadInfluence;
+		cmp  dword ptr [esp], 0x4354BE + 5; // from called
+		sete cl;
+		call GetRadHighlightColor;
 		test eax, eax;
-		jnz  influence;
+		jnz  skip;
 		mov  eax, ds:[FO_VAR_obj_dude];
 		jmp  fo::funcoffs::critter_get_rads_;
-influence:
-		xor  ecx, ecx;
-		mov  cl, ds:[FO_VAR_RedColor];
-		cmp  dword ptr [esp], 0x4354BE + 5;
-		jne  skip;
-		mov  cl, 131; // color index for selected
 skip:
-		add  esp, 4;
-		jmp  ListDrvdStats_Ret;
+		mov  ecx, eax;
+		mov  dword ptr [esp], 0x4354D9; // ListDrvdStats_
+		retn;
 	}
 }
 
@@ -387,7 +403,7 @@ static void __fastcall RemoveAllFloatTextObjects() {
 	long textCount = fo::var::text_object_index;
 	if (textCount > 0) {
 		for (long i = 0; i < textCount; i++) {
-			fo::func::mem_free(fo::var::text_object_list[i]->unknown10);
+			fo::func::mem_free(fo::var::text_object_list[i]->buffer);
 			fo::func::mem_free(fo::var::text_object_list[i]);
 		}
 		fo::var::text_object_index = 0;
@@ -414,20 +430,49 @@ static void __declspec(naked) map_check_state_hook() {
 	}
 }
 
-static void __declspec(naked) obj_move_to_tile_hook_redraw() {
-	__asm {
-		mov  MainLoopHook::displayWinUpdateState, 1;
-		call fo::funcoffs::tile_set_center_;
-		mov  eax, ds:[FO_VAR_display_win];
-		jmp  fo::funcoffs::win_draw_; // update black edges after tile_set_center_
+// Frees up space in the array to create a text object
+static void __fastcall RemoveFloatTextObject(fo::GameObject* source) {
+	size_t index = 0;
+	size_t textCount = fo::var::text_object_index;
+	long minTime = fo::var::text_object_list[0]->time;
+
+	for (size_t i = 1; i < textCount; i++) {
+		if (fo::var::text_object_list[i]->owner == source) {
+			index = i;
+			break;
+		}
+		if (fo::var::text_object_list[i]->time < minTime) {
+			minTime = fo::var::text_object_list[i]->time;
+			index = i;
+		}
 	}
+	fo::FloatText* tObj = fo::var::text_object_list[index];
+
+	fo::func::tile_coord(tObj->tile_num, &tObj->rect.x, &tObj->rect.y);
+	tObj->rect.y += tObj->y_off;
+	tObj->rect.x += tObj->x_off;
+
+	fo::BoundRect rect;
+	rect.x = tObj->rect.x;
+	rect.y = tObj->rect.y;
+	rect.offx = tObj->rect.width + tObj->rect.x - 1;
+	rect.offy = tObj->rect.height + tObj->rect.y - 1;
+
+	fo::func::mem_free(tObj->buffer);
+	fo::func::mem_free(tObj);
+
+	// copy the last element of the array to the place of the removed one
+	if (--textCount > index) fo::var::text_object_list[index] = fo::var::text_object_list[textCount];
+	fo::var::text_object_index--;
+
+	fo::func::tile_refresh_rect(&rect, fo::var::map_elevation);
 }
 
-static void __declspec(naked) map_check_state_hook_redraw() {
+static void __declspec(naked) text_object_create_hack() {
 	__asm {
-		cmp  MainLoopHook::displayWinUpdateState, 0;
-		je   obj_move_to_tile_hook_redraw;
-		jmp  fo::funcoffs::tile_set_center_;
+		mov  ecx, eax;
+		push 0x4B03A6; // ret addr
+		jmp  RemoveFloatTextObject;
 	}
 }
 
@@ -808,6 +853,10 @@ static void PlayingMusicPatch() {
 	HookCall(0x482BA0, map_load_file_hook);
 
 	HookCall(0x4C5999, wmSetMapMusic_hook); // related fix
+
+	LoadGameHook::OnGameReset() += []() {
+		cMusicArea = -1;
+	};
 }
 
 static void __declspec(naked) main_death_scene_hook() {
@@ -852,6 +901,20 @@ static void EngineOptimizationPatches() {
 	SafeWrite32(0x4D630C, 0x9090C031); // xor eax, eax
 	SafeWrite8(0x4D6310, 0x90);
 	BlockCall(0x4D6319);
+
+	// Reduce excessive delays in the save/load game screens
+	SafeWriteBatch<BYTE>(16, { // 41 to 16 ms
+		0x47D00D, // LoadGame_
+		0x47C1FD  // SaveGame_
+	});
+	// LoadGame_
+	SafeWrite8(0x47CF0D, 195 + 10); // jz 0x47CFDE
+	// SaveGame_
+	SafeWrite8(0x47C135, 140 + 10); // jz 0x47C1CF
+}
+
+void MiscPatches::SetIdle(int value) {
+	idle = (value > 30) ? 30 : value;
 }
 
 void MiscPatches::init() {
@@ -912,6 +975,10 @@ void MiscPatches::init() {
 	fo::var::idle_func = reinterpret_cast<void*>(Sleep);
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
 
+	int ms = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
+	if (ms > idle) SetIdle(ms);
+	if (idle >= 0) MakeCall(0x4C9CF8, GNW95_process_message_hack, 2);
+
 	BlockCall(0x4425E6); // Patch out ereg call
 
 	SafeWrite8(0x4810AB, CodeType::JumpShort); // Disable selfrun
@@ -939,7 +1006,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	// Highlight "Radiated" in red when the player is under the influence of negative effects of radiation
+	// also highlight in gray when the player still has an impending radiation effect
 	HookCalls(ListDrvdStats_hook, {0x43549C, 0x4354BE});
 
 	// Allow setting custom colors from the game palette for object outlines
@@ -949,15 +1017,15 @@ void MiscPatches::init() {
 	HookCall(0x48A94B, obj_move_to_tile_hook);
 	HookCall(0x4836BB, map_check_state_hook);
 
-	// Redraw the screen to update black edges of the map (HRP bug)
-	// https://github.com/phobos2077/sfall/issues/282
-	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
-	HookCall(0x483726, map_check_state_hook_redraw);
+	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
+	HookCall(0x4B03A1, text_object_create_hack); // jge hack
 
-	// Corrects the height of the black background for death screen subtitles
-	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
-	if (!hrpIsEnabled || hrpVersionValid) SafeWrite8(0x481345, 4); // main_death_scene_
-	if (hrpVersionValid) SafeWrite8(HRPAddress(0x10011738), 10);
+	if (!HRP::Setting::IsEnabled()) {
+		// Corrects the height of the black background for death screen subtitles
+		if (!HRP::Setting::ExternalEnabled()) SafeWrite32(0x48134D, 38 - (640 * 3)); // main_death_scene_ (shift y-offset 2px up, w/o HRP)
+		if (!HRP::Setting::ExternalEnabled() || HRP::Setting::VersionIsValid) SafeWrite8(0x481345, 4); // main_death_scene_
+		if (HRP::Setting::VersionIsValid) SafeWrite8(HRP::Setting::GetAddress(0x10011738), 10);
+	}
 
 	F1EngineBehaviorPatch();
 	DialogueFix();

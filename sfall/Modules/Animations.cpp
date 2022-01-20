@@ -511,7 +511,7 @@ notDude:
 	}
 }
 
-void ApplyAnimationsAtOncePatches(signed char aniMax) {
+static void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//allocate memory to store larger animation struct arrays
 	sf_anim_set.resize(aniMax + 1); // include a dummy
 	sf_sad.resize(aniMax + 1); // -8?

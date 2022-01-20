@@ -182,9 +182,9 @@ void op_create_spatial(OpcodeContext& ctx) {
 	using fo::Scripts::start;
 
 	DWORD scriptIndex = ctx.arg(0).rawValue(),
-		tile = ctx.arg(1).rawValue(),
-		elevation = ctx.arg(2).rawValue(),
-		radius = ctx.arg(3).rawValue();
+	      tile = ctx.arg(1).rawValue(),
+	      elevation = ctx.arg(2).rawValue(),
+	      radius = ctx.arg(3).rawValue();
 
 	long scriptId;
 	fo::ScriptInstance* scriptPtr;
@@ -241,7 +241,7 @@ void op_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	if (fo::util::GetProto(obj->protoId, &proto)) {
 		long type = proto->item.type;
 		if (type == fo::ItemType::item_type_weapon || type == fo::ItemType::item_type_misc_item) {
-			obj->item.ammoPid = ctx.arg(1).rawValue();
+			obj->item.ammoPid = (fo::ProtoID)ctx.arg(1).rawValue();
 		}
 	} else {
 		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), obj->protoId);
@@ -311,7 +311,7 @@ void op_make_path(OpcodeContext& ctx) {
 
 void op_obj_blocking_at(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).rawValue(),
-		  elevation = ctx.arg(1).rawValue();
+	      elevation = ctx.arg(1).rawValue();
 	BlockType type = (BlockType)ctx.arg(2).rawValue();
 
 	fo::GameObject* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
@@ -490,22 +490,22 @@ void mf_get_object_ai_data(OpcodeContext& ctx) {
 		value = cap->aggression;
 		break;
 	case 1:
-		value = cap->area_attack_mode;
+		value = (long)cap->area_attack_mode;
 		break;
 	case 2:
-		value = cap->attack_who;
+		value = (long)cap->attack_who;
 		break;
 	case 3:
-		value = cap->best_weapon;
+		value = (long)cap->pref_weapon;
 		break;
 	case 4:
-		value = cap->chem_use;
+		value = (long)cap->chem_use;
 		break;
 	case 5:
-		value = cap->disposition;
+		value = (long)cap->disposition;
 		break;
 	case 6:
-		value = cap->distance;
+		value = (long)cap->distance;
 		break;
 	case 7:
 		value = cap->max_dist;
@@ -520,7 +520,7 @@ void mf_get_object_ai_data(OpcodeContext& ctx) {
 		value = cap->hurt_too_much; // DAM_BLIND/DAM_CRIP_* flags
 		break;
 	case 11:
-		value = cap->run_away_mode;
+		value = (long)cap->run_away_mode;
 		break;
 	case 12:
 		value = cap->secondary_freq;

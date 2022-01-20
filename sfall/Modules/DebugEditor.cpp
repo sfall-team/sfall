@@ -21,7 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
-#include "Graphics.h"
+//#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
@@ -51,7 +51,8 @@ enum DECode {
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
-static DWORD debugEditorKey = 0;
+static DWORD debugEditorKey;
+static DWORD mapGridToggleKey;
 
 struct sArray {
 	DWORD id;
@@ -59,10 +60,6 @@ struct sArray {
 	long  size;
 	long  flag;
 };
-
-static void DEGameWinRedraw() {
-	if (Graphics::mode != 0) fo::func::process_bk();
-}
 
 static bool SetBlocking(SOCKET s, bool block) {
 	DWORD d = !block;
@@ -225,7 +222,7 @@ static void RunEditorInternal(SOCKET &s) {
 			}
 			break;
 		}
-		DEGameWinRedraw();
+		__asm call fo::funcoffs::GNW95_process_message_;
 	}
 
 	SetGlobals(sglobals);
@@ -531,11 +528,25 @@ void DebugEditor::init() {
 	DontDeleteProtosPatch();
 
 	debugEditorKey = IniReader::GetConfigInt("Input", "DebugEditorKey", 0);
-	if (debugEditorKey != 0) {
+	if (debugEditorKey) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 				RunDebugEditor();
 			}
+		};
+	}
+
+	mapGridToggleKey = IniReader::GetIntDefaultConfig("Debugging", "MapGridToggleKey", 0);
+	if (mapGridToggleKey) {
+		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
+			if (scanCode == mapGridToggleKey && pressed && IsGameLoaded()) {
+				__asm call fo::funcoffs::grid_toggle_;
+				fo::func::tile_refresh_display();
+			}
+		};
+		LoadGameHook::OnAfterGameInit() += []() {
+			fo::var::setInt(FO_VAR_tile_refresh) = fo::funcoffs::refresh_mapper_;
+			//fo::var::setInt(FO_VAR_map_scroll_refresh) = fo::funcoffs::map_scroll_refresh_mapper_;
 		};
 	}
 }

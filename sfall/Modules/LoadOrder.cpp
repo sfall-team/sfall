@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Utils.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 
@@ -37,6 +38,7 @@ static DWORD format;
 static bool cutsPatch   = false;
 
 static std::vector<std::string> patchFiles;
+static std::vector<std::string> sfPatchFiles;
 static std::vector<int> savPrototypes;
 
 static void PlayerGenderCutsRestore() {
@@ -110,6 +112,42 @@ static void __declspec(naked) gnw_main_hack() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// compares paths without the trailing '\' character
+static bool PatchesCompare(const char* p1, const char* p2) {
+	size_t len1 = std::strlen(p1);
+	size_t len2 = std::strlen(p2);
+
+	// R-Trim
+	while (len1 > 0 && p1[len1 - 1] == '\\') len1--;
+	while (len2 > 0 && p2[len2 - 1] == '\\') len2--;
+
+	if (len1 != len2 || len1 == 0 || len2 == 0) return false;
+
+	size_t n = 0;
+	while (true) {
+		unsigned char c1 = p1[n];
+		unsigned char c2 = p2[n];
+
+		// upper to lower case for standard ASCII
+		if (c1 >= 'A' && c1 <= 'Z') c1 |= 32;
+		if (c2 >= 'A' && c2 <= 'Z') c2 |= 32;
+
+		if (c1 != c2 || ++n > len1 || n > len2) return false;
+
+		if (n == len1 && n == len2) break; // paths are matched
+	}
+	return true;
+}
+
+static void __stdcall InitSystemPatches() {
+	for (auto it = sfPatchFiles.begin(); it != sfPatchFiles.end(); ++it) {
+		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
+	}
+	// free memory
+	sfPatchFiles.clear();
+	sfPatchFiles.shrink_to_fit();
+}
+
 static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	auto paths = fo::var::paths; // curr.node (beginning of the chain of paths)
 	auto _paths = paths;         // prev.node
@@ -138,7 +176,7 @@ static void __declspec(naked) game_init_databases_hack1() {
 		mov  ecx, [esp + 0x104 + 4]; // path_patches
 		call RemoveDatabase;
 skip:
-		mov  ds:[FO_VAR_master_db_handle], eax;   // the pointer of master_patches node will be saved here
+		mov  ds:[FO_VAR_master_db_handle], eax; // the pointer of master_patches node will be saved here
 		retn;
 	}
 }
@@ -151,12 +189,13 @@ static void __declspec(naked) game_init_databases_hack2() {
 		mov  eax, ds:[FO_VAR_master_db_handle];   // pointer to master_patches node
 		mov  eax, [eax];                          // eax = master_patches.path
 		call fo::funcoffs::xremovepath_;
-		dec  eax;                                 // remove path (critter_patches == master_patches)?
-		jz   end;                                 // Yes (jump if 0)
+		dec  eax;                                 // 1 = remove path (critter_patches == master_patches)?
+		jz   end;                                 // yes (jump if removed)
 		mov  ecx, [esp + 0x104 + 4];              // path_patches
 		call RemoveDatabase;
 end:
 		mov  ds:[FO_VAR_critter_db_handle], eax;  // the pointer of critter_patches node will be saved here
+		call InitSystemPatches;
 		retn;
 	}
 }
@@ -184,6 +223,26 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
+
+	// remove paths that are identical to master_patches (usually the "DATA" folder)
+	fo::PathNode* parentPath = fo::var::paths;
+	paths = parentPath->next;
+	while (paths) {
+		if (!paths->isDat && PatchesCompare(paths->path, fo::var::paths->path)) {
+			auto nextPaths = paths->next;
+			__asm {
+				mov  eax, [paths];
+				call fo::funcoffs::nfree_; // free path string
+				mov  eax, paths;
+				call fo::funcoffs::nfree_; // free self
+			}
+			parentPath->next = nextPaths;
+			paths = nextPaths;
+		} else {
+			parentPath = paths;
+			paths = paths->next;
+		}
+	}
 }
 /*
 static void __fastcall game_init_databases_hook1() {
@@ -483,11 +542,16 @@ static void SfallResourceFile() {
 		} while (FindNextFileA(hFind, &findData));
 		FindClose(hFind);
 	}
-	patchFiles.push_back(sfallRes);
+	sfPatchFiles.push_back(sfallRes);
+}
+
+void LoadOrder::AddResourcePatches(std::string &dat, std::string &patches) {
+	if (!dat.empty()) sfPatchFiles.push_back(std::move(dat));
+	if (!patches.empty()) sfPatchFiles.push_back(std::move(patches));
 }
 
 void LoadOrder::init() {
-	SfallResourceFile(); // Add external sfall resource file (load order is before patchXXX.dat)
+	SfallResourceFile(); // Add external sfall resource file (load order: > patchXXX.dat > sfall.dat > ... [last])
 	GetExtraPatches();
 	MultiPatchesPatch();
 

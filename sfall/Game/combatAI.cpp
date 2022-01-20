@@ -43,25 +43,25 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 		long hpPercent = 50;
 		long chance = 0;
 
-		switch ((fo::AIpref::chem_use_mode)cap->chem_use) {
-		case fo::AIpref::chem_use_mode::stims_when_hurt_little: // use only healing drugs
+		switch (cap->chem_use) {
+		case fo::AIpref::ChemUse::stims_when_hurt_little: // use only healing drugs
 			hpPercent = 60;
 			break;
-		case fo::AIpref::chem_use_mode::stims_when_hurt_lots:   // use only healing drugs
+		case fo::AIpref::ChemUse::stims_when_hurt_lots:   // use only healing drugs
 			hpPercent = 30;
 			break;
-		case fo::AIpref::chem_use_mode::sometimes:
+		case fo::AIpref::ChemUse::sometimes:
 			if (!(fo::var::combatNumTurns % 3)) chance = 25; // every three turns
 			//hpPercent = 50;
 			break;
-		case fo::AIpref::chem_use_mode::anytime:
+		case fo::AIpref::ChemUse::anytime:
 			if (!(fo::var::combatNumTurns % 3)) chance = 75; // every three turns
 			//hpPercent = 50;
 			break;
-		case fo::AIpref::chem_use_mode::always:
+		case fo::AIpref::ChemUse::always:
 			chance = 100; // 99%
 			break;
-		case fo::AIpref::chem_use_mode::clean:
+		case fo::AIpref::ChemUse::clean:
 			return; // exit: don't use drugs
 		}
 
@@ -136,9 +136,9 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 						source->critter.decreaseAP(aiUseItemAPCost);
 						slot = -1;
 
-						fo::AIpref::chem_use_mode chemUse = (fo::AIpref::chem_use_mode)cap->chem_use;
-						if (chemUse == fo::AIpref::chem_use_mode::sometimes ||
-						    (chemUse == fo::AIpref::chem_use_mode::anytime && usedCount >= 2))
+						fo::AIpref::ChemUse chemUse = cap->chem_use;
+						if (chemUse == fo::AIpref::ChemUse::sometimes ||
+						    (chemUse == fo::AIpref::ChemUse::anytime && usedCount >= 2))
 						{
 							break;
 						}

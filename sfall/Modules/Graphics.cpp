@@ -18,12 +18,19 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\InputFuncs.h"
-#include "..\version.h"
+#include "..\WinProc.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
 
+#include "SubModules\DirectDraw.h"
 #include "SubModules\WindowRender.h"
+
+#include "..\HRP\Init.h"
+#include "..\HRP\Image.h"
+#include "..\HRP\MoviesScreen.h"
+
+#include "..\HLSL\A8PixelShader.h"
+#include "..\HLSL\L8PixelShader.h"
 
 #include "Graphics.h"
 
@@ -33,12 +40,18 @@ namespace sfall
 #define UNUSEDFUNCTION { return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
-typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
+//typedef HRESULT (__stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 //typedef IDirect3D9* (__stdcall *D3DCreateProc)(UINT version);
 
 #if !(NDEBUG) && !(_DEBUG)
 static LPD3DXFONT font;
 static RECT fontPosition;
+
+#define FPSOnLostDevice  font->OnLostDevice();
+#define FPSOnResetDevice font->OnResetDevice();
+#else
+#define FPSOnLostDevice
+#define FPSOnResetDevice
 #endif
 
 IDirectDrawSurface* primarySurface = nullptr; // aka _GNW95_DDPrimarySurface
@@ -47,57 +60,27 @@ IDirectDrawPalette* primaryPalette = nullptr; // aka _GNW95_DDPrimaryPalette
 static DWORD ResWidth;
 static DWORD ResHeight;
 
+static DWORD gWidth;
+static DWORD gHeight;
+
 DWORD Graphics::GPUBlt;
 DWORD Graphics::mode;
+bool Graphics::IsWindowedMode;
 
 bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
 
-static DWORD yoffset;
-//static DWORD xoffset;
-
 bool DeviceLost = false;
-//static bool mainTexLock = false; // for preventing a crash during the locked state of the texture
 static char textureFilter; // 1 - auto, 2 - force
 
 static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC mveDesc;
 static D3DSURFACE_DESC movieDesc;
 
-#pragma pack(push, 1)
-static struct PALCOLOR {
-	union {
-		DWORD xRGB;
-		struct {
-			BYTE R;
-			BYTE G;
-			BYTE B;
-			BYTE x;
-		};
-	};
-} *palette;
+static DirectDraw::PALCOLOR* palette;
+static bool paletteInit = false;
 
-struct PALETTE { // F2 palette
-	BYTE B;
-	BYTE G;
-	BYTE R;
-};
-#pragma pack(pop)
-
-//static bool paletteInit = false;
-
-static DWORD gWidth;
-static DWORD gHeight;
-
-static long moveWindowKey[2];
-
-static bool windowInit = false;
-static long windowLeft = 0;
-static long windowTop = 0;
 static HWND window;
-static DWORD windowStyle = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
-
-static int windowData;
 
 static DWORD ShaderVersion;
 
@@ -117,6 +100,7 @@ static IDirect3DSurface9* backBuffer;
 static IDirect3DVertexBuffer9* vertexOrigRes;
 static IDirect3DVertexBuffer9* vertexSfallRes;
 static IDirect3DVertexBuffer9* vertexMovie; // for AVI
+//static IDirect3DVertexBuffer9* vertexStaticScreen; // splash/death/endslides
 
 static IDirect3DTexture9* paletteTex;
 static IDirect3DTexture9* gpuPalette;
@@ -131,6 +115,8 @@ static D3DXHANDLE gpuBltHighlight;
 static D3DXHANDLE gpuBltHighlightSize;
 static D3DXHANDLE gpuBltHighlightCorner;
 static D3DXHANDLE gpuBltShowHighlight;
+
+static BYTE* mveScaleSurface = nullptr;
 
 static float rcpres[2];
 
@@ -148,16 +134,6 @@ static VertexFormat ShaderVertices[] = {
 	{639.5, 479.5, 0, 1, 1, 1}  // 3 - bottom right
 };
 
-HWND Graphics::GetFalloutWindowInfo(RECT* rect) {
-	if (rect) {
-		rect->left = windowLeft;
-		rect->top = windowTop;
-		rect->right = gWidth;
-		rect->bottom = gHeight;
-	}
-	return window;
-}
-
 long Graphics::GetGameWidthRes() {
 	return (fo::var::scr_size.offx - fo::var::scr_size.x) + 1;
 }
@@ -171,18 +147,10 @@ int __stdcall Graphics::GetShaderVersion() {
 }
 
 static void WindowInit() {
-	windowInit = true;
+	paletteInit = true;
 	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 	ScriptShaders::LoadGlobalShader();
-}
-
-static void SetWindowToCenter() {
-	RECT desktop;
-	GetWindowRect(GetDesktopWindow(), &desktop);
-
-	windowLeft = (desktop.right / 2) - (gWidth  / 2);
-	windowTop  = (desktop.bottom / 2) - (gHeight / 2);
 }
 
 // pixel size for the current game resolution
@@ -204,12 +172,9 @@ static void ResetDevice(bool create) {
 	GetDisplayMode(dispMode);
 
 	params.BackBufferCount = 1;
-	params.BackBufferFormat = dispMode.Format; // (Graphics::mode != 4) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
+	params.BackBufferFormat = dispMode.Format;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
-	params.EnableAutoDepthStencil = false;
-	//params.MultiSampleQuality = 0;
-	//params.MultiSampleType = D3DMULTISAMPLE_NONE;
 	params.Windowed = (Graphics::mode != 4);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
@@ -220,12 +185,10 @@ static void ResetDevice(bool create) {
 	static D3DFORMAT textureFormat = D3DFMT_X8R8G8B8;
 
 	if (create) {
-		bool A8_IsSupport = false;
-
 		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
 			MessageBoxA(window, "Failed to create hardware vertex processing device.\nUsing software vertex processing instead.",
-			                    "D3D9 Device", MB_TASKMODAL | MB_ICONWARNING);
+			                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
 			software = true;
 			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
 		}
@@ -237,39 +200,49 @@ static void ResetDevice(bool create) {
 		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
 		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
 
+		bool A8IsSupported = Graphics::GPUBlt && (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
+
 		if (Graphics::GPUBlt) {
-			d3d9Device->CreateTexture(256, 1, 1, 0, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &paletteTex, 0);
+			const BYTE* shader = (A8IsSupported) ? gpuEffectA8 : gpuEffectL8;
+			const UINT size = (A8IsSupported) ? sizeof(gpuEffectA8) : sizeof(gpuEffectL8);
+			if (D3DXCreateEffect(d3d9Device, shader, size, 0, 0, 0, 0, &gpuBltEffect, 0) == D3D_OK) {
+				gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
+				gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
+				// for head textures
+				gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
+				gpuBltHeadSize = gpuBltEffect->GetParameterByName(0, "size");
+				gpuBltHeadCorner = gpuBltEffect->GetParameterByName(0, "corner");
+				gpuBltHighlight = gpuBltEffect->GetParameterByName(0, "highlight");
+				gpuBltHighlightSize = gpuBltEffect->GetParameterByName(0, "sizehl");
+				gpuBltHighlightCorner = gpuBltEffect->GetParameterByName(0, "cornerhl");
+				gpuBltShowHighlight = gpuBltEffect->GetParameterByName(0, "showhl");
 
-			A8_IsSupport = (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, D3DFMT_A8, D3DPOOL_SYSTEMMEM, &mainTex, 0) == D3D_OK);
-			textureFormat = (A8_IsSupport) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
+				Graphics::SetDefaultTechnique();
 
-			const char* shader = (A8_IsSupport) ? gpuEffectA8 : gpuEffectL8;
-			D3DXCreateEffect(d3d9Device, shader, strlen(shader), 0, 0, 0, 0, &gpuBltEffect, 0);
-			gpuBltMainTex = gpuBltEffect->GetParameterByName(0, "image");
-			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
-			// for head textures
-			gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
-			gpuBltHeadSize = gpuBltEffect->GetParameterByName(0, "size");
-			gpuBltHeadCorner = gpuBltEffect->GetParameterByName(0, "corner");
-			gpuBltHighlight = gpuBltEffect->GetParameterByName(0, "highlight");
-			gpuBltHighlightSize = gpuBltEffect->GetParameterByName(0, "sizehl");
-			gpuBltHighlightCorner = gpuBltEffect->GetParameterByName(0, "cornerhl");
-			gpuBltShowHighlight = gpuBltEffect->GetParameterByName(0, "showhl");
+				d3d9Device->CreateTexture(256, 1, 1, 0, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &paletteTex, 0);
 
-			Graphics::SetDefaultTechnique();
+				textureFormat = (A8IsSupported) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
+			} else {
+				MessageBoxA(window, "Failed to create shader effects.\nSwitching to CPU for the palette conversion.",
+				                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
+				if (mainTex) SAFERELEASE(mainTex); // release D3DFMT_A8 format texture
+				Graphics::GPUBlt = 0;
+				A8IsSupported = false;
+			}
 		}
 
-		if (!A8_IsSupport && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0) != D3D_OK) {
+		if (!A8IsSupported && d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0) != D3D_OK) {
 			textureFormat = D3DFMT_X8R8G8B8;
 			d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0);
-			MessageBoxA(window, "GPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.",
-			                    "Texture format error", MB_TASKMODAL | MB_ICONWARNING);
+			MessageBoxA(window, "Texture format error.\nGPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.\n"
+			                    "Set 'GPUBlt' option to CPU to bypass this warning message.",
+			                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
 			Graphics::GPUBlt = 0;
 		}
-		if (Graphics::GPUBlt == 0) palette = new PALCOLOR[256];
+		if (Graphics::GPUBlt == 0) palette = new DirectDraw::PALCOLOR[256];
 
 		#if !(NDEBUG) && !(_DEBUG)
-			D3DXCreateFontA(d3d9Device, 24, 0, 500, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &font); // create a font
+			D3DXCreateFontA(d3d9Device, 24, 0, 500, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &font);
 
 			fontPosition.top = 10;
 			fontPosition.left = 10;
@@ -281,7 +254,7 @@ static void ResetDevice(bool create) {
 		d3d9Device->Reset(&params);
 		if (gpuBltEffect) gpuBltEffect->OnResetDevice();
 		ScriptShaders::OnResetDevice();
-		//mainTexLock = false;
+		FPSOnResetDevice
 	}
 
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_DEFAULT, &mainTexD, 0);
@@ -351,8 +324,6 @@ static DWORD lastTime = GetTickCount();
 static long frameCount;
 static long elapsedTime;
 static long fps;
-//static long palCounter;
-//static long lockCounter;
 
 static void CalcFPS() {
 	frameCount++;
@@ -381,48 +352,7 @@ static void DrawFPS() {}
 #endif
 
 static void Present() {
-	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
-	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
-	{
-		int winX, winY;
-		GetMouse(&winX, &winY);
-		windowLeft += winX;
-		windowTop += winY;
-
-		RECT r, r2;
-		r.left = windowLeft;
-		r.right = windowLeft + gWidth;
-		r.top = windowTop;
-		r.bottom = windowTop + gHeight;
-		AdjustWindowRect(&r, WS_CAPTION | WS_BORDER, false);
-
-		r.right -= (r.left - windowLeft);
-		r.left = windowLeft;
-		r.bottom -= (r.top - windowTop);
-		r.top = windowTop;
-
-		if (GetWindowRect(GetShellWindow(), &r2)) {
-			if (r.right > r2.right) {
-				DWORD move = r.right - r2.right;
-				windowLeft -= move;
-				r.right -= move;
-			} else if (r.left < r2.left) {
-				DWORD move = r2.left - r.left;
-				windowLeft += move;
-				r.right += move;
-			}
-			if (r.bottom > r2.bottom) {
-				DWORD move = r.bottom - r2.bottom;
-				windowTop -= move;
-				r.bottom -= move;
-			} else if (r.top < r2.top) {
-				DWORD move = r2.top - r.top;
-				windowTop += move;
-				r.bottom += move;
-			}
-		}
-		MoveWindow(window, windowLeft, windowTop, r.right - windowLeft, r.bottom - windowTop, true);
-	}
+	WinProc::Moving();
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 		#ifndef NDEBUG
@@ -443,6 +373,7 @@ static void Present() {
 		Graphics::ReleaseMovieTexture();
 		if (gpuBltEffect) gpuBltEffect->OnLostDevice();
 		ScriptShaders::OnLostDevice();
+		FPSOnLostDevice
 	}
 	CalcFPS();
 }
@@ -535,7 +466,7 @@ void Graphics::SetMovieTexture(bool state) {
 
 		subtitleShow = false;
 	} else if (aviAspect < winAspect) {
-		if (Graphics::AviMovieWidthFit || (hrpIsEnabled && GetIntHRPValue(HRP_VAR_MOVIE_SIZE) == 2)) {
+		if (Graphics::AviMovieWidthFit || (HRP::Setting::ExternalEnabled() && GetIntHRPValue(HRP_VAR_MOVIE_SIZE) == 2)) {
 			//desc.Width = gWidth; // scales the movie surface to screen width
 		} else {
 			// scales width proportionally and places the movie surface at the center of the window along the X-axis
@@ -571,26 +502,26 @@ void Graphics::ShowMovieFrame(IDirect3DTexture9* tex) {
 	d3d9Device->SetRenderTarget(0, backBuffer);
 
 	d3d9Device->BeginScene();
-	//if (!mainTexLock) {
-		if (ScriptShaders::Count() && Graphics::GPUBlt) {
-			d3d9Device->SetTexture(0, sTex2);
-		} else {
-			d3d9Device->SetTexture(0, mainTexD);
-		}
-		d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
 
-		// for showing subtitles
-		if (Graphics::GPUBlt) {
-			UINT passes;
-			gpuBltEffect->Begin(&passes, 0);
-			gpuBltEffect->BeginPass(0);
-		}
-		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-		if (Graphics::GPUBlt) {
-			gpuBltEffect->EndPass();
-			gpuBltEffect->End();
-		}
-	//}
+	if (ScriptShaders::Count() && Graphics::GPUBlt) {
+		d3d9Device->SetTexture(0, sTex2);
+	} else {
+		d3d9Device->SetTexture(0, mainTexD);
+	}
+	d3d9Device->SetStreamSource(0, vertexSfallRes, 0, sizeof(VertexFormat));
+
+	// for showing subtitles
+	if (Graphics::GPUBlt) {
+		UINT passes;
+		gpuBltEffect->Begin(&passes, 0);
+		gpuBltEffect->BeginPass(0);
+	}
+	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+	if (Graphics::GPUBlt) {
+		gpuBltEffect->EndPass();
+		gpuBltEffect->End();
+	}
+
 	// for avi movie
 	d3d9Device->SetTexture(0, movieTex);
 	d3d9Device->SetStreamSource(0, vertexMovie, 0, sizeof(VertexFormat));
@@ -645,19 +576,27 @@ class FakeDirectDrawSurface : IDirectDrawSurface {
 private:
 	ULONG Refs;
 	bool isPrimary;
+
 	BYTE* lockTarget = nullptr;
 	RECT* lockRect;
+
+	// size for secondary (mve) surface
+	DWORD m_width;
+	DWORD m_height;
 
 public:
 	static bool IsPlayMovie;
 
-	FakeDirectDrawSurface(bool primary) {
+	FakeDirectDrawSurface(bool primary, DDSURFACEDESC* desc) {
 		Refs = 1;
 		isPrimary = primary;
-		if (primary && Graphics::GPUBlt) {
-			// use the mainTex texture as source buffer
+		if (primary) {
+			if (Graphics::GPUBlt == 0) lockTarget = new BYTE[ResWidth * ResHeight]();
+			// for enabled GPUBlt, use the mainTex texture as source buffer
 		} else {
-			lockTarget = new BYTE[ResWidth * ResHeight];
+			m_width = desc->dwWidth;
+			m_height = desc->dwHeight;
+			lockTarget = new BYTE[m_width * m_height];
 		}
 	}
 
@@ -680,18 +619,18 @@ public:
 	HRESULT __stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 	HRESULT __stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
 
-	HRESULT __stdcall Blt(LPRECT dst, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) { // called 0x4868DA movie_MVE_ShowFrame_ (used for game movies, only for w/o HRP)
-		mveDesc.dwHeight = (dst->bottom - dst->top);
-		yoffset = (ResHeight - mveDesc.dwHeight) / 2;
-		mveDesc.lPitch = (dst->right - dst->left);
-		//xoffset = (ResWidth - mveDesc.lPitch) / 2;
+	// called 0x4868DA movie_MVE_ShowFrame_ used for game movies (only for w/o HRP by Mash)
+	HRESULT __stdcall Blt(LPRECT dst, LPDIRECTDRAWSURFACE b, LPRECT scr, DWORD d, LPDDBLTFX e) {
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST;
+
+		mveDesc.dwHeight = scr->bottom;
+		mveDesc.lPitch = scr->right;
 
 		//dlog_f("\nBlt: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 
 		IsPlayMovie = true;
-		//mainTexLock = true;
 
-		BYTE* lockTarget = ((FakeDirectDrawSurface*)b)->lockTarget;
+		BYTE* mveSurface = ((FakeDirectDrawSurface*)b)->lockTarget;
 
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, dst, D3DLOCK_NO_DIRTY_UPDATE);
@@ -700,28 +639,44 @@ public:
 		DWORD width = mveDesc.lPitch; // the current size of the width of the mve movie
 
 		if (Graphics::GPUBlt) {
-			fo::func::buf_to_buf(lockTarget, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
-			//char* pBits = (char*)dRect.pBits;
-			//for (DWORD y = 0; y < mveDesc.dwHeight; y++) {
-			//	CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
-			//}
+			if (d != 0) {
+				HRP::Image::Scale(mveSurface, width, mveDesc.dwHeight, (BYTE*)dRect.pBits, dst->right - dst->left, dst->bottom - dst->top, dRect.Pitch);
+			} else {
+				fo::func::buf_to_buf(mveSurface, width, mveDesc.dwHeight, width, (BYTE*)dRect.pBits, dRect.Pitch);
+			}
 		} else {
+			int sPitch = width;
+			int height = mveDesc.dwHeight;
+
+			if (d != 0) { // scale
+				if (!mveScaleSurface) mveScaleSurface = new BYTE[ResWidth * ResHeight];
+				width = dst->right - dst->left;
+				height = dst->bottom - dst->top;
+
+				HRP::Image::Scale(mveSurface, mveDesc.lPitch, mveDesc.dwHeight, mveScaleSurface, width, height, ResWidth);
+
+				mveSurface = mveScaleSurface;
+				sPitch = ResWidth;
+			}
+
 			int pitch = dRect.Pitch / 4;
 			DWORD* pBits = (DWORD*)dRect.pBits;
-			BYTE* target = lockTarget;
 
-			int height = mveDesc.dwHeight;
 			while (height--) {
 				int x = width;
-				while (x--) pBits[x] = palette[target[x]].xRGB;
-				target += width;
+				while (x--) pBits[x] = palette[mveSurface[x]].xRGB;
+				mveSurface += sPitch;
 				pBits += pitch;
 			}
 		}
 		mainTex->UnlockRect(0);
 		d3d9Device->UpdateTexture(mainTex, mainTexD);
 
-		//mainTexLock = false;
+		//IDirect3DSurface9 *mSurf, *mSurfD;
+		//mainTex->GetSurfaceLevel(0, &mSurf);
+		//mainTexD->GetSurfaceLevel(0, &mSurfD);
+		//d3d9Device->StretchRect(mSurf, 0, mSurfD, 0, D3DTEXF_LINEAR);
+
 		//if (Graphics::PlayAviMovie) return DD_OK; // Blt method is not executed during avi playback because the sfShowFrame_ function is blocked
 
 		Refresh();
@@ -744,7 +699,13 @@ public:
 	HRESULT __stdcall GetOverlayPosition(LPLONG, LPLONG) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetPalette(LPDIRECTDRAWPALETTE *) { UNUSEDFUNCTION; }
 	HRESULT __stdcall GetPixelFormat(LPDDPIXELFORMAT) { UNUSEDFUNCTION; }
-	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC) { UNUSEDFUNCTION; }
+
+	HRESULT __stdcall GetSurfaceDesc(LPDDSURFACEDESC a) {
+		*a = surfaceDesc;
+		a->lpSurface = lockTarget;
+		return DD_OK;
+	}
+
 	HRESULT __stdcall Initialize(LPDIRECTDRAW, LPDDSURFACEDESC) { UNUSEDFUNCTION; }
 	HRESULT __stdcall IsLost() { UNUSEDFUNCTION; }
 
@@ -752,18 +713,17 @@ public:
 		0x4CB887 GNW95_ShowRect_      [c=1]
 		0x48699D movieShowFrame_      [c=1]
 		0x4CBBFA GNW95_zero_vid_mem_  [c=1] (clear surface)
-		0x4F5E91/0x4F5EBB sub_4F5E60  [c=0] (from MVE_rmStepMovie_)
 		0x486861 movie_MVE_ShowFrame_ [c=1] (capture, never called)
+		0x4F5E91/0x4F5EBB nf_mve_buf_lock [c=0] (from MVE_rmStepMovie_)
 	*/
 	HRESULT __stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST 0x887601C2
+		if (DeviceLost && Restore() == DD_FALSE) return DDERR_SURFACELOST; // DDERR_SURFACELOST (0x887601C2)
 		if (isPrimary) {
 			lockRect = a;
 			if (Graphics::GPUBlt) {
 				D3DLOCKED_RECT buf;
 				if (SUCCEEDED(mainTex->LockRect(0, &buf, lockRect, D3DLOCK_NO_DIRTY_UPDATE))) {
 					mainTex->AddDirtyRect(lockRect);
-					//mainTexLock = true;
 					b->lpSurface = buf.pBits;
 					b->lPitch = buf.Pitch;
 				}
@@ -772,11 +732,12 @@ public:
 				b->lpSurface = lockTarget;
 			}
 		} else {
-			mveDesc.lPitch = fo::var::getInt(FO_VAR_lastMovieW);
-			mveDesc.dwHeight = fo::var::getInt(FO_VAR_lastMovieH);
-			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
+			mveDesc.dwWidth = m_width;
+			mveDesc.lPitch = m_width; //fo::var::getInt(FO_VAR_lastMovieW);
+			mveDesc.dwHeight = m_height; //fo::var::getInt(FO_VAR_lastMovieH);
 			*b = mveDesc;
 			b->lpSurface = lockTarget;
+			//dlog_f("\nLock: [mveDesc: w:%d, h:%d]", DL_INIT, mveDesc.lPitch, mveDesc.dwHeight);
 		}
 		return DD_OK;
 	}
@@ -788,10 +749,14 @@ public:
 		if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 			ResetDevice(false);
 			DeviceLost = false;
-			if (Graphics::GPUBlt) SetGPUPalette(); // restore palette
+			// restore palette
+			if (Graphics::GPUBlt) {
+				paletteTex->AddDirtyRect(0);
+				SetGPUPalette();
+			}
 			dlogr("\nD3D9 Device restored.", DL_MAIN);
 		}
-		return DeviceLost;
+		return (DeviceLost) ? DD_FALSE : DD_OK;
 	}
 
 	HRESULT __stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
@@ -803,9 +768,6 @@ public:
 			primaryPalette = a;
 			return DD_OK; // prevents executing the function when called from outside of sfall
 		}
-		if (DeviceLost) return DD_OK;
-
-		//mainTexLock = true;
 
 		D3DLOCKED_RECT dRect;
 		mainTex->LockRect(0, &dRect, 0, 0);
@@ -826,8 +788,8 @@ public:
 		}
 
 		mainTex->UnlockRect(0);
-		d3d9Device->UpdateTexture(mainTex, mainTexD);
-		//mainTexLock = false;
+		if (!DeviceLost) d3d9Device->UpdateTexture(mainTex, mainTexD);
+
 		return DD_OK;
 	}
 
@@ -835,16 +797,14 @@ public:
 		0x4CB8F0 GNW95_ShowRect_      (common game, primary)
 		0x486A87 movieShowFrame_
 		0x4CBC5A GNW95_zero_vid_mem_  (clear surface)
-		0x4F5ECC sub_4F5E60           (from MVE_rmStepMovie_)
+		0x4F5ECC nf_mve_buf_lock      (from MVE_rmStepMovie_)
 		0x4868BA movie_MVE_ShowFrame_ (capture never call)
+		0x4F5EFA/0x4F5F0B nf_mve_buf_unlock (from MVE_rmStepMovie_)
 	*/
 	HRESULT __stdcall Unlock(LPVOID lockSurface) {
 		if (!isPrimary) return DD_OK;
-		//lockCounter++;
 
 		if (Graphics::GPUBlt == 0) {
-			//mainTexLock = true;
-
 			D3DLOCKED_RECT dRect;
 			mainTex->LockRect(0, &dRect, lockRect, D3DLOCK_NO_DIRTY_UPDATE);
 			mainTex->AddDirtyRect(lockRect);
@@ -882,8 +842,8 @@ public:
 				}
 			}
 		}
-		/*if (mainTexLock)*/ mainTex->UnlockRect(0);
-		//mainTexLock = false;
+
+		mainTex->UnlockRect(0);
 		d3d9Device->UpdateTexture(mainTex, mainTexD);
 
 		if (!IsPlayMovie && !Graphics::PlayAviMovie) {
@@ -932,10 +892,9 @@ public:
 		0x4CB36B GNW95_SetPaletteEntries_
 	*/
 	HRESULT __stdcall SetEntries(DWORD a, DWORD b, DWORD c, LPPALETTEENTRY d) { // used to set palette for splash screen, fades, subtitles
-		if (!windowInit || (long)c <= 0) return DDERR_INVALIDPARAMS;
-		//palCounter++;
+		if (!paletteInit || (long)c <= 0) return DDERR_INVALIDPARAMS;
 
-		PALETTE* destPal = (PALETTE*)d;
+		fo::PALETTE* destPal = (fo::PALETTE*)d;
 
 		if (Graphics::GPUBlt) {
 			D3DLOCKED_RECT pal;
@@ -949,14 +908,14 @@ public:
 			}
 			// copy and swap color B <> R
 			do {
-				((PALCOLOR*)pal.pBits)[b].R = destPal->R << 2;
-				((PALCOLOR*)pal.pBits)[b].G = destPal->G << 2;
-				((PALCOLOR*)pal.pBits)[b].B = destPal->B << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].R = destPal->R << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].G = destPal->G << 2;
+				((DirectDraw::PALCOLOR*)pal.pBits)[b].B = destPal->B << 2;
 				destPal++;
 				b++;
 			} while (--c);
 			paletteTex->UnlockRect(0);
-			SetGPUPalette();
+			if (!DeviceLost) SetGPUPalette();
 		} else {
 			// copy and swap color B <> R
 			do {
@@ -966,6 +925,7 @@ public:
 				destPal++;
 				b++;
 			} while (--c);
+
 			primarySurface->SetPalette(0); // update texture
 			if (FakeDirectDrawSurface::IsPlayMovie) return DD_OK; // prevents flickering at the beginning of playback (w/o HRP & GPUBlt=2)
 		}
@@ -1030,11 +990,11 @@ public:
 		0x4CB094 GNW95_init_DirectDraw_ (primary surface)
 		0x4F5DD4/0x4F5DF9 nfConfig_     (mve surface)
 	*/
-	HRESULT __stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
-		if (a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE && a->dwFlags == DDSD_CAPS) {
-			*b = primarySurface = (IDirectDrawSurface*)new FakeDirectDrawSurface(true);
+	HRESULT __stdcall CreateSurface(LPDDSURFACEDESC desc, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
+		if (desc->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE && desc->dwFlags == DDSD_CAPS) {
+			*b = primarySurface = (IDirectDrawSurface*)new FakeDirectDrawSurface(true, nullptr);
 		} else {
-			*b = (IDirectDrawSurface*)new FakeDirectDrawSurface(false);
+			*b = (IDirectDrawSurface*)new FakeDirectDrawSurface(false, desc);
 		}
 		return DD_OK;
 	}
@@ -1054,36 +1014,19 @@ public:
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
-		char windowTitle[128];
 		window = a;
+		WinProc::SetHWND(window);
+		WinProc::SetTitle(gWidth, gHeight, Graphics::mode);
+
+		if (Graphics::mode >= 5) {
+			long windowStyle = (Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
+			WinProc::SetStyle(windowStyle);
+		}
 
 		if (!d3d9Device) {
 			CoInitialize(0);
 			ResetDevice(true); // create
 		}
-		dlog("Creating D3D9 Device window...", DL_MAIN);
-
-		if (Graphics::mode >= 5) {
-			if (ResWidth != gWidth || ResHeight != gHeight) {
-				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
-			} else {
-				std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
-			}
-			SetWindowTextA(a, windowTitle);
-
-			SetWindowLongA(a, GWL_STYLE, windowStyle);
-			RECT r;
-			r.left = 0;
-			r.right = gWidth;
-			r.top = 0;
-			r.bottom = gHeight;
-			AdjustWindowRect(&r, windowStyle, false);
-			r.right -= r.left;
-			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-		}
-
-		dlogr(" Done", DL_MAIN);
 		return DD_OK;
 	}
 
@@ -1095,8 +1038,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
 	// original resolution or HRP
-	ResWidth = *(DWORD*)0x4CAD6B;  // 640
-	ResHeight = *(DWORD*)0x4CAD66; // 480
+	ResWidth  = HRP::Setting::ScreenWidth();  //*(DWORD*)0x4CAD6B; // 640
+	ResHeight = HRP::Setting::ScreenHeight(); //*(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 
@@ -1140,36 +1083,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
-	if (Graphics::mode == 5) {
-		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
-		if (moveWindowKey[0] < 0) {
-			switch (moveWindowKey[0]) {
-			case -1:
-				moveWindowKey[0] = DIK_LCONTROL;
-				moveWindowKey[1] = DIK_RCONTROL;
-				break;
-			case -2:
-				moveWindowKey[0] = DIK_LMENU;
-				moveWindowKey[1] = DIK_RMENU;
-				break;
-			case -3:
-				moveWindowKey[0] = DIK_LSHIFT;
-				moveWindowKey[1] = DIK_RSHIFT;
-				break;
-			default:
-				moveWindowKey[0] = 0;
-			}
-		} else {
-			moveWindowKey[0] &= 0xFF;
-		}
-		windowData = IniReader::GetConfigInt("Graphics", "WindowData", -1);
-		if (windowData > 0) {
-			windowLeft = windowData >> 16;
-			windowTop = windowData & 0xFFFF;
-		} else if (windowData == -1) {
-			SetWindowToCenter();
-		}
-	}
+	WinProc::SetSize(gWidth, gHeight, 0);
+	if (Graphics::mode == 5) WinProc::LoadPosition();
 
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
@@ -1254,38 +1169,58 @@ void __stdcall Graphics::ForceGraphicsRefresh(DWORD d) {
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
-void Graphics::init() {
-	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
-	if (Graphics::mode == 6) {
-		windowStyle = WS_OVERLAPPED;
-	} else if (Graphics::mode != 4 && Graphics::mode != 5) {
-		Graphics::mode = 0;
+void Graphics::BackgroundClearColor(long indxColor) {
+	if (Graphics::mode < 4) {
+		DirectDraw::Clear(indxColor);
+		return;
 	}
 
-	if (Graphics::mode) {
+	if (GPUBlt) {
+		D3DLOCKED_RECT buf;
+		mainTex->LockRect(0, &buf, 0, D3DLOCK_DISCARD);
+		std::memset(buf.pBits, indxColor, ResWidth * ResHeight);
+		mainTex->UnlockRect(0);
+	} else {
+		DDSURFACEDESC desc;
+		primarySurface->GetSurfaceDesc(&desc);
+		std::memset(desc.lpSurface, indxColor, ResWidth * ResHeight);
+	}
+}
+
+void Graphics::init() {
+	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 0);
+	if (gMode >= 4) Graphics::mode = gMode;
+
+	if (Graphics::mode < 0 || Graphics::mode > 6) {
+		Graphics::mode = 0;
+	}
+	IsWindowedMode = (mode == 2 || mode == 3 || mode == 5 || mode == 6);
+
+	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
-		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
+		HMODULE h = LoadLibraryExA(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
+			dlogr(" Failed", DL_INIT);
 			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-			               "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+			               "Switch back to DirectDraw (Mode=0), or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
-		} else {
-			FreeLibrary(h);
 		}
+		FreeLibrary(h);
+
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
 		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
 		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
-		if (hrpVersionValid) {
+		if (HRP::Setting::VersionIsValid) {
 			// Patch HRP to show the mouse cursor over the window title
-			if (Graphics::mode == 5) SafeWrite8(HRPAddress(0x10027142), CodeType::JumpShort);
+			if (Graphics::mode == 5) SafeWrite8(HRP::Setting::GetAddress(0x10027142), CodeType::JumpShort);
 
 			// Patch HRP to fix the issue of displaying a palette color with index 255 for images (splash screens, ending slides)
-			SafeWrite8(HRPAddress(0x1000F8C7), CodeType::JumpShort);
+			SafeWrite8(HRP::Setting::GetAddress(0x1000F8C7), CodeType::JumpShort);
 		}
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
@@ -1294,20 +1229,29 @@ void Graphics::init() {
 		LoadGameHook::OnGameReset() += []() {
 			ForceGraphicsRefresh(0); // disable refresh
 		};
+	} else if (HRP::Setting::IsEnabled()) {
+		DirectDraw::init();
+	}
+	if (Graphics::mode == 5 || Graphics::mode == 2) WinProc::SetMoveKeys();
+
+	if (HRP::Setting::IsEnabled()) {
+		HRP::MoviesScreen::SetDrawMode(Graphics::mode < 4);
+
+		// Reassign the WindowProc function to avoid an unnecessary jump from the engine code
+		LoadGameHook::OnBeforeGameInit() += []() { WinProc::SetWindowProc(); };
 	}
 
 	WindowRender::init();
 }
 
 void Graphics::exit() {
-	if (Graphics::mode) {
-		RECT rect;
-		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
-			int data = rect.top | (rect.left << 16);
-			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
-		}
+	WinProc::SavePosition(Graphics::mode);
+	if (Graphics::mode >= 4) {
 		CoUninitialize();
+	} else {
+		DirectDraw::exit();
 	}
+	if (mveScaleSurface) delete[] mveScaleSurface;
 }
 
 }

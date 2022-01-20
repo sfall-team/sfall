@@ -26,6 +26,9 @@
 #include "LoadGameHook.h"
 #include "Worldmap.h"
 
+#include "..\HRP\InterfaceBar.h"
+#include "..\HRP\viewmap\EdgeClipping.h"
+
 #include "Interface.h"
 
 namespace sfall
@@ -120,10 +123,10 @@ skip:
 
 static void __declspec(naked) intface_init_hack() {
 	__asm {
-		add eax, 9276 - (54 / 2); // x offset
-		mov edx, 144 - 90;        // width
-		add [esp + 4], edx;
-		add [esp + 0x10 + 4], edx;
+		add  eax, 9276 - (54 / 2); // x offset
+		mov  edx, 144 - 90;        // width
+		add  [esp + 4], edx;
+		add  [esp + 0x10 + 4], edx;
 		retn;
 	}
 }
@@ -145,11 +148,13 @@ static void APBarRectPatch() {
 }
 
 static void ActionPointsBarPatch() {
+	HRP::IFaceBar::SetExpandAPBar();
+
 	dlog("Applying expanded action points bar patch.", DL_INIT);
-	if (hrpIsEnabled) {
+	if (HRP::Setting::ExternalEnabled()) {
 		// check valid data
-		if (hrpVersionValid && !_stricmp((const char*)HRPAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
-			SafeWriteStr(HRPAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
+		if (HRP::Setting::VersionIsValid && !_stricmp((const char*)HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
 		} else {
 			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
@@ -158,8 +163,9 @@ static void ActionPointsBarPatch() {
 	} else {
 		APBarRectPatch();
 	}
-	SafeWrite32(0x45E343, (DWORD)&movePointBackground);
-	SafeWrite32(0x45EE3F, (DWORD)&movePointBackground);
+	// intface_init_
+	SafeWriteBatch<DWORD>((DWORD)&movePointBackground, {0x45E343, 0x45EE3F});
+	// intface_update_move_points_
 	SafeWriteBatch<BYTE>(16, {0x45EE55, 0x45EE7B, 0x45EE82, 0x45EE9C, 0x45EEA0});
 	SafeWriteBatch<DWORD>(9276 - (54 / 2), {0x45EE33, 0x45EEC8, 0x45EF16});
 
@@ -298,7 +304,7 @@ static const DWORD wmViewportEndBottom[] = {
 	0x4C429A, 0x4C4378, 0x4C4413,                               // wmDrawCursorStopped_
 	0x4C44BE,                                                   // wmCursorIsVisible_
 };
-
+/*
 static void __declspec(naked) wmInterfaceInit_hack() {
 	static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
 	__asm {
@@ -308,7 +314,7 @@ static void __declspec(naked) wmInterfaceInit_hack() {
 		jmp  wmInterfaceInit_Ret;
 	}
 }
-
+*/
 static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
 	__asm {
 		mov  edx, [esp + 0x10 - 0x10 + 4];
@@ -426,7 +432,7 @@ static void WorldmapViewportPatch() {
 	SafeWriteBatch<DWORD>(135, {0x4C23BD, 0x4C2408}); // use unused worldmap.frm for new world map interface (wmInterfaceInit_)
 
 	// x/y axis offset of interface window
-	MakeJump(0x4C23A2, wmInterfaceInit_hack);
+	//MakeJump(0x4C23A2, wmInterfaceInit_hack);
 	// size of the created window/buffer
 	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH, wmWinWidth); // width
 	SafeWrite32(0x4C238B, WMAP_WIN_HEIGHT);            // height (wmInterfaceInit_)
@@ -653,7 +659,7 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 		long x_cut = abs(20 - x);
 		long width = 0;
 		do {
-			width += fo::GetCharWidthFM(*text++);
+			width += fo::util::GetCharWidthFM(*text++);
 		} while (width < x_cut);
 		x += x_cut;
 	}*/
@@ -832,7 +838,7 @@ static void WorldMapInterfacePatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (hrpIsEnabled && hrpVersionValid) {
+	if (HRP::Setting::IsEnabled() || HRP::Setting::VersionIsValid) { // was available only for 4.1.8?
 		if (worldmapInterface = IniReader::GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
@@ -924,9 +930,10 @@ static void SpeedInterfaceCounterAnimsPatch() {
 	}
 }
 
-static bool IFACE_BAR_MODE = false;
-
 static long gmouse_handle_event_hook() {
+	// check whether the player clicks on the clipping area of the map
+	if (!HRP::EdgeClipping::CheckMapClipping()) return 0; // block
+
 	long countWin = fo::var::num_windows;
 	long ifaceWin = fo::var::interfaceWindow;
 	fo::Window* win = nullptr;
@@ -939,7 +946,9 @@ static long gmouse_handle_event_hook() {
 			if (fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
 		}
 	}
-	if (IFACE_BAR_MODE) return 1;
+
+	if (HRP::IFaceBar::IFACE_BAR_MODE) return 1;
+
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
 	win = fo::func::GNW_find(fo::var::getInt(FO_VAR_display_win));
 	RECT *rect = &win->wRect;
@@ -1004,10 +1013,17 @@ static void InterfaceWindowPatch() {
 	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
 
 	// Increase the max text width of the player name on the character screen
-	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100
+	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100 (PrintBigname_)
 
 	// Increase the max text width of the information card on the character screen
-	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133
+	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133 (DrawCard_, DrawCard2_)
+
+	// Increase the width of the mouse drop area from 64px to 80px for the PC's and NPC's inventory on the barter screen
+	// barter_move_from_table_inventory_
+	SafeWrite32(0x47523D, 98);       // x_start was 80
+	SafeWrite32(0x475231, 98 + 80);  // x_end   was 144
+	SafeWrite32(0x4752BE, 460);      // x_start was 475
+	SafeWrite32(0x4752B2, 460 + 80); // x_end   was 539
 }
 
 static void InventoryCharacterRotationSpeedPatch() {
@@ -1035,9 +1051,10 @@ void Interface::init() {
 	InventoryCharacterRotationSpeedPatch();
 	UIAnimationSpeedPatch();
 
-	if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+	// Remove window position rounding for script-created windows
+	//if (IniReader::GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, {0x4D6EDD, 0x4D6F12});
-	}
+	//}
 
 	if (IniReader::GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
@@ -1050,10 +1067,8 @@ void Interface::init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	LoadGameHook::OnBeforeGameInit() += []() {
-		if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
-		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
-	};
+	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
+	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 }
 
 void Interface::exit() {

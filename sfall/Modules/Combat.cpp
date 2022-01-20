@@ -282,7 +282,7 @@ static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
-	return cap->area_attack_mode; // default engine code
+	return (long)cap->area_attack_mode; // default engine code
 }
 
 static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
@@ -543,7 +543,7 @@ static void CombatProcPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-static void Combat_OnGameLoad() {
+static void ResetOnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
@@ -592,7 +592,7 @@ void Combat::init() {
 	SafeWriteBatch<BYTE>(fo::BodyPart::Uncalled, bodypartAddr); // replace Body_Torso with Body_Uncalled
 	HookCalls(ai_pick_hit_mode_hook_bodypart, {0x429E8C, 0x429ECC, 0x429F09});
 
-	LoadGameHook::OnGameReset() += Combat_OnGameLoad;
+	LoadGameHook::OnGameReset() += ResetOnGameLoad;
 }
 
 }

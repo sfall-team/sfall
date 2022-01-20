@@ -439,7 +439,7 @@ void CritterStats::SaveStatData(HANDLE file) {
 bool CritterStats::LoadStatData(HANDLE file) {
 	DWORD count, sizeRead;
 	ReadFile(file, &count, 4, &sizeRead, 0);
-	//if (sizeRead != 4) return true;
+	if (sizeRead != 4) return false; // wrong/old file data version
 
 	if (count) s_baseStatProto.reserve(count + 10);
 	for (size_t i = 0; i < count; i++) {
@@ -455,7 +455,7 @@ bool CritterStats::LoadStatData(HANDLE file) {
 	}
 
 	ReadFile(file, &count, 4, &sizeRead, 0);
-	//if (sizeRead != 4) return true;
+	if (sizeRead != 4) return true;
 
 	if (count) s_bonusStatProto.reserve(count + 10);
 	for (size_t i = 0; i < count; i++) {

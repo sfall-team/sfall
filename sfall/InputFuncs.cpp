@@ -465,6 +465,7 @@ typedef HRESULT (__stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA*
 HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
 	HMODULE dinput = LoadLibraryA("dinput.dll");
 	if (!dinput || dinput == INVALID_HANDLE_VALUE) return -1;
+
 	DInputCreateProc proc = (DInputCreateProc)GetProcAddress(dinput, "DirectInputCreateA");
 	if (!proc) return -1;
 

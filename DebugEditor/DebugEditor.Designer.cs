@@ -23,6 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            this.components = new System.ComponentModel.Container();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.Column0 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -34,6 +35,7 @@
             this.bSGlobals = new System.Windows.Forms.Button();
             this.bArrays = new System.Windows.Forms.Button();
             this.bEdit = new System.Windows.Forms.Button();
+            this.redrawTimer = new System.Windows.Forms.Timer(this.components);
             this.bCrittersLvar = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
@@ -154,6 +156,11 @@
             this.bEdit.UseVisualStyleBackColor = true;
             this.bEdit.Click += new System.EventHandler(this.bEdit_Click);
             // 
+            // redrawTimer
+            // 
+            this.redrawTimer.Interval = 200;
+            this.redrawTimer.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // bCrittersLvar
             // 
             this.bCrittersLvar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -202,6 +209,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
+        internal System.Windows.Forms.Timer redrawTimer;
         private System.Windows.Forms.Button bCrittersLvar;
 
     }

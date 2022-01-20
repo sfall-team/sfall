@@ -78,6 +78,7 @@ runs:
              #
              git clone --quiet https://github.com/NovaRain/DXSDK_Collection.git "$DXSDK_DIR"
              cp "$DXSDK_DIR/DXSDK_Aug2007/Lib/x86/dinput.lib" "$DXSDK_DIR/DXSDK_Jun2010/Lib/x86/"
+             cp "$DXSDK_DIR/DXSDK_Feb2010/Lib/x86/ddraw.lib" "$DXSDK_DIR/DXSDK_Jun2010/Lib/x86/"
              #
              echo "::endgroup::"
           fi

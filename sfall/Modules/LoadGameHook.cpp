@@ -140,7 +140,7 @@ static void __stdcall SaveGame2() {
 		WriteFile(h, &Objects::uniqueID, 4, &size, 0); // save unique id counter
 		data = Worldmap::GetAddedYears(false) << 16;   // save to high bytes (short)
 		WriteFile(h, &data, 4, &size, 0);
-		Perks::save(h);
+		Perks::Save(h);
 		script::SaveArrays(h);
 		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
@@ -242,7 +242,7 @@ static bool LoadGame_Before() {
 		if (uID > UniqueID::Start) Objects::uniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap::SetAddedYears(data >> 16);
-		if (size != 4 || !Perks::load(h)) goto errorLoad;
+		if (size != 4 || !Perks::Load(h)) goto errorLoad;
 		long result = script::LoadArrays(h); // 1 - old save, -1 - broken save
 		if (result == -1 || (!result && BugFixes::DrugsLoadFix(h))) goto errorLoad;
 		CloseHandle(h);
@@ -351,7 +351,7 @@ static void __stdcall game_init_hook() {
 static void __stdcall GameInitialized(int initResult) {
 	#ifdef NDEBUG
 	if (!initResult) {
-		MessageBoxA(0, "Game initialization failed!", "Error", MB_TASKMODAL | MB_ICONERROR);
+		MessageBoxA(0, "Game initialization failed!", 0, MB_TASKMODAL | MB_ICONERROR);
 		return;
 	}
 	#endif

@@ -103,7 +103,10 @@ long ObjIsOpenable(fo::GameObject* object);
 
 bool HeroIsFemale();
 
-long CheckAddictByPid(fo::GameObject* critter, long pid);
+// Alternative implementation of item_d_check_addict_ engine function with critter argument and returned addict queue data
+fo::QueueAddictData* __fastcall CheckAddictByPid(fo::GameObject* critter, long pid);
+
+fo::QueueRadiationData* __fastcall GetRadiationEvent(long type);
 
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();
@@ -142,8 +145,12 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
 
+void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth);
+
 // Fills the specified interface window with index color
 bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor);
+
+void FillRect(BYTE* surface, long x, long y, long width, long height, long wPitch, BYTE indexColor);
 
 // Fills the specified interface window with index color 0 (black color)
 void ClearWindow(long winID, bool refresh = true);

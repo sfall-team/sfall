@@ -82,6 +82,18 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">false</GenerateManifest>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">false</GenerateManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -123,6 +135,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" debug "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -176,6 +199,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" release "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">
     <ClCompile>
@@ -229,6 +263,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" releasexp "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">
     <ClCompile>
@@ -283,6 +328,17 @@
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" devxp "$(TargetPath)"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>2.0</ShaderModel>
+      <HeaderFileOutput>$(SolutionDir)HLSL\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CheckAddress.h" />
@@ -292,11 +348,13 @@
     <ClInclude Include="FalloutEngine\Fallout2.h" />
     <ClInclude Include="FalloutEngine\FunctionOffsets.h" />
     <ClInclude Include="FalloutEngine\FunctionOffsets_def.h" />
+    <ClInclude Include="FalloutEngine\GamePids.h" />
     <ClInclude Include="FalloutEngine\Structs.h" />
     <ClInclude Include="FalloutEngine\EngineUtils.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h" />
     <ClInclude Include="FalloutEngine\Variables.h" />
+    <ClInclude Include="FalloutEngine\Variables_def.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
     <ClInclude Include="Game\AI\AIHelpers.h" />
@@ -309,6 +367,27 @@
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Game\tilemap.h" />
+    <ClInclude Include="HLSL\A8PixelShader.h" />
+    <ClInclude Include="HLSL\L8PixelShader.h" />
+    <ClInclude Include="HRP\Character.h" />
+    <ClInclude Include="HRP\CreditsScreen.h" />
+    <ClInclude Include="HRP\DeathScreen.h" />
+    <ClInclude Include="HRP\Dialog.h" />
+    <ClInclude Include="HRP\HelpScreen.h" />
+    <ClInclude Include="HRP\Image.h" />
+    <ClInclude Include="HRP\Init.h" />
+    <ClInclude Include="HRP\InterfaceBar.h" />
+    <ClInclude Include="HRP\Inventory.h" />
+    <ClInclude Include="HRP\LoadSave.h" />
+    <ClInclude Include="HRP\MainMenu.h" />
+    <ClInclude Include="HRP\MiscInterface.h" />
+    <ClInclude Include="HRP\MoviesScreen.h" />
+    <ClInclude Include="HRP\SlidesScreen.h" />
+    <ClInclude Include="HRP\SplashScreen.h" />
+    <ClInclude Include="HRP\ViewMap\EdgeBorder.h" />
+    <ClInclude Include="HRP\ViewMap\EdgeClipping.h" />
+    <ClInclude Include="HRP\ViewMap\ViewMap.h" />
+    <ClInclude Include="HRP\Worldmap.h" />
     <ClInclude Include="IniReader.h" />
     <ClInclude Include="Modules\CritterPoison.h" />
     <ClInclude Include="Modules\CritterStats.h" />
@@ -340,6 +419,7 @@
     <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\SubModules\CombatBlock.h" />
+    <ClInclude Include="Modules\SubModules\DirectDraw.h" />
     <ClInclude Include="Modules\SubModules\EnginePerks.h" />
     <ClInclude Include="Modules\SubModules\ObjectName.h" />
     <ClInclude Include="Modules\SubModules\WindowRender.h" />
@@ -409,6 +489,7 @@
     <ClInclude Include="Logging.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Modules\ExtraSaveSlots.h" />
+    <ClInclude Include="WinProc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CheckAddress.cpp" />
@@ -426,6 +507,25 @@
     <ClCompile Include="Game\skills.cpp" />
     <ClCompile Include="Game\stats.cpp" />
     <ClCompile Include="Game\tilemap.cpp" />
+    <ClCompile Include="HRP\Character.cpp" />
+    <ClCompile Include="HRP\CreditsScreen.cpp" />
+    <ClCompile Include="HRP\DeathScreen.cpp" />
+    <ClCompile Include="HRP\Dialog.cpp" />
+    <ClCompile Include="HRP\HelpScreen.cpp" />
+    <ClCompile Include="HRP\Image.cpp" />
+    <ClCompile Include="HRP\Init.cpp" />
+    <ClCompile Include="HRP\InterfaceBar.cpp" />
+    <ClCompile Include="HRP\Inventory.cpp" />
+    <ClCompile Include="HRP\LoadSave.cpp" />
+    <ClCompile Include="HRP\MainMenu.cpp" />
+    <ClCompile Include="HRP\MiscInterface.cpp" />
+    <ClCompile Include="HRP\MoviesScreen.cpp" />
+    <ClCompile Include="HRP\SlidesScreen.cpp" />
+    <ClCompile Include="HRP\SplashScreen.cpp" />
+    <ClCompile Include="HRP\ViewMap\EdgeBorder.cpp" />
+    <ClCompile Include="HRP\ViewMap\EdgeClipping.cpp" />
+    <ClCompile Include="HRP\ViewMap\ViewMap.cpp" />
+    <ClCompile Include="HRP\Worldmap.cpp" />
     <ClCompile Include="IniReader.cpp" />
     <ClCompile Include="Modules\CritterPoison.cpp" />
     <ClCompile Include="Modules\CritterStats.cpp" />
@@ -456,6 +556,7 @@
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\SubModules\CombatBlock.cpp" />
+    <ClCompile Include="Modules\SubModules\DirectDraw.cpp" />
     <ClCompile Include="Modules\SubModules\EnginePerks.cpp" />
     <ClCompile Include="Modules\SubModules\ObjectName.cpp" />
     <ClCompile Include="Modules\SubModules\WindowRender.cpp" />
@@ -527,13 +628,27 @@
     </ClCompile>
     <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WinProc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
-    <None Include="FalloutEngine\Variables_def.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="HLSL\A8PixelShader.hlsl">
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gpuEffectA8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gpuEffectA8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">gpuEffectA8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">gpuEffectA8</VariableName>
+    </FxCompile>
+    <FxCompile Include="HLSL\L8PixelShader.hlsl">
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gpuEffectL8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gpuEffectL8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">gpuEffectL8</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">gpuEffectL8</VariableName>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

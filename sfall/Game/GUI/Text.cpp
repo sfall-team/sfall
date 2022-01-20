@@ -9,6 +9,8 @@
 
 #include "..\..\Modules\Console.h"
 
+#include "..\..\HRP\InterfaceBar.h"
+
 #include "Text.h"
 
 namespace game
@@ -19,7 +21,7 @@ namespace gui
 namespace sf = sfall;
 
 // Returns the position of the newline character, or the position of the character within the specified width (implementation from HRP)
-static long GetPositionWidth(const char* text, long width) {
+static long GetPositionWidth(const char* text, long width, bool lineBreak) {
 	long gapWidth;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_spacing];
@@ -32,7 +34,7 @@ static long GetPositionWidth(const char* text, long width) {
 
 	char c = text[position];
 	while (c) {
-		if (c == '\\' && text[position + 1] == 'n') return position;
+		if (lineBreak && c == '\\' && text[position + 1] == 'n') return position;
 
 		if (c != ' ') wordCharCount++; else wordCharCount = 0;
 
@@ -51,22 +53,21 @@ static long GetPositionWidth(const char* text, long width) {
 
 // Replaces the implementation of display_print_ function from HRP with support for the newline control character '\n'
 // Works with vanilla and HRP 4.1.8
-static void __fastcall DisplayPrintLineBreak(const char* message) {
+static void __fastcall DisplayPrint(const char* message, bool lineBreak) {
 	if (*message == 0 || !fo::var::getInt(FO_VAR_disp_init)) return;
 
-	sfall::Console::PrintFile(message);
+	sf::Console::PrintFile(message);
 
 	const long max_lines = 100; // aka FO_VAR_max
 	long max_disp_chars = 256;  // HRP value (vanilla 80)
-	char* display_string_buf_addr;
+	char* display_string_buf_addr = HRP::IFaceBar::display_string_buf; // array size: 100x80 (or 100x256 for sfall HRP)
 
-	long width = (sf::hrpIsEnabled) ? sf::GetIntHRPValue(HRP_VAR_disp_width) : 0;
+	long width = (HRP::Setting::ExternalEnabled()) ? sf::GetIntHRPValue(HRP_VAR_disp_width) : HRP::IFaceBar::display_width;
 	if (width == 0) {
 		width = 167; // vanilla size
 		max_disp_chars = 80;
-		display_string_buf_addr = (char*)FO_VAR_display_string_buf; // array size 100x80
-	} else {
-		display_string_buf_addr = (char*)sf::HRPAddress(HRP_VAR_display_string_buf); // array size 100x256, allocated by HRP
+	} else if (HRP::Setting::ExternalEnabled()) {
+		display_string_buf_addr = (char*)HRP::Setting::GetAddress(HRP_VAR_display_string_buf); // array size 100x256, allocated by Mash's HRP
 	}
 
 	if (!(fo::var::combat_state & fo::CombatStateFlag::InCombat)) {
@@ -87,7 +88,7 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 	do {
 		char* display_string_buf = &display_string_buf_addr[max_disp_chars * fo::var::getInt(FO_VAR_disp_start)];
 
-		long pos = GetPositionWidth(message, width);
+		long pos = GetPositionWidth(message, width, lineBreak);
 
 		if (bulletChar) {
 			*display_string_buf = bulletChar;
@@ -101,7 +102,7 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 
 		if (message[pos] == ' ') {
 			pos++;
-		} else if (message[pos] == '\\' && message[pos + 1] == 'n') {
+		} else if (lineBreak && message[pos] == '\\' && message[pos + 1] == 'n') {
 			pos += 2; // position after the 'n' character
 		}
 		message += pos;
@@ -115,11 +116,25 @@ static void __fastcall DisplayPrintLineBreak(const char* message) {
 	__asm call fo::funcoffs::display_redraw_;
 }
 
-static void __declspec(naked) sf_display_print() {
+static void __declspec(naked) display_print_hack_replacemet() {
 	__asm {
 		push ecx;
+		push edx;
 		mov  ecx, eax; // message
-		call DisplayPrintLineBreak;
+		xor  edx, edx;
+		call DisplayPrint;
+		pop  edx;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) display_print_line_break() {
+	__asm {
+		push ecx;
+		mov  dl, 1;    // with line break
+		mov  ecx, eax; // message
+		call DisplayPrint;
 		pop  ecx;
 		retn;
 	}
@@ -148,18 +163,7 @@ static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
 	}
 }
 
-static void __declspec(naked) sf_display_print_alt() {
-	__asm {
-		push ecx;
-		push fo::funcoffs::display_print_;
-		push eax; // message
-		call SplitPrintMessage;
-		pop  ecx;
-		retn;
-	}
-}
-
-static void __declspec(naked) sf_inven_display_msg() {
+static void __declspec(naked) inven_display_msg_line_break() {
 	__asm {
 		push ecx;
 		push fo::funcoffs::inven_display_msg_;
@@ -170,14 +174,31 @@ static void __declspec(naked) sf_inven_display_msg() {
 	}
 }
 
-void Text::init() {
-	// Support for the newline control character '\n' in the object description in pro_*.msg files
-	void* printFunc = sf_display_print; // for vanilla and HRP 4.1.8
-	if (sf::hrpIsEnabled && !sf::hrpVersionValid) {
-		printFunc = sf_display_print_alt;
+static void __declspec(naked) display_print_line_break_extHRP() {
+	__asm {
+		push ecx;
+		push fo::funcoffs::display_print_; // func replaced by Mash's HRP
+		push eax; // message
+		call SplitPrintMessage;
+		pop  ecx;
+		retn;
 	}
+}
+
+void Text::init() {
+	void* printFunc = display_print_line_break; // for vanilla and HRP 4.1.8
+
+	if (!sf::versionCHI && HRP::Setting::IsEnabled()) {
+		sf::MakeJump(fo::funcoffs::display_print_, display_print_hack_replacemet); // 0x43186C
+	} else {
+		if (sf::versionCHI || (HRP::Setting::ExternalEnabled() && !HRP::Setting::VersionIsValid)) {
+			printFunc = display_print_line_break_extHRP;
+		}
+	}
+
+	// Support for the newline control character '\n' in the object description in pro_*.msg files
 	sf::SafeWriteBatch<DWORD>((DWORD)printFunc, {0x46ED87, 0x49AD7A}); // setup_inventory_, obj_examine_
-	sf::SafeWrite32(0x472F9A, (DWORD)&sf_inven_display_msg); // inven_obj_examine_func_
+	sf::SafeWrite32(0x472F9A, (DWORD)&inven_display_msg_line_break);   // inven_obj_examine_func_
 }
 
 }

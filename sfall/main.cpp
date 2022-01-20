@@ -16,10 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma comment(lib, "psapi.lib")
-
-#include <psapi.h>
-
 #include "main.h"
 #include "FalloutEngine\Fallout2.h"
 
@@ -83,7 +79,11 @@
 #include "Logging.h"
 #include "ReplacementFuncs.h"
 #include "Translate.h"
+#include "Utils.h"
 #include "version.h"
+#include "WinProc.h"
+
+#include "HRP\Init.h"
 
 ddrawDll ddraw;
 
@@ -92,14 +92,7 @@ namespace sfall
 
 bool isDebug = false;
 
-bool hrpIsEnabled = false;
-bool hrpVersionValid = false; // HRP 4.1.8 version validation
-
-static DWORD hrpDLLBaseAddr = 0x10000000;
-
-DWORD HRPAddress(DWORD addr) {
-	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
-}
+bool versionCHI = false;
 
 char falloutConfigName[65];
 
@@ -178,15 +171,6 @@ static void InitModules() {
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
-static void GetHRPModule() {
-	static const DWORD loadFunc = 0x4FE1D0;
-	HMODULE dll;
-	__asm call loadFunc; // get HRP loading address
-	__asm mov  dll, eax;
-	if (dll != NULL) hrpDLLBaseAddr = (DWORD)dll;
-	dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, dll);
-}
-
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
 	char buf[MAX_PATH];
@@ -201,7 +185,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
 					               "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
 					               "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
+					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", 0, MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -215,20 +199,27 @@ static int CheckEXE() {
 	return std::strncmp((const char*)0x53C938, "FALLOUT Mapper", 14);
 }
 
-static void SfallInit() {
-	if (!CheckEXE()) return;
-
+static HMODULE SfallInit() {
 	char filepath[MAX_PATH];
 	GetModuleFileName(0, filepath, MAX_PATH);
 
-	if (!CRC(filepath)) return;
+	SetCursor(LoadCursorA(0, IDC_ARROW));
+	ShowCursor(1);
+
+	if (!CRC(filepath)) return 0;
 
 	LoggingInit();
-	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
-	if (!isDebug || !IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0)) {
+
+	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+
+	if (!HRP::Setting::CheckExternalPatch()) {
+		WinProc::init();
+	}
+
+	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -244,37 +235,28 @@ static void SfallInit() {
 	}
 
 	// ini file override
-	bool cmdlineexists = false;
-	char* cmdline = GetCommandLineA();
-	if (IniReader::GetIntDefaultConfig("Main", "UseCommandLine", 0)) {
-		while (cmdline[0] == ' ') cmdline++;
-		bool InQuote = false;
-		int count = -1;
+	std::string overrideIni;
 
-		while (true) {
-			count++;
-			if (cmdline[count] == 0) break;;
-			if (cmdline[count] == ' ' && !InQuote) break;
-			if (cmdline[count] == '"') {
-				InQuote = !InQuote;
-				if (!InQuote) break;
-			}
-		}
-		if (cmdline[count] != 0) {
-			count++;
-			while (cmdline[count] == ' ') count++;
-			cmdline = &cmdline[count];
-			cmdlineexists = true;
-		}
+	std::string cmdline(GetCommandLineA());
+	ToLowerCase(cmdline);
+
+	size_t n = cmdline.find(".ini");
+	if (n != std::string::npos && (n + 4) < cmdline.length() && cmdline[n + 4] != ' ') {
+		n = cmdline.find(".ini", n + 4);
+	}
+	if (n != std::string::npos) {
+		size_t m = n + 3;
+		while (n > 0 && cmdline[n] != ' ') n--;
+		if (n > 0) overrideIni = cmdline.substr(n + 1, m - n);
 	}
 
-	if (cmdlineexists && *cmdline != 0) {
-		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+	if (!overrideIni.empty()) {
+		HANDLE h = CreateFileA(overrideIni.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-			IniReader::SetConfigFile(cmdline);
+			IniReader::SetConfigFile(overrideIni.c_str());
 		} else {
-			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
+			MessageBoxA(0, "You gave a command line argument to Fallout, but the configuration ini file was not found.\n"
 			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}
@@ -282,18 +264,9 @@ static void SfallInit() {
 defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
-
-	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-	if (hrpIsEnabled) {
-		GetHRPModule();
-		MODULEINFO info;
-		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
-			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
-				hrpVersionValid = true;
-			}
-		}
-	}
 	std::srand(GetTickCount());
+
+	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
 
 	IniReader::init();
 
@@ -307,15 +280,21 @@ defaultIni:
 	}
 
 	Translate::init(falloutConfigName);
+	HRP::Setting::init(filepath, cmdline);
 
 	InitReplacementHacks();
 	InitModules();
+
+	if (HRP::Setting::ExternalEnabled()) ShowCursor(0);
+
+	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
+	return ddraw.sfall;
 }
 
 }
 
-static bool LoadOriginalDll(DWORD dwReason) {
-	switch (dwReason) {
+static bool LoadOriginalDll(DWORD fdwReason) {
+	switch (fdwReason) {
 		case DLL_PROCESS_ATTACH:
 			char path[MAX_PATH];
 			CopyMemory(path + GetSystemDirectoryA(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
@@ -353,9 +332,12 @@ static bool LoadOriginalDll(DWORD dwReason) {
 	return false;
 }
 
-bool __stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
-	if (LoadOriginalDll(dwReason)) {
-		sfall::SfallInit();
+bool __stdcall DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved) {
+	if (LoadOriginalDll(fdwReason)) {
+		if (sfall::CheckEXE()) {
+			ddraw.sfall = hinstDLL;
+			sfall::MakeCall(0x4DE8DE, sfall::SfallInit); // LoadDirectX_
+		}
 	}
 	return true;
 }

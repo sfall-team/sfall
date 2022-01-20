@@ -50,6 +50,12 @@ struct GameObject;
 struct Program;
 struct ScriptInstance;
 
+struct PALETTE { // F2 palette
+	BYTE B;
+	BYTE G;
+	BYTE R;
+};
+
 struct Art {
 	long flags;
 	char path[16];
@@ -109,6 +115,21 @@ struct AnimationSad {
 
 static_assert(sizeof(AnimationSad) == 3240, "Incorrect AnimationSad definition.");
 
+struct InventScrData {
+	long artIndex;
+	long width;
+	long height;
+	long x;
+	long y;
+};
+
+struct SquareRect {
+	long y;
+	long x;
+	long offx;
+	long offy;
+};
+
 // Bounding rectangle, used by tile_refresh_rect and related functions.
 struct BoundRect {
 	long x;
@@ -163,11 +184,11 @@ struct GameObject {
 
 	union {
 		struct {
-			fo::MiscFlags miscFlags; // aka updated_flags
+			MiscFlags miscFlags; // aka updated_flags
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
-			long ammoPid;
+			ProtoID ammoPid;
 			long unused[8]; // offset 0x44 (not saved)
 		} item;
 
@@ -219,13 +240,13 @@ struct GameObject {
 		} critter;
 
 		struct {
-			fo::MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
-			fo::MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
+			MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
+			MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
 			long unused[9];             // offset 0x40 (not saved)
 		} scenery;
 	};
 
-	DWORD protoId; // object PID
+	ProtoID protoId; // object PID
 	long cid; // combat ID (don't change while in combat)
 	long lightDistance;
 	long lightIntensity;
@@ -440,6 +461,12 @@ public:
 	BYTE data[1]; // begin frame image data
 } FrmFrameData;
 
+// for one frame
+struct FrmData {
+	FrmHeaderData header;
+	FrmFrameData frame;
+};
+
 struct FrmFile {            // sizeof 2954
 	long id;                // 0x00
 	short fps;              // 0x04
@@ -531,9 +558,9 @@ struct UnlistedFrm {
 		frameAreaSize = 0;
 		frames = nullptr;
 	}
+
 	~UnlistedFrm() {
-		if (frames != nullptr)
-			delete[] frames;
+		if (frames != nullptr) delete[] frames;
 	}
 };
 
@@ -973,24 +1000,16 @@ struct AIcap {
 	long outline_color;
 	long chance_message;
 	long combat_message_data[24];
-	long area_attack_mode;
-	long run_away_mode;
-	long best_weapon;
-	long distance;
-	long attack_who;
-	long chem_use;
+	AIpref::AreaAttack area_attack_mode;
+	AIpref::RunAway run_away_mode;
+	AIpref::WeaponPref pref_weapon;
+	AIpref::Distance distance;
+	AIpref::AttackWho attack_who;
+	AIpref::ChemUse chem_use;
 	long chem_primary_desire[3];
-	long disposition;
+	AIpref::Disposition disposition;
 	const char* body_type;    // unused
 	const char* general_type; // unused
-
-	inline AIpref::distance getDistance() {
-		return (AIpref::distance)distance;
-	}
-	inline AIpref::run_away_mode getRunAwayMode() {
-		return (AIpref::run_away_mode)run_away_mode;
-	}
-
 };
 
 struct Queue {
@@ -1030,17 +1049,14 @@ struct DrugInfoList {
 
 struct FloatText {
 	long  flags;
-	void* unknown0;
-	long  unknown1;
-	long  unknown2;
-	long  unknown3;
-	long  unknown4;
-	long  unknown5;
-	long  unknown6;
-	long  unknown7;
-	long  unknown8;
-	long  unknown9;
-	void* unknown10;
+	GameObject* owner;
+	long  time;
+	long  lines;
+	long  x_off;
+	long  y_off;
+	long  tile_num;
+	sfall::Rectangle rect;
+	BYTE* buffer;
 };
 
 struct SubTitleList {
@@ -1143,6 +1159,32 @@ struct QuestData {
 	long gvarIndex;
 	long displayThreshold;
 	long completedThreshold;
+};
+
+struct BlendColorTableData {
+	struct BlendData {
+		BYTE colors[256];
+	};
+	BlendData data[16]; // [0] - without blending (filled values from 0 to 255)
+};
+
+struct BlendColorTable {
+	long unk; // counter?
+	BlendColorTableData table;
+};
+
+static_assert(sizeof(BlendColorTable) == 4100, "Incorrect BlendColorTable definition.");
+
+struct FontData { // sizeof = 0x810
+	short field0;
+	short field2;
+	short field4;
+	short field6;
+	short field8;
+	short fieldA;
+	short fieldC;
+	char  eUnkArray[2046];
+	long  field80C;
 };
 
 #pragma pack(pop)

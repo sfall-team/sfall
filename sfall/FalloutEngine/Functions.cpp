@@ -69,6 +69,14 @@ void dev_printf(...) {}
 	__asm push arg7                                                       \
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+#define WRAP_WATCOM_CALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	__asm push arg8                                                             \
+	WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+
+#define WRAP_WATCOM_CALL9(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+	__asm push arg9                                                                   \
+	WRAP_WATCOM_CALL8(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
 // defines wrappers for __fastcall
 #define WRAP_WATCOM_FCALL1(offs, arg1) \
 	__asm mov eax, ecx                 \
@@ -154,9 +162,24 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_;
 }
 
+long __fastcall db_init(const char* path_dat, const char* path_patches) {
+	__asm mov ebx, edx; // don't delete
+	WRAP_WATCOM_FCALL2(db_init_, path_dat, path_patches);
+}
+
 long __fastcall tile_num(long x, long y) {
 	__asm xor ebx, ebx; // don't delete (bug in tile_num_)
 	WRAP_WATCOM_FCALL2(tile_num_, x, y);
+}
+
+void __fastcall square_xy(long x, long y, long* outSX, long* outSY) {
+	__asm {
+		xor  ebx, ebx; // don't delete (bug in square_xy_)
+		mov  eax, ecx;
+		push outSY;
+		mov  ecx, outSX;
+		call fo::funcoffs::square_xy_;
+	}
 }
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
@@ -452,6 +475,21 @@ long __fastcall get_game_config_string(const char** outValue, const char* sectio
 #define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
 		WRAP_WATCOM_CALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
+	}
+
+#define WRAP_WATCOM_FUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
+		WRAP_WATCOM_CALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	}
+
+#define WRAP_WATCOM_FUNC8(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8) { \
+		WRAP_WATCOM_CALL8(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+	}
+
+#define WRAP_WATCOM_FUNC9(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7, arg8t, arg8, arg9t, arg9) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7, arg8t arg8, arg9t arg9) { \
+		WRAP_WATCOM_CALL9(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
 	}
 
 

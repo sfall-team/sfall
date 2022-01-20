@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "GamePids.h"
+
 namespace fo
 {
 
@@ -285,74 +287,6 @@ enum ArtType : char
 	OBJ_TYPE_HEAD       = 8,
 	OBJ_TYPE_BACKGROUND = 9,
 	OBJ_TYPE_SKILLDEX   = 10
-};
-
-// Some FO2 PIDs possibly used by engine
-enum ProtoID : unsigned long
-{
-	PID_POWERED_ARMOR = 3,
-//	PID_ROCK = 19,
-	PID_SMALL_ENERGY_CELL = 38,
-	PID_MICRO_FUSION_CELL = 39,
-	PID_STIMPAK = 40,
-	PID_BOTTLE_CAPS = 41,
-	PID_FIRST_AID_KIT = 47,
-	PID_RADAWAY = 48,
-	PID_ANTIDOTE = 49,
-	PID_DYNAMITE = 51,
-	PID_GEIGER_COUNTER = 52,
-	PID_MENTATS = 53,
-	PID_STEALTH_BOY = 54,
-//	PID_WATER_CHIP = 55,
-//	PID_HOLODISK = 58,
-	PID_MOTION_SENSOR = 59,
-	PID_MUTATED_FRUIT = 71,
-	PID_BIG_BOOK_OF_SCIENCE = 73,
-	PID_DEANS_ELECTRONICS = 76,
-	PID_FLARE = 79,
-	PID_FIRST_AID_BOOK = 80,
-	PID_PLASTIC_EXPLOSIVES = 85,
-	PID_SCOUT_HANDBOOK = 86,
-	PID_BUFFOUT = 87,
-	PID_DOCTORS_BAG = 91,
-//	PID_PUMP_PARTS = 98,
-	PID_GUNS_AND_BULLETS = 102,
-	PID_NUKA_COLA = 106,
-	PID_RAD_X = 109,
-	PID_PSYCHO = 110,
-	PID_BEER = 124,
-	PID_BOOZE = 125,
-	PID_SUPER_STIMPAK = 144,
-	PID_ACTIVE_FLARE = 205,
-	PID_ACTIVE_DYNAMITE = 206,
-	PID_ACTIVE_GEIGER_COUNTER = 207,
-	PID_ACTIVE_MOTION_SENSOR = 208,
-	PID_ACTIVE_PLASTIC_EXPLOSIVE = 209,
-	PID_ACTIVE_STEALTH_BOY = 210,
-	PID_TECHNICAL_MANUAL = 228,
-	PID_HARDENED_POWER_ARMOR = 232,
-	PID_CHEMISTRY_MANUAL = 237,
-	PID_JET = 259,
-	PID_JET_ANTIDOTE = 260,
-	PID_HEALING_POWDER = 273,
-	PID_DECK_OF_TRAGIC_CARDS = 306,
-	PID_ADVANCED_POWER_ARMOR = 348,
-	PID_ADVANCED_POWER_ARMOR_MK2 = 349,
-//	PID_GECK = 366,
-	PID_SOLAR_SCORCHER = 390,
-	PID_CAR_TRUNK = 455,
-	PID_JESSE_CONTAINER = 467,
-
-	// critter
-	PID_Player = 0x01000000,
-
-	// scenery
-	PID_RAD_GOO_1 = 0x020003D9,
-	PID_RAD_GOO_4 = 0x020003DC,
-	PID_DRIVABLE_CAR = 0x020003F1, // index 1009
-
-	// misc type
-	PID_CORPSE_BLOOD = 0x05000004,
 };
 
 //XXXXXXXXXXXXXXXXXXXXX
@@ -888,8 +822,9 @@ namespace WinFlags {
 }
 
 namespace AIpref {
-	enum distance : long
+	enum class Distance : long
 	{
+		unset                 = -1,
 		stay_close            = 0, // the attacker will stay at a distance no more than 5 hexes from the player (behavior only for party members, defined in ai_move_steps_closer, cai_perform_distance_prefs)
 		charge                = 1, // AI will always try to get close to its target before or after attack
 		snipe                 = 2, // keep distance, when the distance between the attacker and the target decreases, the attacker will try to move away from the target to a distance of up to 10 hexes
@@ -898,7 +833,7 @@ namespace AIpref {
 	};
 
 	// presets for party members
-	enum disposition : long
+	enum class Disposition : long
 	{
 		none                  = -1,
 		custom                = 0,
@@ -908,7 +843,7 @@ namespace AIpref {
 		berserk               = 4
 	};
 
-	enum class attack_who : long
+	enum class AttackWho : long
 	{
 		no_attack_mode        = -1,
 		whomever_attacking_me = 0, // attack the target that the player is attacking (only for party members)
@@ -918,7 +853,7 @@ namespace AIpref {
 		closest               = 4, // only attack near targets
 	};
 
-	enum class run_away_mode : long
+	enum class RunAway : long
 	{
 		none                  = -1, // get the value from the cap.min_hp (in cai_get_min_hp_)
 		coward                = 0,  // 0%
@@ -929,9 +864,10 @@ namespace AIpref {
 		never                 = 5   // 100%
 	};
 
-	enum class weapon_pref : long
+	enum class WeaponPref : long
 	{
-		no_pref               = 0,
+		unset                 = -1, // same as no_pref
+		no_pref               = 0,  // Guns > ...
 		melee                 = 1,
 		melee_over_ranged     = 2,
 		ranged_over_melee     = 3,
@@ -941,7 +877,7 @@ namespace AIpref {
 		random                = 7  // not available for party member in control panel
 	};
 
-	enum class area_attack_mode : long
+	enum class AreaAttack : long
 	{
 		no_pref               = -1, // special logic for NPC (not available for party member in control panel)
 		always                = 0,
@@ -951,8 +887,9 @@ namespace AIpref {
 		be_absolutely_sure    = 4,  // 95% hit chance
 	};
 
-	enum class chem_use_mode : long
+	enum class ChemUse : long
 	{
+		unset                  = -1,
 		clean                  = 0,
 		stims_when_hurt_little = 1,
 		stims_when_hurt_lots   = 2,

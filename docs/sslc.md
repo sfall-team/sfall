@@ -11,7 +11,7 @@ nav_order: 4
 * TOC
 {: toc}
 
-This is a modified copy of sslc, that has a few bugfixes from the original, that will recognise and compile the additional scripting functions provided by sfall, that can also understand some additional syntax, and that has an integrated preprocessor and optimizer.
+This is a modified copy of sslc, that has a few bugfixes from the original, that will recognise and compile the additional script functions provided by sfall, that can also understand some additional syntax, and that has an integrated preprocessor and optimizer.
 
 Unlike the original script compiler, this has not been compiled as a dos program. When using this in place of the original compile.exe but still using p.bat, you need to either get rid of the dos4gw.exe reference from p.bat or replace the original dos4gw.exe with the one in this archive.
 
@@ -19,7 +19,7 @@ If you use fallout script editor, you can extract `compile.exe` and `dos4gw.exe`
 
 When compiling global or hook scripts for sfall 3.4 or below, you _must_ include the line `procedure start;` before any `#include`s that define procedures to avoid a few weird problems. (this is no longer required starting from 3.5)
 
-This version of compiler was designed primarily for new sfall functions, but it can safely (and is recommended) to be used with non-sfall scripts as well, as long as you don't use any of the arrays syntax and any sfall scripting functions.
+This version of compiler was designed primarily for new sfall functions, but it can safely (and is recommended) to be used with non-sfall scripts as well, as long as you don't use any of the arrays syntax and any sfall script functions.
 
 The original unmodified sslc source is over here: [http://www.teamx.ru/eng/files/srcs/index.shtml](http://www.teamx.ru/eng/files/srcs/index.shtml).
 
