@@ -264,7 +264,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	IFaceBar::IFACE_BAR_MODE = sf::IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDE_ART = sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDE_ART", 2, f2ResIni);
-	IFaceBar::IFACE_BAR_WIDTH = sf::IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
+	IFaceBar::IFACE_BAR_WIDTH = sf::IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (!sf::versionCHI && SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDES_ORI = (sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni) != 0);
 
 	IFaceBar::ALTERNATE_AMMO_METRE = sf::IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, f2ResIni);

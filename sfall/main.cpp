@@ -219,6 +219,8 @@ static HMODULE SfallInit() {
 		WinProc::init();
 	}
 
+	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
+
 	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
@@ -265,8 +267,6 @@ defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
 	std::srand(GetTickCount());
-
-	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
 
 	IniReader::init();
 
