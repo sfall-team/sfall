@@ -1027,15 +1027,9 @@ public:
 	HRESULT __stdcall RestoreDisplayMode() { return DD_OK; }
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
-		char windowTitle[128];
 		window = a;
 
-		if (!d3d9Device) {
-			CoInitialize(0);
-			ResetDevice(true); // create
-		}
-		dlog("Creating D3D9 Device window...", DL_MAIN);
-
+		char windowTitle[128];
 		if (ResWidth != gWidth || ResHeight != gHeight) {
 			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
 		} else {
@@ -1054,10 +1048,13 @@ public:
 			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
 			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS);
 		}
 
-		dlogr(" Done", DL_MAIN);
+		if (!d3d9Device) {
+			CoInitialize(0);
+			ResetDevice(true); // create
+		}
 		return DD_OK;
 	}
 
@@ -1115,27 +1112,6 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
-		if (moveWindowKey[0] < 0) {
-			switch (moveWindowKey[0]) {
-			case -1:
-				moveWindowKey[0] = DIK_LCONTROL;
-				moveWindowKey[1] = DIK_RCONTROL;
-				break;
-			case -2:
-				moveWindowKey[0] = DIK_LMENU;
-				moveWindowKey[1] = DIK_RMENU;
-				break;
-			case -3:
-				moveWindowKey[0] = DIK_LSHIFT;
-				moveWindowKey[1] = DIK_RSHIFT;
-				break;
-			default:
-				moveWindowKey[0] = 0;
-			}
-		} else {
-			moveWindowKey[0] &= 0xFF;
-		}
 		windowData = IniReader::GetConfigInt("Graphics", "WindowData", -1);
 		if (windowData > 0) {
 			windowLeft = windowData >> 16;
@@ -1393,6 +1369,29 @@ void Graphics::init() {
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
+	}
+	if (Graphics::mode == 5) {
+		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
+		if (moveWindowKey[0] < 0) {
+			switch (moveWindowKey[0]) {
+			case -1:
+				moveWindowKey[0] = DIK_LCONTROL;
+				moveWindowKey[1] = DIK_RCONTROL;
+				break;
+			case -2:
+				moveWindowKey[0] = DIK_LMENU;
+				moveWindowKey[1] = DIK_RMENU;
+				break;
+			case -3:
+				moveWindowKey[0] = DIK_LSHIFT;
+				moveWindowKey[1] = DIK_RSHIFT;
+				break;
+			default:
+				moveWindowKey[0] = 0;
+			}
+		} else {
+			moveWindowKey[0] &= 0xFF;
+		}
 	}
 
 	int multi = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);

@@ -343,6 +343,18 @@ static HMODULE SfallInit() {
 
 	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
 
+	bool isEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
+	if (isEnabled) {
+		GetHRPModule();
+		MODULEINFO info;
+		if (hrpDLLBaseAddr && GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
+			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
+				hrpVersionValid = true;
+			}
+		}
+	}
+	hrpIsEnabled = (hrpDLLBaseAddr != 0);
+
 	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
@@ -389,18 +401,6 @@ defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
 	//std::srand(GetTickCount());
-
-	bool isEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-	if (isEnabled) {
-		GetHRPModule();
-		MODULEINFO info;
-		if (hrpDLLBaseAddr && GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
-			if (GetByteHRPValue(HRP_VAR_VERSION_STR + 7) == 0 && std::strncmp((const char*)HRPAddress(HRP_VAR_VERSION_STR), "4.1.8", 5) == 0) {
-				hrpVersionValid = true;
-			}
-		}
-	}
-	hrpIsEnabled = (hrpDLLBaseAddr != 0);
 
 	IniReader::init();
 
