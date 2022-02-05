@@ -136,7 +136,11 @@ static __declspec(naked) void fadeSystemPalette_hook() {
 
 static __declspec(naked) void combat_turn_run_hook() {
 	__asm {
+		push edx;
+		push ecx;
 		call sfall::WinProc::WaitMessageWindow;
+		pop  ecx;
+		pop  edx;
 		jmp  fo::funcoffs::process_bk_;
 	}
 }
