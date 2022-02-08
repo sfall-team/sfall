@@ -27,7 +27,7 @@
 #include "FalloutEngine\Fallout2.h"
 #include "Modules\DebugEditor.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
+#include "Modules\HookScripts\Common.h"
 #include "Modules\Inventory.h"
 #include "Modules\ScriptExtender.h"
 

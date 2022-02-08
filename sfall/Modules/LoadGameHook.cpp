@@ -35,7 +35,7 @@
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
-#include "HookScripts.h"
+#include "HookScripts\Common.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "LoadOrder.h"

@@ -2,9 +2,10 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 
+#include "HookScripts\InventoryHs.h"
+
 #include "..\Game\objects.h"
 
-#include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "Worldmap.h"

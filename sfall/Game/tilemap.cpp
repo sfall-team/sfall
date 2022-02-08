@@ -16,7 +16,7 @@ namespace sf = sfall;
 
 //static std::vector<int> buildLineTiles;
 
-//static bool __stdcall TileExists(long tile) {
+//static bool TileExists(long tile) {
 //	return (std::find(buildLineTiles.cbegin(), buildLineTiles.cend(), tile) != buildLineTiles.cend());
 //}
 

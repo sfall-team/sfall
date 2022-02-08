@@ -20,7 +20,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 
 #include "..\..\..\Version.h"
-#include "..\..\HookScripts.h"
+#include "..\..\HookScripts\Common.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 

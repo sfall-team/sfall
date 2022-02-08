@@ -7,7 +7,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
-#include "..\Modules\HookScripts.h"
+#include "..\Modules\HookScripts\MiscHs.h"
 
 #include "objects.h"
 

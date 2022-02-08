@@ -56,6 +56,12 @@ enum HookType
 	HOOK_COUNT
 };
 
+struct HookFile {
+	int id;
+//	std::string filePath;
+	std::string name;
+};
+
 class HookScripts {
 public:
 	static const char* name() { return "HookScripts"; }
@@ -70,40 +76,13 @@ public:
 
 	static bool HookHasScript(int hookId);
 
+	static void InjectingHook(int hookId);
+	static bool IsInjectHook(int hookId);
+
 	// register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 	static void RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
 
 	static void RunHookScriptsAtProc(DWORD procId);
 };
-
-class HookCommon {
-public:
-	static DWORD GetHSArgCount();
-	static DWORD GetHSArg();
-	static DWORD GetHSArgAt(DWORD id);
-	static DWORD* GetHSArgs();
-	static void SetHSArg(DWORD id, DWORD value);
-	static void __stdcall SetHSReturn(DWORD d);
-
-	static void GameModeChangeHook(DWORD exit);
-	static void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
-	static void __stdcall MouseClickHook(DWORD button, bool pressed);
-
-	static void Reset();
-};
-
-int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
-
-void InvenUnwield_HookDrop();
-void InvenUnwield_HookMove();
-
-void __stdcall SetRemoveObjectType(long rmType);
-
-void __stdcall AdjustFidHook(DWORD vanillaFid);
-
-long __stdcall CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, long cost, fo::GameObject* weapon);
-long __stdcall UseObjOnHook_Invoke(fo::GameObject* source, fo::GameObject* item, fo::GameObject* target);
-long __stdcall PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result);
-long __stdcall InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long flags);
 
 }

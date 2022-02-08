@@ -9,7 +9,9 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
-#include "..\Modules\HookScripts.h"
+#include "..\Modules\HookScripts\CombatHs.h"
+#include "..\Modules\HookScripts\InventoryHs.h"
+#include "..\Modules\HookScripts\ObjectHs.h"
 #include "..\Modules\Perks.h"
 #include "..\Modules\Unarmed.h"
 

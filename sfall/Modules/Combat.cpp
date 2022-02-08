@@ -20,9 +20,10 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "..\Translate.h"
-
 #include "HookScripts.h"
 #include "Objects.h"
+
+#include "HookScripts\CombatHS.h"
 
 #include "Combat.h"
 
@@ -193,7 +194,11 @@ long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackT
 
 	DWORD newRounds = rounds;
 
-	AmmoCostHook_Script(1, weapon, newRounds); // newRounds returns the new "ammo" value multiplied by the cost
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		AmmoCostHook_Script(1, weapon, newRounds); // newRounds returns the new "ammo" value multiplied by the cost
+	} else if (rounds == 1) { // NOTE: it doesn't make sense to call item_w_compute_ammo_cost for rounds greater than one
+		fo::func::item_w_compute_ammo_cost(weapon, &newRounds);
+	}
 
 	// calculate the cost
 	long cost = (newRounds != rounds) ? newRounds / rounds : 1; // 1 - default cost
@@ -253,8 +258,10 @@ tryAttack:
 static long __fastcall divide_burst_rounds_by_ammo_cost(long currAmmo, fo::GameObject* weapon, long burstRounds) {
 	DWORD roundsCost = 1; // default burst cost
 
-	roundsCost = burstRounds;                   // rounds in burst (the number of rounds fired in the burst)
-	AmmoCostHook_Script(2, weapon, roundsCost); // roundsCost returns the new cost
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		roundsCost = burstRounds;                   // rounds in burst (the number of rounds fired in the burst)
+		AmmoCostHook_Script(2, weapon, roundsCost); // roundsCost returns the new cost
+	}
 
 	long cost = burstRounds * roundsCost; // amount of ammo required for this burst (multiplied by 1 or by the value returned from HOOK_AMMOCOST)
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current

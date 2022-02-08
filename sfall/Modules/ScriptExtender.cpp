@@ -1168,7 +1168,7 @@ void ScriptExtender::init() {
 	}
 
 	alwaysFindScripts = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
-	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
+	if (alwaysFindScripts) dlogr("Always searching for global/hook scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, scr_find_sid_from_program_hack);
 	MakeJump(0x4A5E34, scr_ptr_hack);

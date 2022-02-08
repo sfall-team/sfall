@@ -16,6 +16,9 @@
     <Filter Include="Modules\Scripting\Handlers">
       <UniqueIdentifier>{70a7a0e2-5bd4-4802-a8db-ad2d49ba6afd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\HookScripts">
+      <UniqueIdentifier>{e1d81f47-5517-4cdf-95e4-d3fd5ef4adef}</UniqueIdentifier>
+    </Filter>
     <Filter Include="HLSL">
       <UniqueIdentifier>{c9051acd-801a-4856-bd62-b2c95ac33c2e}</UniqueIdentifier>
     </Filter>
@@ -81,6 +84,27 @@
     </ClInclude>
     <ClInclude Include="Modules\HookScripts.h">
       <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\CombatHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\Common.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\DeathHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\HexBlockingHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\InventoryHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\MiscHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\ObjectHs.h">
+      <Filter>Modules\HookScripts</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Input.h">
       <Filter>Modules</Filter>
@@ -381,6 +405,27 @@
     </ClCompile>
     <ClCompile Include="Modules\HookScripts.cpp">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\CombatHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\Common.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\DeathHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\HexBlockingHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\InventoryHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\MiscHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\ObjectHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Input.cpp">
       <Filter>Modules</Filter>

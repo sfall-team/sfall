@@ -277,6 +277,13 @@
     <ClInclude Include="Modules\Graphics.h" />
     <ClInclude Include="Modules\HeroAppearance.h" />
     <ClInclude Include="Modules\HookScripts.h" />
+    <ClInclude Include="Modules\HookScripts\CombatHs.h" />
+    <ClInclude Include="Modules\HookScripts\Common.h" />
+    <ClInclude Include="Modules\HookScripts\DeathHs.h" />
+    <ClInclude Include="Modules\HookScripts\HexBlockingHs.h" />
+    <ClInclude Include="Modules\HookScripts\InventoryHs.h" />
+    <ClInclude Include="Modules\HookScripts\MiscHs.h" />
+    <ClInclude Include="Modules\HookScripts\ObjectHs.h" />
     <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="Modules\Interface.h" />
     <ClInclude Include="Modules\Inventory.h" />
@@ -376,6 +383,13 @@
     <ClCompile Include="Modules\Graphics.cpp" />
     <ClCompile Include="Modules\HeroAppearance.cpp" />
     <ClCompile Include="Modules\HookScripts.cpp" />
+    <ClCompile Include="Modules\HookScripts\CombatHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\Common.cpp" />
+    <ClCompile Include="Modules\HookScripts\DeathHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\HexBlockingHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\InventoryHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\MiscHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\ObjectHs.cpp" />
     <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
     <ClCompile Include="Modules\Inventory.cpp" />

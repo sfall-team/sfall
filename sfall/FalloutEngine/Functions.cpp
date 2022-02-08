@@ -150,9 +150,10 @@ long __fastcall db_init(const char* path_dat, const char* path_patches) {
 	WRAP_WATCOM_FCALL2(db_init_, path_dat, path_patches);
 }
 
-long __fastcall tile_num(long x, long y) {
-	__asm xor ebx, ebx; // don't delete (bug in tile_num_)
-	WRAP_WATCOM_FCALL2(tile_num_, x, y);
+long __stdcall tile_num(long x, long y) {
+	__asm push ebx; // don't delete (bug in tile_num_)
+	WRAP_WATCOM_CALL2(tile_num_, x, y);
+	__asm pop  ebx;
 }
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {

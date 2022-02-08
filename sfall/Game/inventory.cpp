@@ -8,8 +8,9 @@
 #include "..\FalloutEngine\Fallout2.h"
 
 #include "..\Modules\HeroAppearance.h"
-#include "..\Modules\HookScripts.h"
 #include "..\Modules\PartyControl.h"
+
+#include "..\Modules\HookScripts\InventoryHs.h"
 
 #include "inventory.h"
 
