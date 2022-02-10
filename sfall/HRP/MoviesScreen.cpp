@@ -32,7 +32,7 @@ static void __fastcall SetMovieSize() {
 
 	if (MoviesScreen::MOVIE_SIZE == 1 || bW > sWidth || bH > sHeight) {
 		long aspectW = sWidth;
-		long aspectH = sHeight - subtitleHeight;
+		long aspectH = sHeight;
 		long x = 0;
 		long y = 0;
 		Image::GetAspectSize(bW, bH, &x, &y, aspectW, aspectH);
@@ -100,7 +100,7 @@ static void __cdecl movieShowFrame(IDirectDrawSurface7* surface, int bW, int bH,
 	if (!win) return;
 
 	DDSURFACEDESC2 desc;
-	desc.dwSize = sizeof(DDSURFACEDESC);
+	desc.dwSize = sizeof(DDSURFACEDESC2);
 	surface->Lock(0, &desc, DDLOCK_WAIT, 0);
 
 	BYTE* dst = win->surface + movieToSize.left + (movieToSize.top * win->width);
@@ -117,7 +117,7 @@ static long __fastcall SubtitleAdjustPosition(long yTop, long yBottom) {
 	if (MoviesScreen::MOVIE_SIZE == 0 || Setting::ScreenHeight() == 480) return yTop;
 
 	long y = fo::var::getInt(FO_VAR_lastMovieY);
-	y += fo::var::getInt(FO_VAR_lastMovieH) + 4;
+	y += fo::var::getInt(FO_VAR_lastMovieH);// + 4;
 
 	if (yTop >= y) return yTop;
 

@@ -85,6 +85,7 @@ private:
 
 		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface; // | VMR9AllocFlag_DXVATarget;
 		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
+		//lpAllocInfo->Format = D3DFMT_X8R8G8B8;
 
 		// Ask the VMR-9 to allocate the surfaces for us.
 		for (auto &surface : surfaces) SAFERELEASE(surface);
@@ -557,6 +558,22 @@ static __declspec(naked) void LostFocus() {
 	}
 }
 
+/*
+	WIP: Task
+	Implement subtitle output from the need to play an mve file in the background.
+*/
+bool Movies::DirectShowMovies() {
+	int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
+	if (allowDShowMovies > 0) {
+		Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
+		MakeJump(0x44E690, gmovie_play_hack);
+		HookCall(0x44E993, gmovie_play_hook_stop);
+		/* NOTE: At this address 0x487781 (movieStart_), HRP by Mash changes the callback procedure to display mve frames. */
+		return true;
+	}
+	return false;
+}
+
 void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
@@ -576,25 +593,9 @@ void Movies::init() {
 			IniReader::GetConfigString("Misc", optName, "", &MoviePaths[index], 65);
 		}
 	}
-	dlog(".", DL_INIT);
 	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A}); // gmovie_play_
 	MakeCall(0x44E896, gmovie_play_hack_subpal, 2);
 	MakeCall(0x45A1C9, op_play_gmovie_hack);
-	dlog(".", DL_INIT);
-
-	/*
-		WIP: Task
-		Implement subtitle output from the need to play an mve file in the background.
-	*/
-	if (Graphics::mode >= 4) {
-		int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
-		if (allowDShowMovies > 0) {
-			Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
-			MakeJump(0x44E690, gmovie_play_hack);
-			HookCall(0x44E993, gmovie_play_hook_stop);
-			/* NOTE: At this address 0x487781 (movieStart_), HRP changes the callback procedure to display mve frames. */
-		}
-	}
 	dlogr(" Done", DL_INIT);
 
 	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);

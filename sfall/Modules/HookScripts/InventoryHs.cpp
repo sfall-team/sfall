@@ -1,4 +1,3 @@
-
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"

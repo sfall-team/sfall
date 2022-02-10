@@ -21,6 +21,7 @@
 #include "..\WinProc.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
+#include "Movies.h"
 
 #include "SubModules\DirectDraw.h"
 #include "SubModules\WindowRender.h"
@@ -69,6 +70,7 @@ bool Graphics::IsWindowedMode;
 
 bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
+static bool dShowMovies;
 
 bool DeviceLost = false;
 static char textureFilter; // 1 - auto, 2 - force
@@ -185,12 +187,14 @@ static void ResetDevice(bool create) {
 	static D3DFORMAT textureFormat = D3DFMT_X8R8G8B8;
 
 	if (create) {
+		DWORD mThreadFlags = (dShowMovies) ? D3DCREATE_MULTITHREADED : 0;
+
 		dlog("Creating D3D9 Device...", DL_MAIN);
-		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
+		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | mThreadFlags, &params, &d3d9Device))) { //D3DCREATE_PUREDEVICE | D3DCREATE_FPU_PRESERVE
 			MessageBoxA(window, "Failed to create hardware vertex processing device.\nUsing software vertex processing instead.",
-			                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
+			                    "sfall DirectX 9", MB_TASKMODAL | MB_ICONWARNING);
 			software = true;
-			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
+			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | mThreadFlags, &params, &d3d9Device); //D3DCREATE_FPU_PRESERVE
 		}
 
 		D3DCAPS9 caps;
@@ -224,7 +228,7 @@ static void ResetDevice(bool create) {
 				textureFormat = (A8IsSupported) ? D3DFMT_A8 : D3DFMT_L8; // D3DFMT_A8 - not supported on some older video cards
 			} else {
 				MessageBoxA(window, "Failed to create shader effects.\nSwitching to CPU for the palette conversion.",
-				                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
+				                    "sfall DirectX 9", MB_TASKMODAL | MB_ICONWARNING);
 				if (mainTex) SAFERELEASE(mainTex); // release D3DFMT_A8 format texture
 				Graphics::GPUBlt = 0;
 				A8IsSupported = false;
@@ -236,7 +240,7 @@ static void ResetDevice(bool create) {
 			d3d9Device->CreateTexture(ResWidth, ResHeight, 1, 0, textureFormat, D3DPOOL_SYSTEMMEM, &mainTex, 0);
 			MessageBoxA(window, "Texture format error.\nGPU does not support the D3DFMT_L8 texture format.\nNow CPU is used to convert the palette.\n"
 			                    "Set 'GPUBlt' option to CPU to bypass this warning message.",
-			                    "sfall DX9", MB_TASKMODAL | MB_ICONWARNING);
+			                    "sfall DirectX 9", MB_TASKMODAL | MB_ICONWARNING);
 			Graphics::GPUBlt = 0;
 		}
 		if (Graphics::GPUBlt == 0) palette = new DirectDraw::PALCOLOR[256];
@@ -649,7 +653,9 @@ public:
 			int height = mveDesc.dwHeight;
 
 			if (d != 0) { // scale
+				//mveScaleSurface = (BYTE*)fo::var::getInt(FO_VAR_screen_buffer);
 				if (!mveScaleSurface) mveScaleSurface = new BYTE[ResWidth * ResHeight];
+
 				width = dst->right - dst->left;
 				height = dst->bottom - dst->top;
 
@@ -1186,6 +1192,118 @@ void Graphics::BackgroundClearColor(long indxColor) {
 		std::memset(desc.lpSurface, indxColor, ResWidth * ResHeight);
 	}
 }
+/*
+#pragma pack(push, 1)
+struct BMPHEADER {
+	BITMAPFILEHEADER bFile;
+	BITMAPINFOHEADER bInfo;
+};
+#pragma pack(pop)
+*/
+long __stdcall SaveScreen(const char* file) {
+	IDirect3DSurface9* surface;
+	d3d9Device->CreateOffscreenPlainSurface(gWidth, gHeight, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &surface, 0);
+	d3d9Device->GetRenderTargetData(backBuffer, surface);
+
+	LPD3DXBUFFER buffer;
+	D3DXCreateBuffer(gWidth * gHeight * 2, &buffer);
+
+	D3DXSaveSurfaceToFileInMemory(&buffer, D3DXIFF_PNG, surface, 0, 0);
+	//D3DXSaveSurfaceToFileA(file, D3DXIFF_PNG, surface, 0, 0); // slow save
+
+	HANDLE hFile = CreateFileA(file, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
+	bool resultOK = (hFile != INVALID_HANDLE_VALUE);
+	if (resultOK) {
+		DWORD dwWritten;
+		WriteFile(hFile, buffer->GetBufferPointer(), buffer->GetBufferSize(), &dwWritten, 0);
+		CloseHandle(hFile);
+	}
+
+	surface->Release();
+	buffer->Release();
+
+	/* BMP 24-bit
+	long bmpExtraSize = gWidth * 3 % 4;
+	if (bmpExtraSize != 0) bmpExtraSize = 4 - bmpExtraSize;
+
+	DWORD sizeImage = gWidth * gHeight * 3;
+	sizeImage += gHeight * bmpExtraSize;
+
+	BMPHEADER bmpHeader;
+	std::memset(&bmpHeader, 0, sizeof(BMPHEADER));
+
+	bmpHeader.bFile.bfType = 0x4D42;
+	bmpHeader.bFile.bfOffBits = sizeof(BMPHEADER);
+	bmpHeader.bInfo.biSize = sizeof(BITMAPINFOHEADER);
+	bmpHeader.bInfo.biWidth = gWidth;
+	bmpHeader.bInfo.biHeight = 0 - gHeight;
+	bmpHeader.bInfo.biPlanes = 1;
+	bmpHeader.bInfo.biBitCount = 24;
+	bmpHeader.bInfo.biCompression = BI_RGB;
+	bmpHeader.bInfo.biSizeImage = sizeImage;
+
+	BYTE* bmpImageData = new BYTE[sizeImage];
+	BYTE* dData = bmpImageData;
+
+	D3DLOCKED_RECT lockRect;
+	surface->LockRect(&lockRect, 0, 0);
+	BYTE* lockData = (BYTE*)lockRect.pBits;
+
+	// 32-bit to 24-bit
+	for (size_t h = 0; h < gHeight; h++) {
+		BYTE* sData = lockData;
+		for (size_t x = 0; x < gWidth; x++) {
+			*dData++ = *sData++;
+			*dData++ = *sData++;
+			*dData++ = *sData++;
+			sData++;
+		}
+		lockData += lockRect.Pitch;
+		dData += bmpExtraSize;
+	}
+
+	surface->UnlockRect();
+	surface->Release();
+
+	HANDLE hFile = CreateFileA(file, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
+	bool resultOK = (hFile != INVALID_HANDLE_VALUE);
+
+	if (resultOK) {
+		DWORD dwWritten;
+		WriteFile(hFile, &bmpHeader, sizeof(BMPHEADER), &dwWritten, 0);
+		WriteFile(hFile, bmpImageData, sizeImage, &dwWritten, 0);
+		CloseHandle(hFile);
+	}
+	delete[] bmpImageData;*/
+
+	return (resultOK) ? 0 : 1;
+}
+
+long __stdcall game_screendump_hook() {
+	char fileName[16];
+
+	for (size_t i = 0; i < 100000; i++) {
+		std::sprintf(fileName, "scr%.5d.png", i); // scr#####.png
+
+		HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+		if (hFile == INVALID_HANDLE_VALUE) {
+			return SaveScreen(fileName);
+		}
+		CloseHandle(hFile);
+	}
+	return 1;
+}
+
+static __declspec(naked) void dump_screen_hack_replacement() {
+	__asm {
+		push ecx;
+		push edx;
+		call fo::funcoffs::game_screendump_; // call ds:[FO_VAR_screendump_func];
+		pop  edx;
+		pop  ecx;
+		retn;
+	}
+}
 
 void Graphics::init() {
 	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 0);
@@ -1215,6 +1333,10 @@ void Graphics::init() {
 		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
 		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
+		// Replace the screenshot saving implementation for sfall DirectX 9
+		HookCall(0x443EF3, game_screendump_hook);
+		MakeJump(0x4C8F4C, dump_screen_hack_replacement);
+
 		if (HRP::Setting::VersionIsValid) {
 			// Patch HRP to show the mouse cursor over the window title
 			if (Graphics::mode == 5) SafeWrite8(HRP::Setting::GetAddress(0x10027142), CodeType::JumpShort);
@@ -1225,6 +1347,8 @@ void Graphics::init() {
 
 		textureFilter = IniReader::GetConfigInt("Graphics", "TextureFilter", 1);
 		dlogr(" Done", DL_INIT);
+
+		dShowMovies = Movies::DirectShowMovies();
 
 		LoadGameHook::OnGameReset() += []() {
 			ForceGraphicsRefresh(0); // disable refresh

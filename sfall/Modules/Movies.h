@@ -28,6 +28,8 @@ public:
 	const char* name() { return "Movies"; }
 	void init();
 	//void exit() override;
+
+	static bool DirectShowMovies();
 };
 
 static constexpr int MaxMovies = 32;
