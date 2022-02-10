@@ -26,6 +26,8 @@ public:
 	static const char* name() { return "Movies"; }
 	static void init();
 	//static void exit();
+
+	static bool DirectShowMovies();
 };
 
 static const int MaxMovies = 32;

@@ -239,10 +239,6 @@ void HookScripts::HookScriptClear() {
 void HookScripts::init() {
 	injectAllHooks = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "InjectAllGameHooks", 0) != 0);
 	if (injectAllHooks) dlogr("Injecting all game hooks.", DL_HOOK|DL_INIT);
-
-//	for (int i = 0; i < HOOK_COUNT; i++) {
-//		dlog_f("injectHooks[%d]: id(%d), func(0x%x), state(%d)\n", DL_INIT, i, injectHooks[i].id, injectHooks[i].inject, injectHooks[i].injectState);
-//	}
 }
 
 }
