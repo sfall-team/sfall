@@ -1337,14 +1337,14 @@ static __declspec(naked) void palette_fade_to_hook() {
 		jmp  fo::funcoffs::fadeSystemPalette_;
 	}
 }
-/*
-#pragma pack(push, 1)
-struct BMPHEADER {
-	BITMAPFILEHEADER bFile;
-	BITMAPINFOHEADER bInfo;
-};
-#pragma pack(pop)
-*/
+
+//#pragma pack(push, 1)
+//struct BMPHEADER {
+//	BITMAPFILEHEADER bFile;
+//	BITMAPINFOHEADER bInfo;
+//};
+//#pragma pack(pop)
+
 long __stdcall SaveScreen(const char* file) {
 	IDirect3DSurface9* surface;
 	d3d9Device->CreateOffscreenPlainSurface(gWidth, gHeight, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &surface, 0);
@@ -1427,7 +1427,7 @@ long __stdcall SaveScreen(const char* file) {
 long __stdcall game_screendump_hook() {
 	char fileName[16];
 
-	for (size_t i = 0; i < 100000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		std::sprintf(fileName, "scr%.5d.png", i); // scr#####.png
 
 		HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
