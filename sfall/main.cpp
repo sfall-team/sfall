@@ -75,6 +75,7 @@
 #include "Modules\Worldmap.h"
 
 #include "CRC.h"
+#include "InputFuncs.h"
 #include "Logging.h"
 #include "ReplacementFuncs.h"
 #include "Translate.h"
@@ -104,7 +105,7 @@ static void ModuleInitLog(const char* name) {
 }
 
 static void InitModules() {
-	dlogr("In InitModules", DL_MAIN);
+	dlogr("In InitModules", DL_INIT);
 
 	// fixes should be applied at the beginning
 	ModuleInitLog(BugFixes::name());
@@ -258,7 +259,7 @@ static void InitModules() {
 	ModuleInitLog(DebugEditor::name());
 	DebugEditor::init();
 
-	dlogr("Leave InitModules", DL_MAIN);
+	dlogr("Leave InitModules", DL_INIT);
 }
 
 static void __stdcall OnExit() {
@@ -417,6 +418,7 @@ defaultIni:
 	Translate::init(falloutConfigName);
 
 	InitReplacementHacks();
+	InitInput();
 	InitModules();
 
 	ShowCursor(0);

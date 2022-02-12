@@ -26,6 +26,8 @@ namespace sfall
 extern bool useScrollWheel;
 extern bool middleMouseDown;
 
+void InitInput();
+
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
