@@ -37,6 +37,7 @@ public:
 
 	static DWORD mode;
 	static DWORD GPUBlt;
+	static bool IsWindowedMode;
 
 	static long GetGameWidthRes();
 	static long GetGameHeightRes();

@@ -1059,7 +1059,7 @@ void ObjectName::SetName(long sid, const char* name) {
 
 const char* __stdcall ObjectName::GetName(fo::GameObject* object) {
 	if (!overrideScrName.empty()) {
-		std::tr1::unordered_map<int, std::string>::iterator name = overrideScrName.find(object->scriptId);
+		std::tr1::unordered_map<int, std::string>::iterator &name = overrideScrName.find(object->scriptId);
 		if (name != overrideScrName.cend()) {
 			return (name->second.length() > 0)
 			       ? name->second.c_str()
@@ -1121,14 +1121,12 @@ static void __declspec(naked) critter_name_hack_end() {
 	}
 }
 
-static void __declspec(naked) object_name_hook() {
-	using namespace fo::Fields;
+static void __declspec(naked) item_name_hook() {
 	__asm {
-		mov  edx, [eax + protoId];
-		cmp  edx, lastItemPid;
+		cmp  eax, lastItemPid;
 		je   getLast;
-		mov  lastItemPid, edx;
-		jmp  fo::funcoffs::item_name_;
+		mov  lastItemPid, eax;
+		jmp  fo::funcoffs::proto_name_;
 getLast:
 		mov  eax, ds:[FO_VAR_name_item];
 		retn;
@@ -1219,7 +1217,7 @@ void ScriptExtender::init() {
 	// Tweak for quickly getting last object name
 	MakeCall(0x42D0C4, critter_name_hack_check, 1);
 	MakeCall(0x42D12A, critter_name_hack_end);
-	HookCall(0x48C901, object_name_hook);
+	HookCall(0x477AE7, item_name_hook);
 }
 
 }

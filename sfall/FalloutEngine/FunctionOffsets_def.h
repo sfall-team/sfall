@@ -509,6 +509,7 @@ FUNC(proto_dude_update_gender_,       0x49F984)
 FUNC(proto_get_msg_info_,             0x49EAA4)
 FUNC(proto_list_str_,                 0x49E758)
 FUNC(proto_make_path_,                0x49E270)
+FUNC(proto_name_,                     0x49EAFC)
 FUNC(proto_ptr_,                      0x4A2108) // eax - PID, edx - int** - pointer to a pointer to a proto struct
 FUNC(pushLongStack_,                  0x46736C)
 FUNC(qsort_,                          0x4F05B6)
