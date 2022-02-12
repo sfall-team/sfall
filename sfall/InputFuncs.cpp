@@ -470,6 +470,11 @@ HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c,
 	HRESULT hr = proc(a, b, c, d);
 	if (FAILED(hr)) return hr;
 
+	// Prevent "Failure initializing input devices" error
+	if (sfall::Graphics::IsWindowedMode && !sfall::backgroundMouse) {
+		SetForegroundWindow((HWND)fo::var::getInt(FO_VAR_GNW95_hwnd));
+	}
+
 	*c = (IDirectInputA*)new sfall::FakeDirectInput(*c);
 
 	sfall::keyboardLayout = GetKeyboardLayout(0);
