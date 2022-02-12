@@ -355,17 +355,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 		mov  ecx, esi;          // base (calculated hit chance)
 		call HitChanceMod;
 		mov  esi, eax;
-		mov  eax, 999; // max
-		cmp  esi, eax;
-		cmovg esi, eax;
 		retn;
-	}
-}
-
-static void __declspec(naked) determine_to_hit_func_hook_min() {
-	__asm {
-		mov  esi, -99; // min
-		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -685,10 +675,6 @@ void Combat::init() {
 
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
-
-	// Add a minimum limit of -99% to the calculated hit chance to prevent display glitches
-	SafeWrite8(0x42479D, -99); // was -100
-	HookCall(0x4247A5, determine_to_hit_func_hook_min);
 
 	// Disables secondary burst attacks for the critter
 	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
