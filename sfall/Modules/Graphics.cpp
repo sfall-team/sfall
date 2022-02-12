@@ -87,7 +87,7 @@ static HWND window;
 static DWORD ShaderVersion;
 
 IDirect3D9* d3d9;
-IDirect3DDevice9* d3d9Device;
+IDirect3DDevice9* d3d9Device = nullptr;
 
 static IDirect3DTexture9* mainTex;
 static IDirect3DTexture9* mainTexD;
@@ -117,8 +117,6 @@ static D3DXHANDLE gpuBltHighlight;
 static D3DXHANDLE gpuBltHighlightSize;
 static D3DXHANDLE gpuBltHighlightCorner;
 static D3DXHANDLE gpuBltShowHighlight;
-
-static BYTE* mveScaleSurface = nullptr;
 
 static float rcpres[2];
 
@@ -190,11 +188,19 @@ static void ResetDevice(bool create) {
 		DWORD mThreadFlags = (dShowMovies) ? D3DCREATE_MULTITHREADED : 0;
 
 		dlog("Creating D3D9 Device...", DL_MAIN);
-		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | mThreadFlags, &params, &d3d9Device))) { //D3DCREATE_PUREDEVICE | D3DCREATE_FPU_PRESERVE
-			MessageBoxA(window, "Failed to create hardware vertex processing device.\nUsing software vertex processing instead.",
-			                    "sfall DirectX 9", MB_TASKMODAL | MB_ICONWARNING);
+		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | mThreadFlags, &params, &d3d9Device))) { //D3DCREATE_PUREDEVICE
+			if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | mThreadFlags, &params, &d3d9Device))) {
+				d3d9Device = nullptr;
+				dlogr(" Failed!", DL_MAIN);
+				return;
+			}
 			software = true;
-			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | mThreadFlags, &params, &d3d9Device); //D3DCREATE_FPU_PRESERVE
+			if (params.Windowed) {
+				MessageBoxA(window, "Failed to create hardware vertex processing device.\nUsing software vertex processing instead.",
+				                    "sfall DirectX 9", MB_TASKMODAL | MB_ICONWARNING);
+			} else {
+				dlogr(" Failed to create hardware vertex processing device.\nUsing software vertex processing instead.", DL_MAIN);
+			}
 		}
 
 		D3DCAPS9 caps;
@@ -653,15 +659,14 @@ public:
 			int height = mveDesc.dwHeight;
 
 			if (d != 0) { // scale
-				//mveScaleSurface = (BYTE*)fo::var::getInt(FO_VAR_screen_buffer);
-				if (!mveScaleSurface) mveScaleSurface = new BYTE[ResWidth * ResHeight];
+				BYTE* mveScaleBuffer = (BYTE*)fo::var::getInt(FO_VAR_screen_buffer);
 
 				width = dst->right - dst->left;
 				height = dst->bottom - dst->top;
 
-				HRP::Image::Scale(mveSurface, mveDesc.lPitch, mveDesc.dwHeight, mveScaleSurface, width, height, ResWidth);
+				HRP::Image::Scale(mveSurface, mveDesc.lPitch, mveDesc.dwHeight, mveScaleBuffer, width, height, ResWidth);
 
-				mveSurface = mveScaleSurface;
+				mveSurface = mveScaleBuffer;
 				sPitch = ResWidth;
 			}
 
@@ -760,7 +765,9 @@ public:
 				paletteTex->AddDirtyRect(0);
 				SetGPUPalette();
 			}
+			#ifndef NDEBUG
 			dlogr("\nD3D9 Device restored.", DL_MAIN);
+			#endif
 		}
 		return (DeviceLost) ? DD_FALSE : DD_OK;
 	}
@@ -1033,7 +1040,7 @@ public:
 			CoInitialize(0);
 			ResetDevice(true); // create
 		}
-		return DD_OK;
+		return (d3d9Device) ? DD_OK : DD_FALSE;
 	}
 
 	HRESULT __stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; } // called 0x4CB01B GNW95_init_DirectDraw_
@@ -1048,6 +1055,7 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 	ResHeight = HRP::Setting::ScreenHeight(); //*(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
+	if (!d3d9) return DD_FALSE;
 
 	ZeroMemory(&surfaceDesc, sizeof(DDSURFACEDESC));
 
@@ -1232,7 +1240,8 @@ long __stdcall SaveScreen(const char* file) {
 	BMPHEADER bmpHeader;
 	std::memset(&bmpHeader, 0, sizeof(BMPHEADER));
 
-	bmpHeader.bFile.bfType = 0x4D42;
+	bmpHeader.bFile.bfType = 'BM';
+	bmpHeader.bFile.bfSize = sizeImage + sizeof(BMPHEADER);
 	bmpHeader.bFile.bfOffBits = sizeof(BMPHEADER);
 	bmpHeader.bInfo.biSize = sizeof(BITMAPINFOHEADER);
 	bmpHeader.bInfo.biWidth = gWidth;
@@ -1375,7 +1384,6 @@ void Graphics::exit() {
 	} else {
 		DirectDraw::exit();
 	}
-	if (mveScaleSurface) delete[] mveScaleSurface;
 }
 
 }

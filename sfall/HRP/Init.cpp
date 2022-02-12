@@ -313,6 +313,9 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		// Set the resolution for GNW95_init_mode_ex_
 		sf::SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
 		sf::SafeWrite32(0x4CAD66, SCR_HEIGHT); // 480
+		// initWindow_ "Error initializing video mode ..."
+		sf::SafeWrite32(0x4B9245, (DWORD)&SCR_WIDTH);
+		sf::SafeWrite32(0x4B923F, (DWORD)&SCR_HEIGHT);
 
 		// Set the resolution for the overlapping temporary black window when loading/starting the game
 		// main_load_new_

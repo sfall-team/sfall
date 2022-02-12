@@ -438,7 +438,7 @@ public:
 	}
 };
 
-inline void InitInputFeatures() {
+void InitInput() {
 	reverseMouse = IniReader::GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 	useScrollWheel = IniReader::GetConfigInt("Input", "UseScrollWheel", 1) != 0;
 	wheelMod = IniReader::GetConfigInt("Input", "ScrollMod", 0);
@@ -453,8 +453,6 @@ inline void InitInputFeatures() {
 
 	backgroundKeyboard = IniReader::GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
 	backgroundMouse = IniReader::GetConfigInt("Input", "BackgroundMouse", 0) != 0;
-
-	keyboardLayout = GetKeyboardLayout(0);
 }
 
 }
@@ -474,7 +472,7 @@ HRESULT __stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c,
 
 	*c = (IDirectInputA*)new sfall::FakeDirectInput(*c);
 
-	sfall::InitInputFeatures();
+	sfall::keyboardLayout = GetKeyboardLayout(0);
 
 	return hr;
 }
