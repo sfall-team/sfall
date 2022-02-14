@@ -295,7 +295,7 @@ DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
 static __int64 endMoviePosition;
 
 // Movie play looping
-static DWORD __fastcall PlayMovieLoop() {
+static DWORD __fastcall PlayMovieLoop(long kCode) {
 	static bool onlyOnce = false;
 
 	if (aviPlayState == AviState::ReadyToPlay) {
@@ -314,7 +314,7 @@ static DWORD __fastcall PlayMovieLoop() {
 		}
 	}
 
-	if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+	if (kCode != -1) {
 		StopMovie();
 		return 0; // break play
 	}
@@ -332,11 +332,8 @@ static DWORD __fastcall PlayMovieLoop() {
 static void __declspec(naked) gmovie_play_hook() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::GNW95_process_message_; // windows message pump
-		cmp  ds:[FO_VAR_GNW95_isActive], 0;
-		jnz  skip;
-		call fo::funcoffs::GNW95_lost_focus_;
-skip:
+		call fo::funcoffs::get_input_; // also windows message pump
+		mov  ecx, eax;
 		call PlayMovieLoop;
 		pop  ecx;
 		retn;
@@ -345,7 +342,7 @@ skip:
 
 static void __declspec(naked) gmovie_play_hook_input() {
 	__asm {
-		xor eax,eax;
+		xor eax, eax;
 		dec eax;
 		retn; // return -1
 	}

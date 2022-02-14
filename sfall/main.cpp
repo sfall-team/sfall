@@ -214,7 +214,7 @@ static HMODULE SfallInit() {
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 
-	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+	if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
 
 	if (!HRP::Setting::CheckExternalPatch()) {
 		WinProc::init();
