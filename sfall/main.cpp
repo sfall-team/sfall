@@ -342,7 +342,7 @@ static HMODULE SfallInit() {
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 
-	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+	if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
 
 	bool isEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (isEnabled) {

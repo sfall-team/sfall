@@ -29,33 +29,37 @@ namespace sfall
 static int DebugTypes = 0;
 static std::ofstream Log;
 
-void dlog(const char* a) {
+template <class T>
+static void OutLog(T a) {
 	Log << a;
 	Log.flush();
 }
 
+template <class T>
+static void OutLogN(T a) {
+	Log << a << "\n";
+	Log.flush();
+}
+
 void dlog(const char* a, int type) {
-	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
-		Log << a;
-		Log.flush();
+	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
+		OutLog(a);
 	}
 }
 
 void dlogr(const char* a, int type) {
-	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
-		Log << a << "\n";
-		Log.flush();
+	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
+		OutLogN(a);
 	}
 }
 
 void dlog_f(const char* fmt, int type, ...) {
-	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
+	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
 		va_list args;
 		va_start(args, type);
 		char buf[1024];
 		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
-		Log << buf;
-		Log.flush();
+		OutLog(buf);
 		va_end(args);
 	}
 }
@@ -68,8 +72,7 @@ void devlog_f(const char* fmt, int type, ...) {
 		va_start(args, type);
 		char buf[1024];
 		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
-		Log << buf;
-		Log.flush();
+		OutLog(buf);
 		va_end(args);
 	}
 }

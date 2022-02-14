@@ -16,7 +16,7 @@ float4 P1(in float2 Tex : TEXCOORD0) : COLOR0
 	if (abs(backdrop - 1.0) < 0.001) { // (48.0 / 255.0) // 48 - key index color
 		result = tex2D(s2, saturate((Tex - corner) / size));
 	} else {
-		result = tex1D(s1, backdrop); // get color in palette
+		result = tex1D(s1, backdrop).bgr * 4; // get color in palette
 	}
 	return float4(result, 1);
 }
@@ -30,7 +30,7 @@ technique T1
 float4 P0(in float2 Tex : TEXCOORD0) : COLOR0
 {
 	float3 result = tex1D(s1, tex2D(s0, Tex).a); // get color in palette
-	return float4(result, 1);
+	return float4(result.bgr * 4, 1);
 }
 
 technique T0
