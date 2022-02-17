@@ -156,4 +156,63 @@ void Image::ScaleText(BYTE* dstSurf, const char* text, long txtWidth, long dstWi
 	}
 }
 
+#pragma pack(push, 1)
+struct BMPHEADER {
+	BITMAPFILEHEADER bFile;
+	BITMAPINFOHEADER bInfo;
+};
+#pragma pack(pop)
+
+/* BMP 24-bit
+bool MakeBMP(const char* file, BYTE* dataRGB32, long width, long height, long pitch) {
+	long bmpExtraSize = width * 3 % 4;
+	if (bmpExtraSize != 0) bmpExtraSize = 4 - bmpExtraSize;
+
+	DWORD sizeImage = width * height * 3;
+	sizeImage += height * bmpExtraSize;
+
+	BMPHEADER bmpHeader;
+	std::memset(&bmpHeader, 0, sizeof(BMPHEADER));
+
+	bmpHeader.bFile.bfType = 'BM';
+	bmpHeader.bFile.bfSize = sizeImage + sizeof(BMPHEADER);
+	bmpHeader.bFile.bfOffBits = sizeof(BMPHEADER);
+	bmpHeader.bInfo.biSize = sizeof(BITMAPINFOHEADER);
+	bmpHeader.bInfo.biWidth = width;
+	bmpHeader.bInfo.biHeight = 0 - height;
+	bmpHeader.bInfo.biPlanes = 1;
+	bmpHeader.bInfo.biBitCount = 24;
+	bmpHeader.bInfo.biCompression = BI_RGB;
+	bmpHeader.bInfo.biSizeImage = sizeImage;
+
+	BYTE* bmpImageData = new BYTE[sizeImage];
+	BYTE* dData = bmpImageData;
+
+	// 32-bit to 24-bit
+	for (size_t h = 0; h < height; h++) {
+		BYTE* sData = dataRGB32;
+		for (size_t w = 0; w < width; w++) {
+			*dData++ = *sData++;
+			*dData++ = *sData++;
+			*dData++ = *sData++;
+			sData++;
+		}
+		dataRGB32 += pitch;
+		dData += bmpExtraSize;
+	}
+
+	HANDLE hFile = CreateFileA(file, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
+	bool result = (hFile != INVALID_HANDLE_VALUE);
+
+	if (result) {
+		DWORD dwWritten;
+		WriteFile(hFile, &bmpHeader, sizeof(BMPHEADER), &dwWritten, 0);
+		WriteFile(hFile, bmpImageData, sizeImage, &dwWritten, 0);
+		CloseHandle(hFile);
+	}
+	delete[] bmpImageData;
+
+	return result;
+}*/
+
 }

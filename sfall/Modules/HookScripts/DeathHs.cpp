@@ -41,7 +41,6 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, fo::GameObject* t
 	DWORD animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
 	if (registerHookDeathAnim2) {
-		//argCount = 5;
 		args[4] = animDeath;
 		RunHookScript(HOOK_DEATHANIM2);
 

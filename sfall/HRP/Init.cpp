@@ -136,7 +136,11 @@ static __declspec(naked) void fadeSystemPalette_hook() {
 
 static __declspec(naked) void combat_turn_run_hook() {
 	__asm {
+		push edx;
+		push ecx;
 		call sfall::WinProc::WaitMessageWindow;
+		pop  ecx;
+		pop  edx;
 		jmp  fo::funcoffs::process_bk_;
 	}
 }
@@ -264,7 +268,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	IFaceBar::IFACE_BAR_MODE = sf::IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDE_ART = sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDE_ART", 2, f2ResIni);
-	IFaceBar::IFACE_BAR_WIDTH = sf::IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
+	IFaceBar::IFACE_BAR_WIDTH = sf::IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (!sf::versionCHI && SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDES_ORI = (sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni) != 0);
 
 	IFaceBar::ALTERNATE_AMMO_METRE = sf::IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, f2ResIni);
@@ -309,6 +313,9 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		// Set the resolution for GNW95_init_mode_ex_
 		sf::SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
 		sf::SafeWrite32(0x4CAD66, SCR_HEIGHT); // 480
+		// initWindow_ "Error initializing video mode ..."
+		sf::SafeWrite32(0x4B9245, (DWORD)&SCR_WIDTH);
+		sf::SafeWrite32(0x4B923F, (DWORD)&SCR_HEIGHT);
 
 		// Set the resolution for the overlapping temporary black window when loading/starting the game
 		// main_load_new_

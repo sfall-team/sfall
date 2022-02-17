@@ -76,6 +76,7 @@
 #include "Modules\Worldmap.h"
 
 #include "CRC.h"
+#include "InputFuncs.h"
 #include "Logging.h"
 #include "ReplacementFuncs.h"
 #include "Translate.h"
@@ -97,7 +98,7 @@ bool versionCHI = false;
 char falloutConfigName[65];
 
 static void InitModules() {
-	dlogr("In InitModules", DL_MAIN);
+	dlogr("In InitModules", DL_INIT);
 
 	auto& manager = ModuleManager::getInstance();
 
@@ -168,7 +169,7 @@ static void InitModules() {
 
 	manager.initAll();
 
-	dlogr("Leave InitModules", DL_MAIN);
+	dlogr("Leave InitModules", DL_INIT);
 }
 
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
@@ -213,11 +214,13 @@ static HMODULE SfallInit() {
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
 
-	if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n");
+	if (!ddraw.dll) dlogr("Error: Cannot load the original ddraw.dll library.", DL_MAIN);
 
 	if (!HRP::Setting::CheckExternalPatch()) {
 		WinProc::init();
 	}
+
+	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
 
 	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
@@ -266,8 +269,6 @@ defaultIni:
 	}
 	std::srand(GetTickCount());
 
-	versionCHI = (*(DWORD*)0x4CAF23 == 0x225559); // check if the exe is modified for Chinese support
-
 	IniReader::init();
 
 	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
@@ -283,6 +284,7 @@ defaultIni:
 	HRP::Setting::init(filepath, cmdline);
 
 	InitReplacementHacks();
+	InitInput();
 	InitModules();
 
 	if (HRP::Setting::ExternalEnabled()) ShowCursor(0);

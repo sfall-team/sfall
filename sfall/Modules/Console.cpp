@@ -21,6 +21,8 @@
 #include "..\main.h"
 #include "..\Modules\LoadGameHook.h"
 
+#include "..\HRP\Init.h"
+
 #include "Console.h"
 
 namespace sfall
@@ -63,7 +65,7 @@ void Console::init() {
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {
-			MakeJump(0x43186C, display_print_hack);
+			if (!HRP::Setting::IsEnabled()) MakeJump(0x43186C, display_print_hack);
 
 			LoadGameHook::OnGameReset() += []() {
 				printCount = 0;

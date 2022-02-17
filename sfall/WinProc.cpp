@@ -48,29 +48,24 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 	switch (msg) {
 	//case WM_CREATE:
 	//	break;
-
 	case WM_DESTROY:
 		__asm xor  eax, eax;
 		__asm call fo::funcoffs::exit_;
 		return 1;
-
 	case WM_MOVE:
 		client.x = LOWORD(lParam);
 		client.y = HIWORD(lParam);
 		break;
-
 	case WM_WINDOWPOSCHANGED:
 		win.x = ((WINDOWPOS*)lParam)->x;
 		win.y = ((WINDOWPOS*)lParam)->y;
 		break;
-
 	case WM_ERASEBKGND:
 		if (bkgndErased || !window) return 1;
 		bkgndErased = true;
 		break;
-
 	case WM_PAINT:
-		if (window && GetUpdateRect(hWnd, &rect, 0) != 0) { // it's unclear under what conditions the redrawing is required
+		if (window && GetUpdateRect(hWnd, &rect, 0) != 0) { // it's not clear under what conditions the redrawing is required
 			rect.right -= 1;
 			rect.bottom -= 1;
 			__asm {
@@ -79,35 +74,30 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 			}
 		}
 		break;
-
 	case WM_ACTIVATE:
 		if (!cCursorShow && wParam == WA_INACTIVE) {
 			cCursorShow = true;
 			ShowCursor(1);
 		}
 		break;
-
 	case WM_SETCURSOR: {
-		short type = LOWORD(lParam);
+		WORD type = LOWORD(lParam);
 		/*if (type == HTCAPTION || type == HTBORDER || type == HTMINBUTTON || type == HTCLOSE || type == HTMAXBUTTON) {
 			if (!cCursorShow) {
 				cCursorShow = true;
 				ShowCursor(1);
 			}
-		}
-		else*/ if (type == HTCLIENT && fo::var::getInt(FO_VAR_GNW95_isActive)) {
+		} else*/ if (type == HTCLIENT && fo::var::getInt(FO_VAR_GNW95_isActive)) {
 			if (cCursorShow) {
 				cCursorShow = false;
 				ShowCursor(0);
 			}
 		}
 		return 1;
-		//break;
 	}
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xFFF0) == SC_SCREENSAVE || (wParam & 0xFFF0) == SC_MONITORPOWER) return 0;
 		break;
-
 	case WM_ACTIVATEAPP:
 		fo::var::setInt(FO_VAR_GNW95_isActive) = wParam;
 		if (wParam) { // active
@@ -126,13 +116,12 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 				mov  eax, FO_VAR_scr_size;
 				call fo::funcoffs::win_refresh_all_;
 			}
-		} else{
-			// ClipCursor(0);
+		} else {
+			//ClipCursor(0);
 			__asm xor  eax, eax;
 			__asm call fo::funcoffs::GNW95_hook_input_;
 		}
 		return 0;
-
 	case WM_CLOSE:
 		__asm {
 			call fo::funcoffs::main_menu_is_shown_;
@@ -277,7 +266,7 @@ void WinProc::LoadPosition() {
 		win.x = windowData >> 16;
 		win.y = windowData & 0xFFFF;
 	} else if (windowData == -1) {
-		WinProc::SetToCenter(win.width, win.height, &win.x, &win.y);
+		SetToCenter(win.width, win.height, &win.x, &win.y);
 	}
 }
 
@@ -294,7 +283,7 @@ const POINT* WinProc::GetClientPos() {
 }
 
 void WinProc::init() {
-	// Replace the engine WindowProc_ with sfall one
+	// Replace the engine WindowProc_ with sfall implementation
 	MakeJump(0x4DE9FC, WindowProc); // WindowProc_
 
 	HookCall(0x481B2A, main_menu_loop_hook);

@@ -95,9 +95,8 @@ static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long sw, long sh
 // create main menu window
 // the window is created according to the size of the image, if the image exceeds the set game resolution, the window size is scaled
 static long __fastcall main_menu_create_hook_add_win(long h, long y, long color, long flags) {
-	long x = 0;
-	long w = 640;
-	long sw = w, sh = h;
+	long x = 0, w = 640;
+	long sw = w, sh = h; // h = 480
 
 	sf::Graphics::BackgroundClearColor(0);
 
@@ -109,38 +108,29 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 		if (mainBackgroundFrm) {
 			sw = mainBackgroundFrm->frames->width;
 			sh = mainBackgroundFrm->frames->height;
+			w = sw;
+			h = sh;
 		}
 	}
 
-	if (MainMenuScreen::MAIN_MENU_SIZE != 2) {
-		if (mainBackgroundFrm || MainMenuScreen::MAIN_MENU_SIZE == 1) {
-			w = Setting::ScreenWidth();
-			h = Setting::ScreenHeight();
+	if (MainMenuScreen::MAIN_MENU_SIZE == 1 || sw > Setting::ScreenWidth() || sh > Setting::ScreenHeight()) {
+		// out size
+		w = Setting::ScreenWidth();
+		h = Setting::ScreenHeight();
 
-			x = Image::GetAspectSize(sw, sh, 0, 0, w, h);
+		Image::GetAspectSize(sw, sh, &x, &y, w, h);
 
-			if (w > Setting::ScreenWidth()) w = Setting::ScreenWidth();
-			if (h > Setting::ScreenHeight()) h = Setting::ScreenHeight();
-
-			mainmenuWidth = w;
-		}
-	}
-
-	if (MainMenuScreen::MAIN_MENU_SIZE == 1) {
-		// extract x/y window position
-		if (x >= mainmenuWidth) {
-			y = x / mainmenuWidth;
-			x -= y * mainmenuWidth;
-		}
+		if (w > Setting::ScreenWidth()) w = Setting::ScreenWidth();
+		if (h > Setting::ScreenHeight()) h = Setting::ScreenHeight();
 	} else if (MainMenuScreen::MAIN_MENU_SIZE == 2) {
 		h = Setting::ScreenHeight();
 		w = Setting::ScreenWidth();
-		mainmenuWidth = w;
 	} else {
 		// centering
 		x = (Setting::ScreenWidth() - w) / 2;
 		y = (Setting::ScreenHeight() - h) / 2;
 	}
+	mainmenuWidth = w;
 
 	// set scaling factor
 	scaleWidth = (w / 640.0f);

@@ -98,7 +98,7 @@ void op_get_year(OpcodeContext& ctx) {
 
 void __declspec(naked) op_eax_available() {
 	__asm {
-		xor  edx, edx
+		xor  edx, edx; // EAX support has been removed since 2.1a
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
