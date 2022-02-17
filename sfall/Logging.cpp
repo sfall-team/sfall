@@ -47,7 +47,19 @@ void dlog(const char* a, int type) {
 	}
 }
 
+void dlog(const std::string& a, int type) {
+	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
+		OutLog(a);
+	}
+}
+
 void dlogr(const char* a, int type) {
+	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
+		OutLogN(a);
+	}
+}
+
+void dlogr(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
 		OutLogN(a);
 	}

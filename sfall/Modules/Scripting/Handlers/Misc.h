@@ -66,7 +66,7 @@ void op_set_palette(OpcodeContext&);
 //numbers subgame functions
 void __declspec() op_nb_create_char();
 
-void __declspec() op_hero_select_win() ;
+void __declspec() op_hero_select_win();
 
 void __declspec() op_set_hero_style();
 

@@ -205,11 +205,12 @@ static void ResetDevice(bool create) {
 	static D3DFORMAT textureFormat = D3DFMT_X8R8G8B8;
 
 	if (create) {
-		DWORD mThreadFlags = (dShowMovies) ? D3DCREATE_MULTITHREADED : 0;
+		DWORD deviceFlags = D3DCREATE_FPU_PRESERVE;
+		if (dShowMovies) deviceFlags |= D3DCREATE_MULTITHREADED;
 
 		dlog("Creating D3D9 Device...", DL_MAIN);
-		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | mThreadFlags, &params, &d3d9Device))) { // D3DCREATE_PUREDEVICE
-			if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | mThreadFlags, &params, &d3d9Device))) {
+		if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING | deviceFlags, &params, &d3d9Device))) { // D3DCREATE_PUREDEVICE
+			if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | deviceFlags, &params, &d3d9Device))) {
 				d3d9Device = nullptr;
 				dlogr(" Failed!", DL_MAIN);
 				return;
@@ -223,7 +224,7 @@ static void ResetDevice(bool create) {
 		ShaderVersion = ((caps.PixelShaderVersion & 0x0000FF00) >> 8) * 10 + (caps.PixelShaderVersion & 0xFF);
 
 		bool npow2 = ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) != 0); //(caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL)
-		if (npow2) dlogr("Warning: The graphics card does not support non-power-of-two textures.", DL_MAIN);
+		if (npow2) dlog("Warning: The graphics card does not support non-power-of-two textures.", DL_MAIN);
 
 		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
 		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
@@ -1028,7 +1029,7 @@ public:
 
 	HRESULT __stdcall RestoreDisplayMode() { // called from GNW95_reset_mode_
 		#ifdef NDEBUG
-		ShowWindow(window, SW_HIDE);
+		if (!Graphics::IsWindowedMode) ShowWindow(window, SW_HIDE);
 		#endif
 		return DD_OK;
 	}
@@ -1342,13 +1343,6 @@ static __declspec(naked) void palette_fade_to_hook() {
 	}
 }
 
-//#pragma pack(push, 1)
-//struct BMPHEADER {
-//	BITMAPFILEHEADER bFile;
-//	BITMAPINFOHEADER bInfo;
-//};
-//#pragma pack(pop)
-
 long __stdcall SaveScreen(const char* file) {
 	IDirect3DSurface9* surface;
 	d3d9Device->CreateOffscreenPlainSurface(gWidth, gHeight, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &surface, 0);
@@ -1370,61 +1364,6 @@ long __stdcall SaveScreen(const char* file) {
 
 	surface->Release();
 	buffer->Release();
-
-	/* BMP 24-bit
-	long bmpExtraSize = gWidth * 3 % 4;
-	if (bmpExtraSize != 0) bmpExtraSize = 4 - bmpExtraSize;
-
-	DWORD sizeImage = gWidth * gHeight * 3;
-	sizeImage += gHeight * bmpExtraSize;
-
-	BMPHEADER bmpHeader;
-	std::memset(&bmpHeader, 0, sizeof(BMPHEADER));
-
-	bmpHeader.bFile.bfType = 'BM';
-	bmpHeader.bFile.bfSize = sizeImage + sizeof(BMPHEADER);
-	bmpHeader.bFile.bfOffBits = sizeof(BMPHEADER);
-	bmpHeader.bInfo.biSize = sizeof(BITMAPINFOHEADER);
-	bmpHeader.bInfo.biWidth = gWidth;
-	bmpHeader.bInfo.biHeight = 0 - gHeight;
-	bmpHeader.bInfo.biPlanes = 1;
-	bmpHeader.bInfo.biBitCount = 24;
-	bmpHeader.bInfo.biCompression = BI_RGB;
-	bmpHeader.bInfo.biSizeImage = sizeImage;
-
-	BYTE* bmpImageData = new BYTE[sizeImage];
-	BYTE* dData = bmpImageData;
-
-	D3DLOCKED_RECT lockRect;
-	surface->LockRect(&lockRect, 0, 0);
-	BYTE* lockData = (BYTE*)lockRect.pBits;
-
-	// 32-bit to 24-bit
-	for (size_t h = 0; h < gHeight; h++) {
-		BYTE* sData = lockData;
-		for (size_t x = 0; x < gWidth; x++) {
-			*dData++ = *sData++;
-			*dData++ = *sData++;
-			*dData++ = *sData++;
-			sData++;
-		}
-		lockData += lockRect.Pitch;
-		dData += bmpExtraSize;
-	}
-
-	surface->UnlockRect();
-	surface->Release();
-
-	HANDLE hFile = CreateFileA(file, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
-	bool resultOK = (hFile != INVALID_HANDLE_VALUE);
-
-	if (resultOK) {
-		DWORD dwWritten;
-		WriteFile(hFile, &bmpHeader, sizeof(BMPHEADER), &dwWritten, 0);
-		WriteFile(hFile, bmpImageData, sizeImage, &dwWritten, 0);
-		CloseHandle(hFile);
-	}
-	delete[] bmpImageData;*/
 
 	return (resultOK) ? 0 : 1;
 }

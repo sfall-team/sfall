@@ -31,7 +31,7 @@ namespace sfall
 static const DWORD ExpectedSize = 1189888;
 static const DWORD ExpectedCRC[] = {
 	0xE1680293, // US 1.02d
-	0xEF34F989  // US 1.02d + HRP
+	0xEF34F989  // US 1.02d + HRP by Mash
 };
 
 static void inline ExitMessageFail(const char* a) {
