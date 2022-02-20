@@ -77,6 +77,10 @@ char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType) {
 	return nullptr;
 }
 
+fo::Window* GetWindow(long winID) {
+	return fo::ptr::window[fo::ptr::window_index[winID]];
+}
+
 fo::Queue* QueueFind(fo::GameObject* object, long type) {
 	if (*fo::ptr::queue) {
 		fo::Queue* queue = *fo::ptr::queue;

@@ -324,15 +324,15 @@ end:
 	}
 }
 
-static void WorldLimitsPatches() {
-	DWORD data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
-	if (data) {
+static void MapLimitsPatches() {
+	long data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
+	if (data > 0) {
 		dlog("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x4B13B9, data);
 		dlogr(" Done", DL_INIT);
 	}
 	data = IniReader::GetConfigInt("Misc", "LocalMapYLimit", 0);
-	if (data) {
+	if (data > 0) {
 		dlog("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x4B13C7, data);
 		dlogr(" Done", DL_INIT);
@@ -341,7 +341,7 @@ static void WorldLimitsPatches() {
 	//if (IniReader::GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
-			SafeWrite8(0x4BF3BB, CodeType::JumpShort);
+			SafeWrite8(0x4BF3BB, CodeType::JumpShort); // wmAreaInit_
 		}
 		dlogr(" Done", DL_INIT);
 	//}
@@ -564,7 +564,7 @@ void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();
-	WorldLimitsPatches();
+	MapLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
 
