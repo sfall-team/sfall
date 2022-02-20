@@ -26,6 +26,8 @@
 #include "ScriptExtender.h"
 #include "SpeedPatch.h"
 
+#include "..\HRP\viewmap\ViewMap.h"
+
 #include "Worldmap.h"
 
 namespace sfall
@@ -369,24 +371,27 @@ static void RestRestore() {
 	SafeWrite16(0x499E93, 0x0574);
 }
 
-static void WorldLimitsPatches() {
-	DWORD data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
-	if (data) {
+static void MapLimitsPatches() {
+	// This has priority over the SCROLL_DIST_X/Y options in f2_res.ini
+	long data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
+	if (data > 0) {
 		dlog("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x4B13B9, data);
+		HRP::ViewMap::SCROLL_DIST_X = data;
 		dlogr(" Done", DL_INIT);
 	}
 	data = IniReader::GetConfigInt("Misc", "LocalMapYLimit", 0);
-	if (data) {
+	if (data > 0) {
 		dlog("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x4B13C7, data);
+		HRP::ViewMap::SCROLL_DIST_Y = data;
 		dlogr(" Done", DL_INIT);
 	}
 
 	//if (IniReader::GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
-			SafeWrite8(0x4BF3BB, CodeType::JumpShort);
+			SafeWrite8(0x4BF3BB, CodeType::JumpShort); // wmAreaInit_
 		}
 		dlogr(" Done", DL_INIT);
 	//}
@@ -697,7 +702,7 @@ void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();
-	WorldLimitsPatches();
+	MapLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
 

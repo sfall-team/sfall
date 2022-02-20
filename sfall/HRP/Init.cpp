@@ -11,7 +11,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
-#include "..\Utils.h"
 #include "..\WinProc.h"
 #include "..\Modules\Graphics.h"
 #include "..\Modules\LoadOrder.h"
@@ -258,10 +257,10 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	SlidesScreen::END_SLIDE_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "END_SLIDE_SIZE", 1, f2ResIni);
 	MoviesScreen::MOVIE_SIZE = sf::IniReader::GetInt("MOVIES", "MOVIE_SIZE", 1, f2ResIni);
 
-	std::string x = sf::trim(sf::IniReader::GetString("MAPS", "SCROLL_DIST_X", "480", 16, f2ResIni));
-	std::string y = sf::trim(sf::IniReader::GetString("MAPS", "SCROLL_DIST_Y", "400", 16, f2ResIni));
-	ViewMap::SCROLL_DIST_X = (!x.compare(0, 9, "HALF_SCRN")) ? (SCR_WIDTH / 2) + 32 : std::atol(x.c_str());
-	ViewMap::SCROLL_DIST_Y = (!y.compare(0, 9, "HALF_SCRN")) ? (SCR_HEIGHT / 2) + 24 : std::atol(y.c_str());
+	long x = sf::IniReader::GetInt("MAPS", "SCROLL_DIST_X", 0, f2ResIni);
+	long y = sf::IniReader::GetInt("MAPS", "SCROLL_DIST_Y", 0, f2ResIni);
+	ViewMap::SCROLL_DIST_X = (x <= 0) ? (SCR_WIDTH / 2) + 32 : x;
+	ViewMap::SCROLL_DIST_Y = (y <= 0) ? (SCR_HEIGHT / 2) + 24 : y;
 
 	ViewMap::IGNORE_PLAYER_SCROLL_LIMITS = (sf::IniReader::GetInt("MAPS", "IGNORE_PLAYER_SCROLL_LIMITS", 0, f2ResIni) != 0);
 	ViewMap::IGNORE_MAP_EDGES = (sf::IniReader::GetInt("MAPS", "IGNORE_MAP_EDGES", 0, f2ResIni) != 0);
