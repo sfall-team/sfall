@@ -51,18 +51,19 @@ static void __cdecl main_death_scene_hook_buf_to_buf(fo::FrmData* frm, long w, l
 			}
 		}
 		yPosition = h;
-		Image::Scale(frm->frame.data, width, height, dst, w, h, Setting::ScreenWidth());
-		return;
-	}
-	yPosition = height;
 
-	long y = (h - height) / 2;
-	long x = (w - width) / 2;
-	if (x || y) {
-		yPosition += y;
-		dst += x + (y * Setting::ScreenWidth());
+		Image::Scale(frm->frame.data, width, height, dst, w, h, Setting::ScreenWidth());
+	} else {
+		yPosition = height;
+
+		long y = (h - height) / 2;
+		long x = (w - width) / 2;
+		if (x || y) {
+			yPosition += y;
+			dst += x + (y * Setting::ScreenWidth());
+		}
+		fo::func::buf_to_buf(frm->frame.data, width, height, width, dst, Setting::ScreenWidth());
 	}
-	fo::func::buf_to_buf(frm->frame.data, width, height, width, dst, Setting::ScreenWidth());
 }
 
 // Darkens a rectangle area for printing text

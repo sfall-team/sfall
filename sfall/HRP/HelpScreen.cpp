@@ -43,15 +43,15 @@ static void __cdecl game_help_hook_buf_to_buf(fo::FrmData* frm, long w, long h, 
 			Image::GetAspectSize(width, height, &x, &y, w, h);
 			if (x || y) dst += x + (y * Setting::ScreenWidth());
 		}
+
 		Image::Scale(frm->frame.data, width, height, dst, w, h, Setting::ScreenWidth());
-		return;
+	} else {
+		long y = (h - height) / 2;
+		long x = (w - width) / 2;
+		if (x || y) dst += x + (y * Setting::ScreenWidth());
+
+		fo::func::buf_to_buf(frm->frame.data, width, height, width, dst, Setting::ScreenWidth());
 	}
-
-	long y = (h - height) / 2;
-	long x = (w - width) / 2;
-	if (x || y) dst += x + (y * Setting::ScreenWidth());
-
-	fo::func::buf_to_buf(frm->frame.data, width, height, width, dst, Setting::ScreenWidth());
 }
 
 void HelpScreen::init() {

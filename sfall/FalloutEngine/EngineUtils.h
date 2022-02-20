@@ -54,6 +54,8 @@ fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgNum);
 
 char* GetMsg(fo::MessageList* msgList, int msgNum, int msgType);
 
+fo::Window* GetWindow(long winID);
+
 fo::Queue* QueueFind(fo::GameObject* object, long type);
 
 // returns weapon animation code
