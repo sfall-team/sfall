@@ -59,7 +59,7 @@ bool isSpace(char c) {
 const char* strfind(const char* source, const char* word) {
 	if (source == 0 || word == 0 || *word == 0) return 0;
 	const char *w_pos, *s_pos;
-	while(*source != 0) {
+	while (*source != 0) {
 		w_pos = word, s_pos = source++;
 		while (tolower(*s_pos) == *w_pos) {
 			s_pos++;

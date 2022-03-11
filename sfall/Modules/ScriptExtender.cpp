@@ -429,7 +429,7 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 	}
 }
 
-/////////////////////////// BUILT-IN ITEM HIGHLIGHT ////////////////////////////
+////////////////////////// BUILT-IN ITEM HIGHLIGHTING //////////////////////////
 
 static void __declspec(naked) obj_outline_all_items_on() {
 	using namespace fo;
@@ -782,8 +782,8 @@ void RunGlobalScriptsOnMainLoop() {
 					if (scanner) {
 						if (!(motionScanner & 2)) {
 							highlightingToggled = fo::func::item_m_dec_charges(scanner) + 1;
-							fo::func::intface_redraw();
 							if (!highlightingToggled) fo::func::display_print(highlightFail2);
+							else fo::func::intface_redraw();
 						} else {
 							highlightingToggled = 1;
 						}
@@ -1161,8 +1161,11 @@ void ScriptExtender::init() {
 		motionScanner = IniReader::GetConfigInt("Misc", "MotionScannerFlags", 1);
 		Translate::Get("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
 		Translate::Get("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
-		HookCall(0x44BD1C, obj_remove_outline_hook); // gmouse_bk_process_
-		HookCall(0x44E559, obj_remove_outline_hook); // gmouse_remove_item_outline_
+		const DWORD objRemoveOutlineAddr[] = {
+			0x44BD1C, // gmouse_bk_process_
+			0x44E559  // gmouse_remove_item_outline_
+		};
+		HookCalls(obj_remove_outline_hook, objRemoveOutlineAddr);
 	}
 
 	alwaysFindScripts = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
