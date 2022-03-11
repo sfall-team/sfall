@@ -10,6 +10,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Rebracer.xml = Rebracer.xml
 	EndProjectSection
 EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "FALLOUT2", "C:\Games\Fallout2\FALLOUT2.EXE", "{0554CA27-B50E-4D65-B264-2A48A7007441}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\Games\Fallout2\FALLOUT2.EXE
+		RemoteMachine = DebugPC
+		StartingDirectory = C:\Games\Fallout2
+		Environment = Default
+		LaunchingEngine = 3b476d35-a401-11d2-aad4-00c04f990171
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -26,8 +39,15 @@ Global
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.Build.0 = Release|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.ReleaseXP|Win32.ActiveCfg = ReleaseXP|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.ReleaseXP|Win32.Build.0 = ReleaseXP|Win32
+		{0554CA27-B50E-4D65-B264-2A48A7007441}.Debug|Win32.ActiveCfg = Release
+		{0554CA27-B50E-4D65-B264-2A48A7007441}.DevXP|Win32.ActiveCfg = Release
+		{0554CA27-B50E-4D65-B264-2A48A7007441}.Release|Win32.ActiveCfg = Release
+		{0554CA27-B50E-4D65-B264-2A48A7007441}.ReleaseXP|Win32.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C37C759B-E273-4B2B-A041-9F51E4A7DD9A}
 	EndGlobalSection
 EndGlobal
