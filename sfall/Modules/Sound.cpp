@@ -976,7 +976,7 @@ static void __declspec(naked) sfxl_init_hook() {
 		retn;
 	}
 }
-
+/*
 static void __declspec(naked) internalSoundFade_hack() {
 	__asm {
 		mov  ebp, ds:[FO_VAR_deviceInit];
@@ -1044,14 +1044,14 @@ skip:
 		retn;
 	}
 }
-
+*/
 static const int SampleRate = 44100; // 44.1kHz
 
-static bool fadeBgMusic = false;
+//static bool fadeBgMusic = false;
 
 void Sound::OnAfterGameInit() {
 	*fo::ptr::sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
-	if (fadeBgMusic) fo::var::setInt(FO_VAR_gsound_background_fade) = 1;
+	//if (fadeBgMusic) fo::var::setInt(FO_VAR_gsound_background_fade) = 1;
 }
 
 void Sound::OnGameLoad() {
@@ -1141,7 +1141,7 @@ void Sound::init() {
 		HookCalls(sfxl_init_hook, sfxlInitAddr);
 	}
 
-	if (IniReader::GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
+	/*if (IniReader::GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
 		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
 		SafeWrite32(0x45212C, 250); // delay start
 		SafeWrite32(0x450ADE, 500); // delay stop
@@ -1153,7 +1153,7 @@ void Sound::init() {
 		MakeCall(0x4AD991, soundContinue_hack, 1);
 
 		fadeBgMusic = true;
-	}
+	}*/
 }
 
 void Sound::exit() {
