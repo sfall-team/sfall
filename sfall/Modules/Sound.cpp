@@ -1003,7 +1003,7 @@ stop:
 static bool fadeProcess = false;
 
 static void __stdcall sf_doTimerEvent(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2) {
-	if (!fadeProcess && fo::var::fadeEventHandle != -1 && dwUser) {
+	if (!fadeProcess && dwUser) {
 		fadeProcess = true;
 		__asm call dwUser; // fadeSounds_
 		fadeProcess = false;
@@ -1012,6 +1012,7 @@ static void __stdcall sf_doTimerEvent(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser
 
 static void __declspec(naked) internalSoundFade_hack_timer() {
 	__asm {
+		mov  dword ptr [esp + 8], TIME_PERIODIC | TIME_KILL_SYNCHRONOUS;
 		lea  eax, sf_doTimerEvent;
 		xchg [esp], eax;
 		jmp  eax;
