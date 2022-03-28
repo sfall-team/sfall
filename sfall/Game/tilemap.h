@@ -17,7 +17,7 @@ public:
 
 	static long __fastcall tile_num_beyond(long sourceTile, long targetTile, long maxRange);
 
-	static long __fastcall make_path_func(fo::GameObject* srcObject, long sourceTile, long targetTile, long type, long maxNodes, void* arrayRef, long checkTargetTile, void* blockFunc);
+	static long __fastcall make_path_func(fo::GameObject* srcObject, long sourceTile, long targetTile, long maxNodes, void* arrayRef, long checkTargetTile, void* blockFunc);
 
 	static void SetPathMaxNodes(long maxNodes);
 };
