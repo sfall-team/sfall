@@ -1401,7 +1401,7 @@ void Graphics::init() {
 	}
 	IsWindowedMode = (Graphics::mode >= 5);
 
-	if (Graphics::mode) {
+	if (Graphics::mode != 0) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_42.dll"
 		HMODULE h = LoadLibraryExA(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
@@ -1479,7 +1479,7 @@ void Graphics::init() {
 }
 
 void Graphics::exit() {
-	if (Graphics::mode) {
+	if (Graphics::mode != 0) {
 		RECT rect;
 		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
 			int data = rect.top | (rect.left << 16);
