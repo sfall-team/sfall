@@ -3144,6 +3144,29 @@ noObject:
 	}
 }
 
+// returns 0 (biped) if the critter has the "barter" flag set
+static long __fastcall BarterOverrideBodyType(fo::GameObject* critter) {
+	return (fo::util::GetProto(critter->protoId)->critter.critterFlags & fo::CritterFlags::Barter)
+	       ? fo::BodyType::Biped
+	       : fo::BodyType::Quadruped;
+}
+
+static void __declspec(naked) item_add_mult_hook_body_type() {
+	__asm {
+		call fo::funcoffs::critter_body_type_;
+		test eax, eax;
+		jnz  notBiped;
+		retn;
+notBiped:
+		push edx;
+		push ecx;
+		call BarterOverrideBodyType; // ecx - critter
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -3961,6 +3984,9 @@ void BugFixes::init()
 
 	// Fix incorrect value of the limit number of floating messages
 	SafeWrite8(0x4B039F, 20); // text_object_create_ (was 19)
+
+	// Fix for being unable to plant items on non-biped critters with the "Barter" flag set
+	HookCall(0x477183, item_add_mult_hook_body_type);
 }
 
 }
