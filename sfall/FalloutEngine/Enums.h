@@ -653,6 +653,13 @@ enum AttackSubType : long
 	GUNS                      = 4
 };
 
+enum BodyType : long
+{
+	Biped                     = 0,
+	Quadruped                 = 1,
+	Robotic                   = 2
+};
+
 enum KillType : long
 {
 	KILL_TYPE_men             = 0,
