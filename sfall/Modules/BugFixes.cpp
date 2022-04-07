@@ -230,37 +230,37 @@ writeBlock:
 
 static void __declspec(naked) protinst_default_use_item_hack() {
 	__asm {
-		mov  eax, dword ptr [edx + protoId]       // eax = target pid
-		cmp  eax, PID_DRIVABLE_CAR
-		je   isCar
-		cmp  eax, PID_CAR_TRUNK
-		jne  notCar
+		mov  eax, dword ptr [edx + protoId];      // eax = target pid
+		cmp  eax, PID_DRIVABLE_CAR;
+		je   isCar;
+		cmp  eax, PID_CAR_TRUNK;
+		jne  notCar;
 isCar:
-		mov  eax, ebx
-		call fo::funcoffs::obj_use_power_on_car_
-		cmp  eax, -1
-		jne  skip
+		mov  eax, ebx;
+		call fo::funcoffs::obj_use_power_on_car_;
+		cmp  eax, -1;
+		jne  skip;
 notCar:
-		push 0x49C38B
-		retn                                      // "That does nothing."
+		push 0x49C38B;
+		retn;                                     // "That does nothing."
 skip:
-		test eax, eax
-		jnz  end
-		dec  eax
+		test eax, eax;
+		jnz  end;
+		dec  eax;
 end:
-		push 0x49C3C5
-		retn
+		push 0x49C3C5;
+		retn;
 	}
 }
 
 static void __declspec(naked) obj_use_power_on_car_hack() {
 	__asm {
-		xor  eax, eax
-		cmp  ebx, 596                             // "The car is already full of power."?
-		je   skip                                 // Yes
-		inc  eax                                  // "You charge the car with more power."
+		xor  eax, eax;
+		cmp  ebx, 596;                            // "The car is already full of power."?
+		je   skip;                                // Yes
+		inc  eax;                                 // "You charge the car with more power."
 skip:
-		retn
+		retn;
 	}
 }
 
@@ -399,8 +399,8 @@ static void __declspec(naked) item_d_save_hack() {
 
 static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	__asm {
-		mov  ebx, [esi]
-		jmp  fo::funcoffs::mem_free_
+		mov  ebx, [esi];
+		jmp  fo::funcoffs::mem_free_;
 	}
 }
 
@@ -546,102 +546,102 @@ skip:
 
 static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 	__asm {
-		mov  edx, esi
-		xor  ebx, ebx
-		inc  ebx
-		push ebx
-		mov  cl, byte ptr [edi+0x27]
-		and  cl, 0x3
-		xchg edx, eax                             // eax = who, edx = item
-		call fo::funcoffs::item_remove_mult_
-		xchg ebx, eax
-		mov  eax, esi
-		test cl, INVEN_TYPE_LEFT_HAND             // Right hand?
-		jz   leftHand                             // No
-		call fo::funcoffs::inven_right_hand_
-		jmp  removeFlag
+		mov  edx, esi;
+		xor  ebx, ebx;
+		inc  ebx;
+		push ebx;
+		mov  cl, byte ptr [edi + 0x27];
+		and  cl, 0x3;
+		xchg edx, eax;                            // eax = who, edx = item
+		call fo::funcoffs::item_remove_mult_;
+		xchg ebx, eax;
+		mov  eax, esi;
+		test cl, INVEN_TYPE_LEFT_HAND;            // Right hand?
+		jz   leftHand;                            // No
+		call fo::funcoffs::inven_right_hand_;
+		jmp  removeFlag;
 leftHand:
-		call fo::funcoffs::inven_left_hand_
+		call fo::funcoffs::inven_left_hand_;
 removeFlag:
-		test eax, eax
-		jz   noWeapon
-		and  byte ptr [eax+0x27], 0xFC            // Unset flag of a weapon in hand
+		test eax, eax;
+		jz   noWeapon;
+		and  byte ptr [eax + 0x27], 0xFC;         // Unset flag of a weapon in hand
 noWeapon:
-		or   byte ptr [edi+0x27], cl              // Set flag of a weapon in hand
-		inc  ebx
-		pop  ebx
-		jz   skip
-		mov  eax, esi
-		mov  edx, edi
-		call fo::funcoffs::item_add_force_
+		or   byte ptr [edi + 0x27], cl;           // Set flag of a weapon in hand
+		inc  ebx;
+		pop  ebx;
+		jz   skip;
+		mov  eax, esi;
+		mov  edx, edi;
+		call fo::funcoffs::item_add_force_;
 skip:
-		mov  eax, edi
-		jmp  fo::funcoffs::item_get_type_
+		mov  eax, edi;
+		jmp  fo::funcoffs::item_get_type_;
 	}
 }
 
 static void __declspec(naked) is_supper_bonus_hack() {
 	__asm {
-		add  eax, ecx
-		test eax, eax
-		jle  skip
-		cmp  eax, 10
-		jle  end
+		add  eax, ecx;
+		test eax, eax;
+		jle  skip;
+		cmp  eax, 10;
+		jle  end;
 skip:
-		add  esp, 4                               // Destroy the return address
-		xor  eax, eax
-		inc  eax
-		pop  edx
-		pop  ecx
-		pop  ebx
+		add  esp, 4;                              // Destroy the return address
+		xor  eax, eax;
+		inc  eax;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) PrintBasicStat_hack() {
 	__asm {
-		test eax, eax
-		jle  skip
-		cmp  eax, 10
-		jg   end
-		add  esp, 4                               // Destroy the return address
-		push 0x434C21
-		retn
+		test eax, eax;
+		jle  skip;
+		cmp  eax, 10;
+		jg   end;
+		add  esp, 4;                              // Destroy the return address
+		push 0x434C21;
+		retn;
 skip:
-		xor  eax, eax
+		xor  eax, eax;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) StatButtonUp_hook() {
 	__asm {
-		call fo::funcoffs::inc_stat_
-		test eax, eax
-		jl   end
-		test ebx, ebx
-		jge  end
-		sub  ds:[FO_VAR_character_points], esi
-		dec  esi
-		mov  [esp+0xC+0x4], esi
+		call fo::funcoffs::inc_stat_;
+		test eax, eax;
+		jl   end;
+		test ebx, ebx;
+		jge  end;
+		sub  ds:[FO_VAR_character_points], esi;
+		dec  esi;
+		mov  [esp + 0xC + 0x4], esi;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) StatButtonDown_hook() {
 	__asm {
-		call fo::funcoffs::stat_level_
-		cmp  eax, 1
-		jg   end
-		add  esp, 4                               // Destroy the return address
-		xor  eax, eax
-		inc  eax
-		mov  [esp+0xC], eax
-		push 0x437B41
+		call fo::funcoffs::stat_level_;
+		cmp  eax, 1;
+		jg   end;
+		add  esp, 4;                              // Destroy the return address
+		xor  eax, eax;
+		inc  eax;
+		mov  [esp + 0xC], eax;
+		push 0x437B41;
 end:
-		retn
+		retn;
 	}
 }
 
@@ -783,105 +783,105 @@ static void __declspec(naked) inven_pickup_hack() {
 
 static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
-		test eax, eax
-		jz   end
-		mov  eax, ds:[FO_VAR_i_wid]
-		call fo::funcoffs::GNW_find_
-		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
-		mov  eax, [eax+0x8+0x0]                   // eax = _i_wid.rect.x
-		add  eax, 44                              // x_start
-		mov  ebx, 64
-		add  ebx, eax                             // x_end
-		xor  edx, edx
+		test eax, eax;
+		jz   end;
+		mov  eax, ds:[FO_VAR_i_wid];
+		call fo::funcoffs::GNW_find_;
+		mov  ecx, [eax + 0x8 + 0x4];              // ecx = _i_wid.rect.y
+		mov  eax, [eax + 0x8 + 0x0];              // eax = _i_wid.rect.x
+		add  eax, 44;                             // x_start
+		mov  ebx, 64;
+		add  ebx, eax;                            // x_end
+		xor  edx, edx;
 next:
-		push eax
-		push edx
-		push ecx
-		push ebx
-		imul edx, edx, 48
-		add  edx, 35
-		add  edx, ecx                             // y_start
-		mov  ecx, edx
-		add  ecx, 48                              // y_end
-		call fo::funcoffs::mouse_click_in_
-		pop  ebx
-		pop  ecx
-		pop  edx
-		test eax, eax
-		pop  eax
-		jnz  found
-		inc  edx
-		cmp  edx, 6
-		jb   next
+		push eax;
+		push edx;
+		push ecx;
+		push ebx;
+		imul edx, edx, 48;
+		add  edx, 35;
+		add  edx, ecx;                            // y_start
+		mov  ecx, edx;
+		add  ecx, 48;                             // y_end
+		call fo::funcoffs::mouse_click_in_;
+		pop  ebx;
+		pop  ecx;
+		pop  edx;
+		test eax, eax;
+		pop  eax;
+		jnz  found;
+		inc  edx;
+		cmp  edx, 6;
+		jb   next;
 end:
-		push 0x47125C
-		retn
+		push 0x47125C;
+		retn;
 found:
-		mov  ebx, 0x4711DF
-		add  edx, [esp+0x40]                      // inventory_offset
-		mov  eax, ds:[FO_VAR_pud]
-		mov  ecx, [eax]                           // itemsCount
-		test ecx, ecx
-		jz   skip
-		dec  ecx
-		cmp  edx, ecx
-		ja   skip
-		sub  ecx, edx
-		mov  edx, ecx
-		mov  ebx, 0x471181
+		mov  ebx, 0x4711DF;
+		add  edx, [esp + 0x40];                   // inventory_offset
+		mov  eax, ds:[FO_VAR_pud];
+		mov  ecx, [eax];                          // itemsCount
+		test ecx, ecx;
+		jz   skip;
+		dec  ecx;
+		cmp  edx, ecx;
+		ja   skip;
+		sub  ecx, edx;
+		mov  edx, ecx;
+		mov  ebx, 0x471181;
 skip:
-		jmp  ebx
+		jmp  ebx;
 	}
 }
 
 static void __declspec(naked) drop_ammo_into_weapon_hook() {
 	__asm {
-		dec  esi
-		test esi, esi                             // One box of ammo?
-		jz   skip                                 // Yes
-		xor  esi, esi
+		dec  esi;
+		test esi, esi;                            // One box of ammo?
+		jz   skip;                                // Yes
+		xor  esi, esi;
 		// Excess check for from_slot, but leave it be
-		mov  edx, [esp+0x24+4]                    // from_slot
-		cmp  edx, 1006                            // Hands?
-		jge  skip                                 // Yes
-		lea  edx, [eax + inventory]               // Inventory
-		mov  ecx, [edx]                           // itemsCount
-		test ecx, ecx
-		jz   skip                                 // inventory is empty (another excess check, but leave it)
-		mov  edx, [edx+8]                         // FirstItem
+		mov  edx, [esp + 0x24 + 4];               // from_slot
+		cmp  edx, 1006;                           // Hands?
+		jge  skip;                                // Yes
+		lea  edx, [eax + inventory];              // Inventory
+		mov  ecx, [edx];                          // itemsCount
+		test ecx, ecx;
+		jz   skip;                                // inventory is empty (another excess check, but leave it)
+		mov  edx, [edx + 8];                      // FirstItem
 nextItem:
-		cmp  ebp, [edx]                           // Our weapon?
-		je   foundItem                            // Yes
-		add  edx, 8                               // Go to the next
-		dec  ecx
-		jnz  nextItem
-		jmp  skip                                 // Our weapon is not in inventory
+		cmp  ebp, [edx];                          // Our weapon?
+		je   foundItem;                           // Yes
+		add  edx, 8;                              // Go to the next
+		dec  ecx;
+		jnz  nextItem;
+		jmp  skip;                                // Our weapon is not in inventory
 foundItem:
-		cmp  dword ptr [edx+4], 1                 // Only one weapon?
-		jg   skip                                 // No
-		mov  edx, [esp+0x24+4]                    // from_slot
-		lea  edx, [edx-1000]
-		add  edx, [esp+0x40+4+0x24+4]             // edx = ordinal number of slot with ammo
-		cmp  ecx, edx                             // Weapon is after the ammo?
-		jg   skip                                 // Yes
-		inc  esi                                  // No, need to change from_slot
+		cmp  dword ptr [edx + 4], 1;              // Only one weapon?
+		jg   skip;                                // No
+		mov  edx, [esp + 0x24 + 4];               // from_slot
+		lea  edx, [edx - 1000];
+		add  edx, [esp + 0x40 + 4 + 0x24 + 4];    // edx = ordinal number of slot with ammo
+		cmp  ecx, edx;                            // Weapon is after the ammo?
+		jg   skip;                                // Yes
+		inc  esi;                                 // No, need to change from_slot
 skip:
-		mov  edx, ebp
-		call fo::funcoffs::item_remove_mult_
-		test eax, eax                             // Have weapon been deleted from inventory?
-		jnz  end                                  // No
-		sub  [esp+0x24+4], esi                    // Yes, correct from_slot
+		mov  edx, ebp;
+		call fo::funcoffs::item_remove_mult_;
+		test eax, eax;                            // Have weapon been deleted from inventory?
+		jnz  end;                                 // No
+		sub  [esp + 0x24 + 4], esi;               // Yes, correct from_slot
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	__asm {
-		call fo::funcoffs::AddHotLines_
-		xor  eax, eax
-		mov  dword ptr ds:[FO_VAR_hot_line_count], eax
-		retn
+		call fo::funcoffs::AddHotLines_;
+		xor  eax, eax;
+		mov  dword ptr ds:[FO_VAR_hot_line_count], eax;
+		retn;
 	}
 }
 
@@ -3991,7 +3991,7 @@ void BugFixes::init()
 	// Fix incorrect value of the limit number of floating messages
 	SafeWrite8(0x4B039F, 20); // text_object_create_ (was 19)
 
-	// Fix for being unable to plant items on non-biped critters with the "Barter" flag set
+	// Fix for being unable to plant items on non-biped critters with the "Barter" flag set (e.g. Skynet and Goris)
 	HookCall(0x477183, item_add_mult_hook_body_type);
 }
 
