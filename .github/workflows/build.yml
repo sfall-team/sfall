@@ -13,11 +13,11 @@ on:
 jobs:
  Build:
   name:    sfall
-  runs-on: windows-latest
+  runs-on: windows-2019
   steps:
 
   - name: Clone sfall
-    uses: actions/checkout@v2
+    uses: actions/checkout@v3
 
   # Action is used twice for self-testing only
   # DevXP build results are intentionally *not* included in artifact

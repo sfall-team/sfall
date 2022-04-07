@@ -30,7 +30,13 @@ static void __fastcall SetMovieSize() {
 
 	long subtitleHeight = (fo::var::getInt(FO_VAR_subtitles) && fo::var::getInt(FO_VAR_subtitleList)) ? fo::var::getInt(FO_VAR_subtitleH) + 4 : 0;
 
-	if (MoviesScreen::MOVIE_SIZE == 1 || bW > sWidth || bH > sHeight) {
+	if (MoviesScreen::MOVIE_SIZE == 2) {
+		movieToSize.top = 0;
+		movieToSize.bottom = Setting::ScreenHeight() - subtitleHeight;
+
+		movieToSize.left = 0;
+		movieToSize.right = Setting::ScreenWidth();
+	} else if (MoviesScreen::MOVIE_SIZE == 1 || bW > sWidth || bH > sHeight) {
 		long aspectW = sWidth;
 		long aspectH = sHeight;
 		long x = 0;
@@ -41,12 +47,6 @@ static void __fastcall SetMovieSize() {
 		movieToSize.top = y;
 		movieToSize.right = x + aspectW;
 		movieToSize.bottom = y + aspectH;
-	} else if (MoviesScreen::MOVIE_SIZE == 2) {
-		movieToSize.top = 0;
-		movieToSize.bottom = Setting::ScreenHeight() - subtitleHeight;
-
-		movieToSize.left = 0;
-		movieToSize.right = Setting::ScreenWidth();
 	} else {
 		// set to center
 		movieToSize.top = (Setting::ScreenHeight() - bH) / 2;

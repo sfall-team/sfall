@@ -60,6 +60,7 @@ static void __cdecl endgame_display_image_hook_buf_to_buf(BYTE* src, long w, lon
 			if (x || y) dst += x + (y * Setting::ScreenWidth());
 		}
 		bottomPos = h;
+
 		Image::Scale(src, width, height, dst, w, h, Setting::ScreenWidth());
 	} else {
 		bottomPos = height;

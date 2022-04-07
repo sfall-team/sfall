@@ -221,9 +221,8 @@ static __inline long DistanceFromPositions(long sX, long sY, long tX, long tY) {
 }
 
 // Optimized and fixed version of make_path_func_ engine function with added arguments
-// type: 0 - rotation path, 1 - tile path
 // maxNodes: limiting the building of a path
-long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTile, long targetTile, long type, long maxNodes, void* arrayRef, long checkTargetTile, void* blockFunc) {
+long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTile, long targetTile, long maxNodes, void* arrayRef, long checkTargetTile, void* blockFunc) {
 	if (checkTargetTile && fo::func::obj_blocking_at_wrapper(srcObject, targetTile, srcObject->elevation, blockFunc)) return 0;
 
 	bool inCombat = fo::var::combat_state & fo::CombatStateFlag::InCombat;
@@ -346,7 +345,6 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 	}
 
 	BYTE* arrayR = reinterpret_cast<BYTE*>(arrayRef);
-	WORD* arrayT = reinterpret_cast<WORD*>(arrayRef);
 	size_t pathLen = 0;
 
 	//fo::func::debug_printf("\nmake_path_func: tiles [to %d]", childData.tile);
@@ -355,11 +353,7 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 	do {
 		if (childData.tile == sourceTile) break; // reached the source tile
 		if (arrayRef) {
-			if (type) {
-				*arrayT++ = (WORD)childData.tile;
-			} else {
-				*arrayR++ = childData.rotation;
-			}
+			*arrayR++ = childData.rotation;
 			//fo::func::debug_printf(" <- %d", childData.tile);
 		}
 		// search a linked tile 'from -> tile'
@@ -374,30 +368,20 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 	if (arrayRef && pathLen > 1) {
 		// reverse the array values
 		size_t count = pathLen >> 1;
-		if (type) {
-			WORD* arrayFront = reinterpret_cast<WORD*>(arrayRef);
-			do {
-				WORD last = *--arrayT;
-				*arrayT = *arrayFront; // last < front
-				*arrayFront++ = last;
-			} while (--count);
-		} else {
-			BYTE* arrayFront = reinterpret_cast<BYTE*>(arrayRef);
-			do {
-				BYTE last = *--arrayR;
-				*arrayR = *arrayFront; // last < front
-				*arrayFront++ = last;
-			} while (--count);
-		}
+		BYTE* arrayFront = reinterpret_cast<BYTE*>(arrayRef);
+		do {
+			BYTE last = *--arrayR;
+			*arrayR = *arrayFront; // last < front
+			*arrayFront++ = last;
+		} while (--count);
 	}
 	return pathLen;
 }
 
-static void __declspec(naked) make_path_func_replacement() {
+static void __declspec(naked) make_path_func_hack_replacement() {
 	__asm {
 		xchg [esp], ecx;   // ret addr <> array
 		push maxPathNodes; // (sfall addition)
-		push 0;            // type rotation (sfall addition)
 		push ebx;          // target tile
 		push ecx;          // ret addr
 		mov  ecx, eax;
@@ -412,7 +396,7 @@ void Tilemap::SetPathMaxNodes(long maxNodes) {
 
 	if (!replaced) {
 		replaced = true;
-		sf::MakeJump(fo::funcoffs::make_path_func_, make_path_func_replacement); // 0x415EFC
+		sf::MakeJump(fo::funcoffs::make_path_func_, make_path_func_hack_replacement); // 0x415EFC
 	} else {
 		m_pathData.resize(maxNodes);
 		m_dadData.resize(maxNodes);

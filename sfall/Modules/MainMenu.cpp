@@ -59,7 +59,7 @@ static void __declspec(naked) MainMenuHookTextYOffset() {
 static void __fastcall main_menu_create_hook_print_text(long xPos, const char* text, long yPos, long color) {
 	long winId = fo::var::main_window;
 	if (!HRP::Setting::ExternalEnabled() && HRP::Setting::IsEnabled()) {
-		fo::Window* win = fo::var::window[winId];
+		fo::Window* win = fo::util::GetWindow(winId);
 		yPos = ((yPos - 460) - 20) + win->height;
 		xPos = ((xPos - 615) - 25) + win->width;
 	}

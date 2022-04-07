@@ -17,6 +17,8 @@ public:
 
 	static void Scale(BYTE* src, long sWight, long sHeight, BYTE* dst, long dWight, long dHeight, long dPitch = 0, long sPitch = 0);
 	static void ScaleText(BYTE* dst, const char* text, long txtWidth, long dstWidth, long colorFlags, float scaleFactor);
+
+	static bool MakeBMP(const char* file, BYTE* dataRGB32, long width, long height, long pitch);
 };
 
 }

@@ -43,7 +43,7 @@ static long offsetX = 0, offsetY = 0;
 
 // draw image to main menu window
 static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long sw, long sh, long srcW, BYTE* dst, long dstW) {
-	fo::Window* win = fo::var::window[fo::var::main_window]; // the window size is always equal to the scaled image
+	fo::Window* win = fo::util::GetWindow(fo::var::main_window); // the window size is always equal to the scaled image
 	long h = win->height;
 	long w = win->width;
 	dstW = w;
@@ -113,18 +113,17 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 		}
 	}
 
-	if (MainMenuScreen::MAIN_MENU_SIZE == 1 || sw > Setting::ScreenWidth() || sh > Setting::ScreenHeight()) {
+	if (MainMenuScreen::MAIN_MENU_SIZE || sw > Setting::ScreenWidth() || sh > Setting::ScreenHeight()) {
 		// out size
 		w = Setting::ScreenWidth();
 		h = Setting::ScreenHeight();
 
-		Image::GetAspectSize(sw, sh, &x, &y, w, h);
+		if (MainMenuScreen::MAIN_MENU_SIZE <= 1) {
+			Image::GetAspectSize(sw, sh, &x, &y, w, h);
 
-		if (w > Setting::ScreenWidth()) w = Setting::ScreenWidth();
-		if (h > Setting::ScreenHeight()) h = Setting::ScreenHeight();
-	} else if (MainMenuScreen::MAIN_MENU_SIZE == 2) {
-		h = Setting::ScreenHeight();
-		w = Setting::ScreenWidth();
+			if (w > Setting::ScreenWidth()) w = Setting::ScreenWidth();
+			if (h > Setting::ScreenHeight()) h = Setting::ScreenHeight();
+		}
 	} else {
 		// centering
 		x = (Setting::ScreenWidth() - w) / 2;
@@ -140,8 +139,14 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 	if (MainMenuScreen::USE_HIRES_IMAGES == false || (MainMenuScreen::USE_HIRES_IMAGES && MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU)) {
 		scaleFactor = scaleHeight;
 	} else {
-		if (w != 640) offsetX = (long)(6.0f * (Setting::ScreenWidth() * 0.0015625));
-		if (h != 480) offsetY = (long)(4.0f * (Setting::ScreenHeight() * 0.0020833334f));
+		if (w != 640) {
+			float diff = (Setting::ScreenWidth() / 640.0f);
+			offsetX = (long)((8.0f * (diff * diff)));
+		}
+		if (h != 480) {
+			float diff = (Setting::ScreenHeight() / 480.0f);
+			offsetY = (long)((6.0f * (diff * diff)));
+		}
 	}
 
 	sf::MainMenu::mTextOffset = offsetX;
@@ -158,7 +163,7 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 }
 
 static long __fastcall GetHeightOffset(long &y) {
-	long h = fo::var::window[fo::var::main_window]->height;
+	long h = fo::util::GetWindow(fo::var::main_window)->height;
 	y = ((y - 460) - 20) + h;
 	if (y > h) {
 		y = h - 10;
@@ -237,7 +242,7 @@ static long __fastcall ButtonPosition(long &width, long xPos, BYTE* &upImageData
 		xPos = (long)(xPos * scaleFactor);
 	}
 
-	long h = fo::var::window[fo::var::main_window]->height;
+	long h = fo::util::GetWindow(fo::var::main_window)->height;
 
 	/*** Button position ***/
 	xPos += (long)(sf::MainMenu::mXOffset * scaleWidth) + offsetX;

@@ -11,7 +11,7 @@ nav_order: 1
 * TOC
 {: toc}
 
-Sfall is a set of engine modifications for the classic game Fallout 2 in form of a DLL, which modifies executable in memory without changing anything in EXE file itself.
+sfall is a set of engine modifications for the classic game Fallout 2 in the form of a DLL, which modifies executable in memory without changing anything in EXE file itself.
 
 Engine modifications include:
 
@@ -38,4 +38,4 @@ Next, proceed to discover new functions. They are categorized, use the menu to f
 
 ## Questions and problems
 * Report bugs and suggest features on [Github](https://github.com/phobos2077/sfall/issues).
-* Ask questions and discuss on the [forum](http://nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/).
+* Ask questions and discuss on the [forum](https://nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/).

@@ -975,74 +975,6 @@ static void __declspec(naked) sfxl_init_hook() {
 	}
 }
 
-static void __declspec(naked) internalSoundFade_hack() {
-	__asm {
-		mov  ebp, ds:[FO_VAR_deviceInit];
-		test ebp, ebp;
-		jz   skip;
-		cmp  dword ptr ds:[FO_VAR_masterVol], 0; // check current master volume
-		je   stop;
-		test ebx, ebx;
-		jg   skip; // to volume > 0
-		// for fade-out, perform a callback function
-		cmp  dword ptr [eax + 0x88], 0;
-		je   skip;
-		mov  edx, 1;
-		call dword ptr [eax + 0x88];    // perform callback function
-		mov  dword ptr [eax + 0x88], 0; // remove callback function
-		mov  edx, ebx;
-skip:
-		retn;
-stop:
-		add  esp, 4;
-		mov  eax, 0x4AE9AA; // error result
-		jmp  eax;
-	}
-}
-
-static bool fadeProcess = false;
-
-static void __stdcall sf_doTimerEvent(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2) {
-	if (!fadeProcess && fo::var::fadeEventHandle != -1 && dwUser) {
-		fadeProcess = true;
-		__asm call dwUser; // fadeSounds_
-		fadeProcess = false;
-	}
-}
-
-static void __declspec(naked) internalSoundFade_hack_timer() {
-	__asm {
-		lea  eax, sf_doTimerEvent;
-		xchg [esp], eax;
-		jmp  eax;
-	}
-}
-
-static void __declspec(naked) fadeSounds_hook() {
-	__asm {
-		//mov  dword ptr [eax + 0x88], 0; // remove sound callback function
-		or   word ptr [eax + 0x40], 0x10; // set 'AfterFade' state flag
-		jmp  fo::funcoffs::soundVolume_;  // set mute
-	}
-}
-
-static void __declspec(naked) soundContinue_hack() {
-	__asm {
-		mov  dx, [ebx + 0x40];
-		test dx, 0x10; // check 'AfterFade' state flag (fix flag set in fadeSounds_hook)
-		jz   skip;
-		cmp  fadeProcess, 1;
-		je   skip;
-		call fo::funcoffs::soundDelete_;
-		xor  edx, edx;
-		mov  dword ptr [esp], 0x4AD99E;
-		retn;
-skip:
-		test dl, 0x8; // InPaused flag
-		retn;
-	}
-}
-
 constexpr int SampleRate = 44100; // 44.1kHz
 
 void Sound::init() {
@@ -1125,22 +1057,6 @@ void Sound::init() {
 
 	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
 		HookCalls(sfxl_init_hook, {0x4A9999, 0x4A9B34});
-	}
-
-	if (IniReader::GetConfigInt("Sound", "FadeBackgroundMusic", 1)) {
-		SafeMemSet(0x45020C, CodeType::Nop, 6); // gsound_reset_
-		SafeWrite32(0x45212C, 250); // delay start
-		SafeWrite32(0x450ADE, 500); // delay stop
-		// fixes
-		MakeCall(0x4AE991, internalSoundFade_hack, 1);
-		MakeCall(0x4AEAC6, internalSoundFade_hack_timer);
-		HookCall(0x4AE929, fadeSounds_hook);
-		BlockCall(0x4AE910); // fadeSounds_ (block soundStop_)
-		MakeCall(0x4AD991, soundContinue_hack, 1);
-
-		LoadGameHook::OnAfterGameInit() += []() {
-			fo::var::setInt(FO_VAR_gsound_background_fade) = 1;
-		};
 	}
 }
 
