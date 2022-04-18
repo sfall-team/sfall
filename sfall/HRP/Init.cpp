@@ -185,7 +185,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (cmdline.find(" -restart") != std::string::npos) {
 		GetBackupFileName(exeFileName, true); // delete after restart
 	}
-	if (hiResMode == false) return;
+	if (!hiResMode) return;
 
 	if (Setting::ExternalEnabled()) {
 		char infoMsg[512];
