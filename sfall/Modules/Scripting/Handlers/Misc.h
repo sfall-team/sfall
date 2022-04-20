@@ -47,6 +47,8 @@ void op_get_year(OpcodeContext&);
 
 void __declspec() op_eax_available();
 
+void __declspec() op_set_eax_environment();
+
 void op_get_ini_setting(OpcodeContext&);
 
 void op_get_ini_string(OpcodeContext&);

@@ -337,7 +337,7 @@ void Opcodes::InitNew() {
 	opcodes[0x1a1] = op_set_hit_chance_max;
 	opcodes[0x1a2] = op_set_skill_max;
 	opcodes[0x1a3] = op_eax_available;
-	//opcodes[0x1a4] = op_set_eax_environment;
+	opcodes[0x1a4] = op_set_eax_environment;
 	opcodes[0x1a6] = op_get_viewport_x;
 	opcodes[0x1a7] = op_get_viewport_y;
 	opcodes[0x1a8] = op_set_viewport_x;
