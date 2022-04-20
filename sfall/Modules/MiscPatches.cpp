@@ -816,11 +816,9 @@ void __declspec(naked) moveWMSound() {
 static void __declspec(naked) townmapButtonSound() {
 	__asm {
 		mov dword ptr ds : [edi + 0x672DD8], eax
-		push eax
 		mov ebx, 0x451990 // gsound_med_butt_release_
 		mov edx, 0x451988 // gsound_med_butt_press_
 		call fo::funcoffs::win_register_button_sound_func_
-		pop eax
 		mov eax, 0x4C4B9A
 		jmp eax;
 	}
