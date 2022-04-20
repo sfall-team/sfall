@@ -840,7 +840,6 @@ static void F1EngineBehaviorPatch() {
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight for power armor items
 		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
-		Fallout1WMSoundChanges();
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -1088,6 +1087,7 @@ void MiscPatches::init() {
 		if (HRP::Setting::VersionIsValid) SafeWrite8(HRP::Setting::GetAddress(0x10011738), 10);
 	}
 
+	Fallout1WMSoundChanges();
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
