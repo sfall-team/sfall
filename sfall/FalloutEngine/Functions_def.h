@@ -191,7 +191,7 @@ WRAP_WATCOM_FUNC0(long, new_obj_id)
 WRAP_WATCOM_FUNC2(void, obj_bound, fo::GameObject*, object, fo::BoundRect*, boundRect) // Calculates bounding box (rectangle) for a given object
 WRAP_WATCOM_FUNC1(long, obj_destroy, fo::GameObject*, object)
 WRAP_WATCOM_FUNC2(long, obj_dist, fo::GameObject*, obj_src, fo::GameObject*, obj_trg)
-WRAP_WATCOM_FUNC2(void, obj_drop, fo::GameObject*, dropFrom, fo::GameObject*, objectToDrop)
+WRAP_WATCOM_FUNC2(void, obj_drop, fo::GameObject*, source, fo::GameObject*, objectToDrop)
 WRAP_WATCOM_FUNC2(long, obj_erase_object, fo::GameObject*, object, fo::BoundRect*, boundRect)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_first)
 WRAP_WATCOM_FUNC0(fo::GameObject*, obj_find_next)
