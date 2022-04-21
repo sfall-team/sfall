@@ -774,6 +774,66 @@ static void UseWalkDistancePatch() {
 	}
 }
 
+bool wmPressed = false;
+void __declspec(naked) clickedWMHotspotSound() {
+	__asm {
+		mov eax, 0x503E34 // Ib2p1xx1_1
+		call fo::funcoffs::gsound_play_sfx_file_
+		mov wmPressed, 1
+		mov eax, dword ptr ds : [0x00672E90]
+		mov edx, 0x4C425C
+		jmp edx
+	}
+}
+
+void __declspec(naked) releasedWMHotspotSound() {
+	__asm {
+		mov al, wmPressed
+		cmp al, 1
+		jne exit_
+		mov eax, 0x503E40 // Ib2lu1x1_1
+		call fo::funcoffs::gsound_play_sfx_file_
+		mov wmPressed, 0
+	exit_:
+		mov eax, dword ptr ds : [0x00672E88]
+		mov edx, 0x4C425C
+		jmp edx
+	}
+}
+
+void __declspec(naked) moveWMSound() {
+	__asm {
+		push eax
+		mov eax, 0x503E14 
+		call fo::funcoffs::gsound_play_sfx_file_
+		pop eax
+		call fo::funcoffs::wmPartyInitWalking_
+		mov eax, 0x4C02DF
+		jmp eax
+	}
+}
+
+static void __declspec(naked) townmapButtonSound() {
+	__asm {
+		mov dword ptr ds : [edi + 0x672DD8], eax
+		mov ebx, 0x451990 // gsound_med_butt_release_
+		mov edx, 0x451988 // gsound_med_butt_press_
+		call fo::funcoffs::win_register_button_sound_func_
+		mov eax, 0x4C4B9A
+		jmp eax;
+	}
+}
+
+
+// https://github.com/phobos2077/sfall/issues/373
+// See https://www.youtube.com/watch?v=dGZjse7uC_0&t=50m for reference on how it works in FO1.
+static void Fallout1WMSoundChanges() {
+	MakeJump(0x4C02DA, moveWMSound);
+	MakeJump(0x4C4B94, townmapButtonSound);
+	MakeJump(0x4C4250, releasedWMHotspotSound);
+	MakeJump(0x4C4257, clickedWMHotspotSound);
+}
+
 static void F1EngineBehaviorPatch() {
 	if (IniReader::GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
@@ -1027,6 +1087,7 @@ void MiscPatches::init() {
 		if (HRP::Setting::VersionIsValid) SafeWrite8(HRP::Setting::GetAddress(0x10011738), 10);
 	}
 
+	Fallout1WMSoundChanges();
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
