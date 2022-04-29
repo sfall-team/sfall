@@ -3195,11 +3195,11 @@ void BugFixes::init()
 	SafeWrite16(0x46A4E7, 0x04DB);
 
 	// Fix for vanilla division operator treating negative integers as unsigned
-	if (IniReader::GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
 		dlog("Applying division operator fix.", DL_FIX);
 		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
 		dlogr(" Done", DL_FIX);
-	}
+	//}
 
 	//if (IniReader::GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_FIX);
