@@ -999,6 +999,16 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
+static void __declspec(naked) intface_update_ammo_lights_hack() {
+	__asm {
+		mov  eax, 70; // 70 - full ammo bar
+		cmp  edx, eax;
+		cmovg edx, eax;
+		mov  eax, 463; // overwritten engine code
+		retn;
+	}
+}
+
 static void __declspec(naked) display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -1103,6 +1113,9 @@ void Interface::init() {
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
 	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+
+	// Fix crash when the player equips a weapon that is overloaded with ammo
+	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
 }
 
 void Interface::exit() {
