@@ -187,26 +187,30 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 }
 
 void Stats::UpdateHPStat(fo::GameObject* critter) {
-	if (engineDerivedStats) return;
-
 	fo::Proto* proto;
 	if (fo::func::proto_ptr(critter->protoId, &proto) == -1) return;
 
-	auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
+	if (!engineDerivedStats) {
+		auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
 
-	double sum = 0;
-	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
-		sum += (getStatFunc(critter, stat) + statFormulas[fo::Stat::STAT_max_hit_points].shift[stat]) * statFormulas[fo::Stat::STAT_max_hit_points].multi[stat];
+		double sum = 0;
+		for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
+			sum += (getStatFunc(critter, stat) + statFormulas[fo::Stat::STAT_max_hit_points].shift[stat]) * statFormulas[fo::Stat::STAT_max_hit_points].multi[stat];
+		}
+		long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
+		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
+
+		if (proto->critter.base.health != calcStatValue) {
+			fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
+			                       critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+
+			proto->critter.base.health = calcStatValue;
+		}
 	}
-	long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
-	if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
 
-	if (proto->critter.base.health != calcStatValue) {
-		fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
-		                       critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
-
-		proto->critter.base.health = calcStatValue;
-		critter->critter.health = calcStatValue + proto->critter.bonus.health;
+	// set the current HP to match the maximum HP stat for non-party member critters
+	if (!fo::util::IsPartyMember(critter)) { // prevent free healing for party members when entering random encounter maps
+		critter->critter.health = proto->critter.base.health + proto->critter.bonus.health;
 	}
 }
 

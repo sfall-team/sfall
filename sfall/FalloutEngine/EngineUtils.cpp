@@ -251,6 +251,24 @@ long __fastcall IsRadInfluence() {
 	return 0;
 }
 
+// Returns the position of party member in the existing table (1 is added to the index position)
+long IsPartyMemberByPid(long pid) {
+	size_t partyCount = *fo::ptr::partyMemberMaxCount;
+	if (partyCount) {
+		DWORD* memberPids = *fo::ptr::partyMemberPidList; // pids from party.txt
+		for (size_t i = 0; i < partyCount; i++) {
+			if (memberPids[i] == pid) return i + 1;
+		}
+	}
+	return 0;
+}
+
+// Returns True if the NPC belongs to the player's potential (set in party.txt) party members (analog of broken isPotentialPartyMember_)
+bool IsPartyMember(fo::GameObject* critter) {
+	if (critter->id < fo::PLAYER_ID) return false;
+	return (IsPartyMemberByPid(critter->protoId) > 0);
+}
+
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid) {
 	fo::ScriptInstance* script = nullptr;
