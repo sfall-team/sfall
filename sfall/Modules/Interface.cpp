@@ -1114,7 +1114,7 @@ void Interface::init() {
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
 	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
 
-	// Fix crash when the player equips a weapon that is overloaded with ammo
+	// Fix crash when the player equips a weapon overloaded with ammo (ammo bar overflow)
 	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
 }
 
