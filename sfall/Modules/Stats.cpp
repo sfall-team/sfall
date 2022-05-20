@@ -201,15 +201,16 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
 
 		if (proto->critter.base.health != calcStatValue) {
-			fo::func::debug_printf("\nWarning: critter PID: %d, ID: %d, has an incorrect base value of the max HP stat: %d (must be %d)",
-			                       critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
+			fo::func::debug_printf("\nWarning: %s (PID: %d, ID: %d) has an incorrect base value of the max HP stat: %d, adjusted to %d.",
+			                       fo::func::critter_name(critter), critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
 
 			proto->critter.base.health = calcStatValue;
 		}
 	}
 
-	// set the current HP to match the maximum HP stat for non-party member critters
-	if (!fo::util::IsPartyMember(critter)) { // prevent free healing for party members when entering random encounter maps
+	// set the current HP to match the max HP stat for non-party member critters
+	// (prevent full healing for party members when entering random encounter maps)
+	if (!fo::util::IsPartyMember(critter) && critter->critter.health > 0) {
 		critter->critter.health = proto->critter.base.health + proto->critter.bonus.health;
 	}
 }
