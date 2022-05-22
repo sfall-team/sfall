@@ -3128,20 +3128,15 @@ noObject:
 	}
 }
 
-// returns 0 (biped) if the critter has the "barter" flag set
+// returns 0 (allows adding) if the critter has the "barter" flag set or its body type is "biped"
 static long __fastcall BarterOverrideBodyType(fo::GameObject* critter) {
-	return (fo::util::GetProto(critter->protoId)->critter.critterFlags & fo::CritterFlags::Barter)
-	       ? fo::BodyType::Biped
-	       : fo::BodyType::Quadruped;
+	fo::Proto* proto;
+	return (fo::util::GetProto(critter->protoId, &proto) &&
+	        !(proto->critter.critterFlags & fo::CritterFlags::Barter) && proto->critter.bodyType);
 }
 
 static void __declspec(naked) item_add_mult_hook_body_type() {
 	__asm {
-		call fo::funcoffs::critter_body_type_;
-		test eax, eax;
-		jnz  notBiped;
-		retn;
-notBiped:
 		push edx;
 		push ecx;
 		call BarterOverrideBodyType; // ecx - critter
