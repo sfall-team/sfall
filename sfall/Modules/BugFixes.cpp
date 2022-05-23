@@ -3145,7 +3145,7 @@ noObject:
 }
 
 // returns 0 (allows adding) if the critter has the "barter" flag set or its body type is "biped"
-static long __fastcall BarterOverrideBodyType(fo::GameObject* critter) {
+static long __fastcall CheckBarterAndBodyType(fo::GameObject* critter) {
 	fo::Proto* proto;
 	return (fo::util::GetProto(critter->protoId, &proto) &&
 	        !(proto->critter.critterFlags & fo::CritterFlags::Barter) && proto->critter.bodyType);
@@ -3155,9 +3155,26 @@ static void __declspec(naked) item_add_mult_hook_body_type() {
 	__asm {
 		push edx;
 		push ecx;
-		call BarterOverrideBodyType; // ecx - critter
+		call CheckBarterAndBodyType; // ecx - critter
 		pop  ecx;
 		pop  edx;
+		retn;
+	}
+}
+
+// similar to critter_is_active_ function, with additional check for being knocked down in combat
+static long __fastcall TargetIsActiveForPush(fo::GameObject* source, fo::GameObject* target) {
+	if (target->critter.IsNotActive()) return 0;
+	if (target->critter.damageFlags & fo::DamageFlag::DAM_KNOCKED_DOWN && fo::var::combat_state & fo::CombatStateFlag::InCombat) return 0;
+	return (target->critter.IsDead()) ? 0 : 1;
+}
+
+static void __declspec(naked) action_can_be_pushed_hook() {
+	__asm {
+		push ecx;
+		call TargetIsActiveForPush; // ecx - source, edx - target
+		pop  ecx;
+		mov  edx, ebx; // restore target
 		retn;
 	}
 }
@@ -3982,6 +3999,9 @@ void BugFixes::init()
 
 	// Fix for being unable to plant items on non-biped critters with the "Barter" flag set (e.g. Skynet and Goris)
 	HookCall(0x477183, item_add_mult_hook_body_type);
+
+	// Fix for being able to use the "Push" action on members of the player's team in combat when they are knocked down
+	HookCall(0x413718, action_can_be_pushed_hook);
 }
 
 }
