@@ -14,6 +14,7 @@ public:
 	static void init();
 
 	static long SPLASH_SCRN_SIZE;
+	static long SPLASH_SCRN_TIME;
 };
 
 }

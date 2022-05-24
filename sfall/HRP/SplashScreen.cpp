@@ -23,14 +23,19 @@ namespace sf = sfall;
 // 2 - image will stretch to fill the screen
 long SplashScreen::SPLASH_SCRN_SIZE;
 
+long SplashScreen::SPLASH_SCRN_TIME;
+
 static WORD rixWidth;
 static WORD rixHeight;
 static BYTE* rixBuffer;
+static DWORD splashStartTime;
 
 static void __cdecl game_splash_screen_hack_scr_blit(BYTE* srcPixels, long srcWidth, long srcHeight, long srcX, long srcY, long width, long height, long x, long y) {
 	RECT rect;
 	long w = Setting::ScreenWidth();
 	long h = Setting::ScreenHeight();
+
+	splashStartTime = GetTickCount();
 
 	// TODO: Load an alternative 32-bit BMP image or DirectX texture
 	// stretch texture for DirectX
@@ -114,9 +119,26 @@ static void __declspec(naked) game_splash_screen_hook() {
 	}
 }
 
+static void SplashScreenTime() {
+	if (SplashScreen::SPLASH_SCRN_TIME >= 1) {
+		DWORD time = 1000 * SplashScreen::SPLASH_SCRN_TIME;
+		for (DWORD ticks = GetTickCount() - splashStartTime; ticks < time; ticks = GetTickCount() - splashStartTime) {
+			Sleep(500);
+		}
+	}
+}
+
+static void __declspec(naked) game_init_hook_init_options_menu() {
+	__asm {
+		call SplashScreenTime;
+		jmp  fo::funcoffs::init_options_menu_;
+	}
+}
+
 void SplashScreen::init() {
 	sf::HookCall(0x4444FC, game_splash_screen_hook);
 	sf::MakeCall(0x44451E, game_splash_screen_hack_scr_blit, 1);
+	sf::HookCall(0x442B0B, game_init_hook_init_options_menu);
 }
 
 }
