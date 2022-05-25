@@ -20,4 +20,5 @@ Original description: A set of engine modifications for the classic game Fallout
 
 ---
 #### Fallout Engine IDA Database
-**[Download](https://www.dropbox.com/s/tm0nyx0lnk4yui0/Fallout_1_and_2_IDA68.rar "Download from Dropbox")** (comments are in Russian)
+[Download for IDA Pro 6.8](https://www.dropbox.com/s/tm0nyx0lnk4yui0/Fallout_1_and_2_IDA68.rar?dl=1 "Download from Dropbox")
+ | [Download for IDA Pro 7.0](https://www.dropbox.com/s/61srq09pn8grfpu/Fallout_1_and_2_IDA70.rar?dl=1 "Download from Dropbox") (comments are in Russian)
