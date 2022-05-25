@@ -211,6 +211,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x267, "round",                      op_round,                     1, true,   0, {ARG_NUMBER}},
 	// 0x268 RESERVED
 	// 0x269 RESERVED
+	// 0x26a RESERVED
 	{0x26b, "message_str_game",           op_message_str_game,          2, true,   0, {ARG_INT, ARG_INT}},
 	{0x26c, "sneak_success",              op_sneak_success,             0, true},
 	{0x26d, "tile_light",                 op_tile_light,                2, true,  -1, {ARG_INT, ARG_INT}},
@@ -420,8 +421,6 @@ void Opcodes::InitNew() {
 	opcodes[0x24b] = op_tile_under_cursor;
 	opcodes[0x24c] = op_gdialog_get_barter_mod;
 	opcodes[0x24d] = op_set_inven_ap_cost;
-
-	//opcodes[0x26a]=op_game_ui_redraw;
 
 	// configure default opcode handler
 	for (int i = sfallOpcodeStart; i < opcodeCount; i++) {
