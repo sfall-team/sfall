@@ -50,6 +50,12 @@ static std::vector<std::string> getList(const char* section, const char* setting
 	return list;
 }
 
+static int setInt(const char* section, const char* setting, int value, const char* iniFile) {
+	char buf[33];
+	_itoa_s(value, buf, 33, 10);
+	return WritePrivateProfileStringA(section, setting, buf, iniFile);
+}
+
 const char* IniReader::GetConfigFile() {
 	return ini;
 }
@@ -107,9 +113,11 @@ std::vector<std::string> IniReader::GetList(const char* section, const char* set
 }
 
 int IniReader::SetConfigInt(const char* section, const char* setting, int value) {
-	char buf[33];
-	_itoa_s(value, buf, 33, 10);
-	return WritePrivateProfileStringA(section, setting, buf, ini);
+	return setInt(section, setting, value, ini);
+}
+
+int IniReader::SetDefaultConfigInt(const char* section, const char* setting, int value) {
+	return setInt(section, setting, value, ddrawIni);
 }
 
 int IniReader::SetDefaultConfigString(const char* section, const char* setting, const char* value) {

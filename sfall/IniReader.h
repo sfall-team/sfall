@@ -65,6 +65,8 @@ public:
 
 	static int SetConfigInt(const char* section, const char* setting, int value);
 
+	static int SetDefaultConfigInt(const char* section, const char* setting, int value);
+
 	static int SetDefaultConfigString(const char* section, const char* setting, const char* value);
 };
 
