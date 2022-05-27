@@ -157,7 +157,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 
 static void CreateSndWnd() {
 	dlog("Creating sfall sound callback window.", DL_INIT);
-	if (Graphics::mode == 0) CoInitialize(0);
+	if (Graphics::mode < 4) CoInitialize(0);
 
 	WNDCLASSEX wcx;
 	std::memset(&wcx, 0, sizeof(wcx));
@@ -1072,7 +1072,7 @@ void Sound::init() {
 }
 
 void Sound::exit() {
-	if (soundwindow && Graphics::mode == 0) CoUninitialize();
+	if (soundwindow && Graphics::mode < 4) CoUninitialize();
 }
 
 }

@@ -70,7 +70,7 @@ void __stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int __stdcall LoadShader(const char* file) {
-	if (Graphics::mode == 0 || strstr(file, "..") || strstr(file, ":")) return -1;
+	if (Graphics::mode < 4 || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
 	sprintf_s(buf, "%s\\shaders\\%s", (*fo::ptr::master_db_handle)->path, file); // *fo::ptr::patches
 	for (DWORD d = 0; d < shadersSize; d++) {
@@ -225,7 +225,7 @@ void ScriptShaders::OnGameLoad() {
 }
 
 void ScriptShaders::init() {
-	if (Graphics::mode != 0) {
+	if (Graphics::mode >= 4) {
 		for each (const std::string& shaderFile in IniReader::GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
 			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
 		}

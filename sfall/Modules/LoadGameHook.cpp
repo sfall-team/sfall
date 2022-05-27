@@ -271,7 +271,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		// OnGameReset
 		BugFixes::OnGameLoad();
-		if (Graphics::mode) {
+		if (Graphics::mode >= 4) {
 			Graphics::ForceGraphicsRefresh(0); // disable refresh
 			ScriptShaders::OnGameLoad();
 		}

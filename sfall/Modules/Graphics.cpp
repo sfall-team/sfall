@@ -1395,13 +1395,16 @@ static __declspec(naked) void dump_screen_hack_replacement() {
 }
 
 void Graphics::init() {
-	Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0);
+	Graphics::mode = (hrpIsEnabled) // avoid mode mismatch between ddraw.ini and another ini file
+	               ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
+	               : IniReader::GetConfigInt("Graphics", "Mode", 0);
+
 	if (Graphics::mode < 4 || Graphics::mode > 6) {
 		Graphics::mode = 0;
 	}
 	IsWindowedMode = (Graphics::mode >= 5);
 
-	if (Graphics::mode != 0) {
+	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_42.dll"
 		HMODULE h = LoadLibraryExA(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
@@ -1417,7 +1420,7 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
+		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB310
 		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
 		// Replace the screenshot saving implementation for sfall DirectX 9
@@ -1479,7 +1482,7 @@ void Graphics::init() {
 }
 
 void Graphics::exit() {
-	if (Graphics::mode != 0) {
+	if (Graphics::mode >= 4) {
 		RECT rect;
 		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
 			int data = rect.top | (rect.left << 16);
