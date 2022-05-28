@@ -3135,7 +3135,7 @@ static long __fastcall CheckBarterAndBodyType(fo::GameObject* critter) {
 	        !(proto->critter.critterFlags & fo::CritterFlags::Barter) && proto->critter.bodyType);
 }
 
-static void __declspec(naked) item_add_mult_hook_body_type() {
+static void __declspec(naked) item_add_mult_hook() {
 	__asm {
 		push edx;
 		push ecx;
@@ -4004,7 +4004,7 @@ void BugFixes::init()
 	SafeWrite8(0x4B039F, 20); // text_object_create_ (was 19)
 
 	// Fix for being unable to plant items on non-biped critters with the "Barter" flag set (e.g. Skynet and Goris)
-	HookCall(0x477183, item_add_mult_hook_body_type);
+	HookCall(0x477183, item_add_mult_hook);
 
 	// Fix for being able to use the "Push" action on members of the player's team in combat when they are knocked down
 	HookCall(0x413718, action_can_be_pushed_hook);
