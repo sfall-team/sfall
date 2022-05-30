@@ -15,13 +15,13 @@ This is a modified copy of sslc, that has a few bugfixes from the original, that
 
 Unlike the original script compiler, this has not been compiled as a dos program. When using this in place of the original compile.exe but still using p.bat, you need to either get rid of the dos4gw.exe reference from p.bat or replace the original dos4gw.exe with the one in this archive.
 
-If you use fallout script editor, you can extract `compile.exe` and `dos4gw.exe` to its `\binary` folder, or extract them somewhere else and change your preferences in FSE to point there. FSE doesn't seem to be able to tell when errors occur when using this compiler though, so I'd recommend either using sfall's script editor instead or compiling by hand if possible.
+If you use Fallout Script Editor, you can extract `compile.exe` and `dos4gw.exe` to its `\binary` folder, or extract them somewhere else and change your preferences in FSE to point there. FSE doesn't seem to be able to tell when errors occur when using this compiler though, so I'd recommend either using sfall's script editor instead or compiling by hand if possible.
 
-When compiling global or hook scripts for sfall 3.4 or below, you _must_ include the line `procedure start;` before any `#include`s that define procedures to avoid a few weird problems. (this is no longer required starting from 3.5)
+When compiling global or hook scripts for sfall 3.4 or below, you _must_ include the line `procedure start;` before any `#include` files that define procedures to avoid a few weird problems. (this is no longer required starting from 3.5)
 
 This version of compiler was designed primarily for new sfall functions, but it can safely (and is recommended) to be used with non-sfall scripts as well, as long as you don't use any of the arrays syntax and any sfall script functions.
 
-The original unmodified sslc source is over here: [http://www.teamx.ru/eng/files/srcs/index.shtml](http://www.teamx.ru/eng/files/srcs/index.shtml).
+The original unmodified sslc source is over here: [https://teamx.ru/site_arc/utils/index.html](https://teamx.ru/site_arc/utils/index.html)
 
 ## Command line options
 
@@ -31,7 +31,9 @@ The original unmodified sslc source is over here: [http://www.teamx.ru/eng/files
 -b  backward compatibility mode
 -l  no logo
 -p  preprocess source
--O  optimize code (full, see optimization.txt)
+-P  preprocess only (don't generate .int)
+-F  write full file paths in "#line" directives
+-O  optimize code (full by default, see "Optimization" page)
 -O<N> set specific level of optimization (0 - off, 1 - basic, 2 - full, 3 - experimental)
 -d  print debug messages
 -D  output an abstract syntax tree of the program
@@ -45,7 +47,7 @@ The original command line option `-w` to turn on warnings no longer has an effec
 
 ## Additional supported syntax
 
-Syntax which requires sfall for compiled scripts to be interpreted, is marked by asterix (*).
+Syntax which requires sfall for compiled scripts to be interpreted is marked by asterisk (*).
 
 - Optional arguments in user-defined procedures. You can only use constants for default values. It basically puts those constants in place of omitted arguments.
 
@@ -73,14 +75,14 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
 
   If `obj` is `null`, the second condition will not be checked and your script won't fail with "obj is null" error in debug.log
 
-  This also has an effect that a value of last computed argument is returned as a result of whole expressions, instead of always 0 (`false`) or 1 (`true`):
+  This also has an effect that a value of last computed argument is returned as a result of whole expressions, instead of always `false` (0) or `true` (1):
   ```
   obj := false;
   display_msg(obj orElse "something");  // will print "something"
   ```
   You can also use the `-s` option to enable short-circuit evaluation for all the `AND`, `OR` operators in the script.
 
-  NOTE: Be aware that it may break some old scripts because operators behavior is changed slightly.
+  __NOTE:__ Be aware that it may break some old scripts because operators behavior is changed slightly.
 
 - Conditional expressions (Python-inspired), also known as ternary operator:
   - new:
@@ -94,7 +96,8 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     else
       X := value2;
     ```
-- To assign values, you can use the alternative assignment operator from C/Java instead of Pascal syntax.
+
+- To assign values, you can use the alternative assignment operator from **C/Java** instead of **Pascal** syntax.
   - new:
     ```
     x = 5;
@@ -103,7 +106,8 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     ```
     x := 5;
     ```
--  Multiple variable declaration: Multiple variables can be declared on one line, seperated by commas. This is an alterative to the ugly begin/end block, or the bulky single variable per line style.
+
+- Multiple variable declaration: Multiple variables can be declared on one line, seperated by commas. This is an alterative to the ugly begin/end block, or the bulky single variable per line style.
   - new:
     ```
     variable a, b, c;
@@ -112,6 +116,7 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     ```
     variable begin a; b; c; end
     ```
+
 - Variable initialization with expressions: You can now initialize local variables with complex expressions instead of constants.
   - new:
     ```
@@ -122,9 +127,9 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     variable tile;
     tile := tile_num(dude_obj);
     ```
-  NOTE: if your expression starts with a constant (eg. `2+2`), enclose it in parentheses, otherwise compiler will be confused and give you errors.
+  __NOTE:__ If your expression starts with a constant (eg. `2 + 2`), enclose it in parentheses, otherwise compiler will be confused and give you errors.
 
-- Hexadecimal numerical constants: Simply prefix a number with `0x` to create a hexadecimal. The numbers `0` to `9` and `a-f` are allowed in the number. The number may not have a decimal point.
+- Hexadecimal numerical constants: Simply prefix a number with `0x` to create a hexadecimal. The numbers 0 to 9 and letters A to F are allowed in the number. The number may not have a decimal point.
   - new:
     ```
     a := 0x1000;
@@ -133,7 +138,8 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     ```
     a := 4096;
     ```
-- Increment/decrement operators: `++` and `--` can be used as shorthand for `+=1` and `-=1` respectively. They are mearly a syntactic shorthand to improve readability, and so their use is only allowed where `+=1` would normally be allowed.
+
+- Increment/decrement operators: `++` and `--` can be used as shorthand for `+= 1` and `-= 1` respectively. They are mearly a syntactic shorthand to improve readability, and so their use is only allowed where `+= 1` would normally be allowed.
   - new:
     ```
     a++;
@@ -143,7 +149,7 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     a += 1;
     ```
 
-- `break` & `continue` statements: they work just like in most high-level languages. `break` jumps out of the loop. `continue` jumps right to the beginning of the next iteration (see `for` and `foreach` sections for additional details).
+- `break` & `continue` statements: They work just like in most high-level languages. `break` jumps out of the loop. `continue` jumps right to the beginning of the next iteration (see `for` and `foreach` sections for additional details).
   - new:
     ```
     while (i < N) begin
@@ -187,18 +193,18 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
   - new:
     ```
     for (i := 0; i < 5; i++) begin
-      display_msg("i = "+i);
+      display_msg("i = " + i);
     end
     ```
   - old:
     ```
     i := 0;
     while (i < 5) do begin
-      display_msg("i = "+i);
+      display_msg("i = " + i);
       i++;
     end
     ```
-  NOTE: `continue` statement in a `for` loop will recognize increment statement (third statement in parentheses) and will execute it before jumping back to the beginning of loop. This way you will not get an endless loop.
+  __NOTE:__ `continue` statement in a `for` loop will recognize increment statement (third statement in parentheses) and will execute it before jumping back to the beginning of loop. This way you will not get an endless loop.
 
 - `switch` statements: A shorthand way of writing big `if then else if...` blocks
   - new:
@@ -222,7 +228,7 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     end
     ```
 
-- empty statements in blocks are allowed: This is just a convenience to save scripters a bit of memory. Some of the macros in the fallout headers include their own semicolons while others do not. With the original compiler you had to remember which was which, and if you got it wrong the script would not compile. Now it's always safe to include your own semicolon, even if the macro already had its own. For example, this would not compile with the original sslc, but will with the sfall edition:
+- Empty statements in blocks are allowed: This is just a convenience to save scripters a bit of memory. Some of the macros in the Fallout headers include their own semicolons while others do not. With the original compiler you had to remember which was which, and if you got it wrong the script would not compile. Now it's always safe to include your own semicolon, even if the macro already had its own. For example, this would not compile with the original sslc, but will with the sfall edition:
   ```
   #define my_macro diplay_msg("foo");
 
@@ -230,12 +236,9 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     my_macro;
   end
   ```
+  __NOTE:__ **Does not work currently.**
 
-- Procedure stringify operator `@`: designed to make callback-procedures a better option and allow for basic functional programming. Basically it replaces procedure names preceeded by `@` by a string constant.
-  Not many people know that since vanilla Fallout you can call procedures by "calling a variable" containing it's name as a string value. There was a couple of problems using this:
-  - optimizer wasn't aware that you are referencing a procedure, and could remove it, if you don't call it explicitly (can be solved by adding making procedure "critical")
-  - you couldn't see all references of a procedure from a Script Editor
-  - it was completely not obvious that you could do such a thing, it was a confusing syntax
+- Procedure stringify operator `@`: Designed to make callback-procedures a better option and allow for basic functional programming. Basically it replaces procedure names preceeded by `@` by a string constant.
   - old:
     ```
     callbackVar := "Node000";
@@ -246,7 +249,12 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     callbackVar := @Node000;
     callbackVar();
     ```
-- *arrays: In vanilla fallout arrays had to be constructed by reserving a block of global/map variables. Since sfall 2.7, specific array targeted functions have been available, but they are fairly messy and long winded to use. The compiler provides additional syntactic shorthand for accessing and setting array variables, as well as for array creation. When declaring an array variable, put a constant integer in []'s to give the number of elements in the array. (before sfall 3.4 you had to specify size in bytes for array elements, now it's not required, see "arrays.txt" for more information)
+  Not many people know that since vanilla Fallout you can call procedures by "calling a variable" containing it's name as a string value. There was a couple of problems using this:
+  - optimizer wasn't aware that you are referencing a procedure, and could remove it, if you don't call it explicitly (can be solved by adding making procedure `critical`)
+  - you couldn't see all references of a procedure from a Script Editor
+  - it was completely not obvious that you could do such a thing, it was a confusing syntax
+
+- (*) **Arrays**: In vanilla Fallout, arrays had to be constructed by reserving a block of global/map variables. Since sfall 2.7, specific array targeted functions have been available, but they are fairly messy and long winded to use. The compiler provides additional syntactic shorthand for accessing and setting array variables, as well as for array creation. When declaring an array variable, put a constant integer in `[]`` to give the number of elements in the array. (before sfall 3.4 you had to specify size in bytes for array elements, now it's not required, see "Arrays" page for more information)
   - new:
     ```
     procedure bingle begin
@@ -267,7 +275,7 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     end
     ```
 
-- *array expressions: sometimes you need to construct an array of elements and you will probably want to do it in just one expression. This is now possible:
+- (*) **Array expressions**: Sometimes you need to construct an array of elements and you will probably want to do it in just one expression. This is now possible:
   - new:
     ```
     list := ["A", "B", "C", "D"];
@@ -280,14 +288,14 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
     list[2] := "C";
     list[3] := "D";
     ```
-  Syntax specific for associative arrays is also available. (see "arrays.txt" for full introduction to this type of arrays).
+  Syntax specific for associative arrays is also available. (see "Arrays" page for full introduction to this type of arrays).
 
-- *map array expressions:
+- (*) **Map array expressions**:
   ```
   map := {5: "five", 10: "ten", 15: "fifteen", 20: "twelve"};
   ```
 
-- * "dot" syntax to access elements of associative arrays. "dot" syntax allows to work with arrays like objects:
+- (*) The dot `.` syntax to access elements of associative arrays and allow to work with arrays like objects:
   ```
   trap.radius := 3;
   trap.tile := tile_num(dude_obj);
@@ -296,16 +304,15 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
   ```
   collectionList[5].objectList[5].name += " foo";
   ```
+  __NOTE:__ When using incremental operators like `+=`, `*=`, `++`, `--` compiler will use additional temp variable to get an array at penultimate level in order to avoid making the same chain of `get_array` calls twice.
 
-  NOTE: when using incremental operators like `+=`, `*=`, `++`, `--` compiler will use additional temp variable to get an array at penultimate level in order to avoid making the same chain of "get_array" calls twice.
-
-- * `foreach` loops: A shorthand method of looping over all elements in an array. Syntax is `foreach (<symbol> in <expression>)`.
+- (*) `foreach` loops: A shorthand method of looping over all elements in an array. Syntax is `foreach (<symbol> in <expression>)`.
   - new:
     ```
     procedure bingle begin
       variable critter;
       foreach (critter in list_as_array(LIST_CRITTERS)) begin
-        display_msg(""+critter);
+        display_msg("" + critter);
       end
     end
     ```
@@ -322,6 +329,7 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
       end
     end
     ```
+
   If you want an index array element (or key for "maps") at each iteration, use syntax: `foreach (<symbol>: <symbol> in <expression>)`
   ```
   foreach (pid: price in itemPriceMap) begin
@@ -329,15 +337,13 @@ Syntax which requires sfall for compiled scripts to be interpreted, is marked by
       itemPrice := price;
   end
   ```
+
   If you want to add additional condition for continuing the loop, use syntax: `foreach (<symbol> in <expression> while <expression>)`. In this case loop will iterate over elements of an array until last element or until "while" expression is true (whatever comes first).
 
-  NOTE: just like `for` loop, "continue" statement will respect increments of a hidden counter variable, so you can safely use it inside `foreach`.
-
-## int2ssl note
-
-int2ssl by Anchorite (TeamX) is included in sfall modderspack package. It was updated to support all additional opcodes of sfall, along with some syntax features. You can use it to decompile any sfall or non-sfall script.
+  __NOTE:__ Just like `for` loop, `continue` statement will respect increments of a hidden counter variable, so you can safely use it inside `foreach`.
 
 ## Fixes
+
 - `playmoviealpharect` was using the token for `playmoviealpha`, breaking both functions in the process.
 - `addbuttonflag` had an entry in the token table, and could be parsed, but was missing an entry in the emit list. This resulted in the compiler accepting it as a valid function, but not outputting any code for it into the compiled script.
 - The function `tokenize` was missing an entry in the token table, and so would not be recognised by the compiler.
@@ -350,3 +356,7 @@ There are several changes in this version of sslc which may result in problems f
 - Missing a semicolon after a variable declaration is now a hard error. (Originally sslc would check for the semicolon, but would not complain if it was missing.)
 - The function `addbuttonflag` used to be recognised by the compiler, but would not emit any code into the int file.
 - The function `playmoviealpharect` compiled as `playmoviealpha`.
+
+## int2ssl note
+
+**int2ssl** by Anchorite (TeamX) is included in sfall modderspack package. It was updated to support all additional opcodes of sfall, along with some syntax features. You can use it to decompile any sfall or non-sfall script.

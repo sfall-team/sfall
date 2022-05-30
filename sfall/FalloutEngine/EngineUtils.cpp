@@ -214,6 +214,21 @@ fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
 	return (type < 9) ? weapon_types[type] : fo::AttackSubType::NONE;
 }
 
+// Returns the distance a critter can move in combat based on current APs
+long __fastcall GetCombatMoveDistance(fo::GameObject* critter, long freeMove) {
+	freeMove += critter->critter.movePoints;
+	long flags = critter->critter.damageFlags & (fo::DamageFlag::DAM_CRIP_LEG_LEFT | fo::DamageFlag::DAM_CRIP_LEG_RIGHT);
+
+	// both legs crippled (8 AP per hex)
+	if (flags == (fo::DamageFlag::DAM_CRIP_LEG_LEFT | fo::DamageFlag::DAM_CRIP_LEG_RIGHT)) return (freeMove / 8);
+
+	// not crippled
+	if (flags == 0) return freeMove;
+
+	// one leg crippled (4 AP per hex)
+	return (freeMove / 4);
+}
+
 long ObjIsOpenable(fo::GameObject* object) {
 	long result = 0;
 	if (fo::func::obj_is_openable(object)) {

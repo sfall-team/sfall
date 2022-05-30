@@ -48,7 +48,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 		if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 			long maxAmmo = fo::func::item_w_max_ammo(item);
 			long curAmmo = fo::func::item_w_curr_ammo(item);
-			if (maxAmmo != curAmmo) {
+			if (curAmmo < maxAmmo) {
 				long &currentMode = fo::util::GetActiveItemMode();
 				long previusMode = currentMode;
 				currentMode = fo::HandSlotMode::Reload;

@@ -40,6 +40,7 @@ static const char* ExtraLines[] = {
 	"Timeslip",
 	"",
 	"@Contributors",
+	"@(in chronological order)",
 	"ravachol",
 	"Noid",
 	"Glovz",

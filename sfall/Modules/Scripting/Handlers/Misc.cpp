@@ -103,6 +103,15 @@ void __declspec(naked) op_eax_available() {
 	}
 }
 
+void __declspec(naked) op_set_eax_environment() {
+	__asm {
+		_GET_ARG_INT(end);
+		xor  eax, eax; // EAX support has been removed since 2.1a
+end:
+		retn;
+	}
+}
+
 static bool IsSpecialIni(const char* str, const char* end) {
 	const char* pos = strfind(str, &IniReader::GetConfigFile()[2]); // TODO test
 	if (pos && pos < end) return true;
@@ -245,7 +254,10 @@ void op_set_palette(OpcodeContext& ctx) {
 
 //numbers subgame functions
 void __declspec(naked) op_nb_create_char() {
-	__asm retn;
+	__asm {
+		xor  edx, edx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
 }
 
 void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window

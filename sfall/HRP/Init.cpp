@@ -185,7 +185,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (cmdline.find(" -restart") != std::string::npos) {
 		GetBackupFileName(exeFileName, true); // delete after restart
 	}
-	if (hiResMode == false) return;
+	if (!hiResMode) return;
 
 	if (Setting::ExternalEnabled()) {
 		char infoMsg[512];
@@ -252,7 +252,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	MainMenuScreen::MAIN_MENU_SIZE = sf::IniReader::GetInt("MAINMENU", "MAIN_MENU_SIZE", 1, f2ResIni);
 
 	SplashScreen::SPLASH_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "SPLASH_SCRN_SIZE", 1, f2ResIni);
-	HelpScreen::HELP_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "HELP_SCRN_SIZE", 0, f2ResIni);
+	HelpScreen::HELP_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "HELP_SCRN_SIZE", 1, f2ResIni);
 	DeathScreen::DEATH_SCRN_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "DEATH_SCRN_SIZE", 1, f2ResIni);
 	SlidesScreen::END_SLIDE_SIZE = sf::IniReader::GetInt("STATIC_SCREENS", "END_SLIDE_SIZE", 1, f2ResIni);
 	MoviesScreen::MOVIE_SIZE = sf::IniReader::GetInt("MOVIES", "MOVIE_SIZE", 1, f2ResIni);
@@ -267,7 +267,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	ViewMap::EDGE_CLIPPING_ON = (sf::IniReader::GetInt("MAPS", "EDGE_CLIPPING_ON", 1, f2ResIni) != 0);
 
 	IFaceBar::IFACE_BAR_MODE = sf::IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, f2ResIni);
-	IFaceBar::IFACE_BAR_SIDE_ART = sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDE_ART", 2, f2ResIni);
+	IFaceBar::IFACE_BAR_SIDE_ART = sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDE_ART", 1, f2ResIni);
 	IFaceBar::IFACE_BAR_WIDTH = sf::IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", (!sf::versionCHI && SCR_WIDTH >= 800) ? 800 : 640, f2ResIni);
 	IFaceBar::IFACE_BAR_SIDES_ORI = (sf::IniReader::GetInt("IFACE", "IFACE_BAR_SIDES_ORI", 0, f2ResIni) != 0);
 
@@ -281,6 +281,10 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	if (sf::IniReader::GetInt("OTHER_SETTINGS", "FADE_TIME_RECALCULATE_ON_FADE", 0, f2ResIni)) {
 		sf::WindowRender::EnableRecalculateFadeSteps();
 	}
+
+	int splashTime = sf::IniReader::GetInt("OTHER_SETTINGS", "SPLASH_SCRN_TIME", 0, f2ResIni);
+	if (splashTime > 10) splashTime = 10;
+	SplashScreen::SPLASH_SCRN_TIME = splashTime;
 
 	int nodes = sf::IniReader::GetInt("MAPS", "NumPathNodes", 1, f2ResIni);
 	if (nodes > 1) game::Tilemap::SetPathMaxNodes((nodes < 20) ? nodes * 2000 : 40000);

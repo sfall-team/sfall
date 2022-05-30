@@ -41,6 +41,10 @@ static void __fastcall SetMovieSize() {
 		long aspectH = sHeight;
 		long x = 0;
 		long y = 0;
+
+		float movieAspect = (float)bW / (float)bH;
+		float marginHeight = (sHeight - (sWidth / movieAspect)) / 2;
+		if (marginHeight < subtitleHeight) aspectH -= subtitleHeight; // reserve space
 		Image::GetAspectSize(bW, bH, &x, &y, aspectW, aspectH);
 
 		movieToSize.left = x;

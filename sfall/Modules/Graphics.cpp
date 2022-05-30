@@ -1246,7 +1246,9 @@ static __declspec(naked) void dump_screen_hack_replacement() {
 }
 
 void Graphics::init() {
-	int gMode = IniReader::GetConfigInt("Graphics", "Mode", 0);
+	int gMode = (HRP::Setting::ExternalEnabled()) // avoid mode mismatch between ddraw.ini and another ini file
+	          ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
+	          : IniReader::GetConfigInt("Graphics", "Mode", 0);
 	if (gMode >= 4) Graphics::mode = gMode;
 
 	if (Graphics::mode < 0 || Graphics::mode > 6) {
@@ -1270,7 +1272,7 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 
-		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB311
+		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB310
 		MakeJump(fo::funcoffs::GNW95_SetPalette_, GNW95_SetPalette_replacement); // 0x4CB568
 
 		// Replace the screenshot saving implementation for sfall DirectX 9

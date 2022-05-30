@@ -232,7 +232,7 @@ long __fastcall Items::item_w_mp_cost(fo::GameObject* source, fo::AttackType hit
 	);
 }
 
-static void __declspec(naked) item_w_mp_cost_hack() {
+static void __declspec(naked) item_w_mp_cost_replacement() {
 	using namespace fo;
 	__asm {
 		push ebx;      // isCalled
@@ -248,7 +248,7 @@ void Items::init() {
 	sf::HookCall(0x429A08, ai_search_inven_weap_hook);
 
 	// Replace the item_w_mp_cost_ function with the sfall implementation
-	sf::MakeJump(fo::funcoffs::item_w_mp_cost_ + 1, item_w_mp_cost_hack); // 0x478B25
+	sf::MakeJump(fo::funcoffs::item_w_mp_cost_ + 1, item_w_mp_cost_replacement); // 0x478B25
 
 	fastShotTweak = sf::IniReader::GetConfigInt("Misc", "FastShotFix", 0);
 }

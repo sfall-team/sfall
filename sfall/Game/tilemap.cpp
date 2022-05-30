@@ -178,7 +178,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 }
 
 static void __declspec(naked) tile_num_beyond_replacement() {
-	__asm { //push ecx;
+	__asm { // push ecx;
 		push ebx;
 		mov  ecx, eax;
 		call Tilemap::tile_num_beyond;

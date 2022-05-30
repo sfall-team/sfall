@@ -136,7 +136,7 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 	scaleHeight = (h / 480.0f);
 
 	// is not scaled if USE_HIRES_IMAGES is used and the SCALE_BUTTONS_AND_TEXT_MENU option is disabled
-	if (MainMenuScreen::USE_HIRES_IMAGES == false || (MainMenuScreen::USE_HIRES_IMAGES && MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU)) {
+	if (!sf::versionCHI && (!MainMenuScreen::USE_HIRES_IMAGES || (MainMenuScreen::USE_HIRES_IMAGES && MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU))) {
 		scaleFactor = scaleHeight;
 	} else {
 		if (w != 640) {

@@ -800,6 +800,37 @@ static void __declspec(naked) wmInterfaceInit_hook() {
 	}
 }
 
+static void __declspec(naked) wmWorldMap_hook() {
+	__asm {
+		push eax;
+		mov  eax, 0x503E14; // 'ib1p1xx1'
+		call fo::funcoffs::gsound_play_sfx_file_;
+		pop  eax;
+		jmp  fo::funcoffs::wmPartyInitWalking_;
+	}
+}
+
+static void __declspec(naked) wmDrawCursorStopped_hack_hotspot() {
+	__asm {
+		mov  eax, 0x503E34; // 'ib2p1xx1'
+		call fo::funcoffs::gsound_play_sfx_file_;
+		mov  eax, dword ptr ds:[0x672E90]; // hotspot2_pic
+		retn;
+	}
+}
+
+static void __declspec(naked) wmTownMapInit_hack() {
+	__asm {
+		mov  dword ptr ds:[edi + 0x672DD8], eax; // _wmTownMapButtonId
+		push eax;
+		mov  edx, fo::funcoffs::gsound_med_butt_press_;
+		xor  ebx, ebx; // no button release sfx
+		call fo::funcoffs::win_register_button_sound_func_;
+		pop  eax;
+		retn;
+	}
+}
+
 static void WorldMapInterfacePatch() {
 	if (IniReader::GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
@@ -814,6 +845,9 @@ static void WorldMapInterfacePatch() {
 		0x4C2D4C, // up
 		0x4C2D8A  // down
 	});
+	HookCall(0x4C02DA, wmWorldMap_hook); // destination marker
+	MakeCall(0x4C4257, wmDrawCursorStopped_hack_hotspot); // triangle markers on the world map
+	MakeCall(0x4C4B94, wmTownMapInit_hack, 1);            // triangle markers on the town map
 
 	// Fix images for up/down buttons
 	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
@@ -965,6 +999,16 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
+static void __declspec(naked) intface_update_ammo_lights_hack() {
+	__asm {
+		mov  eax, 70; // 70 - full ammo bar
+		cmp  edx, eax;
+		cmovg edx, eax;
+		mov  eax, 463; // overwritten engine code
+		retn;
+	}
+}
+
 static void __declspec(naked) display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -1069,6 +1113,9 @@ void Interface::init() {
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
 	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+
+	// Fix crash when the player equips a weapon overloaded with ammo (ammo bar overflow)
+	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
 }
 
 void Interface::exit() {
