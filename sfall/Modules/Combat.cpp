@@ -25,7 +25,7 @@
 
 #include "HookScripts\CombatHS.h"
 
-//#include "..\Game\items.h"
+#include "..\Game\items.h"
 
 #include "SubModules\CombatBlock.h"
 
@@ -91,7 +91,7 @@ static bool checkWeaponAmmoCost;
 
 // Compares the cost (required count of rounds) for one shot with the current amount of ammo to make an attack or other checks
 long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
-	long currAmmo = fo::func::item_w_curr_ammo(weapon);
+	long currAmmo = game::Items::item_w_curr_ammo(weapon);
 	if (!checkWeaponAmmoCost || currAmmo <= 0) return currAmmo;
 
 	long rounds = 1; // default ammo for single shot
