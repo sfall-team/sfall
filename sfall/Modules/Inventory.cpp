@@ -47,16 +47,15 @@ void Inventory::KeyPressedHook(DWORD dxKey, bool pressed) {
 
 		if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 			long maxAmmo = fo::func::item_w_max_ammo(item);
-			long curAmmo = fo::func::item_w_curr_ammo(item);
+			long curAmmo = item->item.charges;
 			if (curAmmo < maxAmmo) {
 				long &currentMode = fo::util::GetActiveItemMode();
-				long previusMode = currentMode;
+				long previousMode = currentMode;
 				currentMode = fo::HandSlotMode::Reload;
 				fo::func::intface_use_item();
-				if (previusMode != fo::HandSlotMode::Reload) {
+				if (previousMode != fo::HandSlotMode::Reload) {
 					// return to previous active item mode (if it wasn't "reload")
-					currentMode = previusMode - 1;
-					if (currentMode < 0) currentMode = fo::HandSlotMode::Secondary_Aimed;
+					currentMode = (--previousMode < 0) ? fo::HandSlotMode::Secondary_Aimed : previousMode;
 					fo::func::intface_toggle_item_state();
 				}
 			}

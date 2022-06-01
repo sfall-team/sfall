@@ -233,11 +233,29 @@ long __fastcall Items::item_w_mp_cost(fo::GameObject* source, fo::AttackType hit
 }
 
 static void __declspec(naked) item_w_mp_cost_replacement() {
-	using namespace fo;
 	__asm {
 		push ebx;      // isCalled
 		mov  ecx, eax; // source
 		call Items::item_w_mp_cost;
+		pop  ecx;
+		retn;
+	}
+}
+
+
+// Simplified implementation of item_w_curr_ammo_ engine function
+long __fastcall Items::item_w_curr_ammo(fo::GameObject* item) {
+	if (item) return item->item.charges;
+	return 0;
+}
+
+static void __declspec(naked) item_w_curr_ammo_replacement() {
+	__asm {
+		push ecx;
+		push edx;
+		mov  ecx, eax; // item
+		call Items::item_w_curr_ammo;
+		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -249,6 +267,9 @@ void Items::init() {
 
 	// Replace the item_w_mp_cost_ function with the sfall implementation
 	sf::MakeJump(fo::funcoffs::item_w_mp_cost_ + 1, item_w_mp_cost_replacement); // 0x478B25
+
+	// Replace the item_w_curr_ammo_ function with a simplified implementation
+	sf::MakeJump(fo::funcoffs::item_w_curr_ammo_, item_w_curr_ammo_replacement); // 0x4786A0
 
 	fastShotTweak = sf::IniReader::GetConfigInt("Misc", "FastShotFix", 0);
 }
