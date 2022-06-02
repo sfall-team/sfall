@@ -101,9 +101,6 @@ long GetCurrentAttackMode();
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag);
 
-// Returns the distance a critter can move in combat based on current APs
-long __fastcall GetCombatMoveDistance(fo::GameObject* critter, long freeMove);
-
 long ObjIsOpenable(fo::GameObject* object);
 
 bool HeroIsFemale();
