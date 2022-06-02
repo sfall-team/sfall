@@ -59,6 +59,8 @@ public:
 
 	static bool perkHeaveHoModTweak;
 	static void __stdcall ApplyHeaveHoFix();
+
+	static int fastShotTweak;
 };
 
 void PerksEnterCharScreen();

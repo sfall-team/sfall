@@ -123,8 +123,6 @@ long Items::item_weapon_range(fo::GameObject* source, fo::GameObject* weapon, lo
 //	return item_weapon_range(source, fo::func::item_hit_with(source, hitMode), hitMode);
 //}
 
-static int fastShotTweak;
-
 static long item_w_mp_cost_sub(fo::GameObject* source, fo::GameObject* item, long hitMode, long isCalled, long cost) {
 	if (isCalled) cost++;
 	if (cost < 0) cost = 0;
@@ -133,11 +131,11 @@ static long item_w_mp_cost_sub(fo::GameObject* source, fo::GameObject* item, lon
 
 	if (source->protoId == fo::ProtoID::PID_Player && sf::Perks::DudeHasTrait(fo::Trait::TRAIT_fast_shot)) {
 		// Alternative behaviors of the Fast Shot trait
-		if (item && fastShotTweak > 2) { // Fallout 1 behavior (allowed for all weapons)
+		if (item && sf::Perks::fastShotTweak > 2) { // Fallout 1 behavior (allowed for all weapons)
 			cost--;
-		} else if (fastShotTweak == 2) { // Alternative behavior (allowed for all attacks)
+		} else if (sf::Perks::fastShotTweak == 2) { // Alternative behavior (allowed for all attacks)
 			cost--;
-		} else if (fastShotTweak < 2 && type > fo::AttackSubType::MELEE && fo::func::item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
+		} else if (sf::Perks::fastShotTweak < 2 && type > fo::AttackSubType::MELEE && fo::func::item_w_range(source, hitMode) >= 2) { // Fallout 2 behavior (with Haenlomal's fix)
 			cost--;
 		}
 	}
@@ -270,8 +268,6 @@ void Items::init() {
 
 	// Replace the item_w_curr_ammo_ function with a simplified implementation
 	sf::MakeJump(fo::funcoffs::item_w_curr_ammo_, item_w_curr_ammo_replacement); // 0x4786A0
-
-	fastShotTweak = sf::IniReader::GetConfigInt("Misc", "FastShotFix", 0);
 }
 
 }

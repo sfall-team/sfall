@@ -1124,8 +1124,11 @@ cantUse:
 	}
 }
 
+int Perks::fastShotTweak;
+
 static void FastShotTraitFix() {
-	switch (IniReader::GetConfigInt("Misc", "FastShotFix", 0)) {
+	Perks::fastShotTweak = IniReader::GetConfigInt("Misc", "FastShotFix", 0);
+	switch (Perks::fastShotTweak) {
 	case 1:
 		dlog("Applying Fast Shot trait patch (Haenlomal's tweak).", DL_INIT);
 		MakeJump(0x478E79, item_w_called_shot_hack);
