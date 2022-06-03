@@ -480,23 +480,15 @@ void PartyControl::init() {
 	if (Mode > 2) Mode = 0;
 	if (Mode > 0) {
 		dlogr("Initializing party control...", DL_INIT);
-		char pidbuf[512];
-		pidbuf[511] = 0;
-		if (IniReader::GetConfigString("Misc", "ControlCombatPIDList", "", pidbuf, 511)) {
-			char* ptr = pidbuf;
-			char* comma;
-			while (true) {
-				comma = strchr(ptr, ',');
-				if (!comma) break;
-				*comma = 0;
-				if (strlen(ptr) > 0)
-					Chars.push_back((WORD)strtoul(ptr, 0, 0));
-				ptr = comma + 1;
+		std::vector<std::string> pidList = IniReader::GetConfigList("Misc", "ControlCombatPIDList", "", 512);
+		size_t countPids = pidList.size();
+		if (countPids) {
+			Chars.resize(countPids);
+			for (size_t i = 0; i < countPids; i++) {
+				Chars[i] = (WORD)atoi(pidList[i].c_str());
 			}
-			if (strlen(ptr) > 0)
-				Chars.push_back((WORD)strtoul(ptr, 0, 0));
 		}
-		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, Mode, Chars.size());
+		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, Mode, countPids);
 
 		HookCall(0x46EBEE, FidChangeHook);
 
