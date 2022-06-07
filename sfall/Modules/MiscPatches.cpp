@@ -748,7 +748,7 @@ static void UseWalkDistancePatch() {
 	int distance = IniReader::GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
-		const DWORD walkDistanceAddr[] = {0x411FF0, 0x4121C4, 0x412475, 0x412906};
+		const DWORD walkDistanceAddr[] = {0x411E41, 0x411FF0, 0x4121C4, 0x412475, 0x412906};
 		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
 		dlogr(" Done", DL_INIT);
 	}
