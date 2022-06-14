@@ -170,6 +170,5 @@ void mf_unwield_slot(OpcodeContext& ctx) {
 	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
-
 }
 }

@@ -407,7 +407,19 @@ fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long d
 	return nullptr;
 }
 
-// Returns the type of the terrain sub tile at the the player's position on the world map
+// Returns the terrain type of the sub-tile at the specified coordinates on the world map
+long wmGetTerrainType(long xPos, long yPos) {
+	long* terrainId;
+	__asm {
+		lea  ebx, terrainId;
+		mov  edx, yPos;
+		mov  eax, xPos;
+		call fo::funcoffs::wmFindCurSubTileFromPos_;
+	}
+	return *terrainId;
+}
+
+// Returns the terrain type of the sub-tile at the the player's position on the world map
 long wmGetCurrentTerrainType() {
 	long* terrainId = *(long**)FO_VAR_world_subtile;
 	if (terrainId == nullptr) {

@@ -112,7 +112,7 @@ void op_set_fake_trait(OpcodeContext& ctx) {
 	Perks::SetFakeTrait(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).strValue());
 }
 
-const char* notPartyMemberErr = "%s() - the object is not a party member.";
+static const char* notPartyMemberErr = "%s() - the object is not a party member.";
 
 void mf_set_selectable_perk_npc(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();

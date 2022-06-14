@@ -137,6 +137,8 @@ fo::GameObject* CheckAroundBlockingTiles(fo::GameObject* source, long dstTile);
 
 fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long dstTile);
 
+long wmGetTerrainType(long xPos, long yPos);
+
 long wmGetCurrentTerrainType();
 
 void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem);
