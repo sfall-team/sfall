@@ -310,6 +310,7 @@
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxAreaNum               0x51DDFC
 #define FO_VAR_wmMaxMapNum                0x51DE10
+#define FO_VAR_wmMaxTileNum               0x51DDF0
 #define FO_VAR_wmMsgFile                  0x672FB0
 #define FO_VAR_wmNumHorizontalTiles       0x51DDF4
 #define FO_VAR_wmRndCursorFid             0x672E58

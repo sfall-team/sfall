@@ -528,13 +528,13 @@ void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
 	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
 }
 
-// TODO: someone might need to know the name of a terrain type?
-/*const char* Worldmap::GetTerrainTypeName(long x, long y) {
+// Returns the name of the terrain type at the specified coordinates on the world map
+const char* Worldmap::GetTerrainTypeName(long x, long y) {
 	const char* name = GetOverrideTerrainName(x, y);
-	return (name) ? name : fo::util::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
-}*/
+	return (name) ? name : fo::util::GetMessageStr(fo::ptr::wmMsgFile, 1000 + fo::util::wmGetTerrainType(x * 50, y * 50));
+}
 
-// Returns the name of the terrain type in the position of the player's marker on the world map
+// Returns the name of the terrain type at the position of the player's marker on the world map
 const char* Worldmap::GetCurrentTerrainName() {
 	const char* name = GetOverrideTerrainName(*fo::ptr::world_xpos / 50, *fo::ptr::world_ypos / 50);
 	return (name) ? name : fo::util::GetMessageStr(fo::ptr::wmMsgFile, 1000 + fo::util::wmGetCurrentTerrainType());

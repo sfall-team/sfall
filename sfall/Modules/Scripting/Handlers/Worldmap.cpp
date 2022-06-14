@@ -202,8 +202,37 @@ void mf_tile_by_position(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
+static const char* invalidSubTilePos = "%s() - invalid x/y coordinates for the sub-tile.";
+
 void mf_set_terrain_name(OpcodeContext& ctx) {
-	Worldmap::SetTerrainTypeName(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).strValue());
+	long x = ctx.arg(0).rawValue();
+	long y = ctx.arg(1).rawValue();
+
+	if (x < 0 || x >= (long)(7 * *fo::ptr::wmNumHorizontalTiles) ||
+	    y < 0 || y >= (long)(6 * (*fo::ptr::wmMaxTileNum / *fo::ptr::wmNumHorizontalTiles)))
+	{
+		ctx.printOpcodeError(invalidSubTilePos, ctx.getMetaruleName());
+	} else {
+		Worldmap::SetTerrainTypeName(x, y, ctx.arg(2).strValue());
+	}
+}
+
+void mf_get_terrain_name(OpcodeContext& ctx) {
+	if (ctx.numArgs() < 2) {
+		ctx.setReturn(Worldmap::GetCurrentTerrainName());
+	} else {
+		long x = ctx.arg(0).rawValue();
+		long y = ctx.arg(1).rawValue();
+
+		if (x < 0 || x >= (long)(7 * *fo::ptr::wmNumHorizontalTiles) ||
+		    y < 0 || y >= (long)(6 * (*fo::ptr::wmMaxTileNum / *fo::ptr::wmNumHorizontalTiles)))
+		{
+			ctx.printOpcodeError(invalidSubTilePos, ctx.getMetaruleName());
+			ctx.setReturn("Error");
+		} else {
+			ctx.setReturn(Worldmap::GetTerrainTypeName(x, y));
+		}
+	}
 }
 
 void mf_set_town_title(OpcodeContext& ctx) {

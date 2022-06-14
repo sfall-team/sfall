@@ -34,7 +34,7 @@ public:
 	static void SetAddedYears(DWORD years);
 
 	static void SetTerrainTypeName(long x, long y, const char* name);
-	//static const char* GetTerrainTypeName(long x, long y);
+	static const char* GetTerrainTypeName(long x, long y);
 	static const char* GetCurrentTerrainName();
 
 	static bool AreaTitlesIsEmpty();

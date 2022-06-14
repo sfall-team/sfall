@@ -94,6 +94,7 @@ static const SfallMetarule metarules[] = {
 	{"get_sfall_arg_at",        mf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},
 	{"get_stat_max",            mf_get_stat_max,            1, 2,  0, {ARG_INT, ARG_INT}},
 	{"get_stat_min",            mf_get_stat_min,            1, 2,  0, {ARG_INT, ARG_INT}},
+	{"get_terrain_name",        mf_get_terrain_name,        0, 2, -1, {ARG_INT, ARG_INT}},
 	{"get_text_width",          mf_get_text_width,          1, 1,  0, {ARG_STRING}},
 	{"get_window_attribute",    mf_get_window_attribute,    1, 2, -1, {ARG_INT, ARG_INT}},
 	{"hide_window",             mf_hide_window,             0, 1, -1, {ARG_STRING}},
