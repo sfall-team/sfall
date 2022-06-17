@@ -345,6 +345,7 @@
 #define FO_VAR_tile_y                     0x66BE1C
 #define FO_VAR_title_color                0x56D750
 #define FO_VAR_title_font                 0x56D748
+#define FO_VAR_topFileID                  0x6B2780
 #define FO_VAR_trait_data                 0x51DB84
 #define FO_VAR_use_language               0x510898  // aka _darn_foreigners
 #define FO_VAR_view_page                  0x664520
