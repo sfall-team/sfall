@@ -713,11 +713,28 @@ bool FileSystem::IsEmpty() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static void __stdcall OpenWarning() {
+	MessageBoxA(0, "The open file limit is about to be reached.\n"
+	               "It is recommended to restart the game to avoid critical errors.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
+}
+
+static void __declspec(naked) sopen_hook_warning() {
+	static const DWORD __NTAtMaxFiles_ = 0x4EB190;
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_topFileID], 15;
+		jg   warning;
+		jmp  __NTAtMaxFiles_;
+warning:
+		call OpenWarning;
+		jmp  __NTAtMaxFiles_;
+	}
+}
+
 static void __stdcall OpenFail() {
 	MessageBoxA(0, "Failed to open file.\nToo many open files.", 0, MB_TASKMODAL | MB_ICONERROR);
 }
 
-static void __declspec(naked) sopen_hook() {
+static void __declspec(naked) sopen_hook_error() {
 	static const DWORD __set_errno_ = 0x4E11F5;
 	__asm {
 		call __set_errno_;
@@ -737,8 +754,10 @@ void FileSystem::init() {
 	BlockCall(0x4DEF12);
 	BlockCall(0x4DEF84);
 
+	// Warning message when there are more than 16 open files (max 20)
+	HookCall(0x4EE0DE, sopen_hook_warning);
 	// Error message "Failed to open file"
-	HookCall(0x4EE0EC, sopen_hook);
+	HookCall(0x4EE0EC, sopen_hook_error);
 }
 
 }
