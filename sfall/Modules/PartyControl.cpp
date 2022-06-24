@@ -478,6 +478,8 @@ void PartyControl::OnGameLoad() {
 void PartyControl::init() {
 	Mode = IniReader::GetConfigInt("Misc", "ControlCombat", 0);
 	if (Mode > 2) Mode = 0;
+	else if (Mode == 1 && !isDebug) Mode = 2;
+
 	if (Mode > 0) {
 		dlogr("Initializing party control...", DL_INIT);
 		std::vector<std::string> pidList = IniReader::GetConfigList("Misc", "ControlCombatPIDList", "", 512);
