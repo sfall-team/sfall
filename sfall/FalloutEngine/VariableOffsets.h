@@ -330,11 +330,13 @@
 #define FO_VAR_DarkGreyColor              0x6A59D8
 #define FO_VAR_DarkRedColor               0x6AA8D0
 #define FO_VAR_DarkYellowColor            0x6AB472
-#define FO_VAR_DullPinkColor              0x6AB718
+#define FO_VAR_DullPinkColor              0x6AB6BF
 #define FO_VAR_GoodColor                  0x6AB4EF
 #define FO_VAR_GreenColor                 0x6A3CB0
+#define FO_VAR_GreyColor                  0x6A621A
 #define FO_VAR_LightGreyColor             0x6A76BF
 #define FO_VAR_LightRedColor              0x6AB61A
+#define FO_VAR_NearBlackColor             0x6A4954
 #define FO_VAR_NearWhiteColor             0x6A8B64
 #define FO_VAR_PeanutButter               0x6A82F3
 #define FO_VAR_RedColor                   0x6AB4D0
