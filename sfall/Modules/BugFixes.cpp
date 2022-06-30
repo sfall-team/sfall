@@ -3179,6 +3179,22 @@ static void __declspec(naked) action_can_be_pushed_hook() {
 	}
 }
 
+static void __declspec(naked) op_float_msg_hack() {
+	__asm {
+		cmp  eax, 7; // 3 - black, 7 - purple, 12 - grey
+		je   purple;
+		jl   black;
+		movzx eax, byte ptr ds:[FO_VAR_GreyColor];
+		retn;
+purple:
+		movzx eax, byte ptr ds:[FO_VAR_GoodColor];
+		retn;
+black:
+		movzx eax, byte ptr ds:[FO_VAR_NearBlackColor];
+		retn;
+	}
+}
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -4001,6 +4017,9 @@ void BugFixes::init() {
 
 	// Fix for being able to use the "Push" action on members of the player's team in combat when they are knocked down
 	HookCall(0x413718, action_can_be_pushed_hook);
+
+	// Fix for float_msg function not setting the purple or black text color correctly (was always grey)
+	MakeCall(0x459415, op_float_msg_hack, 2);
 }
 
 }
