@@ -443,6 +443,7 @@ FUNC(item_w_try_reload_,              0x478768)
 FUNC(item_w_unload_,                  0x478F80)
 FUNC(item_weight_,                    0x477B88)
 FUNC(kb_clear_,                       0x4CBDA8)
+FUNC(light_get_ambient_,              0x47A8F8)
 FUNC(light_get_tile_,                 0x47A980) // aElev<eax>, aTilenum<edx>
 FUNC(loadColorTable_,                 0x4C78E4)
 FUNC(loadPCX_,                        0x496494)

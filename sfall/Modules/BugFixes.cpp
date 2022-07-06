@@ -2239,7 +2239,7 @@ static void __declspec(naked) JesseContainerFid() {
 	}
 }
 
-static void __declspec(naked) ai_search_inven_weap_hook() {
+static void __declspec(naked) ai_search_inven_weap_hook0() {
 	__asm {
 		call fo::funcoffs::item_w_subtype_;
 		cmp  eax, THROWING;
@@ -2251,6 +2251,28 @@ fix:
 		test edx, edx;
 		js   skip;
 		mov  eax, GUNS; // set GUNS if has ammo pid
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_search_inven_weap_hook1() {
+	static const DWORD ai_search_inven_weap_next = 0x4299E3;
+	__asm {
+		call fo::funcoffs::inven_find_type_;
+		test eax, eax; // found weapon object
+		jz   skip;
+		cmp  [eax + protoId], PID_SOLAR_SCORCHER;
+		jne  skip;
+		cmp  [eax + charges], 0;
+		jne  skip;
+		push eax;
+		call fo::funcoffs::light_get_ambient_;
+		cmp  eax, 62259;
+		pop  eax;
+		jg   skip;
+		add  esp, 4;
+		jmp  ai_search_inven_weap_next; // skip empty solar scorcher when it's dark
 skip:
 		retn;
 	}
@@ -3797,9 +3819,10 @@ void BugFixes::init() {
 	// Fix the return value of has_skill function for incorrect skill numbers
 	SafeWrite32(0x4AA56B, 0);
 
-	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
-	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_FIX);
-	HookCall(0x429A2B, ai_search_inven_weap_hook);
+	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons or solar scorcher when out of ammo
+	dlog("Applying fix for NPC stuck in a loop of reloading empty weapons.", DL_FIX);
+	HookCall(0x429A2B, ai_search_inven_weap_hook0); // for melee/unarmed weapons
+	HookCall(0x4299EC, ai_search_inven_weap_hook1); // for the solar scorcher
 	dlogr(" Done", DL_FIX);
 
 	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
