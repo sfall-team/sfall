@@ -2278,9 +2278,9 @@ static void __declspec(naked) ai_search_inven_weap_hook1() {
 		call fo::funcoffs::inven_find_type_;
 		test eax, eax; // found weapon object
 		jz   skip;
-		cmp  [eax + protoId], PID_SOLAR_SCORCHER;
+		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
 		jne  skip;
-		cmp  [eax + charges], 0;
+		cmp  dword ptr [eax + charges], 0;
 		jne  skip;
 		push eax;
 		call fo::funcoffs::light_get_ambient_;
