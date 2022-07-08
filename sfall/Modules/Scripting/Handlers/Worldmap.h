@@ -60,6 +60,8 @@ void mf_tile_by_position(OpcodeContext&);
 
 void mf_set_terrain_name(OpcodeContext&);
 
+void mf_get_terrain_name(OpcodeContext&);
+
 void mf_set_town_title(OpcodeContext&);
 
 }

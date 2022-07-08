@@ -101,9 +101,6 @@ long GetCurrentAttackMode();
 
 fo::AttackSubType GetWeaponType(DWORD weaponFlag);
 
-// Returns the distance a critter can move in combat based on current APs
-long __fastcall GetCombatMoveDistance(fo::GameObject* critter, long freeMove);
-
 long ObjIsOpenable(fo::GameObject* object);
 
 bool HeroIsFemale();
@@ -139,6 +136,8 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 fo::GameObject* CheckAroundBlockingTiles(fo::GameObject* source, long dstTile);
 
 fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long dstTile);
+
+long wmGetTerrainType(long xPos, long yPos);
 
 long wmGetCurrentTerrainType();
 

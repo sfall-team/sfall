@@ -34,8 +34,8 @@ namespace sfall
 namespace script
 {
 
-const char* invalidStat = "%s() - stat number out of range.";
-const char* objNotCritter = "%s() - the object is not a critter.";
+static const char* invalidStat = "%s() - stat number out of range.";
+static const char* objNotCritter = "%s() - the object is not a critter.";
 
 void __declspec(naked) op_set_hp_per_level_mod() {
 	__asm {

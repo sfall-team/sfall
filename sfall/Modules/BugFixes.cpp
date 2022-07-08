@@ -1258,22 +1258,22 @@ inCombat:
 static void __declspec(naked) action_explode_hack() {
 	using namespace fo::Scripts;
 	__asm {
-		mov  edx, destroy_p_proc
-		mov  eax, [esi + scriptId]                // pobj.sid
-		call fo::funcoffs::exec_script_proc_
-		xor  edx, edx
-		dec  edx
-		retn
+		mov  edx, destroy_p_proc;
+		mov  eax, [esi + scriptId];               // pobj.sid
+		call fo::funcoffs::exec_script_proc_;
+		xor  edx, edx;
+		dec  edx;
+		retn;
 	}
 }
 
 static void __declspec(naked) action_explode_hack1() {
 	__asm {
-		push esi
-		mov  esi, [esi+0x40]                      // ctd.target#
-		call action_explode_hack
-		pop  esi
-		retn
+		push esi;
+		mov  esi, [esi + 0x40];                   // ctd.target#
+		call action_explode_hack;
+		pop  esi;
+		retn;
 	}
 }
 
@@ -1342,140 +1342,140 @@ end:
 
 static void __declspec(naked) db_get_file_list_hack() {
 	__asm {
-		push edi
-		push edx
-		xchg edi, eax                             // edi = *filename
-		mov  eax, [eax+4]                         // file_lists.filenames
-		lea  esi, [eax+edx]
-		cld
-		push es
-		push ds
-		pop  es
-		xor  ecx, ecx
-		dec  ecx
-		mov  edx, ecx
-		mov  ebx, ecx
-		xor  eax, eax                             // searching for end of line
-		repne scasb
-		not  ecx
-		dec  ecx
-		xchg ebx, ecx                             // ebx = filename length
-		lea  edi, [esp+0x200+4*6]
-		repne scasb
-		not  ecx
-		xchg edx, ecx                             // edx = extension length +1 for "end of line"
-		mov  edi, [esi]
-		repne scasb
-		not  ecx                                  // ecx = buffer line length +1 for "end of line"
-		pop  es
-		lea  eax, [ebx+edx]                       // eax = new line length
-		cmp  eax, ecx                             // new line length <= buffer line length?
-		jbe  end                                  // Yes
-		mov  edx, [esi]
-		xchg edx, eax
-		call fo::funcoffs::nrealloc_                  // eax = mem, edx = size
-		test eax, eax
-		jnz  skip
-		push 0x50B2F0                             // "Error: Ran out of memory!"
-		call fo::funcoffs::debug_printf_
-		add  esp, 4
-		jmp  end
+		push edi;
+		push edx;
+		xchg edi, eax;                            // edi = *filename
+		mov  eax, [eax + 4];                      // file_lists.filenames
+		lea  esi, [eax + edx];
+		cld;
+		push es;
+		push ds;
+		pop  es;
+		xor  ecx, ecx;
+		dec  ecx;
+		mov  edx, ecx;
+		mov  ebx, ecx;
+		xor  eax, eax;                            // searching for end of line
+		repne scasb;
+		not  ecx;
+		dec  ecx;
+		xchg ebx, ecx;                            // ebx = filename length
+		lea  edi, [esp + 0x200 + 6*4];
+		repne scasb;
+		not  ecx;
+		xchg edx, ecx;                            // edx = extension length +1 for "end of line"
+		mov  edi, [esi];
+		repne scasb;
+		not  ecx;                                 // ecx = buffer line length +1 for "end of line"
+		pop  es;
+		lea  eax, [ebx + edx];                    // eax = new line length
+		cmp  eax, ecx;                            // new line length <= buffer line length?
+		jbe  end;                                 // Yes
+		mov  edx, [esi];
+		xchg edx, eax;
+		call fo::funcoffs::nrealloc_;             // eax = mem, edx = size
+		test eax, eax;
+		jnz  skip;
+		push 0x50B2F0;                            // "Error: Ran out of memory!"
+		call fo::funcoffs::debug_printf_;
+		add  esp, 4;
+		jmp  end;
 skip:
-		mov  [esi], eax
+		mov  [esi], eax;
 end:
-		xchg esi, eax
-		pop  edx
-		pop  edi
-		retn
+		xchg esi, eax;
+		pop  edx;
+		pop  edi;
+		retn;
 	}
 }
 
 static void __declspec(naked) gdActivateBarter_hook() {
 	__asm {
-		call fo::funcoffs::gdialog_barter_pressed_
-		cmp  ds:[FO_VAR_dialogue_state], ecx
-		jne  skip
-		cmp  ds:[FO_VAR_dialogue_switch_mode], esi
-		je   end
+		call fo::funcoffs::gdialog_barter_pressed_;
+		cmp  ds:[FO_VAR_dialogue_state], ecx;
+		jne  skip;
+		cmp  ds:[FO_VAR_dialogue_switch_mode], esi;
+		je   end;
 skip:
-		push ecx
-		push esi
-		push edi
-		push ebp
-		sub  esp, 0x18
-		push 0x44A5CC
+		push ecx;
+		push esi;
+		push edi;
+		push ebp;
+		sub  esp, 0x18;
+		push 0x44A5CC;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) switch_hand_hack() {
 	__asm {
-		mov  eax, ds:[FO_VAR_inven_dude]
-		push eax
-		mov  [edi], ebp
-		inc  ecx                                   // if ecx == -1
-		jz   skip
-		xor  ebx, ebx
-		inc  ebx
-		mov  edx, ebp
-		call fo::funcoffs::item_remove_mult_
+		mov  eax, ds:[FO_VAR_inven_dude];
+		push eax;
+		mov  [edi], ebp;
+		inc  ecx;                                  // if ecx == -1
+		jz   skip;
+		xor  ebx, ebx;
+		inc  ebx;
+		mov  edx, ebp;
+		call fo::funcoffs::item_remove_mult_;
 skip:
-		pop  edx                                  // _inven_dude
-		mov  eax, ebp
-		call fo::funcoffs::item_get_type_
-		cmp  eax, item_type_container
-		jne  end
-		mov  [ebp + owner], edx                   // iobj.owner = _inven_dude
+		pop  edx;                                 // _inven_dude
+		mov  eax, ebp;
+		call fo::funcoffs::item_get_type_;
+		cmp  eax, item_type_container;
+		jne  end;
+		mov  [ebp + owner], edx;                  // iobj.owner = _inven_dude
 end:
-		pop  ebp
-		pop  edi
-		pop  esi
-		retn
+		pop  ebp;
+		pop  edi;
+		pop  esi;
+		retn;
 	}
 }
 
 static void __declspec(naked) inven_item_wearing() {
 	__asm {
-		mov  esi, ds:[FO_VAR_inven_dude]
-		xchg ebx, eax                             // ebx = source
-		mov  eax, [esi + artFid]
-		and  eax, 0xF000000
-		sar  eax, 0x18
-		test eax, eax                             // check if object FID type flag is set to item
-		jnz  skip                                 // No
-		mov  eax, esi
-		call fo::funcoffs::item_get_type_
-		cmp  eax, item_type_container             // Bag/Backpack?
-		jne  skip                                 // No
-		mov  eax, esi
-		call fo::funcoffs::obj_top_environment_
-		test eax, eax                             // has an owner?
-		jz   skip                                 // No
-		mov  ecx, [eax + artFid]
-		and  ecx, 0xF000000
-		sar  ecx, 0x18
-		cmp  ecx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
-		jne  skip                                 // No
-		cmp  eax, ebx                             // the owner of the bag == source?
-		je   end                                  // Yes
+		mov  esi, ds:[FO_VAR_inven_dude];
+		xchg ebx, eax;                            // ebx = source
+		mov  eax, [esi + artFid];
+		and  eax, 0xF000000;
+		sar  eax, 0x18;
+		test eax, eax;                            // check if object FID type flag is set to item
+		jnz  skip;                                // No
+		mov  eax, esi;
+		call fo::funcoffs::item_get_type_;
+		cmp  eax, item_type_container;            // Bag/Backpack?
+		jne  skip;                                // No
+		mov  eax, esi;
+		call fo::funcoffs::obj_top_environment_;
+		test eax, eax;                            // has an owner?
+		jz   skip;                                // No
+		mov  ecx, [eax + artFid];
+		and  ecx, 0xF000000;
+		sar  ecx, 0x18;
+		cmp  ecx, OBJ_TYPE_CRITTER;               // check if object FID type flag is set to critter
+		jne  skip;                                // No
+		cmp  eax, ebx;                            // the owner of the bag == source?
+		je   end;                                 // Yes
 skip:
-		xchg ebx, eax
-		cmp  eax, esi
+		xchg ebx, eax;
+		cmp  eax, esi;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
-		cmp  dword ptr [esp+0x44+0x4], item_type_container
-		jne  end
-		cmp  eax, ds:[FO_VAR_stack]
-		je   end
-		cmp  eax, ds:[FO_VAR_target_stack]
+		cmp  dword ptr [esp + 0x44 + 4], item_type_container;
+		jne  end;
+		cmp  eax, ds:[FO_VAR_stack];
+		je   end;
+		cmp  eax, ds:[FO_VAR_target_stack];
 end:
-		retn
+		retn;
 	}
 }
 
@@ -1574,7 +1574,7 @@ end:
 static void __declspec(naked) apply_damage_hack() {
 	__asm {
 		xchg edx, eax;
-		test [esi+0x15], dl;                      // ctd.flags2Source & DAM_HIT_?
+		test [esi + 0x15], dl;                    // ctd.flags2Source & DAM_HIT_?
 		jz   end;                                 // No
 		inc  ebx;
 end:
@@ -1585,9 +1585,9 @@ end:
 static void __declspec(naked) compute_attack_hook() {
 	__asm {
 		call fo::funcoffs::attack_crit_success_;
-		test [esi+0x15], 2;                       // ctd.flags2Source & DAM_CRITICAL_?
+		test [esi + 0x15], 2;                     // ctd.flags2Source & DAM_CRITICAL_?
 		jz   end;                                 // No
-		cmp  dword ptr [esp+0x4+0x20], 4;         // Has Silent Death perk?
+		cmp  dword ptr [esp + 0x20 + 4], 4;       // Has Silent Death perk?
 		jne  end;                                 // No
 		shl  eax, 1;                              // Multiply by 2 for the perk effect
 end:
@@ -1949,8 +1949,8 @@ fix:
 	}
 }
 
-static DWORD op_start_gdialog_ret = 0x456F4B;
 static void __declspec(naked) op_start_gdialog_hack() {
+	static const DWORD op_start_gdialog_ret = 0x456F4B;
 	__asm {
 		cmp  eax, -1;                                 // check mood arg
 		jnz  useMood;
@@ -2255,7 +2255,7 @@ static void __declspec(naked) JesseContainerFid() {
 	}
 }
 
-static void __declspec(naked) ai_search_inven_weap_hook() {
+static void __declspec(naked) ai_search_inven_weap_hook0() {
 	__asm {
 		call fo::funcoffs::item_w_subtype_;
 		cmp  eax, THROWING;
@@ -2267,6 +2267,28 @@ fix:
 		test edx, edx;
 		js   skip;
 		mov  eax, GUNS; // set GUNS if has ammo pid
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_search_inven_weap_hook1() {
+	static const DWORD ai_search_inven_weap_next = 0x4299E3;
+	__asm {
+		call fo::funcoffs::inven_find_type_;
+		test eax, eax; // found weapon object
+		jz   skip;
+		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
+		jne  skip;
+		cmp  dword ptr [eax + charges], 0;
+		jne  skip;
+		push eax;
+		call fo::funcoffs::light_get_ambient_;
+		cmp  eax, 62259;
+		pop  eax;
+		jg   skip;
+		add  esp, 4;
+		jmp  ai_search_inven_weap_next; // skip empty solar scorcher when it's dark
 skip:
 		retn;
 	}
@@ -3179,8 +3201,23 @@ static void __declspec(naked) action_can_be_pushed_hook() {
 	}
 }
 
-void BugFixes::init()
-{
+static void __declspec(naked) op_float_msg_hack() {
+	__asm {
+		cmp  eax, 7; // 3 - black, 7 - purple, 12 - grey
+		je   purple;
+		jl   black;
+		movzx eax, byte ptr ds:[FO_VAR_GreyColor];
+		retn;
+purple:
+		movzx eax, byte ptr ds:[FO_VAR_GoodColor];
+		retn;
+black:
+		movzx eax, byte ptr ds:[FO_VAR_NearBlackColor];
+		retn;
+	}
+}
+
+void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
 	if (IniReader::GetIntDefaultConfig("Debugging", "BugFixes", 1) == 0) return;
@@ -3778,9 +3815,10 @@ void BugFixes::init()
 	// Fix the return value of has_skill function for incorrect skill numbers
 	SafeWrite32(0x4AA56B, 0);
 
-	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
-	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_FIX);
-	HookCall(0x429A2B, ai_search_inven_weap_hook);
+	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons or solar scorcher when out of ammo
+	dlog("Applying fix for NPC stuck in a loop of reloading empty weapons.", DL_FIX);
+	HookCall(0x429A2B, ai_search_inven_weap_hook0); // for melee/unarmed weapons
+	HookCall(0x4299EC, ai_search_inven_weap_hook1); // for the solar scorcher
 	dlogr(" Done", DL_FIX);
 
 	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
@@ -4002,6 +4040,9 @@ void BugFixes::init()
 
 	// Fix for being able to use the "Push" action on members of the player's team in combat when they are knocked down
 	HookCall(0x413718, action_can_be_pushed_hook);
+
+	// Fix for float_msg function not setting the purple or black text color correctly (was always grey)
+	MakeCall(0x459415, op_float_msg_hack, 2);
 }
 
 }

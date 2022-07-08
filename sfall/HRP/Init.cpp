@@ -167,7 +167,7 @@ static __declspec(naked) void GNW95_process_message_hack() {
 void Setting::init(const char* exeFileName, std::string &cmdline) {
 	ViewMap::RedrawFix();
 
-	bool hiResMode = sf::IniReader::GetIntDefaultConfig("Main", "HiResMode", 1) != 0;
+	bool hiResMode = sf::IniReader::GetConfigInt("Main", "HiResMode", 1) != 0;
 
 	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
 
