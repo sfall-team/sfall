@@ -311,9 +311,9 @@ void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE
 		movq [edi + 8], mm1;
 		movq [edi + 16], mm2; // movups [edi + 16], xmm1;
 		movq [edi + 24], mm3;
-		movq [edi + 32], mm4; // movups xmm2, [esi + 32];
+		movq [edi + 32], mm4; // movups [edi + 32], xmm2;
 		movq [edi + 40], mm5;
-		movq [edi + 48], mm6; // movups xmm3, [esi + 48];
+		movq [edi + 48], mm6; // movups [edi + 48], xmm3;
 		movq [edi + 56], mm7;
 		add  esi, 64;
 		lea  edi, [edi + 64];
