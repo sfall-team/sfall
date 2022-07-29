@@ -176,7 +176,7 @@ static __declspec(naked) void GNW_win_refresh_hack() {
 }
 
 void Render::init() {
-	// Replace the srcCopy_ function with a pure MMX implementation
+	// Replace the srcCopy_ function with a pure SSE implementation
 	sf::MakeJump(fo::funcoffs::buf_to_buf_, fo::func::buf_to_buf); // 0x4D36D4
 	// Replace the transSrcCopy_ function
 	sf::MakeJump(fo::funcoffs::trans_buf_to_buf_, fo::func::trans_buf_to_buf); // 0x4D3704
