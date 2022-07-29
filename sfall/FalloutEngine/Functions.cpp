@@ -277,7 +277,7 @@ void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, l
 	}
 }
 
-// buf_to_buf_ function with pure MMX implementation
+// buf_to_buf_ function with pure SSE implementation
 void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
@@ -294,27 +294,19 @@ void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE
 		mov  esi, src;
 		mov  edi, dst;
 		mov  eax, height;
-	startLoop:
+startLoop:
 		mov  ecx, blockCount;
 		test ecx, ecx;
 		jz   copySmall;
-	copyBlock: // copies block of 64 bytes
-		movq mm0, [esi];      // movups xmm0, [esi]; // SSE implementation
-		movq mm1, [esi + 8];
-		movq mm2, [esi + 16]; // movups xmm1, [esi + 16];
-		movq mm3, [esi + 24];
-		movq mm4, [esi + 32]; // movups xmm2, [esi + 32];
-		movq mm5, [esi + 40];
-		movq mm6, [esi + 48]; // movups xmm3, [esi + 48];
-		movq mm7, [esi + 56];
-		movq [edi], mm0;      // movups [edi], xmm0;
-		movq [edi + 8], mm1;
-		movq [edi + 16], mm2; // movups [edi + 16], xmm1;
-		movq [edi + 24], mm3;
-		movq [edi + 32], mm4; // movups [edi + 32], xmm2;
-		movq [edi + 40], mm5;
-		movq [edi + 48], mm6; // movups [edi + 48], xmm3;
-		movq [edi + 56], mm7;
+copyBlock: // copies block of 64 bytes
+		movups xmm0, [esi];
+		movups xmm1, [esi + 16];
+		movups xmm2, [esi + 32];
+		movups xmm3, [esi + 48];
+		movups [edi], xmm0;
+		movups [edi + 16], xmm1;
+		movups [edi + 32], xmm2;
+		movups [edi + 48], xmm3;
 		add  esi, 64;
 		lea  edi, [edi + 64];
 		dec  ecx; // blockCount
@@ -328,9 +320,8 @@ void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE
 		add  edi, edx; // d_pitch
 		dec  eax;      // height
 		jnz  startLoop;
-		emms;
 		jmp  end;
-	copySmall: // copies the small size data
+copySmall: // copies the small size data
 		mov  ecx, sizeD;
 		rep  movsd;
 		mov  ecx, sizeB;
