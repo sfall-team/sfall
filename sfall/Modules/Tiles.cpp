@@ -314,7 +314,7 @@ void Tiles::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (IniReader::GetConfigInt("Misc", "MoreTiles", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "MoreTiles", 1)) {
 		dlog("Applying tile FRM limit patch.", DL_INIT);
 		MakeCall(0x419D46, art_id_hack);
 		MakeCall(0x419479, art_get_name_hack);
@@ -327,7 +327,7 @@ void Tiles::init() {
 			SafeWrite8(HRPAddress(0x1000E1DA), 0x3F); // and esi, 0x3FFF
 		}
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 void Tiles::exit() {
