@@ -4049,6 +4049,10 @@ void BugFixes::init() {
 
 	// Fix for float_msg function not setting the purple or black text color correctly (was always grey)
 	MakeCall(0x459415, op_float_msg_hack, 2);
+
+	// Corrects the language path for loading art files
+	const DWORD artDataPathAddr[] = {0x419B00, 0x419C06}; // art_data_size_, art_data_load_
+	SafeWriteBatch<DWORD>((DWORD)&"art\\%s%s", artDataPathAddr);
 }
 
 }
