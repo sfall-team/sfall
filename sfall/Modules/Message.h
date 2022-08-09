@@ -49,6 +49,7 @@ namespace sfall
 #define MSG_FILE_STAT		(0x66817C)
 #define MSG_FILE_TRAIT		(0x66BE38)
 #define MSG_FILE_WORLDMAP	(0x672FB0)
+#define MSG_FILE_EDITOR		(0x56FCA8)
 
 typedef std::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGameMessageListsMap;
 
