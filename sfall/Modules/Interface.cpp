@@ -1071,12 +1071,7 @@ static void InterfaceWindowPatch() {
 }
 
 static void InventoryCharacterRotationSpeedPatch() {
-	long setting = IniReader::GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
-	if (setting != 166 && setting <= 1000) {
-		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
-		SafeWrite32(0x47066B, setting);
-		dlogr(" Done", DL_INIT);
-	}
+	SimplePatch<DWORD>(0x47066B, "Misc", "SpeedInventoryPCRotation", 166, 0, 1000);
 }
 
 static void UIAnimationSpeedPatch() {
