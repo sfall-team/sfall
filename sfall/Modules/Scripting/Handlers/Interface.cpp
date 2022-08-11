@@ -43,16 +43,29 @@ void __declspec(naked) op_input_funcs_available() {
 	}
 }
 
-void __declspec(naked) op_set_pipboy_available() {
-	__asm {
-		_GET_ARG_INT(end);
-		cmp  eax, 0;
-		jl   end;
-		cmp  eax, 1;
-		jg   end;
-		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
-end:
-		retn;
+static BYTE pipboyMovieCheck = 0;
+
+void PipboyAvailableRestore() {
+	if (pipboyMovieCheck) {
+		SafeWrite8(0x497011, pipboyMovieCheck);
+		pipboyMovieCheck = 0;
+	}
+}
+
+void op_set_pipboy_available(OpcodeContext& ctx) {
+	if (!pipboyMovieCheck) pipboyMovieCheck = *(BYTE*)0x497011; // should be either jnz or jmp(short)
+
+	switch (ctx.arg(0).rawValue()) {
+	case 0:
+		fo::ptr::gmovie_played_list[3] = false;
+		SafeWrite8(0x497011, CodeType::JumpNZ); // restore the vault suit movie check
+		break;
+	case 1:
+		fo::ptr::gmovie_played_list[3] = true;
+		break;
+	case 2:
+		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
+		break;
 	}
 }
 

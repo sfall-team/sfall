@@ -81,6 +81,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 
 	{0x189, "set_perk_name",              op_set_perk_name,             2, false,  0, {ARG_INT, ARG_STRING}},
 	{0x18a, "set_perk_desc",              op_set_perk_desc,             2, false,  0, {ARG_INT, ARG_STRING}},
+	{0x18b, "set_pipboy_available",       op_set_pipboy_available,      1, false,  0, {ARG_INT}},
 
 	{0x190, "get_perk_available",         op_get_perk_available,        1, true,   0, {ARG_INT}},
 	{0x192, "set_critter_current_ap",     op_set_critter_current_ap,    2, false,  0, {ARG_OBJECT, ARG_INT}},
@@ -324,7 +325,6 @@ void Opcodes::InitNew() {
 	for (int i = 0x178; i < 0x189; i++) {
 		opcodes[i] = op_set_perk_value;
 	}
-	opcodes[0x18b] = op_set_pipboy_available;
 	opcodes[0x18c] = op_get_kill_counter;
 	opcodes[0x18d] = op_mod_kill_counter;
 	opcodes[0x18e] = op_get_perk_owed;

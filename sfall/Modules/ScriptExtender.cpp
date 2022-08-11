@@ -33,6 +33,7 @@
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
 #include "Scripting\Handlers\Anims.h"
+#include "Scripting\Handlers\Interface.h"
 #include "Scripting\Handlers\Worldmap.h"
 
 #include "ScriptExtender.h"
@@ -1144,6 +1145,7 @@ void ScriptExtender::OnGameLoad() {
 	ClearGlobalScripts();
 	ClearGlobals();
 	RegAnimCombatCheck(1);
+	PipboyAvailableRestore();
 	ForceEncounterRestore(); // restore if the encounter did not happen
 
 	ObjectName::Reset();
