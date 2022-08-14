@@ -42,6 +42,8 @@ static void __declspec(naked) RemoveObjHook() {
 		cmp  rmObjType, -1;
 		cmovne ecx, rmObjType;
 		mov  rmObjType, -1;
+		cmp  ecx, -2;
+		je   skipHook;
 		HookBegin;
 		mov  args[0], eax;   // source
 		mov  args[4], edx;   // item
@@ -51,8 +53,6 @@ static void __declspec(naked) RemoveObjHook() {
 		xor  ecx, 0x47761D;  // from item_move_func_
 		cmovz esi, ebp;      // target
 		mov  args[16], esi;
-		push edi;
-		push ebp;
 		push eax;
 		push edx;
 	}
@@ -62,10 +62,13 @@ static void __declspec(naked) RemoveObjHook() {
 	EndHook();
 
 	__asm {
-		pop edx;
-		pop eax;
-		sub esp, 0x0C;
-		jmp RemoveObjHookRet;
+		pop  edx;
+		pop  eax;
+skipHook:
+		push edi;
+		push ebp;
+		sub  esp, 0x0C;
+		jmp  RemoveObjHookRet;
 	}
 }
 
@@ -232,8 +235,14 @@ skipHook:
 capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
-		__asm call fo::funcoffs::item_remove_mult_;
-		__asm retn;
+		__asm {
+			push eax;
+			push 0x47379F;
+			call SetRemoveObjectType; // call addr for HOOK_REMOVEINVENOBJ
+			pop  eax;
+			call fo::funcoffs::item_remove_mult_;
+			retn;
+		}
 	}
 	__asm add esp, 4;
 	__asm jmp InvenActionObjDropRet; // no caps drop
