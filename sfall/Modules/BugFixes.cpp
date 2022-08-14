@@ -569,6 +569,10 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		mov  cl, byte ptr [edi + 0x27];
 		and  cl, 0x3;
 		xchg edx, eax;                            // eax = who, edx = item
+		push eax;
+		push -2;
+		call SetRemoveObjectType;                 // call addr for HOOK_REMOVEINVENOBJ
+		pop  eax;
 		call fo::funcoffs::item_remove_mult_;
 		xchg ebx, eax;
 		mov  eax, esi;
@@ -883,6 +887,10 @@ foundItem:
 		inc  esi;                                 // No, need to change from_slot
 skip:
 		mov  edx, ebp;
+		push eax;
+		push 0x47659D;
+		call SetRemoveObjectType;                 // call addr for HOOK_REMOVEINVENOBJ
+		pop  eax;
 		call fo::funcoffs::item_remove_mult_;
 		test eax, eax;                            // Have weapon been deleted from inventory?
 		jnz  end;                                 // No
@@ -1419,6 +1427,10 @@ static void __declspec(naked) switch_hand_hack() {
 		xor  ebx, ebx;
 		inc  ebx;
 		mov  edx, ebp;
+		push eax;
+		push 0x4715F3;
+		call SetRemoveObjectType;                 // call addr for HOOK_REMOVEINVENOBJ
+		pop  eax;
 		call fo::funcoffs::item_remove_mult_;
 skip:
 		pop  edx;                                 // _inven_dude
