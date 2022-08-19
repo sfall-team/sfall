@@ -102,6 +102,7 @@ WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
 WRAP_WATCOM_FUNC0(long, get_input)
 // Searches for message ID in given message file and places result in result argument
 WRAP_WATCOM_FUNC3(const char*, getmsg, const fo::MessageList*, fileAddr, fo::MessageNode*, result, long, messageId)
+WRAP_WATCOM_FUNC1(void, gdialogDisplayMsg, const char*, message)
 WRAP_WATCOM_FUNC1(void, gmouse_3d_set_mode, long, mode)
 WRAP_WATCOM_FUNC1(long, gmouse_set_cursor, long, picNum)
 WRAP_WATCOM_FUNC1(long, gsound_background_volume_get_set, long, setVolume)

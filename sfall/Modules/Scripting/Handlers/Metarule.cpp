@@ -75,6 +75,7 @@ static const SfallMetarule metarules[] = {
 	{"combat_data",             mf_combat_data,             0, 0},
 	{"create_win",              mf_create_win,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
+	{"dialog_message",          mf_dialog_message,          1, 1, -1, {ARG_STRING}},
 	{"dialog_obj",              mf_get_dialog_object,       0, 0},
 	{"display_stats",           mf_display_stats,           0, 0}, // refresh
 	{"draw_image",              mf_draw_image,              1, 5, -1, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},

@@ -669,6 +669,11 @@ sfall_funcX metarule functions
 - `invSide` specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens), -1 - both sides (same as without argument)
 
 ----
+#### dialog_message
+`void sfall_func1("dialog_message", string text)`
+- Displays a message in the NPC response window in dialog or barter screen
+
+----
 #### get_current_inven_size
 `int sfall_func1("get_current_inven_size", object)`
 - Returns the current inventory size of the container or the critter

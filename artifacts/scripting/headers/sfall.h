@@ -280,6 +280,7 @@
 #define create_win(winName, x, y, w, h)                         sfall_func5("create_win", winName, x, y, w, h)
 #define create_win_flag(winName, x, y, w, h, flag)              sfall_func6("create_win", winName, x, y, w, h, flag)
 #define critter_inven_obj2(obj, type)                           sfall_func2("critter_inven_obj2", obj, type)
+#define dialog_message(text)                                    sfall_func1("dialog_message", text)
 #define dialog_obj                                              sfall_func0("dialog_obj")
 #define display_stats                                           sfall_func0("display_stats")
 #define draw_image(artFile, frame, x, y, noTrans)               sfall_func5("draw_image", artFile, frame, x, y, noTrans)

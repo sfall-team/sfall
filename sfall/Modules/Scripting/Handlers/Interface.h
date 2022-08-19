@@ -97,6 +97,8 @@ void mf_set_iface_tag_text(OpcodeContext&);
 
 void mf_inventory_redraw(OpcodeContext&);
 
+void mf_dialog_message(OpcodeContext&);
+
 void mf_create_win(OpcodeContext&);
 
 void mf_show_window(OpcodeContext&);

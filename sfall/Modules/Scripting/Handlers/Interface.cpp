@@ -385,6 +385,14 @@ void mf_inventory_redraw(OpcodeContext& ctx) {
 	}
 }
 
+void mf_dialog_message(OpcodeContext& ctx) {
+	DWORD loopFlag = GetLoopFlags();
+	if ((loopFlag & DIALOGVIEW) == 0 && (loopFlag & DIALOG)) {
+		const char* message = ctx.arg(0).strValue();
+		fo::func::gdialogDisplayMsg(message);
+	}
+}
+
 void mf_create_win(OpcodeContext& ctx) {
 	int flags = (ctx.numArgs() > 5)
 	          ? ctx.arg(5).rawValue()
