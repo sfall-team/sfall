@@ -433,11 +433,24 @@ jtd.setTheme = function(theme) {
   cssFile.setAttribute('href', '/sfall/assets/css/just-the-docs-' + theme + '.css');
 }
 
+// Scroll site-nav to ensure the link to the current page is visible
+
+function scrollNav() {
+  const href = document.location.pathname;
+  const siteNav = document.getElementById('site-nav');
+  const targetLink = siteNav.querySelector('a[href="' + href + '"], a[href="' + href + '/"]');
+  if(targetLink){
+    const rect = targetLink.getBoundingClientRect();
+    siteNav.scrollBy(0, rect.top - 3*rect.height);
+  }
+}
+
 // Document ready
 
 jtd.onReady(function(){
   initNav();
   initSearch();
+  scrollNav();
 });
 
 })(window.jtd = window.jtd || {});
