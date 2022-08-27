@@ -1000,14 +1000,11 @@ void Sound::init() {
 
 	void* soundLoad_func = soundLoad_hook_B;
 
-	int allowDShowSound = IniReader::GetConfigInt("Sound", "AllowDShowSound", 0);
-	if (allowDShowSound > 0) {
+	if (IniReader::GetConfigInt("Sound", "AllowDShowSound", 0)) {
 		soundLoad_func = soundLoad_hook_A; // main hook
 
 		HookCalls(gmovie_play_hook_stop, {0x44E80A, 0x445280}); // only play looping music
-		if (allowDShowSound > 1) {
-			HookCall(0x450851, gsound_background_play_hook);
-		}
+		HookCall(0x450851, gsound_background_play_hook);
 
 		HookCall(0x4813EE, main_death_scene_hook);
 		MakeCall(0x451038, gsound_speech_stop_hack, 1);
@@ -1038,10 +1035,9 @@ void Sound::init() {
 		0x4A96CC  // sfxc_decode_
 	});
 
-	int sBuff = IniReader::GetConfigInt("Sound", "NumSoundBuffers", 0);
-	if (sBuff > 4) {
-		SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
-	}
+	int sBuff = IniReader::GetConfigInt("Sound", "NumSoundBuffers", 8);
+	if (sBuff < 8) sBuff = 8; // new default
+	SafeWrite8(0x451129, (sBuff > 32) ? (BYTE)32 : (BYTE)sBuff);
 
 	if (IniReader::GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
