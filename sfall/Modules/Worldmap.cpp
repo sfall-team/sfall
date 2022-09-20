@@ -17,6 +17,7 @@
  */
 
 #include <algorithm>
+#include <unordered_map>
 #include <math.h>
 
 #include "..\main.h"
@@ -35,8 +36,20 @@ static DWORD AutomapPipboyList[AUTOMAP_MAX];
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+#pragma pack(push, 1)
+struct levelRest {
+	char level[4];
+};
+#pragma pack(pop)
+
+std::tr1::unordered_map<int, levelRest> mapRestInfo;
+
 std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
 std::tr1::unordered_map<long, std::string> wmAreaHotSpotTitle;
+
+static bool restMap;
+static bool restMode;
+static bool restTime;
 
 static bool worldMapLongDelay = false;
 static DWORD worldMapDelay;
@@ -226,6 +239,24 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
+static void __declspec(naked) critter_can_obj_dude_rest_hook() {
+	using namespace fo;
+	__asm {
+		push eax;
+		mov  ecx, eax;  // elevation
+		mov  edx, dword ptr ds:[FO_VAR_map_number];
+		call Worldmap::GetRestMapLevel;
+		xor  edx, edx;
+		cmp  eax, edx;
+		jge  skip;
+		pop  eax;
+		jmp  fo::funcoffs::wmMapCanRestHere_;
+skip:
+		add  esp, 4;
+		retn;           // overrides
+	}
+}
+
 static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
 
 static void __declspec(naked) wmMapInit_hack() {
@@ -322,6 +353,18 @@ skip:
 end:
 		retn;
 	}
+}
+
+static void RestRestore() {
+	if (!restMode) return;
+	restMode = false;
+
+	SafeWrite8(0x49952C, 0x85);
+	SafeWrite8(0x497557, 0x85);
+	SafeWrite8(0x42E587, 0xC7);
+	SafeWrite32(0x42E588, 0x10C2444);
+	SafeWrite16(0x499FD4, 0xC201);
+	SafeWrite16(0x499E93, 0x0574);
 }
 
 static void MapLimitsPatches() {
@@ -496,6 +539,37 @@ static void PipBoyAutomapsPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
+void Worldmap::SaveData(HANDLE file) {
+	DWORD sizeWrite, count = mapRestInfo.size();
+	WriteFile(file, &count, 4, &sizeWrite, 0);
+	std::tr1::unordered_map<int, levelRest>::iterator it;
+	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); ++it) {
+		WriteFile(file, &it->first, 4, &sizeWrite, 0);
+		WriteFile(file, &it->second, sizeof(levelRest), &sizeWrite, 0);
+	}
+}
+
+bool Worldmap::LoadData(HANDLE file) {
+	DWORD count, sizeRead;
+
+	ReadFile(file, &count, 4, &sizeRead, 0);
+	if (sizeRead != 4) return true;
+
+	for (DWORD i = 0; i < count; i++) {
+		DWORD mID;
+		levelRest elevData;
+		ReadFile(file, &mID, 4, &sizeRead, 0);
+		ReadFile(file, &elevData, sizeof(levelRest), &sizeRead, 0);
+		if (sizeRead != sizeof(levelRest)) return true;
+		mapRestInfo.insert(std::make_pair(mID, elevData));
+	}
+	if (count && !restMap) {
+		HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
+		restMap = true;
+	}
+	return false;
+}
+
 void Worldmap::SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
@@ -510,6 +584,70 @@ DWORD Worldmap::GetAddedYears(bool isCheck) {
 
 void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
 	SafeWrite32(0x4C2D9B, artIndex);
+}
+
+void Worldmap::SetRestHealTime(DWORD minutes) {
+	if (minutes > 0) {
+		SafeWrite32(0x499FDE, minutes);
+		restTime = (minutes != 180);
+	}
+}
+
+void Worldmap::SetRestMode(DWORD mode) {
+	RestRestore(); // restore default
+
+	restMode = ((mode & 0x7) > 0);
+	if (!restMode) return;
+
+	if (mode & 1) { // bit1 - disable resting on all maps
+		SafeWrite8(0x49952C, 0x31); // test to xor
+		SafeWrite8(0x497557, 0x31);
+		return;
+	}
+	if (mode & 2) { // bit2 - disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
+		SafeWrite8(0x42E587, 0xE9);
+		SafeWrite32(0x42E588, 0x94); // jmp  0x42E620
+	}
+	if (mode & 4) { // bit3 - disable healing during resting
+		SafeWrite16(0x499FD4, 0x9090);
+		SafeWrite16(0x499E93, 0x8FEB); // jmp  0x499E24
+	}
+}
+
+void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
+	std::tr1::unordered_map<int, levelRest>::iterator keyIt = mapRestInfo.find(mapId);
+	if (keyIt != mapRestInfo.end()) {
+		if (elev == -1) {
+			keyIt->second.level[++elev] = canRest;
+			keyIt->second.level[++elev] = canRest;
+			elev++;
+		}
+		keyIt->second.level[elev] = canRest;
+	} else {
+		if (!restMap) {
+			HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
+			restMap = true;
+		}
+
+		levelRest elevData = {-1, -1, -1, -1};
+		if (elev == -1) {
+			elevData.level[++elev] = canRest;
+			elevData.level[++elev] = canRest;
+			elev++;
+		}
+		elevData.level[elev] = canRest;
+		mapRestInfo.insert(std::make_pair(mapId, elevData));
+	}
+}
+
+long __fastcall Worldmap::GetRestMapLevel(long elev, int mapId) {
+	if (mapRestInfo.empty()) return -1;
+
+	std::tr1::unordered_map<int, levelRest>::iterator keyIt = mapRestInfo.find(mapId);
+	if (keyIt != mapRestInfo.end()) {
+		return keyIt->second.level[elev];
+	}
+	return -1;
 }
 
 static const char* GetOverrideTerrainName(long x, long y) {
@@ -556,6 +694,9 @@ const char* Worldmap::GetCustomAreaTitle(long areaID) {
 
 void Worldmap::OnGameLoad() {
 	SetCarInterfaceArt(433); // set index
+	if (restTime) SetRestHealTime(180);
+	RestRestore();
+	mapRestInfo.clear();
 	wmTerrainTypeNames.clear();
 	wmAreaHotSpotTitle.clear();
 }

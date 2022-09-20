@@ -207,6 +207,11 @@
 #define CURSOR_COMMAND      (1)
 #define CURSOR_TARGETING    (2)
 
+// Valid flags for set_rest_mode
+#define RESTMODE_DISABLED   (1) // disable resting on all maps
+#define RESTMODE_STRICT     (2) // disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
+#define RESTMODE_NO_HEALING (4) // disable healing during resting
+
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
@@ -287,6 +292,7 @@
 #define draw_image_scaled(artFile, frame, x, y, w, h)           sfall_func6("draw_image_scaled", artFile, frame, x, y, w, h)
 #define exec_map_update_scripts                                 sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                           sfall_func1("floor2", value)
+#define get_can_rest_on_map(map, elev)                          sfall_func2("get_can_rest_on_map", map, elev)
 #define get_current_inven_size(obj)                             sfall_func1("get_current_inven_size", obj)
 #define get_current_terrain_name                                sfall_func0("get_terrain_name")
 #define get_cursor_mode                                         sfall_func0("get_cursor_mode")
@@ -342,6 +348,7 @@
 #define real_dude_obj                                           sfall_func0("real_dude_obj")
 #define remove_all_timer_events                                 sfall_func0("remove_timer_event")
 #define remove_timer_event(fixedParam)                          sfall_func1("remove_timer_event", fixedParam)
+#define set_can_rest_on_map(map, elev, value)                   sfall_func3("set_can_rest_on_map", map, elev, value)
 #define set_car_intface_art(artIndex)                           sfall_func1("set_car_intface_art", artIndex)
 #define set_cursor_mode(mode)                                   sfall_func1("set_cursor_mode", mode)
 #define set_flags(obj, flags)                                   sfall_func2("set_flags", obj, flags)
@@ -351,6 +358,8 @@
 #define set_object_data(obj, offset, value)                     sfall_func3("set_object_data", obj, offset, value)
 #define set_outline(obj, color)                                 sfall_func2("set_outline", obj, color)
 #define set_quest_failure_value(gvar, threshold)                sfall_func2("set_quest_failure_value", gvar, threshold)
+#define set_rest_heal_time(time)                                sfall_func1("set_rest_heal_time", time)
+#define set_rest_mode(mode)                                     sfall_func1("set_rest_mode", mode)
 #define set_scr_name(name)                                      sfall_func1("set_scr_name", name)
 #define set_terrain_name(x, y, name)                            sfall_func3("set_terrain_name", x, y, name)
 #define set_town_title(areaID, title)                           sfall_func2("set_town_title", areaID, title)

@@ -169,6 +169,21 @@ static void __stdcall SaveGame2() {
 		goto errorSave;
 	}
 
+	GetSavePath(buf, "db");
+	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		Worldmap::SaveData(h);
+		data = 0;
+		WriteFile(h, &data, 8, &size, 0); // padding bytes for compatibility with 4.x
+
+		// last marker
+		data = 0xCC | VERSION_MAJOR << 8 | VERSION_MINOR << 16 | VERSION_BUILD << 24;
+		WriteFile(h, &data, 4, &size, 0);
+		CloseHandle(h);
+	} else {
+		goto errorSave;
+	}
+
 	if (FileSystem::IsEmpty()) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
@@ -255,6 +270,16 @@ static bool LoadGame_Before() {
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
+	}
+
+	GetSavePath(buf, "db");
+	dlogr("Loading data from sfalldb.sav...", DL_MAIN);
+	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		if (Worldmap::LoadData(h)) goto errorLoad;
+		CloseHandle(h);
+	} else {
+		dlogr("Cannot open sfalldb.sav.", DL_MAIN);
 	}
 	return false;
 

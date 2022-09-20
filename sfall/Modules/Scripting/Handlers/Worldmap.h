@@ -48,6 +48,14 @@ void mf_set_map_enter_position(OpcodeContext&);
 
 void mf_get_map_enter_position(OpcodeContext&);
 
+void mf_set_rest_heal_time(OpcodeContext&);
+
+void mf_set_rest_mode(OpcodeContext&);
+
+void mf_set_rest_on_map(OpcodeContext&);
+
+void mf_get_rest_on_map(OpcodeContext&);
+
 void mf_tile_by_position(OpcodeContext&);
 
 void mf_set_terrain_name(OpcodeContext&);

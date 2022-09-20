@@ -643,6 +643,18 @@ sfall_funcX metarule functions
 - __NOTE:__ works only in `map_enter_p_proc` procedure
 
 ----
+#### set_rest_heal_time
+`void sfall_func1("set_rest_heal_time", int minutes)`
+- Sets the time interval in minutes for healing during resting. The default is 180
+- The time interval will be reset each time the player reloads the game
+
+----
+#### set_rest_mode
+`void sfall_func1("set_rest_mode", int mode)`
+- Sets the bit flags for the rest mode (see `RESTMODE_*` constants in **sfall.h**)
+- Passing 0 will reset the rest mode. It will also be reset each time the player reloads the game
+
+----
 #### attack_is_aimed
 `int sfall_func0("attack_is_aimed")`
 - Returns 1 if the aimed attack mode is selected, 0 otherwise
@@ -684,6 +696,21 @@ sfall_funcX metarule functions
 `void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)`
 - Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window
 - `MoveOnTop` flag allows the created window to be placed on top of the game interface
+
+----
+#### set_can_rest_on_map
+`void sfall_func3("set_can_rest_on_map", int mapNum, int elev, bool value)`
+- Allows/disallows to rest on the map for the specified level, overrides the `can_rest_here` values in **maps.txt**
+- `mapNum` is the map index from **maps.txt**
+- Passing -1 to the `elev` argument will set the rest value for all map elevations
+- The set rest value will be stored in **sfalldb.sav** file (in savegame)
+
+----
+#### get_can_rest_on_map
+`int sfall_func2("get_can_rest_on_map", int mapNum, int elev)`
+- Returns the set rest value of the map after using the `set_can_rest_on_map` function
+- Returns -1 if the rest value of the map was not previously set (i.e. no data for the map in **sfalldb.sav**)
+- The `can_rest_here` values from **maps.txt** are ignored
 
 ----
 #### dialog_obj
