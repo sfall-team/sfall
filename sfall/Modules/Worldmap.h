@@ -31,8 +31,8 @@ public:
 
 	static Delegate<>& OnWorldmapLoop();
 
-	static void Worldmap::SaveData(HANDLE);
-	static bool Worldmap::LoadData(HANDLE);
+	static void SaveData(HANDLE);
+	static bool LoadData(HANDLE);
 
 	static void SetCarInterfaceArt(DWORD artIndex);
 	static void SetRestHealTime(DWORD minutes);

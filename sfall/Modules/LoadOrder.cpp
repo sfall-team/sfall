@@ -256,6 +256,7 @@ static void __fastcall game_init_databases_hook1() {
 	}
 	fo::var::master_db_handle = node; // set pointer to master_patches node
 
+	InitSystemPatches();
 	InitExtraPatches();
 }
 */
@@ -263,7 +264,7 @@ static bool NormalizePath(std::string &path) {
 	if (path.find(':') != std::string::npos) return false;
 
 	int pos = 0;
-	do { // replace all '/' char to '\'
+	do { // replace all '/' char with '\'
 		pos = path.find('/', pos);
 		if (pos != std::string::npos) path[pos] = '\\';
 	} while (pos != std::string::npos);
@@ -303,7 +304,7 @@ static void GetExtraPatches() {
 	// Remove first duplicates
 	size_t size = patchFiles.size();
 	for (size_t i = 1; i < size; ++i) {
-		for(size_t j = size - 1; j > i; --j) {
+		for (size_t j = size - 1; j > i; --j) {
 			if (patchFiles[j] == patchFiles[i]) {
 				patchFiles[i].clear();
 			}
