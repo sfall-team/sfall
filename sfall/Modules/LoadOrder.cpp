@@ -18,7 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-
+#include "..\Utils.h"
 #include "LoadOrder.h"
 
 namespace sfall
@@ -37,6 +37,7 @@ static DWORD format;
 static bool cutsPatch   = false;
 
 static char sfallRes[14] = "sfall.dat"; // for sfall_XX.dat filename
+static std::vector<std::string> patchFiles;
 static std::vector<int> savPrototypes;
 
 void PlayerGenderCutsRestore() {
@@ -191,8 +192,20 @@ end:
 	}
 }
 
+static void InitExtraPatches() {
+	for (std::vector<std::string>::iterator it = patchFiles.begin(); it != patchFiles.end(); ++it) {
+		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
+	}
+	// free memory
+	patchFiles.clear();
+	patchFiles.shrink_to_fit();
+}
+
 static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	fo::PathNode* master_patches = *fo::ptr::master_db_handle;
+
+	/*if (!patchFiles.empty())*/ InitExtraPatches();
+
 	fo::PathNode* critter_patches = *fo::ptr::critter_db_handle;
 	fo::PathNode* paths = *fo::ptr::paths;    // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
@@ -236,8 +249,43 @@ static void __fastcall game_init_databases_hook1() {
 	*fo::ptr::master_db_handle = node; // set pointer to master_patches node
 
 	fo::func::db_init(sfallRes, 0);
+	InitExtraPatches();
 }
 */
+static bool NormalizePath(std::string &path) {
+	if (path.find(':') != std::string::npos) return false;
+
+	int pos = 0;
+	do { // replace all '/' char with '\'
+		pos = path.find('/', pos);
+		if (pos != std::string::npos) path[pos] = '\\';
+	} while (pos != std::string::npos);
+
+	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
+	while (path.front() == '\\') path.erase(0, 1); // remove firsts '\'
+	return true;
+}
+
+// Patches placed at the back of the vector will have priority in the chain over the front(previous) patches
+static void GetExtraPatches() {
+	char patchFile[12] = "PatchFile";
+	for (int i = 0; i < 100; i++) {
+		_itoa(i, &patchFile[9], 10);
+		std::string patch = IniReader::GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
+		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+		patchFiles.push_back(patch);
+	}
+	// Remove first duplicates
+	size_t size = patchFiles.size();
+	for (size_t i = 1; i < size; ++i) {
+		for (size_t j = size - 1; j > i; --j) {
+			if (patchFiles[j] == patchFiles[i]) {
+				patchFiles[i].clear();
+			}
+		}
+	}
+}
+
 static void MultiPatchesPatch() {
 	//if (IniReader::GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
@@ -480,6 +528,7 @@ void LoadOrder::OnGameLoad() {
 
 void LoadOrder::init() {
 	SfallResourceFile(); // Add external sfall resource file (load order: > patchXXX.dat > sfall.dat > ... [last])
+	GetExtraPatches();
 	MultiPatchesPatch();
 
 	//if (IniReader::GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
@@ -489,7 +538,7 @@ void LoadOrder::init() {
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
-	//} else {
+	//} else /*if (!patchFiles.empty())*/ {
 	//	HookCall(0x44436D, game_init_databases_hook1);
 	//}
 
