@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Utils.h"
@@ -288,6 +290,7 @@ static void GetExtraPatches() {
 		//if (searchPath.back() != '\\') searchPath += "\\";
 
 		std::string pathMask(".\\mods\\*.dat");
+		size_t startPos = patchFiles.size();
 		dlogr("Loading custom patches:", DL_MAIN);
 		WIN32_FIND_DATA findData;
 		HANDLE hFind = FindFirstFile(pathMask.c_str(), &findData);
@@ -299,6 +302,10 @@ static void GetExtraPatches() {
 				patchFiles.push_back(name);
 			} while (FindNextFile(hFind, &findData));
 			FindClose(hFind);
+		}
+		// Sort the search result
+		if (!patchFiles.empty()) {
+			std::sort(patchFiles.begin() + startPos, patchFiles.end());
 		}
 	//}
 	// Remove first duplicates
