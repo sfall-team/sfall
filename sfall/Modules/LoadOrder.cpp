@@ -310,7 +310,7 @@ static void GetExtraPatches() {
 	//}
 	// Remove first duplicates
 	size_t size = patchFiles.size();
-	for (size_t i = 1; i < size; ++i) {
+	for (size_t i = 0; i < size; ++i) {
 		for (size_t j = size - 1; j > i; --j) {
 			if (patchFiles[j] == patchFiles[i]) {
 				patchFiles[i].clear();
