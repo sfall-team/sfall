@@ -3146,10 +3146,16 @@ static void __declspec(naked) op_create_object_sid_hack() {
 		jz   noObject;
 		mov  ecx, [ebx + scriptId];
 		cmp  ecx, -1;
-		jne  init;
+		jne  setScrIdx;
 		mov  edx, ebx;
 		mov  eax, esi;
 		retn;
+setScrIdx:
+		mov  eax, [esp + 0x50 - 0x40 + 4]; // scriptIndex
+		cmp  eax, -1;
+		je   init;
+		dec  eax;
+		mov  [ebx + scriptIndex], eax;
 init:
 		call LoadGameHook::IsMapLoading;
 		test al, al;
