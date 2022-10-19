@@ -145,9 +145,13 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_;
 }
 
-long __fastcall db_init(const char* path_dat, const char* path_patches) {
-	__asm mov ebx, edx; // don't delete
-	WRAP_WATCOM_FCALL2(db_init_, path_dat, path_patches);
+long __stdcall db_init(const char* path_dat, const char* path_patches) {
+	__asm {
+		mov  ebx, path_patches;
+		mov  eax, path_dat;
+		xor  edx, edx;
+		call fo::funcoffs::db_init_;
+	}
 }
 
 long __stdcall tile_num(long x, long y) {

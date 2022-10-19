@@ -50,7 +50,7 @@ void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
-long __fastcall db_init(const char* path_dat, const char* path_patches);
+long __stdcall db_init(const char* path_dat, const char* path_patches);
 
 long __stdcall tile_num(long x, long y);
 

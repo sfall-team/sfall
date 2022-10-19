@@ -89,10 +89,10 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_INVENTORYMOVE,    Inject_InventoryMoveHook,    false},
 	{HOOK_INVENWIELD,       Inject_InvenWieldHook,       false},
 	{HOOK_ADJUSTFID,        nullptr,                      true}, // always embedded to the engine
-	{-1,                    nullptr,                      true}, // dummy
-	{-1,                    nullptr,                      true}, // dummy
-	{-1,                    nullptr,                      true}, // dummy
-	{-1,                    nullptr,                      true}, // dummy
+	{-1,                    nullptr,                     false}, // dummy
+	{-1,                    nullptr,                     false}, // dummy
+	{-1,                    nullptr,                     false}, // dummy
+	{-1,                    nullptr,                     false}, // dummy
 	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
 };
 
@@ -113,7 +113,7 @@ bool HookScripts::HookHasScript(int hookId) {
 }
 
 void HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
-	if (id >= numHooks || (id > HOOK_ADJUSTFID && id < HOOK_GAMEMODECHANGE)) return;
+	if (id >= numHooks || injectHooks[id].id < 0) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
 			if (procNum == 0) hooks[id].erase(it); // unregister
