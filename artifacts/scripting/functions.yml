@@ -1077,11 +1077,11 @@
   parent: Variables
   items:
   - name: string_split
-    detail: array string_split(string, split)
+    detail: array string_split(string text, split)
     doc: "Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters. You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`"
     opcode: 0x8235
   - name: substr
-    detail: string substr(string, start, length)
+    detail: string substr(string text, start, length)
     doc: |
       Cuts a substring from a string starting at "start" up to "length" characters. The first character position is 0 (zero).
       - If start is negative - it indicates starting position from the end of the string (for example `substr("test", -2, 2)` will return last 2 charactes: "st").
@@ -1822,7 +1822,7 @@
 - name: Objects and scripts
   items:
   - name: set_self
-    detail: void set_self(ObjectPtr)
+    detail: void set_self(ObjectPtr setObj)
     doc: |
       Overrides the script's `self_obj` for the next function call.
       - It is primarily used to allow the calling of functions which take an implicit `self_obj` parameter (e.g. `drop_obj`) from global scripts, but it can also be used from normal scripts.
@@ -1841,15 +1841,15 @@
     macro: sfall.h
 
   - name: remove_script
-    detail: void remove_script(ObjectPtr)
+    detail: void remove_script(ObjectPtr obj)
     opcode: 0x81f3
     doc: Accepts a pointer to an object and will remove the script from that object.
   - name: set_script
-    detail: void set_script(ObjectPtr, int scriptID)
+    detail: void set_script(ObjectPtr obj, int scriptID)
     opcode: 0x81f4
     doc: Accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as `create_object_sid `from sfall 3.6). If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling `set_script` on `self_obj` will have all sorts of wacky side effects, and should be avoided. If you add 0x80000000 to the sid when calling `set_script`, `map_enter_p_proc` will be SKIPPED. The `start` proc will always be run.
   - name: get_script
-    detail: int get_script(ObjectPtr)
+    detail: int get_script(ObjectPtr obj)
     opcode: 0x81f5
     doc: |
       - accepts a pointer to an object and returns its scriptID (line number in `scripts.lst`), or 0 if the object is unscripted.
