@@ -1039,9 +1039,9 @@ public:
 
 		char windowTitle[128];
 		if (ResWidth != gWidth || ResHeight != gHeight) {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
+			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
 		} else {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING, (const char*)0x50AF08);
+			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i", (const char*)0x50AF08, ResWidth, ResHeight);
 		}
 		SetWindowTextA(a, windowTitle);
 
