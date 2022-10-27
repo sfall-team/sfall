@@ -177,10 +177,11 @@ void WinProc::SetTitle(long wWidth, long wHeight, long gMode) {
 	if (gMode >= 4) std::strcpy(mode, "DX9");
 
 	if (HRP::Setting::ScreenWidth() != wWidth || HRP::Setting::ScreenHeight() != wHeight) {
-		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i  [%s]",
+		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i >> %ix%i [%s]",
 			(const char*)0x50AF08, HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), wWidth, wHeight, mode);
 	} else {
-		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  [%s]", (const char*)0x50AF08, mode);
+		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i [%s]",
+			(const char*)0x50AF08, HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), mode);
 	}
 	SetWindowTextA(window, windowTitle);
 }
