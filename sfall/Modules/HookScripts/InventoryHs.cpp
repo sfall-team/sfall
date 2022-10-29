@@ -213,7 +213,13 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 		nextHookDropSkip = 0;
 		goto skipHook;
 	} else {
+		using namespace fo::Fields;
 		__asm {
+			cmp  dword ptr [esp], 0x47379A + 5;  // caps call address
+			jnz  notCaps;
+			mov  [edx + charges], ebx;           // edx - caps, ebx - amount-1
+			add  dword ptr [edx + charges], 1;
+notCaps:
 			pushadc;
 			xor  ecx, ecx;                       // no itemReplace
 			push 6;                              // event: item drop ground
