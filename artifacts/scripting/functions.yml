@@ -1178,34 +1178,34 @@
     opcode: 0x81e5
   - name: set_sfall_arg
     detail: void set_sfall_arg(int argNum, int value)
-    doc: Changes argument value. The argument number (argNum) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see `register_hook_proc`).
+    doc: Changes argument value. The argument number (`argNum`) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see `register_hook_proc`).
     opcode: 0x823d
   - name: register_hook
     detail: void register_hook(int hookID)
-    doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, `start` proc will be executed in current global script. You can use all above functions like normal.
+    doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, `start` procedure will be executed in current global script. You can use all above functions like normal.
     opcode: 0x8207
   - name: register_hook_proc
     detail: void register_hook_proc(int hookID, proc procedure)
     doc: |
-      The same as `register_hook`, except that you specifically define which procedure in the current script should be called as a hook (instead of "start" by default). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use "hs_*.int" scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
+      The same as `register_hook`, except that you specifically define which procedure in the current script should be called as a hook (instead of "start" by default). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script with no conflicts) and flexibility. You can place all related hook scripts for a specific mod in one global script!
 
       Use zero (0) as second argument to unregister hook script from current global script.
 
-      __NOTE:__ you can hook several scripts to a single hook point, for example if it's different mods from different authors or just some different aspects of one larger mod. In this case scripts are executed in reverse order of how they were registered. When one of the scripts in a chain returns value with `set_sfall_return`, the next script may override this value if calls `set_sfall_return` again. Sometimes you need to multiply certain value in a chain of hook scripts.
+      __NOTE:__ you can hook several scripts to a single hook point, for example if it's different mods from different authors or just some different aspects of one larger mod. When one of the scripts in a chain returns value with `set_sfall_return`, the next script may override this value if calls `set_sfall_return` again.
 
-      Example: let's say we have a Mod A which reduces all "to hit" chances by 50%. The code might look like this:
+      __Example:__ Sometimes you need to multiply certain value in a chain of hook scripts. Let's say we have a **Mod A** which reduces all "to hit" chances by 50%. The code might look like this:
 
       ```js
       original_chance = get_sfall_arg;
       set_sfall_return(original_chance / 2);
       ```
 
-      Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to Mod A hook script:
+      **Mod B** also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to **Mod A** hook script:
       ```js
       set_sfall_arg(0, (original_chance / 2));
       ```
 
-      This basically changes hook argument for the next script. Mod B code:
+      This basically changes hook argument for the next script. **Mod B** code:
       ```js
       original_chance = get_sfall_arg;
       set_sfall_return(original_chance * 1.5);
@@ -1218,7 +1218,12 @@
     opcode: 0x8262
   - name: register_hook_proc_spec
     detail: void register_hook_proc_spec(int hookID, procedure proc)
-    doc: Works very similar to `register_hook_proc`, except that it registers the current script at the end of the hook script execution chain (i.e. the script will be executed after all previously registered scripts for the same hook, including the `hs_*.int` script). All scripts hooked to a single hook point with this function are executed in exact order of how they were registered, as opposed to the description below, which refers to using `register_hook/register_hook_proc` functions.
+    doc: Works the same as `register_hook_proc`, except that it registers the current script at the end of the hook script execution chain (i.e. the script will be executed after all previously registered scripts for the same hook, including the `hs_<name>.int` script). In addition, all scripts hooked to a single hook point with this function are executed in the exact order of how they were registered. In the case of using `register_hook` and `register_hook_proc` functions, scripts are executed in reverse order of how they were registered.
+
+      **The execution chain of script procedures for a hook is as follows:**
+      1. Procedures registered with `register_hook` and `register_hook_proc` functions (executed in reverse order of registration).
+      2. The `hs_<name>.int` script.
+      3. Procedures registered with the `register_hook_proc_spec` function (executed in the exact order of registration).
 
 - name: Array functions
   parent: Arrays # not in this files, normal page
