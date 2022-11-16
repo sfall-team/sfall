@@ -642,7 +642,7 @@ static void DisablePipboyAlarmPatch() {
 	if (IniReader::GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, CodeType::Ret);
-		SafeWrite8(0x443601, 0x0);
+		SafeWrite8(0x443601, 0);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -680,7 +680,7 @@ static void DialogueFix() {
 static void AlwaysReloadMsgs() {
 	if (IniReader::GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
-		SafeWrite8(0x4A6B8D, 0x0);
+		SafeWrite8(0x4A6B8D, 0); // jnz $+6
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -688,7 +688,7 @@ static void AlwaysReloadMsgs() {
 static void MusicInDialoguePatch() {
 	if (IniReader::GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
-		SafeWrite8(0x44525B, 0);
+		SafeWrite16(0x44525A, 0x9090);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
 	}
