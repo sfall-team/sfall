@@ -638,7 +638,7 @@ void Inventory::init() {
 			sizeLimitMode -= 4;
 			// item_total_weight_ patch
 			SafeWrite8(0x477EB3, CodeType::JumpShort);
-			SafeWriteBatch<BYTE>(0, {0x477EF5, 0x477F11, 0x477F29});
+			SafeWriteBatch<WORD>(0x9090, {0x477EF4, 0x477F10, 0x477F28});
 		}
 		invSizeMaxLimit = IniReader::GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 

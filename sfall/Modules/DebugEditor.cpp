@@ -440,7 +440,7 @@ static void DebugModePatch() {
 			if (dbgMode & 1) {
 				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
 				SafeWrite8(0x4C6EF2, CodeType::JumpShort);
-				SafeWrite8(0x4C7034, 0x0);
+				SafeWrite16(0x4C7033, 0x9090);
 				MakeCall(0x4DC319, win_debug_hook, 2);
 			}
 		} else {
