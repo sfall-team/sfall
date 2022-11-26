@@ -26,8 +26,9 @@ namespace sfall
 class Karma : public Module {
 public:
 	const char* name() { return "Karma"; }
-	static void DisplayKarma(int value);
 	void init();
+
+	static void DisplayKarma(int value);
 };
 
 extern bool displayKarmaChanges;

@@ -373,7 +373,7 @@ static void CarTravelHook_Script() {
 		consumption = static_cast<long>(rets[1]);
 	}
 	// consume fuel
-	fo::var::carGasAmount = max(originalGas - consumption, 0);
+	fo::var::carGasAmount = max(0, originalGas - consumption);
 
 	EndHook();
 }
@@ -457,9 +457,9 @@ static long __fastcall RestTimerHook_Script(DWORD hours, DWORD minutes, DWORD ga
 static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
 		pushadc;
-		mov  edx, [esp + 20 + 0x44]; // minutes_
-		mov  ecx, [esp + 20 + 0x40]; // hours_
-		push [esp + 16];             // addrHook
+		mov  edx, [esp + 16 + 0x44]; // minutes_
+		mov  ecx, [esp + 16 + 0x40]; // hours_
+		push [esp + 12];             // addrHook
 		push eax;                    // gameTime
 		call RestTimerHook_Script;
 		pop  ecx;
@@ -477,9 +477,9 @@ static void __declspec(naked) RestTimerEscapeHook() {
 		cmp  eax, 0x1B; // ESC ASCII code
 		jnz  skip;
 		pushadc;
-		mov  edx, [esp + 20 + 0x44]; // minutes_
-		mov  ecx, [esp + 20 + 0x40]; // hours_
-		push [esp + 16];             // addrHook
+		mov  edx, [esp + 16 + 0x44]; // minutes_
+		mov  ecx, [esp + 16 + 0x40]; // hours_
+		push [esp + 12];             // addrHook
 		push eax;                    // gameTime
 		call RestTimerHook_Script;
 		pop  ecx;
@@ -717,7 +717,7 @@ void Inject_WithinPerceptionHook() {
 
 void Inject_CarTravelHook() {
 	MakeJump(0x4BFEF1, CarTravelHack);
-	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
+	BlockCall(0x4BFF6E); // vanilla wmCarUseGas(100) call
 }
 
 void Inject_SetGlobalVarHook() {
