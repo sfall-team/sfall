@@ -62,6 +62,20 @@ void __stdcall HookCommon::SetHSReturn(DWORD value) {
 	}
 }
 
+// List of hooks that are not allowed to be called recursively
+static bool CheckRecursiveHooks(DWORD hook) {
+	if (hook == currentRunHook) {
+		switch (hook) {
+		case HOOK_SETGLOBALVAR:
+//		case HOOK_SETLIGHTING:
+			return true;
+		default:
+			if (isDebug) fo::func::debug_printf("\nWARNING: A recursive hook with ID %d was running.", hook);
+		}
+	}
+	return false;
+}
+
 void __stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
 		// save all values of the current hook if another hook was called during the execution of the current hook
@@ -97,10 +111,12 @@ static void __stdcall RunSpecificHookScript(HookScript *hook) {
 void __stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
 	if (!hooks[hook].empty()) {
-		if (callDepth > 8) {
-			fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
-			dlog_f("The hook %d cannot be executed due to exceeding depth limit\n", DL_MAIN, hook);
-			return;
+		if (callDepth > 1) {
+			if (CheckRecursiveHooks(hook) || callDepth > 8) {
+				fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
+				dlog_f("The hook %d cannot be executed due to exceeding depth limit or disallowed recursive calls\n", DL_MAIN, hook);
+				return;
+			}
 		}
 		currentRunHook = hook;
 		size_t hooksCount = hooks[hook].size();

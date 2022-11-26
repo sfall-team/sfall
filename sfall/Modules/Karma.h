@@ -25,6 +25,10 @@ class Karma {
 public:
 	static const char* name() { return "Karma"; }
 	static void init();
+
+	static void DisplayKarma(int value);
 };
+
+extern bool displayKarmaChanges;
 
 }

@@ -58,8 +58,6 @@ WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, voi
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
-WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
-WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
 WRAP_WATCOM_FFUNC3(void, win_clip, fo::Window*, window, fo::RectList**, rects, void*, buffer)
 WRAP_WATCOM_FFUNC6(void, win_print, long, winID, const char*, text, long, textWidth, long, xPos, long, yPos, long, colorFlags)
@@ -99,6 +97,7 @@ WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procNum)
 WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(const char*, findCurrentProc, fo::Program*, program) // Returns the name of current procedure by program pointer
 WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
+WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC0(long, get_input)
 // Searches for message ID in given message file and places result in result argument
 WRAP_WATCOM_FUNC3(const char*, getmsg, const fo::MessageList*, fileAddr, fo::MessageNode*, result, long, messageId)
@@ -222,9 +221,11 @@ WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_level, fo::GameObject*, critter, long, statId)
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount) // Adds experience points to PC
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
+WRAP_WATCOM_FUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FUNC2(long, tile_dist, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_dir, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_idistance, long, sourceTile, long, targetTile)
+WRAP_WATCOM_FUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FUNC1(long, tile_on_edge, long, tile)
 WRAP_WATCOM_FUNC0(void, tile_refresh_display) // Redraws the whole screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, fo::BoundRect*, boundRect, long, elevation) // Redraws the given rectangle on screen
@@ -237,7 +238,9 @@ WRAP_WATCOM_FUNC1(BYTE*, win_get_buf, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_hide, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)
 WRAP_WATCOM_FUNC0(long, windowWidth)
+WRAP_WATCOM_FUNC1(void, wmCarUseGas, long, gasAmount)
 WRAP_WATCOM_FUNC1(long, wmEvalTileNumForPlacement, long, tile)
+WRAP_WATCOM_FUNC0(void, wmPartyWalkingStep)
 WRAP_WATCOM_FUNC1(void, wmRefreshInterfaceOverlay, long, isRedraw)
 
 /* Database functions */

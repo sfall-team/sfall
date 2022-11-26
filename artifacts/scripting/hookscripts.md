@@ -582,6 +582,48 @@ int     ret0 - overrides the calculated FID with provided value
 
 -------------------------------------------
 
+#### `HOOK_CARTRAVEL (hs_cartravel.int)`
+
+Runs continuously during worldmap travel on car.
+
+```
+int     arg0 - vanilla car speed (between 3 and 8 "steps")
+int     arg1 - vanilla fuel consumption (100 and below)
+
+int     ret0 - car speed override (pass -1 if you just want to override fuel consumption)
+int     ret1 - fuel consumption override
+```
+
+-------------------------------------------
+
+#### `HOOK_SETGLOBALVAR (hs_setglobalvar.int)`
+
+Runs when setting the value of a global variable.
+
+```
+int     arg0 - the index number of the global variable being set
+int     arg1 - the set value of the global variable
+
+int     ret0 - overrides the value of the global variable
+```
+
+-------------------------------------------
+
+#### `HOOK_RESTTIMER (hs_resttimer.int)`
+
+Runs continuously while the player is resting (using pipboy alarm clock).
+
+```
+int     arg0 - the game time in ticks
+int     arg1 - event type: 1 - when the resting ends normally, -1 - when pressing ESC to cancel the timer, 0 - otherwise
+int     arg2 - the hour part of the length of resting time
+int     arg3 - the minute part of the length of resting time
+
+int     ret0 - pass 1 to interrupt the resting, pass 0 to continue the rest if it was interrupted by pressing ESC key
+```
+
+-------------------------------------------
+
 #### `HOOK_GAMEMODECHANGE (hs_gamemodechange.int)`
 
 Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.

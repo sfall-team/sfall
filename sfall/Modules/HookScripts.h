@@ -51,8 +51,12 @@ enum HookType
 	HOOK_WITHINPERCEPTION = 23,
 	HOOK_INVENTORYMOVE    = 24,
 	HOOK_INVENWIELD       = 25,
-	HOOK_ADJUSTFID        = 26, // 4.x backport
-	HOOK_GAMEMODECHANGE   = 31, // 4.x backport
+	HOOK_ADJUSTFID        = 26,
+	HOOK_COMBATTURN       = 27, // unimplemented
+	HOOK_CARTRAVEL        = 28,
+	HOOK_SETGLOBALVAR     = 29,
+	HOOK_RESTTIMER        = 30,
+	HOOK_GAMEMODECHANGE   = 31,
 	HOOK_COUNT
 };
 

@@ -226,6 +226,167 @@ static void __declspec(naked) PerceptionSearchTargetHook() {
 	}
 }
 
+static const long maxGasAmount = 80000;
+
+static void CarTravelHook_Script() {
+	BeginHook();
+	argCount = 2;
+
+	// calculate vanilla speed
+	int carSpeed = 3;
+	if (fo::func::game_get_global_var(fo::GVAR_CAR_BLOWER)) {
+		carSpeed += 1;
+	}
+	if (fo::func::game_get_global_var(fo::GVAR_NEW_RENO_CAR_UPGRADE)) {
+		carSpeed += 1;
+	}
+	if (fo::func::game_get_global_var(fo::GVAR_NEW_RENO_SUPER_CAR)) {
+		carSpeed += 3;
+	}
+	// calculate vanilla fuel consumption
+	int originalGas = *fo::ptr::carGasAmount;
+	*fo::ptr::carGasAmount = maxGasAmount;
+	fo::func::wmCarUseGas(100);
+	int consumption = maxGasAmount - *fo::ptr::carGasAmount;
+
+	// run script
+	args[0] = carSpeed;
+	args[1] = consumption;
+	RunHookScript(HOOK_CARTRAVEL);
+
+	// override travel speed
+	if (cRet > 0 && static_cast<long>(rets[0]) >= 0) {
+		carSpeed = rets[0];
+	}
+	// move car on map
+	for (int i = 0; i < carSpeed; ++i) {
+		fo::func::wmPartyWalkingStep();
+	}
+
+	// override fuel consumption
+	if (cRet > 1) {
+		consumption = static_cast<long>(rets[1]);
+	}
+	// consume fuel
+	*fo::ptr::carGasAmount = max(0, originalGas - consumption); // Note: the reverse breaks the result in VS2010
+
+	EndHook();
+}
+
+static void __declspec(naked) CarTravelHack() {
+	static const DWORD CarTravelHack_back = 0x4BFF43;
+	__asm {
+		pushad;
+		call CarTravelHook_Script;
+		popad;
+		jmp CarTravelHack_back;
+	}
+}
+
+static long __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
+	int old = (*fo::ptr::game_global_vars)[number];
+
+	if (IsGameLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsGameLoaded - don't execute hook until loading sfall scripts
+		BeginHook();
+		argCount = 2;
+		args[0] = number;
+		args[1] = value;
+
+		RunHookScript(HOOK_SETGLOBALVAR);
+		if (cRet > 0) value = rets[0];
+		EndHook();
+	}
+	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
+		int diff = value - old;
+		if (diff != 0) Karma::DisplayKarma(diff);
+	}
+	return value;
+}
+
+static void __declspec(naked) SetGlobalVarHook() {
+	__asm {
+		push eax;
+		push ecx;
+		push edx;
+		mov  ecx, eax;             // number
+		call GlobalVarHook_Script; // edx - value
+		pop  edx;
+		pop  ecx;
+		cmp  eax, edx;             // if return value != set value
+		cmovne edx, eax;
+		pop  eax;
+		jmp  fo::funcoffs::game_set_global_var_;
+	}
+}
+
+static int restTicks;
+
+static long __fastcall RestTimerHook_Script(DWORD hours, DWORD minutes, DWORD gameTime, DWORD addrHook) {
+	addrHook -= 5;
+
+	BeginHook();
+	argCount = 4;
+
+	args[0] = gameTime;
+	args[2] = hours;
+	args[3] = minutes;
+
+	if (addrHook == 0x499CA1 || addrHook == 0x499B63) {
+		args[0] = restTicks;
+		args[1] = -1;
+	} else {
+		restTicks = args[0];
+		args[1] = (addrHook == 0x499DF2 || (args[2] == 0 && addrHook == 0x499BE0)) ? 1 : 0;
+	}
+	RunHookScript(HOOK_RESTTIMER);
+
+	long result = -1;
+	if (cRet > 0) {
+		result = (rets[0] != 0) ? 1 : 0;
+	}
+	EndHook();
+
+	return result;
+}
+
+static void __declspec(naked) RestTimerLoopHook() {
+	__asm {
+		pushadc;
+		mov  edx, [esp + 16 + 0x44]; // minutes_
+		mov  ecx, [esp + 16 + 0x40]; // hours_
+		push [esp + 12];             // addrHook
+		push eax;                    // gameTime
+		call RestTimerHook_Script;
+		pop  ecx;
+		pop  edx;
+		test eax, eax;   // result >= 0
+		cmovge edi, eax; // return 1 to interrupt resting
+		pop  eax;
+		jmp  fo::funcoffs::set_game_time_;
+	}
+}
+
+static void __declspec(naked) RestTimerEscapeHook() {
+	__asm {
+		mov  edi, 1;    // engine code
+		cmp  eax, 0x1B; // ESC ASCII code
+		jnz  skip;
+		pushadc;
+		mov  edx, [esp + 16 + 0x44]; // minutes_
+		mov  ecx, [esp + 16 + 0x40]; // hours_
+		push [esp + 12];             // addrHook
+		push eax;                    // gameTime
+		call RestTimerHook_Script;
+		pop  ecx;
+		pop  edx;
+		test eax, eax;   // result >= 0
+		cmovge edi, eax; // return 0 for cancel ESC key
+		pop  eax;
+skip:
+		retn;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	const DWORD barterPriceHkAddr[] = {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
@@ -261,11 +422,30 @@ void Inject_WithinPerceptionHook() {
 	HookCall(0x458403, PerceptionRangeHearHook);
 }
 
+void Inject_CarTravelHook() {
+	MakeJump(0x4BFEF1, CarTravelHack);
+	BlockCall(0x4BFF6E); // vanilla wmCarUseGas(100) call
+}
+
+void Inject_SetGlobalVarHook() {
+	HookCall(0x455A6D, SetGlobalVarHook);
+}
+
+void Inject_RestTimerHook() {
+	const DWORD restTimerLoopHkAddr[] = {0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2};
+	HookCalls(RestTimerLoopHook, restTimerLoopHkAddr);
+	const DWORD restTimerEscHkAddr[] = {0x499B63, 0x499CA1};
+	MakeCalls(RestTimerEscapeHook, restTimerEscHkAddr);
+}
+
 void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookScripts::LoadHookScript("hs_useskill", HOOK_USESKILL);
 	HookScripts::LoadHookScript("hs_steal", HOOK_STEAL);
 	HookScripts::LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+	HookScripts::LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+	HookScripts::LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	HookScripts::LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 }
 
 }

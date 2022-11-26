@@ -23,6 +23,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 
+#include "HookScripts.h"
+
 #include "Karma.h"
 
 namespace sfall
@@ -37,6 +39,7 @@ static std::vector<KarmaFrmSetting> karmaFrms;
 
 static char karmaGainMsg[128];
 static char karmaLossMsg[128];
+bool displayKarmaChanges;
 
 static DWORD __stdcall DrawCard() {
 	int reputation = (*fo::ptr::game_global_vars)[fo::GVAR_PLAYER_REPUTATION];
@@ -64,7 +67,7 @@ skip:
 	}
 }
 
-static void __stdcall SetKarma(int value) {
+void Karma::DisplayKarma(int value) {
 	char buf[128];
 	if (value > 0) {
 		sprintf_s(buf, karmaGainMsg, value);
@@ -74,29 +77,13 @@ static void __stdcall SetKarma(int value) {
 	fo::func::display_print(buf);
 }
 
-static void __declspec(naked) SetGlobalVarWrapper() {
-	__asm {
-		test eax, eax; // Gvar number
-		jnz  end;
-		pushadc;
-		call fo::funcoffs::game_get_global_var_;
-		sub  edx, eax; // value -= old
-		jz   skip;
-		push edx;
-		call SetKarma;
-skip:
-		popadc;
-end:
-		jmp  fo::funcoffs::game_set_global_var_;
-	}
-}
-
 static void ApplyDisplayKarmaChangesPatch() {
-	if (IniReader::GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
+	displayKarmaChanges = IniReader::GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
+	if (displayKarmaChanges) {
 		dlog("Applying display karma changes patch.", DL_INIT);
 		Translate::Get("sfall", "KarmaGain", "You gained %d karma.", karmaGainMsg);
 		Translate::Get("sfall", "KarmaLoss", "You lost %d karma.", karmaLossMsg);
-		HookCall(0x455A6D, SetGlobalVarWrapper);
+		HookScripts::InjectingHook(HOOK_SETGLOBALVAR);
 		dlogr(" Done", DL_INIT);
 	}
 }
