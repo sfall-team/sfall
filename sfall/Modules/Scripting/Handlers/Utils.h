@@ -47,6 +47,8 @@ void op_message_str_game(OpcodeContext&);
 
 void mf_add_extra_msg_file(OpcodeContext&);
 
+void mf_get_string_pointer(OpcodeContext&);
+
 void mf_get_text_width(OpcodeContext&);
 
 void mf_string_to_case(OpcodeContext&);

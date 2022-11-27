@@ -632,3 +632,47 @@ Runs once every time when the game mode was changed, like opening/closing the in
 int     arg0 - event type: 1 - when the player exits the game, 0 - otherwise
 int     arg1 - the previous game mode
 ```
+
+-------------------------------------------
+
+#### `HOOK_USEANIMOBJ (hs_useanimobj.int)`
+
+Runs before playing the "use" (usually "magic hands") animation when a critter uses a scenery/container object on the map, or before walking/running animation if the player is at a distance from the object.
+
+```
+Critter arg0 - the critter that uses an object (usually dude_obj)
+Obj     arg1 - the object being used
+int     arg2 - the animation code being used (see ANIM_* in Animcomd.h)
+
+int     ret0 - overrides the animation code (pass -1 if you want to skip the animation)
+```
+
+-------------------------------------------
+
+#### `HOOK_EXPLOSIVETIMER (hs_explosivetimer.int)`
+
+Runs after setting the explosive timer. You can override the result.
+
+```
+int     arg0 - the time in ticks set in the timer
+Obj     arg1 - the explosive object
+int     arg2 - the result of engine calculation of whether the timer was set successfully: 1 - failure, 2 - success (similar to ROLL_* in Condtion.h)
+
+int     ret0 - overrides the time of the timer (maximum 18000 ticks)
+int     ret1 - overrides the result of engine calculation: 0/1 - failure, 2/3 - success (similar to ROLL_*), any other value - use engine handler
+```
+
+-------------------------------------------
+
+#### `HOOK_DESCRIPTIONOBJ (hs_descriptionobj.int)`
+
+Runs when using the examine action icon to display the description of an object. You can override the description text.
+An example usage would be to add an additional description to the item based on player's stats/skills.
+
+Does not run if the script of the object overrides the description.
+
+```
+Obj     arg0 - the object
+
+int     ret0 - a pointer to the new text received by using the get_string_pointer function
+```

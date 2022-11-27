@@ -110,6 +110,81 @@ defaultHandler:
 	}
 }
 
+static DWORD __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, DWORD object) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = critter;
+	args[1] = object;
+	args[2] = animCode;
+
+	RunHookScript(HOOK_USEANIMOBJ);
+
+	if (cRet > 0 && static_cast<long>(rets[0]) <= 64) {
+		animCode = rets[0]; // new anim code
+	}
+	EndHook();
+
+	return animCode;
+}
+
+// Before animation of using map object
+static void __declspec(naked) UseAnimateObjHook() {
+	__asm {
+		cmp  dword ptr [esp], 0x412292 + 5;
+		push eax;
+		push ecx;
+		jne  contr;
+		push ebp;                      // map object
+		jmp  next;
+contr:
+		push edi;                      // map object
+next:
+		mov  ecx, eax;                 // source critter
+		call UseAnimateObjHook_Script; // edx - anim code
+		pop  ecx;
+		cmp  eax, -1;                  // return anim code
+		jle  end;                      // goto no animate
+		mov  edx, eax;                 // restore vanilla or hook anim code
+		pop  eax;
+		jmp  fo::funcoffs::register_object_animate_;
+end:
+		pop  eax;
+		retn;
+	}
+}
+
+static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
+	BeginHook();
+	argCount = 1;
+
+	args[0] = object;
+
+	RunHookScript(HOOK_DESCRIPTIONOBJ);
+
+	DWORD textPrt = (cRet > 0) ? rets[0] : 0;
+	EndHook();
+
+	return textPrt;
+}
+
+static void __declspec(naked) DescriptionObjHook() {
+	__asm {
+		push ecx;
+		push edx;
+		mov  ecx, eax; // object
+		call DescriptionObjHook_Script;
+		pop  edx;
+		pop  ecx;
+		test eax, eax; // pointer to text
+		jnz  skip;
+		mov  eax, ebp;
+		jmp  fo::funcoffs::object_description_;
+skip:
+		retn;
+	}
+}
+
 void Inject_UseObjOnHook() {
 	const DWORD useObjOnHkAddr[] = {0x49C606, 0x473619};
 	HookCalls(UseObjOnHook, useObjOnHkAddr);
@@ -128,9 +203,19 @@ void Inject_UseObjHook() {
 	HookCalls(UseObjHook, useObjHkAddr);
 }
 
+void Inject_UseAnimateObjHook() {
+	const DWORD useAnimateObjHkAddr[] = {0x4120C1, 0x412292};
+	HookCalls(UseAnimateObjHook, useAnimateObjHkAddr);
+}
+
+void Inject_DescriptionObjHook() {
+	HookCall(0x49AE28, DescriptionObjHook);
+}
+
 void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
+	HookScripts::LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
 }
 
 }

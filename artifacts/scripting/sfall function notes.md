@@ -683,6 +683,11 @@ sfall_funcX metarule functions
 - `invSide` specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens), -1 - both sides (same as without argument)
 
 ----
+#### get_string_pointer
+`int sfall_func1("get_string_pointer", string text)`
+- Returns a pointer to a string variable or to a text
+
+----
 #### dialog_message
 `void sfall_func1("dialog_message", string text)`
 - Displays a message in the NPC response window in dialog or barter screen

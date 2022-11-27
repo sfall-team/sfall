@@ -387,6 +387,52 @@ skip:
 	}
 }
 
+static int __fastcall ExplosiveTimerHook_Script(DWORD &type, DWORD item, DWORD time) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = time;
+	args[1] = item;
+	args[2] = (type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
+
+	RunHookScript(HOOK_EXPLOSIVETIMER);
+
+	time = -1;
+	if (cRet > 0 && (long)rets[0] >= 0) {
+		time = min(rets[0], 18000); // max 30 minutes
+		if (cRet > 1) {
+			int typeRet = rets[1];
+			if (typeRet >= fo::ROLL_CRITICAL_FAILURE && typeRet <= fo::ROLL_CRITICAL_SUCCESS) {
+				type = (typeRet > fo::ROLL_FAILURE) ? 8 : 11; // returned new type (8 = SUCCESS, 11 = FAILURE)
+			}
+		}
+	}
+	EndHook();
+	return time;
+}
+
+static void __declspec(naked) ExplosiveTimerHook() {
+	__asm {
+		push eax; // time in ticks for queue_add_
+		push edx;
+		//-------
+		push ecx;
+		mov  ecx, esp;                  // ptr to type
+		push edi;                       // time in ticks (w/o failure penalty)
+		call ExplosiveTimerHook_Script; // ecx - type, edx - item
+		pop  ecx;
+		pop  edx;
+		cmp  eax, -1; // return new time in ticks
+		jne  skip;
+		pop  eax;
+		jmp  end;
+skip:
+		add  esp, 4;
+end:
+		jmp  fo::funcoffs::queue_add_;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	const DWORD barterPriceHkAddr[] = {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
@@ -438,6 +484,10 @@ void Inject_RestTimerHook() {
 	MakeCalls(RestTimerEscapeHook, restTimerEscHkAddr);
 }
 
+void Inject_ExplosiveTimerHook() {
+	HookCall(0x49BDC4, ExplosiveTimerHook);
+}
+
 void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookScripts::LoadHookScript("hs_useskill", HOOK_USESKILL);
@@ -446,6 +496,7 @@ void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	HookScripts::LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	HookScripts::LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+	HookScripts::LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 }
 
 }

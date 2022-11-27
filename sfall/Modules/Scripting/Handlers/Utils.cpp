@@ -378,6 +378,10 @@ void mf_add_extra_msg_file(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
+void mf_get_string_pointer(OpcodeContext& ctx) {
+	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).strValue()), DATATYPE_INT);
+}
+
 void mf_get_text_width(OpcodeContext& ctx) {
 	ctx.setReturn(fo::util::GetTextWidth(ctx.arg(0).strValue()));
 }
