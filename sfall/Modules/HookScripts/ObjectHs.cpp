@@ -185,6 +185,76 @@ skip:
 	}
 }
 
+static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInstance* script, DWORD procTable) {
+	BeginHook();
+	argCount = 4;
+
+	args[0] = numHandler;
+	args[1] = (DWORD)script->selfObject;
+	args[2] = (DWORD)script->sourceObject;
+
+	if (procTable) {
+		args[3] = 0;
+		RunHookScript(HOOK_STDPROCEDURE);
+
+		if (cRet > 0) {
+			long retval = rets[0];
+			if (retval == -1) procTable = retval;
+		}
+	} else {
+		args[3] = 1;
+		RunHookScript(HOOK_STDPROCEDURE_END);
+	}
+	EndHook();
+	return procTable;
+}
+
+static void __declspec(naked) ScriptStdProcedureHook() {
+	using namespace fo::Scripts;
+	__asm {
+		mov  eax, [eax + 0x54]; // Script.procedure_table
+		test eax, eax;
+		jle  end;
+		cmp  ecx, critter_p_proc;
+		je   skip;
+		cmp  ecx, timed_event_p_proc;
+		je   skip;
+		cmp  ecx, map_update_p_proc;
+		je   skip;
+		cmp  ecx, start;
+		jle  skip;
+		push ecx;
+		push eax;      // procTable
+		mov  edx, esi; // script
+		call StdProcedureHook_Script; // ecx - numHandler
+		pop  ecx;
+skip:
+		test eax, eax;
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) After_ScriptStdProcedureHook() {
+	using namespace fo::Scripts;
+	__asm {
+		call fo::funcoffs::executeProcedure_;
+		cmp  ecx, critter_p_proc;
+		je   skip;
+		cmp  ecx, timed_event_p_proc;
+		je   skip;
+		cmp  ecx, map_update_p_proc;
+		je   skip;
+		cmp  ecx, start;
+		jle  skip;
+		mov  edx, [esp + 0x28 - 0x18 + 4]; // script
+		push 0;                            // procTable
+		call StdProcedureHook_Script;      // ecx - numHandler
+skip:
+		retn;
+	}
+}
+
 void Inject_UseObjOnHook() {
 	const DWORD useObjOnHkAddr[] = {0x49C606, 0x473619};
 	HookCalls(UseObjOnHook, useObjOnHkAddr);
@@ -212,10 +282,20 @@ void Inject_DescriptionObjHook() {
 	HookCall(0x49AE28, DescriptionObjHook);
 }
 
+void Inject_ScriptProcedureHook() {
+	MakeCall(0x4A491F, ScriptStdProcedureHook);
+}
+
+void Inject_ScriptProcedureHook2() {
+	HookCall(0x4A49A7, After_ScriptStdProcedureHook);
+}
+
 void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
 	HookScripts::LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
+	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
+	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
 }
 
 }

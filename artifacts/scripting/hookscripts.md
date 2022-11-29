@@ -676,3 +676,67 @@ Obj     arg0 - the object
 
 int     ret0 - a pointer to the new text received by using the get_string_pointer function
 ```
+
+-------------------------------------------
+
+#### `HOOK_SNEAK (hs_sneak.int)`
+
+Runs when the Sneak skill is activated, or when the game rolls another Sneak check after the duration for the current one is over.\
+You can override the result of a random Sneak check or the duration time for the current result.
+
+```
+int     arg0 - Sneak check result: 1 - success, 0 - failure
+int     arg1 - the duration in ticks for the current Sneak check (time depends on Sneak skill level)
+Critter arg2 - the critter (usually dude_obj)
+
+int     ret0 - overrides the result of the Sneak check
+int     ret1 - overrides the duration time for the current result
+```
+
+-------------------------------------------
+
+#### `HOOK_STDPROCEDURE, HOOK_STDPROCEDURE_END (hs_stdprocedure.int)`
+
+Runs before or after Fallout engine executes a standard procedure (handler) in any script of any object.
+
+__NOTE:__ This hook will not be executed for `start`, `critter_p_proc`, `timed_event_p_proc`, and `map_update_p_proc` procedures.
+
+```
+int     arg0 - the number of the standard script handler (see define.h)
+Obj     arg1 - the object that owns this handler (self_obj)
+Obj     arg2 - the object that called this handler (source_obj, can be 0)
+int     arg3 - 1 after procedure execution (for HOOK_STDPROCEDURE_END), 0 otherwise
+
+int     ret0 - pass -1 to cancel the execution of the handler (only for HOOK_STDPROCEDURE)
+```
+
+-------------------------------------------
+
+#### `HOOK_TARGETOBJECT (hs_targetobject.int)`
+
+Runs when the targeting cursor hovers over an object, or when the player tries to attack the target object.\
+You can override the target object or prevent the player from attacking the chosen target.
+
+```
+int     arg0 - event type: 0 - when the targeting cursor hovers over the object, 1 - when trying to attack the target object
+int     arg1 - 1 when the target object is valid to attack, 0 otherwise
+Obj     arg2 - the target object
+
+mixed   ret0 - overrides the target object, or pass -1 to prevent the player from attacking the object
+```
+
+-------------------------------------------
+
+#### `HOOK_ENCOUNTER (hs_encounter.int)`
+
+Runs whenever a random encounter occurs (except the Horrigan meeting and scripted encounters), or when the player enters a local map from the world map.\
+You can override the map for loading or the encounter.
+
+```
+int     arg0 - event type: 0 - when a random encounter occurs, 1 - when the player enters from the world map
+int     arg1 - the map ID that the encounter will load (see MAPS.h or Maps.txt)
+int     arg2 - 1 when the encounter occurs is a special encounter, 0 otherwise
+
+int     ret0 - overrides the map ID, or pass -1 for event type 0 to cancel the encounter and continue traveling
+int     ret1 - pass 1 to cancel the encounter and load the specified map from the ret0 (only for event type 0)
+```

@@ -150,6 +150,32 @@ defaultHandler:
 	}
 }
 
+static void __declspec(naked) SneakCheckHook() {
+	__asm {
+		HookBegin;
+		mov esi, ds:[FO_VAR_sneak_working];
+		mov args[0], esi; // 1 = successful sneak
+		mov args[4], eax; // timer
+		mov args[8], edx; // critter
+		pushadc;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_SNEAK);
+
+	__asm {
+		popadc;
+		cmp  cRet, 1;
+		jb   skip;
+		mov  esi, rets[0];
+		mov  ds:[FO_VAR_sneak_working], esi;
+		cmova eax, rets[4]; // override timer
+skip:
+		HookEnd;
+		jmp  fo::funcoffs::queue_add_;
+	}
+}
+
 static __forceinline long PerceptionRangeHook_Script(fo::GameObject* watcher, fo::GameObject* target, int type, long result) {
 	BeginHook();
 	argCount = 4;
@@ -433,6 +459,98 @@ end:
 	}
 }
 
+// Hook does not work for scripted encounters and meeting Horrigan
+static long __fastcall EncounterHook_Script(long encounterMapID, long eventType, long encType) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = eventType; // 1 - enter local map from the world map
+	args[1] = encounterMapID;
+	args[2] = (encType == 3); // 1 - special random encounter
+
+	RunHookScript(HOOK_ENCOUNTER);
+
+	if (cRet) {
+		encounterMapID = rets[0];
+		if (encounterMapID < -1) encounterMapID = -1;
+		if (eventType == 0 && cRet > 1 && encounterMapID != -1 && rets[1] == 1) { // 1 - cancel the encounter and load the specified map
+			encounterMapID = -encounterMapID - 2; // map number in negative value
+		}
+		if (encounterMapID < 0) {
+			// set the coordinates of the last encounter
+			fo::var::setInt(FO_VAR_old_world_xpos) = *fo::ptr::world_xpos;
+			fo::var::setInt(FO_VAR_old_world_ypos) = *fo::ptr::world_ypos;
+		}
+	}
+	EndHook();
+	return encounterMapID;
+}
+
+static void __declspec(naked) wmWorldMap_hook() {
+	__asm {
+		mov  ebx, eax; // keep map id
+		mov  edx, 1;
+		mov  ecx, eax;
+		push 0;
+		call EncounterHook_Script;
+		test eax, eax;
+		cmovl eax, ebx; // restore map if map < 0
+		jmp  fo::funcoffs::map_load_idx_; // eax - map id
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	static long hkEncounterMapID = -1;
+	__asm {
+		cmp  hkEncounterMapID, -1;
+		jnz  blinkIcon;
+		test edx, edx;
+		jz   hookRun;
+		jmp  fo::funcoffs::wmInterfaceRefresh_;
+hookRun: /////////////////////////////////
+		push edx;
+		push ecx;
+		push ecx; // encType
+		xor  edx, edx;
+		mov  ecx, dword ptr ds:[FO_VAR_EncounterMapID];
+		call EncounterHook_Script;
+		pop  ecx;
+		pop  edx;
+		mov  dword ptr ds:[FO_VAR_EncounterMapID], eax;
+		cmp  eax, -1;
+		je   cancelEnc;
+		jl   clearEnc;
+		jmp  fo::funcoffs::wmInterfaceRefresh_;
+clearEnc: /////////////////////////////////
+		mov  dword ptr ds:[FO_VAR_EncounterMapID], -1;
+		neg  eax;
+		sub  eax, 2; // recover correct map number from negative value
+		mov  hkEncounterMapID, eax;
+		dec  edx;
+blinkIcon:
+		cmp  edx, 6; // counter of blinking
+		jge  break;
+		jmp  fo::funcoffs::wmInterfaceRefresh_;
+break:
+		mov  eax, hkEncounterMapID;
+		cmp  dword ptr ds:[FO_VAR_Move_on_Car], 0;
+		je   noCar;
+		mov  edx, FO_VAR_carCurrentArea;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
+		mov  eax, hkEncounterMapID;
+noCar:
+		call fo::funcoffs::map_load_idx_;
+		xor  eax, eax;
+		mov  hkEncounterMapID, -1;
+cancelEnc:
+		inc  eax; // 0 - continue movement, 1 - interrupt
+		mov  dword ptr ds:[FO_VAR_wmEncounterIconShow], 0;
+		add  esp, 4;
+		mov  ebx, 0x4C0BC7;
+		jmp  ebx;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	const DWORD barterPriceHkAddr[] = {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
@@ -453,6 +571,10 @@ void Inject_UseSkillHook() {
 void Inject_StealCheckHook() {
 	const DWORD stealCheckHkAddr[] = {0x4749A2, 0x474A69};
 	HookCalls(StealCheckHook, stealCheckHkAddr);
+}
+
+void Inject_SneakCheckHook() {
+	HookCall(0x42E3D9, SneakCheckHook);
 }
 
 void Inject_WithinPerceptionHook() {
@@ -488,15 +610,22 @@ void Inject_ExplosiveTimerHook() {
 	HookCall(0x49BDC4, ExplosiveTimerHook);
 }
 
+void Inject_EncounterHook() {
+	HookCall(0x4C02AF, wmWorldMap_hook);
+	HookCall(0x4C095C, wmRndEncounterOccurred_hook);
+}
+
 void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookScripts::LoadHookScript("hs_useskill", HOOK_USESKILL);
 	HookScripts::LoadHookScript("hs_steal", HOOK_STEAL);
+	HookScripts::LoadHookScript("hs_sneak", HOOK_SNEAK);
 	HookScripts::LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	HookScripts::LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	HookScripts::LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	HookScripts::LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	HookScripts::LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
+	HookScripts::LoadHookScript("hs_encounter", HOOK_ENCOUNTER);
 }
 
 }

@@ -60,6 +60,11 @@
 #define HOOK_USEANIMOBJ       (32)
 #define HOOK_EXPLOSIVETIMER   (33)
 #define HOOK_DESCRIPTIONOBJ   (34)
+#define HOOK_SNEAK            (39)
+#define HOOK_STDPROCEDURE     (40)
+#define HOOK_STDPROCEDURE_END (41)
+#define HOOK_TARGETOBJECT     (42)
+#define HOOK_ENCOUNTER        (43)
 
 // Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -321,6 +326,7 @@
 #define get_npc_stat_max(stat)                                  sfall_func2("get_stat_max", stat, 1)
 #define get_npc_stat_min(stat)                                  sfall_func2("get_stat_min", stat, 1)
 #define get_sfall_arg_at(argNum)                                sfall_func1("get_sfall_arg_at", argNum)
+#define get_string_pointer(text)                                sfall_func1("get_string_pointer", text)
 #define get_terrain_name(x, y)                                  sfall_func2("get_terrain_name", x, y)
 #define get_text_width(text)                                    sfall_func1("get_text_width", text)
 #define hide_win                                                sfall_func0("hide_window")
