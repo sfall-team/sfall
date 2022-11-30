@@ -164,7 +164,7 @@ void __stdcall EndHook() {
 }
 
 // BEGIN HOOKS
-void HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
+void __stdcall HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}

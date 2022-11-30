@@ -40,7 +40,7 @@ static void __declspec(naked) GNW95_process_message_hack() {
 	__asm {
 		push idle;
 		call Sleep;
-		cmp  ds:[FO_VAR_GNW95_isActive], 0;
+		cmp  dword ptr ds:[FO_VAR_GNW95_isActive], 0;
 		retn;
 	}
 }
@@ -727,12 +727,12 @@ static void KeepSelectModePatch() {
 }
 
 static void PartyMemberSkillPatch() {
-	// Fixed getting distance from source to target when using skills
-	// Note: this will cause the party member to apply his/her skill when you use First Aid/Doctor skill on the player, but only if
+	// Fix getting distance from source to target when using skills
+	// Note: this will cause the party member to perform First Aid/Doctor skills when you use them on the player, but only if
 	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
 	// this option without a global script that overrides First Aid/Doctor functions has very limited usefulness
 	if (IniReader::GetConfigInt("Misc", "PartyMemberSkillFix", 0)) {
-		dlog("Applying party member using First Aid/Doctor skill patch.", DL_INIT);
+		dlog("Applying First Aid/Doctor skill use patch for party members.", DL_INIT);
 		HookCall(0x412836, action_use_skill_on_hook);
 		dlogr(" Done", DL_INIT);
 	}

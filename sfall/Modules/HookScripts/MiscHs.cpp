@@ -99,6 +99,7 @@ void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
 
 static char resultSkillOn; // -1 - cancel handler, 1 - replace user
 static long bakupCombatState;
+
 static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
 	BeginHook();
 	argCount = 3;
@@ -612,7 +613,7 @@ blinkIcon:
 		jmp  fo::funcoffs::wmInterfaceRefresh_;
 break:
 		mov  eax, hkEncounterMapID;
-		cmp  ds:[FO_VAR_Move_on_Car], 0;
+		cmp  dword ptr ds:[FO_VAR_Move_on_Car], 0;
 		je   noCar;
 		mov  edx, FO_VAR_carCurrentArea;
 		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
@@ -623,7 +624,7 @@ noCar:
 		mov  hkEncounterMapID, -1;
 cancelEnc:
 		inc  eax; // 0 - continue movement, 1 - interrupt
-		mov  ds:[FO_VAR_wmEncounterIconShow], 0;
+		mov  dword ptr ds:[FO_VAR_wmEncounterIconShow], 0;
 		add  esp, 4;
 		mov  ebx, 0x4C0BC7;
 		jmp  ebx;
@@ -739,8 +740,10 @@ void Inject_UseSkillOnHook() {
 	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
 
 	// replace _obj_dude with source skill user (skill_use_ function)
-	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});
-	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AB0EF, 0x4AB5C0, 0x4ABAF2}); // fix for time
+	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {
+		0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54,
+		0x4AB0EF, 0x4AB5C0, 0x4ABAF2 // fix for time increment
+	});
 }
 
 void Inject_EncounterHook() {

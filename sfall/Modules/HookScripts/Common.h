@@ -18,7 +18,7 @@ public:
 	static void __stdcall SetHSReturn(DWORD d);
 
 	static void GameModeChangeHook(DWORD exit);
-	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
+	static void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 	static void __stdcall MouseClickHook(DWORD button, bool pressed);
 
 	static void Reset();
