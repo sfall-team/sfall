@@ -97,10 +97,10 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
+	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
+	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
 	{-1,                    nullptr,                     false}, // dummy
-	{-1,                    nullptr,                     false}, // dummy
-	{-1,                    nullptr,                     false}, // dummy
-	{-1,                    nullptr,                     false}, // dummy
+	{HOOK_SETLIGHTING,      Inject_SetLightingHook,      false},
 	{HOOK_SNEAK,            Inject_SneakCheckHook,       false},
 	{HOOK_STDPROCEDURE,     Inject_ScriptProcedureHook,  false},
 	{HOOK_STDPROCEDURE_END, Inject_ScriptProcedureHook2, false},

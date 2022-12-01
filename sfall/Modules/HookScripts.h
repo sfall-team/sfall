@@ -52,7 +52,7 @@ enum HookType
 	HOOK_INVENTORYMOVE    = 24,
 	HOOK_INVENWIELD       = 25,
 	HOOK_ADJUSTFID        = 26,
-	HOOK_COMBATTURN       = 27, // unimplemented
+//	HOOK_COMBATTURN       = 27, // unimplemented
 	HOOK_CARTRAVEL        = 28,
 	HOOK_SETGLOBALVAR     = 29,
 	HOOK_RESTTIMER        = 30,
@@ -60,6 +60,10 @@ enum HookType
 	HOOK_USEANIMOBJ       = 32,
 	HOOK_EXPLOSIVETIMER   = 33,
 	HOOK_DESCRIPTIONOBJ   = 34,
+	HOOK_USESKILLON       = 35,
+	HOOK_ONEXPLOSION      = 36,
+//	HOOK_SUBCOMBATDAMAGE  = 37, // unimplemented
+	HOOK_SETLIGHTING      = 38,
 	HOOK_SNEAK            = 39,
 	HOOK_STDPROCEDURE     = 40,
 	HOOK_STDPROCEDURE_END = 41,

@@ -4,8 +4,10 @@ namespace sfall
 {
 
 void InitMiscHookScripts();
+void SourceUseSkillOnInit();
 
 void Inject_BarterPriceHook();
+void Inject_UseSkillOnHook();
 void Inject_UseSkillHook();
 void Inject_StealCheckHook();
 void Inject_SneakCheckHook();

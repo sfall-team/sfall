@@ -185,6 +185,72 @@ skip:
 	}
 }
 
+static bool __fastcall SetLightingHook_Script(DWORD &intensity, DWORD &radius, DWORD object) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = object;
+	args[1] = intensity;
+	args[2] = radius;
+	RunHookScript(HOOK_SETLIGHTING);
+
+	bool result = false;
+	if (cRet > 0) {
+		int light = rets[0];
+		if (light < 0) light = 0;
+		intensity = light;
+		if (cRet > 1 && object != -1) {
+			int dist = rets[1];
+			if (dist < 0) dist = 0;
+			radius = dist;
+		}
+		result = true;
+	}
+	EndHook();
+	return result;
+}
+
+static void __declspec(naked) SetObjectLightHook() {
+	__asm {
+		pushadc;
+		push ebp;
+		mov  edx, esp;  // &radius
+		push ebx;
+		mov  ecx, esp;  // &intensity
+		push esi;       // object
+		call SetLightingHook_Script;
+		test al, al;
+		jz   skip;
+		pop  ebx;       // return intensity value
+		pop  ebp;       // return radius value
+		jmp  end;
+skip:
+		add  esp, 8;
+end:
+		popadc;
+		jmp  fo::funcoffs::obj_turn_off_light_;
+	}
+}
+
+static void __declspec(naked) SetMapLightHook() {
+	__asm {
+		push ecx;
+		push ebx;
+		mov  ecx, esp;  // &intensity
+		push -1;        // no object (it's a map)
+		mov  edx, esp;  // no radius
+		call SetLightingHook_Script;
+		add  esp, 4;
+		test al, al;
+		jz   skip;
+		mov  ebx, [esp - 4]; // return intensity value
+skip:
+		pop  ecx;
+		cmp  ebx, dword ptr ds:[0x47A93D]; // get miminal ambient light intensity (16384)
+		retn;
+	}
+}
+
 static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInstance* script, DWORD procTable) {
 	BeginHook();
 	argCount = 4;
@@ -282,6 +348,11 @@ void Inject_DescriptionObjHook() {
 	HookCall(0x49AE28, DescriptionObjHook);
 }
 
+void Inject_SetLightingHook() {
+	HookCall(0x48ACA0, SetObjectLightHook);
+	MakeCall(0x47A934, SetMapLightHook, 1);
+}
+
 void Inject_ScriptProcedureHook() {
 	MakeCall(0x4A491F, ScriptStdProcedureHook);
 }
@@ -293,7 +364,9 @@ void Inject_ScriptProcedureHook2() {
 void InitObjectHookScripts() {
 	HookScripts::LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookScripts::LoadHookScript("hs_useobj", HOOK_USEOBJ);
+	HookScripts::LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
 	HookScripts::LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
+	HookScripts::LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
 	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
 	HookScripts::LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
 }

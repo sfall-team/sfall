@@ -261,8 +261,8 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 	} else { // swap slots
 		fo::ItemButtonItem hands[2];
 		std::memcpy(hands, fo::ptr::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-		hands[fo::HandSlot::Left].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		hands[fo::HandSlot::Left].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 		hands[fo::HandSlot::Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
@@ -329,6 +329,24 @@ static void __declspec(naked) intface_update_items_hack_end() {
 		call intface_update_restore;
 		cmp  [esp + 0x1C - 0x18 + 4], 0; // animate
 		retn;
+	}
+}
+
+static void __declspec(naked) action_use_skill_on_hook() {
+	__asm { // eax = dude_obj, edx = target, ebp = party_member
+		cmp  eax, edx;
+		jnz  end;                     // jump if target != dude_obj
+		mov  edx, ebp;
+		call fo::funcoffs::obj_dist_; // check distance between dude_obj and party_member
+		cmp  eax, 1;                  // if the distance is greater than 1, then reset the register
+		jg   skip;
+		inc  eax;
+		retn;
+skip:
+		xor  eax, eax;
+		retn;
+end:
+		jmp  fo::funcoffs::obj_dist_;
 	}
 }
 
@@ -714,6 +732,21 @@ static void KeepSelectModePatch() {
 	//}
 }
 
+static void PartyMemberSkillPatch() {
+	// Fix getting distance from source to target when using skills
+	// Note: this will cause the party member to perform First Aid/Doctor skills when you use them on the player, but only if
+	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
+	// this option without a global script that overrides First Aid/Doctor functions has very limited usefulness
+	if (IniReader::GetConfigInt("Misc", "PartyMemberSkillFix", 0)) {
+		dlog("Applying First Aid/Doctor skill use patch for party members.", DL_INIT);
+		HookCall(0x412836, action_use_skill_on_hook);
+		dlogr(" Done", DL_INIT);
+	}
+	// Small code patch for HOOK_USESKILLON (change obj_dude to source)
+	SafeWrite32(0x4128F3, 0x90909090);
+	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
+}
+
 #pragma pack(push, 1)
 struct CodeData {
 	DWORD dd;
@@ -1084,6 +1117,8 @@ void MiscPatches::init() {
 
 	DisplaySecondWeaponRangePatch();
 	KeepSelectModePatch();
+
+	PartyMemberSkillPatch();
 
 	SkipLoadingGameSettingsPatch();
 

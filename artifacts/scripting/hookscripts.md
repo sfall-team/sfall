@@ -679,6 +679,57 @@ int     ret0 - a pointer to the new text received by using the get_string_pointe
 
 -------------------------------------------
 
+#### `HOOK_USESKILLON (hs_useskillon.int)`
+
+Runs before using any skill on any object. Lets you override the critter that uses the skill.
+
+__NOTE:__ The user critter can't be overridden when using Steal skill.
+
+```
+Critter arg0 - the user critter (usually dude_obj)
+Obj     arg1 - the target object/critter
+int     arg2 - skill being used
+
+int     ret0 - a new critter to override the user critter. Pass -1 to cancel the skill use, pass 0 to skip this return value
+int     ret1 - pass 1 to allow the skill to be used in combat (only for dude_obj or critter being controlled by the player)
+```
+
+-------------------------------------------
+
+#### `HOOK_ONEXPLOSION (hs_onexplosion.int)`
+
+Runs when Fallout is checking all the tiles within the explosion radius for targets before an explosion occurs.\
+The tile checking will be interrupted when 6 additional targets (critters) are received.
+
+```
+int     arg0 - event type: 1 - when checking objects within the explosion radius without causing damage (e.g. the player drops an active explosive), 0 - otherwise
+Critter arg1 - the attacker
+int     arg2 - the tile on which the explosion occurs
+int     arg3 - checked tile within the explosion radius
+Obj     arg4 - first found object on the checked tile as an additional target
+Critter arg5 - the target critter, may be 0 or equal to the attacker
+int     arg6 - 1 when using throwing weapons (e.g. grenades), 0 otherwise
+
+int     ret0 - overrides the found object on the checked tile, pass 0 to skip the object
+```
+
+-------------------------------------------
+
+#### `HOOK_SETLIGHTING (hs_setlighting.int)`
+
+Runs before setting the light level for an object or a map. You can override the result.
+
+```
+Obj     arg0 - the object being set, or -1 when setting the light level for a map
+int     arg1 - the light intensity
+int     arg2 - the light radius, or -1 when setting the light level for a map
+
+int     ret0 - overrides the light intensity. Intensity range is from 0 to 65536
+int     ret1 - overrides the light radius. Radius range is from 0 to 8 (works only for the object)
+```
+
+-------------------------------------------
+
 #### `HOOK_SNEAK (hs_sneak.int)`
 
 Runs when the Sneak skill is activated, or when the game rolls another Sneak check after the duration for the current one is over.\

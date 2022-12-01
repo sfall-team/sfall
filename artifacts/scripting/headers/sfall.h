@@ -60,6 +60,10 @@
 #define HOOK_USEANIMOBJ       (32)
 #define HOOK_EXPLOSIVETIMER   (33)
 #define HOOK_DESCRIPTIONOBJ   (34)
+#define HOOK_USESKILLON       (35)
+#define HOOK_ONEXPLOSION      (36)
+//#define HOOK_SUBCOMBATDAMAGE  (37) // unimplemented
+#define HOOK_SETLIGHTING      (38)
 #define HOOK_SNEAK            (39)
 #define HOOK_STDPROCEDURE     (40)
 #define HOOK_STDPROCEDURE_END (41)

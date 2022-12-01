@@ -317,6 +317,55 @@ skip:
 	}
 }
 
+fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* object, DWORD isCheck, DWORD checkTile, fo::ComputeAttackResult* ctdSource, DWORD isThrowing, fo::GameObject* who) {
+	fo::GameObject* result = object;
+
+	BeginHook();
+	argCount = 7;
+
+	args[0] = isCheck;
+	args[1] = (DWORD)ctdSource->attacker;
+	args[2] = ctdSource->targetTile;
+	args[3] = checkTile;
+	args[4] = (DWORD)object;
+	args[5] = (DWORD)who;
+	args[6] = isThrowing;
+
+	RunHookScript(HOOK_ONEXPLOSION);
+
+	if (cRet > 0) result = (fo::GameObject*)rets[0]; // override object
+
+	EndHook();
+	return result;
+}
+
+static void __declspec(naked) ComputeExplosionOnExtrasHook() {
+	__asm {
+		cmp  dword ptr [esp + 0x34 + 4], 0x429533;  // skip hook when AI assesses the situation in choosing the best weapon
+		jz   end;
+		cmp  dword ptr [esp + 0x34 + 4], 0x4296BC;
+		jnz  hook;
+end:
+		jmp  fo::funcoffs::obj_blocking_at_;
+hook:
+		push ecx;
+		push eax;                                   // who (target/source)
+		call fo::funcoffs::obj_blocking_at_;
+		push [esp + 0x34 - 0x24 + 12];              // isThrowing
+		xor  edx, edx;
+		cmp  dword ptr [esp + 0x34 + 16], 0x412F11; // check called from action_explode_
+		jz   skip;
+		mov  edx, [esp + 0x34 - 0x34 + 16];         // isCheck (bypass damage)
+skip:
+		push esi;                                   // source ctd
+		push edi;                                   // check tile
+		mov  ecx, eax;                              // object
+		call ComputeExplosionOnExtrasHook_Script;   // edx - isCheck
+		pop  ecx;
+		retn;
+	}
+}
+
 static DWORD targetRet = 0;
 static bool targetObjHookHasRet = false;
 
@@ -441,6 +490,10 @@ void Inject_AmmoCostHook() {
 	HookCall(0x423A7C, AmmoCostHook); // compute_attack_
 }
 
+void Inject_OnExplosionHook() {
+	HookCall(0x423D70, ComputeExplosionOnExtrasHook);
+}
+
 void Inject_TargetObjectHook() {
 	MakeCall(0x44BB16, gmouse_bk_process_hook, 1);
 	SafeWrite8(0x44BB00, 0x15);
@@ -457,6 +510,7 @@ void InitCombatHookScripts() {
 	HookScripts::LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
 	HookScripts::LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
 	HookScripts::LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+	HookScripts::LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 	HookScripts::LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
 }
 

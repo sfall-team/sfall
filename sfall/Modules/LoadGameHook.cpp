@@ -36,6 +36,7 @@
 #include "Graphics.h"
 #include "HeroAppearance.h"
 #include "HookScripts\Common.h"
+#include "HookScripts\MiscHs.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "LoadOrder.h"
@@ -141,6 +142,7 @@ static void __stdcall RunOnBeforeGameStart() {
 static void __stdcall RunOnAfterGameStarted() {
 	if (femaleMsgs) CheckPlayerGender();
 	if (disableHorrigan) *fo::ptr::Meet_Frank_Horrigan = true;
+	SourceUseSkillOnInit();
 	InitGlobalScripts(); // running sfall scripts
 }
 
