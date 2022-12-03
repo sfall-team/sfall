@@ -15,56 +15,56 @@
 */
 
 /*
-	For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
-	because the compiler can build a better/optimized code when calling the engine functions
-
-	NOTES: be careful when using fastcall for engine functions inside C++ loops, as VS2010 might generate unexpected glithes
+	The functions in this section were originally using fastcall wrappers (WRAP_WATCOM_FFUNCX) as in 4.x
+	Because fastcall wrappers tend to cause VS2010 to generate unexpected glitches, all functions here are now
+	changed to stdcall wrappers instead for stability
 */
-WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
-WRAP_WATCOM_FFUNC3(long, ai_have_ammo, fo::GameObject*, critter, fo::GameObject*, item, fo::GameObject**, outAmmo)
-WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, fo::GameObject*, source, fo::GameObject*, item, fo::GameObject*, target)
-WRAP_WATCOM_FFUNC3(long, ai_magic_hands, fo::GameObject*, source, fo::GameObject*, object, long, msgNumber)
-WRAP_WATCOM_FFUNC3(fo::GameObject*, ai_search_inven_weap, fo::GameObject*, source, long, apCheck, fo::GameObject*, target)
-WRAP_WATCOM_FFUNC3(void, check_for_death, fo::GameObject*, critter, long, amountDamage, long*, flags)
-WRAP_WATCOM_FFUNC6(long, combat_safety_invalidate_weapon_func, fo::GameObject*, source, fo::GameObject*, weapon, long, hitMode, fo::GameObject*, targetA, DWORD*, outSafeRange, fo::GameObject*, targetB)
-WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, fo::GameObject*, critter, fo::GameObject*, item, long, slotFlag)
-WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
-WRAP_WATCOM_FFUNC8(void, cscale, BYTE*, src, long, sWidth, long, sHeight, long, sStride, BYTE*, dst, long, width, long, height, long, stride)
-WRAP_WATCOM_FFUNC4(long, determine_to_hit, fo::GameObject*, source, fo::GameObject*, target, long, bodyPart, long, hitMode)
-WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
-WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
-WRAP_WATCOM_FFUNC3(fo::FrmFrameData*, frame_ptr, fo::FrmHeaderData*, frm, long, frame, long, direction)
-WRAP_WATCOM_FFUNC3(void, GNW_win_refresh, fo::Window*, win, fo::BoundRect*, rect, long*, buffer)
-WRAP_WATCOM_FFUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
-WRAP_WATCOM_FFUNC3(fo::GameObject*, inven_find_type, fo::GameObject*, critter, long, itemType, DWORD*, slot)
-WRAP_WATCOM_FFUNC3(long, inven_wield, fo::GameObject*, critter, fo::GameObject*, item, long, slot)
-WRAP_WATCOM_FFUNC3(long, item_add_force, fo::GameObject*, critter, fo::GameObject*, item, long, count)
-WRAP_WATCOM_FFUNC3(long, item_remove_mult, fo::GameObject*, critter, fo::GameObject*, item, long, count) // WARNING: HOOK_REMOVEINVENOBJ uses the return address in this function
-WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, fo::GameObject*, source, long, hitMode, long, isCalled)
+WRAP_WATCOM_FUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FUNC3(long, ai_have_ammo, fo::GameObject*, critter, fo::GameObject*, item, fo::GameObject**, outAmmo)
+WRAP_WATCOM_FUNC3(long, ai_pick_hit_mode, fo::GameObject*, source, fo::GameObject*, item, fo::GameObject*, target)
+WRAP_WATCOM_FUNC3(long, ai_magic_hands, fo::GameObject*, source, fo::GameObject*, object, long, msgNumber)
+WRAP_WATCOM_FUNC3(fo::GameObject*, ai_search_inven_weap, fo::GameObject*, source, long, apCheck, fo::GameObject*, target)
+WRAP_WATCOM_FUNC3(void, check_for_death, fo::GameObject*, critter, long, amountDamage, long*, flags)
+WRAP_WATCOM_FUNC6(long, combat_safety_invalidate_weapon_func, fo::GameObject*, source, fo::GameObject*, weapon, long, hitMode, fo::GameObject*, targetA, DWORD*, outSafeRange, fo::GameObject*, targetB)
+WRAP_WATCOM_FUNC3(void, correctFidForRemovedItem, fo::GameObject*, critter, fo::GameObject*, item, long, slotFlag)
+WRAP_WATCOM_FUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
+WRAP_WATCOM_FUNC8(void, cscale, BYTE*, src, long, sWidth, long, sHeight, long, sStride, BYTE*, dst, long, width, long, height, long, stride)
+WRAP_WATCOM_FUNC4(long, determine_to_hit, fo::GameObject*, source, fo::GameObject*, target, long, bodyPart, long, hitMode)
+WRAP_WATCOM_FUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
+WRAP_WATCOM_FUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
+WRAP_WATCOM_FUNC3(fo::FrmFrameData*, frame_ptr, fo::FrmHeaderData*, frm, long, frame, long, direction)
+WRAP_WATCOM_FUNC3(void, GNW_win_refresh, fo::Window*, win, fo::BoundRect*, rect, long*, buffer)
+WRAP_WATCOM_FUNC3(void, intface_update_items, long, animate, long, modeLeft, long, modeRight)
+WRAP_WATCOM_FUNC3(fo::GameObject*, inven_find_type, fo::GameObject*, critter, long, itemType, DWORD*, slot)
+WRAP_WATCOM_FUNC3(long, inven_wield, fo::GameObject*, critter, fo::GameObject*, item, long, slot)
+WRAP_WATCOM_FUNC3(long, item_add_force, fo::GameObject*, critter, fo::GameObject*, item, long, count)
+WRAP_WATCOM_FUNC3(long, item_remove_mult, fo::GameObject*, critter, fo::GameObject*, item, long, count) // WARNING: HOOK_REMOVEINVENOBJ uses the return address in this function
+WRAP_WATCOM_FUNC3(long, item_w_mp_cost, fo::GameObject*, source, long, hitMode, long, isCalled)
 // Calculates path and returns it's length
-WRAP_WATCOM_FFUNC6(long, make_path_func, fo::GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, checkTileTo, void*, blockingFunc)
-WRAP_WATCOM_FFUNC7(long, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, arrayPtr, DWORD*, outObject, long, flags, void*, blockingFunc)
-WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*, outBuf)
-WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
-WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
-WRAP_WATCOM_FFUNC3(fo::GameObject*, obj_blocking_at, fo::GameObject*, object, long, tile, long, elevation)
-WRAP_WATCOM_FFUNC4(long, obj_connect, fo::GameObject*, object, long, tile, long, elevation, RECT*, rect)
-WRAP_WATCOM_FFUNC4(long, obj_dist_with_tile, fo::GameObject*, source, long, sourceTile, fo::GameObject*, target, long, targetTile)
-WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, fo::GameObject*, object, long, sType, long, scriptIndex)
-WRAP_WATCOM_FFUNC3(fo::GameObject*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
-WRAP_WATCOM_FFUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, comp)
-WRAP_WATCOM_FFUNC4(long, queue_add, long, time, fo::GameObject*, object, void*, data, long, qType)
-WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
-WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
-WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
-WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
-WRAP_WATCOM_FFUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
-WRAP_WATCOM_FFUNC3(void, win_clip, fo::Window*, window, fo::RectList**, rects, void*, buffer)
-WRAP_WATCOM_FFUNC6(void, win_print, long, winID, const char*, text, long, textWidth, long, xPos, long, yPos, long, colorFlags)
-WRAP_WATCOM_FFUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
-WRAP_WATCOM_FFUNC4(void, wmInterfaceDrawSubTileRectFogged, BYTE*, surface, long, width, long, height, long, surfaceWidth)
+WRAP_WATCOM_FUNC6(long, make_path_func, fo::GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, checkTileTo, void*, blockingFunc)
+WRAP_WATCOM_FUNC7(long, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, arrayPtr, DWORD*, outObject, long, flags, void*, blockingFunc)
+WRAP_WATCOM_FUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*, outBuf)
+WRAP_WATCOM_FUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
+WRAP_WATCOM_FUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
+WRAP_WATCOM_FUNC3(fo::GameObject*, obj_blocking_at, fo::GameObject*, object, long, tile, long, elevation)
+WRAP_WATCOM_FUNC4(long, obj_connect, fo::GameObject*, object, long, tile, long, elevation, RECT*, rect)
+WRAP_WATCOM_FUNC4(long, obj_dist_with_tile, fo::GameObject*, source, long, sourceTile, fo::GameObject*, target, long, targetTile)
+WRAP_WATCOM_FUNC3(long, obj_new_sid_inst, fo::GameObject*, object, long, sType, long, scriptIndex)
+WRAP_WATCOM_FUNC3(fo::GameObject*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
+WRAP_WATCOM_FUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, comp)
+WRAP_WATCOM_FUNC4(long, queue_add, long, time, fo::GameObject*, object, void*, data, long, qType)
+WRAP_WATCOM_FUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
+WRAP_WATCOM_FUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
+WRAP_WATCOM_FUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
+WRAP_WATCOM_FUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
+WRAP_WATCOM_FUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
+WRAP_WATCOM_FUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
+WRAP_WATCOM_FUNC8(void, trans_cscale, void*, fromBuff, long, width, long, height, long, fromPitch, void*, toBuff, long, toWidth, long, toHeight, long, toPitch)
+WRAP_WATCOM_FUNC3(void, win_clip, fo::Window*, window, fo::RectList**, rects, void*, buffer)
+WRAP_WATCOM_FUNC6(void, win_print, long, winID, const char*, text, long, textWidth, long, xPos, long, yPos, long, colorFlags)
+WRAP_WATCOM_FUNC9(long, windowWrapLineWithSpacing, long, winID, const char*, text, long, width, long, height, long, x, long, y, long, color, long, alignment, long, lineSpacing)
 
-WRAP_WATCOM_FFUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
+WRAP_WATCOM_FUNC3(const char*, interpretGetString, fo::Program*, scriptPtr, DWORD, dataType, DWORD, strId)
 
 /* stdcall */
 WRAP_WATCOM_FUNC1(fo::AIcap*, ai_cap, fo::GameObject*, critter)
@@ -86,16 +86,16 @@ WRAP_WATCOM_FUNC2(long, barter_compute_value, fo::GameObject*, source, fo::GameO
 WRAP_WATCOM_FUNC1(long, block_for_tocks, long, ticks)
 WRAP_WATCOM_FUNC1(long, critter_body_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, fo::GameObject*, critter)
+WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, fo::GameObject*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
 WRAP_WATCOM_FUNC1(long, critterIsOverloaded, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
-WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procNum)
-WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(const char*, findCurrentProc, fo::Program*, program) // Returns the name of current procedure by program pointer
+WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC0(long, get_input)
@@ -221,11 +221,9 @@ WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_level, fo::GameObject*, critter, long, statId)
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount) // Adds experience points to PC
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
-WRAP_WATCOM_FUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FUNC2(long, tile_dist, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_dir, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, tile_idistance, long, sourceTile, long, targetTile)
-WRAP_WATCOM_FUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
 WRAP_WATCOM_FUNC1(long, tile_on_edge, long, tile)
 WRAP_WATCOM_FUNC0(void, tile_refresh_display) // Redraws the whole screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, fo::BoundRect*, boundRect, long, elevation) // Redraws the given rectangle on screen
@@ -244,7 +242,6 @@ WRAP_WATCOM_FUNC0(void, wmPartyWalkingStep)
 WRAP_WATCOM_FUNC1(void, wmRefreshInterfaceOverlay, long, isRedraw)
 
 /* Database functions */
-// Note: keep these as stdcall to prevent unexpected glitches from VS2010 code generation (Tiles.cpp)
 WRAP_WATCOM_FUNC1(bool, db_access, const char*, fileName) // Checks if given file exists in DB
 WRAP_WATCOM_FUNC1(long, db_fclose, fo::DbFile*, file)
 WRAP_WATCOM_FUNC2(fo::DbFile*, db_fopen, const char*, path, const char*, mode)

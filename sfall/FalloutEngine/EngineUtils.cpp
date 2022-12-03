@@ -460,11 +460,6 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 	}
 }
 
-//void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height, long surfWidth) {
-//	BYTE* surf = surface + (y * surfWidth) + x;
-//	fo::func::wmInterfaceDrawSubTileRectFogged(surf, width, height, surfWidth);
-//}
-
 // Fills the specified interface window with index color
 bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
