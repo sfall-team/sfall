@@ -98,21 +98,21 @@ WRAP_WATCOM_FUNC1(long, block_for_tocks, long, ticks)
 WRAP_WATCOM_FUNC2(long, combat_turn, fo::GameObject*, critter, long, isDudeTurn) // Perform combat turn for a given critter
 WRAP_WATCOM_FUNC1(long, critter_body_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, fo::GameObject*, critter)
+WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, fo::GameObject*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
 WRAP_WATCOM_FUNC1(long, critterIsOverloaded, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
-WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC2(void, endgame_load_palette, long, artType, long, fid)
 WRAP_WATCOM_FUNC1(void, EndLoad, fo::DbFile*, file)
 // Execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 WRAP_WATCOM_FUNC2(void, executeProcedure, fo::Program*, sptr, long, procNum)
+WRAP_WATCOM_FUNC1(const char*, findCurrentProc, fo::Program*, program) // Returns the name of current procedure by program pointer
 WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(long, folder_print_seperator, const char*, text)
-WRAP_WATCOM_FUNC1(const char*, findCurrentProc, fo::Program*, program) // Returns the name of current procedure by program pointer
-WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
 WRAP_WATCOM_FUNC1(void, freeColorBlendTable, long, color)
+WRAP_WATCOM_FUNC1(long, FMtext_width, const char*, text)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC0(long, get_input)
 WRAP_WATCOM_FUNC1(fo::BlendColorTableData*, getColorBlendTable, long, color)
@@ -222,21 +222,21 @@ WRAP_WATCOM_FUNC1(long, register_begin, long, regType)
 WRAP_WATCOM_FUNC0(long, register_end)
 WRAP_WATCOM_FUNC3(long, register_object_animate, fo::GameObject*, object, long, anim, long, delay)
 WRAP_WATCOM_FUNC3(long, register_object_animate_and_hide, fo::GameObject*, object, long, anim, long, delay)
-// WRAP_WATCOM_FUNC3(long, register_object_animate_and_move_straight_, fo::GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_animate_forever_, fo::GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_animate_reverse_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_animate_and_move_straight_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_animate_forever_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_animate_reverse_, fo::GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_change_fid, fo::GameObject*, object, long, artFid, long, delay)
-// WRAP_WATCOM_FUNC3(long, register_object_check_falling_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_check_falling_, fo::GameObject*, object;
 WRAP_WATCOM_FUNC1(long, register_object_dec_rotation, fo::GameObject*, object)
 WRAP_WATCOM_FUNC1(long, register_object_erase, fo::GameObject*, object)
 WRAP_WATCOM_FUNC3(long, register_object_funset, fo::GameObject*, object, long, action, long, delay)
 WRAP_WATCOM_FUNC1(long, register_object_inc_rotation, fo::GameObject*, object)
 WRAP_WATCOM_FUNC3(long, register_object_light, fo::GameObject*, object, long, lightRadius, long, delay)
-// WRAP_WATCOM_FUNC3(long, register_object_move_on_stairs_, fo::GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_move_straight_to_tile_, fo::GameObject*, object;
-// WRAP_WATCOM_FUNC3(long, register_object_must_call_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_move_on_stairs_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_move_straight_to_tile_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_must_call_, fo::GameObject*, object;
 WRAP_WATCOM_FUNC1(long, register_object_must_erase, fo::GameObject*, object)
-// WRAP_WATCOM_FUNC3(long, register_object_outline_, fo::GameObject*, object;
+//WRAP_WATCOM_FUNC3(long, register_object_outline_, fo::GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, fo::GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, fo::GameObject*, object, long, tileNum, long, nothing)
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
