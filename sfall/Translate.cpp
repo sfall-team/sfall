@@ -51,7 +51,7 @@ std::vector<std::string> Translate::GetList(const char* section, const char* set
 
 static void MakeLangTranslationPath(const char* config) {
 	char patches[65], language[32];
-	char fileConfig[65] = ".\\";
+	char fileConfig[67] = ".\\";
 	std::strcpy(&fileConfig[2], config);
 
 	IniReader::GetString("system", "language", "english", language, 32, fileConfig);
@@ -76,7 +76,7 @@ static void InitMessagesTranslate() {
 	Translate::Get("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
 	Translate::Get("sfall", "SaveInCombat", "Cannot save at this time.", combatSaveFailureMsg);
 	Translate::Get("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! "
-	               "Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg);
+	               "Check if other programs interfere with savegame files/folders and try again.", saveSfallDataFailMsg);
 }
 
 void Translate::init(const char* config) {
