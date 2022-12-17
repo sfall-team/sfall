@@ -1693,6 +1693,9 @@ static bool showItemDescription = false;
 
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
+		if (desc == nullptr) {
+			desc = fo::util::MessageSearch(&fo::var::proto_main_msg_file, 493);
+		}
 		strncpy_s(messageBuffer, desc, 161);
 		int len = strlen(messageBuffer);
 		if (len > 160) {
