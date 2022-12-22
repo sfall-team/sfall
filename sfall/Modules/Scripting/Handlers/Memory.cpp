@@ -81,6 +81,7 @@ error:
 }
 
 void __declspec(naked) op_read_string() {
+	static const char* emptyStr = "";
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -88,10 +89,13 @@ void __declspec(naked) op_read_string() {
 		mov  edx, eax;
 result:
 		mov  eax, ebx;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax;
+		mov  eax, ebx;
 		_J_RET_VAL_TYPE(VAR_TYPE_STR);
 //		retn;
 error:
-		xor  edx, edx;
+		mov  edx, emptyStr;
 		jmp  result;
 	}
 }
