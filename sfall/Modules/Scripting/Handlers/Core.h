@@ -64,11 +64,11 @@ void mf_add_g_timer_event(OpcodeContext&);
 
 void mf_remove_timer_event(OpcodeContext&);
 
-void op_sfall_ver_major(OpcodeContext&);
+void __declspec() op_sfall_ver_major();
 
-void op_sfall_ver_minor(OpcodeContext&);
+void __declspec() op_sfall_ver_minor();
 
-void op_sfall_ver_build(OpcodeContext&);
+void __declspec() op_sfall_ver_build();
 
 }
 }

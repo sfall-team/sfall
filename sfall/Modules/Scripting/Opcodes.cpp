@@ -150,9 +150,6 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x20d, "list_begin",                 op_list_begin,                1, true,   0, {ARG_INT}},
 	{0x20e, "list_next",                  op_list_next,                 1, true,   0, {ARG_INT}},
 	{0x20f, "list_end",                   op_list_end,                  1, false,  0, {ARG_INT}},
-	{0x210, "sfall_ver_major",            op_sfall_ver_major,           0, true},
-	{0x211, "sfall_ver_minor",            op_sfall_ver_minor,           0, true},
-	{0x212, "sfall_ver_build",            op_sfall_ver_build,           0, true},
 	{0x216, "set_critter_burst_disable",  op_set_critter_burst_disable, 2, false,  0, {ARG_OBJECT, ARG_INT}},
 	{0x217, "get_weapon_ammo_pid",        op_get_weapon_ammo_pid,       1, true,  -1, {ARG_OBJECT}},
 	{0x218, "set_weapon_ammo_pid",        op_set_weapon_ammo_pid,       2, false,  0, {ARG_OBJECT, ARG_INT}},
@@ -391,6 +388,9 @@ void Opcodes::InitNew() {
 
 	opcodes[0x1f6] = op_nb_create_char;
 	opcodes[0x206] = op_set_self;
+	opcodes[0x210] = op_sfall_ver_major;
+	opcodes[0x211] = op_sfall_ver_minor;
+	opcodes[0x212] = op_sfall_ver_build;
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
