@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2009, 2010  Mash (Matt Wells, mashw at bigpond dot net dot au)
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
