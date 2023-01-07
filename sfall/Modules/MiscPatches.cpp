@@ -1031,7 +1031,7 @@ void MiscPatches::init() {
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
 
 	int ms = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (ms > idle) idle = (ms > 30) ? 30 : ms;
+	if (ms > idle) idle = (ms > 50) ? 50 : ms;
 	if (idle >= 0) MakeCall(0x4C9CF8, GNW95_process_message_hack, 2);
 
 	BlockCall(0x4425E6); // Patch out ereg call
