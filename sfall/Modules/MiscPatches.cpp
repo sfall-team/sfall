@@ -914,7 +914,7 @@ static void EngineOptimizationPatches() {
 }
 
 void MiscPatches::SetIdle(int value) {
-	idle = (value > 30) ? 30 : value;
+	idle = (value > 50) ? 50 : value;
 }
 
 void MiscPatches::init() {
