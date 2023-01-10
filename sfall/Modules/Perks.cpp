@@ -343,6 +343,17 @@ static FakePerk* __fastcall GetFakeSelectPerk(int id) {
 	return &fakeSelectablePerks[id - startFakeID];
 }
 
+static void __declspec(naked) CheckTraitHack() {
+	__asm {
+		mov  edx, ds:[FO_VAR_temp_trait];
+		cmp  edx, -1;
+		jnz  end;
+		mov  edx, ds:[FO_VAR_temp_trait2];
+end:
+		retn;
+	}
+}
+
 // Print a list of fake traits
 static DWORD HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
@@ -829,6 +840,7 @@ static void PerkEngineInit() {
 	perk::EnginePerkBonusInit();
 
 	// Character screen (list_perks_)
+	MakeCall(0x434246, CheckTraitHack, 1);  // fix for certain cases
 	HookCall(0x434256, PlayerHasTraitHook); // jz func
 	MakeJump(0x43436B, PlayerHasPerkHack);
 	HookCall(0x4343AC, GetPerkLevelHook);
