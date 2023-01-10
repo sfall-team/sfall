@@ -85,6 +85,20 @@ static void __declspec(naked) select_update_display_hook() {
 	}
 }
 
+static void __declspec(naked) select_display_stats_hook() {
+	__asm {
+		call fo::funcoffs::trait_name_;
+		test eax, eax;
+		jz   skip;
+		retn;
+skip:
+		mov  eax, [esp];
+		add  eax, 94; // offset to next section (0x4A8A60, 0x4A8AC9)
+		add  esp, 4;
+		jmp  eax;
+	}
+}
+
 void Premade::init() {
 	std::vector<std::string> premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
 	std::vector<std::string> premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
@@ -113,6 +127,10 @@ void Premade::init() {
 	// Add language path for premade GCD/BIO files
 	HookCall(0x4A8B44, select_display_bio_hook);
 	HookCall(0x4A7D91, select_update_display_hook);
+
+	// Allow premade characters to have less than two traits
+	const DWORD selDisplayTraitAddr[] = {0x4A89FD, 0x4A8A66};
+	HookCalls(select_display_stats_hook, selDisplayTraitAddr);
 }
 
 }
