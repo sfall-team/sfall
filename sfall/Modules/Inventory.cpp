@@ -359,7 +359,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		call fo::funcoffs::proto_ptr_;
 		mov  edx, [esp];
 		mov  eax, [edx + 0x5C];            // eax = default ammo pid
-		mov  [ecx + ammoPid], eax;         // set current ammo proto
+		mov  [ecx + ammoPid], eax;         // set current ammo pid
 		add  esp, 4;
 end:
 		pop  ecx;
@@ -697,10 +697,11 @@ void Inventory::init() {
 		ApplyInvenApCostPatch();
 	}
 
-	if (IniReader::GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
+	// Set default ammo pid for empty weapons to make them stack regardless of previously loaded ammo
+	//if (IniReader::GetConfigInt("Misc", "StackEmptyWeapons", 1)) {
 		MakeCall(0x4736C6, inven_action_cursor_hack);
 		HookCall(0x4772AA, item_add_mult_hook);
-	}
+	//}
 
 	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
 	int ReloadReserve = IniReader::GetConfigInt("Misc", "ReloadReserve", -1);
