@@ -699,7 +699,7 @@ void Inventory::init() {
 		ApplyInvenApCostPatch();
 	}
 
-	// Set default ammo pid for empty weapons to make them stack regardless of previously loaded ammo
+	// Set default ammo pid for unloaded weapons to make them stack regardless of previously loaded ammo
 	//if (IniReader::GetConfigInt("Misc", "StackEmptyWeapons", 1)) {
 		MakeCall(0x4736C6, inven_action_cursor_hack);
 		HookCall(0x4772AA, item_add_mult_hook);
