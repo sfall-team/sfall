@@ -23,6 +23,7 @@ namespace sfall
 namespace script
 {
 
+extern bool unsafeEnabled;
 extern bool checkValidMemAddr;
 
  // memory_reading_funcs
