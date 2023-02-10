@@ -164,10 +164,9 @@ static void ElevatorsInit() {
 void Elevators::init() {
 	std::string elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
 	if (!elevPath.empty()) {
-		dlog("Applying elevator patch.", DL_INIT);
+		dlogr("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();
 		LoadElevators(elevPath.insert(0, ".\\").c_str());
-		dlogr(" Done", DL_INIT);
 	}
 }
 

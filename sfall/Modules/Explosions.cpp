@@ -316,11 +316,10 @@ void Explosions::init() {
 
 	lightingEnabled = IniReader::GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
 	if (lightingEnabled) {
-		dlog("Applying Explosion changes.", DL_INIT);
+		dlogr("Applying Explosion changes.", DL_INIT);
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
 		MakeJump(0x415A3F, anim_set_check_light_fix); // this allows to change light intensity
-		dlogr(" Done", DL_INIT);
 	}
 
 	// initialize explosives

@@ -626,9 +626,8 @@ void AI::init() {
 
 	RetryCombatMinAP = IniReader::GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
+		dlogr("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, RetryCombatHook); // combat_turn_
-		dlogr(" Done", DL_INIT);
 	}
 
 	/////////////////////// Combat behavior AI fixes ///////////////////////

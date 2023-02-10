@@ -74,9 +74,8 @@ bool KillCounter::UsingExtraKillTypes() {
 
 void KillCounter::init() {
 	if (IniReader::GetConfigInt("Misc", "ExtraKillTypes", 0)) {
-		dlog("Applying extra kill types patch.", DL_INIT);
+		dlogr("Applying extra kill types patch.", DL_INIT);
 		KillCounterInit();
-		dlogr(" Done", DL_INIT);
 	}
 }
 

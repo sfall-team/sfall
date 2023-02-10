@@ -1537,7 +1537,7 @@ static void HeroAppearanceModExit() {
 void HeroAppearance::init() {
 	int heroAppearanceMod = IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
-		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
+		dlogr("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 
 		// Hero FrmID fix for obj_art_fid/art_change_fid_num script functions
@@ -1545,7 +1545,6 @@ void HeroAppearance::init() {
 			MakeJump(0x45C5C3, op_obj_art_fid_hack);
 			HookCall(0x4572BE, op_metarule3_hook);
 		}
-		dlogr(" Done", DL_INIT);
 	}
 }
 

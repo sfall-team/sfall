@@ -461,9 +461,8 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 static void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = IniReader::GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
-		dlog("Applying NPC autolevel patch.", DL_INIT);
+		dlogr("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
-		dlogr(" Done", DL_INIT);
 	}
 }
 
@@ -481,7 +480,7 @@ void PartyControl::init() {
 	else if (Mode == 1 && !isDebug) Mode = 2;
 
 	if (Mode > 0) {
-		dlogr("Initializing party control...", DL_INIT);
+		dlog("Setting up party control.", DL_INIT);
 		std::vector<std::string> pidList = IniReader::GetConfigList("Misc", "ControlCombatPIDList", "", 512);
 		size_t countPids = pidList.size();
 		if (countPids) {
@@ -490,7 +489,7 @@ void PartyControl::init() {
 				Chars[i] = (WORD)atoi(pidList[i].c_str());
 			}
 		}
-		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, Mode, countPids);
+		dlog_f(" Mode %d, Chars read: %d.\n", DL_INIT, Mode, countPids);
 
 		HookCall(0x46EBEE, FidChangeHook);
 
@@ -517,12 +516,11 @@ void PartyControl::init() {
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
-		dlog("Applying display NPC extra info patch.", DL_INIT);
+		dlogr("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
 		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
 		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
 		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
-		dlogr(" Done", DL_INIT);
 	}
 }
 

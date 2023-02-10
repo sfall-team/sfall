@@ -496,7 +496,7 @@ void DamageMod::init() {
 	displayBonusDamage = IniReader::GetConfigInt("Misc", "DisplayBonusDamage", 0) != 0;
 
 	if (bonusHtHDamageFix) {
-		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
+		dlogr("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		// Subtract damage from perk bonus (vanilla displaying)
 		if (!displayBonusDamage) {
 			const DWORD meleeDmgDispPrtAddr[] = {
@@ -512,16 +512,14 @@ void DamageMod::init() {
 		}
 		//MakeCall(0x478492, HtHDamageFix1a_hack);            // Unarmed    (item_w_damage_)
 		HookCall(0x47854C, HtHDamageFix1b_hook);              // MeleeWeap  (item_w_damage_)
-		dlogr(" Done", DL_INIT);
 	}
 
 	if (displayBonusDamage) {
-		dlog("Applying Display Bonus Damage patch.", DL_INIT);
+		dlogr("Applying Display Bonus Damage patch.", DL_INIT);
 		HookCall(0x4722DD, DisplayBonusRangedDmg_hook);       // display_stats_
 		if (bonusHtHDamageFix) {
 			HookCall(0x472309, DisplayBonusHtHDmg1_hook);     // MeleeWeap (display_stats_)
 		}
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Display the actual damage values of unarmed attacks (display_stats_ hacks)

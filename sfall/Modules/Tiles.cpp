@@ -308,14 +308,13 @@ end:
 
 void Tiles::init() {
 	if (tileMode = IniReader::GetConfigInt("Misc", "AllowLargeTiles", 0)) {
-		dlog("Applying allow large tiles patch.", DL_INIT);
+		dlogr("Applying allow large tiles patch.", DL_INIT);
 		HookCall(0x481D72, iso_init_hook);
 		HookCall(0x48434C, square_load_hook);
-		dlogr(" Done", DL_INIT);
 	}
 
 	//if (IniReader::GetConfigInt("Misc", "MoreTiles", 1)) {
-		dlog("Applying tile FRM limit patch.", DL_INIT);
+		dlogr("Applying tile FRM limit patch.", DL_INIT);
 		MakeCall(0x419D46, art_id_hack);
 		MakeCall(0x419479, art_get_name_hack);
 		SafeWriteBatch<BYTE>(0x0E, Tiles_0E);
@@ -326,7 +325,6 @@ void Tiles::init() {
 			SafeWrite8(HRPAddress(0x1000E1C0), 0x40); // 4000 > 16384
 			SafeWrite8(HRPAddress(0x1000E1DA), 0x3F); // and esi, 0x3FFF
 		}
-		dlogr(" Done", DL_INIT);
 	//}
 }
 

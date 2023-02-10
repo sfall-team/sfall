@@ -30,7 +30,7 @@ static long LSPageOffset = 0;
 static long LSButtDN = 0;
 static BYTE* SaveLoadSurface = nullptr;
 
-static const char* filename = "%s\\savegame\\slotdat.ini";
+static const char* slotFile = "%s\\savegame\\slotdat.ini";
 
 long ExtraSaveSlots::GetSaveSlot() {
 	return LSPageOffset + *fo::ptr::slot_cursor;
@@ -45,7 +45,7 @@ void ExtraSaveSlots::SetSaveSlot(long page, long slot) {
 static long save_page_offsets() {
 	char SavePath[MAX_PATH], buffer[6];
 
-	sprintf_s(SavePath, MAX_PATH, filename, *fo::ptr::patches);
+	sprintf_s(SavePath, MAX_PATH, slotFile, *fo::ptr::patches);
 
 	_itoa_s(*fo::ptr::slot_cursor, buffer, 10);
 	WritePrivateProfileStringA("POSITION", "ListNum", buffer, SavePath);
@@ -60,7 +60,7 @@ static long save_page_offsets() {
 static void LoadPageOffsets() {
 	char LoadPath[MAX_PATH];
 
-	sprintf_s(LoadPath, MAX_PATH, filename, *fo::ptr::patches);
+	sprintf_s(LoadPath, MAX_PATH, slotFile, *fo::ptr::patches);
 
 	*fo::ptr::slot_cursor = IniReader::GetInt("POSITION", "ListNum", 0, LoadPath);
 	if (*fo::ptr::slot_cursor > 9) {
@@ -536,14 +536,13 @@ void ExtraSaveSlots::SetQuickSaveSlot(long page, long slot, long check) {
 void ExtraSaveSlots::init() {
 	bool extraSaveSlots = (IniReader::GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
-		dlog("Applying extra save slots patch.", DL_INIT);
+		dlogr("Applying extra save slots patch.", DL_INIT);
 		EnableSuperSaving();
-		dlogr(" Done", DL_INIT);
 	}
 
 	quickSavePageCount = IniReader::GetConfigInt("Misc", "AutoQuickSave", 0);
 	if (quickSavePageCount > 0) {
-		dlog("Applying auto quick save patch.", DL_INIT);
+		dlogr("Applying auto quick save patch.", DL_INIT);
 		if (quickSavePageCount > 10) quickSavePageCount = 10;
 
 		quickSavePage = IniReader::GetConfigInt("Misc", "AutoQuickSavePage", 1);
@@ -555,7 +554,6 @@ void ExtraSaveSlots::init() {
 		}
 		MakeJump(0x47B984, SaveGame_hack0);
 		MakeCall(0x47B923, SaveGame_hack1, 1);
-		dlogr(" Done", DL_INIT);
 	}
 }
 

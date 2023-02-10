@@ -426,7 +426,7 @@ static const DWORD addrNewLineChar[] = {
 static void DebugModePatch() {
 	int dbgMode = IniReader::GetIntDefaultConfig("Debugging", "DebugMode", 0);
 	if (dbgMode > 0) {
-		dlog("Applying debugmode patch.", DL_INIT);
+		dlogr("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
 		if (*((DWORD*)0x444A64) != 0x082327E8) {
 			SafeWrite32(0x444A64, 0x082327E8); // call debug_register_env_
@@ -482,15 +482,13 @@ static void DebugModePatch() {
 		if (dbgMode != 1) {
 			MoveDebugString((char*)0x500A9B); // "computing attack..."
 		}
-		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void DontDeleteProtosPatch() {
 	if (IniReader::GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
-		dlog("Applying permanent protos patch.", DL_INIT);
+		dlogr("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, CodeType::JumpShort);
-		dlogr(" Done", DL_INIT);
 	}
 }
 

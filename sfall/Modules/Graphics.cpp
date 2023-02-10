@@ -1466,11 +1466,10 @@ void Graphics::init() {
 
 	int multi = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (multi != 100) {
-		dlog("Applying fade patch.", DL_INIT);
+		dlogr("Applying fade patch.", DL_INIT);
 		HookCall(0x493B16, palette_fade_to_hook);
 		if (multi <= 0) multi = 1;
 		fadeMulti = multi / 100.0f;
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Enable support for transparent interface windows

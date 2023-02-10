@@ -406,10 +406,9 @@ defaultIni:
 	IniReader::init();
 
 	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
-		dlog("Applying config file patch.", DL_INIT);
+		dlogr("Applying config file patch.", DL_INIT);
 		const DWORD configFileAddr[] = {0x444BA5, 0x444BCA};
 		SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, configFileAddr);
-		dlogr(" Done", DL_INIT);
 	} else {
 		// if the ConfigFile is not assigned a value
 		std::strcpy(falloutConfigName, (const char*)FO_VAR_fallout_config);

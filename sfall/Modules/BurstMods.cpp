@@ -67,7 +67,7 @@ static void __declspec(naked) compute_spray_rounds_distribution() {
 
 void BurstMods::init() {
 	//if (IniReader::GetConfigInt("Misc", "ComputeSprayMod", 0)) {
-		dlog("Applying ComputeSpray settings to burst attacks.", DL_INIT);
+		dlogr("Applying ComputeSpray settings to burst attacks.", DL_INIT);
 		compute_spray_center_mult = IniReader::GetConfigInt("Misc", "ComputeSpray_CenterMult", 1);
 		compute_spray_center_div  = IniReader::GetConfigInt("Misc", "ComputeSpray_CenterDiv", 3);
 		if (compute_spray_center_div < 1) {
@@ -85,7 +85,6 @@ void BurstMods::init() {
 			compute_spray_target_mult = compute_spray_target_div;
 		}
 		MakeJump(0x4234F1, compute_spray_rounds_distribution);
-		dlogr(" Done", DL_INIT);
 	//}
 }
 
