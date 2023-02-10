@@ -419,7 +419,7 @@ static void __declspec(naked) wmTownMapInit_hook() {
 static void WorldmapViewportPatch() {
 	if (Graphics::GetGameHeightRes() < WMAP_WIN_HEIGHT || Graphics::GetGameWidthRes() < WMAP_WIN_WIDTH) return;
 	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
-	dlog("Applying expanded world map interface patch.", DL_INIT);
+	dlogr("Applying expanded world map interface patch.", DL_INIT);
 
 	wmapWinWidth = WMAP_WIN_WIDTH;
 	wmapWinHeight = WMAP_WIN_HEIGHT;
@@ -531,7 +531,6 @@ static void WorldmapViewportPatch() {
 
 	// Town map frm images (wmTownMapRefresh_)
 	SafeWrite32(0x4C4BE4, (WMAP_WIN_WIDTH * 21) + 22); // start offset for town map image (13462)
-	dlogr(" Done", DL_INIT);
 }
 
 ///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
@@ -833,9 +832,8 @@ static void __declspec(naked) wmTownMapInit_hack() {
 
 static void WorldMapInterfacePatch() {
 	if (IniReader::GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
-		dlog("Applying world map font patch.", DL_INIT);
+		dlogr("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Add missing sounds for the buttons on the world map interface (wmInterfaceInit_)
@@ -856,20 +854,18 @@ static void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 
 	//if (IniReader::GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
-		dlog("Applying world map cities list patch.", DL_INIT);
+		dlogr("Applying world map cities list patch.", DL_INIT);
 		HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
-		dlogr(" Done", DL_INIT);
 	//}
 
 	DWORD wmSlots = IniReader::GetConfigInt("Misc", "WorldMapSlots", 0);
 	if (wmSlots && wmSlots < 128) {
-		dlog("Applying world map slots patch.", DL_INIT);
+		dlogr("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
 		mapSlotsScrollMax = (wmSlots - 7) * 27; // height value after which scrolling is not possible
 		mapSlotsScrollLimit = wmSlots * 27;
 		SafeWrite32(0x4C21FD, 189); // 27 * 7
 		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
-		dlogr(" Done", DL_INIT);
 	}
 
 	if (HRP::Setting::IsEnabled() || HRP::Setting::VersionIsValid) { // was available only for 4.1.8?
@@ -880,7 +876,7 @@ static void WorldMapInterfacePatch() {
 
 	// Fallout 1 features, travel markers and displaying terrain types or town titles
 	if (IniReader::GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
-		dlog("Applying world map travel markers patch.", DL_INIT);
+		dlogr("Applying world map travel markers patch.", DL_INIT);
 
 		int color = IniReader::GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
 		if (color > 228) color = 228; else if (color < 1) color = 1; // no palette animation colors
@@ -911,7 +907,6 @@ static void WorldMapInterfacePatch() {
 		LoadGameHook::OnGameReset() += []() {
 			dots.clear();
 		};
-		dlogr(" Done", DL_INIT);
 	}
 	showTerrainType = (IniReader::GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0);
 	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
@@ -952,14 +947,12 @@ negative:
 static void SpeedInterfaceCounterAnimsPatch() {
 	switch (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
 	case 1:
-		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
+		dlogr("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
 		MakeJump(0x460BA1, intface_rotate_numbers_hack);
-		dlogr(" Done", DL_INIT);
 		break;
 	case 2:
-		dlog("Applying SpeedInterfaceCounterAnims patch (Instant).", DL_INIT);
+		dlogr("Applying SpeedInterfaceCounterAnims patch (Instant).", DL_INIT);
 		SafeWrite32(0x460BB6, 0xDB319090); // xor ebx, ebx
-		dlogr(" Done", DL_INIT);
 		break;
 	}
 }
@@ -1028,8 +1021,6 @@ fix:
 }
 
 static void InterfaceWindowPatch() {
-	dlog("Applying flags patch for interface windows.", DL_INIT);
-
 	// Remove MoveOnTop flag for interfaces
 	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ fo::WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
 	SafeWrite8(0x41B966, (*(BYTE*)0x41B966) ^ fo::WinFlags::MoveOnTop); // Automap
@@ -1043,8 +1034,6 @@ static void InterfaceWindowPatch() {
 	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ fo::WinFlags::OwnerFlag); // createWindow_
 	// Remove OwnerFlag and Transparent flags
 	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (fo::WinFlags::Transparent | fo::WinFlags::OwnerFlag)); // addWindow_
-
-	dlogr(" Done", DL_INIT);
 
 	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
 	HookCall(0x47093C, display_body_hook);

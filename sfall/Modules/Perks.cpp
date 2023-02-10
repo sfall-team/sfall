@@ -1184,27 +1184,26 @@ static void FastShotTraitFix() {
 	Perks::fastShotTweak = IniReader::GetConfigInt("Misc", "FastShotFix", 0);
 	switch (Perks::fastShotTweak) {
 	case 1:
-		dlog("Applying Fast Shot trait patch (Haenlomal's tweak).", DL_INIT);
+		dlogr("Applying Fast Shot trait patch (Haenlomal's tweak).", DL_INIT);
 		MakeJump(0x478E79, item_w_called_shot_hack);
 		goto fix;
 	case 2:
-		dlog("Applying Fast Shot trait patch (Alternative behavior).", DL_INIT);
+		dlogr("Applying Fast Shot trait patch (Alternative behavior).", DL_INIT);
 		/* Implemented in sfall item_w_mp_cost function */
 		//SafeWrite16(0x478C9F, 0x9090); // item_w_mp_cost_
 		//HookCalls((void*)0x478C7D, {0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F}); // jmp 0x478C7D
-		goto done;
+		break;
 	case 3:
-		dlog("Applying Fast Shot trait patch (Fallout 1 behavior).", DL_INIT);
+		dlogr("Applying Fast Shot trait patch (Fallout 1 behavior).", DL_INIT);
 		/* Implemented in sfall item_w_mp_cost function */
 		//HookCall(0x478C97, (void*)fo::funcoffs::item_hit_with_);
 		//SafeWrite16(0x478C9E, CodeType::JumpZ << 8); // ignore all unarmed attacks (cmp eax, 0; jz)
-		goto done;
+		break;
 	default:
-		dlog("Applying Fast Shot trait fix.", DL_INIT);
+		dlogr("Applying Fast Shot trait fix.", DL_INIT);
 	fix:
 		//HookCall(0x478C97, item_w_mp_cost_hook); - Fix implemented in sfall item_w_mp_cost function
-	done:
-		dlogr(" Done", DL_INIT);
+		break;
 	}
 }
 

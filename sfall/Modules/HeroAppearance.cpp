@@ -1537,7 +1537,7 @@ static void HeroAppearanceModExit() {
 void HeroAppearance::init() {
 	int heroAppearanceMod = IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
-		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
+		dlogr("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 
 		// Hero FrmID fix for obj_art_fid/art_change_fid_num script functions
@@ -1551,7 +1551,6 @@ void HeroAppearance::init() {
 			LoadHeroAppearance();
 		};
 		Inventory::OnAdjustFid() += AdjustHeroArmorArt;
-		dlogr(" Done", DL_INIT);
 	}
 }
 

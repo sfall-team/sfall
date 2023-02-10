@@ -375,25 +375,22 @@ static void MapLimitsPatches() {
 	// This has priority over the SCROLL_DIST_X/Y options in f2_res.ini
 	long data = IniReader::GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data > 0) {
-		dlog("Applying local map x limit patch.", DL_INIT);
+		dlogr("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x4B13B9, data);
 		HRP::ViewMap::SCROLL_DIST_X = data;
-		dlogr(" Done", DL_INIT);
 	}
 	data = IniReader::GetConfigInt("Misc", "LocalMapYLimit", 0);
 	if (data > 0) {
-		dlog("Applying local map y limit patch.", DL_INIT);
+		dlogr("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x4B13C7, data);
 		HRP::ViewMap::SCROLL_DIST_Y = data;
-		dlogr(" Done", DL_INIT);
 	}
 
 	//if (IniReader::GetConfigInt("Misc", "CitiesLimitFix", 0)) {
-		dlog("Applying cities limit patch.", DL_INIT);
+		dlogr("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != CodeType::JumpShort) {
 			SafeWrite8(0x4BF3BB, CodeType::JumpShort); // wmAreaInit_
 		}
-		dlogr(" Done", DL_INIT);
 	//}
 }
 
@@ -405,7 +402,7 @@ static void TimeLimitPatch() {
 		limit = -1; // also reset time
 	}
 	if (limit >= -1 && limit < 13) {
-		dlog("Applying time limit patch.", DL_INIT);
+		dlogr("Applying time limit patch.", DL_INIT);
 		if (limit == -1) {
 			MakeCall(0x4A3DF5, script_chk_timed_events_hack, 1);
 			MakeCall(0x4A3488, set_game_time_hack);
@@ -419,7 +416,6 @@ static void TimeLimitPatch() {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);
 		}
-		dlogr(" Done", DL_INIT);
 	}
 }
 
@@ -450,38 +446,34 @@ static void WorldmapFpsPatch() {
 	}
 
 	if (IniReader::GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
-		dlog("Applying world map encounter patch.", DL_INIT);
+		dlogr("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = IniReader::GetConfigInt("Misc", "WorldMapEncounterRate", 5);
 		SafeWrite32(0x4C232D, 0xB8); // mov eax, 0; (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
-		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void PathfinderFixInit() {
 	//if (IniReader::GetConfigInt("Misc", "PathfinderFix", 0)) {
-		dlog("Applying Pathfinder patch.", DL_INIT);
+		dlogr("Applying Pathfinder patch.", DL_INIT);
 		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
 		HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
 		mapMultiMod = (double)IniReader::GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
-		dlogr(" Done", DL_INIT);
 	//}
 }
 
 static void StartingStatePatches() {
 	int date = IniReader::GetConfigInt("Misc", "StartYear", -1);
 	if (date >= 0) {
-		dlog("Applying starting year patch.", DL_INIT);
+		dlogr("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
-		dlogr(" Done", DL_INIT);
 	}
 	int month = IniReader::GetConfigInt("Misc", "StartMonth", -1);
 	if (month >= 0) {
 		if (month > 11) month = 11;
-		dlog("Applying starting month patch.", DL_INIT);
+		dlogr("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, month);
-		dlogr(" Done", DL_INIT);
 	}
 	date = IniReader::GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
@@ -490,27 +482,24 @@ static void StartingStatePatches() {
 		} else if (date > 30) {
 			date = 30; // set 31st day
 		}
-		dlog("Applying starting day patch.", DL_INIT);
+		dlogr("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, static_cast<BYTE>(date));
-		dlogr(" Done", DL_INIT);
 	}
 
 	long xPos = IniReader::GetConfigInt("Misc", "StartXPos", -1);
 	if (xPos != -1) {
 		if (xPos < 0) xPos = 0;
-		dlog("Applying starting x position patch.", DL_INIT);
+		dlogr("Applying starting x position patch.", DL_INIT);
 		SafeWrite32(0x4BC990, xPos);
 		SafeWrite32(0x4BCC08, xPos);
-		dlogr(" Done", DL_INIT);
 		customPosition = true;
 	}
 	long yPos = IniReader::GetConfigInt("Misc", "StartYPos", -1);
 	if (yPos != -1) {
 		if (yPos < 0) yPos = 0;
-		dlog("Applying starting y position patch.", DL_INIT);
+		dlogr("Applying starting y position patch.", DL_INIT);
 		SafeWrite32(0x4BC995, yPos);
 		SafeWrite32(0x4BCC0D, yPos);
-		dlogr(" Done", DL_INIT);
 		customPosition = true;
 	}
 
@@ -522,27 +511,24 @@ static void StartingStatePatches() {
 	if (xPos != -1) {
 		if (xPos < 0) xPos = 0;
 		ViewportX = xPos;
-		dlog("Applying starting x view patch.", DL_INIT);
+		dlogr("Applying starting x view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
-		dlogr(" Done", DL_INIT);
 	}
 	yPos = IniReader::GetConfigInt("Misc", "ViewYPos", -1);
 	if (yPos != -1) {
 		if (yPos < 0) yPos = 0;
 		ViewportY = yPos;
-		dlog("Applying starting y view patch.", DL_INIT);
+		dlogr("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
-		dlogr(" Done", DL_INIT);
 	}
 	if (xPos != -1 || yPos != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
 static void PipBoyAutomapsPatch() {
-	dlog("Applying Pip-Boy automaps patch.", DL_INIT);
+	dlogr("Applying Pip-Boy automaps patch.", DL_INIT);
 	MakeCall(0x4BF931, wmMapInit_hack, 2);
 	SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
 	memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
-	dlogr(" Done", DL_INIT);
 }
 
 void Worldmap::SaveData(HANDLE file) {

@@ -839,9 +839,8 @@ void PartyControl::OrderAttackPatch() {
 static void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = IniReader::GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
-		dlog("Applying NPC autolevel patch.", DL_INIT);
+		dlogr("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
-		dlogr(" Done", DL_INIT);
 	}
 }
 
@@ -870,12 +869,11 @@ void PartyControl::init() {
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
-		dlog("Applying display NPC extra info patch.", DL_INIT);
+		dlogr("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
 		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
 		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
 		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
-		dlogr(" Done", DL_INIT);
 	}
 
 	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::", 33));

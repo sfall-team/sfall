@@ -344,7 +344,7 @@ void Drugs::init() {
 				LoadGameHook::OnGameReset() += ResetDrugs;
 			}
 		}
-		dlog_f(" (%d/%d drugs) Done\n", DL_INIT, drugsCount, count);
+		dlog_f(" (%d/%d drugs)\n", DL_INIT, drugsCount, count);
 	}
 }
 

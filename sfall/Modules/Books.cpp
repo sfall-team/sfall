@@ -117,7 +117,7 @@ void Books::init() {
 
 			MakeJump(0x49B9FB, obj_use_book_hook);
 		}
-		dlog_f(" (%d/%d books) Done\n", DL_INIT, n, count);
+		dlog_f(" (%d/%d books)\n", DL_INIT, n, count);
 	}
 }
 

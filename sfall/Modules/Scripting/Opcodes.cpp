@@ -270,7 +270,7 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 }
 
 void Opcodes::InitNew() {
-	dlogr("Adding sfall opcodes", DL_SCRIPT);
+	dlog("Adding sfall opcodes.", DL_SCRIPT);
 
 	SafeWrite32(0x46E370, opcodeCount);    // Maximum number of allowed opcodes
 	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
@@ -292,9 +292,9 @@ void Opcodes::InitNew() {
 	if (int unsafe = IniReader::GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {
 		unsafeEnabled = true;
 		if (unsafe == 2) checkValidMemAddr = false;
-		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
+		dlogr(" Unsafe opcodes enabled.", DL_SCRIPT);
 	} else {
-		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
+		dlogr(" Unsafe opcodes disabled.", DL_SCRIPT);
 	}
 	opcodes[0x1cf] = op_write_byte;
 	opcodes[0x1d0] = op_write_short;

@@ -199,7 +199,7 @@ void SpeedPatch::init() {
 	}
 	if (init == 100 && !modKey[0]) return;
 
-	dlog("Applying speed patch.", DL_INIT);
+	dlogr("Applying speed patch.", DL_INIT);
 
 	switch (modKey[0]) {
 	case -1:
@@ -230,7 +230,6 @@ void SpeedPatch::init() {
 	HookCall(0x4A433E, scripts_check_state_hook);
 
 	TimerInit();
-	dlogr(" Done", DL_INIT);
 }
 
 void SpeedPatch::exit() {

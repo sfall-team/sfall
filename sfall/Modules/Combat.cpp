@@ -537,10 +537,9 @@ end:
 }
 
 static void CombatProcPatch() {
-	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+	dlogr("Applying Ray's combat_p_proc patch.", DL_INIT);
 	MakeCall(0x424DD9, apply_damage_hack);
 	SafeWrite16(0x424DC6, 0x9090);
-	dlogr(" Done", DL_INIT);
 }
 
 static void ResetOnGameLoad() {

@@ -36,8 +36,8 @@ public:
 void __stdcall HeroSelectWindow(int raceStyleFlag);
 void __stdcall SetHeroStyle(int newStyleVal);
 void __stdcall SetHeroRace(int newRaceVal);
-void __stdcall LoadHeroAppearance(void);
-void __stdcall SetNewCharAppearanceGlobals(void);
+void __stdcall LoadHeroAppearance();
+void __stdcall SetNewCharAppearanceGlobals();
 
 void __stdcall RefreshPCArt();
 

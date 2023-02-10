@@ -571,9 +571,8 @@ void Animations::init() {
 	if (animationLimit < 32) animationLimit = 32;
 	if (animationLimit > 32) {
 		if (animationLimit > 127) animationLimit = 127;
-		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
+		dlogr("Applying AnimationsAtOnceLimit patch.", DL_INIT);
 		ApplyAnimationsAtOncePatches(animationLimit);
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Improved implementation of animation registration
@@ -617,10 +616,9 @@ void Animations::init() {
 
 	// Fix for grave type containers in the open state not executing the use_p_proc procedure
 	if (IniReader::GetConfigInt("Misc", "GraveContainersFix", 0)) {
-		dlog("Applying grave type containers fix.", DL_INIT);
+		dlogr("Applying grave type containers fix.", DL_INIT);
 		HookCall(0x49CFAC, obj_use_container_hook);
 		SafeWrite16(0x4122D9, 0x9090); // action_get_an_object_
-		dlogr(" Done", DL_INIT);
 	}
 }
 

@@ -559,7 +559,7 @@ void QuestList::init() {
 
 	questsButtonsType = IniReader::GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
-		dlog("Applying quests list patch.", DL_INIT);
+		dlogr("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
 		questsScrollButtonsX = IniReader::GetConfigInt("Misc", "QuestsScrollButtonsX", 140);
@@ -569,8 +569,6 @@ void QuestList::init() {
 
 		pageQuest.reserve(4); // init
 		pageQuest.push_back(1);
-
-		dlogr(" Done", DL_INIT);
 	} else {
 		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of bounds" bug when printing a list of quests
 	}

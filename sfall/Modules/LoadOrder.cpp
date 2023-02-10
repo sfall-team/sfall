@@ -321,10 +321,9 @@ static void GetExtraPatches() {
 
 static void MultiPatchesPatch() {
 	//if (IniReader::GetConfigInt("Misc", "MultiPatches", 0)) {
-		dlog("Applying load multiple patches patch.", DL_INIT);
+		dlogr("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4);          // Disable check
-		dlogr(" Done", DL_INIT);
 	//}
 }
 
@@ -564,19 +563,18 @@ void LoadOrder::init() {
 	MultiPatchesPatch();
 
 	//if (IniReader::GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
-		dlog("Applying data load order patch.", DL_INIT);
+		dlogr("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
-		dlogr(" Done", DL_INIT);
 	//} else /*if (!patchFiles.empty())*/ {
 	//	HookCall(0x44436D, game_init_databases_hook1);
 	//}
 
 	femaleMsgs = IniReader::GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
-		dlog("Applying alternative female dialog files patch.", DL_INIT);
+		dlogr("Applying alternative female dialog files patch.", DL_INIT);
 		MakeJump(0x4A6BCD, scr_get_dialog_msg_file_hack1);
 		MakeJump(0x4A6BF5, scr_get_dialog_msg_file_hack2);
 		LoadGameHook::OnAfterGameStarted() += CheckPlayerGender;
@@ -584,7 +582,6 @@ void LoadOrder::init() {
 			MakeCall(0x480A95, gnw_main_hack); // before new game start from main menu. TODO: need moved to address 0x480A9A (it busy in movies.cpp)
 			LoadGameHook::OnGameExit() += PlayerGenderCutsRestore;
 		}
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Redefined behavior for replacing art aliases for critters
@@ -595,14 +592,13 @@ void LoadOrder::init() {
 		MakeCall(0x419560, art_get_name_hack);
 	}
 
-	dlog("Applying party member protos save/load patch.", DL_INIT);
+	dlogr("Applying party member protos save/load patch.", DL_INIT);
 	savPrototypes.reserve(25);
 	HookCall(0x4A1CF2, proto_load_pid_hook);
 	HookCall(0x4A1BEE, proto_save_pid_hook);
 	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
-	dlogr(" Done", DL_INIT);
 
 	// Load fonts based on the game language
 	HookCalls(load_font_hook, {

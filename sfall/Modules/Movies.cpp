@@ -522,10 +522,9 @@ static void __declspec(naked) op_play_gmovie_hack() {
 void SkipOpeningMoviesPatch() {
 	int skipOpening = IniReader::GetConfigInt("Misc", "SkipOpeningMovies", 0);
 	if (skipOpening) {
-		dlog("Skipping opening movies.", DL_INIT);
+		dlogr("Skipping opening movies.", DL_INIT);
 		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
 		if (skipOpening == 2) BlockCall(0x4426A1); // game_splash_screen_
-		dlogr(" Done", DL_INIT);
 	}
 }
 
@@ -572,7 +571,7 @@ bool Movies::DirectShowMovies() {
 }
 
 void Movies::init() {
-	dlog("Applying movie patch.", DL_INIT);
+	dlogr("Applying movie patch.", DL_INIT);
 
 	// Pause and resume movie/sound playback when the game loses focus
 	fo::func::set_focus_func(LostFocus);
@@ -593,7 +592,6 @@ void Movies::init() {
 	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A}); // gmovie_play_
 	MakeCall(0x44E896, gmovie_play_hack_subpal, 2);
 	MakeCall(0x45A1C9, op_play_gmovie_hack);
-	dlogr(" Done", DL_INIT);
 
 	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
@@ -603,9 +601,8 @@ void Movies::init() {
 		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];
 		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d.", Artimer1DaysCheckTimer);
-		dlog(s, DL_INIT);
+		dlogr(s, DL_INIT);
 		MakeJump(0x4A378B, Artimer1DaysCheckHack);
-		dlogr(" Done", DL_INIT);
 	}
 
 	SkipOpeningMoviesPatch();
