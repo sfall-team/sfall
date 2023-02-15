@@ -3532,7 +3532,7 @@ void BugFixes::init() {
 	// Fix for incorrect death animations being used when killing critters with kill_critter_type function
 	dlogr("Applying kill_critter_type fix.", DL_FIX);
 	SafeWrite16(0x457E22, 0xDB31); // xor ebx, ebx
-	SafeWrite32(0x457C99, 0x30BE0075); // jnz loc_457C9B; mov esi, 48
+	SafeWrite32(0x457C99, 0x30BE0075); // jnz 0x457C9B; mov esi, 48
 
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
@@ -3594,7 +3594,7 @@ void BugFixes::init() {
 	// Fix for the double damage effect of Silent Death perk not being applied to critical hits
 	//if (IniReader::GetConfigInt("Misc", "SilentDeathFix", 1)) {
 		dlogr("Applying Silent Death patch.", DL_FIX);
-		SafeWrite8(0x4238DF, 0x8C); // jl loc_423A0D
+		SafeWrite8(0x4238DF, 0x8C); // jl 0x423A0D
 		HookCall(0x423A99, compute_attack_hook);
 	//}
 
@@ -3650,13 +3650,13 @@ void BugFixes::init() {
 	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
 	// is_within_perception_
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
-	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
+	SafeWrite16(0x456B76, 0x23EB); // jmp 0x456B9B (skip unused engine code)
 
 	// Fix broken obj_can_hear_obj function
 	if (IniReader::GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlogr("Applying obj_can_hear_obj fix.", DL_FIX);
-		SafeWrite8(0x4583D8, 0x3B);            // jz loc_458414
-		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz loc_458414
+		SafeWrite8(0x4583D8, 0x3B);            // jz 0x458414
+		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz 0x458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 	}
 
@@ -4034,6 +4034,9 @@ void BugFixes::init() {
 	// Corrects the language path for loading art files
 	const DWORD artDataPathAddr[] = {0x419B00, 0x419C06}; // art_data_size_, art_data_load_
 	SafeWriteBatch<DWORD>((DWORD)&"art\\%s%s", artDataPathAddr);
+
+	// Fix for incorrect death endings being shown when some endings in the list are not available
+	SafeWrite8(0x440C8E, 7); // jnz 0x440C96
 }
 
 }
