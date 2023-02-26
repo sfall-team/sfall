@@ -27,7 +27,7 @@
 namespace sfall
 {
 
-static DWORD InCredits = 0;
+static bool InCredits = false;
 static DWORD CreditsLine = 0;
 
 static const char* ExtraLines[] = {
@@ -83,15 +83,6 @@ static const char* ExtraLines[] = {
 
 static DWORD ExtraLineCount = sizeof(ExtraLines) / 4;
 //static const char* creditsFile = "credits.txt";
-
-static void __declspec(naked) ShowCreditsHook() {
-	InCredits = 1;
-	CreditsLine = 0;
-	//__asm mov  eax, creditsFile;
-	__asm call fo::funcoffs::credits_;
-	InCredits = 0;
-	__asm retn;
-}
 
 static DWORD __fastcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if (!InCredits || CreditsLine >= ExtraLineCount) return 0;
@@ -159,13 +150,37 @@ morelines:
 	}
 }
 
+static void __stdcall SetCreditsPosition(DWORD addr) {
+	void* func;
+	if (addr == (0x43F881 + 5)) { // called from endgame_movie_
+		func = CreditsNextLineHook_Bottom;
+	} else {
+		func = CreditsNextLineHook_Top;
+	}
+	HookCall(0x42CB49, func);
+}
+
+static void __declspec(naked) ShowCreditsHook() {
+	__asm {
+		push eax;
+		push edx;
+		push ebx;
+		push [esp + 12]; // return address
+		call SetCreditsPosition;
+		pop  ebx;
+		pop  edx;
+		pop  eax;
+		mov  InCredits, 1;
+		mov  CreditsLine, 0;
+		//mov  eax, creditsFile;
+		call fo::funcoffs::credits_;
+		mov  InCredits, 0;
+		retn;
+	}
+}
+
 void Credits::init() {
 	HookCalls(ShowCreditsHook, {0x480C49, 0x43F881});
-	if (IniReader::GetConfigInt("Misc", "CreditsAtBottom", 0)) {
-		HookCall(0x42CB49, CreditsNextLineHook_Bottom);
-	} else {
-		HookCall(0x42CB49, CreditsNextLineHook_Top);
-	}
 }
 
 }
