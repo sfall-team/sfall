@@ -20,6 +20,7 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
+#include "..\Translate.h"
 #include "Unarmed.h"
 
 #include "..\Game\stats.h"
@@ -30,6 +31,8 @@ namespace sfall
 {
 
 static int formula;
+
+static char ammoInfoFmt[32];
 
 static const DWORD DamageFunctionReturn = 0x424A63;
 
@@ -239,6 +242,13 @@ end:
 	}
 }
 
+static __declspec(naked) void AmmoInfoPrintGlovz() {
+	__asm {
+		lea  edi, ammoInfoFmt;
+		retn;
+	}
+}
+
 // YAAM v1.1a by Haenlomal 2010.05.13
 static __declspec(naked) void DamageYAAM() {
 	static long calcDT, calcDR;
@@ -324,6 +334,13 @@ fjmp:
 		jl   djmp;                            // If yes, go back to start of damage calcuation loop (calculate damage for next hit)
 end:
 		jmp  DamageFunctionReturn;            // Otherwise, exit loop
+	}
+}
+
+static __declspec(naked) void AmmoInfoPrintYAAM() {
+	__asm {
+		lea  ecx, ammoInfoFmt;
+		retn;
 	}
 }
 
@@ -485,9 +502,13 @@ void DamageMod::init() {
 		case 1:
 		case 2:
 			MakeJump(0x424995, DamageGlovz);
+			MakeCall(0x49B54A, AmmoInfoPrintGlovz, 2); // Dmg Mod (obj_examine_func_)
+			Translate::Get("sfall", "AmmoInfoGlovz", "Div: DR/%d, DT/%d", ammoInfoFmt, 32);
 			break;
 		case 5:
 			MakeJump(0x424995, DamageYAAM);
+			MakeCall(0x49B4EB, AmmoInfoPrintYAAM, 2); // DR Mod (obj_examine_func_)
+			Translate::Get("sfall", "AmmoInfoYAAM", "DT Mod: %d", ammoInfoFmt, 32);
 			break;
 		}
 	}

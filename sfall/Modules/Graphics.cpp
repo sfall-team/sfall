@@ -1213,6 +1213,57 @@ void __stdcall Graphics::ForceGraphicsRefresh(DWORD d) {
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
+long __stdcall SaveScreen(const char* file) {
+	IDirect3DSurface9* surface;
+	d3d9Device->CreateOffscreenPlainSurface(gWidth, gHeight, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &surface, 0);
+	d3d9Device->GetRenderTargetData(backBuffer, surface);
+
+	LPD3DXBUFFER buffer;
+	D3DXCreateBuffer(gWidth * gHeight * 2, &buffer);
+
+	D3DXSaveSurfaceToFileInMemory(&buffer, D3DXIFF_PNG, surface, 0, 0);
+	//D3DXSaveSurfaceToFileA(file, D3DXIFF_PNG, surface, 0, 0); // slow save
+
+	HANDLE hFile = CreateFileA(file, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
+	bool resultOK = (hFile != INVALID_HANDLE_VALUE);
+	if (resultOK) {
+		DWORD dwWritten;
+		WriteFile(hFile, buffer->GetBufferPointer(), buffer->GetBufferSize(), &dwWritten, 0);
+		CloseHandle(hFile);
+	}
+
+	surface->Release();
+	buffer->Release();
+
+	return (resultOK) ? 0 : 1;
+}
+
+long __stdcall game_screendump_hook() {
+	char fileName[16];
+
+	for (int i = 0; i < 10000; i++) {
+		std::sprintf(fileName, "scr%.5d.png", i); // scr#####.png
+
+		HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+		if (hFile == INVALID_HANDLE_VALUE) {
+			return SaveScreen(fileName);
+		}
+		CloseHandle(hFile);
+	}
+	return 1;
+}
+
+static __declspec(naked) void dump_screen_hack_replacement() {
+	__asm {
+		push ecx;
+		push edx;
+		call fo::funcoffs::game_screendump_; // call ds:[FO_VAR_screendump_func];
+		pop  edx;
+		pop  ecx;
+		retn;
+	}
+}
+
 //////////////////////////////// WINDOW RENDER /////////////////////////////////
 
 class OverlaySurface {
@@ -1343,57 +1394,6 @@ static __declspec(naked) void palette_fade_to_hook() {
 	}
 }
 
-long __stdcall SaveScreen(const char* file) {
-	IDirect3DSurface9* surface;
-	d3d9Device->CreateOffscreenPlainSurface(gWidth, gHeight, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &surface, 0);
-	d3d9Device->GetRenderTargetData(backBuffer, surface);
-
-	LPD3DXBUFFER buffer;
-	D3DXCreateBuffer(gWidth * gHeight * 2, &buffer);
-
-	D3DXSaveSurfaceToFileInMemory(&buffer, D3DXIFF_PNG, surface, 0, 0);
-	//D3DXSaveSurfaceToFileA(file, D3DXIFF_PNG, surface, 0, 0); // slow save
-
-	HANDLE hFile = CreateFileA(file, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
-	bool resultOK = (hFile != INVALID_HANDLE_VALUE);
-	if (resultOK) {
-		DWORD dwWritten;
-		WriteFile(hFile, buffer->GetBufferPointer(), buffer->GetBufferSize(), &dwWritten, 0);
-		CloseHandle(hFile);
-	}
-
-	surface->Release();
-	buffer->Release();
-
-	return (resultOK) ? 0 : 1;
-}
-
-long __stdcall game_screendump_hook() {
-	char fileName[16];
-
-	for (int i = 0; i < 10000; i++) {
-		std::sprintf(fileName, "scr%.5d.png", i); // scr#####.png
-
-		HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-		if (hFile == INVALID_HANDLE_VALUE) {
-			return SaveScreen(fileName);
-		}
-		CloseHandle(hFile);
-	}
-	return 1;
-}
-
-static __declspec(naked) void dump_screen_hack_replacement() {
-	__asm {
-		push ecx;
-		push edx;
-		call fo::funcoffs::game_screendump_; // call ds:[FO_VAR_screendump_func];
-		pop  edx;
-		pop  ecx;
-		retn;
-	}
-}
-
 void Graphics::init() {
 	Graphics::mode = (hrpIsEnabled) // avoid mode mismatch between ddraw.ini and another ini file
 	               ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
@@ -1463,6 +1463,10 @@ void Graphics::init() {
 			moveWindowKey[0] &= 0xFF;
 		}
 	}
+
+	// Set the maximum number of BMP screenshots to 10k (was 100k)
+	const DWORD screendumpMaxAddr[] = {0x4C908B, 0x4C9093}; // default_screendump_
+	SafeWriteBatch<DWORD>(10000, screendumpMaxAddr);
 
 	int multi = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (multi != 100) {
