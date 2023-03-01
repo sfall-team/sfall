@@ -1307,6 +1307,9 @@ void Graphics::init() {
 		LoadGameHook::OnBeforeGameInit() += []() { WinProc::SetWindowProc(); };
 	}
 
+	// Set the maximum number of BMP screenshots to 10k (was 100k)
+	SafeWriteBatch<DWORD>(10000, {0x4C908B, 0x4C9093}); // default_screendump_
+
 	WindowRender::init();
 }
 

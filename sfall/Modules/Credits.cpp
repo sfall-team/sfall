@@ -82,7 +82,6 @@ static const char* ExtraLines[] = {
 };
 
 static DWORD ExtraLineCount = sizeof(ExtraLines) / 4;
-//static const char* creditsFile = "credits.txt";
 
 static DWORD __fastcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if (!InCredits || CreditsLine >= ExtraLineCount) return 0;
@@ -172,7 +171,6 @@ static void __declspec(naked) ShowCreditsHook() {
 		pop  eax;
 		mov  InCredits, 1;
 		mov  CreditsLine, 0;
-		//mov  eax, creditsFile;
 		call fo::funcoffs::credits_;
 		mov  InCredits, 0;
 		retn;

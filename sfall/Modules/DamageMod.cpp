@@ -20,6 +20,7 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
+#include "..\Translate.h"
 #include "HookScripts.h"
 #include "Unarmed.h"
 
@@ -31,6 +32,8 @@ namespace sfall
 {
 
 int DamageMod::formula;
+
+static char ammoInfoFmt[32];
 
 // Integer division w/ round half to even for Glovz's damage formula
 // Prerequisite: both dividend and divisor must be positive integers (should already be handled in the main function)
@@ -117,6 +120,13 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 	}
 }
 
+static __declspec(naked) void AmmoInfoPrintGlovz() {
+	__asm {
+		lea  edi, ammoInfoFmt;
+		retn;
+	}
+}
+
 // YAAM v1.1a by Haenlomal 2010.05.13
 void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, long rounds, long armorDT, long armorDR, long bonusRangedDamage, long multiplyDamage, long difficulty) {
 	if (rounds <= 0) return;                                // Check number of hits
@@ -166,6 +176,13 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 		rawDamage -= resistedDamage;                        // Raw Damage = Raw Damage - Resisted Damage
 
 		if (rawDamage > 0) accumulatedDamage += rawDamage;  // Accumulated Damage = Accumulated Damage + Raw Damage
+	}
+}
+
+static __declspec(naked) void AmmoInfoPrintYAAM() {
+	__asm {
+		lea  ecx, ammoInfoFmt;
+		retn;
 	}
 }
 
@@ -326,8 +343,14 @@ void DamageMod::init() {
 		switch (formula) {
 		case 1:
 		case 2:
+			HookScripts::InjectingHook(HOOK_SUBCOMBATDAMAGE);
+			MakeCall(0x49B54A, AmmoInfoPrintGlovz, 2); // Dmg Mod (obj_examine_func_)
+			Translate::Get("sfall", "AmmoInfoGlovz", "Div: DR/%d, DT/%d", ammoInfoFmt, 32);
+			break;
 		case 5:
 			HookScripts::InjectingHook(HOOK_SUBCOMBATDAMAGE);
+			MakeCall(0x49B4EB, AmmoInfoPrintYAAM, 2); // DR Mod (obj_examine_func_)
+			Translate::Get("sfall", "AmmoInfoYAAM", "DT Mod: %d", ammoInfoFmt, 32);
 			break;
 		default:
 			formula = 0;
