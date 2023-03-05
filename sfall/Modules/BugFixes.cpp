@@ -1160,7 +1160,7 @@ static void __declspec(naked) obj_load_func_hack() {
 	static const DWORD obj_load_func_Ret = 0x488F14;
 	using fo::InCombat;
 	__asm {
-		test word ptr [eax + flags], Temp; // engine code
+		test word ptr [eax + flags], NoRemove; // engine code
 		jz   fix;
 		retn;
 fix:

@@ -25,7 +25,7 @@ static fo::GameObject* __fastcall obj_path_blocking_at(fo::GameObject* source, l
 		if (elev == obj->object->elevation) {
 			fo::GameObject* object = obj->object;
 			long flags = object->flags;
-			if (!(flags & (fo::ObjectFlag::Mouse_3d | fo::ObjectFlag::NoBlock)) && source != object) {
+			if (!(flags & (fo::ObjectFlag::Hidden | fo::ObjectFlag::NoBlock)) && source != object) {
 				char type = object->TypeFid();
 				if (type == fo::ObjType::OBJ_TYPE_SCENERY || type == fo::ObjType::OBJ_TYPE_WALL) {
 					return object;
@@ -44,7 +44,7 @@ static fo::GameObject* __fastcall obj_path_blocking_at(fo::GameObject* source, l
 				if (elev == obj->object->elevation) {
 					fo::GameObject* object = obj->object;
 					long flags = object->flags;
-					if (flags & fo::ObjectFlag::MultiHex && !(flags & (fo::ObjectFlag::Mouse_3d | fo::ObjectFlag::NoBlock)) && source != object) {
+					if (flags & fo::ObjectFlag::MultiHex && !(flags & (fo::ObjectFlag::Hidden | fo::ObjectFlag::NoBlock)) && source != object) {
 						char type = object->TypeFid();
 						if (type == fo::ObjType::OBJ_TYPE_SCENERY || type == fo::ObjType::OBJ_TYPE_WALL) {
 							return object;
