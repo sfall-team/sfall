@@ -339,7 +339,7 @@ void op_get_party_members(OpcodeContext& ctx) {
 	DWORD arrayId = CreateTempArray(0, 4);
 	for (int i = 0; i < actualCount; i++) {
 		fo::GameObject* obj = (*fo::ptr::partyMemberList)[i].object;
-		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Hidden))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}

@@ -244,12 +244,12 @@ enum Material : long
 
 namespace ObjectFlag {
 	enum ObjectFlag : unsigned long {
-		Mouse_3d     = 0x00000001,
-		WalkThru     = 0x00000004,
+		Hidden       = 0x00000001,
+		NoSave       = 0x00000004, // WalkThru flag for doors
 		Flat         = 0x00000008,
 		NoBlock      = 0x00000010,
 		Lighting     = 0x00000020,
-		Temp         = 0x00000400, // ???
+		NoRemove     = 0x00000400,
 		MultiHex     = 0x00000800,
 		NoHighlight  = 0x00001000,
 		Used         = 0x00002000, // set if there was/is any event for the object
