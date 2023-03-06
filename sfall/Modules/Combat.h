@@ -55,8 +55,6 @@ public:
 	static bool IsBurstDisabled(fo::GameObject* critter);
 };
 
-void __stdcall SetBlockCombat(long toggle);
-
 void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
 void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode);
 void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode);

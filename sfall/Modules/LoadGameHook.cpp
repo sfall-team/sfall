@@ -54,6 +54,7 @@
 #include "Skills.h"
 #include "Sound.h"
 #include "Stats.h"
+#include "SubModules\ObjectName.h"
 #include "TalkingHeads.h"
 #include "Worldmap.h"
 

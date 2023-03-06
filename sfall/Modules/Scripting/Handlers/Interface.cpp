@@ -21,13 +21,14 @@
 
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
-#include "..\..\Graphics.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Interface.h"
 #include "..\Arrays.h"
 
 #include "..\..\..\Game\render.h"
+
+#include "..\..\SubModules\WindowRender.h"
 
 #include "Interface.h"
 

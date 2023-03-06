@@ -29,6 +29,8 @@
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 
+#include "SubModules\ObjectName.h"
+
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
@@ -1044,106 +1046,6 @@ void BuildSortedIndexList() {
 	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
 }
 
-///////////////////////////////// OBJECT NAME //////////////////////////////////
-
-static std::tr1::unordered_map<int, std::string> overrideScrName;
-
-static long lastNameScrIdx = -1;
-static long lastNameSid = -1;
-static long lastItemPid = -1;
-
-void ObjectName::SetName(long sid, const char* name) {
-	if (sid == lastNameSid) lastNameSid = -1;
-	if (!name) name = "";
-	overrideScrName.insert(std::make_pair(sid, name));
-}
-
-const char* __stdcall ObjectName::GetName(fo::GameObject* object) {
-	if (!overrideScrName.empty()) {
-		std::tr1::unordered_map<int, std::string>::iterator &name = overrideScrName.find(object->scriptId);
-		if (name != overrideScrName.cend()) {
-			return (name->second.length() > 0)
-			       ? name->second.c_str()
-			       : fo::func::proto_get_msg_info(object->protoId, 0);
-		}
-	}
-	return nullptr;
-}
-
-static void __declspec(naked) critter_name_hack() {
-	static DWORD critter_name_hack_ret = 0x42D125;
-	using namespace fo::Fields;
-	__asm {
-		push ebx; // object
-		call ObjectName::GetName;
-		test eax, eax;
-		jnz  override;
-		mov  edi, [ebx + scriptIndex];
-		retn;
-override:
-		add  esp, 4;
-		jmp  critter_name_hack_ret;
-	}
-}
-
-static void __declspec(naked) critter_name_hack_check() {
-	static DWORD critter_name_hack_ret = 0x42D12F;
-	using namespace fo::Fields;
-	__asm {
-		mov  ecx, [ebx + scriptId];
-		cmp  ecx, -1;
-		je   checkScrIdx; // has no script, check the script index instead
-		cmp  ecx, lastNameSid;
-		jne  default;
-		add  esp, 4;
-		mov  eax, ds:[FO_VAR_name_critter];
-		jmp  critter_name_hack_ret;
-checkScrIdx:
-		mov  ecx, [ebx + scriptIndex];
-		cmp  ecx, -1; // no inherited script index
-		je   end;
-		cmp  ecx, lastNameScrIdx;
-		jne  end;
-		add  esp, 4;
-		mov  eax, ds:[FO_VAR_name_critter];
-		jmp  critter_name_hack_ret;
-default:
-		mov  ecx, [ebx + scriptIndex];
-end:
-		retn;
-	}
-}
-
-static void __declspec(naked) critter_name_hack_end() {
-	using namespace fo::Fields;
-	__asm {
-		mov  edx, [ebx + scriptIndex];
-		mov  lastNameScrIdx, edx;
-		mov  ecx, [ebx + scriptId];
-		mov  lastNameSid, ecx;
-		retn;
-	}
-}
-
-static void __declspec(naked) item_name_hook() {
-	__asm {
-		cmp  eax, lastItemPid;
-		je   getLast;
-		mov  lastItemPid, eax;
-		jmp  fo::funcoffs::proto_name_;
-getLast:
-		mov  eax, ds:[FO_VAR_name_item];
-		retn;
-	}
-}
-
-void ObjectName::Reset() {
-	overrideScrName.clear();
-	lastNameSid = -1;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 void ScriptExtender::OnGameLoad() {
 	ClearGlobalScripts();
 	ClearGlobals();
@@ -1151,9 +1053,7 @@ void ScriptExtender::OnGameLoad() {
 	PipboyAvailableRestore();
 	ForceEncounterRestore(); // restore if the encounter did not happen
 
-	ObjectName::Reset();
-	lastNameScrIdx = -1;
-	lastItemPid = -1;
+	ObjectName::OnGameLoad();
 }
 
 void ScriptExtender::init() {
@@ -1215,17 +1115,12 @@ void ScriptExtender::init() {
 	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_
 	long idata = 0x146E09;             // or dword ptr [esi+ctd.flagsSource], ebp
 	SafeWriteBytes(0x423DF0, (BYTE*)&idata, 3);
-	// 0x423DEB - call ComputeDamageHook (in HookScripts.cpp)
+	if (*(BYTE*)0x423DEB != 0xE8) { // not hook call
+		MakeCall(0x423DEB, (void*)fo::funcoffs::compute_damage_);
+	}
 
 	Opcodes::InitNew();
-
-	// Returns the redefined object name
-	MakeCall(0x42D0F2, critter_name_hack, 1);
-
-	// Tweak for quickly getting last object name
-	MakeCall(0x42D0C4, critter_name_hack_check, 1);
-	MakeCall(0x42D12A, critter_name_hack_end);
-	HookCall(0x477AE7, item_name_hook);
+	ObjectName::init();
 }
 
 }

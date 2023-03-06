@@ -332,6 +332,10 @@
     <ClInclude Include="Modules\Sound.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\Stats.h" />
+    <ClInclude Include="Modules\SubModules\CombatBlock.h" />
+    <ClInclude Include="Modules\SubModules\EnginePerks.h" />
+    <ClInclude Include="Modules\SubModules\ObjectName.h" />
+    <ClInclude Include="Modules\SubModules\WindowRender.h" />
     <ClInclude Include="Modules\TalkingHeads.h" />
     <ClInclude Include="Modules\Tiles.h" />
     <ClInclude Include="Modules\Unarmed.h" />
@@ -438,6 +442,10 @@
     <ClCompile Include="Modules\Sound.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\Stats.cpp" />
+    <ClCompile Include="Modules\SubModules\CombatBlock.cpp" />
+    <ClCompile Include="Modules\SubModules\EnginePerks.cpp" />
+    <ClCompile Include="Modules\SubModules\ObjectName.cpp" />
+    <ClCompile Include="Modules\SubModules\WindowRender.cpp" />
     <ClCompile Include="Modules\TalkingHeads.cpp" />
     <ClCompile Include="Modules\Tiles.cpp" />
     <ClCompile Include="Modules\Unarmed.cpp" />

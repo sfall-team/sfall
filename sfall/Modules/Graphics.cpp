@@ -24,7 +24,7 @@
 #include "ScriptShaders.h"
 #include "Movies.h"
 
-#include "..\Game\render.h"
+#include "SubModules\WindowRender.h"
 
 #include "..\HLSL\A8PixelShader.h"
 #include "..\HLSL\L8PixelShader.h"
@@ -1264,136 +1264,6 @@ static __declspec(naked) void dump_screen_hack_replacement() {
 	}
 }
 
-//////////////////////////////// WINDOW RENDER /////////////////////////////////
-
-class OverlaySurface {
-private:
-	long size;
-	long surfWidth;
-	long allocSize;
-	BYTE* surface;
-
-public:
-	long winType;
-
-	OverlaySurface() : size(0), surface(nullptr), winType(-1) {}
-
-	BYTE* Surface() { return surface; }
-
-	void CreateSurface(fo::Window* win, long winType) {
-		this->winType = winType;
-		this->surfWidth = win->width;
-		this->size = win->height * win->width;
-
-		if (surface != nullptr) {
-			if (size <= allocSize) {
-				std::memset(surface, 0, size);
-				return;
-			}
-			delete[] surface;
-		}
-
-		this->allocSize = size;
-		surface = new BYTE[size]();
-	}
-
-	void ClearSurface() {
-		if (surface != nullptr) std::memset(surface, 0, size);
-	}
-
-	void ClearSurface(Rectangle &rect) {
-		if (surface != nullptr) {
-			if (rect.width > surfWidth || rect.height > (size / surfWidth)) return; // going beyond the surface size
-			BYTE* surf = surface + (surfWidth * rect.y) + rect.x;
-
-			size_t sizeD = rect.width >> 2;
-			size_t sizeB = rect.width & 3;
-			size_t strideD = sizeD << 2;
-			size_t stride = surfWidth - rect.width;
-
-			long height = rect.height;
-			while (height--) {
-				if (sizeD) {
-					__stosd((DWORD*)surf, 0, sizeD);
-					surf += strideD;
-				}
-				if (sizeB) {
-					__stosb(surf, 0, sizeB);
-					surf += sizeB;
-				}
-				surf += stride;
-			};
-		}
-	}
-
-	void DestroySurface() {
-		delete[] surface;
-		surface = nullptr;
-	}
-
-	~OverlaySurface() {
-		delete[] surface;
-	}
-} overlaySurfaces[5];
-
-static long indexPosition = 0;
-
-void WindowRender::CreateOverlaySurface(fo::Window* win, long winType) {
-	if (win->randY) return;
-	if (overlaySurfaces[indexPosition].winType == winType) {
-		overlaySurfaces[indexPosition].ClearSurface();
-	} else {
-		if (++indexPosition == 5) indexPosition = 0;
-		overlaySurfaces[indexPosition].CreateSurface(win, winType);
-	}
-	win->randY = reinterpret_cast<long*>(&overlaySurfaces[indexPosition]);
-}
-
-BYTE* WindowRender::GetOverlaySurface(fo::Window* win) {
-	return reinterpret_cast<OverlaySurface*>(win->randY)->Surface();
-}
-
-void WindowRender::ClearOverlay(fo::Window* win) {
-	if (win->randY) reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface();
-}
-
-void WindowRender::ClearOverlay(fo::Window* win, Rectangle &rect) {
-	if (win->randY) {
-		reinterpret_cast<OverlaySurface*>(win->randY)->ClearSurface(rect);
-		fo::BoundRect updateRect = { rect.x, rect.y, rect.right(), rect.bottom() };
-		updateRect.x += win->rect.x;
-		updateRect.y += win->rect.y;
-		updateRect.offx += win->rect.x;
-		updateRect.offy += win->rect.y;
-		game::Render::GNW_win_refresh(win, reinterpret_cast<RECT*>(&updateRect), 0);
-	}
-}
-
-void WindowRender::DestroyOverlaySurface(fo::Window* win) {
-	if (win->randY) {
-		OverlaySurface* overlay = reinterpret_cast<OverlaySurface*>(win->randY);
-		win->randY = nullptr;
-		overlay->winType = -1;
-		overlay->DestroySurface();
-		game::Render::GNW_win_refresh(win, &win->wRect, 0);
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-static float fadeMulti;
-
-static __declspec(naked) void palette_fade_to_hook() {
-	__asm {
-		push ebx; // _fade_steps
-		fild [esp];
-		fmul fadeMulti;
-		fistp [esp];
-		pop  ebx;
-		jmp  fo::funcoffs::fadeSystemPalette_;
-	}
-}
-
 void Graphics::init() {
 	Graphics::mode = (hrpIsEnabled) // avoid mode mismatch between ddraw.ini and another ini file
 	               ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
@@ -1468,20 +1338,7 @@ void Graphics::init() {
 	const DWORD screendumpMaxAddr[] = {0x4C908B, 0x4C9093}; // default_screendump_
 	SafeWriteBatch<DWORD>(10000, screendumpMaxAddr);
 
-	int multi = IniReader::GetConfigInt("Graphics", "FadeMultiplier", 100);
-	if (multi != 100) {
-		dlogr("Applying fade patch.", DL_INIT);
-		HookCall(0x493B16, palette_fade_to_hook);
-		if (multi <= 0) multi = 1;
-		fadeMulti = multi / 100.0f;
-	}
-
-	// Enable support for transparent interface windows
-	const DWORD winBufferAddr [] = {
-		0x4D5D46, // win_init_ (create screen_buffer)
-		0x4D75E6  // win_clip_ (remove _buffering checking)
-	};
-	SafeWriteBatch<WORD>(0x9090, winBufferAddr);
+	WindowRender::init();
 }
 
 void Graphics::exit() {

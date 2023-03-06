@@ -8,6 +8,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 
 #include "..\Modules\Graphics.h"
+#include "..\Modules\SubModules\WindowRender.h"
 
 #include "render.h"
 

@@ -7,9 +7,6 @@
     <Filter Include="FalloutEngine">
       <UniqueIdentifier>{ca9ea406-b424-4f8b-a638-2a0d745bf5a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Game">
-      <UniqueIdentifier>{4ad124ba-a384-4ce7-8b02-efbbf10bfb5d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Modules\Scripting">
       <UniqueIdentifier>{a66b35fb-50a8-48f1-b132-1d05338a7ea3}</UniqueIdentifier>
     </Filter>
@@ -18,6 +15,12 @@
     </Filter>
     <Filter Include="Modules\HookScripts">
       <UniqueIdentifier>{e1d81f47-5517-4cdf-95e4-d3fd5ef4adef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\SubModules">
+      <UniqueIdentifier>{94d34cfd-1e02-42a4-996e-d56100365f4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{4ad124ba-a384-4ce7-8b02-efbbf10bfb5d}</UniqueIdentifier>
     </Filter>
     <Filter Include="HLSL">
       <UniqueIdentifier>{c9051acd-801a-4856-bd62-b2c95ac33c2e}</UniqueIdentifier>
@@ -343,6 +346,18 @@
     <ClInclude Include="HLSL\L8PixelShader.h">
       <Filter>HLSL</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\SubModules\CombatBlock.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\SubModules\EnginePerks.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\SubModules\ObjectName.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\SubModules\WindowRender.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -625,6 +640,18 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="Modules\SubModules\CombatBlock.cpp">
+      <Filter>Modules\SubModules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\EnginePerks.cpp">
+      <Filter>Modules\SubModules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\ObjectName.cpp">
+      <Filter>Modules\SubModules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\WindowRender.cpp">
+      <Filter>Modules\SubModules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

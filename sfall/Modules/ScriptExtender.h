@@ -60,14 +60,6 @@ public:
 	static long __fastcall InitScript(long sid);
 };
 
-class ObjectName {
-public:
-	static const char* __stdcall GetName(fo::GameObject* object);
-	static void SetName(long sid, const char* name);
-
-	static void Reset();
-};
-
 #pragma pack(push, 8)
 struct GlobalVar {
 	__int64 id;

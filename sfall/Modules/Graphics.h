@@ -94,13 +94,4 @@ public:
 	}
 };
 
-class WindowRender {
-public:
-	static void CreateOverlaySurface(fo::Window* win, long winType);
-	static void DestroyOverlaySurface(fo::Window* win);
-	static void ClearOverlay(fo::Window* win);
-	static void ClearOverlay(fo::Window* win, Rectangle &rect);
-	static BYTE* GetOverlaySurface(fo::Window* win);
-};
-
 }

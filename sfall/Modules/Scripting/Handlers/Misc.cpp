@@ -31,6 +31,8 @@
 #include "..\..\ScriptExtender.h"
 #include "..\..\Sound.h"
 
+#include "..\..\SubModules\ObjectName.h"
+
 #include "..\Arrays.h"
 
 #include "Misc.h"
