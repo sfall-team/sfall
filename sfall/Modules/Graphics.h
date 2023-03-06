@@ -30,7 +30,6 @@ namespace sfall
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 extern IDirectDrawSurface* primarySurface;
-extern bool DeviceLost;
 
 /*
 static void DDSurfaceToDXTexture(BYTE* src, long width, long height, long src_width, DWORD* dst, long dst_width) {

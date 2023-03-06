@@ -76,7 +76,7 @@ bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
 static bool dShowMovies;
 
-bool DeviceLost = false;
+static bool DeviceLost = false;
 static char textureFilter; // 1 - auto, 2 - force
 
 static DDSURFACEDESC surfaceDesc;

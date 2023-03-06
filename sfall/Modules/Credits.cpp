@@ -33,8 +33,8 @@ static DWORD CreditsLine = 0;
 static const char* ExtraLines[] = {
 	"#SFALL " VERSION_STRING,
 	"",
-	"sfall is free software, licensed under the GPL",
-	LEGAL_COPYRIGHT,
+	"@sfall is free software, licensed under the GPL",
+	"@" LEGAL_COPYRIGHT,
 	"",
 	"@Author",
 	"Timeslip",
