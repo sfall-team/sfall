@@ -1049,7 +1049,7 @@ static void InterfaceWindowPatch() {
 	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100 (PrintBigname_)
 
 	// Increase the max text width of the information card on the character screen
-	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133 (DrawCard_, DrawCard2_)
+	SafeWriteBatch<BYTE>(146, {0x43ACD5, 0x43DD37}); // 136, 133 (DrawCard_, DrawCard2_)
 
 	// Increase the width of the mouse drop area from 64px to 80px for the PC's and NPC's inventory on the barter screen
 	// barter_move_from_table_inventory_
