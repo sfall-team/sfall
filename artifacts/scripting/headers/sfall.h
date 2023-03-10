@@ -52,7 +52,7 @@
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
 #define HOOK_ADJUSTFID        (26)
-//#define HOOK_COMBATTURN     (27) // unimplemented
+//#define HOOK_COMBATTURN       (27) // unimplemented
 #define HOOK_CARTRAVEL        (28)
 #define HOOK_SETGLOBALVAR     (29)
 #define HOOK_RESTTIMER        (30)
@@ -348,6 +348,7 @@
 #define intface_redraw                                          sfall_func0("intface_redraw")
 #define intface_show                                            sfall_func0("intface_show")
 #define inventory_redraw(invSide)                               sfall_func1("inventory_redraw", invSide)
+#define item_make_explosive(pid, activePid, min, max)           sfall_func4("item_make_explosive", pid, activePid, min, max)
 #define item_weight(obj)                                        sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                                     sfall_func1("lock_is_jammed", obj)
 #define loot_obj                                                sfall_func0("loot_obj")

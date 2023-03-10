@@ -398,6 +398,25 @@ void mf_set_unjam_locks_time(OpcodeContext& ctx) {
 	}
 }
 
+void mf_item_make_explosive(OpcodeContext& ctx) {
+	DWORD pid = ctx.arg(0).rawValue();
+	DWORD pidActive = ctx.arg(1).rawValue();
+	DWORD min = ctx.arg(2).rawValue();
+	DWORD max = (ctx.numArgs() == 4) ? ctx.arg(3).rawValue() : min;
+
+	if (min > max) {
+		max = min;
+		ctx.printOpcodeError("%s() - Warning: value of max argument is less than the min argument.", ctx.getMetaruleName());
+	}
+
+	if (pid > 0 && pidActive > 0) {
+		Explosions::AddToExplosives(pid, pidActive, min, max);
+	} else {
+		ctx.printOpcodeError("%s() - invalid PID number, must be greater than 0.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
+	}
+}
+
 void mf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? *fo::ptr::dialog_target : 0);
 }

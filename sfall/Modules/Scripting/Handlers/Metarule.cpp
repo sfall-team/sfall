@@ -109,6 +109,7 @@ static const SfallMetarule metarules[] = {
 	{"intface_redraw",          mf_intface_redraw,          0, 1},
 	{"intface_show",            mf_intface_show,            0, 0},
 	{"inventory_redraw",        mf_inventory_redraw,        0, 1, -1, {ARG_INT}},
+	{"item_make_explosive",     mf_item_make_explosive,     3, 4, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"item_weight",             mf_item_weight,             1, 1,  0, {ARG_OBJECT}},
 	{"lock_is_jammed",          mf_lock_is_jammed,          1, 1,  0, {ARG_OBJECT}},
 	{"loot_obj",                mf_get_loot_object,         0, 0},

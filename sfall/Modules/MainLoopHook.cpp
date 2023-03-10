@@ -42,7 +42,7 @@ static void __stdcall CombatLoop() { // OnCombatLoop
 }
 
 static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack
-	ResetExplosionSettings();
+	ResetExplosionSettings(); // after each combat attack, reset metarule_explosions settings
 }
 
 static void __declspec(naked) MainGameLoopHook() {

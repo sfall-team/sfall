@@ -27,6 +27,8 @@ public:
 	static void init();
 
 	static void OnGameLoad();
+
+	static void AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg);
 };
 
 void ResetExplosionSettings();

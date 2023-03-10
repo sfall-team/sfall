@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+
 #include "..\main.h"
 
 #include "..\FalloutEngine\Fallout2.h"
@@ -30,6 +32,15 @@ namespace sfall
 {
 
 using namespace fo::Fields;
+
+struct explosiveInfo {
+	DWORD pid;
+	DWORD pidActive;
+	DWORD minDamage;
+	DWORD maxDamage;
+};
+
+std::vector<explosiveInfo> explosives;
 
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
@@ -152,6 +163,162 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static DWORD __fastcall CheckExplosives(DWORD pid) {
+	for (std::vector<explosiveInfo>::const_iterator it = explosives.begin(); it != explosives.end(); ++it) {
+		if (it->pid == pid) return it->pidActive;
+	}
+	return 0;
+}
+
+static DWORD __fastcall CheckActiveExplosives(DWORD pid) {
+	for (std::vector<explosiveInfo>::const_iterator it = explosives.begin(); it != explosives.end(); ++it) {
+		if (it->pidActive == pid) return 0;
+	}
+	return 1;
+}
+
+static DWORD __fastcall GetDamage(DWORD pid, DWORD &min, DWORD &max) {
+	DWORD result = 0;
+	for (std::vector<explosiveInfo>::const_iterator it = explosives.begin(); it != explosives.end(); ++it) {
+		if (it->pidActive == pid) {
+			min = it->minDamage;
+			max = it->maxDamage;
+			result = 1;
+			break;
+		}
+	}
+	return result;
+}
+
+static DWORD __fastcall SetQueueExplosionDamage(DWORD pid) {
+	DWORD min, max;
+	DWORD result = GetDamage(pid, min, max);
+
+	if (result) {
+		__asm mov edx, min;
+		__asm mov ecx, max;
+	}
+	return result;
+}
+
+static void __declspec(naked) obj_use_explosive_hack() {
+	using namespace fo;
+	__asm {
+		cmp  edx, PID_PLASTIC_EXPLOSIVES;
+		jz   end;
+		// end engine code
+		push edx;
+		mov  ecx, edx;
+		call CheckExplosives;
+		pop  edx;
+		test eax, eax;
+		jnz  end;
+		retn;
+end:
+		mov  dword ptr [esp], 0x49BCE0;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_use_explosive_active_hack() {
+	using namespace fo;
+	__asm {
+		cmp  eax, PID_PLASTIC_EXPLOSIVES;
+		jz   end;
+		// end engine code
+		mov  ecx, eax;
+		call CheckExplosives;
+		test eax, eax;
+		jz   skipSet;
+		mov  dword ptr [esi + protoId], eax; // change item pid to active;
+skipSet:
+		mov  dword ptr [esp], 0x49BD62;
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) queue_do_explosion_hack() {
+	using namespace fo;
+	__asm {
+		cmp  edx, PID_ACTIVE_DYNAMITE;
+		jz   dynamite;
+		cmp  edx, PID_ACTIVE_PLASTIC_EXPLOSIVE;
+		jz   end;
+		push edx;
+		mov  ecx, edx;
+		call SetQueueExplosionDamage;
+		test eax, eax;
+		mov  ebx, edx;
+		pop  edx;
+		jz   end;
+		mov  dword ptr [esp], 0x4A2888;
+end:
+		retn;
+dynamite:
+		mov  dword ptr [esp], 0x4A2872;
+		retn;
+	}
+}
+
+static void __declspec(naked) inven_action_cursor_drop_hack() {
+	using namespace fo;
+	__asm {
+		cmp  ebx, PID_ACTIVE_PLASTIC_EXPLOSIVE;
+		jz   end;
+		// end engine code
+		push eax;
+		mov  ecx, ebx;
+		call CheckActiveExplosives;
+		test eax, eax; // check in engine
+		pop  eax;
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) protinstTestDroppedExplosive_hack() {
+	__asm {
+		jz   end;
+		mov  ecx, edx;
+		call CheckActiveExplosives;
+		test eax, eax;
+		jz   end;
+		mov  dword ptr [esp], 0x49C112; // exit, no active explosive item
+end:
+		retn;
+	}
+}
+
+static void apply_expl_hack() {
+	MakeCall(0x49BCC7, obj_use_explosive_hack);        // check explosives
+	MakeCall(0x49BD56, obj_use_explosive_active_hack); // set active explosive
+	MakeCall(0x4A2865, queue_do_explosion_hack);       // set damage explosive
+	MakeCall(0x4737F2, inven_action_cursor_drop_hack, 1); // check drop explosives
+	MakeCall(0x49C005, protinstTestDroppedExplosive_hack, 1); // check drop explosives
+}
+
+void Explosions::AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg) {
+	static bool onlyOnce = false;
+	for (unsigned int i = 0; i < explosives.size(); i++) {
+		if (explosives[i].pid == pid) {
+			explosives.erase(explosives.begin() + i);
+			break;
+		}
+	}
+	explosiveInfo expl = { pid, activePid, minDmg, maxDmg };
+	explosives.push_back(expl);
+
+	if (!onlyOnce) {
+		apply_expl_hack();
+		onlyOnce = true;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8, 0x42381A};
 static const DWORD explosion_art_adr[] = {0x411A19, 0x411A29, 0x411A35, 0x411A3C};
 static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
@@ -203,6 +370,8 @@ static int GetExplosionDamage(int pid) {
 			min = *(DWORD*)plastic_min_dmg_addr;
 			max = *(DWORD*)plastic_max_dmg_addr;
 			break;
+		default:
+			GetDamage(pid, min, max);
 	}
 
 	DWORD arrayId = script::CreateTempArray(2, 0);
@@ -298,6 +467,8 @@ void ResetExplosionRadius() {
 }
 
 static void ResetExplosionDamage() {
+	explosives.clear();
+
 	if (!explosionsDamageReset) return;
 	SafeWrite32(dynamite_min_dmg_addr, dynamite_minDmg);
 	SafeWrite32(dynamite_max_dmg_addr, dynamite_maxDmg);

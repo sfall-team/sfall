@@ -11,7 +11,7 @@ namespace sfall
 {
 
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
-static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
+static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameObject* target, DWORD callAddr) {
 	bool barterIsParty = (*fo::ptr::dialog_target_is_party != 0);
 	long computeCost = fo::func::barter_compute_value(source, target);
 
@@ -100,7 +100,7 @@ void SourceUseSkillOnInit() { sourceSkillOn = *fo::ptr::obj_dude; }
 static char resultSkillOn; // -1 - cancel handler, 1 - replace user
 static long bakupCombatState;
 
-static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
+static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, DWORD skillId) {
 	BeginHook();
 	argCount = 3;
 
@@ -389,7 +389,7 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
-static long __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
+static long __fastcall GlobalVarHook_Script(DWORD number, int value) {
 	int old = (*fo::ptr::game_global_vars)[number];
 
 	if (IsGameLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsGameLoaded - don't execute hook until loading sfall scripts
