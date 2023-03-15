@@ -53,13 +53,11 @@ void __stdcall WinProc::WaitMessageWindow() {
 	MessageWindow();
 }
 
-static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+static long __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	RECT rect;
 	//POINT point;
 
 	switch (msg) {
-	//case WM_CREATE:
-	//	break;
 	case WM_DESTROY:
 		__asm xor  eax, eax;
 		__asm call fo::funcoffs::exit_;
@@ -149,7 +147,39 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 }
 
 static long __stdcall main_menu_loop_hook() {
-	return (!reqGameQuit) ? fo::func::get_input() : 27; // ESC code
+	return (!reqGameQuit) ? fo::func::get_input() : VK_ESCAPE;
+}
+
+static long __stdcall GNW95_keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode < 0) {
+		goto callNext;
+	}
+
+	switch (wParam) {
+	case VK_DELETE:
+		if (!(lParam & 0x20000000)) {
+			break;
+		}
+	case VK_ESCAPE:
+		if (GetAsyncKeyState(VK_CONTROL) < 0) {
+			return 0;
+		}
+		break;
+	case VK_TAB:
+		if ((lParam & 0x20000000)) {
+			return 0;
+		}
+		break;
+	case VK_NUMLOCK:
+	case VK_CAPITAL:
+	case VK_SCROLL:
+	case VK_F4:
+callNext:
+		return CallNextHookEx((HHOOK)fo::var::getInt(FO_VAR_GNW95_keyboardHandle), nCode, wParam, lParam);
+	default:
+		break;
+	}
+	return 1;
 }
 
 void WinProc::SetWindowProc() {
@@ -298,6 +328,9 @@ const POINT* WinProc::GetClientPos() {
 void WinProc::init() {
 	// Replace the engine WindowProc_ with sfall implementation
 	MakeJump(0x4DE9FC, WindowProc); // WindowProc_
+
+	// Replace the engine GNW95_keyboard_hook_ with sfall implementation
+	SafeWrite32(0x4C9BD9, (DWORD)&GNW95_keyboard_hook); // GNW95_hook_keyboard_
 
 	HookCall(0x481B2A, main_menu_loop_hook);
 }
