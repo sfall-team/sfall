@@ -81,6 +81,7 @@
 #include "Translate.h"
 #include "Utils.h"
 #include "version.h"
+#include "WinProc.h"
 
 ddrawDll ddraw;
 
@@ -355,6 +356,8 @@ static HMODULE SfallInit() {
 		}
 	}
 	hrpIsEnabled = (hrpDLLBaseAddr != 0);
+
+	if (!hrpIsEnabled) WinProc::init();
 
 	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;

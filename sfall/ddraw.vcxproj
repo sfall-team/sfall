@@ -348,6 +348,7 @@
     <ClInclude Include="Translate.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
+    <ClInclude Include="WinProc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CRC.cpp" />
@@ -458,6 +459,7 @@
     </ClCompile>
     <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WinProc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

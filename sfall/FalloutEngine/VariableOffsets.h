@@ -119,6 +119,7 @@
 #define FO_VAR_GNW95_hDDrawLib            0x51E44C
 #define FO_VAR_GNW95_hwnd                 0x51E434 // main hwnd window
 #define FO_VAR_GNW95_isActive             0x51E444
+#define FO_VAR_GNW95_keyboardHandle       0x6AC758
 #define FO_VAR_GNW95_repeat_delay         0x51E240
 #define FO_VAR_GNW95_repeat_rate          0x51E23C
 #define FO_VAR_GNWWin                     0x5195B8

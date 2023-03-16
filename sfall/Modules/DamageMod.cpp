@@ -501,12 +501,12 @@ void DamageMod::init() {
 		switch (formula) {
 		case 1:
 		case 2:
-			MakeJump(0x424995, DamageGlovz);
+			MakeJump(0x424995, DamageGlovz, 2);
 			MakeCall(0x49B54A, AmmoInfoPrintGlovz, 2); // Dmg Mod (obj_examine_func_)
 			Translate::Get("sfall", "AmmoInfoGlovz", "Div: DR/%d, DT/%d", ammoInfoFmt, 32);
 			break;
 		case 5:
-			MakeJump(0x424995, DamageYAAM);
+			MakeJump(0x424995, DamageYAAM, 2);
 			MakeCall(0x49B4EB, AmmoInfoPrintYAAM, 2); // DR Mod (obj_examine_func_)
 			Translate::Get("sfall", "AmmoInfoYAAM", "DT Mod: %d", ammoInfoFmt, 32);
 			break;

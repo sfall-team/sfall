@@ -20,6 +20,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\version.h"
+#include "..\WinProc.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
 #include "Movies.h"
@@ -95,12 +96,7 @@ static struct PALCOLOR {
 
 static bool paletteInit = false;
 
-static long windowLeft = 0;
-static long windowTop = 0;
 static HWND window;
-
-static long moveWindowKey[2];
-static long windowData;
 
 static DWORD ShaderVersion;
 
@@ -163,14 +159,6 @@ static void WindowInit() {
 	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 	ScriptShaders::LoadGlobalShader();
-}
-
-static void SetWindowToCenter() {
-	RECT desktop;
-	GetWindowRect(GetDesktopWindow(), &desktop);
-
-	windowLeft = (desktop.right / 2) - (gWidth  / 2);
-	windowTop  = (desktop.bottom / 2) - (gHeight / 2);
 }
 
 // pixel size for the current game resolution
@@ -374,46 +362,7 @@ static void DrawFPS() {}
 #endif
 
 static void Present() {
-	if (moveWindowKey[0] != 0 && (KeyDown(moveWindowKey[0]) || (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))) {
-		int mx, my;
-		GetMouse(&mx, &my);
-		windowLeft += mx;
-		windowTop += my;
-
-		RECT toRect, curRect;
-		toRect.left = windowLeft;
-		toRect.right = windowLeft + gWidth;
-		toRect.top = windowTop;
-		toRect.bottom = windowTop + gHeight;
-		AdjustWindowRect(&toRect, WS_CAPTION, false);
-
-		toRect.right -= (toRect.left - windowLeft);
-		toRect.left = windowLeft;
-		toRect.bottom -= (toRect.top - windowTop);
-		toRect.top = windowTop;
-
-		if (GetWindowRect(GetShellWindow(), &curRect)) {
-			if (toRect.right > curRect.right) {
-				DWORD move = toRect.right - curRect.right;
-				windowLeft -= move;
-				toRect.right -= move;
-			} else if (toRect.left < curRect.left) {
-				DWORD move = curRect.left - toRect.left;
-				windowLeft += move;
-				toRect.right += move;
-			}
-			if (toRect.bottom > curRect.bottom) {
-				DWORD move = toRect.bottom - curRect.bottom;
-				windowTop -= move;
-				toRect.bottom -= move;
-			} else if (toRect.top < curRect.top) {
-				DWORD move = curRect.top - toRect.top;
-				windowTop += move;
-				toRect.bottom += move;
-			}
-		}
-		MoveWindow(window, windowLeft, windowTop, toRect.right - windowLeft, toRect.bottom - windowTop, true);
-	}
+	WinProc::Moving();
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 		#ifndef NDEBUG
@@ -1036,27 +985,12 @@ public:
 
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) { // called 0x4CB005 GNW95_init_DirectDraw_
 		window = a;
-
-		char windowTitle[128];
-		if (ResWidth != gWidth || ResHeight != gHeight) {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i >> %ix%i", (const char*)0x50AF08, ResWidth, ResHeight, gWidth, gHeight);
-		} else {
-			std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i", (const char*)0x50AF08, ResWidth, ResHeight);
-		}
-		SetWindowTextA(a, windowTitle);
+		WinProc::SetHWND(window);
+		WinProc::SetTitle(ResWidth, ResHeight, gWidth, gHeight);
 
 		if (Graphics::mode >= 5) {
 			long windowStyle = (Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
-			SetWindowLongA(a, GWL_STYLE, windowStyle);
-			RECT r;
-			r.left = 0;
-			r.right = gWidth;
-			r.top = 0;
-			r.bottom = gHeight;
-			AdjustWindowRect(&r, windowStyle, false);
-			r.right -= r.left;
-			r.bottom -= r.top;
-			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS);
+			WinProc::SetStyle(windowStyle);
 		}
 
 		if (!d3d9Device) {
@@ -1120,15 +1054,8 @@ HRESULT __stdcall InitFakeDirectDrawCreate(void*, IDirectDraw** b, void*) {
 		Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
-	if (Graphics::mode == 5) {
-		windowData = IniReader::GetConfigInt("Graphics", "WindowData", -1);
-		if (windowData > 0) {
-			windowLeft = windowData >> 16;
-			windowTop = windowData & 0xFFFF;
-		} else if (windowData == -1) {
-			SetWindowToCenter();
-		}
-	}
+	WinProc::SetSize(gWidth, gHeight);
+	if (Graphics::mode == 5) WinProc::LoadPosition();
 
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
@@ -1310,29 +1237,7 @@ void Graphics::init() {
 
 		dShowMovies = Movies::DirectShowMovies();
 	}
-	if (Graphics::mode == 5) {
-		moveWindowKey[0] = IniReader::GetConfigInt("Input", "WindowScrollKey", 0);
-		if (moveWindowKey[0] < 0) {
-			switch (moveWindowKey[0]) {
-			case -1:
-				moveWindowKey[0] = DIK_LCONTROL;
-				moveWindowKey[1] = DIK_RCONTROL;
-				break;
-			case -2:
-				moveWindowKey[0] = DIK_LMENU;
-				moveWindowKey[1] = DIK_RMENU;
-				break;
-			case -3:
-				moveWindowKey[0] = DIK_LSHIFT;
-				moveWindowKey[1] = DIK_RSHIFT;
-				break;
-			default:
-				moveWindowKey[0] = 0;
-			}
-		} else {
-			moveWindowKey[0] &= 0xFF;
-		}
-	}
+	if (Graphics::mode == 5) WinProc::SetMoveKeys();
 
 	// Set the maximum number of BMP screenshots to 10k (was 100k)
 	const DWORD screendumpMaxAddr[] = {0x4C908B, 0x4C9093}; // default_screendump_
@@ -1343,11 +1248,7 @@ void Graphics::init() {
 
 void Graphics::exit() {
 	if (Graphics::mode >= 4) {
-		RECT rect;
-		if (Graphics::mode == 5 && GetWindowRect(window, &rect)) {
-			int data = rect.top | (rect.left << 16);
-			if (data >= 0 && data != windowData) IniReader::SetConfigInt("Graphics", "WindowData", data);
-		}
+		WinProc::SavePosition(Graphics::mode);
 		CoUninitialize();
 	}
 }

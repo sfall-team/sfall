@@ -340,6 +340,7 @@
     <ClInclude Include="Translate.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
+    <ClInclude Include="WinProc.h" />
     <ClInclude Include="HLSL\A8PixelShader.h">
       <Filter>HLSL</Filter>
     </ClInclude>
@@ -640,6 +641,7 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Translate.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WinProc.cpp" />
     <ClCompile Include="Modules\SubModules\CombatBlock.cpp">
       <Filter>Modules\SubModules</Filter>
     </ClCompile>
