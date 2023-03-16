@@ -34,7 +34,8 @@ static POINT client;
 static long moveWindowKey[2];
 static long windowData;
 
-static long reqGameQuit;
+static long reqGameQuit = 0;
+static bool isClosing = false;
 static bool cCursorShow = true;
 static bool bkgndErased = false;
 
@@ -137,17 +138,18 @@ static long __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 			call fo::funcoffs::main_menu_is_shown_;
 			test eax, eax;
 			jnz  skip;
+			cmp  isClosing, 0;
+			jnz  end;
+			mov  isClosing, 1;
 			call fo::funcoffs::game_quit_with_confirm_;
+			mov  isClosing, al;
 		skip:
 			mov  reqGameQuit, eax;
+		end:
 		}
 		return 0;
 	}
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
-}
-
-static long __stdcall main_menu_loop_hook() {
-	return (!reqGameQuit) ? fo::func::get_input() : VK_ESCAPE;
 }
 
 static long __stdcall GNW95_keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -180,6 +182,10 @@ callNext:
 		break;
 	}
 	return 1;
+}
+
+static long __stdcall main_menu_loop_hook() {
+	return (!reqGameQuit) ? fo::func::get_input() : VK_ESCAPE;
 }
 
 void WinProc::SetWindowProc() {
