@@ -1,275 +1,137 @@
 @charset "UTF-8";
-.highlight .c { color: #586e75; }
+.highlight, pre.highlight { background: #f9f9f9; color: #383942; }
 
-.highlight .err { color: #93a1a1; }
+.highlight pre { background: #f9f9f9; }
 
-.highlight .g { color: #93a1a1; }
+.highlight .hll { background: #f9f9f9; }
 
-.highlight .k { color: #859900; }
+.highlight .c { color: #9fa0a6; font-style: italic; }
 
-.highlight .l { color: #93a1a1; }
+.highlight .err { color: #fff; background-color: #e05151; }
 
-.highlight .n { color: #93a1a1; }
+.highlight .k { color: #a625a4; }
 
-.highlight .o { color: #859900; }
+.highlight .l { color: #50a04f; }
 
-.highlight .x { color: #cb4b16; }
+.highlight .n { color: #383942; }
 
-.highlight .p { color: #93a1a1; }
+.highlight .o { color: #383942; }
 
-.highlight .cm { color: #586e75; }
+.highlight .p { color: #383942; }
 
-.highlight .cp { color: #859900; }
+.highlight .cm { color: #9fa0a6; font-style: italic; }
 
-.highlight .c1 { color: #586e75; }
+.highlight .cp { color: #9fa0a6; font-style: italic; }
 
-.highlight .cs { color: #859900; }
+.highlight .c1 { color: #9fa0a6; font-style: italic; }
 
-.highlight .gd { color: #2aa198; }
+.highlight .cs { color: #9fa0a6; font-style: italic; }
 
-.highlight .ge { font-style: italic; color: #93a1a1; }
+.highlight .ge { font-style: italic; }
 
-.highlight .gr { color: #dc322f; }
+.highlight .gs { font-weight: 700; }
 
-.highlight .gh { color: #cb4b16; }
+.highlight .kc { color: #a625a4; }
 
-.highlight .gi { color: #859900; }
+.highlight .kd { color: #a625a4; }
 
-.highlight .go { color: #93a1a1; }
+.highlight .kn { color: #a625a4; }
 
-.highlight .gp { color: #93a1a1; }
+.highlight .kp { color: #a625a4; }
 
-.highlight .gs { font-weight: bold; color: #93a1a1; }
+.highlight .kr { color: #a625a4; }
 
-.highlight .gu { color: #cb4b16; }
+.highlight .kt { color: #a625a4; }
 
-.highlight .gt { color: #93a1a1; }
+.highlight .ld { color: #50a04f; }
 
-.highlight .kc { color: #cb4b16; }
+.highlight .m { color: #b66a00; }
 
-.highlight .kd { color: #268bd2; }
+.highlight .s { color: #50a04f; }
 
-.highlight .kn { color: #859900; }
+.highlight .na { color: #b66a00; }
 
-.highlight .kp { color: #859900; }
+.highlight .nb { color: #ca7601; }
 
-.highlight .kr { color: #268bd2; }
+.highlight .nc { color: #ca7601; }
 
-.highlight .kt { color: #dc322f; }
+.highlight .no { color: #ca7601; }
 
-.highlight .ld { color: #93a1a1; }
+.highlight .nd { color: #ca7601; }
 
-.highlight .m { color: #2aa198; }
+.highlight .ni { color: #ca7601; }
 
-.highlight .s { color: #2aa198; }
+.highlight .ne { color: #ca7601; }
 
-.highlight .na { color: #555; }
+.highlight .nf { color: #383942; }
 
-.highlight .nb { color: #b58900; }
+.highlight .nl { color: #ca7601; }
 
-.highlight .nc { color: #268bd2; }
+.highlight .nn { color: #383942; }
 
-.highlight .no { color: #cb4b16; }
+.highlight .nx { color: #383942; }
 
-.highlight .nd { color: #268bd2; }
+.highlight .py { color: #ca7601; }
 
-.highlight .ni { color: #cb4b16; }
+.highlight .nt { color: #e35549; }
 
-.highlight .ne { color: #cb4b16; }
+.highlight .nv { color: #ca7601; }
 
-.highlight .nf { color: #268bd2; }
+.highlight .ow { font-weight: 700; }
 
-.highlight .nl { color: #555; }
+.highlight .w { color: #f8f8f2; }
 
-.highlight .nn { color: #93a1a1; }
+.highlight .mf { color: #b66a00; }
 
-.highlight .nx { color: #555; }
+.highlight .mh { color: #b66a00; }
 
-.highlight .py { color: #93a1a1; }
+.highlight .mi { color: #b66a00; }
 
-.highlight .nt { color: #268bd2; }
+.highlight .mo { color: #b66a00; }
 
-.highlight .nv { color: #268bd2; }
+.highlight .sb { color: #50a04f; }
 
-.highlight .ow { color: #859900; }
+.highlight .sc { color: #50a04f; }
 
-.highlight .w { color: #93a1a1; }
+.highlight .sd { color: #50a04f; }
 
-.highlight .mf { color: #2aa198; }
+.highlight .s2 { color: #50a04f; }
 
-.highlight .mh { color: #2aa198; }
+.highlight .se { color: #50a04f; }
 
-.highlight .mi { color: #2aa198; }
+.highlight .sh { color: #50a04f; }
 
-.highlight .mo { color: #2aa198; }
+.highlight .si { color: #50a04f; }
 
-.highlight .sb { color: #586e75; }
+.highlight .sx { color: #50a04f; }
 
-.highlight .sc { color: #2aa198; }
+.highlight .sr { color: #0083bb; }
 
-.highlight .sd { color: #93a1a1; }
+.highlight .s1 { color: #50a04f; }
 
-.highlight .s2 { color: #2aa198; }
+.highlight .ss { color: #0083bb; }
 
-.highlight .se { color: #cb4b16; }
+.highlight .bp { color: #ca7601; }
 
-.highlight .sh { color: #93a1a1; }
+.highlight .vc { color: #ca7601; }
 
-.highlight .si { color: #2aa198; }
+.highlight .vg { color: #ca7601; }
 
-.highlight .sx { color: #2aa198; }
+.highlight .vi { color: #e35549; }
 
-.highlight .sr { color: #dc322f; }
+.highlight .il { color: #b66a00; }
 
-.highlight .s1 { color: #2aa198; }
+.highlight .gu { color: #75715e; }
 
-.highlight .ss { color: #2aa198; }
+.highlight .gd { color: #e05151; }
 
-.highlight .bp { color: #268bd2; }
+.highlight .gi { color: #43d089; }
 
-.highlight .vc { color: #268bd2; }
+.highlight ::selection { background-color: #fff; }
 
-.highlight .vg { color: #268bd2; }
+.highlight .language-json .w + .s2 { color: #e35549; }
 
-.highlight .vi { color: #268bd2; }
-
-.highlight .il { color: #2aa198; }
-
-.highlight .c { color: #586e75; }
-
-.highlight .err { color: #93a1a1; }
-
-.highlight .g { color: #93a1a1; }
-
-.highlight .k { color: #859900; }
-
-.highlight .l { color: #93a1a1; }
-
-.highlight .n { color: #93a1a1; }
-
-.highlight .o { color: #859900; }
-
-.highlight .x { color: #cb4b16; }
-
-.highlight .p { color: #93a1a1; }
-
-.highlight .cm { color: #586e75; }
-
-.highlight .cp { color: #859900; }
-
-.highlight .c1 { color: #586e75; }
-
-.highlight .cs { color: #859900; }
-
-.highlight .gd { color: #2aa198; }
-
-.highlight .ge { font-style: italic; color: #93a1a1; }
-
-.highlight .gr { color: #dc322f; }
-
-.highlight .gh { color: #cb4b16; }
-
-.highlight .gi { color: #859900; }
-
-.highlight .go { color: #93a1a1; }
-
-.highlight .gp { color: #93a1a1; }
-
-.highlight .gs { font-weight: bold; color: #93a1a1; }
-
-.highlight .gu { color: #cb4b16; }
-
-.highlight .gt { color: #93a1a1; }
-
-.highlight .kc { color: #cb4b16; }
-
-.highlight .kd { color: #268bd2; }
-
-.highlight .kn { color: #859900; }
-
-.highlight .kp { color: #859900; }
-
-.highlight .kr { color: #268bd2; }
-
-.highlight .kt { color: #dc322f; }
-
-.highlight .ld { color: #93a1a1; }
-
-.highlight .m { color: #2aa198; }
-
-.highlight .s { color: #2aa198; }
-
-.highlight .na { color: #555; }
-
-.highlight .nb { color: #b58900; }
-
-.highlight .nc { color: #268bd2; }
-
-.highlight .no { color: #cb4b16; }
-
-.highlight .nd { color: #268bd2; }
-
-.highlight .ni { color: #cb4b16; }
-
-.highlight .ne { color: #cb4b16; }
-
-.highlight .nf { color: #268bd2; }
-
-.highlight .nl { color: #555; }
-
-.highlight .nn { color: #93a1a1; }
-
-.highlight .nx { color: #555; }
-
-.highlight .py { color: #93a1a1; }
-
-.highlight .nt { color: #268bd2; }
-
-.highlight .nv { color: #268bd2; }
-
-.highlight .ow { color: #859900; }
-
-.highlight .w { color: #93a1a1; }
-
-.highlight .mf { color: #2aa198; }
-
-.highlight .mh { color: #2aa198; }
-
-.highlight .mi { color: #2aa198; }
-
-.highlight .mo { color: #2aa198; }
-
-.highlight .sb { color: #586e75; }
-
-.highlight .sc { color: #2aa198; }
-
-.highlight .sd { color: #93a1a1; }
-
-.highlight .s2 { color: #2aa198; }
-
-.highlight .se { color: #cb4b16; }
-
-.highlight .sh { color: #93a1a1; }
-
-.highlight .si { color: #2aa198; }
-
-.highlight .sx { color: #2aa198; }
-
-.highlight .sr { color: #dc322f; }
-
-.highlight .s1 { color: #2aa198; }
-
-.highlight .ss { color: #2aa198; }
-
-.highlight .bp { color: #268bd2; }
-
-.highlight .vc { color: #268bd2; }
-
-.highlight .vg { color: #268bd2; }
-
-.highlight .vi { color: #268bd2; }
-
-.highlight .il { color: #2aa198; }
+.highlight .language-json .kc { color: #0083bb; }
 
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
 /* Document ========================================================================== */
@@ -417,7 +279,7 @@ blockquote { margin: 10px 0; margin-block-start: 0; margin-inline-start: 0; padd
 @media (min-width: 66.5rem) { .side-bar { width: calc((100% - 1064px) / 2 + 264px); min-width: 264px; } }
 
 @media (min-width: 50rem) { .main { position: relative; max-width: 800px; margin-left: 248px; } }
-@media (min-width: 66.5rem) { .main { margin-left: calc( (100% - 1064px) / 2 + 264px ); } }
+@media (min-width: 66.5rem) { .main { margin-left: Max(264px, calc((100% - 1064px) / 2 + 264px)); } }
 
 .main-content-wrap { padding-right: 1rem; padding-left: 1rem; padding-top: 1rem; padding-bottom: 1rem; }
 @media (min-width: 50rem) { .main-content-wrap { padding-right: 2rem; padding-left: 2rem; } }
@@ -715,8 +577,12 @@ div.highlighter-rouge > button:active, div.listingblock > div.content > button:a
 div.highlighter-rouge > button:focus, div.listingblock > div.content > button:focus, figure.highlight > button:focus { opacity: 1; }
 div.highlighter-rouge:hover > button, div.listingblock > div.content:hover > button, figure.highlight:hover > button { cursor: copy; opacity: 1; }
 
-div.highlighter-rouge div.highlight, div.listingblock div.highlight { overflow-x: auto; padding: 0.75rem; margin: 0; border: 0; }
-div.highlighter-rouge pre.highlight, div.highlighter-rouge code, div.listingblock pre.highlight, div.listingblock code { padding: 0; margin: 0; border: 0; }
+div.highlighter-rouge div.highlight { overflow-x: auto; padding: 0.75rem; margin: 0; border: 0; }
+div.highlighter-rouge pre.highlight, div.highlighter-rouge code { padding: 0; margin: 0; border: 0; }
+
+div.listingblock { margin-top: 0; margin-bottom: 0.75rem; }
+div.listingblock div.content { overflow-x: auto; padding: 0.75rem; margin: 0; border: 0; }
+div.listingblock div.content > pre, div.listingblock code { padding: 0; margin: 0; border: 0; }
 
 figure.highlight pre, figure.highlight :not(pre) > code { overflow-x: auto; padding: 0.75rem; margin: 0; border: 0; }
 
@@ -730,6 +596,10 @@ figure.highlight pre, figure.highlight :not(pre) > code { overflow-x: auto; padd
 .code-example + .highlighter-rouge, .code-example + .sectionbody .listingblock, .code-example + .content, .code-example + figure.highlight, .listingblock > .title + .highlighter-rouge, .listingblock > .title + .sectionbody .listingblock, .listingblock > .title + .content, .listingblock > .title + figure.highlight { position: relative; margin-top: -1rem; border-right: 1px solid #eeebee; border-bottom: 1px solid #eeebee; border-left: 1px solid #eeebee; border-top-left-radius: 0; border-top-right-radius: 0; }
 
 code.language-mermaid { padding: 0; background-color: inherit; border: 0; }
+
+.highlight, pre.highlight { background: #f5f6fa; color: #5c5962; }
+
+.highlight pre { background: #f5f6fa; }
 
 .text-grey-dk-000 { color: #959396 !important; }
 
