@@ -451,7 +451,7 @@
 * Slightly increased the width of the car fuel gauge on the world map interface
 * New script function: `register_hook_proc_spec`
 * New hook script: `hs_stdprocedure`
-* 
+
 ## 4.1.9.1
 * Fixed the error handling for loading `sfallgv.sav` to improve backward compatibility with older saved games
 * Fixed `key_pressed` script function not working in `HOOK_KEYPRESS` hook script
