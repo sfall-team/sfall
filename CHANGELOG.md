@@ -328,7 +328,7 @@
 * Fixed and improved the playback of alternative sound files
 * Re-added **TownMapHotkeysFix** option to `ddraw.ini` for mod testing
 * Changed `play/stop_sfall_sound` script functions to return/accept the **ID** number of the played sound instead of a raw pointer
-* Changed the **'Radiated'** on the character screen to be highlighted in red color when player's stats are affected by radiation exposure
+* Changed the **'Radiated'** on the character screen to be highlighted in red when player's stats are affected by radiation exposure
 * Code refactoring for various script functions
 * Added a new **'fullscreen windowed'** mode to **DX9** graphics modes
 * Added saving the position of the game window to `ddraw.ini`
