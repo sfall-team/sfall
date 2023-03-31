@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2017  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -33,26 +33,22 @@ char defaultFemaleModelName[65]      = {};
 
 void PlayerModel::init() {
 	if (IniReader::GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 33)) {
-		dlog("Applying male start model patch.", DL_INIT);
+		dlogr("Applying male start model patch.", DL_INIT);
 		SafeWrite32(0x418B88, (DWORD)&startMaleModelName);
-		dlogr(" Done", DL_INIT);
 	}
 
 	if (IniReader::GetConfigString("Misc", "FemaleStartModel", "", startFemaleModelName, 33)) {
-		dlog("Applying female start model patch.", DL_INIT);
+		dlogr("Applying female start model patch.", DL_INIT);
 		SafeWrite32(0x418BAB, (DWORD)&startFemaleModelName);
-		dlogr(" Done", DL_INIT);
 	}
 
 	IniReader::GetConfigString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 65);
-	dlog("Applying male model patch.", DL_INIT);
+	dlogr("Applying male model patch.", DL_INIT);
 	SafeWrite32(0x418B50, (DWORD)&defaultMaleModelName);
-	dlogr(" Done", DL_INIT);
 
 	IniReader::GetConfigString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 65);
-	dlog("Applying female model patch.", DL_INIT);
+	dlogr("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x418B6D, (DWORD)&defaultFemaleModelName);
-	dlogr(" Done", DL_INIT);
 }
 
 }

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2014  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -165,23 +165,23 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 	}
 }
 
-//-----------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////
 
-static DWORD __fastcall CheckExplosives(DWORD register pid) {
+static DWORD __fastcall CheckExplosives(DWORD pid) {
 	for (const auto &item: explosives) {
 		if (item.pid == pid) return item.pidActive;
 	}
 	return 0;
 }
 
-static DWORD __fastcall CheckActiveExplosives(DWORD register pid) {
+static DWORD __fastcall CheckActiveExplosives(DWORD pid) {
 	for (const auto &item: explosives) {
 		if (item.pidActive == pid) return 0;
 	}
 	return 1;
 }
 
-static DWORD __fastcall GetDamage(DWORD register pid, DWORD &min, DWORD &max) {
+static DWORD __fastcall GetDamage(DWORD pid, DWORD &min, DWORD &max) {
 	DWORD result = 0;
 	for (const auto &item: explosives) {
 		if (item.pidActive == pid) {
@@ -194,7 +194,7 @@ static DWORD __fastcall GetDamage(DWORD register pid, DWORD &min, DWORD &max) {
 	return result;
 }
 
-static DWORD __fastcall SetQueueExplosionDamage(DWORD register pid) {
+static DWORD __fastcall SetQueueExplosionDamage(DWORD pid) {
 	DWORD min, max;
 	DWORD result = GetDamage(pid, min, max);
 
@@ -288,7 +288,7 @@ static void __declspec(naked) protinstTestDroppedExplosive_hack() {
 		call CheckActiveExplosives;
 		test eax, eax;
 		jz   end;
-		mov  dword ptr [esp], 0x49C112; // exit, no active item explosive
+		mov  dword ptr [esp], 0x49C112; // exit, no active explosive item
 end:
 		retn;
 	}
@@ -318,7 +318,7 @@ void Explosions::AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD
 	}
 }
 
-//-----------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////
 
 static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8, 0x42381A};
 static const DWORD explosion_art_adr[] = {0x411A19, 0x411A29, 0x411A35, 0x411A3C};
@@ -468,7 +468,7 @@ void ResetExplosionRadius() {
 }
 
 static void ResetExplosionDamage() {
-	if (!explosives.empty()) explosives.clear();
+	explosives.clear();
 
 	if (!explosionsDamageReset) return;
 	SafeWrite32(dynamite_min_dmg_addr, dynamite_minDmg);
@@ -483,11 +483,10 @@ void Explosions::init() {
 
 	lightingEnabled = IniReader::GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
 	if (lightingEnabled) {
-		dlog("Applying Explosion changes.", DL_INIT);
+		dlogr("Applying Explosion changes.", DL_INIT);
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
 		MakeJump(0x415A3F, anim_set_check_light_fix); // this allows to change light intensity
-		dlogr(" Done", DL_INIT);
 	}
 
 	// initialize explosives

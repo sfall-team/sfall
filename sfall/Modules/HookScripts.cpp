@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ void HookScripts::LoadHookScript(const char* name, int id) {
 	}
 }
 
-void HookScripts::InitHookScriptFile(const char* name, int id) {
+static void InitHookScriptFile(const char* name, int id) {
 	ScriptProgram prog;
 	dlog("> ", DL_HOOK);
 	dlog(name, DL_HOOK);
@@ -231,7 +231,7 @@ void HookScripts::InitHookScripts() {
 	dlogr("Running hook scripts...", DL_HOOK);
 
 	for (auto& hook : HookScripts::hookScriptFilesList) {
-		HookScripts::InitHookScriptFile(hook.name.c_str(), hook.id);
+		InitHookScriptFile(hook.name.c_str(), hook.id);
 	}
 
 	initingHookScripts = 1;

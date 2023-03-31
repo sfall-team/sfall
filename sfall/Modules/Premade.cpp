@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2009, 2010  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -85,11 +85,25 @@ static void __declspec(naked) select_update_display_hook() {
 	}
 }
 
+static void __declspec(naked) select_display_stats_hook() {
+	__asm {
+		call fo::funcoffs::trait_name_;
+		test eax, eax;
+		jz   skip;
+		retn;
+skip:
+		mov  eax, [esp];
+		add  eax, 94; // offset to next section (0x4A8A60, 0x4A8AC9)
+		add  esp, 4;
+		jmp  eax;
+	}
+}
+
 void Premade::init() {
 	auto premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
 	auto premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (!premadePaths.empty() && !premadeFids.empty()) {
-		dlog("Applying premade characters patch.", DL_INIT);
+		dlogr("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());
 		premade = new fo::PremadeChar[count];
 		for (int i = 0; i < count; i++) {
@@ -107,12 +121,14 @@ void Premade::init() {
 		SafeWrite32(0x4A8B1E, (DWORD)premade);         // select_display_bio_
 		SafeWrite32(0x4A7E2C, (DWORD)&premade[0].fid); // select_display_portrait_
 		std::strcpy((char*)0x50AF68, premade[0].path); // for selfrun
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Add language path for premade GCD/BIO files
 	HookCall(0x4A8B44, select_display_bio_hook);
 	HookCall(0x4A7D91, select_update_display_hook);
+
+	// Allow premade characters to have less than two traits
+	HookCalls(select_display_stats_hook, {0x4A89FD, 0x4A8A66});
 }
 
 }

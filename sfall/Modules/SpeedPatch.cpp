@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2017  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -199,7 +199,7 @@ void SpeedPatch::init() {
 	}
 	if (init == 100 && !modKey[0]) return;
 
-	dlog("Applying speed patch.", DL_INIT);
+	dlogr("Applying speed patch.", DL_INIT);
 
 	switch (modKey[0]) {
 	case -1:
@@ -230,7 +230,6 @@ void SpeedPatch::init() {
 	HookCall(0x4A433E, scripts_check_state_hook);
 
 	TimerInit();
-	dlogr(" Done", DL_INIT);
 }
 
 void SpeedPatch::exit() {

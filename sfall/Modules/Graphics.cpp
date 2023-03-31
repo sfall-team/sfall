@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ bool Graphics::PlayAviMovie = false;
 bool Graphics::AviMovieWidthFit = false;
 static bool dShowMovies;
 
-bool DeviceLost = false;
+static bool DeviceLost = false;
 static char textureFilter; // 1 - auto, 2 - force
 
 static DDSURFACEDESC surfaceDesc;
@@ -1306,6 +1306,9 @@ void Graphics::init() {
 		// Reassign the WindowProc function to avoid an unnecessary jump from the engine code
 		LoadGameHook::OnBeforeGameInit() += []() { WinProc::SetWindowProc(); };
 	}
+
+	// Set the maximum number of BMP screenshots to 10k (was 100k)
+	SafeWriteBatch<DWORD>(10000, {0x4C908B, 0x4C9093}); // default_screendump_
 
 	WindowRender::init();
 }

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2021  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ namespace sfall
 
 static std::unordered_map<int, std::string> overrideScrName;
 
-static long lastNamePid = -1;
+static long lastNameScrIdx = -1;
 static long lastNameSid = -1;
 static long lastItemPid = -1;
 
@@ -72,21 +72,24 @@ static void __declspec(naked) critter_name_hack_check() {
 	__asm {
 		mov  ecx, [ebx + scriptId];
 		cmp  ecx, -1;
-		je   checkPid; // has no script, check only the PID
+		je   checkScrIdx; // has no script, check the script index instead
 		cmp  ecx, lastNameSid;
 		jne  default;
 		add  esp, 4;
 		mov  eax, ds:[FO_VAR_name_critter];
 		jmp  critter_name_hack_ret;
-checkPid:
-		mov  ecx, [ebx + protoId];
-		cmp  ecx, lastNamePid;
-		jne  default;
+checkScrIdx:
+		mov  ecx, [ebx + scriptIndex];
+		cmp  ecx, -1; // no inherited script index
+		je   end;
+		cmp  ecx, lastNameScrIdx;
+		jne  end;
 		add  esp, 4;
 		mov  eax, ds:[FO_VAR_name_critter];
 		jmp  critter_name_hack_ret;
 default:
 		mov  ecx, [ebx + scriptIndex];
+end:
 		retn;
 	}
 }
@@ -94,8 +97,8 @@ default:
 static void __declspec(naked) critter_name_hack_end() {
 	using namespace fo::Fields;
 	__asm {
-		mov  edx, [ebx + protoId];
-		mov  lastNamePid, edx;
+		mov  edx, [ebx + scriptIndex];
+		mov  lastNameScrIdx, edx;
 		mov  ecx, [ebx + scriptId];
 		mov  lastNameSid, ecx;
 		retn;
@@ -131,7 +134,7 @@ void ObjectName::init() {
 	LoadGameHook::OnBeforeMapLoad() += Reset;
 	LoadGameHook::OnGameReset() += []() {
 		Reset();
-		lastNamePid = -1;
+		lastNameScrIdx = -1;
 		lastItemPid = -1;
 	};
 }

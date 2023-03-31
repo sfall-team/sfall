@@ -1,6 +1,6 @@
 /*
 *    sfall
-*    Copyright (C) 2008, 2009, 2010, 2013, 2014  The sfall team
+*    Copyright (C) 2008-2023  The sfall team
 *
 *    This program is free software: you can redistribute it and/or modify
 *    it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
+#include "..\Translate.h"
 #include "HookScripts.h"
 #include "Unarmed.h"
 
@@ -31,6 +32,8 @@ namespace sfall
 {
 
 int DamageMod::formula;
+
+static char ammoInfoFmt[32];
 
 // Integer division w/ round half to even for Glovz's damage formula
 // Prerequisite: both dividend and divisor must be positive integers (should already be handled in the main function)
@@ -117,6 +120,13 @@ void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDama
 	}
 }
 
+static __declspec(naked) void AmmoInfoPrintGlovz() {
+	__asm {
+		lea  edi, ammoInfoFmt;
+		retn;
+	}
+}
+
 // YAAM v1.1a by Haenlomal 2010.05.13
 void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, long rounds, long armorDT, long armorDR, long bonusRangedDamage, long multiplyDamage, long difficulty) {
 	if (rounds <= 0) return;                                // Check number of hits
@@ -166,6 +176,13 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamag
 		rawDamage -= resistedDamage;                        // Raw Damage = Raw Damage - Resisted Damage
 
 		if (rawDamage > 0) accumulatedDamage += rawDamage;  // Accumulated Damage = Accumulated Damage + Raw Damage
+	}
+}
+
+static __declspec(naked) void AmmoInfoPrintYAAM() {
+	__asm {
+		lea  ecx, ammoInfoFmt;
+		retn;
 	}
 }
 
@@ -326,8 +343,14 @@ void DamageMod::init() {
 		switch (formula) {
 		case 1:
 		case 2:
+			HookScripts::InjectingHook(HOOK_SUBCOMBATDAMAGE);
+			MakeCall(0x49B54A, AmmoInfoPrintGlovz, 2); // Dmg Mod (obj_examine_func_)
+			Translate::Get("sfall", "AmmoInfoGlovz", "Div: DR/%d, DT/%d", ammoInfoFmt, 32);
+			break;
 		case 5:
 			HookScripts::InjectingHook(HOOK_SUBCOMBATDAMAGE);
+			MakeCall(0x49B4EB, AmmoInfoPrintYAAM, 2); // DR Mod (obj_examine_func_)
+			Translate::Get("sfall", "AmmoInfoYAAM", "DT Mod: %d", ammoInfoFmt, 32);
 			break;
 		default:
 			formula = 0;
@@ -338,7 +361,7 @@ void DamageMod::init() {
 	displayBonusDamage = IniReader::GetConfigInt("Misc", "DisplayBonusDamage", 0) != 0;
 
 	if (bonusHtHDamageFix) {
-		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
+		dlogr("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		// Subtract damage from perk bonus (vanilla displaying)
 		if (!displayBonusDamage) {
 			HookCalls(MeleeDmgDisplayPrintFix_hook, {
@@ -352,16 +375,14 @@ void DamageMod::init() {
 		}
 		//MakeCall(0x478492, HtHDamageFix1a_hack);            // Unarmed    (item_w_damage_)
 		HookCall(0x47854C, HtHDamageFix1b_hook);              // MeleeWeap  (item_w_damage_)
-		dlogr(" Done", DL_INIT);
 	}
 
 	if (displayBonusDamage) {
-		dlog("Applying Display Bonus Damage patch.", DL_INIT);
+		dlogr("Applying Display Bonus Damage patch.", DL_INIT);
 		HookCall(0x4722DD, DisplayBonusRangedDmg_hook);       // display_stats_
 		if (bonusHtHDamageFix) {
 			HookCall(0x472309, DisplayBonusHtHDmg1_hook);     // MeleeWeap (display_stats_)
 		}
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Display the actual damage values of unarmed attacks (display_stats_ hacks)

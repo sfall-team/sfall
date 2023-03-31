@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -64,11 +64,11 @@ void mf_add_g_timer_event(OpcodeContext&);
 
 void mf_remove_timer_event(OpcodeContext&);
 
-void op_sfall_ver_major(OpcodeContext&);
+void __declspec() op_sfall_ver_major();
 
-void op_sfall_ver_minor(OpcodeContext&);
+void __declspec() op_sfall_ver_minor();
 
-void op_sfall_ver_build(OpcodeContext&);
+void __declspec() op_sfall_ver_build();
 
 }
 }

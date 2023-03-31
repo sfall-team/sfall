@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2019  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -344,7 +344,7 @@ void Drugs::init() {
 				LoadGameHook::OnGameReset() += ResetDrugs;
 			}
 		}
-		dlog_f(" (%d/%d drugs) Done\n", DL_INIT, drugsCount, count);
+		dlog_f(" (%d/%d drugs)\n", DL_INIT, drugsCount, count);
 	}
 }
 

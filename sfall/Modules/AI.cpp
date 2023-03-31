@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2012  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -587,9 +587,8 @@ void AI::init() {
 
 	RetryCombatMinAP = IniReader::GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
+		dlogr("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, RetryCombatHook); // combat_turn_
-		dlogr(" Done", DL_INIT);
 	}
 
 	/////////////////////// Combat behavior AI fixes ///////////////////////

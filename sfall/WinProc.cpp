@@ -1,7 +1,19 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2021  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "main.h"
@@ -22,7 +34,8 @@ static POINT client;
 static long moveWindowKey[2];
 static long windowData;
 
-static long reqGameQuit;
+static long reqGameQuit = 0;
+static bool isClosing = false;
 static bool cCursorShow = true;
 static bool bkgndErased = false;
 
@@ -41,13 +54,11 @@ void __stdcall WinProc::WaitMessageWindow() {
 	MessageWindow();
 }
 
-static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+static long __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	RECT rect;
 	//POINT point;
 
 	switch (msg) {
-	//case WM_CREATE:
-	//	break;
 	case WM_DESTROY:
 		__asm xor  eax, eax;
 		__asm call fo::funcoffs::exit_;
@@ -127,17 +138,54 @@ static int __stdcall WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 			call fo::funcoffs::main_menu_is_shown_;
 			test eax, eax;
 			jnz  skip;
+			cmp  isClosing, 0;
+			jnz  end;
+			mov  isClosing, 1;
 			call fo::funcoffs::game_quit_with_confirm_;
+			mov  isClosing, al;
 		skip:
 			mov  reqGameQuit, eax;
+		end:
 		}
 		return 0;
 	}
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
+static long __stdcall GNW95_keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode < 0) {
+		goto callNext;
+	}
+
+	switch (wParam) {
+	case VK_DELETE:
+		if (!(lParam & 0x20000000)) {
+			break;
+		}
+	case VK_ESCAPE:
+		if (GetAsyncKeyState(VK_CONTROL) < 0) {
+			return 0;
+		}
+		break;
+	case VK_TAB:
+		if ((lParam & 0x20000000)) {
+			return 0;
+		}
+		break;
+	case VK_NUMLOCK:
+	case VK_CAPITAL:
+	case VK_SCROLL:
+	case VK_F4:
+callNext:
+		return CallNextHookEx((HHOOK)fo::var::getInt(FO_VAR_GNW95_keyboardHandle), nCode, wParam, lParam);
+	default:
+		break;
+	}
+	return 1;
+}
+
 static long __stdcall main_menu_loop_hook() {
-	return (!reqGameQuit) ? fo::func::get_input() : 27; // ESC code
+	return (!reqGameQuit) ? fo::func::get_input() : VK_ESCAPE;
 }
 
 void WinProc::SetWindowProc() {
@@ -177,10 +225,11 @@ void WinProc::SetTitle(long wWidth, long wHeight, long gMode) {
 	if (gMode >= 4) std::strcpy(mode, "DX9");
 
 	if (HRP::Setting::ScreenWidth() != wWidth || HRP::Setting::ScreenHeight() != wHeight) {
-		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  %ix%i >> %ix%i  [%s]",
+		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i >> %ix%i [%s]",
 			(const char*)0x50AF08, HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), wWidth, wHeight, mode);
 	} else {
-		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING "  [%s]", (const char*)0x50AF08, mode);
+		std::sprintf(windowTitle, "%s  @sfall " VERSION_STRING " : %ix%i [%s]",
+			(const char*)0x50AF08, HRP::Setting::ScreenWidth(), HRP::Setting::ScreenHeight(), mode);
 	}
 	SetWindowTextA(window, windowTitle);
 }
@@ -285,6 +334,9 @@ const POINT* WinProc::GetClientPos() {
 void WinProc::init() {
 	// Replace the engine WindowProc_ with sfall implementation
 	MakeJump(0x4DE9FC, WindowProc); // WindowProc_
+
+	// Replace the engine GNW95_keyboard_hook_ with sfall implementation
+	SafeWrite32(0x4C9BD9, (DWORD)&GNW95_keyboard_hook); // GNW95_hook_keyboard_
 
 	HookCall(0x481B2A, main_menu_loop_hook);
 }

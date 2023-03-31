@@ -22,11 +22,10 @@ T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* in
 			value = maxValue;
 		}
 		_snprintf_s(msg, sizeof(msg), _TRUNCATE, "Applying patch: %s = %d.", iniKey, value);
-		dlog((const char*)msg, DL_INIT);
+		dlogr((const char*)msg, DL_INIT);
 		for (int i = 0; i < numAddrs; i++) {
 			SafeWrite<T>(addrs[i], (T)value);
 		}
-		dlogr(" Done", DL_INIT);
 	}
 	return value;
 }

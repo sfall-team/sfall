@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ namespace script
 #define START_VALID_ADDR    0x410000
 #define END_VALID_ADDR      0x6B403F
 
+bool unsafeEnabled = false;
 bool checkValidMemAddr = true;
 
 void __declspec(naked) op_read_byte() {
@@ -81,6 +82,7 @@ error:
 }
 
 void __declspec(naked) op_read_string() {
+	static const char* emptyStr = "";
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -88,10 +90,13 @@ void __declspec(naked) op_read_string() {
 		mov  edx, eax;
 result:
 		mov  eax, ebx;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax;
+		mov  eax, ebx;
 		_J_RET_VAL_TYPE(VAR_TYPE_STR);
 //		retn;
 error:
-		xor  edx, edx;
+		mov  edx, emptyStr;
 		jmp  result;
 	}
 }
@@ -104,6 +109,8 @@ void __declspec(naked) op_write_byte() {
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
+		cmp  unsafeEnabled, 0;
+		jz   end;
 		// check valid addr
 		cmp  checkValidMemAddr, 0;
 		jz   noCheck;
@@ -130,6 +137,8 @@ void __declspec(naked) op_write_short() {
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
+		cmp  unsafeEnabled, 0;
+		jz   end;
 		// check valid addr
 		cmp  checkValidMemAddr, 0;
 		jz   noCheck;
@@ -156,6 +165,8 @@ void __declspec(naked) op_write_int() {
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
+		cmp  unsafeEnabled, 0;
+		jz   end;
 		// check valid addr
 		cmp  checkValidMemAddr, 0;
 		jz   noCheck;
@@ -193,6 +204,8 @@ void __declspec(naked) op_write_string() {
 		cmp  cx, VAR_TYPE_STR;
 		jnz  end;
 next:
+		cmp  unsafeEnabled, 0;
+		jz   end;
 		// ecx - type, esi - value
 		// edx - type, eax - addr
 		// check valid address
@@ -224,7 +237,7 @@ static void __fastcall CallOffsetInternal(fo::Program* script, DWORD func) {
 		if ((short)fo::func::interpretPopShort(script) != (short)VAR_TYPE_INT) illegalArg++;
 		args[i] = fo::func::interpretPopLong(script);
 	}
-	if (illegalArg || (checkValidMemAddr && (args[0] < 0x410010 || args[0] > 0x4FCE34))) {
+	if (illegalArg || !unsafeEnabled || (checkValidMemAddr && (args[0] < 0x410010 || args[0] > 0x4FCE34))) {
 		args[0] = 0;
 	} else {
 		__asm {

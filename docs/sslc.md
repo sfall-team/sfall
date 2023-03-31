@@ -107,7 +107,7 @@ Syntax which requires sfall for compiled scripts to be interpreted is marked by 
     x := 5;
     ```
 
-- Multiple variable declaration: Multiple variables can be declared on one line, seperated by commas. This is an alterative to the ugly begin/end block, or the bulky single variable per line style.
+- Multiple variable declaration: Multiple variables can be declared on one line, separated by commas. This is an alternative to the ugly begin/end block, or the bulky single variable per line style.
   - new:
     ```
     variable a, b, c;
@@ -139,7 +139,7 @@ Syntax which requires sfall for compiled scripts to be interpreted is marked by 
     a := 4096;
     ```
 
-- Increment/decrement operators: `++` and `--` can be used as shorthand for `+= 1` and `-= 1` respectively. They are mearly a syntactic shorthand to improve readability, and so their use is only allowed where `+= 1` would normally be allowed.
+- Increment/decrement operators: `++` and `--` can be used as shorthand for `+= 1` and `-= 1` respectively. They are merely a syntactic shorthand to improve readability, and so their use is only allowed where `+= 1` would normally be allowed.
   - new:
     ```
     a++;
@@ -230,7 +230,7 @@ Syntax which requires sfall for compiled scripts to be interpreted is marked by 
 
 - Empty statements in blocks are allowed: This is just a convenience to save scripters a bit of memory. Some of the macros in the Fallout headers include their own semicolons while others do not. With the original compiler you had to remember which was which, and if you got it wrong the script would not compile. Now it's always safe to include your own semicolon, even if the macro already had its own. For example, this would not compile with the original sslc, but will with the sfall edition:
   ```
-  #define my_macro diplay_msg("foo");
+  #define my_macro display_msg("foo");
 
   procedure start begin
     my_macro;
@@ -238,7 +238,7 @@ Syntax which requires sfall for compiled scripts to be interpreted is marked by 
   ```
   __NOTE:__ **Does not work currently.**
 
-- Procedure stringify operator `@`: Designed to make callback-procedures a better option and allow for basic functional programming. Basically it replaces procedure names preceeded by `@` by a string constant.
+- Procedure stringify operator `@`: Designed to make callback-procedures a better option and allow for basic functional programming. Basically it replaces procedure names preceded by `@` by a string constant.
   - old:
     ```
     callbackVar := "Node000";

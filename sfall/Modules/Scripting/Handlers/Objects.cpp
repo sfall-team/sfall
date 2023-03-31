@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -340,7 +340,7 @@ void op_get_party_members(OpcodeContext& ctx) {
 	DWORD arrayId = CreateTempArray(0, 4);
 	for (int i = 0; i < actualCount; i++) {
 		fo::GameObject* obj = fo::var::partyMemberList[i].object;
-		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+		if (includeHidden || (obj->IsCritter() && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Hidden))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}

@@ -11,7 +11,7 @@ namespace sfall
 {
 
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
-static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
+static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameObject* target, DWORD callAddr) {
 	bool barterIsParty = (fo::var::dialog_target_is_party != 0);
 	long computeCost = fo::func::barter_compute_value(source, target);
 
@@ -99,7 +99,8 @@ void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
 
 static char resultSkillOn; // -1 - cancel handler, 1 - replace user
 static long bakupCombatState;
-static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
+
+static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, DWORD skillId) {
 	BeginHook();
 	argCount = 3;
 
@@ -373,7 +374,7 @@ static void CarTravelHook_Script() {
 		consumption = static_cast<long>(rets[1]);
 	}
 	// consume fuel
-	fo::var::carGasAmount = max(originalGas - consumption, 0);
+	fo::var::carGasAmount = max(0, originalGas - consumption);
 
 	EndHook();
 }
@@ -388,7 +389,7 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
-static long __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
+static long __fastcall GlobalVarHook_Script(DWORD number, int value) {
 	int old = fo::var::game_global_vars[number];
 
 	if (IsGameLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsGameLoaded - don't execute hook until loading sfall scripts
@@ -457,9 +458,9 @@ static long __fastcall RestTimerHook_Script(DWORD hours, DWORD minutes, DWORD ga
 static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
 		pushadc;
-		mov  edx, [esp + 20 + 0x44]; // minutes_
-		mov  ecx, [esp + 20 + 0x40]; // hours_
-		push [esp + 16];             // addrHook
+		mov  edx, [esp + 16 + 0x44]; // minutes_
+		mov  ecx, [esp + 16 + 0x40]; // hours_
+		push [esp + 12];             // addrHook
 		push eax;                    // gameTime
 		call RestTimerHook_Script;
 		pop  ecx;
@@ -477,9 +478,9 @@ static void __declspec(naked) RestTimerEscapeHook() {
 		cmp  eax, 0x1B; // ESC ASCII code
 		jnz  skip;
 		pushadc;
-		mov  edx, [esp + 20 + 0x44]; // minutes_
-		mov  ecx, [esp + 20 + 0x40]; // hours_
-		push [esp + 16];             // addrHook
+		mov  edx, [esp + 16 + 0x44]; // minutes_
+		mov  ecx, [esp + 16 + 0x40]; // hours_
+		push [esp + 12];             // addrHook
 		push eax;                    // gameTime
 		call RestTimerHook_Script;
 		pop  ecx;
@@ -612,7 +613,7 @@ blinkIcon:
 		jmp  fo::funcoffs::wmInterfaceRefresh_;
 break:
 		mov  eax, hkEncounterMapID;
-		cmp  ds:[FO_VAR_Move_on_Car], 0;
+		cmp  dword ptr ds:[FO_VAR_Move_on_Car], 0;
 		je   noCar;
 		mov  edx, FO_VAR_carCurrentArea;
 		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
@@ -623,7 +624,7 @@ noCar:
 		mov  hkEncounterMapID, -1;
 cancelEnc:
 		inc  eax; // 0 - continue movement, 1 - interrupt
-		mov  ds:[FO_VAR_wmEncounterIconShow], 0;
+		mov  dword ptr ds:[FO_VAR_wmEncounterIconShow], 0;
 		add  esp, 4;
 		mov  ebx, 0x4C0BC7;
 		jmp  ebx;
@@ -717,7 +718,7 @@ void Inject_WithinPerceptionHook() {
 
 void Inject_CarTravelHook() {
 	MakeJump(0x4BFEF1, CarTravelHack);
-	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
+	BlockCall(0x4BFF6E); // vanilla wmCarUseGas(100) call
 }
 
 void Inject_SetGlobalVarHook() {
@@ -739,8 +740,10 @@ void Inject_UseSkillOnHook() {
 	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
 
 	// replace _obj_dude with source skill user (skill_use_ function)
-	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});
-	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AB0EF, 0x4AB5C0, 0x4ABAF2}); // fix for time
+	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {
+		0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54,
+		0x4AB0EF, 0x4AB5C0, 0x4ABAF2 // fix for time increment
+	});
 }
 
 void Inject_EncounterHook() {

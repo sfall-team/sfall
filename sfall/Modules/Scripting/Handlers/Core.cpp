@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -216,16 +216,25 @@ void mf_remove_timer_event(OpcodeContext& ctx) {
 	}
 }
 
-void op_sfall_ver_major(OpcodeContext& ctx) {
-	ctx.setReturn(VERSION_MAJOR);
+void __declspec(naked) op_sfall_ver_major() {
+	__asm {
+		mov  edx, VERSION_MAJOR;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
 }
 
-void op_sfall_ver_minor(OpcodeContext& ctx) {
-	ctx.setReturn(VERSION_MINOR);
+void __declspec(naked) op_sfall_ver_minor() {
+	__asm {
+		mov  edx, VERSION_MINOR;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
 }
 
-void op_sfall_ver_build(OpcodeContext& ctx) {
-	ctx.setReturn(VERSION_BUILD);
+void __declspec(naked) op_sfall_ver_build() {
+	__asm {
+		mov  edx, VERSION_BUILD;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+	}
 }
 
 }

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -117,7 +117,7 @@ void Books::init() {
 
 			MakeJump(0x49B9FB, obj_use_book_hook);
 		}
-		dlog_f(" (%d/%d books) Done\n", DL_INIT, n, count);
+		dlog_f(" (%d/%d books)\n", DL_INIT, n, count);
 	}
 }
 

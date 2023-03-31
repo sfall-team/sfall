@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2017  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <algorithm>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -256,6 +258,7 @@ static void __fastcall game_init_databases_hook1() {
 	}
 	fo::var::master_db_handle = node; // set pointer to master_patches node
 
+	InitSystemPatches();
 	InitExtraPatches();
 }
 */
@@ -263,7 +266,7 @@ static bool NormalizePath(std::string &path) {
 	if (path.find(':') != std::string::npos) return false;
 
 	int pos = 0;
-	do { // replace all '/' char to '\'
+	do { // replace all '/' char with '\'
 		pos = path.find('/', pos);
 		if (pos != std::string::npos) path[pos] = '\\';
 	} while (pos != std::string::npos);
@@ -287,6 +290,7 @@ static void GetExtraPatches() {
 		//if (searchPath.back() != '\\') searchPath += "\\";
 
 		std::string pathMask(".\\mods\\*.dat");
+		size_t startPos = patchFiles.size();
 		dlogr("Loading custom patches:", DL_MAIN);
 		WIN32_FIND_DATA findData;
 		HANDLE hFind = FindFirstFile(pathMask.c_str(), &findData);
@@ -299,11 +303,15 @@ static void GetExtraPatches() {
 			} while (FindNextFile(hFind, &findData));
 			FindClose(hFind);
 		}
+		// Sort the search result
+		if (!patchFiles.empty()) {
+			std::sort(patchFiles.begin() + startPos, patchFiles.end());
+		}
 	//}
 	// Remove first duplicates
 	size_t size = patchFiles.size();
-	for (size_t i = 1; i < size; ++i) {
-		for(size_t j = size - 1; j > i; --j) {
+	for (size_t i = 0; i < size; ++i) {
+		for (size_t j = size - 1; j > i; --j) {
 			if (patchFiles[j] == patchFiles[i]) {
 				patchFiles[i].clear();
 			}
@@ -313,10 +321,9 @@ static void GetExtraPatches() {
 
 static void MultiPatchesPatch() {
 	//if (IniReader::GetConfigInt("Misc", "MultiPatches", 0)) {
-		dlog("Applying load multiple patches patch.", DL_INIT);
+		dlogr("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4);          // Disable check
-		dlogr(" Done", DL_INIT);
 	//}
 }
 
@@ -556,19 +563,18 @@ void LoadOrder::init() {
 	MultiPatchesPatch();
 
 	//if (IniReader::GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
-		dlog("Applying data load order patch.", DL_INIT);
+		dlogr("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
-		dlogr(" Done", DL_INIT);
 	//} else /*if (!patchFiles.empty())*/ {
 	//	HookCall(0x44436D, game_init_databases_hook1);
 	//}
 
 	femaleMsgs = IniReader::GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
-		dlog("Applying alternative female dialog files patch.", DL_INIT);
+		dlogr("Applying alternative female dialog files patch.", DL_INIT);
 		MakeJump(0x4A6BCD, scr_get_dialog_msg_file_hack1);
 		MakeJump(0x4A6BF5, scr_get_dialog_msg_file_hack2);
 		LoadGameHook::OnAfterGameStarted() += CheckPlayerGender;
@@ -576,7 +582,6 @@ void LoadOrder::init() {
 			MakeCall(0x480A95, gnw_main_hack); // before new game start from main menu. TODO: need moved to address 0x480A9A (it busy in movies.cpp)
 			LoadGameHook::OnGameExit() += PlayerGenderCutsRestore;
 		}
-		dlogr(" Done", DL_INIT);
 	}
 
 	// Redefined behavior for replacing art aliases for critters
@@ -587,14 +592,13 @@ void LoadOrder::init() {
 		MakeCall(0x419560, art_get_name_hack);
 	}
 
-	dlog("Applying party member protos save/load patch.", DL_INIT);
+	dlogr("Applying party member protos save/load patch.", DL_INIT);
 	savPrototypes.reserve(25);
 	HookCall(0x4A1CF2, proto_load_pid_hook);
 	HookCall(0x4A1BEE, proto_save_pid_hook);
 	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
-	dlogr(" Done", DL_INIT);
 
 	// Load fonts based on the game language
 	HookCalls(load_font_hook, {

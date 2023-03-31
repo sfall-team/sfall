@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2009  Mash (Matt Wells, mashw at bigpond dot net dot au)
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ public:
 void __stdcall HeroSelectWindow(int raceStyleFlag);
 void __stdcall SetHeroStyle(int newStyleVal);
 void __stdcall SetHeroRace(int newRaceVal);
-void __stdcall LoadHeroAppearance(void);
-void __stdcall SetNewCharAppearanceGlobals(void);
+void __stdcall LoadHeroAppearance();
+void __stdcall SetNewCharAppearanceGlobals();
 
 void __stdcall RefreshPCArt();
 

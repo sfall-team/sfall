@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2011, 2012  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -537,10 +537,9 @@ end:
 }
 
 static void CombatProcPatch() {
-	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+	dlogr("Applying Ray's combat_p_proc patch.", DL_INIT);
 	MakeCall(0x424DD9, apply_damage_hack);
 	SafeWrite16(0x424DC6, 0x9090);
-	dlogr(" Done", DL_INIT);
 }
 
 static void ResetOnGameLoad() {

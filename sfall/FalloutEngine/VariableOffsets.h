@@ -139,6 +139,7 @@
 #define FO_VAR_GNW95_hDDrawLib            0x51E44C
 #define FO_VAR_GNW95_hwnd                 0x51E434 // main hwnd window
 #define FO_VAR_GNW95_isActive             0x51E444
+#define FO_VAR_GNW95_keyboardHandle       0x6AC758
 #define FO_VAR_GNW95_repeat_delay         0x51E240
 #define FO_VAR_GNW95_repeat_rate          0x51E23C
 #define FO_VAR_GNWWin                     0x5195B8
@@ -326,6 +327,8 @@
 #define FO_VAR_target_str                 0x56D518
 #define FO_VAR_target_xpos                0x672E20
 #define FO_VAR_target_ypos                0x672E24
+#define FO_VAR_temp_trait                 0x570A04
+#define FO_VAR_temp_trait2                0x570A08
 #define FO_VAR_text_char_width            0x51E3C4
 #define FO_VAR_text_height                0x51E3BC
 #define FO_VAR_text_max                   0x51E3D4

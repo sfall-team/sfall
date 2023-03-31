@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2017  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -26,8 +26,9 @@ namespace sfall
 class Karma : public Module {
 public:
 	const char* name() { return "Karma"; }
-	static void DisplayKarma(int value);
 	void init();
+
+	static void DisplayKarma(int value);
 };
 
 extern bool displayKarmaChanges;

@@ -15,7 +15,7 @@ See [hook types]({{ site.baseurl }}/hook-types/) and hook [functions reference](
 
 ## Hooks compatibility
 
-To aid in mods compatibility, avoid using `hs_xxx` .int scripts. Instead it is recommended to use a normal global script combined with [register_hook_proc]({{ site.baseurl }}/hook-functions/#register_hook_proc) or [register_hook]({{ site.baseurl }}/hook-functions/#register_hook).
+To aid in mods compatibility, avoid using the predefined `hs_<name>.int` scripts. Instead it is recommended to use a normal global script combined with [register_hook_proc]({{ site.baseurl }}/hook-functions/#register_hook_proc) or [register_hook]({{ site.baseurl }}/hook-functions/#register_hook).
 
 Example setup for a hook-script based mod:
 

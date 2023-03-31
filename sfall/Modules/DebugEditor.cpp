@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -426,7 +426,7 @@ static const DWORD addrNewLineChar[] = {
 static void DebugModePatch() {
 	int dbgMode = IniReader::GetIntDefaultConfig("Debugging", "DebugMode", 0);
 	if (dbgMode > 0) {
-		dlog("Applying debugmode patch.", DL_INIT);
+		dlogr("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
 		if (*((DWORD*)0x444A64) != 0x082327E8) {
 			SafeWrite32(0x444A64, 0x082327E8); // call debug_register_env_
@@ -440,7 +440,7 @@ static void DebugModePatch() {
 			if (dbgMode & 1) {
 				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
 				SafeWrite8(0x4C6EF2, CodeType::JumpShort);
-				SafeWrite8(0x4C7034, 0x0);
+				SafeWrite16(0x4C7033, 0x9090);
 				MakeCall(0x4DC319, win_debug_hook, 2);
 			}
 		} else {
@@ -481,15 +481,13 @@ static void DebugModePatch() {
 		if (dbgMode != 1) {
 			MoveDebugString((char*)0x500A9B); // "computing attack..."
 		}
-		dlogr(" Done", DL_INIT);
 	}
 }
 
 static void DontDeleteProtosPatch() {
 	if (IniReader::GetIntDefaultConfig("Debugging", "DontDeleteProtos", 0)) {
-		dlog("Applying permanent protos patch.", DL_INIT);
+		dlogr("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, CodeType::JumpShort);
-		dlogr(" Done", DL_INIT);
 	}
 }
 

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -272,9 +272,8 @@ defaultIni:
 	IniReader::init();
 
 	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
-		dlog("Applying config file patch.", DL_INIT);
+		dlogr("Applying config file patch.", DL_INIT);
 		SafeWriteBatch<DWORD>((DWORD)&falloutConfigName, {0x444BA5, 0x444BCA});
-		dlogr(" Done", DL_INIT);
 	} else {
 		// if the ConfigFile is not assigned a value
 		std::strcpy(falloutConfigName, (const char*)FO_VAR_fallout_config);

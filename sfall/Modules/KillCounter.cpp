@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -74,9 +74,8 @@ bool KillCounter::UsingExtraKillTypes() {
 
 void KillCounter::init() {
 	if (IniReader::GetConfigInt("Misc", "ExtraKillTypes", 0)) {
-		dlog("Applying extra kill types patch.", DL_INIT);
+		dlogr("Applying extra kill types patch.", DL_INIT);
 		KillCounterInit();
-		dlogr(" Done", DL_INIT);
 	}
 }
 

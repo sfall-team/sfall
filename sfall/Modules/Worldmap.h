@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2017  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@ public:
 
 	static Delegate<>& OnWorldmapLoop();
 
-	static void Worldmap::SaveData(HANDLE);
-	static bool Worldmap::LoadData(HANDLE);
+	static void SaveData(HANDLE);
+	static bool LoadData(HANDLE);
 
 	static void SetCarInterfaceArt(DWORD artIndex);
 	static void SetRestHealTime(DWORD minutes);

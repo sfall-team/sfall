@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DW
 
 static int CritTableLoad() {
 	if (mode == 1) {
-		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
+		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt).", DL_CRITICALS);
 		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
@@ -108,7 +108,7 @@ static int CritTableLoad() {
 		memcpy(&baseCritTable[38], fo::var::pc_crit_succ_eff, 6 * 9 * sizeof(fo::CritInfo)); // PC crit table
 
 		if (mode == 3) {
-			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
+			dlogr(" and CriticalOverrides.ini (new fmt).", DL_CRITICALS);
 			if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 			char buf[32], buf2[32], buf3[32];
 			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
@@ -132,7 +132,7 @@ static int CritTableLoad() {
 				}
 			}
 		} else {
-			dlog("\n", DL_CRITICALS);
+			dlogr(".", DL_CRITICALS);
 		}
 	}
 	return 0;
@@ -305,10 +305,9 @@ static void CriticalTableOverride() {
 
 static void RemoveCriticalTimeLimitsPatch() {
 	if (IniReader::GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
-		dlog("Removing critical time limits.", DL_INIT);
+		dlogr("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x424118, CodeType::JumpShort); // jump to 0x424131
 		SafeWriteBatch<WORD>(0x9090, {0x4A3052, 0x4A3093});
-		dlogr(" Done", DL_INIT);
 	}
 }
 

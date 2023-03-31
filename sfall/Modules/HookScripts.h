@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -85,7 +85,6 @@ struct HookFile {
 };
 
 class HookScripts : public Module {
-
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
@@ -95,7 +94,6 @@ public:
 	static std::vector<HookFile> hookScriptFilesList;
 
 	static void LoadHookScript(const char* name, int id);
-	static void InitHookScriptFile(const char* name, int id);
 	static void LoadHookScripts();
 	static void InitHookScripts();
 	static void HookScriptClear();

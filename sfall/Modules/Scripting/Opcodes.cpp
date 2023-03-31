@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -150,9 +150,6 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x20d, "list_begin",                 op_list_begin,                1, true,   0, {ARG_INT}},
 	{0x20e, "list_next",                  op_list_next,                 1, true,   0, {ARG_INT}},
 	{0x20f, "list_end",                   op_list_end,                  1, false,  0, {ARG_INT}},
-	{0x210, "sfall_ver_major",            op_sfall_ver_major,           0, true},
-	{0x211, "sfall_ver_minor",            op_sfall_ver_minor,           0, true},
-	{0x212, "sfall_ver_build",            op_sfall_ver_build,           0, true},
 	{0x216, "set_critter_burst_disable",  op_set_critter_burst_disable, 2, false,  0, {ARG_OBJECT, ARG_INT}},
 	{0x217, "get_weapon_ammo_pid",        op_get_weapon_ammo_pid,       1, true,  -1, {ARG_OBJECT}},
 	{0x218, "set_weapon_ammo_pid",        op_set_weapon_ammo_pid,       2, false,  0, {ARG_OBJECT, ARG_INT}},
@@ -273,7 +270,7 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 }
 
 void Opcodes::InitNew() {
-	dlogr("Adding additional opcodes", DL_SCRIPT);
+	dlog("Adding sfall opcodes.", DL_SCRIPT);
 
 	SafeWrite32(0x46E370, opcodeCount);    // Maximum number of allowed opcodes
 	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
@@ -293,17 +290,18 @@ void Opcodes::InitNew() {
 	};
 
 	if (int unsafe = IniReader::GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {
+		unsafeEnabled = true;
 		if (unsafe == 2) checkValidMemAddr = false;
-		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
-		opcodes[0x1cf] = op_write_byte;
-		opcodes[0x1d0] = op_write_short;
-		opcodes[0x1d1] = op_write_int;
-		opcodes[0x21b] = op_write_string;
-		for (int i = 0x1d2; i < 0x1dc; i++) {
-			opcodes[i] = op_call_offset;
-		}
+		dlogr(" Unsafe opcodes enabled.", DL_SCRIPT);
 	} else {
-		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
+		dlogr(" Unsafe opcodes disabled.", DL_SCRIPT);
+	}
+	opcodes[0x1cf] = op_write_byte;
+	opcodes[0x1d0] = op_write_short;
+	opcodes[0x1d1] = op_write_int;
+	opcodes[0x21b] = op_write_string;
+	for (int i = 0x1d2; i < 0x1dc; i++) {
+		opcodes[i] = op_call_offset;
 	}
 	opcodes[0x156] = op_read_byte;
 	opcodes[0x157] = op_read_short;
@@ -391,6 +389,9 @@ void Opcodes::InitNew() {
 
 	opcodes[0x1f6] = op_nb_create_char;
 	opcodes[0x206] = op_set_self;
+	opcodes[0x210] = op_sfall_ver_major;
+	opcodes[0x211] = op_sfall_ver_minor;
+	opcodes[0x212] = op_sfall_ver_build;
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;

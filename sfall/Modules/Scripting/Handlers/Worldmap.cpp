@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2023  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
 		test ForceEncounterFlags, 0x1; // _NoCar flag
 		jnz  noCar;
-		cmp  ds:[FO_VAR_Move_on_Car], 0;
+		cmp  dword ptr ds:[FO_VAR_Move_on_Car], 0;
 		jz   noCar;
 		mov  edx, FO_VAR_carCurrentArea;
 		mov  eax, ForceEncounterMapID;

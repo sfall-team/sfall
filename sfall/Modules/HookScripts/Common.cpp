@@ -113,14 +113,14 @@ void __stdcall RunHookScript(DWORD hook) {
 	if (!hooks[hook].empty()) {
 		if (callDepth > 1) {
 			if (CheckRecursiveHooks(hook) || callDepth > 8) {
-				fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
-				dlog_f("The hook %d cannot be executed due to exceeding depth limit or disallowed recursive calls\n", DL_MAIN, hook);
+				fo::func::debug_printf("\n[SFALL] The hook ID %d cannot be executed.", hook);
+				dlog_f("The hook ID %d cannot be executed due to exceeding depth limit or disallowed recursive calls\n", DL_MAIN, hook);
 				return;
 			}
 		}
 		currentRunHook = hook;
 		size_t hooksCount = hooks[hook].size();
-		dlog_f("Running hook %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooksCount, callDepth);
+		dlog_f("Running hook ID %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooksCount, callDepth);
 		for (int i = hooksCount - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
 
@@ -138,7 +138,7 @@ void __stdcall RunHookScript(DWORD hook) {
 }
 
 void __stdcall EndHook() {
-	devlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
+	devlog_f("End running hook ID %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
 
 	callDepth--;
 	if (callDepth) {
@@ -164,7 +164,7 @@ void __stdcall EndHook() {
 }
 
 // BEGIN HOOKS
-void HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
+void __stdcall HookCommon::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	if (!IsGameLoaded() || !HookScripts::HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}
