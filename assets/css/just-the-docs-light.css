@@ -127,8 +127,6 @@
 
 .highlight .gi { color: #43d089; }
 
-.highlight ::selection { background-color: #fff; }
-
 .highlight .language-json .w + .s2 { color: #e35549; }
 
 .highlight .language-json .kc { color: #0083bb; }
@@ -243,8 +241,6 @@ template { display: none; }
 [hidden] { display: none; }
 
 * { box-sizing: border-box; }
-
-::selection { color: #fff; background: #7253ed; }
 
 html { font-size: 14px !important; scroll-behavior: smooth; }
 @media (min-width: 31.25rem) { html { font-size: 16px !important; } }
