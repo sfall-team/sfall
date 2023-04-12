@@ -92,8 +92,7 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 		mov  ecx, ds:[FO_VAR_gdNumOptions];
 		add  ecx, '1';
 		push ecx;
-		mov  ecx, 0x4458FA;
-		jmp  ecx;
+		retn;
 	}
 }
 
@@ -535,14 +534,14 @@ static void BoostScriptDialogLimitPatch() {
 static void NumbersInDialoguePatch() {
 	if (IniReader::GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlogr("Applying numbers in dialogue patch.", DL_INIT);
-		SafeWrite32(0x502C32, 0x2000202E);
+		SafeWrite32(0x502C32, 0x2000202E);        // '%c ' > '%c. '
 		SafeWrite8(0x446F3B, 0x35);
-		SafeWrite32(0x5029E2, 0x7325202E);
+		SafeWrite32(0x5029E2, 0x7325202E);        // '%c %s' > '%c. %s'
 		SafeWrite32(0x446F03, 0x2424448B);        // mov  eax, [esp+0x24]
 		SafeWrite8(0x446F07, 0x50);               // push eax
 		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
 		SafeWrite8(0x446FE4, 0x50);               // push eax
-		MakeJump(0x4458F5, gdAddOptionStr_hack);
+		MakeCall(0x4458F5, gdAddOptionStr_hack);
 	}
 }
 
