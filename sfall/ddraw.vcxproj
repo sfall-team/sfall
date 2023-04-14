@@ -196,6 +196,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)lib\x86\</AdditionalLibraryDirectories>
+      <AdditionalOptions>/EMITPOGOPHASEINFO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" release "$(TargetPath)"</Command>
@@ -260,6 +261,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)lib\x86\</AdditionalLibraryDirectories>
+      <AdditionalOptions>/EMITPOGOPHASEINFO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" releasexp "$(TargetPath)"</Command>
