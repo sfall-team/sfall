@@ -238,7 +238,7 @@ static void AddNewDot() {
 }
 
 static void __declspec(naked) DrawingDots() {
-	long x_offset,  y_offset;
+	long x_offset, y_offset;
 	__asm {
 		mov ebp, esp; // prolog
 		sub esp, __LOCAL_SIZE;
@@ -250,12 +250,13 @@ static void __declspec(naked) DrawingDots() {
 	x_offset = 22 - *fo::ptr::wmWorldOffsetX;
 	y_offset = 21 - *fo::ptr::wmWorldOffsetY;
 
-	for (std::vector<DotPosition>::const_iterator it = dots.begin(); it != dots.end(); ++it) { // redraws all dots
-		if (it->x < *fo::ptr::wmWorldOffsetX || it->y < *fo::ptr::wmWorldOffsetY) continue; // the pixel is out of viewport
-		if (it->x > *fo::ptr::wmWorldOffsetX + wmapViewPortWidth || it->y > *fo::ptr::wmWorldOffsetY + wmapViewPortHeight) continue;
+	for (size_t i = 0; i < dots.size(); i++) { // redraws all dots
+		const DotPosition dot = dots[i];
+		if (dot.x < *fo::ptr::wmWorldOffsetX || dot.y < *fo::ptr::wmWorldOffsetY) continue; // the pixel is out of viewport
+		if (dot.x > *fo::ptr::wmWorldOffsetX + wmapViewPortWidth || dot.y > *fo::ptr::wmWorldOffsetY + wmapViewPortHeight) continue;
 
-		long wmPixelX = (it->x + x_offset);
-		long wmPixelY = (it->y + y_offset);
+		long wmPixelX = (dot.x + x_offset);
+		long wmPixelY = (dot.y + y_offset);
 
 		wmPixelY *= wmapWinWidth;
 
