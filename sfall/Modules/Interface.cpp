@@ -599,7 +599,7 @@ static void AddNewDot() {
 }
 
 static void __declspec(naked) DrawingDots() noexcept {
-	long x_offset,  y_offset;
+	long x_offset, y_offset;
 	__asm {
 		mov ebp, esp; // prolog
 		sub esp, __LOCAL_SIZE;
