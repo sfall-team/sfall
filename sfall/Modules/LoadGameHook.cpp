@@ -552,6 +552,7 @@ static void __fastcall CombatInternal(fo::CombatGcsd* gcsd) {
 
 	// OnCombatEnd
 	AI::AICombatClear();
+	PartyControl::OnCombatEnd();
 	SetInLoop(0, COMBAT);
 }
 

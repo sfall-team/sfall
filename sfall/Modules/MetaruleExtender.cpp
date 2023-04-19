@@ -19,6 +19,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "ExtraSaveSlots.h"
+#include "PartyControl.h"
 
 #include "MetaruleExtender.h"
 
@@ -41,6 +42,8 @@ enum MetaruleFunction : long {
 	GET_CURRENT_QSAVE_PAGE = 212,
 	GET_CURRENT_QSAVE_SLOT = 213,
 	SET_CURRENT_QSAVE_SLOT = 214,
+
+	PARTY_ORDER_ATTACK     = 999,
 };
 
 /*
@@ -66,6 +69,9 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 		}
 		case CLEAR_KEYBOARD_BUFFER:
 			__asm call fo::funcoffs::kb_clear_;
+			break;
+		case PARTY_ORDER_ATTACK:
+			PartyControl::OrderAttackPatch();
 			break;
 		case GET_CURRENT_SAVE_SLOT:
 			result = ExtraSaveSlots::GetSaveSlot();

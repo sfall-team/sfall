@@ -112,6 +112,7 @@
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
 #define FO_VAR_glblmode                   0x5709D0
+#define FO_VAR_gmouse_3d_action_nums      0x518D1E
 #define FO_VAR_gmouse_3d_current_mode     0x518D38
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78

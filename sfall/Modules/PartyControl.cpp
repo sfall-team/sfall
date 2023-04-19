@@ -26,6 +26,9 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 
+#include "..\Game\objects.h"
+#include "..\Game\tilemap.h"
+
 #include "PartyControl.h"
 
 namespace sfall
@@ -458,12 +461,203 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static bool partyOrderPickTargetLoop;
+static std::vector<std::string> partyOrderAttackMsg;
+
+struct PartyTarget {
+	fo::GameObject* member;
+	fo::GameObject* target;
+};
+
+static std::vector<PartyTarget> partyOrderAttackTarget;
+
+static fo::GameObject* GetMemberTarget(fo::GameObject* member) {
+	for (std::vector<PartyTarget>::iterator it = partyOrderAttackTarget.begin(); it != partyOrderAttackTarget.end(); ++it) {
+		if (it->member->id == member->id) {
+			fo::GameObject* target = it->target;
+			if (target && target->critter.IsDead()) it->target = nullptr;
+			return it->target;
+		}
+	}
+	return nullptr;
+}
+
+static void SetMemberTarget(fo::GameObject* member, fo::GameObject* target) {
+	for (std::vector<PartyTarget>::iterator it = partyOrderAttackTarget.begin(); it != partyOrderAttackTarget.end(); ++it) {
+		if (it->member->id == member->id) {
+			it->target = target;
+			return;
+		}
+	}
+	PartyTarget pt = { member, target };
+	partyOrderAttackTarget.push_back(pt);
+}
+
+// disables the display of the hit chance value when picking a target
+static void __declspec(naked) gmouse_bk_process_hack() {
+	__asm {
+		mov  edx, -1; // mode
+		mov  eax, ds:[FO_VAR_gmouse_3d_current_mode];
+		test partyOrderPickTargetLoop, 0xFF;
+		cmovnz eax, edx;
+		retn;
+	}
+}
+
+static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember) {
+	fo::func::gmouse_set_cursor(20);
+	fo::func::gmouse_3d_set_mode(2);
+
+	fo::GameObject* targetObject = nullptr;
+	fo::GameObject* validTarget = nullptr;
+
+	long outlineColor; // backup color
+	fo::BoundRect rect;
+	partyOrderPickTargetLoop = true;
+
+	do {
+		fo::GameObject* underObject = fo::func::object_under_mouse(1, 0, *fo::ptr::map_elevation);
+
+		if (targetObject && targetObject != underObject) {
+			targetObject->outline = outlineColor;
+			fo::func::obj_bound(targetObject, &rect);
+			if (!outlineColor) {
+				rect.x--;
+				rect.y--;
+				rect.offx += 2;
+				rect.offy += 2;
+			}
+			fo::func::tile_refresh_rect(&rect, *fo::ptr::map_elevation);
+			targetObject = validTarget = nullptr;
+		}
+		if (underObject && underObject != targetObject && underObject->IsCritter() && underObject->critter.teamNum != partyMember->critter.teamNum) {
+			if (underObject->critter.IsNotDead()) {
+				outlineColor = underObject->outline;
+
+				if ((*fo::ptr::combatNumTurns || underObject->critter.combatState) &&
+				    game::Objects::is_within_perception(partyMember, underObject, 0) && // HOOK_WITHINPERCEPTION
+				    fo::func::make_path_func(partyMember, partyMember->tile, underObject->tile, 0, 0, game::Tilemap::obj_path_blocking_at_) > 0)
+				{
+					underObject->outline = 254 << 8; // flashing red
+					validTarget = underObject;
+				} else {
+					underObject->outline = 10 << 8; // grey
+				}
+				fo::func::obj_bound(underObject, &rect);
+				fo::func::tile_refresh_rect(&rect, *fo::ptr::map_elevation);
+				targetObject = underObject;
+			}
+		}
+		if (validTarget && *fo::ptr::mouse_buttons == 1) break; // left mouse button
+
+	} while (*fo::ptr::mouse_buttons != 2 && fo::func::get_input() != 27); // 27 - escape code
+
+	if (validTarget && *fo::ptr::mouse_buttons == 1) {
+		SetMemberTarget(partyMember, validTarget);
+		validTarget->outline = outlineColor;
+
+		fo::AIcap* cap = fo::func::ai_cap(partyMember);
+		if (cap->disposition == fo::AIpref::Disposition::DISP_custom) {
+			cap->attack_who = fo::AIpref::AttackWho::ATKWHO_whomever;
+		}
+
+		// floating text messages
+		const char* message;
+		switch (fo::func::critter_body_type(partyMember)) {
+		case fo::BodyType::Quadruped: // creatures
+			message = partyOrderAttackMsg[0].c_str();
+			break;
+		case fo::BodyType::Robotic:
+			message = partyOrderAttackMsg[1].c_str();
+			break;
+		default: // biped
+			long max = partyOrderAttackMsg.size() - 1;
+			long rnd = (max > 2) ? fo::func::roll_random(2, max) : 2;
+			message = partyOrderAttackMsg[rnd].c_str();
+		}
+		fo::util::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
+	}
+
+	partyOrderPickTargetLoop = false;
+	*fo::ptr::mouse_buttons = 0;
+
+	fo::func::gmouse_set_cursor(0);
+	fo::func::gmouse_3d_set_mode(1);
+}
+
+static void __declspec(naked) gmouse_handle_event_hook() {
+	__asm {
+		test ds:[FO_VAR_combat_state], 1;
+		jnz  action_attack_to;
+		jmp  fo::funcoffs::action_talk_to_;
+	}
+}
+
+static void __declspec(naked) gmouse_handle_event_hack() {
+	__asm {
+		test ds:[FO_VAR_combat_state], 1;
+		jnz  pick;
+		retn;
+pick:
+		mov  eax, edi; // critter
+		call fo::funcoffs::isPartyMember_;
+		test eax, eax;
+		jz   end;
+		mov  bl, 1;
+		mov  eax, 5;
+		mov  [esp + 4], eax; // actionMenuList
+		mov  word ptr ds:[FO_VAR_gmouse_3d_action_nums][5*2], 81; // index in INTRFACE.LST (ACTIONI.FRM)
+end:
+		or  eax, 1;
+		retn;
+	}
+}
+
+static void __declspec(naked) gmouse_handle_event_hook_restore() {
+	__asm {
+		mov word ptr ds:[FO_VAR_gmouse_3d_action_nums][5*2], 263; // index in INTRFACE.LST (TALKN.FRM)
+		jmp fo::funcoffs::map_enable_bk_processes_;
+	}
+}
+
+static void __fastcall SetOrderTarget(fo::GameObject* attacker) {
+	if (attacker->critter.teamNum || partyOrderAttackTarget.empty()) return;
+	fo::GameObject* target = GetMemberTarget(attacker);
+	if (target) attacker->critter.whoHitMe = target;
+}
+
+static void __declspec(naked) combat_ai_hook_target() {
+	__asm {
+		push ecx;
+		mov  ecx, eax;
+		call SetOrderTarget;
+		pop  ecx;
+		mov  eax, esi;
+		jmp  fo::funcoffs::ai_danger_source_;
+	}
+}
+
+void PartyControl::OrderAttackPatch() {
+	MakeCall(0x44C4A7, gmouse_handle_event_hack, 2);
+	HookCall(0x44C75F, gmouse_handle_event_hook);
+	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
+	MakeCall(0x44B830, gmouse_bk_process_hack);
+
+	HookCall(0x42B235, combat_ai_hook_target);
+}
+
 static void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = IniReader::GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlogr("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
 	}
+}
+
+void PartyControl::OnCombatEnd() {
+	partyOrderAttackTarget.clear();
 }
 
 void PartyControl::OnGameLoad() {
@@ -476,8 +670,12 @@ void PartyControl::OnGameLoad() {
 
 void PartyControl::init() {
 	Mode = IniReader::GetConfigInt("Misc", "ControlCombat", 0);
-	if (Mode > 2) Mode = 0;
-	else if (Mode == 1 && !isDebug) Mode = 2;
+	if (Mode >= 3) {
+		if (Mode == 3) PartyControl::OrderAttackPatch();
+		Mode = 0;
+	} else if (Mode == 1 && !isDebug) {
+		Mode = 2;
+	}
 
 	if (Mode > 0) {
 		dlog("Setting up party control.", DL_INIT);
@@ -522,6 +720,11 @@ void PartyControl::init() {
 		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
 		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 	}
+
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::", 33));
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::", 33));
+	std::vector<std::string> msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
+	partyOrderAttackMsg.insert(partyOrderAttackMsg.cend(), msgs.cbegin(), msgs.cend());
 }
 
 }
