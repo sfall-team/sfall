@@ -78,8 +78,8 @@ void StrNormalizePath(char* path) {
 }
 
 // max range 0-32767
-long GetRandom(long min, long max) {
-	return (min + (std::rand() % (max - (min - 1))));
-}
+//long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use
+//	return (min + (std::rand() % (max - (min - 1))));
+//}
 
 }

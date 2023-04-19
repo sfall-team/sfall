@@ -19,7 +19,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
-#include "..\Utils.h"
 
 #include "Drugs.h"
 #include "HookScripts.h"
@@ -27,7 +26,6 @@
 #include "ScriptExtender.h"
 //#include "Objects.h"
 
-#include "..\Game\inventory.h"
 #include "..\Game\objects.h"
 #include "..\Game\tilemap.h"
 
@@ -709,10 +707,10 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			targetObject->outline = outlineColor;
 			fo::func::obj_bound(targetObject, &rect);
 			if (!outlineColor) {
-					rect.x--;
-					rect.y--;
-					rect.offx += 2;
-					rect.offy += 2;
+				rect.x--;
+				rect.y--;
+				rect.offx += 2;
+				rect.offy += 2;
 			}
 			fo::func::tile_refresh_rect(&rect, fo::var::map_elevation);
 			targetObject = validTarget = nullptr;
@@ -759,7 +757,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			break;
 		default: // biped
 			long max = partyOrderAttackMsg.size() - 1;
-			long rnd = (max > 2) ? GetRandom(2, max) : 2;
+			long rnd = (max > 2) ? fo::func::roll_random(2, max) : 2;
 			message = partyOrderAttackMsg[rnd].c_str();
 		}
 		fo::util::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);

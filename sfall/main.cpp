@@ -267,7 +267,7 @@ static HMODULE SfallInit() {
 defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
-	std::srand(GetTickCount());
+	//std::srand(GetTickCount());
 
 	IniReader::init();
 
