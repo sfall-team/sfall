@@ -374,8 +374,9 @@ long CritterStats::GetStat(fo::GameObject* critter, long stat, long offset) {
 // the changed value will not be saved when saving the game and will be reset when the player leaves the location map
 void CritterStats::SetStat(fo::GameObject* critter, long stat, long amount, long offset) {
 	long* proto;
-	if (fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) != -1) {
+	if (fo::util::GetProto(critter->protoId, (fo::Proto**)&proto)) {
 		SetStatToProto(stat, critter, amount, proto, offset, false); // non-saveable stat
+		if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(critter); // Prerequisite: stat >= 0
 	}
 }
 

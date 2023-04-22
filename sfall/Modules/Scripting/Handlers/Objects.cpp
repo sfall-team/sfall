@@ -452,7 +452,7 @@ void op_get_proto_data(OpcodeContext& ctx) {
 	long result = -1;
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
+	if (fo::util::CheckProtoID(pid) && fo::util::GetProto(pid, &protoPtr)) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
 		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), pid);

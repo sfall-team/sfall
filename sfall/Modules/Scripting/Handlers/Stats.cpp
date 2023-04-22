@@ -54,6 +54,7 @@ void op_set_pc_base_stat(OpcodeContext& ctx) {
 	int stat = ctx.arg(0).rawValue();
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		((long*)FO_VAR_pc_proto)[9 + stat] = ctx.arg(1).rawValue();
+		if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(fo::var::obj_dude);
 	} else {
 		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
@@ -63,6 +64,7 @@ void op_set_pc_extra_stat(OpcodeContext& ctx) {
 	int stat = ctx.arg(0).rawValue();
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		((long*)FO_VAR_pc_proto)[44 + stat] = ctx.arg(1).rawValue();
+		if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(fo::var::obj_dude);
 	} else {
 		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
