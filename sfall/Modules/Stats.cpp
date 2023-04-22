@@ -157,7 +157,7 @@ static long RecalcStat(int stat, int statsValue[]) {
 
 static void __stdcall StatRecalcDerived(fo::GameObject* critter) {
 	long* proto;
-	if (fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) == -1) return;
+	if (!fo::util::GetProto(critter->protoId, (fo::Proto**)&proto)) return;
 
 	int baseStats[7], levelStats[7];
 	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
@@ -188,7 +188,7 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 
 void Stats::UpdateHPStat(fo::GameObject* critter) {
 	fo::Proto* proto;
-	if (fo::func::proto_ptr(critter->protoId, &proto) == -1) return;
+	if (!fo::util::GetProto(critter->protoId, &proto)) return;
 
 	if (!engineDerivedStats) {
 		auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;

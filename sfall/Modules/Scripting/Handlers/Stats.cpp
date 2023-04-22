@@ -53,6 +53,7 @@ void op_set_pc_base_stat(OpcodeContext& ctx) {
 	int stat = ctx.arg(0).rawValue();
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		((long*)FO_VAR_pc_proto)[9 + stat] = ctx.arg(1).rawValue();
+		if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(*fo::ptr::obj_dude);
 	} else {
 		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
@@ -62,6 +63,7 @@ void op_set_pc_extra_stat(OpcodeContext& ctx) {
 	int stat = ctx.arg(0).rawValue();
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		((long*)FO_VAR_pc_proto)[44 + stat] = ctx.arg(1).rawValue();
+		if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(*fo::ptr::obj_dude);
 	} else {
 		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
@@ -94,8 +96,11 @@ void op_set_critter_base_stat(OpcodeContext& ctx) {
 	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			fo::Proto* proto = fo::util::GetProto(obj->protoId);
-			if (proto != nullptr) ((long*)proto)[9 + stat] = ctx.arg(2).rawValue();
+			fo::Proto* proto;
+			if (fo::util::GetProto(obj->protoId, &proto)) {
+				((long*)proto)[9 + stat] = ctx.arg(2).rawValue();
+				if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(obj);
+			}
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
@@ -109,8 +114,11 @@ void op_set_critter_extra_stat(OpcodeContext& ctx) {
 	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			fo::Proto* proto = fo::util::GetProto(obj->protoId);
-			if (proto != nullptr) ((long*)proto)[44 + stat] = ctx.arg(2).rawValue();
+			fo::Proto* proto;
+			if (fo::util::GetProto(obj->protoId, &proto)) {
+				((long*)proto)[44 + stat] = ctx.arg(2).rawValue();
+				if (stat <= fo::STAT_lu) fo::func::stat_recalc_derived(obj);
+			}
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
@@ -125,8 +133,10 @@ void op_get_critter_base_stat(OpcodeContext& ctx) {
 	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			fo::Proto* proto = fo::util::GetProto(obj->protoId);
-			if (proto != nullptr) result = ((long*)proto)[9 + stat];
+			fo::Proto* proto;
+			if (fo::util::GetProto(obj->protoId, &proto)) {
+				result = ((long*)proto)[9 + stat];
+			}
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
@@ -142,8 +152,10 @@ void op_get_critter_extra_stat(OpcodeContext& ctx) {
 	if (obj && obj->IsCritter()) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			fo::Proto* proto = fo::util::GetProto(obj->protoId);
-			if (proto != nullptr) result = ((long*)proto)[44 + stat];
+			fo::Proto* proto;
+			if (fo::util::GetProto(obj->protoId, &proto)) {
+				result = ((long*)proto)[44 + stat];
+			}
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
