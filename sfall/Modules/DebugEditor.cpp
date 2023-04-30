@@ -538,7 +538,7 @@ void DebugEditor::init() {
 	if (mapGridToggleKey) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == mapGridToggleKey && pressed && IsGameLoaded()) {
-				__asm call fo::funcoffs::grid_toggle_;
+				fo::func::grid_toggle();
 				fo::func::tile_refresh_display();
 			}
 		};

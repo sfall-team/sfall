@@ -482,7 +482,7 @@ static void __declspec(naked) quest_init_hook() {
 	}
 }
 
-void QuestListPatch() {
+static void QuestListPatch() {
 	MakeCall(0x4974E4, StartPipboy_hack);
 
 	MakeCall(0x497173, pipboy_hack_action, 1);
