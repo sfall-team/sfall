@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <intrin.h>
+
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
 

@@ -773,6 +773,8 @@ static void F1EngineBehaviorPatch() {
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight for power armor items
 		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
+		SafeWrite32(0x4C2361, (DWORD)&"03wrldmp"); // change the world map music to 03wrldmp.acm
+		SafeWriteStr(0x501A40, "maybe"); // change the credits music to maybe.acm
 	}
 }
 
@@ -1056,6 +1058,14 @@ void MiscPatches::init() {
 	// https://github.com/phobos2077/sfall/issues/282
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
+
+	// Increase the maximum value of the combat speed slider from 50 to 100
+	const DWORD combatSpeedMaxAddr[] = {
+		0x492120, 0x49212A, // UpdateThing_
+		0x493787, 0x493790  // RestoreSettings_
+	};
+	SafeWriteBatch<BYTE>(100, combatSpeedMaxAddr);
+	SafeWrite8(0x519B82, 0x59); // 100.0
 
 	// Corrects the height of the black background for death screen subtitles
 	if (!hrpIsEnabled) SafeWrite32(0x48134D, 38 - (640 * 3));      // main_death_scene_ (shift y-offset 2px up, w/o HRP)
