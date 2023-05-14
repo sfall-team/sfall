@@ -49,24 +49,38 @@
 #define WEAPON_2HAND          0x00000200  // 2Hnd (weapon is two-handed)
 #define WEAPON_ENERGY         0x00000400  // Energy Weapon (forces weapon to use Energy Weapons skill) [sfall 4.2/3.8.20]
 
-#define ATKMODE_PRI_NONE        0
-#define ATKMODE_PRI_PUNCH       1  // 0001
-#define ATKMODE_PRI_KICK        2  // 0010
-#define ATKMODE_PRI_SWING       3  // 0011
-#define ATKMODE_PRI_THRUST      4  // 0100
-#define ATKMODE_PRI_THROW       5  // 0101
-#define ATKMODE_PRI_SINGLE      6  // 0110
-#define ATKMODE_PRI_BURST       7  // 0111
-#define ATKMODE_PRI_FLAME       8  // 1000
-#define ATKMODE_SEC_NONE        0
-#define ATKMODE_SEC_PUNCH      16  // 0x00000010
-#define ATKMODE_SEC_KICK       32  // 0x00000020
-#define ATKMODE_SEC_SWING      48  // 0x00000030
-#define ATKMODE_SEC_THRUST     64  // 0x00000040
-#define ATKMODE_SEC_THROW      80  // 0x00000050
-#define ATKMODE_SEC_SINGLE     96  // 0x00000060
-#define ATKMODE_SEC_BURST     112  // 0x00000070
-#define ATKMODE_SEC_FLAME     128  // 0x00000080
+// The attack types returned by get_attack_type or as fifth argument of HOOK_ITEMDAMAGE
+#define ATKTYPE_LWEP1           (0)
+#define ATKTYPE_LWEP2           (1)
+#define ATKTYPE_RWEP1           (2)
+#define ATKTYPE_RWEP2           (3)
+#define ATKTYPE_PUNCH           (4)
+#define ATKTYPE_KICK            (5)
+#define ATKTYPE_LWEP_RELOAD     (6)
+#define ATKTYPE_RWEP_RELOAD     (7)
+#define ATKTYPE_STRONGPUNCH     (8)
+#define ATKTYPE_HAMMERPUNCH     (9)
+#define ATKTYPE_HAYMAKER       (10)
+#define ATKTYPE_JAB            (11)
+#define ATKTYPE_PALMSTRIKE     (12)
+#define ATKTYPE_PIERCINGSTRIKE (13)
+#define ATKTYPE_STRONGKICK     (14)
+#define ATKTYPE_SNAPKICK       (15)
+#define ATKTYPE_POWERKICK      (16)
+#define ATKTYPE_HIPKICK        (17)
+#define ATKTYPE_HOOKKICK       (18)
+#define ATKTYPE_PIERCINGKICK   (19)
+
+#define ATTACK_MODE_NONE        (0)
+#define ATTACK_MODE_PUNCH       (1)
+#define ATTACK_MODE_KICK        (2)
+#define ATTACK_MODE_SWING       (3)
+#define ATTACK_MODE_THRUST      (4)
+#define ATTACK_MODE_THROW       (5)
+#define ATTACK_MODE_SINGLE      (6)
+#define ATTACK_MODE_BURST       (7)
+#define ATTACK_MODE_FLAME       (8)
+
 
 /* Object flags for get/set_flags */
 #define FLAG_HIDDEN              (0x1)
