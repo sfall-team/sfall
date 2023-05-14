@@ -7,13 +7,20 @@
 #include "../sfall/define_extra.h"
 #include "../sfall/sfall.h"
 
+#define DAMAGE_FORMULA_VANILLA  (0)
+#define DAMAGE_FORMULA_GLOVZ    (1)
+#define DAMAGE_FORMULA_GLOVZ2   (2)
+#define DAMAGE_FORMULA_YAAM     (5)
+
 procedure start;
 procedure combatdamage_handler;
 procedure itemdamage_handler;
+procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, variable armorDR, variable bonusRangedDamage, variable multiplyDamage, variable difficulty);
 procedure item_w_subtype(variable weapon, variable hit_mode);
 procedure get_ammo_value(variable weapon, variable param);
 
 variable
+   damage_formula,
    item_damage_min,
    item_damage_max,
    item_damage_weapon,
@@ -21,6 +28,7 @@ variable
 
 procedure start begin
    if game_loaded then begin
+      damage_formula := get_ini_setting("ddraw.ini|Misc|DamageFormula");
       register_hook_proc(HOOK_COMBATDAMAGE, combatdamage_handler);
       register_hook_proc(HOOK_ITEMDAMAGE, itemdamage_handler);
    end
@@ -88,7 +96,6 @@ procedure combatdamage_handler begin
       knockback := 0;
    end
 
-   //amount := 0;
    if target and (obj_type(target) == OBJ_TYPE_CRITTER) then begin
       if weapon then begin
          dmg_type := weapon_dmg_type(weapon);
@@ -128,27 +135,31 @@ procedure combatdamage_handler begin
             difficulty := 125;
       end
 
-      // F2 default start
-      // Damage = (1 - (DR_armor + DR_ammo_adjust) * (((raw_damage * (dmg_mult * damageMultiplier)) / dmg_div) - dmg_thresh)
-      dmg_resist += get_ammo_value(weapon, PROTO_AM_DR_MOD); // item_w_dr_adjust_ (DR Adjust %)
-      if (dmg_resist < 100) then begin
-         if (dmg_resist < 0) then dmg_resist := 0;
+      if (damage_formula == DAMAGE_FORMULA_YAAM) then begin
+         amount := calc_damage_YAAM(weapon, rounds, dmg_thresh, dmg_resist, bonus_ranged, damageMultiplier, difficulty);
+      end else begin
+         // F2 default start
+         // Damage = (1 - (DR_armor + DR_ammo_adjust) * (((raw_damage * (dmg_mult * damageMultiplier)) / dmg_div) - dmg_thresh)
+         dmg_resist += get_ammo_value(weapon, PROTO_AM_DR_MOD); // item_w_dr_adjust_ (DR Adjust %)
+         if (dmg_resist < 100) then begin
+            if (dmg_resist < 0) then dmg_resist := 0;
 
-         dmg_mult := damageMultiplier * get_ammo_value(weapon, PROTO_AM_DMG_MULT); // item_w_dam_mult_ (Dmg mod A)
-         dmg_div := get_ammo_value(weapon, PROTO_AM_DMG_DIV); // item_w_dam_div_ (Dmg mod B)
+            dmg_mult := damageMultiplier * get_ammo_value(weapon, PROTO_AM_DMG_MULT); // item_w_dam_mult_ (Dmg mod A)
+            dmg_div := get_ammo_value(weapon, PROTO_AM_DMG_DIV); // item_w_dam_div_ (Dmg mod B)
 
-         for (i := 1; i <= rounds; i++) begin
-            damage := (random(item_damage_min, item_damage_max) + bonus_ranged) * dmg_mult; // item_w_damage_ (raw_damage)
-            if dmg_div then damage /= dmg_div;
+            for (i := 1; i <= rounds; i++) begin
+               damage := (random(item_damage_min, item_damage_max) + bonus_ranged) * dmg_mult; // item_w_damage_ (raw_damage)
+               if dmg_div then damage /= dmg_div;
 
-            damage := (((damage / 2) * difficulty) / 100) - dmg_thresh;
-            if (damage > 0) then begin
-               damage := damage - ((damage * dmg_resist) / 100); // reduce damage by the percentage of DR_armor + DR_Ammo
-               if (damage > 0) then amount += damage;
+               damage := (((damage / 2) * difficulty) / 100) - dmg_thresh;
+               if (damage > 0) then begin
+                  damage := damage - ((damage * dmg_resist) / 100); // reduce damage by the percentage of DR_armor + DR_Ammo
+                  if (damage > 0) then amount += damage;
+               end
             end
          end
+         // F2 default end
       end
-      // F2 default end
 
       if (ctdSource == dude_obj) then begin
          if has_trait(TRAIT_PERK, ctdSource, PERK_living_anatomy_perk) and (critter_kill_type(ctdTarget) != KILL_TYPE_robot_kills)
@@ -178,11 +189,11 @@ procedure combatdamage_handler begin
    end
 
    if (flagsSource bwand DAM_HIT) then begin
-      display_msg("amountTarget = " + amountTarget+ ", amount = " + amount);
+      display_msg("COMBATDAMAGE amountTarget = " + amountTarget+ ", amount = " + amount);
       amountTarget := amount;
       flagsTarget := flags;
    end else begin
-      display_msg("amountSource = " + amountSource+ ", amount = " + amount);
+      display_msg("COMBATDAMAGE amountSource = " + amountSource+ ", amount = " + amount);
       amountSource := amount;
       flagsSource := flags;
    end
@@ -192,8 +203,78 @@ procedure combatdamage_handler begin
    set_sfall_return(flagsTarget);
    set_sfall_return(flagsSource);
    set_sfall_return(amountKnockback);
+   
+   set_sfall_arg(2, amountTarget);
+   set_sfall_arg(3, amountSource);
+   set_sfall_arg(4, flagsTarget);
+   set_sfall_arg(5, flagsSource);
+   set_sfall_arg(10, amountKnockback);
 end
 
+
+procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, variable armorDR, variable bonusRangedDamage, variable multiplyDamage, variable difficulty) begin
+   variable accumulatedDamage, ammoDiv, ammoMult, ammoDT, calcDT, _calcDT, calcDR, i, rawDamage, resistedDamage;
+   if (rounds <= 0) then begin
+      return 0;
+   end
+
+   ammoDiv := get_ammo_value(weapon, PROTO_AM_DMG_DIV);
+   ammoMult := get_ammo_value(weapon, PROTO_AM_DMG_MULT);
+
+   // Damage Multipler = Critical Multipler * Ammo Dividend
+   multiplyDamage *= ammoMult;
+
+   // Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
+   ammoDT := get_ammo_value(weapon, PROTO_AM_DR_MOD);   
+
+   calcDT := armorDT - ammoDT;
+   _calcDT := calcDT;
+
+   if (calcDT >= 0) then begin
+      _calcDT := 0;
+   end else begin
+      // (note that this should be a negative value)
+      _calcDT *= 10;                                      
+      calcDT := 0;
+   end
+
+   // DR = armor DR + DT (note that DT should be less than or equal to zero)
+   calcDR = armorDR + _calcDT;
+   if (calcDR < 0) then begin
+      calcDR = 0;
+   end else if (calcDR >= 100) then begin
+      return 0;
+   end
+
+   display_msg("YAAM: AmmoDT="+ammoDT+", DT="+calcDT+"/"+armorDT+", DR="+calcDR+"/"+armorDR);
+   // Start of damage calculation loop
+   for (i := 0; i < rounds; i++) begin
+      rawDamage = random(item_damage_min, item_damage_max);
+      rawDamage += bonusRangedDamage;
+
+      rawDamage -= calcDT;
+      if (rawDamage <= 0) then
+         continue;
+
+      rawDamage *= multiplyDamage;
+      if (ammoDiv != 0) then begin
+         rawDamage /= ammoDiv;
+      end
+      rawDamage /= 2; // related to critical hit damage multiplier bonus
+      rawDamage *= difficulty; // combat difficulty setting (75 if wimpy, 100 if normal or if attacker is player, 125 if rough)
+      rawDamage /= 100;
+
+      resistedDamage = calcDR * rawDamage;
+      resistedDamage /= 100;
+      rawDamage -= resistedDamage;
+
+      if (rawDamage > 0) then begin
+         display_msg("YAAM: Bullet "+i+" dmg="+rawDamage);
+         accumulatedDamage += rawDamage;
+      end
+   end
+   return accumulatedDamage;
+end
 
 /*
    HOOK_ITEMDAMAGE
