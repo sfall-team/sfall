@@ -35,7 +35,7 @@
 #define WEAPON_TYPE_UNARMED (1)
 #define WEAPON_TYPE_MELEE   (2)
 #define WEAPON_TYPE_THROWN  (3)
-#define WEAPON_TYPE_GUNS    (4)
+#define WEAPON_TYPE_RANGED  (4)
 
 /* Item Flags (FlagsExt in proto) */
 #define HEALING_ITEM          0x04000000  // Healing Item (item will be used by NPCs for healing in combat) [sfall 4.3.1/3.8.31]
@@ -49,7 +49,7 @@
 #define WEAPON_2HAND          0x00000200  // 2Hnd (weapon is two-handed)
 #define WEAPON_ENERGY         0x00000400  // Energy Weapon (forces weapon to use Energy Weapons skill) [sfall 4.2/3.8.20]
 
-// The attack types returned by get_attack_type or as fifth argument of HOOK_ITEMDAMAGE
+// The attack types returned by get_attack_type or as the fifth argument of HOOK_ITEMDAMAGE
 #define ATKTYPE_LWEP1           (0)
 #define ATKTYPE_LWEP2           (1)
 #define ATKTYPE_RWEP1           (2)
@@ -140,7 +140,7 @@
 #define MSGBOX_YESNO               (0x10) // use YES/NO buttons instead of DONE
 #define MSGBOX_CLEAN               (0x20) // no buttons
 
-// Some possible defines for the 4th argument to HOOK_REMOVEINVOBJ
+// Some possible defines for the fourth argument of HOOK_REMOVEINVENOBJ
 #define RMOBJ_ITEM_REMOVED_INVEN  4831349  // removing or destroying an item (obj_remove_from_inven_)
 #define RMOBJ_ITEM_REMOVED        4548572  // (op_rm_obj_from_inven_)
 #define RMOBJ_ITEM_REMOVED_MULTI  4563866  // (op_rm_mult_objs_from_inven_)
@@ -428,6 +428,15 @@
 #define C_ATTACK_KNOCKBACK_VALUE4   (0xAC)
 #define C_ATTACK_KNOCKBACK_VALUE5   (0xB0)
 #define C_ATTACK_KNOCKBACK_VALUE6   (0xB4)
+
+#define CRITICAL_VALUE_MULT          (0) // This is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage.
+#define CRITICAL_VALUE_EFFECTS       (1) // This is a flag bit field (DAM_*) controlling what effects the critical causes.
+#define CRITICAL_VALUE_STAT_CHECK    (2) // This makes a check against a (SPECIAL) stat. Values of 2 (endurance), 5 (agility), and 6 (luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made.
+#define CRITICAL_VALUE_STAT_MOD      (3) // Affects the outcome of the stat check, if one is made. Positive values make it easier to pass the check, and negative ones make it harder.
+#define CRITICAL_VALUE_FAIL_EFFECT   (4) // Another bit field, using the same values as EFFECTS. If the stat check is failed, these are applied in addition to the earlier ones.
+#define CRITICAL_VALUE_MSG           (5) // The message to show when this critical occurs, taken from combat.msg.
+#define CRITICAL_VALUE_FAIL_MSG      (6) // This is shown instead of Message if the stat check fails.
+
 
 /* Playback mode defines for the soundplay function */
 #define soundraw        (0x80000000) // sfall flag
