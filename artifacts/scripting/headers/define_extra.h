@@ -49,7 +49,7 @@
 #define WEAPON_2HAND          0x00000200  // 2Hnd (weapon is two-handed)
 #define WEAPON_ENERGY         0x00000400  // Energy Weapon (forces weapon to use Energy Weapons skill) [sfall 4.2/3.8.20]
 
-// The attack types returned by get_attack_type or as fifth argument of HOOK_ITEMDAMAGE
+// The attack types returned by get_attack_type or as the fifth argument of HOOK_ITEMDAMAGE
 #define ATKTYPE_LWEP1           (0)
 #define ATKTYPE_LWEP2           (1)
 #define ATKTYPE_RWEP1           (2)
@@ -140,7 +140,7 @@
 #define MSGBOX_YESNO               (0x10) // use YES/NO buttons instead of DONE
 #define MSGBOX_CLEAN               (0x20) // no buttons
 
-// Some possible defines for the 4th argument to HOOK_REMOVEINVOBJ
+// Some possible defines for the fourth argument of HOOK_REMOVEINVENOBJ
 #define RMOBJ_ITEM_REMOVED_INVEN  4831349  // removing or destroying an item (obj_remove_from_inven_)
 #define RMOBJ_ITEM_REMOVED        4548572  // (op_rm_obj_from_inven_)
 #define RMOBJ_ITEM_REMOVED_MULTI  4563866  // (op_rm_mult_objs_from_inven_)
@@ -507,8 +507,8 @@
 #define CRITICAL_VALUE_STAT_CHECK    (2) // This makes a check against a (SPECIAL) stat. Values of 2 (endurance), 5 (agility), and 6 (luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made.
 #define CRITICAL_VALUE_STAT_MOD      (3) // Affects the outcome of the stat check, if one is made. Positive values make it easier to pass the check, and negative ones make it harder.
 #define CRITICAL_VALUE_FAIL_EFFECT   (4) // Another bit field, using the same values as EFFECTS. If the stat check is failed, these are applied in addition to the earlier ones.
-#define CRITICAL_VALUE_MSG           (5) // The message to show when this critical occurs, taken from combat.msg .
-#define CRITICAL_VALUE_FAIL_MSG      (6) // Shown instead of Message if the stat check is failed.
+#define CRITICAL_VALUE_MSG           (5) // The message to show when this critical occurs, taken from combat.msg.
+#define CRITICAL_VALUE_FAIL_MSG      (6) // This is shown instead of Message if the stat check fails.
 
 
 /* Playback mode defines for the soundplay function */

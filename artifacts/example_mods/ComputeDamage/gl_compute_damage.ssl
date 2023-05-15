@@ -1,6 +1,6 @@
 /*
-   This script re-implements damage calculation of the original game.
-   Use it to implement your own damage formula!
+   This script reimplements the combat damage calculation of the original game.
+   Use this to implement your own damage formula!
 */
 
 #include "../sfall/define_lite.h"
@@ -34,13 +34,13 @@ procedure start begin
    end
 end
 
-/**
+/*
    HOOK_COMBATDAMAGE
-   
-   Runs when:
 
-   Game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts). This happens BEFORE the actual attack animation.
-   AI decides whether it is safe to use area attack (burst, grenades), if he might hit friendlies.
+   Runs when:
+   1) Game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts). This happens BEFORE the actual attack animation.
+   2) AI decides whether it is safe to use area attack (burst, grenades), if he might hit friendlies.
+
    Does not run for misses, or non-combat damage like dynamite explosions.
 
    Critter arg0  - The target
@@ -49,10 +49,10 @@ end
    int     arg3  - The amount of damage to the attacker
    int     arg4  - The special effect flags for the target (use bwand DAM_* to check specific flags)
    int     arg5  - The special effect flags for the attacker (use bwand DAM_* to check specific flags)
-   int     arg6  - The weapon used in the attack
+   Item    arg6  - The weapon used in the attack
    int     arg7  - The bodypart that was struck
    int     arg8  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
-   int     arg9 - Number of bullets actually hit the target (1 for melee attacks)
+   int     arg9  - Number of bullets actually hit the target (1 for melee attacks)
    int     arg10 - The amount of knockback to the target
    int     arg11 - Attack Type (see ATKTYPE_* constants)
    mixed   arg12 - computed attack data (see C_ATTACK_* for offsets and use get/set_object_data functions to get/set the data)
@@ -62,7 +62,7 @@ end
    int     ret2 - The special effect flags for the target
    int     ret3 - The special effect flags for the attacker
    int     ret4 - The amount of knockback to the target
- */
+*/
 procedure combatdamage_handler begin
    variable dmg_type, weapon_perk, dmg_thresh, dmg_resist, weapon_subtype, bonus_ranged, difficulty, i, dmg_mult, dmg_div, damage;
    variable target, flags, knockback, amount;
@@ -82,7 +82,7 @@ procedure combatdamage_handler begin
       hit_mode         := get_sfall_arg;
 
    if (ctdSource != item_damage_attacker or weapon != item_damage_weapon) then begin
-      debug_msg("! ERROR ! compute_damage: Expected attacker and weapon differs!");
+      debug_msg("! ERROR ! compute_damage: Expected attacker or weapon differs!");
       return;
    end
 
@@ -203,14 +203,13 @@ procedure combatdamage_handler begin
    set_sfall_return(flagsTarget);
    set_sfall_return(flagsSource);
    set_sfall_return(amountKnockback);
-   
+
    set_sfall_arg(2, amountTarget);
    set_sfall_arg(3, amountSource);
    set_sfall_arg(4, flagsTarget);
    set_sfall_arg(5, flagsSource);
    set_sfall_arg(10, amountKnockback);
 end
-
 
 procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, variable armorDR, variable bonusRangedDamage, variable multiplyDamage, variable difficulty) begin
    variable accumulatedDamage, ammoDiv, ammoMult, ammoDT, calcDT, _calcDT, calcDR, i, rawDamage, resistedDamage;
@@ -225,7 +224,7 @@ procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, v
    multiplyDamage *= ammoMult;
 
    // Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
-   ammoDT := get_ammo_value(weapon, PROTO_AM_DR_MOD);   
+   ammoDT := get_ammo_value(weapon, PROTO_AM_DR_MOD);
 
    calcDT := armorDT - ammoDT;
    _calcDT := calcDT;
@@ -233,8 +232,8 @@ procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, v
    if (calcDT >= 0) then begin
       _calcDT := 0;
    end else begin
-      // (note that this should be a negative value)
-      _calcDT *= 10;                                      
+      // note that this should be a negative value
+      _calcDT *= 10;
       calcDT := 0;
    end
 
@@ -246,7 +245,7 @@ procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, v
       return 0;
    end
 
-   display_msg("YAAM: AmmoDT="+ammoDT+", DT="+calcDT+"/"+armorDT+", DR="+calcDR+"/"+armorDR);
+   display_msg("YAAM: AmmoDT=" + ammoDT + ", DT=" + calcDT + "/" + armorDT + ", DR=" + calcDR + "/" + armorDR);
    // Start of damage calculation loop
    for (i := 0; i < rounds; i++) begin
       rawDamage = random(item_damage_min, item_damage_max);
@@ -269,7 +268,7 @@ procedure calc_damage_YAAM(variable weapon, variable rounds, variable armorDT, v
       rawDamage -= resistedDamage;
 
       if (rawDamage > 0) then begin
-         display_msg("YAAM: Bullet "+i+" dmg="+rawDamage);
+         display_msg("YAAM: Bullet " + i + " dmg=" + rawDamage);
          accumulatedDamage += rawDamage;
       end
    end
@@ -278,6 +277,7 @@ end
 
 /*
    HOOK_ITEMDAMAGE
+
    Runs when retrieving the damage rating of the player's used weapon. (Which may be their fists.)
 
    int     arg0 - The default min damage
@@ -306,7 +306,7 @@ procedure item_w_subtype(variable weapon, variable hit_mode) begin
 
    if weapon and (hit_mode <= ATKTYPE_RWEP2) then begin
       attack_mode := weapon_attack_mode(obj_pid(weapon), hit_mode);
-      
+
       if (attack_mode >= ATTACK_MODE_SINGLE) then
          type := WEAPON_TYPE_RANGED;
       else if (attack_mode == ATTACK_MODE_THROW) then

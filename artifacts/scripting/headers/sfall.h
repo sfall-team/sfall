@@ -273,7 +273,7 @@
 
 #define weapon_attack_mode1(pid)                        (get_proto_data(pid, PROTO_FLAG_EXT) bwand 0x0000000F)
 #define weapon_attack_mode2(pid)                        ((get_proto_data(pid, PROTO_FLAG_EXT) bwand 0x000000F0) / 0x10)
-#define weapon_attack_mode(pid, attackType)             (weapon_attack_mode1(pid) if attackType == ATKTYPE_LWEP1 or attackType == ATKTYPE_RWEP1 else weapon_attack_mode2(pid))
+#define weapon_attack_mode(pid, attackType)             (weapon_attack_mode1(pid) if (attackType == ATKTYPE_LWEP1 or attackType == ATKTYPE_RWEP1) else weapon_attack_mode2(pid))
 
 
 /* SFALL_FUNCX MACROS */

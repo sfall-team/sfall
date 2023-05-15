@@ -2299,7 +2299,7 @@ fix:
 		mov  edx, [esi + ammoPid];
 		test edx, edx;
 		js   skip;
-		mov  eax, GUNS; // set GUNS if has ammo pid
+		mov  eax, RANGED; // set RANGED if has ammo pid
 skip:
 		retn;
 	}

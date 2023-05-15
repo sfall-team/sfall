@@ -206,9 +206,9 @@ fo::AttackSubType GetWeaponType(DWORD weaponFlag) {
 		fo::AttackSubType::MELEE,
 		fo::AttackSubType::MELEE,
 		fo::AttackSubType::THROWING,
-		fo::AttackSubType::GUNS,
-		fo::AttackSubType::GUNS,
-		fo::AttackSubType::GUNS
+		fo::AttackSubType::RANGED,
+		fo::AttackSubType::RANGED,
+		fo::AttackSubType::RANGED
 	};
 	DWORD type = weaponFlag & 0xF;
 	return (type < 9) ? weapon_types[type] : fo::AttackSubType::NONE;
