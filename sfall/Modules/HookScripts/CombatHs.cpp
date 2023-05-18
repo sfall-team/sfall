@@ -293,7 +293,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD
 
 	RunHookScript(HOOK_AMMOCOST);
 
-	if (cRet > 0) rounds = rets[0]; // override rounds
+	if (cRet > 0 && (long)rets[0] >= 0) rounds = rets[0]; // override rounds
 
 failed:
 	EndHook();

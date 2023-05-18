@@ -109,7 +109,7 @@ long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackT
 	}
 
 	// calculate the cost
-	long cost = (newRounds != rounds) ? newRounds / rounds : 1; // 1 - default cost
+	long cost = (newRounds != rounds) ? (newRounds / rounds) : 1; // 1 - default cost
 	return (cost > currAmmo) ? 0 : currAmmo; // 0 - this will force "Not Enough Ammo"
 }
 
@@ -170,6 +170,7 @@ static long __fastcall divide_burst_rounds_by_ammo_cost(long currAmmo, fo::GameO
 		roundsCost = burstRounds;                   // rounds in burst (the number of rounds fired in the burst)
 		AmmoCostHook_Script(2, weapon, roundsCost); // roundsCost returns the new cost
 	}
+	if (roundsCost == 0) return burstRounds;        // cost is free, skip the rest of calculation
 
 	long cost = burstRounds * roundsCost; // amount of ammo required for this burst (multiplied by 1 or by the value returned from HOOK_AMMOCOST)
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
