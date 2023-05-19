@@ -56,5 +56,7 @@ void mf_attack_is_aimed(OpcodeContext&);
 
 void mf_combat_data(OpcodeContext&);
 
+void mf_set_spray_settings(OpcodeContext&);
+
 }
 }

@@ -25,6 +25,10 @@ class BurstMods {
 public:
 	static const char* name() { return "BurstMods"; }
 	static void init();
+
+	static void SetComputeSpraySettings(long centerMult, long centerDiv, long targetMult, long targetDiv);
 };
+
+void ResetComputeSpraySettings();
 
 }

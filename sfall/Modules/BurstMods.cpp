@@ -17,6 +17,7 @@
  */
 
 #include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
 
 #include "BurstMods.h"
 
@@ -27,6 +28,14 @@ static long compute_spray_center_mult;
 static long compute_spray_center_div;
 static long compute_spray_target_mult;
 static long compute_spray_target_div;
+
+// default values
+static long compute_spray_center_mult_def;
+static long compute_spray_center_div_def;
+static long compute_spray_target_mult_def;
+static long compute_spray_target_div_def;
+
+static bool computeSpraySettingsReset = false;
 
 static long __fastcall ComputeSpray(DWORD* roundsLeftOut, DWORD* roundsRightOut, DWORD totalRounds, DWORD* roundsCenterOut) {
 	// roundsCenter = totalRounds * mult / div
@@ -65,8 +74,25 @@ static void __declspec(naked) compute_spray_rounds_distribution() {
 	}
 }
 
+void BurstMods::SetComputeSpraySettings(long centerMult, long centerDiv, long targetMult, long targetDiv) {
+	compute_spray_center_mult = centerMult;
+	compute_spray_center_div  = centerDiv;
+	compute_spray_target_mult = targetMult;
+	compute_spray_target_div  = targetDiv;
+	computeSpraySettingsReset = true;
+}
+
+void ResetComputeSpraySettings() {
+	if (!computeSpraySettingsReset) return;
+	compute_spray_center_mult = compute_spray_center_mult_def;
+	compute_spray_center_div  = compute_spray_center_div_def;
+	compute_spray_target_mult = compute_spray_target_mult_def;
+	compute_spray_target_div  = compute_spray_target_div_def;
+	computeSpraySettingsReset = false;
+}
+
 void BurstMods::init() {
-	//if (IniReader::GetConfigInt("Misc", "ComputeSprayMod", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "ComputeSprayMod", 1)) {
 		dlogr("Applying ComputeSpray settings to burst attacks.", DL_INIT);
 		compute_spray_center_mult = IniReader::GetConfigInt("Misc", "ComputeSpray_CenterMult", 1);
 		compute_spray_center_div  = IniReader::GetConfigInt("Misc", "ComputeSpray_CenterDiv", 3);
@@ -76,6 +102,9 @@ void BurstMods::init() {
 		if (compute_spray_center_mult > compute_spray_center_div) {
 			compute_spray_center_mult = compute_spray_center_div;
 		}
+		compute_spray_center_mult_def = compute_spray_center_mult;
+		compute_spray_center_div_def = compute_spray_center_div;
+
 		compute_spray_target_mult = IniReader::GetConfigInt("Misc", "ComputeSpray_TargetMult", 1);
 		compute_spray_target_div  = IniReader::GetConfigInt("Misc", "ComputeSpray_TargetDiv", 2);
 		if (compute_spray_target_div < 1) {
@@ -84,6 +113,9 @@ void BurstMods::init() {
 		if (compute_spray_target_mult > compute_spray_target_div) {
 			compute_spray_target_mult = compute_spray_target_div;
 		}
+		compute_spray_target_mult_def = compute_spray_target_mult;
+		compute_spray_target_div_def = compute_spray_target_div;
+
 		MakeJump(0x4234F1, compute_spray_rounds_distribution);
 	//}
 }

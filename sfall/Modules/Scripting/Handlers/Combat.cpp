@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
+#include "..\..\BurstMods.h"
 #include "..\..\Combat.h"
 #include "..\..\KillCounter.h"
 
@@ -239,6 +240,25 @@ void mf_combat_data(OpcodeContext& ctx) {
 		ctd = fo::ptr::main_ctd;
 	}
 	ctx.setReturn((DWORD)ctd, DATATYPE_INT);
+}
+
+void mf_set_spray_settings(OpcodeContext& ctx) {
+	long centerMult = ctx.arg(0).rawValue(),
+	     centerDiv  = ctx.arg(1).rawValue(),
+	     targetMult = ctx.arg(2).rawValue(),
+	     targetDiv  = ctx.arg(3).rawValue();
+
+	if (centerDiv < 1) centerDiv = 1;
+	if (centerMult > centerDiv) {
+		centerMult = centerDiv;
+		ctx.printOpcodeError("%s() - Warning: centerMult value is capped at centerDiv.", ctx.getMetaruleName());
+	}
+	if (targetDiv < 1) targetDiv = 1;
+	if (targetMult > targetDiv) {
+		targetMult = targetDiv;
+		ctx.printOpcodeError("%s() - Warning: targetMult value is capped at targetDiv.", ctx.getMetaruleName());
+	}
+	BurstMods::SetComputeSpraySettings(centerMult, centerDiv, targetMult, targetDiv);
 }
 
 }

@@ -122,6 +122,7 @@ static const SfallMetarule metarules[] = {
 	{"outlined_object",         mf_outlined_object,         0, 0},
 	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
 	{"remove_timer_event",      mf_remove_timer_event,      0, 1, -1, {ARG_INT}},
+	{"set_spray_settings",      mf_set_spray_settings,      4, 4, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"set_can_rest_on_map",     mf_set_rest_on_map,         3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_car_intface_art",     mf_set_car_intface_art,     1, 1, -1, {ARG_INT}},
 	{"set_cursor_mode",         mf_set_cursor_mode,         1, 1, -1, {ARG_INT}},

@@ -18,6 +18,7 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SafeWrite.h"
+#include "BurstMods.h"
 #include "Explosions.h"
 #include "ScriptExtender.h"
 
@@ -42,7 +43,8 @@ static void __stdcall CombatLoop() { // OnCombatLoop
 }
 
 static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack
-	ResetExplosionSettings(); // after each combat attack, reset metarule_explosions settings
+	ResetExplosionSettings();    // after each combat attack, reset metarule_explosions settings
+	ResetComputeSpraySettings(); // after each combat attack, reset ComputeSpray settings
 }
 
 static void __declspec(naked) MainGameLoopHook() {
