@@ -47,8 +47,13 @@ static long __fastcall ComputeSpray(DWORD* roundsLeftOut, DWORD* roundsRightOut,
 	*roundsCenterOut = roundsCenter;
 
 	long roundsLeft = (totalRounds - roundsCenter) / 2;
+	long roundsRight = totalRounds - roundsCenter - roundsLeft;
+	if (roundsLeft != roundsRight && fo::func::roll_random(0, 1)) { // randomize the distribution of one extra bullet
+		roundsLeft++;
+		roundsRight--;
+	}
 	*roundsLeftOut = roundsLeft;
-	*roundsRightOut = totalRounds - roundsCenter - roundsLeft;
+	*roundsRightOut = roundsRight;
 
 	// roundsMainTarget = roundsCenter * mult / div
 	result = roundsCenter * compute_spray_target_mult;
@@ -99,7 +104,9 @@ void BurstMods::init() {
 		if (compute_spray_center_div < 1) {
 			compute_spray_center_div = 1;
 		}
-		if (compute_spray_center_mult > compute_spray_center_div) {
+		if (compute_spray_center_mult < 1) {
+			compute_spray_center_mult = 1;
+		} else if (compute_spray_center_mult > compute_spray_center_div) {
 			compute_spray_center_mult = compute_spray_center_div;
 		}
 		compute_spray_center_mult_def = compute_spray_center_mult;
@@ -110,7 +117,9 @@ void BurstMods::init() {
 		if (compute_spray_target_div < 1) {
 			compute_spray_target_div = 1;
 		}
-		if (compute_spray_target_mult > compute_spray_target_div) {
+		if (compute_spray_target_mult < 1) {
+			compute_spray_target_mult = 1;
+		} else if (compute_spray_target_mult > compute_spray_target_div) {
 			compute_spray_target_mult = compute_spray_target_div;
 		}
 		compute_spray_target_mult_def = compute_spray_target_mult;
