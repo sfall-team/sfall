@@ -1560,7 +1560,7 @@
     detail: void set_spray_settings(int centerMult, int centerDiv, int targetMult, int targetDiv)
     doc: |
       Allows to dynamically change the multipilers and divisors for the bullet distribution of burst attacks. All settings are automatically reset to default values (**ComputeSpray_\*** settings in ddraw.ini) after each attack action
-      - Should be called before the calculation of the bullet distribution (e.g. in `HOOK_TOHIT` or `HOOK_AMMOCOST` with **CheckWeaponAmmoCost=1** in ddraw.ini)
+      - Should be called before the calculation of the bullet distribution (e.g. in `HOOK_TOHIT` or `HOOK_AMMOCOST`)
       - `centerDiv/targetDiv`: the minimum value of divisor is 1
       - `centerMult/targetMult`: multiplier values are capped at divisor values
       - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
