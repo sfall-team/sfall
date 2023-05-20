@@ -395,7 +395,7 @@ int     ret1 - The new maximum damage
 
 Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.\
 By default, a weapon can perform an attack with at least one ammo, regardless of ammo cost calculation.\
-To add proper check for ammo before attacking and proper calculation of the number of burst rounds (hook type 1 and 2 in `arg3`), set **CheckWeaponAmmoCost=1** in **Misc** section of ddraw.ini.
+To add proper checks for ammo before attacking (hook type 1 in `arg3`), set **CheckWeaponAmmoCost=1** in **Misc** section of ddraw.ini.
 
 __NOTE:__ The return value must be greater than or equal to 0 to be valid.
 

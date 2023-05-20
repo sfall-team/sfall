@@ -46,8 +46,8 @@ static long __fastcall ComputeSpray(DWORD* roundsLeftOut, DWORD* roundsRightOut,
 	if (roundsCenter == 0) roundsCenter = 1;
 	*roundsCenterOut = roundsCenter;
 
-	long roundsLeft = (totalRounds - roundsCenter) / 2;
-	long roundsRight = totalRounds - roundsCenter - roundsLeft;
+	long roundsLeft = (totalRounds - roundsCenter) / 2;         // minimum possible value is 0
+	long roundsRight = totalRounds - roundsCenter - roundsLeft; // is either equal to or one more than roundsLeft
 	if (roundsLeft != roundsRight && fo::func::roll_random(0, 1)) { // randomize the distribution of one extra bullet
 		roundsLeft++;
 		roundsRight--;
