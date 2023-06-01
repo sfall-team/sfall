@@ -36,7 +36,8 @@ int DamageMod::formula;
 static char ammoInfoFmt[32];
 
 // Integer division w/ round half to even for Glovz's damage formula
-// Prerequisite: both dividend and divisor must be positive integers (should already be handled in the main function)
+// Prerequisite: divisor must be a positive integer (should already be handled in the main function)
+// if dividend is negative, the result will be 0 or 1 (for values in range of -1073741825 to -2147483646)
 static long DivRound(long dividend, long divisor) {
 	if (dividend <= divisor) {
 		// if equal then return 1
