@@ -70,7 +70,7 @@ calcADT:
 		test edx, edx;                        // compare the armorDT value to 0
 		jle  calcADR;                         // if the armorDT value is less than or equal to 0 then goto calcADR
 		mov  eax, ammoY;                      // get the ammoY value
-aJmp:
+aJmp: // Integer division w/ round half to even
 		xor  ebp, ebp;                        // clear value
 		cmp  edx, eax;                        // compare the dividend value to the divisor value
 		jl   lrThan;                          // the dividend is less than the divisor then goto lrThan

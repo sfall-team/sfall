@@ -97,7 +97,8 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 		mov  ecx, ds:[FO_VAR_gdNumOptions];
 		add  ecx, '1';
 		push ecx;
-		retn;
+		mov  ecx, 0x4458FA;
+		jmp  ecx;
 	}
 }
 
@@ -565,7 +566,7 @@ static void NumbersInDialoguePatch() {
 		SafeWrite8(0x446F07, 0x50);               // push eax
 		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
 		SafeWrite8(0x446FE4, 0x50);               // push eax
-		MakeCall(0x4458F5, gdAddOptionStr_hack);
+		MakeJump(0x4458F5, gdAddOptionStr_hack);
 	}
 }
 
