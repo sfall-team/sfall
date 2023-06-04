@@ -502,7 +502,7 @@
     Obj     arg1 - the object that owns this handler (self_obj)
     Obj     arg2 - the object that called this handler (source_obj, can be 0)
     int     arg3 - always 0 (1 for _END version)
-    int     arg4 - the target object of this call (target_obj)
+    Obj     arg4 - the object that is acted upon by this handler (target_obj, can be 0)
     int     arg5 - the parameter of this call (fixed_param), useful for combat_proc
 
     int     ret0 - pass -1 to cancel the execution of the handler
@@ -519,7 +519,7 @@
     Obj     arg1 - the object that owns this handler (self_obj)
     Obj     arg2 - the object that called this handler (source_obj, can be 0)
     int     arg3 - always 1 (procedure end)
-    int     arg4 - the target object of this call (target_obj)
+    Obj     arg4 - the object that is acted upon by this handler (target_obj, can be 0)
     int     arg5 - the parameter of this call (fixed_param), useful for combat_proc
     ```
 
