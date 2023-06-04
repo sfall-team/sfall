@@ -124,7 +124,9 @@ FUNCTION REFERENCE
 -----
 ##### `int get_ini_setting(string setting)`
 - Reads an integer value from an ini file in the Fallout directory.
-- It only takes a single argument; seperate the file name, section and key with a `|` character, e.g. `myvar := get_ini_setting("myini.ini|mysec|var1")`. If the file or key cannot be found, -1 is returned.
+- It only takes a single argument; seperate the file name, section and key with a `|` character, e.g. `myvar := get_ini_setting("myini.ini|mysec|var1")`.
+- If the file or key cannot be found, -1 is returned.
+- If setting argument is in invalid format, -1 is also returned
 - The file name is limited to 63 chars, including the extension.
 - The section name is limited to 32 characters.
 - It can also be used to get sfall settings, by using ddraw.ini as the file name.
@@ -132,6 +134,8 @@ FUNCTION REFERENCE
 -----
 ##### `string get_ini_string(string setting)`
 - Reads a string value from an ini file in the Fallout directory.
+- If file or key cannot be found, an empty string is returned.
+- If setting argument is in invalid format, -1 (integer) is returned.
 
 -----
 ##### `int get_game_mode()`

@@ -1818,15 +1818,20 @@
   - name: get_ini_setting
     detail: int get_ini_setting(string setting)
     doc: |
-      - Reads an integer value from an ini file in the fallout directory.
-      - It only takes a single argument; seperate the file name, section and key with a "\|" character; e.g. `myvar:=get_ini_setting("myini.ini|mysec|var1")` If the file or key cannot be found, -1 is returned.
+      Reads an integer value from an ini file in the fallout directory.
+      - It only takes a single argument; seperate the file name, section and key with a "\|" character; e.g. `myvar:=get_ini_setting("myini.ini|mysec|var1")`
+      - If the file or key cannot be found, -1 is returned.
+      - If setting argument is in invalid format, -1 is also returned.
       - The file name is limited to 63 chars, including the extension.
       - The section name is limited to 32 characters.
       - It can also be used to get sfall's settings, by using `ddraw.ini` as the file name.
     opcode: 0x81ac
   - name: get_ini_string
     detail: string get_ini_string(string setting)
-    doc: Reads a string value from an ini file in the fallout directory.
+    doc: |
+      Reads a string value from an ini file in the fallout directory.
+      - If file or key cannot be found, an empty string is returned.
+      - If setting argument is in invalid format, -1 (integer) is returned.
     opcode: 0x81eb
   - name: get_ini_section
     detail: array get_ini_section(string file, string sect)
