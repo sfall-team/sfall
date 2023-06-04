@@ -1073,6 +1073,13 @@ sfall_funcX metarule functions
 - `centerMult/targetMult`: multiplier values are capped at divisor values
 - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
 
+----
+##### set_combat_free_move
+`void sfall_func1("set_combat_free_move", int value)`
+
+- Allows to change "bonus move" points, that can only be used for moving, not attacking.
+- Can be called from HOOK_COMBATTURN at the start of the turn (will not work on dude_obj)
+- Can be called from HOOK_STDPROCEDURE with combat_proc event (will work for both NPC's and dude_obj)
 
 ****
 _See other documentation files (arrays.md, hookscripts.md) for related functions reference._

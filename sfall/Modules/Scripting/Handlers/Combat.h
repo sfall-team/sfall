@@ -58,5 +58,7 @@ void mf_combat_data(OpcodeContext&);
 
 void mf_set_spray_settings(OpcodeContext&);
 
+void mf_set_combat_free_move(OpcodeContext&);
+
 }
 }

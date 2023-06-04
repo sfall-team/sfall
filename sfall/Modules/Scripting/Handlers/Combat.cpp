@@ -265,5 +265,16 @@ void mf_set_spray_settings(OpcodeContext& ctx) {
 	BurstMods::SetComputeSpraySettings(centerMult, centerDiv, targetMult, targetDiv);
 }
 
+void mf_set_combat_free_move(OpcodeContext& ctx) {
+	long value = ctx.arg(0).rawValue();
+	if (value < 0)
+		value = 0;
+
+	fo::var::combat_free_move = value;
+	if (fo::var::main_ctd.attacker == fo::var::obj_dude) {
+		fo::func::intface_update_move_points(fo::var::obj_dude->critter.movePoints, fo::var::combat_free_move);
+	}
+}
+
 }
 }

@@ -254,11 +254,13 @@ skip:
 
 static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInstance* script, DWORD procTable) {
 	BeginHook();
-	argCount = 4;
+	argCount = 6;
 
 	args[0] = numHandler;
 	args[1] = (DWORD)script->selfObject;
 	args[2] = (DWORD)script->sourceObject;
+	args[4] = (DWORD)script->targetObject;
+	args[5] = script->fixedParam;
 
 	if (procTable) {
 		args[3] = 0;

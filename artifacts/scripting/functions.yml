@@ -1565,6 +1565,13 @@
       - `centerMult/targetMult`: multiplier values are capped at divisor values
       - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
     macro: sfall.h
+    
+  - name: set_combat_free_move
+    detail: void set_combat_free_move(int value)
+    doc: |
+      Allows to change "bonus move" points, that can only be used for moving, not attacking.
+      - Can be called from HOOK_COMBATTURN at the start of the turn (will not work on dude_obj)
+      - Can be called from HOOK_STDPROCEDURE with combat_proc event (will work for both NPC's and dude_obj)
 
 - name: Car
   items:
