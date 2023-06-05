@@ -267,8 +267,7 @@ void mf_set_spray_settings(OpcodeContext& ctx) {
 
 void mf_set_combat_free_move(OpcodeContext& ctx) {
 	long value = ctx.arg(0).rawValue();
-	if (value < 0)
-		value = 0;
+	if (value < 0) value = 0;
 
 	fo::var::combat_free_move = value;
 	if (fo::var::main_ctd.attacker == fo::var::obj_dude) {
