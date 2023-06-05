@@ -299,6 +299,20 @@ static long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
 	return fo::func::trait_level(trait);
 }
 
+static void __declspec(naked) inven_pickup_hook() {
+	__asm {
+		pushadc;
+		mov  ecx, eax; // item
+		call PartyControl::SwitchHandHook;
+		test eax, eax;
+		popadc;
+		jns  skip; // eax > -1
+		jmp  fo::funcoffs::switch_hand_;
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) CombatWrapper_v2() {
 	__asm {
 		sub  esp, 4;
@@ -707,6 +721,8 @@ void PartyControl::init() {
 	}
 
 	MakeCall(0x45F47C, intface_toggle_items_hack);
+	const DWORD switchHandAddr[] = {0x4712E3, 0x47136D}; // left slot, right slot
+	HookCalls(inven_pickup_hook, switchHandAddr); // will be overwritten if HOOK_INVENTORYMOVE is injected
 
 	NpcAutoLevelPatch();
 
