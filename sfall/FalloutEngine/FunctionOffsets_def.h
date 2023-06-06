@@ -47,7 +47,8 @@ FUNC(action_use_skill_on_,            0x41255C)
 FUNC(add_bar_box_,                    0x4616F0)
 FUNC(adjust_ac_,                      0x4715F8)
 FUNC(adjust_fid_,                     0x4716E8)
-FUNC(ai_can_use_weapon_,              0x4298EC) // (GameObject *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+FUNC(ai_best_weapon_,                 0x4293BC)
+FUNC(ai_can_use_weapon_,              0x4298EC) // (fo::GameObject *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
 FUNC(ai_cap_,                         0x4280B4)
 FUNC(ai_check_drugs_,                 0x428480)
 FUNC(ai_danger_source_,               0x428F4C)
@@ -630,6 +631,8 @@ FUNC(register_object_turn_towards_,   0x414C50) // int aObj<eax>, int aTile<edx>
 FUNC(remove_bk_process_,              0x4C8DC4)
 FUNC(report_explosion_,               0x413144)
 FUNC(reset_box_bar_win_,              0x4614A0)
+FUNC(roll_check_,                     0x4A3000)
+FUNC(roll_check_critical_,            0x4A3030)
 FUNC(roll_random_,                    0x4A30C0)
 FUNC(runProgram_,                     0x46E154) // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
 FUNC(scr_build_lookup_table_,         0x4A49D0)

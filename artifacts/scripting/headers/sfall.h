@@ -70,6 +70,11 @@
 #define HOOK_STDPROCEDURE_END (41)
 #define HOOK_TARGETOBJECT     (42)
 #define HOOK_ENCOUNTER        (43)
+//#define HOOK_ADJUSTPOISON     (44) // unimplemented
+//#define HOOK_ADJUSTRADS       (45) // unimplemented
+#define HOOK_ROLLCHECK        (46)
+#define HOOK_BESTWEAPON       (47)
+#define HOOK_CANUSEWEAPON     (48)
 
 // Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -261,6 +266,7 @@
 #define check_pid(pid)                                  (get_proto_data(pid, 0) != -1)
 
 // sets the status of an unusable weapon that cannot be used in combat
+// use the HOOK_CANUSEWEAPON hook with weapon_is_unusable macro to override the engine value
 #define set_weapon_unusable(item)                       set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwor  0x00000010)
 #define set_weapon_usable(item)                         set_object_data(item, OBJ_DATA_MISC_FLAGS, get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0xFFFFFFEF)
 #define weapon_is_unusable(item)                        (get_object_data(item, OBJ_DATA_MISC_FLAGS) bwand 0x00000010)

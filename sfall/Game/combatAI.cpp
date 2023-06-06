@@ -19,7 +19,13 @@ namespace game
 namespace sf = sfall;
 
 static const long aiUseItemAPCost = 2;
-
+/*
+// Implementation of ai_can_use_weapon_ engine function with the HOOK_CANUSEWEAPON hook
+bool CombatAI::ai_can_use_weapon(fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
+	bool result = fo::func::ai_can_use_weapon(source, weapon, hitMode);
+	return sf::CanUseWeaponHook_Invoke(result, source, weapon, hitMode);
+}
+*/
 static long drugUsePerfFixMode;
 
 void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {

@@ -20,6 +20,7 @@
 	changed to stdcall wrappers instead for stability
 */
 WRAP_WATCOM_FUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FUNC3(bool, ai_can_use_weapon, fo::GameObject*, critter, fo::GameObject*, item, DWORD, hitMode)
 WRAP_WATCOM_FUNC3(long, ai_have_ammo, fo::GameObject*, critter, fo::GameObject*, item, fo::GameObject**, outAmmo)
 WRAP_WATCOM_FUNC3(long, ai_pick_hit_mode, fo::GameObject*, source, fo::GameObject*, item, fo::GameObject*, target)
 WRAP_WATCOM_FUNC3(long, ai_magic_hands, fo::GameObject*, source, fo::GameObject*, object, long, msgNumber)

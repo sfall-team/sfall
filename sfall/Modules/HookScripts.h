@@ -69,6 +69,11 @@ enum HookType
 	HOOK_STDPROCEDURE_END = 41,
 	HOOK_TARGETOBJECT     = 42,
 	HOOK_ENCOUNTER        = 43,
+//	HOOK_ADJUSTPOISON     = 44, // unimplemented
+//	HOOK_ADJUSTRADS       = 45, // unimplemented
+	HOOK_ROLLCHECK        = 46,
+	HOOK_BESTWEAPON       = 47,
+	HOOK_CANUSEWEAPON     = 48,
 	HOOK_COUNT
 };
 

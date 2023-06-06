@@ -795,3 +795,62 @@ int     arg2 - 1 when the encounter occurs is a special encounter, 0 otherwise
 int     ret0 - overrides the map ID, or pass -1 for event type 0 to cancel the encounter and continue traveling
 int     ret1 - pass 1 to cancel the encounter and load the specified map from the ret0 (only for event type 0)
 ```
+
+-------------------------------------------
+
+#### `HOOK_ROLLCHECK (hs_rollcheck.int)`
+
+Runs when a game event performs a random roll to check the chance of success or failure.
+
+```
+int     arg0 - event type:
+               1 - checks the chance of an attack hitting the target
+               2 - checks the chance of a bullet from a burst hitting the target (for burst attacks)
+               3 - checks the chance when using skills (not listed below)
+               4 - check the chance of using Repair skill
+               5 - check the chance of using Doctor skill
+               6 - check the chance of using Steal skill for the thief (usually the player)
+               7 - the second Steal skill chance check for the target to catch the thief, in which the target's failure is the thief's success result
+int     arg1 - the value of roll result (see ROLL_* constants), which is calculated as:
+               for ROLL_CRITICAL_SUCCESS: random(1, 100) <= (random_chance / 10) + bonus
+               for ROLL_CRITICAL_FAILURE: random(1, 100) <= -random_chance / 10
+int     arg2 - the chance value
+int     arg3 - the bonus value, used when checking critical success
+int     arg4 - random chance, calculated as: (chance - random(1, 100)), where a negative value is a failure check (ROLL_FAILURE)
+
+int     ret0 - overrides the roll result
+```
+
+-------------------------------------------
+
+#### `HOOK_BESTWEAPON (hs_bestweapon.int)`
+
+Runs when the AI decides which weapon is the best while searching the inventory for a weapon to equip in combat.\
+This also runs when the player presses the "Use Best Weapon" button on the party member control panel.
+
+```
+Critter arg0 - the critter searching for a weapon
+Item    arg1 - the best weapon chosen from two items
+Item    arg2 - the first choice of weapon
+Item    arg3 - the second choice of weapon
+Critter arg4 - the target of the critter (can be 0)
+
+Item    ret0 - overrides the chosen best weapon
+```
+
+-------------------------------------------
+
+#### `HOOK_CANUSEWEAPON (hs_canuseweapon.int)`
+
+Run when the AI checks whether it can use a weapon, or when the game checks whether the player can use an item (weapon) in hand slot.\
+For AI, this mostly happens when NPCs try to find weapons in their inventory or on the map.\
+For the player, this happens when the game updates the item data for active item slots on the interface bar.
+
+```
+Critter arg0 - the critter doing the check
+Item    arg1 - the item being checked
+int     arg2 - attack type (see ATKTYPE_* constants), or -1 for dude_obj
+int     arg3 - original result of engine function: 1 - can use, 0 - cannot use
+
+int     ret0 - overrides the result of engine function. Any non-zero value allows using the weapon
+```

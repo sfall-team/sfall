@@ -631,6 +631,66 @@ cancelEnc:
 	}
 }
 
+static long __stdcall RollCheckHook_Script(long roll, long chance, long bonus, long randomChance, long calledFrom) {
+	long hookType;
+	switch (calledFrom - 5) {
+	case 0x42388E:    // compute_attack_
+	case 0x4234D1:    // compute_spray_
+		hookType = 1; // single and burst attack hit event
+		break;
+	case 0x42356C:    // compute_spray_
+		hookType = 2; // burst attack bullet hit event
+		break;
+	case 0x4AAB29:    // skill_result_
+		hookType = 3; // common skill check event
+		 break;
+	case 0x4AB3B6:    // skill_use_
+		hookType = 4; // SKILL_REPAIR
+		break;
+	case 0x4AB8B5:    // skill_use_
+		hookType = 5; // SKILL_DOCTOR
+		break;
+	case 0x4ABC9F:    // skill_check_stealing_
+		hookType = 6; // SKILL_STEAL - source stealing check event
+		break;
+	case 0x4ABCE6:    // skill_check_stealing_
+		hookType = 7; // SKILL_STEAL - target stealing check event (fail for success stealing)
+		break;
+	default:
+		return roll;  // unsupported hook
+	}
+
+	BeginHook();
+	argCount = 5;
+
+	args[0] = hookType;
+	args[1] = roll;
+	args[2] = chance;
+	args[3] = bonus;
+	args[4] = randomChance;
+
+	RunHookScript(HOOK_ROLLCHECK);
+	if (cRet) roll = rets[0];
+
+	EndHook();
+	return roll;
+}
+
+static void __declspec(naked) roll_check_hook() {
+	__asm {
+		push ecx;
+		push [esp + 0xC + 8]; // calledFrom
+		push ebx; // random chance value
+		push esi; // bonus
+		push edi; // chance value
+		call fo::funcoffs::roll_check_critical_;
+		push eax; // roll result
+		call RollCheckHook_Script;
+		pop  ecx;
+		retn;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	const DWORD barterPriceHkAddr[] = {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
@@ -710,6 +770,10 @@ void Inject_EncounterHook() {
 	HookCall(0x4C095C, wmRndEncounterOccurred_hook);
 }
 
+void Inject_RollCheckHook() {
+	HookCall(0x4A3020, roll_check_hook);
+}
+
 void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookScripts::LoadHookScript("hs_useskillon", HOOK_USESKILLON);
@@ -722,6 +786,7 @@ void InitMiscHookScripts() {
 	HookScripts::LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	HookScripts::LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 	HookScripts::LoadHookScript("hs_encounter", HOOK_ENCOUNTER);
+	HookScripts::LoadHookScript("hs_rollcheck", HOOK_ROLLCHECK);
 }
 
 }

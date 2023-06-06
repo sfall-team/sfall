@@ -106,6 +106,11 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_STDPROCEDURE_END, Inject_ScriptProcedureHook2, false},
 	{HOOK_TARGETOBJECT,     Inject_TargetObjectHook,     false},
 	{HOOK_ENCOUNTER,        Inject_EncounterHook,        false},
+	{-1,                    nullptr,                     false}, // dummy
+	{-1,                    nullptr,                     false}, // dummy
+	{HOOK_ROLLCHECK,        Inject_RollCheckHook,        false},
+	{HOOK_BESTWEAPON,       Inject_BestWeaponHook,       false},
+	{HOOK_CANUSEWEAPON,     Inject_CanUseWeaponHook,     false},
 };
 
 void HookScripts::InjectingHook(int hookId) {
