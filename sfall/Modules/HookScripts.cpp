@@ -89,7 +89,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_INVENTORYMOVE,    Inject_InventoryMoveHook,    false},
 	{HOOK_INVENWIELD,       Inject_InvenWieldHook,       false},
 	{HOOK_ADJUSTFID,        nullptr,                      true}, // always embedded to the engine
-	{-1,                    nullptr,                     false}, // dummy
+	{HOOK_COMBATTURN,       Inject_CombatTurnHook,       false},
 	{HOOK_CARTRAVEL,        Inject_CarTravelHook,        false},
 	{HOOK_SETGLOBALVAR,     Inject_SetGlobalVarHook,     false},
 	{HOOK_RESTTIMER,        Inject_RestTimerHook,        false},

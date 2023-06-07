@@ -107,6 +107,8 @@ fo::QueueRadiationData* __fastcall GetRadiationEvent(long type);
 // Checks whether the player is under the influence of negative effects of radiation
 long __fastcall IsRadInfluence();
 
+void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
+
 // Returns the position of party member in the existing table (begins from 1)
 long IsPartyMemberByPid(long pid);
 

@@ -14,6 +14,7 @@ void Inject_CombatDamageHook();
 void Inject_FindTargetHook();
 void Inject_ItemDamageHook();
 void Inject_AmmoCostHook();
+void Inject_CombatTurnHook();
 void Inject_OnExplosionHook();
 void Inject_TargetObjectHook();
 void Inject_BestWeaponHook();

@@ -372,6 +372,20 @@ void mf_outlined_object(OpcodeContext& ctx) {
 	ctx.setReturn(*fo::ptr::outlined_object);
 }
 
+void mf_set_dude_obj(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).object();
+	if (obj == nullptr || obj->IsCritter()) {
+		//if (!InCombat && obj && obj != PartyControl::RealDudeObject()) {
+		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
+		//} else {
+			PartyControl::SwitchToCritter(obj);
+		//}
+	} else {
+		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
+	}
+}
+
 void mf_real_dude_obj(OpcodeContext& ctx) {
 	ctx.setReturn(PartyControl::RealDudeObject());
 }

@@ -53,7 +53,7 @@
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
 #define HOOK_ADJUSTFID        (26)
-//#define HOOK_COMBATTURN       (27) // unimplemented
+#define HOOK_COMBATTURN       (27)
 #define HOOK_CARTRAVEL        (28)
 #define HOOK_SETGLOBALVAR     (29)
 #define HOOK_RESTTIMER        (30)

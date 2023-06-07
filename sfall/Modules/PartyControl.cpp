@@ -16,12 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-/*
-	KNOWN ISSUES with party control
-	- doesn't work with NPC's wearing armor mod, armor won't change when you change it from critter's inventory
-*/
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
@@ -37,11 +31,22 @@ namespace sfall
 bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
-static DWORD Mode;
 static bool isControllingNPC = false;
 static char skipCounterAnim;
-static std::vector<WORD> Chars;
+
 static int delayedExperience;
+static bool switchHandHookInjected = false;
+
+struct WeaponStateSlot {
+	long npcID;
+	bool leftIsCopy;
+	bool rightIsCopy;
+	fo::ItemButtonItem leftSlot;
+	fo::ItemButtonItem rightSlot;
+
+	WeaponStateSlot() : leftIsCopy(false), rightIsCopy(false) {}
+};
+std::vector<WeaponStateSlot> weaponState;
 
 static struct DudeState {
 	fo::GameObject* obj_dude;
@@ -59,32 +64,13 @@ static struct DudeState {
 	DWORD itemCurrentItem;
 	fo::ItemButtonItem itemButtonItems[2];
 	long perkLevelDataList[fo::PERK_count];
-	//long addictGvar[8];
+	long addictGvar[8];
 	long tag_skill[4];
 	//DWORD bbox_sneak;
+	bool isSaved;
 
-	DudeState() : obj_dude(nullptr) {}
+	DudeState() : obj_dude(nullptr), isSaved(false) {}
 } realDude;
-
-static bool __stdcall IsInPidList(fo::GameObject* obj) {
-	int pid = obj->protoId & 0xFFFFFF;
-	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); ++it) {
-		if (*it == pid) {
-			return true;
-		}
-	}
-	return false;
-}
-
-static void __stdcall SetInventoryCheck(bool skip) {
-	if (skip) {
-		SafeWrite16(0x46E7CD, 0x9090); // Inventory check
-		SafeWrite32(0x46E7CF, 0x90909090);
-	} else {
-		SafeWrite16(0x46E7CD, 0x850F); // Inventory check
-		SafeWrite32(0x46E7CF, 0x4B1);
-	}
-}
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
@@ -103,6 +89,12 @@ static void SaveRealDudeState() {
 	realDude.sneak_working = *fo::ptr::sneak_working;
 	fo::util::SkillGetTags(realDude.tag_skill, 4);
 
+	for (int i = 0; i < 6; i++) realDude.addictGvar[i] = (*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[i].addictGvar];
+	realDude.addictGvar[6] = (*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[7].addictGvar];
+	realDude.addictGvar[7] = (*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[8].addictGvar];
+
+	realDude.isSaved = true;
+
 	if (skipCounterAnim == 1) {
 		skipCounterAnim++;
 		SafeWrite8(0x422BDE, 0); // no animate
@@ -111,7 +103,7 @@ static void SaveRealDudeState() {
 }
 
 // take control of the NPC
-static void TakeControlOfNPC(fo::GameObject* npc) {
+static void SetCurrentDude(fo::GameObject* npc) {
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Take control of critter.");
 
 	// remove skill tags
@@ -149,6 +141,43 @@ static void TakeControlOfNPC(fo::GameObject* npc) {
 	} else {
 		*fo::ptr::itemCurrentItem = fo::HandSlot::Right;
 	}
+	// restore selected weapon mode
+	size_t count = weaponState.size();
+	for (size_t i = 0; i < count; i++) {
+		if (weaponState[i].npcID == npc->id) {
+			bool isMatch = false;
+			if (weaponState[i].leftIsCopy) {
+				fo::GameObject* item = fo::func::inven_left_hand(npc);
+				if (item && item->protoId == weaponState[i].leftSlot.item->protoId) {
+					std::memcpy(&fo::ptr::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
+					isMatch = true;
+				}
+				weaponState[i].leftIsCopy = false;
+			}
+			if (weaponState[i].rightIsCopy) {
+				fo::GameObject* item = fo::func::inven_right_hand(npc);
+				if (item && item->protoId == weaponState[i].rightSlot.item->protoId) {
+					std::memcpy(&fo::ptr::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
+					isMatch = true;
+				}
+				weaponState[i].rightIsCopy = false;
+			}
+			if (!isMatch) {
+				if (i < count - 1) weaponState[i] = weaponState.back();
+				weaponState.pop_back();
+			}
+			break;
+		}
+	}
+
+	bool isAddict = false;
+	for (int i = 0; i < 9; i++) (*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[i].addictGvar] = 0;
+	for (int i = 0; i < 9; i++) {
+		if (!fo::util::CheckAddictByPid(npc, fo::ptr::drugInfoList[i].itemPid)) continue;
+		(*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[i].addictGvar] = 1;
+		isAddict = true;
+	}
+	fo::util::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
 
 	// switch main dude_obj pointers - this should be done last!
 	*fo::ptr::combat_turn_obj = npc;
@@ -159,7 +188,8 @@ static void TakeControlOfNPC(fo::GameObject* npc) {
 
 	isControllingNPC = true;
 	delayedExperience = 0;
-	SetInventoryCheck(true);
+
+	//if (!isPartyMember) Objects::SetObjectUniqueID(npc);
 
 	fo::func::intface_redraw();
 }
@@ -192,6 +222,10 @@ static void RestoreRealDudeState(bool redraw = true) {
 		fo::func::stat_pc_add_experience(delayedExperience);
 	}
 
+	for (int i = 0; i < 6; i++) (*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[i].addictGvar] = realDude.addictGvar[i];
+	(*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[7].addictGvar] = realDude.addictGvar[6];
+	(*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[8].addictGvar] = realDude.addictGvar[7];
+
 	if (redraw) {
 		if (skipCounterAnim == 2) {
 			skipCounterAnim--;
@@ -200,70 +234,10 @@ static void RestoreRealDudeState(bool redraw = true) {
 		fo::func::intface_redraw();
 	}
 
-	SetInventoryCheck(false);
+	realDude.isSaved = false;
 	isControllingNPC = false;
 
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.\n");
-}
-
-static void __stdcall CenterScreenOnDude() {
-	using namespace fo::Fields;
-	__asm {
-		mov  edx, 3;
-		mov  eax, ds:[FO_VAR_obj_dude];
-		mov  eax, [eax + tile];
-		call fo::funcoffs::tile_scroll_to_;
-	}
-}
-
-static long __stdcall CombatTurn(fo::GameObject* obj) {
-	__asm {
-		mov  eax, obj;
-		call fo::funcoffs::combat_turn_;
-	}
-}
-
-// return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static long __stdcall CombatWrapperInner(fo::GameObject* obj) {
-	if (obj == *fo::ptr::obj_dude) {
-		if (*fo::ptr::combatNumTurns != 0) {
-			CenterScreenOnDude();
-		}
-	} else if ((Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo::func::isPartyMember(obj))) {
-		// save "real" dude state
-		SaveRealDudeState();
-		TakeControlOfNPC(obj);
-		CenterScreenOnDude();
-
-		// Do combat turn
-		long turnResult = CombatTurn(obj);
-
-		// restore state
-		if (isControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
-			RestoreRealDudeState();
-		}
-		// -1 means that combat ended during turn
-		return (turnResult == -1) ? -1 : 1;
-	}
-	return 0;
-}
-
-
-// this hook fixes NPCs art switched to main dude art after inventory screen closes
-static void __declspec(naked) FidChangeHook() {
-	__asm {
-		cmp  isControllingNPC, 0;
-		je   skip;
-		push eax;
-		mov  eax, [eax + 0x20]; // current fid
-		and  eax, 0xFFFF0FFF;
-		and  edx, 0x0000F000;
-		or   edx, eax; // only change one octet with weapon type
-		pop  eax;
-skip:
-		call fo::funcoffs::obj_change_fid_;
-		retn;
-	}
 }
 
 static void __stdcall DisplayCantDoThat() {
@@ -309,42 +283,6 @@ static void __declspec(naked) inven_pickup_hook() {
 		jns  skip; // eax > -1
 		jmp  fo::funcoffs::switch_hand_;
 skip:
-		retn;
-	}
-}
-
-static void __declspec(naked) CombatWrapper_v2() {
-	__asm {
-		sub  esp, 4;
-		pushad;
-		push eax;
-		call CombatWrapperInner;
-		mov  [esp + 32], eax;
-		popad;
-		add  esp, 4;
-		cmp  [esp - 4], 0;
-		je   gonormal;
-		cmp  [esp - 4], -1;
-		je   combatend;
-		xor  eax, eax;
-		retn;
-combatend:
-		mov  eax, -1; // don't continue combat, as the game was loaded
-		retn;
-gonormal:
-		jmp  fo::funcoffs::combat_turn_;
-	}
-}
-
-// hack to exit from combat_add_noncoms function without crashing when you load game during PM/NPC turn
-static void __declspec(naked) combat_add_noncoms_hook() {
-	__asm {
-		call CombatWrapper_v2;
-		inc  eax;
-		jnz  end; // jump if return value != -1
-		mov  ds:[FO_VAR_list_com], eax; // eax = 0
-		mov  ecx, [esp + 4]; // list
-end:
 		retn;
 	}
 }
@@ -423,10 +361,99 @@ static void PartyControlReset() {
 		}
 	}
 	realDude.obj_dude = nullptr;
+	realDude.isSaved = false;
+	weaponState.clear();
 }
 
 bool PartyControl::IsNpcControlled() {
 	return isControllingNPC;
+}
+
+static bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
+	bool isCopy = false;
+	if (fo::ptr::itemButtonItems[0 + isSwap].itsWeapon && fo::ptr::itemButtonItems[0 + isSwap].item) {
+		std::memcpy(&element.leftSlot, &fo::ptr::itemButtonItems[0 + isSwap], 0x14);
+		element.leftIsCopy = isCopy = true;
+	}
+	if (fo::ptr::itemButtonItems[1 - isSwap].itsWeapon && fo::ptr::itemButtonItems[1 - isSwap].item) {
+		std::memcpy(&element.rightSlot, &fo::ptr::itemButtonItems[1 - isSwap], 0x14);
+		element.rightIsCopy = isCopy = true;
+	}
+	if (isSwap && isCopy) {
+		if (element.leftIsCopy) {
+			element.leftSlot.primaryAttack = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			element.leftSlot.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		}
+		if (element.rightIsCopy) {
+			element.rightSlot.primaryAttack = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			element.rightSlot.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		}
+	}
+	return isCopy;
+}
+
+static void SaveWeaponMode(bool isSwap) {
+	for (size_t i = 0; i < weaponState.size(); i++) {
+		if (weaponState[i].npcID == (*fo::ptr::obj_dude)->id) {
+			CopyItemSlots(weaponState[i], isSwap);
+			return;
+		}
+	}
+	WeaponStateSlot wState;
+	if (CopyItemSlots(wState, isSwap)) {
+		wState.npcID = (*fo::ptr::obj_dude)->id;
+		weaponState.push_back(wState);
+	}
+}
+
+// Moves the weapon from the active left slot to the right slot and saves the selected weapon mode for NPC
+static void NPCWeaponTweak() {
+	bool isSwap = false;
+	if (*fo::ptr::itemCurrentItem == fo::HandSlot::Left) {
+		// set active left item to right slot
+		fo::GameObject* lItem = fo::func::inven_left_hand(*fo::ptr::obj_dude);
+		if (lItem) {
+			isSwap = true;
+			fo::GameObject* rItem = fo::func::inven_right_hand(*fo::ptr::obj_dude);
+			lItem->flags &= ~fo::ObjectFlag::Left_Hand;
+			lItem->flags |= fo::ObjectFlag::Right_Hand;
+			if (rItem) {
+				rItem->flags &= ~fo::ObjectFlag::Right_Hand;
+				rItem->flags |= fo::ObjectFlag::Left_Hand;
+			}
+		}
+	}
+	SaveWeaponMode(isSwap);
+}
+
+void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	if (skipCounterAnim == 2 && critter && critter == realDude.obj_dude) {
+		skipCounterAnim--;
+		SafeWrite8(0x422BDE, 1); // restore
+	}
+
+	if (isControllingNPC) {
+		NPCWeaponTweak();
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(critter != nullptr); // return control to dude
+	}
+	if (critter && critter != PartyControl::RealDudeObject()) {
+		if (!isControllingNPC && !realDude.isSaved) {
+			SaveRealDudeState();
+		}
+		SetCurrentDude(critter);
+
+		if (!switchHandHookInjected) {
+			switchHandHookInjected = true;
+			//if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+
+			HookCall(0x49EB09, proto_name_hook);
+
+			// Gets dude perks and traits from script while controlling another NPC
+			// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
+			HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
+			HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
+		}
+	}
 }
 
 fo::GameObject* PartyControl::RealDudeObject() {
@@ -683,43 +710,14 @@ void PartyControl::OnGameLoad() {
 }
 
 void PartyControl::init() {
-	Mode = IniReader::GetConfigInt("Misc", "ControlCombat", 0);
-	if (Mode >= 3) {
-		if (Mode == 3) PartyControl::OrderAttackPatch();
-		Mode = 0;
-	} else if (Mode == 1 && !isDebug) {
-		Mode = 2;
+	if (IniReader::GetConfigInt("Misc", "PartyOrderToAttack", 0)) {
+		dlogr("Applying order to attack patch for party members.", DL_INIT);
+		PartyControl::OrderAttackPatch();
 	}
 
-	if (Mode > 0) {
-		dlog("Setting up party control.", DL_INIT);
-		std::vector<std::string> pidList = IniReader::GetConfigList("Misc", "ControlCombatPIDList", "", 512);
-		size_t countPids = pidList.size();
-		if (countPids) {
-			Chars.resize(countPids);
-			for (size_t i = 0; i < countPids; i++) {
-				Chars[i] = (WORD)atoi(pidList[i].c_str());
-			}
-		}
-		dlog_f(" Mode %d, Chars read: %d.\n", DL_INIT, Mode, countPids);
-
-		HookCall(0x46EBEE, FidChangeHook);
-
-		HookCall(0x422354, combat_add_noncoms_hook);
-		const DWORD combatWrapperAddr[] = {0x422D87, 0x422E20};
-		HookCalls(CombatWrapper_v2, combatWrapperAddr);
-
-		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
-		const DWORD pcFlagToggleAddr[] = {0x4124F1, 0x41279A};
-		HookCalls(pc_flag_toggle_hook, pcFlagToggleAddr);
-		HookCall(0x49EB09, proto_name_hook);
-
-		// Gets dude perks and traits from script while controlling another NPC
-		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
-		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
-		HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
-	}
-
+	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
+	const DWORD pcFlagToggleAddr[] = {0x4124F1, 0x41279A};
+	HookCalls(pc_flag_toggle_hook, pcFlagToggleAddr);
 	MakeCall(0x45F47C, intface_toggle_items_hack);
 	const DWORD switchHandAddr[] = {0x4712E3, 0x47136D}; // left slot, right slot
 	HookCalls(inven_pickup_hook, switchHandAddr); // will be overwritten if HOOK_INVENTORYMOVE is injected

@@ -266,6 +266,18 @@ long __fastcall IsRadInfluence() {
 	return 0;
 }
 
+void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
+	fo::Proto* proto;
+	if (GetProto(npc->protoId, &proto)) {
+		long bit = (1 << flag);
+		if (set) {
+			proto->critter.critterFlags |= bit;
+		} else {
+			proto->critter.critterFlags &= ~bit;
+		}
+	}
+}
+
 // Returns the position of party member in the existing table (1 is added to the index position)
 long IsPartyMemberByPid(long pid) {
 	size_t partyCount = *fo::ptr::partyMemberMaxCount;

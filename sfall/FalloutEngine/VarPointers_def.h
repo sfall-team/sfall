@@ -19,6 +19,7 @@ PTR_(carCurrentArea,             DWORD)
 PTR_(carGasAmount,               long) // from 0 to 80000
 PTR_(cmap,                       fo::PALETTE) // array of 256 PALETTE, palette without gamma
 PTR_(colorTable,                 DWORD)
+PTR_(combat_end_due_to_load,     DWORD)
 PTR_(combat_free_move,           DWORD)
 PTR_(combat_list,                fo::GameObject**) // dynamic array
 PTR_(combat_obj,                 fo::GameObject*)

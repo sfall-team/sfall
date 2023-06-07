@@ -85,6 +85,7 @@ WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut
 WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
 WRAP_WATCOM_FUNC2(long, barter_compute_value, fo::GameObject*, source, fo::GameObject*, target)
 WRAP_WATCOM_FUNC1(long, block_for_tocks, long, ticks)
+WRAP_WATCOM_FUNC2(long, combat_turn, fo::GameObject*, critter, long, isDudeTurn) // Perform combat turn for a given critter
 WRAP_WATCOM_FUNC1(long, critter_body_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)

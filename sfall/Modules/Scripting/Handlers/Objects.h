@@ -69,6 +69,8 @@ void mf_get_flags(OpcodeContext&);
 
 void mf_outlined_object(OpcodeContext&);
 
+void mf_set_dude_obj(OpcodeContext&);
+
 void mf_real_dude_obj(OpcodeContext&);
 
 void mf_car_gas_amount(OpcodeContext&);
