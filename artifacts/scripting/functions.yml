@@ -1566,12 +1566,18 @@
       - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
     macro: sfall.h
     
+  - name: 
+    detail: int get_combat_free_move
+    doc: Returns current "bonus move" points of a current critter's turn. For NPC's this is always 0, unless changed by set_combat_free_move.
+    macro: sfall.h
+
   - name: set_combat_free_move
     detail: void set_combat_free_move(int value)
     doc: |
       Allows changing "bonus move" points (yellow lights on the interface bar) that can only be used for movement, not attacking
       - Can be called from `HOOK_COMBATTURN` at the start of the turn (will not work on `dude_obj`)
       - Can be called from `HOOK_STDPROCEDURE` with `combat_proc` event (will work on both NPCs and `dude_obj`)
+    macro: sfall.h
 
 - name: Car
   items:

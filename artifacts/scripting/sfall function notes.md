@@ -1078,6 +1078,12 @@ sfall_funcX metarule functions
 - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
 
 ----
+##### get_combat_free_move
+`int sfall_func0("get_combat_free_move")`
+
+- Returns current "bonus move" points of a current critter's turn. For NPC's this is always 0, unless changed by set_combat_free_move.
+
+----
 ##### set_combat_free_move
 `void sfall_func1("set_combat_free_move", int value)`
 
