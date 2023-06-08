@@ -17,6 +17,8 @@
  */
 
 #include <algorithm>
+#include <fstream>
+#include <filesystem>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -265,15 +267,21 @@ static void __fastcall game_init_databases_hook1() {
 static bool NormalizePath(std::string &path) {
 	if (path.find(':') != std::string::npos) return false;
 
-	int pos = 0;
-	do { // replace all '/' char with '\'
-		pos = path.find('/', pos);
-		if (pos != std::string::npos) path[pos] = '\\';
-	} while (pos != std::string::npos);
+	std::replace(path.begin(), path.end(), '/', '\\');
 
 	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
 	while (path.front() == '\\') path.erase(0, 1); // remove firsts '\'
 	return true;
+}
+
+static bool FileOrFolderExists(const std::string& path) {
+	return GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES;
+}
+
+static bool FileExists(const std::string& path) {
+	DWORD dwAttrib = GetFileAttributesA(path.c_str());
+	return dwAttrib != INVALID_FILE_ATTRIBUTES && 
+         !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 // Patches placed at the back of the vector will have priority in the chain over the front(previous) patches
@@ -282,32 +290,60 @@ static void GetExtraPatches() {
 	for (int i = 0; i < 100; i++) {
 		_itoa(i, &patchFile[9], 10);
 		auto patch = IniReader::GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
-		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+		if (patch.empty() || !NormalizePath(patch) || !FileOrFolderExists(patch)) continue;
 		patchFiles.push_back(patch);
 	}
-	std::string searchPath = "mods\\"; //IniReader::GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
-	//if (!searchPath.empty() && NormalizePath(searchPath)) {
-		//if (searchPath.back() != '\\') searchPath += "\\";
+	const std::string modsPath = ".\\mods\\";
+	const std::string loadOrderFilePath = modsPath + "load_order.txt";
+	
+	dlogr("Loading custom patches:", DL_MAIN);
 
-		std::string pathMask(".\\mods\\*.dat");
-		size_t startPos = patchFiles.size();
-		dlogr("Loading custom patches:", DL_MAIN);
-		WIN32_FIND_DATA findData;
-		HANDLE hFind = FindFirstFile(pathMask.c_str(), &findData);
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do {
-				std::string name(searchPath + findData.cFileName);
-				if ((name.length() - name.find_last_of('.')) > 4) continue;
-				dlog_f("> %s\n", DL_MAIN, name.c_str());
-				patchFiles.push_back(name);
-			} while (FindNextFile(hFind, &findData));
-			FindClose(hFind);
+	// Check if load order file does not exist yet and initialize automatically with mods already in the mods folder.
+	if (!FileExists(loadOrderFilePath)) {
+		std::ofstream loadOrderFile(loadOrderFilePath, std::ios::out | std::ios::trunc);
+		if (loadOrderFile.is_open()) {
+			// Search all .dat files and folders in mods folder.
+			std::vector<std::string> autoLoadedPatchFiles;
+			std::string pathMask(modsPath + "*.dat");
+			WIN32_FIND_DATA findData;
+			HANDLE hFind = FindFirstFile(pathMask.c_str(), &findData);
+			if (hFind != INVALID_HANDLE_VALUE) {
+				do {
+					std::string name(findData.cFileName);
+					if ((name.length() - name.find_last_of('.')) > 4) continue;
+
+					autoLoadedPatchFiles.push_back(name.c_str());
+				} while (FindNextFile(hFind, &findData));
+				FindClose(hFind);
+			}
+			// Sort the search result.
+			std::sort(autoLoadedPatchFiles.begin(), autoLoadedPatchFiles.end());
+			// Write found files into load_order files.
+			for (auto& filePath : autoLoadedPatchFiles) {
+				loadOrderFile << filePath << '\n';
+			}
 		}
-		// Sort the search result
-		if (!patchFiles.empty()) {
-			std::sort(patchFiles.begin() + startPos, patchFiles.end());
+		else {
+			dlog_f("Error creating load order file %s.", DL_MAIN, loadOrderFilePath.c_str());
 		}
-	//}
+	}
+	// Add mods from load_order file.
+	std::ifstream loadOrderFile(loadOrderFilePath, std::ios::in);
+	if (loadOrderFile.is_open()) {
+		std::string patch;
+		while (std::getline(loadOrderFile, patch)) {
+			if (patch.empty() || !NormalizePath(patch)) continue;
+			patch = modsPath + patch;
+			if (!FileOrFolderExists(patch)) continue;
+
+			dlog_f("> %s\n", DL_MAIN, patch.c_str());
+			patchFiles.push_back(patch);
+		}
+	}
+	else {
+		dlog_f("Error opening %s for read: %x", DL_MAIN, loadOrderFilePath.c_str(), GetLastError());
+	}
+
 	// Remove first duplicates
 	size_t size = patchFiles.size();
 	for (size_t i = 0; i < size; ++i) {
