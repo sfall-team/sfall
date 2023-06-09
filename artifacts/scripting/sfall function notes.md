@@ -1049,10 +1049,17 @@ sfall_funcX metarule functions
 - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
 
 ----
+##### get_combat_free_move
+`int sfall_func0("get_combat_free_move")`
+
+- Returns available "bonus move" points of the current critter's turn. For NPCs, this is always 0 unless changed by `set_combat_free_move`.
+
+----
 ##### set_combat_free_move
 `void sfall_func1("set_combat_free_move", int value)`
 
 - Allows changing "bonus move" points (yellow lights on the interface bar) that can only be used for movement, not attacking
+- Can be called from `HOOK_COMBATTURN` at the start of the turn (will not work on `dude_obj`)
 - Can be called from `HOOK_STDPROCEDURE` with `combat_proc` event (will work on both NPCs and `dude_obj`)
 
 

@@ -298,6 +298,7 @@
 #define exec_map_update_scripts                                 sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                           sfall_func1("floor2", value)
 #define get_can_rest_on_map(map, elev)                          sfall_func2("get_can_rest_on_map", map, elev)
+#define get_combat_free_move                                    sfall_func0("get_combat_free_move")
 #define get_current_inven_size(obj)                             sfall_func1("get_current_inven_size", obj)
 #define get_current_terrain_name                                sfall_func0("get_terrain_name")
 #define get_cursor_mode                                         sfall_func0("get_cursor_mode")

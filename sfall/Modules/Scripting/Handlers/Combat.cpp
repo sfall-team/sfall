@@ -265,6 +265,10 @@ void mf_set_spray_settings(OpcodeContext& ctx) {
 	BurstMods::SetComputeSpraySettings(centerMult, centerDiv, targetMult, targetDiv);
 }
 
+void mf_get_combat_free_move(OpcodeContext& ctx) {
+	ctx.setReturn(*fo::ptr::combat_free_move);
+}
+
 void mf_set_combat_free_move(OpcodeContext& ctx) {
 	long value = ctx.arg(0).rawValue();
 	if (value < 0) value = 0;

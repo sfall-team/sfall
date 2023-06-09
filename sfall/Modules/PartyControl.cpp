@@ -728,7 +728,7 @@ void PartyControl::init() {
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
-		dlogr("Applying display NPC extra info patch.", DL_INIT);
+		dlogr("Applying display extra info patch for party members.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
 		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
 		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
