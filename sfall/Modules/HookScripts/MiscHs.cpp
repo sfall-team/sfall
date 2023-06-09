@@ -634,21 +634,30 @@ cancelEnc:
 static long __stdcall RollCheckHook_Script(long roll, long chance, long bonus, long randomChance, long calledFrom) {
 	long hookType;
 	switch (calledFrom - 5) {
-		case 0x42388E: // compute_attack_
-		// compute_spray_
-		case 0x4234D1: hookType = 1; break; // single and burst attack hit event
-		// compute_spray_
-		case 0x42356C: hookType = 2; break; // burst attack bullet hit event
-		// skill_result_
-		case 0x4AAB29: hookType = 3; break; // common skill check event
-		// skill_use_
-		case 0x4AB3B6: hookType = 4; break; // SKILL_REPAIR
-		case 0x4AB8B5: hookType = 5; break; // SKILL_DOCTOR
-		// skill_check_stealing_            // SKILL_STEAL
-		case 0x4ABC9F: hookType = 6; break; // source stealing check event
-		case 0x4ABCE6: hookType = 7; break; // target stealing check event (fail for success stealing)
+	case 0x42388E:    // compute_attack_
+	case 0x4234D1:    // compute_spray_
+		hookType = 1; // single and burst attack hit event
+		break;
+	case 0x42356C:    // compute_spray_
+		hookType = 2; // burst attack bullet hit event
+		break;
+	case 0x4AAB29:    // skill_result_
+		hookType = 3; // common skill check event
+		 break;
+	case 0x4AB3B6:    // skill_use_
+		hookType = 4; // SKILL_REPAIR
+		break;
+	case 0x4AB8B5:    // skill_use_
+		hookType = 5; // SKILL_DOCTOR
+		break;
+	case 0x4ABC9F:    // skill_check_stealing_
+		hookType = 6; // SKILL_STEAL - source stealing check event
+		break;
+	case 0x4ABCE6:    // skill_check_stealing_
+		hookType = 7; // SKILL_STEAL - target stealing check event (fail for success stealing)
+		break;
 	default:
-		return roll; // unsupported hook
+		return roll;  // unsupported hook
 	}
 
 	BeginHook();

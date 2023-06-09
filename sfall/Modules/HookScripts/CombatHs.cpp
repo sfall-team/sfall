@@ -670,13 +670,13 @@ static void __declspec(naked) CanUseWeaponHook() {
 		retn;
 	}
 }
-
+/*
 bool CanUseWeaponHook_Invoke(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	return (HookScripts::HookHasScript(HOOK_CANUSEWEAPON))
 	       ? CanUseWeaponHook_Script(result, source, weapon, hitMode)
 	       : result;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 
 void Inject_ToHitHook() {
@@ -721,7 +721,7 @@ void Inject_CombatDamageHook() {
 //		0x423DE7, // compute_explosion_on_extras()
 		0x423E69, // compute_explosion_on_extras()
 		0x424220, // attack_crit_failure()
-		0x4242FB, // attack_crit_failure()
+		0x4242FB  // attack_crit_failure()
 	});
 	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - fix for the attacker
 }

@@ -1081,7 +1081,7 @@ sfall_funcX metarule functions
 ##### get_combat_free_move
 `int sfall_func0("get_combat_free_move")`
 
-- Returns current "bonus move" points of a current critter's turn. For NPC's this is always 0, unless changed by set_combat_free_move.
+- Returns available "bonus move" points of the current critter's turn. For NPCs, this is always 0 unless changed by `set_combat_free_move`.
 
 ----
 ##### set_combat_free_move

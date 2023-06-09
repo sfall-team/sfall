@@ -375,14 +375,14 @@ void __declspec(naked) critter_adjust_rads_hack() {
 	using namespace Fields;
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_Player; // critter.pid
-		jne  isNotDude;
+		jne  notDude;
 		push ecx;
 		call AdjustRads_Script; // ecx - critter, edx - amount
 		pop  ecx;
 		mov  ebx, eax;          // old/new amount
 		mov  edx, ds:[FO_VAR_obj_dude];
 		xor  eax, eax;          // for continue func
-isNotDude:
+notDude:
 		retn;
 	}
 }

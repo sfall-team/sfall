@@ -168,7 +168,7 @@ end
  * Useful in cunjunction with is_in_array()
  */
 procedure string_split_ints(variable str, variable split) begin
-   variable n;
+   variable n := 0;
    variable list, result, val;
 
    if (str == "" or typeof(str) != VALTYPE_STR) then
@@ -177,10 +177,10 @@ procedure string_split_ints(variable str, variable split) begin
    list := string_split(str, split);
    result := temp_array_list(0);
    foreach (val in list) begin
-      if val != "" then begin
+      if (val != "") then begin
          resize_array(result, n + 1);
          result[n] := atoi(val);
-         n += 1;
+         n++;
       end
    end
    return result;

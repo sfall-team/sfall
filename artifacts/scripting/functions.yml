@@ -1568,7 +1568,7 @@
     
   - name: 
     detail: int get_combat_free_move
-    doc: Returns current "bonus move" points of a current critter's turn. For NPC's this is always 0, unless changed by set_combat_free_move.
+    doc: Returns available "bonus move" points of the current critter's turn. For NPCs, this is always 0 unless changed by `set_combat_free_move`
     macro: sfall.h
 
   - name: set_combat_free_move
