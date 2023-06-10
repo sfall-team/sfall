@@ -265,13 +265,21 @@ static void __fastcall game_init_databases_hook1() {
 }
 */
 static bool NormalizePath(std::string &path) {
+	const char* whiteSpaces = " \t";
+	std::size_t pos;
 	if (path.find(':') != std::string::npos) return false;
 
 	std::replace(path.begin(), path.end(), '/', '\\');
 
 	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
-	while (path.front() == '\\') path.erase(0, 1); // remove firsts '\'
-	return true;
+	pos = path.find_first_of(";#");  // comments
+	if (pos != std::string::npos) {
+		path.erase(pos);
+	}
+	path.erase(0, path.find_first_not_of(whiteSpaces)); // trim left
+	path.erase(path.find_last_not_of(whiteSpaces) + 1); // trim right
+	path.erase(0, path.find_first_not_of('\\')); // remove firsts '\'
+	return !path.empty();
 }
 
 static bool FileOrFolderExists(const std::string& path) {
@@ -284,6 +292,12 @@ static bool FileExists(const std::string& path) {
          !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY);
 }
 
+static bool FolderExists(const std::string& path) {
+	DWORD dwAttrib = GetFileAttributesA(path.c_str());
+	return dwAttrib != INVALID_FILE_ATTRIBUTES && 
+         (dwAttrib & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 // Patches placed at the back of the vector will have priority in the chain over the front(previous) patches
 static void GetExtraPatches() {
 	char patchFile[12] = "PatchFile";
@@ -294,10 +308,14 @@ static void GetExtraPatches() {
 		patchFiles.push_back(patch);
 	}
 	const std::string modsPath = ".\\mods\\";
-	const std::string loadOrderFilePath = modsPath + "load_order.txt";
+	const std::string loadOrderFilePath = modsPath + "mods_order.txt";
 	
 	dlogr("Loading custom patches:", DL_MAIN);
 
+	// Check if mods folder exists, if not, create it.
+	if (!FolderExists(modsPath)) {
+		CreateDirectoryA(modsPath.c_str(), 0);
+	}
 	// Check if load order file does not exist yet and initialize automatically with mods already in the mods folder.
 	if (!FileExists(loadOrderFilePath)) {
 		std::ofstream loadOrderFile(loadOrderFilePath, std::ios::out | std::ios::trunc);
