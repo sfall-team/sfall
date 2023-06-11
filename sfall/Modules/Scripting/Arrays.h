@@ -68,6 +68,7 @@ public:
 		setByType(el.intVal, el.type);
 	}
 
+	void set(const ScriptValue& val);
 	void set(long val);
 	void set(float val);
 	void set(const char* val, int _len = -1);

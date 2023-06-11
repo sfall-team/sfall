@@ -23,7 +23,7 @@ namespace sfall
 namespace script
 {
 
-ScriptValue::ScriptValue( DataType type, unsigned long value )
+ScriptValue::ScriptValue(DataType type, unsigned long value)
 {
 	_val.dw = value;
 	_type = type;
