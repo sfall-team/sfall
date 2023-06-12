@@ -266,19 +266,26 @@ static void __fastcall game_init_databases_hook1() {
 */
 static bool NormalizePath(std::string &path) {
 	const char* whiteSpaces = " \t";
-	std::size_t pos;
-	if (path.find(':') != std::string::npos) return false;
-
-	std::replace(path.begin(), path.end(), '/', '\\');
-
-	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
-	pos = path.find_first_of(";#");  // comments
+	// Remove comments
+	std::size_t pos = path.find_first_of(";#");
 	if (pos != std::string::npos) {
 		path.erase(pos);
 	}
+	// Skip paths with colons.
+	if (path.find(':') != std::string::npos) return false;
+
+	// Normalize directory separators.
+	std::replace(path.begin(), path.end(), '/', '\\');
+
+	// Disallow paths going outside of root folder.
+	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
+	
+	// Trim whitespaces.
 	path.erase(0, path.find_first_not_of(whiteSpaces)); // trim left
 	path.erase(path.find_last_not_of(whiteSpaces) + 1); // trim right
-	path.erase(0, path.find_first_not_of('\\')); // remove firsts '\'
+
+	// Remove leading slashes.
+	path.erase(0, path.find_first_not_of('\\'));
 	return !path.empty();
 }
 
