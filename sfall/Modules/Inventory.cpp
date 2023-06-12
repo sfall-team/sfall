@@ -556,6 +556,28 @@ skip:
 	}
 }
 
+// Allow passing non-weapon/armor items to invenWieldFunc_ engine function without error
+// It used to treat all non-armor items as "weapon" and try to check if critter had weapon animation,
+// which isn't valid for other item subtypes.
+static void __declspec(naked) invenWieldFunc_hack() {
+	static const DWORD invenWieldFunc_hack_back = 0x47285D;
+	static const DWORD invenWieldFunc_hack_skip = 0x4728A7;
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  eax, edi; // weapon
+		call fo::funcoffs::item_get_type_;
+		cmp  eax, item_type_weapon;
+		je   isWeapon;
+		jmp  invenWieldFunc_hack_skip;
+isWeapon: // overwritten engine code
+		mov  eax, [esi + rotation]; // cur_rot
+		inc  eax;
+		push eax;
+		jmp  invenWieldFunc_hack_back;
+	}
+}
+
 static void __declspec(naked) do_move_timer_hook() {
 	static const DWORD DoMoveTimer_Ret = 0x476920;
 	__asm {
@@ -740,6 +762,9 @@ void Inventory::init() {
 	// Note: the flag is not checked for the metarule(METARULE_INVEN_UNWIELD_WHO, x) function
 	HookCall(0x45B0CE, op_inven_unwield_hook); // with fix to update interface slot after unwielding
 	HookCall(0x45693C, op_wield_obj_critter_hook);
+
+	// Fix for invenWieldFunc_ (used by wield_obj_critter) to be able to put non-weapon/armor items into active slot
+	MakeJump(0x472858, invenWieldFunc_hack);
 }
 
 }
