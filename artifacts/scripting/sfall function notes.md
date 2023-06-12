@@ -706,6 +706,7 @@ sfall_funcX metarule functions
 ----
 #### get_string_pointer
 `int sfall_func1("get_string_pointer", string text)`
+- DEPRECATED, use normal strings
 - Returns a pointer to a string variable or to a text
 
 ----

@@ -81,6 +81,11 @@ void sArrayElement::setByType( DWORD val, DataType dataType )
 	}
 }
 
+void sArrayElement::set(const ScriptValue& val)
+{
+	setByType(val.rawValue(), val.type());
+}
+
 void sArrayElement::set( long val )
 {
 	clearData();
@@ -542,15 +547,15 @@ void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 				// add pair
 				el = arr.val.size();
 				arr.val.resize(el + 2);
-				arr.val[el].setByType(key.rawValue(), key.type()); // copy data
+				arr.val[el].set(key); // copy data
 				arr.keyHash[arr.val[el]] = el;
 			}
-			arr.val[el + 1].setByType(val.rawValue(), val.type());
+			arr.val[el + 1].set(val);
 		}
 	} else if (key.isInt()) { // only update normal array if key is an integer and within array size
 		size_t index = key.rawValue();
 		if (arr.val.size() > index) {
-			arr.val[index].setByType(val.rawValue(), val.type());
+			arr.val[index].set(val);
 		}
 	}
 }
@@ -735,7 +740,7 @@ void SaveArray(const ScriptValue& key, DWORD id) {
 				}
 			}
 			// make array "saved"
-			itArray->second.key.setByType(key.rawValue(), key.type());
+			itArray->second.key.set(key);
 			savedArrays.emplace(itArray->second.key, id); // savedArrays[itArray->second.key] = id;
 		} else { // key of int(0) is used to "unsave" array without destroying it
 			savedArrays.erase(itArray->second.key);
