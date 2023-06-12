@@ -343,12 +343,14 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 	squareData = fo::var::square[elevation][squareNum];
 	switch (mode) {
 	case 1:
-		result = (squareData >> 16) & 0xFFF; // roof
+		result = (squareData >> 16) & 0x3FFF; // roof
 		break;
 	case 2:
 		result = squareData; // raw data
 	default:
-		result = squareData & 0xFFF;  // this is how opcode worked prior to 4.3.9
+		// Vanilla uses 12 bits for Tile FID, which means 4096 possible values, the mask was 0x0FFF
+		// BUT sfall's FRM Limit patch extended it to 14 bits, so we need to use mask 0x3FFF
+		result = squareData & 0x3FFF;  // this is how opcode worked prior to 4.3.9
 	}
 	ctx.setReturn(result);
 }
