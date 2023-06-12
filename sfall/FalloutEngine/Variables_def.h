@@ -216,7 +216,7 @@ VAR_(sneak_working,              DWORD) // DWORD var
 VAR_(sound_music_path1,          char*)
 VAR_(sound_music_path2,          char*)
 VAR_(speech_volume,              DWORD)
-VAR_(square,                     DWORD)
+VARA(square,                     DWORD*, 3)
 VAR_(square_rect,                fo::SquareRect) // _square_y
 VAR_(squares,                    DWORD*)
 VARA(stack,                      DWORD, 10)

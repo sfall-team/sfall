@@ -82,7 +82,7 @@ void op_play_sfall_sound(OpcodeContext&);
 
 void __declspec() op_stop_sfall_sound();
 
-void __declspec() op_get_tile_fid();
+void op_get_tile_fid(OpcodeContext&);
 
 void __declspec() op_modified_ini();
 

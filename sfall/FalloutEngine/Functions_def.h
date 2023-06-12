@@ -62,6 +62,7 @@ WRAP_WATCOM_FFUNC3(long, register_object_play_sfx, fo::GameObject*, object, cons
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC3(long, square_coord, long, square, long*, outX, long*, outY)
+WRAP_WATCOM_FFUNC3(long, square_num, long, squareX, long, squaryY, long, elevation) // elevation is not used
 WRAP_WATCOM_FFUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
 WRAP_WATCOM_FFUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
@@ -257,13 +258,13 @@ WRAP_WATCOM_FUNC2(long, skill_dec_point_force, fo::GameObject*, critter, long, s
 WRAP_WATCOM_FUNC2(long, skill_inc_point_force, fo::GameObject*, critter, long, skill)
 WRAP_WATCOM_FUNC1(long, skill_is_tagged, long, skill)
 WRAP_WATCOM_FUNC2(long, skill_level, fo::GameObject*, critter, long, statID)
+WRAP_WATCOM_FUNC2(void, skill_get_tags, long*, tags, long, num)
+WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_get_base, fo::GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_base_direct, fo::GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_bonus, fo::GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC1(void, stat_recalc_derived, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC3(long, stat_set_bonus, fo::GameObject*, critter, long, statID, long, amount)
-WRAP_WATCOM_FUNC2(void, skill_get_tags, long*, tags, long, num)
-WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_level, fo::GameObject*, critter, long, statId)
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount) // Adds experience points to PC
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
