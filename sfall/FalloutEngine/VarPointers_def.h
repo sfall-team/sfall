@@ -200,7 +200,7 @@ PTR_(sneak_working,              DWORD) // DWORD var
 PTR_(sound_music_path1,          char*)
 PTR_(sound_music_path2,          char*)
 PTR_(speech_volume,              DWORD)
-PTR_(square,                     DWORD)
+PTR_(square,                     DWORD*) // array of 3 pointers, one per elevation
 PTR_(squares,                    DWORD*)
 PTR_(stack,                      DWORD) // array of 10 DWORD
 PTR_(stack_offset,               DWORD) // array of 10 DWORD

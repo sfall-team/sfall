@@ -317,31 +317,14 @@ end:
 	}
 }
 
-// TODO: It seems that this function does not work...
-void __declspec(naked) op_get_tile_fid() {
-	__asm {
-		push ecx;
-		_GET_ARG_INT(fail); // get tile value
-		mov  esi, ebx;      // keep script
-		sub  esp, 8;        // x/y buf
-		lea  edx, [esp];
-		lea  ebx, [esp + 4];
-		call fo::funcoffs::tile_coord_;
-		pop  eax; // x
-		pop  edx; // y
-		call fo::funcoffs::square_num_;
-		mov  edx, ds:[FO_VAR_square];
-		movzx edx, word ptr ds:[edx + eax * 4];
-		mov  ebx, esi; // script
-end:
-		mov  eax, ebx;
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
-fail:
-		xor  edx, edx; // return 0
-		jmp  end;
-	}
+void op_get_tile_fid(OpcodeContext& ctx) {
+	long tileX, tileY, squareNum,
+	     elevation = (*fo::ptr::obj_dude)->elevation,
+	     tileNum = ctx.arg(0).rawValue();
+
+	fo::func::tile_coord(tileNum, &tileX, &tileY);
+	squareNum = fo::func::square_num(tileX, tileY, elevation);
+	ctx.setReturn(fo::ptr::square[elevation][squareNum]);
 }
 
 void __declspec(naked) op_modified_ini() {

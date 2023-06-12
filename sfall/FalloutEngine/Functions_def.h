@@ -57,6 +57,7 @@ WRAP_WATCOM_FUNC4(long, queue_add, long, time, fo::GameObject*, object, void*, d
 WRAP_WATCOM_FUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
+WRAP_WATCOM_FUNC3(long, square_num, long, squareX, long, squaryY, long, elevation) // elevation is not used
 WRAP_WATCOM_FUNC6(long, text_object_create, fo::GameObject*, object, const char*, text, long, font, long, colorText, long, colorOutline, fo::BoundRect*, rect)
 WRAP_WATCOM_FUNC3(long, tile_coord, long, tile, long*, outX, long*, outY) // the fourth argument of the function is not used
 WRAP_WATCOM_FUNC3(long, tile_num_in_direction, long, tile, long, rotation, long, distance)
@@ -215,13 +216,13 @@ WRAP_WATCOM_FUNC1(long, scr_remove, long, scriptID)
 WRAP_WATCOM_FUNC1(void, set_focus_func, void*, func)
 WRAP_WATCOM_FUNC1(long, skill_is_tagged, long, skill)
 WRAP_WATCOM_FUNC2(long, skill_level, fo::GameObject*, critter, long, statID)
+WRAP_WATCOM_FUNC2(void, skill_get_tags, long*, tags, long, num)
+WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_get_base, fo::GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_base_direct, fo::GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_bonus, fo::GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC1(void, stat_recalc_derived, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC3(long, stat_set_bonus, fo::GameObject*, critter, long, statID, long, amount)
-WRAP_WATCOM_FUNC2(void, skill_get_tags, long*, tags, long, num)
-WRAP_WATCOM_FUNC2(void, skill_set_tags, long*, tags, long, num)
 WRAP_WATCOM_FUNC2(long, stat_level, fo::GameObject*, critter, long, statId)
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount) // Adds experience points to PC
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
