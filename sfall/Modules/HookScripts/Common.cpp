@@ -49,8 +49,8 @@ ScriptValue HookCommon::GetHSArg() {
 	return (cArg == argCount) ? 0 : GetHSArgAt(cArg++);
 }
 
-void HookCommon::SetHSArg(DWORD id, const ScriptValue& value) {
-	if (id < argCount) {
+void HookCommon::SetHSArg(DWORD id, const ScriptValue& value, bool allowTypeChange) {
+	if (id < argCount && (allowTypeChange || value.type() == argTypes[id])) {
 		args[id] = value.rawValue();
 		argTypes[id] = value.type();
 	}

@@ -178,7 +178,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x238, "atof",                       op_atof,                      1, true,   0, {ARG_STRING}},
 	{0x239, "scan_array",                 op_scan_array,                2, true,  -1, {ARG_OBJECT, ARG_ANY}},
 	{0x23c, "get_sfall_args",             op_get_sfall_args,            0, true},
-	{0x23d, "set_sfall_arg",              op_set_sfall_arg,             2, false,  0, {ARG_INT, ARG_INT}},
+	{0x23d, "set_sfall_arg",              op_set_sfall_arg,             2, false,  0, {ARG_INT, ARG_ANY}}, // hookscript system will validate type
 	{0x241, "get_npc_level",              op_get_npc_level,             1, true,  -1, {ARG_INTSTR}},
 	{0x242, "set_critter_skill_points",   op_set_critter_skill_points,  3, false,  0, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x243, "get_critter_skill_points",   op_get_critter_skill_points,  2, true,   0, {ARG_OBJECT, ARG_INT}},

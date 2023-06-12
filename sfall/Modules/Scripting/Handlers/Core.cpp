@@ -129,7 +129,7 @@ void op_get_sfall_args(OpcodeContext& ctx) {
 }
 
 void op_set_sfall_arg(OpcodeContext& ctx) {
-	HookCommon::SetHSArg(ctx.arg(0).asInt(), ctx.arg(1));
+	HookCommon::SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1), false);
 }
 
 void op_set_sfall_return(OpcodeContext& ctx) {

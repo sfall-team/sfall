@@ -14,7 +14,7 @@ public:
 	static DWORD GetHSArgCount();
 	static script::ScriptValue GetHSArg();
 	static script::ScriptValue GetHSArgAt(DWORD id);
-	static void SetHSArg(DWORD id, const script::ScriptValue& value);
+	static void SetHSArg(DWORD id, const script::ScriptValue& value, bool allowTypeChange = true);
 	static void __stdcall SetHSReturn(const script::ScriptValue& value);
 
 	static void GameModeChangeHook(DWORD exit);
