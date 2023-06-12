@@ -823,7 +823,11 @@
 - name: Tiles and paths
   items:
   - name: get_tile_fid
-    detail: int get_tile_fid(int tile)
+    detail: int get_tile_fid(int tileData)
+    doc: |
+      - returns FID information about the square under the given tile at elevation 0
+      - pass elevation as 4-bit number in bits 25-28 to access other elevations
+      - pass result mode in bits 29-32: 0 - Ground FID, 1 - Roof FID, 2 - Raw data.
     opcode: 0x823a
   - name: tile_under_cursor
     detail: int tile_under_cursor
@@ -849,6 +853,14 @@
     doc: |
       - returns the tile number at the x, y position relative to the top-left corner of the screen
       - if the position is outside of the range of tiles, it will return -1
+    macro: sfall.h
+  - name: get_tile_ground_fid
+    detail: int get_tile_ground_fid(int tileNum, int elevation)
+    doc: Returns FID of a ground tile at given tileNum and elevation.
+    macro: sfall.h
+  - name: get_tile_roof_fid
+    detail: int get_tile_roof_fid(int tileNum, int elevation)
+    doc: Returns FID of a roof tile at given tileNum and elevation. Note that FID of 1 is used when there is no actual roof.
     macro: sfall.h
 
   - name: obj_blocking_line

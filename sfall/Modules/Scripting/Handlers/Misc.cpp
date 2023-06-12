@@ -332,13 +332,25 @@ end:
 }
 
 void op_get_tile_fid(OpcodeContext& ctx) {
-	long tileX, tileY, squareNum,
-		elevation = fo::var::obj_dude->elevation,
-		tileNum = ctx.arg(0).rawValue();
+	long tileX, tileY, squareNum, squareData, result,
+		tileAndElev = ctx.arg(0).rawValue(),
+		tileNum = tileAndElev & 0xFFFFFF,
+		elevation = (tileAndElev >> 24) & 0x0F,
+		mode = tileAndElev >> 28;
 
 	fo::func::tile_coord(tileNum, &tileX, &tileY);
 	squareNum = fo::func::square_num(tileX, tileY, elevation);
-	ctx.setReturn(fo::var::square[elevation][squareNum]);
+	squareData = fo::var::square[elevation][squareNum];
+	switch (mode) {
+	case 1:
+		result = (squareData >> 16) & 0xFFF; // roof
+		break;
+	case 2:
+		result = squareData; // raw data
+	default:
+		result = squareData & 0xFFF;  // this is how opcode worked prior to 4.3.9
+	}
+	ctx.setReturn(result);
 }
 
 void __declspec(naked) op_modified_ini() {
