@@ -200,7 +200,7 @@ PTR_(sneak_working,              DWORD) // DWORD var
 PTR_(sound_music_path1,          char*)
 PTR_(sound_music_path2,          char*)
 PTR_(speech_volume,              DWORD)
-PTR_(square,                     DWORD*) // array of 3 pointers, one per elevation
+PTR_(square,                     DWORD*) // array of 3 pointers, use (square && 0xFFF) to get ground fid, and ((square >> 16) && 0xFFF) to get roof
 PTR_(squares,                    DWORD*)
 PTR_(stack,                      DWORD) // array of 10 DWORD
 PTR_(stack_offset,               DWORD) // array of 10 DWORD
