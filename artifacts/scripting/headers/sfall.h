@@ -275,6 +275,10 @@
 #define weapon_attack_mode2(pid)                        ((get_proto_data(pid, PROTO_FLAG_EXT) bwand 0x000000F0) / 0x10)
 #define weapon_attack_mode(pid, attackType)             (weapon_attack_mode1(pid) if (attackType == ATKTYPE_LWEP1 or attackType == ATKTYPE_RWEP1) else weapon_attack_mode2(pid))
 
+#define get_tile_fid_ext(tile, elev, mode)              get_tile_fid(((mode bwand 0xF) * 0x10000000) bwor ((elev bwand 0xF) * 0x1000000) bwor (tile bwand 0xFFFFFF))
+#define get_tile_ground_fid(tile, elev)                 get_tile_fid_ext(tile, elev, 0)
+#define get_tile_roof_fid(tile, elev)                   get_tile_fid_ext(tile, elev, 1)
+
 
 /* SFALL_FUNCX MACROS */
 
@@ -320,7 +324,6 @@
 #define get_npc_stat_max(stat)                                  sfall_func2("get_stat_max", stat, 1)
 #define get_npc_stat_min(stat)                                  sfall_func2("get_stat_min", stat, 1)
 #define get_sfall_arg_at(argNum)                                sfall_func1("get_sfall_arg_at", argNum)
-#define get_string_pointer(text)                                sfall_func1("get_string_pointer", text)
 #define get_terrain_name(x, y)                                  sfall_func2("get_terrain_name", x, y)
 #define get_text_width(text)                                    sfall_func1("get_text_width", text)
 #define hide_win                                                sfall_func0("hide_window")
@@ -360,6 +363,7 @@
 #define set_car_intface_art(artIndex)                           sfall_func1("set_car_intface_art", artIndex)
 #define set_combat_free_move(value)                             sfall_func1("set_combat_free_move", value)
 #define set_cursor_mode(mode)                                   sfall_func1("set_cursor_mode", mode)
+#define set_dude_obj(critter)                                   sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                                   sfall_func2("set_flags", obj, flags)
 #define set_iface_tag_text(tag, text, color)                    sfall_func3("set_iface_tag_text", tag, text, color)
 #define set_ini_setting(setting, value)                         sfall_func2("set_ini_setting", setting, value)

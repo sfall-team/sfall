@@ -691,10 +691,12 @@ An example usage would be to add an additional description to the item based on 
 
 Does not run if the script of the object overrides the description.
 
+__NOTE:__ Returning a pointer to the new text received from the `get_string_pointer` function is still valid, but the method is DEPRECATED and is left for backward compatibility only.
+
 ```
 Obj     arg0 - the object
 
-int     ret0 - a pointer to the new text received by using the get_string_pointer function
+String  ret0 - the new description text to use
 ```
 
 -------------------------------------------
