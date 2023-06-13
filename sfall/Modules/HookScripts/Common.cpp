@@ -57,7 +57,7 @@ ScriptValue HookCommon::GetHSArgAt(DWORD id) {
 	return args[id];
 }
 
-void __stdcall HookCommon::SetHSReturn(const ScriptValue& value) {
+void HookCommon::SetHSReturn(const ScriptValue& value) {
 	// For backward compatibility - ignore non-int return values
 	if (!allowNonIntReturn && !value.isInt()) return;
 

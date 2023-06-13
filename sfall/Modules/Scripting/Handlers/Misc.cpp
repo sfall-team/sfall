@@ -333,10 +333,10 @@ end:
 
 void op_get_tile_fid(OpcodeContext& ctx) {
 	long tileX, tileY, squareNum, squareData, result,
-		tileAndElev = ctx.arg(0).rawValue(),
-		tileNum = tileAndElev & 0xFFFFFF,
-		elevation = (tileAndElev >> 24) & 0x0F,
-		mode = tileAndElev >> 28;
+	     tileAndElev = ctx.arg(0).rawValue(),
+	     tileNum = tileAndElev & 0xFFFFFF,
+	     elevation = (tileAndElev >> 24) & 0x0F,
+	     mode = tileAndElev >> 28;
 
 	fo::func::tile_coord(tileNum, &tileX, &tileY);
 	squareNum = fo::func::square_num(tileX, tileY, elevation);
@@ -347,6 +347,7 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 		break;
 	case 2:
 		result = squareData; // raw data
+		break;
 	default:
 		// Vanilla uses 12 bits for Tile FID, which means 4096 possible values, the mask was 0x0FFF
 		// BUT sfall's FRM Limit patch extended it to 14 bits, so we need to use mask 0x3FFF

@@ -15,7 +15,7 @@ public:
 	static script::ScriptValue GetHSArg();
 	static script::ScriptValue GetHSArgAt(DWORD id);
 	static void SetHSArg(DWORD id, const script::ScriptValue& value);
-	static void __stdcall SetHSReturn(const script::ScriptValue& value);
+	static void SetHSReturn(const script::ScriptValue& value);
 
 	static void GameModeChangeHook(DWORD exit);
 	static void __stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);

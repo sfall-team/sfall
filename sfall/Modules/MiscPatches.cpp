@@ -88,12 +88,12 @@ static void __declspec(naked) register_object_take_out_hack() {
 }
 
 static void __declspec(naked) gdAddOptionStr_hack() {
+	static const DWORD gdAddOptionStr_hack_Ret = 0x4458FA;
 	__asm {
 		mov  ecx, ds:[FO_VAR_gdNumOptions];
 		add  ecx, '1';
 		push ecx;
-		mov  ecx, 0x4458FA;
-		jmp  ecx;
+		jmp  gdAddOptionStr_hack_Ret;
 	}
 }
 

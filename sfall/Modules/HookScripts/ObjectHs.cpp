@@ -167,8 +167,8 @@ static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
 	RunHookScript(HOOK_DESCRIPTIONOBJ);
 
 	DWORD textPtr = cRet > 0 && (retTypes[0] == DataType::INT || retTypes[0] == DataType::STR)
-		? rets[0]
-		: 0;
+	              ? rets[0]
+	              : 0;
 
 	EndHook();
 	return textPtr;
