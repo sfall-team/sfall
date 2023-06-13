@@ -113,6 +113,8 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1e1, "set_critical_table",         op_set_critical_table,        5, false,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1e2, "get_critical_table",         op_get_critical_table,        4, true,   0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1e3, "reset_critical_table",       op_reset_critical_table,      4, false,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e4, "get_sfall_arg",              op_get_sfall_arg,             0, true},
+	{0x1e5, "set_sfall_return",           op_set_sfall_return,          1, false,  0, {ARG_ANY}}, // hook script system will validate type
 	{0x1eb, "get_ini_string",             op_get_ini_string,            1, true,  -1, {ARG_STRING}},
 	{0x1ec, "sqrt",                       op_sqrt,                      1, true,   0, {ARG_NUMBER}},
 	{0x1ed, "abs",                        op_abs,                       1, true,   0, {ARG_NUMBER}},
@@ -176,7 +178,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x239, "scan_array",                 op_scan_array,                2, true,  -1, {ARG_OBJECT, ARG_ANY}},
 	{0x23a, "get_tile_fid",               op_get_tile_fid,              1, true,   0, {ARG_INT}},
 	{0x23c, "get_sfall_args",             op_get_sfall_args,            0, true},
-	{0x23d, "set_sfall_arg",              op_set_sfall_arg,             2, false,  0, {ARG_INT, ARG_INT}},
+	{0x23d, "set_sfall_arg",              op_set_sfall_arg,             2, false,  0, {ARG_INT, ARG_ANY}}, // hook script system will validate type
 	{0x241, "get_npc_level",              op_get_npc_level,             1, true,  -1, {ARG_INTSTR}},
 	{0x242, "set_critter_skill_points",   op_set_critter_skill_points,  3, false,  0, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x243, "get_critter_skill_points",   op_get_critter_skill_points,  2, true,   0, {ARG_OBJECT, ARG_INT}},
@@ -374,8 +376,6 @@ void Opcodes::InitNew() {
 
 	opcodes[0x1df] = op_get_bodypart_hit_modifier;
 	opcodes[0x1e0] = op_set_bodypart_hit_modifier;
-	opcodes[0x1e4] = op_get_sfall_arg;
-	opcodes[0x1e5] = op_set_sfall_return;
 	opcodes[0x1e6] = op_set_unspent_ap_bonus;
 	opcodes[0x1e7] = op_get_unspent_ap_bonus;
 	opcodes[0x1e8] = op_set_unspent_ap_perk_bonus;

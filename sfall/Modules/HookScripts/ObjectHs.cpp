@@ -5,6 +5,8 @@
 
 #include "ObjectHs.h"
 
+using namespace sfall::script;
+
 // Object hook scripts
 namespace sfall
 {
@@ -156,16 +158,19 @@ end:
 
 static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
 	BeginHook();
+	allowNonIntReturn = true;
 	argCount = 1;
 
 	args[0] = object;
 
 	RunHookScript(HOOK_DESCRIPTIONOBJ);
 
-	DWORD textPrt = (cRet > 0) ? rets[0] : 0;
-	EndHook();
+	DWORD textPtr = cRet > 0 && (retTypes[0] == DATATYPE_INT || retTypes[0] == DATATYPE_STR)
+	              ? rets[0]
+	              : 0;
 
-	return textPrt;
+	EndHook();
+	return textPtr;
 }
 
 static void __declspec(naked) DescriptionObjHook() {

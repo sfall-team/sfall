@@ -41,7 +41,7 @@ void op_get_sfall_global_int(OpcodeContext&);
 
 void op_get_sfall_global_float(OpcodeContext&);
 
-void __declspec() op_get_sfall_arg();
+void op_get_sfall_arg(OpcodeContext&);
 
 void mf_get_sfall_arg_at(OpcodeContext&);
 
@@ -49,7 +49,7 @@ void op_get_sfall_args(OpcodeContext&);
 
 void op_set_sfall_arg(OpcodeContext&);
 
-void __declspec() op_set_sfall_return();
+void op_set_sfall_return(OpcodeContext&);
 
 void __declspec() op_game_loaded();
 
