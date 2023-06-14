@@ -1187,6 +1187,42 @@ struct FontData { // sizeof = 0x810
 	long  field80C;
 };
 
+typedef int(DictionaryReadProc)(FILE* stream, void* buffer, unsigned int size, int a4);
+typedef int(DictionaryWriteProc)(FILE* stream, void* buffer, unsigned int size, int a4);
+
+struct DictionaryIO {
+    DictionaryReadProc* readProc;
+    DictionaryWriteProc* writeProc;
+    int field_8;
+    int field_C;
+    int field_10;
+};
+
+// A tuple containing individual key-value pair of a dictionary.
+struct DictionaryEntry {
+    char* key;
+    void* value;
+};
+
+struct Dictionary {
+	int marker;
+
+	// The number of key/value pairs in the dictionary.
+	int entriesLength;
+
+	// The capacity of key/value pairs in [entries] array.
+	int entriesCapacity;
+
+	// The size of the dictionary values in bytes.
+	size_t valueSize;
+
+	// IO callbacks.
+	DictionaryIO io;
+
+	// The array of key-value pairs.
+	DictionaryEntry* entries;
+};
+
 #pragma pack(pop)
 
 }

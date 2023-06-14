@@ -19,6 +19,8 @@
 #include "Utils.h"
 
 #include "IniReader.h"
+#include "FalloutEngine/Fallout2.h"
+#include "Modules/LoadGameHook.h"
 
 namespace sfall
 {
@@ -28,13 +30,49 @@ DWORD IniReader::modifiedIni;
 static const char* ddrawIni = ".\\ddraw.ini";
 static char ini[65] = ".\\";
 
+//static std::unordered_map<std::string, fo::Dictionary*> iniCache;
+
+static fo::Dictionary* GetIniConfig(const char* iniFile) {
+	/*std::string pathStr(iniFile);
+	auto cacheHit = iniCache.find(pathStr);
+	if (cacheHit != iniCache.end()) {
+		return cacheHit->second;
+	}*/
+	fo::Dictionary* config = new fo::Dictionary();
+	fo::func::config_init(config);
+	if (!fo::func::config_load(config, iniFile, false)) {
+		fo::func::config_exit(config);
+		delete config;
+		//iniCache[pathStr] = nullptr;
+		return nullptr;
+	}
+	//fo::Dictionary* cachedConfig = new fo::Dictionary(config);
+	return /*iniCache[pathStr] =*/ config;
+}
+
 static int getInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
+	auto config = GetIniConfig(iniFile);
+	long value;
+	if (config == nullptr || !fo::func::config_get_value(config, section, setting, &value)) {
+		value = defaultValue;
+	}
+	if (config != nullptr) fo::func::config_exit(config);
+	return value;
 }
 
 static size_t getString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+	auto config = GetIniConfig(iniFile);
+	const char* value;
+	if (config == nullptr || !fo::func::config_get_string(config, section, setting, &value)) {
+		value = defaultValue;
+	}
+	std::strncpy(buf, value, bufSize - 1);
+	buf[bufSize - 1] = '\0';
+	if (config != nullptr) fo::func::config_exit(config);
+	return std::strlen(buf);
 }
+
+static std::vector<char> strBuffer;
 
 static std::string getString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
 	char* buf = new char[bufSize];
@@ -42,6 +80,12 @@ static std::string getString(const char* section, const char* setting, const cha
 	std::string str(buf);
 	delete[] buf;
 	return str;
+
+	/*if (strBuffer.capacity() < bufSize) {
+		strBuffer.reserve(bufSize);
+	}
+	getString(section, setting, defaultValue, strBuffer.data(), bufSize, iniFile);
+	return std::string(strBuffer.data());*/
 }
 
 static std::vector<std::string> getList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
@@ -128,8 +172,21 @@ int IniReader::SetDefaultConfigString(const char* section, const char* setting, 
 	return WritePrivateProfileStringA(section, setting, value, ddrawIni);
 }
 
+void OnGameReset() {
+	/*for (const auto& cache : iniCache) {
+		if (cache.second != nullptr) {
+			if (cache.first.find("ddraw") == -1) {
+				fo::func::config_exit(cache.second);
+			}
+		}
+	}
+	iniCache.clear();*/
+}
+
 void IniReader::init() {
 	modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
+
+	LoadGameHook::OnGameReset() += OnGameReset;
 }
 
 }
