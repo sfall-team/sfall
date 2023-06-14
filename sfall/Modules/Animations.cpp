@@ -92,7 +92,7 @@ static const DWORD anim_set_C_shift[] = { // flags
 	0x413AA4, 0x413DBC,
 };
 
-static const DWORD anim_set_10[] = { // anim_0
+static const DWORD anim_set_10[] = { // anim_0.animType
 	0x413C7E, 0x413F17, 0x415C24, 0x415D16, 0x415D44,
 	0x413E8A, /*- conflict with 0x413E88*/
 };

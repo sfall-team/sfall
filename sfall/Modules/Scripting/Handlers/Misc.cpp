@@ -324,6 +324,12 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 	     elevation = (tileAndElev >> 24) & 0x0F,
 	     mode = tileAndElev >> 28;
 
+	if (tileNum >= 40000 || elevation > 2) {
+		ctx.printOpcodeError("%s() - invalid tile data argument.", ctx.getMetaruleName());
+		ctx.setReturn(0);
+		return;
+	}
+
 	fo::func::tile_coord(tileNum, &tileX, &tileY);
 	squareNum = fo::func::square_num(tileX, tileY, elevation);
 	squareData = fo::ptr::square[elevation][squareNum];

@@ -320,19 +320,8 @@ artNotExist:
 		push edx;
 		push artDbgMsg;
 		call fo::funcoffs::debug_printf_;
-		cmp  isDebug, 0;
-		jne  display;
 		add  esp, 8;
 		retn;
-display:
-		push edx; // filename
-		push artDbgMsg;
-		lea  eax, [esp + 0x124 - 0x124 + 20]; // buf
-		push eax;
-		call fo::funcoffs::sprintf_;
-		add  esp, 20;
-		lea  eax, [esp + 4];
-		jmp  fo::funcoffs::display_print_;
 	}
 }
 
@@ -451,12 +440,6 @@ static void DebugModePatch() {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
 
-		// prints a debug message about a missing critter art file to both debug.log and the message window in sfall debugging mode
-		HookCall(0x419B65, art_data_size_hook);
-		// checks the animation code, if ANIM_walk then skip printing the debug message
-		HookCall(0x419AA0, art_data_size_hook_check);
-		SafeWrite8(0x419B61, CodeType::JumpNZ); // jz > jnz
-
 		// Fix to prevent crashes when there is a '%' character in the printed message
 		if (dbgMode > 1) {
 			MakeCall(0x4C703F, debug_log_hack);
@@ -522,6 +505,12 @@ void DebugEditor::OnAfterGameInit() {
 
 void DebugEditor::init() {
 	DebugModePatch();
+
+	// Prints a debug message about a missing critter art file to debug.log
+	HookCall(0x419B65, art_data_size_hook);
+	// Checks the animation code, if ANIM_walk then skip printing the debug message
+	HookCall(0x419AA0, art_data_size_hook_check);
+	SafeWrite8(0x419B61, CodeType::JumpNZ); // jz > jnz
 
 	// Notifies and prints a debug message about a corrupted proto file to debug.log
 	MakeCall(0x4A1D73, proto_load_pid_hack, 6);

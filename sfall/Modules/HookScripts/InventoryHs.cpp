@@ -31,7 +31,7 @@ void RemoveInvenObjHook_Invoke(fo::GameObject* source, fo::GameObject* item, lon
 
 static long rmObjType = -1;
 
-void SetRemoveObjectType(long rmType) {
+void __stdcall SetRemoveObjectType(long rmType) {
 	rmObjType = rmType;
 }
 
