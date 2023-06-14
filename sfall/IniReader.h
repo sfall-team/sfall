@@ -34,7 +34,7 @@ public:
 	// Gets the integer value from the default config (i.e. ddraw.ini)
 	static int GetIntDefaultConfig(const char* section, const char* setting, int defaultValue);
 
-	static std::string GetStringDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize);
+	static std::string GetStringDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
 	// Gets a list of values separated by the delimiter from the default config (i.e. ddraw.ini)
 	static std::vector<std::string> GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter);
@@ -64,6 +64,8 @@ public:
 	static std::vector<std::string> GetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
 	static int SetConfigInt(const char* section, const char* setting, int value);
+
+	static int SetConfigString(const char* section, const char* setting, const char* value);
 
 	static int SetDefaultConfigInt(const char* section, const char* setting, int value);
 

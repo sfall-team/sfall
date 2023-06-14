@@ -462,9 +462,6 @@ static void DebugModePatch() {
 			MakeCall(0x4C703F, debug_log_hack);
 			BlockCall(0x4C7044); // just nop code
 		}
-		// replace calling debug_printf_ with _debug_func
-		__int64 data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
-		SafeWriteBytes(0x455419, (BYTE*)&data, 8); // op_display_msg_
 
 		// set the position of the debug window
 		SafeWrite8(0x4DC34D, 15);

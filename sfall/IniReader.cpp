@@ -116,6 +116,10 @@ int IniReader::SetConfigInt(const char* section, const char* setting, int value)
 	return setInt(section, setting, value, ini);
 }
 
+int IniReader::SetConfigString(const char* section, const char* setting, const char* value) {
+	return WritePrivateProfileStringA(section, setting, value, ini);
+}
+
 int IniReader::SetDefaultConfigInt(const char* section, const char* setting, int value) {
 	return setInt(section, setting, value, ddrawIni);
 }

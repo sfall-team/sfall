@@ -19,6 +19,7 @@
 #include "main.h"
 #include "Logging.h"
 #include "FalloutEngine\Fallout2.h"
+#include "Utils.h"
 
 #ifndef NO_SFALL_DEBUG
 
@@ -35,12 +36,144 @@ enum ConsoleSource : int {
 };
 
 static int DebugTypes = 0;
-static int ConsoleWindowMode = 0;
 static std::ofstream Log;
 
 static int LastType = -1;
 static int LastNewLine;
-static int LastConsoleSource;
+
+class ConsoleWindow {
+public:
+	static constexpr char* IniSection = "Debugging";
+	static constexpr char* IniModeKey = "ConsoleWindow";
+	static constexpr char* IniPositionKey = "ConsoleWindowData";
+
+	static ConsoleWindow& instance() { return _instance; }
+
+	ConsoleWindow() {}
+	~ConsoleWindow();
+
+	void init();
+
+	void loadPosition();
+	void savePosition();
+
+	void sfallLog(const std::string& a, int type);
+	void falloutLog(const char* a);
+
+private:
+	static ConsoleWindow _instance;
+
+	int _mode = 0;
+	ConsoleSource _lastSource;
+
+	bool tryGetWindow(HWND* wnd);
+};
+
+ConsoleWindow ConsoleWindow::_instance;
+
+bool ConsoleWindow::tryGetWindow(HWND* wnd) {
+	*wnd = GetConsoleWindow();
+	if (!*wnd) {
+		dlogr("Error getting console window.", DL_MAIN);
+		return false;
+	}
+	return true;
+}
+
+void ConsoleWindow::loadPosition() {
+	auto windowDataStr = IniReader::GetStringDefaultConfig(IniSection, IniPositionKey, "");
+	auto windowDataSplit = split(windowDataStr, ',');
+	if (windowDataSplit.size() < 4) return;
+
+	HWND wnd;
+	if (!tryGetWindow(&wnd)) return;
+
+	int windowData[4];
+	for (size_t i = 0; i < 4; i++) {
+		windowData[i] = atoi(windowDataSplit.at(i).c_str());
+	}
+	if (!SetWindowPos(wnd, HWND_TOP, windowData[0], windowData[1], windowData[2], windowData[3], 0)) {
+		dlog_f("Error Repositioning console window: %x \n", DL_MAIN, GetLastError());
+	}
+}
+
+void ConsoleWindow::savePosition() {
+	HWND wnd;
+	if (!tryGetWindow(&wnd)) return;
+
+	tagRECT wndRect;
+	if (!GetWindowRect(wnd, &wndRect)) {
+		dlog_f("Error getting console window position: %x \n", DL_MAIN, GetLastError());
+	}
+	int width = wndRect.right - wndRect.left;
+	int height = wndRect.bottom - wndRect.top;
+	std::ostringstream ss;
+	ss << wndRect.left << "," << wndRect.top << "," << width << "," << height;
+	auto wndDataStr = ss.str();
+	dlog_f("Saving console window position & size: %s", DL_MAIN, wndDataStr.c_str());
+	
+	IniReader::SetDefaultConfigString(IniSection, IniPositionKey, wndDataStr.c_str());
+}
+
+static void __fastcall PrintToConsole(const char* a) {
+	ConsoleWindow::instance().falloutLog(a);
+}
+
+static void __declspec(naked) debug_printf_hack() {
+	static const DWORD backRet = 0x4C6F7C;
+	__asm {
+		call fo::funcoffs::vsprintf_;
+		pushadc;
+		mov ecx, esp;
+		add ecx, 12;
+		call PrintToConsole;
+		popadc;
+		jmp backRet;
+	}
+}
+
+void ConsoleWindow::init() {
+	_mode = IniReader::GetIntDefaultConfig(IniSection, IniModeKey, 0);
+	if (_mode == 0) return;
+	if (!AllocConsole()) {
+		dlog_f("Failed to alloc console: %x", DL_MAIN, GetLastError());
+		return;
+	}
+	freopen("CONOUT$", "w", stdout); // this allows to print to console via std::cout
+
+	if (_mode & ConsoleSource::GAME) {
+		std::cout << "Displaying debug_printf output." << std::endl;
+		MakeJump(0x4C6F77, debug_printf_hack);
+	}
+	if (_mode & ConsoleSource::SFALL) {
+		std::cout << "Displaying sfall debug output." << std::endl;
+	}
+	std::cout << std::endl;
+
+	loadPosition();
+}
+
+ConsoleWindow::~ConsoleWindow() {
+	if (_mode == 0) return;
+
+	savePosition();
+}
+
+void ConsoleWindow::falloutLog(const char* a) {
+	std::cout << a;
+	_lastSource = ConsoleSource::GAME;
+}
+
+void ConsoleWindow::sfallLog(const std::string& a, int type) {
+	if (!(_mode & ConsoleSource::SFALL)) return;
+
+	if (_lastSource == ConsoleSource::GAME) {
+		std::cout << std::endl; // To make logs prettier, because debug_msg places newline before the message.
+	}
+	std::cout << a;
+	_lastSource = ConsoleSource::SFALL;
+}
+
 
 template <class T>
 static void OutLog(T a, int type, bool newLine = false) {
@@ -52,15 +185,9 @@ static void OutLog(T a, int type, bool newLine = false) {
 	if (newLine) ss << std::endl;
 	std::string str = ss.str();
 
-	if (ConsoleWindowMode & ConsoleSource::SFALL) {
-		if (LastConsoleSource == ConsoleSource::GAME) {
-			std::cout << std::endl; // To make logs prettier, because debug_msg places newline before the message.
-		}
-		std::cout << a;
-		LastConsoleSource = ConsoleSource::SFALL;
-	}
+	ConsoleWindow::instance().sfallLog(str, type);
 	
-	Log << a;
+	Log << str;
 	Log.flush();
 
 	LastType = type;
@@ -133,28 +260,8 @@ void devlog_f(const char* fmt, int type, ...) {
 void devlog_f(...) {}
 #endif
 
-static void __fastcall PrintToConsole(const char* a) {
-	std::cout << a;
-	LastConsoleSource = ConsoleSource::GAME;
-}
-
-static void __declspec(naked) debug_printf_hack() {
-	static const DWORD backRet = 0x4C6F7C;
-	__asm {
-		call fo::funcoffs::vsprintf_;
-		pushadc;
-		mov ecx, esp;
-		add ecx, 12;
-		call PrintToConsole;
-		popadc;
-		jmp backRet;
-	}
-}
-
 void LoggingInit() {
 	Log.open("sfall-log.txt", std::ios_base::out | std::ios_base::trunc);
-
-	ConsoleWindowMode = IniReader::GetIntDefaultConfig("Debugging", "ConsoleWindow", 0);
 
 	if (IniReader::GetIntDefaultConfig("Debugging", "Init", 0)) {
 		DebugTypes |= DL_INIT;
@@ -171,24 +278,8 @@ void LoggingInit() {
 	if (IniReader::GetIntDefaultConfig("Debugging", "Fixes", 0)) {
 		DebugTypes |= DL_FIX;
 	}
-	if (ConsoleWindowMode > 0) {
-		if (AllocConsole()) {
-			freopen("CONOUT$", "w", stdout);
-
-			if (ConsoleWindowMode & ConsoleSource::GAME) {
-				std::cout << "Displaying debug_printf output." << std::endl;
-				MakeJump(0x4C6F77, debug_printf_hack);
-			}
-			if (ConsoleWindowMode & ConsoleSource::SFALL) {
-				std::cout << "Displaying sfall debug output." << std::endl;
-			}
-			std::cout << std::endl;
-
-		}
-		else {
-			dlog_f("Console Failed: %x", DL_MAIN, GetLastError());
-		}
-	}
+	
+	ConsoleWindow::instance().init();
 }
 
 }
