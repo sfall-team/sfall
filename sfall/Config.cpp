@@ -38,7 +38,7 @@ bool Config::read(const char* filePath, bool isDb)
 		return false;
 	}
 
-	char string[256];
+	char string[1024];
 
 	if (isDb) {
 		DbFile* stream = func::db_fopen(filePath, "rb");

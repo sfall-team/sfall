@@ -28,7 +28,7 @@ namespace sfall
 
 /*
 	Implements reading from INI-like text config files in normal and DAT-filesystem.
-	100% compatible with Fallout TXT config formats (such as worldmap.txt).
+	Supposed to be 100% compatible with Fallout TXT config formats (such as worldmap.txt).
 */
 class Config {
 public:

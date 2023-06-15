@@ -61,11 +61,11 @@ static size_t getString(const char* section, const char* setting, const char* de
 	auto config = IniReader::GetIniConfig(iniFile);
 	const std::string* value;
 	if (config == nullptr || !config->getString(section, setting, value)) {
-		strcpy_s(buf, bufSize - 1, defaultValue);
+		strncpy_s(buf, bufSize, defaultValue, bufSize - 1);
 		return strlen(buf);
 	}
 	
-	strcpy_s(buf, bufSize - 1, value->c_str());
+	strncpy_s(buf, bufSize, value->c_str(), bufSize - 1);
 	return value->size();
 }
 
