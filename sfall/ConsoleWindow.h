@@ -28,10 +28,6 @@ enum ConsoleSource : int {
 
 class ConsoleWindow {
 public:
-	static constexpr char* IniSection = "Debugging";
-	static constexpr char* IniModeKey = "ConsoleWindow";
-	static constexpr char* IniPositionKey = "ConsoleWindowData";
-
 	static ConsoleWindow& instance() { return _instance; }
 
 	ConsoleWindow() {}
