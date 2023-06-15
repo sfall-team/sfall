@@ -46,6 +46,7 @@ public:
 	static constexpr char* IniSection = "Debugging";
 	static constexpr char* IniModeKey = "ConsoleWindow";
 	static constexpr char* IniPositionKey = "ConsoleWindowData";
+	static constexpr char* IniCodePageKey = "ConsoleCodePage";
 
 	static ConsoleWindow& instance() { return _instance; }
 
@@ -137,6 +138,9 @@ void ConsoleWindow::init() {
 		dlog_f("Failed to allocate console: 0x%x\n", DL_MAIN, GetLastError());
 		return;
 	}
+	int cp = IniReader::GetIntDefaultConfig(IniSection, IniCodePageKey, 0);
+	if (cp > 0) SetConsoleOutputCP(cp);
+
 	freopen("CONOUT$", "w", stdout); // this allows to print to console via std::cout
 
 	if (_mode & ConsoleSource::GAME) {
