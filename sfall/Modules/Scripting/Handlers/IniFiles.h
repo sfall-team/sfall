@@ -37,7 +37,7 @@ void mf_get_ini_sections(OpcodeContext&);
 
 void mf_get_ini_section(OpcodeContext&);
 
-void mf_config_load(OpcodeContext&);
+void mf_get_ini_config(OpcodeContext&);
 
 }
 }

@@ -193,7 +193,7 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 	CopyConfigSectionToArray(arrayId, sectIt->second);
 }
 
-void mf_config_load(OpcodeContext& ctx) {
+void mf_get_ini_config(OpcodeContext& ctx) {
 	bool isDb = ctx.arg(1).asBool();
 	std::string filePath(isDb ? ctx.arg(0).strValue() : GetIniFilePathFromArg(ctx.arg(0)));
 
