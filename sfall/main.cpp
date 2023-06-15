@@ -86,6 +86,8 @@
 
 #include "HRP\Init.h"
 
+#include <chrono>
+
 ddrawDll ddraw;
 
 namespace sfall
@@ -204,6 +206,8 @@ static HMODULE SfallInit() {
 	char filepath[MAX_PATH];
 	GetModuleFileName(0, filepath, MAX_PATH);
 
+	auto initStart = std::chrono::high_resolution_clock::now();
+
 	SetCursor(LoadCursorA(0, IDC_ARROW));
 	ShowCursor(1);
 
@@ -289,6 +293,11 @@ defaultIni:
 	if (HRP::Setting::ExternalEnabled()) ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
+
+	auto initEnd = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(initEnd - initStart);
+	dlog_f("Sfall initialized in: %d us\n", DL_INIT, duration.count());
+
 	return ddraw.sfall;
 }
 
