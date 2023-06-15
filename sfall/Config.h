@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include <unordered_map>
+#include "Utils.h"
+
+#include <map>
 #include <string>
 
 namespace sfall
@@ -30,8 +32,8 @@ namespace sfall
 */
 class Config {
 public:
-	typedef std::map<std::string, std::string> Section;
-	typedef std::map<std::string, Section> Data;
+	typedef std::map<std::string, std::string, ci_less> Section;
+	typedef std::map<std::string, Section, ci_less> Data;
 
 	bool read(const char* filePath, bool isDb);
 	
@@ -52,7 +54,6 @@ private:
 
 	static bool parseKeyValue(char* string, std::string& key, std::string& value);
 
-	bool getValueIt(const char* sectionKey, const char* key, Section::const_iterator& outValue);
 	Data::iterator ensureSection(const char* sectionKey);
 	bool parseLine(char* string);
 };

@@ -135,27 +135,19 @@ Config::Data::iterator Config::ensureSection(const char* sectionKey)
 {
 	auto sectionIt = _data.find(sectionKey);
 	if (sectionIt == _data.end()) {
-		return _data.emplace(sectionKey, std::map<std::string, std::string>()).first;
+		return _data.emplace(sectionKey, Section()).first;
 	}
 	return sectionIt;
 }
 
-bool Config::getValueIt(const char* sectionKey, const char* key, Config::Section::const_iterator& outIt)
+bool Config::getString(const char* sectionKey, const char* key, const std::string*& outValue)
 {
 	auto sectionIt = _data.find(sectionKey);
 	if (sectionIt == _data.end()) return false;
 
 	const auto& section = sectionIt->second;
-	outIt = section.find(key);
-	if (outIt == section.end()) return false;
-
-	return true;
-}
-
-bool Config::getString(const char* sectionKey, const char* key, const std::string*& outValue)
-{
-	Section::const_iterator valueIt;
-	if (!getValueIt(sectionKey, key, valueIt)) return false;
+	auto valueIt = section.find(key);
+	if (valueIt == section.end()) return false;
 
 	outValue = &valueIt->second;
 	return true;
