@@ -375,7 +375,6 @@ static void __stdcall NewGame_Before() {
 }
 
 static void __stdcall NewGame_After() {
-	dlogr("New Game started.", DL_MAIN);
 	// OnAfterNewGame
 	if (HeroAppearance::appModEnabled) {
 		SetNewCharAppearanceGlobals();
@@ -383,6 +382,7 @@ static void __stdcall NewGame_After() {
 	}
 	RunOnAfterGameStarted();
 	gameLoaded = true;
+	dlogr("New Game started.", DL_MAIN);
 }
 
 static void __declspec(naked) main_load_new_hook() {
