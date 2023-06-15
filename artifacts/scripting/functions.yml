@@ -1855,11 +1855,16 @@
     opcode: 0x81eb
   - name: get_ini_section
     detail: array get_ini_section(string file, string sect)
-    doc: 'Returns an associative array of keys and values for a given INI file and section. NOTE: all keys and their values will be of String type.'
+    doc: |
+      Returns an associative array of keys and values for a given INI file and section.
+      - If INI file is not found, will return an empty array.
+      - All keys and their values will be of String type.
     macro: sfall.h
   - name: get_ini_sections
     detail: array get_ini_sections(string file)
-    doc: Returns an array of names of all sections in a given INI file.
+    doc: |
+      Returns an array of names of all sections in a given INI file.
+      - If INI file is not found, will return an empty array.
     macro: sfall.h
   - name: set_ini_setting
     detail: void set_ini_setting(string setting, int/string value)

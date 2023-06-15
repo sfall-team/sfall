@@ -156,52 +156,41 @@ static std::string GetIniFilePathFromArg(const ScriptValue& arg) {
 }
 
 void mf_get_ini_sections(OpcodeContext& ctx) {
-	// TODO: use Config
-	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePathFromArg(ctx.arg(0)).c_str())) {
+	Config* config = IniReader::GetIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
+	if (config == nullptr) {
 		ctx.setReturn(CreateTempArray(0, 0));
 		return;
 	}
-	std::vector<char*> sections;
-	char* section = ScriptExtender::gTextBuffer;
-	while (*section != 0) {
-		sections.push_back(section); // position
-		section += std::strlen(section) + 1;
-	}
-	size_t sz = sections.size();
-	int arrayId = CreateTempArray(sz, 0);
-	auto& arr = arrays[arrayId];
-
-	for (size_t i = 0; i < sz; ++i) {
-		size_t j = i + 1;
-		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
-		arr.val[i].set(sections[i], len); // copy string from buffer
+	const auto& data = config->data();
+	size_t numSections = config->data().size();
+	int arrayId = CreateTempArray(numSections, 0);
+	size_t i = 0;
+	for (auto sectIt = data.cbegin(); sectIt != data.cend(); ++sectIt) {
+		arrays[arrayId].val[i].set(sectIt->first.c_str(), sectIt->first.size());
+		++i;
 	}
 	ctx.setReturn(arrayId);
 }
 
-void mf_get_ini_section(OpcodeContext& ctx) {
-	auto section = ctx.arg(1).strValue();
-	int arrayId = CreateTempArray(-1, 0); // associative
-
-	// TODO: use config
-	if (GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePathFromArg(ctx.arg(0)).c_str())) {
-		auto& arr = arrays[arrayId];
-		char *key = ScriptExtender::gTextBuffer, *val = nullptr;
-		while (*key != 0) {
-			char* val = std::strpbrk(key, "=");
-			if (val != nullptr) {
-				*val = '\0';
-				val += 1;
-
-				SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
-
-				key = val + std::strlen(val) + 1;
-			} else {
-				key += std::strlen(key) + 1;
-			}
-		}
+static void CopyConfigSectionToArray(DWORD arrayId, const Config::Section& section) {
+	for (auto valueIt = section.cbegin(); valueIt != section.cend(); ++valueIt) {
+		SetArray(arrayId, valueIt->first.c_str(), valueIt->second.c_str(), false);
 	}
+}
+
+void mf_get_ini_section(OpcodeContext& ctx) {
+	auto sectionName = ctx.arg(1).strValue();
+	int arrayId = CreateTempArray(-1, 0); // associative
 	ctx.setReturn(arrayId);
+
+	Config* config = IniReader::GetIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
+	if (config == nullptr) return; // ini file not found
+
+	const auto& data = config->data();
+	auto sectIt = data.find(sectionName);
+	if (sectIt == data.end()) return; // ini section not found
+
+	CopyConfigSectionToArray(arrayId, sectIt->second);
 }
 
 void mf_config_load(OpcodeContext& ctx) {
@@ -247,10 +236,7 @@ void mf_config_load(OpcodeContext& ctx) {
 	const auto& data = config->data();
 	for (auto sectIt = data.cbegin(); sectIt != data.cend(); ++sectIt) {
 		DWORD subArrayId = CreateArray(-1, 0);
-		const auto& section = sectIt->second;
-		for (auto valueIt = section.cbegin(); valueIt != section.cend(); ++valueIt) {
-			SetArray(subArrayId, valueIt->first.c_str(), valueIt->second.c_str(), false);
-		}
+		CopyConfigSectionToArray(subArrayId, sectIt->second);
 		SetArray(arrayId, sectIt->first.c_str(), subArrayId, false);
 	}
 	// Save new array ID to cache and return it.
