@@ -254,7 +254,7 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 		}
 		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
-		auto hands = fo::var::itemButtonItems;
+		auto& hands = fo::var::itemButtonItems;
 		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
 		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;

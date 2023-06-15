@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "..\main.h"
+#include "..\ConsoleWindow.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 //#include "Graphics.h"
@@ -394,6 +395,28 @@ static void __declspec(naked) combat_load_hack() {
 	}
 }
 
+static void __fastcall PrintLogToConsole(const char* a) {
+	auto& console = ConsoleWindow::instance();
+	console.falloutLog("\n");
+	console.falloutLog(a);
+}
+
+static void __declspec(naked) op_display_debug_msg_hack() {
+	__asm {
+		mov eax, 0x505224; // "\n"
+		call ds:[FO_VAR_debug_func];
+		mov eax, esi; // actual message
+		call ds:[FO_VAR_debug_func];
+		pushadc;
+		mov ecx, esi;
+		call PrintLogToConsole; // duplicate messages to console window
+		popadc;
+		pop eax;
+		add eax, 17; // skip to the end of functions
+		jmp eax;
+	}
+}
+
 // Shifts the string one character to the right and inserts a newline control character at the beginning
 static void MoveDebugString(char* messageAddr) {
 	int i = 0;
@@ -445,6 +468,8 @@ static void DebugModePatch() {
 			MakeCall(0x4C703F, debug_log_hack);
 			BlockCall(0x4C7044); // just nop code
 		}
+		// replace calling debug_printf_ with _debug_func, to avoid buffer overflow with messages longer than 260-bytes.
+		MakeCalls(op_display_debug_msg_hack, {0x45540F, 0x45CB4E}); // op_display_msg and op_debug_msg
 
 		// set the position of the debug window
 		SafeWrite8(0x4DC34D, 15);
