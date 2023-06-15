@@ -35,6 +35,10 @@
 
 #include "Metarule.h"
 
+#ifndef NDEBUG
+#include <sstream>
+#endif
+
 namespace sfall
 {
 namespace script
