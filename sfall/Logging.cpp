@@ -18,50 +18,214 @@
 
 #include "main.h"
 #include "Logging.h"
+#include "FalloutEngine\Fallout2.h"
+#include "Utils.h"
 
 #ifndef NO_SFALL_DEBUG
 
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
 namespace sfall
 {
 
+enum ConsoleSource : int {
+	GAME = 1,
+	SFALL = 2
+};
+
 static int DebugTypes = 0;
 static std::ofstream Log;
 
-template <class T>
-static void OutLog(T a) {
-	Log << a;
-	Log.flush();
+static int LastType = -1;
+static int LastNewLine;
+
+class ConsoleWindow {
+public:
+	static constexpr char* IniSection = "Debugging";
+	static constexpr char* IniModeKey = "ConsoleWindow";
+	static constexpr char* IniPositionKey = "ConsoleWindowData";
+
+	static ConsoleWindow& instance() { return _instance; }
+
+	ConsoleWindow() {}
+	~ConsoleWindow();
+
+	void init();
+
+	void loadPosition();
+	void savePosition();
+
+	void sfallLog(const std::string& a, int type);
+	void falloutLog(const char* a);
+
+private:
+	static ConsoleWindow _instance;
+
+	int _mode = 0;
+	ConsoleSource _lastSource;
+
+	bool tryGetWindow(HWND* wnd);
+};
+
+ConsoleWindow ConsoleWindow::_instance;
+
+bool ConsoleWindow::tryGetWindow(HWND* wnd) {
+	*wnd = GetConsoleWindow();
+	if (!*wnd) {
+		dlogr("Error getting console window.", DL_MAIN);
+		return false;
+	}
+	return true;
 }
 
+void ConsoleWindow::loadPosition() {
+	auto windowDataStr = IniReader::GetStringDefaultConfig(IniSection, IniPositionKey, "");
+	auto windowDataSplit = split(windowDataStr, ',');
+	if (windowDataSplit.size() < 4) return;
+
+	HWND wnd;
+	if (!tryGetWindow(&wnd)) return;
+
+	int windowData[4];
+	for (size_t i = 0; i < 4; i++) {
+		windowData[i] = atoi(windowDataSplit.at(i).c_str());
+	}
+	if (!SetWindowPos(wnd, HWND_TOP, windowData[0], windowData[1], windowData[2], windowData[3], 0)) {
+		dlog_f("Error Repositioning console window: %x \n", DL_MAIN, GetLastError());
+	}
+}
+
+void ConsoleWindow::savePosition() {
+	HWND wnd;
+	if (!tryGetWindow(&wnd)) return;
+
+	tagRECT wndRect;
+	if (!GetWindowRect(wnd, &wndRect)) {
+		dlog_f("Error getting console window position: %x \n", DL_MAIN, GetLastError());
+	}
+	int width = wndRect.right - wndRect.left;
+	int height = wndRect.bottom - wndRect.top;
+	std::ostringstream ss;
+	ss << wndRect.left << "," << wndRect.top << "," << width << "," << height;
+	auto wndDataStr = ss.str();
+	dlog_f("Saving console window position & size: %s", DL_MAIN, wndDataStr.c_str());
+	
+	IniReader::SetDefaultConfigString(IniSection, IniPositionKey, wndDataStr.c_str());
+}
+
+static void __fastcall PrintToConsole(const char* a) {
+	ConsoleWindow::instance().falloutLog(a);
+}
+
+static void __declspec(naked) debug_printf_hack() {
+	static const DWORD backRet = 0x4C6F7C;
+	__asm {
+		call fo::funcoffs::vsprintf_;
+		pushadc;
+		mov ecx, esp;
+		add ecx, 12;
+		call PrintToConsole;
+		popadc;
+		jmp backRet;
+	}
+}
+
+void ConsoleWindow::init() {
+	_mode = IniReader::GetIntDefaultConfig(IniSection, IniModeKey, 0);
+	if (_mode == 0) return;
+	if (!AllocConsole()) {
+		dlog_f("Failed to alloc console: %x", DL_MAIN, GetLastError());
+		return;
+	}
+	freopen("CONOUT$", "w", stdout); // this allows to print to console via std::cout
+
+	if (_mode & ConsoleSource::GAME) {
+		std::cout << "Displaying debug_printf output." << std::endl;
+		MakeJump(0x4C6F77, debug_printf_hack);
+	}
+	if (_mode & ConsoleSource::SFALL) {
+		std::cout << "Displaying sfall debug output." << std::endl;
+	}
+	std::cout << std::endl;
+
+	loadPosition();
+}
+
+ConsoleWindow::~ConsoleWindow() {
+	if (_mode == 0) return;
+
+	savePosition();
+}
+
+void ConsoleWindow::falloutLog(const char* a) {
+	std::cout << a;
+	_lastSource = ConsoleSource::GAME;
+}
+
+void ConsoleWindow::sfallLog(const std::string& a, int type) {
+	if (!(_mode & ConsoleSource::SFALL)) return;
+
+	if (_lastSource == ConsoleSource::GAME) {
+		std::cout << std::endl; // To make logs prettier, because debug_msg places newline before the message.
+	}
+	std::cout << a;
+	_lastSource = ConsoleSource::SFALL;
+}
+
+
 template <class T>
-static void OutLogN(T a) {
-	Log << a << "\n";
+static void OutLog(T a, int type, bool newLine = false) {
+	std::ostringstream ss;
+	if (LastNewLine || type != LastType) {
+		ss << "[" << DebugTypeToStr(type) << "] ";
+	}
+	ss << a;
+	if (newLine) ss << std::endl;
+	std::string str = ss.str();
+
+	ConsoleWindow::instance().sfallLog(str, type);
+	
+	Log << str;
 	Log.flush();
+
+	LastType = type;
+	LastNewLine = str.back() == '\n';
+}
+
+const char* DebugTypeToStr(int type) {
+	switch (type) {
+	case DL_INIT: return "Init";
+	case DL_HOOK: return "Hook";
+	case DL_SCRIPT: return "Script";
+	case DL_CRITICALS: return "Crits";
+	case DL_FIX: return "Fix";
+	default: return "Main";
+	}
 }
 
 void dlog(const char* a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLog(a);
+		OutLog(a, type);
 	}
 }
 
 void dlog(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLog(a);
+		OutLog(a, type);
 	}
 }
 
 void dlogr(const char* a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLogN(a);
+		OutLog(a, type, true);
 	}
 }
 
 void dlogr(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLogN(a);
+		OutLog(a, type, true);
 	}
 }
 
@@ -70,8 +234,10 @@ void dlog_f(const char* fmt, int type, ...) {
 		va_list args;
 		va_start(args, type);
 		char buf[1024];
-		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
-		OutLog(buf);
+		int written = vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
+		if (written > 0) {
+			OutLog(buf, type);
+		}
 		va_end(args);
 	}
 }
@@ -83,8 +249,10 @@ void devlog_f(const char* fmt, int type, ...) {
 		va_list args;
 		va_start(args, type);
 		char buf[1024];
-		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
-		OutLog(buf);
+		int written = vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
+		if (written > 0) {
+			OutLog(buf, type);
+		}
 		va_end(args);
 	}
 }
@@ -110,6 +278,8 @@ void LoggingInit() {
 	if (IniReader::GetIntDefaultConfig("Debugging", "Fixes", 0)) {
 		DebugTypes |= DL_FIX;
 	}
+	
+	ConsoleWindow::instance().init();
 }
 
 }
