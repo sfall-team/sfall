@@ -18,9 +18,9 @@
 
 #include "IniReader.h"
 
+#include "Config.h"
 #include "Main.h"
 #include "Utils.h"
-#include "SafeWrite.h"
 #include "FalloutEngine/Fallout2.h"
 #include "Modules/LoadGameHook.h"
 
@@ -32,29 +32,26 @@ DWORD IniReader::modifiedIni;
 static const char* ddrawIni = ".\\ddraw.ini";
 static char ini[65] = ".\\";
 
-static std::unordered_map<std::string, fo::Dictionary*> iniCache;
+static std::unordered_map<std::string, std::unique_ptr<Config>> iniCache;
 
-static fo::Dictionary* GetIniConfig(const char* iniFile) {
+static Config* GetIniConfig(const char* iniFile) {
 	std::string pathStr(iniFile);
 	auto cacheHit = iniCache.find(pathStr);
 	if (cacheHit != iniCache.end()) {
-		return cacheHit->second;
+		return cacheHit->second.get();
 	}
-	fo::Dictionary config;
-	fo::func::config_init(&config);
-	if (!fo::func::config_load(&config, iniFile, false)) {
-		fo::func::config_exit(&config);
-		iniCache[pathStr] = nullptr;
+	auto config = std::make_unique<Config>();
+	if (!config->read(iniFile, false)) {
+		iniCache.emplace(std::move(pathStr), nullptr);
 		return nullptr;
 	}
-	fo::Dictionary* cachedConfig = new fo::Dictionary(config);
-	return iniCache[pathStr] = cachedConfig;
+	return iniCache.emplace(std::move(pathStr), std::move(config)).first->second.get();
 }
 
 static int getInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
 	auto config = GetIniConfig(iniFile);
-	long value;
-	if (config == nullptr || !fo::func::config_get_value(config, section, setting, &value)) {
+	int value;
+	if (config == nullptr || !config->getInt(section, setting, value)) {
 		value = defaultValue;
 	}
 	return value;
@@ -62,29 +59,23 @@ static int getInt(const char* section, const char* setting, int defaultValue, co
 
 static size_t getString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
 	auto config = GetIniConfig(iniFile);
-	const char* value;
-	if (config == nullptr || !fo::func::config_get_string(config, section, setting, &value)) {
-		value = defaultValue;
+	const std::string* value;
+	if (config == nullptr || !config->getString(section, setting, value)) {
+		strcpy_s(buf, bufSize - 1, defaultValue);
+		return strlen(buf);
 	}
-	std::strncpy(buf, value, bufSize - 1);
-	buf[bufSize - 1] = '\0';
-	return std::strlen(buf);
+	
+	strcpy_s(buf, bufSize - 1, value->c_str());
+	return value->size();
 }
 
-static std::vector<char> strBuffer;
-
 static std::string getString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	/*char* buf = new char[bufSize];
-	getString(section, setting, defaultValue, buf, bufSize, iniFile);
-	std::string str(buf);
-	delete[] buf;
-	return str;*/
-
-	if (strBuffer.capacity() < bufSize) {
-		strBuffer.reserve(bufSize);
+	auto config = GetIniConfig(iniFile);
+	const std::string* value;
+	if (config == nullptr || !config->getString(section, setting, value)) {
+		return std::string(defaultValue);
 	}
-	getString(section, setting, defaultValue, strBuffer.data(), bufSize, iniFile);
-	return std::string(strBuffer.data());
+	return *value;
 }
 
 static std::vector<std::string> getList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
@@ -172,11 +163,6 @@ int IniReader::SetDefaultConfigString(const char* section, const char* setting, 
 }
 
 void OnGameReset() {
-	for (const auto& cache : iniCache) {
-		if (cache.second != nullptr) {
-			fo::func::config_exit(cache.second);
-		}
-	}
 	iniCache.clear();
 }
 
@@ -207,11 +193,6 @@ static void __declspec(naked) mem_free_hack() {
 }
 
 void IniReader::init() {
-	// Use normal memory allocator for config value strings, to avoid crash when calling config_exit.
-	// config_set_string & config_exit
-	MakeCalls(mem_free_hack, { 0x42C00A, 0x42C04B, 0x42BDF5 });
-	MakeCall(0x42C025, mem_strdup_hack);
-
 	modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
 
 	LoadGameHook::OnGameReset() += OnGameReset;

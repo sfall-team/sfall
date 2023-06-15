@@ -34,11 +34,11 @@ void trim(char* str) {
 	int len = strlen(str) - 1;
 
 	int i = len;
-	while (len >= 0 && isSpace(str[len])) len--;
+	while (len >= 0 && isspace(str[len])) len--;
 	if (i != len) str[len + 1] = '\0'; // delete all spaces on the right
 
 	i = 0;
-	while (i < len && isSpace(str[i])) i++;
+	while (i < len && isspace(str[i])) i++;
 	if (i > 0) {
 		int j = 0;
 		do {
@@ -49,10 +49,6 @@ void trim(char* str) {
 
 void ToLowerCase(std::string& line) {
 	std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-}
-
-bool isSpace(char c) {
-	return (c == ' ' || c == '\t' /*|| c == '\n' || c == '\r'*/);
 }
 
 // returns position, find word must be lowercase

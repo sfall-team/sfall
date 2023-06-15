@@ -213,8 +213,6 @@ static HMODULE SfallInit() {
 
 	if (!CRC(filepath)) return 0;
 
-	IniReader::init();
-
 	LoggingInit();
 
 	// enabling debugging features
@@ -274,6 +272,8 @@ defaultIni:
 		IniReader::SetDefaultConfigFile();
 	}
 	//std::srand(GetTickCount());
+
+	IniReader::init();
 
 	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
 		dlogr("Applying config file patch.", DL_INIT);
