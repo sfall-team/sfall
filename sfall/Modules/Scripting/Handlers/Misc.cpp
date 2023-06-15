@@ -112,74 +112,6 @@ end:
 	}
 }
 
-static bool IsSpecialIni(const char* str, const char* end) {
-	const char* pos = strfind(str, &IniReader::GetConfigFile()[2]); // TODO test
-	if (pos && pos < end) return true;
-	pos = strfind(str, "f2_res.ini");
-	if (pos && pos < end) return true;
-	return false;
-}
-
-static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
-	key = strstr(iniString, "|");
-	if (!key) return -1;
-
-	DWORD filelen = (DWORD)key - (DWORD)iniString;
-	if (ScriptExtender::iniConfigFolder.empty() && filelen >= 64) return -1;
-	const char* fileEnd = key;
-
-	key = strstr(key + 1, "|");
-	if (!key) return -1;
-
-	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
-	if (seclen > 32) return -1;
-
-	file[0] = '.';
-	file[1] = '\\';
-
-	if (!ScriptExtender::iniConfigFolder.empty() && !IsSpecialIni(iniString, fileEnd)) {
-		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
-		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
-		memcpy(&file[2 + len], iniString, filelen); // copy path and file
-		file[2 + len + filelen] = 0;
-		if (GetFileAttributesA(file) & FILE_ATTRIBUTE_DIRECTORY) goto defRoot; // also file not found
-	} else {
-defRoot:
-		memcpy(&file[2], iniString, filelen);
-		file[2 + filelen] = 0;
-	}
-	memcpy(section, &iniString[filelen + 1], seclen);
-	section[seclen] = 0;
-
-	key++;
-	return 1;
-}
-
-static DWORD GetIniSetting(const char* str, bool isString) {
-	const char* key;
-	char section[33], file[128];
-
-	if (ParseIniSetting(str, key, section, file) < 0) {
-		return -1;
-	}
-	if (isString) {
-		ScriptExtender::gTextBuffer[0] = 0;
-		IniReader::GetString(section, key, "", ScriptExtender::gTextBuffer, 256, file);
-		return (DWORD)&ScriptExtender::gTextBuffer[0];
-	} else {
-		return IniReader::GetInt(section, key, -1, file);
-	}
-}
-
-void op_get_ini_setting(OpcodeContext& ctx) {
-	ctx.setReturn(GetIniSetting(ctx.arg(0).strValue(), false));
-}
-
-void op_get_ini_string(OpcodeContext& ctx) {
-	DWORD result = GetIniSetting(ctx.arg(0).strValue(), true);
-	ctx.setReturn(result, (result != -1) ? DataType::STR : DataType::INT);
-}
-
 void __declspec(naked) op_get_uptime() {
 	__asm {
 		mov  esi, ecx;
@@ -362,13 +294,6 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_modified_ini() {
-	__asm {
-		mov  edx, IniReader::modifiedIni;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
 void __declspec(naked) op_mark_movie_played() {
 	__asm {
 		_GET_ARG_INT(end);
@@ -417,102 +342,6 @@ void op_tile_light(OpcodeContext& ctx) {
 
 void mf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::scr_exec_map_update_scripts_
-}
-
-void mf_set_ini_setting(OpcodeContext& ctx) {
-	const ScriptValue &argVal = ctx.arg(1);
-
-	const char* saveValue;
-	if (argVal.isInt()) {
-		_itoa_s(argVal.rawValue(), ScriptExtender::gTextBuffer, 10);
-		saveValue = ScriptExtender::gTextBuffer;
-	} else {
-		saveValue = argVal.strValue();
-	}
-	const char* key;
-	char section[33], file[128];
-	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
-	if (result > 0) {
-		result = WritePrivateProfileStringA(section, key, saveValue, file);
-	}
-
-	switch (result) {
-	case 0:
-		ctx.printOpcodeError("%s() - value save error.", ctx.getMetaruleName());
-		break;
-	case -1:
-		ctx.printOpcodeError("%s() - invalid setting argument.", ctx.getMetaruleName());
-		break;
-	default:
-		return;
-	}
-	ctx.setReturn(-1);
-}
-
-static std::string GetIniFilePath(const ScriptValue &arg) {
-	std::string fileName(".\\");
-	if (ScriptExtender::iniConfigFolder.empty()) {
-		fileName += arg.strValue();
-	} else {
-		fileName += ScriptExtender::iniConfigFolder;
-		fileName += arg.strValue();
-		if (GetFileAttributesA(fileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY) {
-			auto str = arg.strValue();
-			for (size_t i = 2; ; i++, str++) {
-				//if (*str == '.') str += (str[1] == '.') ? 3 : 2; // skip '.\' or '..\'
-				fileName[i] = *str;
-				if (!*str) break;
-			}
-		}
-	}
-	return fileName;
-}
-
-void mf_get_ini_sections(OpcodeContext& ctx) {
-	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
-		ctx.setReturn(CreateTempArray(0, 0));
-		return;
-	}
-	std::vector<char*> sections;
-	char* section = ScriptExtender::gTextBuffer;
-	while (*section != 0) {
-		sections.push_back(section); // position
-		section += std::strlen(section) + 1;
-	}
-	size_t sz = sections.size();
-	int arrayId = CreateTempArray(sz, 0);
-	auto& arr = arrays[arrayId];
-
-	for (size_t i = 0; i < sz; ++i) {
-		size_t j = i + 1;
-		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
-		arr.val[i].set(sections[i], len); // copy string from buffer
-	}
-	ctx.setReturn(arrayId);
-}
-
-void mf_get_ini_section(OpcodeContext& ctx) {
-	auto section = ctx.arg(1).strValue();
-	int arrayId = CreateTempArray(-1, 0); // associative
-
-	if (GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
-		auto& arr = arrays[arrayId];
-		char *key = ScriptExtender::gTextBuffer, *val = nullptr;
-		while (*key != 0) {
-			char* val = std::strpbrk(key, "=");
-			if (val != nullptr) {
-				*val = '\0';
-				val += 1;
-
-				setArray(arrayId, ScriptValue(key), ScriptValue(val), false);
-
-				key = val + std::strlen(val) + 1;
-			} else {
-				key += std::strlen(key) + 1;
-			}
-		}
-	}
-	ctx.setReturn(arrayId);
 }
 
 void mf_set_quest_failure_value(OpcodeContext& ctx) {

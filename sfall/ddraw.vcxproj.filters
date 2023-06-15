@@ -453,6 +453,7 @@
       <Filter>HLSL</Filter>
     </ClInclude>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\IniFiles.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -826,6 +827,7 @@
       <Filter>Modules\SubModules</Filter>
     </ClCompile>
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\IniFiles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

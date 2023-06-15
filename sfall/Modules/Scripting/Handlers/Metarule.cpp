@@ -23,6 +23,7 @@
 #include "Anims.h"
 #include "Combat.h"
 #include "Core.h"
+#include "IniFiles.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "Math.h"
@@ -77,6 +78,7 @@ static const SfallMetarule metarules[] = {
 	{"attack_is_aimed",         mf_attack_is_aimed,         0, 0},
 	{"car_gas_amount",          mf_car_gas_amount,          0, 0},
 	{"combat_data",             mf_combat_data,             0, 0},
+	{"config_load",             mf_config_load,             2, 2,  0, {ARG_STRING, ARG_INT}},
 	{"create_win",              mf_create_win,              5, 6, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"critter_inven_obj2",      mf_critter_inven_obj2,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message",          mf_dialog_message,          1, 1, -1, {ARG_STRING}},

@@ -27,8 +27,10 @@ using namespace fo;
 namespace sfall
 {
 
-//constexpr size_t MaxKeyLength = 260;
-//constexpr size_t MaxValueLength = 512;
+const Config::Data& Config::data()
+{
+	return _data;
+}
 
 bool Config::read(const char* filePath, bool isDb)
 {

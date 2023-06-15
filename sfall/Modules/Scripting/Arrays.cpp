@@ -514,7 +514,7 @@ ScriptValue GetArray(DWORD id, const ScriptValue& key) {
 	return ScriptValue(0);
 }
 
-void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
 		sArrayElement sEl(key.rawValue(), key.type());
@@ -558,10 +558,6 @@ void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool all
 			arr.val[index].set(val);
 		}
 	}
-}
-
-void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
-	if (ArrayExists(id)) setArray(id, key, val, allowUnset);
 }
 
 int LenArray(DWORD id) {
@@ -767,7 +763,7 @@ long StackArray(const ScriptValue& key, const ScriptValue& val) {
 		if (size >= ARRAY_MAX_SIZE) return 0;
 		if (key.rawValue() >= size) arrays[stackArrayId].val.resize(size + 1);
 	}
-	setArray(stackArrayId, key, val, false);
+	SetArray(stackArrayId, key, val, false);
 	return 0;
 }
 

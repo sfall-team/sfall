@@ -34,7 +34,7 @@ static char ini[65] = ".\\";
 
 static std::unordered_map<std::string, std::unique_ptr<Config>> iniCache;
 
-static Config* GetIniConfig(const char* iniFile) {
+Config* IniReader::GetIniConfig(const char* iniFile) {
 	std::string pathStr(iniFile);
 	auto cacheHit = iniCache.find(pathStr);
 	if (cacheHit != iniCache.end()) {
@@ -49,7 +49,7 @@ static Config* GetIniConfig(const char* iniFile) {
 }
 
 static int getInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
-	auto config = GetIniConfig(iniFile);
+	auto config = IniReader::GetIniConfig(iniFile);
 	int value;
 	if (config == nullptr || !config->getInt(section, setting, value)) {
 		value = defaultValue;
@@ -58,7 +58,7 @@ static int getInt(const char* section, const char* setting, int defaultValue, co
 }
 
 static size_t getString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
-	auto config = GetIniConfig(iniFile);
+	auto config = IniReader::GetIniConfig(iniFile);
 	const std::string* value;
 	if (config == nullptr || !config->getString(section, setting, value)) {
 		strcpy_s(buf, bufSize - 1, defaultValue);
@@ -70,7 +70,7 @@ static size_t getString(const char* section, const char* setting, const char* de
 }
 
 static std::string getString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	auto config = GetIniConfig(iniFile);
+	auto config = IniReader::GetIniConfig(iniFile);
 	const std::string* value;
 	if (config == nullptr || !config->getString(section, setting, value)) {
 		return std::string(defaultValue);

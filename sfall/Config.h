@@ -18,19 +18,28 @@
 
 #pragma once
 
-#include <map>
+#include <unordered_map>
 #include <string>
 
 namespace sfall
 {
 
+/*
+	Implements reading from INI-like text config files in normal and DAT-filesystem.
+	100% compatible with Fallout TXT config formats (such as worldmap.txt).
+*/
 class Config {
 public:
+	typedef std::map<std::string, std::string> Section;
+	typedef std::map<std::string, Section> Data;
+
 	bool read(const char* filePath, bool isDb);
 	
 	bool getString(const char* sectionKey, const char* key, const std::string*& outValue);
 	bool getInt(const char* sectionKey, const char* key, int& outValue, unsigned char base = 0);
 	bool getDouble(const char* sectionKey, const char* key, double& outValue);
+
+	const Data& data();
 
 	// TODO:
 	// bool write(const char* filePath, bool isDb);
@@ -38,9 +47,6 @@ public:
 	// bool setInt(const char* sectionKey, const char* key, int value);
 	// bool setDouble(const char* sectionKey, const char* key, double value);
 private:
-	typedef std::map<std::string, std::string> Section;
-	typedef std::map<std::string, Section> Data;
-
 	std::string _lastSection;
 	Data _data;
 
