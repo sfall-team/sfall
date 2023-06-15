@@ -353,7 +353,7 @@ static void GetExtraPatches() {
 			patchFiles.push_back(patch);
 		}
 	} else {
-		dlog_f("Error opening %s for read: %d\n", DL_MAIN, loadOrderFilePath.c_str() + 2, GetLastError());
+		dlog_f("Error opening %s for read: 0x%x\n", DL_MAIN, loadOrderFilePath.c_str() + 2, GetLastError());
 	}
 
 	// Remove first duplicates

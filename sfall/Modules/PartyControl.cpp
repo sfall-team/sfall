@@ -35,7 +35,6 @@ static bool isControllingNPC = false;
 static char skipCounterAnim;
 
 static int delayedExperience;
-static bool switchHandHookInjected = false;
 
 struct WeaponStateSlot {
 	long npcID;
@@ -427,6 +426,7 @@ static void NPCWeaponTweak() {
 }
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	static bool onlyOnce = false;
 	if (skipCounterAnim == 2 && critter && critter == realDude.obj_dude) {
 		skipCounterAnim--;
 		SafeWrite8(0x422BDE, 1); // restore
@@ -442,9 +442,8 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		}
 		SetCurrentDude(critter);
 
-		if (!switchHandHookInjected) {
-			switchHandHookInjected = true;
-			//if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+		if (!onlyOnce) {
+			onlyOnce = true;
 
 			HookCall(0x49EB09, proto_name_hook);
 
