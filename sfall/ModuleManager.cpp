@@ -23,7 +23,7 @@ void ModuleManager::initAll() {
 	}
 }
 
-ModuleManager& ModuleManager::getInstance() {
+ModuleManager& ModuleManager::instance() {
 	return _instance;
 }
 

@@ -23,7 +23,7 @@ public:
 		_modules.emplace_back(new T());
 	}
 
-	static ModuleManager& getInstance();
+	static ModuleManager& instance();
 
 private:
 	// disallow copy constructor and copy assignment because we're dealing with unique_ptr's here

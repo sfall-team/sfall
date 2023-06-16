@@ -75,6 +75,7 @@
 #include "Modules\Unarmed.h"
 #include "Modules\Worldmap.h"
 
+#include "ConsoleWindow.h"
 #include "CRC.h"
 #include "InputFuncs.h"
 #include "Logging.h"
@@ -102,7 +103,7 @@ char falloutConfigName[65];
 static void InitModules() {
 	dlogr("In InitModules", DL_INIT);
 
-	auto& manager = ModuleManager::getInstance();
+	auto& manager = ModuleManager::instance();
 
 	// initialize all modules
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
@@ -214,6 +215,7 @@ static HMODULE SfallInit() {
 	if (!CRC(filepath)) return 0;
 
 	LoggingInit();
+	ConsoleWindow::instance().init();
 
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);

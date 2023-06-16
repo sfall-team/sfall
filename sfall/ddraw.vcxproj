@@ -346,6 +346,7 @@
   <ItemGroup>
     <ClInclude Include="CheckAddress.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="ConsoleWindow.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="FalloutEngine\AsmMacros.h" />
     <ClInclude Include="FalloutEngine\Enums.h" />
@@ -499,6 +500,7 @@
   <ItemGroup>
     <ClCompile Include="CheckAddress.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="ConsoleWindow.cpp" />
     <ClCompile Include="FalloutEngine\EngineUtils.cpp" />
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />

@@ -454,6 +454,7 @@
     </ClInclude>
     <ClInclude Include="Config.h" />
     <ClInclude Include="Modules\Scripting\Handlers\IniFiles.h" />
+    <ClInclude Include="ConsoleWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -828,6 +829,7 @@
     </ClCompile>
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\IniFiles.cpp" />
+    <ClCompile Include="ConsoleWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
