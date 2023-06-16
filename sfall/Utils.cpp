@@ -73,6 +73,20 @@ void StrNormalizePath(char* path) {
 	} while (*(++path) != 0);
 }
 
+long StrToLong(const char* str, int base /* = 0 */) {
+	// Trim leading whitespaces.
+	while (isspace(static_cast<unsigned char>(*str))) ++str;
+	// Support 0b prefix to detect binary values (for compatibility with GetPrivateProfile* functions).
+	if ((base == 0 || base == 2) && str[0] == '0' && str[1] == 'b' && str[2] != '\0') {
+		str = &str[2];
+		base = 2;
+	}
+	char* end;
+	errno = 0;
+    return strtol(str, &end, base); // see https://stackoverflow.com/a/6154614
+}
+
+
 // max range 0-32767
 //long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use
 //	return (min + (std::rand() % (max - (min - 1))));

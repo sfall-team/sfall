@@ -37,6 +37,9 @@ const char* strfind(const char* source, const char* word);
 
 void StrNormalizePath(char* path);
 
+// Uses standard strtol with base of 0 (auto, support 0x for hex and 0 for octal) and an addition of 0b prefix for binary.
+long StrToLong(const char* str, int base = 0);
+
 //long GetRandom(long min, long max);
 
 
