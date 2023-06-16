@@ -160,7 +160,13 @@ bool Config::getInt(const char* sectionKey, const char* key, int& outValue, unsi
 
     char* end;
     errno = 0;
-    outValue = strtol(value->c_str(), &end, base); // see https://stackoverflow.com/a/6154614
+	const char* rawValue = value->c_str();
+	// Support 0b prefix to detect binary values (for compatibility with GetPrivateProfile* functions).
+	if ((base == 0 || base == 2) && value->size() > 2 && rawValue[1] == 'b' && rawValue[0] == '0') {
+		rawValue = &rawValue[2];
+		base = 2;
+	}
+    outValue = strtol(rawValue, &end, base); // see https://stackoverflow.com/a/6154614
     return true;
 }
 
