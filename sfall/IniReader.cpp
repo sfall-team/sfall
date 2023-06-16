@@ -166,32 +166,6 @@ void OnGameReset() {
 	iniCache.clear();
 }
 
-static void __declspec(naked) mem_strdup_hack() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call _strdup;
-		add esp, 4;
-		pop ecx;
-		pop edx;
-		retn;
-	}
-}
-
-static void __declspec(naked) mem_free_hack() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call free;
-		add esp, 4;
-		pop ecx;
-		pop edx;
-		retn;
-	}
-}
-
 void IniReader::init() {
 	modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
 
