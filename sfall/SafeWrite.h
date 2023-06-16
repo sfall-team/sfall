@@ -17,6 +17,10 @@ enum CodeType : BYTE {
 	JumpZ     = 0x74, // 0x74 [jz  short ...]
 };
 
+// Macros for quick replacement of assembler opcodes pushad/popad
+#define pushadc __asm push eax __asm push edx __asm push ecx
+#define popadc __asm pop ecx __asm pop edx __asm pop eax
+
 template <typename T>
 void __stdcall SafeWrite(DWORD addr, T data) {
 	DWORD oldProtect;
