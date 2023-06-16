@@ -81,8 +81,8 @@ void ConsoleWindow::savePosition() {
 	IniReader::SetDefaultConfigString(IniSection, IniPositionKey, wndDataStr.c_str());
 }
 
-static void __fastcall PrintDebugLog(const char* a) {
-	ConsoleWindow::instance().falloutLog(a);
+static void __fastcall WriteGameLog(const char* a) {
+	ConsoleWindow::instance().write(a, ConsoleWindow::Source::GAME);
 }
 
 static void __declspec(naked) debug_printf_hook() {
@@ -90,7 +90,7 @@ static void __declspec(naked) debug_printf_hook() {
 		call fo::funcoffs::vsprintf_;
 		pushadc;
 		lea ecx, [esp + 16];
-		call PrintDebugLog;
+		call WriteGameLog;
 		popadc;
 		retn;
 	}
@@ -108,12 +108,18 @@ void ConsoleWindow::init() {
 
 	freopen("CONOUT$", "w", stdout); // this allows to print to console via std::cout
 
-	if (_mode & ConsoleSource::GAME) {
+	if (_mode & Source::GAME) {
 		std::cout << "Displaying debug_printf output.\n";
 		HookCall(0x4C6F77, debug_printf_hook);
 	}
-	if (_mode & ConsoleSource::SFALL) {
+	if (_mode & Source::SFALL) {
 		std::cout << "Displaying sfall debug output.\n";
+	}
+	if (_mode & Source::DEBUG_MSG) {
+		std::cout << "Displaying debug_msg output.\n";
+	}
+	if (_mode & Source::DISPLAY_MSG) {
+		std::cout << "Displaying display_msg output.\n";
 	}
 	std::cout << std::endl;
 
@@ -126,19 +132,14 @@ ConsoleWindow::~ConsoleWindow() {
 	savePosition();
 }
 
-void ConsoleWindow::falloutLog(const char* a) {
-	std::cout << a;
-	_lastSource = ConsoleSource::GAME;
-}
+void ConsoleWindow::write(const char* message, ConsoleWindow::Source source) {
+	if (!(_mode & source)) return;
 
-void ConsoleWindow::sfallLog(const std::string& a, int type) {
-	if (!(_mode & ConsoleSource::SFALL)) return;
-
-	if (_lastSource == ConsoleSource::GAME) {
+	if (source == Source::SFALL && _lastSource != Source::SFALL) {
 		std::cout << "\n"; // To make logs prettier, because debug_msg places newline before the message.
 	}
-	std::cout << a;
-	_lastSource = ConsoleSource::SFALL;
+	std::cout << message;
+	_lastSource = source;
 }
 
 }

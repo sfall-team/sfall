@@ -44,7 +44,7 @@ static void OutLog(T a, int type, bool newLine = false) {
 	if (newLine) ss << "\n";
 	std::string str = ss.str();
 
-	ConsoleWindow::instance().sfallLog(str, type);
+	ConsoleWindow::instance().write(str.c_str(), ConsoleWindow::Source::SFALL);
 
 	Log << str;
 	Log.flush();

@@ -395,10 +395,11 @@ static void __declspec(naked) combat_load_hack() {
 	}
 }
 
-static void __fastcall PrintLogToConsole(const char* a) {
+static void __fastcall DuplicateLogToConsole(const char* a, unsigned long displayMsg) {
 	auto& console = ConsoleWindow::instance();
-	console.falloutLog("\n");
-	console.falloutLog(a);
+	auto source = displayMsg ? ConsoleWindow::Source::DISPLAY_MSG : ConsoleWindow::Source::DEBUG_MSG;
+	console.write("\n", source);
+	console.write(a, source);
 }
 
 static void __declspec(naked) op_display_debug_msg_hack() {
@@ -409,11 +410,27 @@ static void __declspec(naked) op_display_debug_msg_hack() {
 		call ds:[FO_VAR_debug_func];
 		pushadc;
 		mov ecx, esi;
-		call PrintLogToConsole; // duplicate messages to console window
+		mov edx, [esp + 12];
+		call DuplicateLogToConsole; // duplicate messages to console window
 		popadc;
+		add esp, 4; // eat displayMsg flag
 		pop eax;
 		add eax, 17; // skip to the end of functions
 		jmp eax;
+	}
+}
+
+static void __declspec(naked) op_display_msg_hack() {
+	__asm {
+		push 1; // displayMsg = true
+		jmp op_display_debug_msg_hack;
+	}
+}
+
+static void __declspec(naked) op_debug_msg_hack() {
+	__asm {
+		push 0; // displayMsg = false
+		jmp op_display_debug_msg_hack;
 	}
 }
 
@@ -469,7 +486,8 @@ static void DebugModePatch() {
 			BlockCall(0x4C7044); // just nop code
 		}
 		// replace calling debug_printf_ with _debug_func, to avoid buffer overflow with messages longer than 260-bytes.
-		MakeCalls(op_display_debug_msg_hack, {0x45540F, 0x45CB4E}); // op_display_msg and op_debug_msg
+		MakeCall(0x45540F, op_display_msg_hack);
+		MakeCall(0x45CB4E, op_debug_msg_hack);
 
 		// set the position of the debug window
 		SafeWrite8(0x4DC34D, 15);

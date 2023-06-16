@@ -21,13 +21,16 @@
 namespace sfall
 {
 
-enum ConsoleSource : int {
-	GAME = 1,
-	SFALL = 2
-};
-
 class ConsoleWindow {
 public:
+
+	enum Source : int {
+		GAME = 1,
+		SFALL = 2,
+		DEBUG_MSG = 4,
+		DISPLAY_MSG = 8,
+	};
+
 	static ConsoleWindow& instance() { return _instance; }
 
 	ConsoleWindow() {}
@@ -38,14 +41,13 @@ public:
 	void loadPosition();
 	void savePosition();
 
-	void sfallLog(const std::string& a, int type);
-	void falloutLog(const char* a);
+	void write(const char* message, Source source);
 
 private:
 	static ConsoleWindow _instance;
 
 	int _mode = 0;
-	ConsoleSource _lastSource;
+	Source _lastSource;
 
 	bool tryGetWindow(HWND* wnd);
 };
