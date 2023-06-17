@@ -92,9 +92,8 @@ static void __declspec(naked) select_display_stats_hook() {
 		jz   skip;
 		retn;
 skip:
-		mov  eax, [esp];
+		pop  eax;
 		add  eax, 94; // offset to next section (0x4A8A60, 0x4A8AC9)
-		add  esp, 4;
 		jmp  eax;
 	}
 }

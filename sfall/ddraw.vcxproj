@@ -229,6 +229,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ConsoleWindow.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="FalloutEngine\AsmMacros.h" />
     <ClInclude Include="FalloutEngine\EngineUtils.h" />
@@ -351,6 +352,7 @@
     <ClInclude Include="WinProc.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ConsoleWindow.cpp" />
     <ClCompile Include="CRC.cpp" />
     <ClCompile Include="ddraw.cpp" />
     <ClCompile Include="FalloutEngine\EngineUtils.cpp" />

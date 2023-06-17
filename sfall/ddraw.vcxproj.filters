@@ -359,6 +359,7 @@
     <ClInclude Include="Modules\SubModules\WindowRender.h">
       <Filter>Modules\SubModules</Filter>
     </ClInclude>
+    <ClInclude Include="ConsoleWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -654,6 +655,7 @@
     <ClCompile Include="Modules\SubModules\WindowRender.cpp">
       <Filter>Modules\SubModules</Filter>
     </ClCompile>
+    <ClCompile Include="ConsoleWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

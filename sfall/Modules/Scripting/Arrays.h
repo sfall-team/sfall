@@ -29,7 +29,7 @@ namespace sfall
 namespace script
 {
 
-#define ARRAY_MAX_STRING        (255)  // maximum length of string to be stored as array key or value
+#define ARRAY_MAX_STRING       (1024)  // maximum length of string to be stored as array key or value (including null terminator)
 #define ARRAY_MAX_SIZE       (100000)  // maximum number of array elements,
                                        // so total maximum memory/disk footprint of one array is: 16 + (ARRAY_MAX_STRING + 8) * ARRAY_MAX_SIZE
 

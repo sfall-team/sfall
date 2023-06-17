@@ -74,6 +74,7 @@
 #include "Modules\Unarmed.h"
 #include "Modules\Worldmap.h"
 
+#include "ConsoleWindow.h"
 #include "CRC.h"
 #include "InputFuncs.h"
 #include "Logging.h"
@@ -337,6 +338,7 @@ static HMODULE SfallInit() {
 	if (!CRC(filepath)) return 0;
 
 	LoggingInit();
+	ConsoleWindow::instance().init();
 
 	HookCall(0x4DE7D2, WinMain_hook);
 

@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "..\main.h"
+#include "..\ConsoleWindow.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 //#include "Graphics.h"
@@ -394,6 +395,45 @@ static void __declspec(naked) combat_load_hack() {
 	}
 }
 
+static void __fastcall DuplicateLogToConsole(const char* a, unsigned long displayMsg) {
+	ConsoleWindow& console = ConsoleWindow::instance();
+	ConsoleWindow::Source source = displayMsg ? ConsoleWindow::Source::DISPLAY_MSG : ConsoleWindow::Source::DEBUG_MSG;
+	console.write("\n", source);
+	console.write(a, source);
+}
+
+static void __declspec(naked) op_display_debug_msg_hack() {
+	__asm {
+		mov  eax, 0x505224; // "\n"
+		call ds:[FO_VAR_debug_func];
+		mov  eax, esi; // actual message
+		call ds:[FO_VAR_debug_func];
+		pushadc;
+		mov  ecx, esi;
+		mov  edx, [esp + 12];
+		call DuplicateLogToConsole; // duplicate messages to console window
+		popadc;
+		add  esp, 4; // eat displayMsg flag
+		pop  eax;
+		add  eax, 17; // skip to the end of functions
+		jmp  eax;
+	}
+}
+
+static void __declspec(naked) op_display_msg_hack() {
+	__asm {
+		push 1; // displayMsg = true
+		jmp  op_display_debug_msg_hack;
+	}
+}
+
+static void __declspec(naked) op_debug_msg_hack() {
+	__asm {
+		push 0; // displayMsg = false
+		jmp  op_display_debug_msg_hack;
+	}
+}
+
 // Shifts the string one character to the right and inserts a newline control character at the beginning
 static void MoveDebugString(char* messageAddr) {
 	int i = 0;
@@ -445,6 +485,9 @@ static void DebugModePatch() {
 			MakeCall(0x4C703F, debug_log_hack);
 			BlockCall(0x4C7044); // just nop code
 		}
+		// replace calling debug_printf_ with _debug_func, to avoid buffer overflow with messages longer than 260 bytes
+		MakeCall(0x45540F, op_display_msg_hack);
+		MakeCall(0x45CB4E, op_debug_msg_hack);
 
 		// set the position of the debug window
 		SafeWrite8(0x4DC34D, 15);
