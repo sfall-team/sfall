@@ -1311,10 +1311,11 @@ void Graphics::init() {
 	SafeWriteBatch<DWORD>(10000, {0x4C908B, 0x4C9093}); // default_screendump_
 
 	WindowRender::init();
+
+	LoadGameHook::OnBeforeGameClose() += []() { WinProc::SavePosition(Graphics::mode); };
 }
 
 void Graphics::exit() {
-	WinProc::SavePosition(Graphics::mode);
 	if (Graphics::mode >= 4) {
 		CoUninitialize();
 	} else {

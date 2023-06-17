@@ -39,7 +39,7 @@ IniReader::IniReader() {
 
 Config* IniReader::getIniConfig(const char* iniFile) {
 	std::string pathStr(iniFile);
-	auto cacheHit = IniReader::instance()._iniCache.find(pathStr);
+	auto cacheHit = _iniCache.find(pathStr);
 	if (cacheHit != _iniCache.end()) {
 		return cacheHit->second.get();
 	}

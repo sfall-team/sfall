@@ -37,7 +37,6 @@ public:
 	}
 
 	ConsoleWindow() {}
-	~ConsoleWindow();
 
 	void init();
 
