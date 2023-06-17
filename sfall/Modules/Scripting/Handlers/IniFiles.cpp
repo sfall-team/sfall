@@ -34,7 +34,7 @@ static std::unordered_map<std::string, DWORD> ConfigArrayCache;
 static std::unordered_map<std::string, DWORD> ConfigArrayCacheDat;
 
 static bool IsSpecialIni(const char* str, const char* end) {
-	const char* pos = strfind(str, &IniReader::GetConfigFile()[2]); // TODO test
+	const char* pos = strfind(str, &IniReader::instance().getConfigFile()[2]); // TODO test
 	if (pos && pos < end) return true;
 	pos = strfind(str, "f2_res.ini");
 	if (pos && pos < end) return true;
@@ -102,7 +102,7 @@ void op_get_ini_string(OpcodeContext& ctx) {
 }
 
 void op_modified_ini(OpcodeContext& ctx) {
-	ctx.setReturn(IniReader::modifiedIni);
+	ctx.setReturn(IniReader::instance().modifiedIni());
 }
 
 void mf_set_ini_setting(OpcodeContext& ctx) {
@@ -119,7 +119,7 @@ void mf_set_ini_setting(OpcodeContext& ctx) {
 	char section[33], file[128];
 	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
 	if (result > 0) {
-		result = WritePrivateProfileStringA(section, key, saveValue, file);
+		result = IniReader::instance().setString(section, key, saveValue, file);
 	}
 
 	switch (result) {
@@ -156,7 +156,7 @@ static std::string GetIniFilePathFromArg(const ScriptValue& arg) {
 }
 
 void mf_get_ini_sections(OpcodeContext& ctx) {
-	Config* config = IniReader::GetIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
+	Config* config = IniReader::instance().getIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
 	if (config == nullptr) {
 		ctx.setReturn(CreateTempArray(0, 0));
 		return;
@@ -183,7 +183,7 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 	int arrayId = CreateTempArray(-1, 0); // associative
 	ctx.setReturn(arrayId);
 
-	Config* config = IniReader::GetIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
+	Config* config = IniReader::instance().getIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
 	if (config == nullptr) return; // ini file not found
 
 	const auto& data = config->data();
@@ -224,7 +224,7 @@ void mf_get_ini_config(OpcodeContext& ctx) {
 	}
 	else {
 		// Request config from IniReader (to take advantage of it's cache).
-		config = IniReader::GetIniConfig(filePath.c_str());
+		config = IniReader::instance().getIniConfig(filePath.c_str());
 		if (config == nullptr) {
 			ctx.printOpcodeError("Could not read config file: %s", filePath.c_str());
 			ctx.setReturn(0);

@@ -214,6 +214,7 @@ static HMODULE SfallInit() {
 
 	if (!CRC(filepath)) return 0;
 
+	IniReader::instance().init();
 	LoggingInit();
 	ConsoleWindow::instance().init();
 
@@ -263,7 +264,7 @@ static HMODULE SfallInit() {
 		HANDLE h = CreateFileA(overrideIni.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-			IniReader::SetConfigFile(overrideIni.c_str());
+			IniReader::instance().setConfigFile(overrideIni.c_str());
 		} else {
 			MessageBoxA(0, "You gave a command line argument to Fallout, but the configuration ini file was not found.\n"
 			               "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
@@ -271,11 +272,9 @@ static HMODULE SfallInit() {
 		}
 	} else {
 defaultIni:
-		IniReader::SetDefaultConfigFile();
+		IniReader::instance().setDefaultConfigFile();
 	}
 	//std::srand(GetTickCount());
-
-	IniReader::init();
 
 	if (IniReader::GetConfigString("Misc", "ConfigFile", "", falloutConfigName, 65)) {
 		dlogr("Applying config file patch.", DL_INIT);

@@ -24,17 +24,7 @@ class Config;
 
 class IniReader {
 public:
-	static void init();
-
-	static DWORD modifiedIni;
-
-	static const char* GetConfigFile();
-	static void SetDefaultConfigFile();
-	static void SetConfigFile(const char* iniFile);
-
-	// Gets a Config from an INI file at given path, relative to game root folder.
-	// Config is loaded once per given path when requested and only unloaded on game reset (returning to main menu).
-	static Config* GetIniConfig(const char* iniFile);
+	static IniReader& instance();
 
 	// Gets the integer value from the default config (i.e. ddraw.ini)
 	static int GetIntDefaultConfig(const char* section, const char* setting, int defaultValue);
@@ -75,6 +65,32 @@ public:
 	static int SetDefaultConfigInt(const char* section, const char* setting, int value);
 
 	static int SetDefaultConfigString(const char* section, const char* setting, const char* value);
+
+	void init();
+	void clearCache();
+
+	DWORD modifiedIni() { return _modifiedIni; }
+
+	const char* getConfigFile();
+	void setDefaultConfigFile();
+	void setConfigFile(const char* iniFile);
+
+	// Gets a Config from an INI file at given path, relative to game root folder.
+	// Config is loaded once per given path when requested and only unloaded on game reset (returning to main menu).
+	Config* getIniConfig(const char* iniFile);
+
+	// Sets the string value in a given INI file
+	int setString(const char* section, const char* setting, const char* value, const char* iniFile);
+
+private:
+	DWORD _modifiedIni;
+	char _ini[65]{ ".\\" };
+	std::unordered_map<std::string, std::unique_ptr<Config>> _iniCache;
+
+	IniReader();
+
+	IniReader(IniReader const&) = delete;
+	void operator=(IniReader const&) = delete;
 };
 
 }

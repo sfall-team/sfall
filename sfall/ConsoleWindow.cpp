@@ -35,8 +35,6 @@ static constexpr char* IniModeKey = "ConsoleWindow";
 static constexpr char* IniPositionKey = "ConsoleWindowData";
 static constexpr char* IniCodePageKey = "ConsoleCodePage";
 
-ConsoleWindow ConsoleWindow::_instance;
-
 bool ConsoleWindow::tryGetWindow(HWND* wnd) {
 	*wnd = GetConsoleWindow();
 	if (!*wnd) {

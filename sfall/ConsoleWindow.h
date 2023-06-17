@@ -31,7 +31,10 @@ public:
 		DISPLAY_MSG = 8,
 	};
 
-	static ConsoleWindow& instance() { return _instance; }
+	static ConsoleWindow& instance() {
+		static ConsoleWindow instance;
+		return instance;
+	}
 
 	ConsoleWindow() {}
 	~ConsoleWindow();
@@ -44,8 +47,6 @@ public:
 	void write(const char* message, Source source);
 
 private:
-	static ConsoleWindow _instance;
-
 	int _mode = 0;
 	Source _lastSource;
 
