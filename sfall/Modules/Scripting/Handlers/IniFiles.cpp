@@ -135,6 +135,24 @@ void mf_set_ini_setting(OpcodeContext& ctx) {
 	ctx.setReturn(-1);
 }
 
+// Sanitizes path for db_fopen:
+// - Disallows going outside of game folder.
+// - Normalizes directory separators.
+// - Trims whitespaces.
+static std::string GetSanitizedDBPath(const char* pathArg) {
+	const char* whiteSpaces = " \t\r\n";
+	std::string path(pathArg);
+	std::replace(path.begin(), path.end(), '/', '\\'); // Normalize directory separators.
+	path.erase(0, path.find_first_not_of(whiteSpaces)); // trim left
+	if (path[0] == '\\' ||
+		path.find(':') != std::string::npos ||
+		path.find("..") != std::string::npos) return ""; // don't allow absolute paths or going outside of root
+
+	if (path.find(".\\") == 0) path.erase(0, 2); // remove leading ".\"
+	path.erase(path.find_last_not_of(whiteSpaces) + 1); // trim right
+	return std::move(path);
+}
+
 static std::string GetIniFilePathFromArg(const ScriptValue& arg) {
 	const char* pathArg = arg.strValue();
 	std::string fileName(".\\");
@@ -195,7 +213,15 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 
 void mf_get_ini_config(OpcodeContext& ctx) {
 	bool isDb = ctx.arg(1).asBool();
-	std::string filePath(isDb ? ctx.arg(0).strValue() : GetIniFilePathFromArg(ctx.arg(0)));
+	std::string filePath(isDb
+		? GetSanitizedDBPath(ctx.arg(0).strValue())
+		: GetIniFilePathFromArg(ctx.arg(0)));
+
+	if (filePath.size() == 0) {
+		ctx.printOpcodeError("Invalid INI path: %s", ctx.arg(0).strValue());
+		ctx.setReturn(0);
+		return;
+	}
 
 	// Check if array exists in either cache.
 	auto& cache = isDb ? ConfigArrayCacheDat : ConfigArrayCache;
