@@ -19,6 +19,7 @@
 #include "ConsoleWindow.h"
 
 #include "FalloutEngine\Fallout2.h"
+#include "Modules\LoadGameHook.h"
 #include "IniReader.h"
 #include "Logging.h"
 #include "SafeWrite.h"
@@ -34,8 +35,6 @@ static constexpr char* IniSection = "Debugging";
 static constexpr char* IniModeKey = "ConsoleWindow";
 static constexpr char* IniPositionKey = "ConsoleWindowData";
 static constexpr char* IniCodePageKey = "ConsoleCodePage";
-
-ConsoleWindow ConsoleWindow::_instance;
 
 bool ConsoleWindow::tryGetWindow(HWND* wnd) {
 	*wnd = GetConsoleWindow();
@@ -99,6 +98,7 @@ static void __declspec(naked) debug_printf_hook() {
 void ConsoleWindow::init() {
 	_mode = IniReader::GetIntDefaultConfig(IniSection, IniModeKey, 0);
 	if (_mode == 0) return;
+
 	if (!AllocConsole()) {
 		dlog_f("Failed to allocate console: 0x%x\n", DL_MAIN, GetLastError());
 		return;
@@ -124,12 +124,8 @@ void ConsoleWindow::init() {
 	std::cout << std::endl;
 
 	loadPosition();
-}
 
-ConsoleWindow::~ConsoleWindow() {
-	if (_mode == 0) return;
-
-	savePosition();
+	LoadGameHook::OnBeforeGameClose() += [this] { savePosition(); };
 }
 
 void ConsoleWindow::write(const char* message, ConsoleWindow::Source source) {

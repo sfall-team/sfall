@@ -49,10 +49,6 @@ void __declspec() op_eax_available();
 
 void __declspec() op_set_eax_environment();
 
-void op_get_ini_setting(OpcodeContext&);
-
-void op_get_ini_string(OpcodeContext&);
-
 void __declspec() op_get_uptime();
 
 void __declspec() op_set_car_current_town();
@@ -84,8 +80,6 @@ void __declspec() op_stop_sfall_sound();
 
 void op_get_tile_fid(OpcodeContext&);
 
-void __declspec() op_modified_ini();
-
 void __declspec() op_mark_movie_played();
 
 void __declspec() op_tile_under_cursor();
@@ -97,12 +91,6 @@ void op_sneak_success(OpcodeContext&);
 void op_tile_light(OpcodeContext&);
 
 void mf_exec_map_update_scripts(OpcodeContext&);
-
-void mf_set_ini_setting(OpcodeContext&);
-
-void mf_get_ini_sections(OpcodeContext&);
-
-void mf_get_ini_section(OpcodeContext&);
 
 void mf_set_quest_failure_value(OpcodeContext&);
 

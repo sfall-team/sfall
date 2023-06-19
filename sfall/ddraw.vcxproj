@@ -345,6 +345,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CheckAddress.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="ConsoleWindow.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="FalloutEngine\AsmMacros.h" />
@@ -419,6 +420,7 @@
     <ClInclude Include="Modules\Objects.h" />
     <ClInclude Include="Modules\PlayerModel.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Combat.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\IniFiles.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Inventory.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
@@ -497,6 +499,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CheckAddress.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConsoleWindow.cpp" />
     <ClCompile Include="FalloutEngine\EngineUtils.cpp" />
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
@@ -556,6 +559,7 @@
     <ClCompile Include="Modules\LoadOrder.cpp" />
     <ClCompile Include="Modules\Objects.cpp" />
     <ClCompile Include="Modules\PlayerModel.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\IniFiles.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Combat.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />

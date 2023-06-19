@@ -33,12 +33,33 @@ void trim(char* str);
 
 void ToLowerCase(std::string& line);
 
-bool isSpace(char c);
-
 const char* strfind(const char* source, const char* word);
 
 void StrNormalizePath(char* path);
 
+// Uses standard strtol with base of 0 (auto, support 0x for hex and 0 for octal) and an addition of 0b prefix for binary.
+long StrToLong(const char* str, int base = 0);
+
 //long GetRandom(long min, long max);
+
+
+// Case-insensitive less
+// Taken from https://stackoverflow.com/a/1801913
+struct ci_less
+{
+	// case-independent (ci) compare_less binary function
+	struct nocase_compare
+	{
+		bool operator() (const unsigned char& c1, const unsigned char& c2) const {
+			return tolower(c1) < tolower(c2); 
+		}
+	};
+	bool operator() (const std::string &s1, const std::string &s2) const {
+		return std::lexicographical_compare 
+		(s1.begin (), s1.end (),   // source range
+		s2.begin (), s2.end (),   // dest range
+		nocase_compare ());  // comparison
+	}
+};
 
 }

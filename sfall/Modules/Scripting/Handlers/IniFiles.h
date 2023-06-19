@@ -18,21 +18,26 @@
 
 #pragma once
 
-#include "Module.h"
+#include "..\OpcodeContext.h"
 
 namespace sfall
 {
+namespace script
+{
 
-class Unarmed : public Module {
-public:
-	const char* name() { return "Unarmed"; }
-	void init();
+void op_get_ini_setting(OpcodeContext&);
 
-	static long GetHitAPCost(fo::AttackType hit);
-	static long GetDamage(fo::AttackType hit, long &minOut, long &maxOut);
-	static const char* GetName(fo::AttackType hit);
+void op_get_ini_string(OpcodeContext&);
 
-	static fo::AttackType GetStoredHitMode(fo::HandSlot slot);
-};
+void op_modified_ini(OpcodeContext&);
 
+void mf_set_ini_setting(OpcodeContext&);
+
+void mf_get_ini_sections(OpcodeContext&);
+
+void mf_get_ini_section(OpcodeContext&);
+
+void mf_get_ini_config(OpcodeContext&);
+
+}
 }

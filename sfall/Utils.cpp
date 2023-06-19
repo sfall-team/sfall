@@ -34,11 +34,11 @@ void trim(char* str) {
 	int len = strlen(str) - 1;
 
 	int i = len;
-	while (len >= 0 && isSpace(str[len])) len--;
+	while (len >= 0 && isspace(str[len])) len--;
 	if (i != len) str[len + 1] = '\0'; // delete all spaces on the right
 
 	i = 0;
-	while (i < len && isSpace(str[i])) i++;
+	while (i < len && isspace(str[i])) i++;
 	if (i > 0) {
 		int j = 0;
 		do {
@@ -49,10 +49,6 @@ void trim(char* str) {
 
 void ToLowerCase(std::string& line) {
 	std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-}
-
-bool isSpace(char c) {
-	return (c == ' ' || c == '\t' /*|| c == '\n' || c == '\r'*/);
 }
 
 // returns position, find word must be lowercase
@@ -76,6 +72,20 @@ void StrNormalizePath(char* path) {
 		if (*path == '/') *path = '\\';
 	} while (*(++path) != 0);
 }
+
+long StrToLong(const char* str, int base /* = 0 */) {
+	// Trim leading whitespaces.
+	while (isspace(static_cast<unsigned char>(*str))) ++str;
+	// Support 0b prefix to detect binary values (for compatibility with GetPrivateProfile* functions).
+	if ((base == 0 || base == 2) && str[0] == '0' && str[1] == 'b' && str[2] != '\0') {
+		str = &str[2];
+		base = 2;
+	}
+	char* end;
+	errno = 0;
+    return strtol(str, &end, base); // see https://stackoverflow.com/a/6154614
+}
+
 
 // max range 0-32767
 //long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use

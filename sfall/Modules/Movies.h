@@ -27,7 +27,6 @@ class Movies : public Module {
 public:
 	const char* name() { return "Movies"; }
 	void init();
-	//void exit() override;
 
 	static bool DirectShowMovies();
 };
