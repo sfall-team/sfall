@@ -23,6 +23,7 @@
 #include "Anims.h"
 #include "Combat.h"
 #include "Core.h"
+#include "IniFiles.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "Math.h"
@@ -91,6 +92,7 @@ static const SfallMetarule metarules[] = {
 	{"get_current_inven_size",  mf_get_current_inven_size,  1, 1,  0, {ARG_OBJECT}},
 	{"get_cursor_mode",         mf_get_cursor_mode,         0, 0},
 	{"get_flags",               mf_get_flags,               1, 1,  0, {ARG_OBJECT}},
+	{"get_ini_config",          mf_get_ini_config,          2, 2,  0, {ARG_STRING, ARG_INT}},
 	{"get_ini_section",         mf_get_ini_section,         2, 2, -1, {ARG_STRING, ARG_STRING}},
 	{"get_ini_sections",        mf_get_ini_sections,        1, 1, -1, {ARG_STRING}},
 	{"get_inven_ap_cost",       mf_get_inven_ap_cost,       0, 0},

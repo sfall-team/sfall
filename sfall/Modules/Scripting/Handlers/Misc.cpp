@@ -112,56 +112,6 @@ end:
 	}
 }
 
-static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
-	key = strstr(iniString, "|");
-	if (!key) return -1;
-
-	DWORD filelen = (DWORD)key - (DWORD)iniString;
-	if (filelen >= 64) return -1;
-
-	key = strstr(key + 1, "|");
-	if (!key) return -1;
-
-	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
-	if (seclen > 32) return -1;
-
-	file[0] = '.';
-	file[1] = '\\';
-	memcpy(&file[2], iniString, filelen);
-	file[2 + filelen] = 0;
-
-	memcpy(section, &iniString[filelen + 1], seclen);
-	section[seclen] = 0;
-
-	key++;
-	return 1;
-}
-
-static DWORD GetIniSetting(const char* str, bool isString) {
-	const char* key;
-	char section[33], file[128];
-
-	if (ParseIniSetting(str, key, section, file) < 0) {
-		return -1;
-	}
-	if (isString) {
-		ScriptExtender::gTextBuffer[0] = 0;
-		IniReader::GetString(section, key, "", ScriptExtender::gTextBuffer, 256, file);
-		return (DWORD)&ScriptExtender::gTextBuffer[0];
-	} else {
-		return IniReader::GetInt(section, key, -1, file);
-	}
-}
-
-void op_get_ini_setting(OpcodeContext& ctx) {
-	ctx.setReturn(GetIniSetting(ctx.arg(0).strValue(), false));
-}
-
-void op_get_ini_string(OpcodeContext& ctx) {
-	DWORD result = GetIniSetting(ctx.arg(0).strValue(), true);
-	ctx.setReturn(result, (result != -1) ? DATATYPE_STR : DATATYPE_INT);
-}
-
 static DWORD __stdcall GetTickCount2() {
 	return GetTickCount();
 }
@@ -348,13 +298,6 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_modified_ini() {
-	__asm {
-		mov  edx, IniReader::modifiedIni;
-		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-	}
-}
-
 void __declspec(naked) op_mark_movie_played() {
 	__asm {
 		_GET_ARG_INT(end);
@@ -403,85 +346,6 @@ void op_tile_light(OpcodeContext& ctx) {
 
 void mf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::scr_exec_map_update_scripts_
-}
-
-void mf_set_ini_setting(OpcodeContext& ctx) {
-	const ScriptValue &argVal = ctx.arg(1);
-
-	const char* saveValue;
-	if (argVal.isInt()) {
-		_itoa_s(argVal.rawValue(), ScriptExtender::gTextBuffer, 10);
-		saveValue = ScriptExtender::gTextBuffer;
-	} else {
-		saveValue = argVal.strValue();
-	}
-	const char* key;
-	char section[33], file[128];
-	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
-	if (result > 0) {
-		result = WritePrivateProfileStringA(section, key, saveValue, file);
-	}
-
-	switch (result) {
-	case 0:
-		ctx.printOpcodeError("%s() - value save error.", ctx.getMetaruleName());
-		break;
-	case -1:
-		ctx.printOpcodeError("%s() - invalid setting argument.", ctx.getMetaruleName());
-		break;
-	default:
-		return;
-	}
-	ctx.setReturn(-1);
-}
-
-void mf_get_ini_sections(OpcodeContext& ctx) {
-	std::string fileName = std::string(".\\") + ctx.arg(0).strValue();
-	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), fileName.c_str())) {
-		ctx.setReturn(CreateTempArray(0, 0));
-		return;
-	}
-	std::vector<char*> sections;
-	char* section = ScriptExtender::gTextBuffer;
-	while (*section != 0) {
-		sections.push_back(section); // position
-		section += std::strlen(section) + 1;
-	}
-	size_t sz = sections.size();
-	int arrayId = CreateTempArray(sz, 0);
-	sArrayVar &arr = arrays[arrayId];
-
-	for (size_t i = 0; i < sz; ++i) {
-		size_t j = i + 1;
-		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
-		arr.val[i].set(sections[i], len); // copy string from buffer
-	}
-	ctx.setReturn(arrayId);
-}
-
-void mf_get_ini_section(OpcodeContext& ctx) {
-	std::string fileName = std::string(".\\") + ctx.arg(0).strValue();
-	const char* section = ctx.arg(1).strValue();
-	int arrayId = CreateTempArray(-1, 0); // associative
-
-	if (GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), fileName.c_str())) {
-		sArrayVar &arr = arrays[arrayId];
-		char *key = ScriptExtender::gTextBuffer, *val = nullptr;
-		while (*key != 0) {
-			char* val = std::strpbrk(key, "=");
-			if (val != nullptr) {
-				*val = '\0';
-				val += 1;
-
-				setArray(arrayId, ScriptValue(key), ScriptValue(val), false);
-
-				key = val + std::strlen(val) + 1;
-			} else {
-				key += std::strlen(key) + 1;
-			}
-		}
-	}
-	ctx.setReturn(arrayId);
 }
 
 void mf_set_quest_failure_value(OpcodeContext& ctx) {

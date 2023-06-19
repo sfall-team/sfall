@@ -229,6 +229,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Config.h" />
     <ClInclude Include="ConsoleWindow.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="FalloutEngine\AsmMacros.h" />
@@ -314,6 +315,7 @@
     <ClInclude Include="Modules\Scripting\Handlers\Core.h" />
     <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Graphics.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\IniFiles.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Interface.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Inventory.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Math.h" />
@@ -352,6 +354,7 @@
     <ClInclude Include="WinProc.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConsoleWindow.cpp" />
     <ClCompile Include="CRC.cpp" />
     <ClCompile Include="ddraw.cpp" />
@@ -426,6 +429,7 @@
     <ClCompile Include="Modules\Scripting\Handlers\Core.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\FileSystem.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Graphics.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\IniFiles.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Interface.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Inventory.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp" />

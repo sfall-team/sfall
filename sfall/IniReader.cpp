@@ -16,56 +16,115 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utils.h"
-
 #include "IniReader.h"
+
+#include "main.h"
+#include "FalloutEngine\Fallout2.h"
+#include "Config.h"
+#include "Utils.h"
 
 namespace sfall
 {
 
-DWORD IniReader::modifiedIni;
-
 static const char* ddrawIni = ".\\ddraw.ini";
 static char ini[65] = ".\\";
 
+IniReader& IniReader::instance() {
+	static IniReader instance;
+	return instance;
+}
+
+IniReader::IniReader() {
+}
+
+Config* IniReader::getIniConfig(const char* iniFile) {
+	std::string pathStr(iniFile);
+	std::tr1::unordered_map<std::string, Config*>::iterator cacheHit = _iniCache.find(pathStr);
+	if (cacheHit != _iniCache.end()) {
+		return cacheHit->second;
+	}
+	Config* config = new Config();
+	if (!config->read(iniFile, false)) {
+		_iniCache.insert(std::make_pair(std::move(pathStr), nullptr));
+		delete config;
+		return nullptr;
+	}
+	return _iniCache.insert(std::make_pair(std::move(pathStr), config)).first->second;
+}
+
+const char* IniReader::getConfigFile() {
+	return ini;
+}
+
+void IniReader::setDefaultConfigFile() {
+	std::strcpy(&ini[2], &ddrawIni[2]);
+}
+
+void IniReader::setConfigFile(const char* iniFile) {
+	strcat_s(ini, iniFile);
+}
+
 static int getInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
+	Config* config = IniReader::instance().getIniConfig(iniFile);
+	int value;
+	if (config == nullptr || !config->getInt(section, setting, value)) {
+		value = defaultValue;
+	}
+	return value;
 }
 
 static size_t getString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+	Config* config = IniReader::instance().getIniConfig(iniFile);
+	const std::string* value;
+	if (config == nullptr || !config->getString(section, setting, value)) {
+		strncpy_s(buf, bufSize, defaultValue, bufSize - 1);
+		return strlen(buf);
+	}
+
+	strncpy_s(buf, bufSize, value->c_str(), bufSize - 1);
+	return value->size();
 }
 
 static std::string getString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	char* buf = new char[bufSize];
-	getString(section, setting, defaultValue, buf, bufSize, iniFile);
-	std::string str(buf);
-	delete[] buf;
-	return str;
+	Config* config = IniReader::instance().getIniConfig(iniFile);
+	const std::string* value;
+	if (config == nullptr || !config->getString(section, setting, value)) {
+		return std::string(defaultValue);
+	}
+	return *value;
+}
+
+int IniReader::setString(const char* section, const char* setting, const char* value, const char* iniFile) {
+	_iniCache.erase(iniFile); // remove file from cache so it returns updated value on the next read
+	return WritePrivateProfileStringA(section, setting, value, iniFile);
+}
+
+void IniReader::clearCache() {
+	for (std::tr1::unordered_map<std::string, Config*>::iterator it = _iniCache.begin(); it != _iniCache.end(); ++it) {
+		delete it->second;
+	}
+	_iniCache.clear();
+}
+
+void IniReader::OnGameLoad() {
+	instance().clearCache();
+}
+
+void IniReader::init() {
+	_modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
+}
+
+
+static int setInt(const char* section, const char* setting, int value, const char* iniFile) {
+	char buf[33];
+	_itoa_s(value, buf, 33, 10);
+	return IniReader::instance().setString(section, setting, buf, iniFile);
 }
 
 static std::vector<std::string> getList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
 	std::vector<std::string> list = split(getString(section, setting, defaultValue, bufSize, iniFile), delimiter);
 	std::transform(list.cbegin(), list.cend(), list.begin(), (std::string (*)(const std::string&))trim);
 	return list;
-}
-
-static int setInt(const char* section, const char* setting, int value, const char* iniFile) {
-	char buf[33];
-	_itoa_s(value, buf, 33, 10);
-	return WritePrivateProfileStringA(section, setting, buf, iniFile);
-}
-
-const char* IniReader::GetConfigFile() {
-	return ini;
-}
-
-void IniReader::SetDefaultConfigFile() {
-	std::strcpy(&ini[2], &ddrawIni[2]);
-}
-
-void IniReader::SetConfigFile(const char* iniFile) {
-	strcat_s(ini, iniFile);
 }
 
 int IniReader::GetIntDefaultConfig(const char* section, const char* setting, int defaultValue) {
@@ -117,7 +176,7 @@ int IniReader::SetConfigInt(const char* section, const char* setting, int value)
 }
 
 int IniReader::SetConfigString(const char* section, const char* setting, const char* value) {
-	return WritePrivateProfileStringA(section, setting, value, ini);
+	return instance().setString(section, setting, value, ini);
 }
 
 int IniReader::SetDefaultConfigInt(const char* section, const char* setting, int value) {
@@ -125,11 +184,7 @@ int IniReader::SetDefaultConfigInt(const char* section, const char* setting, int
 }
 
 int IniReader::SetDefaultConfigString(const char* section, const char* setting, const char* value) {
-	return WritePrivateProfileStringA(section, setting, value, ddrawIni);
-}
-
-void IniReader::init() {
-	modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
+	return instance().setString(section, setting, value, ddrawIni);
 }
 
 }

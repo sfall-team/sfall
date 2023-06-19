@@ -19,6 +19,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\ConsoleWindow.h"
+#include "..\IniReader.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
 #include "..\Translate.h"
@@ -299,6 +300,7 @@ errorLoad:
 static bool __stdcall GameReset(DWORD isGameLoad) {
 	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		// OnGameReset
+		IniReader::OnGameLoad();
 		BugFixes::OnGameLoad();
 		if (Graphics::mode >= 4) {
 			Graphics::ForceGraphicsRefresh(0); // disable refresh
