@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\ConsoleWindow.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
 #include "..\Translate.h"
@@ -424,6 +425,8 @@ static void __stdcall GameExit() { // OnGameExit
 }
 
 static void __stdcall GameClose() { // OnBeforeGameClose
+	ConsoleWindow::OnBeforeGameClose();
+	Graphics::OnBeforeGameClose();
 	ClearReadExtraGameMsgFiles();
 	Sound::OnBeforeGameClose();
 }

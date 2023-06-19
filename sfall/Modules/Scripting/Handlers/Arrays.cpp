@@ -34,8 +34,11 @@ void op_create_array(OpcodeContext& ctx) {
 }
 
 void op_set_array(OpcodeContext& ctx) {
+	DWORD arrayId = ctx.arg(0).rawValue();
+	if (!ArrayExists(arrayId)) return;
+
 	SetArray(
-		ctx.arg(0).rawValue(),
+		arrayId,
 		ctx.arg(1),
 		ctx.arg(2),
 		true

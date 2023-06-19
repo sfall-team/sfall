@@ -709,10 +709,10 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 	switch (ctx.arg(1).rawValue()) {
 	case -1: // rectangle map.left map.top map.right map.bottom
 		result = CreateTempArray(-1, 0); // associative
-		setArray(result, ScriptValue("left"), ScriptValue(win->rect.x), false);
-		setArray(result, ScriptValue("top"), ScriptValue(win->rect.y), false);
-		setArray(result, ScriptValue("right"), ScriptValue(win->rect.offx), false);
-		setArray(result, ScriptValue("bottom"), ScriptValue(win->rect.offy), false);
+		SetArray(result, ScriptValue("left"), ScriptValue(win->rect.x), false);
+		SetArray(result, ScriptValue("top"), ScriptValue(win->rect.y), false);
+		SetArray(result, ScriptValue("right"), ScriptValue(win->rect.offx), false);
+		SetArray(result, ScriptValue("bottom"), ScriptValue(win->rect.offy), false);
 		break;
 	case 0: // check if window exists
 		result = 1;

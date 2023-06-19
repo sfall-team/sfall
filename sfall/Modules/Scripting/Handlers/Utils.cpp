@@ -16,13 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Utils.h"
+
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\Utils.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Message.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-
-#include "Utils.h"
 
 namespace sfall
 {
@@ -103,7 +104,7 @@ void op_strlen(OpcodeContext& ctx) {
 void op_atoi(OpcodeContext& ctx) {
 	const char* str = ctx.arg(0).strValue();
 	ctx.setReturn(
-		static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
+		static_cast<int>(StrToLong(str, 0))
 	);
 }
 

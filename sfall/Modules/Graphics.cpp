@@ -1191,6 +1191,10 @@ static __declspec(naked) void dump_screen_hack_replacement() {
 	}
 }
 
+void Graphics::OnBeforeGameClose() {
+	WinProc::SavePosition(Graphics::mode);
+}
+
 void Graphics::init() {
 	Graphics::mode = (hrpIsEnabled) // avoid mode mismatch between ddraw.ini and another ini file
 	               ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
@@ -1248,7 +1252,6 @@ void Graphics::init() {
 
 void Graphics::exit() {
 	if (Graphics::mode >= 4) {
-		WinProc::SavePosition(Graphics::mode);
 		CoUninitialize();
 	}
 }

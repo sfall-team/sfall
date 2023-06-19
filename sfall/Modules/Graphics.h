@@ -35,6 +35,8 @@ public:
 	static void init();
 	static void exit();
 
+	static void OnBeforeGameClose();
+
 	static DWORD mode;
 	static DWORD GPUBlt;
 	static bool IsWindowedMode;

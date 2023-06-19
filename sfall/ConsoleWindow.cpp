@@ -30,8 +30,6 @@
 namespace sfall
 {
 
-ConsoleWindow ConsoleWindow::_instance;
-
 bool ConsoleWindow::tryGetWindow(HWND* wnd) {
 	*wnd = GetConsoleWindow();
 	if (!*wnd) {
@@ -91,9 +89,14 @@ static void __declspec(naked) debug_printf_hook() {
 	}
 }
 
+void ConsoleWindow::OnBeforeGameClose() {
+	instance().savePosition();
+}
+
 void ConsoleWindow::init() {
 	_mode = IniReader::GetIntDefaultConfig("Debugging", "ConsoleWindow", 0);
 	if (_mode == 0) return;
+
 	if (!AllocConsole()) {
 		dlog_f("Failed to allocate console: 0x%x\n", DL_MAIN, GetLastError());
 		return;
@@ -119,12 +122,6 @@ void ConsoleWindow::init() {
 	std::cout << std::endl;
 
 	loadPosition();
-}
-
-ConsoleWindow::~ConsoleWindow() {
-	if (_mode == 0) return;
-
-	savePosition();
 }
 
 void ConsoleWindow::write(const char* message, ConsoleWindow::Source source) {
