@@ -83,7 +83,7 @@ long StrToLong(const char* str, int base /* = 0 */) {
 	}
 	char* end;
 	errno = 0;
-    return strtol(str, &end, base); // see https://stackoverflow.com/a/6154614
+	return strtol(str, &end, base); // see https://stackoverflow.com/a/6154614
 }
 
 

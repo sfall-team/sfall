@@ -404,33 +404,33 @@ static void __fastcall DuplicateLogToConsole(const char* a, unsigned long displa
 
 static void __declspec(naked) op_display_debug_msg_hack() {
 	__asm {
-		mov eax, 0x505224; // "\n"
+		mov  eax, 0x505224; // "\n"
 		call ds:[FO_VAR_debug_func];
-		mov eax, esi; // actual message
+		mov  eax, esi; // actual message
 		call ds:[FO_VAR_debug_func];
 		pushadc;
-		mov ecx, esi;
-		mov edx, [esp + 12];
+		mov  ecx, esi;
+		mov  edx, [esp + 12];
 		call DuplicateLogToConsole; // duplicate messages to console window
 		popadc;
-		add esp, 4; // eat displayMsg flag
-		pop eax;
-		add eax, 17; // skip to the end of functions
-		jmp eax;
+		add  esp, 4; // eat displayMsg flag
+		pop  eax;
+		add  eax, 17; // skip to the end of functions
+		jmp  eax;
 	}
 }
 
 static void __declspec(naked) op_display_msg_hack() {
 	__asm {
 		push 1; // displayMsg = true
-		jmp op_display_debug_msg_hack;
+		jmp  op_display_debug_msg_hack;
 	}
 }
 
 static void __declspec(naked) op_debug_msg_hack() {
 	__asm {
 		push 0; // displayMsg = false
-		jmp op_display_debug_msg_hack;
+		jmp  op_display_debug_msg_hack;
 	}
 }
 
@@ -485,7 +485,7 @@ static void DebugModePatch() {
 			MakeCall(0x4C703F, debug_log_hack);
 			BlockCall(0x4C7044); // just nop code
 		}
-		// replace calling debug_printf_ with _debug_func, to avoid buffer overflow with messages longer than 260-bytes.
+		// replace calling debug_printf_ with _debug_func, to avoid buffer overflow with messages longer than 260 bytes
 		MakeCall(0x45540F, op_display_msg_hack);
 		MakeCall(0x45CB4E, op_debug_msg_hack);
 

@@ -23,6 +23,7 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 
+#include <memory>
 #include <unordered_map>
 
 namespace sfall
@@ -145,8 +146,8 @@ static std::string GetSanitizedDBPath(const char* pathArg) {
 	std::replace(path.begin(), path.end(), '/', '\\'); // Normalize directory separators.
 	path.erase(0, path.find_first_not_of(whiteSpaces)); // trim left
 	if (path[0] == '\\' ||
-		path.find(':') != std::string::npos ||
-		path.find("..") != std::string::npos) return ""; // don't allow absolute paths or going outside of root
+	    path.find(':') != std::string::npos ||
+	    path.find("..") != std::string::npos) return ""; // don't allow absolute paths or going outside of root
 
 	if (path.find(".\\") == 0) path.erase(0, 2); // remove leading ".\"
 	path.erase(path.find_last_not_of(whiteSpaces) + 1); // trim right
@@ -181,7 +182,7 @@ void mf_get_ini_sections(OpcodeContext& ctx) {
 	}
 	const auto& data = config->data();
 	size_t numSections = config->data().size();
-	int arrayId = CreateTempArray(numSections, 0);
+	DWORD arrayId = CreateTempArray(numSections, 0);
 	size_t i = 0;
 	for (auto sectIt = data.cbegin(); sectIt != data.cend(); ++sectIt) {
 		arrays[arrayId].val[i].set(sectIt->first.c_str(), sectIt->first.size());
@@ -198,7 +199,7 @@ static void CopyConfigSectionToArray(DWORD arrayId, const Config::Section& secti
 
 void mf_get_ini_section(OpcodeContext& ctx) {
 	auto sectionName = ctx.arg(1).strValue();
-	int arrayId = CreateTempArray(-1, 0); // associative
+	DWORD arrayId = CreateTempArray(-1, 0); // associative
 	ctx.setReturn(arrayId);
 
 	Config* config = IniReader::instance().getIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
@@ -218,7 +219,7 @@ void mf_get_ini_config(OpcodeContext& ctx) {
 		: GetIniFilePathFromArg(ctx.arg(0)));
 
 	if (filePath.size() == 0) {
-		ctx.printOpcodeError("Invalid INI path: %s", ctx.arg(0).strValue());
+		ctx.printOpcodeError("%s() - invalid config file path: %s", ctx.getMetaruleName(), ctx.arg(0).strValue());
 		ctx.setReturn(0);
 		return;
 	}
@@ -242,17 +243,16 @@ void mf_get_ini_config(OpcodeContext& ctx) {
 	if (isDb) {
 		configUniq = std::make_unique<Config>();
 		if (!configUniq->read(filePath.c_str(), isDb)) {
-			ctx.printOpcodeError("Could not read config file from DAT: %s", filePath.c_str());
+			ctx.printOpcodeError("%s() - cannot read config file from DAT: %s", ctx.getMetaruleName(), filePath.c_str());
 			ctx.setReturn(0);
 			return;
 		}
 		config = configUniq.get();
-	}
-	else {
+	} else {
 		// Request config from IniReader (to take advantage of it's cache).
 		config = IniReader::instance().getIniConfig(filePath.c_str());
 		if (config == nullptr) {
-			ctx.printOpcodeError("Could not read config file: %s", filePath.c_str());
+			ctx.printOpcodeError("%s() - cannot read config file: %s", ctx.getMetaruleName(), filePath.c_str());
 			ctx.setReturn(0);
 			return;
 		}
@@ -266,7 +266,7 @@ void mf_get_ini_config(OpcodeContext& ctx) {
 		SetArray(arrayId, sectIt->first.c_str(), subArrayId, false);
 	}
 	// Save new array ID to cache and return it.
-	cache.emplace(filePath, arrayId);
+	cache.emplace(std::move(filePath), arrayId);
 	ctx.setReturn(arrayId);
 }
 

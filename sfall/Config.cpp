@@ -1,26 +1,26 @@
 /*
- *	sfall
- *	Copyright (C) 2008-2023  The sfall team
+ *    sfall
+ *    Copyright (C) 2008-2023  The sfall team
  *
- *	This program is free software: you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, either version 3 of the License, or
- *	(at your option) any later version.
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
  *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
  *
- *	You should have received a copy of the GNU General Public License
- *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "Config.h"
 
-#include "Main.h"
+#include "main.h"
+#include "FalloutEngine\Fallout2.h"
 #include "Utils.h"
-#include "FalloutEngine/Fallout2.h"
 
 using namespace fo;
 
@@ -34,7 +34,7 @@ const Config::Data& Config::data()
 
 bool Config::read(const char* filePath, bool isDb)
 {
-	if (filePath == NULL) {
+	if (filePath == nullptr) {
 		return false;
 	}
 
@@ -43,21 +43,21 @@ bool Config::read(const char* filePath, bool isDb)
 	if (isDb) {
 		DbFile* stream = func::db_fopen(filePath, "rb");
 
-		if (stream == NULL) return false;
+		if (stream == nullptr) return false;
 
-		while (func::db_fgets(string, sizeof(string), stream) != NULL) {
+		while (func::db_fgets(string, sizeof(string), stream) != nullptr) {
 			parseLine(string);
 		}
 		func::db_fclose(stream);
 	} else {
 		FILE* stream = fopen(filePath, "rt");
 
-		// CE: Return `false` if file does not exists on the file system.
-		if (stream == NULL) {
+		// CE: Return false if file does not exist on the file system.
+		if (stream == nullptr) {
 			return false;
 		}
 
-		while (fgets(string, sizeof(string), stream) != NULL) {
+		while (fgets(string, sizeof(string), stream) != nullptr) {
 			parseLine(string);
 		}
 		fclose(stream);
@@ -71,13 +71,13 @@ bool Config::read(const char* filePath, bool isDb)
 // Both key and value are trimmed.
 bool Config::parseKeyValue(char* string, std::string& key, std::string& value)
 {
-	if (string == NULL) {
+	if (string == nullptr) {
 		return false;
 	}
 
 	// Find equals character.
 	char* pch = strchr(string, '=');
-	if (pch == NULL) {
+	if (pch == nullptr) {
 		return false;
 	}
 
@@ -99,7 +99,7 @@ bool Config::parseLine(char* string)
 
 	// Find comment marker and truncate the string.
 	pch = strchr(string, ';');
-	if (pch != NULL) {
+	if (pch != nullptr) {
 		*pch = '\0';
 	}
 
@@ -114,7 +114,7 @@ bool Config::parseLine(char* string)
 
 		// Find closing bracket.
 		pch = strchr(sectionKey, ']');
-		if (pch != NULL) {
+		if (pch != nullptr) {
 			*pch = '\0';
 			trim(sectionKey);
 			_lastSection = sectionKey;
@@ -155,20 +155,20 @@ bool Config::getString(const char* sectionKey, const char* key, const std::strin
 
 bool Config::getInt(const char* sectionKey, const char* key, int& outValue, unsigned char base /* = 0 */)
 {
-    const std::string* value;
-    if (!getString(sectionKey, key, value)) return false;
+	const std::string* value;
+	if (!getString(sectionKey, key, value)) return false;
 
 	outValue = StrToLong(value->c_str(), base);
-    return true;
+	return true;
 }
 
 bool Config::getDouble(const char* sectionKey, const char* key, double& outValue)
 {
-    const std::string* value;
-    if (!getString(sectionKey, key, value)) return false;
+	const std::string* value;
+	if (!getString(sectionKey, key, value)) return false;
 
-    outValue = strtod(value->c_str(), NULL);
-    return true;
+	outValue = strtod(value->c_str(), nullptr);
+	return true;
 }
 
 }

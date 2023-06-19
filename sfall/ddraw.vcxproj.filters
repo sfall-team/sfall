@@ -452,9 +452,11 @@
     <ClInclude Include="HLSL\L8PixelShader.h">
       <Filter>HLSL</Filter>
     </ClInclude>
-    <ClInclude Include="Config.h" />
-    <ClInclude Include="Modules\Scripting\Handlers\IniFiles.h" />
     <ClInclude Include="ConsoleWindow.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\IniFiles.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -827,9 +829,11 @@
     <ClCompile Include="Modules\SubModules\DirectDraw.cpp">
       <Filter>Modules\SubModules</Filter>
     </ClCompile>
-    <ClCompile Include="Config.cpp" />
-    <ClCompile Include="Modules\Scripting\Handlers\IniFiles.cpp" />
     <ClCompile Include="ConsoleWindow.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\IniFiles.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

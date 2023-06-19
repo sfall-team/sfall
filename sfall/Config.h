@@ -36,7 +36,7 @@ public:
 	typedef std::map<std::string, Section, ci_less> Data;
 
 	bool read(const char* filePath, bool isDb);
-	
+
 	bool getString(const char* sectionKey, const char* key, const std::string*& outValue);
 	bool getInt(const char* sectionKey, const char* key, int& outValue, unsigned char base = 0);
 	bool getDouble(const char* sectionKey, const char* key, double& outValue);

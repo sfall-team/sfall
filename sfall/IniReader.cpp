@@ -18,11 +18,11 @@
 
 #include "IniReader.h"
 
+#include "main.h"
+#include "FalloutEngine\Fallout2.h"
+#include "Modules\LoadGameHook.h"
 #include "Config.h"
-#include "Main.h"
 #include "Utils.h"
-#include "FalloutEngine/Fallout2.h"
-#include "Modules/LoadGameHook.h"
 
 namespace sfall
 {
@@ -79,7 +79,7 @@ static size_t getString(const char* section, const char* setting, const char* de
 		strncpy_s(buf, bufSize, defaultValue, bufSize - 1);
 		return strlen(buf);
 	}
-	
+
 	strncpy_s(buf, bufSize, value->c_str(), bufSize - 1);
 	return value->size();
 }
