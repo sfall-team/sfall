@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Input {
+class Input : public Module {
 public:
-	static const char* name() { return "InputPatch"; }
-	static void init();
+	const char* name() { return "InputPatch"; }
+	void init();
 };
 
 }

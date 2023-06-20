@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Karma {
+class Karma : public Module {
 public:
-	static const char* name() { return "Karma"; }
-	static void init();
+	const char* name() { return "Karma"; }
+	void init();
 
 	static void DisplayKarma(int value);
 };

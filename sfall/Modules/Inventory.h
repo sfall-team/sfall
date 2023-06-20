@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Inventory {
+class Inventory : public Module {
 public:
-	static const char* name() { return "Inventory"; }
-	static void init();
+	const char* name() { return "Inventory"; }
+	void init();
 
 	static void Reset();
 	static void KeyPressedHook(DWORD dxKey, bool pressed);

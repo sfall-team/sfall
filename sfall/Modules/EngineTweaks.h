@@ -18,14 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class EngineTweaks {
+class EngineTweaks : public Module {
 public:
-	static const char* name() { return "EngineTweaks"; }
-	static void init();
-	//static void exit();
+	const char* name() { return "EngineTweaks"; }
+	void init();
 };
 
 }

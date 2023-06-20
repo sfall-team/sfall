@@ -18,14 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Movies {
+class Movies : public Module {
 public:
-	static const char* name() { return "Movies"; }
-	static void init();
-	//static void exit();
+	const char* name() { return "Movies"; }
+	void init();
 
 	static bool DirectShowMovies();
 };

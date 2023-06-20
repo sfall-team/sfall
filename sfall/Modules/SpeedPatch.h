@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class SpeedPatch {
+class SpeedPatch : public Module {
 public:
-	static const char* name() { return "SpeedPatch"; }
-	static void init();
-	static void exit();
+	const char* name() { return "SpeedPatch"; }
+	void init();
+	void exit() override;
 
 	static DWORD getTickCountOffs;
 

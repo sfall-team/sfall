@@ -18,17 +18,19 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall 
 {
 
-class BarBoxes {
+class BarBoxes : public Module {
 private:
 	static int boxCount;
 
 public:
-	static const char* name() { return "BarBoxes"; }
-	static void init();
-	static void exit();
+	const char* name() { return "BarBoxes"; }
+	void init();
+	void exit() override;
 
 	static void OnGameLoad();
 	static void OnAfterGameInit();

@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class ExtraSaveSlots {
+class ExtraSaveSlots : public Module {
 public:
-	static const char* name() { return "SuperSave"; }
-	static void init();
-	static void exit();
+	const char* name() { return "SuperSave"; }
+	void init();
+	void exit() override;
 
 	static long GetSaveSlot();
 	static void SetSaveSlot(long page, long slot);

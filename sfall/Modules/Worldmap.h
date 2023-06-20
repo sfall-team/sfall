@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Worldmap {
+class Worldmap : public Module {
 public:
-	static const char* name() { return "Worldmap"; }
-	static void init();
+	const char* name() { return "Worldmap"; }
+	void init();
 
 	static void OnGameLoad();
 

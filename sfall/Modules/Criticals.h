@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Criticals {
+class Criticals : public Module {
 public:
-	static const char* name() { return "Criticals"; }
-	static void init();
+	const char* name() { return "Criticals"; }
+	void init();
 
 	static void ApplyCritTable();
 

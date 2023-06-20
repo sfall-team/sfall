@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class PlayerModel {
+class PlayerModel : public Module {
 public:
-	static const char* name() { return "PlayerModel"; }
-	static void init();
+	const char* name() { return "PlayerModel"; }
+	void init();
 };
 
 extern char defaultMaleModelName[65];

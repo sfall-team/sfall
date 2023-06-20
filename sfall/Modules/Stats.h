@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Stats {
+class Stats : public Module {
 public:
-	static const char* name() { return "Stats"; }
-	static void init();
+	const char* name() { return "Stats"; }
+	void init();
 
 	static void OnGameLoad();
 

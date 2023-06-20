@@ -18,21 +18,27 @@
 
 #pragma once
 
-#include "Module.h"
-
 namespace sfall
 {
 
-class Interface : public Module {
+class Module {
 public:
-	const char* name() { return "Interface"; }
-	void init();
-	void exit() override;
 
-	static void OnGameLoad();
+	Module() {
+	}
 
-	static long ActiveInterfaceWID();
-	static fo::Window* GetWindow(long winType);
+	// the module name for logging
+	virtual const char* name() = 0;
+
+	// Called on starting the game
+	virtual void init() = 0;
+
+	// Called on exit
+	virtual void exit() {}
+
+	~Module() {
+	}
 };
 
 }
+

@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class FileSystem {
+class FileSystem : public Module {
 public:
-	static const char* name() { return "FileSystem"; }
-	static void init();
+	const char* name() { return "FileSystem"; }
+	void init();
 
 	static void Reset();
 

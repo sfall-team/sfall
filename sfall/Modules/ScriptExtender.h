@@ -21,6 +21,8 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
 
+#include "Module.h"
+
 namespace sfall
 {
 
@@ -30,10 +32,10 @@ typedef struct {
 	bool initialized;
 } ScriptProgram;
 
-class ScriptExtender{
+class ScriptExtender : public Module {
 public:
-	static const char* name() { return "ScriptExtender"; }
-	static void init();
+	const char* name() { return "ScriptExtender"; }
+	void init();
 
 	static void OnGameLoad();
 

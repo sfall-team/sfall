@@ -19,6 +19,7 @@
 #pragma once
 
 #include "..\FalloutEngine\Structs.h"
+#include "Module.h"
 
 namespace sfall
 {
@@ -83,10 +84,10 @@ struct HookFile {
 	std::string name;
 };
 
-class HookScripts {
+class HookScripts : public Module {
 public:
-	static const char* name() { return "HookScripts"; }
-	static void init();
+	const char* name() { return "HookScripts"; }
+	void init();
 
 	static DWORD initingHookScripts;
 

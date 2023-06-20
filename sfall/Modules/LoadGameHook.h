@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class LoadGameHook {
+class LoadGameHook : public Module {
 public:
-	static const char* name() { return "LoadGameHook"; }
-	static void init();
+	const char* name() { return "LoadGameHook"; }
+	void init();
 
 	static bool IsMapLoading();
 

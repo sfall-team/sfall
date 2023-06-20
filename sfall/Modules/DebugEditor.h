@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class DebugEditor {
+class DebugEditor : public Module {
 public:
-	static const char* name() { return "Debug Editor"; }
-	static void init();
+	const char* name() { return "Debug Editor"; }
+	void init();
 
 	static void OnAfterGameInit();
 

@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Premade {
+class Premade : public Module {
 public:
-	static const char* name() { return "Premade"; }
-	static void init();
+	const char* name() { return "Premade"; }
+	void init();
 };
 
 }

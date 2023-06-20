@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class BurstMods {
+class BurstMods : public Module {
 public:
-	static const char* name() { return "BurstMods"; }
-	static void init();
+	const char* name() { return "BurstMods"; }
+	void init();
 
 	static void SetComputeSpraySettings(long centerMult, long centerDiv, long targetMult, long targetDiv);
 };

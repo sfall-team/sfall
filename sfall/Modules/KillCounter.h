@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class KillCounter {
+class KillCounter : public Module {
 public:
-	static const char* name() { return "KillCounter"; }
-	static void init();
+	const char* name() { return "KillCounter"; }
+	void init();
 
 	static bool UsingExtraKillTypes();
 };

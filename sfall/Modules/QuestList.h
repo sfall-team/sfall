@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class QuestList {
+class QuestList : public Module {
 public:
-	static const char* name() { return "QuestList"; }
-	static void init();
+	const char* name() { return "QuestList"; }
+	void init();
 
 	static void ResetQuests();
 

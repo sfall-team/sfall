@@ -18,15 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
 #include "Graphics.h"
 
 namespace sfall
 {
 
-class ScriptShaders {
+class ScriptShaders : public Module {
 public:
-	static const char* name() { return "ScriptShaders"; }
-	static void init();
+	const char* name() { return "ScriptShaders"; }
+	void init();
 
 	static void OnGameLoad();
 

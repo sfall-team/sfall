@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
@@ -40,10 +42,10 @@ struct ChanceModifier {
 	}
 };
 
-class Combat {
+class Combat : public Module {
 public:
-	static const char* name() { return "Combat"; }
-	static void init();
+	const char* name() { return "Combat"; }
+	void init();
 
 	static void OnGameLoad();
 	static void OnBeforeGameStart();

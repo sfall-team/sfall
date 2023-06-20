@@ -22,6 +22,8 @@
 #include <d3dx9.h>
 #include <ddraw.h>
 
+#include "Module.h"
+
 namespace sfall
 {
 
@@ -29,11 +31,11 @@ extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 extern IDirectDrawSurface* primarySurface;
 
-class Graphics {
+class Graphics : public Module {
 public:
-	static const char* name() { return "Graphics"; }
-	static void init();
-	static void exit();
+	const char* name() { return "Graphics"; }
+	void init();
+	void exit() override;
 
 	static void OnBeforeGameClose();
 

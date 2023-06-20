@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class MetaruleExtender {
+class MetaruleExtender : public Module {
 public:
-	static const char* name() { return "MetaruleExtender"; }
-	static void init();
+	const char* name() { return "MetaruleExtender"; }
+	void init();
 
 	static void Reset();
 };

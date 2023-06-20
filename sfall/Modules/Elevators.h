@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Elevators {
+class Elevators : public Module {
 public:
-	static const char* name() { return "Elevators"; }
-	static void init();
+	const char* name() { return "Elevators"; }
+	void init();
 };
 
 }

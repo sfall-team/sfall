@@ -18,14 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Unarmed {
+class Unarmed : public Module {
 public:
-	static const char* name() { return "Unarmed"; }
-	static void init();
-	//static void exit();
+	const char* name() { return "Unarmed"; }
+	void init();
 
 	static long GetHitAPCost(fo::AttackType hit);
 	static long GetDamage(fo::AttackType hit, long &minOut, long &maxOut);

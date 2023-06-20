@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class PartyControl {
+class PartyControl : public Module {
 public:
-	static const char* name() { return "PartyControl"; }
-	static void init();
+	const char* name() { return "PartyControl"; }
+	void init();
 
 	static void OnGameLoad();
 	static void OnCombatEnd();

@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
@@ -26,10 +28,10 @@ enum UniqueID : long {
 	End   = 0x7FFFFFFF
 };
 
-class Objects {
+class Objects : public Module {
 public:
-	static const char* name() { return "Objects"; }
-	static void init();
+	const char* name() { return "Objects"; }
+	void init();
 
 	static void OnGameLoad();
 

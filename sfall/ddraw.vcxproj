@@ -260,6 +260,7 @@
     <ClInclude Include="InputFuncs.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\Animations.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
@@ -299,6 +300,7 @@
     <ClInclude Include="Modules\Message.h" />
     <ClInclude Include="Modules\MetaruleExtender.h" />
     <ClInclude Include="Modules\MiscPatches.h" />
+    <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\Movies.h" />
     <ClInclude Include="Modules\Objects.h" />
     <ClInclude Include="Modules\PartyControl.h" />
@@ -374,6 +376,7 @@
     <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />
     <ClCompile Include="Modules\Animations.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />

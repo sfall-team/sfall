@@ -23,6 +23,8 @@
 #include "..\main.h"
 //#include "..\FalloutEngine\Fallout2.h"
 
+#include "Module.h"
+
 namespace sfall
 {
 
@@ -50,11 +52,10 @@ namespace sfall
 
 typedef std::tr1::unordered_map<int, fo::MessageList*> ExtraGameMessageListsMap;
 
-class Message {
+class Message : public Module {
 public:
-	static const char* name() { return "Message"; }
-	static void init();
-	//static void exit();
+	const char* name() { return "Message"; }
+	void init();
 
 	static const char* GameLanguage();
 

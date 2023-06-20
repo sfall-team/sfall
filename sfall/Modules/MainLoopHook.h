@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class MainLoopHook {
+class MainLoopHook : public Module {
 public:
-	static const char* name() { return "MainLoopHook"; }
-	static void init();
+	const char* name() { return "MainLoopHook"; }
+	void init();
 
 	static bool displayWinUpdateState;
 };

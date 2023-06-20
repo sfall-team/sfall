@@ -18,13 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class DamageMod {
+class DamageMod : public Module {
 public:
-	static const char* name() { return "DamageMod"; }
-	static void init();
+	const char* name() { return "DamageMod"; }
+	void init();
 
 	static long GetHtHMinDamageBonus(fo::GameObject* source);
 };

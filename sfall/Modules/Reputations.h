@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Reputations {
+class Reputations : public Module {
 public:
-	static const char* name() { return "Reputations"; }
-	static void init();
-	static void exit();
+	const char* name() { return "Reputations"; }
+	void init();
+	void exit() override;
 };
 
 }

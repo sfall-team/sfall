@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Console {
+class Console : public Module {
 public:
-	static const char* name() { return "Console"; }
-	static void init();
-	static void exit();
+	const char* name() { return "Console"; }
+	void init();
+	void exit() override;
 
 	static void OnGameLoad();
 };

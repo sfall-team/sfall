@@ -23,6 +23,8 @@
 #include "main.h"
 #include "FalloutEngine\Fallout2.h"
 
+#include "ModuleManager.h"
+#include "Modules\Module.h"
 #include "Modules\AI.h"
 #include "Modules\Animations.h"
 #include "Modules\BarBoxes.h"
@@ -102,197 +104,76 @@ DWORD HRPAddress(DWORD addr) {
 
 char falloutConfigName[65];
 
-static void ModuleInitLog(const char* name) {
-	dlog_f("Initializing module %s...\n", DL_INIT, name);
-}
-
 static void InitModules() {
 	dlogr("In InitModules", DL_INIT);
 
-	// fixes should be applied at the beginning
-	ModuleInitLog(BugFixes::name());
-	BugFixes::init();
+	ModuleManager& manager = ModuleManager::instance();
 
-	ModuleInitLog(SpeedPatch::name());
-	SpeedPatch::init();
+	// initialize all modules
+	manager.add<BugFixes>();    // fixes should be applied at the beginning
+	manager.add<SpeedPatch>();
+	manager.add<Graphics>();
+	manager.add<Input>();
+	manager.add<FileSystem>();
+	manager.add<LoadOrder>();
+	manager.add<LoadGameHook>();
+	manager.add<MainLoopHook>();
 
-	ModuleInitLog(Graphics::name());
-	Graphics::init();
+	manager.add<EngineTweaks>();
+	manager.add<Books>();
+	manager.add<Criticals>();
+	manager.add<Elevators>();
+	manager.add<Unarmed>();
 
-	ModuleInitLog(Input::name());
-	Input::init();
+	manager.add<Animations>();
+	manager.add<BarBoxes>();
+	manager.add<Explosions>();
+	manager.add<Message>();
+	manager.add<Interface>();
+	manager.add<Worldmap>();
+	manager.add<Tiles>();
+	manager.add<Movies>();
+	manager.add<Sound>();
+	manager.add<MiscPatches>();
 
-	ModuleInitLog(FileSystem::name());
-	FileSystem::init();
+	manager.add<AI>();
+	manager.add<DamageMod>();
+	manager.add<BurstMods>();
 
-	ModuleInitLog(LoadOrder::name());
-	LoadOrder::init();
+	manager.add<Inventory>();
+	manager.add<Objects>();
+	manager.add<Stats>();
+	manager.add<Perks>();
+	manager.add<Skills>();
+	manager.add<PartyControl>();
+	manager.add<Combat>();
 
-	ModuleInitLog(LoadGameHook::name());
-	LoadGameHook::init();
+	manager.add<PlayerModel>();
+	manager.add<Karma>();
+	manager.add<Premade>();
+	manager.add<Reputations>();
+	manager.add<KillCounter>();
 
-	ModuleInitLog(MainLoopHook::name());
-	MainLoopHook::init();
+	manager.add<MainMenu>();
+	manager.add<HeroAppearance>();
+	manager.add<TalkingHeads>();
+	manager.add<ScriptShaders>();
 
-	ModuleInitLog(EngineTweaks::name());
-	EngineTweaks::init();
+	manager.add<ExtraSaveSlots>();
+	manager.add<QuestList>();
+	manager.add<Credits>();
+	manager.add<Console>();
 
-	ModuleInitLog(Books::name());
-	Books::init();
+	// all built-in events of modules should be executed before running the script handlers
+	manager.add<MetaruleExtender>();
+	manager.add<HookScripts>();
+	manager.add<ScriptExtender>();
 
-	ModuleInitLog(Criticals::name());
-	Criticals::init();
+	manager.add<DebugEditor>();
 
-	ModuleInitLog(Elevators::name());
-	Elevators::init();
-
-	ModuleInitLog(Unarmed::name());
-	Unarmed::init();
-
-	ModuleInitLog(Animations::name());
-	Animations::init();
-
-	ModuleInitLog(BarBoxes::name());
-	BarBoxes::init();
-
-	ModuleInitLog(Explosions::name());
-	Explosions::init();
-
-	ModuleInitLog(Message::name());
-	Message::init();
-
-	ModuleInitLog(Interface::name());
-	Interface::init();
-
-	ModuleInitLog(Worldmap::name());
-	Worldmap::init();
-
-	ModuleInitLog(Tiles::name());
-	Tiles::init();
-
-	ModuleInitLog(Movies::name());
-	Movies::init();
-
-	ModuleInitLog(Sound::name());
-	Sound::init();
-
-	ModuleInitLog(MiscPatches::name());
-	MiscPatches::init();
-
-	ModuleInitLog(AI::name());
-	AI::init();
-
-	ModuleInitLog(DamageMod::name());
-	DamageMod::init();
-
-	ModuleInitLog(BurstMods::name());
-	BurstMods::init();
-
-	ModuleInitLog(Inventory::name());
-	Inventory::init();
-
-	ModuleInitLog(Objects::name());
-	Objects::init();
-
-	ModuleInitLog(Stats::name());
-	Stats::init();
-
-	ModuleInitLog(Perks::name());
-	Perks::init();
-
-	ModuleInitLog(Skills::name());
-	Skills::init();
-
-	ModuleInitLog(PartyControl::name());
-	PartyControl::init();
-
-	ModuleInitLog(Combat::name());
-	Combat::init();
-
-	ModuleInitLog(PlayerModel::name());
-	PlayerModel::init();
-
-	ModuleInitLog(Karma::name());
-	Karma::init();
-
-	ModuleInitLog(Premade::name());
-	Premade::init();
-
-	ModuleInitLog(Reputations::name());
-	Reputations::init();
-
-	ModuleInitLog(KillCounter::name());
-	KillCounter::init();
-
-	ModuleInitLog(MainMenu::name());
-	MainMenu::init();
-
-	ModuleInitLog(HeroAppearance::name());
-	HeroAppearance::init();
-
-	ModuleInitLog(TalkingHeads::name());
-	TalkingHeads::init();
-
-	ModuleInitLog(ScriptShaders::name());
-	ScriptShaders::init();
-
-	ModuleInitLog(ExtraSaveSlots::name());
-	ExtraSaveSlots::init();
-
-	ModuleInitLog(QuestList::name());
-	QuestList::init();
-
-	ModuleInitLog(Credits::name());
-	Credits::init();
-
-	ModuleInitLog(Console::name());
-	Console::init();
-
-	// most of modules should be initialized before running the script handlers
-	ModuleInitLog(MetaruleExtender::name());
-	MetaruleExtender::init();
-
-	ModuleInitLog(HookScripts::name());
-	HookScripts::init();
-
-	ModuleInitLog(ScriptExtender::name());
-	ScriptExtender::init();
-
-	ModuleInitLog(DebugEditor::name());
-	DebugEditor::init();
+	manager.initAll();
 
 	dlogr("Leave InitModules", DL_INIT);
-}
-
-static void __stdcall OnExit() {
-	SpeedPatch::exit();
-	Graphics::exit();
-	//EngineTweaks::exit();
-	Books::exit();
-	//Unarmed::exit();
-	//Animations:exit();
-	BarBoxes::exit();
-	//Message::exit();
-	Interface::exit();
-	Tiles::exit();
-	//Movies::exit();
-	Sound::exit();
-	MiscPatches::exit();
-	Skills::exit();
-	Reputations::exit();
-	HeroAppearance::exit();
-	TalkingHeads::exit();
-	ExtraSaveSlots::exit();
-	Console::exit();
-}
-
-static void __declspec(naked) WinMain_hook() {
-	__asm {
-		pushad;
-		call OnExit;
-		popad;
-		jmp  fo::funcoffs::DOSCmdLineDestroy_;
-	}
 }
 
 static void GetHRPModule() {
@@ -340,8 +221,6 @@ static HMODULE SfallInit() {
 	IniReader::instance().init();
 	LoggingInit();
 	ConsoleWindow::instance().init();
-
-	HookCall(0x4DE7D2, WinMain_hook);
 
 	// enabling debugging features
 	isDebug = (IniReader::GetIntDefaultConfig("Debugging", "Enable", 0) != 0);
@@ -424,7 +303,7 @@ defaultIni:
 	InitInput();
 	InitModules();
 
-	ShowCursor(0);
+	if (hrpIsEnabled) ShowCursor(0);
 
 	fo::var::setInt(FO_VAR_GNW95_hDDrawLib) = (long)ddraw.sfall;
 	return ddraw.sfall;

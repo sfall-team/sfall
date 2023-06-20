@@ -18,16 +18,18 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Perks {
+class Perks : public Module {
 private:
 	static bool IsTraitDisabled(int traitID);
 
 public:
-	static const char* name() { return "Perks"; }
-	static void init();
+	const char* name() { return "Perks"; }
+	void init();
 
 	static void Reset();
 

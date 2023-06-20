@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class TalkingHeads {
+class TalkingHeads : public Module {
 public:
-	static const char* name() { return "TalkingHeads"; }
-	static void init();
-	static void exit();
+	const char* name() { return "TalkingHeads"; }
+	void init();
+	void exit() override;
 
 	static void OnAfterGameInit();
 

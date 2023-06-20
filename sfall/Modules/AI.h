@@ -20,13 +20,15 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class AI {
+class AI : public Module {
 public:
-	static const char* name() { return "AI"; }
-	static void init();
+	const char* name() { return "AI"; }
+	void init();
 
 	static void AICombatClear();
 

@@ -68,7 +68,7 @@ void ConsoleWindow::savePosition() {
 	int height = wndRect.bottom - wndRect.top;
 	std::ostringstream ss;
 	ss << wndRect.left << "," << wndRect.top << "," << width << "," << height;
-	auto wndDataStr = ss.str();
+	std::string wndDataStr = ss.str();
 	dlog_f("Saving console window position & size: %s\n", DL_MAIN, wndDataStr.c_str());
 
 	IniReader::SetDefaultConfigString("Debugging", "ConsoleWindowData", wndDataStr.c_str());

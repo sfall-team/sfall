@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class HeroAppearance {
+class HeroAppearance : public Module {
 public:
-	static const char* name() { return "HeroAppearance"; }
-	static void init();
-	static void exit();
+	const char* name() { return "HeroAppearance"; }
+	void init();
+	void exit() override;
 
 	static bool appModEnabled;
 };

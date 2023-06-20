@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
 namespace sfall
 {
 
-class Sound {
+class Sound : public Module {
 public:
-	static const char* name() { return "Sounds"; }
-	static void init();
-	static void exit();
+	const char* name() { return "Sounds"; }
+	void init();
+	void exit() override;
 
 	static void OnGameLoad();
 	static void OnAfterGameInit();
