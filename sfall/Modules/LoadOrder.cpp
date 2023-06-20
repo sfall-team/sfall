@@ -270,26 +270,21 @@ static bool NormalizePath(std::string &path) {
 	if (pos != std::string::npos) {
 		path.erase(pos);
 	}
-	// Skip paths with colons.
-	if (path.find(':') != std::string::npos) return false;
-
-	// Normalize directory separators.
-	std::replace(path.begin(), path.end(), '/', '\\');
-
-	// Disallow paths going outside of root folder.
-	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
-
 	// Trim whitespaces.
 	path.erase(0, path.find_first_not_of(whiteSpaces)); // trim left
 	path.erase(path.find_last_not_of(whiteSpaces) + 1); // trim right
-
+	// Normalize directory separators.
+	std::replace(path.begin(), path.end(), '/', '\\');
 	// Remove leading slashes.
 	path.erase(0, path.find_first_not_of('\\'));
-	return !path.empty();
-}
 
-static bool FileOrFolderExists(const std::string& path) {
-	return GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES;
+	// Disallow paths trying to "escape" game folder:
+	if (path.find(':') != std::string::npos ||
+		path.find(".\\") != std::string::npos ||
+		path.find("..\\") != std::string::npos) {
+		return false;
+	}
+	return !path.empty();
 }
 
 static bool FileExists(const std::string& path) {
@@ -302,26 +297,48 @@ static bool FolderExists(const std::string& path) {
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+static bool FileOrFolderExists(const std::string& path) {
+	return GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES;
+}
+
+static bool ValidateExtraPatch(std::string& path, const char* basePath, const char* entryName) {
+	if (!NormalizePath(path)) {
+		if (!path.empty()) {
+			dlog_f("Error: %s entry invalid: '%s'\n", DL_INIT, entryName, path.c_str());
+		}
+		return false;
+	}
+	path.insert(0, basePath);
+	if (!FileOrFolderExists(path)) {
+		const char* entry = path.c_str();
+		if (path.find(".\\") == 0) entry += 2;
+		dlog_f("Error: %s entry not found: %s\n", DL_INIT, entryName, entry);
+		return false;
+	}
+	return true;
+}
+
 // Patches placed at the back of the vector will have priority in the chain over the front(previous) patches
 static void GetExtraPatches() {
 	char patchFile[12] = "PatchFile";
 	for (int i = 0; i < 100; i++) {
 		_itoa(i, &patchFile[9], 10);
 		auto patch = IniReader::GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
-		if (patch.empty() || !NormalizePath(patch) || !FileOrFolderExists(patch)) continue;
+		if (!ValidateExtraPatch(patch, "", patchFile)) continue;
 		patchFiles.push_back(patch);
 	}
 	const std::string modsPath = ".\\mods\\";
-	const std::string loadOrderFilePath = modsPath + "mods_order.txt";
-
-	dlogr("Loading custom patches:", DL_MAIN);
+	const std::string loadOrderFileName = "mods_order.txt";
+	const std::string loadOrderFilePath = modsPath + loadOrderFileName;
 
 	// If the mods folder does not exist, create it.
 	if (!FolderExists(modsPath)) {
+		dlog_f("Mods folder does not exist, creating: %s\n", DL_INIT, modsPath.c_str());
 		CreateDirectoryA(modsPath.c_str(), 0);
 	}
 	// If load order file does not exist, initialize it automatically with mods already in the mods folder.
 	if (!FileExists(loadOrderFilePath)) {
+		dlog_f("Mods Order file does not exist, generating based on contents of Mods folder: %s\n", DL_INIT, loadOrderFilePath.c_str());
 		std::ofstream loadOrderFile(loadOrderFilePath, std::ios::out | std::ios::trunc);
 		if (loadOrderFile.is_open()) {
 			// Search all .dat files and folders in the mods folder.
@@ -345,23 +362,20 @@ static void GetExtraPatches() {
 				loadOrderFile << filePath << '\n';
 			}
 		} else {
-			dlog_f("Error creating load order file %s.\n", DL_MAIN, loadOrderFilePath.c_str() + 2);
+			dlog_f("Error creating load order file %s.\n", DL_INIT, loadOrderFilePath.c_str() + 2);
 		}
 	}
+
 	// Add mods from load order file.
 	std::ifstream loadOrderFile(loadOrderFilePath, std::ios::in);
 	if (loadOrderFile.is_open()) {
 		std::string patch;
 		while (std::getline(loadOrderFile, patch)) {
-			if (patch.empty() || !NormalizePath(patch)) continue;
-			patch = modsPath + patch;
-			if (!FileOrFolderExists(patch)) continue;
-
-			dlog_f("> %s\n", DL_MAIN, patch.c_str() + 2);
+			if (!ValidateExtraPatch(patch, modsPath.c_str(), loadOrderFileName.c_str())) continue;
 			patchFiles.push_back(patch);
 		}
 	} else {
-		dlog_f("Error opening %s for read: 0x%x\n", DL_MAIN, loadOrderFilePath.c_str() + 2, GetLastError());
+		dlog_f("Error opening %s for read: 0x%x\n", DL_INIT, loadOrderFilePath.c_str() + 2, GetLastError());
 	}
 
 	// Remove first duplicates
@@ -372,6 +386,11 @@ static void GetExtraPatches() {
 				patchFiles[i].clear();
 			}
 		}
+	}
+
+	dlogr("Loading extra patches:", DL_INIT);
+	for (const auto& patch : patchFiles) {
+		dlog_f("> %s\n", DL_INIT, patch.c_str() + 2);
 	}
 }
 
