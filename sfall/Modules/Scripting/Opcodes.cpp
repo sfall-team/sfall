@@ -292,6 +292,7 @@ void Opcodes::InitNew() {
 	LoadGameHook::OnGameReset() += []() {
 		PipboyAvailableRestore();
 		ForceEncounterRestore(); // restore if the encounter did not happen
+		ResetIniCache();
 	};
 
 	if (int unsafe = IniReader::GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {

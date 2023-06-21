@@ -34,6 +34,11 @@ namespace script
 static std::unordered_map<std::string, DWORD> ConfigArrayCache;
 static std::unordered_map<std::string, DWORD> ConfigArrayCacheDat;
 
+void ResetIniCache() {
+	ConfigArrayCache.clear();
+	ConfigArrayCacheDat.clear();
+}
+
 static bool IsSpecialIni(const char* str, const char* end) {
 	const char* pos = strfind(str, &IniReader::instance().getConfigFile()[2]); // TODO test
 	if (pos && pos < end) return true;
