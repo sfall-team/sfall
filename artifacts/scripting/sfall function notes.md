@@ -722,7 +722,7 @@ sfall_funcX metarule functions
 #### get_string_pointer
 `int sfall_func1("get_string_pointer", string text)`
 - (DEPRECATED) Returns a pointer to a string variable or to a text
-- __NOTE:__ this function is intended for use only in `HOOK_DESCRIPTIONOBJ`. Starting from sfall 4.3.9/3.8.39, you can return normal strings directly in the hook without calling the function
+- __NOTE:__ this function is intended for use only in `HOOK_DESCRIPTIONOBJ`. Starting from sfall 4.4/3.8.40, you can return normal strings directly in the hook without calling the function
 
 ----
 #### dialog_message

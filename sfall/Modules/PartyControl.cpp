@@ -113,8 +113,8 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// reset traits
 	fo::ptr::pc_trait[0] = fo::ptr::pc_trait[1] = -1;
 
-	// reset perks (except Awareness)
-	std::memset(&(*fo::ptr::perkLevelDataList)[0].perkData[1], 0, sizeof(DWORD) * (fo::PERK_count - 1));
+	// reset perks
+	std::memset(*fo::ptr::perkLevelDataList, 0, sizeof(DWORD) * fo::PERK_count);
 
 	// change level
 	int level = fo::func::isPartyMember(npc)

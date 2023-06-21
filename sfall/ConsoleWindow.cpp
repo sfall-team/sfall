@@ -90,7 +90,7 @@ static void __declspec(naked) debug_printf_hook() {
 }
 
 void ConsoleWindow::OnBeforeGameClose() {
-	instance().savePosition();
+	if (instance()._mode) instance().savePosition();
 }
 
 void ConsoleWindow::init() {
