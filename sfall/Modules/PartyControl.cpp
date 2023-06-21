@@ -180,9 +180,9 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// copy existing party member perks or reset list for non-party member NPC
 	long isPartyMember = fo::util::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
-		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::Perk::PERK_count);
+		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::PERK_count);
 	} else {
-		std::memset(fo::var::perkLevelDataList, 0, sizeof(DWORD) * fo::Perk::PERK_count);
+		std::memset(fo::var::perkLevelDataList, 0, sizeof(DWORD) * fo::PERK_count);
 	}
 
 	// change level

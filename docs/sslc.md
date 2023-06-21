@@ -228,16 +228,6 @@ Syntax which requires sfall for compiled scripts to be interpreted is marked by 
     end
     ```
 
-- Empty statements in blocks are allowed: This is just a convenience to save scripters a bit of memory. Some of the macros in the Fallout headers include their own semicolons while others do not. With the original compiler you had to remember which was which, and if you got it wrong the script would not compile. Now it's always safe to include your own semicolon, even if the macro already had its own. For example, this would not compile with the original sslc, but will with the sfall edition:
-  ```
-  #define my_macro display_msg("foo");
-
-  procedure start begin
-    my_macro;
-  end
-  ```
-  __NOTE:__ **Does not work currently.**
-
 - Procedure stringify operator `@`: Designed to make callback-procedures a better option and allow for basic functional programming. Basically it replaces procedure names preceded by `@` by a string constant.
   - old:
     ```

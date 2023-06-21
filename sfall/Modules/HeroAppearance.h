@@ -26,7 +26,6 @@ namespace sfall
 class HeroAppearance : public Module {
 public:
 	const char* name() { return "HeroAppearance"; }
-
 	void init();
 	void exit() override;
 

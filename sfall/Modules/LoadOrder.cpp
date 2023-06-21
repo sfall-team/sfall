@@ -280,8 +280,8 @@ static bool NormalizePath(std::string &path) {
 
 	// Disallow paths trying to "escape" game folder:
 	if (path.find(':') != std::string::npos ||
-		path.find(".\\") != std::string::npos ||
-		path.find("..\\") != std::string::npos) {
+	    path.find(".\\") != std::string::npos ||
+	    path.find("..\\") != std::string::npos) {
 		return false;
 	}
 	return !path.empty();
@@ -304,7 +304,7 @@ static bool FileOrFolderExists(const std::string& path) {
 static bool ValidateExtraPatch(std::string& path, const char* basePath, const char* entryName) {
 	if (!NormalizePath(path)) {
 		if (!path.empty()) {
-			dlog_f("Error: %s entry invalid: '%s'\n", DL_INIT, entryName, path.c_str());
+			dlog_f("Error: %s invalid entry: \"%s\"\n", DL_INIT, entryName, path.c_str());
 		}
 		return false;
 	}
@@ -333,12 +333,12 @@ static void GetExtraPatches() {
 
 	// If the mods folder does not exist, create it.
 	if (!FolderExists(modsPath)) {
-		dlog_f("Mods folder does not exist, creating: %s\n", DL_INIT, modsPath.c_str());
+		dlog_f("Creating Mods folder: %s\n", DL_INIT, modsPath.c_str() + 2);
 		CreateDirectoryA(modsPath.c_str(), 0);
 	}
 	// If load order file does not exist, initialize it automatically with mods already in the mods folder.
 	if (!FileExists(loadOrderFilePath)) {
-		dlog_f("Mods Order file does not exist, generating based on contents of Mods folder: %s\n", DL_INIT, loadOrderFilePath.c_str());
+		dlog_f("Generating Mods Order file based on the contents of Mods folder: %s\n", DL_INIT, loadOrderFilePath.c_str() + 2);
 		std::ofstream loadOrderFile(loadOrderFilePath, std::ios::out | std::ios::trunc);
 		if (loadOrderFile.is_open()) {
 			// Search all .dat files and folders in the mods folder.
@@ -358,7 +358,7 @@ static void GetExtraPatches() {
 			// Sort the search result.
 			std::sort(autoLoadedPatchFiles.begin(), autoLoadedPatchFiles.end());
 			// Write found files into load order file.
-			for (auto& filePath : autoLoadedPatchFiles) {
+			for (const auto& filePath : autoLoadedPatchFiles) {
 				loadOrderFile << filePath << '\n';
 			}
 		} else {
