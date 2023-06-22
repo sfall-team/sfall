@@ -115,12 +115,16 @@ getLast:
 	}
 }
 
-void ObjectName::Reset() {
+static void Reset() {
 	overrideScrName.clear();
 	lastNameSid = -1;
 }
 
-void ObjectName::OnGameLoad() {
+void ObjectName::OnBeforeMapLoad() {
+	Reset();
+}
+
+void ObjectName::OnGameReset() {
 	Reset();
 	lastNameScrIdx = -1;
 	lastItemPid = -1;

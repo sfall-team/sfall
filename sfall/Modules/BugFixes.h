@@ -28,7 +28,7 @@ public:
 	const char* name() { return "BugFixes"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 	static void OnBeforeGameInit();
 	static void OnAfterGameInit();
 

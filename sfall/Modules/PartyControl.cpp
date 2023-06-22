@@ -700,7 +700,7 @@ void PartyControl::OnCombatEnd() {
 	partyOrderAttackTarget.clear();
 }
 
-void PartyControl::OnGameLoad() {
+void PartyControl::OnGameReset() {
 	PartyControlReset();
 	if (!npcEngineLevelUp) {
 		npcEngineLevelUp = true;

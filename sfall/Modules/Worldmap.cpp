@@ -678,7 +678,7 @@ const char* Worldmap::GetCustomAreaTitle(long areaID) {
 	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }
 
-void Worldmap::OnGameLoad() {
+void Worldmap::OnGameReset() {
 	SetCarInterfaceArt(433); // set index
 	if (restTime) SetRestHealTime(180);
 	RestRestore();

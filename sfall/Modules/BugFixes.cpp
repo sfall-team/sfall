@@ -3249,7 +3249,7 @@ void BugFixes::OnAfterGameInit() {
 	combat_ai_init_backup();
 }
 
-void BugFixes::OnGameLoad() {
+void BugFixes::OnGameReset() {
 	dudeIsAnimDeath = false;
 	combat_ai_reset();
 }

@@ -273,7 +273,7 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 	__asm pop ecx;
 }
 
-void Opcodes::OnGameLoad() {
+void Opcodes::OnGameReset() {
 	PipboyAvailableRestore();
 	ForceEncounterRestore(); // restore if the encounter did not happen
 	ResetIniCache();

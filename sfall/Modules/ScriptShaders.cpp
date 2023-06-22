@@ -220,7 +220,7 @@ void ScriptShaders::Release() {
 	shaderTextures.clear();
 }
 
-void ScriptShaders::OnGameLoad() {
+void ScriptShaders::OnGameReset() {
 	ResetShaders();
 }
 

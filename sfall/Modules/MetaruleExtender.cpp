@@ -115,7 +115,7 @@ extended:
 	}
 }
 
-void MetaruleExtender::Reset() {
+void MetaruleExtender::OnGameReset() {
 	if (HorriganEncounterSetDays != HorriganEncounterDefaultDays) {
 		SafeWrite8(HorriganEncounterDays, HorriganEncounterDefaultDays);
 	}

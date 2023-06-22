@@ -948,7 +948,7 @@ static void EngineOptimizationPatches() {
 	SafeWrite8(0x47C135, 140 + 10); // jz 0x47C1CF
 }
 
-void MiscPatches::OnGameLoad() {
+void MiscPatches::OnGameReset() {
 	cMusicArea = -1;
 }
 

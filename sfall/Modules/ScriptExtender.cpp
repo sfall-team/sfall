@@ -1043,13 +1043,13 @@ void BuildSortedIndexList() {
 	//devlog_f("\nCount: %d\n", DL_MAIN, scriptsIndexList.size());
 }
 
-void ScriptExtender::OnGameLoad() {
+void ScriptExtender::OnGameReset() {
 	ClearGlobalScripts();
 	ClearGlobals();
 	RegAnimCombatCheck(1);
 
-	Opcodes::OnGameLoad();
-	ObjectName::OnGameLoad();
+	Opcodes::OnGameReset();
+	ObjectName::OnGameReset();
 }
 
 void ScriptExtender::init() {

@@ -548,7 +548,7 @@ static void __declspec(naked) PipStatus_hack() {
 	}
 }
 
-void QuestList::ResetQuests() {
+void QuestList::OnGameReset() {
 	questFailures.clear();
 }
 

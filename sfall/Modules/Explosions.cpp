@@ -477,7 +477,7 @@ static void ResetExplosionDamage() {
 	explosionsDamageReset = false;
 }
 
-void Explosions::OnGameLoad() {
+void Explosions::OnGameReset() {
 	ResetExplosionRadius();
 	ResetExplosionDamage();
 }

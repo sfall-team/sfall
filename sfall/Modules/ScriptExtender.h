@@ -37,7 +37,7 @@ public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	static bool OnMapLeave;
 

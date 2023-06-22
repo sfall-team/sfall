@@ -644,7 +644,7 @@ long Inventory::GetInvenApCost() {
 	return invenApCost - (invenApQPReduction * perkLevel);
 }
 
-void Inventory::Reset() {
+void Inventory::OnGameReset() {
 	invenApCost = invenApCostDef;
 }
 

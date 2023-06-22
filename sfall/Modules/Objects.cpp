@@ -243,7 +243,7 @@ skip:
 	}
 }
 
-void Objects::OnGameLoad() {
+void Objects::OnGameReset() {
 	RestoreObjUnjamAllLocks();
 	//*fo::ptr::cur_id = 4;
 }

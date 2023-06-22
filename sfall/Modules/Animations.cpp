@@ -562,7 +562,7 @@ static void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>((DWORD)&animSad->pathData[0].tile, sad_28);
 }
 
-void Animations::OnGameLoad() {
+void Animations::OnGameReset() {
 	ClearAllLock();
 }
 

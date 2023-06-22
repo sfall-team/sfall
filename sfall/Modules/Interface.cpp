@@ -709,7 +709,7 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-void Interface::OnGameLoad() {
+void Interface::OnGameReset() {
 	dots.clear();
 }
 

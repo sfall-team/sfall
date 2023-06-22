@@ -305,7 +305,7 @@ void __stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mo
 	pickpocketMods.push_back(cm);
 }
 
-void Skills::OnGameLoad() {
+void Skills::OnGameReset() {
 	pickpocketMods.clear();
 	basePickpocket.SetDefault();
 

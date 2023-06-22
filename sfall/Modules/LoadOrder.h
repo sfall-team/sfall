@@ -28,7 +28,7 @@ public:
 	const char* name() { return "LoadOrder"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 	static void OnAfterGameInit();
 
 	static void art_get_name_hack();

@@ -32,7 +32,7 @@ public:
 	void init();
 	void exit() override;
 
-	static void OnGameLoad();
+	static void OnGameReset();
 	static void OnAfterGameInit();
 
 	static int  MaxBox() { return boxCount - 1; }

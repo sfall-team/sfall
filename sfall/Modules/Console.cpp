@@ -53,7 +53,7 @@ static void __declspec(naked) display_print_hack() {
 	}
 }
 
-void Console::OnGameLoad() {
+void Console::OnGameReset() {
 	if (consoleFile.is_open()) {
 		printCount = 0;
 		consoleFile.flush();

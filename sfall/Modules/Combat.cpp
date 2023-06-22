@@ -550,7 +550,7 @@ void Combat::OnBeforeGameStart() {
 	BodypartHitChances(); // set on start & load
 }
 
-void Combat::OnGameLoad() {
+void Combat::OnGameReset() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();

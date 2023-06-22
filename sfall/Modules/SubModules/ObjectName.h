@@ -28,8 +28,8 @@ public:
 	static const char* __stdcall GetName(fo::GameObject* object);
 	static void SetName(long sid, const char* name);
 
-	static void Reset();
-	static void OnGameLoad();
+	static void OnGameReset();
+	static void OnBeforeMapLoad();
 };
 
 }

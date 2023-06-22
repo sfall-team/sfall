@@ -28,7 +28,7 @@ public:
 	const char* name() { return "QuestList"; }
 	void init();
 
-	static void ResetQuests();
+	static void OnGameReset();
 
 	static void AddQuestFailureValue(long globalVarNum, long failureThreshold);
 };

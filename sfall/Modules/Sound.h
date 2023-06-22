@@ -29,7 +29,7 @@ public:
 	void init();
 	void exit() override;
 
-	static void OnGameLoad();
+	static void OnGameReset();
 	static void OnAfterGameInit();
 	static void OnBeforeGameClose();
 

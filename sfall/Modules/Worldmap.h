@@ -28,7 +28,7 @@ public:
 	const char* name() { return "Worldmap"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	static void SaveData(HANDLE);
 	static bool LoadData(HANDLE);

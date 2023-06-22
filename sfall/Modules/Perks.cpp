@@ -993,7 +993,7 @@ void Perks::SetPerkDesc(int id, const char* value) {
 	perksReInit = true;
 }
 
-void Perks::Reset() {
+void Perks::OnGameReset() {
 	fakeTraits.clear();
 	fakePerks.clear();
 	fakeSelectablePerks.clear();

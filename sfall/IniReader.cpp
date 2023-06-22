@@ -106,7 +106,7 @@ void IniReader::clearCache() {
 	_iniCache.clear();
 }
 
-void IniReader::OnGameLoad() {
+void IniReader::OnGameReset() {
 	instance().clearCache();
 }
 

@@ -28,7 +28,7 @@ public:
 	const char* name() { return "Explosions"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	static void AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg);
 };

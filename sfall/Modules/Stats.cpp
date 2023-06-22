@@ -320,7 +320,7 @@ static void StatsReset() {
 	}
 }
 
-void Stats::OnGameLoad() {
+void Stats::OnGameReset() {
 	StatsReset();
 	// Reset some settable game values back to the defaults
 	standardApAcBonus = 4;

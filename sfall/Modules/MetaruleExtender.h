@@ -28,7 +28,7 @@ public:
 	const char* name() { return "MetaruleExtender"; }
 	void init();
 
-	static void Reset();
+	static void OnGameReset();
 };
 
 }

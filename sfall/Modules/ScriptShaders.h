@@ -29,7 +29,7 @@ public:
 	const char* name() { return "ScriptShaders"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	static size_t Count();
 

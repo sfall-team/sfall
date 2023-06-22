@@ -620,7 +620,7 @@ void LoadOrder::OnAfterGameInit() {
 	RemoveSavFiles();
 }
 
-void LoadOrder::OnGameLoad() {
+void LoadOrder::OnGameReset() {
 	savPrototypes.clear();
 	RemoveSavFiles();
 }

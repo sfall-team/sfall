@@ -47,7 +47,7 @@ public:
 	const char* name() { return "Combat"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 	static void OnBeforeGameStart();
 
 	static long determineHitChance;

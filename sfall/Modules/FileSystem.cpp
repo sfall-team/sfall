@@ -414,7 +414,7 @@ end:
 	}
 }
 
-void FileSystem::Reset() {
+void FileSystem::OnGameReset() {
 	if (files.empty()) return;
 	for (DWORD i = loadedFiles; i < files.size(); i++) {
 		if (files[i].data) delete[] files[i].data;

@@ -28,7 +28,7 @@ public:
 	const char* name() { return "Inventory"; }
 	void init();
 
-	static void Reset();
+	static void OnGameReset();
 	static void KeyPressedHook(DWORD dxKey, bool pressed);
 
 	static long GetInvenApCost();

@@ -28,7 +28,7 @@ public:
 	const char* name() { return "Stats"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	static float experienceMod;
 	static DWORD standardApAcBonus;

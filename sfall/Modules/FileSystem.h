@@ -28,7 +28,7 @@ public:
 	const char* name() { return "FileSystem"; }
 	void init();
 
-	static void Reset();
+	static void OnGameReset();
 
 	static bool UsingFileSystem;
 	// save FileSystem data to a save game file

@@ -31,7 +31,7 @@ public:
 	const char* name() { return "Perks"; }
 	void init();
 
-	static void Reset();
+	static void OnGameReset();
 
 	// Enable the modification of the stats/skills for traits by using the perks ini file
 	static int TraitsModEnable();

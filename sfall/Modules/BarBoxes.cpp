@@ -264,7 +264,7 @@ void BarBoxes::OnAfterGameInit() {
 	SetMaxSlots();
 }
 
-void BarBoxes::OnGameLoad() {
+void BarBoxes::OnGameReset() {
 	ResetBoxes();
 	if (initCount != totalBoxCount) {
 		boxCount = initCount;

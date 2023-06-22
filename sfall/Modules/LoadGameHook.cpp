@@ -300,33 +300,33 @@ errorLoad:
 static bool __stdcall GameReset(DWORD isGameLoad) {
 	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		// OnGameReset
-		IniReader::OnGameLoad();
-		BugFixes::OnGameLoad();
+		IniReader::OnGameReset();
+		BugFixes::OnGameReset();
 		if (Graphics::mode >= 4) {
 			Graphics::ForceGraphicsRefresh(0); // disable refresh
-			ScriptShaders::OnGameLoad();
+			ScriptShaders::OnGameReset();
 		}
-		FileSystem::Reset();
-		LoadOrder::OnGameLoad();
-		Animations::OnGameLoad();
-		BarBoxes::OnGameLoad();
-		Explosions::OnGameLoad();
+		FileSystem::OnGameReset();
+		LoadOrder::OnGameReset();
+		Animations::OnGameReset();
+		BarBoxes::OnGameReset();
+		Explosions::OnGameReset();
 		ClearScriptAddedExtraGameMsg();
-		Interface::OnGameLoad();
-		Worldmap::OnGameLoad();
-		Sound::OnGameLoad();
-		MiscPatches::OnGameLoad();
-		Inventory::Reset();
-		Objects::OnGameLoad();
-		Stats::OnGameLoad();
-		Perks::Reset();
-		Skills::OnGameLoad();
-		PartyControl::OnGameLoad();
-		Combat::OnGameLoad();
-		QuestList::ResetQuests();
-		Console::OnGameLoad();
-		MetaruleExtender::Reset();
-		ScriptExtender::OnGameLoad();
+		Interface::OnGameReset();
+		Worldmap::OnGameReset();
+		Sound::OnGameReset();
+		MiscPatches::OnGameReset();
+		Inventory::OnGameReset();
+		Objects::OnGameReset();
+		Stats::OnGameReset();
+		Perks::OnGameReset();
+		Skills::OnGameReset();
+		PartyControl::OnGameReset();
+		Combat::OnGameReset();
+		QuestList::OnGameReset();
+		Console::OnGameReset();
+		MetaruleExtender::OnGameReset();
+		ScriptExtender::OnGameReset();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
 			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
@@ -434,7 +434,7 @@ static void __stdcall GameClose() { // OnBeforeGameClose
 }
 
 static void __stdcall MapLoadHook() { // OnBeforeMapLoad
-	ObjectName::Reset();
+	ObjectName::OnBeforeMapLoad();
 }
 
 static void __declspec(naked) main_init_system_hook() {

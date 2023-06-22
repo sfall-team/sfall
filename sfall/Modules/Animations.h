@@ -28,7 +28,7 @@ public:
 	const char* name() { return "Animations"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 };
 
 }

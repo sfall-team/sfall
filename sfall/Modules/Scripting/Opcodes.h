@@ -28,7 +28,7 @@ namespace script
 class Opcodes {
 public:
 	static void InitNew();
-	static void OnGameLoad();
+	static void OnGameReset();
 };
 
 }

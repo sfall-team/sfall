@@ -33,7 +33,7 @@ public:
 	const char* name() { return "Objects"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	static long uniqueID;
 

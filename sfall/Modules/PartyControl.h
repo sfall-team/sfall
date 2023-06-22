@@ -28,7 +28,7 @@ public:
 	const char* name() { return "PartyControl"; }
 	void init();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 	static void OnCombatEnd();
 
 	static int __fastcall SwitchHandHook(fo::GameObject* item);

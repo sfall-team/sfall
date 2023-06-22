@@ -26,7 +26,7 @@ class IniReader {
 public:
 	static IniReader& instance();
 
-	static void OnGameLoad();
+	static void OnGameReset();
 
 	// Gets the integer value from the default config (i.e. ddraw.ini)
 	static int GetIntDefaultConfig(const char* section, const char* setting, int defaultValue);

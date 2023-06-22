@@ -987,7 +987,7 @@ void Sound::OnAfterGameInit() {
 	*fo::ptr::sampleRate = SampleRate / 2; // Revert to 22kHz for secondary sound buffers
 }
 
-void Sound::OnGameLoad() {
+void Sound::OnGameReset() {
 	WipeSounds();
 }
 
