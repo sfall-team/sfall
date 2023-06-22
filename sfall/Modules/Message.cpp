@@ -162,7 +162,7 @@ noFile:
 void ReadExtraGameMsgFiles() {
 	if (!msgFileList.empty()) {
 		int number = 0;
-		for (std::vector<std::string>::const_iterator it = msgFileList.begin(); it != msgFileList.end(); ++it) {
+		for (std::vector<std::string>::iterator it = msgFileList.begin(); it != msgFileList.end(); ++it) {
 			std::string path("game\\");
 			size_t n = it->find(':');
 			if (n == std::string::npos) {

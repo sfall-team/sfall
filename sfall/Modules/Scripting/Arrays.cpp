@@ -38,7 +38,7 @@ namespace script
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
 // temp arrays: set of arrayId
-std::tr1::unordered_set<DWORD> temporaryArrays;
+std::unordered_set<DWORD> temporaryArrays;
 // saved arrays: arrayKey => arrayId
 ArrayKeysMap savedArrays;
 
@@ -449,7 +449,7 @@ void FreeArray(DWORD id) {
 
 void DeleteAllTempArrays() {
 	if (!temporaryArrays.empty()) {
-		for (std::tr1::unordered_set<DWORD>::iterator it = temporaryArrays.begin(); it != temporaryArrays.end(); ++it) {
+		for (std::unordered_set<DWORD>::iterator it = temporaryArrays.begin(); it != temporaryArrays.end(); ++it) {
 			FreeArray(*it);
 		}
 		temporaryArrays.clear();

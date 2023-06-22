@@ -24,7 +24,7 @@
 namespace sfall
 {
 
-static std::tr1::unordered_map<int, std::string> overrideScrName;
+static std::unordered_map<int, std::string> overrideScrName;
 
 static long lastNameScrIdx = -1;
 static long lastNameSid = -1;
@@ -38,7 +38,7 @@ void ObjectName::SetName(long sid, const char* name) {
 
 const char* __stdcall ObjectName::GetName(fo::GameObject* object) {
 	if (!overrideScrName.empty()) {
-		std::tr1::unordered_map<int, std::string>::iterator &name = overrideScrName.find(object->scriptId);
+		std::unordered_map<int, std::string>::iterator &name = overrideScrName.find(object->scriptId);
 		if (name != overrideScrName.cend()) {
 			return (name->second.length() > 0)
 			       ? name->second.c_str()

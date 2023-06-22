@@ -69,10 +69,10 @@ struct TextureData {
 		: textures(tex), showHighlights(show), bakedBackground(baked), frames(frames) {}
 };
 
-typedef std::tr1::unordered_map<__int64, TextureData> :: iterator tex_itr;
-typedef std::tr1::unordered_map<__int64, TextureData> :: const_iterator tex_citr;
+typedef std::unordered_map<__int64, TextureData>::iterator tex_itr;
+typedef std::unordered_map<__int64, TextureData>::const_iterator tex_citr;
 
-static std::tr1::unordered_map<__int64, TextureData> texMap;
+static std::unordered_map<__int64, TextureData> texMap;
 
 static const char* headSuffix[] = { "gv", "gf", "gn", "ng", "nf", "nb", "bn", "bf", "bv", "gp", "np", "bp" };
 

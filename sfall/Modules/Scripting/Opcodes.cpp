@@ -245,7 +245,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 
 // An array for opcode info, indexed by opcode.
 // Initialized at run time from the array above.
-static std::tr1::array<const SfallOpcodeInfo*, opcodeCount - sfallOpcodeStart> opcodeInfoTable;
+static std::array<const SfallOpcodeInfo*, opcodeCount - sfallOpcodeStart> opcodeInfoTable;
 
 // Initializes the opcode info table.
 static void InitOpcodeInfoTable() {
@@ -271,6 +271,12 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 		fo::func::interpretError("Unknown opcode: %d", opcode);
 	}
 	__asm pop ecx;
+}
+
+void Opcodes::OnGameLoad() {
+	PipboyAvailableRestore();
+	ForceEncounterRestore(); // restore if the encounter did not happen
+	ResetIniCache();
 }
 
 void Opcodes::InitNew() {

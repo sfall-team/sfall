@@ -42,10 +42,10 @@ struct levelRest {
 };
 #pragma pack(pop)
 
-std::tr1::unordered_map<int, levelRest> mapRestInfo;
+std::unordered_map<int, levelRest> mapRestInfo;
 
 std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
-std::tr1::unordered_map<long, std::string> wmAreaHotSpotTitle;
+std::unordered_map<long, std::string> wmAreaHotSpotTitle;
 
 static bool restMap;
 static bool restMode;
@@ -528,7 +528,7 @@ static void PipBoyAutomapsPatch() {
 void Worldmap::SaveData(HANDLE file) {
 	DWORD sizeWrite, count = mapRestInfo.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
-	std::tr1::unordered_map<int, levelRest>::iterator it;
+	std::unordered_map<int, levelRest>::iterator it;
 	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); ++it) {
 		WriteFile(file, &it->first, 4, &sizeWrite, 0);
 		WriteFile(file, &it->second, sizeof(levelRest), &sizeWrite, 0);
@@ -601,7 +601,7 @@ void Worldmap::SetRestMode(DWORD mode) {
 }
 
 void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
-	std::tr1::unordered_map<int, levelRest>::iterator keyIt = mapRestInfo.find(mapId);
+	std::unordered_map<int, levelRest>::iterator keyIt = mapRestInfo.find(mapId);
 	if (keyIt != mapRestInfo.end()) {
 		if (elev == -1) {
 			keyIt->second.level[++elev] = canRest;
@@ -629,7 +629,7 @@ void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
 long __fastcall Worldmap::GetRestMapLevel(long elev, int mapId) {
 	if (mapRestInfo.empty()) return -1;
 
-	std::tr1::unordered_map<int, levelRest>::iterator keyIt = mapRestInfo.find(mapId);
+	std::unordered_map<int, levelRest>::iterator keyIt = mapRestInfo.find(mapId);
 	if (keyIt != mapRestInfo.end()) {
 		return keyIt->second.level[elev];
 	}
@@ -674,7 +674,7 @@ void Worldmap::SetCustomAreaTitle(long areaID, const char* msg) {
 
 const char* Worldmap::GetCustomAreaTitle(long areaID) {
 	if (AreaTitlesIsEmpty()) return nullptr;
-	const std::tr1::unordered_map<long, std::string>::iterator &it = wmAreaHotSpotTitle.find(areaID);
+	const std::unordered_map<long, std::string>::iterator &it = wmAreaHotSpotTitle.find(areaID);
 	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }
 

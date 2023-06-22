@@ -110,7 +110,7 @@ struct sArrayVarOld
 #define ARRAYFLAG_CONSTVAL	(2) // don't update value of key if the key exists in map
 #define ARRAYFLAG_RESERVED	(4)
 
-typedef std::tr1::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sArrayElement_EqualFunc> ArrayKeysMap;
+typedef std::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sArrayElement_EqualFunc> ArrayKeysMap;
 
 /**
 	This class represents sfall array
@@ -162,7 +162,7 @@ public:
 };
 
 // arrays map: arrayId => arrayVar
-typedef std::tr1::unordered_map<DWORD, sArrayVar> ArraysMap;
+typedef std::unordered_map<DWORD, sArrayVar> ArraysMap;
 extern ArraysMap arrays;
 typedef ArraysMap::const_iterator array_citr;
 typedef ArraysMap::iterator array_itr;

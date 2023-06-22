@@ -163,7 +163,7 @@ public:
 	static DWORD getScriptTypeBySfallType(DataType dataType);
 
 private:
-	std::tr1::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
+	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
 
 	fo::Program* _program;

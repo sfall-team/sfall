@@ -30,8 +30,13 @@ namespace sfall
 namespace script
 {
 
-static std::tr1::unordered_map<std::string, DWORD> ConfigArrayCache;
-static std::tr1::unordered_map<std::string, DWORD> ConfigArrayCacheDat;
+static std::unordered_map<std::string, DWORD> ConfigArrayCache;
+static std::unordered_map<std::string, DWORD> ConfigArrayCacheDat;
+
+void ResetIniCache() {
+	ConfigArrayCache.clear();
+	ConfigArrayCacheDat.clear();
+}
 
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
 	key = strstr(iniString, "|");
@@ -188,8 +193,8 @@ void mf_get_ini_config(OpcodeContext& ctx) {
 	}
 
 	// Check if array exists in either cache.
-	std::tr1::unordered_map<std::string, DWORD>& cache = isDb ? ConfigArrayCacheDat : ConfigArrayCache;
-	std::tr1::unordered_map<std::string, DWORD>::iterator cacheHit = cache.find(filePath);
+	std::unordered_map<std::string, DWORD>& cache = isDb ? ConfigArrayCacheDat : ConfigArrayCache;
+	std::unordered_map<std::string, DWORD>::iterator cacheHit = cache.find(filePath);
 	if (cacheHit != cache.end()) {
 		if (ArrayExists(cacheHit->second)) {
 			// Previously loaded array still exists, so return it.

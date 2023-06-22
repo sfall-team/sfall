@@ -35,8 +35,6 @@
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
 #include "Scripting\Handlers\Anims.h"
-#include "Scripting\Handlers\Interface.h"
-#include "Scripting\Handlers\Worldmap.h"
 
 #include "ScriptExtender.h"
 
@@ -115,18 +113,18 @@ static std::vector<std::string> globalScriptFilesList;
 static std::vector<GlobalScript> globalScripts;
 
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef std::tr1::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
+typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-std::tr1::unordered_map<fo::Program*, SelfOverrideObj> selfOverrideMap;
+std::unordered_map<fo::Program*, SelfOverrideObj> selfOverrideMap;
 
-typedef std::tr1::unordered_map<std::string, ExportedVar> ExportedVarsMap;
+typedef std::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 
-std::tr1::unordered_map<__int64, int> globalVars;
-typedef std::tr1::unordered_map<__int64, int>::iterator glob_itr;
-typedef std::tr1::unordered_map<__int64, int>::const_iterator glob_citr;
+std::unordered_map<__int64, int> globalVars;
+typedef std::unordered_map<__int64, int>::iterator glob_itr;
+typedef std::unordered_map<__int64, int>::const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
 DWORD availableGlobalScriptTypes = 0;
@@ -147,7 +145,7 @@ long ScriptExtender::GetResetScriptReturnValue() {
 }
 
 static __forceinline long FindProgram(fo::Program* program) {
-	std::tr1::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(program);
+	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(program);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
 		overrideScript.id = scriptId;
@@ -414,7 +412,7 @@ long GetGlobalVar(const char* var) {
 }
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
-	std::tr1::unordered_map<fo::Program*, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
+	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
 	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
 		if (isFind) {
@@ -615,10 +613,9 @@ static void LoadGlobalScriptsList() {
 
 	ScriptProgram prog;
 	for (std::vector<std::string>::const_iterator it = globalScriptFilesList.begin(); it != globalScriptFilesList.end(); ++it) {
-		const std::string &scriptFile = *it;
 		dlog("> ", DL_SCRIPT);
-		dlog(scriptFile.c_str(), DL_SCRIPT);
-		InitScriptProgram(prog, scriptFile.c_str());
+		dlog(it->c_str(), DL_SCRIPT);
+		InitScriptProgram(prog, it->c_str());
 		if (prog.ptr) {
 			GlobalScript gscript = GlobalScript(prog);
 			gscript.startProc = prog.procLookup[fo::Scripts::ScriptProc::start]; // get 'start' procedure position
@@ -1050,9 +1047,8 @@ void ScriptExtender::OnGameLoad() {
 	ClearGlobalScripts();
 	ClearGlobals();
 	RegAnimCombatCheck(1);
-	PipboyAvailableRestore();
-	ForceEncounterRestore(); // restore if the encounter did not happen
 
+	Opcodes::OnGameLoad();
 	ObjectName::OnGameLoad();
 }
 

@@ -27,7 +27,7 @@ namespace sf = sfall;
 static const int reloadAPCost = 2;  // engine default reload AP cost
 static const int unarmedAPCost = 3; // engine default unarmed AP cost
 
-static std::tr1::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
+static std::array<long, 3> healingItemPids = {fo::PID_STIMPAK, fo::PID_SUPER_STIMPAK, fo::PID_HEALING_POWDER};
 
 long Items::GetHealingPID(long index) {
 	return healingItemPids[index];

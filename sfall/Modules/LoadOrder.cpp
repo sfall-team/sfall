@@ -382,7 +382,7 @@ static void GetExtraPatches() {
 
 	dlogr("Loading extra patches:", DL_INIT);
 	for (std::vector<std::string>::const_iterator it = patchFiles.begin(); it != patchFiles.end(); ++it) {
-		dlog_f("> %s\n", DL_INIT, (*it).c_str() + 2);
+		dlog_f("> %s\n", DL_INIT, it->c_str() + 2);
 	}
 }
 

@@ -52,7 +52,7 @@ namespace script
 // Use ctx.setReturn(x) to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
-typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
+typedef std::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
 

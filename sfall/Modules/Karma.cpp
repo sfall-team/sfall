@@ -43,7 +43,7 @@ bool displayKarmaChanges;
 
 static DWORD __stdcall DrawCard() {
 	int reputation = (*fo::ptr::game_global_vars)[fo::GVAR_PLAYER_REPUTATION];
-	for (std::vector<KarmaFrmSetting>::iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
+	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
 		if (reputation < it->points) {
 			return it->frm;
 		}

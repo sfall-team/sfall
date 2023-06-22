@@ -86,7 +86,7 @@ public:
 
 private:
 	DWORD _modifiedIni;
-	std::tr1::unordered_map<std::string, Config*> _iniCache;
+	std::unordered_map<std::string, Config*> _iniCache;
 
 	IniReader();
 

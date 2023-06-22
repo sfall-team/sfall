@@ -68,7 +68,7 @@ static std::vector<sDSSound*> loopingSounds;
 
 static fo::ACMSoundData* acmSoundData = nullptr; // currently loaded ACM file
 
-static std::tr1::unordered_map<std::string, std::wstring> soundsFiles;
+static std::unordered_map<std::string, std::wstring> soundsFiles;
 
 DWORD playID = 0;
 DWORD loopID = 0;
@@ -92,9 +92,8 @@ static void FreeSound(sDSSound* sound) {
 }
 
 static void WipeSounds() {
-	std::vector<sDSSound*>::const_iterator it;
-	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) FreeSound(*it);
-	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) FreeSound(*it);
+	for (std::vector<sDSSound*>::iterator it = playingSounds.begin(); it != playingSounds.end(); ++it) FreeSound(*it);
+	for (std::vector<sDSSound*>::iterator it = loopingSounds.begin(); it != loopingSounds.end(); ++it) FreeSound(*it);
 	playingSounds.clear();
 	loopingSounds.clear();
 	backgroundMusic = nullptr;
@@ -197,24 +196,22 @@ void __fastcall ResumeSfallSound(sDSSound* sound) {
 }
 
 void __stdcall PauseAllSfallSound() {
-	std::vector<sDSSound*>::const_iterator it;
-	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) {
+	for (std::vector<sDSSound*>::iterator it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
 		(*it)->pEvent->SetNotifyFlags(AM_MEDIAEVENT_NONOTIFY);
 		(*it)->pControl->Pause();
 	}
-	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) {
+	for (std::vector<sDSSound*>::iterator it = playingSounds.begin(); it != playingSounds.end(); ++it) {
 		(*it)->pEvent->SetNotifyFlags(AM_MEDIAEVENT_NONOTIFY);
 		(*it)->pControl->Pause();
 	}
 }
 
 void __stdcall ResumeAllSfallSound() {
-	std::vector<sDSSound*>::const_iterator it;
-	for (it = loopingSounds.cbegin(); it != loopingSounds.cend(); ++it) {
+	for (std::vector<sDSSound*>::iterator it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
 		(*it)->pEvent->SetNotifyFlags(0);
 		(*it)->pControl->Run();
 	}
-	for (it = playingSounds.cbegin(); it != playingSounds.cend(); ++it) {
+	for (std::vector<sDSSound*>::iterator it = playingSounds.begin(); it != playingSounds.end(); ++it) {
 		(*it)->pEvent->SetNotifyFlags(0);
 		(*it)->pControl->Run();
 	}
@@ -422,7 +419,7 @@ static bool __fastcall SoundFileLoad(PlayType playType, const char* path) {
 	std::string pathFile = path;
 	if (pathFile.length() <= 4) return false;
 
-	std::tr1::unordered_map<std::string, std::wstring>::const_iterator it = soundsFiles.find(pathFile);
+	std::unordered_map<std::string, std::wstring>::iterator it = soundsFiles.find(pathFile);
 	if (it != soundsFiles.cend()) {
 		return PrePlaySoundFile(playType, it->second.c_str(), (it->second.length() > 0));
 	}

@@ -39,7 +39,7 @@ IniReader::IniReader() {
 
 Config* IniReader::getIniConfig(const char* iniFile) {
 	std::string pathStr(iniFile);
-	std::tr1::unordered_map<std::string, Config*>::iterator cacheHit = _iniCache.find(pathStr);
+	std::unordered_map<std::string, Config*>::iterator cacheHit = _iniCache.find(pathStr);
 	if (cacheHit != _iniCache.end()) {
 		return cacheHit->second;
 	}
@@ -100,7 +100,7 @@ int IniReader::setString(const char* section, const char* setting, const char* v
 }
 
 void IniReader::clearCache() {
-	for (std::tr1::unordered_map<std::string, Config*>::iterator it = _iniCache.begin(); it != _iniCache.end(); ++it) {
+	for (std::unordered_map<std::string, Config*>::iterator it = _iniCache.begin(); it != _iniCache.end(); ++it) {
 		delete it->second;
 	}
 	_iniCache.clear();

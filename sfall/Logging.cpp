@@ -69,25 +69,25 @@ void dlog(const char* a, int type) {
 		OutLog(a, type);
 	}
 }
-
+/*
 void dlog(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
 		OutLog(a, type);
 	}
 }
-
+*/
 void dlogr(const char* a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
 		OutLog(a, type, true);
 	}
 }
-
+/*
 void dlogr(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
 		OutLog(a, type, true);
 	}
 }
-
+*/
 void dlog_f(const char* fmt, int type, ...) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
 		va_list args;
