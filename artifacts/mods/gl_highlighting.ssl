@@ -69,7 +69,7 @@ procedure GetOutlineColor(variable obj, variable isCritter) begin
 end
 
 procedure ToggleHighlightObject(variable obj, variable enable, variable isCritter) begin
-   if (not alsoContainer and obj_item_subtype(obj) != item_type_container) or NO_HIGHLIGHT(obj) then return;
+   if (not alsoContainer or obj_item_subtype(obj) != item_type_container) and NO_HIGHLIGHT(obj) then return;
 
    set_outline(obj, GetOutlineColor(obj, isCritter) if enable else 0);
 end
