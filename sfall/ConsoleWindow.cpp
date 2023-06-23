@@ -57,7 +57,14 @@ void ConsoleWindow::loadPosition() {
 	for (size_t i = 0; i < 4; i++) {
 		windowData[i] = atoi(windowDataSplit.at(i).c_str());
 	}
-	if (!SetWindowPos(wnd, HWND_TOP, windowData[0], windowData[1], windowData[2], windowData[3], 0)) {
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN),
+		screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int w = min(max(windowData[2], 640), screenWidth),
+		h = min(max(windowData[3], 480), screenHeight),
+		x = min(max(windowData[0], 0), screenWidth - w),
+		y = min(max(windowData[1], 0), screenHeight - h);
+
+	if (!SetWindowPos(wnd, HWND_TOP, x, y, w, h, 0)) {
 		dlog_f("Error repositioning console window: 0x%x\n", DL_MAIN, GetLastError());
 	}
 }
