@@ -198,7 +198,10 @@ void op_create_spatial(OpcodeContext& ctx) {
 	// this will load appropriate script program and link it to the script instance we just created:
 	exec_script_proc(scriptId, start);
 
-	ctx.setReturn(fo::func::scr_find_obj_from_program(scriptPtr->program));
+	fo::GameObject* obj = fo::func::scr_find_obj_from_program(scriptPtr->program);
+	// set script index because scr_find_obj_from_program() doesn't do it when creating a hidden "spatial" object
+	obj->scriptIndex = scriptIndex - 1;
+	ctx.setReturn(obj);
 }
 
 #undef exec_script_proc
