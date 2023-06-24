@@ -1,13 +1,13 @@
 /**
 
-   Item Highlight mod.
+   Item Highlight mod
 
    Previously was part of sfall itself, now a separate mod.
    Features:
    - highlighting items, containers (optional) and lootable corpses (optional) on the ground
-   - highlighting of critters using the same rules as combat mode highlighting (optional)
+   - highlighting critters using the same rules as combat mode highlighting (optional)
    - configurable hotkey is used to trigger highlight
-   - hotkey can be pressed and hold to continously update highlighted objects based on current position
+   - hotkey can be pressed and held to continuously update highlighted objects based on current position
    - only objects in direct line-of-sight of player are highlighted (optional)
    - motion scanner is required to enable highlight (optional)
    - motion scanner charges are decreased on each use (optional)
@@ -55,12 +55,12 @@ end
 
 procedure GetOutlineColor(variable obj, variable isCritter) begin
    if isCritter then begin
-      if get_team(obj) == get_team(dude_obj) then return 8;
+      if get_team(obj) == get_team(dude_obj) then return OUTLINE_GREEN_GLOW;
       if not DudeCanSee(obj) then begin
-         if (DudeCanHear(obj)) then return 32;
+         if (DudeCanHear(obj)) then return OUTLINE_DARK_YELLOW;
          return 0;
       end
-      return 1;
+      return OUTLINE_RED_GLOW;
    end
    if checkLOS and not DudeCanSee(obj) then
       return 0;
@@ -106,7 +106,7 @@ procedure KeyPressHandler begin
 
    if scanCode == highlightKey and not(get_game_mode bwand (INTFACELOOT bwor BARTER)) then begin
       if pressed then begin
-         set_global_script_repeat(10);
+         set_global_script_repeat(REPEAT_FRAMES);
          if motionScanner then begin
             scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
             if scanner then begin
