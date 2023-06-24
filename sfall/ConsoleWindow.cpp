@@ -61,10 +61,14 @@ void ConsoleWindow::loadPosition() {
 		screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int w = min(max(windowData[2], 640), screenWidth),
 		h = min(max(windowData[3], 480), screenHeight),
-		x = min(max(windowData[0], 0), screenWidth - w),
-		y = min(max(windowData[1], 0), screenHeight - h);
+		x = min(max(windowData[0], -w/2), screenWidth - w/2),
+		y = min(max(windowData[1], -h/2), screenHeight - h/2);
 
-	if (!SetWindowPos(wnd, HWND_TOP, x, y, w, h, 0)) {
+	dlog_f("Settings Console Window pos: %d, %d, size: %dx%d. Screen: %dx%d.\n", DL_MAIN, x, y, w, h, screenWidth, screenHeight);
+	if (!SetWindowPos(wnd, HWND_TOP, 0, 0, w, h, SWP_NOMOVE)) {
+		dlog_f("Error resizing console window: 0x%x\n", DL_MAIN, GetLastError());
+	}
+	if (!SetWindowPos(wnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE)) {
 		dlog_f("Error repositioning console window: 0x%x\n", DL_MAIN, GetLastError());
 	}
 }
