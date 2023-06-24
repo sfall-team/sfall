@@ -65,7 +65,7 @@ static MetaruleTableType metaruleTable;
 	{ name, handler, minArgs, maxArgs, error, {arg1, arg2, ...} }
 		- name - name of function that will be used in scripts,
 		- handler - pointer to handler function (see examples below),
-		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 8)
 		- returned error value for argument validation,
 		- arg1, arg2, ... - argument types for automatic validation
 */
@@ -160,7 +160,7 @@ static const SfallMetarule metarules[] = {
 	{"show_window",             mf_show_window,             0, 1, -1, {ARG_STRING}},
 	{"spatial_radius",          mf_spatial_radius,          1, 1,  0, {ARG_OBJECT}},
 	{"string_compare",          mf_string_compare,          2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
-	{"string_format",           mf_string_format,           2, 5,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
+	{"string_format",           mf_string_format,           2, 8,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
 	{"string_to_case",          mf_string_to_case,          2, 2, -1, {ARG_STRING, ARG_INT}},
 	{"tile_by_position",        mf_tile_by_position,        2, 2, -1, {ARG_INT, ARG_INT}},
 	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
