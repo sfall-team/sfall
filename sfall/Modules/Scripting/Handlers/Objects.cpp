@@ -156,7 +156,7 @@ void op_set_script(OpcodeContext& ctx) {
 
 	long scriptIndex = valArg & ~0xF0000000;
 	if (scriptIndex == 0 || valArg > 0x8FFFFFFF) { // negative values are not allowed
-		ctx.printOpcodeError("%s() - the script index number is incorrect.", ctx.getOpcodeName());
+		ctx.printOpcodeError("%s() - invalid script index number.", ctx.getOpcodeName());
 		return;
 	}
 	scriptIndex--;
@@ -429,7 +429,7 @@ void mf_item_make_explosive(OpcodeContext& ctx) {
 	if (pid > 0 && pidActive > 0) {
 		Explosions::AddToExplosives(pid, pidActive, min, max);
 	} else {
-		ctx.printOpcodeError("%s() - invalid PID number, must be greater than 0.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid PID number.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 	}
 }
