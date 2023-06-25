@@ -58,13 +58,13 @@ void ConsoleWindow::loadPosition() {
 		windowData[i] = atoi(windowDataSplit.at(i).c_str());
 	}
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN),
-		screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	    screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int w = min(max(windowData[2], 640), screenWidth),
-		h = min(max(windowData[3], 480), screenHeight),
-		x = min(max(windowData[0], -w/2), screenWidth - w/2),
-		y = min(max(windowData[1], -h/2), screenHeight - h/2);
+	    h = min(max(windowData[3], 480), screenHeight),
+	    x = min(max(windowData[0], 0), screenWidth - w/2),
+	    y = min(max(windowData[1], 0), screenHeight - h/2);
 
-	dlog_f("Settings Console Window pos: %d, %d, size: %dx%d. Screen: %dx%d.\n", DL_MAIN, x, y, w, h, screenWidth, screenHeight);
+	dlog_f("Setting console window position: (%d, %d), size: %dx%d\n", DL_MAIN, x, y, w, h);
 	if (!SetWindowPos(wnd, HWND_TOP, 0, 0, w, h, SWP_NOMOVE)) {
 		dlog_f("Error resizing console window: 0x%x\n", DL_MAIN, GetLastError());
 	}

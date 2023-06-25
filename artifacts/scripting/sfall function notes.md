@@ -339,7 +339,7 @@ FUNCTION REFERENCE
 
 -----
 ##### `string sprintf(string format, any value)`
-- Formats given value using standard syntax of C `printf` function (google "printf" for format details). However it is limited to formatting only 1 value.
+- Formats given value using standard syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting only 1 value.
 - Can be used to get character by ASCII code (`%c`).
 
 -----
@@ -930,9 +930,10 @@ sfall_funcX metarule functions
 
 ----
 #### string_format
-`string sfall_func3("string_format", string format, any val1, any val2, ...)`
-- Formats given value using standard syntax of C `printf` function (google "printf" for format details). However it is limited to formatting up to 4 values
-- Formatting is only supported for `%s` and `%d`, and the format string is limited to 1024 characters
+`string sfall_func2("string_format", string format, any val1)`
+`string sfall_funcX("string_format", string format, any val1, any val2, ...)`
+- Formats given values using standard syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting up to 7 values
+- The format string is limited to 1024 characters
 
 ----
 #### objects_in_radius

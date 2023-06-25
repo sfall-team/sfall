@@ -43,7 +43,7 @@ bool displayKarmaChanges;
 
 static DWORD __stdcall DrawCard() {
 	int reputation = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
-	for (auto& info : karmaFrms) {
+	for (const auto& info : karmaFrms) {
 		if (reputation < info.points) {
 			return info.frm;
 		}

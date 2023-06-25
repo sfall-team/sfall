@@ -232,8 +232,7 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 		} else {
 			if (c == '%') {
 				conversion = false; // escaped % sign, just skip
-			}
-			else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+			} else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
 				// ignore size prefixes
 				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'w' || c == 'L' || c == 'I') continue;
 				// Type specifier, perform conversion.
@@ -242,18 +241,18 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 				}
 				const auto& arg = ctx.arg(valIdx < numArgs ? valIdx : numArgs - 1);
 				if (c == 'S' || c == 'Z') {
-					c = 's'; // don't allow wide-strings.
+					c = 's'; // don't allow wide strings
 				}
-				if (c == 's' && !arg.isString() || // don't allow to treat non-string values as string pointers
-					c == 'n') // don't allow "n" specifier
+				if (c == 's' && !arg.isString() || // don't allow treating non-string values as string pointers
+				    c == 'n') // don't allow "n" specifier
 				{
 					c = 'd';
 				}
 				newFmt[j++] = c;
 				newFmt[j] = '\0';
 				int partLen = arg.isFloat()
-					? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
-					: _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
+				            ? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
+				            : _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
 				outBuf += partLen;
 				bufCount -= partLen;
 				conversion = false;
@@ -278,7 +277,7 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 
 void op_sprintf(OpcodeContext& ctx) {
 	ctx.setReturn(
-		sprintf_lite(ctx, "op_sprintf")
+		sprintf_lite(ctx, ctx.getOpcodeName())
 	);
 }
 
