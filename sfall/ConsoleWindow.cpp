@@ -45,6 +45,13 @@ bool ConsoleWindow::tryGetWindow(HWND* wnd) {
 	return true;
 }
 
+BOOL WINAPI ConsoleCtrlHandler(DWORD dwCtrlType) {
+	if (dwCtrlType == CTRL_CLOSE_EVENT) {
+		ConsoleWindow::instance().savePosition();
+	}
+	return TRUE;
+}
+
 void ConsoleWindow::loadPosition() {
 	auto windowDataStr = IniReader::GetStringDefaultConfig(IniSection, IniPositionKey, "");
 	auto windowDataSplit = split(windowDataStr, ',');
@@ -53,22 +60,37 @@ void ConsoleWindow::loadPosition() {
 	HWND wnd;
 	if (!tryGetWindow(&wnd)) return;
 
-	int windowData[4];
-	for (size_t i = 0; i < 4; i++) {
-		windowData[i] = atoi(windowDataSplit.at(i).c_str());
+	if (HMENU hMenu = GetSystemMenu(wnd, FALSE ) )
+    {
+        EnableMenuItem( hMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED );
+    }
+	if (!SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE)) {
+		dlog_f("Error setting console ctrl handler: 0x%x\n", DL_MAIN, GetLastError());
+	}
+
+	int windowData[5];
+	for (size_t i = 0; i < 5; i++) {
+		windowData[i] = i < windowDataSplit.size() ? atoi(windowDataSplit.at(i).c_str()) : 0;
 	}
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN),
-	    screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int w = min(max(windowData[2], 640), screenWidth),
-	    h = min(max(windowData[3], 480), screenHeight),
-	    x = min(max(windowData[0], 0), screenWidth - w/2),
-	    y = min(max(windowData[1], 0), screenHeight - h/2);
-
-	dlog_f("Setting console window position: (%d, %d), size: %dx%d\n", DL_MAIN, x, y, w, h);
-	if (!SetWindowPos(wnd, HWND_TOP, 0, 0, w, h, SWP_NOMOVE)) {
-		dlog_f("Error resizing console window: 0x%x\n", DL_MAIN, GetLastError());
-	}
-	if (!SetWindowPos(wnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE)) {
+		screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	LONG
+		w = min(max(windowData[2], 640), screenWidth),
+		h = min(max(windowData[3], 480), screenHeight),
+		x = min(max(windowData[0], -w/2), screenWidth - w/2),
+		y = min(max(windowData[1], 0), screenHeight - h/2);
+	UINT showCmd = windowData[4] != 0 ? windowData[4] : SW_SHOWNORMAL;
+	
+	dlog_f("Setting console window position: (%d, %d), size: %dx%d, showCmd: %d\n", DL_MAIN, x, y, w, h, showCmd);
+	WINDOWPLACEMENT wPlacement{};
+	wPlacement.length = sizeof(WINDOWPLACEMENT);
+	auto& rect = wPlacement.rcNormalPosition;
+	rect.left = x;
+	rect.top = y;
+	rect.right = x + w;
+	rect.bottom = y + h;
+	wPlacement.showCmd = showCmd;
+	if (!SetWindowPlacement(wnd, &wPlacement)) {
 		dlog_f("Error repositioning console window: 0x%x\n", DL_MAIN, GetLastError());
 	}
 }
@@ -77,14 +99,24 @@ void ConsoleWindow::savePosition() {
 	HWND wnd;
 	if (!tryGetWindow(&wnd)) return;
 
+	WINDOWPLACEMENT wPlacement;
+	wPlacement.length = sizeof(WINDOWPLACEMENT);
+	if (!GetWindowPlacement(wnd, &wPlacement)) {
+		dlog_f("Error getting console window placement: 0x%x\n", DL_MAIN, GetLastError());
+		return;
+	}
 	RECT wndRect;
-	if (!GetWindowRect(wnd, &wndRect)) {
-		dlog_f("Error getting console window position: 0x%x\n", DL_MAIN, GetLastError());
+	if (wPlacement.showCmd != SW_SHOWNORMAL) {
+		wndRect = wPlacement.rcNormalPosition;
+	}
+	else if (!GetWindowRect(wnd, &wndRect)) {
+		dlog_f("Error getting console window rect: 0x%x\n", DL_MAIN, GetLastError());
+		return;
 	}
 	int width = wndRect.right - wndRect.left;
 	int height = wndRect.bottom - wndRect.top;
 	std::ostringstream ss;
-	ss << wndRect.left << "," << wndRect.top << "," << width << "," << height;
+	ss << wndRect.left << "," << wndRect.top << "," << width << "," << height << "," << wPlacement.showCmd;
 	auto wndDataStr = ss.str();
 	dlog_f("Saving console window position & size: %s\n", DL_MAIN, wndDataStr.c_str());
 
