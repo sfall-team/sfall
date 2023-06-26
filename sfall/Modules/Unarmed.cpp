@@ -424,7 +424,7 @@ void Unarmed::init() {
 
 	unarmed = Hits();
 
-	auto unarmedFile = IniReader::GetConfigString("Misc", "UnarmedFile", "", MAX_PATH);
+	auto unarmedFile = IniReader::GetConfigString("Misc", "UnarmedFile", "");
 	if (!unarmedFile.empty()) {
 		const char* file = unarmedFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(file) != INVALID_FILE_ATTRIBUTES) { // check if file exists
@@ -510,7 +510,7 @@ void Unarmed::init() {
 		"PiercingKick"
 	};
 	for (size_t i = 0; i < 14; i++) {
-		hitNames[i] = Translate::Get("Unarmed", setting[i], "", 17);
+		hitNames[i] = Translate::Get("Unarmed", setting[i], "");
 	}
 }
 

@@ -932,12 +932,12 @@ void ScriptExtender::init() {
 	OnInputLoop() += RunGlobalScriptsOnInput;
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
-	globalScriptPathList = IniReader::GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	globalScriptPathList = IniReader::GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int");
 	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
 		ToLowerCase(globalScriptPathList[i]);
 	}
 
-	iniConfigFolder = IniReader::GetConfigString("Scripts", "IniConfigFolder", "", 64);
+	iniConfigFolder = IniReader::GetConfigString("Scripts", "IniConfigFolder", "");
 	size_t len = iniConfigFolder.length();
 	if (len) {
 		char c = iniConfigFolder[len - 1];

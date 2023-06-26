@@ -99,8 +99,8 @@ skip:
 }
 
 void Premade::init() {
-	auto premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
-	auto premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
+	auto premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "");
+	auto premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "");
 	if (!premadePaths.empty() && !premadeFids.empty()) {
 		dlogr("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());

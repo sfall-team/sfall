@@ -61,7 +61,7 @@ void Console::PrintFile(const char* msg) {
 }
 
 void Console::init() {
-	auto path = IniReader::GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
+	auto path = IniReader::GetConfigString("Misc", "ConsoleOutputPath", "");
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {

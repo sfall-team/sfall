@@ -333,7 +333,7 @@ void Skills::init() {
 	LoadGameHook::OnGameReset() += ResetOnGameLoad;
 
 	char buf[512], key[16];
-	auto skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
+	auto skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "");
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
 

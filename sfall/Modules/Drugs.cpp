@@ -283,7 +283,7 @@ long Drugs::SetDrugAddictTimeOff(long pid, long time) {
 }
 
 void Drugs::init() {
-	auto drugsFile = IniReader::GetConfigString("Misc", "DrugsFile", "", MAX_PATH);
+	auto drugsFile = IniReader::GetConfigString("Misc", "DrugsFile", "");
 	if (!drugsFile.empty()) {
 		dlog("Applying drugs patch...", DL_INIT);
 		const char* iniDrugs = drugsFile.insert(0, ".\\").c_str();

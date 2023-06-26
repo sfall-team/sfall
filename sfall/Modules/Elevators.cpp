@@ -159,7 +159,7 @@ static void ElevatorsInit() {
 }
 
 void Elevators::init() {
-	auto elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
+	auto elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "");
 	if (!elevPath.empty()) {
 		dlogr("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();

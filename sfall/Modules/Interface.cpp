@@ -882,7 +882,7 @@ static void WorldMapInterfacePatch() {
 		if (color > 228) color = 228; else if (color < 1) color = 1; // no palette animation colors
 		colorDot = color;
 
-		auto dotList = IniReader::GetConfigList("Interface", "TravelMarkerStyles", "", 512);
+		auto dotList = IniReader::GetConfigList("Interface", "TravelMarkerStyles", "");
 		if (!dotList.empty()) {
 			terrainCount = dotList.size();
 			dotStyle = new DotStyle[terrainCount];

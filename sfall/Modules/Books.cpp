@@ -86,7 +86,7 @@ static void LoadVanillaBooks() {
 }
 
 void Books::init() {
-	auto booksFile = IniReader::GetConfigString("Misc", "BooksFile", "", MAX_PATH);
+	auto booksFile = IniReader::GetConfigString("Misc", "BooksFile", "");
 	if (!booksFile.empty()) {
 		dlog("Applying books patch...", DL_INIT);
 		const char* iniBooks = booksFile.insert(0, ".\\").c_str();

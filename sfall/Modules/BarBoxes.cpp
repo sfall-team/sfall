@@ -276,7 +276,7 @@ void BarBoxes::init() {
 		boxes[i].msg = 100 + i;
 	}
 
-	auto boxBarColors = IniReader::GetConfigString("Misc", "BoxBarColours", "", actualBoxCount + 1);
+	auto boxBarColors = IniReader::GetConfigString("Misc", "BoxBarColours", "");
 	for (size_t i = 0; i < boxBarColors.size(); i++) {
 		if (boxBarColors[i] == '1') {
 			boxes[i + 5].colour = 1; // red color

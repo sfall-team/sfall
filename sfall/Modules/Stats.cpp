@@ -284,7 +284,7 @@ void Stats::init() {
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
-	auto xpTableList = IniReader::GetConfigList("Misc", "XPTable", "", 2048);
+	auto xpTableList = IniReader::GetConfigList("Misc", "XPTable", "");
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
 		HookCall(0x434AA7, GetNextLevelXPHook);
@@ -301,7 +301,7 @@ void Stats::init() {
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
-	auto statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
+	auto statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "");
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists

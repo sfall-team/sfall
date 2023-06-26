@@ -315,7 +315,7 @@ void Criticals::init() {
 	mode = IniReader::GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
-		critTableFile += IniReader::GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
+		critTableFile += IniReader::GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini");
 		CriticalTableOverride();
 		LoadGameHook::OnBeforeGameStart() += []() {
 			memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table

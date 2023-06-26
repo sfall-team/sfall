@@ -27,7 +27,7 @@ namespace sfall
 {
 
 void EngineTweaks::init() {
-	auto tweaksFile = IniReader::GetConfigString("Misc", "TweaksFile", "", MAX_PATH);
+	auto tweaksFile = IniReader::GetConfigString("Misc", "TweaksFile", "");
 	if (!tweaksFile.empty()) {
 		const char* cTweaksFile = tweaksFile.insert(0, ".\\").c_str();
 
