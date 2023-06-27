@@ -60,10 +60,9 @@ void ConsoleWindow::loadPosition() {
 	HWND wnd;
 	if (!tryGetWindow(&wnd)) return;
 
-	if (HMENU hMenu = GetSystemMenu(wnd, FALSE ) )
-    {
-        EnableMenuItem( hMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED );
-    }
+	if (HMENU hMenu = GetSystemMenu(wnd, FALSE)) {
+		EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+	}
 	if (!SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE)) {
 		dlog_f("Error setting console ctrl handler: 0x%x\n", DL_MAIN, GetLastError());
 	}
@@ -73,14 +72,13 @@ void ConsoleWindow::loadPosition() {
 		windowData[i] = i < windowDataSplit.size() ? atoi(windowDataSplit.at(i).c_str()) : 0;
 	}
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN),
-		screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	LONG
-		w = min(max(windowData[2], 640), screenWidth),
-		h = min(max(windowData[3], 480), screenHeight),
-		x = min(max(windowData[0], -w/2), screenWidth - w/2),
-		y = min(max(windowData[1], 0), screenHeight - h/2);
+	    screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	LONG w = min(max(windowData[2], 640), screenWidth),
+	     h = min(max(windowData[3], 480), screenHeight),
+	     x = min(max(windowData[0], -w/2), screenWidth - w/2),
+	     y = min(max(windowData[1], 0), screenHeight - h/2);
 	UINT showCmd = windowData[4] != 0 ? windowData[4] : SW_SHOWNORMAL;
-	
+
 	dlog_f("Setting console window position: (%d, %d), size: %dx%d, showCmd: %d\n", DL_MAIN, x, y, w, h, showCmd);
 	WINDOWPLACEMENT wPlacement{};
 	wPlacement.length = sizeof(WINDOWPLACEMENT);
@@ -108,8 +106,7 @@ void ConsoleWindow::savePosition() {
 	RECT wndRect;
 	if (wPlacement.showCmd != SW_SHOWNORMAL) {
 		wndRect = wPlacement.rcNormalPosition;
-	}
-	else if (!GetWindowRect(wnd, &wndRect)) {
+	} else if (!GetWindowRect(wnd, &wndRect)) {
 		dlog_f("Error getting console window rect: 0x%x\n", DL_MAIN, GetLastError());
 		return;
 	}

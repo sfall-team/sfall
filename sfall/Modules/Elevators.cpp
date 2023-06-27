@@ -113,27 +113,25 @@ static void LoadElevators(const char* elevFile) {
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
 
 	char section[4];
-	if (elevFile && GetFileAttributes(elevFile) != INVALID_FILE_ATTRIBUTES) {
-		for (int i = 0; i < elevatorCount; i++) {
-			_itoa_s(i, section, 10);
-			int type = IniReader::GetInt(section, "Image", elevatorType[i], elevFile);
-			elevatorType[i] = min(type, elevatorCount - 1);
-			if (i >= vanillaElevatorCount) {
-				int cBtn = IniReader::GetInt(section, "ButtonCount", 2, elevFile);
-				if (cBtn < 2) cBtn = 2;
-				elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
-			}
-			elevatorsFrms[i].main = IniReader::GetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
-			elevatorsFrms[i].buttons = IniReader::GetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
-			char setting[32];
-			for (int j = 0; j < exitsPerElevator; j++) {
-				sprintf(setting, "ID%d", j + 1);
-				elevatorExits[i][j].id = IniReader::GetInt(section, setting, elevatorExits[i][j].id, elevFile);
-				sprintf(setting, "Elevation%d", j + 1);
-				elevatorExits[i][j].elevation = IniReader::GetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
-				sprintf(setting, "Tile%d", j + 1);
-				elevatorExits[i][j].tile = IniReader::GetInt(section, setting, elevatorExits[i][j].tile, elevFile);
-			}
+	for (int i = 0; i < elevatorCount; i++) {
+		_itoa_s(i, section, 10);
+		int type = IniReader::GetInt(section, "Image", elevatorType[i], elevFile);
+		elevatorType[i] = min(type, elevatorCount - 1);
+		if (i >= vanillaElevatorCount) {
+			int cBtn = IniReader::GetInt(section, "ButtonCount", 2, elevFile);
+			if (cBtn < 2) cBtn = 2;
+			elevatorsBtnCount[i] = min(cBtn, exitsPerElevator);
+		}
+		elevatorsFrms[i].main = IniReader::GetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+		elevatorsFrms[i].buttons = IniReader::GetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
+		char setting[32];
+		for (int j = 0; j < exitsPerElevator; j++) {
+			sprintf(setting, "ID%d", j + 1);
+			elevatorExits[i][j].id = IniReader::GetInt(section, setting, elevatorExits[i][j].id, elevFile);
+			sprintf(setting, "Elevation%d", j + 1);
+			elevatorExits[i][j].elevation = IniReader::GetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
+			sprintf(setting, "Tile%d", j + 1);
+			elevatorExits[i][j].tile = IniReader::GetInt(section, setting, elevatorExits[i][j].tile, elevFile);
 		}
 	}
 }
@@ -161,9 +159,12 @@ static void ElevatorsInit() {
 void Elevators::init() {
 	auto elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "");
 	if (!elevPath.empty()) {
+		const char* elevFile = elevPath.insert(0, ".\\").c_str();
+		if (GetFileAttributes(elevFile) == INVALID_FILE_ATTRIBUTES) return;
+
 		dlogr("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();
-		LoadElevators(elevPath.insert(0, ".\\").c_str());
+		LoadElevators(elevFile);
 	}
 }
 

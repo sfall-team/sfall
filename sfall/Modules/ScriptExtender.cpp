@@ -933,7 +933,7 @@ void ScriptExtender::init() {
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
 	globalScriptPathList = IniReader::GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int");
-	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
+	for (size_t i = 0; i < globalScriptPathList.size(); i++) {
 		ToLowerCase(globalScriptPathList[i]);
 	}
 

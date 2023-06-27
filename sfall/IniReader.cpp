@@ -76,8 +76,8 @@ static size_t getString(const char* section, const char* setting, const char* de
 	auto config = IniReader::instance().getIniConfig(iniFile);
 	const std::string* value;
 	const char* result = config != nullptr && config->getString(section, setting, value)
-		?  value->c_str()
-		: defaultValue;
+	                   ? value->c_str()
+	                   : defaultValue;
 
 	strncpy_s(buf, bufSize, result, bufSize - 1);
 	return strlen(buf);

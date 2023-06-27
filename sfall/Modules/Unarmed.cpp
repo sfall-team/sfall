@@ -511,6 +511,7 @@ void Unarmed::init() {
 	};
 	for (size_t i = 0; i < 14; i++) {
 		hitNames[i] = Translate::Get("Unarmed", setting[i], "");
+		if (hitNames[i].size() > 16) hitNames[i].resize(16); // trim to fit
 	}
 }
 
