@@ -88,11 +88,11 @@ static void ApplyDisplayKarmaChangesPatch() {
 }
 
 static void ApplyKarmaFRMsPatch() {
-	std::vector<std::string> karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "", 512);
+	std::vector<std::string> karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "");
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
 		dlogr("Applying karma FRM patch.", DL_INIT);
-		std::vector<std::string> karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "", 512);
+		std::vector<std::string> karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "");
 
 		karmaFrms.resize(countFrm);
 		size_t countPoints = karmaPointsList.size();

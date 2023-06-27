@@ -315,7 +315,7 @@ static void GetExtraPatches() {
 	char patchFile[12] = "PatchFile";
 	for (int i = 0; i < 100; i++) {
 		_itoa(i, &patchFile[9], 10);
-		std::string patch = IniReader::GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
+		std::string patch = IniReader::GetConfigString("ExtraPatches", patchFile, "");
 		if (!ValidateExtraPatch(patch, "", patchFile)) continue;
 		patchFiles.push_back(patch);
 	}

@@ -226,7 +226,7 @@ void ScriptShaders::OnGameReset() {
 
 void ScriptShaders::init() {
 	if (Graphics::mode >= 4) {
-		for each (const std::string& shaderFile in IniReader::GetConfigList("Graphics", "GlobalShaderFile", "", 1024)) {
+		for each (const std::string& shaderFile in IniReader::GetConfigList("Graphics", "GlobalShaderFile", "")) {
 			if (shaderFile.length() > 3) gShaderFiles.push_back(GlobalShader(shaderFile));
 		}
 		globalShadersActive = !gShaderFiles.empty();

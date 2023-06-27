@@ -553,7 +553,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 	fo::GameObject* targetObject = nullptr;
 	fo::GameObject* validTarget = nullptr;
 
-	long outlineColor; // backup color
+	long outlineColor = 0; // backup color
 	fo::BoundRect rect;
 	partyOrderPickTargetLoop = true;
 
@@ -734,9 +734,9 @@ void PartyControl::init() {
 		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 	}
 
-	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::", 33));
-	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::", 33));
-	std::vector<std::string> msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::"));
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::"));
+	std::vector<std::string> msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|');
 	partyOrderAttackMsg.insert(partyOrderAttackMsg.cend(), msgs.cbegin(), msgs.cend());
 }
 

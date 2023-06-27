@@ -358,7 +358,7 @@ void Stats::init() {
 	MakeCall(0x42D3B0, critter_adjust_rads_hack, 1);
 	SafeWrite16(0x42D3B6, 0xC085); // test eax, eax
 
-	std::vector<std::string> xpTableList = IniReader::GetConfigList("Misc", "XPTable", "", 2048);
+	std::vector<std::string> xpTableList = IniReader::GetConfigList("Misc", "XPTable", "");
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
 		HookCall(0x434AA7, GetNextLevelXPHook);
@@ -375,7 +375,7 @@ void Stats::init() {
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
-	std::string statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
+	std::string statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "");
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
 		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists

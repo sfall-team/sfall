@@ -76,16 +76,15 @@ static int getInt(const char* section, const char* setting, int defaultValue, co
 static size_t getString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
 	Config* config = IniReader::instance().getIniConfig(iniFile);
 	const std::string* value;
-	if (config == nullptr || !config->getString(section, setting, value)) {
-		strncpy_s(buf, bufSize, defaultValue, bufSize - 1);
-		return strlen(buf);
-	}
+	const char* result = config != nullptr && config->getString(section, setting, value)
+	                   ? value->c_str()
+	                   : defaultValue;
 
-	strncpy_s(buf, bufSize, value->c_str(), bufSize - 1);
-	return value->size();
+	strncpy_s(buf, bufSize, result, bufSize - 1);
+	return strlen(buf);
 }
 
-static std::string getString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
+static std::string getString(const char* section, const char* setting, const char* defaultValue, const char* iniFile) {
 	Config* config = IniReader::instance().getIniConfig(iniFile);
 	const std::string* value;
 	if (config == nullptr || !config->getString(section, setting, value)) {
@@ -121,8 +120,8 @@ static int setInt(const char* section, const char* setting, int value, const cha
 	return IniReader::instance().setString(section, setting, buf, iniFile);
 }
 
-static std::vector<std::string> getList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	std::vector<std::string> list = split(getString(section, setting, defaultValue, bufSize, iniFile), delimiter);
+static std::vector<std::string> getList(const char* section, const char* setting, const char* defaultValue, char delimiter, const char* iniFile) {
+	std::vector<std::string> list = split(getString(section, setting, defaultValue, iniFile), delimiter);
 	std::transform(list.cbegin(), list.cend(), list.begin(), (std::string (*)(const std::string&))trim);
 	return list;
 }
@@ -131,28 +130,28 @@ int IniReader::GetIntDefaultConfig(const char* section, const char* setting, int
 	return getInt(section, setting, defaultValue, ddrawIni);
 }
 
-std::string IniReader::GetStringDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return getString(section, setting, defaultValue, bufSize, ddrawIni);
+std::string IniReader::GetStringDefaultConfig(const char* section, const char* setting, const char* defaultValue) {
+	return getString(section, setting, defaultValue, ddrawIni);
 }
 
-std::vector<std::string> IniReader::GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter) {
-	return getList(section, setting, defaultValue, bufSize, delimiter, ddrawIni);
+std::vector<std::string> IniReader::GetListDefaultConfig(const char* section, const char* setting, const char* defaultValue, char delimiter) {
+	return getList(section, setting, defaultValue, delimiter, ddrawIni);
 }
 
 int IniReader::GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return getInt(section, setting, defaultValue, ini);
 }
 
-std::string IniReader::GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return trim(getString(section, setting, defaultValue, bufSize, ini));
+std::string IniReader::GetConfigString(const char* section, const char* setting, const char* defaultValue) {
+	return trim(getString(section, setting, defaultValue, ini));
 }
 
 size_t IniReader::GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
 	return getString(section, setting, defaultValue, buf, bufSize, ini);
 }
 
-std::vector<std::string> IniReader::GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return getList(section, setting, defaultValue, bufSize, ',', ini);
+std::vector<std::string> IniReader::GetConfigList(const char* section, const char* setting, const char* defaultValue) {
+	return getList(section, setting, defaultValue, ',', ini);
 }
 
 int IniReader::GetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
@@ -163,12 +162,12 @@ size_t IniReader::GetString(const char* section, const char* setting, const char
 	return getString(section, setting, defaultValue, buf, bufSize, iniFile);
 }
 
-std::string IniReader::GetString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
-	return getString(section, setting, defaultValue, bufSize, iniFile);
+std::string IniReader::GetString(const char* section, const char* setting, const char* defaultValue, const char* iniFile) {
+	return getString(section, setting, defaultValue, iniFile);
 }
 
-std::vector<std::string> IniReader::GetList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	return getList(section, setting, defaultValue, bufSize, delimiter, iniFile);
+std::vector<std::string> IniReader::GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, const char* iniFile) {
+	return getList(section, setting, defaultValue, delimiter, iniFile);
 }
 
 int IniReader::SetConfigInt(const char* section, const char* setting, int value) {

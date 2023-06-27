@@ -99,8 +99,8 @@ skip:
 }
 
 void Premade::init() {
-	std::vector<std::string> premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "", 512);
-	std::vector<std::string> premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "", 512);
+	std::vector<std::string> premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "");
+	std::vector<std::string> premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "");
 	if (!premadePaths.empty() && !premadeFids.empty()) {
 		dlogr("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());

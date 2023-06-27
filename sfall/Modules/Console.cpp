@@ -61,7 +61,7 @@ void Console::OnGameReset() {
 }
 
 void Console::init() {
-	std::string path = IniReader::GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
+	std::string path = IniReader::GetConfigString("Misc", "ConsoleOutputPath", "");
 	if (!path.empty()) {
 		consoleFile.open(path);
 		if (consoleFile.is_open()) {

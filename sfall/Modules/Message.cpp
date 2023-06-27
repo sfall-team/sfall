@@ -236,7 +236,7 @@ void ClearReadExtraGameMsgFiles() {
 }
 
 void Message::init() {
-	msgFileList = IniReader::GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
+	msgFileList = IniReader::GetConfigList("Misc", "ExtraGameMsgFileList", "");
 
 	if (IniReader::GetConfigInt("Misc", "DialogGenderWords", 0)) {
 		dlogr("Applying dialog gender words patch.", DL_INIT);

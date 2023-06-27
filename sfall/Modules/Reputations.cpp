@@ -37,7 +37,7 @@ struct CityRep {
 static CityRep* repList = nullptr;
 
 void Reputations::init() {
-	std::vector<std::string> cityRepList = IniReader::GetConfigList("Misc", "CityRepsList", "", 512);
+	std::vector<std::string> cityRepList = IniReader::GetConfigList("Misc", "CityRepsList", "");
 	size_t count = cityRepList.size();
 	if (count) {
 		repList = new CityRep[count];

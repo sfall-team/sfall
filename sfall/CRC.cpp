@@ -84,7 +84,7 @@ static DWORD CalcCRCInternal(BYTE* data, DWORD size) {
 }
 
 static bool CheckExtraCRC(DWORD crc) {
-	std::vector<std::string> extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", 512, ',');
+	std::vector<std::string> extraCrcList = IniReader::GetListDefaultConfig("Debugging", "ExtraCRC", "", ',');
 	if (!extraCrcList.empty()) {
 		return std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) -> bool {
 			DWORD testedCrc = strtoul(testCrcStr.c_str(), 0, 16);

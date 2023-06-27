@@ -339,7 +339,7 @@ void Skills::init() {
 	HookCall(0x47831E, item_w_skill_hook);
 
 	char buf[512], key[16];
-	std::string skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
+	std::string skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "");
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::ptr::skill_data;
 

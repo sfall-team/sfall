@@ -287,8 +287,8 @@ void BarBoxes::init() {
 		boxes[i].msg = 100 + i;
 	}
 
-	std::string boxBarColors = IniReader::GetConfigString("Misc", "BoxBarColours", "", actualBoxCount + 1);
-	for (size_t i = 0; i < boxBarColors.size(); i++) {
+	std::string boxBarColors = IniReader::GetConfigString("Misc", "BoxBarColours", "");
+	for (size_t i = 0; i < boxBarColors.size() && i < (size_t)actualBoxCount; i++) {
 		if (boxBarColors[i] == '1') {
 			boxes[i + 5].colour = 1; // red color
 			boxText[i].cfgColor = 1;
