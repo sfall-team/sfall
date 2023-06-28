@@ -38,12 +38,21 @@ void ResetIniCache() {
 	ConfigArrayCacheDat.clear();
 }
 
+static bool IsSpecialIni(const char* str, const char* end) {
+	const char* pos = strfind(str, &IniReader::instance().getConfigFile()[2]); // TODO test
+	if (pos && pos < end) return true;
+	pos = strfind(str, "f2_res.ini");
+	if (pos && pos < end) return true;
+	return false;
+}
+
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
 	key = strstr(iniString, "|");
 	if (!key) return -1;
 
 	DWORD filelen = (DWORD)key - (DWORD)iniString;
-	if (filelen >= 64) return -1;
+	if (ScriptExtender::iniConfigFolder[0] == '\0' && filelen >= 64) return -1;
+	const char* fileEnd = key;
 
 	key = strstr(key + 1, "|");
 	if (!key) return -1;
@@ -53,9 +62,18 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 	file[0] = '.';
 	file[1] = '\\';
-	memcpy(&file[2], iniString, filelen);
-	file[2 + filelen] = 0;
 
+	if (ScriptExtender::iniConfigFolder[0] != '\0' && !IsSpecialIni(iniString, fileEnd)) {
+		size_t len = strlen(ScriptExtender::iniConfigFolder); // limit up to 62 characters
+		memcpy(&file[2], ScriptExtender::iniConfigFolder, len);
+		memcpy(&file[2 + len], iniString, filelen); // copy path and file
+		file[2 + len + filelen] = 0;
+		if (GetFileAttributesA(file) & FILE_ATTRIBUTE_DIRECTORY) goto defRoot; // also file not found
+	} else {
+defRoot:
+		memcpy(&file[2], iniString, filelen);
+		file[2 + filelen] = 0;
+	}
 	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
 
@@ -140,9 +158,28 @@ static std::string GetSanitizedDBPath(const char* pathArg) {
 	return std::move(path);
 }
 
+static std::string GetIniFilePathFromArg(const ScriptValue& arg) {
+	const char* pathArg = arg.strValue();
+	std::string fileName(".\\");
+	if (ScriptExtender::iniConfigFolder[0] == '\0') {
+		fileName += pathArg;
+	} else {
+		fileName += ScriptExtender::iniConfigFolder;
+		fileName += pathArg;
+		if (GetFileAttributesA(fileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY) {
+			const char* str = pathArg;
+			for (size_t i = 2; ; i++, str++) {
+				//if (*str == '.') str += (str[1] == '.') ? 3 : 2; // skip '.\' or '..\'
+				fileName[i] = *str;
+				if (!*str) break;
+			}
+		}
+	}
+	return std::move(fileName);
+}
+
 void mf_get_ini_sections(OpcodeContext& ctx) {
-	std::string fileName = std::string(".\\") + ctx.arg(0).strValue();
-	Config* config = IniReader::instance().getIniConfig(fileName.c_str());
+	Config* config = IniReader::instance().getIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
 	if (config == nullptr) {
 		ctx.setReturn(CreateTempArray(0, 0));
 		return;
@@ -169,8 +206,7 @@ void mf_get_ini_section(OpcodeContext& ctx) {
 	DWORD arrayId = CreateTempArray(-1, 0); // associative
 	ctx.setReturn(arrayId);
 
-	std::string fileName = std::string(".\\") + ctx.arg(0).strValue();
-	Config* config = IniReader::instance().getIniConfig(fileName.c_str());
+	Config* config = IniReader::instance().getIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
 	if (config == nullptr) return; // ini file not found
 
 	const Config::Data& data = config->data();
@@ -184,7 +220,7 @@ void mf_get_ini_config(OpcodeContext& ctx) {
 	bool isDb = ctx.arg(1).asBool();
 	std::string filePath(isDb
 		? GetSanitizedDBPath(ctx.arg(0).strValue())
-		: std::string(".\\") + ctx.arg(0).strValue());
+		: GetIniFilePathFromArg(ctx.arg(0)));
 
 	if (filePath.size() == 0) {
 		ctx.printOpcodeError("%s() - invalid config file path: %s", ctx.getMetaruleName(), ctx.arg(0).strValue());

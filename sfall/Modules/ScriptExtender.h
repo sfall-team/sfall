@@ -39,6 +39,7 @@ public:
 
 	static void OnGameReset();
 
+	static char iniConfigFolder[64];
 	static bool OnMapLeave;
 
 	static char gTextBuffer[5120];

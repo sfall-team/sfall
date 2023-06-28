@@ -58,6 +58,8 @@ static char highlightFail2[128];
 
 char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for script functions
 
+char ScriptExtender::iniConfigFolder[64];
+
 bool ScriptExtender::OnMapLeave;
 
 static std::vector<long> scriptsIndexList;
@@ -1067,6 +1069,19 @@ void ScriptExtender::init() {
 			0x44E559  // gmouse_remove_item_outline_
 		};
 		HookCalls(obj_remove_outline_hook, objRemoveOutlineAddr);
+	}
+
+	size_t len = IniReader::GetConfigString("Scripts", "IniConfigFolder", "", iniConfigFolder, 64);
+	if (len) {
+		char c = iniConfigFolder[len - 1];
+		bool pathSeparator = (c == '\\' || c == '/');
+		if (len > 62 || (len == 62 && !pathSeparator)) {
+			iniConfigFolder[0] = '\0';
+			dlogr("Error: IniConfigFolder path is too long.", DL_MAIN);
+		} else if (!pathSeparator) {
+			iniConfigFolder[len++] = '\\';
+			iniConfigFolder[len] = '\0';
+		}
 	}
 
 	alwaysFindScripts = isDebug && (IniReader::GetIntDefaultConfig("Debugging", "AlwaysFindScripts", 0) != 0);
