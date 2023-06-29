@@ -47,10 +47,6 @@ BOOL WINAPI ConsoleCtrlHandler(DWORD dwCtrlType) {
 }
 
 void ConsoleWindow::loadPosition() {
-	std::string windowDataStr = IniReader::GetStringDefaultConfig("Debugging", "ConsoleWindowData", "");
-	std::vector<std::string> windowDataSplit = split(windowDataStr, ',');
-	if (windowDataSplit.size() < 4) return;
-
 	HWND wnd;
 	if (!tryGetWindow(&wnd)) return;
 
@@ -61,16 +57,17 @@ void ConsoleWindow::loadPosition() {
 		dlog_f("Error setting console ctrl handler: 0x%x\n", DL_MAIN, GetLastError());
 	}
 
+	std::string windowDataStr = IniReader::GetStringDefaultConfig("Debugging", "ConsoleWindowData", "");
+	std::vector<std::string> windowDataSplit = split(windowDataStr, ',');
+
 	int windowData[5];
 	for (size_t i = 0; i < 5; i++) {
 		windowData[i] = i < windowDataSplit.size() ? atoi(windowDataSplit.at(i).c_str()) : 0;
 	}
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN),
-	    screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	LONG w = min(max(windowData[2], 640), screenWidth),
-	     h = min(max(windowData[3], 480), screenHeight),
-	     x = min(max(windowData[0], -w/2), screenWidth - w/2),
-	     y = min(max(windowData[1], 0), screenHeight - h/2);
+	LONG w = max(windowData[2], 640),
+	     h = max(windowData[3], 480),
+	     x = windowData[0],
+	     y = windowData[1];
 	UINT showCmd = windowData[4] != 0 ? windowData[4] : SW_SHOWNORMAL;
 
 	dlog_f("Setting console window position: (%d, %d), size: %dx%d, showCmd: %d\n", DL_MAIN, x, y, w, h, showCmd);

@@ -661,7 +661,7 @@ static void PrepareGlobalScriptsList() {
 
 		baseName = baseName.substr(0, lastDot); // script name without extension
 		if (!IsGameScript(baseName.c_str())) {
-			globalScriptFilesList.push_back(baseName);
+			globalScriptFilesList.push_back(std::move(baseName));
 		}
 	}
 	fo::func::db_free_file_list(&filenames, 0);
