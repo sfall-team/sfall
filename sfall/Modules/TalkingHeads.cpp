@@ -121,7 +121,7 @@ static bool LoadFrm(Frm* frm) {
 		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", fo::var::patches, frm->path);
 		if (pathLen > 250) return false;
 
-		if (!(GetFileAttributes(frm->path) & FILE_ATTRIBUTE_DIRECTORY)) {
+		if (!(GetFileAttributesA(frm->path) & FILE_ATTRIBUTE_DIRECTORY)) {
 			frm->broken = 1;
 			return false;
 		}
@@ -139,13 +139,13 @@ static bool LoadFrm(Frm* frm) {
 		}
 		if (frm->magic != 0xABCD) { // frm file not patched
 			StrAppend(buf, "highlight.off", pathLen);
-			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 1; // disable all highlights
+			if (GetFileAttributesA(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 1; // disable all highlights
 			if (!frm->showHighlights && texHighlight) {
 				StrAppend(buf, "highlight.on", pathLen);
-				if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 2; // show textured highlights
+				if (GetFileAttributesA(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 2; // show textured highlights
 			}
 			StrAppend(buf, "background.off", pathLen);
-			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->bakedBackground = 1; // fills entire frame surface with a key-color
+			if (GetFileAttributesA(buf) != INVALID_FILE_ATTRIBUTES) frm->bakedBackground = 1; // fills entire frame surface with a key-color
 		}
 		frm->textures = textures;
 		texMap.emplace(std::piecewise_construct, std::forward_as_tuple(frm->key),

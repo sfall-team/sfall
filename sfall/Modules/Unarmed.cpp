@@ -427,7 +427,7 @@ void Unarmed::init() {
 	auto unarmedFile = IniReader::GetConfigString("Misc", "UnarmedFile", "");
 	if (!unarmedFile.empty()) {
 		const char* file = unarmedFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(file) != INVALID_FILE_ATTRIBUTES) { // check if file exists
+		if (GetFileAttributesA(file) != INVALID_FILE_ATTRIBUTES) { // check if file exists
 			char stat[6] = "Stat0";
 			char sHit[4] = "0";
 			for (size_t i = 0; i < Hits::count; _itoa(++i, sHit, 10)) {

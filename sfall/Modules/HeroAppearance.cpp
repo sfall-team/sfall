@@ -179,12 +179,12 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 	bool folderExists = false, heroDatExists = false;
 	// check if folder exists for selected appearance
 	sprintf_s(heroPathPtr[0]->path, 64, appearancePathFmt, sex, race, style, "");
-	if (GetFileAttributes(heroPathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
+	if (GetFileAttributesA(heroPathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
 		folderExists = true;
 	}
 	// check if Dat exists for selected appearance
 	sprintf_s(heroPathPtr[1]->path, 64, appearancePathFmt, sex, race, style, ".dat");
-	int result = GetFileAttributes(heroPathPtr[1]->path);
+	int result = GetFileAttributesA(heroPathPtr[1]->path);
 	if (result != INVALID_FILE_ATTRIBUTES) {
 		if (!(result & FILE_ATTRIBUTE_DIRECTORY)) {
 			heroPathPtr[1]->pDat = LoadDat(heroPathPtr[1]->path);
@@ -203,12 +203,12 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 		bool raceDatExists = false, folderExists = false;
 		// check if folder exists for selected race base appearance
 		sprintf_s(racePathPtr[0]->path, 64, appearancePathFmt, sex, race, 0, "");
-		if (GetFileAttributes(racePathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
+		if (GetFileAttributesA(racePathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
 			folderExists = true;
 		}
 		// check if Dat (or folder) exists for selected race base appearance
 		sprintf_s(racePathPtr[1]->path, 64, appearancePathFmt, sex, race, 0, ".dat");
-		int result = GetFileAttributes(racePathPtr[1]->path);
+		int result = GetFileAttributesA(racePathPtr[1]->path);
 		if (result != INVALID_FILE_ATTRIBUTES) {
 			if (!(result & FILE_ATTRIBUTE_DIRECTORY)) {
 				racePathPtr[1]->pDat = LoadDat(racePathPtr[1]->path);
@@ -1408,13 +1408,13 @@ static void EnableHeroAppearanceMod() {
 	racePathPtr[1]->path = new char[64];
 
 	// check if Data exists for other races male or female, and if so enable race selection buttons
-	if (GetFileAttributes("Appearance\\hmR01S00") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00") != INVALID_FILE_ATTRIBUTES ||
-		GetFileAttributes("Appearance\\hmR01S00.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat") != INVALID_FILE_ATTRIBUTES) {
+	if (GetFileAttributesA("Appearance\\hmR01S00") != INVALID_FILE_ATTRIBUTES || GetFileAttributesA("Appearance\\hfR01S00") != INVALID_FILE_ATTRIBUTES ||
+		GetFileAttributesA("Appearance\\hmR01S00.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributesA("Appearance\\hfR01S00.dat") != INVALID_FILE_ATTRIBUTES) {
 		raceButtons = true;
 	}
 	// check if Data exists for other styles male or female, and if so enable style selection buttons
-	if (GetFileAttributes("Appearance\\hmR00S01") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01") != INVALID_FILE_ATTRIBUTES ||
-		GetFileAttributes("Appearance\\hmR00S01.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01.dat") != INVALID_FILE_ATTRIBUTES) {
+	if (GetFileAttributesA("Appearance\\hmR00S01") != INVALID_FILE_ATTRIBUTES || GetFileAttributesA("Appearance\\hfR00S01") != INVALID_FILE_ATTRIBUTES ||
+		GetFileAttributesA("Appearance\\hmR00S01.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributesA("Appearance\\hfR00S01.dat") != INVALID_FILE_ATTRIBUTES) {
 		styleButtons = true;
 	}
 

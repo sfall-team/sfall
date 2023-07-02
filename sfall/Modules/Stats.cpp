@@ -304,7 +304,7 @@ void Stats::init() {
 	auto statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "");
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
+		if (GetFileAttributesA(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
 			derivedHPwBonus = (IniReader::GetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
 			engineDerivedStats = false;
 

@@ -160,7 +160,7 @@ void Elevators::init() {
 	auto elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "");
 	if (!elevPath.empty()) {
 		const char* elevFile = elevPath.insert(0, ".\\").c_str();
-		if (GetFileAttributes(elevFile) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributesA(elevFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		dlogr("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();

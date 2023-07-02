@@ -286,7 +286,7 @@ void Drugs::init() {
 	auto drugsFile = IniReader::GetConfigString("Misc", "DrugsFile", "");
 	if (!drugsFile.empty()) {
 		const char* iniDrugs = drugsFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(iniDrugs) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributesA(iniDrugs) == INVALID_FILE_ATTRIBUTES) return;
 
 		dlog("Applying drugs patch...", DL_INIT);
 		JetWithdrawal = (IniReader::GetInt("main", "JetWithdrawal", 0, iniDrugs) == 1); // SafeWrite8(0x47A3A8, 0); item_wd_process_
