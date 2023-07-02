@@ -30,7 +30,7 @@ void EngineTweaks::init() {
 	std::string tweaksFile = IniReader::GetConfigString("Misc", "TweaksFile", "");
 	if (!tweaksFile.empty()) {
 		const char* cTweaksFile = tweaksFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(cTweaksFile) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributesA(cTweaksFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		game::Items::SetHealingPID(0, IniReader::GetInt("Items", "STIMPAK", fo::PID_STIMPAK, cTweaksFile));
 		game::Items::SetHealingPID(1, IniReader::GetInt("Items", "SUPER_STIMPAK", fo::PID_SUPER_STIMPAK, cTweaksFile));

@@ -1149,7 +1149,7 @@ void Perks::init() {
 	if (IniReader::GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
-		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributesA(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		perksEnable = IniReader::GetInt("Perks", "Enable", 1, perksFile);
 		traitsEnable = IniReader::GetInt("Traits", "Enable", 1, perksFile);

@@ -61,7 +61,7 @@ static void MakeLangTranslationPath(const char* config) {
 	while (*iniDef == '\\' || *iniDef == '/' || *iniDef == '.') iniDef++; // skip first characters
 	sprintf(translationIni.lang, "%s\\text\\%s\\%s", patches, language, iniDef);
 
-	translationIni.state = (GetFileAttributes(translationIni.lang) != INVALID_FILE_ATTRIBUTES);
+	translationIni.state = (GetFileAttributesA(translationIni.lang) != INVALID_FILE_ATTRIBUTES);
 }
 
 static char saveSfallDataFailMsg[128];
