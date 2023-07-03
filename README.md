@@ -21,7 +21,7 @@ Original description: A set of engine modifications for the classic game Fallout
 
 - Download `sfall_*.7z` from the [release archive](https://sourceforge.net/projects/sfall/files/).
 
-- Extract `ddraw.dll`, `ddraw.ini`, `sfall-mods.ini`, `sfall.dat`, and `data` folder to Fallout's base directory (i.e. the one that contains `fallout2.exe`).
+- Extract `ddraw.dll`, `ddraw.ini`, `sfall.dat`, and the `mods` folder to Fallout's base directory (i.e. the one that contains `fallout2.exe`). Also, remove `gl_highlighting.int` and `gl_partycontrol.int` from Fallout's `data\scripts\` directory if you have them.
 
 - __Important Note:__\
   If you are using a mod that already included sfall (e.g. killap's [Unofficial Patch](https://github.com/BGforgeNet/Fallout2_Unofficial_Patch) or [Restoration Project](https://github.com/BGforgeNet/Fallout2_Restoration_Project)), then that mod has probably included a custom modified `ddraw.ini`. In that case, overwriting it with sfall's vanilla `ddraw.ini` will be likely break your game. Instead, only overwrite `ddraw.dll`, and keep the mod's existing copy of `ddraw.ini`. (Or, if you know what you're doing, you can merge them together by hand.)
@@ -30,7 +30,7 @@ Original description: A set of engine modifications for the classic game Fallout
 
 ## Uninstallation
 
-Delete `ddraw.dll`, `ddraw.ini`, `sfall-mods.ini`, and `sfall.dat` from your Fallout directory. Also, delete `gl_highlighting.int` and `gl_partycontrol.int` from Fallout's `data\scripts\` directory.
+Delete `ddraw.dll`, `ddraw.ini`, and `sfall.dat` from your Fallout directory, and delete `sfall-mods.ini` from the `mods` folder.
 
 ## Usage
 

@@ -930,7 +930,7 @@ sfall_funcX metarule functions
 
 ----
 #### string_format
-`string sfall_func2("string_format", string format, any val1)`
+`string sfall_func2("string_format", string format, any val1)`\
 `string sfall_funcX("string_format", string format, any val1, any val2, ...)`
 - Formats given values using standard syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting up to 7 values
 - The format string is limited to 1024 characters
