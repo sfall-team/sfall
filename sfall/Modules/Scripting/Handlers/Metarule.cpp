@@ -160,7 +160,7 @@ static const SfallMetarule metarules[] = {
 	{"show_window",             mf_show_window,             0, 1, -1, {ARG_STRING}},
 	{"spatial_radius",          mf_spatial_radius,          1, 1,  0, {ARG_OBJECT}},
 	{"string_compare",          mf_string_compare,          2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
-	{"string_find",             mf_string_find,             2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
+	{"string_pos",              mf_string_pos,              2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
 	{"string_format",           mf_string_format,           2, 8,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
 	{"string_to_case",          mf_string_to_case,          2, 2, -1, {ARG_STRING, ARG_INT}},
 	{"tile_by_position",        mf_tile_by_position,        2, 2, -1, {ARG_INT, ARG_INT}},
