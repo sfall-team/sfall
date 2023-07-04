@@ -149,7 +149,7 @@
 // sort map in descending order by key value
 #define sort_map_reverse(array)     resize_array(array, -7)
 // remove element from map or just replace value with 0 for list
-#define unset_array(array, item)    set_array(array, item, 0)
+#define unset_array(array, key)     set_array(array, key, 0)
 
 // same as "key_pressed" but checks VK codes instead of DX codes
 #define key_pressed_vk(key)         (key_pressed(key bwor 0x80000000))
@@ -391,6 +391,7 @@
 #define spatial_radius(obj)                                     sfall_func1("spatial_radius", obj)
 #define string_compare(str1, str2)                              sfall_func2("string_compare", str1, str2)
 #define string_compare_locale(str1, str2, codePage)             sfall_func3("string_compare", str1, str2, codePage)
+#define string_find(haystack, needle, pos)                      sfall_func3("string_find", haystack, needle, pos)
 #define string_format1(format, a1)                              sfall_func2("string_format", format, a1)
 #define string_format2(format, a1, a2)                          sfall_func3("string_format", format, a1, a2)
 #define string_format3(format, a1, a2, a3)                      sfall_func4("string_format", format, a1, a2, a3)

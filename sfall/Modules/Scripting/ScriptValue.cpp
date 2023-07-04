@@ -135,6 +135,10 @@ unsigned long ScriptValue::rawValue() const {
 	return _val.dw;
 }
 
+long ScriptValue::intValue() const {
+	return _val.i;
+}
+
 const char* ScriptValue::strValue() const {
 	return _val.str;
 }
