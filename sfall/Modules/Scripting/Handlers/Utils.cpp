@@ -208,6 +208,9 @@ void mf_string_pos(OpcodeContext& ctx) {
 			ctx.setReturn(-1);
 			return;
 		}
+		else if (pos < 0) {
+			pos = len + pos;
+		}
 	}
 	else {
 		pos = 0;

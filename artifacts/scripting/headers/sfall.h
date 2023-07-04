@@ -282,6 +282,8 @@
 
 /* SFALL_FUNCX MACROS */
 
+#define FUNC_SELECTOR_7(_1,_2,_3,_4,_5,_6,_7,FUNC,...)          FUNC
+
 #define add_extra_msg_file(name)                                sfall_func1("add_extra_msg_file", name)
 #define add_global_timer_event(time, fixedParam)                sfall_func2("add_g_timer_event", time, fixedParam)
 #define add_iface_tag                                           sfall_func0("add_iface_tag")
@@ -400,8 +402,7 @@
 #define string_format5(format, a1, a2, a3, a4, a5)              sfall_func6("string_format", format, a1, a2, a3, a4, a5)
 #define string_format6(format, a1, a2, a3, a4, a5, a6)          sfall_func7("string_format", format, a1, a2, a3, a4, a5, a6)
 #define string_format7(format, a1, a2, a3, a4, a5, a6, a7)      sfall_func8("string_format", format, a1, a2, a3, a4, a5, a6, a7)
-#define string_format_MACRO(_0,_1,_2,_3,_4,_5,_6,FUNC,...)      FUNC
-#define string_format(...)                                      string_format_MACRO(__VA_ARGS__, string_format6, string_format5, string_format4, string_format3, string_format2, string_format1)(__VA_ARGS__)
+#define string_format(format, ...)                              FUNC_SELECTOR_7(__VA_ARGS__,string_format7,string_format6,string_format5,string_format4,string_format3,string_format2,string_format1)(format, __VA_ARGS__)
 #define string_tolower(text)                                    sfall_func2("string_to_case", text, 0)
 #define string_toupper(text)                                    sfall_func2("string_to_case", text, 1)
 #define tile_by_position(x, y)                                  sfall_func2("tile_by_position", x, y)
@@ -431,5 +432,7 @@
 #define get_current_quick_save_page                             metarule3(212, 0, 0, 0)
 #define get_current_quick_save_slot                             metarule3(213, 0, 0, 0)
 #define set_current_quick_save_slot(page, slot, check)          metarule3(214, page, slot, check) // check: 1 - don't check slot when saving
+
+#undef FUNC_SELECTOR_7
 
 #endif
