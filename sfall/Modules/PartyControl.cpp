@@ -680,12 +680,16 @@ static void __declspec(naked) combat_ai_hook_target() {
 }
 
 void PartyControl::OrderAttackPatch() {
+	static bool orderAttackPatch = false;
+	if (orderAttackPatch) return;
+
 	MakeCall(0x44C4A7, gmouse_handle_event_hack, 2);
 	HookCall(0x44C75F, gmouse_handle_event_hook);
 	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
 	MakeCall(0x44B830, gmouse_bk_process_hack);
 
 	HookCall(0x42B235, combat_ai_hook_target);
+	orderAttackPatch = true;
 }
 
 static void NpcAutoLevelPatch() {

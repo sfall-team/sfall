@@ -57,6 +57,8 @@ public:
 
 	unsigned long rawValue() const;
 
+	long intValue() const;
+
 	float floatValue() const;
 
 	const char* strValue() const;

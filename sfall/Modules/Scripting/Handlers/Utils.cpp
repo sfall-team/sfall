@@ -198,6 +198,25 @@ void mf_string_compare(OpcodeContext& ctx) {
 	}
 }
 
+void mf_string_pos(OpcodeContext& ctx) {
+	const char* const haystack = ctx.arg(0).strValue();
+	int pos = 0;
+	if (ctx.numArgs() > 2) {
+		int len = strlen(haystack);
+		pos = ctx.arg(2).intValue();
+		if (pos >= len) {
+			ctx.setReturn(-1);
+			return;
+		} else if (pos < 0) {
+			pos += len;
+		}
+	}
+	const char* needle = strstr(haystack + pos, ctx.arg(1).strValue());
+	ctx.setReturn(
+		needle != nullptr ? (int)(needle - haystack) : -1
+	);
+}
+
 // A safer version of sprintf for using in user scripts.
 static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 	const char* format = ctx.arg(0).strValue();
