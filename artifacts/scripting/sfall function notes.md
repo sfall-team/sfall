@@ -327,11 +327,11 @@ FUNCTION REFERENCE
 - You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`
 
 -----
-##### `string substr(string text, start, length)`
+##### `string substr(string text, int start, int length)`
 - Cuts a substring from a string starting at `start` up to `length` characters. The first character position is 0 (zero).
-- If `start` is negative - it indicates starting position from the end of the string (for example, `substr("test", -2, 2)` will return last 2 charactes: "st").
+- If `start` is negative - it indicates a position starting from the end of the string (for example, `substr("test", -2, 2)` will return last 2 charactes: "st").
 - If `length` is negative - it means so many characters will be omitted from the end of string (example: `substr("test", 0, -2)` will return string without last 2 characters: "te").
-- If `length` is zero - it will return a string from the starting position to the end of the string (new behavior for sfall 4.2.2/3.8.22).
+- If `length` is zero - it will return a string from the starting position to the end of the string (**new behavior** since sfall 4.2.2/3.8.22).
 
 -----
 ##### `int strlen(string text)`
@@ -1107,6 +1107,7 @@ sfall_funcX metarule functions
 - Allows changing "bonus move" points (yellow lights on the interface bar) that can only be used for movement, not attacking
 - Can be called from `HOOK_COMBATTURN` at the start of the turn (will not work on `dude_obj`)
 - Can be called from `HOOK_STDPROCEDURE` with `combat_proc` event (will work on both NPCs and `dude_obj`)
+
 ----
 #### get_ini_config
 `array sfall_func2("get_ini_config", string file, bool searchDB)`
@@ -1115,6 +1116,16 @@ sfall_funcX metarule functions
     False - searches the file in the regular file system, like with all other ini-related functions\
     True - searches the file in database (DAT) files. If not found, then it will try the regular file system
 - Subsequent calls for the same file will return the same array, unless it was disposed using `free_array`
+
+----
+#### string_pos
+`int sfall_func2("string_pos", string haystack, string needle)`
+`int sfall_func3("string_pos", string haystack, string needle, int pos)`
+
+- Returns the position of the first occurrence of a `needle` string in a `haystack` string, or -1 if not found. The first character position is 0 (zero)
+
+**Optional argument:**
+- `pos`: the position at which to start the search. If negative, it indicates a position starting from the end of the string
 
 
 ****

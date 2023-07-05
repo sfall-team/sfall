@@ -158,14 +158,14 @@ static void SetStatValue(long* proto, long offset, long amount) {
 static void ModifyAllStats(const itProtoMem &mem) {
 	if (!mem->second.proto && !fo::util::CritterCopyProto(mem->second.pid, mem->second.proto)) return; // proto error
 
-	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); itBonus++) {
+	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); ++itBonus) {
 		if (itBonus->objID == mem->first && itBonus->objPID == mem->second.pid) {
 			itBonus->s_proto = mem->second.proto;
 			SetBonusStatValue(itBonus->s_proto, itBonus->stat, itBonus->amount);
 			mem->second.sharedCount++;
 		}
 	}
-	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); itBase++) {
+	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); ++itBase) {
 		if (itBase->objID == mem->first && itBase->objPID == mem->second.pid) {
 			itBase->s_proto = mem->second.proto;
 			SetBaseStatValue(itBase->s_proto, itBase->stat, itBase->amount);
@@ -189,7 +189,7 @@ static void AddStat(long stat, fo::GameObject* critter, long amount, long* defau
 	fo::func::dev_printf("[SFALL] Set bonus:%d stat:%d, to NPC pid: %d, saved:%d\n", (offset == OffsetStat::bonus), stat, (critter->protoId & 0xFFFF), isSaved);
 
 	offset += stat;
-	for (auto itStat = vec.begin(); itStat != vec.end(); itStat++) {
+	for (auto itStat = vec.begin(); itStat != vec.end(); ++itStat) {
 		if (itStat->objID == critter->id && itStat->objPID == critter->protoId && itStat->stat == stat) {
 			fo::func::dev_printf("[SFALL] Modify stat value old: %d to new: %d, ID: %d\n", itStat->s_proto[offset], amount, itStat->objID);
 			if (amount == itStat->defVal) { // set value and value in regular prototype are matched
@@ -222,7 +222,7 @@ static void __fastcall SetStatToProto(long stat, fo::GameObject* critter, long a
 }
 
 static void UpdateDefValue(std::vector<StatModify> &vec, long stat, long pid, long amount) {
-	for (auto itStat = vec.begin(); itStat != vec.end(); itStat++) {
+	for (auto itStat = vec.begin(); itStat != vec.end(); ++itStat) {
 		if (itStat->objPID == pid && itStat->stat == stat) {
 			fo::func::dev_printf("[SFALL] Replace stat default value: %d to: %d, NPC ID: %d\n", itStat->defVal, amount, itStat->objID);
 			itStat->defVal = amount;
@@ -387,10 +387,10 @@ static void ClearAllStats() {
 }
 
 static void FlushAllProtos() {
-	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); itBonus++) {
+	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); ++itBonus) {
 		itBonus->s_proto = nullptr;
 	}
-	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); itBase++) {
+	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); ++itBase) {
 		itBase->s_proto = nullptr;
 	}
 	for (auto& mem : protoMem) {

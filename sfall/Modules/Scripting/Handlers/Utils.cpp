@@ -200,20 +200,16 @@ void mf_string_compare(OpcodeContext& ctx) {
 
 void mf_string_pos(OpcodeContext& ctx) {
 	const char* const haystack = ctx.arg(0).strValue();
-	int pos;
+	int pos = 0;
 	if (ctx.numArgs() > 2) {
 		int len = strlen(haystack);
 		pos = ctx.arg(2).intValue();
 		if (pos >= len) {
 			ctx.setReturn(-1);
 			return;
+		} else if (pos < 0) {
+			pos += len;
 		}
-		else if (pos < 0) {
-			pos = len + pos;
-		}
-	}
-	else {
-		pos = 0;
 	}
 	const char* needle = strstr(haystack + pos, ctx.arg(1).strValue());
 	ctx.setReturn(
