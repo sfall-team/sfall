@@ -129,10 +129,25 @@ procedure string_split_ints(variable str, variable split) begin
    return result;
 end
 
+// atoi proc wrapper, for use as callback
+procedure string_to_int(variable str) begin
+   return atoi(str);
+end
+
+// atof proc wrapper, for use as callback
+procedure string_to_float(variable str) begin
+   return atof(str);
+end
+
+// converts any value to a string, for use as callback
+procedure to_string(variable val) begin
+   return ""+val;
+end
+
 
 /**
   DEPRECATED, use string_format instead!
-  
+
   String parse functions. Idea taken from KLIMaka on TeamX forums.
   Placeholders in format %d% are replaced from string. d refers to variable index (starting from 1).
   You can repeat one placeholder multiple times, or use placeholders in any order.

@@ -433,6 +433,4 @@
 #define get_current_quick_save_slot                             metarule3(213, 0, 0, 0)
 #define set_current_quick_save_slot(page, slot, check)          metarule3(214, page, slot, check) // check: 1 - don't check slot when saving
 
-#undef FUNC_SELECTOR_7
-
 #endif
