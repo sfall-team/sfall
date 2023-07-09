@@ -263,8 +263,17 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 		mov  edx, edi;          // critter
 		mov  ecx, esi;          // base (calculated hit chance)
 		call HitChanceMod;
-		mov  esi, eax;
+		mov  esi, 999; // max
+		cmp  eax, esi;
+		cmovl esi, eax;
 		retn;
+	}
+}
+
+static void __declspec(naked) determine_to_hit_func_hook_min() {
+	__asm {
+		mov  esi, -99; // min
+		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -354,7 +363,7 @@ void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode) {
 	}
 }
 
-void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
+void __stdcall SetHitChanceMax(fo::GameObject* critter, int maximum, int mod) {
 	if ((DWORD)critter == -1) {
 		baseHitChance.maximum = maximum;
 		baseHitChance.mod = mod;
@@ -575,6 +584,10 @@ void Combat::init() {
 
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
+
+	// Add a lower limit of -99% to the calculated hit chance instead of only a debug message
+	SafeWrite8(0x42479D, -99); // was -100
+	HookCall(0x4247A5, determine_to_hit_func_hook_min);
 
 	// Disables secondary burst attacks for the critter
 	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
