@@ -36,6 +36,12 @@ static void __declspec(naked) ToHitHook() {
 	__asm {
 		cmp  cRet, 1;
 		cmovge ebx, rets[0];
+		mov  eax, 999; // max
+		cmp  ebx, eax;
+		cmovg ebx, eax;
+		mov  eax, -99; // min
+		cmp  ebx, eax;
+		cmovl ebx, eax;
 		call EndHook;
 		mov  eax, ebx;
 		retn 8;

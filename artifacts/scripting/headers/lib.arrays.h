@@ -97,7 +97,7 @@ procedure remove_array_set(variable array, variable item);
 // Creates a new array filled from a given array by transforming each value using given procedure name.
 procedure array_transform(variable arr, variable valueFunc);
 
-// Create a new temp array filled from a given array by transforming each key and value using given procedure names.
+// Create a new temp array filled from a given array by transforming each key and value using given procedure name.
 procedure array_transform_kv(variable arr, variable keyFunc, variable valueFunc);
 
 
@@ -423,8 +423,7 @@ procedure array_transform(variable arr, variable valueFunc) begin
    return retArr;
 end
 
-
-// Create a new temp array filled from a given array by transforming each key and value using given procedure names.
+// Create a new temp array filled from a given array by transforming each key and value using given procedure name.
 procedure array_transform_kv(variable arr, variable keyFunc, variable valueFunc) begin
    variable k, v, retArr := temp_array_map;
    foreach (k: v in arr) begin
