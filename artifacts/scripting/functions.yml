@@ -1280,7 +1280,9 @@
     opcode: 0x822e
   - name: get_array
     detail: mixed get_array(int arrayID, mixed key)
-    doc: 'Returns array value by key or index (shorthand: arrayID[key]).'
+    doc: |
+      Returns array value by key or index (shorthand: arrayID[key]).
+      - If array with given arrayID doesn't exist, returns 0.
     opcode: 0x822f
   - name: resize_array
     detail: void resize_array(int arrayID, int size)

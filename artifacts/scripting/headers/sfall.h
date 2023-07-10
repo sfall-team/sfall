@@ -25,7 +25,7 @@
 #define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
 #define SPECIAL     (0x80000000)
 
-// Valid arguments to register_hook
+// Valid arguments to register_hook_proc
 #define HOOK_TOHIT            (0)
 #define HOOK_AFTERHITROLL     (1)
 #define HOOK_CALCAPCOST       (2)

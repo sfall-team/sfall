@@ -432,6 +432,14 @@ procedure array_transform_kv(variable arr, variable keyFunc, variable valueFunc)
    return retArr;
 end
 
+procedure array_to_set(variable arr) begin
+   variable v, retArr := temp_array_map;
+   foreach (v in arr) begin
+      retArr[v] := 1;
+   end
+   return retArr;
+end
+
 
 #define ARRAY_EMPTY_INDEX   (-1)
 
@@ -614,9 +622,9 @@ end
 
 procedure debug_array_str_deep(variable arr, variable levels) begin
 #define _newline if (levels > 1) then s += "\n";
-#define _indent string_repeat("   ", levels - 1)
+#define _indent ii := 0; while (ii < levels - 1) do begin s += "   "; ii++; end
 #define _value(v) (v if (levels <= 1 or not array_exists(v)) else debug_array_str_deep(v, levels - 1))
-   variable i := 0, k, v, s, len;
+   variable i := 0, ii, k, v, s, len;
    len := len_array(arr);
    if (array_is_map(arr)) then begin  // print assoc array
       s := "Map("+len+"): {";
@@ -624,7 +632,8 @@ procedure debug_array_str_deep(variable arr, variable levels) begin
          _newline
          k := array_key(arr, i);
          v := get_array(arr, k);
-         s += _indent + k + ": " + _value(v);
+         _indent
+         s += k + ": " + _value(v);
          if i < (len - 1) then s += ", ";
          i++;
       end
@@ -637,7 +646,8 @@ procedure debug_array_str_deep(variable arr, variable levels) begin
       while i < len do begin
          _newline
          v := get_array(arr, i);
-         s += _indent + _value(v);
+         _indent
+         s += _value(v);
          if i < (len - 1) then s += ", ";
          i++;
       end
