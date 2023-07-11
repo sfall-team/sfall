@@ -97,6 +97,8 @@ void mf_get_object_data(OpcodeContext&);
 
 void mf_set_object_data(OpcodeContext&);
 
+void mf_get_object_ai_data(OpcodeContext&);
+
 void mf_set_unique_id(OpcodeContext&);
 
 void mf_objects_in_radius(OpcodeContext&);

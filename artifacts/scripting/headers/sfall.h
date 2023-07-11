@@ -25,7 +25,7 @@
 #define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
 #define SPECIAL     (0x80000000)
 
-// Valid arguments to register_hook
+// Valid arguments to register_hook_proc
 #define HOOK_TOHIT            (0)
 #define HOOK_AFTERHITROLL     (1)
 #define HOOK_CALCAPCOST       (2)
@@ -321,6 +321,7 @@
 #define get_inven_ap_cost                                       sfall_func0("get_inven_ap_cost")
 #define get_map_enter_position                                  sfall_func0("get_map_enter_position")
 #define get_metarule_table                                      sfall_func0("get_metarule_table")
+#define get_object_ai_data(obj, aiParam)                        sfall_func2("get_object_ai_data", obj, aiParam)
 #define get_object_data(obj, offset)                            sfall_func2("get_object_data", obj, offset)
 #define get_outline(obj)                                        sfall_func1("get_outline", obj)
 #define get_pc_stat_max(stat)                                   sfall_func1("get_stat_max", stat)

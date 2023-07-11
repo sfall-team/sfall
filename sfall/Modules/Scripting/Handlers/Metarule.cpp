@@ -98,6 +98,7 @@ static const SfallMetarule metarules[] = {
 	{"get_inven_ap_cost",       mf_get_inven_ap_cost,       0, 0},
 	{"get_map_enter_position",  mf_get_map_enter_position,  0, 0},
 	{"get_metarule_table",      mf_get_metarule_table,      0, 0},
+	{"get_object_ai_data",      mf_get_object_ai_data,      2, 2, -1, {ARG_OBJECT, ARG_INT}},
 	{"get_object_data",         mf_get_object_data,         2, 2,  0, {ARG_OBJECT, ARG_INT}},
 	{"get_outline",             mf_get_outline,             1, 1,  0, {ARG_OBJECT}},
 	{"get_sfall_arg_at",        mf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},

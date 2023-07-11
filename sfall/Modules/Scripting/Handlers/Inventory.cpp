@@ -96,7 +96,7 @@ void mf_critter_inven_obj2(OpcodeContext& ctx) {
 		ctx.setReturn(critter->invenSize);
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid type.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid type number.", ctx.getMetaruleName());
 	}
 }
 
