@@ -539,7 +539,7 @@ void mf_get_object_ai_data(OpcodeContext& ctx) {
 		value = arrayId;
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid value for AI argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid aiParam number.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(value);
 }
@@ -557,7 +557,7 @@ void mf_set_drugs_data(OpcodeContext& ctx) {
 		result = Drugs::SetDrugAddictTimeOff(pid, val);
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid value for type argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid type number.", ctx.getMetaruleName());
 		return;
 	}
 	if (result) {
