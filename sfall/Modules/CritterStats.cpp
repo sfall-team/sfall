@@ -224,7 +224,7 @@ static void __fastcall SetStatToProto(long stat, fo::GameObject* critter, long a
 static void UpdateDefValue(std::vector<StatModify> &vec, long stat, long pid, long amount) {
 	for (auto itStat = vec.begin(); itStat != vec.end(); ++itStat) {
 		if (itStat->objPID == pid && itStat->stat == stat) {
-			fo::func::dev_printf("[SFALL] Replace stat default value: %d to: %d, NPC ID: %d\n", itStat->defVal, amount, itStat->objID);
+			fo::func::dev_printf("[SFALL] Update stat default value: %d to: %d, NPC ID: %d\n", itStat->defVal, amount, itStat->objID);
 			itStat->defVal = amount;
 		}
 	}

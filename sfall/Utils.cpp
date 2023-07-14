@@ -65,7 +65,7 @@ const char* strfind(const char* source, const char* word) {
 	return 0;
 }
 
-// replace all '/' chars to '\'
+// replace all '/' chars with '\'
 void StrNormalizePath(char* path) {
 	if (*path == 0) return;
 	do {

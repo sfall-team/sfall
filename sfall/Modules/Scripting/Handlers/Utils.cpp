@@ -43,7 +43,7 @@ static bool FalloutStringCompare(const char* str1, const char* str2, long codePa
 		if (c1 == c2) continue;
 
 		if (codePage == 866) {
-			// replace Russian 'x' to English (Fallout specific)
+			// replace Russian 'x' with English (Fallout specific)
 			if (c1 == 229) c1 -= 229 - 'x';
 			if (c2 == 229) c2 -= 229 - 'x';
 		}
