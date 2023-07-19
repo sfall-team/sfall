@@ -236,7 +236,7 @@ void mf_attack_is_aimed(OpcodeContext& ctx) {
 
 void mf_combat_data(OpcodeContext& ctx) {
 	fo::ComputeAttackResult* ctd = nullptr;
-	if (*fo::ptr::combat_state & 1) {
+	if (*fo::ptr::combat_state & fo::CombatStateFlag::InCombat) {
 		ctd = fo::ptr::main_ctd;
 	}
 	ctx.setReturn((DWORD)ctd, DATATYPE_INT);
