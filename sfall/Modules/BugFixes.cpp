@@ -3276,7 +3276,8 @@ void BugFixes::init() {
 	// Fix incorrect int-to-float conversion
 	SafeWriteBatch<WORD>(0x04DB, { // fild 64bit > fild 32bit
 		0x46A3A8, 0x46A3F4, // op_mul_
-		0x46A4E7, 0x46A566  // op_div_
+		0x46A4E7, 0x46A566, // op_div_
+		0x46A280, 0x46A2CD, // op_sub_
 	});
 
 	// Fix for vanilla division operator treating negative integers as unsigned
