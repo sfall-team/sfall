@@ -480,7 +480,7 @@ Item    arg2 - Item being stolen/planted
 int     arg3 - 0 when stealing, 1 when planting
 int     arg4 - quantity of items being stolen
 
-int     ret0 - overrides hard-coded handler (1 - force success, 0 - force fail, -1 - use engine handler)
+int     ret0 - overrides hard-coded handler (2 - force fail without closing window, 1 - force success, 0 - force fail, -1 - use engine handler)
 int     ret1 - overrides experience points gained for stealing this item
 ```
 

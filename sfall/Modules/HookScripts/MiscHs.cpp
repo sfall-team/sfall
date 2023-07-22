@@ -225,6 +225,7 @@ end:
 }
 
 static void __declspec(naked) StealCheckHook() {
+	static const unsigned long StealSkip_addr = 0x474B18;
 	__asm {
 		HookBegin;
 		mov args[0], eax;  // thief
@@ -242,16 +243,22 @@ static void __declspec(naked) StealCheckHook() {
 	__asm {
 		popadc;
 		cmp cRet, 1;
-		jl  defaultHandler;
+		jl  defaultHandler; // no return values, use vanilla path
 		cmp cRet, 2;
 		jl  skipExpOverride;
 		push eax;
-		mov eax, rets[4];
+		mov eax, rets[4]; // override experience points for steal
 		mov stealExpOverride, eax;
 		pop eax;
 skipExpOverride:
-		cmp rets[0], -1;
+		cmp rets[0], -1; // if <= -1, use vanilla path
 		jle defaultHandler;
+		cmp rets[0], 2; // 2 - steal failed but didn't get cought
+		jnz normalReturn;
+		HookEnd;
+		pop eax;
+		jmp StealSkip_addr;
+normalReturn:
 		mov eax, rets[0];
 		HookEnd;
 		retn;
