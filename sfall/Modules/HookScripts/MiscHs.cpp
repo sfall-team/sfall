@@ -208,7 +208,7 @@ static void __declspec(naked) StealHook_ExpOverrideHack() {
 	__asm {
 		mov ecx, [esp + 316]; // total exp
 		cmp stealExpOverride, -1;
-		jz vanillaExp;
+		jle vanillaExp;
 		mov eax, stealExpOverride;
 		add ecx, eax; // add overridden exp value
 		jmp end;
@@ -243,13 +243,15 @@ static void __declspec(naked) StealCheckHook() {
 		popadc;
 		cmp cRet, 1;
 		jl  defaultHandler;
-		cmp rets[0], -1;
-		je  defaultHandler;
 		cmp cRet, 2;
-		jl  hookEnd;
+		jl  skipExpOverride;
+		push eax;
 		mov eax, rets[4];
 		mov stealExpOverride, eax;
-hookEnd:
+		pop eax;
+skipExpOverride:
+		cmp rets[0], -1;
+		jle defaultHandler;
 		mov eax, rets[0];
 		HookEnd;
 		retn;
