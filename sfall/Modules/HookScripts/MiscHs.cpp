@@ -202,6 +202,28 @@ defaultHandler:
 	}
 }
 
+static long stealExpOverride;
+
+static void __declspec(naked) StealHook_ExpOverrideHack() {
+	__asm {
+		mov ecx, [esp + 316]; // total exp
+		cmp stealExpOverride, -1;
+		jz vanillaExp;
+		mov eax, stealExpOverride;
+		add ecx, eax; // add overridden exp value
+		jmp end;
+vanillaExp:
+		add ecx, edi; // add vanilla exp value
+end:
+		add edi, 10; // increment vanilla exp value
+		mov [esp + 316], ecx; // set total exp
+		mov ecx, [esp];
+		add ecx, 14; // shift return address
+		mov [esp], ecx;
+		retn;
+	}
+}
+
 static void __declspec(naked) StealCheckHook() {
 	__asm {
 		HookBegin;
@@ -214,6 +236,7 @@ static void __declspec(naked) StealCheckHook() {
 	}
 
 	argCount = 5;
+	stealExpOverride = -1;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
@@ -222,6 +245,11 @@ static void __declspec(naked) StealCheckHook() {
 		jl  defaultHandler;
 		cmp rets[0], -1;
 		je  defaultHandler;
+		cmp cRet, 2;
+		jl  hookEnd;
+		mov eax, rets[4];
+		mov stealExpOverride, eax;
+hookEnd:
 		mov eax, rets[0];
 		HookEnd;
 		retn;
@@ -708,6 +736,7 @@ void Inject_UseSkillHook() {
 
 void Inject_StealCheckHook() {
 	HookCalls(StealCheckHook, { 0x4749A2, 0x474A69 });
+	MakeCalls(StealHook_ExpOverrideHack, { 0x4742C5, 0x4743E1 });
 }
 
 void Inject_SneakCheckHook() {
