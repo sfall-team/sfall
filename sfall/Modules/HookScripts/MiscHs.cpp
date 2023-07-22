@@ -202,31 +202,66 @@ defaultHandler:
 	}
 }
 
+static long stealExpOverride;
+
+static void __declspec(naked) StealHook_ExpOverrideHack() {
+	__asm {
+		mov ecx, [esp + 0x150 - 0x18 + 4]; // total exp
+		cmp stealExpOverride, -1;
+		jle vanillaExp;
+		add ecx, stealExpOverride; // add overridden exp value
+		jmp end;
+vanillaExp:
+		add ecx, edi; // add vanilla exp value
+end:
+		add edi, 10; // vanilla exp increment for next success
+		mov [esp + 0x150 - 0x18 + 4], ecx; // set total exp
+		mov ecx, [esp];
+		add ecx, 14; // shift return address
+		mov [esp], ecx;
+		retn;
+	}
+}
+
 static void __declspec(naked) StealCheckHook() {
+	static const DWORD StealSkipRet = 0x474B18;
 	__asm {
 		HookBegin;
 		mov args[0], eax;  // thief
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
+		mov args[16], esi; // quantity
 		pushadc;
 	}
 
-	argCount = 4;
+	argCount = 5;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
 		popadc;
-		cmp cRet, 1;
-		jl  defaultHandler;
-		cmp rets[0], -1;
-		je  defaultHandler;
-		mov eax, rets[0];
+		cmp  cRet, 1;
+		jl   defaultHandler; // no return values, use vanilla path
+		cmp  cRet, 2;
+		push eax;
+		mov  eax, -1;
+		cmovge eax, rets[4]; // override experience points for steal
+		mov  stealExpOverride, eax;
+		pop  eax;
+		cmp  rets[0], -1; // if <= -1, use vanilla path
+		jle  defaultHandler;
+		cmp  rets[0], 2; // 2 - steal failed but didn't get cought
+		jnz  normalReturn;
+		HookEnd;
+		add  esp, 4;
+		jmp  StealSkipRet;
+normalReturn:
+		mov  eax, rets[0];
 		HookEnd;
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp fo::funcoffs::skill_check_stealing_;
+		jmp  fo::funcoffs::skill_check_stealing_;
 	}
 }
 
@@ -711,6 +746,8 @@ void Inject_UseSkillHook() {
 void Inject_StealCheckHook() {
 	const DWORD stealCheckHkAddr[] = {0x4749A2, 0x474A69};
 	HookCalls(StealCheckHook, stealCheckHkAddr);
+	const DWORD stealExpHkAddr[] = {0x4742C5, 0x4743E1};
+	MakeCalls(StealHook_ExpOverrideHack, stealExpHkAddr);
 }
 
 void Inject_SneakCheckHook() {
