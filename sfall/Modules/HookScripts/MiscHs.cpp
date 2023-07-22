@@ -206,17 +206,16 @@ static long stealExpOverride;
 
 static void __declspec(naked) StealHook_ExpOverrideHack() {
 	__asm {
-		mov ecx, [esp + 316]; // total exp
+		mov ecx, [esp + 0x150 - 0x18 + 4]; // total exp
 		cmp stealExpOverride, -1;
 		jle vanillaExp;
-		mov eax, stealExpOverride;
-		add ecx, eax; // add overridden exp value
+		add ecx, stealExpOverride; // add overridden exp value
 		jmp end;
 vanillaExp:
 		add ecx, edi; // add vanilla exp value
 end:
-		add edi, 10; // increment vanilla exp value
-		mov [esp + 316], ecx; // set total exp
+		add edi, 10; // vanilla exp increment for next success
+		mov [esp + 0x150 - 0x18 + 4], ecx; // set total exp
 		mov ecx, [esp];
 		add ecx, 14; // shift return address
 		mov [esp], ecx;
@@ -225,7 +224,7 @@ end:
 }
 
 static void __declspec(naked) StealCheckHook() {
-	static const unsigned long StealSkip_addr = 0x474B18;
+	static const DWORD StealSkipRet = 0x474B18;
 	__asm {
 		HookBegin;
 		mov args[0], eax;  // thief
@@ -237,34 +236,32 @@ static void __declspec(naked) StealCheckHook() {
 	}
 
 	argCount = 5;
-	stealExpOverride = -1;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
 		popadc;
-		cmp cRet, 1;
-		jl  defaultHandler; // no return values, use vanilla path
-		cmp cRet, 2;
-		jl  skipExpOverride;
+		cmp  cRet, 1;
+		jl   defaultHandler; // no return values, use vanilla path
+		cmp  cRet, 2;
 		push eax;
-		mov eax, rets[4]; // override experience points for steal
-		mov stealExpOverride, eax;
-		pop eax;
-skipExpOverride:
-		cmp rets[0], -1; // if <= -1, use vanilla path
-		jle defaultHandler;
-		cmp rets[0], 2; // 2 - steal failed but didn't get cought
-		jnz normalReturn;
+		mov  eax, -1;
+		cmovge eax, rets[4]; // override experience points for steal
+		mov  stealExpOverride, eax;
+		pop  eax;
+		cmp  rets[0], -1; // if <= -1, use vanilla path
+		jle  defaultHandler;
+		cmp  rets[0], 2; // 2 - steal failed but didn't get cought
+		jnz  normalReturn;
 		HookEnd;
-		pop eax;
-		jmp StealSkip_addr;
+		add  esp, 4;
+		jmp  StealSkipRet;
 normalReturn:
-		mov eax, rets[0];
+		mov  eax, rets[0];
 		HookEnd;
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp fo::funcoffs::skill_check_stealing_;
+		jmp  fo::funcoffs::skill_check_stealing_;
 	}
 }
 
