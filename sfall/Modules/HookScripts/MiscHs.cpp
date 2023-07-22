@@ -209,10 +209,11 @@ static void __declspec(naked) StealCheckHook() {
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
+		mov args[16], esi; // quantity
 		pushadc;
 	}
 
-	argCount = 4;
+	argCount = 5;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
