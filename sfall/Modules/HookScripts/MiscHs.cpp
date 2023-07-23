@@ -236,6 +236,7 @@ static void __declspec(naked) StealCheckHook() {
 	}
 
 	argCount = 5;
+	stealExpOverride = -1;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
@@ -243,11 +244,12 @@ static void __declspec(naked) StealCheckHook() {
 		cmp  cRet, 1;
 		jl   defaultHandler; // no return values, use vanilla path
 		cmp  cRet, 2;
+		jl   skipExpOverride;
 		push eax;
-		mov  eax, -1;
-		cmovge eax, rets[4]; // override experience points for steal
+		mov  eax, rets[4]; // override experience points for steal
 		mov  stealExpOverride, eax;
 		pop  eax;
+skipExpOverride:
 		cmp  rets[0], -1; // if <= -1, use vanilla path
 		jle  defaultHandler;
 		cmp  rets[0], 2; // 2 - steal failed but didn't get cought
