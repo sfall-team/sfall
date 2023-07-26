@@ -21,7 +21,7 @@ Original description: A set of engine modifications for the classic game Fallout
 
 - Download `sfall_*.7z` from the [release archive](https://sourceforge.net/projects/sfall/files/).
 
-- Extract `ddraw.dll`, `ddraw.ini`, `sfall.dat`, and the `mods` folder to Fallout's base directory (i.e. the one that contains `fallout2.exe`). Also, remove `gl_highlighting.int` and `gl_partycontrol.int` from Fallout's `data\scripts\` directory if you have them.
+- Extract `ddraw.dll`, `ddraw.ini`, `sfall.dat`, and the `mods` folder to Fallout's base directory (i.e. the one that contains `fallout2.exe`). Also, remove `gl_highlighting.int` and `gl_partycontrol.int` from Fallout's `data\scripts\` directory if you are updating from an older version.
 
 - __Important Note:__\
   If you are using a mod that already included sfall (e.g. killap's [Unofficial Patch](https://github.com/BGforgeNet/Fallout2_Unofficial_Patch) or [Restoration Project](https://github.com/BGforgeNet/Fallout2_Restoration_Project)), then that mod has probably included a custom modified `ddraw.ini`. In that case, overwriting it with sfall's vanilla `ddraw.ini` will be likely break your game. Instead, only overwrite `ddraw.dll`, and keep the mod's existing copy of `ddraw.ini`. (Or, if you know what you're doing, you can merge them together by hand.)
@@ -41,6 +41,20 @@ In a default installation using an unmodified copy of `ddraw.ini`, the middle mo
 
 For [__Wine__](https://www.winehq.org/) users:\
 You need to set DLL overrides for `ddraw.dll` to __"native, builtin"__ in `winecfg` or use `WINEDLLOVERRIDES="ddraw=n,b"` to run Fallout from the command line. If you want to play alternative sound files, you'll also need to install GStreamer Good 32-bit plugins.
+
+## Build Instructions
+
+### Prerequisites:
+
+* Visual Studio 2015 with **Windows XP support for C++** component. If you're using Visual Studio 2017/2019/2022, make sure to install **VS 2015 C++ build tools (v140)**.
+* [DirectX SDK (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=6812). You will also need `ddraw.lib` from DXSDK February 2010 and `dinput.lib` from DXSDK August 2007. Both files can be found in the [DirectX SDK Collection repo](https://github.com/NovaRain/DXSDK_Collection).
+* [DirectX Runtime (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8109). You can also install it from DirectX SDK installer.
+
+### Steps:
+
+1. Set up a `postbuild.cmd` using the template from the repo.
+2. Open the solution file and build with the **ReleaseXP** configuration (this is the one used for sfall releases).
+3. If everything is set up correctly, you should have a new sfall `ddraw.dll` in your Fallout 2 directory.
 
 ## Additional info
 
