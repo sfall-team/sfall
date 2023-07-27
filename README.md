@@ -42,6 +42,20 @@ In a default installation using an unmodified copy of `ddraw.ini`, the middle mo
 For [__Wine__](https://www.winehq.org/) users:\
 You need to set DLL overrides for `ddraw.dll` to __"native, builtin"__ in `winecfg` or use `WINEDLLOVERRIDES="ddraw=n,b"` to run Fallout from the command line. If you want to play alternative sound files, you'll also need to install GStreamer Good 32-bit plugins.
 
+## Build Instructions
+
+### Prerequisites:
+
+* Visual C++ 2010 Express SP1 or Visual Studio 2010 SP1.
+* [DirectX SDK (February 2010)](https://archive.org/details/dxsdk_feb10). You will also need `dinput.lib` from DXSDK August 2007. The file can be found in the [DirectX SDK Collection repo](https://github.com/NovaRain/DXSDK_Collection).
+* [DirectX Runtime (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8109).
+
+### Steps:
+
+1. Set up a `postbuild.cmd` using the template from the repo.
+2. Open the solution file and build with the **Release** configuration.
+3. If everything is set up correctly, you should have a new sfall `ddraw.dll` in your Fallout 2 directory.
+
 ## Additional info
 
 * [Changelog](CHANGELOG.md)
