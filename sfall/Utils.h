@@ -21,6 +21,13 @@ void split(const std::string &s, char delim, T result, size_t limit = -1) {
 	}
 }
 
+template <typename T>
+T clamp(T value, T min, T max) {
+	if (value < min) return min;
+	if (value > max) return max;
+	return value;
+}
+
 WORD  ByteSwapW(WORD w);
 DWORD ByteSwapD(DWORD dw);
 
