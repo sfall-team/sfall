@@ -27,8 +27,8 @@ namespace sfall
 namespace perk
 {
 
-static long SalesmanBonus;
-static long DemolitionExpertBonus;
+static long SalesmanBonus = 20;
+static long DemolitionExpertBonus = 10;
 
 static bool TryGetModifiedInt(const char* key, int defaultValue, int& outValue, const char* perksFile) {
 	outValue = IniReader::GetInt("PerksTweak", key, defaultValue, perksFile);
@@ -76,8 +76,11 @@ static void __declspec(naked) queue_explode_exit_hack_demolition_expert() {
 }
 
 void EnginePerkBonusInit() {
-	
+	// Allows the current perk level to affect the calculation of its bonus value
+	MakeCall(0x496F5E, perk_adjust_skill_hack_salesman);
+	MakeCall(0x4A289C, queue_explode_exit_hack_demolition_expert, 1);
 }
+
 void ReadPerksBonuses(const char* perksFile) {
 	int value;
 	TryPatchValue32("WeaponScopeRangePenalty", 8, 0, 100, 0x42448E, perksFile);
@@ -93,18 +96,15 @@ void ReadPerksBonuses(const char* perksFile) {
 		float floatValue = static_cast<float>(value);
 		SafeWrite32(0x474BB3, *(DWORD*)&floatValue); // write float data
 	}
-	if (TryGetModifiedInt("SalesmanBonus", 20, value, perksFile) && value >= 0) {
+	if (TryGetModifiedInt("SalesmanBonus", SalesmanBonus, value, perksFile) && value >= 0) {
 		SalesmanBonus = min(value, 999);
-		// Allows the current perk level to affect the calculation of its bonus value
-		MakeCall(0x496F5E, perk_adjust_skill_hack_salesman);
 	}
 	TryPatchSkillBonus8("LivingAnatomyBonus", 5, 0x424A91, perksFile);
 	TryPatchSkillBonus8("LivingAnatomyDoctorBonus", 10, 0x496E66, perksFile);
 	TryPatchSkillBonus8("PyromaniacBonus", 5, 0x424AB6, perksFile);
 	TryPatchValue8("StonewallPercent", 50, 0, 100, 0x424B50, perksFile);
-	if (TryGetModifiedInt("DemolitionExpertBonus", 10, value, perksFile) && value >= 0) {
+	if (TryGetModifiedInt("DemolitionExpertBonus", DemolitionExpertBonus, value, perksFile) && value >= 0) {
 		DemolitionExpertBonus = min(value, 999);
-		MakeCall(0x4A289C, queue_explode_exit_hack_demolition_expert, 1);
 	}
 	if (TryGetModifiedInt("VaultCityInoculationsPoisonBonus", 10, value, perksFile)) {
 		SafeWrite8(0x4AF26A, static_cast<signed char>(clamp<long>(value, -100, 100)));
@@ -117,18 +117,17 @@ void ReadPerksBonuses(const char* perksFile) {
 	TryPatchSkillBonus32("MedicFirstAidBonus", 10, 0x496E19, perksFile);
 	TryPatchSkillBonus32("MedicDoctorBonus", 10, 0x496E4E, perksFile);
 
-	TryPatchSkillBonus32("GhostSneakBonus", 20, 0x496EA9, perksFile);
-	TryPatchSkillBonus8("ThiefSkillsBonus", 10, 0x496EC1, perksFile);
-	TryPatchSkillBonus8("MasterThiefSkillsBonus", 15, 0x496EE0, perksFile);
-	TryPatchSkillBonus8("HarmlessStealBonus", 20, 0x496F02, perksFile);
-	TryPatchSkillBonus32("SpeakerSpeechBonus", 20, 0x496F1B, perksFile);
-	TryPatchSkillBonus8("ExpertExcrementExpeditorSpeechBonus", 5, 0x496F33, perksFile);
-	TryPatchSkillBonus8("NegotiatorSkillsBonus", 10, 0x496F48, perksFile);
-	TryPatchSkillBonus8("SalesmanBarterBonus", 20, 0x496F60, perksFile);
-	TryPatchSkillBonus32("GamblerGamblingBonus", 20, 0x496F79, perksFile);
+	TryPatchSkillBonus32("GhostBonus", 20, 0x496EA9, perksFile);
+	TryPatchSkillBonus8("ThiefBonus", 10, 0x496EC1, perksFile);
+	TryPatchSkillBonus8("MasterThiefBonus", 15, 0x496EE0, perksFile);
+	TryPatchSkillBonus8("HarmlessBonus", 20, 0x496F02, perksFile);
+	TryPatchSkillBonus32("SpeakerBonus", 20, 0x496F1B, perksFile);
+	TryPatchSkillBonus8("ExpertExcrementExpeditorBonus", 5, 0x496F33, perksFile);
+	TryPatchSkillBonus8("NegotiatorBonus", 10, 0x496F48, perksFile);
+	TryPatchSkillBonus32("GamblerBonus", 20, 0x496F79, perksFile);
 	TryPatchSkillBonus32("RangerOutdoorsmanBonus", 15, 0x496F95, perksFile);
-	TryPatchSkillBonus8("SurvivalistOutdoorsmanBonus", 25, 0x496FAB, perksFile);
-	TryPatchSkillBonus8("MrFixitSkillsBonus", 10, 0x496E00, perksFile);
+	TryPatchSkillBonus8("SurvivalistBonus", 25, 0x496FAB, perksFile);
+	TryPatchSkillBonus8("MrFixitBonus", 10, 0x496E00, perksFile);
 }
 
 }
