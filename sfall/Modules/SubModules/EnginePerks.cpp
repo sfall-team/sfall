@@ -17,6 +17,7 @@
  */
 
 #include "..\..\main.h"
+#include "..\..\Utils.h"
 #include "..\..\FalloutEngine\Fallout2.h"
 
 #include "EnginePerks.h"
@@ -26,141 +27,39 @@ namespace sfall
 namespace perk
 {
 
-static class EnginePerkBonus {
-public:
-	long WeaponScopeRangePenalty;
-	long WeaponScopeRangeBonus;
-	long WeaponLongRangeBonus;
-	long WeaponAccurateBonus;
-	long WeaponHandlingBonus;
+static long SalesmanBonus = 20;
+static long DemolitionExpertBonus = 10;
 
-	float MasterTraderBonus;
-	long SalesmanBonus;
+static bool TryGetModifiedInt(const char* key, int defaultValue, int& outValue, const char* perksFile) {
+	outValue = IniReader::GetInt("PerksTweak", key, defaultValue, perksFile);
+	return outValue != defaultValue;
+}
 
-	long LivingAnatomyBonus;
-	long PyromaniacBonus;
-
-	long StonewallPercent;
-
-	long DemolitionExpertBonus;
-
-	long VaultCityInoculationsPoisonBonus;
-	long VaultCityInoculationsRadBonus;
-
-	EnginePerkBonus() {
-		WeaponScopeRangePenalty = 8;
-		WeaponScopeRangeBonus   = 5;
-		WeaponLongRangeBonus    = 4;
-		WeaponAccurateBonus     = 20;
-		WeaponHandlingBonus     = 3;
-
-		MasterTraderBonus       = 25;
-		SalesmanBonus           = 20;
-
-		LivingAnatomyBonus      = 5;
-		PyromaniacBonus         = 5;
-
-		StonewallPercent        = 50;
-
-		DemolitionExpertBonus   = 10;
-
-		VaultCityInoculationsPoisonBonus = 10;
-		VaultCityInoculationsRadBonus    = 10;
+static void TryPatchValue8(const char* key, int defaultValue, int minValue, int maxValue, DWORD addr, const char* perksFile) {
+	int value;
+	if (TryGetModifiedInt(key, defaultValue, value, perksFile) && value >= minValue) {
+		SafeWrite8(addr, static_cast<BYTE>(min(value, maxValue)));
 	}
+}
 
-	///////////////////////////////////////////
-
-	void setWeaponScopeRangePenalty(long value) {
-		if (value < 0) return;
-		WeaponScopeRangePenalty = value;
-		SafeWrite32(0x42448E, value);
+static void TryPatchValue32(const char* key, int defaultValue, int minValue, int maxValue, DWORD addr, const char* perksFile) {
+	int value;
+	if (TryGetModifiedInt(key, defaultValue, value, perksFile) && value >= minValue) {
+		SafeWrite32(addr, min(value, maxValue));
 	}
+}
 
-	void setWeaponScopeRangeBonus(long value) {
-		if (value < 2) return;
-		WeaponScopeRangeBonus = value;
-		SafeWrite32(0x424489, value);
-	}
+static void TryPatchSkillBonus8(const char* key, int defaultValue, DWORD addr, const char* perksFile) {
+	TryPatchValue8(key, defaultValue, 0, 125, addr, perksFile);
+}
 
-	void setWeaponLongRangeBonus(long value) {
-		if (value < 2) return;
-		WeaponLongRangeBonus = value;
-		SafeWrite32(0x424474, value);
-	}
-
-	void setWeaponAccurateBonus(long value) {
-		if (value < 0) return;
-		WeaponAccurateBonus = value;
-		if (WeaponAccurateBonus > 125) WeaponAccurateBonus = 125;
-		SafeWrite8(0x42465D, static_cast<BYTE>(WeaponAccurateBonus));
-	}
-
-	void setWeaponHandlingBonus(long value) {
-		if (value < 0) return;
-		WeaponHandlingBonus = value;
-		if (WeaponHandlingBonus > 10) WeaponHandlingBonus = 10;
-		SafeWrite8(0x424636, static_cast<char>(WeaponHandlingBonus));
-		SafeWrite8(0x4251CE, static_cast<signed char>(-WeaponHandlingBonus));
-	}
-
-	void setMasterTraderBonus(long value) {
-		if (value < 0) return;
-		MasterTraderBonus = static_cast<float>(value);
-		SafeWrite32(0x474BB3, *(DWORD*)&MasterTraderBonus); // write float data
-	}
-
-	void setSalesmanBonus(long value) {
-		if (value < 0) return;
-		SalesmanBonus = value;
-		if (SalesmanBonus > 999) SalesmanBonus = 999;
-	}
-
-	void setLivingAnatomyBonus(long value) {
-		if (value < 0) return;
-		LivingAnatomyBonus = value;
-		if (LivingAnatomyBonus > 125) LivingAnatomyBonus = 125;
-		SafeWrite8(0x424A91, static_cast<BYTE>(LivingAnatomyBonus));
-	}
-
-	void setPyromaniacBonus(long value) {
-		if (value < 0) return;
-		PyromaniacBonus = value;
-		if (PyromaniacBonus > 125) PyromaniacBonus = 125;
-		SafeWrite8(0x424AB6, static_cast<BYTE>(PyromaniacBonus));
-	}
-
-	void setStonewallPercent(long value) {
-		if (value < 0) return;
-		StonewallPercent = value;
-		if (StonewallPercent > 100) StonewallPercent = 100;
-		SafeWrite8(0x424B50, static_cast<BYTE>(StonewallPercent));
-	}
-
-	void setDemolitionExpertBonus(long value) {
-		if (value < 0) return;
-		DemolitionExpertBonus = value;
-		if (DemolitionExpertBonus > 999) DemolitionExpertBonus = 999;
-	}
-
-	void setVaultCityInoculationsPoisonBonus(long value) {
-		if (value < -100) value = -100;
-		if (value > 100) value = 100;
-		VaultCityInoculationsPoisonBonus = value;
-		SafeWrite8(0x4AF26A, static_cast<signed char>(VaultCityInoculationsPoisonBonus));
-	}
-
-	void setVaultCityInoculationsRadBonus(long value) {
-		if (value < -100) value = -100;
-		if (value > 100) value = 100;
-		VaultCityInoculationsRadBonus = value;
-		SafeWrite8(0x4AF287, static_cast<signed char>(VaultCityInoculationsRadBonus));
-	}
-
-} perks;
+static void TryPatchSkillBonus32(const char* key, int defaultValue, DWORD addr, const char* perksFile) {
+	TryPatchValue32(key, defaultValue, 0, 125, addr, perksFile);
+}
 
 static void __declspec(naked) perk_adjust_skill_hack_salesman() {
 	__asm {
-		imul eax, [perks.SalesmanBonus];
+		imul eax, [SalesmanBonus];
 		add  ecx, eax; // barter_skill + (perkLevel * SalesmanBonus)
 		mov  eax, ecx
 		retn;
@@ -169,7 +68,7 @@ static void __declspec(naked) perk_adjust_skill_hack_salesman() {
 
 static void __declspec(naked) queue_explode_exit_hack_demolition_expert() {
 	__asm {
-		imul eax, [perks.DemolitionExpertBonus];
+		imul eax, [DemolitionExpertBonus];
 		add  ecx, eax; // maxBaseDmg + (perkLevel * DemolitionExpertBonus)
 		add  ebx, eax  // minBaseDmg + (perkLevel * DemolitionExpertBonus)
 		retn;
@@ -183,42 +82,52 @@ void EnginePerkBonusInit() {
 }
 
 void ReadPerksBonuses(const char* perksFile) {
-	int wScopeRangeMod = IniReader::GetInt("PerksTweak", "WeaponScopeRangePenalty", 8, perksFile);
-	if (wScopeRangeMod != 8) perks.setWeaponScopeRangePenalty(wScopeRangeMod);
-	wScopeRangeMod = IniReader::GetInt("PerksTweak", "WeaponScopeRangeBonus", 5, perksFile);
-	if (wScopeRangeMod != 5) perks.setWeaponScopeRangeBonus(wScopeRangeMod);
+	int value;
+	TryPatchValue32("WeaponScopeRangePenalty", 8, 0, 100, 0x42448E, perksFile);
+	TryPatchValue32("WeaponScopeRangeBonus", 5, 2, 100, 0x424489, perksFile);
+	TryPatchValue32("WeaponLongRangeBonus", 4, 2, 100, 0x424474, perksFile);
+	TryPatchSkillBonus8("WeaponAccurateBonus", 20, 0x42465D, perksFile);
+	if (TryGetModifiedInt("WeaponHandlingBonus", 3, value, perksFile) && value >= 0) {
+		if (value > 10) value = 10;
+		SafeWrite8(0x424636, static_cast<char>(value));
+		SafeWrite8(0x4251CE, static_cast<signed char>(-value));
+	}
+	if (TryGetModifiedInt("MasterTraderBonus", 25, value, perksFile) && value >= 0) {
+		float floatValue = static_cast<float>(value);
+		SafeWrite32(0x474BB3, *(DWORD*)&floatValue); // write float data
+	}
+	if (TryGetModifiedInt("SalesmanBonus", SalesmanBonus, value, perksFile) && value >= 0) {
+		SalesmanBonus = min(value, 999);
+	}
+	TryPatchSkillBonus8("LivingAnatomyBonus", 5, 0x424A91, perksFile);
+	TryPatchSkillBonus8("LivingAnatomyDoctorBonus", 10, 0x496E66, perksFile);
+	TryPatchSkillBonus8("PyromaniacBonus", 5, 0x424AB6, perksFile);
+	TryPatchValue8("StonewallPercent", 50, 0, 100, 0x424B50, perksFile);
+	if (TryGetModifiedInt("DemolitionExpertBonus", DemolitionExpertBonus, value, perksFile) && value >= 0) {
+		DemolitionExpertBonus = min(value, 999);
+	}
+	if (TryGetModifiedInt("VaultCityInoculationsPoisonBonus", 10, value, perksFile)) {
+		SafeWrite8(0x4AF26A, static_cast<signed char>(clamp<long>(value, -100, 100)));
+	}
+	if (TryGetModifiedInt("VaultCityInoculationsRadBonus", 10, value, perksFile)) {
+		SafeWrite8(0x4AF287, static_cast<signed char>(clamp<long>(value, -100, 100)));
+	}
+	TryPatchSkillBonus8("VaultCityTrainingFirstAidBonus", 5, 0x496E35, perksFile);
+	TryPatchSkillBonus8("VaultCityTrainingDoctorBonus", 5, 0x496E7F, perksFile);
+	TryPatchSkillBonus32("MedicFirstAidBonus", 10, 0x496E19, perksFile);
+	TryPatchSkillBonus32("MedicDoctorBonus", 10, 0x496E4E, perksFile);
 
-	int wLongRangeBonus = IniReader::GetInt("PerksTweak", "WeaponLongRangeBonus", 4, perksFile);
-	if (wLongRangeBonus != 4) perks.setWeaponLongRangeBonus(wLongRangeBonus);
-
-	int wAccurateBonus = IniReader::GetInt("PerksTweak", "WeaponAccurateBonus", 20, perksFile);
-	if (wAccurateBonus != 20) perks.setWeaponAccurateBonus(wAccurateBonus);
-
-	int wHandlingBonus = IniReader::GetInt("PerksTweak", "WeaponHandlingBonus", 3, perksFile);
-	if (wHandlingBonus != 3) perks.setWeaponHandlingBonus(wHandlingBonus);
-
-	int masterTraderBonus = IniReader::GetInt("PerksTweak", "MasterTraderBonus", 25, perksFile);
-	if (masterTraderBonus != 25) perks.setMasterTraderBonus(masterTraderBonus);
-
-	int salesmanBonus = IniReader::GetInt("PerksTweak", "SalesmanBonus", 20, perksFile);
-	if (salesmanBonus != 20) perks.setSalesmanBonus(salesmanBonus);
-
-	int livingAnatomyBonus = IniReader::GetInt("PerksTweak", "LivingAnatomyBonus", 5, perksFile);
-	if (livingAnatomyBonus != 5) perks.setLivingAnatomyBonus(livingAnatomyBonus);
-
-	int pyromaniacBonus = IniReader::GetInt("PerksTweak", "PyromaniacBonus", 5, perksFile);
-	if (pyromaniacBonus != 5) perks.setPyromaniacBonus(pyromaniacBonus);
-
-	int stonewallPercent = IniReader::GetInt("PerksTweak", "StonewallPercent", 50, perksFile);
-	if (stonewallPercent != 50) perks.setStonewallPercent(stonewallPercent);
-
-	int demolitionExpertBonus = IniReader::GetInt("PerksTweak", "DemolitionExpertBonus", 10, perksFile);
-	if (demolitionExpertBonus != 10) perks.setDemolitionExpertBonus(demolitionExpertBonus);
-
-	int vaultCityInoculationsBonus = IniReader::GetInt("PerksTweak", "VaultCityInoculationsPoisonBonus", 10, perksFile);
-	if (vaultCityInoculationsBonus != 10) perks.setVaultCityInoculationsPoisonBonus(vaultCityInoculationsBonus);
-	vaultCityInoculationsBonus = IniReader::GetInt("PerksTweak", "VaultCityInoculationsRadBonus", 10, perksFile);
-	if (vaultCityInoculationsBonus != 10) perks.setVaultCityInoculationsRadBonus(vaultCityInoculationsBonus);
+	TryPatchSkillBonus32("GhostBonus", 20, 0x496EA9, perksFile);
+	TryPatchSkillBonus8("ThiefBonus", 10, 0x496EC1, perksFile);
+	TryPatchSkillBonus8("MasterThiefBonus", 15, 0x496EE0, perksFile);
+	TryPatchSkillBonus8("HarmlessBonus", 20, 0x496F02, perksFile);
+	TryPatchSkillBonus32("SpeakerBonus", 20, 0x496F1B, perksFile);
+	TryPatchSkillBonus8("ExpertExcrementExpeditorBonus", 5, 0x496F33, perksFile);
+	TryPatchSkillBonus8("NegotiatorBonus", 10, 0x496F48, perksFile);
+	TryPatchSkillBonus32("GamblerBonus", 20, 0x496F79, perksFile);
+	TryPatchSkillBonus32("RangerOutdoorsmanBonus", 15, 0x496F95, perksFile);
+	TryPatchSkillBonus8("SurvivalistBonus", 25, 0x496FAB, perksFile);
+	TryPatchSkillBonus8("MrFixitBonus", 10, 0x496E00, perksFile);
 }
 
 }
