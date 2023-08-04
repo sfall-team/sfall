@@ -100,12 +100,7 @@ void op_get_npc_level(OpcodeContext& ctx) {
 		fo::ObjectListData* members = *fo::ptr::partyMemberList;
 		for (DWORD i = 0; i < *fo::ptr::partyMemberCount; i++) {
 			if (!findPid) {
-				__asm {
-					mov  eax, members;
-					mov  eax, [eax];
-					call fo::funcoffs::critter_name_;
-					mov  critterName, eax;
-				}
+				critterName = fo::func::critter_name(members[i].object);
 				if (!_stricmp(name, critterName)) { // found npc
 					pid = members[i].object->protoId;
 					break;
