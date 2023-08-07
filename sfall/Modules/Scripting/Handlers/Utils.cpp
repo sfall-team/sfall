@@ -198,7 +198,7 @@ void mf_string_compare(OpcodeContext& ctx) {
 	}
 }
 
-void mf_string_pos(OpcodeContext& ctx) {
+void mf_string_find(OpcodeContext& ctx) {
 	const char* const haystack = ctx.arg(0).strValue();
 	int pos = 0;
 	if (ctx.numArgs() > 2) {

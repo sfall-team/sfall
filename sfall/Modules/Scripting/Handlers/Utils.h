@@ -37,7 +37,7 @@ void op_strlen(OpcodeContext&);
 
 void mf_string_compare(OpcodeContext&);
 
-void mf_string_pos(OpcodeContext&);
+void mf_string_find(OpcodeContext&);
 
 void op_sprintf(OpcodeContext&);
 
