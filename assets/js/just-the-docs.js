@@ -29,7 +29,7 @@ function initNav() {
     }
     if (target) {
       e.preventDefault();
-      target.parentNode.classList.toggle('active');
+      target.ariaPressed = target.parentNode.classList.toggle('active');
     }
   });
 
@@ -43,9 +43,11 @@ function initNav() {
     if (menuButton.classList.toggle('nav-open')) {
       siteNav.classList.add('nav-open');
       mainHeader.classList.add('nav-open');
+      menuButton.ariaPressed = true;
     } else {
       siteNav.classList.remove('nav-open');
       mainHeader.classList.remove('nav-open');
+      menuButton.ariaPressed = false;
     }
   });
 }
@@ -458,6 +460,11 @@ jtd.onReady(function(){
 // Copy button on code
 
 jtd.onReady(function(){
+
+  if (!window.isSecureContext) {
+    console.log('Window does not have a secure context, therefore code clipboard copy functionality will not be available. For more details see https://web.dev/async-clipboard/#security-and-permissions');
+    return;
+  }
 
   var codeBlocks = document.querySelectorAll('div.highlighter-rouge, div.listingblock > div.content, figure.highlight');
 
