@@ -188,10 +188,19 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 }
 
 void Stats::UpdateHPStat(fo::GameObject* critter) {
-	fo::Proto* proto;
-	if (!fo::util::GetProto(critter->protoId, &proto)) return;
+	if (fo::util::IsPartyMember(critter)) return;
 
-	if (!engineDerivedStats) {
+	if (engineDerivedStats) {
+		if (critter->critter.health > 0) {
+			long maxHP = fo::func::stat_level(critter, fo::Stat::STAT_max_hit_points);
+			if (critter->critter.health != maxHP) {
+				fo::func::debug_printf("\nWarning: %s (PID: %d, ID: %d) has an incorrect value of the max HP stat: %d, adjusted to %d.",
+				                       fo::func::critter_name(critter), critter->protoId, critter->id, critter->critter.health, maxHP);
+
+				critter->critter.health = maxHP;
+			}
+		}
+	} else {
 		auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
 
 		double sum = 0;
@@ -201,18 +210,11 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 		long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
 		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
 
-		if (proto->critter.base.health != calcStatValue) {
-			fo::func::debug_printf("\nWarning: %s (PID: %d, ID: %d) has an incorrect base value of the max HP stat: %d, adjusted to %d.",
-			                       fo::func::critter_name(critter), critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
-
+		fo::Proto* proto;
+		if (fo::util::GetProto(critter->protoId, &proto) && proto->critter.base.health != calcStatValue) {
 			proto->critter.base.health = calcStatValue;
+			critter->critter.health = calcStatValue + proto->critter.bonus.health;
 		}
-	}
-
-	// set the current HP to match the max HP stat for non-party member critters
-	// (prevent full healing for party members when entering random encounter maps)
-	if (!fo::util::IsPartyMember(critter) && critter->critter.health > 0) {
-		critter->critter.health = proto->critter.base.health + proto->critter.bonus.health;
 	}
 }
 
