@@ -1,5 +1,42 @@
 # Changelog
 
+## 3.8.40
+* Implemented a `mods_order.txt` to improve and simplify mod ordering and add support for mod managers. This replaces previous **.dat** file autoloading. Please refer to `ddraw.ini` for details
+* Implemented a **custom config file parser**, which greatly improves the performance of sfall initialization and reading files from scripts
+* Fixed a bug when updating the maximum HP stat of critters on the map when loaded for the first time
+* Fixed `set_pc_base/extra_stat` and `set_critter_base/extra_stat` script functions not updating derived stats when setting SPECIAL stats
+* Fixed `wield_obj_critter` script function, which can now put non-weapon/armor items in the critter's hand
+* Fixed `get_tile_fid` script function to work on elevations 1 and 2 instead of always elevation 0
+* Fixed `create_spatial` script function not setting the script index number upon object creation
+* Fixed incorrect behavior of the subtraction operator involving floats and negative integers
+* Fixed the backward compatibility of `get_npc_level` script function
+* Fixed a crash bug in `display_msg` and `debug_msg` script functions when printing a string longer than 260 characters
+* Fixed a crash bug in `AMMOCOST` hook when returning ammo cost of 0 for burst attacks
+* Fixed various issues in script compiler and decompiler (`compile.exe` and `int2ssl.exe` in the **modders pack**)
+* Improved and tweaked the behavior of **ComputeSpray_\*** options
+* Expanded `atoi` script function to support parsing binary strings
+* Expanded `string_format` script function to support more arguments and conversion types
+* Changed **CheckWeaponAmmoCost** to be enabled by default and affect only hook type 1 of `HOOK_AMMOCOST` hook script
+* Changed how `HOOK_DESCRIPTIONOBJ` hook script handles its return value. Now you can return normal strings directly in the hook
+* Re-added the check for valid objects to `get/set_object_data` script functions (only disabled in combat for accessing the combat data)
+* Removed the debug message about a missing critter art file from displaying in the game (added in 3.8.22)
+* Removed the old built-in **NPC combat control** and added a script-based version to the example mods in the **modders pack**
+* Added an option to let you use the command cursor to specify targets for party members to attack in combat
+* Added an option to specify an additional directory for ini files used by scripts
+* Added options to override the names of sound files used by the engine
+* Added a debug option to duplicate logs to a dedicated console window alongside the game window
+* Added a lower limit of -99% and an upper limit of 999% to the hit chance value to prevent a display issue
+* Added more options for tweaking some engine perks to the **perks ini file**
+* Added a new argument and a new return value to `HOOK_STEAL` hook script
+* Added a burst control example script and a resting encounters mod to the example mods in the **modders pack**
+* Updated the compute damage example script in the **modders pack**. Now it should be easier to write one's own damage formula
+* Updated **NPC armor appearance mod** in the **modders pack** to prevent NPCs from equipping **unusable** weapons
+* Updated **item highlighting mod** in the **modders pack** to match the feature set of the 4.x version
+* Increased the setting range of the combat speed slider in the preferences screen
+* Backported script functions from 4.0/4.1: `set_dude_obj`, `get_object_ai_data`
+* Backported hook scripts from 4.x: `hs_combatturn`, `hs_rollcheck`, `hs_bestweapon`, `hs_canuseweapon`
+* New script functions: `set_spray_settings`, `get/set_combat_free_move`, `get_ini_config`, `string_find`
+
 ## 3.8.38
 * Fixed a bug introduced in 3.8.30 that could cause unexpected behavior for burst attacks at close range
 * Fixed a bug introduced in 3.8.31 that caused the game to display incorrect names for corpses in some cases
@@ -43,7 +80,7 @@
 
 ## 3.8.35
 * Fixed the handling of obsolete script functions that are still recognized by script compiler and decompiler
-* Improved the fix for updating the HP stats of critters on the map when loaded for the first time
+* Improved the fix for updating the maximum HP stat of critters on the map when loaded for the first time
 * Removed **DivisionOperatorFix** from `ddraw.ini` because there is little reason to turn it off
 * Removed **ComputeSprayMod** from `ddraw.ini`. Now **ComputeSpray_\*** options no longer require a master switch
 * Added a fix for a crash when the player equips a weapon overloaded with ammo
@@ -123,7 +160,6 @@
 * Added 5 `metarule3` macros for controlling the save slot with scripts to `sfall.h` in the **modders pack**
 * Added a `sfall.dat` resource file, which contains the required files for various features. The localized `sfall_xx.dat` is also supported
 * New script functions: `set_scr_name`, `obj_is_openable`
-* Updated **NPC armor appearance mod** to prevent NPCs from equipping **unusable** weapons
 * Included Brazilian Portuguese and Polish translation (from Felipefpl and Jaiden)
 
 ## 3.8.30.2
@@ -148,7 +184,7 @@
 * Fixed the error handling in `create_object_sid` script function to prevent a crash when the proto is missing
 * Fixed `METARULE_CURRENT_TOWN` metarule function not returning the correct index of the current town at the start of a new game
 * Fixed the auto-close containers mod for gravesites and not closing containers in some cases (in the **modders pack**)
-* Fixed and improved the functionality of **AllowLargeTiles**. Now it requires a `gridmask.frm` file (included in the **modders pack**) in the `art\tiles\`` directory
+* Fixed and improved the functionality of **AllowLargeTiles**. Now it requires a `gridmask.frm` file (included in the **modders pack**) in the `art\tiles\` directory
 * Restored the functionality of `obj_under_cursor` script function for the movement cursor (changed in 3.8.29)
 * Improved the **hero appearance mod** to be able to load the interface text from `text\<language>\game\AppIface.msg`
 * Improved the functionality of **TranslationsINI** to also search for the ini file relative to the `text\<language>\` directory
@@ -173,7 +209,7 @@
 * Added a tweak to remove the unspent skill points limit
 * Added an option to disable the special handling of city areas 45 and 46 in the engine when visiting Area 45
 * Added an option to load alternative dialog msg and subtitle files for female PC (translation friendly)
-* Added an option to allow using the special `'^'` character in dialog msg files to specify the alternative text that will be displayed in the dialogue based on the player's gender
+* Added an option to allow using the caret character `'^'` in dialog msg files to specify alternative text in dialogue based on the player's gender
 * Added a new value to **AIDrugUsePerfFix** to allow NPCs to use only the drugs listed in `chem_primary_desire` and healing drugs
 * Added support for loading premade character **GCD/BIO** files from the `premade\<language>\` directory for non-English languages
 * Added support for loading fonts from the `fonts\<language>\` directory for non-English languages
@@ -211,7 +247,7 @@
 * Added `snd2acm_fix.exe` (snd2acm with a fix wrapper) to the **modders pack** for writing the correct sample rate and channel info from **WAV** files to **ACM** format
 * Backported script functions from 4.0/4.1: `get_ini_sections`, `get_ini_section`, `add_extra_msg_file`
 * Backported 4 new modes for `metarule2_explosions` function from 4.1
-* Backported `HOOK_ADJUSTFID` and `HOOK_GAMEMODECHANGE` hook scripts from 4.2
+* Backported hook scripts from 4.2: `hs_adjustfid`, `hs_gamemodechange`
 * Backported `SPECIAL` game mode flag from 4.2 (when switching from dialog mode to barter mode, or a party member joins/leaves in the dialog screen)
 * New script functions: `interface_overlay`
 
