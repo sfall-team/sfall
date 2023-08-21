@@ -208,7 +208,9 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 			sum += (getStatFunc(critter, stat) + statFormulas[fo::Stat::STAT_max_hit_points].shift[stat]) * statFormulas[fo::Stat::STAT_max_hit_points].multi[stat];
 		}
 		long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
-		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
+		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) {
+			calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
+		}
 
 		fo::Proto* proto;
 		if (fo::util::GetProto(critter->protoId, &proto) && proto->critter.base.health != calcStatValue) {

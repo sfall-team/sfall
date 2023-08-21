@@ -27,4 +27,4 @@
 #define VERSION_BUILD 0
 #define VERSION_REV 0
 
-#define VERSION_STRING "4.4.0b"
+#define VERSION_STRING "4.4"
