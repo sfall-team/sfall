@@ -76,7 +76,7 @@ with open(functions_yaml) as yf:
     if len(children) > 0:
       text += "\n## Subcategories\n{: .no_toc}\n\n"
       for c in children:
-        text += "- [**{}**](/{}/)\n".format(c["name"], get_slug(c["name"]))
+        text += "- [**{}**](/sfall/{}/)\n".format(c["name"], get_slug(c["name"]))
       text += "\n"
 
     if 'items' in cat: # allow parent pages with no immediate items
