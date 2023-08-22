@@ -202,31 +202,68 @@ defaultHandler:
 	}
 }
 
+static long stealExpOverride;
+
+static void __declspec(naked) StealHook_ExpOverrideHack() {
+	__asm {
+		mov ecx, [esp + 0x150 - 0x18 + 4]; // total exp
+		cmp stealExpOverride, -1;
+		jle vanillaExp;
+		add ecx, stealExpOverride; // add overridden exp value
+		jmp end;
+vanillaExp:
+		add ecx, edi; // add vanilla exp value
+end:
+		add edi, 10; // vanilla exp increment for next success
+		mov [esp + 0x150 - 0x18 + 4], ecx; // set total exp
+		mov ecx, [esp];
+		add ecx, 14; // shift return address
+		mov [esp], ecx;
+		retn;
+	}
+}
+
 static void __declspec(naked) StealCheckHook() {
+	static const DWORD StealSkipRet = 0x474B18;
 	__asm {
 		HookBegin;
 		mov args[0], eax;  // thief
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
+		mov args[16], esi; // quantity
 		pushadc;
 	}
 
-	argCount = 4;
+	argCount = 5;
+	stealExpOverride = -1;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
 		popadc;
-		cmp cRet, 1;
-		jl  defaultHandler;
-		cmp rets[0], -1;
-		je  defaultHandler;
-		mov eax, rets[0];
+		cmp  cRet, 1;
+		jl   defaultHandler; // no return values, use vanilla path
+		cmp  cRet, 2;
+		jl   skipExpOverride;
+		push eax;
+		mov  eax, rets[4]; // override experience points for steal
+		mov  stealExpOverride, eax;
+		pop  eax;
+skipExpOverride:
+		cmp  rets[0], -1; // if <= -1, use vanilla path
+		jle  defaultHandler;
+		cmp  rets[0], 2; // 2 - steal failed but didn't get cought
+		jnz  normalReturn;
+		HookEnd;
+		add  esp, 4;
+		jmp  StealSkipRet;
+normalReturn:
+		mov  eax, rets[0];
 		HookEnd;
 		retn;
 defaultHandler:
 		HookEnd;
-		jmp fo::funcoffs::skill_check_stealing_;
+		jmp  fo::funcoffs::skill_check_stealing_;
 	}
 }
 
@@ -634,21 +671,30 @@ cancelEnc:
 static long __stdcall RollCheckHook_Script(long roll, long chance, long bonus, long randomChance, long calledFrom) {
 	long hookType;
 	switch (calledFrom - 5) {
-		case 0x42388E: // compute_attack_
-		// compute_spray_
-		case 0x4234D1: hookType = 1; break; // single and burst attack hit event
-		// compute_spray_
-		case 0x42356C: hookType = 2; break; // burst attack bullet hit event
-		// skill_result_
-		case 0x4AAB29: hookType = 3; break; // common skill check event
-		// skill_use_
-		case 0x4AB3B6: hookType = 4; break; // SKILL_REPAIR
-		case 0x4AB8B5: hookType = 5; break; // SKILL_DOCTOR
-		// skill_check_stealing_            // SKILL_STEAL
-		case 0x4ABC9F: hookType = 6; break; // source stealing check event
-		case 0x4ABCE6: hookType = 7; break; // target stealing check event (fail for success stealing)
+	case 0x42388E:    // compute_attack_
+	case 0x4234D1:    // compute_spray_
+		hookType = 1; // single and burst attack hit event
+		break;
+	case 0x42356C:    // compute_spray_
+		hookType = 2; // burst attack bullet hit event
+		break;
+	case 0x4AAB29:    // skill_result_
+		hookType = 3; // common skill check event
+		 break;
+	case 0x4AB3B6:    // skill_use_
+		hookType = 4; // SKILL_REPAIR
+		break;
+	case 0x4AB8B5:    // skill_use_
+		hookType = 5; // SKILL_DOCTOR
+		break;
+	case 0x4ABC9F:    // skill_check_stealing_
+		hookType = 6; // SKILL_STEAL - source stealing check event
+		break;
+	case 0x4ABCE6:    // skill_check_stealing_
+		hookType = 7; // SKILL_STEAL - target stealing check event (fail for success stealing)
+		break;
 	default:
-		return roll; // unsupported hook
+		return roll;  // unsupported hook
 	}
 
 	BeginHook();
@@ -698,6 +744,7 @@ void Inject_UseSkillHook() {
 
 void Inject_StealCheckHook() {
 	HookCalls(StealCheckHook, { 0x4749A2, 0x474A69 });
+	MakeCalls(StealHook_ExpOverrideHack, { 0x4742C5, 0x4743E1 });
 }
 
 void Inject_SneakCheckHook() {

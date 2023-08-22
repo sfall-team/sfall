@@ -88,12 +88,12 @@ static void __declspec(naked) register_object_take_out_hack() {
 }
 
 static void __declspec(naked) gdAddOptionStr_hack() {
+	static const DWORD gdAddOptionStr_hack_Ret = 0x4458FA;
 	__asm {
 		mov  ecx, ds:[FO_VAR_gdNumOptions];
 		add  ecx, '1';
 		push ecx;
-		mov  ecx, 0x4458FA;
-		jmp  ecx;
+		jmp  gdAddOptionStr_hack_Ret;
 	}
 }
 
@@ -254,7 +254,7 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 		}
 		std::memcpy(dstSlot, &item, 0x14);
 	} else { // swap slots
-		auto hands = fo::var::itemButtonItems;
+		auto& hands = fo::var::itemButtonItems;
 		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
 		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
 		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
@@ -535,9 +535,9 @@ static void BoostScriptDialogLimitPatch() {
 static void NumbersInDialoguePatch() {
 	if (IniReader::GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlogr("Applying numbers in dialogue patch.", DL_INIT);
-		SafeWrite32(0x502C32, 0x2000202E);
+		SafeWrite32(0x502C32, 0x2000202E);        // '%c ' > '%c. '
 		SafeWrite8(0x446F3B, 0x35);
-		SafeWrite32(0x5029E2, 0x7325202E);
+		SafeWrite32(0x5029E2, 0x7325202E);        // '%c %s' > '%c. %s'
 		SafeWrite32(0x446F03, 0x2424448B);        // mov  eax, [esp+0x24]
 		SafeWrite8(0x446F07, 0x50);               // push eax
 		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
@@ -990,6 +990,13 @@ void MiscPatches::init() {
 
 	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
 	HookCall(0x4B03A1, text_object_create_hack); // jge hack
+
+	// Increase the maximum value of the combat speed slider from 50 to 100
+	SafeWriteBatch<BYTE>(100, {
+		0x492120, 0x49212A, // UpdateThing_
+		0x493787, 0x493790  // RestoreSettings_
+	});
+	SafeWrite8(0x519B82, 0x59); // 100.0
 
 	if (!HRP::Setting::IsEnabled()) {
 		// Corrects the height of the black background for death screen subtitles

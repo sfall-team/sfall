@@ -649,7 +649,7 @@ enum AttackSubType : long
 	UNARMED                   = 1,
 	MELEE                     = 2,
 	THROWING                  = 3,
-	GUNS                      = 4
+	RANGED                    = 4
 };
 
 enum BodyType : long

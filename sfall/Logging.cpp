@@ -16,10 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
 #include "Logging.h"
 
-#ifndef NO_SFALL_DEBUG
+#include "main.h"
+#include "FalloutEngine\Fallout2.h"
+#include "ConsoleWindow.h"
+#include "Utils.h"
 
 #include <fstream>
 
@@ -29,39 +31,60 @@ namespace sfall
 static int DebugTypes = 0;
 static std::ofstream Log;
 
-template <class T>
-static void OutLog(T a) {
-	Log << a;
-	Log.flush();
-}
+static int LastType = -1;
+static int LastNewLine;
 
 template <class T>
-static void OutLogN(T a) {
-	Log << a << "\n";
+static void OutLog(T a, int type, bool newLine = false) {
+	std::ostringstream ss;
+	if (LastNewLine || type != LastType) {
+		ss << "[" << DebugTypeToStr(type) << "] ";
+	}
+	ss << a;
+	if (newLine) ss << "\n";
+	std::string str = ss.str();
+
+	ConsoleWindow::instance().write(str.c_str(), ConsoleWindow::Source::SFALL);
+
+	Log << str;
 	Log.flush();
+
+	LastType = type;
+	LastNewLine = str.back() == '\n';
+}
+
+const char* DebugTypeToStr(int type) {
+	switch (type) {
+	case DL_INIT: return "Init";
+	case DL_HOOK: return "Hook";
+	case DL_SCRIPT: return "Script";
+	case DL_CRITICALS: return "Crits";
+	case DL_FIX: return "Fix";
+	default: return "Main";
+	}
 }
 
 void dlog(const char* a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLog(a);
+		OutLog(a, type);
 	}
 }
 
 void dlog(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLog(a);
+		OutLog(a, type);
 	}
 }
 
 void dlogr(const char* a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLogN(a);
+		OutLog(a, type, true);
 	}
 }
 
 void dlogr(const std::string& a, int type) {
 	if (type == DL_MAIN || (isDebug && (type & DebugTypes))) {
-		OutLogN(a);
+		OutLog(a, type, true);
 	}
 }
 
@@ -70,8 +93,10 @@ void dlog_f(const char* fmt, int type, ...) {
 		va_list args;
 		va_start(args, type);
 		char buf[1024];
-		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
-		OutLog(buf);
+		int written = vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
+		if (written > 0) {
+			OutLog(buf, type);
+		}
 		va_end(args);
 	}
 }
@@ -83,8 +108,10 @@ void devlog_f(const char* fmt, int type, ...) {
 		va_list args;
 		va_start(args, type);
 		char buf[1024];
-		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
-		OutLog(buf);
+		int written = vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
+		if (written > 0) {
+			OutLog(buf, type);
+		}
 		va_end(args);
 	}
 }
@@ -113,5 +140,3 @@ void LoggingInit() {
 }
 
 }
-
-#endif

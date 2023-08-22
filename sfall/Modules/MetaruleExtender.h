@@ -27,7 +27,6 @@ class MetaruleExtender : public Module {
 public:
 	const char* name() { return "MetaruleExtender"; }
 	void init();
-	//void exit() override;
 
 };
 

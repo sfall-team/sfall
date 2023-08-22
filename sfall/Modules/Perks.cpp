@@ -1159,7 +1159,7 @@ static void __declspec(naked) item_w_called_shot_hack() {
 		call fo::funcoffs::item_hit_with_; // get pointer to weapon
 		mov  edx, ecx;
 		call fo::funcoffs::item_w_subtype_;
-		cmp  eax, THROWING;                // is weapon type GUNS or THROWING?
+		cmp  eax, THROWING;                // is weapon type RANGED or THROWING?
 		jge  checkRange;                   // yes
 		jmp  FastShotTraitFix_End;         // continue processing called shot attempt
 checkRange:
@@ -1421,7 +1421,7 @@ void Perks::init() {
 	if (IniReader::GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
-		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributesA(perksFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		perksEnable = IniReader::GetInt("Perks", "Enable", 1, perksFile);
 		traitsEnable = IniReader::GetInt("Traits", "Enable", 1, perksFile);

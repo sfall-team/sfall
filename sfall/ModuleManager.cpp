@@ -5,8 +5,6 @@
 namespace sfall 
 {
 
-ModuleManager ModuleManager::_instance;
-
 ModuleManager::ModuleManager() {
 }
 
@@ -21,10 +19,6 @@ void ModuleManager::initAll() {
 		dlog_f("Initializing module %s...\n", DL_INIT, (*it)->name());
 		(*it)->init();
 	}
-}
-
-ModuleManager& ModuleManager::getInstance() {
-	return _instance;
 }
 
 }

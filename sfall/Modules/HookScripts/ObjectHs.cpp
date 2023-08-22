@@ -6,6 +6,8 @@
 
 #include "ObjectHs.h"
 
+using namespace sfall::script;
+
 // Object hook scripts
 namespace sfall
 {
@@ -157,16 +159,19 @@ end:
 
 static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
 	BeginHook();
+	allowNonIntReturn = true;
 	argCount = 1;
 
 	args[0] = object;
 
 	RunHookScript(HOOK_DESCRIPTIONOBJ);
 
-	DWORD textPrt = (cRet > 0) ? rets[0] : 0;
-	EndHook();
+	DWORD textPtr = cRet > 0 && (retTypes[0] == DataType::INT || retTypes[0] == DataType::STR)
+	              ? rets[0]
+	              : 0;
 
-	return textPrt;
+	EndHook();
+	return textPtr;
 }
 
 static void __declspec(naked) DescriptionObjHook() {
@@ -254,11 +259,13 @@ skip:
 
 static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInstance* script, DWORD procTable) {
 	BeginHook();
-	argCount = 4;
+	argCount = 6;
 
 	args[0] = numHandler;
 	args[1] = (DWORD)script->selfObject;
 	args[2] = (DWORD)script->sourceObject;
+	args[4] = (DWORD)script->targetObject;
+	args[5] = script->fixedParam;
 
 	if (procTable) {
 		args[3] = 0;
@@ -373,14 +380,14 @@ void __declspec(naked) critter_adjust_rads_hack() {
 	using namespace Fields;
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_Player; // critter.pid
-		jne  isNotDude;
+		jne  notDude;
 		push ecx;
 		call AdjustRads_Script; // ecx - critter, edx - amount
 		pop  ecx;
 		mov  ebx, eax;          // old/new amount
 		mov  edx, ds:[FO_VAR_obj_dude];
 		xor  eax, eax;          // for continue func
-isNotDude:
+notDude:
 		retn;
 	}
 }

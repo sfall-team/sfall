@@ -102,12 +102,7 @@ void op_get_npc_level(OpcodeContext& ctx) {
 		auto members = fo::var::partyMemberList;
 		for (DWORD i = 0; i < fo::var::partyMemberCount; i++) {
 			if (!findPid) {
-				__asm {
-					mov  eax, members;
-					mov  eax, [eax];
-					call fo::funcoffs::critter_name_;
-					mov  critterName, eax;
-				}
+				critterName = fo::func::critter_name(members[i].object);
 				if (!_stricmp(name, critterName)) { // found npc
 					pid = members[i].object->protoId;
 					break;
@@ -157,7 +152,7 @@ void op_set_script(OpcodeContext& ctx) {
 
 	long scriptIndex = valArg & ~0xF0000000;
 	if (scriptIndex == 0 || valArg > 0x8FFFFFFF) { // negative values are not allowed
-		ctx.printOpcodeError("%s() - the script index number is incorrect.", ctx.getOpcodeName());
+		ctx.printOpcodeError("%s() - invalid script index number.", ctx.getOpcodeName());
 		return;
 	}
 	scriptIndex--;
@@ -198,7 +193,10 @@ void op_create_spatial(OpcodeContext& ctx) {
 	// this will load appropriate script program and link it to the script instance we just created:
 	exec_script_proc(scriptId, start);
 
-	ctx.setReturn(fo::func::scr_find_obj_from_program(scriptPtr->program));
+	fo::GameObject* obj = fo::func::scr_find_obj_from_program(scriptPtr->program);
+	// set script index because scr_find_obj_from_program() doesn't do it when creating a hidden "spatial" object
+	obj->scriptIndex = scriptIndex - 1;
+	ctx.setReturn(obj);
 }
 
 #undef exec_script_proc
@@ -427,7 +425,7 @@ void mf_item_make_explosive(OpcodeContext& ctx) {
 	if (pid > 0 && pidActive > 0) {
 		Explosions::AddToExplosives(pid, pidActive, min, max);
 	} else {
-		ctx.printOpcodeError("%s() - invalid PID number, must be greater than 0.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid PID number.", ctx.getMetaruleName());
 		ctx.setReturn(-1);
 	}
 }
@@ -452,7 +450,7 @@ void op_get_proto_data(OpcodeContext& ctx) {
 	long result = -1;
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	if (fo::util::CheckProtoID(pid) && fo::func::proto_ptr(pid, &protoPtr) != result) {
+	if (fo::util::CheckProtoID(pid) && fo::util::GetProto(pid, &protoPtr)) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
 		ctx.printOpcodeError(protoFailedLoad, ctx.getOpcodeName(), pid);
@@ -472,14 +470,27 @@ void op_set_proto_data(OpcodeContext& ctx) {
 	}
 }
 
+static const char* invalidObjPtr = "%s() - invalid object pointer.";
+
 void mf_get_object_data(OpcodeContext& ctx) {
+	long result = 0;
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
-	ctx.setReturn(*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()));
+	if (*(object_ptr - 1) != 0xFEEDFACE && !(fo::var::combat_state & fo::CombatStateFlag::InCombat)) {
+		ctx.printOpcodeError(invalidObjPtr, ctx.getMetaruleName());
+	} else {
+		result = *(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue());
+	}
+	ctx.setReturn(result);
 }
 
 void mf_set_object_data(OpcodeContext& ctx) {
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
-	*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+	if (*(object_ptr - 1) != 0xFEEDFACE && !(fo::var::combat_state & fo::CombatStateFlag::InCombat)) {
+		ctx.printOpcodeError(invalidObjPtr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
+	} else {
+		*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+	}
 }
 
 void mf_get_object_ai_data(OpcodeContext& ctx) {
@@ -536,7 +547,7 @@ void mf_get_object_ai_data(OpcodeContext& ctx) {
 		value = arrayId;
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid value for AI argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid aiParam number.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(value);
 }
@@ -554,7 +565,7 @@ void mf_set_drugs_data(OpcodeContext& ctx) {
 		result = Drugs::SetDrugAddictTimeOff(pid, val);
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid value for type argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid type number.", ctx.getMetaruleName());
 		return;
 	}
 	if (result) {

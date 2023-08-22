@@ -26,6 +26,7 @@
 *.exe
 *.out
 *.app
+!ducible.exe
 
 # NetBeans
 nbproject/private/

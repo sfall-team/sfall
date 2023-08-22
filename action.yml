@@ -82,7 +82,7 @@ runs:
              #
              echo "::endgroup::"
           fi
-          echo "::set-output name=dir::$(cygpath --windows "$DXSDK_DIR/DXSDK_Jun2010/")"
+          echo "dir=$(cygpath --windows "$DXSDK_DIR/DXSDK_Jun2010/")" >> $GITHUB_OUTPUT
    shell: bash
 
  # MSBuild is not in PATH on Windows machines
@@ -93,7 +93,7 @@ runs:
           echo "::group::Prepare MSBuild"
 
           MSBUILD_EXE="$("/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild/**/Bin/MSBuild.exe)"
-          echo "::set-output name=exe::$MSBUILD_EXE"
+          echo "exe=$MSBUILD_EXE" >> $GITHUB_OUTPUT
 
           echo "::endgroup::"
    shell: bash
@@ -106,10 +106,10 @@ runs:
              echo ::group::Build ReleaseXP
 
              #
-             echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
+             # echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
              "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=ReleaseXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
              #
-             echo "::set-output name=ddraw-dll::$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/ReleaseXP/ddraw.dll")"
+             echo "ddraw-dll=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/ReleaseXP/ddraw.dll")" >> $GITHUB_OUTPUT
 
              echo "::endgroup::"
           fi
@@ -126,11 +126,11 @@ runs:
              echo "::group::Build DevXP"
 
              #
-             echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
+             # echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
              "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=DevXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
              #
-             echo "::set-output name=ddraw-dll::$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.dll")"
-             echo "::set-output name=ddraw-pdb::$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.pdb")"
+             echo "ddraw-dll=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.dll")" >> $GITHUB_OUTPUT
+             echo "ddraw-pdb=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.pdb")" >> $GITHUB_OUTPUT
 
              echo "::endgroup::"
           fi

@@ -25,7 +25,7 @@ namespace sfall
 namespace script
 {
 
-enum class DataType : unsigned long {
+enum class DataType : unsigned short {
 	NONE  = 0,
 	INT   = 1,
 	FLOAT = 2,
@@ -56,6 +56,8 @@ public:
 	bool isString() const;
 
 	unsigned long rawValue() const;
+
+	long intValue() const;
 
 	float floatValue() const;
 

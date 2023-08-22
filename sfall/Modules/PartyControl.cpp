@@ -19,7 +19,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
-#include "..\Utils.h"
 
 #include "Drugs.h"
 #include "HookScripts.h"
@@ -27,7 +26,6 @@
 #include "ScriptExtender.h"
 //#include "Objects.h"
 
-#include "..\Game\inventory.h"
 #include "..\Game\objects.h"
 #include "..\Game\tilemap.h"
 
@@ -43,7 +41,6 @@ static bool isControllingNPC = false;
 static char skipCounterAnim;
 
 static int delayedExperience;
-static bool switchHandHookInjected = false;
 
 struct WeaponStateSlot {
 	long npcID;
@@ -79,8 +76,8 @@ static struct DudeState {
 
 struct PartySneakWorking {
 	fo::GameObject* object;
-	unsigned long sneak_queue_time;
-	long sneak_working;
+	DWORD sneak_queue_time;
+	DWORD sneak_working;
 };
 static std::vector<PartySneakWorking> partySneakWorking;
 
@@ -183,9 +180,9 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// copy existing party member perks or reset list for non-party member NPC
 	long isPartyMember = fo::util::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
-		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::Perk::PERK_count);
+		std::memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList[isPartyMember - 1].perkData, sizeof(DWORD) * fo::PERK_count);
 	} else {
-		std::memset(fo::var::perkLevelDataList, 0, sizeof(DWORD) * fo::Perk::PERK_count);
+		std::memset(fo::var::perkLevelDataList, 0, sizeof(DWORD) * fo::PERK_count);
 	}
 
 	// change level
@@ -539,6 +536,7 @@ static void NPCWeaponTweak() {
 }
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	static bool onlyOnce = false;
 	if (skipCounterAnim == 2 && critter && critter == realDude.obj_dude) {
 		skipCounterAnim--;
 		SafeWrite8(0x422BDE, 1); // restore
@@ -579,9 +577,8 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		}
 		SetCurrentDude(critter);
 
-		if (!switchHandHookInjected) {
-			switchHandHookInjected = true;
-			//if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+		if (!onlyOnce) {
+			onlyOnce = true;
 
 			ScriptExtender::OnMapExit() += []() {
 				if (!partySneakWorking.empty()) {
@@ -698,7 +695,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 	fo::GameObject* targetObject = nullptr;
 	fo::GameObject* validTarget = nullptr;
 
-	long outlineColor; // backup color
+	long outlineColor = 0; // backup color
 	fo::BoundRect rect;
 	partyOrderPickTargetLoop = true;
 
@@ -709,10 +706,10 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			targetObject->outline = outlineColor;
 			fo::func::obj_bound(targetObject, &rect);
 			if (!outlineColor) {
-					rect.x--;
-					rect.y--;
-					rect.offx += 2;
-					rect.offy += 2;
+				rect.x--;
+				rect.y--;
+				rect.offx += 2;
+				rect.offy += 2;
 			}
 			fo::func::tile_refresh_rect(&rect, fo::var::map_elevation);
 			targetObject = validTarget = nullptr;
@@ -759,7 +756,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 			break;
 		default: // biped
 			long max = partyOrderAttackMsg.size() - 1;
-			long rnd = (max > 2) ? GetRandom(2, max) : 2;
+			long rnd = (max > 2) ? fo::func::roll_random(2, max) : 2;
 			message = partyOrderAttackMsg[rnd].c_str();
 		}
 		fo::util::PrintFloatText(partyMember, message, cap->color, cap->outline_color, cap->font);
@@ -825,6 +822,9 @@ static void __declspec(naked) combat_ai_hook_target() {
 }
 
 void PartyControl::OrderAttackPatch() {
+	static bool orderAttackPatch = false;
+	if (orderAttackPatch) return;
+
 	MakeCall(0x44C4A7, gmouse_handle_event_hack, 2);
 	HookCall(0x44C75F, gmouse_handle_event_hook);
 	HookCall(0x44C69A, gmouse_handle_event_hook_restore);
@@ -834,6 +834,7 @@ void PartyControl::OrderAttackPatch() {
 	LoadGameHook::OnCombatEnd() += []() {
 		partyOrderAttackTarget.clear();
 	};
+	orderAttackPatch = true;
 }
 
 static void NpcAutoLevelPatch() {
@@ -869,16 +870,16 @@ void PartyControl::init() {
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
-		dlogr("Applying display NPC extra info patch.", DL_INIT);
+		dlogr("Applying display extra info patch for party members.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
 		Translate::Get("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
 		Translate::Get("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
 		Translate::Get("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 	}
 
-	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::", 33));
-	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::", 33));
-	auto msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|', 512);
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackCreature", "::Growl::"));
+	partyOrderAttackMsg.push_back(Translate::Get("sfall", "PartyOrderAttackRobot", "::Beep::"));
+	auto msgs = Translate::GetList("sfall", "PartyOrderAttackHuman", "I'll take care of it.|Okay, I got it.", '|');
 	partyOrderAttackMsg.insert(partyOrderAttackMsg.cend(), msgs.cbegin(), msgs.cend());
 }
 

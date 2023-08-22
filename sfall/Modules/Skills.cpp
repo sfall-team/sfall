@@ -333,12 +333,12 @@ void Skills::init() {
 	LoadGameHook::OnGameReset() += ResetOnGameLoad;
 
 	char buf[512], key[16];
-	auto skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
+	auto skillsFile = IniReader::GetConfigString("Misc", "SkillsFile", "");
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
 
 		const char* file = skillsFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(file) == INVALID_FILE_ATTRIBUTES) return;
+		if (GetFileAttributesA(file) == INVALID_FILE_ATTRIBUTES) return;
 
 		multipliers = new double[7 * fo::SKILL_count]();
 

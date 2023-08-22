@@ -2299,7 +2299,7 @@ fix:
 		mov  edx, [esi + ammoPid];
 		test edx, edx;
 		js   skip;
-		mov  eax, GUNS; // set GUNS if has ammo pid
+		mov  eax, RANGED; // set RANGED if has ammo pid
 skip:
 		retn;
 	}
@@ -3274,13 +3274,11 @@ void BugFixes::init() {
 	MakeCall(0x46AB68, NegateFixHack);
 
 	// Fix incorrect int-to-float conversion
-	// replace operator to "fild 32bit"
-	// op_mult:
-	SafeWrite16(0x46A3F4, 0x04DB);
-	SafeWrite16(0x46A3A8, 0x04DB);
-	// op_div:
-	SafeWrite16(0x46A566, 0x04DB);
-	SafeWrite16(0x46A4E7, 0x04DB);
+	SafeWriteBatch<WORD>(0x04DB, { // fild 64bit > fild 32bit
+		0x46A3A8, 0x46A3F4, // op_mul_
+		0x46A4E7, 0x46A566, // op_div_
+		0x46A280, 0x46A2CD, // op_sub_
+	});
 
 	// Fix for vanilla division operator treating negative integers as unsigned
 	//if (IniReader::GetConfigInt("Misc", "DivisionOperatorFix", 1)) {

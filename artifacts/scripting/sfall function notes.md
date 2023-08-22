@@ -18,13 +18,13 @@ Both `set_global_script_repeat` and `set_global_script_type` only have an effect
 The `read_xxx` functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The `write_xxx` functions are equivalent except that they write to arbitrary memory addresses.
 
 The `call_offset_xx` functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments.
-None of `write_xxx` and `call_offset_xx` functions will work unless **AllowUnsafeScripting** is enabled in ddraw.ini.
+None of `write_xxx` and `call_offset_xx` functions will work unless **AllowUnsafeScripting** is enabled in **ddraw.ini**.
 
 The `get_pc_base_stat`, `set_pc_base_stat`, `get_pc_extra_stat` and `set_pc_extra_stat` functions are equivalent to calling `get_critter_base_stat`, `set_critter_base_stat`, `get_critter_extra_stat` and `set_critter_extra_stat` with `dude_obj` as the critter pointer. None of these stat functions take perks into account, and neither do they do range clamping to make sure the stats are valid. Use the normal `get_critter_stat` function to get a correctly perk adjusted and range clamped value for a stat.
 
 The `set_stat_min` and `set_stat_max` functions can be used to set the valid ranges on stats. Values returned by `get_current_stat` will be clamped to this range. The `set_pc_stat_*` functions only affect the player, the `set_npc_stat_*` functions only affect other critters, and the `set_stat_*` functions affect both.
 
-The input functions are only available if the user has the input hook turned on in ddraw.ini. Use `input_funcs_available` to check.
+The input functions are only available if the user has the input hook turned on in **ddraw.ini**. Use `input_funcs_available` to check.
 
 The graphics functions are only available if the user is using graphics mode 4 or 5. Use `graphics_funcs_available` to check; it returns 1 if you can use them or 0 if you can't. Calling graphics functions when `graphics_funcs_available` returns 0 will do nothing.
 
@@ -54,11 +54,11 @@ The `has_fake_trait` and `has_fake_perk` return the number of levels the player 
 
 The `perk_add_mode`, `set_selectable_perk`, `set_perkbox_title`, `hide_real_perks`, `show_real_perks` and `clear_selectable_perks` control the behaviour of the select a perk box. The `set_selectable_perk` can be used to add additional items by setting the **active** parameter to 1, and to remove them again by setting it to 0. The `set_perkbox_title` can be used to change the title of the box, or by using `""` it will be set back to the default. The `hide_real_perks` and `show_real_perks` can be used to prevent the dialog from displaying any of the original 119 perks. The `perk_add_mode` modifies what happens when a fake perk is selected from the perks dialog. It is treated as a set of flags - if bit 1 is set then it is added to the player's traits, if bit 2 is set it is added to the player's perks, and if bit 3 is set it is removed from the list of selectable perks. The default is 0x2. The `clear_selectable_perks` restores the dialog to its default state.
 
-The `show_iface_tag`, `hide_iface_tag` and `is_iface_tag_active` relate to the boxes that appear above the interface such as **SNEAK** and **LEVEL**. You can use 3 for **LEVEL** and 4 for **ADDICT**, or the range from 5 to (4 + the value of BoxBarCount in ddraw.ini) for custom boxes. Remember to add your messages to **intrface.msg** and set up the font colours in ddraw.ini if you're going to use custom boxes. Starting from sfall 4.1/3.8.12, `is_iface_tag_active` can also be used to check 0 for **SNEAK**, 1 for **POISONED**, and 2 for **RADIATED**.
+The `show_iface_tag`, `hide_iface_tag` and `is_iface_tag_active` relate to the boxes that appear above the interface such as **SNEAK** and **LEVEL**. You can use 3 for **LEVEL** and 4 for **ADDICT**, or the range from 5 to (4 + the value of BoxBarCount in **ddraw.ini**) for custom boxes. Remember to add your messages to **intrface.msg** and set up the font colours in **ddraw.ini** if you're going to use custom boxes. Starting from sfall 4.1/3.8.12, `is_iface_tag_active` can also be used to check 0 for **SNEAK**, 1 for **POISONED**, and 2 for **RADIATED**.
 
-The `get_bodypart_hit_modifier` and `set_bodypart_hit_modifier` alter the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
+The `get_bodypart_hit_modifier` and `set_bodypart_hit_modifier` alter the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in **ddraw.ini** if they exist) at each reload.
 
-The `get_critical_table`, `set_critical_table` and `reset_critical_table` are used for modifying the critical table (for details, see http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults (or to the contents of **CriticalOverrides.ini**, if it exists) at each game reload. These function also require **OverrideCriticalTable** to be enabled in ddraw.ini.
+The `get_critical_table`, `set_critical_table` and `reset_critical_table` are used for modifying the critical table (for details, see http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults (or to the contents of **CriticalOverrides.ini**, if it exists) at each game reload. These function also require **OverrideCriticalTable** to be enabled in **ddraw.ini**.
 
 The `get_unspent_ap_bonus` and `set_unspent_ap_bonus` alter the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.) The `get_unspent_ap_perk_bonus` and `set_unspent_ap_perk_bonus` are similar, but affect the extra AC granted by the HtH Evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.)
 
@@ -70,7 +70,7 @@ The `get_proto_data` and `set_proto_data` are used to manipulate the in memory c
 
 The `list_xxx` functions can be used to loop over all items on a map. `list_begin` takes an argument telling sfall what you want to list (defined in **sfall.h**). It returns a list pointer, which you iterate through with `list_next`. Finally, when you've finished with the list use `list_end` on it. Not calling `list_end` will result in a memory leak. Alternatively, use `list_as_array` to get the whole list at once as a temp array variable, which can be looped over using `len_array` and which you don't need to remember to free afterwards.
 
-The `play_sfall_sound` and `stop_sfall_sound` are used to play **mp3/wav/wma** files. The path given is relative to the Fallout folder. Specify mode as 1 to loop the file continuously, 2 to replace the current background game music with playing the specified file in loop mode, or 0 to play the file once. If you don't wish to loop, `play_sfall_sound` returns 0. If you do loop, it returns an id which can be passed back to `stop_sfall_sound` when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. These functions do not require **AllowDShowSound** to be set to 1 in ddraw.ini.
+The `play_sfall_sound` and `stop_sfall_sound` are used to play **mp3/wav/wma** files. The path given is relative to the Fallout folder. Specify mode as 1 to loop the file continuously, 2 to replace the current background game music with playing the specified file in loop mode, or 0 to play the file once. If you don't wish to loop, `play_sfall_sound` returns 0. If you do loop, it returns an id which can be passed back to `stop_sfall_sound` when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. These functions do not require **AllowDShowSound** to be set to 1 in **ddraw.ini**.
 Starting from sfall 4.2.8/3.8.28, you can pass a value in the **mode** argument for a reduced sound volume. To set the volume, You need to convert the number to hexadecimal and use the argument format `0xZZZZ000Y`, where `ZZZZ` is the volume reduction value in range from 0 to 32767 (the value 32767 is muted), and `Y` is the playback mode.
 
 Arrays are created and manipulated with the `xxx_array` functions. An array must first be created with `create_array` or `temp_array`, specifying how many data elements the array can hold. You can store any of ints, floats and strings in an array, and can mix all 3 in a single array. The ID returned by `create_array` or `temp_array` can then be used with the other array functions. Arrays are shared between all scripts. (i.e. you can call `create_array` from one script, and then use the returned ID from another script.) They are also saved across savegames. Arrays created with `temp_array` will be automatically freed at the end of the frame. These functions are safe, in that supplying a bad id or trying to access out of range elements will not crash the script. `create_array` is the only function that returns a permanent array, all other functions which return arrays (`string_split`, `list_as_array`, etc,) all return temp arrays. You can use `fix_array` to make a temp array permanent.\
@@ -124,14 +124,17 @@ FUNCTION REFERENCE
 -----
 ##### `int get_ini_setting(string setting)`
 - Reads an integer value from an ini file in the Fallout directory.
-- It only takes a single argument; seperate the file name, section and key with a `|` character, e.g. `myvar := get_ini_setting("myini.ini|mysec|var1")`. If the file or key cannot be found, -1 is returned.
+- It only takes a single argument; seperate the file name, section and key with a `|` character, e.g. `myvar := get_ini_setting("myini.ini|mysec|var1")`.
+- If the file or key cannot be found or the setting argument is in an invalid format, it returns -1.
 - The file name is limited to 63 chars, including the extension.
 - The section name is limited to 32 characters.
-- It can also be used to get sfall settings, by using ddraw.ini as the file name.
+- It can also be used to get sfall settings by using **ddraw.ini** as the file name.
 
 -----
 ##### `string get_ini_string(string setting)`
 - Reads a string value from an ini file in the Fallout directory.
+- If the file or key cannot be found, it returns an empty string.
+- If the setting argument is in an invalid format, it returns -1 (integer).
 
 -----
 ##### `int get_game_mode()`
@@ -167,7 +170,7 @@ FUNCTION REFERENCE
 -----
 ##### `void set_map_time_multi(float multi)`
 - Adjusts how fast time passes while you're on the world map. It takes a single float as an argument, where 1 is the normal speed.
-- This function works in addition to the **WorldMapTimeMod** setting in ddraw.ini and the Pathfinder perk, rather than overriding it, so calling `set_map_time_multi(0.5)` when the player has 2 levels of pathfinder would result in time passing at 25% the normal speed on the world map.
+- This function works in addition to the **WorldMapTimeMod** setting in **ddraw.ini** and the Pathfinder perk, rather than overriding it, so calling `set_map_time_multi(0.5)` when the player has 2 levels of pathfinder would result in time passing at 25% the normal speed on the world map.
 
 -----
 ##### `void remove_script(object obj)`
@@ -227,33 +230,47 @@ FUNCTION REFERENCE
 - The same as above, but applies only to specific critter.
 
 -----
+##### `int get_tile_fid(int tileData)`
+- Returns FID information about the square under the given tile at elevation 0.
+- Pass elevation as 4-bit number in bits 25-28 to access other elevations.
+- Pass result mode in bits 29-32: 0 - ground FID, 1 - roof FID, 2 - raw data. Following macros are available in **sfall.h**:
+
+-----
+##### `int get_tile_ground_fid(int tileNum, int elevation)`
+- Returns FID of a ground tile at given tile number and elevation.
+
+-----
+##### `int get_tile_roof_fid(int tileNum, int elevation)`
+- Returns FID of a roof tile at given tile number and elevation. Note that FID of 1 is used when there is no actual roof.
+
+-----
 ##### `void reg_anim_combat_check`
-- Allows to enable all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin() ... reg_anim_end()` code block.
+- Allows enabling all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin() ... reg_anim_end()` code block.
 
 **Some additional `reg_anim_*` functions were introduced. They all work in the same convention as vanilla functions and use the same underlying code.**
 
-##### `void reg_anim_destroy(object)`
+##### `void reg_anim_destroy(object obj)`
 - Given object is destroyed at the end of current animation set.
 
 -----
-##### `void reg_anim_animate_and_hide(object, animID, delay)`
+##### `void reg_anim_animate_and_hide(object obj, int animID, int delay)`
 - Exactly like `reg_anim_animate` but the object will automatically disappear after the last animation frame (but not destroyed).
 
 -----
-##### `void reg_anim_light(object, light, delay)`
+##### `void reg_anim_light(object obj, int light, int delay)`
 - Change light of any object. light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: `0xFFFF0008` - intensity 65535 and radius 8). If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF).
 
 -----
-##### `void reg_anim_change_fid(object, fid, delay)`
+##### `void reg_anim_change_fid(object obj, int fid, int delay)`
 - Should work like `art_change_fid_num` but in `reg_anim` sequence.
 
 -----
-##### `void reg_anim_take_out(object, holdFrameID, delay)`
+##### `void reg_anim_take_out(object obj, holdFrameID, int delay)`
 - Plays "take out weapon" animation for given **holdFrameID**. It is not required to have such weapon in critter's inventory.
 
 -----
-##### `void reg_anim_turn_towards(object, tile/target, delay)`
-- Makes object change its direction to face given tile num or target object.
+##### `void reg_anim_turn_towards(object obj, int/object tile/target, int delay)`
+- Makes object change its direction to face given tile number or target object.
 
 -----
 ##### `void reg_anim_callback(procedure proc)`
@@ -261,18 +278,18 @@ FUNCTION REFERENCE
 
 -----
 ##### `int/array metarule2_explosions(int arg1, int arg2, int arg3)`
-- Was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action. Following macros are available in **sfall.h**:
+- Was made as a quick-and-dirty hack to enable dynamic changes to some explosion parameters for ranged attacks. All changed parameters are automatically reset to vanilla state after each attack action. Following macros are available in **sfall.h**:
 
 -----
-##### `void set_attack_explosion_pattern(x, y)`
+##### `void set_attack_explosion_pattern(int x, int y)`
 - Currently `y` is not used and `x` means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern.
 
 -----
-##### `void set_attack_explosion_art(x, y)`
+##### `void set_attack_explosion_art(int x, int y)`
 - `y` is not used and `x` is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
 
 -----
-##### `void set_attack_explosion_radius(x)`
+##### `void set_attack_explosion_radius(int x)`
 - Changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine)
 
 -----
@@ -280,41 +297,41 @@ FUNCTION REFERENCE
 - If you call this right before using a weapon with fire damage type (e.g. in `HOOK_AFTERHITROLL`), it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
 
 -----
-##### `void set_explosion_radius(grenade, rocket)`
+##### `void set_explosion_radius(int grenade, int rocket)`
 - Sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
 - Changed radius will be reset each time the player reloads the game.
 
 -----
-##### `array get_explosion_damage(itemPid)`
+##### `array get_explosion_damage(int itemPid)`
 - Returns an array of the minimum and maximum damage of the explosive item.
 
 -----
-##### `void set_dynamite_damage(minDmg, maxDmg)`
+##### `void set_dynamite_damage(int minDmg, int maxDmg)`
 - Sets the minimum and maximum damage for Dynamite.
 - Changed damage will be reset each time the player reloads the game.
 
 -----
-##### `void set_plastic_damage(minDmg, maxDmg)`
+##### `void set_plastic_damage(int minDmg, int maxDmg)`
 - Sets the minimum and maximum damage for Plastic Explosives.
 - Changed damage will be reset each time the player reloads the game.
 
 -----
-##### `void set_explosion_max_targets(x)`
+##### `void set_explosion_max_targets(int x)`
 - Sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)
 
 ---
 ### Some utility/math functions are available:
 
-##### `array string_split(string text, split)`
+##### `array string_split(string text, string split)`
 - Takes a string and a separator, searches the string for all instances of the separator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the separator, the string is split into individual characters.
 - You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`
 
 -----
-##### `string substr(string text, start, length)`
+##### `string substr(string text, int start, int length)`
 - Cuts a substring from a string starting at `start` up to `length` characters. The first character position is 0 (zero).
-- If `start` is negative - it indicates starting position from the end of the string (for example, `substr("test", -2, 2)` will return last 2 charactes: "st").
+- If `start` is negative - it indicates a position starting from the end of the string (for example, `substr("test", -2, 2)` will return last 2 charactes: "st").
 - If `length` is negative - it means so many characters will be omitted from the end of string (example: `substr("test", 0, -2)` will return string without last 2 characters: "te").
-- If `length` is zero - it will return a string from the starting position to the end of the string (new behavior for sfall 4.2.2/3.8.22).
+- If `length` is zero - it will return a string from the starting position to the end of the string (**new behavior** since sfall 4.2.2/3.8.22).
 
 -----
 ##### `int strlen(string text)`
@@ -322,7 +339,7 @@ FUNCTION REFERENCE
 
 -----
 ##### `string sprintf(string format, any value)`
-- Formats given value using standard syntax of C `printf` function (google "printf" for format details). However it is limited to formatting only 1 value.
+- Formats given value using standard syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting only 1 value.
 - Can be used to get character by ASCII code (`%c`).
 
 -----
@@ -403,8 +420,8 @@ FUNCTION REFERENCE
 ##### `string message_str_game(int fileId, int messageId)`
 - Works exactly the same as `message_str`, except you get messages from files in the `text\<language>\game\` directory.
 - Use `GAME_MSG_*` defines or `mstr_*` macros from **sfall.h** to use specific msg file.
-- Additional game msg files added by **ExtraGameMsgFileList** setting will have consecutive fileIds assigned beginning from `0x2000` to `0x2FFF`. (e.g. if you set `ExtraGameMsgFileList=foo,bar` in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
-- If a file has a specific number assigned in **ExtraGameMsgFileList**, its fileId will be (`0x2000` + assigned number). (e.g. with `ExtraGameMsgFileList=foo,bar:2,foobar` in ddraw.ini, bar.msg will be associated with 0x2002 and foobar.msg with 0x2003.)
+- Additional game msg files added by **ExtraGameMsgFileList** setting will have consecutive fileIds assigned beginning from `0x2000` to `0x2FFF`. (e.g. if you set `ExtraGameMsgFileList=foo,bar` in **ddraw.ini**, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
+- If a file has a specific number assigned in **ExtraGameMsgFileList**, its fileId will be (`0x2000` + assigned number). (e.g. with `ExtraGameMsgFileList=foo,bar:2,foobar` in **ddraw.ini**, bar.msg will be associated with 0x2002 and foobar.msg with 0x2003.)
 
 -----
 ##### `int sneak_success()`
@@ -477,7 +494,7 @@ sfall_funcX metarule functions
 
 ----
 #### spatial_radius
-`int sfall_func1("spatial_radius", object object)`
+`int sfall_func1("spatial_radius", object obj)`
 - Returns radius of spatial script, associated with given dummy-object (returned by `create_spatial`)
 
 ----
@@ -523,22 +540,22 @@ sfall_funcX metarule functions
 ----
 #### floor2
 `int sfall_func1("floor2", int/float value)`
-- Works just like vanilla `floor` function, but returns correct integers for negative values
-- __NOTE:__ vanilla `floor` function works exactly the same as ceil for negative values, much like trunc in C/C++
+- Works just like vanilla `floor` function, but returns correct integers for negative floats
+- __NOTE:__ vanilla `floor` function works exactly the same as `ceil` for negative floats (i.e. basically `trunc` in C/C++)
 
 ----
 #### item_weight
-`int sfall_func1("item_weight", object)`
+`int sfall_func1("item_weight", object obj)`
 - Gets the current weight of an object
 
 ----
 #### get_outline
-`int sfall_func1("get_outline", object)`
+`int sfall_func1("get_outline", object obj)`
 - Gets the current outline color for an object
 
 ----
 #### set_outline
-`void sfall_func2("set_outline", object, int color)`
+`void sfall_func2("set_outline", object obj, int color)`
 - Sets the outline color of an object (see `OUTLINE_*` constants in **sfall.h**)
 - Can also set a custom color from the game palette by shifting the color index value left by 8 bits: `0xCC00` where `CC` is the palette index (**available since sfall 4.2.7/3.8.27**)
 - Passing 0 will disable the outline
@@ -546,12 +563,12 @@ sfall_funcX metarule functions
 
 ----
 #### get_flags
-`int sfall_func1("get_flags", object)`
+`int sfall_func1("get_flags", object obj)`
 - Gets the current value of object flags (see **define_extra.h** for available flags)
 
 -----
 ##### set_flags
-`void sfall_func2("set_flags", object, int flags)`
+`void sfall_func2("set_flags", object obj, int flags)`
 - Sets the current flags of an object
 - All flags are rewritten with given integer, so first get current flags with `get_flags` and use `bwor`/`bwand` to set/remove specific flag
 
@@ -567,9 +584,9 @@ sfall_funcX metarule functions
 
 ----
 #### set_dude_obj
-`object sfall_func1("set_dude_obj", critter)`
+`object sfall_func1("set_dude_obj", int critter)`
 - Take control of a given critter
-- passing 0 will reset control back to "real" dude
+- Passing 0 will reset control back to "real" dude
 
 ----
 #### real_dude_obj
@@ -578,13 +595,15 @@ sfall_funcX metarule functions
 
 ----
 #### get_ini_sections
-`array sfall_func1("get_ini_sections", string fileName)`
+`array sfall_func1("get_ini_sections", string file)`
 - Returns an array of names of all sections in a given INI file
+- If the INI file is not found, it returns an empty array
 
 ----
 #### get_ini_section
-`array sfall_func2("get_ini_section", string fileName, string section)`
+`array sfall_func2("get_ini_section", string file, string section)`
 - Returns an associative array of keys and values for a given INI file and section
+- If the INI file is not found, it returns an empty array
 - __NOTE:__ all keys and their values will be of String type
 
 ----
@@ -619,12 +638,12 @@ sfall_funcX metarule functions
 
 ----
 #### lock_is_jammed
-`int sfall_func1("lock_is_jammed", object)`
+`int sfall_func1("lock_is_jammed", object obj)`
 - Returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise
 
 ----
 #### unjam_lock
-`void sfall_func1("unjam_lock", object)`
+`void sfall_func1("unjam_lock", object obj)`
 - Unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours
 - __NOTE:__ does not work in `use_skill_on_p_proc` procedure
 
@@ -670,8 +689,8 @@ sfall_funcX metarule functions
 ----
 #### set_iface_tag_text
 `void sfall_func3("set_iface_tag_text", int tag, string text, int color)`
-- Sets the text messages and colors for custom notification boxes to the interface without the need to add messages to intrface.msg and set up the font colors in ddraw.ini
-- `tag` value is the same as used in `show_iface_tag`, `hide_iface_tag`, and `is_iface_tag_active`. The valid range is from 5 to (4 + the value of **BoxBarCount** in ddraw.ini) or the number of the last custom box added using the `add_ifaca_tag` function
+- Sets the text messages and colors for custom notification boxes to the interface without the need to add messages to intrface.msg and set up the font colors in **ddraw.ini**
+- `tag` value is the same as used in `show_iface_tag`, `hide_iface_tag`, and `is_iface_tag_active`. The valid range is from 5 to (4 + the value of **BoxBarCount** in **ddraw.ini**) or the number of the last custom box added using the `add_ifaca_tag` function
 - The text is limited to 19 characters
 - Available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple, 7 - dull pink
 
@@ -702,7 +721,8 @@ sfall_funcX metarule functions
 ----
 #### get_string_pointer
 `int sfall_func1("get_string_pointer", string text)`
-- Returns a pointer to a string variable or to a text
+- (DEPRECATED) Returns a pointer to a string variable or to a text
+- __NOTE:__ this function is intended for use only in `HOOK_DESCRIPTIONOBJ`. Starting from sfall 4.4/3.8.40, you can return normal strings directly in the hook without calling the function
 
 ----
 #### dialog_message
@@ -711,7 +731,7 @@ sfall_funcX metarule functions
 
 ----
 #### get_current_inven_size
-`int sfall_func1("get_current_inven_size", object)`
+`int sfall_func1("get_current_inven_size", object obj)`
 - Returns the current inventory size of the container or the critter
 
 ----
@@ -758,17 +778,17 @@ sfall_funcX metarule functions
 
 ----
 #### get_object_data
-`int sfall_func2("get_object_data", object, int offset)`
+`int sfall_func2("get_object_data", object obj, int offset)`
 - Returns the data at the specified offset of an object (see `OBJ_DATA_*` constants in **define_extra.h** for offsets)
 
 ----
-#### set_object_data (object, offset, data)
-`void sfall_func3("set_object_data", object, int offset, int data)`
+#### set_object_data
+`void sfall_func3("set_object_data", object obj, int offset, int data)`
 - Sets the data at the specified offset of an object
 
 ----
 #### get_object_ai_data
-`int sfall_func2("get_object_ai_data", object, int aiParam)`
+`int sfall_func2("get_object_ai_data", object obj, int aiParam)`
 - Returns the setting value from the AI packet of an object (critter)
 - Use `AI_CAP_*` constants from **define_extra.h** for the aiParam argument to get AI value
 
@@ -786,15 +806,15 @@ sfall_funcX metarule functions
 ----
 #### set_drugs_data
 `void sfall_func3("set_drugs_data", int type, int pid, int value)`
-- Overrides the parameters of drugs set in the configuration file (**DrugsFile** setting in ddraw.ini)
+- Overrides the parameters of drugs set in the configuration file (**DrugsFile** setting in **ddraw.ini**)
 - `type`:\
     0 - changes the value of **NumEffects** for the drug (see **Drugs.ini** for the description of NumEffects)\
     1 - changes the duration of the addiction effect for the drug (a value of 1 = one game minute)
 
 ----
 #### set_unique_id
-`int sfall_func1("set_unique_id", object)`\
-`int sfall_func2("set_unique_id", object, int flag)`
+`int sfall_func1("set_unique_id", object obj)`\
+`int sfall_func2("set_unique_id", object obj, int flag)`
 - Assigns a unique ID number to the object and returns it. If a unique ID number has already been assigned to an object, then ID number is returned without reassignment
 - Items with unique IDs will not stack with other items of the same type in the inventory
 - To just get the current ID number of an object, use `sfall_func2("get_object_data", object, OBJ_DATA_ID)`
@@ -835,7 +855,7 @@ sfall_funcX metarule functions
 - __NOTE:__ if the msg file does not exist in the current language directory, the function will try to load it from the `text\English\game\` directory
 
 **Optional argument:**
-- `fileNumber`: the file ID number for the `message_str_game` function. The available range is from `0x2000` to `0x2FFF` (see **ExtraGameMsgFileList** setting in ddraw.ini). Use **fileNumber** only if you want to add a message file without editing ddraw.ini or existing scripts to support the old way
+- `fileNumber`: the file ID number for the `message_str_game` function. The available range is from `0x2000` to `0x2FFF` (see **ExtraGameMsgFileList** setting in **ddraw.ini**). Use **fileNumber** only if you want to add a message file without editing **ddraw.ini** or existing scripts to support the old way
 
 ----
 #### unwield_slot
@@ -910,9 +930,10 @@ sfall_funcX metarule functions
 
 ----
 #### string_format
-`string sfall_func3("string_format", string format, any val1, any val2, ...)`
-- Formats given value using standard syntax of C `printf` function (google "printf" for format details). However it is limited to formatting up to 4 values
-- Formatting is only supported for `%s` and `%d`, and the format string is limited to 1024 characters
+`string sfall_func2("string_format", string format, any val1)`\
+`string sfall_funcX("string_format", string format, any val1, any val2, ...)`
+- Formats given values using standard syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting up to 7 values
+- The format string is limited to 1024 characters
 
 ----
 #### objects_in_radius
@@ -1062,6 +1083,49 @@ sfall_funcX metarule functions
 #### obj_is_openable
 `bool sfall_func1("obj_is_openable", object obj)`
 - Returns True if the object is openable (i.e. has an opening/closing animation), False otherwise
+
+----
+##### set_spray_settings
+`void sfall_func4("set_spray_settings", int centerMult, int centerDiv, int targetMult, int targetDiv)`
+
+- Allows changing the multipliers and divisors for the bullet distribution of burst attacks dynamically. All settings are automatically reset to default values (**ComputeSpray_\*** settings in **ddraw.ini**) after each attack action
+- Should be called before the calculation of the bullet distribution (e.g. in `HOOK_TOHIT` or `HOOK_AMMOCOST`)
+- `centerDiv/targetDiv`: the minimum value of divisor is 1
+- `centerMult/targetMult`: multiplier values are capped at divisor values
+- __NOTE:__ refer to the description of **ComputeSpray_\*** settings in **ddraw.ini** for details of the bullet distribution of burst attacks
+
+----
+##### get_combat_free_move
+`int sfall_func0("get_combat_free_move")`
+
+- Returns available "bonus move" points of the current critter's turn. For NPCs, this is always 0 unless changed by `set_combat_free_move`
+
+----
+##### set_combat_free_move
+`void sfall_func1("set_combat_free_move", int value)`
+
+- Allows changing "bonus move" points (yellow lights on the interface bar) that can only be used for movement, not attacking
+- Can be called from `HOOK_COMBATTURN` at the start of the turn (will not work on `dude_obj`)
+- Can be called from `HOOK_STDPROCEDURE` with `combat_proc` event (will work on both NPCs and `dude_obj`)
+
+----
+#### get_ini_config
+`array sfall_func2("get_ini_config", string file, bool searchDB)`
+- Loads a given INI file and returns a permanent array (map) where keys are section names and values are permanent sub-arrays (maps) where keys and values are strings
+- `searchDB`:\
+    False - searches the file in the regular file system, like with all other ini-related functions\
+    True - searches the file in database (DAT) files. If not found, then it will try the regular file system
+- Subsequent calls for the same file will return the same array, unless it was disposed using `free_array`
+
+----
+#### string_find
+`int sfall_func2("string_find", string haystack, string needle)`\
+`int sfall_func3("string_find", string haystack, string needle, int pos)`
+
+- Returns the position of the first occurrence of a `needle` string in a `haystack` string, or -1 if not found. The first character position is 0 (zero)
+
+**Optional argument:**
+- `pos`: the position at which to start the search. If negative, it indicates a position starting from the end of the string
 
 
 ****

@@ -49,12 +49,10 @@ public:
 
 	static long determineHitChance;
 
-	static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode);
-
 	static bool IsBurstDisabled(fo::GameObject* critter);
 };
 
-void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+void __stdcall SetHitChanceMax(fo::GameObject* critter, int maximum, int mod);
 void __stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode);
 void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode);
 

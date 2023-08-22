@@ -79,7 +79,7 @@ void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DW
 static int CritTableLoad() {
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt).", DL_CRITICALS);
-		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
+		if (GetFileAttributesA(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
@@ -109,7 +109,7 @@ static int CritTableLoad() {
 
 		if (mode == 3) {
 			dlogr(" and CriticalOverrides.ini (new fmt).", DL_CRITICALS);
-			if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
+			if (GetFileAttributesA(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 			char buf[32], buf2[32], buf3[32];
 			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
@@ -315,7 +315,7 @@ void Criticals::init() {
 	mode = IniReader::GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
-		critTableFile += IniReader::GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
+		critTableFile += IniReader::GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini");
 		CriticalTableOverride();
 		LoadGameHook::OnBeforeGameStart() += []() {
 			memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table

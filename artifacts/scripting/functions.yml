@@ -599,7 +599,7 @@
     opcode: 0x8212
 
 - name: Math
-  parent: Variables
+  parent: Utility
   items:
   - name: log
     detail: float log(float x)
@@ -649,7 +649,9 @@
       If both arguments are integers, the result will be an integer.
   - name: floor2
     detail: int floor2(int/float value)
-    doc: Works just like vanilla floor function, but returns correct integers for negative values (vanilla floor function works exactly the same as `ceil` for negative values, much like `trunc` in C/C++).
+    doc: |
+      Works just like vanilla floor function, but returns correct integers for negative floats.
+      - __NOTE:__ vanilla `floor` function works exactly the same as `ceil` for negative floats (i.e. basically `trunc` in C/C++).
     macro: sfall.h
   - name: div
     detail: div(x, y)
@@ -703,7 +705,7 @@
   items:
   - name: metarule2_explosions
     detail: int metarule2_explosions(int arg1, int arg2)
-    doc: Was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action.
+    doc: Was made as a quick-and-dirty hack to enable dynamic changes to some explosion parameters for ranged attacks. All changed parameters are automatically reset to vanilla state after each attack action.
     opcode: 0x8261
 
   - name: set_attack_explosion_pattern
@@ -767,7 +769,7 @@
   items:
   - name: reg_anim_combat_check
     detail: void reg_anim_combat_check(int enable)
-    doc: Allows to enable all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin` - `reg_anim_end` block.
+    doc: Allows enabling all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin` - `reg_anim_end` block.
     opcode: 0x825c
   - name: reg_anim_destroy
     detail: void reg_anim_destroy(ObjectPtr)
@@ -791,7 +793,7 @@
     opcode: 0x825f
   - name: reg_anim_turn_towards
     detail: void reg_anim_turn_towards(ObjectPtr, int tile/target, delay)
-    doc: Makes object change its direction to face given tile num or target object.
+    doc: Makes object change its direction to face given tile number or target object.
     opcode: 0x8260
   - name: reg_anim_callback
     detail: void reg_anim_callback(procedure proc)
@@ -823,7 +825,11 @@
 - name: Tiles and paths
   items:
   - name: get_tile_fid
-    detail: int get_tile_fid(int tile)
+    detail: int get_tile_fid(int tileData)
+    doc: |
+      - Returns FID information about the square under the given tile at elevation 0
+      - Pass elevation as 4-bit number in bits 25-28 to access other elevations
+      - Pass result mode in bits 29-32: 0 - ground FID, 1 - roof FID, 2 - raw data.
     opcode: 0x823a
   - name: tile_under_cursor
     detail: int tile_under_cursor
@@ -849,6 +855,14 @@
     doc: |
       - returns the tile number at the x, y position relative to the top-left corner of the screen
       - if the position is outside of the range of tiles, it will return -1
+    macro: sfall.h
+  - name: get_tile_ground_fid
+    detail: int get_tile_ground_fid(int tileNum, int elevation)
+    doc: Returns FID of a ground tile at given tile number and elevation.
+    macro: sfall.h
+  - name: get_tile_roof_fid
+    detail: int get_tile_roof_fid(int tileNum, int elevation)
+    doc: Returns FID of a roof tile at given tile number and elevation. Note that FID of 1 is used when there is no actual roof.
     macro: sfall.h
 
   - name: obj_blocking_line
@@ -1056,11 +1070,13 @@
       `fixedParam`: the value that is passed to the `timed_event_p_proc` procedure for the `fixed_param` function
     macro: sfall.h
 
-- name: Variables
+- name: Utility
   items:
   - name: sprintf
     detail: string sprintf(string format, any value)
-    doc: Formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value. Can be used to get character by ASCII code ("%c").
+    doc: |
+      Formats given value using standart syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting only 1 value.
+      - Can be used to get character by ASCII code ("%c").
     opcode: 0x8250
   - name: typeof
     detail: int typeof(any value)
@@ -1074,19 +1090,19 @@
     opcode: 0x8238
 
 - name: Strings
-  parent: Variables
+  parent: Utility
   items:
   - name: string_split
     detail: array string_split(string text, split)
     doc: "Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters. You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`"
     opcode: 0x8235
   - name: substr
-    detail: string substr(string text, start, length)
+    detail: string substr(string text, int start, int length)
     doc: |
       Cuts a substring from a string starting at "start" up to "length" characters. The first character position is 0 (zero).
-      - If start is negative - it indicates starting position from the end of the string (for example `substr("test", -2, 2)` will return last 2 charactes: "st").
+      - If start is negative - it indicates a position starting from the end of the string (for example `substr("test", -2, 2)` will return last 2 charactes: "st").
       - If length is negative - it means so many characters will be omitted from the end of string (example: `substr("test", 0, -2)` will return string without last 2 characters: "te").
-      - If length is zero - it will return a string from the starting position to the end of the string **New behavior** for sfall 4.2.2/3.8.22
+      - If length is zero - it will return a string from the starting position to the end of the string. **New behavior** for sfall 4.2.2/3.8.22
     opcode: 0x824e
   - name: strlen
     detail: int strlen(string text)
@@ -1098,14 +1114,34 @@
     opcode: 0x8251
   - name: get_string_pointer
     detail: int get_string_pointer(string text)
-    doc: Returns a pointer to a string variable or to a text.
+    doc: |
+      (DEPRECATED) Returns a pointer to a string variable or to a text
+      - __NOTE:__ this function is intended for use only in `HOOK_DESCRIPTIONOBJ`. Starting from sfall 4.4/3.8.40, you can return normal strings directly in the hook without calling the function
+    macro: sfall.h
+  - name: string_find
+    detail: int string_find(string haystack, string needle)
+    doc: Returns the position of the first occurrence of a `needle` string in a `haystack` string, or -1 if not found. The first character position is 0 (zero).
+    macro: sfall.h
+  - name: string_find_from
+    detail: int string_find_from(string haystack, string needle, int pos)
+    doc: |
+      Works the same as `string_find`, except you can specify the position to start the search.
+      - If `pos` is negative - it indicates a position starting from the end of the string, similar to `substr()`.
     macro: sfall.h
   - name: string_format
     detail: string string_format(string format, any val1, any val2, ...)
     doc: |
-      Formats given value using standard syntax of C printf function (google "printf" for format details). However it is limited to formatting up to 4 values.
-      - formatting is only supported for %s and %d, and the format string is limited to 1024 characters
+      Formats given values using standard syntax of C `printf` function (google "printf" for format details). However, it is limited to formatting up to 7 values.
+      - The format string is limited to 1024 characters
     macro: sfall.h
+  - name: string_format_array
+    detail: string string_format_array(string format, int array)
+    doc: The same as string_format, but accepts an array of parameters.
+    macro: lib.strings.h
+  - name: string_replace
+    detail: string string_replace(string str, string search, string replace)
+    doc: Replaces all occurances of a given search string in a string with a given replacement string.
+    macro: lib.strings.h
   - name: string_to_case
     detail: string sfall_func2("string_to_case", string text, int toCase)
     doc: |
@@ -1246,7 +1282,9 @@
     opcode: 0x822e
   - name: get_array
     detail: mixed get_array(int arrayID, mixed key)
-    doc: 'Returns array value by key or index (shorthand: arrayID[key]).'
+    doc: |
+      Returns array value by key or index (shorthand: arrayID[key]).
+      - If array with given arrayID doesn't exist, returns 0.
     opcode: 0x822f
   - name: resize_array
     detail: void resize_array(int arrayID, int size)
@@ -1524,11 +1562,11 @@
   - name: set_critical_table
     detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
     opcode: 0x81e1
-    doc: Used for modifying the critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults, (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+    doc: Used for modifying the critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be enabled in `ddraw.ini` (already enabled by default).
   - name: get_critical_table
     detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
     opcode: 0x81e2
-    doc: Gets current critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+    doc: Gets current critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Requires `OverrideCriticalTable` to be enabled in `ddraw.ini` (already enabled by default).
   - name: reset_critical_table
     detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
     opcode: 0x81e3
@@ -1555,6 +1593,29 @@
     detail: void set_critter_current_ap(CritterPtr, int ap)
     opcode: 0x8192
     doc: Should only be used during the target critters turn while in combat.
+
+  - name: set_spray_settings
+    detail: void set_spray_settings(int centerMult, int centerDiv, int targetMult, int targetDiv)
+    doc: |
+      Allows changing the multipliers and divisors for the bullet distribution of burst attacks dynamically. All settings are automatically reset to default values (**ComputeSpray_\*** settings in ddraw.ini) after each attack action
+      - Should be called before the calculation of the bullet distribution (e.g. in `HOOK_TOHIT` or `HOOK_AMMOCOST`)
+      - `centerDiv/targetDiv`: the minimum value of divisor is 1
+      - `centerMult/targetMult`: multiplier values are capped at divisor values
+      - __NOTE:__ refer to the description of **ComputeSpray_\*** settings in ddraw.ini for details of the bullet distribution of burst attacks
+    macro: sfall.h
+    
+  - name: 
+    detail: int get_combat_free_move
+    doc: Returns available "bonus move" points of the current critter's turn. For NPCs, this is always 0 unless changed by `set_combat_free_move`
+    macro: sfall.h
+
+  - name: set_combat_free_move
+    detail: void set_combat_free_move(int value)
+    doc: |
+      Allows changing "bonus move" points (yellow lights on the interface bar) that can only be used for movement, not attacking
+      - Can be called from `HOOK_COMBATTURN` at the start of the turn (will not work on `dude_obj`)
+      - Can be called from `HOOK_STDPROCEDURE` with `combat_proc` event (will work on both NPCs and `dude_obj`)
+    macro: sfall.h
 
 - name: Car
   items:
@@ -1801,23 +1862,43 @@
   - name: get_ini_setting
     detail: int get_ini_setting(string setting)
     doc: |
-      - Reads an integer value from an ini file in the fallout directory.
-      - It only takes a single argument; seperate the file name, section and key with a "\|" character; e.g. `myvar:=get_ini_setting("myini.ini|mysec|var1")` If the file or key cannot be found, -1 is returned.
+      Reads an integer value from an ini file in the Fallout directory.
+      - It only takes a single argument; seperate the file name, section and key with a "\|" character; e.g. `myvar:=get_ini_setting("myini.ini|mysec|var1")`
+      - If the file or key cannot be found or the setting argument is in an invalid format, it returns -1.
       - The file name is limited to 63 chars, including the extension.
       - The section name is limited to 32 characters.
-      - It can also be used to get sfall's settings, by using `ddraw.ini` as the file name.
+      - It can also be used to get sfall settings by using **ddraw.ini** as the file name.
     opcode: 0x81ac
   - name: get_ini_string
     detail: string get_ini_string(string setting)
-    doc: Reads a string value from an ini file in the fallout directory.
+    doc: |
+      Reads a string value from an ini file in the Fallout directory.
+      - If the file or key cannot be found, it returns an empty string.
+      - If the setting argument is in an invalid format, it returns -1 (integer).
     opcode: 0x81eb
   - name: get_ini_section
     detail: array get_ini_section(string file, string sect)
-    doc: 'Returns an associative array of keys and values for a given INI file and section. NOTE: all keys and their values will be of String type.'
+    doc: |
+      Returns an associative array of keys and values for a given INI file and section.
+      - If the INI file is not found, it returns an empty array.
+      - __NOTE:__ all keys and their values will be of String type.
     macro: sfall.h
   - name: get_ini_sections
     detail: array get_ini_sections(string file)
-    doc: Returns an array of names of all sections in a given INI file.
+    doc: |
+      Returns an array of names of all sections in a given INI file.
+      - If the INI file is not found, it returns an empty array.
+    macro: sfall.h
+  - name: get_ini_config
+    detail: array get_ini_config(string file)
+    doc: |
+      Loads a given INI file and returns a permanent array (map) where keys are section names and values are permanent sub-arrays (maps) where keys and values are strings.
+      - Searches the file in the regular file system, like with all other ini-related functions.
+      - Subsequent calls for the same file will return the same array, unless it was disposed using `free_array`.
+    macro: sfall.h
+  - name: get_ini_config_db
+    detail: array get_ini_config_db(string file)
+    doc: Works exactly like `get_ini_config`, except it searches the file in database (DAT) files. If not found, then it will try the regular file system.
     macro: sfall.h
   - name: set_ini_setting
     detail: void set_ini_setting(string setting, int/string value)

@@ -43,7 +43,7 @@ bool displayKarmaChanges;
 
 static DWORD __stdcall DrawCard() {
 	int reputation = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
-	for (auto& info : karmaFrms) {
+	for (const auto& info : karmaFrms) {
 		if (reputation < info.points) {
 			return info.frm;
 		}
@@ -88,11 +88,11 @@ static void ApplyDisplayKarmaChangesPatch() {
 }
 
 static void ApplyKarmaFRMsPatch() {
-	auto karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "", 512);
+	auto karmaFrmList = IniReader::GetConfigList("Misc", "KarmaFRMs", "");
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
 		dlogr("Applying karma FRM patch.", DL_INIT);
-		auto karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "", 512);
+		auto karmaPointsList = IniReader::GetConfigList("Misc", "KarmaPoints", "");
 
 		karmaFrms.resize(countFrm);
 		size_t countPoints = karmaPointsList.size();

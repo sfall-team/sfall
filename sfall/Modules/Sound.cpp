@@ -977,6 +977,13 @@ static void __declspec(naked) sfxl_init_hook() {
 
 constexpr int SampleRate = 44100; // 44.1kHz
 
+static char mainMenuMusic[12]      = {};
+static char worldMapMusic[12]      = {};
+static char worldMapCarMusic[12]   = {};
+static char endGameMovieMusic0[12] = {};
+static char endGameMovieMusic1[12] = {};
+static char mapLoadingSound[12]    = {};
+
 void Sound::init() {
 	// Set the 44.1kHz sample rate for the primary sound buffer
 	SafeWrite32(0x44FDBC, SampleRate);
@@ -1053,6 +1060,25 @@ void Sound::init() {
 
 	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
 		HookCalls(sfxl_init_hook, {0x4A9999, 0x4A9B34});
+	}
+
+	if (IniReader::GetConfigString("Sound", "MainMenuMusic", "", mainMenuMusic, 9)) {
+		SafeWrite32(0x480A04, (DWORD)&mainMenuMusic);
+	}
+	if (IniReader::GetConfigString("Sound", "WorldMapMusic", "", worldMapMusic, 9)) {
+		SafeWrite32(0x4C2361, (DWORD)&worldMapMusic);
+	}
+	if (IniReader::GetConfigString("Sound", "WorldMapCarMusic", "", worldMapCarMusic, 9)) {
+		SafeWrite32(0x4C236D, (DWORD)&worldMapCarMusic);
+	}
+	if (IniReader::GetConfigString("Sound", "EndGameMovieMusic0", "", endGameMovieMusic0, 9)) {
+		SafeWrite32(0x43F853, (DWORD)&endGameMovieMusic0);
+	}
+	if (IniReader::GetConfigString("Sound", "EndGameMovieMusic1", "", endGameMovieMusic1, 9)) {
+		SafeWrite32(0x440750, (DWORD)&endGameMovieMusic1);
+	}
+	if (IniReader::GetConfigString("Sound", "MapLoadingSound", "", mapLoadingSound, 9)) {
+		SafeWrite32(0x482B9C, (DWORD)&mapLoadingSound);
 	}
 }
 

@@ -31,7 +31,7 @@ void RemoveInvenObjHook_Invoke(fo::GameObject* source, fo::GameObject* item, lon
 
 static long rmObjType = -1;
 
-void SetRemoveObjectType(long rmType) {
+void __stdcall SetRemoveObjectType(long rmType) {
 	rmObjType = rmType;
 }
 
@@ -657,15 +657,11 @@ void Inject_MoveCostHook() {
 	HookCalls(MoveCostHook, { 0x417665, 0x44B88A });
 }
 
-void Inject_SwitchHandHook() {
+void Inject_InventoryMoveHook() {
 	HookCalls(SwitchHandHook, {
 		0x4712E3, // left slot
 		0x47136D  // right slot
 	});
-}
-
-void Inject_InventoryMoveHook() {
-	Inject_SwitchHandHook();
 	MakeJump(0x4713A9, UseArmorHack); // old 0x4713A3
 	MakeJump(0x476491, DropIntoContainerHack);
 	MakeJumps(DropIntoContainerHandSlotHack, { 0x471338, 0x4712AB });

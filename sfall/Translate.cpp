@@ -37,12 +37,12 @@ size_t Translate::Get(const char* section, const char* setting, const char* defa
 	return IniReader::GetString(section, setting, defaultValue, buffer, bufSize, translationIni.File());
 }
 
-std::string Translate::Get(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return std::move(IniReader::GetString(section, setting, defaultValue, bufSize, translationIni.File()));
+std::string Translate::Get(const char* section, const char* setting, const char* defaultValue) {
+	return std::move(IniReader::GetString(section, setting, defaultValue, translationIni.File()));
 }
 
-std::vector<std::string> Translate::GetList(const char* section, const char* setting, const char* defaultValue, char delimiter, size_t bufSize) {
-	return std::move(IniReader::GetList(section, setting, defaultValue, bufSize, delimiter, translationIni.File()));
+std::vector<std::string> Translate::GetList(const char* section, const char* setting, const char* defaultValue, char delimiter) {
+	return std::move(IniReader::GetList(section, setting, defaultValue, delimiter, translationIni.File()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ static void MakeLangTranslationPath(const char* config) {
 	while (*iniDef == '\\' || *iniDef == '/' || *iniDef == '.') iniDef++; // skip first characters
 	sprintf(translationIni.lang, "%s\\text\\%s\\%s", patches, language, iniDef);
 
-	translationIni.state = (GetFileAttributes(translationIni.lang) != INVALID_FILE_ATTRIBUTES);
+	translationIni.state = (GetFileAttributesA(translationIni.lang) != INVALID_FILE_ATTRIBUTES);
 }
 
 static std::string saveSfallDataFailMsg;

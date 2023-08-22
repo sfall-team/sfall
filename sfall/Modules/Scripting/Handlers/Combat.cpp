@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
+#include "..\..\BurstMods.h"
 #include "..\..\Combat.h"
 #include "..\..\KillCounter.h"
 
@@ -235,10 +236,47 @@ void mf_attack_is_aimed(OpcodeContext& ctx) {
 
 void mf_combat_data(OpcodeContext& ctx) {
 	fo::ComputeAttackResult* ctd = nullptr;
-	if (fo::var::combat_state & 1) {
+	if (fo::var::combat_state & fo::CombatStateFlag::InCombat) {
 		ctd = &fo::var::main_ctd;
 	}
 	ctx.setReturn((DWORD)ctd, DataType::INT);
+}
+
+void mf_set_spray_settings(OpcodeContext& ctx) {
+	long centerMult = ctx.arg(0).rawValue(),
+	     centerDiv  = ctx.arg(1).rawValue(),
+	     targetMult = ctx.arg(2).rawValue(),
+	     targetDiv  = ctx.arg(3).rawValue();
+
+	if (centerDiv < 1) centerDiv = 1;
+	if (centerMult < 1) {
+		centerMult = 1;
+	} else if (centerMult > centerDiv) {
+		centerMult = centerDiv;
+		ctx.printOpcodeError("%s() - Warning: centerMult value is capped at centerDiv.", ctx.getMetaruleName());
+	}
+	if (targetDiv < 1) targetDiv = 1;
+	if (targetMult < 1) {
+		targetMult = 1;
+	} else if (targetMult > targetDiv) {
+		targetMult = targetDiv;
+		ctx.printOpcodeError("%s() - Warning: targetMult value is capped at targetDiv.", ctx.getMetaruleName());
+	}
+	BurstMods::SetComputeSpraySettings(centerMult, centerDiv, targetMult, targetDiv);
+}
+
+void mf_get_combat_free_move(OpcodeContext& ctx) {
+	ctx.setReturn(fo::var::combat_free_move);
+}
+
+void mf_set_combat_free_move(OpcodeContext& ctx) {
+	long value = ctx.arg(0).rawValue();
+	if (value < 0) value = 0;
+
+	fo::var::combat_free_move = value;
+	if (fo::var::main_ctd.attacker == fo::var::obj_dude) {
+		fo::func::intface_update_move_points(fo::var::obj_dude->critter.movePoints, fo::var::combat_free_move);
+	}
 }
 
 }

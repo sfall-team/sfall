@@ -86,11 +86,12 @@ static void LoadVanillaBooks() {
 }
 
 void Books::init() {
-	auto booksFile = IniReader::GetConfigString("Misc", "BooksFile", "", MAX_PATH);
+	auto booksFile = IniReader::GetConfigString("Misc", "BooksFile", "");
 	if (!booksFile.empty()) {
-		dlog("Applying books patch...", DL_INIT);
 		const char* iniBooks = booksFile.insert(0, ".\\").c_str();
+		if (GetFileAttributesA(iniBooks) == INVALID_FILE_ATTRIBUTES) return;
 
+		dlog("Applying books patch...", DL_INIT);
 		bool includeVanilla = (IniReader::GetInt("main", "overrideVanilla", 0, iniBooks) == 0);
 		if (includeVanilla) BooksCount = 5;
 

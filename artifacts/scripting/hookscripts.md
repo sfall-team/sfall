@@ -108,7 +108,7 @@ int     arg5 - Attack Type (see ATKTYPE_* constants)
 int     arg6 - Ranged flag. 1 if the hit chance calculation takes into account the distance to the target. This does not mean the attack is a ranged attack
 int     arg7 - The raw hit chance before applying the cap
 
-int     ret0 - the new hit chance
+int     ret0 - The new hit chance. The value is limited to the range of -99 to 999
 ```
 
 -------------------------------------------
@@ -322,7 +322,7 @@ Critter arg0 - the critter doing the bartering (either dude_obj or inven_dude)
 Critter arg1 - the critter being bartered with
 int     arg2 - the default value of the goods
 Critter arg3 - table of requested goods (being bought from NPC)
-int     arg4 - the amount of actual caps in the barter stack (as opposed to goods)
+int     arg4 - the number of actual caps in the barter stack (as opposed to goods)
 int     arg5 - the value of all goods being traded before skill modifications
 Critter arg6 - table of offered goods (being sold to NPC)
 int     arg7 - the total cost of the goods offered by the player
@@ -394,8 +394,10 @@ int     ret1 - The new maximum damage
 #### `HOOK_AMMOCOST (hs_ammocost.int)`
 
 Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.\
-By default, weapons can make attacks when at least 1 ammo is left, regardless of ammo cost calculations.\
-To add proper check for ammo before attacking and proper calculation of the number of burst rounds (hook type 1 and 2 in `arg3`), set **CheckWeaponAmmoCost=1** in **Misc** section of ddraw.ini.
+By default, a weapon can perform an attack with at least one ammo, regardless of ammo cost calculation.\
+To add proper checks for ammo before attacking (hook type 1 in `arg3`), set **CheckWeaponAmmoCost=1** in **Misc** section of ddraw.ini.
+
+__NOTE:__ The return value must be greater than or equal to 0 to be valid.
 
 ```
 Item    arg0 - The weapon
@@ -474,10 +476,12 @@ Example message (vanilla behavior):\
 ```
 Critter arg0 - Thief
 Obj     arg1 - The target
-Item    arg2 - Item being stolen/planted
+Item    arg2 - The item being stolen/planted
 int     arg3 - 0 when stealing, 1 when planting
+int     arg4 - quantity of the item being stolen/planted
 
-int     ret0 - overrides hard-coded handler (1 - force success, 0 - force fail, -1 - use engine handler)
+int     ret0 - overrides hard-coded handler (2 - force fail without closing window, 1 - force success, 0 - force fail, -1 - use engine handler)
+int     ret1 - overrides experience points gained for stealing this item (must be greater than or equal to 0)
 ```
 
 -------------------------------------------
@@ -689,10 +693,12 @@ An example usage would be to add an additional description to the item based on 
 
 Does not run if the script of the object overrides the description.
 
+__NOTE:__ Returning a pointer to the new text received from the `get_string_pointer` function is still valid, but the method is DEPRECATED and is left for backward compatibility only.
+
 ```
 Obj     arg0 - the object
 
-int     ret0 - a pointer to the new text received by using the get_string_pointer function
+String  ret0 - the new description text to use
 ```
 
 -------------------------------------------
@@ -800,10 +806,12 @@ Runs before or after Fallout engine executes a standard procedure (handler) in a
 __NOTE:__ This hook will not be executed for `start`, `critter_p_proc`, `timed_event_p_proc`, and `map_update_p_proc` procedures.
 
 ```
-int     arg0 - the number of the standard script handler (see define.h)
+int     arg0 - the number of the standard script handler (see *_proc in define.h)
 Obj     arg1 - the object that owns this handler (self_obj)
 Obj     arg2 - the object that called this handler (source_obj, can be 0)
 int     arg3 - 1 after procedure execution (for HOOK_STDPROCEDURE_END), 0 otherwise
+Obj     arg4 - the object that is acted upon by this handler (target_obj, can be 0)
+int     arg5 - the parameter of this call (fixed_param), useful for combat_proc
 
 int     ret0 - pass -1 to cancel the execution of the handler (only for HOOK_STDPROCEDURE)
 ```
@@ -922,7 +930,7 @@ For the player, this happens when the game updates the item data for active item
 Critter arg0 - the critter doing the check
 Item    arg1 - the item being checked
 int     arg2 - attack type (see ATKTYPE_* constants), or -1 for dude_obj
-int     arg3 - original result of engine function: 1 - can use, 0 - can't use
+int     arg3 - original result of engine function: 1 - can use, 0 - cannot use
 
 int     ret0 - overrides the result of engine function. Any non-zero value allows using the weapon
 ```

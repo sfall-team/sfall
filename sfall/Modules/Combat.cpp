@@ -87,12 +87,12 @@ static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
-static bool checkWeaponAmmoCost;
+//static bool checkWeaponAmmoCost;
 
 // Compares the cost (required count of rounds) for one shot with the current amount of ammo to make an attack or other checks
-long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
+static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
 	long currAmmo = game::Items::item_w_curr_ammo(weapon);
-	if (!checkWeaponAmmoCost || currAmmo <= 0) return currAmmo;
+	if (currAmmo <= 0) return 0;
 
 	long rounds = 1; // default ammo for single shot
 
@@ -110,7 +110,7 @@ long __fastcall Combat::check_item_ammo_cost(fo::GameObject* weapon, fo::AttackT
 	}
 
 	// calculate the cost
-	long cost = (newRounds != rounds) ? newRounds / rounds : 1; // 1 - default cost
+	long cost = (newRounds != rounds) ? (newRounds / rounds) : 1; // 1 - default cost
 	return (cost > currAmmo) ? 0 : currAmmo; // 0 - this will force "Not Enough Ammo"
 }
 
@@ -120,7 +120,7 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 		push edx;
 		push ecx;      // weapon
 		mov  edx, edi; // hitMode
-		call Combat::check_item_ammo_cost;
+		call check_item_ammo_cost;
 		pop  ecx;
 		pop  edx;
 		retn;
@@ -134,7 +134,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		push ecx;
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY; // hitMode
 		mov  ecx, eax;                     // weapon
-		call Combat::check_item_ammo_cost; // enough ammo?
+		call check_item_ammo_cost;         // enough ammo?
 		pop  ecx;
 		retn;
 	}
@@ -171,11 +171,12 @@ static long __fastcall divide_burst_rounds_by_ammo_cost(long currAmmo, fo::GameO
 		roundsCost = burstRounds;                   // rounds in burst (the number of rounds fired in the burst)
 		AmmoCostHook_Script(2, weapon, roundsCost); // roundsCost returns the new cost
 	}
+	if (roundsCost == 0) return burstRounds;        // cost is free, skip the rest of calculation
 
 	long cost = burstRounds * roundsCost; // amount of ammo required for this burst (multiplied by 1 or by the value returned from HOOK_AMMOCOST)
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
 
-	return (cost / roundsCost);           // divide back to get proper number of rounds for damage calculations
+	return max(1, (cost / roundsCost));   // divide back to get proper number of rounds for damage calculations (minimum is 1)
 }
 
 static void __declspec(naked) compute_spray_hack() {
@@ -263,8 +264,17 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 		mov  edx, edi;          // critter
 		mov  ecx, esi;          // base (calculated hit chance)
 		call HitChanceMod;
-		mov  esi, eax;
+		mov  esi, 999; // max
+		cmp  eax, esi;
+		cmovl esi, eax;
 		retn;
+	}
+}
+
+static void __declspec(naked) determine_to_hit_func_hook_min() {
+	__asm {
+		mov  esi, -99; // min
+		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -354,7 +364,7 @@ void __stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode) {
 	}
 }
 
-void __stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
+void __stdcall SetHitChanceMax(fo::GameObject* critter, int maximum, int mod) {
 	if ((DWORD)critter == -1) {
 		baseHitChance.maximum = maximum;
 		baseHitChance.mod = mod;
@@ -568,12 +578,15 @@ void Combat::init() {
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
 
+	// Add a lower limit of -99% to the calculated hit chance instead of only a debug message
+	SafeWrite8(0x42479D, -99); // was -100
+	HookCall(0x4247A5, determine_to_hit_func_hook_min);
+
 	// Disables secondary burst attacks for the critter
 	MakeCall(0x429E44, ai_pick_hit_mode_hack_noBurst, 1);
 
-	checkWeaponAmmoCost = (IniReader::GetConfigInt("Misc", "CheckWeaponAmmoCost", 0) != 0);
-	if (checkWeaponAmmoCost) {
-		MakeCall(0x4234B3, compute_spray_hack, 1);
+	MakeCall(0x4234B3, compute_spray_hack, 1); // proper calculation of the number of burst rounds
+	if (IniReader::GetConfigInt("Misc", "CheckWeaponAmmoCost", 1)) {
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
 		HookCall(0x429A37, ai_search_inven_weap_hook); // check if there is enough ammo to shoot
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func

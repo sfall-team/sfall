@@ -28,7 +28,6 @@ class ScriptShaders : public Module {
 public:
 	const char* name() { return "ScriptShaders"; }
 	void init();
-	//void exit() override;
 
 	static size_t Count();
 

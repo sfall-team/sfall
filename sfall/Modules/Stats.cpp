@@ -158,7 +158,7 @@ static long RecalcStat(int stat, int statsValue[]) {
 
 static void __stdcall StatRecalcDerived(fo::GameObject* critter) {
 	long* proto = CritterStats::GetProto(critter);
-	if (!proto && fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) == -1) return;
+	if (!proto && !fo::util::GetProto(critter->protoId, (fo::Proto**)&proto)) return;
 
 	int baseStats[7], levelStats[7];
 	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) {
@@ -188,10 +188,19 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 }
 
 void Stats::UpdateHPStat(fo::GameObject* critter) {
-	fo::Proto* proto;
-	if (fo::func::proto_ptr(critter->protoId, &proto) == -1) return;
+	if (fo::util::IsPartyMember(critter)) return;
 
-	if (!engineDerivedStats) {
+	if (engineDerivedStats) {
+		if (critter->critter.health > 0) {
+			long maxHP = fo::func::stat_level(critter, fo::Stat::STAT_max_hit_points);
+			if (critter->critter.health != maxHP) {
+				fo::func::debug_printf("\nWarning: %s (PID: %d, ID: %d) has an incorrect value of the max HP stat: %d, adjusted to %d.",
+				                       fo::func::critter_name(critter), critter->protoId, critter->id, critter->critter.health, maxHP);
+
+				critter->critter.health = maxHP;
+			}
+		}
+	} else {
 		auto getStatFunc = (derivedHPwBonus) ? fo::func::stat_level : fo::func::stat_get_base;
 
 		double sum = 0;
@@ -199,20 +208,15 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 			sum += (getStatFunc(critter, stat) + statFormulas[fo::Stat::STAT_max_hit_points].shift[stat]) * statFormulas[fo::Stat::STAT_max_hit_points].multi[stat];
 		}
 		long calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].base + (int)floor(sum);
-		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
-
-		if (proto->critter.base.health != calcStatValue) {
-			fo::func::debug_printf("\nWarning: %s (PID: %d, ID: %d) has an incorrect base value of the max HP stat: %d, adjusted to %d.",
-			                       fo::func::critter_name(critter), critter->protoId, critter->id, proto->critter.base.health, calcStatValue);
-
-			proto->critter.base.health = calcStatValue;
+		if (calcStatValue < statFormulas[fo::Stat::STAT_max_hit_points].min) {
+			calcStatValue = statFormulas[fo::Stat::STAT_max_hit_points].min;
 		}
-	}
 
-	// set the current HP to match the max HP stat for non-party member critters
-	// (prevent full healing for party members when entering random encounter maps)
-	if (!fo::util::IsPartyMember(critter) && critter->critter.health > 0) {
-		critter->critter.health = proto->critter.base.health + proto->critter.bonus.health;
+		fo::Proto* proto;
+		if (fo::util::GetProto(critter->protoId, &proto) && proto->critter.base.health != calcStatValue) {
+			proto->critter.base.health = calcStatValue;
+			critter->critter.health = calcStatValue + proto->critter.bonus.health;
+		}
 	}
 }
 
@@ -284,7 +288,7 @@ void Stats::init() {
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
-	auto xpTableList = IniReader::GetConfigList("Misc", "XPTable", "", 2048);
+	auto xpTableList = IniReader::GetConfigList("Misc", "XPTable", "");
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
 		HookCall(0x434AA7, GetNextLevelXPHook);
@@ -301,10 +305,10 @@ void Stats::init() {
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
-	auto statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
+	auto statsFile = IniReader::GetConfigString("Misc", "DerivedStats", "");
 	if (!statsFile.empty()) {
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
-		if (GetFileAttributes(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
+		if (GetFileAttributesA(statFile) != INVALID_FILE_ATTRIBUTES) { // check if file exists
 			derivedHPwBonus = (IniReader::GetInt("Main", "HPDependOnBonusStats", 0, statFile) != 0);
 			engineDerivedStats = false;
 

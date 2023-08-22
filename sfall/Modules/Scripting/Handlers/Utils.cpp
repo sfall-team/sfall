@@ -16,13 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Utils.h"
+
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\Utils.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Message.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-
-#include "Utils.h"
 
 namespace sfall
 {
@@ -42,7 +43,7 @@ static bool FalloutStringCompare(const char* str1, const char* str2, long codePa
 		if (c1 == c2) continue;
 
 		if (codePage == 866) {
-			// replace Russian 'x' to English (Fallout specific)
+			// replace Russian 'x' with English (Fallout specific)
 			if (c1 == 229) c1 -= 229 - 'x';
 			if (c2 == 229) c2 -= 229 - 'x';
 		}
@@ -103,7 +104,7 @@ void op_strlen(OpcodeContext& ctx) {
 void op_atoi(OpcodeContext& ctx) {
 	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
-		static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
+		static_cast<int>(StrToLong(str, 0))
 	);
 }
 
@@ -197,149 +198,112 @@ void mf_string_compare(OpcodeContext& ctx) {
 	}
 }
 
-// A safer version of sprintf for using in user scripts.
-static char* sprintf_lite(const char* format, const ScriptValue& value) {
-	int fmtlen = strlen(format);
-	int buflen = fmtlen + 1;
+void mf_string_find(OpcodeContext& ctx) {
+	const char* const haystack = ctx.arg(0).strValue();
+	int pos = 0;
+	if (ctx.numArgs() > 2) {
+		int len = strlen(haystack);
+		pos = ctx.arg(2).intValue();
+		if (pos >= len) {
+			ctx.setReturn(-1);
+			return;
+		} else if (pos < 0) {
+			pos += len;
+		}
+	}
+	const char* needle = strstr(haystack + pos, ctx.arg(1).strValue());
+	ctx.setReturn(
+		needle != nullptr ? (int)(needle - haystack) : -1
+	);
+}
 
-	for (int i = 0; i < fmtlen; i++) {
-		if (format[i] == '%') buflen++; // will possibly be escaped, need space for that
+// A safer version of sprintf for using in user scripts.
+static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
+	const char* format = ctx.arg(0).strValue();
+	int fmtLen = strlen(format);
+	if (fmtLen == 0) {
+		return format;
+	}
+	if (fmtLen > 1024) {
+		ctx.printOpcodeError("%s() - format string exceeds maximum length of 1024 characters.", opcodeName);
+		return "Error";
+	}
+	int newFmtLen = fmtLen;
+
+	for (int i = 0; i < fmtLen; i++) {
+		if (format[i] == '%') newFmtLen++; // will possibly be escaped, need space for that
 	}
 
 	// parse format to make it safe
-	char* newfmt = new char[buflen];
-	unsigned char mode = 0;
-	char specifier = 0;
-	bool hasDigits = false;
+	char* newFmt = new char[newFmtLen + 1];
+	bool conversion = false;
 	int j = 0;
+	int valIdx = 0;
+	char* outBuf = ScriptExtender::gTextBuffer;
+	long bufCount = ScriptExtender::TextBufferSize() - 1;
+	int numArgs = ctx.numArgs();
 
-	for (int i = 0; i < fmtlen; i++) {
+	for (int i = 0; i < fmtLen; i++) {
 		char c = format[i];
-		switch (mode) {
-		case 0: // prefix
+		if (!conversion) {
+			// Start conversion.
+			if (c == '%') conversion = true;
+		} else {
 			if (c == '%') {
-				mode = 1;
-			}
-			break;
-		case 1: // definition
-			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L') continue; // ignore sub-specifiers
-
-				if (c == 's' && !value.isString() || // don't allow to treat non-string values as string pointers
-					c == 'n') // don't allow "n" specifier
+				conversion = false; // escaped % sign, just skip
+			} else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+				// ignore size prefixes
+				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'w' || c == 'L' || c == 'I') continue;
+				// Type specifier, perform conversion.
+				if (++valIdx == numArgs) {
+					ctx.printOpcodeError("%s() - format string contains more conversions than passed arguments (%d): %s", opcodeName, numArgs - 1, format);
+				}
+				const auto& arg = ctx.arg(valIdx < numArgs ? valIdx : numArgs - 1);
+				if (c == 'S' || c == 'Z') {
+					c = 's'; // don't allow wide strings
+				}
+				if (c == 's' && !arg.isString() || // don't allow treating non-string values as string pointers
+				    c == 'n') // don't allow "n" specifier
 				{
 					c = 'd';
 				}
-				specifier = c;
-				mode = 2;
-			} else if (c == '%') {
-				mode = 0;
-				hasDigits = false;
-			} else if (c >= '0' && c <= '9') {
-				hasDigits = true;
+				newFmt[j++] = c;
+				newFmt[j] = '\0';
+				int partLen = arg.isFloat()
+				            ? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
+				            : _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
+				outBuf += partLen;
+				bufCount -= partLen;
+				conversion = false;
+				j = 0;
+				if (bufCount <= 0) {
+					break;
+				}
+				continue;
 			}
-			break;
-		case 2: // postfix
-			if (c == '%') { // don't allow more than one specifier
-				newfmt[j++] = '%'; // escape it
-				if (format[i + 1] == '%') i++; // skip already escaped
-			}
-			break;
 		}
-		newfmt[j++] = c;
+		newFmt[j++] = c;
 	}
-	newfmt[j] = '\0';
-
-	// calculate required length
-	if (hasDigits) {
-		buflen = 254;
-	} else if (specifier == 'c') {
-		buflen = j;
-	} else if (specifier == 's') {
-		buflen = j + strlen(value.strValue());
-	} else {
-		buflen = j + 30; // numbers
+	// Copy the remainder of the string.
+	if (bufCount > 0) {
+		newFmt[j] = '\0';
+		strcpy_s(outBuf, bufCount, newFmt);
 	}
 
-	const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
-	if (buflen > bufMaxLen - 1) buflen = bufMaxLen - 1;
-	ScriptExtender::gTextBuffer[bufMaxLen] = '\0';
-
-	if (value.isFloat()) {
-		_snprintf(ScriptExtender::gTextBuffer, buflen, newfmt, value.floatValue());
-	} else {
-		_snprintf(ScriptExtender::gTextBuffer, buflen, newfmt, value.rawValue());
-	}
-	delete[] newfmt;
+	delete[] newFmt;
 	return ScriptExtender::gTextBuffer;
 }
 
 void op_sprintf(OpcodeContext& ctx) {
 	ctx.setReturn(
-		sprintf_lite(ctx.arg(0).strValue(), ctx.arg(1))
+		sprintf_lite(ctx, ctx.getOpcodeName())
 	);
 }
 
 void mf_string_format(OpcodeContext& ctx) {
-	const char* format = ctx.arg(0).strValue();
-
-	int fmtLen = strlen(format);
-	if (fmtLen == 0) {
-		ctx.setReturn(format);
-		return;
-	}
-	if (fmtLen > 1024) {
-		ctx.printOpcodeError("%s() - the format string exceeds maximum length of 1024 characters.", ctx.getMetaruleName());
-		ctx.setReturn("Error");
-	} else {
-		char* newFmt = new char[fmtLen + 1];
-		newFmt[fmtLen] = '\0';
-		// parse format to make it safe
-		int i = 0, arg = 0, totalArg = ctx.numArgs(); // total passed args
-		do {
-			char c = format[i];
-			if (c == '%') {
-				char cf = format[i + 1];
-				if (cf != '%') {
-					if (arg >= 0) {
-						arg++;
-						if (arg == totalArg) arg = -1; // format '%' prefixes in the format string exceed the number of passed value args
-					}
-					if (arg < 0) { // have % more than passed value args
-						c = '^';   // delete %
-					}
-					// check string is valid or replace unsupported format
-					else if ((cf == 's' && (arg > 0 && !ctx.arg(arg).isString())) || (cf != 's' && cf != 'd')) {
-						newFmt[i++] = c;
-						c = 'd'; // replace with %d
-					}
-				} else {
-					newFmt[i++] = cf; // skip %%
-				}
-			}
-			newFmt[i] = c;
-		} while (++i < fmtLen);
-
-		const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
-
-		switch (totalArg) {
-		case 2 :
-			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue());
-			break;
-		case 3 :
-			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
-			break;
-		case 4 :
-			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue());
-			break;
-		case 5 :
-			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).rawValue());
-		}
-		ScriptExtender::gTextBuffer[bufMaxLen] = '\0'; // just in case
-
-		delete[] newFmt;
-		ctx.setReturn(ScriptExtender::gTextBuffer);
-	}
+	ctx.setReturn(
+		sprintf_lite(ctx, ctx.getMetaruleName())
+	);
 }
 
 void op_message_str_game(OpcodeContext& ctx) {

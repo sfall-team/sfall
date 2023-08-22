@@ -23,7 +23,7 @@ namespace sfall
 namespace script
 {
 
-ScriptValue::ScriptValue( DataType type, unsigned long value )
+ScriptValue::ScriptValue(DataType type, unsigned long value)
 {
 	_val.dw = value;
 	_type = type;
@@ -133,6 +133,10 @@ fo::GameObject* ScriptValue::object() const {
 
 unsigned long ScriptValue::rawValue() const {
 	return _val.dw;
+}
+
+long ScriptValue::intValue() const {
+	return _val.i;
 }
 
 const char* ScriptValue::strValue() const {

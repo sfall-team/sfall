@@ -36,6 +36,12 @@ static void __declspec(naked) ToHitHook() {
 	__asm {
 		cmp  cRet, 1;
 		cmovge ebx, rets[0];
+		mov  eax, 999; // max
+		cmp  ebx, eax;
+		cmovg ebx, eax;
+		mov  eax, -99; // min
+		cmp  ebx, eax;
+		cmovl ebx, eax;
 		call EndHook;
 		mov  eax, ebx;
 		retn 8;
@@ -350,7 +356,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD
 
 	RunHookScript(HOOK_AMMOCOST);
 
-	if (cRet > 0) rounds = rets[0]; // override rounds
+	if (cRet > 0 && (long)rets[0] >= 0) rounds = rets[0]; // override rounds
 
 failed:
 	EndHook();
@@ -670,13 +676,13 @@ static void __declspec(naked) CanUseWeaponHook() {
 		retn;
 	}
 }
-
+/*
 bool CanUseWeaponHook_Invoke(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	return (HookScripts::HookHasScript(HOOK_CANUSEWEAPON))
 	       ? CanUseWeaponHook_Script(result, source, weapon, hitMode)
 	       : result;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 
 void Inject_ToHitHook() {
@@ -721,7 +727,7 @@ void Inject_CombatDamageHook() {
 //		0x423DE7, // compute_explosion_on_extras()
 		0x423E69, // compute_explosion_on_extras()
 		0x424220, // attack_crit_failure()
-		0x4242FB, // attack_crit_failure()
+		0x4242FB  // attack_crit_failure()
 	});
 	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - fix for the attacker
 }

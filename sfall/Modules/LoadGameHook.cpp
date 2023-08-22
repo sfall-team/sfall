@@ -39,6 +39,8 @@
 
 #include "LoadGameHook.h"
 
+#include <chrono>
+
 namespace sfall
 {
 
@@ -72,9 +74,22 @@ static DWORD saveInCombatFix;
 static bool gameLoaded = false;
 static bool onLoadingMap = false;
 
+static std::chrono::time_point<std::chrono::steady_clock> timeBeforeGameInit;
+static std::chrono::time_point<std::chrono::steady_clock> timeBeforeGameStart;
+
 char LoadGameHook::mapLoadingName[16]; // current loading/loaded map name
 
 long LoadGameHook::interfaceWID = -1;
+
+void saveTimeIntervalStart(std::chrono::time_point<std::chrono::steady_clock>& startTime) {
+	startTime = std::chrono::high_resolution_clock::now();
+}
+
+void logTimeInterval(const char* action, const std::chrono::time_point<std::chrono::steady_clock>& startTime) {
+	auto stopTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
+	dlog_f("%s in: %d us\n", DL_MAIN, action, duration.count());
+}
 
 bool LoadGameHook::IsMapLoading() {
 	return onLoadingMap;
@@ -226,6 +241,7 @@ end:
 
 // Called right before savegame slot is being loaded
 static bool LoadGame_Before() {
+	saveTimeIntervalStart(timeBeforeGameStart);
 	onBeforeGameStart.invoke();
 
 	char buf[MAX_PATH];
@@ -288,6 +304,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 static void __stdcall LoadGame_After() {
 	onAfterGameStarted.invoke();
 	gameLoaded = true;
+	logTimeInterval("Game loaded", timeBeforeGameStart);
 }
 
 static void __declspec(naked) LoadGame_hook() {
@@ -320,14 +337,15 @@ static void __declspec(naked) EndLoadHook() {
 }
 
 static void __stdcall NewGame_Before() {
+	saveTimeIntervalStart(timeBeforeGameStart);
 	onBeforeGameStart.invoke();
 }
 
 static void __stdcall NewGame_After() {
-	dlogr("New Game started.", DL_MAIN);
 	onAfterNewGame.invoke();
 	onAfterGameStarted.invoke();
 	gameLoaded = true;
+	logTimeInterval("New Game started", timeBeforeGameStart);
 }
 
 static void __declspec(naked) main_load_new_hook() {
@@ -341,6 +359,7 @@ static void __declspec(naked) main_load_new_hook() {
 }
 
 static void __stdcall GameInitialization() {
+	saveTimeIntervalStart(timeBeforeGameInit);
 	onBeforeGameInit.invoke();
 }
 
@@ -356,6 +375,8 @@ static void __stdcall GameInitialized(int initResult) {
 	}
 	#endif
 	onAfterGameInit.invoke();
+
+	logTimeInterval("Game initalized", timeBeforeGameInit);
 }
 
 static void __stdcall GameExit() {

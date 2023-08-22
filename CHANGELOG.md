@@ -1,5 +1,38 @@
 # Changelog
 
+## 4.4
+* Implemented a `mods_order.txt` to improve and simplify mod ordering and add support for mod managers. This replaces previous **.dat** file autoloading. Please refer to `ddraw.ini` for details
+* Implemented a **custom config file parser**, which greatly improves the performance of sfall initialization and reading files from scripts
+* **Item highlighting and NPC combat control mods** are now packed into `sfall.dat` resource file, and `sfall-mods.ini` is moved to `<GameRoot>\mods\`
+* Fixed a bug when updating the maximum HP stat of critters on the map when loaded for the first time
+* Fixed `set_pc_base/extra_stat` and `set_critter_base/extra_stat` script functions not updating derived stats when setting SPECIAL stats
+* Fixed `wield_obj_critter` script function, which can now put non-weapon/armor items in the critter's hand
+* Fixed `get_tile_fid` script function to work on elevations 1 and 2 instead of always elevation 0
+* Fixed `create_spatial` script function not setting the script index number upon object creation
+* Fixed incorrect behavior of the subtraction operator involving floats and negative integers
+* Fixed the backward compatibility of `get_npc_level` script function
+* Fixed a crash bug in `display_msg` and `debug_msg` script functions when printing a string longer than 260 characters
+* Fixed a crash bug in `AMMOCOST` hook when returning ammo cost of 0 for burst attacks
+* Fixed various issues in script compiler and decompiler (`compile.exe` and `int2ssl.exe` in the **modders pack**)
+* Improved **item highlighting mod** to handle the line-of-sight check properly when the player is moving while holding down the key
+* Improved and tweaked the behavior of **ComputeSpray_\*** options
+* Expanded `atoi` script function to support parsing binary strings
+* Expanded `string_format` script function to support more arguments and conversion types
+* Changed **CheckWeaponAmmoCost** to be enabled by default and affect only hook type 1 of `HOOK_AMMOCOST` hook script
+* Changed how `HOOK_DESCRIPTIONOBJ` hook script handles its return value. Now you can return normal strings directly in the hook
+* Re-added the check for valid objects to `get/set_object_data` script functions (only disabled in combat for accessing the combat data)
+* Removed the debug message about a missing critter art file from displaying in the game (added in 4.2.2)
+* Added options to override the names of sound files used by the engine
+* Added an option to **item highlighting mod** to highlight critters with the same rules as in combat, and changed **CheckLOS** to be enabled by default
+* Added a debug option to duplicate logs to a dedicated console window alongside the game window
+* Added a lower limit of -99% and an upper limit of 999% to the hit chance value to prevent a display issue
+* Added more options for tweaking some engine perks to the **perks ini file**
+* Added a new argument and a new return value to `HOOK_STEAL` hook script
+* Added a burst control example script and a resting encounters mod to the example mods in the **modders pack**
+* Updated the compute damage example script in the **modders pack**. Now it should be easier to write one's own damage formula
+* Increased the setting range of the combat speed slider in the preferences screen
+* New script functions: `set_spray_settings`, `get/set_combat_free_move`, `get_ini_config`, `string_find`
+
 ## 4.3.8
 * Fixed a bug introduced in 4.2.8 that broke the arguments of `HOOK_RESTTIMER` hook script
 * Fixed a bug introduced in 4.3.1 that caused the game to display incorrect names for corpses in some cases
@@ -44,7 +77,7 @@
 * HRP: Added support for **SPLASH_SCRN_TIME** option in `f2_res.ini`
 * Fixed the handling of obsolete script functions that are still recognized by script compiler and decompiler
 * Fixed **NPC combat control mod** not redrawing the interface bar properly when it's the player's turn again
-* Improved the fix for updating the HP stats of critters on the map when loaded for the first time
+* Improved the fix for updating the maximum HP stat of critters on the map when loaded for the first time
 * Removed **DivisionOperatorFix** from `ddraw.ini` because there is little reason to turn it off
 * Removed **ComputeSprayMod** from `ddraw.ini`. Now **ComputeSpray_\*** options no longer require a master switch
 * Added a fix for a crash when the player equips a weapon overloaded with ammo
@@ -129,7 +162,7 @@
 * Added missing sounds for the buttons on the world map interface (similar to Fallout 1 behavior)
 * Added 5 `metarule3` macros for controlling the save slot with scripts to `sfall.h` in the **modders pack**
 * New script functions: `set_scr_name`, `obj_is_openable`
-* Updated **NPC armor appearance mod** to prevent NPCs from equipping **unusable** weapons
+* Updated **NPC armor appearance mod** in the **modders pack** to prevent NPCs from equipping **unusable** weapons
 * Included Brazilian Portuguese and Polish translation (from Felipefpl and Jaiden)
 
 ## 4.3.0.2
@@ -212,7 +245,7 @@
 * Added an option about the behavior of maximum HP calculation to the **stats ini file**
 * Added 3 new attribute type values to `get_window_attribute` script functions
 * Added additional universal opcodes `sfall_func7` and `sfall_func8` (`compile.exe` and `int2ssl.exe` in the **modders pack** are also updated)
-* Added a new mode to **NPC combat control mod** to let you order party members to attack specified targets instead of controlling them directly
+* Added a new mode to **NPC combat control mod** that lets you use the command cursor to specify targets for party members to attack in combat
 * Added an auto-close containers mod to the example mods in the **modders pack**
 * Added `snd2acm_fix.exe` (snd2acm with a fix wrapper) to the **modders pack** for writing the correct sample rate and channel info from **WAV** files to **ACM** format
 * New script functions: `interface_overlay`
@@ -289,7 +322,7 @@
 * Improved the pathfinding in the engine function when a multihex object is in the line of fire
 * Improved the functionality of `display_stats` script function to also update player's stats on the character screen
 * Improved the fix for incorrect positioning after exiting small/medium locations
-* Removed **AutoSearchPath** from `ddraw.ini`. Now the folder path for autoloading custom files is the fixed **\<GameRoot\>\mods\\**
+* Removed **AutoSearchPath** from `ddraw.ini`. Now the directory for autoloading custom files is the fixed `<GameRoot>\mods\`
 * Added a fix to prevent critters from overlapping other object tiles when moving to the retargeted tile
 * Added a fix to prevent showing an empty perk selection window (crash when clicking on the empty perk list)
 * Added a fix for NPC stuck in an animation loop in combat when trying to move close to a multihex critter
@@ -355,7 +388,7 @@
 * Added a fix for the barter button on the dialog window not animating until after leaving the barter screen
 * Added a fix for the division operator treating negative integers as unsigned
 * Added a fix for trying to loot corpses with the **'NoSteal'** flag set
-* Added an option to allow using the special `'^'` character in dialog msg files to specify the alternative text that will be displayed in the dialogue based on the player's gender
+* Added an option to allow using the caret character `'^'` in dialog msg files to specify alternative text in dialogue based on the player's gender
 * Added options to draw a dotted line while traveling on the world map (similar to Fallout 1, from Ghosthack)
 * Added an option to display terrain types when hovering the cursor over the player's marker on the world map (from Ghosthack)
 * Added a flashing icon to the Horrigan encounter and scripted force encounters by default
@@ -372,7 +405,7 @@
 * Fixed and improved the functionality of `substr` script function
 * Restored and fixed **RemoveWindowRounding** option that was removed in 4.1.2
 * Improved the functionality of `inventory_redraw` script function
-* Changed the way **IniConfigFolder** works. Now the game will search for the ini files relative to the specified directory
+* Changed the way **IniConfigFolder** works. Now the game will search for ini files relative to the specified directory
 * Changed the debug message about a missing critter art file to also be displayed in the game
 * Code refactoring for various script functions
 * Added a fix to prevent the player from moving when clicking on a script-created window and prevent the mouse cursor from being toggled when hovering over a **'hidden'** window
@@ -488,7 +521,7 @@
 * Added a fix for knocked down critters not playing stand up animation when the combat ends
 * Added a fix for dead NPCs reloading their weapons when the combat ends
 * Added an option to use the expanded world map interface (requires hi-res patch v4.1.8)
-* Added an option to allow setting a folder path for the game to automatically search and load custom **.dat** files
+* Added an option to allow setting a directory for the game to automatically search and load custom **.dat** files
 * Added an option to expand the number of action points displayed on the interface bar
 * Added an option to change the base value of the duration of the knockout effect
 * Added a check for the `DAM_KNOCKED_OUT` flag to `wield_obj_critter/inven_unwield` script functions
@@ -511,7 +544,7 @@
 * Changed `create_message_window` script function to be available when other game interfaces are opened
 * Removed **DialogOptions9Lines** from `ddraw.ini` because there is little reason to turn it off
 * Removed **LoadProtoMaxLimit** from `ddraw.ini`. Now the proto limit is automatically increased when needed
-* Added a fix for party member's stats being reset to the base level when their base protos with the read-only attribute set are placed in the **proto\critters\\** directory
+* Added a fix for party member's stats being reset to the base level when their base protos with the read-only attribute set are placed in the `proto\critters\` directory
 * Added a fix for NPC stuck in a loop of picking up items in combat and the incorrect message being displayed when the NPC cannot pick up an item due to not enough space in the inventory
 * Added a fix to allow fleeing NPC to use drugs
 * Added a fix for AI not checking minimum HP properly for using stimpaks
@@ -531,7 +564,7 @@
 * Fixed fake perks not stacking properly
 * Fixed the position of the 32-bit talking heads when the game resolution is higher than 640x480
 * Fixed a bug in **item highlighting** that caused items to be kept highlighted when picking them up while holding the highlight key
-* Changed `hero_select_win` function to require an `AppHeroWin.frm` file (included in the **modders pack**) in the **art\intrface\\** directory
+* Changed `hero_select_win` function to require an `AppHeroWin.frm` file (included in the **modders pack**) in the `art\intrface\` directory
 * Added a fix for unexplored areas being revealed on the automap when entering a map
 * Added a fix for the overflow of the automap tables when the number of maps in `maps.txt` is more than 160
 * Added a fix for a duplicate `obj_dude` script being created when loading a saved game
@@ -767,8 +800,8 @@ Original engine bug fixes and various features based on the work by Mr.Stalin:
 * The build environment is now **Visual Studio 2015**, and Win XP SP2 and Win 2000 are no longer supported
 * Extensive code reorganizing/rewrite was made in the effort to tidy up sfall code base accumulated over the years and make it easier to read, understand, and extend. Main code was split into separate **'modules'**. Code for interacting with Fallout 2 engine was moved and expanded to allow for engine manipulations without using too much Assembly code
 * Fixed an issue with the game being rendered before the **hero appearance mod** is loaded
-* **Item highlighting mod** was moved from sfall into a separate script (`gl_highlighting.int`) and extended with new options
-* **NPC combat control mod** was moved from sfall into a separate script (`gl_partycontrol.int`)
+* **Item highlighting mod** is moved from sfall into a separate script (`gl_highlighting.int`) and extended with new options
+* **NPC combat control mod** is moved from sfall into a separate script (`gl_partycontrol.int`)
 * Related options of **item highlighting** and **NPC combat control** mods were moved from `ddraw.ini` into a separate `sfall-mods.ini`
 * A new version of **NPC armor appearance mod** was implemented as a separate script (`gl_npcarmor.int` in the **modders pack**). It can be configured and made compatible with any Fallout 2 mod
 * Improved compatibility between **hero appearance**, **NPC combat control**, and **NPC armor appearance** mods

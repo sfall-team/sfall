@@ -27,7 +27,6 @@ class Unarmed : public Module {
 public:
 	const char* name() { return "Unarmed"; }
 	void init();
-	//void exit() override;
 
 	static long GetHitAPCost(fo::AttackType hit);
 	static long GetDamage(fo::AttackType hit, long &minOut, long &maxOut);

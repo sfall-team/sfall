@@ -29,7 +29,7 @@ namespace sfall
 namespace script
 {
 
-#define ARRAY_MAX_STRING        (255)  // maximum length of string to be stored as array key or value
+#define ARRAY_MAX_STRING       (1024)  // maximum length of string to be stored as array key or value (including null terminator)
 #define ARRAY_MAX_SIZE       (100000)  // maximum number of array elements,
                                        // so total maximum memory/disk footprint of one array is: 16 + (ARRAY_MAX_STRING + 8) * ARRAY_MAX_SIZE
 
@@ -68,6 +68,7 @@ public:
 		setByType(el.intVal, el.type);
 	}
 
+	void set(const ScriptValue& val);
 	void set(long val);
 	void set(float val);
 	void set(const char* val, int _len = -1);
@@ -202,11 +203,8 @@ ScriptValue GetArrayKey(DWORD id, int index);
 // get array element by index (list) or key (map)
 ScriptValue GetArray(DWORD id, const ScriptValue& key);
 
-// set array element by index or key (with checking the existence of the array ID)
-void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
-
 // set array element by index or key
-void setArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // number of elements in list or pairs in map
 int LenArray(DWORD id);

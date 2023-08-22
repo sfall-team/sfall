@@ -23,6 +23,7 @@
 #include "Anims.h"
 #include "Combat.h"
 #include "Core.h"
+#include "IniFiles.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "Math.h"
@@ -34,6 +35,10 @@
 #include "Worldmap.h"
 
 #include "Metarule.h"
+
+#ifndef NDEBUG
+#include <sstream>
+#endif
 
 namespace sfall
 {
@@ -60,7 +65,7 @@ static MetaruleTableType metaruleTable;
 	{ name, handler, minArgs, maxArgs, error, {arg1, arg2, ...} }
 		- name - name of function that will be used in scripts,
 		- handler - pointer to handler function (see examples below),
-		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 8)
 		- returned error value for argument validation,
 		- arg1, arg2, ... - argument types for automatic validation
 */
@@ -83,9 +88,11 @@ static const SfallMetarule metarules[] = {
 	{"exec_map_update_scripts", mf_exec_map_update_scripts, 0, 0},
 	{"floor2",                  mf_floor2,                  1, 1,  0, {ARG_NUMBER}},
 	{"get_can_rest_on_map",     mf_get_rest_on_map,         2, 2, -1, {ARG_INT, ARG_INT}},
+	{"get_combat_free_move",    mf_get_combat_free_move,    0, 0},
 	{"get_current_inven_size",  mf_get_current_inven_size,  1, 1,  0, {ARG_OBJECT}},
 	{"get_cursor_mode",         mf_get_cursor_mode,         0, 0},
 	{"get_flags",               mf_get_flags,               1, 1,  0, {ARG_OBJECT}},
+	{"get_ini_config",          mf_get_ini_config,          2, 2,  0, {ARG_STRING, ARG_INT}},
 	{"get_ini_section",         mf_get_ini_section,         2, 2, -1, {ARG_STRING, ARG_STRING}},
 	{"get_ini_sections",        mf_get_ini_sections,        1, 1, -1, {ARG_STRING}},
 	{"get_inven_ap_cost",       mf_get_inven_ap_cost,       0, 0},
@@ -125,8 +132,10 @@ static const SfallMetarule metarules[] = {
 	{"outlined_object",         mf_outlined_object,         0, 0},
 	{"real_dude_obj",           mf_real_dude_obj,           0, 0},
 	{"remove_timer_event",      mf_remove_timer_event,      0, 1, -1, {ARG_INT}},
+	{"set_spray_settings",      mf_set_spray_settings,      4, 4, -1, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"set_can_rest_on_map",     mf_set_rest_on_map,         3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_car_intface_art",     mf_set_car_intface_art,     1, 1, -1, {ARG_INT}},
+	{"set_combat_free_move",    mf_set_combat_free_move,    1, 1, -1, {ARG_INT}},
 	{"set_cursor_mode",         mf_set_cursor_mode,         1, 1, -1, {ARG_INT}},
 	{"set_drugs_data",          mf_set_drugs_data,          3, 3, -1, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_dude_obj",            mf_set_dude_obj,            1, 1, -1, {ARG_INT}},
@@ -151,7 +160,8 @@ static const SfallMetarule metarules[] = {
 	{"show_window",             mf_show_window,             0, 1, -1, {ARG_STRING}},
 	{"spatial_radius",          mf_spatial_radius,          1, 1,  0, {ARG_OBJECT}},
 	{"string_compare",          mf_string_compare,          2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
-	{"string_format",           mf_string_format,           2, 5,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
+	{"string_find",             mf_string_find,             2, 3, -1, {ARG_STRING, ARG_STRING, ARG_INT}},
+	{"string_format",           mf_string_format,           2, 8,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
 	{"string_to_case",          mf_string_to_case,          2, 2, -1, {ARG_STRING, ARG_INT}},
 	{"tile_by_position",        mf_tile_by_position,        2, 2, -1, {ARG_INT, ARG_INT}},
 	{"tile_refresh_display",    mf_tile_refresh_display,    0, 0},
