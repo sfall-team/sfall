@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.4.0.1
+* Fixed a crash on startup on Windows XP/2003
+
 ## 4.4
 * Implemented a `mods_order.txt` to improve and simplify mod ordering and add support for mod managers. This replaces previous **.dat** file autoloading. Please refer to `ddraw.ini` for details
 * Implemented a **custom config file parser**, which greatly improves the performance of sfall initialization and reading files from scripts

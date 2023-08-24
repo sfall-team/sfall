@@ -90,6 +90,7 @@
 #include <chrono>
 
 ddrawDll ddraw;
+static void LoadOriginalDll(DWORD fdwReason);
 
 namespace sfall
 {
@@ -205,6 +206,9 @@ static int CheckEXE() {
 
 static HMODULE SfallInit() {
 	char filepath[MAX_PATH];
+
+	LoadOriginalDll(DLL_PROCESS_ATTACH);
+
 	GetModuleFileName(0, filepath, MAX_PATH);
 
 	auto initStart = std::chrono::high_resolution_clock::now();
@@ -304,7 +308,7 @@ defaultIni:
 
 }
 
-static bool LoadOriginalDll(DWORD fdwReason) {
+static void LoadOriginalDll(DWORD fdwReason) {
 	switch (fdwReason) {
 		case DLL_PROCESS_ATTACH:
 			char path[MAX_PATH];
@@ -335,20 +339,21 @@ static bool LoadOriginalDll(DWORD fdwReason) {
 				ddraw.ReleaseDDThreadLock          = GetProcAddress(ddraw.dll, "ReleaseDDThreadLock");
 				ddraw.SetAppCompatData             = GetProcAddress(ddraw.dll, "SetAppCompatData");
 			}
-			return true;
+			break;
 		case DLL_PROCESS_DETACH:
 			if (ddraw.dll) FreeLibrary(ddraw.dll);
 			break;
 	}
-	return false;
 }
 
 bool __stdcall DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved) {
-	if (LoadOriginalDll(fdwReason)) {
+	if (fdwReason == DLL_PROCESS_ATTACH) {
 		if (sfall::CheckEXE()) {
 			ddraw.sfall = hinstDLL;
 			sfall::MakeCall(0x4DE8DE, sfall::SfallInit); // LoadDirectX_
 		}
+	} else {
+		LoadOriginalDll(fdwReason);
 	}
 	return true;
 }
