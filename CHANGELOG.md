@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.8.40.1
+* Improved compatibility with older Windows 2000 (**pre-SP4**)
+
 ## 3.8.40
 * Implemented a `mods_order.txt` to improve and simplify mod ordering and add support for mod managers. This replaces previous **.dat** file autoloading. Please refer to `ddraw.ini` for details
 * Implemented a **custom config file parser**, which greatly improves the performance of sfall initialization and reading files from scripts
