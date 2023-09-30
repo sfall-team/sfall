@@ -247,7 +247,7 @@ template { display: none; }
 html { font-size: 0.875rem !important; scroll-behavior: smooth; }
 @media (min-width: 31.25rem) { html { font-size: 1rem !important; } }
 
-body { font-family: system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif; font-size: inherit; line-height: 1.4; color: #5c5962; background-color: #fff; overflow-wrap: break-word; }
+body { font-family: system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif, "Segoe UI Emoji"; font-size: inherit; line-height: 1.4; color: #5c5962; background-color: #fff; overflow-wrap: break-word; }
 
 ol, ul, dl, pre, address, blockquote, table, div, hr, form, fieldset, noscript .table-wrapper { margin-top: 0; }
 

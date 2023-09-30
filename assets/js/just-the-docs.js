@@ -29,10 +29,7 @@ function initNav() {
     }
     if (target) {
       e.preventDefault();
-      const active = target.parentNode.classList.toggle('active');
-      const passive = target.parentNode.classList.toggle('passive');
-      if (active && passive) target.parentNode.classList.toggle('passive');
-      target.ariaPressed = active;
+      target.ariaPressed = target.parentNode.classList.toggle('active');
     }
   });
 
@@ -62,7 +59,9 @@ function initNav() {
 // The page-specific stylesheet is assumed to have index 1 in the list of stylesheets.
 
 function disableHeadStyleSheet() {
-  document.styleSheets[1].disabled = true;
+  if (document.styleSheets[1]) {
+    document.styleSheets[1].disabled = true;
+  }
 }
 // Site search
 
@@ -472,13 +471,13 @@ function scrollNav() {
 }
 
 // Find the nav-list-link that refers to the current page
-// then make it and all enclosing nav-list-item elements active,
-// and make all other folded collections passive
+// then make it and all enclosing nav-list-item elements active.
 
 function activateNav() {
   var target = navLink();
   if (target) {
     target.classList.toggle('active', true);
+    target.removeAttribute('href');
   }
   while (target) {
     while (target && !(target.classList && target.classList.contains('nav-list-item'))) {
@@ -487,17 +486,6 @@ function activateNav() {
     if (target) {
       target.classList.toggle('active', true);
       target = target.parentNode;
-    }
-  }
-  const elements = document.getElementsByClassName("nav-category-list");
-  for (const element of elements) {
-    const item = element.children[0];
-    const active = item.classList.toggle('active');
-    if (active) {
-      item.classList.toggle('active', false);
-      item.classList.toggle('passive', true);
-    } else {
-      item.classList.toggle('active', true);
     }
   }
 }
