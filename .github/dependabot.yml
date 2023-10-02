@@ -7,6 +7,6 @@ updates:
   directory: "/"
   schedule:
    interval: "monthly"
-  target-branch: "develop"
+  # target-branch: "develop"
   labels:
   - "dependencies"
