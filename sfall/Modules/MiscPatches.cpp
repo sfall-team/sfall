@@ -500,7 +500,7 @@ static void __declspec(naked) map_check_state_hook_redraw() {
 }
 
 static void AdditionalWeaponAnimsPatch() {
-	if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 1)) {
 		dlogr("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
 		const DWORD weaponAnimAddr[] = {
@@ -508,7 +508,7 @@ static void AdditionalWeaponAnimsPatch() {
 			0x4194CC            // art_get_name_
 		};
 		HookCalls(WeaponAnimHook, weaponAnimAddr);
-	}
+	//}
 }
 
 static void SkilldexImagesPatch() {
