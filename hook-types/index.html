@@ -96,7 +96,7 @@ int     ret4 - The amount of knockback to the target
               -1 - combat ends abruptly (by script or by pressing Enter during PC turn)
               -2 - combat ends normally (hook always runs at the end of combat)
 Critter arg1 - critter doing the turn
-bool    arg2 - 1 at the start/end of the player's turn after loading a game saved in combat mode, 0 otherwise
+int     arg2 - 1 at the start/end of the player's turn after loading a game saved in combat mode, 0 otherwise
 
 int     ret0 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
 </code></pre></div></div> <h2 id="deathanim1"> <a href="#deathanim1" class="anchor-heading" aria-labelledby="deathanim1"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> DeathAnim1 </h2> <p><code class="language-plaintext highlighter-rouge">HOOK_DEATHANIM1</code> (hs_deathanim1.int)</p> <p>Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees.</p> <p>Does not run for critters in the knockdown/out state.</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>int     arg0 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
