@@ -120,7 +120,7 @@ DWORD __stdcall KeyDown(DWORD key) {
 	if ((key & 0x80000000) > 0) { // special flag to check by VK code directly
 		return GetAsyncKeyState(key & 0xFFFF) & 0x8000;
 	}
-	key = key & 0xFFFF;
+	key &= 0xFFFF;
 	// combined use of DINPUT states + confirmation from GetAsyncKeyState()
 	if (key < MAX_KEYS) {
 		if (keysDown[key]) { // confirm pressed state

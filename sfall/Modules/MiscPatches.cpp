@@ -477,14 +477,14 @@ static void __declspec(naked) text_object_create_hack() {
 }
 
 static void AdditionalWeaponAnimsPatch() {
-	if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
+	//if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 1)) {
 		dlogr("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
 		HookCalls(WeaponAnimHook, {
 			0x451648, 0x451671, // gsnd_build_character_sfx_name_
 			0x4194CC            // art_get_name_
 		});
-	}
+	//}
 }
 
 static void SkilldexImagesPatch() {
