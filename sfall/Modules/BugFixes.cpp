@@ -1888,6 +1888,17 @@ static void __declspec(naked) ai_best_weapon_hook() {
 	}
 }
 
+static void __declspec(naked) ai_search_inven_armor_hook() {
+	__asm {
+		call fo::funcoffs::item_ar_dt_;
+		cmp  ebx, DMG_electrical;
+		jne  skip;
+		inc  ebx; // skip DMG_emp later
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) wmSetupRandomEncounter_hook() {
 	__asm {
 		push eax;                  // text 2
@@ -3671,6 +3682,9 @@ void BugFixes::init() {
 		// Corrects the weapon score multiplier for having perks to 2x (was 5x)
 		SafeWriteBatch<BYTE>(0x15, {0x42955E, 0x4296E7}); // lea eax, [edx*4] > lea eax, [edx]
 	}
+
+	// Change the calculation of the armor score to exclude the EMP stats (not strictly a bug fix)
+	HookCalls(ai_search_inven_armor_hook, {0x429ACC, 0x429B17});
 
 	// Fix for the encounter description being displayed in two lines instead of one
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
