@@ -3715,6 +3715,10 @@ void BugFixes::init() {
 	if (IniReader::GetConfigInt("Misc", "StartGDialogFix", 0)) {
 		dlogr("Applying start_gdialog argument fix.", DL_FIX);
 		MakeCall(0x456F08, op_start_gdialog_hack);
+	} else {
+		// Fix crash when calling start_gdialog outside of the talk_p_proc procedure for talking heads
+		__int64 data = 0x900C24448B; // mov eax, [esp + 0x3C - 0x30] (fix dialog_target)
+		SafeWriteBytes(0x456F08, (BYTE*)&data, 5);
 	}
 
 	// Fix for Heave Ho! perk increasing Strength stat above 10 when determining the maximum range of thrown weapons
