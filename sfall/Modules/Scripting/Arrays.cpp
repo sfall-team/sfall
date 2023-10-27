@@ -201,6 +201,7 @@ bool LoadArrayElement(sArrayElement* el, HANDLE h)
 {
 	DWORD unused;
 	ReadFile(h, &el->type, 4, &unused, 0);
+	el->type = (DataType)((DWORD)el->type & 0xFF); // fix for saved arrays from 4.4
 	if (el->type == DATATYPE_STR) {
 		ReadFile(h, &el->len, 4, &unused, 0);
 		if (el->len > 0) {
