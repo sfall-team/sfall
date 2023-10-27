@@ -25,7 +25,7 @@ namespace sfall
 namespace script
 {
 
-enum class DataType : unsigned short {
+enum class DataType : unsigned long {
 	NONE  = 0,
 	INT   = 1,
 	FLOAT = 2,
