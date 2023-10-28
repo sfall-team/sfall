@@ -49,6 +49,22 @@ static void __declspec(naked) CharacterInputWinAddHook() {
 	}
 }
 
+// Implementation from HRP by Mash
+static void __declspec(naked) CharacterSubmenuHook() {
+	__asm {
+		mov  eax, ds:[FO_VAR_edit_win];
+		call fo::funcoffs::GNW_find_;
+		test eax, eax;
+		jz   noCharWin;
+		mov  ecx, [eax + 0x8];               // charWin->rect.left
+		add  dword ptr ss:[ebp + 0x10], ecx; // subWin xPos
+		mov  ecx, [eax + 0xC];               // charWin->rect.top
+		add  dword ptr ss:[ebp + 0x14], ecx; // subWin yPos
+noCharWin:
+		jmp  fo::funcoffs::text_curr_;
+	}
+}
+
 static long __fastcall DialogBoxWinAdd(long height, long yPos, long xPos, long width, long color, long flags) {
 	yPos = (Setting::ScreenHeight() - height) / 2;
 	xPos = (Setting::ScreenWidth() - width) / 2;
@@ -93,9 +109,12 @@ void Character::init() {
 		0x437045, // AgeWindow_
 		0x43769B, // SexWindow_
 		0x43800A, // OptionWindow_
-		0x43C580, // perks_dialog_
-		0x41E027, // file_dialog_
-		0x41EC22  // save_file_dialog_
+		0x43C580  // perks_dialog_
+	});
+
+	sf::HookCalls(CharacterSubmenuHook, {
+		0x41DEBA, // file_dialog_
+		0x41EAA2  // save_file_dialog_
 	});
 
 	sf::HookCall(0x41D104, dialog_out_hook_win_add);
