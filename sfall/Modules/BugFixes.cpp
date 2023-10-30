@@ -3303,7 +3303,7 @@ void BugFixes::init() {
 		SafeWrite8(0x424527, CodeType::JumpShort); // in detemine_to_hit_func_()
 	//}
 
-	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
+	// Fixes for clickability issue in Pip-Boy and exploit that allows resting in places where you shouldn't be able to
 	dlogr("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_FIX);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
