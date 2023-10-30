@@ -396,7 +396,7 @@ static void GetAmmoMetreColors(long yPercent, BYTE &outClr1, BYTE &outClr2) {
 static void __fastcall DrawAlternateAmmoMetre(long x, long y) {
 	fo::Window* win = fo::func::GNW_find(fo::var::interfaceWindow);
 
-	x += xOffset - 2;
+	x += xOffset + 1;
 	long startOffset = x + (25 * win->width);
 	BYTE* surface = win->surface + startOffset;
 
@@ -452,7 +452,7 @@ static void __fastcall DrawAlternateAmmoMetre(long x, long y) {
 	fo::BoundRect rect;
 	rect.x = x;
 	rect.y = 26;
-	rect.offx = x + 3;
+	rect.offx = x + 4;
 	rect.offy = 26 + 70;
 
 	fo::func::win_draw_rect(fo::var::interfaceWindow, (RECT*)&rect);

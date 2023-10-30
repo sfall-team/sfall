@@ -992,12 +992,14 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
+static long ammoBarXPos = 461; // move ammo bar away from rivets (was 463)
+
 static void __declspec(naked) intface_update_ammo_lights_hack() {
 	__asm {
 		mov  eax, 70; // 70 - full ammo bar
 		cmp  edx, eax;
 		cmovg edx, eax;
-		mov  eax, 463; // overwritten engine code
+		mov  eax, ammoBarXPos; // overwritten engine code
 		retn;
 	}
 }
@@ -1100,6 +1102,13 @@ void Interface::init() {
 
 	// Fix crash when the player equips a weapon overloaded with ammo (ammo bar overflow)
 	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
+	// Tweak for ammo bar position with HRP by Mash
+	if (HRP::Setting::ExternalEnabled()) {
+		ammoBarXPos = 465;
+		if (IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, ".\\f2_res.ini")) {
+			ammoBarXPos -= 2;
+		}
+	}
 }
 
 void Interface::exit() {
