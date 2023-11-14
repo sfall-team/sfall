@@ -3216,6 +3216,23 @@ noObject:
 	}
 }
 
+static void __declspec(naked) op_create_object_sid_hack1() {
+	static const DWORD create_object_sid_Ret = 0x4551C0;
+	__asm {
+		cmp  dword ptr [esp + 0x50 - 0x40 + 4], 0; // scriptIndex
+		jne  end;
+		mov  ebx, [esp + 0x50 - 0x20 + 4]; // createObj
+		mov  eax, [ebx + scriptId];
+		call fo::funcoffs::scr_remove_;
+		mov  dword ptr [ebx + scriptId], -1;
+		add  esp, 4;
+		jmp  create_object_sid_Ret;
+end:
+		cmp  dword ptr [esp + 0x50 - 0x40 + 4], -1; // overwritten engine code
+		retn;
+	}
+}
+
 // returns 0 (allows adding) if the critter has the "barter" flag set or its body type is "biped"
 static long __fastcall CheckBarterAndBodyType(fo::GameObject* critter) {
 	fo::Proto* proto;
@@ -4025,6 +4042,8 @@ void BugFixes::init() {
 	MakeCall(0x4551C0, op_create_object_sid_hack, 1);
 	// Fix the error handling in create_object_sid function to prevent a crash when the proto is missing
 	SafeWrite8(0x45507B, 0x51); // jz 0x4550CD
+	// Fix to allow creating an object with no script correctly when passing 0 as the script index number (also prevent a crash)
+	MakeCall(0x4550C8, op_create_object_sid_hack1);
 
 	// Fix to prevent the main menu music from stopping when entering the load game screen
 	BlockCall(0x480B25);
