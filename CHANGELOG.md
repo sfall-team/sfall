@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.4.1
+* HRP: Fixed the clickability issue of the file list for save/load and **'print to file'** options in the character screen
+* Fixed a bug introduced in 4.4 that caused saved arrays to have incorrect data in `sfallgv.sav`
+* Fixed a crash when calling `start_gdialog` outside the `talk_p_proc` procedure for talking heads
+* Fixed `create_object_sid` script function to allow creating an object with no script correctly when passing 0 as the script index number
+* Changed the calculation of the **'best armor'** score to exclude the EMP stats (gameplay mod friendly)
+* Tweaked the position of the ammo bar on the interface bar
+* Removed **AdditionalWeaponAnims** from `ddraw.ini`. Now additional weapon animation codes are always available
+* Updated **NPC combat control mod** to make the player's **Jinxed** trait/perk affect all controlled critters
+
 ## 4.4.0.1
 * Fixed a crash on startup on Windows XP/2003
 
@@ -91,7 +101,7 @@
 * HRP: Fixed a few issues with the main menu
 * HRP: Added support for **LocalMapXLimit/LocalMapYLimit** options in `ddraw.ini`
 * Removed **FadeBackgroundMusic** option because the fix in 4.3.3 doesn't work reliably in all cases
-* Added a fix for being unable to plant items on non-biped critters with the `Barter` flag set (e.g. Skynet and Goris)
+* Added a fix for being unable to plant items on non-biped critters with the **'Barter'** flag set (e.g. Skynet and Goris)
 * Updated the ammo ini loader mod in the **modders pack**
 
 ## 4.3.3.1
@@ -261,9 +271,10 @@
 * Cleaned up `define_lite.h` and `command_lite.h` in the **modders pack**
 
 ## 4.2.8
-* Fixed a bug in **ObjCanSeeObj_ShootThru_Fix** that caused the source to be unable to see the target if it has the `ShootTrhu` flag set
+* Fixed a bug in **ObjCanSeeObj_ShootThru_Fix** that caused the source to be unable to see the target if it has the **'ShootTrhu'** flag set
 * Fixed the encounter messages still being limited to 50 entries per table when **EncounterTableSize** is set to greater than 50
 * Fixed temporary arrays in scripts being cleared when flushing the keyboard buffer
+* Fixed the broken `Print()` script function
 * Improved the field of view check in **ObjCanSeeObj_ShootThru_Fix**
 * Improved the functionality of **GlobalShaderFile** to be able to load multiple shader files
 * Improved the performance of **DX9** graphics modes
@@ -275,7 +286,6 @@
 * Added a fix for the flags of critters in the line of fire not being taken into account when calculating the hit chance penalty of ranged attacks
 * Added a fix to the check for ranged weapons in the **Fast Shot** trait and **FastShotFix**
 * Added a fix for the background image of the character portrait on the player's inventory screen
-* Added a fix for the broken `Print()` script function
 * Added the original Fallout 1 behavior of the **Fast Shot** trait to **FastShotFix**
 * Added an option to enable linear texture filtering for **DX9** graphics modes
 * Added support for **ACM** audio file playback and volume control to `soundplay` script function
@@ -691,7 +701,7 @@ Various bug fixes and features based on the work by Mr.Stalin:
 * Fixed **DX9** mode not showing movie subtitles properly when not using the hi-res patch
 * Fixed **DisplayBonusDamage** not being applied to Melee Damage stat on the character screen when **BonusHtHDamageFix** is enabled
 * Improved the functionality of **ExtraSaveSlots**: added sound effect when clicking on the navigation buttons
-* Improved the fix for `start_gdialog` script function to fix a crash if calling `start_gdialog` outside of the `talk_p_proc` procedure for talking heads
+* Improved the functionality of **StartGDialogFix** to fix a crash when calling `start_gdialog` outside the `talk_p_proc` procedure for talking heads
 * Added a fix for the exploit that allows you to gain excessive skill points from **Tag!** perk before leaving the character screen
 * Added an option to change the limit of how many protos per type can be loaded into memory at once, and improved the functionality of `set_proto_data` script function to be able to automatically increase the limit when needed
 * Added an option to skip the **'Move Items'** window when taking items from containers or corpses and not holding down **ItemFastMoveKey**
@@ -730,10 +740,10 @@ Original engine bug fixes and various features based on the work by Mr.Stalin:
 * Expanded `is_iface_tag_active` script function to check tag value of 0/1/2 (sneak/poisoned/radiated)
 * Added a fix for missing AC/DR mod stats when examining ammo in the barter screen
 * Added a fix for the display issue in the pipboy when a quest list is too long with **UseScrollingQuestsList** diabled
-* Added a fix for the clickability issue of holodisk list in the pipboy
+* Added a fix for the clickability issue of the holodisk list in the pipboy
 * Added a fix for the broken `obj_can_hear_obj` script function
 * Added a fix for multihex critters moving too close and overlapping their targets in combat
-* Added a fix for AI not checking weapon perks properly when choosing the best weapon in combat
+* Added a fix for AI not checking weapon perks properly when choosing the best weapon
 * Added an option to keep the selected attack mode when moving the weapon between active item slots
 * Added an option to set the number of additional notification boxes to the interface
 * Added an option to load alternative dialog msg and subtitle files for female PC (translation friendly)
@@ -852,7 +862,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 * Fixed broken `call_offset_*` script functions
 * Fixed **OverrideMusicDir** not using the correct path string
 * Fixed a bug in `metarule2_explosions` function that caused damage type change not to work
-* Fixed a crash if calling `reg_anim_obj_run_to_tile` after `reg_anim_combat_check`
+* Fixed a crash when calling `reg_anim_obj_run_to_tile` after `reg_anim_combat_check`
 * Changed `sfallgv.sav` to be loaded before other save game files to make saved arrays available in the start procedure
 * Changed **BodyHit_Torso** to **BodyHit_Torso_Uncalled** because it sets both *body_torso* and *body_uncalled* hit modifiers
 
