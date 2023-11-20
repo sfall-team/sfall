@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.8.41
+* Fixed a bug introduced in 3.8.40 that caused saved arrays to have incorrect data in `sfallgv.sav`
+* Fixed a crash when calling `start_gdialog` outside the `talk_p_proc` procedure for talking heads
+* Fixed `create_object_sid` script function to allow creating an object with no script correctly when passing 0 as the script index number
+* Changed the calculation of the **'best armor'** score to exclude the EMP stats (gameplay mod friendly)
+* Tweaked the position of the ammo bar on the interface bar
+* Removed **AdditionalWeaponAnims** from `ddraw.ini`. Now additional weapon animation codes are always available
+* Updated **NPC combat control mod** in the modders pack to make the player's **Jinxed** trait/perk affect all controlled critters
+
 ## 3.8.40.1
 * Improved compatibility with older Windows 2000 (**pre-SP4**)
 
@@ -93,7 +102,7 @@
 ## 3.8.34
 * Minor fixes to **LocalMapXLimit/LocalMapYLimit** options and the built-in **item highlighting mod**
 * Removed **FadeBackgroundMusic** option because the fix in 3.8.33 doesn't work reliably in all cases
-* Added a fix for being unable to plant items on non-biped critters with the `Barter` flag set (e.g. Skynet and Goris)
+* Added a fix for being unable to plant items on non-biped critters with the **'Barter'** flag set (e.g. Skynet and Goris)
 * Updated the ammo ini loader mod in the **modders pack**
 
 ## 3.8.33.1
@@ -263,9 +272,10 @@
 
 ## 3.8.28
 * Fixed a bug introduced in 3.8.23 that could cause unexpected behavior in global scripts
-* Fixed a bug in **ObjCanSeeObj_ShootThru_Fix** that caused the source to be unable to see the target if it has the `ShootTrhu` flag set
+* Fixed a bug in **ObjCanSeeObj_ShootThru_Fix** that caused the source to be unable to see the target if it has the **'ShootTrhu'** flag set
 * Fixed the encounter messages still being limited to 50 entries per table when **EncounterTableSize** is set to greater than 50
 * Fixed temporary arrays in scripts being cleared when flushing the keyboard buffer
+* Fixed the broken `Print()` script function
 * Improved the field of view check in **ObjCanSeeObj_ShootThru_Fix**
 * Improved the functionality of **GlobalShaderFile** to be able to load multiple shader files
 * Improved the performance of **DX9** graphics modes
@@ -277,7 +287,6 @@
 * Added a fix for the flags of critters in the line of fire not being taken into account when calculating the hit chance penalty of ranged attacks
 * Added a fix to the check for ranged weapons in the **Fast Shot** trait and **FastShotFix**
 * Added a fix for the background image of the character portrait on the player's inventory screen
-* Added a fix for the broken `Print()` script function
 * Added the original Fallout 1 behavior of the **Fast Shot** trait to **FastShotFix**
 * Added a tweak to keep the selected attack mode when moving the weapon between active item slots
 * Added an option to enable linear texture filtering for **DX9** graphics modes
@@ -656,7 +665,7 @@ Various bug fixes and features based on the work by Mr.Stalin:
 * Improved the functionality of **CritterInvSizeLimitMode** and added party member's current/max inventory size info to the combat control panel
 * Improved the functionality of **AllowDShowSound**: added volume control support and the ability to play alternative music files even if original **ACM** files are not present in the music folder, and fixed initialization crash bug when **DX9** mode is disabled
 * Improved the functionality of **ExtraSaveSlots**: added sound effect when clicking on the navigation buttons
-* Improved the fix for `start_gdialog` script function to fix a crash if calling `start_gdialog` outside of the `talk_p_proc` procedure for talking heads
+* Improved the functionality of **StartGDialogFix** to fix a crash when calling `start_gdialog` outside the `talk_p_proc` procedure for talking heads
 * Improved and expanded the functionality of **UseScrollingQuestsList** to display page numbers and add another set of scroll buttons
 * Expanded `is_iface_tag_active` script function to check tag value of 0/1/2 (sneak/poisoned/radiated)
 * Added a fix for the broken `obj_can_hear_obj` script function
@@ -674,9 +683,9 @@ Various bug fixes based on the work by Mr.Stalin:
 * Fixed an issue with file IDs of additional game msg files being shifted when a file in **ExtraGameMsgFileList** is missing
 * Fixed `obj_can_see_obj` script function not checking if source and target objects are on the same elevation before calling `HOOK_WITHINPERCEPTION` hook script
 * Added a fix for the display issue in the pipboy when a quest list is too long with **UseScrollingQuestsList** diabled
-* Added a fix for the clickability issue of holodisk list in the pipboy
+* Added a fix for the clickability issue of the holodisk list in the pipboy
 * Added a fix for multihex critters moving too close and overlapping their targets in combat
-* Added a fix for AI not checking weapon perks properly when choosing the best weapon in combat
+* Added a fix for AI not checking weapon perks properly when choosing the best weapon
 
 ## 3.8.10
 * Added an option to use Fallout's normal text font instead of DOS-like font on the world map
@@ -752,7 +761,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 * Fixed broken `call_offset_*` script functions
 * Fixed **OverrideMusicDir** not using the correct path string
 * Fixed a bug in `metarule2_explosions` function that caused damage type change not to work
-* Fixed a crash if calling `reg_anim_obj_run_to_tile` after `reg_anim_combat_check`
+* Fixed a crash when calling `reg_anim_obj_run_to_tile` after `reg_anim_combat_check`
 * Changed `sfallgv.sav` to be loaded before other save game files to make saved arrays available in the start procedure
 * Changed **BodyHit_Torso** to **BodyHit_Torso_Uncalled** because it sets both *body_torso* and *body_uncalled* hit modifiers
 
