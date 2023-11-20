@@ -2,7 +2,7 @@
 
 ## 4.4.1
 * HRP: Fixed the clickability issue of the file list for save/load and **'print to file'** options in the character screen
-* Fixed a bug introduced in 4.4 that caused saved arrays to have incorrect data in `sfallgv.sav`
+* Fixed a bug introduced in 4.4 that broke the interoperability of saved arrays with older versions
 * Fixed a crash when calling `start_gdialog` outside the `talk_p_proc` procedure for talking heads
 * Fixed `create_object_sid` script function to allow creating an object with no script correctly when passing 0 as the script index number
 * Changed the calculation of the **'best armor'** score to exclude the EMP stats (gameplay mod friendly)
