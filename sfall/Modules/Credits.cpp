@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\version.h"
+#include "LoadGameHook.h"
 
 #include "Credits.h"
 
@@ -177,8 +178,40 @@ static void __declspec(naked) ShowCreditsHook() {
 	}
 }
 
+// Loads the credits from the 'english' folder if it does not exist in the current language directory
+static void __declspec(naked) CreditsFileHook() {
+	__asm {
+		mov  ebx, edx; // keep mode
+		call fo::funcoffs::db_fopen_;
+		test eax, eax;
+		jz   noFile;
+		retn;
+noFile:
+		push ecx;      // file (credits.txt/quotes.txt)
+		push 0x500208; // "english"
+		push 0x50B7D0; // "text"
+		push 0x50B7D8; // "%s\%s\%s"
+		lea  ebp, [esp + 0x264 - 0x160 + 20];
+		push ebp;      // buf
+		call fo::funcoffs::sprintf_;
+		add  esp, 20;
+		mov  edx, ebx;
+		mov  eax, ebp;
+		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
+static void FallbackEnglishCredits() {
+	const char* lang;
+	if (fo::func::get_game_config_string(&lang, "system", "language") && stricmp(lang, "english") != 0) {
+		HookCall(0x42C900, CreditsFileHook);
+	}
+}
+
 void Credits::init() {
 	HookCalls(ShowCreditsHook, {0x480C49, 0x43F881});
+
+	LoadGameHook::OnGameInit() += FallbackEnglishCredits;
 }
 
 }
