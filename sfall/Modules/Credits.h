@@ -29,4 +29,6 @@ public:
 	void init();
 };
 
+void FallbackEnglishCredits();
+
 }

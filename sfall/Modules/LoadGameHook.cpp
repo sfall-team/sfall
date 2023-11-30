@@ -30,6 +30,7 @@
 #include "BarBoxes.h"
 #include "Combat.h"
 #include "Console.h"
+#include "Credits.h"
 #include "Criticals.h"
 #include "DebugEditor.h"
 #include "Explosions.h"
@@ -404,6 +405,7 @@ static void __stdcall GameInitialization() { // OnBeforeGameInit
 
 static void __stdcall game_init_hook() { // OnGameInit
 	FallbackEnglishLoadMsgFiles();
+	FallbackEnglishCredits();
 }
 
 static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
