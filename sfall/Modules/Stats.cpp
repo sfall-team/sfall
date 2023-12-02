@@ -131,7 +131,7 @@ static void __declspec(naked) CalcApToAcBonus() {
 		mov  edi, [ebx + movePoints];
 		test edi, edi;
 		jz   end;
-		cmp  [esp + 0x1C - 0x18 + 4], 2; // pc have perk h2hEvade (2 - vanilla bonus)
+		cmp  dword ptr [esp + 0x1C - 0x18 + 4], 2; // has HtH Evade perk (2 - vanilla bonus)
 		jb   standard;
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
@@ -291,11 +291,8 @@ void Stats::init() {
 	auto xpTableList = IniReader::GetConfigList("Misc", "XPTable", "");
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
-		HookCall(0x434AA7, GetNextLevelXPHook);
-		HookCall(0x439642, GetNextLevelXPHook);
-		HookCall(0x4AFB22, GetNextLevelXPHook);
-		HookCall(0x496C8D, GetLevelXPHook);
-		HookCall(0x4AFC53, GetLevelXPHook);
+		HookCalls(GetNextLevelXPHook, {0x434AA7, 0x439642, 0x4AFB22});
+		HookCalls(GetLevelXPHook, {0x496C8D, 0x4AFC53});
 
 		for (size_t i = 0; i < 99; i++) {
 			xpTable[i] = (i < numLevels)

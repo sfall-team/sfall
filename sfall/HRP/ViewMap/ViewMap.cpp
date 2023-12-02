@@ -189,7 +189,7 @@ static void __declspec(naked) square_render_floor_hook_art_id() {
 		jmp  fo::funcoffs::art_id_;
 
 skipDraw:
-		mov  [esp], 0x4B2AD4;
+		mov  dword ptr [esp], 0x4B2AD4;
 		retn 4;
 	}
 }
@@ -241,7 +241,7 @@ static void __declspec(naked) square_roof_intersect_hook_art_id() {
 
 skipDraw:
 		xor  eax, eax;
-		mov  [esp], 0x4B2C05;
+		mov  dword ptr [esp], 0x4B2C05;
 		retn 4;
 	}
 }

@@ -60,7 +60,7 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 		if (!npcAutoLevelEnabled) {
 			SafeWrite8(0x495CFB, CodeType::JumpShort); // Disable random element
 		}
-		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
+		__asm mov dword ptr [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
 	} else {
 		if (!onceNpcLoop) {
 			SafeWrite32(0x495C50, 0x01FCE9); // set goto next member
@@ -75,7 +75,7 @@ void op_inc_npc_level(OpcodeContext& ctx) {
 	pidNPCToInc = ctx.arg(0).asInt(); // set to 0 if passing npc name
 	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
 
-	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
+	HookCall(0x495BF1, IncNPCLevel);  // Replace the debug output
 	__asm call fo::funcoffs::partyMemberIncLevels_;
 	onceNpcLoop = false;
 

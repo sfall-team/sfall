@@ -69,7 +69,7 @@ static long __stdcall xfclose(sFile* file) {
 
 static void __declspec(naked) asm_xfclose(sFile* file) {
 	__asm {
-		cmp  [eax], 3; // byte
+		cmp  byte ptr [eax], 3; // byte
 		jnz  end;
 		push edx;
 		push ecx;
@@ -120,7 +120,7 @@ static int __stdcall xvfprintf() {
 
 static __declspec(naked) int asm_xvfprintf(sFile* file, const char* format, void* vaargs) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		push ecx;
 		call xvfprintf;
@@ -138,7 +138,7 @@ static DWORD __stdcall xfgetc(sFile* file) {
 
 static __declspec(naked) int asm_xfgetc(sFile* file) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		push edx;
 		push ecx;
@@ -169,7 +169,7 @@ static char* __stdcall xfgets(char* buf, int max_count, sFile* file) {
 
 static __declspec(naked) char* asm_xfgets(char* buf, int max_count, sFile* file) {
 	__asm {
-		cmp  [ebx], 3;
+		cmp  byte ptr [ebx], 3;
 		jnz  end;
 		push ecx;
 		push ebx;
@@ -189,7 +189,7 @@ static int __stdcall xfputc(int c, sFile* file) {
 
 static __declspec(naked) int asm_xfputc(int c, sFile* file) {
 	__asm {
-		cmp  [edx], 3;
+		cmp  byte ptr [edx], 3;
 		jnz  end;
 		push ecx;
 		push edx;
@@ -208,7 +208,7 @@ static int __stdcall xfputs(const char* str, sFile* file) {
 
 static __declspec(naked) int asm_xfputs(const char* str, sFile* file) {
 	__asm {
-		cmp  [edx], 3;
+		cmp  byte ptr [edx], 3;
 		jnz  end;
 		push ecx;
 		push edx;
@@ -230,7 +230,7 @@ static int __stdcall xfungetc(int c, sFile* file) {
 
 static __declspec(naked) int asm_xfungetc(int c, sFile* file) {
 	__asm {
-		cmp  [edx], 3;
+		cmp  byte ptr [edx], 3;
 		jnz  end;
 		push ecx;
 		push edx;
@@ -255,7 +255,7 @@ static int __fastcall xfread(sFile* file, int elsize, void* buf, int count) {
 
 static __declspec(naked) int asm_xfread(void* buf, int elsize, int count, sFile* file) {
 	__asm {
-		cmp  [ecx], 3;
+		cmp  byte ptr [ecx], 3;
 		jnz  end;
 		push ebx;    // count
 		push eax;    // buf
@@ -268,7 +268,7 @@ end:
 
 static __declspec(naked) int asm_xfread_fix(void* buf, int elsize, int count, sFile* file) {
 	__asm {
-		cmp  [ecx], 3;
+		cmp  byte ptr [ecx], 3;
 		jnz  end;
 		push ebx;    // count
 		push eax;    // buf
@@ -291,7 +291,7 @@ static int __fastcall xfwrite(sFile* file, int elsize, const void* buf, int coun
 
 static __declspec(naked) int asm_xfwrite(const void* buf, int elsize, int count, sFile* file) {
 	__asm {
-		cmp  [ecx], 3;
+		cmp  byte ptr [ecx], 3;
 		jnz  end;
 		push ebx;       // count
 		push eax;       // buf
@@ -319,7 +319,7 @@ static int __stdcall xfseek(sFile* file, long pos, int origin) {
 
 static __declspec(naked) int asm_xfseek(sFile* file, long pos, int origin) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		push ecx;
 		push ebx;
@@ -339,7 +339,7 @@ static long __stdcall xftell(sFile* file) {
 
 static __declspec(naked) long asm_xftell(sFile* file) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		push edx;
 		push ecx;
@@ -359,7 +359,7 @@ static void __stdcall xfrewind(sFile* file) {
 
 static __declspec(naked) void asm_xfrewind(sFile* file) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		pushadc;
 		push eax;
@@ -380,7 +380,7 @@ static int __stdcall xfeof(sFile* file) {
 
 static __declspec(naked) int asm_xfeof(sFile* file) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		push edx;
 		push ecx;
@@ -400,7 +400,7 @@ static int __stdcall xfilelength(sFile* file) {
 
 static __declspec(naked) int asm_xfilelength(sFile* file) {
 	__asm {
-		cmp  [eax], 3;
+		cmp  byte ptr [eax], 3;
 		jnz  end;
 		push edx;
 		push ecx;

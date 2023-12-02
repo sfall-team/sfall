@@ -798,27 +798,27 @@ void LoadGameHook::init() {
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
 
 	HookCalls(game_reset_hook, {
-				0x47DD6B, // LoadSlot_ (on load error)
-				0x47DDF3, // LoadSlot_ (on load error)
-				//0x480708, // RestoreLoad_ (never called)
-				0x480AD3, // gnw_main_ (game ended after playing via New Game)
-				0x480BCC, // gnw_main_ (game ended after playing via Load Game)
-				//0x480D0C, // main_reset_system_ (never called)
-				0x481028, // main_selfrun_record_
-				0x481062, // main_selfrun_record_
-				0x48110B, // main_selfrun_play_
-				0x481145 // main_selfrun_play_
-			});
+		0x47DD6B, // LoadSlot_ (on load error)
+		0x47DDF3, // LoadSlot_ (on load error)
+		//0x480708, // RestoreLoad_ (never called)
+		0x480AD3, // gnw_main_ (game ended after playing via New Game)
+		0x480BCC, // gnw_main_ (game ended after playing via Load Game)
+		//0x480D0C, // main_reset_system_ (never called)
+		0x481028, // main_selfrun_record_
+		0x481062, // main_selfrun_record_
+		0x48110B, // main_selfrun_play_
+		0x481145 // main_selfrun_play_
+	});
 	HookCalls(game_reset_on_load_hook, {
-				0x47F491, // PrepLoad_ (the very first step during save game loading)
-			});
+		0x47F491, // PrepLoad_ (the very first step during save game loading)
+	});
 
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 	HookCalls(game_close_hook, {
-				0x480CA7,  // gnw_main_
-				//0x480D45 // main_exit_system_ (never called)
-			});
+		0x480CA7,  // gnw_main_
+		//0x480D45 // main_exit_system_ (never called)
+	});
 
 	/////////////// GAME MODES ///////////////
 	HookCall(0x4BFE33, WorldMapHook_Start); // wmTownMap_ (old 0x483668, 0x4A4073)

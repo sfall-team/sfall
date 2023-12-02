@@ -321,7 +321,7 @@ static void intface_update_restore() {
 static void __declspec(naked) intface_update_items_hack_end() {
 	__asm {
 		call intface_update_restore;
-		cmp  [esp + 0x1C - 0x18 + 4], 0; // animate
+		cmp  dword ptr [esp + 0x1C - 0x18 + 4], 0; // animate
 		retn;
 	}
 }
@@ -346,7 +346,7 @@ end:
 
 static void __declspec(naked) endgame_movie_hook() {
 	__asm {
-		cmp  [esp + 16], 0x45C563; // call from op_endgame_movie_
+		cmp  dword ptr [esp + 16], 0x45C563; // call from op_endgame_movie_
 		je   playWalkMovie;
 		retn;
 playWalkMovie:

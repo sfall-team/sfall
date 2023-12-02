@@ -106,7 +106,7 @@ static void __declspec(naked) ai_check_drugs_hook_healing() {
 	using namespace fo;
 	__asm {
 		call fo::funcoffs::ai_retrieve_object_;
-		cmp  [esp + 0x34 - 0x30 + 4], 2; // noInvenItem: is set to 2 that healing is required
+		cmp  dword ptr [esp + 0x34 - 0x30 + 4], 2; // noInvenItem: is set to 2 that healing is required
 		jne  checkPid;
 		retn; // use drugs
 checkPid:
