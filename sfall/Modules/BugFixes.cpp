@@ -178,40 +178,40 @@ end:
 */
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
-		call fo::funcoffs::stat_level_            // Perception
-		cmp  edi, dword ptr ds:[FO_VAR_obj_dude]
-		jne  end
-		xchg ecx, eax
-		mov  eax, edi                             // _obj_dude
-		mov  edx, PERK_sharpshooter
-		call fo::funcoffs::perk_level_
-		shl  eax, 1
-		add  eax, ecx
+		call fo::funcoffs::stat_level_;           // Perception
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		jne  end;
+		xchg ecx, eax;
+		mov  eax, edi;                            // _obj_dude
+		mov  edx, PERK_sharpshooter;
+		call fo::funcoffs::perk_level_;
+		shl  eax, 1;
+		add  eax, ecx;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) pipboy_hack() {
 	__asm {
-		cmp  ebx, 0x210                           // Back button?
-		je   end
-		cmp  byte ptr ds:[FO_VAR_holo_flag], 0
-		jne  end
-		xor  ebx, ebx                             // No man, no problem (c) :-p
+		cmp  ebx, 0x210;                          // Back button?
+		je   end;
+		cmp  byte ptr ds:[FO_VAR_holo_flag], 0;
+		jne  end;
+		xor  ebx, ebx;                            // No man, no problem (c) :-p
 end:
-		mov  eax, ds:[FO_VAR_crnt_func]
-		retn
+		mov  eax, ds:[FO_VAR_crnt_func];
+		retn;
 	}
 }
 
 static void __declspec(naked) PipAlarm_hack() {
 	__asm {
-		mov  ds:[FO_VAR_crnt_func], eax
-		mov  eax, 0x400
-		call fo::funcoffs::PipStatus_
-		mov  eax, 0x50CC04                        // 'iisxxxx1'
-		retn
+		mov  ds:[FO_VAR_crnt_func], eax;
+		mov  eax, 0x400;
+		call fo::funcoffs::PipStatus_;
+		mov  eax, 0x50CC04;                       // 'iisxxxx1'
+		retn;
 	}
 }
 
@@ -296,7 +296,7 @@ jetAddict:
 		mov  ecx, esi;    // addict perk (PERK_add_jet)
 		call fo::funcoffs::insert_withdrawal_;
 		pop  ecx;
-		mov  [esp], 0x47A3FB; // ret addr
+		mov  dword ptr [esp], 0x47A3FB; // ret addr
 		retn;
 	}
 }
@@ -1253,7 +1253,7 @@ static void __declspec(naked) obj_save_hack() {
 		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
 		jnz  inCombat;                             // Yes
 clear:
-		mov  [edx + 0x18], -1;                     // combat_data.who_hit_me
+		mov  dword ptr [edx + 0x18], -1;           // combat_data.who_hit_me
 		retn;
 inCombat:
 		cmp  dword ptr [edx], 0;                   // critter in combat?
@@ -1664,7 +1664,7 @@ static void __declspec(naked) ai_combat_turn_run_hook() {
 		mov  edx, [esi + damageFlags]; // combat_data.results
 		test edx, DAM_DEAD or DAM_KNOCKED_OUT or DAM_LOSE_TURN;
 		jz   end;
-		mov  [esi + movePoints], 0; // pobj.curr_mp (source reset ap)
+		mov  dword ptr [esi + movePoints], 0; // pobj.curr_mp (source reset ap)
 end:
 		retn;
 	}
@@ -2127,7 +2127,7 @@ static void __declspec(naked) config_get_values_hack() {
 		jz  getLast;
 		// if ebp > 1
 		mov eax, [esp + 0x100];
-		cmp [eax], 0;                      // check char
+		cmp byte ptr [eax], 0;             // check char
 		jz  getFail;
 		mov eax, dword ptr [esp + 0x114];  // total num of values
 		sub eax, ebp;
@@ -2585,7 +2585,7 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 		mov  eax, [ecx + 0x2C]; // wmAreaInfoList.world_posx
 		mov  edx, [ecx + 0x30]; // wmAreaInfoList.world_posy
 		// fix loc coordinates
-		cmp  [ecx + 0x34], 1; // wmAreaInfoList.size
+		cmp  dword ptr [ecx + 0x34], 1; // wmAreaInfoList.size
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
@@ -2621,7 +2621,7 @@ skip:
 		cmp isNoRadius, 1;
 		je  noRadius;
 		///////////////////////////////////////////////////
-		cmp  [ecx + 0x38], 1; // wmAreaInfoList.start_state
+		cmp  dword ptr [ecx + 0x38], 1; // wmAreaInfoList.start_state
 		jne  noRadius;        // hidden location
 		cmp  esi, 2;          // mark visited state
 		jne  fixRadius;
