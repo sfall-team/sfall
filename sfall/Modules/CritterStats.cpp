@@ -298,7 +298,7 @@ static void __declspec(naked) stat_get_proto() {
 		jz   skip;
 		add  esp, 4;
 		mov  [esp + 4], eax;    // replace proto
-		add  [esp], 5;          // skip call proto_ptr_
+		add  dword ptr [esp], 5; // skip call proto_ptr_
 		retn;
 skip:
 		pop  eax;

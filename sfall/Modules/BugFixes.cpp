@@ -4065,6 +4065,9 @@ void BugFixes::init() {
 
 	// Fix for incorrect death endings being shown when some endings in the list are not available
 	SafeWrite8(0x440C8E, 7); // jnz 0x440C96
+
+	// Fix for gaining two levels at once when leveling up from level 97
+	SafeWrite8(0x4AF9AF, 0x7F); // jge > jg (stat_pc_min_exp_)
 }
 
 }
