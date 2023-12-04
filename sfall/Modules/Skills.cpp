@@ -426,7 +426,7 @@ void Skills::init() {
 }
 
 void Skills::exit() {
-	delete[] multipliers;
+	if (multipliers) delete[] multipliers;
 }
 
 }
