@@ -873,7 +873,7 @@ void LoadGameHook::init() {
 		0x481028, // main_selfrun_record_
 		0x481062, // main_selfrun_record_
 		0x48110B, // main_selfrun_play_
-		0x481145 // main_selfrun_play_
+		0x481145  // main_selfrun_play_
 	};
 	HookCalls(game_reset_hook, gameResetAddr);
 	HookCall(0x47F491, game_reset_on_load_hook); // PrepLoad_ (the very first step during save game loading)
