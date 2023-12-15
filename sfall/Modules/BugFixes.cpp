@@ -1686,7 +1686,7 @@ end:
 	}
 }
 
-//zero damage insta death criticals fix (moved from compute_damage hook)
+// fix for zero damage instadeath criticals (moved from compute_damage hook)
 static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
 	if (ctd.targetDamage == 0 && (ctd.targetFlags & fo::DamageFlag::DAM_DEAD)) {
 		ctd.targetDamage++; // set 1 hp damage
@@ -3649,7 +3649,7 @@ void BugFixes::init() {
 		0x428AB3  // ai_move_away_ (potential fix)
 	});
 
-	// Fix instant death critical
+	// Fix instant death critical hits
 	dlogr("Applying instant death fix.", DL_FIX);
 	MakeJump(0x424BA2, compute_damage_hack);
 
@@ -3929,7 +3929,7 @@ void BugFixes::init() {
 	// Fix the placement of multihex critters in the player's party when entering a map or elevation
 	MakeCall(0x494E33, partyMemberSyncPosition_hack, 1);
 
-	// Fix for critter_add/rm_trait functions ignoring the value of the "amount" argument
+	// Fix for critter_add/rm_trait functions ignoring the "amount" argument
 	// Note: pass negative amount values to critter_rm_trait to remove all ranks of the perk (vanilla behavior)
 	HookCall(0x458CDB, op_critter_rm_trait_hook);
 	HookCall(0x458B3D, op_critter_add_trait_hook);
