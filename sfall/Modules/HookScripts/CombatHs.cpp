@@ -196,8 +196,8 @@ static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DW
 			}
 		}
 		// prevent hook from setting zero damage for instadeath criticals (bug fix)
-		if (ctd.targetDamage == 0 && (ctd.targetFlags & fo::DamageFlag::DAM_DEAD)) {
-			ctd.targetDamage++; // set 1 hp damage
+		if ((ctd.targetFlags & fo::DamageFlag::DAM_DEAD) && ctd.targetDamage <= 0) {
+			ctd.targetDamage = 1; // set 1 hp damage
 		}
 	}
 	EndHook();

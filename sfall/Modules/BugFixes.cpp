@@ -1688,8 +1688,8 @@ end:
 
 // fix for zero damage instadeath criticals (moved from compute_damage hook)
 static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
-	if (ctd.targetDamage == 0 && (ctd.targetFlags & fo::DamageFlag::DAM_DEAD)) {
-		ctd.targetDamage++; // set 1 hp damage
+	if ((ctd.targetFlags & fo::DamageFlag::DAM_DEAD) && ctd.targetDamage <= 0) {
+		ctd.targetDamage = 1; // set 1 hp damage
 	}
 }
 
