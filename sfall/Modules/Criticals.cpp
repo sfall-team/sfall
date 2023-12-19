@@ -157,6 +157,17 @@ static void CriticalTableOverride() {
 
 	if (mode == 2 || mode == 3) { // bug fixes
 		using namespace fo;
+		// Men
+		SetEntry(0, ArmRight, 2, Message,   5010);
+		SetEntry(0, ArmRight, 2, MsgFail,   5014);
+
+		// Women
+		SetEntry(1, ArmRight, 2, Message,   5110);
+		SetEntry(1, ArmRight, 2, MsgFail,   5114);
+
+		SetEntry(1, ArmRight, 3, Message,   5110);
+		SetEntry(1, ArmRight, 3, MsgFail,   5114);
+
 		// Children
 		SetEntry(2, LegRight, 1, FlagsFail, 0);
 		SetEntry(2, LegRight, 1, Message,   5216);
@@ -198,6 +209,15 @@ static void CriticalTableOverride() {
 		SetEntry(13, LegLeft, 3, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
 		SetEntry(13, LegLeft, 4, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
 		SetEntry(13, LegLeft, 5, FlagsFail, fo::DAM_CRIP_LEG_LEFT);
+
+		// Geckos
+		SetEntry(15, ArmRight, 2, MsgFail,  5014);
+
+		// Aliens
+		SetEntry(16, ArmRight, 2, MsgFail,  5014);
+
+		// Giant Ants
+		SetEntry(17, ArmRight, 2, MsgFail,  5014);
 
 		// Big Bad Boss
 		SetEntry(18, Head,     0, Message,  5001);
