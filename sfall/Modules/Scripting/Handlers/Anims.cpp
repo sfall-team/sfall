@@ -64,7 +64,7 @@ void op_reg_anim_animate_and_hide(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		fo::GameObject* obj = ctx.arg(0).object();
 		int animId = ctx.arg(1).rawValue(),
-			delay = ctx.arg(2).rawValue();
+		    delay = ctx.arg(2).rawValue();
 
 		fo::func::register_object_animate_and_hide(obj, animId, delay);
 	}
@@ -74,7 +74,7 @@ void op_reg_anim_light(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		fo::GameObject* obj = ctx.arg(0).object();
 		int radius = ctx.arg(1).rawValue(),
-			delay = ctx.arg(2).rawValue();
+		    delay = ctx.arg(2).rawValue();
 
 		if (radius < 0) {
 			radius = 0;
@@ -89,7 +89,7 @@ void op_reg_anim_change_fid(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		fo::GameObject* obj = ctx.arg(0).object();
 		int fid = ctx.arg(1).rawValue(),
-			delay = ctx.arg(2).rawValue();
+		    delay = ctx.arg(2).rawValue();
 
 		fo::func::register_object_change_fid(obj, fid, delay);
 	}
@@ -109,7 +109,7 @@ void op_reg_anim_turn_towards(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		fo::GameObject* obj = ctx.arg(0).object();
 		int tile = ctx.arg(1).rawValue(),
-			nothing = ctx.arg(2).rawValue();
+		    nothing = ctx.arg(2).rawValue();
 
 		fo::func::register_object_turn_towards(obj, tile, nothing);
 	}
@@ -129,6 +129,17 @@ void op_reg_anim_callback(OpcodeContext& ctx) {
 		reinterpret_cast<void*>(ExecuteCallback),
 		-1
 	);
+}
+
+void mf_reg_anim_animate_and_move(OpcodeContext& ctx) {
+	if (!checkCombatMode()) {
+		fo::GameObject* obj = ctx.arg(0).object();
+		int tile = ctx.arg(1).rawValue(),
+		    animId = ctx.arg(2).rawValue(),
+		    delay = ctx.arg(3).rawValue();
+
+		fo::func::register_object_animate_and_move_straight(obj, tile, obj->elevation, animId, delay);
+	}
 }
 
 void op_explosions_metarule(OpcodeContext& ctx) {

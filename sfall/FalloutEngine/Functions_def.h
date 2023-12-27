@@ -54,6 +54,7 @@ WRAP_WATCOM_FUNC3(long, obj_new_sid_inst, fo::GameObject*, object, long, sType, 
 WRAP_WATCOM_FUNC3(fo::GameObject*, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 WRAP_WATCOM_FUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, comp)
 WRAP_WATCOM_FUNC4(long, queue_add, long, time, fo::GameObject*, object, void*, data, long, qType)
+WRAP_WATCOM_FUNC5(long, register_object_animate_and_move_straight, fo::GameObject*, object, long, tile, long, elevation, long, anim, long, delay)
 WRAP_WATCOM_FUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
