@@ -40,6 +40,8 @@ void op_reg_anim_take_out(OpcodeContext&);
 void op_reg_anim_turn_towards(OpcodeContext&);
 void op_reg_anim_callback(OpcodeContext&);
 
+void mf_reg_anim_animate_and_move(OpcodeContext&);
+
 void op_explosions_metarule(OpcodeContext&);
 
 void op_art_exists(OpcodeContext&);
