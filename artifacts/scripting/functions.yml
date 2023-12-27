@@ -779,7 +779,7 @@
     detail: void reg_anim_animate_and_hide(ObjectPtr, int animID, int delay)
     doc: |
        Works exactly like `reg_anim_animate` but the object will automatically disappear after the last animation frame (but not destroyed).
-      - `delay`: delay from the previous animation. A value of -1 will execute the specified animation immediately after the previous one in the sequence ends.
+       - `delay`: delay from the previous animation. A value of -1 will execute the specified animation immediately after the previous one in the sequence ends.
     opcode: 0x825b
   - name: reg_anim_light
     detail: void reg_anim_light(ObjectPtr, int light, int delay)
