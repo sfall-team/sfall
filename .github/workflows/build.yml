@@ -45,7 +45,7 @@ jobs:
     shell: bash
 
   - name: Upload artifacts
-    uses: actions/upload-artifact@v3
+    uses: actions/upload-artifact@v4
     with:
      name:           sfall-build
      path:           sfall-build
