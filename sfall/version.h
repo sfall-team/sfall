@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2023  The sfall team
+ *    Copyright (C) 2008-2024  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -20,11 +20,11 @@
 
 #define TARGETVERSION "Fallout 2 v1.02 US"
 
-#define LEGAL_COPYRIGHT "Copyright (C) 2006-2023, sfall Team"
+#define LEGAL_COPYRIGHT "Copyright (C) 2006-2024, sfall Team"
 
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 8
-#define VERSION_BUILD 41
-#define VERSION_REV 1
+#define VERSION_BUILD 42
+#define VERSION_REV 0
 
-#define VERSION_STRING "3.8.41.1"
+#define VERSION_STRING "3.8.42"

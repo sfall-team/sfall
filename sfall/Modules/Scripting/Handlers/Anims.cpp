@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2023  The sfall team
+ *    Copyright (C) 2008-2024  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ void op_reg_anim_take_out(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		fo::GameObject* obj = ctx.arg(0).object();
 		int holdFrame = ctx.arg(1).rawValue(),
-			nothing = ctx.arg(2).rawValue(); // not used by engine
+		    nothing = ctx.arg(2).rawValue(); // not used by engine
 
 		fo::func::register_object_take_out(obj, holdFrame, nothing);
 	}
