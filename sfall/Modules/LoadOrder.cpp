@@ -271,9 +271,7 @@ static bool NormalizePath(std::string &path) {
 	path.erase(0, path.find_first_not_of('\\'));
 
 	// Disallow paths trying to "escape" game folder:
-	if (path.find(':') != std::string::npos ||
-	    path.find(".\\") != std::string::npos ||
-	    path.find("..\\") != std::string::npos) {
+	if (path.find(':') != std::string::npos || path.find("..\\") != std::string::npos) {
 		return false;
 	}
 	return !path.empty();
@@ -316,7 +314,7 @@ static void GetExtraPatches() {
 	for (int i = 0; i < 100; i++) {
 		_itoa(i, &patchFile[9], 10);
 		std::string patch = IniReader::GetConfigString("ExtraPatches", patchFile, "");
-		if (!ValidateExtraPatch(patch, "", patchFile)) continue;
+		if (!ValidateExtraPatch(patch, ".\\", patchFile)) continue;
 		patchFiles.push_back(patch);
 	}
 	const std::string modsPath = ".\\mods\\";
