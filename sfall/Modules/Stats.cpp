@@ -26,6 +26,8 @@
 namespace sfall
 {
 
+#define PC_LEVEL_MAX    (99)
+
 static bool engineDerivedStats = true;
 static bool derivedHPwBonus = false; // recalculate the hit points with bonus stat values
 
@@ -34,7 +36,7 @@ static DWORD statMinimumsPC[fo::STAT_max_stat];
 static DWORD statMaximumsNPC[fo::STAT_max_stat];
 static DWORD statMinimumsNPC[fo::STAT_max_stat];
 
-static DWORD xpTable[99];
+static DWORD xpTable[PC_LEVEL_MAX];
 
 float Stats::experienceMod = 1.0f; // set_xp_mod func
 DWORD Stats::standardApAcBonus = 4;
@@ -110,8 +112,13 @@ failMax:
 
 static void __declspec(naked) GetLevelXPHook() {
 	__asm {
+		cmp eax, PC_LEVEL_MAX;
+		jge lvlMax;
 		dec eax;
 		mov eax, [xpTable + eax * 4];
+		retn;
+lvlMax:
+		mov eax, -1; // for printing "------"
 		retn;
 	}
 }
@@ -291,10 +298,11 @@ void Stats::init() {
 	auto xpTableList = IniReader::GetConfigList("Misc", "XPTable", "");
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
+		if (numLevels >= PC_LEVEL_MAX) numLevels = PC_LEVEL_MAX - 1;
 		HookCalls(GetNextLevelXPHook, {0x434AA7, 0x439642, 0x4AFB22});
 		HookCalls(GetLevelXPHook, {0x496C8D, 0x4AFC53});
 
-		for (size_t i = 0; i < 99; i++) {
+		for (size_t i = 0; i < PC_LEVEL_MAX; i++) {
 			xpTable[i] = (i < numLevels)
 			           ? atoi(xpTableList[i].c_str())
 			           : -1;
