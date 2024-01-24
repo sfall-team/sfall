@@ -3631,8 +3631,8 @@ void BugFixes::init() {
 	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
 	HookCall(0x4A22DF, ResetPlayer_hook);
 
-	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of the "count" argument is over 99999
-	SafeWrite32(0x45A2A0, 99999);
+	// Fix for add_mult_objs_to_inven adding only 500 instances of an object when the "count" argument is over 99999
+	SafeWrite8(0x45A289, 0x1A); // jge 0x45A294 (skip upper limit)
 
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as some exit hex
 	// in destination map
