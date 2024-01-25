@@ -3294,14 +3294,18 @@ void BugFixes::init() {
 	const DWORD loadIntAddr[] = {
 		0x46A3A8, 0x46A3F4, // op_mul_
 		0x46A4E7, 0x46A566, // op_div_
-		0x46A280, 0x46A2CD, // op_sub_
+		0x46A280, 0x46A2CD  // op_sub_
 	};
 	SafeWriteBatch<WORD>(0x04DB, loadIntAddr); // fild 64bit > fild 32bit
 
-	// Fix for vanilla division operator treating negative integers as unsigned
+	// Fix for vanilla division and modulo operators treating negative integers as unsigned
 	//if (IniReader::GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
 		dlogr("Applying division operator fix.", DL_FIX);
-		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
+		const DWORD divisionAddr[] = {
+			0x46A51D, // op_div_
+			0x46A669  // op_mod_
+		};
+		SafeWriteBatch<DWORD>(0x90FBF799, divisionAddr); // xor edx, edx; div ebx > cdq; idiv ebx
 	//}
 
 	//if (IniReader::GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
