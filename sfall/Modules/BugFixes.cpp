@@ -3284,6 +3284,118 @@ black:
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static void __declspec(naked) item_add_force_hack0() {
+	__asm { // eax - invenTable, edx - index
+		cmp  dword ptr [eax + edx + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [eax + edx + 4], 1; // fix stack count
+end: // overwritten engine code
+		mov  eax, edi;                     // item
+		jmp  fo::funcoffs::item_get_type_;
+	}
+}
+
+static void __declspec(naked) item_add_force_hack1() {
+	__asm { // eax - invenTable, ebx - index
+		cmp  dword ptr [eax + ebx * 8 + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [eax + ebx * 8 + 4], INT_MAX; // set max (overflow after changing)
+end: // overwritten engine code
+		mov  [eax + ebx * 8], edi;             // item
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) item_remove_mult_hack0() {
+	__asm { // eax - invenItem
+		cmp  dword ptr [eax + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [eax + 4], 1; // fix stack count
+end: // overwritten engine code
+		mov  edx, [eax + 4];         // count
+		cmp  edx, ebx;
+		retn;
+	}
+}
+
+static void __declspec(naked) item_remove_mult_hack1() {
+	__asm { // eax - invenTable, ecx - index
+		sub  [ecx + eax + 4], ebx;         // calculate new item count
+		cmp  dword ptr [ecx + eax + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [ecx + eax + 4], INT_MAX; // set max (overflow after changing)
+end: // overwritten engine code
+		mov  eax, ebp;                     // item
+		retn;
+	}
+}
+
+static void __declspec(naked) item_count_hack() {
+	static const DWORD item_count_Ret = 0x4780DB;
+	__asm { // eax - invenItem
+		cmp  dword ptr [eax + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [eax + 4], 1; // fix stack count
+end: // overwritten engine code
+		mov  edx, [eax + 4];         // count
+		// Fix item_count_ function returning incorrect value when there is a container item inside
+		jmp  item_count_Ret;
+	}
+}
+
+static void __declspec(naked) item_caps_adjust_hack() {
+	__asm {
+		test edi, edi;     // new caps count
+		jg   end;
+		mov  edi, INT_MAX; // set max (overflow after changing)
+end: // overwritten engine code
+		xor  ecx, ecx;
+		mov  [edx + esi * 8 + 4], edi; // count
+		retn;
+	}
+}
+
+static void __declspec(naked) item_caps_total_hack() {
+	static const DWORD item_caps_total_Ret = 0x47A6E5;
+	__asm { // edi - invenItem (caps)
+		cmp  dword ptr [edi + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [edi + 4], 1; // fix stack count
+end: // overwritten engine code
+		add  edx, [edi + 4];         // accumulate quantity
+		jmp  item_caps_total_Ret;
+	}
+}
+
+static void __declspec(naked) inven_pid_quantity_carried_hack() {
+	__asm {
+		mov  eax, [esp + 0x18 - 0x18 + 4]; // invenItem
+		cmp  dword ptr [eax + 4], 0;       // invenItem.count
+		jg   end;
+		mov  dword ptr [eax + 4], 1;       // fix stack count
+end: // overwritten engine code
+		add  ebx, [eax + 4];               // accumulate quantity
+		retn;
+	}
+}
+
+static void __declspec(naked) display_inventory_hack_info() {
+	__asm { // eax - invenItem
+		cmp  dword ptr [eax + 4], 0; // invenItem.count
+		jg   end;
+		mov  dword ptr [eax + 4], 1; // fix stack count
+end: // overwritten engine code
+		mov  edx, [eax + 4];         // count
+		mov  eax, [eax];             // item
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -3601,7 +3713,7 @@ void BugFixes::init() {
 	MakeCall(0x471A94, use_inventory_on_hack);
 
 	// Fix item_count_ function returning incorrect value when there is a container-item inside
-	SafeWrite8(0x4780B1, 0x29); // jmp 0x4780DB
+	//SafeWrite8(0x4780B1, 0x29); // jmp 0x4780DB
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
@@ -4071,6 +4183,25 @@ void BugFixes::init() {
 
 	// Fix for gaining two levels at once when leveling up from level 97
 	SafeWrite8(0x4AF9AF, 0x7F); // jge > jg (stat_pc_min_exp_)
+
+	// Fix to prevent integer overflow for the number of items in a stack in the inventory
+	// If the number of items in a stack is less than 1, it is considered an integer overflow
+	MakeCall(0x47732E, item_add_force_hack0, 2);   // before adding items
+	MakeCall(0x4773F0, item_add_force_hack1);      // after adding items
+	SafeWrite8(0x47739A, 0x77);                    // jg > ja (extra handling for adding ammo)
+	MakeCall(0x4774D6, item_remove_mult_hack0);    // before removing items
+	MakeCall(0x477503, item_remove_mult_hack1, 1); // after removing items
+	MakeJump(0x4780AD, item_count_hack);
+	MakeCall(0x47A7C3, item_caps_adjust_hack, 1);  // for op_item_caps_adjust_
+	MakeJump(0x47A6C9, item_caps_total_hack);      // for op_item_caps_total_ and money display
+	MakeCall(0x471D08, inven_pid_quantity_carried_hack, 1); // for op_obj_is_carrying_obj_pid_
+	MakeCalls(display_inventory_hack_info, { // when displaying the inventory list
+		0x470253, // display_inventory_
+		0x470506, // display_target_inventory_
+		//0x475481, // display_table_inventories_
+		//0x4756B1  // display_table_inventories_
+	});
+	SafeWrite8(0x4705E9, 0x76); // jle > jbe (for ammo counter in display_inventory_info_)
 }
 
 }
