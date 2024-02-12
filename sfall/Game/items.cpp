@@ -79,6 +79,9 @@ long Items::item_count(fo::GameObject* who, fo::GameObject* item) {
 	for (int i = 0; i < who->invenSize; i++) {
 		fo::GameObject::InvenItem* tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
+			if (tableItem->count <= 0) {
+				tableItem->count = 1; // fix stack count
+			}
 			return tableItem->count; // fix
 		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
 			int count = item_count(tableItem->object, item);

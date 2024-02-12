@@ -71,6 +71,9 @@ void op_obj_is_carrying_obj(OpcodeContext& ctx) {
 	if (invenObj != nullptr && itemObj != nullptr) {
 		for (int i = 0; i < invenObj->invenSize; i++) {
 			if (invenObj->invenTable[i].object == itemObj) {
+				if (invenObj->invenTable[i].count <= 0) {
+					invenObj->invenTable[i].count = 1; // fix stack count
+				}
 				count = invenObj->invenTable[i].count;
 				break;
 			}
