@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.4.2
+* Fixed a bug in **XPTable** that could cause a hang when leveling up in some cases
+* Fixed the messages of critical hits to the right arm for some critter types
+* Changed `add_mult_objs_to_inven` script function to allow adding more than 99999 instances of an object in one go
+* Added a fix to use **'English'** as the fallback language directory for loading `credits.txt/quotes.txt`
+* Added a fix for gaining two levels at once when leveling up from level 97
+* Added a fix for the modulo operator treating negative integers as unsigned
+* Added a fix to prevent integer overflow for the number of items in a stack in the inventory
+* Added a fix to `COMBATDAMAGE` hook to prevent instadeath critical hits for no damage
+* New script function: `reg_anim_animate_and_move`
+
 ## 4.4.1
 * HRP: Fixed the clickability issue of the file list for save/load and **'print to file'** options in the character screen
 * Fixed a bug introduced in 4.4 that broke the interoperability of saved arrays with older versions
@@ -440,7 +451,7 @@
 * Fixed `move_obj_inven_to_obj/drop_obj` script functions not removing the equipped armor properly for the player and party members
 * Fixed `inven_unwield` script function not updating the active item button on the interface bar for the player
 * Fixed `art_change_fid_num` script function not setting player's FID correctly when the **hero appearance mod** is enabled
-* Fixed `critter_add/rm_trait` script functions ignoring the value of the **'amount'** argument. Note: pass negative amount values to `critter_rm_trait` to remove all ranks of the perk (vanilla behavior)
+* Fixed `critter_add/rm_trait` script functions ignoring the **'amount'** argument. Note: pass negative amount values to `critter_rm_trait` to remove all ranks of the perk (vanilla behavior)
 * Fixed the xp bonus set by `set_swiftlearner_mod` script function not being reset on game load
 * Fixed the player name while controlling other critters
 * Fixed **NPC combat control mod** not removing the inherited perks from controlled critters properly
@@ -796,7 +807,7 @@ Original engine bug fixes and various features based on the work by Mr.Stalin:
 ## 4.0.3
 * Fixed the broken **ExtraGameMsgFileList** option
 * Fixed a bug in **NPC combat control mod** that increases the rank of **Gecko Skinning** perk when the combat ends
-* Fixed `add_mult_objs_to_inven` script function only adding 500 of an object when the value of the **'count'** argument is over 99999
+* Fixed `add_mult_objs_to_inven` script function adding only 500 instances of an object when the value of the **'count'** argument is over 99999
 * Improved the fix for player's base EMP DR to make sure the value is set correctly
 * **Item highlighting mod** now only highlights lootable corpses
 
