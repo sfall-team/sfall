@@ -117,6 +117,24 @@ static void combat_ai_reset() {
 	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(fo::AIcap));
 }
 
+static void __declspec(naked) GNW95_init_window_hack() {
+	__asm {
+		pop  eax;
+		push 0x50FA0C; // "GNW95 Class"
+		push (WS_EX_TOPMOST | WS_EX_APPWINDOW); // was WS_EX_TOPMOST
+		jmp  eax;
+	}
+}
+
+static void __declspec(naked) GNW95_init_window_hack_HRP() {
+	__asm {
+		pop  eax;
+		push 0x50FA0C; // "GNW95 Class"
+		push WS_EX_APPWINDOW; // was 0
+		jmp  eax;
+	}
+}
+
 // fix for vanilla negate operator not working on floats
 static void __declspec(naked) NegateFixHack() {
 	static const DWORD NegateFixHack_Back = 0x46AB77;
@@ -3398,6 +3416,13 @@ void BugFixes::init() {
 	#ifndef NDEBUG
 	if (IniReader::GetIntDefaultConfig("Debugging", "BugFixes", 1) == 0) return;
 	#endif
+
+	// Fix for the game disappearing from the taskbar after using Alt+Tab
+	MakeCall(0x4CAF14, GNW95_init_window_hack, 2);
+	if (hrpVersionValid) { // for HRP 4.1.8 in DD7/DX9 mode
+		MakeCall(HRPAddress(0x10026504), GNW95_init_window_hack_HRP, 2); // windowed
+		MakeCall(HRPAddress(0x10026605), GNW95_init_window_hack, 2); // fullscreen
+	}
 
 	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);

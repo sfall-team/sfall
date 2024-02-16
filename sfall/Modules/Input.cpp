@@ -28,7 +28,7 @@ namespace sfall
 void Input::init() {
 	//if (IniReader::GetConfigInt("Input", "Enable", 0)) {
 		dlogr("Applying input patch.", DL_INIT);
-		SafeWriteStr(0x50FB70, "ddraw.dll");
+		SafeWrite32(0x4DE902, 0x50FB50); // "DDRAW.DLL"
 		::sfall::availableGlobalScriptTypes |= 1;
 	//}
 }
