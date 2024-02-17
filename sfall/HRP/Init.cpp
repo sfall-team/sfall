@@ -224,9 +224,9 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
 	}
 
-	int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni);
+	int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 0, f2ResIni);
 	if (gMode < 0 || gMode > 2) gMode = 2;
-	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla)
+	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (default)
 	if (gMode == 2) sf::Graphics::mode = 4 + windowed; // DX9: 4 or 5/6 (sfall)
 
 	if (sf::Graphics::mode == 1) {
