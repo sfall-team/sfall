@@ -178,7 +178,7 @@ static void ResetDevice(bool create) {
 	params.BackBufferFormat = dispMode.Format;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
-	params.Windowed = (Graphics::mode != 4);
+	params.Windowed = (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
 	params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -1024,8 +1024,8 @@ public:
 		WinProc::SetHWND(window);
 		WinProc::SetTitle(gWidth, gHeight, Graphics::mode);
 
-		if (Graphics::mode >= 5) {
-			long windowStyle = (Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
+		if (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5) {
+			long windowStyle = (Graphics::mode == 2 || Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
 			WinProc::SetStyle(windowStyle);
 		}
 
@@ -1254,7 +1254,7 @@ void Graphics::init() {
 	if (Graphics::mode < 0 || Graphics::mode > 6) {
 		Graphics::mode = 0;
 	}
-	IsWindowedMode = (mode == 2 || mode == 3 || mode >= 5);
+	IsWindowedMode = (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5);
 
 	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
@@ -1298,7 +1298,7 @@ void Graphics::init() {
 	} else if (HRP::Setting::IsEnabled()) {
 		DirectDraw::init();
 	}
-	if (Graphics::mode == 5 || Graphics::mode == 2) WinProc::SetMoveKeys();
+	if (Graphics::mode == 2 || Graphics::mode == 5) WinProc::SetMoveKeys();
 
 	if (HRP::Setting::IsEnabled()) {
 		HRP::MoviesScreen::SetDrawMode(Graphics::mode < 4);
