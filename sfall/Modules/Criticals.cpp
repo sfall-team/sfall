@@ -187,7 +187,7 @@ static void CriticalTableOverride() {
 		SetEntry(2, LegLeft,  2, MsgFail,   5000);
 
 		// Super Mutants
-		SetEntry(3, LegLeft,  1, MsgFail,   5306);
+		SetEntry(3, ArmRight, 1, MsgFail,   5306);
 
 		// Ghouls
 		SetEntry(4, Head,     4, StatCheck, -1);
