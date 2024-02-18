@@ -44,8 +44,7 @@ namespace sf = sfall;
 
 static const char* f2ResIni = ".\\f2_res.ini";
 static bool f2ResIniExist = true;
-if (GetFileAttributes(f2ResIni) == INVALID_FILE_ATTRIBUTES)
-{
+if (GetFileAttributes(f2ResIni) == INVALID_FILE_ATTRIBUTES) {
 	f2ResIniExist = false;
 }
 static DWORD baseDLLAddr = 0; // 0x10000000
