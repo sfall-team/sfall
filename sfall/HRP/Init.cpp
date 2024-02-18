@@ -34,7 +34,7 @@
 #include "SlidesScreen.h"
 #include "CreditsScreen.h"
 #include "MoviesScreen.h"
-
+#include "fileapi.h"
 #include "Init.h"
 
 namespace HRP
