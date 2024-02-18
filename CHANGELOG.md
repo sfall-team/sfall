@@ -1,5 +1,6 @@
 # Changelog
 
+
 ## 4.4.2
 * Fixed a bug in **XPTable** that could cause a hang when leveling up in some cases
 * Fixed the messages of critical hits to the right arm for some critter types
