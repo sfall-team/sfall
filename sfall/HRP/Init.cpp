@@ -34,7 +34,7 @@
 #include "SlidesScreen.h"
 #include "CreditsScreen.h"
 #include "MoviesScreen.h"
-
+#include "fileapi.h"
 #include "Init.h"
 
 namespace HRP
@@ -43,6 +43,10 @@ namespace HRP
 namespace sf = sfall;
 
 static const char* f2ResIni = ".\\f2_res.ini";
+static bool f2ResIniExist = true;
+if (GetFileAttributes(f2ResIni) == INVALID_FILE_ATTRIBUTES) {
+	f2ResIniExist = false;
+}
 static DWORD baseDLLAddr = 0; // 0x10000000
 
 bool Setting::VersionIsValid = false;
@@ -216,18 +220,29 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	sf::dlog("Applying built-in High Resolution Patch.", DL_MAIN);
 
 	// Read High Resolution config
+	if (f2ResIniExist)
+	{
+		int windowed = (sf::IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni) != 0) ? 1 : 0;
+		if (windowed && sf::IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni)) {
+			windowed += 1;
+			SCR_WIDTH  = GetSystemMetrics(SM_CXSCREEN);
+			SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+		}
 
-	int windowed = (sf::IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni) != 0) ? 1 : 0;
-	if (windowed && sf::IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni)) {
-		windowed += 1;
-		SCR_WIDTH  = GetSystemMetrics(SM_CXSCREEN);
-		SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+		int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni);
+		if (gMode < 0 || gMode > 2) gMode = 2;
+		if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla)
+		if (gMode == 2) sf::Graphics::mode = 4 + windowed; // DX9: 4 or 5/6 (sfall)
 	}
-
-	int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 2, f2ResIni);
-	if (gMode < 0 || gMode > 2) gMode = 2;
-	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla)
-	if (gMode == 2) sf::Graphics::mode = 4 + windowed; // DX9: 4 or 5/6 (sfall)
+	else
+	{
+		sf::Graphics::mode = sf::IniReader::GetConfigInt("Graphics", "Mode", 0)
+		if (sf::Graphics::mode == 3 || sf::Graphics::mode == 6)
+		{
+			SCR_WIDTH  = GetSystemMetrics(SM_CXSCREEN);
+			SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+		}
+	}
 
 	if (sf::Graphics::mode == 1) {
 		COLOUR_BITS = sf::IniReader::GetInt("Main", "COLOUR_BITS", 32, f2ResIni);

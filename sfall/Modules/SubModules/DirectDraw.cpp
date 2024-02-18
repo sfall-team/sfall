@@ -182,8 +182,8 @@ void SetWindow(HWND window) {
 
 	if (Graphics::mode == 2) WinProc::LoadPosition();
 
-	if (Graphics::IsWindowedMode) {
-		long windowStyle = (Graphics::mode == 3) ? WS_OVERLAPPED : (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU);
+	if (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5) {
+		long windowStyle = (Graphics::mode == 2 || Graphics::mode == 5) ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU) : WS_OVERLAPPED;
 		WinProc::SetStyle(windowStyle);
 	}
 }
