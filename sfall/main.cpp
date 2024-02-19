@@ -99,7 +99,9 @@ bool isDebug = false;
 
 bool versionCHI = false;
 
-char falloutConfigName[65];
+bool extWrapper = false;
+
+static char falloutConfigName[65];
 
 static void InitModules() {
 	dlogr("In InitModules", DL_INIT);
@@ -311,10 +313,12 @@ defaultIni:
 static void LoadOriginalDll(DWORD fdwReason) {
 	switch (fdwReason) {
 	case DLL_PROCESS_ATTACH:
-		ddraw.dll = LoadLibraryA("wrapper\\ddraw.dll"); // external wrapper (e.g. cnc-ddraw)
-		if (!ddraw.dll) {
+		ddraw.dll = LoadLibraryA("wrapper\\ddraw.dll"); // external DirectDraw wrapper
+		if (ddraw.dll) {
+			sfall::extWrapper = true;
+		} else {
 			char path[MAX_PATH];
-			CopyMemory(path + GetSystemDirectoryA(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
+			CopyMemory(path + GetSystemDirectoryA(path, MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
 			ddraw.dll = LoadLibraryA(path);
 		}
 		if (ddraw.dll) {

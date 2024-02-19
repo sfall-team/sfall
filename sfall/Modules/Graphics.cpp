@@ -1249,7 +1249,7 @@ void Graphics::init() {
 	int gMode = (HRP::Setting::ExternalEnabled()) // avoid mode mismatch between ddraw.ini and another ini file
 	          ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
 	          : IniReader::GetConfigInt("Graphics", "Mode", 0);
-	if (gMode >= 4) Graphics::mode = gMode;
+	if (!extWrapper && gMode >= 4) Graphics::mode = gMode;
 
 	if (Graphics::mode < 0 || Graphics::mode > 6) {
 		Graphics::mode = 0;
