@@ -217,7 +217,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	// Read High Resolution config
 
-	int windowed = (sf::IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni) != 0) ? 1 : 0;
+	int windowed = (!sf::extWrapper && sf::IniReader::GetInt("Main", "WINDOWED", 0, f2ResIni) != 0) ? 1 : 0;
 	if (windowed && sf::IniReader::GetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni)) {
 		windowed += 1;
 		SCR_WIDTH  = GetSystemMetrics(SM_CXSCREEN);
@@ -226,7 +226,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	int gMode = sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 0, f2ResIni);
 	if (gMode < 0 || gMode > 2) gMode = 2;
-	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (default)
+	if (gMode <= 1) sf::Graphics::mode = 1 + windowed; // DD7: 1 or 2/3 (vanilla)
 	if (gMode == 2) sf::Graphics::mode = 4 + windowed; // DX9: 4 or 5/6 (sfall)
 
 	if (sf::Graphics::mode == 1) {
