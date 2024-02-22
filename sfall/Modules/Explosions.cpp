@@ -348,30 +348,30 @@ static void SetExplosionRadius(int arg1, int arg2) {
 static void SetExplosionDamage(int pid, int min, int max) {
 	explosionsDamageReset = true;
 	switch (pid) {
-		case fo::ProtoID::PID_DYNAMITE:
-			SafeWrite32(dynamite_min_dmg_addr, min);
-			SafeWrite32(dynamite_max_dmg_addr, max);
-			break;
-		case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
-			SafeWrite32(plastic_min_dmg_addr, min);
-			SafeWrite32(plastic_max_dmg_addr, max);
-			break;
+	case fo::ProtoID::PID_DYNAMITE:
+		SafeWrite32(dynamite_min_dmg_addr, min);
+		SafeWrite32(dynamite_max_dmg_addr, max);
+		break;
+	case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
+		SafeWrite32(plastic_min_dmg_addr, min);
+		SafeWrite32(plastic_max_dmg_addr, max);
+		break;
 	}
 }
 
 static int GetExplosionDamage(int pid) {
 	DWORD min = 0, max = 0;
 	switch (pid) {
-		case fo::ProtoID::PID_DYNAMITE:
-			min = *(DWORD*)dynamite_min_dmg_addr;
-			max = *(DWORD*)dynamite_max_dmg_addr;
-			break;
-		case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
-			min = *(DWORD*)plastic_min_dmg_addr;
-			max = *(DWORD*)plastic_max_dmg_addr;
-			break;
-		default:
-			GetDamage(pid, min, max);
+	case fo::ProtoID::PID_DYNAMITE:
+		min = *(DWORD*)dynamite_min_dmg_addr;
+		max = *(DWORD*)dynamite_max_dmg_addr;
+		break;
+	case fo::ProtoID::PID_PLASTIC_EXPLOSIVES:
+		min = *(DWORD*)plastic_min_dmg_addr;
+		max = *(DWORD*)plastic_max_dmg_addr;
+		break;
+	default:
+		GetDamage(pid, min, max);
 	}
 
 	DWORD arrayId = script::CreateTempArray(2, 0);
@@ -395,47 +395,47 @@ enum MetaruleExplosionsMode {
 
 int __stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
-		case EXPL_FORCE_EXPLOSION_PATTERN:
-			if (arg1) {
-				explosion_effect_starting_dir = 2; // bottom-right
-				SafeWrite8(0x411B54, 4); // bottom-left + 1
-			} else {
-				explosion_effect_starting_dir = 0;
-				SafeWrite8(0x411B54, 6); // last direction
-			}
-			break;
-		case EXPL_FORCE_EXPLOSION_ART:
-			SafeWriteBatch<DWORD>((BYTE)arg1, explosion_art_adr);
-			break;
-		case EXPL_FORCE_EXPLOSION_RADIUS:
-			SetExplosionRadius(arg1, arg1);
-			break;
-		case EXPL_FORCE_EXPLOSION_DMGTYPE:
-			SafeWriteBatch<BYTE>((BYTE)arg1, explosion_dmg_check_adr);
-			break;
-		case EXPL_STATIC_EXPLOSION_RADIUS:
-			if (arg1 > 0) set_expl_radius_grenade = arg1;
-			if (arg2 > 0) set_expl_radius_rocket = arg2;
-			SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
-			break;
-		case EXPL_GET_EXPLOSION_DAMAGE:
-			return GetExplosionDamage(arg1);
-		case EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE:
-			SetExplosionDamage(fo::ProtoID::PID_DYNAMITE, arg1, arg2);
+	case EXPL_FORCE_EXPLOSION_PATTERN:
+		if (arg1) {
+			explosion_effect_starting_dir = 2; // bottom-right
+			SafeWrite8(0x411B54, 4); // bottom-left + 1
+		} else {
+			explosion_effect_starting_dir = 0;
+			SafeWrite8(0x411B54, 6); // last direction
+		}
+		break;
+	case EXPL_FORCE_EXPLOSION_ART:
+		SafeWriteBatch<DWORD>((BYTE)arg1, explosion_art_adr);
+		break;
+	case EXPL_FORCE_EXPLOSION_RADIUS:
+		SetExplosionRadius(arg1, arg1);
+		break;
+	case EXPL_FORCE_EXPLOSION_DMGTYPE:
+		SafeWriteBatch<BYTE>((BYTE)arg1, explosion_dmg_check_adr);
+		break;
+	case EXPL_STATIC_EXPLOSION_RADIUS:
+		if (arg1 > 0) set_expl_radius_grenade = arg1;
+		if (arg2 > 0) set_expl_radius_rocket = arg2;
+		SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
+		break;
+	case EXPL_GET_EXPLOSION_DAMAGE:
+		return GetExplosionDamage(arg1);
+	case EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE:
+		SetExplosionDamage(fo::ProtoID::PID_DYNAMITE, arg1, arg2);
+		return 0;
+	case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
+		SetExplosionDamage(fo::ProtoID::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
+		return 0;
+	case EXPL_SET_EXPLOSION_MAX_TARGET:
+		if (arg1 > 0 && arg1 < 7) {
+			SafeWrite8(0x423C93, arg1);
+			explosionMaxTargetReset = true;
+		} else {
 			return 0;
-		case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
-			SetExplosionDamage(fo::ProtoID::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
-			return 0;
-		case EXPL_SET_EXPLOSION_MAX_TARGET:
-			if (arg1 > 0 && arg1 < 7) {
-				SafeWrite8(0x423C93, arg1);
-				explosionMaxTargetReset = true;
-			} else {
-				return 0;
-			}
-			break;
-		default:
-			return -1;
+		}
+		break;
+	default:
+		return -1;
 	}
 	if (mode != EXPL_STATIC_EXPLOSION_RADIUS) explosionsMetaruleReset = true;
 	return 0;

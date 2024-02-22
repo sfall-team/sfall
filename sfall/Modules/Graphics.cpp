@@ -1203,7 +1203,7 @@ void Graphics::init() {
 	if (Graphics::mode < 4 || Graphics::mode > 6) {
 		Graphics::mode = 0;
 	}
-	IsWindowedMode = (Graphics::mode >= 5);
+	Graphics::IsWindowedMode = (Graphics::mode >= 5);
 
 	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
@@ -1218,7 +1218,7 @@ void Graphics::init() {
 		}
 		FreeLibrary(h);
 
-		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
+		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreat2
 		HookCall(0x44260C, game_init_hook);
 
 		MakeJump(fo::funcoffs::GNW95_SetPaletteEntries_ + 1, GNW95_SetPaletteEntries_replacement); // 0x4CB310

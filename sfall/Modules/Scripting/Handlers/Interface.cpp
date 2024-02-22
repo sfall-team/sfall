@@ -359,20 +359,20 @@ void mf_inventory_redraw(OpcodeContext& ctx) {
 	int mode;
 	DWORD loopFlag = GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER);
 	switch (loopFlag) {
-		case INVENTORY:
-			mode = 0;
-			break;
-		case INTFACEUSE:
-			mode = 1;
-			break;
-		case INTFACELOOT:
-			mode = 2;
-			break;
-		case BARTER:
-			mode = 3;
-			break;
-		default:
-			return;
+	case INVENTORY:
+		mode = 0;
+		break;
+	case INTFACEUSE:
+		mode = 1;
+		break;
+	case INTFACELOOT:
+		mode = 2;
+		break;
+	case BARTER:
+		mode = 3;
+		break;
+	default:
+		return;
 	}
 	long redrawSide = (ctx.numArgs() > 0) ? ctx.arg(0).rawValue() : -1; // -1 - both
 	if (redrawSide <= 0) {
@@ -442,14 +442,14 @@ void mf_hide_window(OpcodeContext& ctx) {
 void mf_set_window_flag(OpcodeContext& ctx) {
 	long bitFlag = ctx.arg(1).rawValue();
 	switch (bitFlag) {
-		case fo::WinFlags::DontMoveTop:
-		case fo::WinFlags::MoveOnTop:
-		case fo::WinFlags::Hidden:
-		case fo::WinFlags::Exclusive:
-		case fo::WinFlags::Transparent:
-			break;
-		default:
-			return; // unsupported set flag
+	case fo::WinFlags::DontMoveTop:
+	case fo::WinFlags::MoveOnTop:
+	case fo::WinFlags::Hidden:
+	case fo::WinFlags::Exclusive:
+	case fo::WinFlags::Transparent:
+		break;
+	default:
+		return; // unsupported set flag
 	}
 	bool mode = ctx.arg(2).asBool();
 	if (ctx.arg(0).isString()) {

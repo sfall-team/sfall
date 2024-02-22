@@ -248,18 +248,18 @@ void mf_test(OpcodeContext& ctx) {
 		const ScriptValue &arg = ctx.arg(i);
 		sstream << ", ";
 		switch (arg.type()) {
-			case DATATYPE_INT:
-				sstream << arg.asInt();
-				break;
-			case DATATYPE_FLOAT:
-				sstream << arg.asFloat();
-				break;
-			case DATATYPE_STR:
-				sstream << '"' << arg.asString() << '"';
-				break;
-			default:
-				sstream << "???";
-				break;
+		case DATATYPE_INT:
+			sstream << arg.asInt();
+			break;
+		case DATATYPE_FLOAT:
+			sstream << arg.asFloat();
+			break;
+		case DATATYPE_STR:
+			sstream << '"' << arg.asString() << '"';
+			break;
+		default:
+			sstream << "???";
+			break;
 		}
 	}
 	sstream << ")";

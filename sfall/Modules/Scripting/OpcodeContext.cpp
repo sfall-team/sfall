@@ -185,30 +185,30 @@ void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opc
 /*
 const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
-		case DATATYPE_NONE:
-			return "(none)";
-		case DATATYPE_STR:
-			return "string";
-		case DATATYPE_FLOAT:
-			return "float";
-		case DATATYPE_INT:
-			return "integer";
-		default:
-			return "(unknown)";
+	case DATATYPE_NONE:
+		return "(none)";
+	case DATATYPE_STR:
+		return "string";
+	case DATATYPE_FLOAT:
+		return "float";
+	case DATATYPE_INT:
+		return "integer";
+	default:
+		return "(unknown)";
 	}
 }
 */
 
 DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	switch (varType & 0xFFFF) {
-		case VAR_TYPE_STR2:
-		case VAR_TYPE_STR:
-			return DATATYPE_STR;
-		case VAR_TYPE_FLOAT:
-			return DATATYPE_FLOAT;
-		case VAR_TYPE_INT:
-		default:
-			return DATATYPE_INT;
+	case VAR_TYPE_STR2:
+	case VAR_TYPE_STR:
+		return DATATYPE_STR;
+	case VAR_TYPE_FLOAT:
+		return DATATYPE_FLOAT;
+	case VAR_TYPE_INT:
+	default:
+		return DATATYPE_INT;
 	}
 }
 
