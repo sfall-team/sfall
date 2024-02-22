@@ -464,7 +464,7 @@ jtd.setTheme = function(theme) {
 
 function navLink() {
   var pathname = document.location.pathname;
-  
+
   var navLink = document.getElementById('site-nav').querySelector('a[href="' + pathname + '"]');
   if (navLink) {
     return navLink;
