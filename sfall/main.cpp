@@ -99,7 +99,9 @@ bool isDebug = false;
 
 bool versionCHI = false;
 
-char falloutConfigName[65];
+bool extWrapper = false;
+
+static char falloutConfigName[65];
 
 static void InitModules() {
 	dlogr("In InitModules", DL_INIT);
@@ -310,39 +312,44 @@ defaultIni:
 
 static void LoadOriginalDll(DWORD fdwReason) {
 	switch (fdwReason) {
-		case DLL_PROCESS_ATTACH:
+	case DLL_PROCESS_ATTACH:
+		ddraw.dll = LoadLibraryA("wrapper\\ddraw.dll"); // external DirectDraw wrapper
+		if (ddraw.dll) {
+			sfall::extWrapper = true;
+		} else {
 			char path[MAX_PATH];
-			CopyMemory(path + GetSystemDirectoryA(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
+			CopyMemory(path + GetSystemDirectoryA(path, MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
 			ddraw.dll = LoadLibraryA(path);
-			if (ddraw.dll) {
-				ddraw.AcquireDDThreadLock          = GetProcAddress(ddraw.dll, "AcquireDDThreadLock");
-				ddraw.CheckFullscreen              = GetProcAddress(ddraw.dll, "CheckFullscreen");
-				ddraw.CompleteCreateSysmemSurface  = GetProcAddress(ddraw.dll, "CompleteCreateSysmemSurface");
-				ddraw.D3DParseUnknownCommand       = GetProcAddress(ddraw.dll, "D3DParseUnknownCommand");
-				ddraw.DDGetAttachedSurfaceLcl      = GetProcAddress(ddraw.dll, "DDGetAttachedSurfaceLcl");
-				ddraw.DDInternalLock               = GetProcAddress(ddraw.dll, "DDInternalLock");
-				ddraw.DDInternalUnlock             = GetProcAddress(ddraw.dll, "DDInternalUnlock");
-				ddraw.DSoundHelp                   = GetProcAddress(ddraw.dll, "DSoundHelp");
-				ddraw.DirectDrawCreateClipper      = GetProcAddress(ddraw.dll, "DirectDrawCreateClipper");
-				ddraw.DirectDrawCreate             = GetProcAddress(ddraw.dll, "DirectDrawCreate");
-				ddraw.DirectDrawCreateEx           = GetProcAddress(ddraw.dll, "DirectDrawCreateEx");
-				ddraw.DirectDrawEnumerateA         = GetProcAddress(ddraw.dll, "DirectDrawEnumerateA");
-				ddraw.DirectDrawEnumerateExA       = GetProcAddress(ddraw.dll, "DirectDrawEnumerateExA");
-				ddraw.DirectDrawEnumerateExW       = GetProcAddress(ddraw.dll, "DirectDrawEnumerateExW");
-				ddraw.DirectDrawEnumerateW         = GetProcAddress(ddraw.dll, "DirectDrawEnumerateW");
-				ddraw.DllCanUnloadNow              = GetProcAddress(ddraw.dll, "DllCanUnloadNow");
-				ddraw.DllGetClassObject            = GetProcAddress(ddraw.dll, "DllGetClassObject");
-				ddraw.GetDDSurfaceLocal            = GetProcAddress(ddraw.dll, "GetDDSurfaceLocal");
-				ddraw.GetOLEThunkData              = GetProcAddress(ddraw.dll, "GetOLEThunkData");
-				ddraw.GetSurfaceFromDC             = GetProcAddress(ddraw.dll, "GetSurfaceFromDC");
-				ddraw.RegisterSpecialCase          = GetProcAddress(ddraw.dll, "RegisterSpecialCase");
-				ddraw.ReleaseDDThreadLock          = GetProcAddress(ddraw.dll, "ReleaseDDThreadLock");
-				ddraw.SetAppCompatData             = GetProcAddress(ddraw.dll, "SetAppCompatData");
-			}
-			break;
-		case DLL_PROCESS_DETACH:
-			if (ddraw.dll) FreeLibrary(ddraw.dll);
-			break;
+		}
+		if (ddraw.dll) {
+			ddraw.AcquireDDThreadLock          = GetProcAddress(ddraw.dll, "AcquireDDThreadLock");
+			ddraw.CheckFullscreen              = GetProcAddress(ddraw.dll, "CheckFullscreen");
+			ddraw.CompleteCreateSysmemSurface  = GetProcAddress(ddraw.dll, "CompleteCreateSysmemSurface");
+			ddraw.D3DParseUnknownCommand       = GetProcAddress(ddraw.dll, "D3DParseUnknownCommand");
+			ddraw.DDGetAttachedSurfaceLcl      = GetProcAddress(ddraw.dll, "DDGetAttachedSurfaceLcl");
+			ddraw.DDInternalLock               = GetProcAddress(ddraw.dll, "DDInternalLock");
+			ddraw.DDInternalUnlock             = GetProcAddress(ddraw.dll, "DDInternalUnlock");
+			ddraw.DSoundHelp                   = GetProcAddress(ddraw.dll, "DSoundHelp");
+			ddraw.DirectDrawCreateClipper      = GetProcAddress(ddraw.dll, "DirectDrawCreateClipper");
+			ddraw.DirectDrawCreate             = GetProcAddress(ddraw.dll, "DirectDrawCreate");
+			ddraw.DirectDrawCreateEx           = GetProcAddress(ddraw.dll, "DirectDrawCreateEx");
+			ddraw.DirectDrawEnumerateA         = GetProcAddress(ddraw.dll, "DirectDrawEnumerateA");
+			ddraw.DirectDrawEnumerateExA       = GetProcAddress(ddraw.dll, "DirectDrawEnumerateExA");
+			ddraw.DirectDrawEnumerateExW       = GetProcAddress(ddraw.dll, "DirectDrawEnumerateExW");
+			ddraw.DirectDrawEnumerateW         = GetProcAddress(ddraw.dll, "DirectDrawEnumerateW");
+			ddraw.DllCanUnloadNow              = GetProcAddress(ddraw.dll, "DllCanUnloadNow");
+			ddraw.DllGetClassObject            = GetProcAddress(ddraw.dll, "DllGetClassObject");
+			ddraw.GetDDSurfaceLocal            = GetProcAddress(ddraw.dll, "GetDDSurfaceLocal");
+			ddraw.GetOLEThunkData              = GetProcAddress(ddraw.dll, "GetOLEThunkData");
+			ddraw.GetSurfaceFromDC             = GetProcAddress(ddraw.dll, "GetSurfaceFromDC");
+			ddraw.RegisterSpecialCase          = GetProcAddress(ddraw.dll, "RegisterSpecialCase");
+			ddraw.ReleaseDDThreadLock          = GetProcAddress(ddraw.dll, "ReleaseDDThreadLock");
+			ddraw.SetAppCompatData             = GetProcAddress(ddraw.dll, "SetAppCompatData");
+		}
+		break;
+	case DLL_PROCESS_DETACH:
+		if (ddraw.dll) FreeLibrary(ddraw.dll);
+		break;
 	}
 }
 

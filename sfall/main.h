@@ -83,7 +83,7 @@ namespace sfall
 
 extern bool versionCHI;
 
-extern char falloutConfigName[65];
+extern bool extWrapper;
 
 __inline long GetIntHRPValue(DWORD addr) {
 	return *reinterpret_cast<DWORD*>(HRP::Setting::GetAddress(addr));
