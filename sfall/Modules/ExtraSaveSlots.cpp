@@ -197,32 +197,32 @@ static void SetPageNum() {
 
 static long __fastcall CheckPage(long button) {
 	switch (button) {
-		case 0x14B: // left button
-			LSPageOffset -= 10;
-			if (LSPageOffset < 0) LSPageOffset += 10000; // to the last page
-			__asm call fo::funcoffs::gsound_red_butt_press_;
-			break;
-		case 0x149: // fast left PGUP button
-			LSPageOffset -= 100;
-			if (LSPageOffset < 0) LSPageOffset += 10000;
-			__asm call fo::funcoffs::gsound_red_butt_press_;
-			break;
-		case 0x14D: // right button
-			LSPageOffset += 10;
-			if (LSPageOffset >= 10000) LSPageOffset -= 10000; // to the first page
-			__asm call fo::funcoffs::gsound_red_butt_press_;
-			break;
-		case 0x151: // fast right PGDN button
-			LSPageOffset += 100;
-			if (LSPageOffset >= 10000) LSPageOffset -= 10000;
-			__asm call fo::funcoffs::gsound_red_butt_press_;
-			break;
-		case 'p': // p/P button pressed - start SetPageNum func
-		case 'P':
-			SetPageNum();
-			break;
-		default:
-			if (button < 0x500) return 1; // button in down state
+	case 0x14B: // left button
+		LSPageOffset -= 10;
+		if (LSPageOffset < 0) LSPageOffset += 10000; // to the last page
+		__asm call fo::funcoffs::gsound_red_butt_press_;
+		break;
+	case 0x149: // fast left PGUP button
+		LSPageOffset -= 100;
+		if (LSPageOffset < 0) LSPageOffset += 10000;
+		__asm call fo::funcoffs::gsound_red_butt_press_;
+		break;
+	case 0x14D: // right button
+		LSPageOffset += 10;
+		if (LSPageOffset >= 10000) LSPageOffset -= 10000; // to the first page
+		__asm call fo::funcoffs::gsound_red_butt_press_;
+		break;
+	case 0x151: // fast right PGDN button
+		LSPageOffset += 100;
+		if (LSPageOffset >= 10000) LSPageOffset -= 10000;
+		__asm call fo::funcoffs::gsound_red_butt_press_;
+		break;
+	case 'p': // p/P button pressed - start SetPageNum func
+	case 'P':
+		SetPageNum();
+		break;
+	default:
+		if (button < 0x500) return 1; // button in down state
 	}
 
 	LSButtDN = button;

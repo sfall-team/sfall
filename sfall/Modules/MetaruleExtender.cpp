@@ -54,45 +54,45 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 	long result = 0;
 
 	switch (static_cast<MetaruleFunction>(metafunc)) {
-		case MetaruleFunction::SET_HORRIGAN_ENCOUNTER: {
-			long argValue = args[0];        // arg1
-			if (argValue <= 0) {            // disable Horrigan encounter
-				if (*(BYTE*)HorriganEncounterCheck == CodeType::JumpNZ) {
-					SafeWrite8(HorriganEncounterCheck, CodeType::JumpShort); // skip the Horrigan encounter check
-					HorriganEncounterDisabled = true;
-				}
-			} else {
-				if (argValue > 127) argValue = 127;
-				SafeWrite8(HorriganEncounterDays, static_cast<BYTE>(argValue));
-				HorriganEncounterSetDays = static_cast<signed char>(argValue);
+	case MetaruleFunction::SET_HORRIGAN_ENCOUNTER: {
+		long argValue = args[0];        // arg1
+		if (argValue <= 0) {            // disable Horrigan encounter
+			if (*(BYTE*)HorriganEncounterCheck == CodeType::JumpNZ) {
+				SafeWrite8(HorriganEncounterCheck, CodeType::JumpShort); // skip the Horrigan encounter check
+				HorriganEncounterDisabled = true;
 			}
-			break;
+		} else {
+			if (argValue > 127) argValue = 127;
+			SafeWrite8(HorriganEncounterDays, static_cast<BYTE>(argValue));
+			HorriganEncounterSetDays = static_cast<signed char>(argValue);
 		}
-		case MetaruleFunction::CLEAR_KEYBOARD_BUFFER:
-			__asm call fo::funcoffs::kb_clear_;
-			break;
-		case MetaruleFunction::PARTY_ORDER_ATTACK:
-			PartyControl::OrderAttackPatch();
-			break;
-		case MetaruleFunction::GET_CURRENT_SAVE_SLOT:
-			result = ExtraSaveSlots::GetSaveSlot();
-			break;
-		case MetaruleFunction::SET_CURRENT_SAVE_SLOT:
-			ExtraSaveSlots::SetSaveSlot(args[0], args[1]);
-			break;
-		case MetaruleFunction::GET_CURRENT_QSAVE_PAGE:
-			result = ExtraSaveSlots::GetQuickSavePage();
-			break;
-		case MetaruleFunction::GET_CURRENT_QSAVE_SLOT:
-			result = ExtraSaveSlots::GetQuickSaveSlot();
-			break;
-		case MetaruleFunction::SET_CURRENT_QSAVE_SLOT:
-			ExtraSaveSlots::SetQuickSaveSlot(args[0], args[1], args[2]);
-			break;
-		default:
-			fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
-			                       metafunc, fo::var::currentProgram->fileName, fo::func::findCurrentProc(fo::var::currentProgram));
-			break;
+		break;
+	}
+	case MetaruleFunction::CLEAR_KEYBOARD_BUFFER:
+		__asm call fo::funcoffs::kb_clear_;
+		break;
+	case MetaruleFunction::PARTY_ORDER_ATTACK:
+		PartyControl::OrderAttackPatch();
+		break;
+	case MetaruleFunction::GET_CURRENT_SAVE_SLOT:
+		result = ExtraSaveSlots::GetSaveSlot();
+		break;
+	case MetaruleFunction::SET_CURRENT_SAVE_SLOT:
+		ExtraSaveSlots::SetSaveSlot(args[0], args[1]);
+		break;
+	case MetaruleFunction::GET_CURRENT_QSAVE_PAGE:
+		result = ExtraSaveSlots::GetQuickSavePage();
+		break;
+	case MetaruleFunction::GET_CURRENT_QSAVE_SLOT:
+		result = ExtraSaveSlots::GetQuickSaveSlot();
+		break;
+	case MetaruleFunction::SET_CURRENT_QSAVE_SLOT:
+		ExtraSaveSlots::SetQuickSaveSlot(args[0], args[1], args[2]);
+		break;
+	default:
+		fo::func::debug_printf("\nOPCODE ERROR: metarule3(%d, ...) - metarule function number does not exist.\n > Script: %s, procedure %s.",
+		                       metafunc, fo::var::currentProgram->fileName, fo::func::findCurrentProc(fo::var::currentProgram));
+		break;
 	}
 	return result;
 }
