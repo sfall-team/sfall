@@ -1254,7 +1254,7 @@ void Graphics::init() {
 	if (extWrapper || Graphics::mode < 0 || Graphics::mode > 6) {
 		Graphics::mode = 0;
 	}
-	IsWindowedMode = (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5);
+	Graphics::IsWindowedMode = (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5);
 
 	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);

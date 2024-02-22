@@ -4,7 +4,7 @@ on:
  push:
   branches:
   - 'master'
-  - 'cnc-loader'
+  - 'develop'
   - 'github-action'
   paths:
   - '.github/workflows/build.yml'
