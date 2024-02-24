@@ -66,6 +66,8 @@ public:
 
 	static int SetDefaultConfigString(const char* section, const char* setting, const char* value);
 
+	static int SetInt(const char* section, const char* setting, int value, const char* iniFile);
+
 	void init();
 	void clearCache();
 
