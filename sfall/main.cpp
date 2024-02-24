@@ -313,11 +313,12 @@ defaultIni:
 static void LoadOriginalDll(DWORD fdwReason) {
 	switch (fdwReason) {
 	case DLL_PROCESS_ATTACH:
-		ddraw.dll = LoadLibraryA("wrapper\\ddraw.dll"); // external DirectDraw wrapper
+		char path[MAX_PATH];
+		GetFullPathNameA("wrapper\\ddraw.dll", MAX_PATH, path, NULL);
+		ddraw.dll = LoadLibraryA(path); // external DirectDraw wrapper
 		if (ddraw.dll) {
 			sfall::extWrapper = true;
 		} else {
-			char path[MAX_PATH];
 			CopyMemory(path + GetSystemDirectoryA(path, MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
 			ddraw.dll = LoadLibraryA(path);
 		}

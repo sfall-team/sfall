@@ -1263,7 +1263,7 @@ void Graphics::init() {
 		if (!h) {
 			dlogr(" Failed", DL_INIT);
 			MessageBoxA(0, "You have selected DirectX graphics mode, but " _DLL_NAME " is missing.\n"
-			               "Switch back to DirectDraw (Mode=0), or install an up to date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
+			               "Switch back to DirectDraw (Mode=0), or install an up-to-date version of DirectX 9.0c.", 0, MB_TASKMODAL | MB_ICONERROR);
 #undef _DLL_NAME
 			ExitProcess(-1);
 		}
