@@ -174,7 +174,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	}
 
 	//We neutralize the f2_res.ini file if external HRP is enabled
-	if (Setting::ExternalEnabled() && sf::IniReader::GetInt("Main", "WINDOWED", 404, f2ResIni)) {
+	if (Setting::ExternalEnabled() && sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 404, f2ResIni) > 1) {
 		if (GetFileAttributesA(f2ResIni) == INVALID_FILE_ATTRIBUTES) {
 			//It looks like f2_res.ini is missing, but external HRP is enabled. Let's turn it off just in case.
 			if (!DisableExtHRP(exeFileName, cmdline)) {
@@ -189,9 +189,6 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 				? sf::Graphics::mode += 2
 				: sf::Graphics::mode += 1;
 			switch (sf::IniReader::GetInt("Main", "GRAPHICS_MODE", 404, f2ResIni)) {
-			case 1:
-				sf::Graphics::mode += 1; // DD7: 1 or 2/3 (vanilla)
-				break;
 			case 2:
 				sf::Graphics::mode += 4; // DX9: 4 or 5/6 (sfall)
 				break;
@@ -201,9 +198,11 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 				break;
 			}
 			sf::IniReader::SetConfigInt("Graphics", "Mode", sf::Graphics::mode);
-			sf::IniReader::SetInt("Main", "GRAPHICS_MODE", 0, f2ResIni);
-			sf::IniReader::SetInt("Main", "WINDOWED", 0, f2ResIni);
-			sf::IniReader::SetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni);
+			if (sf::Graphics::mode > 3) {
+				sf::IniReader::SetInt("Main", "GRAPHICS_MODE", 0, f2ResIni);
+				sf::IniReader::SetInt("Main", "WINDOWED", 0, f2ResIni);
+				sf::IniReader::SetInt("Main", "WINDOWED_FULLSCREEN", 0, f2ResIni);
+			}
 			ShellExecuteA(0, 0, exeFileName, 0, 0, SW_SHOWDEFAULT); // restart game
 			ExitProcess(EXIT_SUCCESS);
 		}
@@ -211,13 +210,29 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
 
-	SCR_WIDTH = sf::IniReader::GetInt("Main", "SCR_WIDTH", 0, f2ResIni);
-	SCR_HEIGHT = sf::IniReader::GetInt("Main", "SCR_HEIGHT", 0, f2ResIni);
-
-	if (SCR_WIDTH == 0 || SCR_HEIGHT == 0) {
-		SCR_WIDTH = sf::IniReader::GetConfigInt("Graphics", "GraphicsWidth", 640);
-		SCR_HEIGHT = sf::IniReader::GetConfigInt("Graphics", "GraphicsHeight", 480);
+	if (Setting::ExternalEnabled()) {
+		sf::Graphics::mode = sf::IniReader::GetConfigInt("Graphics", "Mode", 0);
+		if (sf::Graphics::mode < 0 || sf::Graphics::mode > 6) {
+			sf::Graphics::mode = 0;
+			sf::IniReader::SetConfigInt("Graphics", "Mode", sf::Graphics::mode);
+		}
+		if (sf::extWrapper && sf::Graphics::mode > 1) sf::Graphics::mode = 1;
+		if (sf::Graphics::mode > 3) sf::Graphics::mode = 0;
 	}
+
+	//This solution is absolutely not suitable for modern FHD/UHD/2K/4K monitors
+	//if (sf::Graphics::mode == 3 || sf::Graphics::mode == 6) {
+	//	SCR_WIDTH = GetSystemMetrics(SM_CXSCREEN);
+	//	SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+	//} else {
+		SCR_WIDTH = sf::IniReader::GetInt("Main", "SCR_WIDTH", 0, f2ResIni);
+		SCR_HEIGHT = sf::IniReader::GetInt("Main", "SCR_HEIGHT", 0, f2ResIni);
+
+		if (SCR_WIDTH == 0 || SCR_HEIGHT == 0) {
+			SCR_WIDTH = sf::IniReader::GetConfigInt("Graphics", "GraphicsWidth", 640);
+			SCR_HEIGHT = sf::IniReader::GetConfigInt("Graphics", "GraphicsHeight", 480);
+		}
+	//}
 
 	if (SCR_WIDTH < 640) SCR_WIDTH = 640;
 	if (SCR_HEIGHT < 480) SCR_HEIGHT = 480;

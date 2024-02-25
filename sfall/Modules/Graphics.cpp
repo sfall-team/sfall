@@ -1246,13 +1246,12 @@ static __declspec(naked) void dump_screen_hack_replacement() {
 }
 
 void Graphics::init() {
-	if (HRP::Setting::ExternalEnabled()) {
-		Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0); // 0/1/2/3/4/5/6 (sfall)
+	if (HRP::Setting::ExternalEnabled() && !Graphics::mode) {
+		Graphics::mode = IniReader::GetConfigInt("Graphics", "Mode", 0); // 4/5/6 (HRP)
 		if (Graphics::mode < 0 || Graphics::mode > 6) {
 			Graphics::mode = 0;
 			IniReader::SetConfigInt("Graphics", "Mode", Graphics::mode);
 		}
-		if (extWrapper && Graphics::mode > 1) Graphics::mode = 1;
 	}
 
 	Graphics::IsWindowedMode = (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5);
