@@ -180,4 +180,8 @@ int IniReader::SetDefaultConfigString(const char* section, const char* setting, 
 	return instance().setString(section, setting, value, ddrawIni);
 }
 
+int IniReader::SetInt(const char* section, const char* setting, int value, const char* iniFile) {
+	return setInt(section, setting, value, iniFile);
+}
+
 }

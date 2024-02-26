@@ -1246,16 +1246,6 @@ static __declspec(naked) void dump_screen_hack_replacement() {
 }
 
 void Graphics::init() {
-	int gMode = (HRP::Setting::ExternalEnabled()) // avoid mode mismatch between ddraw.ini and another ini file
-	          ? IniReader::GetIntDefaultConfig("Graphics", "Mode", 0)
-	          : IniReader::GetConfigInt("Graphics", "Mode", 0);
-	if (gMode >= 4) Graphics::mode = gMode;
-
-	if (extWrapper || Graphics::mode < 0 || Graphics::mode > 6) {
-		Graphics::mode = 0;
-	}
-	Graphics::IsWindowedMode = (Graphics::mode == 2 || Graphics::mode == 3 || Graphics::mode >= 5);
-
 	if (Graphics::mode >= 4) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
