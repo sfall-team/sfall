@@ -81,7 +81,7 @@ namespace sfall
 extern bool hrpIsEnabled;
 extern bool hrpVersionValid;
 
-extern char falloutConfigName[65];
+extern bool extWrapper;
 
 DWORD HRPAddress(DWORD addr);
 

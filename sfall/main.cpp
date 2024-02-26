@@ -97,13 +97,15 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
+bool extWrapper = false;
+
 static DWORD hrpDLLBaseAddr = 0; // 0x10000000
 
 DWORD HRPAddress(DWORD addr) {
 	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
 }
 
-char falloutConfigName[65];
+static char falloutConfigName[65];
 
 static void InitModules() {
 	dlogr("In InitModules", DL_INIT);
@@ -319,8 +321,14 @@ static void LoadOriginalDll(DWORD fdwReason) {
 	switch (fdwReason) {
 	case DLL_PROCESS_ATTACH:
 		char path[MAX_PATH];
-		CopyMemory(path + GetSystemDirectoryA(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
-		ddraw.dll = LoadLibraryA(path);
+		GetFullPathNameA("wrapper\\ddraw.dll", MAX_PATH, path, NULL);
+		ddraw.dll = LoadLibraryA(path); // external DirectDraw wrapper
+		if (ddraw.dll) {
+			sfall::extWrapper = true;
+		} else {
+			CopyMemory(path + GetSystemDirectoryA(path, MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
+			ddraw.dll = LoadLibraryA(path);
+		}
 		if (ddraw.dll) {
 			ddraw.AcquireDDThreadLock          = GetProcAddress(ddraw.dll, "AcquireDDThreadLock");
 			ddraw.CheckFullscreen              = GetProcAddress(ddraw.dll, "CheckFullscreen");
