@@ -257,23 +257,35 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 
 	sf::Graphics::IsWindowedMode = (sf::Graphics::mode == 2 || sf::Graphics::mode == 3 || sf::Graphics::mode >= 5);
 
-	if (!Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
+	if (!sf::Graphics::mode && !Setting::ExternalEnabled() && !hiResMode) return; // vanilla game mode
 
 	SCR_WIDTH = sf::IniReader::GetInt("Main", "SCR_WIDTH", 0, f2ResIni);
 	SCR_HEIGHT = sf::IniReader::GetInt("Main", "SCR_HEIGHT", 0, f2ResIni);
-	if (!Setting::ExternalEnabled()) { //f2_res.dll reads settings from f2_res.ini, so I don’t know how to implement it all correctly
+	if (SCR_WIDTH < 640 || SCR_HEIGHT < 480) {
+		SCR_WIDTH = sf::IniReader::GetConfigInt("Graphics", "GraphicsWidth", 640);
+		SCR_HEIGHT = sf::IniReader::GetConfigInt("Graphics", "GraphicsHeight", 480);
+		if (SCR_WIDTH < 640 || SCR_HEIGHT < 480) {
+			SCR_WIDTH = 640;
+			SCR_HEIGHT = 480;
+			sf::IniReader::SetConfigInt("Graphics", "GraphicsWidth", SCR_WIDTH);
+			sf::IniReader::SetConfigInt("Graphics", "GraphicsHeight", SCR_HEIGHT);
+		}
+		if (GetFileAttributesA(f2ResIni) != INVALID_FILE_ATTRIBUTES) {
+			sf::IniReader::SetInt("Main", "SCR_WIDTH", SCR_WIDTH, f2ResIni);
+			sf::IniReader::SetInt("Main", "SCR_HEIGHT", SCR_HEIGHT, f2ResIni);
+			if (Setting::ExternalEnabled()) {
+				FreeLibrary((HMODULE)baseDLLAddr);
+				ShellExecuteA(0, 0, exeFileName, cmdline.c_str(), 0, SW_SHOWDEFAULT); // restart game
+				ExitProcess(EXIT_SUCCESS);
+			}
+		}
+	}
+	if (!Setting::ExternalEnabled()) {
 		//This solution is absolutely not suitable for modern FHD/UHD/2K/4K monitors
 		if (sf::Graphics::mode == 3 || sf::Graphics::mode == 6) {
 			SCR_WIDTH = GetSystemMetrics(SM_CXSCREEN);
 			SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
-		} else {
-			if (SCR_WIDTH == 0 || SCR_HEIGHT == 0) {
-				SCR_WIDTH = sf::IniReader::GetConfigInt("Graphics", "GraphicsWidth", 640);
-				SCR_HEIGHT = sf::IniReader::GetConfigInt("Graphics", "GraphicsHeight", 480);
-			}
 		}
-		if (SCR_WIDTH < 640) SCR_WIDTH = 640;
-		if (SCR_HEIGHT < 480) SCR_HEIGHT = 480;
 	}
 
 	if (!hiResMode) return;
