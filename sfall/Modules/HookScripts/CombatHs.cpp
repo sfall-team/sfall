@@ -680,13 +680,13 @@ static void __declspec(naked) CanUseWeaponHook() {
 		retn;
 	}
 }
-/*
+
 bool CanUseWeaponHook_Invoke(bool result, fo::GameObject* source, fo::GameObject* weapon, long hitMode) {
 	return (HookScripts::HookHasScript(HOOK_CANUSEWEAPON))
 	       ? CanUseWeaponHook_Script(result, source, weapon, hitMode)
 	       : result;
 }
-*/
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void Inject_ToHitHook() {

@@ -243,10 +243,13 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 		}
 	}
 
+	bool canUseCurr = game::CombatAI::ai_can_use_weapon(source, weapon, hitMode);
+
 	// does the NPC have other weapons in inventory?
 	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target); // search based on AP
 	if (item) {
-		// is using a close range weapon?
+		if (!canUseCurr) return 1; // can't use current weapon, so switch anyway
+		// is it a close-range weapon?
 		long wType = fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 		if (wType <= fo::AttackSubType::MELEE) { // unarmed and melee weapons, check the distance before switching
 			if (!game::ai::AIHelpers::AttackInRange(source, item, target)) return -1; // target out of range, exit ai_try_attack_
@@ -255,7 +258,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 	}
 
 	// no other weapon in inventory
-	if (fo::func::item_w_range(source, fo::AttackType::ATKTYPE_PUNCH) >= fo::func::obj_dist(source, target)) {
+	if (!canUseCurr || fo::func::item_w_range(source, fo::AttackType::ATKTYPE_PUNCH) >= fo::func::obj_dist(source, target)) {
 		hitMode = fo::AttackType::ATKTYPE_PUNCH;
 		return 0; // change hit mode, continue attack cycle
 	}
