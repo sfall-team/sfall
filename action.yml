@@ -107,7 +107,7 @@ runs:
 
              #
              # echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
-             "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=ReleaseXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
+             "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=ReleaseXP -p:Platform=Win32 -p:PlatformToolset=v141_xp
              #
              echo "ddraw-dll=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/ReleaseXP/ddraw.dll")" >> $GITHUB_OUTPUT
 
@@ -127,7 +127,7 @@ runs:
 
              #
              # echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
-             "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=DevXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
+             "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=DevXP -p:Platform=Win32 -p:PlatformToolset=v141_xp
              #
              echo "ddraw-dll=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.dll")" >> $GITHUB_OUTPUT
              echo "ddraw-pdb=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.pdb")" >> $GITHUB_OUTPUT

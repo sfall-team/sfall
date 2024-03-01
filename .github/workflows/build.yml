@@ -13,9 +13,29 @@ on:
 
 jobs:
  Build:
-  name:    sfall
   runs-on: windows-2019
   steps:
+
+#  - name: Install Windows XP Support for Visual Studio 2022 # windows-2022 # v141_xp # Installation takes more than 5 minutes
+#    run: |
+#         Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+#         $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+#         $componentsToAdd = @(
+#           "Microsoft.VisualStudio.Component.WinXP"
+#         )
+#         [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
+#         $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+#         $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+#         if ($process.ExitCode -eq 0)
+#         {
+#           Write-Host "components have been successfully added"
+#           Get-ChildItem C:\ProgramData\Microsoft\VisualStudio\Packages\Microsoft.Windows.XPSupport.*
+#         }
+#         else
+#         {
+#           Write-Host "components were not installed"
+#           exit 1
+#         }
 
   - name: Clone sfall
     uses: actions/checkout@v4
@@ -24,12 +44,13 @@ jobs:
   # DevXP build results are intentionally *not* included in artifact
 
   - name: ReleaseXP build
-    id:   build
+    id: build
     uses: ./
     with:
      release-xp: true
 
   - name: DevXP build
+    id: build-dev
     uses: ./
     with:
      dev-xp: true
@@ -37,16 +58,38 @@ jobs:
   - name:  Prepare artifact
     run:   |
            :
-           mkdir -p sfall-build
 
+           mkdir -p sfall-build
+           mkdir -p sfall-build/mods
+
+           mkdir -p sfall-build-dev
+
+           cp LICENSE sfall-build/LICENSE.txt
+           cp README.md sfall-build/README.txt
+           cp CHANGELOG.md sfall-build/CHANGELOG.txt
            cp artifacts/ddraw.ini sfall-build
            cp artifacts/sfall.dat sfall-build
+           cp artifacts/config_files/sfall-mods.ini sfall-build/mods
+           cp -r artifacts/translations sfall-build
            cp "${{ steps.build.outputs.release-xp }}" sfall-build
+
+           cp artifacts/ddraw.ini sfall-build-dev
+           cp artifacts/sfall.dat sfall-build-dev
+           cp "${{ steps.build-dev.outputs.dev-xp }}" sfall-build-dev
+           cp "${{ steps.build-dev.outputs.dev-xp-pdb }}" sfall-build-dev
+           
     shell: bash
 
-  - name: Upload artifacts
+  - name: Upload artifacts sfall-build
     uses: actions/upload-artifact@v4
     with:
-     name:           sfall-build
-     path:           sfall-build
+     name: sfall-build
+     path: sfall-build
+     retention-days: 14
+     
+  - name: Upload artifacts sfall-build-dev
+    uses: actions/upload-artifact@v4
+    with:
+     name: sfall-build-dev
+     path: sfall-build-dev
      retention-days: 14
