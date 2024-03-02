@@ -646,21 +646,20 @@ void InitGlobalScripts() {
 static void PrepareGlobalScriptsList() {
 	globalScriptFilesList.clear();
 
-	char* name = "scripts\\gl*.int";
 	char** filenames;
-	int count = fo::func::db_get_file_list(name, &filenames);
+	int count = fo::func::db_get_file_list("scripts\\gl*.int", &filenames);
 
 	for (int i = 0; i < count; i++) {
-		name = _strlwr(filenames[i]); // name of the script in lower case
+		char* name = _strlwr(filenames[i]); // name of the script in lower case
 		if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
 		std::string baseName(name);
 		int lastDot = baseName.find_last_of('.');
 		if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
-		dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 
 		baseName = baseName.substr(0, lastDot); // script name without extension
 		if (!IsGameScript(baseName.c_str())) {
+			dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 			globalScriptFilesList.push_back(std::move(baseName));
 		}
 	}
