@@ -548,10 +548,10 @@ static void PrepareGlobalScriptsListByMask() {
 			std::string baseName(name);
 			int lastDot = baseName.find_last_of('.');
 			if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
-			dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 
 			baseName = baseName.substr(0, lastDot); // script name without extension
 			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
+				dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 				std::string fullPath(basePath);
 				fullPath += name;
 				// prevent loading global scripts with the same name from different directories
