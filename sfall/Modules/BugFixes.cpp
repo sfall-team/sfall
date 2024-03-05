@@ -3414,6 +3414,28 @@ end: // overwritten engine code
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static bool useInvenOn = false;
+
+static void __declspec(naked) gmouse_handle_event_hack_use_inv() {
+	__asm {
+		cmp  useInvenOn, 0;
+		je   end;
+		xor  eax, eax;       // set ZF for skipping to the end
+		mov  useInvenOn, al; // reset
+		retn;
+end:
+		cmp  dword ptr ds:[FO_VAR_gmouse_initialized], 0; // overwritten engine code
+		retn;
+	}
+}
+
+static void __declspec(naked) gmouse_handle_event_hook_use_inv() {
+	__asm {
+		mov  useInvenOn, 1;
+		jmp  fo::funcoffs::use_inventory_on_;
+	}
+}
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -3474,7 +3496,7 @@ void BugFixes::init() {
 	dlogr("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_FIX);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
-	// Fix for clickability issue of holodisk list
+	// Fix for clickability issue of the holodisk list
 	HookCall(0x497E9F, PipStatus_hook);
 	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
 	SafeWrite32(0x497E8E, 0x90909090);
@@ -4227,6 +4249,10 @@ void BugFixes::init() {
 		//0x4756B1  // display_table_inventories_
 	});
 	SafeWrite8(0x4705E9, 0x76); // jle > jbe (for ammo counter in display_inventory_info_)
+
+	// Fix for clickability issue of the "Use Inventory Item On" action when the selected item overlaps an object
+	MakeCall(0x44BFB9, gmouse_handle_event_hack_use_inv, 2);
+	HookCall(0x44C6FB, gmouse_handle_event_hook_use_inv);
 }
 
 }

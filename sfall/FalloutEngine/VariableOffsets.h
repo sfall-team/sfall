@@ -131,6 +131,8 @@
 #define FO_VAR_gmouse_3d_action_nums      0x518D1E
 #define FO_VAR_gmouse_3d_current_mode     0x518D38
 #define FO_VAR_gmouse_current_cursor      0x518C0C
+#define FO_VAR_gmouse_enabled             0x518BFC
+#define FO_VAR_gmouse_initialized         0x518BF8
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
 #define FO_VAR_GNW95_DDPrimaryPalette     0x51E2BC
