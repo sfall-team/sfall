@@ -303,7 +303,7 @@ void __fastcall window_trans_cscale(long i_width, long i_height, long s_width, l
 	}
 }
 
-// buf_to_buf_ function with pure SSE implementation
+// buf_to_buf_ function in pure SSE implementation
 void __cdecl buf_to_buf(BYTE* src, long width, long height, long src_width, BYTE* dst, long dst_width) {
 	if (height <= 0 || width <= 0) return;
 
