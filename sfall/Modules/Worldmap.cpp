@@ -46,10 +46,10 @@ struct levelRest {
 };
 #pragma pack(pop)
 
-std::unordered_map<int, levelRest> mapRestInfo;
+static std::unordered_map<int, levelRest> mapRestInfo;
 
-std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
-std::unordered_map<long, std::string> wmAreaHotSpotTitle;
+static std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
+static std::unordered_map<long, std::string> wmAreaHotSpotTitle;
 
 static bool restMap;
 static bool restMode;

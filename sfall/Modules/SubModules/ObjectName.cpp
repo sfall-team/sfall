@@ -40,7 +40,7 @@ void ObjectName::SetName(long sid, const char* name) {
 
 const char* __stdcall ObjectName::GetName(fo::GameObject* object) {
 	if (!overrideScrName.empty()) {
-		auto& name = overrideScrName.find(object->scriptId);
+		const auto &name = overrideScrName.find(object->scriptId);
 		if (name != overrideScrName.cend()) {
 			return (name->second.length() > 0)
 			       ? name->second.c_str()
