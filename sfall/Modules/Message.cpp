@@ -20,6 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Utils.h"
 #include "LoadGameHook.h"
 
 #include "Message.h"
@@ -62,6 +63,7 @@ const char* Message::GameLanguage() {
 
 ExtraGameMessageListsMap Message::gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
+static std::unordered_map<std::string, long> addedExtraMsgFiles;
 
 static long msgNumCounter = 0x3000;
 
@@ -192,6 +194,11 @@ long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 
 	std::string path("game\\");
 	path += msgName;
+	ToLowerCase(path);
+
+	const std::unordered_map<std::string, long>::iterator &msgIt = addedExtraMsgFiles.find(path.c_str());
+	if (msgIt != addedExtraMsgFiles.cend()) return msgIt->second; // file has already been added by func
+
 	fo::MessageList* list = new fo::MessageList();
 	if (!fo::func::message_load(list, path.c_str())) {
 		// change current language folder
@@ -203,6 +210,7 @@ long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 	}
 	if (msgNumber == 0) msgNumber = msgNumCounter++;
 	Message::gExtraGameMsgLists.insert(std::make_pair(msgNumber, list));
+	addedExtraMsgFiles.insert(std::make_pair(path, msgNumber));
 	return msgNumber;
 }
 
@@ -216,6 +224,7 @@ void ClearScriptAddedExtraGameMsg() {
 			++it;
 		}
 	}
+	addedExtraMsgFiles.clear();
 	msgNumCounter = 0x3000;
 	heroIsFemale = -1;
 }
