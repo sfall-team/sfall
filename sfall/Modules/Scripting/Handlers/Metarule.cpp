@@ -183,8 +183,7 @@ static void mf_metarule_exist(OpcodeContext& ctx) {
 	bool result = false;
 	const char* funcXName = ctx.arg(0).asString();
 	if (funcXName[0] != '\0') {
-		const MetaruleTableType::iterator &it = metaruleTable.find(funcXName);
-		if (it != metaruleTable.cend()) result = true;
+		result = (metaruleTable.find(funcXName) != metaruleTable.cend());
 	}
 	ctx.setReturn(result);
 }

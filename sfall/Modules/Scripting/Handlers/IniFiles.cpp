@@ -89,7 +89,7 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 		return -1;
 	}
 	if (isString) {
-		ScriptExtender::gTextBuffer[0] = 0;
+		ScriptExtender::gTextBuffer[0] = '\0';
 		IniReader::GetString(section, key, "", ScriptExtender::gTextBuffer, 1024, file);
 		return (DWORD)&ScriptExtender::gTextBuffer[0];
 	} else {
