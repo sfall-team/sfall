@@ -33,6 +33,8 @@ namespace sfall
 
 using namespace fo::Fields;
 
+typedef std::unordered_map<fo::GameObject*, fo::GameObject*>::const_iterator atk_citr;
+
 static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
 static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 
@@ -669,12 +671,12 @@ void AI::init() {
 }
 
 fo::GameObject* __stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
-	const auto itr = sources.find(target);
+	atk_citr itr = sources.find(target);
 	return (itr != sources.end()) ? itr->second : 0;
 }
 
 fo::GameObject* __stdcall AI::AIGetLastTarget(fo::GameObject* source) {
-	const auto itr = targets.find(source);
+	atk_citr itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
 }
 

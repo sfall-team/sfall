@@ -190,7 +190,9 @@ static void ReadExtraGameMsgFiles() {
 long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 	if (msgNumber) {
 		if (msgNumber < 0x2000 || msgNumber > 0x2FFF) return -1;
-		if (Message::gExtraGameMsgLists.count(msgNumber)) return 0; // file has already been added
+		if (Message::gExtraGameMsgLists.find(msgNumber) != Message::gExtraGameMsgLists.cend()) {
+			return 0; // file has already been added
+		}
 	} else if (msgNumCounter > 0x3FFF) return -3;
 
 	std::string path("game\\");

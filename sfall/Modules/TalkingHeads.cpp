@@ -70,8 +70,8 @@ struct TextureData {
 		: textures(tex), showHighlights(show), bakedBackground(baked), frames(frames) {}
 };
 
-typedef std::unordered_map<__int64, TextureData> :: iterator tex_itr;
-typedef std::unordered_map<__int64, TextureData> :: const_iterator tex_citr;
+typedef std::unordered_map<__int64, TextureData>::iterator tex_itr;
+typedef std::unordered_map<__int64, TextureData>::const_iterator tex_citr;
 
 static std::unordered_map<__int64, TextureData> texMap;
 static IDirect3DTexture9* texHighlight = nullptr;
