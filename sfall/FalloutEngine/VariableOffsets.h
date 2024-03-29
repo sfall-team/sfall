@@ -148,6 +148,7 @@
 #define FO_VAR_gsound_background_fade     0x518E40
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_gsound_speech_tag          0x518E54
+#define FO_VAR_hereAndNowExps             0x51C124
 #define FO_VAR_hit_location_penalty       0x510954
 #define FO_VAR_holo_flag                  0x664529
 #define FO_VAR_holodisk                   0x6644F4

@@ -1807,6 +1807,10 @@ static DWORD expSwiftLearner; // experience points for print
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
 		mov  expSwiftLearner, edi;
+		cmp  dword ptr [esp + 0x24 + 4], 0x496CAA + 5; // called from perk_add_effect_ (PERK_here_and_now)
+		jne  notHereAndNow;
+		mov  dword ptr ds:[FO_VAR_hereAndNowExps], edi;
+notHereAndNow:
 		mov  eax, dword ptr ds:[FO_VAR_Experience_pc];
 		retn;
 	}
@@ -3829,14 +3833,14 @@ void BugFixes::init() {
 	}
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
-	if (IniReader::GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
+	//if (IniReader::GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
 		dlogr("Applying Swift Learner exp display patch.", DL_FIX);
 		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
 		HookCall(0x4221E2, combat_give_exps_hook);
 		MakeJump(0x4745AE, loot_container_exp_hack);
 		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
 		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
-	}
+	//}
 
 	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
 	// is_within_perception_
