@@ -32,7 +32,7 @@ bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
 static bool isControllingNPC = false;
-static char skipCounterAnim;
+static bool skipCounterAnim = false;
 
 static int delayedExperience;
 
@@ -94,8 +94,8 @@ static void SaveRealDudeState() {
 
 	realDude.isSaved = true;
 
-	if (skipCounterAnim == 1) {
-		skipCounterAnim++;
+	if (!skipCounterAnim) {
+		skipCounterAnim = true;
 		SafeWrite8(0x422BDE, 0); // no animate
 	}
 	if (isDebug) fo::func::debug_printf("\n[SFALL] Save dude state.");
@@ -226,8 +226,8 @@ static void RestoreRealDudeState(bool redraw = true) {
 	(*fo::ptr::game_global_vars)[fo::ptr::drugInfoList[8].addictGvar] = realDude.addictGvar[7];
 
 	if (redraw) {
-		if (skipCounterAnim == 2) {
-			skipCounterAnim--;
+		if (skipCounterAnim) {
+			skipCounterAnim = false;
 			SafeWrite8(0x422BDE, 1); // restore
 		}
 		fo::func::intface_redraw();
@@ -354,8 +354,8 @@ pcName:
 static void PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
-		if (skipCounterAnim == 2) {
-			skipCounterAnim = 1; // skipCounterAnim--;
+		if (skipCounterAnim) {
+			skipCounterAnim = false;
 			SafeWrite8(0x422BDE, 1); // restore
 		}
 	}
@@ -427,8 +427,8 @@ static void NPCWeaponTweak() {
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	static bool onlyOnce = false;
-	if (skipCounterAnim == 2 && critter && critter == realDude.obj_dude) {
-		skipCounterAnim--;
+	if (skipCounterAnim && critter && critter == realDude.obj_dude) {
+		skipCounterAnim = false;
 		SafeWrite8(0x422BDE, 1); // restore
 	}
 
@@ -726,8 +726,6 @@ void PartyControl::init() {
 	HookCalls(inven_pickup_hook, switchHandAddr); // will be overwritten if HOOK_INVENTORYMOVE is injected
 
 	NpcAutoLevelPatch();
-
-	skipCounterAnim = (IniReader::GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3) ? 1 : 0;
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
