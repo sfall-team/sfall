@@ -1,8 +1,21 @@
 # Changelog
 
+## 3.8.43
+* Restored support for **pre-SSE** processors because the code optimization resulting from dropping support is marginal
+* Fixed a bug introduced in 3.8.29 that caused critters with crippled arms to be unable to attack in certain cases
+* Fixed the critical hit messages of the right arm and left leg for super mutants
+* Fixed `add_extra_msg_file` script function to prevent it from loading the same msg file more than once
+* Removed **DisplaySwiftLearnerExp** from `ddraw.ini` because there is little reason to turn it off
+* Removed **SpeedInterfaceCounterAnims=3**. Now the AC counter is always instantly updated when switching to other controlled critters in combat
+* Added a fix for the game disappearing from the taskbar after using `Alt+Tab`
+* Added a fix for the clickability issue of the **'Use Inventory Item On'** action when the selected item overlaps an object
+* Added a fix for the xp exploit from canceling **Here and Now** perk when the player has **Swift Learner** perk
+* Added support for loading an external **DirectDraw** wrapper (`ddraw.dll`) from the `<GameRoot>\wrapper\` directory for rendering
+* Added a static books mod and a molotov fire damage mod to the example mods in the **modders pack**
+
 ## 3.8.42
 * Fixed a bug in **XPTable** that could cause a hang when leveling up in some cases
-* Fixed the messages of critical hits to the right arm for some critter types
+* Fixed the critical hit messages of the right arm for some critter types
 * Changed `add_mult_objs_to_inven` script function to allow adding more than 99999 instances of an object in one go
 * Added a fix to use **'English'** as the fallback language directory for loading `credits.txt/quotes.txt`
 * Added a fix for gaining two levels at once when leveling up from level 97
@@ -606,7 +619,7 @@ Various bug fixes and features based on the work by Mr.Stalin:
 * Fixed `critter_mod_skill` script function taking a negative amount value as a positive
 * Fixed a crash when calling `use_obj/use_obj_on_obj` without using `set_self` in global scripts
 * Fixed `pickup_obj`, `drop_obj`, and `use_obj` script functions not working properly in some cases
-* Fixed **TimeLimit=-3** not returning the correct year, and removed the setting value -2 (Now it works the same as -3)
+* Fixed **TimeLimit=-3** not returning the correct year, and removed the setting value of -2 (Now it works the same as -3)
 * Fixed the mouse cursor lag on the world map when **WorldMapFPSPatch** is enabled
 * Fixed issues with the game speed tweak. Now the game speed will be temporarily set to normal speed when in the inventory or dialogue, and it doesn't affect the endgame slideshow
 * Fixed and improved the functionality of **UseFileSystemOverride** and `fs_*` script functions
