@@ -188,7 +188,8 @@ void sArrayVar::clearAll()
 void SaveArrayElement(sArrayElement* el, HANDLE h)
 {
 	DWORD unused;
-	WriteFile(h, &el->type, 4, &unused, 0);
+	DWORD elType = static_cast<DWORD>(el->type); // for interoperability with older versions
+	WriteFile(h, &elType, 4, &unused, 0);
 	if (el->type == DATATYPE_STR) {
 		WriteFile(h, &el->len, 4, &unused, 0);
 		WriteFile(h, el->strVal, el->len, &unused, 0);
@@ -199,9 +200,9 @@ void SaveArrayElement(sArrayElement* el, HANDLE h)
 
 bool LoadArrayElement(sArrayElement* el, HANDLE h)
 {
-	DWORD unused;
-	ReadFile(h, &el->type, 4, &unused, 0);
-	el->type = (DataType)((DWORD)el->type & 0xFFFF); // fix for saved arrays from 4.4
+	DWORD elType, unused;
+	ReadFile(h, &elType, 4, &unused, 0);
+	el->type = static_cast<DataType>(elType & 0xFFFF); // for saved arrays from 4.4
 	if (el->type == DATATYPE_STR) {
 		ReadFile(h, &el->len, 4, &unused, 0);
 		if (el->len > 0) {
