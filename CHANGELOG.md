@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.8.43.1
+* Fixed a possible hang or crash introduced in 3.8.41 when running certain script sequences
+
 ## 3.8.43
 * Restored support for **pre-SSE** processors because the code optimization resulting from dropping support is marginal
 * Fixed a bug introduced in 3.8.29 that caused critters with crippled arms to be unable to attack in certain cases
