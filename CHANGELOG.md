@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.4.3.1
+* Fixed a possible hang or crash introduced in 4.4.1 when running certain script sequences
+
 ## 4.4.3
 * Fixed a bug introduced in 4.2.9 that caused critters with crippled arms to be unable to attack in certain cases
 * Fixed the critical hit messages of the right arm and left leg for super mutants
