@@ -159,6 +159,7 @@ static const SfallMetarule metarules[] = {
 	{"set_unjam_locks_time",      mf_set_unjam_locks_time,      1, 1, -1, {ARG_INT}},
 	{"set_window_flag",           mf_set_window_flag,           3, 3, -1, {ARG_INTSTR, ARG_INT, ARG_INT}},
 	{"show_window",               mf_show_window,               0, 1, -1, {ARG_STRING}},
+	{"signal_close_game",         mf_signal_close_game,         0, 0},
 	{"spatial_radius",            mf_spatial_radius,            1, 1,  0, {ARG_OBJECT}},
 	{"string_compare",            mf_string_compare,            2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
 	{"string_find",               mf_string_find,               2, 3, -1, {ARG_STRING, ARG_STRING, ARG_INT}},

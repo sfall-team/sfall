@@ -355,5 +355,13 @@ void mf_set_scr_name(OpcodeContext& ctx) {
 	ObjectName::SetName(sid, ctx.arg(0).strValue());
 }
 
+void mf_signal_close_game(OpcodeContext& ctx) {
+	// force ESC key in the main menu
+	SafeWrite8(0x481B2A, 0xB8);
+	SafeWrite32(0x481B2B, VK_ESCAPE); // mov eax, 27
+
+	fo::var::game_user_wants_to_quit = 2; // return to the main menu
+}
+
 }
 }
