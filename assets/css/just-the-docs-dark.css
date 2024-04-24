@@ -403,18 +403,22 @@ blockquote { margin: 10px 0; margin-block-start: 0; margin-inline-start: 0; padd
 .side-bar { z-index: 0; display: flex; flex-wrap: wrap; background-color: #27262b; }
 @media (min-width: 50rem) { .side-bar { flex-flow: column nowrap; position: fixed; width: 15.5rem; height: 100%; border-right: 1px solid #44434d; align-items: flex-end; } }
 @media (min-width: 66.5rem) { .side-bar { width: calc((100% - 66.5rem) / 2 + 16.5rem); min-width: 16.5rem; } }
+@media (min-width: 50rem) { .side-bar + .main { margin-left: 15.5rem; } }
+@media (min-width: 66.5rem) { .side-bar + .main { margin-left: Max(16.5rem, calc((100% - 66.5rem) / 2 + 16.5rem)); } }
+.side-bar + .main .main-header { display: none; background-color: #27262b; }
+@media (min-width: 50rem) { .side-bar + .main .main-header { display: flex; background-color: #27262b; } }
+.side-bar + .main .main-header.nav-open { display: block; }
+@media (min-width: 50rem) { .side-bar + .main .main-header.nav-open { display: flex; } }
 
-@media (min-width: 50rem) { .main { position: relative; max-width: 50rem; margin-left: 15.5rem; } }
-@media (min-width: 66.5rem) { .main { margin-left: Max(16.5rem, calc((100% - 66.5rem) / 2 + 16.5rem)); } }
+.main { margin: auto; }
+@media (min-width: 50rem) { .main { position: relative; max-width: 50rem; } }
 
 .main-content-wrap { padding-right: 1rem; padding-left: 1rem; padding-top: 1rem; padding-bottom: 1rem; }
 @media (min-width: 50rem) { .main-content-wrap { padding-right: 2rem; padding-left: 2rem; } }
 @media (min-width: 50rem) { .main-content-wrap { padding-top: 2rem; padding-bottom: 2rem; } }
 
-.main-header { z-index: 0; display: none; background-color: #27262b; }
-@media (min-width: 50rem) { .main-header { display: flex; justify-content: space-between; height: 3.75rem; background-color: #27262b; border-bottom: 1px solid #44434d; } }
-.main-header.nav-open { display: block; }
-@media (min-width: 50rem) { .main-header.nav-open { display: flex; } }
+.main-header { z-index: 0; border-bottom: 1px solid #44434d; }
+@media (min-width: 50rem) { .main-header { display: flex; justify-content: space-between; height: 3.75rem; } }
 
 .site-nav, .site-header, .site-footer { width: 100%; }
 @media (min-width: 66.5rem) { .site-nav, .site-header, .site-footer { width: 16.5rem; } }
