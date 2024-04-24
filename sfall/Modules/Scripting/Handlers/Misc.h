@@ -96,5 +96,7 @@ void mf_set_quest_failure_value(OpcodeContext&);
 
 void mf_set_scr_name(OpcodeContext&);
 
+void mf_signal_close_game(OpcodeContext&);
+
 }
 }
