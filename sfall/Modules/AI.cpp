@@ -260,7 +260,7 @@ static void __declspec(naked) ai_danger_source_hack_pm_newFind() {
 		jnz  hasTarget;
 		retn;
 hasTarget:
-		test [ecx + damageFlags], DAM_DEAD;
+		test byte ptr [ecx + damageFlags], DAM_DEAD;
 		jz   isNotDead;
 		xor  ecx, ecx;
 isNotDead:
@@ -328,6 +328,7 @@ static long RetryCombatMinAP;
 
 static void __declspec(naked) RetryCombatHook() {
 	static DWORD RetryCombatLastAP = 0;
+	using namespace fo;
 	__asm {
 		mov  RetryCombatLastAP, 0;
 retry:
@@ -338,6 +339,8 @@ process:
 		call fo::funcoffs::process_bk_;
 		jmp  process;
 next:
+		test byte ptr [esi + damageFlags], DAM_DEAD; // is NPC dead in the previous attack?
+		jnz  end;
 		mov  eax, [esi + movePoints];
 		cmp  eax, RetryCombatMinAP;
 		jl   end;
