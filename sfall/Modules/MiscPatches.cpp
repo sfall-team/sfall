@@ -125,7 +125,10 @@ static void __declspec(naked) intface_item_reload_hook() {
 		call fo::funcoffs::register_begin_;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::register_object_animate_;
+		mov  ecx, dword ptr ds:[FO_VAR_combat_highlight]; // backup setting
+		mov  dword ptr ds:[FO_VAR_combat_highlight], eax; // prevent calling combat_outline_off_ (eax is never 2)
 		call fo::funcoffs::register_end_;
+		mov  dword ptr ds:[FO_VAR_combat_highlight], ecx; // restore setting
 		pop  eax;
 		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}

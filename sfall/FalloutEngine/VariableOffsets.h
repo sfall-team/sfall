@@ -37,6 +37,7 @@
 #define FO_VAR_colorTable                 0x6A38D0
 #define FO_VAR_combat_end_due_to_load     0x517F98
 #define FO_VAR_combat_free_move           0x56D39C
+#define FO_VAR_combat_highlight           0x56D38C
 #define FO_VAR_combat_list                0x56D390
 #define FO_VAR_combat_obj                 0x51805C
 #define FO_VAR_combat_state               0x510944
