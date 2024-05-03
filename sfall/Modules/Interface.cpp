@@ -1139,6 +1139,17 @@ void Interface::init() {
 			ammoBarXPos -= 2;
 		}
 	}
+
+	SafeWrite32(0x46EDA4, 4); // Trade window slot count 3 -> 4
+	SafeWriteBatch<DWORD>(228, { 0x46EDAB, 0x46EE13 }); // Trade window height 180 + 48 (one slot) = 228
+	SafeWrite32(0x46EDD4, 518); // Trade window max Y = Y pos + height = 290 + 228 = 518 (was 470)
+	SafeWriteBatch<DWORD>(528, { // Game dialog BG window height = 480 + 48 = 528
+		0x44831E, // gdialog_barter_create_win_
+		//0x44879F, // gdControlCreateWin_
+		//0x449740, // gdCustomCreateWin_
+		//0x44A6CF, // gdialog_window_create_
+		0x44AAE9, // talk_to_create_background_window
+	});
 }
 
 void Interface::exit() {
