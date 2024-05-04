@@ -712,7 +712,7 @@ static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	return true;
 }
 
-fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+fo::UnlistedFrm *LoadUnlistedFrm(const char *frmName, unsigned int folderRef) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
 	const char *artfolder = fo::var::art[folderRef].path; // address of art type name

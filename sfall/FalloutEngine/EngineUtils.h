@@ -191,7 +191,7 @@ void RedrawObject(fo::GameObject* obj);
 // Redraws all windows
 void RefreshGNW(bool skipOwner = false);
 
-fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
+fo::UnlistedFrm *LoadUnlistedFrm(const char *frmName, unsigned int folderRef);
 
 }
 }
