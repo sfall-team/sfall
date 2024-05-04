@@ -1108,7 +1108,7 @@ static void UIAnimationSpeedPatch() {
 static fo::UnlistedFrm* barterTallFrm = nullptr;
 static fo::UnlistedFrm* tradeTallFrm = nullptr;
 
-static BYTE* __fastcall gdialog_barter_create_win__get_art_data() {
+static BYTE* __fastcall gdialog_barter_get_art_data() {
 	fo::UnlistedFrm** frm;
 	const char* frmName;
 	if (fo::var::dialog_target_is_party) {
@@ -1128,7 +1128,7 @@ static BYTE* __fastcall gdialog_barter_create_win__get_art_data() {
 	return (*frm)->frames[0].indexBuff;
 }
 
-static DWORD __fastcall gdialog_barter_create_win__get_art_height() {
+static DWORD __fastcall gdialog_barter_get_art_height() {
 	fo::UnlistedFrm** frm = fo::var::dialog_target_is_party
 		? &tradeTallFrm
 		: &barterTallFrm;
@@ -1142,7 +1142,7 @@ static DWORD __fastcall gdialog_barter_create_win__get_art_height() {
 static void __declspec(naked) gdialog_barter_create_win__art_frame_data_hook() {
 	__asm {
 		pushadc;
-		call gdialog_barter_create_win__get_art_data;
+		call gdialog_barter_get_art_data;
 		test eax, eax;
 		jz skipCall;
 		pop ecx;
@@ -1155,11 +1155,10 @@ skipCall:
 	}
 }
 
-static long frmHeight;
 static void __declspec(naked) gdialog_barter_create_win__art_frame_length_hook() {
 	__asm {
 		pushadc;
-		call gdialog_barter_create_win__get_art_height;
+		call gdialog_barter_get_art_height;
 		test eax, eax;
 		jz skipCall;
 		pop ecx;
@@ -1169,6 +1168,23 @@ static void __declspec(naked) gdialog_barter_create_win__art_frame_length_hook()
 skipCall:
 		popadc;
 		jmp fo::funcoffs::art_frame_length_;
+	}
+}
+
+static void __declspec(naked) gdialog_barter_destroy_win__art_ptr_lock_data_hook() {
+	__asm {
+		call fo::funcoffs::art_ptr_lock_data_;
+		pushadc;
+		call gdialog_barter_get_art_data;
+		test eax, eax;
+		jz skipCall;
+		pop ecx;
+		pop edx;
+		add esp, 4;
+		retn;
+skipCall:
+		popadc;
+		retn;
 	}
 }
 
@@ -1182,14 +1198,18 @@ static void InventoryExtraSlotsPatch() {
 	SafeWrite32(0x46EDD4, 518); // Trade window max Y = Y pos + height = 290 + 228 = 518 (was 470)
 	SafeWriteBatch<DWORD>(528, { // Game dialog BG window height = 480 + 48 = 528
 		0x44831E, // gdialog_barter_create_win_
+		0x4485A7, // gdialog_barter_destroy_win_
 		//0x44879F, // gdControlCreateWin_
 		//0x449740, // gdCustomCreateWin_
 		//0x44A6CF, // gdialog_window_create_
-		0x44AAE9, // talk_to_create_background_window
+		//0x44AAE9, // talk_to_create_background_window
 	});
+	SafeWrite8(0x44831C, 0x22); // add transparent flag 0x20 to trade window
+	SafeWrite8(0x46EDA9, 0x20); // add transparent flag 0x20 to inventory (inner part) window
 
 	HookCall(0x4482EA, gdialog_barter_create_win__art_frame_data_hook);
 	HookCall(0x4482FF, gdialog_barter_create_win__art_frame_length_hook);
+	HookCall(0x448603, gdialog_barter_destroy_win__art_ptr_lock_data_hook);
 }
 
 void Interface::init() {
