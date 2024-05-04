@@ -1107,6 +1107,31 @@ static void UIAnimationSpeedPatch() {
 
 static fo::UnlistedFrm* barterTallFrm = nullptr;
 static fo::UnlistedFrm* tradeTallFrm = nullptr;
+static fo::UnlistedFrm* inventoryTallFrms[3] = { nullptr, nullptr, nullptr };
+static const char* inventoryTallFrmNames[3] = { "invbox_473.frm", "use_472.frm", "loot_472.frm"};
+
+static DWORD findInventoryWindowTypeByFid(DWORD fid) {
+	fid &= 0xFFF;
+	for (int i = 0; i < 3; ++i) {
+		if (fid == fo::var::iscr_data[i].artIndex)
+			return i;
+	}
+	return -1;
+}
+
+static BYTE* __fastcall inventory_get_art_data(DWORD fid) {
+	DWORD windowType = findInventoryWindowTypeByFid(fid);
+	if (windowType > fo::INVENTORY_WINDOW_TYPE_LOOT) return nullptr;
+
+	fo::UnlistedFrm** frm = &inventoryTallFrms[windowType];
+	if (*frm == nullptr) {
+		*frm = fo::util::LoadUnlistedFrm(inventoryTallFrmNames[windowType], fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (*frm == nullptr) {
+			return nullptr;
+		}
+	}
+	return (*frm)->frames[0].indexBuff;
+}
 
 static BYTE* __fastcall gdialog_barter_get_art_data() {
 	fo::UnlistedFrm** frm;
@@ -1139,6 +1164,7 @@ static DWORD __fastcall gdialog_barter_get_art_height() {
 	return (*frm)->frames[0].height;
 }
 
+// replace art data for dialog barter window
 static void __declspec(naked) gdialog_barter_create_win__art_frame_data_hook() {
 	__asm {
 		pushadc;
@@ -1155,6 +1181,7 @@ skipCall:
 	}
 }
 
+// replace art height (length) for dialog barter window
 static void __declspec(naked) gdialog_barter_create_win__art_frame_length_hook() {
 	__asm {
 		pushadc;
@@ -1171,6 +1198,7 @@ skipCall:
 	}
 }
 
+// replace art data for dialog barter window when scrolling down
 static void __declspec(naked) gdialog_barter_destroy_win__art_ptr_lock_data_hook() {
 	__asm {
 		call fo::funcoffs::art_ptr_lock_data_;
@@ -1188,28 +1216,89 @@ skipCall:
 	}
 }
 
+// Replace art data for 6-slot inventory windows
+static void __declspec(naked) inventory__art_ptr_lock_data_hook() {
+	__asm {
+		push eax;
+		call fo::funcoffs::art_ptr_lock_data_;
+		pushadc;
+		mov ecx, [esp + 12]; // FID
+		call inventory_get_art_data;
+		test eax, eax;
+		jz skipCall;
+		pop ecx;
+		pop edx;
+		add esp, 8;
+		retn;
+skipCall:
+		popadc;
+		add esp, 4;
+		retn;
+	}
+}
+
 
 static void InventoryExtraSlotsPatch() {
 	if (IniReader::GetConfigInt("Interface", "InventoryExtraSlots", 0) == 0) return;
 
 	dlogr("Applying extra inventory slots patch.", DL_INIT);
+	// Barter window:
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 228; // Trade window height 180 + 48 (one slot) = 228
 	SafeWrite32(0x46EDA4, 4); // Trade window slot count 3 -> 4
 	SafeWriteBatch<DWORD>(228, { 0x46EDAB, 0x46EE13 }); // Trade window height 180 + 48 (one slot) = 228
 	SafeWrite32(0x46EDD4, 518); // Trade window max Y = Y pos + height = 290 + 228 = 518 (was 470)
-	SafeWriteBatch<DWORD>(528, { // Game dialog BG window height = 480 + 48 = 528
+	SafeWriteBatch<DWORD>(528, { // Game dialog BG window height (for Y calculation only) = 480 + 48 = 528
 		0x44831E, // gdialog_barter_create_win_
 		0x4485A7, // gdialog_barter_destroy_win_
-		//0x44879F, // gdControlCreateWin_
-		//0x449740, // gdCustomCreateWin_
-		//0x44A6CF, // gdialog_window_create_
-		//0x44AAE9, // talk_to_create_background_window
 	});
-	SafeWrite8(0x44831C, 0x22); // add transparent flag 0x20 to trade window
-	SafeWrite8(0x46EDA9, 0x20); // add transparent flag 0x20 to inventory (inner part) window
+	//SafeWrite8(0x44831C, *(BYTE*)0x44831C | fo::WinFlags::Transparent); // add transparentcy flag to trade/barter window
+	//SafeWrite8(0x46EDA9, *(BYTE*)0x46EDA9 | fo::WinFlags::Transparent); // add transparent flag 0x20 to inventory (inner part) window
 
 	HookCall(0x4482EA, gdialog_barter_create_win__art_frame_data_hook);
 	HookCall(0x4482FF, gdialog_barter_create_win__art_frame_length_hook);
 	HookCall(0x448603, gdialog_barter_destroy_win__art_ptr_lock_data_hook);
+
+	// Inventory window:
+	const int extraInventorySlots = 2;
+	const int slotHeight = 48;
+	SafeWrite32(0x46EC9E, 6 + extraInventorySlots); // All other inventory windows slot count 6 -> 8
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + slotHeight * extraInventorySlots; //  377 + 96 (two slots) = 473
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + slotHeight * extraInventorySlots; //  377 + 96 (two slots) = 473
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + slotHeight * extraInventorySlots; //  377 + 96 (two slots) = 473
+	
+	// Transparent inventory windows create issues:
+	// - Subtle flickering when dragging items
+	// - Crashes when opening action window at certain coordinates and screen resolutions (suspect relation with height of active area - above interface panel)
+	//SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) | fo::WinFlags::Transparent); //add transparency for all tall inventory windows
+
+	HookCalls(inventory__art_ptr_lock_data_hook, {
+		0x46ED56, // setup_inventory
+		0x46FE51, 0x46FF8E, 0x46FFF9, // display_inventory_
+		0x4703B5, // display_target_inventory_
+		0x470FE7, // inven_pickup
+		0x473479, // inven_action_cursor
+		0x474825, // move_inventory
+	});
+
+	// Shift event codes for main inventory buttons (armor, item1, item2) by number of extra slots to make room.
+	SafeWrite32(0x46EB89, 1008 + extraInventorySlots); // upper range value in handle_inventory
+	SafeWriteBatch(1006 + extraInventorySlots, { // Item2 slot
+		0x46F104, 0x46F10B, // setup_inventory
+		0x470E0B, // inven_pickup,
+		0x472B79, // inven_from_button
+	});
+	SafeWriteBatch(1007 + extraInventorySlots, { // Item1 slot
+		0x46F14C, 0x46F153, // setup_inventory
+		0x470DF0, // inven_pickup
+		0x472B67, // inven_from_button
+	});
+	SafeWriteBatch(1008 + extraInventorySlots, { // Armor slot
+		0x46F195, 0x46F19C, // setup_inventory
+		0x470DFA, // inven_pickup
+		0x472B70, // inven_from_button
+	});
+	SafeWrite32(0x46EF1A, 2005 + extraInventorySlots); // loot target slots upper index range fix (setup_inventory)
+	SafeWrite32(0x46EF1F, 277 + extraInventorySlots * slotHeight); // adjust starting Y for loot target slot positions
 }
 
 void Interface::init() {
