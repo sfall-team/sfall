@@ -257,7 +257,7 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 #define WMAP_TOWN_BUTTONS (15)
 
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
-static int worldmapInterface;
+static int worldmapInterface = 0;
 static long wmapWinWidth = 640;
 static long wmapWinHeight = 480;
 static long wmapViewPortWidth = 450;
@@ -416,6 +416,28 @@ static void __declspec(naked) wmTownMapInit_hook() {
 	}
 }
 
+// Implementation from HRP 4.1.8 by Mash
+static long __stdcall CheckMouseInWorldRect(long left, long top, long right, long bottom) {
+	fo::Window* worldWin = fo::func::GNW_find(fo::var::wmBkWin);
+	return fo::func::mouse_click_in(
+		worldWin->wRect.left + left,
+		worldWin->wRect.top  + top,
+		worldWin->wRect.left + right,
+		worldWin->wRect.top  + bottom
+	);
+}
+
+static void __declspec(naked) wmWorldMap_hook_mouse_click_in() {
+	__asm {
+		push ecx; // bottom
+		push ebx; // right
+		push edx; // top
+		push eax; // left
+		call CheckMouseInWorldRect;
+		retn;
+	}
+}
+
 static void WorldmapViewportPatch() {
 	if (Graphics::GetGameHeightRes() < WMAP_WIN_HEIGHT || Graphics::GetGameWidthRes() < WMAP_WIN_WIDTH) return;
 	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
@@ -454,8 +476,7 @@ static void WorldmapViewportPatch() {
 	}
 	// up/down buttons of the location list (wmInterfaceInit_)
 	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH - (640 - 480), { // offset by X (480)
-		0x4C2D3C,
-		0x4C2D7A
+		0x4C2D3C, 0x4C2D7A
 	});
 
 	// town/world button (wmInterfaceInit_)
@@ -472,10 +493,16 @@ static void WorldmapViewportPatch() {
 		0x4C3A3A,           // wmInterfaceRefresh_
 		0x4C417C, 0x4C4184  // wmInterfaceDrawSubTileList_
 	});
-	SafeWriteBatch<DWORD>(WMAP_WIN_HEIGHT - (480 - 464), { // width/offset by X (464)
+	SafeWriteBatch<DWORD>(WMAP_WIN_HEIGHT - (480 - 464), { // height/offset by Y (464)
 		0x4C3FED,           // wmInterfaceDrawCircleOverlay_
 		0x4C4157, 0x4C415F, // wmInterfaceDrawSubTileList_
 	});
+
+	// replace hack function from HRP by Mash
+	if (HRP::Setting::ExternalEnabled()) {
+		HookCalls(wmWorldMap_hook_mouse_click_in, {0x4C0167, 0x4C02CD});
+	}
+
 	// right limit of the viewport (450)
 	wmapViewPortWidth = WMAP_WIN_WIDTH - (640 - 450); // 890 - 190 = 700 + 22 = 722
 	SafeWriteBatch<DWORD>(wmapViewPortWidth, wmViewportEndRight);
@@ -534,6 +561,7 @@ static void WorldmapViewportPatch() {
 }
 
 ///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
+
 static bool showTerrainType = false;
 
 enum DotStyleDefault {
@@ -868,7 +896,7 @@ static void WorldMapInterfacePatch() {
 		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
 	}
 
-	if (HRP::Setting::IsEnabled() || HRP::Setting::VersionIsValid) { // was available only for 4.1.8?
+	if (HRP::Setting::IsEnabled() || HRP::Setting::ExternalEnabled()) {
 		if (worldmapInterface = IniReader::GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
@@ -1097,8 +1125,10 @@ void Interface::init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
-	if (HRP::Setting::VersionIsValid) HRP::IFaceBar::IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+	HookCall(0x44C018, gmouse_handle_event_hook); // replace hack function from HRP by Mash
+	if (HRP::Setting::ExternalEnabled()) {
+		HRP::IFaceBar::IFACE_BAR_MODE = (IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, ".\\f2_res.ini") != 0);
+	}
 
 	// Fix crash when the player equips a weapon overloaded with ammo (ammo bar overflow)
 	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
