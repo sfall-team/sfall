@@ -40,7 +40,7 @@ jobs:
            mkdir -p sfall-build
 
            cp artifacts/ddraw.ini sfall-build
-           cp artifacts/sfall.dat sfall-build
+           cp artifacts/sfall_dat/sfall.dat sfall-build
            cp "${{ steps.build.outputs.release-xp }}" sfall-build
     shell: bash
 
