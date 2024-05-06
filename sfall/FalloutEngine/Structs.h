@@ -439,27 +439,29 @@ struct ElevatorFrms {
 #pragma pack(push, 2)
 typedef class FrmHeaderData { // sizeof 62
 public:
-	DWORD version;        // version num
-	WORD fps;             // frames per sec
-	WORD actionFrame;
-	WORD numFrames;       // number of frames per direction
-	WORD xCentreShift[6]; // shift in the X direction, of frames with orientations [0-5]
-	WORD yCentreShift[6]; // shift in the Y direction, of frames with orientations [0-5]
-	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
-	DWORD frameAreaSize;  // size of all frames area
+	long id;               // 0x00 - version num?
+	short fps;             // 0x04 - frames per sec
+	short actionFrame;     // 0x06 - action frame index
+	short numFrames;       // 0x08 - number of frames per direction
+	short xOffsets[6];     // 0x0A - shift in the X direction, of frames with orientations [0-5]
+	short yOffsets[6];     // 0x16 - shift in the Y direction, of frames with orientations [0-5]
+	long oriFrameOffset[6];// 0x22 - offset of first frame for direction [0-5] from begining of frame area
+	long frameAreaSize;    // 0x3A - size of all frames area
 } FrmHeaderData;
 #pragma pack(pop)
 
-// structures for holding frms loaded with fallout2 functions
-typedef class FrmFrameData { // sizeof 12 + 1 byte
-public:
-	WORD width;
-	WORD height;
+struct FrmFrameHeader { // sizeof 12 byte
+	short width;
+	short height;
 	DWORD size;   // width * height
-	WORD x;
-	WORD y;
+	short x;
+	short y;
+};
+
+// structures for holding frms loaded with fallout2 functions
+struct FrmFrameData : FrmFrameHeader { // sizeof 12 + 1 byte
 	BYTE data[1]; // begin frame image data
-} FrmFrameData;
+};
 
 // for one frame
 struct FrmData {
@@ -467,40 +469,19 @@ struct FrmData {
 	FrmFrameData frame;
 };
 
-struct FrmFile {            // sizeof 2954
-	long id;                // 0x00
-	short fps;              // 0x04
-	short actionFrame;      // 0x06
-	short frames;           // 0x08
-	short xshift[6];        // 0x0A
-	short yshift[6];        // 0x16
-	long oriFrameOffset[6]; // 0x22
-	long frameAreaSize;     // 0x3A
-	union {
-		FrmFrameData* frameData;
-		struct {
-			short width;    // 0x3E
-			short height;   // 0x40
-		};
-	};
-	long frameSize;         // 0x42
-	short xoffset;          // 0x46
-	short yoffset;          // 0x48
-	union {                 // 0x4A
-		BYTE *pixelData;
-		BYTE pixels[80 * 36]; // for tiles FRM
-	};
+struct FrmFile : public FrmHeaderData {  // sizeof 2954
+	FrmFrameData frameData[1];
 
 	FrmFile() {};
 
 	// Returns a pointer to the data of the frame in the direction
 	FrmFrameData* GetFrameData(long dir, long frame) {
-		BYTE* offsDirectionFrame = (BYTE*)&frameData;
+		BYTE* offsDirectionFrame = (BYTE*)&frameData[0];
 		if (dir > 0 && dir < 6) {
 			offsDirectionFrame += oriFrameOffset[dir];
 		}
 		if (frame > 0) {
-			int maxFrames = frames - 1;
+			int maxFrames = numFrames - 1;
 			if (frame > maxFrames) frame = maxFrames;
 			while (frame-- > 0) {
 				offsDirectionFrame += ((FrmFrameData*)offsDirectionFrame)->size + (sizeof(FrmFrameData) - 1);
@@ -510,7 +491,12 @@ struct FrmFile {            // sizeof 2954
 	}
 };
 
-static_assert(sizeof(FrmFile) == 2954, "Incorrect FrmFile definition.");
+struct TileFrmFile : public FrmHeaderData {
+	FrmFrameHeader frameHeader;
+	BYTE pixels[80 * 36];
+};
+
+static_assert(sizeof(TileFrmFile) == 2954, "Incorrect TileFrmFile definition.");
 
 // structures for loading unlisted frms
 struct UnlistedFrm {

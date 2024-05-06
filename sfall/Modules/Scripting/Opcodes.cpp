@@ -293,6 +293,7 @@ void Opcodes::InitNew() {
 		PipboyAvailableRestore();
 		ForceEncounterRestore(); // restore if the encounter did not happen
 		ResetIniCache();
+		ClearInterfaceArtCache();
 	};
 
 	if (int unsafe = IniReader::GetIntDefaultConfig("Debugging", "AllowUnsafeScripting", 0)) {

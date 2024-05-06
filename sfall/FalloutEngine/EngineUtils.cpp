@@ -233,7 +233,7 @@ long ObjIsOpenable(fo::GameObject* object) {
 	long result = 0;
 	if (fo::func::obj_is_openable(object)) {
 		DWORD lock;
-		fo::FrmHeaderData* frm = fo::func::art_ptr_lock(object->artFid, &lock);
+		fo::FrmFile* frm = fo::func::art_ptr_lock(object->artFid, &lock);
 		if (frm) {
 			if (frm->numFrames > 1) result = 1;
 			fo::func::art_ptr_unlock(lock);

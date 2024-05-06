@@ -171,6 +171,7 @@ VAR_(optionsButtonUp1,           DWORD)
 VAR_(optionsButtonUpKey,         DWORD)
 VARC(optnwin,                    DWORD)
 VAR_(outlined_object,            fo::GameObject*)
+VARA(pal,                        unsigned char, 0x300)
 VAR_(partyMemberAIOptions,       DWORD)
 VAR_(partyMemberCount,           DWORD)
 VAR_(partyMemberLevelUpInfoList, DWORD*)
@@ -277,3 +278,4 @@ VAR_(YellowColor,                BYTE)
 #undef VAR2
 #undef VAR3
 #undef VARD
+#undef VARF

@@ -404,29 +404,17 @@ void __cdecl trans_buf_to_buf(BYTE* src, long width, long height, long src_width
 	__asm emms;
 }
 
-BYTE* __fastcall loadPCX(const char* file, long* width, long* height) {
-	__asm {
-		mov  eax, ecx;
-		mov  ebx, height;
-		mov  ecx, FO_VAR_pal;
-		call fo::funcoffs::loadPCX_;
-		push eax;
-		mov  ebx, [width];
-		mov  edx, FO_VAR_pal;
-		mov  ecx, [height];
-		mov  ebx, [ebx];
-		mov  ecx, [ecx];
-		call fo::funcoffs::datafileConvertData_;
-		pop  eax;
-	}
-}
-
 long __fastcall get_game_config_string(const char** outValue, const char* section, const char* param) {
 	__asm {
 		mov  ebx, param;
 		mov  eax, FO_VAR_game_config;
 		call fo::funcoffs::config_get_string_; // section<edx>, outValue<ecx>
 	}
+}
+
+void __stdcall freePtr_invoke(void *p) {
+	__asm mov  eax, p;
+	__asm call ds:[FO_VAR_freePtr];
 }
 
 ////////////////////////////////////

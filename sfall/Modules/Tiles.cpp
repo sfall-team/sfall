@@ -143,13 +143,13 @@ exit:
 	}
 	long listID = listPos - tiles->total;
 
-	fo::FrmFile frame;
+	fo::TileFrmFile frame;
 	fo::func::db_fseek(artFile, 0, SEEK_SET);
 	fo::func::db_freadByteCount(artFile, (BYTE*)&frame, 74);
 
-	frame.height = ByteSwapW(36);
-	frame.width = ByteSwapW(80);
-	frame.frameSize = ByteSwapD(80 * 36);
+	frame.frameHeader.height = ByteSwapW(36);
+	frame.frameHeader.width = ByteSwapW(80);
+	frame.frameHeader.size = ByteSwapD(80 * 36);
 	frame.frameAreaSize = ByteSwapD(80 * 36 + 12);
 
 	for (int y = 0; y < ySize; y++) {
