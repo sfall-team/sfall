@@ -561,7 +561,10 @@ static __declspec(naked) void LostFocus() {
 bool Movies::DirectShowMovies() {
 	int allowDShowMovies = IniReader::GetConfigInt("Graphics", "AllowDShowMovies", 0);
 	if (allowDShowMovies > 0) {
-		Graphics::AviMovieWidthFit = (allowDShowMovies >= 2);
+		Graphics::AviMovieWidthFit = (
+			allowDShowMovies >= 2 ||
+			(HRP::Setting::ExternalEnabled() && IniReader::GetInt("MOVIES", "MOVIE_SIZE", 0, ".\\f2_res.ini") == 2)
+		);
 		MakeJump(0x44E690, gmovie_play_hack);
 		HookCall(0x44E993, gmovie_play_hook_stop);
 		/* NOTE: At this address 0x487781 (movieStart_), HRP by Mash changes the callback procedure to display mve frames. */
