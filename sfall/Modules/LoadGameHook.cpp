@@ -418,6 +418,7 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	BugFixes::OnAfterGameInit();
 	LoadOrder::OnAfterGameInit();
 	BarBoxes::OnAfterGameInit();
+	Interface::OnAfterGameInit();
 	Sound::OnAfterGameInit();
 	if (TalkingHeads::Use32Bit) TalkingHeads::OnAfterGameInit();
 	BuildSortedIndexList();

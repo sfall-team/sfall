@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "..\Utils.h"
+#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "Worldmap.h"
 
@@ -165,13 +166,320 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	}
 }
 
-// const because no expanded world map patch
-static const long wmapWinWidth = 640;
-static const long wmapWinHeight = 480;
-static const long wmapViewPortWidth = 450;
-static const long wmapViewPortHeight = 443;
+#define WMAP_WIN_WIDTH    (890)
+#define WMAP_WIN_HEIGHT   (720)
+#define WMAP_TOWN_BUTTONS (15)
+
+static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
+static int worldmapInterface = 0;
+static long wmapWinWidth = 640;
+static long wmapWinHeight = 480;
+static long wmapViewPortWidth = 450;
+static long wmapViewPortHeight = 443;
+
+// Window width
+static const DWORD wmWinWidth[] = {
+	// wmInterfaceInit_
+	0x4C239E, 0x4C247A,
+	// wmInterfaceRefresh_
+	0x4C38EA, 0x4C3978,
+	// wmInterfaceDrawCircleOverlay_
+	0x4C3FCA, 0x4C408E,
+	// wmRefreshInterfaceDial_
+	0x4C5757,
+	// wmInterfaceRefreshDate_
+	0x4C3D0A, 0x4C3D79, 0x4C3DBB, 0x4C3E87, 0x4C3E1F,
+	// wmRefreshTabs_
+	0x4C52BF, 0x4C53F5, 0x4C55A5, 0x4C557E, 0x4C54B2, 0x4C53E8,
+	// wmRefreshInterfaceOverlay_
+	0x4C50FD, 0x4C51CF, 0x4C51F8, 0x4C517F,
+	// wmInterfaceRefreshCarFuel_
+	0x4C52AA, /*0x4C528B, 0x4C529F, - Conflict with fuel gauge patch*/
+	// wmInterfaceDrawSubTileList_
+	0x4C41C1, 0x4C41D2,
+	// wmTownMapRefresh_
+	0x4C4BDF,
+	// wmDrawCursorStopped_
+	0x4C42EE, 0x4C43C8, 0x4C445F,
+};
+
+// Right limit of the viewport (450)
+static const DWORD wmViewportEndRight[] = {
+//	0x4BC91F,                                                   // wmWorldMap_init_
+	0x4C3937, 0x4C393E, 0x4C39BB, 0x4C3B2F, 0x4C3B36, 0x4C3C4B, // wmInterfaceRefresh_
+	0x4C4288, 0x4C436A, 0x4C4409,                               // wmDrawCursorStopped_
+	0x4C44B4,                                                   // wmCursorIsVisible_
+};
+
+// Bottom limit of viewport (443)
+static const DWORD wmViewportEndBottom[] = {
+//	0x4BC947,                                                   // wmWorldMap_init_
+	0x4C3963, 0x4C38D7, 0x4C39DA, 0x4C3B62, 0x4C3AE7, 0x4C3C74, // wmInterfaceRefresh_
+	0x4C429A, 0x4C4378, 0x4C4413,                               // wmDrawCursorStopped_
+	0x4C44BE,                                                   // wmCursorIsVisible_
+};
+/*
+static void __declspec(naked) wmInterfaceInit_hack() {
+	static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
+	__asm {
+		push eax;
+		mov  eax, 640 - WMAP_WIN_WIDTH;
+		mov  edx, 480 - WMAP_WIN_HEIGHT;
+		jmp  wmInterfaceInit_Ret;
+	}
+}
+*/
+static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
+	__asm {
+		mov  edx, [esp + 0x10 - 0x10 + 4];
+		imul edx, WMAP_WIN_WIDTH;
+		add  edx, ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmInterfaceDrawCircleOverlay_hack() {
+	__asm {
+		mov  eax, ecx;
+		imul eax, WMAP_WIN_WIDTH;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmDrawCursorStopped_hack0() {
+	__asm {
+		mov  ebx, ecx;
+		imul ebx, WMAP_WIN_WIDTH;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmDrawCursorStopped_hack1() {
+	__asm {
+		mov  ebx, eax;
+		imul ebx, WMAP_WIN_WIDTH;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmRefreshTabs_hook() {
+	__asm {
+		mov  eax, edx;
+		imul eax, WMAP_WIN_WIDTH;
+		sub  ebp, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmTownMapRefresh_hook() {
+	__asm {
+		cmp  edx, 700; //_wmTownWidth
+		jl   scale;
+		cmp  ebx, 682; //_wmTownHeight
+		jl   scale;
+		jmp  fo::funcoffs::buf_to_buf_;
+scale:
+		push WMAP_WIN_WIDTH; // to_width
+		push 684;            // height
+		push 702;            // width
+		push eax;            // to_buff
+		mov  ecx, edx;       // from_width
+		mov  eax, esi;       // from_buff
+		call fo::funcoffs::cscale_;
+		retn; // don't delete
+	}
+}
+
+static void __declspec(naked) wmTownMapRefresh_hook_textpos() {
+	__asm {
+		push eax;
+		push ebx;
+		mov  eax, ecx; // xpos
+		shr  ebx, 2;   // text_width / 4
+		test ebx, ebx;
+		jz   skipX;
+		sub  ebx, 5;   // x adjust
+skipX:
+		sar  eax, 1;
+		add  ecx, eax; // xpos * 1.5
+		add  ecx, ebx;
+		pop  ebx;
+		mov  eax, dword ptr [esp + 8]; // ypos
+		sar  eax, 1;
+		test eax, eax;
+		jz   skipY;
+		sub  eax, 5;   // y adjust
+skipY:
+		add  dword ptr [esp + 8], eax; // ypos * 1.5
+		pop  eax;
+		jmp  fo::funcoffs::win_print_;
+	}
+}
+
+static void __declspec(naked) wmTownMapInit_hook() {
+	__asm {
+		push eax;
+		mov  eax, edx; // xpos
+		shr  eax, 1;
+		add  edx, eax; // xpos * 1.5
+		mov  eax, ebx; // ypos
+		shr  eax, 1;
+		add  ebx, eax; // ypos * 1.5
+		pop  eax;
+		jmp  fo::funcoffs::win_register_button_;
+	}
+}
+
+// Implementation from HRP 4.1.8 by Mash
+static long __stdcall CheckMouseInWorldRect(long left, long top, long right, long bottom) {
+	fo::Window* worldWin = fo::func::GNW_find(*fo::ptr::wmBkWin);
+	return fo::func::mouse_click_in(
+		worldWin->wRect.left + left,
+		worldWin->wRect.top  + top,
+		worldWin->wRect.left + right,
+		worldWin->wRect.top  + bottom
+	);
+}
+
+static void __declspec(naked) wmWorldMap_hook_mouse_click_in() {
+	__asm {
+		push ecx; // bottom
+		push ebx; // right
+		push edx; // top
+		push eax; // left
+		call CheckMouseInWorldRect;
+		retn;
+	}
+}
+
+static void WorldmapViewportPatch() {
+	if (Graphics::GetGameHeightRes() < WMAP_WIN_HEIGHT || Graphics::GetGameWidthRes() < WMAP_WIN_WIDTH) return;
+	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
+	dlogr("Applying expanded world map interface patch.", DL_INIT);
+
+	wmapWinWidth = WMAP_WIN_WIDTH;
+	wmapWinHeight = WMAP_WIN_HEIGHT;
+	mapSlotsScrollMax -= 216;
+	if (mapSlotsScrollMax < 0) mapSlotsScrollMax = 0;
+
+	*fo::ptr::wmViewportRightScrlLimit = (350 * *fo::ptr::wmNumHorizontalTiles) - (WMAP_WIN_WIDTH - (640 - 450));
+	*fo::ptr::wmViewportBottomtScrlLimit = (300 * (*fo::ptr::wmMaxTileNum / *fo::ptr::wmNumHorizontalTiles)) - (WMAP_WIN_HEIGHT - (480 - 443));
+
+	const DWORD wmIfaceArtIdxAddr[] = {0x4C23BD, 0x4C2408};
+	SafeWriteBatch<DWORD>(135, wmIfaceArtIdxAddr); // use unused worldmap.frm for new world map interface (wmInterfaceInit_)
+
+	// x/y axis offset of interface window
+	//MakeJump(0x4C23A2, wmInterfaceInit_hack);
+	// size of the created window/buffer
+	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH, wmWinWidth); // width
+	SafeWrite32(0x4C238B, WMAP_WIN_HEIGHT);            // height (wmInterfaceInit_)
+
+	// Mouse scrolling area (wmMouseBkProc_)
+	SafeWrite32(0x4C331D, WMAP_WIN_WIDTH - 1);
+	SafeWrite32(0x4C3337, WMAP_WIN_HEIGHT - 1);
+
+	MakeCall(0x4C41A4, wmInterfaceDrawSubTileList_hack);   // 640 * 21
+	MakeCall(0x4C4082, wmInterfaceDrawCircleOverlay_hack); // 640 * y
+	MakeCall(0x4C4452, wmDrawCursorStopped_hack1);
+	const DWORD wmDrawCursorAddr[] = {0x4C43BB, 0x4C42E1};
+	MakeCalls(wmDrawCursorStopped_hack0, wmDrawCursorAddr);
+	MakeCall(0x4C5325, wmRefreshTabs_hook);
+
+	HookCall(0x4C4BFF, wmTownMapRefresh_hook);
+	if (worldmapInterface == 1) {
+		HookCall(0x4C4CD5, wmTownMapRefresh_hook_textpos);
+		HookCall(0x4C4B8F, wmTownMapInit_hook);
+	}
+	// up/down buttons of the location list (wmInterfaceInit_)
+	const DWORD wmIfaceUpDnBtnXAddr[] = {0x4C2D3C, 0x4C2D7A}; // offset by X (480)
+	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH - (640 - 480), wmIfaceUpDnBtnXAddr); // offset by X (480)
+
+	// town/world button (wmInterfaceInit_)
+	SafeWrite32(0x4C2B9B, WMAP_WIN_HEIGHT - (480 - 439)); // offset by Y (439)
+	SafeWrite32(0x4C2BAF, WMAP_WIN_WIDTH - (640 - 519));  // offset by X (508)
+
+	// viewport size for mouse click
+	const DWORD mClickInYoffsAddr[] = {
+		0x4C0154, 0x4C02BA, // wmWorldMap_
+		0x4C3A47,           // wmInterfaceRefresh_
+	};
+	SafeWriteBatch<DWORD>(WMAP_WIN_HEIGHT - (480 - 465), mClickInYoffsAddr); // height/offset by Y (465 - 21 = 444 (443))
+	const DWORD mClickInXoffsAddr[] = {
+		0x4C0159, 0x4C02BF, // wmWorldMap_
+		0x4C3A3A,           // wmInterfaceRefresh_
+		0x4C417C, 0x4C4184  // wmInterfaceDrawSubTileList_
+	};
+	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH - (640 - 472), mClickInXoffsAddr); // width/offset by X (472 - 22 = 450)
+	const DWORD wmIfaceDrawYoffsAddr[] = {
+		0x4C3FED,           // wmInterfaceDrawCircleOverlay_
+		0x4C4157, 0x4C415F, // wmInterfaceDrawSubTileList_
+	};
+	SafeWriteBatch<DWORD>(WMAP_WIN_HEIGHT - (480 - 464), wmIfaceDrawYoffsAddr); // height/offset by Y (464)
+
+	// replace hack function from HRP by Mash
+	const DWORD worldMapClickInAddr[] = {0x4C0167, 0x4C02CD};
+	HookCalls(wmWorldMap_hook_mouse_click_in, worldMapClickInAddr);
+
+	// right limit of the viewport (450)
+	wmapViewPortWidth = WMAP_WIN_WIDTH - (640 - 450); // 890 - 190 = 700 + 22 = 722
+	SafeWriteBatch<DWORD>(wmapViewPortWidth, wmViewportEndRight);
+	// bottom limit of the viewport (443)
+	wmapViewPortHeight = WMAP_WIN_HEIGHT - (480 - 443); // 720 - 37 = 683 + 21 = 704
+	SafeWriteBatch<DWORD>(wmapViewPortHeight, wmViewportEndBottom);
+
+	// Night/Day frm (wmRefreshInterfaceDial_)
+	SafeWrite32(0x4C577F, WMAP_WIN_WIDTH - (640 - 532));                 // X offset (532)
+	SafeWrite32(0x4C575D, (WMAP_WIN_WIDTH * 49) - ((640 * 49) - 31252)); // start offset in buffer (31252 / 640 = 49)
+
+	// Date/Time frm
+	SafeWrite32(0x4C3EC7, WMAP_WIN_WIDTH - (640 - 487));                 // start offset by X (487)
+	SafeWrite32(0x4C3ED1, WMAP_WIN_WIDTH - (640 - 630));                 // end offset by X (630)
+	SafeWrite32(0x4C3D10, (WMAP_WIN_WIDTH * 13) - ((640 * 13) - 8167));  // 8167 start offset in buffer (12327)
+	SafeWrite32(0x4C3DC1, WMAP_WIN_WIDTH + (666 - 640)); // 666
+
+	// WMCARMVE/WMGLOBE/WMSCREEN frms (wmRefreshInterfaceOverlay_)
+	SafeWrite32(0x4C51D5, (WMAP_WIN_WIDTH * 577) - ((640 * 337) - 215554)); // start offset for image WMCARMVE
+	SafeWrite32(0x4C5184, (WMAP_WIN_WIDTH * 571) - ((640 * 331) - 211695)); // start offset for image WMGLOBE
+	SafeWrite32(0x4C51FD, (WMAP_WIN_WIDTH * 571) - ((640 * 331) - 211699)); // start offset for image WMSCREEN
+	// Car gas indicator
+	SafeWrite32(0x4C527E, (WMAP_WIN_WIDTH * 580) - ((640 * 340) - 217460)); // start offset in buffer (217460 / 640 = 340 + (720 - 480) = 580 Y-axes)
+
+	// WMTABS.frm
+	const DWORD wmTabsBufAddr1[] = {0x4C52C4, 0x4C55AA}; // wmRefreshTabs_
+	SafeWriteBatch<DWORD>((WMAP_WIN_WIDTH * 136) - ((640 * 136) - 86901), wmTabsBufAddr1);
+	SafeWrite32(0x4C52FF, (WMAP_WIN_WIDTH * 139) - ((640 * 139) - 88850)); // wmRefreshTabs_
+	const DWORD wmTabsBufAddr2[] = {0x4C54DE, 0x4C5424}; // wmRefreshTabs_
+	SafeWriteBatch<DWORD>((WMAP_WIN_WIDTH * 27), wmTabsBufAddr2); // start offset in buffer (17280)
+	SafeWrite32(0x4C52E5, WMAP_WIN_HEIGHT - 480 + 178 - 19); // height (178)
+
+	// Buttons of cities, now 15
+	SafeWrite32(0x4C2BD9, WMAP_WIN_WIDTH - (640 - 508)); // offset of the buttons by X (508)
+	const DWORD wmTownBtnsAddr[] = {0x4C2C01, 0x4C21B6, 0x4C2289};
+	SafeWriteBatch<BYTE>(WMAP_TOWN_BUTTONS * 4, wmTownBtnsAddr); // number of buttons (28 = 7 * 4)
+	int btn = (mapSlotsScrollLimit) ? WMAP_TOWN_BUTTONS : WMAP_TOWN_BUTTONS + 1;
+	SafeWrite32(0x4C21FD, 27 * btn); // scroll limit for buttons
+	// number of city labels (6) wmRefreshTabs_
+	const DWORD wmTownLabelsAddr[] = {0x4C54F6, 0x4C542A};
+	SafeWriteBatch<BYTE>(WMAP_TOWN_BUTTONS - 1, wmTownLabelsAddr);
+	SafeWrite8(0x4C555E, 0);
+	SafeWrite32(0x4C0348, 350 + WMAP_TOWN_BUTTONS); // buttons input code (wmWorldMap_)
+
+	SafeWrite32(0x4C2BFB, (DWORD)&wmTownMapSubButtonIds[0]); // wmInterfaceInit_
+	const DWORD wmTownMapSubBtnIdsAddr[] = {
+		0x4C22DD, 0x4C230A, // wmInterfaceScrollTabsUpdate_ (never called)
+		0x4C227B,           // wmInterfaceScrollTabsStop_
+		0x4C21A8            // wmInterfaceScrollTabsStart_
+	};
+	SafeWriteBatch<DWORD>((DWORD)&wmTownMapSubButtonIds[1], wmTownMapSubBtnIdsAddr);
+	// WMTBEDGE.frm (wmRefreshTabs_)
+	BlockCall(0x4C55BF);
+
+	// Town map frm images (wmTownMapRefresh_)
+	SafeWrite32(0x4C4BE4, (WMAP_WIN_WIDTH * 21) + 22); // start offset for town map image (13462)
+}
 
 ///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
+
 static bool showTerrainType = false;
 
 enum DotStyleDefault {
@@ -510,6 +818,10 @@ static void WorldMapInterfacePatch() {
 		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
 	}
 
+	if (hrpIsEnabled) {
+		worldmapInterface = IniReader::GetConfigInt("Interface", "ExpandWorldMap", 0);
+	}
+
 	// Fallout 1 features, travel markers and displaying terrain types or town titles
 	if (IniReader::GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
 		dlogr("Applying world map travel markers patch.", DL_INIT);
@@ -711,6 +1023,12 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
+void Interface::OnAfterGameInit() {
+	if (worldmapInterface) {
+		WorldmapViewportPatch(); // Note: must be applied after WorldMapSlots patch
+	}
+}
+
 void Interface::OnGameReset() {
 	dots.clear();
 }
@@ -734,8 +1052,10 @@ void Interface::init() {
 	// Transparent/Hidden - will not toggle the mouse cursor when the cursor hovers over a transparent/hidden window
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
-	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP by Mash
-	if (hrpVersionValid) IFACE_BAR_MODE = (GetIntHRPValue(HRP_VAR_IFACE_BAR_MODE) != 0);
+	HookCall(0x44C018, gmouse_handle_event_hook); // replace hack function from HRP by Mash
+	if (hrpIsEnabled) {
+		IFACE_BAR_MODE = (IniReader::GetInt("IFACE", "IFACE_BAR_MODE", 0, ".\\f2_res.ini") != 0);
+	}
 
 	// Fix crash when the player equips a weapon overloaded with ammo (ammo bar overflow)
 	MakeCall(0x45F94F, intface_update_ammo_lights_hack);

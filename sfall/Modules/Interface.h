@@ -30,6 +30,7 @@ public:
 	void exit() override;
 
 	static void OnGameReset();
+	static void OnAfterGameInit();
 
 	static long ActiveInterfaceWID();
 	static fo::Window* GetWindow(long winType);

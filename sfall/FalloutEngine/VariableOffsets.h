@@ -326,6 +326,8 @@
 #define FO_VAR_wmMsgFile                  0x672FB0
 #define FO_VAR_wmNumHorizontalTiles       0x51DDF4
 #define FO_VAR_wmRndCursorFid             0x672E58
+#define FO_VAR_wmViewportRightScrlLimit   0x672EFC
+#define FO_VAR_wmViewportBottomtScrlLimit 0x672F00
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
 #define FO_VAR_wmWorldOffsetY             0x51DE30
 #define FO_VAR_wmYesNoStrs                0x51DD90

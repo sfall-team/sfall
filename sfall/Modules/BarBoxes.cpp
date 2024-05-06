@@ -32,7 +32,7 @@ static int sizeBox, setBoxIndex = 5;
 
 static long newBoxSlot[16];
 static long maxSlots = 6;                 // maximum number of slots for the current game window resolution
-static long ifaceWidth;
+static long ifaceWidth = 640;
 
 #pragma pack(push, 1)
 
@@ -306,8 +306,10 @@ void BarBoxes::init() {
 	MakeCall(0x4615FA, refresh_box_bar_win_hack);
 	SafeWriteBatch<DWORD>((DWORD)newBoxSlot, bboxSlotAddr); // _bboxslot
 
-	ifaceWidth = IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
-	if (ifaceWidth < 640) ifaceWidth = 640;
+	if (hrpIsEnabled) {
+		ifaceWidth = IniReader::GetInt("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
+		if (ifaceWidth < 640) ifaceWidth = 640;
+	}
 }
 
 long BarBoxes::AddExtraBox() {
