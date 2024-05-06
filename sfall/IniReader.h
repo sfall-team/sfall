@@ -69,7 +69,7 @@ public:
 	void init();
 	void clearCache();
 
-	DWORD modifiedIni() { return _modifiedIni; }
+	DWORD modifiedIni() const { return _modifiedIni; }
 
 	const char* getConfigFile();
 	void setDefaultConfigFile();

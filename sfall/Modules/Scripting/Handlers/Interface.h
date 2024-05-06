@@ -27,6 +27,8 @@ namespace script
 
 class OpcodeContext;
 
+void ClearInterfaceArtCache();
+
 // input_functions
 void __declspec() op_input_funcs_available();
 
@@ -110,6 +112,8 @@ void mf_set_window_flag(OpcodeContext&);
 void mf_draw_image(OpcodeContext&);
 
 void mf_draw_image_scaled(OpcodeContext&);
+
+void mf_art_frame_data(OpcodeContext&);
 
 void mf_interface_art_draw(OpcodeContext&);
 

@@ -91,7 +91,8 @@ WRAP_WATCOM_FUNC5(long, art_id, long, artType, long, lstIndex, long, animCode, l
 WRAP_WATCOM_FUNC3(BYTE*, art_frame_data, fo::FrmHeaderData*, frm, long, frameNum, long, rotation)
 WRAP_WATCOM_FUNC3(long, art_frame_width, fo::FrmHeaderData*, frm, long, frameNum, long, rotation)
 WRAP_WATCOM_FUNC3(long, art_frame_length, fo::FrmHeaderData*, frm, long, frameNum, long, rotation)
-WRAP_WATCOM_FUNC2(fo::FrmHeaderData*, art_ptr_lock, long, frmId, DWORD*, lockPtr)
+WRAP_WATCOM_FUNC5(long, art_frame_width_length, fo::FrmHeaderData*, frm, long, frameNum, long, rotation, long*, widthPtr, long*, heightPtr)
+WRAP_WATCOM_FUNC2(fo::FrmFile*, art_ptr_lock, long, frmId, DWORD*, lockPtr)
 WRAP_WATCOM_FUNC4(BYTE*, art_ptr_lock_data, long, frmId, long, frameNum, long, rotation, DWORD*, lockPtr)
 WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut, long*, heightOut)
 WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
@@ -104,6 +105,7 @@ WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, fo::GameObject*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
 WRAP_WATCOM_FUNC1(long, critterIsOverloaded, fo::GameObject*, critter)
+WRAP_WATCOM_FUNC4(void, datafileConvertData, unsigned char*, data, unsigned char*, palette, long, width, long, height)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC2(void, endgame_load_palette, long, artType, long, fid)
@@ -176,6 +178,7 @@ WRAP_WATCOM_FUNC2(long, item_w_subtype, fo::GameObject*, item, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_weight, fo::GameObject*, item)
 WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum) // Returns light level at given tile
 WRAP_WATCOM_FUNC2(long, load_frame, const char*, filename, fo::FrmFile**, frmPtr)
+WRAP_WATCOM_FUNC4(unsigned char*, loadPCX, const char*, fileName, long*, width, long*, height, unsigned char*, palette)
 WRAP_WATCOM_FUNC1(fo::Program*, loadProgram, const char*, fileName)
 WRAP_WATCOM_FUNC1(const char*, map_get_short_name, long, mapID)
 WRAP_WATCOM_FUNC2(void, MapDirErase, const char*, folder, const char*, ext)

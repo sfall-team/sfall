@@ -204,7 +204,7 @@ ScriptValue GetArrayKey(DWORD id, int index);
 ScriptValue GetArray(DWORD id, const ScriptValue& key);
 
 // set array element by index or key
-void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset = true);
 
 // number of elements in list or pairs in map
 int LenArray(DWORD id);

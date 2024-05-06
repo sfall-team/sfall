@@ -480,43 +480,90 @@ void mf_set_window_flag(OpcodeContext& ctx) {
 	}
 }
 
-static void __fastcall FreeArtFile(fo::FrmFile* frmPtr) {
-	if (frmPtr->id == 'PCX') {
-		__asm mov  eax, frmPtr;
-		__asm mov  eax, [eax]frmPtr.pixelData;
-		__asm call ds:[FO_VAR_freePtr];
-		delete[] frmPtr;
-	} else {
-		__asm mov  eax, frmPtr;
-		__asm call fo::funcoffs::my_free_;
+// raw frame data loaded from FRM or PCX
+struct FrameData {
+	unsigned char* pixelData = nullptr;
+	short width = 0;
+	short height = 0;
+	short xOffset = 0;
+	short yOffset = 0;
+
+	// Empty data.
+	FrameData() {}
+
+	// Data from FRM file.
+	FrameData(fo::FrmFile* frmPtr, long direction, long frame) {
+		fo::FrmFrameData* frmData = frmPtr->GetFrameData(direction, frame);
+		pixelData = frmData->data;
+		width = frmData->width;
+		height = frmData->height;
+		xOffset = frmPtr->xOffsets[direction];
+		yOffset = frmPtr->yOffsets[direction];
 	}
+
+	// Data from PCX file.
+	FrameData(unsigned char* data, long w, long h) {
+		pixelData = data;
+		width = (short)w;
+		height = (short)h;
+	}
+};
+
+static FrameData LoadPCXFile(const char* file) {
+	long w, h;
+	BYTE* pixelData = fo::func::loadPCX(file, &w, &h, fo::var::pal);
+	if (pixelData == nullptr) return FrameData();
+
+	fo::func::datafileConvertData(pixelData, fo::var::pal, w, h);
+	return FrameData(pixelData, w, h);
 }
 
-static fo::FrmFile* LoadArtFile(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
-	fo::FrmFile* frmPtr = nullptr;
-	if (checkPCX) {
-		const char* pos = strrchr(file, '.');
-		if (pos && _stricmp(++pos, "PCX") == 0) {
-			long w, h;
-			BYTE* data = fo::func::loadPCX(file, &w, &h);
-			if (!data) return nullptr;
+static bool IsPCXFile(const char* file) {
+	const char* pos = strrchr(file, '.');
+	return pos && _stricmp(++pos, "PCX") == 0;
+}
 
-			frmPtr = reinterpret_cast<fo::FrmFile*>(new BYTE[78]);
-			std::memset(frmPtr, 0, 74);
+typedef std::unordered_map<std::string, fo::FrmFile*> TFRMCache;
+typedef std::unordered_map<std::string, FrameData> TPCXCache;
 
-			frmPtr->id = 'PCX';
-			frmPtr->width = static_cast<short>(w);
-			frmPtr->height = static_cast<short>(h);
-			frmPtr->pixelData = data;
-			framePtr = frmPtr->GetFrameData(0, 0);
-			return frmPtr;
+static TFRMCache frmFileCache;
+static TPCXCache pcxFileCache;
+
+//static fo::FrmFile* LoadArtFileCached(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
+static FrameData LoadFrameDataCached(const char* file, long frame, long direction) {
+	if (IsPCXFile(file)) {
+		auto cacheHit = pcxFileCache.find(file);
+		if (cacheHit != pcxFileCache.end()) {
+			return cacheHit->second;
 		}
+		return pcxFileCache.emplace(file, LoadPCXFile(file)).first->second;
 	}
-	if (fo::func::load_frame(file, &frmPtr)) {
-		return nullptr;
+
+	fo::FrmFile* frmPtr = nullptr;
+	auto cacheHit = frmFileCache.find(file);
+	if (cacheHit != frmFileCache.end()) {
+		frmPtr = cacheHit->second;
+	} else {
+		if (fo::func::load_frame(file, &frmPtr)) {
+			frmPtr = nullptr;
+		}
+		frmFileCache.emplace(file, frmPtr);
 	}
-	framePtr = frmPtr->GetFrameData(direction, frame);
-	return frmPtr;
+	return frmPtr != nullptr
+		? FrameData(frmPtr, direction, frame)
+		: FrameData();
+}
+
+void ClearInterfaceArtCache() {
+	for (auto &pair : pcxFileCache) {
+		fo::func::freePtr_invoke(pair.second.pixelData);
+	}
+	pcxFileCache.clear();
+
+	for (auto &pair : frmFileCache) {
+		fo::func::mem_free(pair.second);
+	}
+	frmFileCache.clear();
 }
 
 static long GetArtFIDFile(long fid, char* outFilePath) {
@@ -543,69 +590,92 @@ static long GetArtFIDFile(long fid, char* outFilePath) {
 	return direction;
 }
 
+struct ArtCacheLock {
+	DWORD entryPtr = 0;
+	
+	ArtCacheLock() { }
+	ArtCacheLock(DWORD _lock) : entryPtr(_lock) { }
+	~ArtCacheLock() {
+		if (entryPtr != 0) {
+			fo::func::art_ptr_unlock(entryPtr);
+			entryPtr = 0;
+		}
+	}
+};
+
+static FrameData LockFrameData(unsigned long fid, ArtCacheLock& lock, long direction, long frame) {
+	long objType = (fid >> 24) & 0xF;
+	if (direction < 0) {
+		// If direction is not specified, take it from FID.
+		direction = objType == fo::OBJ_TYPE_CRITTER
+			? (fid >> 28)
+			: 0;
+	} else if (objType == fo::OBJ_TYPE_CRITTER) {
+		// Apply direction to FID.
+		fid = (direction << 28) | (fid & (0xFFFFFFF));
+	}
+	return FrameData(fo::func::art_ptr_lock(fid, &lock.entryPtr), direction, frame);
+}
+
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || fo::var::getInt(FO_VAR_currentWindow) == -1) {
 		ctx.printOpcodeError("%s() - no created or selected window.", ctx.getMetaruleName());
 		return 0;
 	}
-	long direction = 0;
-	const char* file = nullptr;
+	FrameData frm;
+	ArtCacheLock cacheLock;
 
 	bool isID = ctx.arg(0).isInt();
+	long frame = ctx.arg(1).rawValue();
 	if (isID) { // art id
 		long fid = ctx.arg(0).rawValue();
 		if (fid == -1) return -1;
 
-		char fileBuf[MAX_PATH];
-		direction = GetArtFIDFile(fid, fileBuf);
-		file = fileBuf;
+		frm = LockFrameData(fid, cacheLock, -1, frame);
+		if (frm.pixelData == nullptr) {
+			ctx.printOpcodeError("%s() - cannot find art by FID %d", ctx.getMetaruleName(), fid);
+			return -1;
+		}
 	} else {
-		file = ctx.arg(0).strValue(); // path to frm/pcx file
+		const char* file = ctx.arg(0).strValue();
+		frm = LoadFrameDataCached(file, frame, 0);
+		if (frm.pixelData == nullptr) {
+			ctx.printOpcodeError("%s() - cannot load art from file: %s", ctx.getMetaruleName(), file);
+			return -1;
+		}
 	}
 
-	fo::FrmFrameData* framePtr;
-	fo::FrmFile* frmPtr = LoadArtFile(file, ctx.arg(1).rawValue(), direction, framePtr, !isID);
-	if (frmPtr == nullptr) {
-		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
-		return -1;
-	}
 	long result = 1;
-	BYTE* pixelData = (frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data;
-
 	if (isScaled && ctx.numArgs() < 3) {
-		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, pixelData); // scaled to window size (w/o transparent)
+		fo::func::displayInWindow(frm.width, frm.width, frm.height, frm.pixelData); // scaled to window size (w/o transparent)
 	} else {
 		int x = ctx.arg(2).rawValue(), y = ctx.arg(3).rawValue();
 		if (isScaled) { // draw to scale
 			long s_width, s_height;
 			if (ctx.numArgs() < 5) {
-				s_width = framePtr->width;
-				s_height = framePtr->height;
+				s_width = frm.width;
+				s_height = frm.height;
 			} else {
 				s_width = ctx.arg(4).rawValue();
 				s_height = (ctx.numArgs() > 5) ? ctx.arg(5).rawValue() : -1;
 			}
 			// scale with aspect ratio if w or h is set to -1
 			if (s_width <= -1 && s_height > 0) {
-				s_width = s_height * framePtr->width / framePtr->height;
+				s_width = s_height * frm.width / frm.height;
 			} else if (s_height <= -1 && s_width > 0) {
-				s_height = s_width * framePtr->height / framePtr->width;
+				s_height = s_width * frm.height / frm.width;
 			}
 			if (s_width <= 0 || s_height <= 0) {
-				result = 0;
-				goto exit;
+				return 0;
 			}
 
 			long w_width = fo::func::windowWidth();
 			long xy_pos = (y * w_width) + x;
-			fo::func::window_trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, pixelData); // custom scaling
+			fo::func::window_trans_cscale(frm.width, frm.height, s_width, s_height, xy_pos, w_width, frm.pixelData); // custom scaling
 		} else { // with x/y frame offsets
-			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, pixelData, ctx.arg(4).rawValue());
+			fo::func::windowDisplayBuf(x + frm.xOffset, frm.width, y + frm.yOffset, frm.height, frm.pixelData, ctx.arg(4).rawValue());
 		}
 	}
-
-exit:
-	FreeArtFile(frmPtr);
 	return result;
 }
 
@@ -617,25 +687,50 @@ void mf_draw_image_scaled(OpcodeContext& ctx) {
 	ctx.setReturn(DrawImage(ctx, true));
 }
 
+static DWORD GetArtFrameSize(OpcodeContext& ctx) {
+	long width, height;
+	bool isID = ctx.arg(0).isInt();
+	if (isID) { // art id
+		long fid = ctx.arg(0).rawValue();
+		if (fid == -1) return -1;
+
+		// Get data directly from game's art cache.
+		DWORD lockPtr;
+		fo::FrmFile* art = fo::func::art_ptr_lock(fid, &lockPtr);
+		if (art == nullptr) {
+			ctx.printOpcodeError("%s() - cannot load art by FID: %d", ctx.getMetaruleName(), fid);
+			return -1;
+		}
+		DWORD result = fo::func::art_frame_width_length(art, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), &width, &height);
+		fo::func::art_ptr_unlock(lockPtr);
+	} else {
+		// Load data from DB.
+		const char* file = ctx.arg(0).strValue(); // path to frm/pcx file
+		FrameData frm = LoadFrameDataCached(file, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+		if (frm.pixelData == nullptr) {
+			ctx.printOpcodeError("%s() - cannot load art from file: %s", ctx.getMetaruleName(), file);
+			return -1;
+		}
+		width = frm.width;
+		height = frm.height;
+	}
+
+	DWORD arrayId = CreateTempArray(4, 0);
+	SetArray(arrayId, 0, width);
+	SetArray(arrayId, 1, height);
+	return arrayId;
+}
+
+void mf_art_frame_data(OpcodeContext& ctx) {
+	ctx.setReturn(GetArtFrameSize(ctx));
+}
+
 static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
-	const char* file = nullptr;
 	bool useShift = false;
 	long direction = -1, w = -1, h = -1;
 
 	bool isID = ctx.arg(1).isInt();
-	if (isID) { // art id
-		long fid = ctx.arg(1).rawValue();
-		if (fid == -1) return -1;
-
-		useShift = (((fid & 0xF000000) >> 24) == fo::OBJ_TYPE_CRITTER);
-
-		char fileBuf[MAX_PATH];
-		direction = GetArtFIDFile(fid, fileBuf);
-		file = fileBuf;
-	} else {
-		file = ctx.arg(1).strValue(); // path to frm/pcx file
-	}
-
+	long frame = ctx.arg(4).rawValue();
 	if (ctx.numArgs() > 5) { // array params
 		sArrayVar* sArray = GetRawArray(ctx.arg(5).rawValue());
 		if (sArray) {
@@ -645,38 +740,50 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 			if (size > 2) h = sArray->val[2].intVal;
 		}
 	}
-	long frame = ctx.arg(4).rawValue();
+	ArtCacheLock cacheLock;
+	FrameData frm;
+	if (isID) { // art id
+		long fid = ctx.arg(1).rawValue();
+		if (fid == -1) return -1;
 
-	fo::FrmFrameData* framePtr;
-	fo::FrmFile* frmPtr = LoadArtFile(file, frame, direction, framePtr, !isID);
-	if (frmPtr == nullptr) {
-		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
-		return -1;
+		useShift = (((fid & 0xF000000) >> 24) == fo::OBJ_TYPE_CRITTER);
+
+		frm = LockFrameData(fid, cacheLock, direction, frame);
+		if (frm.pixelData == nullptr) {
+			ctx.printOpcodeError("%s() - cannot load art by FID: %d", ctx.getMetaruleName(), fid);
+			return -1;
+		}
+	} else {
+		const char* file = ctx.arg(1).strValue(); // path to frm/pcx file
+		frm = LoadFrameDataCached(file, frame, direction);
+		if (frm.pixelData == nullptr) {
+			ctx.printOpcodeError("%s() - load art from file: %s", ctx.getMetaruleName(), file);
+			return -1;
+		}
 	}
+
 	int x = ctx.arg(2).rawValue();
 	int y = ctx.arg(3).rawValue();
 
 	if (useShift && direction >= 0) {
-		x += frmPtr->xshift[direction];
-		y += frmPtr->yshift[direction];
+		x += frm.xOffset;
+		y += frm.yOffset;
 	}
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
 
-	int width  = (w >= 0) ? w : framePtr->width;
-	int height = (h >= 0) ? h : framePtr->height;
+	int width  = (w >= 0) ? w : frm.width;
+	int height = (h >= 0) ? h : frm.height;
 
 	BYTE* surface = (ifaceWin->randY) ? WindowRender::GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
-	fo::func::trans_cscale(((frmPtr->id == 'PCX') ? frmPtr->pixelData : framePtr->data), framePtr->width, framePtr->height, framePtr->width,
+	fo::func::trans_cscale(frm.pixelData, frm.width, frm.height, frm.width,
 	                       surface + (y * ifaceWin->width) + x, width, height, ifaceWin->width
 	);
 
 	if (!(ctx.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
 		game::gui::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
-
-	FreeArtFile(frmPtr);
 	return 1;
 }
 
