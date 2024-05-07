@@ -105,7 +105,7 @@ WRAP_WATCOM_FUNC1(long, critter_kill_count_type, fo::GameObject*, critter)
 WRAP_WATCOM_FUNC1(const char*, critter_name, fo::GameObject*, critter) // Returns the name of the critter
 WRAP_WATCOM_FUNC1(void, critter_pc_set_name, const char*, newName) // Change the name of playable character
 WRAP_WATCOM_FUNC1(long, critterIsOverloaded, fo::GameObject*, critter)
-WRAP_WATCOM_FUNC4(void, datafileConvertData, unsigned char*, data, unsigned char*, palette, long, width, long, height)
+WRAP_WATCOM_FUNC4(void, datafileConvertData, BYTE*, data, BYTE*, palette, long, width, long, height)
 WRAP_WATCOM_FUNC1(void, display_print, const char*, msg) // Displays message in main UI console window
 WRAP_WATCOM_FUNC0(void, display_stats)
 WRAP_WATCOM_FUNC2(void, endgame_load_palette, long, artType, long, fid)
@@ -177,8 +177,8 @@ WRAP_WATCOM_FUNC1(long, item_w_secondary_mp_cost, fo::GameObject*, item)
 WRAP_WATCOM_FUNC2(long, item_w_subtype, fo::GameObject*, item, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_weight, fo::GameObject*, item)
 WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum) // Returns light level at given tile
-WRAP_WATCOM_FUNC2(long, load_frame, const char*, filename, fo::FrmFile**, frmPtr)
-WRAP_WATCOM_FUNC4(unsigned char*, loadPCX, const char*, fileName, long*, width, long*, height, unsigned char*, palette)
+WRAP_WATCOM_FUNC2(long, load_frame, const char*, fileName, fo::FrmFile**, frmPtr)
+WRAP_WATCOM_FUNC4(BYTE*, loadPCX, const char*, fileName, long*, width, long*, height, BYTE*, palette)
 WRAP_WATCOM_FUNC1(fo::Program*, loadProgram, const char*, fileName)
 WRAP_WATCOM_FUNC1(const char*, map_get_short_name, long, mapID)
 WRAP_WATCOM_FUNC2(void, MapDirErase, const char*, folder, const char*, ext)

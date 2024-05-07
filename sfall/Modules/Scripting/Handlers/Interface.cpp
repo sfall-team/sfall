@@ -482,7 +482,7 @@ void mf_set_window_flag(OpcodeContext& ctx) {
 
 // raw frame data loaded from FRM or PCX
 struct FrameData {
-	unsigned char* pixelData = nullptr;
+	BYTE* pixelData = nullptr;
 	short width = 0;
 	short height = 0;
 	short xOffset = 0;
@@ -502,7 +502,7 @@ struct FrameData {
 	}
 
 	// Data from PCX file.
-	FrameData(unsigned char* data, long w, long h) {
+	FrameData(BYTE* data, long w, long h) {
 		pixelData = data;
 		width = (short)w;
 		height = (short)h;
@@ -549,9 +549,9 @@ static FrameData LoadFrameDataCached(const char* file, long frame, long directio
 		}
 		frmFileCache.emplace(file, frmPtr);
 	}
-	return frmPtr != nullptr
-		? FrameData(frmPtr, direction, frame)
-		: FrameData();
+	return (frmPtr != nullptr)
+	       ? FrameData(frmPtr, direction, frame)
+	       : FrameData();
 }
 
 void ClearInterfaceArtCache() {
@@ -593,8 +593,8 @@ static long GetArtFIDFile(long fid, char* outFilePath) {
 struct ArtCacheLock {
 	DWORD entryPtr = 0;
 	
-	ArtCacheLock() { }
-	ArtCacheLock(DWORD _lock) : entryPtr(_lock) { }
+	ArtCacheLock() {}
+	ArtCacheLock(DWORD _lock) : entryPtr(_lock) {}
 	~ArtCacheLock() {
 		if (entryPtr != 0) {
 			fo::func::art_ptr_unlock(entryPtr);
@@ -607,9 +607,9 @@ static FrameData LockFrameData(unsigned long fid, ArtCacheLock& lock, long direc
 	long objType = (fid >> 24) & 0xF;
 	if (direction < 0) {
 		// If direction is not specified, take it from FID.
-		direction = objType == fo::OBJ_TYPE_CRITTER
-			? (fid >> 28)
-			: 0;
+		direction = (objType == fo::OBJ_TYPE_CRITTER)
+		          ? (fid >> 28)
+		          : 0;
 	} else if (objType == fo::OBJ_TYPE_CRITTER) {
 		// Apply direction to FID.
 		fid = (direction << 28) | (fid & (0xFFFFFFF));
@@ -633,7 +633,7 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 
 		frm = LockFrameData(fid, cacheLock, -1, frame);
 		if (frm.pixelData == nullptr) {
-			ctx.printOpcodeError("%s() - cannot find art by FID %d", ctx.getMetaruleName(), fid);
+			ctx.printOpcodeError("%s() - cannot load art by FID: %d", ctx.getMetaruleName(), fid);
 			return -1;
 		}
 	} else {
