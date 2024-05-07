@@ -1237,34 +1237,44 @@ skipCall:
 	}
 }
 
+// Expands barter/trade window vertically with 4 slots per table instead of 3.
+static void ExpandedBarterPatch() {
+	if (IniReader::GetConfigInt("Interface", "ExpandedBarter", 0) == 0) return;
 
-static void InventoryExtraSlotsPatch() {
-	if (IniReader::GetConfigInt("Interface", "InventoryExtraSlots", 0) == 0) return;
+	const int numExtraSlots = 1;
+	const int extraHeight = 48 * numExtraSlots;
+	const int dialogWindowHeight = 480 + extraHeight;
+	if (Graphics::GetGameHeightRes() < dialogWindowHeight) return;
 
-	dlogr("Applying extra inventory slots patch.", DL_INIT);
-	// Barter window:
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 228; // Trade window height 180 + 48 (one slot) = 228
-	SafeWrite32(0x46EDA4, 4); // Trade window slot count 3 -> 4
-	SafeWriteBatch<DWORD>(228, { 0x46EDAB, 0x46EE13 }); // Trade window height 180 + 48 (one slot) = 228
-	SafeWrite32(0x46EDD4, 518); // Trade window max Y = Y pos + height = 290 + 228 = 518 (was 470)
-	SafeWriteBatch<DWORD>(528, { // Game dialog BG window height (for Y calculation only) = 480 + 48 = 528
+	dlogr("Applying expanded barter screen patch.", DL_INIT);
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 180 + extraHeight; // Trade window height
+	SafeWrite32(0x46EDA4, 3 + numExtraSlots); // Trade window slot count 3 -> 4
+	SafeWriteBatch<DWORD>(180 + extraHeight, { 0x46EDAB, 0x46EE13 }); // Trade window height
+	SafeWrite32(0x46EDD4, 470 + extraHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
+	SafeWriteBatch<DWORD>(dialogWindowHeight, { // Game dialog BG window height (for Y calculation only)
 		0x44831E, // gdialog_barter_create_win_
 		0x4485A7, // gdialog_barter_destroy_win_
 	});
+	// Transparent inventory windows create issues, see comment in ExpandedInventoryPatch()
 	//SafeWrite8(0x44831C, *(BYTE*)0x44831C | fo::WinFlags::Transparent); // add transparentcy flag to trade/barter window
 	//SafeWrite8(0x46EDA9, *(BYTE*)0x46EDA9 | fo::WinFlags::Transparent); // add transparent flag 0x20 to inventory (inner part) window
 
 	HookCall(0x4482EA, gdialog_barter_create_win__art_frame_data_hook);
 	HookCall(0x4482FF, gdialog_barter_create_win__art_frame_length_hook);
 	HookCall(0x448603, gdialog_barter_destroy_win__art_ptr_lock_data_hook);
+}
 
-	// Inventory window:
-	const int extraInventorySlots = 2;
+// Expands inventory/loot/item select windows vertically with 8 vertical slots instead of 6
+static void ExpandedInventoryPatch() {
+	if (IniReader::GetConfigInt("Interface", "ExpandedInventory", 0) == 0) return;
+
+	dlogr("Applying expanded inventory patch.", DL_INIT);
+	const int numExtraSlots = 2;
 	const int slotHeight = 48;
-	SafeWrite32(0x46EC9E, 6 + extraInventorySlots); // All other inventory windows slot count 6 -> 8
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + slotHeight * extraInventorySlots; //  377 + 96 (two slots) = 473
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + slotHeight * extraInventorySlots; //  377 + 96 (two slots) = 473
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + slotHeight * extraInventorySlots; //  377 + 96 (two slots) = 473
+	SafeWrite32(0x46EC9E, 6 + numExtraSlots); // All other inventory windows slot count 6 -> 8
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + slotHeight * numExtraSlots; //  377 + 96 (two slots) = 473
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + slotHeight * numExtraSlots; //  377 + 96 (two slots) = 473
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + slotHeight * numExtraSlots; //  377 + 96 (two slots) = 473
 	
 	// Transparent inventory windows create issues:
 	// - Subtle flickering when dragging items
@@ -1281,24 +1291,24 @@ static void InventoryExtraSlotsPatch() {
 	});
 
 	// Shift event codes for main inventory buttons (armor, item1, item2) by number of extra slots to make room.
-	SafeWrite32(0x46EB89, 1008 + extraInventorySlots); // upper range value in handle_inventory
-	SafeWriteBatch(1006 + extraInventorySlots, { // Item2 slot
+	SafeWrite32(0x46EB89, 1008 + numExtraSlots); // upper range value in handle_inventory
+	SafeWriteBatch(1006 + numExtraSlots, { // Item2 slot
 		0x46F104, 0x46F10B, // setup_inventory
 		0x470E0B, // inven_pickup,
 		0x472B79, // inven_from_button
 	});
-	SafeWriteBatch(1007 + extraInventorySlots, { // Item1 slot
+	SafeWriteBatch(1007 + numExtraSlots, { // Item1 slot
 		0x46F14C, 0x46F153, // setup_inventory
 		0x470DF0, // inven_pickup
 		0x472B67, // inven_from_button
 	});
-	SafeWriteBatch(1008 + extraInventorySlots, { // Armor slot
+	SafeWriteBatch(1008 + numExtraSlots, { // Armor slot
 		0x46F195, 0x46F19C, // setup_inventory
 		0x470DFA, // inven_pickup
 		0x472B70, // inven_from_button
 	});
-	SafeWrite32(0x46EF1A, 2005 + extraInventorySlots); // loot target slots upper index range fix (setup_inventory)
-	SafeWrite32(0x46EF1F, 277 + extraInventorySlots * slotHeight); // adjust starting Y for loot target slot positions
+	SafeWrite32(0x46EF1A, 2005 + numExtraSlots); // loot target slots upper index range fix (setup_inventory)
+	SafeWrite32(0x46EF1F, 277 + numExtraSlots * slotHeight); // adjust starting Y for loot target slot positions
 }
 
 void Interface::init() {
@@ -1336,7 +1346,8 @@ void Interface::init() {
 			ammoBarXPos -= 2;
 		}
 	}
-	InventoryExtraSlotsPatch();
+	ExpandedBarterPatch();
+	ExpandedInventoryPatch();
 }
 
 void Interface::exit() {
