@@ -6,6 +6,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Modules\ExtraArt.h"
 #include "..\Modules\LoadGameHook.h"
 
 #include "Init.h"
@@ -22,7 +23,7 @@ namespace sf = sfall;
 static const long width = 640; // art
 static long scr_width = 639;
 
-static fo::UnlistedFrm* altDialogArt;
+static fo::FrmFile* altDialogArt;
 
 bool Dialog::DIALOG_SCRN_ART_FIX = true;
 bool Dialog::DIALOG_SCRN_BACKGROUND = false;
@@ -172,20 +173,16 @@ static bool loadAltDialogArt = false;
 static void __cdecl talk_to_refresh_background_window_hook_buf_to_buf(BYTE* src, long w, long h, long srcWidth, BYTE* dst, long dstWidth) {
 	if (!loadAltDialogArt) {
 		loadAltDialogArt = true;
-		altDialogArt = fo::util::LoadUnlistedFrm("HR_ALLTLK.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
+		altDialogArt = sf::LoadUnlistedFrmCached("HR_ALLTLK.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
 	}
 	if (altDialogArt) {
-		src = altDialogArt->frames->indexBuff;
-		srcWidth = altDialogArt->frames->width;
+		src = altDialogArt->frameData[0].data;
+		srcWidth = altDialogArt->frameData[0].width;
 	}
 	fo::func::buf_to_buf(src, w, h, srcWidth, dst, dstWidth);
 }
 
 static void UnloadDialogArt() {
-	if (altDialogArt) {
-		delete altDialogArt;
-		altDialogArt = nullptr;
-	}
 	loadAltDialogArt = false;
 }
 

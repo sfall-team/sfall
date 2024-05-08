@@ -33,6 +33,20 @@ namespace fo
 namespace util
 {
 
+// To safely unlock cache entries after using art_ptr_lock and similar functions
+struct ArtCacheLock {
+	DWORD entryPtr = 0;
+	
+	ArtCacheLock() { }
+	ArtCacheLock(DWORD _lock) : entryPtr(_lock) { }
+	~ArtCacheLock() {
+		if (entryPtr != 0) {
+			fo::func::art_ptr_unlock(entryPtr);
+			entryPtr = 0;
+		}
+	}
+};
+
 __inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
 }
@@ -190,8 +204,6 @@ void RedrawObject(fo::GameObject* obj);
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner = false);
-
-fo::UnlistedFrm *LoadUnlistedFrm(const char *frmName, unsigned int folderRef);
 
 }
 }

@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "..\Utils.h"
+#include "ExtraArt.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
 #include "Worldmap.h"
@@ -96,13 +97,21 @@ fo::Window* Interface::GetWindow(long winType) {
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
 
+static BYTE* LoadInterfaceFrmData(fo::FrmFile** frm, const char* frmName) {
+	if (*frm == nullptr) {
+		*frm = LoadUnlistedFrmCached(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (*frm == nullptr) {
+			return nullptr;
+		}
+	}
+	return (*frm)->frameData[0].data;
+}
+
 static BYTE movePointBackground[16 * 9 * 5];
-static fo::UnlistedFrm* ifaceFrm = nullptr;
+static fo::FrmFile* ifaceFrm = nullptr;
 
 static void* LoadIfaceFrm() {
-	ifaceFrm = fo::util::LoadUnlistedFrm("IFACE_E.frm", fo::OBJ_TYPE_INTRFACE);
-	if (!ifaceFrm) return nullptr;
-	return ifaceFrm->frames[0].indexBuff;
+	return LoadInterfaceFrmData(&ifaceFrm, "IFACE_E.frm");
 }
 
 static void __declspec(naked) intface_init_hook_lock() {
@@ -1104,15 +1113,15 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-
-static fo::UnlistedFrm* barterTallFrm = nullptr;
-static fo::UnlistedFrm* tradeTallFrm = nullptr;
-static fo::UnlistedFrm* inventoryTallFrms[3] = { nullptr, nullptr, nullptr };
-static const char* inventoryTallFrmNames[3] = { "invbox_473.frm", "use_472.frm", "loot_472.frm"};
+static fo::FrmFile* barterTallFrm = nullptr;
+static fo::FrmFile* tradeTallFrm = nullptr;
+constexpr long numTallFrms = fo::INVENTORY_WINDOW_TYPE_TRADE;
+static fo::FrmFile* inventoryTallFrms[numTallFrms] = { nullptr, nullptr, nullptr };
+static const char* inventoryTallFrmNames[numTallFrms] = { "invbox_473.frm", "use_472.frm", "loot_472.frm"};
 
 static DWORD findInventoryWindowTypeByFid(DWORD fid) {
 	fid &= 0xFFF;
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < numTallFrms; ++i) {
 		if (fid == fo::var::iscr_data[i].artIndex)
 			return i;
 	}
@@ -1123,45 +1132,25 @@ static BYTE* __fastcall inventory_get_art_data(DWORD fid) {
 	DWORD windowType = findInventoryWindowTypeByFid(fid);
 	if (windowType > fo::INVENTORY_WINDOW_TYPE_LOOT) return nullptr;
 
-	fo::UnlistedFrm** frm = &inventoryTallFrms[windowType];
-	if (*frm == nullptr) {
-		*frm = fo::util::LoadUnlistedFrm(inventoryTallFrmNames[windowType], fo::ArtType::OBJ_TYPE_INTRFACE);
-		if (*frm == nullptr) {
-			return nullptr;
-		}
-	}
-	return (*frm)->frames[0].indexBuff;
+	return LoadInterfaceFrmData(&inventoryTallFrms[windowType], inventoryTallFrmNames[windowType]);
 }
 
 static BYTE* __fastcall gdialog_barter_get_art_data() {
-	fo::UnlistedFrm** frm;
-	const char* frmName;
 	if (fo::var::dialog_target_is_party) {
-		frm = &tradeTallFrm;
-		frmName = "trade_238.frm";
+		return LoadInterfaceFrmData(&tradeTallFrm, "trade_238.frm");
 	}
-	else {
-		frm = &barterTallFrm;
-		frmName = "barter_239.frm";
-	}
-	if (*frm == nullptr) {
-		*frm = fo::util::LoadUnlistedFrm(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
-		if (*frm == nullptr) {
-			return nullptr;
-		}
-	}
-	return (*frm)->frames[0].indexBuff;
+	return LoadInterfaceFrmData(&barterTallFrm, "barter_239.frm");
 }
 
 static DWORD __fastcall gdialog_barter_get_art_height() {
-	fo::UnlistedFrm** frm = fo::var::dialog_target_is_party
+	fo::FrmFile** frm = fo::var::dialog_target_is_party
 		? &tradeTallFrm
 		: &barterTallFrm;
 
 	if (*frm == nullptr) {
 		return 0;
 	}
-	return (*frm)->frames[0].height;
+	return (*frm)->frameData[0].height;
 }
 
 // replace art data for dialog barter window
@@ -1346,12 +1335,14 @@ void Interface::init() {
 			ammoBarXPos -= 2;
 		}
 	}
-	ExpandedBarterPatch();
+	LoadGameHook::OnGameInit() += []() {
+		// Needs to be invoked in OnGameInit when screen height is already known.
+		ExpandedBarterPatch();
+	};
 	ExpandedInventoryPatch();
 }
 
 void Interface::exit() {
-	if (ifaceFrm) delete ifaceFrm;
 	if (dotStyle) delete[] dotStyle;
 }
 

@@ -6,6 +6,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Modules\ExtraArt.h"
 #include "..\Modules\LoadGameHook.h"
 
 #include "Init.h"
@@ -45,22 +46,20 @@ static class Panels {
 	long rightBarID;
 
 	void LoadFRMImage(char* name, long winId) {
-		auto* frm = fo::util::LoadUnlistedFrm(name, fo::ArtType::OBJ_TYPE_INTRFACE);
-		if (!frm) return;
+		fo::FrmFile* frm = sf::LoadUnlistedFrmCached(name, fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (frm == nullptr) return;
 
 		fo::Window* win = fo::func::GNW_find(winId);
 
 		long width = win->width;
-		if (width > frm->frames->width) width = frm->frames->width;
-		BYTE* scr = frm->frames->indexBuff;
+		if (width > frm->frameData[0].width) width = frm->frameData[0].width;
+		BYTE* scr = frm->frameData[0].data;
 
 		// set the position to the right side
-		if (!IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left <= 0) scr += (frm->frames->width - win->width);
-		if (IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left > xPosition) scr += (frm->frames->width - win->width);
+		if (!IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left <= 0) scr += (frm->frameData[0].width - win->width);
+		if (IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left > xPosition) scr += (frm->frameData[0].width - win->width);
 
-		fo::func::cscale(scr, width, frm->frames->height, frm->frames->width, win->surface, win->width, win->height, win->width);
-
-		delete frm;
+		fo::func::cscale(scr, width, frm->frameData[0].height, frm->frameData[0].width, win->surface, win->width, win->height, win->width);
 	}
 
 public:
@@ -205,24 +204,21 @@ static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE*
 		char file[33];
 		std::sprintf(file, "HR_IFACE_%i%s.frm", IFaceBar::IFACE_BAR_WIDTH, ((expandAPBar) ? "E" : ""));
 
-		auto* frm = fo::util::LoadUnlistedFrm(file, fo::ArtType::OBJ_TYPE_INTRFACE);
-		if (frm && frm->frames->width == IFaceBar::IFACE_BAR_WIDTH) {
-			h = frm->frames->height;
+		fo::FrmFile* frm = sf::LoadUnlistedFrmCached(file, fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (frm != nullptr && frm->frameData[0].width == IFaceBar::IFACE_BAR_WIDTH) {
+			h = frm->frameData[0].height;
 			if (h > 100) h = 100;
 
-			fo::func::buf_to_buf(frm->frames->indexBuff, frm->frames->width, h, frm->frames->width, dst, IFaceBar::IFACE_BAR_WIDTH);
-
-			delete frm;
+			fo::func::buf_to_buf(frm->frameData[0].data, frm->frameData[0].width, h, frm->frameData[0].width, dst, IFaceBar::IFACE_BAR_WIDTH);
 			return 0;
 		}
 
 		// no required file, use the default one provided by HRP
-		if (!frm) frm = fo::util::LoadUnlistedFrm(((expandAPBar) ? "HR_IFACE_800E.frm" : "HR_IFACE_800.frm"), fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (frm == nullptr) frm = sf::LoadUnlistedFrmCached(((expandAPBar) ? "HR_IFACE_800E.frm" : "HR_IFACE_800.frm"), fo::ArtType::OBJ_TYPE_INTRFACE);
 
-		if (frm) {
+		if (frm != nullptr) {
 			// scale the 800px wide interface to the width of IFACE_BAR_WIDTH
-			InterfaceArtScale(frm->frames->indexBuff, frm->frames->width, frm->frames->height, dst, h);
-			delete frm;
+			InterfaceArtScale(frm->frameData[0].data, frm->frameData[0].width, frm->frameData[0].height, dst, h);
 		} else {
 			// scale the vanilla interface to 640px wide (640-460=180)
 			InterfaceArtScale(scr, w, h, dst, h);

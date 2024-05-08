@@ -24,7 +24,7 @@ static long __fastcall CreateWin(long height, long yPos, long xPos, long width, 
 	if (!setPosition[mode]) {
 		setPosition[mode] = true;
 		long x = (Setting::ScreenWidth() - width) / 2;
-		long y = (fo::var::getInt(FO_VAR_buf_length_2) - height) / 2;
+		long y = (fo::var::buf_length_2 - height) / 2;
 		if (y < 0) y = 0;
 		fo::var::iscr_data[mode].x = x;
 		fo::var::iscr_data[mode].y = y;
