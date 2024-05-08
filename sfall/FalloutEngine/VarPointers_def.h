@@ -156,6 +156,7 @@ PTR_(optionsButtonUp1,           DWORD)
 PTR_(optionsButtonUpKey,         DWORD)
 PTRC(optnwin,                    DWORD)
 PTR_(outlined_object,            fo::GameObject*)
+PTR_(pal,                        BYTE) // array of 768 BYTE
 PTR_(partyMemberAIOptions,       DWORD)
 PTR_(partyMemberCount,           DWORD)
 PTR_(partyMemberLevelUpInfoList, DWORD*)

@@ -277,6 +277,7 @@ void Opcodes::OnGameReset() {
 	PipboyAvailableRestore();
 	ForceEncounterRestore(); // restore if the encounter did not happen
 	ResetIniCache();
+	ClearInterfaceArtCache();
 }
 
 void Opcodes::InitNew() {

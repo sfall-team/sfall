@@ -535,7 +535,7 @@ static void RemoveSavFiles() {
 
 static DWORD aliasFID = -1;
 
-static void __declspec(naked) art_get_name_hook() {
+static void __declspec(naked) art_alias_fid_hook() {
 	__asm {
 		call fo::funcoffs::art_alias_fid_;
 		cmp  eax, -1;
@@ -650,7 +650,7 @@ void LoadOrder::init() {
 
 	// Redefined behavior for replacing art aliases for critters
 	// first check the existence of the art file of the current critter and then replace the art alias if file not found
-	HookCall(0x419440, art_get_name_hook);
+	HookCall(0x419440, art_alias_fid_hook);
 	SafeWrite16(0x419521, 0x003B); // jmp 0x419560
 	if (IniReader::GetConfigInt("Misc", "EnableHeroAppearanceMod", 0) <= 0) { // Hero Appearance mod uses an alternative code
 		MakeCall(0x419560, art_get_name_hack);

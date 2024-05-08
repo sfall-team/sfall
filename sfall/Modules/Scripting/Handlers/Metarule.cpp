@@ -75,6 +75,7 @@ static const SfallMetarule metarules[] = {
 	{"add_g_timer_event",         mf_add_g_timer_event,         2, 2, -1, {ARG_INT, ARG_INT}},
 	{"add_trait",                 mf_add_trait,                 1, 1, -1, {ARG_INT}},
 	{"art_cache_clear",           mf_art_cache_flush,           0, 0},
+	{"art_frame_data",            mf_art_frame_data,            1, 3,  0, {ARG_INTSTR, ARG_INT, ARG_INT}},
 	{"attack_is_aimed",           mf_attack_is_aimed,           0, 0},
 	{"car_gas_amount",            mf_car_gas_amount,            0, 0},
 	{"combat_data",               mf_combat_data,               0, 0},
