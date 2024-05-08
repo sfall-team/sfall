@@ -45,6 +45,7 @@ public:
 fo::FrmFile* LoadFrmFileCached(const char* file);
 PcxFile LoadPcxFileCached(const char* file);
 
+bool UnlistedFrmExists(const char* frmName, unsigned int folderRef);
 fo::FrmFile* LoadUnlistedFrmCached(const char* file, unsigned int folderRef);
 
 }

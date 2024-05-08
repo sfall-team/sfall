@@ -97,21 +97,34 @@ fo::Window* Interface::GetWindow(long winType) {
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
 
-static BYTE* LoadInterfaceFrmData(fo::FrmFile** frm, const char* frmName) {
-	if (*frm == nullptr) {
-		*frm = LoadUnlistedFrmCached(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
-		if (*frm == nullptr) {
-			return nullptr;
-		}
+struct InterfaceCustomFrm {
+	fo::FrmFile* frm;
+	const char* frmName;
+	bool isLoaded;
+
+	InterfaceCustomFrm(const char* _frmName) : frm(nullptr), frmName(_frmName), isLoaded(false) {}
+	InterfaceCustomFrm(InterfaceCustomFrm &other) = delete;
+
+	bool ArtExists() const {
+		return UnlistedFrmExists(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
 	}
-	return (*frm)->frameData[0].data;
-}
+
+	BYTE* LoadFrmData() {
+		if (!isLoaded) {
+			frm = LoadUnlistedFrmCached(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
+			isLoaded = true;
+		}
+		return frm != nullptr
+			? frm->frameData[0].data
+			: nullptr;
+	}
+};
 
 static BYTE movePointBackground[16 * 9 * 5];
-static fo::FrmFile* ifaceFrm = nullptr;
+static InterfaceCustomFrm ifaceFrm{ "IFACE_E.frm" };
 
 static void* LoadIfaceFrm() {
-	return LoadInterfaceFrmData(&ifaceFrm, "IFACE_E.frm");
+	return ifaceFrm.LoadFrmData();
 }
 
 static void __declspec(naked) intface_init_hook_lock() {
@@ -1113,15 +1126,14 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
-static fo::FrmFile* barterTallFrm = nullptr;
-static fo::FrmFile* tradeTallFrm = nullptr;
-constexpr long numTallFrms = fo::INVENTORY_WINDOW_TYPE_TRADE;
-static fo::FrmFile* inventoryTallFrms[numTallFrms] = { nullptr, nullptr, nullptr };
-static const char* inventoryTallFrmNames[numTallFrms] = { "invbox_473.frm", "use_472.frm", "loot_472.frm"};
+static InterfaceCustomFrm barterTallFrm { "barter_e.frm" };
+static InterfaceCustomFrm tradeTallFrm { "trade_e.frm" };
+
+static std::array<InterfaceCustomFrm, fo::INVENTORY_WINDOW_TYPE_TRADE>  inventoryTallFrms { "invbox_e.frm", "use_e.frm", "loot_e.frm"};
 
 static DWORD findInventoryWindowTypeByFid(DWORD fid) {
 	fid &= 0xFFF;
-	for (int i = 0; i < numTallFrms; ++i) {
+	for (int i = 0; i < fo::INVENTORY_WINDOW_TYPE_TRADE; ++i) {
 		if (fid == fo::var::iscr_data[i].artIndex)
 			return i;
 	}
@@ -1132,25 +1144,21 @@ static BYTE* __fastcall inventory_get_art_data(DWORD fid) {
 	DWORD windowType = findInventoryWindowTypeByFid(fid);
 	if (windowType > fo::INVENTORY_WINDOW_TYPE_LOOT) return nullptr;
 
-	return LoadInterfaceFrmData(&inventoryTallFrms[windowType], inventoryTallFrmNames[windowType]);
+	return inventoryTallFrms[windowType].LoadFrmData();
 }
 
 static BYTE* __fastcall gdialog_barter_get_art_data() {
-	if (fo::var::dialog_target_is_party) {
-		return LoadInterfaceFrmData(&tradeTallFrm, "trade_238.frm");
-	}
-	return LoadInterfaceFrmData(&barterTallFrm, "barter_239.frm");
+	return (fo::var::dialog_target_is_party ? tradeTallFrm : barterTallFrm).LoadFrmData();
 }
 
 static DWORD __fastcall gdialog_barter_get_art_height() {
-	fo::FrmFile** frm = fo::var::dialog_target_is_party
-		? &tradeTallFrm
-		: &barterTallFrm;
+	fo::FrmFile* frm = fo::var::dialog_target_is_party
+		? tradeTallFrm.frm
+		: barterTallFrm.frm;
 
-	if (*frm == nullptr) {
-		return 0;
-	}
-	return (*frm)->frameData[0].height;
+	return frm != nullptr
+		? frm->frameData[0].height
+		: 0;
 }
 
 // replace art data for dialog barter window
@@ -1257,7 +1265,16 @@ static void ExpandedBarterPatch() {
 	if (IniReader::GetConfigInt("Interface", "ExpandedBarter", 0) == 0) return;
 
 	const int dialogWindowHeight = 480 + extraBarterHeight;
-	if (Graphics::GetGameHeightRes() < dialogWindowHeight) return;
+	if (Graphics::GetGameHeightRes() < dialogWindowHeight) {
+		dlog_f("Skipping expanded barter screen patch. Screen height = %d < %d\n", DL_INIT, Graphics::GetGameHeightRes(), dialogWindowHeight);
+		return;
+	}
+
+	if (!barterTallFrm.ArtExists() || !tradeTallFrm.ArtExists()) {
+		dlog_f("Skipping expanded barter screen patch. Missing required FRM files: %s, %s.\n", DL_INIT,
+			barterTallFrm.frmName, tradeTallFrm.frmName);
+		return;
+	}
 
 	dlogr("Applying expanded barter screen patch.", DL_INIT);
 	SafeWrite32(0x46EDA4, 3 + numExtraBarterSlots);  // Trade window slot count 3 -> 4
@@ -1285,13 +1302,26 @@ static void ExpandedBarterPatch() {
 static void ExpandedInventoryPatch() {
 	if (IniReader::GetConfigInt("Interface", "ExpandedInventory", 0) == 0) return;
 
-	dlogr("Applying expanded inventory patch.", DL_INIT);
+	for (size_t i = 0; i < inventoryTallFrms.size(); i++) {
+		if (!inventoryTallFrms[i].ArtExists()) {
+			dlog_f("Skipping expanded inventory screen patch. Missing required FRM file: %s.\n", DL_INIT, inventoryTallFrms[i].frmName);
+			return;
+		}
+	}
+
+	dlogr("Applying expanded inventory screen patch.", DL_INIT);
 	const int numExtraSlots = 2;
 	const int slotHeight = 48;
+	const int extraHeight = slotHeight * numExtraSlots - 8; // shorten by a few pixels to reduce empty space below the last item slot
 	SafeWrite32(0x46EC9E, 6 + numExtraSlots); // All other inventory windows slot count 6 -> 8
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + slotHeight * numExtraSlots; //  377 + 96 (two slots) = 473
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + slotHeight * numExtraSlots; //  377 + 96 (two slots) = 473
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + slotHeight * numExtraSlots; //  377 + 96 (two slots) = 473
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + extraHeight;
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + extraHeight;
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + extraHeight;
+
+	// Shift Done buttons down:
+	SafeWrite32(0x46F26C, 329 + extraHeight); // Normal
+	SafeWrite32(0x46F29C, 328 + extraHeight); // Use Item On
+	SafeWrite32(0x46F2CC, 331 + extraHeight); // Loot
 	
 	// Transparent inventory windows create issues:
 	// - Subtle flickering when dragging items
@@ -1364,10 +1394,10 @@ void Interface::init() {
 		}
 	}
 	LoadGameHook::OnGameInit() += []() {
-		// Needs to be invoked in OnGameInit when screen height is already known.
+		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.
 		ExpandedBarterPatch();
+		ExpandedInventoryPatch();
 	};
-	ExpandedInventoryPatch();
 }
 
 void Interface::exit() {
