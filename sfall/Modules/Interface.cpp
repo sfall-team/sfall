@@ -118,6 +118,11 @@ struct InterfaceCustomFrm {
 			? frm->frameData[0].data
 			: nullptr;
 	}
+
+	void Reset() {
+		frm = nullptr;
+		isLoaded = false;
+	}
 };
 
 static BYTE movePointBackground[16 * 9 * 5];
@@ -1397,6 +1402,14 @@ void Interface::init() {
 		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.
 		ExpandedBarterPatch();
 		ExpandedInventoryPatch();
+	};
+	LoadGameHook::OnGameReset() += []() {
+		ifaceFrm.Reset();
+		barterTallFrm.Reset();
+		tradeTallFrm.Reset();
+		for (size_t i = 0; i < inventoryTallFrms.size(); ++i) {
+			inventoryTallFrms[i].Reset();
+		}
 	};
 }
 

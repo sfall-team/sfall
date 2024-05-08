@@ -270,7 +270,7 @@ void Dialog::init() {
 			fo::var::backgrndRects[i].offy += 5;
 		}
 
-		sf::LoadGameHook::OnGameExit() += UnloadDialogArt;
+		sf::LoadGameHook::OnGameReset() += UnloadDialogArt;
 	}
 }
 
