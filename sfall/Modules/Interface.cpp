@@ -1226,20 +1226,46 @@ skipCall:
 	}
 }
 
+constexpr int numExtraBarterSlots = 1;
+constexpr int extraBarterHeight = 48 * numExtraBarterSlots;
+
+// This call draws pixels from alltlk.frm onto the barter window prior to scroll animation.
+// Because we expanded barter window downwards beyond the background window, it will try to copy pixels beyond source FRM buffer.
+// To fix this, we reduce the height parameter passed to buf_to_buf.
+static void __declspec(naked) gdialog_barter_create__win_buf_to_buf_hook() {
+	__asm {
+		mov eax, [esp + 12]; // height to copy
+		sub eax, extraBarterHeight;
+		mov [esp + 12], eax;
+		jmp fo::funcoffs::buf_to_buf_;
+	}
+}
+// Same issue as above, this time we reduce height passed to gdialog_scroll_subwin to avoid reading beyond alltlk.frm height.
+static void __declspec(naked) gdialog_barter_destroy_win__gdialog_scroll_subwin_hook() {
+	__asm {
+		push eax;
+		mov eax, [esp + 12]; // height to copy
+		sub eax, extraBarterHeight;
+		mov [esp + 12], eax;
+		pop eax;
+		jmp fo::funcoffs::gdialog_scroll_subwin_;
+	}
+}
+
 // Expands barter/trade window vertically with 4 slots per table instead of 3.
 static void ExpandedBarterPatch() {
 	if (IniReader::GetConfigInt("Interface", "ExpandedBarter", 0) == 0) return;
 
-	const int numExtraSlots = 1;
-	const int extraHeight = 48 * numExtraSlots;
-	const int dialogWindowHeight = 480 + extraHeight;
+	const int dialogWindowHeight = 480 + extraBarterHeight;
 	if (Graphics::GetGameHeightRes() < dialogWindowHeight) return;
 
 	dlogr("Applying expanded barter screen patch.", DL_INIT);
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 180 + extraHeight; // Trade window height
-	SafeWrite32(0x46EDA4, 3 + numExtraSlots); // Trade window slot count 3 -> 4
-	SafeWriteBatch<DWORD>(180 + extraHeight, { 0x46EDAB, 0x46EE13 }); // Trade window height
-	SafeWrite32(0x46EDD4, 470 + extraHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
+	SafeWrite32(0x46EDA4, 3 + numExtraBarterSlots);  // Trade window slot count 3 -> 4
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 180 + extraBarterHeight; // Trade sub-window height
+	SafeWriteBatch<DWORD>(180 + extraBarterHeight, { // Trade sub-window height
+		0x46EDAB, 0x46EE13, // setup_inventory
+	});
+	SafeWrite32(0x46EDD4, 470 + extraBarterHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
 	SafeWriteBatch<DWORD>(dialogWindowHeight, { // Game dialog BG window height (for Y calculation only)
 		0x44831E, // gdialog_barter_create_win_
 		0x4485A7, // gdialog_barter_destroy_win_
@@ -1251,6 +1277,8 @@ static void ExpandedBarterPatch() {
 	HookCall(0x4482EA, gdialog_barter_create_win__art_frame_data_hook);
 	HookCall(0x4482FF, gdialog_barter_create_win__art_frame_length_hook);
 	HookCall(0x448603, gdialog_barter_destroy_win__art_ptr_lock_data_hook);
+	HookCall(0x448374, gdialog_barter_create__win_buf_to_buf_hook);
+	HookCall(0x448628, gdialog_barter_destroy_win__gdialog_scroll_subwin_hook);
 }
 
 // Expands inventory/loot/item select windows vertically with 8 vertical slots instead of 6
