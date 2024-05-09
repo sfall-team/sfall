@@ -126,25 +126,29 @@ struct InterfaceCustomFrm {
 };
 
 static BYTE movePointBackground[16 * 9 * 5];
-static InterfaceCustomFrm ifaceFrm{ "IFACE_E.frm" };
 
-static void* LoadIfaceFrm() {
-	return ifaceFrm.LoadFrmData();
+static void DrawExtendedApBar() {
+	const char* const ifaceApBarFrm = "iface_apbar_e.frm"; // 183x13 at 266,10 (x = width - 374)
+	TempFrmHandle frmHandle{ LoadUnlistedFrm(ifaceApBarFrm, fo::ArtType::OBJ_TYPE_INTRFACE) };
+	if (!frmHandle.IsValid()) return;
+
+	DWORD ifaceWin = fo::var::interfaceWindow;
+	fo::Window* win = fo::func::GNW_find(ifaceWin);
+	if (win == nullptr) return;
+
+	constexpr int destOffsetRight = 374;
+	constexpr int destOffsetTop = 10;
+	const fo::FrmFrameData& srcFrame = frmHandle.Frm().frameData[0];
+	BYTE* dest = fo::var::interfaceBuffer + (win->width * (destOffsetTop + 1)) - destOffsetRight;
+	fo::func::buf_to_buf((BYTE*)srcFrame.data, srcFrame.width, srcFrame.height, srcFrame.width, dest, win->width);
 }
 
-static void __declspec(naked) intface_init_hook_lock() {
+static void __declspec(naked) intface_init_hook_unlock_iface_frm() {
 	__asm {
 		pushadc;
-		call LoadIfaceFrm;
-		test eax, eax;
-		jz   skip;
-		pop  ecx;
-		add  esp, 8;
-		mov  dword ptr [ecx], 0;
-		retn;
-skip:
+		call DrawExtendedApBar;
 		popadc;
-		jmp  fo::funcoffs::art_ptr_lock_data_;
+		jmp  fo::funcoffs::art_ptr_unlock_;
 	}
 }
 
@@ -175,14 +179,10 @@ static void APBarRectPatch() {
 }
 
 static void ActionPointsBarPatch() {
-	HRP::IFaceBar::SetExpandAPBar();
-
 	dlog("Applying expanded action points bar patch.", DL_INIT);
 	if (HRP::Setting::ExternalEnabled()) {
 		// check valid data
-		if (HRP::Setting::VersionIsValid && !_stricmp((const char*)HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR), "HR_IFACE_%i.frm")) {
-			SafeWriteStr(HRP::Setting::GetAddress(HRP_VAR_HR_IFACE_FRM_STR + 11), "E.frm"); // patching HRP
-		} else {
+		if (!HRP::Setting::VersionIsValid) {
 			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
 		}
@@ -190,13 +190,14 @@ static void ActionPointsBarPatch() {
 	} else {
 		APBarRectPatch();
 	}
+
 	// intface_init_
 	SafeWriteBatch<DWORD>((DWORD)&movePointBackground, {0x45E343, 0x45EE3F});
 	// intface_update_move_points_
 	SafeWriteBatch<BYTE>(16, {0x45EE55, 0x45EE7B, 0x45EE82, 0x45EE9C, 0x45EEA0});
 	SafeWriteBatch<DWORD>(9276 - (54 / 2), {0x45EE33, 0x45EEC8, 0x45EF16});
 
-	HookCall(0x45D918, intface_init_hook_lock);
+	HookCall(0x45D962, intface_init_hook_unlock_iface_frm);
 	MakeCall(0x45E356, intface_init_hack);
 	MakeJump(0x45EE38, intface_update_move_points_hack, 1);
 	dlogr(" Done", DL_INIT);
@@ -1412,7 +1413,6 @@ void Interface::init() {
 		ExpandedInventoryPatch();
 	};
 	LoadGameHook::OnGameReset() += []() {
-		ifaceFrm.Reset();
 		barterTallFrm.Reset();
 		tradeTallFrm.Reset();
 		for (size_t i = 0; i < inventoryTallFrms.size(); ++i) {

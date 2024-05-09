@@ -41,15 +41,25 @@ static PcxFile LoadPcxFile(const char* file) {
 	return pcx;
 }
 
+static fo::FrmFile* LoadFrmFile(const char* file) {
+	fo::FrmFile* frmPtr = nullptr;
+	if (fo::func::load_frame(file, &frmPtr)) {
+		frmPtr = nullptr;
+	}
+	return frmPtr;
+}
+
+void UnloadFrmFile(fo::FrmFile* frm) {
+	fo::func::mem_free(frm);
+}
+
 fo::FrmFile* LoadFrmFileCached(const char* file) {
 	fo::FrmFile* frmPtr = nullptr;
 	auto cacheHit = frmFileCache.find(file);
 	if (cacheHit != frmFileCache.end()) {
 		frmPtr = cacheHit->second;
 	} else {
-		if (fo::func::load_frame(file, &frmPtr)) {
-			frmPtr = nullptr;
-		}
+		frmPtr = LoadFrmFile(file);
 		frmFileCache.emplace(file, frmPtr);
 	}
 	return frmPtr;
@@ -64,7 +74,6 @@ PcxFile LoadPcxFileCached(const char* file) {
 }
 
 static void GetUnlistedFrmPath(const char* frmName, unsigned int folderRef, bool useLanguage, char* pathBuf) {
-	
 	const char* artfolder = fo::var::art[folderRef].path; // address of art type name
 	if (useLanguage) {
 		sprintf_s(pathBuf, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::var::language, artfolder, frmName);
@@ -73,10 +82,9 @@ static void GetUnlistedFrmPath(const char* frmName, unsigned int folderRef, bool
 	}
 }
 
-bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
+static bool CheckUnlistedFrm(const char* frmName, unsigned int folderRef, char* frmPath) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char frmPath[MAX_PATH];
 	GetUnlistedFrmPath(frmName, folderRef, fo::var::use_language != 0, frmPath);
 
 	bool exists = fo::func::db_access(frmPath);
@@ -87,19 +95,21 @@ bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
 	return exists;
 }
 
-fo::FrmFile* LoadUnlistedFrmCached(const char* frmName, unsigned int folderRef) {
-	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
-
+bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
 	char frmPath[MAX_PATH];
+	return CheckUnlistedFrm(frmName, folderRef, frmPath);
+}
 
-	GetUnlistedFrmPath(frmName, folderRef, fo::var::use_language != 0, frmPath);
+fo::FrmFile* LoadUnlistedFrm(const char* frmName, unsigned int folderRef) {
+	char frmPath[MAX_PATH];
+	if (!CheckUnlistedFrm(frmName, folderRef, frmPath)) return nullptr;
+	return LoadFrmFile(frmPath);
+}
 
-	fo::FrmFile* frm = LoadFrmFileCached(frmPath);
-	if (frm == nullptr && fo::var::use_language) {
-		GetUnlistedFrmPath(frmName, folderRef, false, frmPath);
-		frm = LoadFrmFileCached(frmPath);
-	}
-	return frm;
+fo::FrmFile* LoadUnlistedFrmCached(const char* frmName, unsigned int folderRef) {
+	char frmPath[MAX_PATH];
+	if (!CheckUnlistedFrm(frmName, folderRef, frmPath)) return nullptr;
+	return LoadFrmFileCached(frmPath);
 }
 
 static void ClearInterfaceArtCache() {
@@ -109,9 +119,31 @@ static void ClearInterfaceArtCache() {
 	pcxFileCache.clear();
 
 	for (auto &pair : frmFileCache) {
-		fo::func::mem_free(pair.second);
+		UnloadFrmFile(pair.second);
 	}
 	frmFileCache.clear();
+}
+
+TempFrmHandle::TempFrmHandle(fo::FrmFile* frm) : _frm(frm) {
+}
+
+TempFrmHandle::TempFrmHandle(TempFrmHandle&& other) : _frm(other._frm) {
+	other._frm = nullptr;
+}
+
+TempFrmHandle::~TempFrmHandle() {
+	if (_frm == nullptr) return;
+	UnloadFrmFile(_frm);
+	_frm = nullptr;
+}
+
+bool TempFrmHandle::IsValid() {
+	return _frm != nullptr;
+}
+
+const fo::FrmFile& TempFrmHandle::Frm() const {
+	assert(_frm != nullptr);
+	return *_frm;
 }
 
 void ExtraArt::init() {

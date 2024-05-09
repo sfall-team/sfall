@@ -165,6 +165,7 @@
 #define FO_VAR_idle_func                  0x51E234
 #define FO_VAR_In_WorldMap                0x672E1C
 #define FO_VAR_info_line                  0x5707D0
+#define FO_VAR_interfaceBuffer            0x59D3F4
 #define FO_VAR_interfaceWindow            0x519024
 #define FO_VAR_intface_full_width         0x56FB4C
 #define FO_VAR_intfaceEnabled             0x518F10
