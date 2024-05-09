@@ -1274,7 +1274,10 @@ static void ExpandedBarterPatch() {
 		dlog_f("Skipping expanded barter screen patch. Screen height = %d < %d\n", DL_INIT, Graphics::GetGameHeightRes(), dialogWindowHeight);
 		return;
 	}
-
+	if (HRP::Setting::ExternalEnabled()) {
+		dlogr("Skipping expanded barter screen patch. Not compatible with external HRP.", DL_INIT);
+		return;
+	}
 	if (!barterTallFrm.ArtExists() || !tradeTallFrm.ArtExists()) {
 		dlog_f("Skipping expanded barter screen patch. Missing required FRM files: %s, %s.\n", DL_INIT,
 			barterTallFrm.frmName, tradeTallFrm.frmName);
