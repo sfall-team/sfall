@@ -63,13 +63,13 @@ PcxFile LoadPcxFileCached(const char* file) {
 	return pcxFileCache.emplace(file, LoadPcxFile(file)).first->second;
 }
 
-static void GetUnlistedFrmPath(const char* frmName, unsigned int folderRef, bool useLanguage, char* buf, size_t bufSize) {
+static void GetUnlistedFrmPath(const char* frmName, unsigned int folderRef, bool useLanguage, char* pathBuf) {
 	
 	const char* artfolder = fo::var::art[folderRef].path; // address of art type name
 	if (useLanguage) {
-		sprintf_s(buf, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::var::language, artfolder, frmName);
+		sprintf_s(pathBuf, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::var::language, artfolder, frmName);
 	} else {
-		sprintf_s(buf, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+		sprintf_s(pathBuf, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 	}
 }
 
@@ -77,11 +77,11 @@ bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
 	char frmPath[MAX_PATH];
-	GetUnlistedFrmPath(frmName, folderRef, fo::var::use_language != 0, frmPath, MAX_PATH);
+	GetUnlistedFrmPath(frmName, folderRef, fo::var::use_language != 0, frmPath);
 
 	bool exists = fo::func::db_access(frmPath);
 	if (!exists && fo::var::use_language) {
-		GetUnlistedFrmPath(frmName, folderRef, false, frmPath, MAX_PATH);
+		GetUnlistedFrmPath(frmName, folderRef, false, frmPath);
 		exists = fo::func::db_access(frmPath);
 	}
 	return exists;
@@ -92,11 +92,11 @@ fo::FrmFile* LoadUnlistedFrmCached(const char* frmName, unsigned int folderRef) 
 
 	char frmPath[MAX_PATH];
 
-	GetUnlistedFrmPath(frmName, folderRef, fo::var::use_language != 0, frmPath, MAX_PATH);
+	GetUnlistedFrmPath(frmName, folderRef, fo::var::use_language != 0, frmPath);
 
 	fo::FrmFile* frm = LoadFrmFileCached(frmPath);
 	if (frm == nullptr && fo::var::use_language) {
-		GetUnlistedFrmPath(frmName, folderRef, false, frmPath, MAX_PATH);
+		GetUnlistedFrmPath(frmName, folderRef, false, frmPath);
 		frm = LoadFrmFileCached(frmPath);
 	}
 	return frm;
