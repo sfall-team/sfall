@@ -1274,8 +1274,8 @@ static void ExpandedBarterPatch() {
 		dlog_f("Skipping expanded barter screen patch. Screen height = %d < %d\n", DL_INIT, Graphics::GetGameHeightRes(), dialogWindowHeight);
 		return;
 	}
-	if (HRP::Setting::ExternalEnabled()) {
-		dlogr("Skipping expanded barter screen patch. Not compatible with external HRP.", DL_INIT);
+	if (HRP::Setting::ExternalEnabled() && !HRP::Setting::VersionIsValid) {
+		dlogr("Skipping expanded barter screen patch. Incompatible version of High-Resolution Patch (f2_res.dll) found.", DL_INIT);
 		return;
 	}
 	if (!barterTallFrm.ArtExists() || !tradeTallFrm.ArtExists()) {
@@ -1290,7 +1290,12 @@ static void ExpandedBarterPatch() {
 	SafeWriteBatch<DWORD>(180 + extraBarterHeight, { // Trade sub-window height
 		0x46EDAB, 0x46EE13, // setup_inventory
 	});
-	SafeWrite32(0x46EDD4, 470 + extraBarterHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
+	if (HRP::Setting::VersionIsValid) {
+		// HRP overrides window creation code setup_inventory, so need to write correct max Y value into HRP itself.
+		SafeWrite32(HRP::Setting::GetAddress(0x1001220C), 470 + extraBarterHeight);
+	} else {
+		SafeWrite32(0x46EDD4, 470 + extraBarterHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
+	}
 	SafeWriteBatch<DWORD>(dialogWindowHeight, { // Game dialog BG window height (for Y calculation only)
 		0x44831E, // gdialog_barter_create_win_
 		0x4485A7, // gdialog_barter_destroy_win_

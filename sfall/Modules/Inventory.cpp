@@ -478,10 +478,13 @@ targetDown:
 notTargetScroll:
 		mov  ebx, ebp;
 		mov  ecx, edi;
+		mov  eax, 48;
+		mul  ds:[FO_VAR_inven_cur_disp];
+		add  ecx, 20;
+		mov  edx, ecx;                            // y_start
+		add  ecx, eax;                            // y_end
 		lea  eax, [ebp + 250];                    // x_start
 		add  ebx, 250 + 64;                       // x_end
-		lea  edx, [edi + 20];                     // y_start
-		add  ecx, 20 + 3 * 48;                    // y_end
 		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   notTargetBarter;
@@ -495,10 +498,13 @@ barterTargetDown:
 notTargetBarter:
 		mov  ebx, ebp;
 		mov  ecx, edi;
+		mov  eax, 48;
+		mul  ds:[FO_VAR_inven_cur_disp];
+		add  ecx, 20;
+		mov  edx, ecx;                            // y_start
+		add  ecx, eax;                            // y_end
 		lea  eax, [ebp + 165];                    // x_start
 		add  ebx, 165 + 64;                       // x_end
-		lea  edx, [edi + 20];                     // y_start
-		add  ecx, 20 + 3 * 48;                    // y_end
 		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   end;
