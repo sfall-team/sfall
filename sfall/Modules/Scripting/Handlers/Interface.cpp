@@ -17,7 +17,6 @@
  */
 
 #include "..\..\..\FalloutEngine\AsmMacros.h"
-#include "..\..\..\FalloutEngine\EngineUtils.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 
 #include "..\..\..\InputFuncs.h"
@@ -522,7 +521,7 @@ static FrameData LoadFrameDataCached(const char* file, long frame, long directio
 		return LoadPcxFileCached(file);
 	}
 	fo::FrmFile* frmPtr = LoadFrmFileCached(file);
-	return frmPtr != nullptr
+	return (frmPtr != nullptr)
 	       ? FrameData(frmPtr, direction, frame)
 	       : FrameData();
 }

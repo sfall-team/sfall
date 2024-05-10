@@ -114,9 +114,9 @@ struct InterfaceCustomFrm {
 			frm = LoadUnlistedFrmCached(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
 			isLoaded = true;
 		}
-		return frm != nullptr
-			? frm->frameData[0].data
-			: nullptr;
+		return (frm != nullptr)
+		       ? frm->frameData[0].data
+		       : nullptr;
 	}
 
 	void Reset() {
@@ -1134,7 +1134,7 @@ static void UIAnimationSpeedPatch() {
 static InterfaceCustomFrm barterTallFrm { "barter_e.frm" };
 static InterfaceCustomFrm tradeTallFrm { "trade_e.frm" };
 
-static std::array<InterfaceCustomFrm, fo::INVENTORY_WINDOW_TYPE_TRADE>  inventoryTallFrms { "invbox_e.frm", "use_e.frm", "loot_e.frm"};
+static std::array<InterfaceCustomFrm, fo::INVENTORY_WINDOW_TYPE_TRADE> inventoryTallFrms { "invbox_e.frm", "use_e.frm", "loot_e.frm" };
 
 static DWORD findInventoryWindowTypeByFid(DWORD fid) {
 	fid &= 0xFFF;
@@ -1158,12 +1158,12 @@ static BYTE* __fastcall gdialog_barter_get_art_data() {
 
 static DWORD __fastcall gdialog_barter_get_art_height() {
 	fo::FrmFile* frm = fo::var::dialog_target_is_party
-		? tradeTallFrm.frm
-		: barterTallFrm.frm;
+	                 ? tradeTallFrm.frm
+	                 : barterTallFrm.frm;
 
-	return frm != nullptr
-		? frm->frameData[0].height
-		: 0;
+	return (frm != nullptr)
+	       ? frm->frameData[0].height
+	       : 0;
 }
 
 // replace art data for dialog barter window
@@ -1172,14 +1172,14 @@ static void __declspec(naked) gdialog_barter_create_win__art_frame_data_hook() {
 		pushadc;
 		call gdialog_barter_get_art_data;
 		test eax, eax;
-		jz skipCall;
-		pop ecx;
-		pop edx;
-		add esp, 4;
+		jz   skipCall;
+		pop  ecx;
+		pop  edx;
+		add  esp, 4;
 		retn;
 skipCall:
 		popadc;
-		jmp fo::funcoffs::art_frame_data_;
+		jmp  fo::funcoffs::art_frame_data_;
 	}
 }
 
@@ -1189,14 +1189,14 @@ static void __declspec(naked) gdialog_barter_create_win__art_frame_length_hook()
 		pushadc;
 		call gdialog_barter_get_art_height;
 		test eax, eax;
-		jz skipCall;
-		pop ecx;
-		pop edx;
-		add esp, 4;
+		jz   skipCall;
+		pop  ecx;
+		pop  edx;
+		add  esp, 4;
 		retn;
 skipCall:
 		popadc;
-		jmp fo::funcoffs::art_frame_length_;
+		jmp  fo::funcoffs::art_frame_length_;
 	}
 }
 
@@ -1207,10 +1207,10 @@ static void __declspec(naked) gdialog_barter_destroy_win__art_ptr_lock_data_hook
 		pushadc;
 		call gdialog_barter_get_art_data;
 		test eax, eax;
-		jz skipCall;
-		pop ecx;
-		pop edx;
-		add esp, 4;
+		jz   skipCall;
+		pop  ecx;
+		pop  edx;
+		add  esp, 4;
 		retn;
 skipCall:
 		popadc;
@@ -1224,17 +1224,17 @@ static void __declspec(naked) inventory__art_ptr_lock_data_hook() {
 		push eax;
 		call fo::funcoffs::art_ptr_lock_data_;
 		pushadc;
-		mov ecx, [esp + 12]; // FID
+		mov  ecx, [esp + 12]; // FID
 		call inventory_get_art_data;
 		test eax, eax;
-		jz skipCall;
-		pop ecx;
-		pop edx;
-		add esp, 8;
+		jz   skipCall;
+		pop  ecx;
+		pop  edx;
+		add  esp, 8;
 		retn;
 skipCall:
 		popadc;
-		add esp, 4;
+		add  esp, 4;
 		retn;
 	}
 }
@@ -1247,21 +1247,21 @@ constexpr int extraBarterHeight = 48 * numExtraBarterSlots;
 // To fix this, we reduce the height parameter passed to buf_to_buf.
 static void __declspec(naked) gdialog_barter_create__win_buf_to_buf_hook() {
 	__asm {
-		mov eax, [esp + 12]; // height to copy
-		sub eax, extraBarterHeight;
-		mov [esp + 12], eax;
-		jmp fo::funcoffs::buf_to_buf_;
+		mov  eax, [esp + 12]; // height to copy
+		sub  eax, extraBarterHeight;
+		mov  [esp + 12], eax;
+		jmp  fo::funcoffs::buf_to_buf_;
 	}
 }
 // Same issue as above, this time we reduce height passed to gdialog_scroll_subwin to avoid reading beyond alltlk.frm height.
 static void __declspec(naked) gdialog_barter_destroy_win__gdialog_scroll_subwin_hook() {
 	__asm {
 		push eax;
-		mov eax, [esp + 12]; // height to copy
-		sub eax, extraBarterHeight;
-		mov [esp + 12], eax;
-		pop eax;
-		jmp fo::funcoffs::gdialog_scroll_subwin_;
+		mov  eax, [esp + 12]; // height to copy
+		sub  eax, extraBarterHeight;
+		mov  [esp + 12], eax;
+		pop  eax;
+		jmp  fo::funcoffs::gdialog_scroll_subwin_;
 	}
 }
 
@@ -1280,7 +1280,7 @@ static void ExpandedBarterPatch() {
 	}
 	if (!barterTallFrm.ArtExists() || !tradeTallFrm.ArtExists()) {
 		dlog_f("Skipping expanded barter screen patch. Missing required FRM files: %s, %s.\n", DL_INIT,
-			barterTallFrm.frmName, tradeTallFrm.frmName);
+		       barterTallFrm.frmName, tradeTallFrm.frmName);
 		return;
 	}
 
@@ -1335,7 +1335,7 @@ static void ExpandedInventoryPatch() {
 	SafeWrite32(0x46F26C, 329 + extraHeight); // Normal
 	SafeWrite32(0x46F29C, 328 + extraHeight); // Use Item On
 	SafeWrite32(0x46F2CC, 331 + extraHeight); // Loot
-	
+
 	// Transparent inventory windows create issues:
 	// - Subtle flickering when dragging items
 	// - Crashes when opening action window at certain coordinates and screen resolutions (suspect relation with height of active area - above interface panel)

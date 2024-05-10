@@ -36,9 +36,9 @@ namespace util
 // To safely unlock cache entries after using art_ptr_lock and similar functions
 struct ArtCacheLock {
 	DWORD entryPtr = 0;
-	
-	ArtCacheLock() { }
-	ArtCacheLock(DWORD _lock) : entryPtr(_lock) { }
+
+	ArtCacheLock() {}
+	ArtCacheLock(DWORD _lock) : entryPtr(_lock) {}
 	~ArtCacheLock() {
 		if (entryPtr != 0) {
 			fo::func::art_ptr_unlock(entryPtr);

@@ -20,8 +20,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Translate.h"
 
-#include "Inventory.h"
 #include "ExtraArt.h"
+#include "Inventory.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 #include "PartyControl.h"
