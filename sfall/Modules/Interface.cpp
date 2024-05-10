@@ -1267,15 +1267,15 @@ static void __declspec(naked) gdialog_barter_destroy_win__gdialog_scroll_subwin_
 
 // Expands barter/trade window vertically with 4 slots per table instead of 3.
 static void ExpandedBarterPatch() {
-	if (IniReader::GetConfigInt("Interface", "ExpandedBarter", 0) == 0) return;
+	if (IniReader::GetConfigInt("Interface", "ExpandBarter", 0) == 0) return;
 
 	const int dialogWindowHeight = 480 + extraBarterHeight;
 	if (Graphics::GetGameHeightRes() < dialogWindowHeight) {
-		dlog_f("Skipping expanded barter screen patch. Screen height = %d < %d\n", DL_INIT, Graphics::GetGameHeightRes(), dialogWindowHeight);
+		dlog_f("Skipping expanded barter screen patch. Screen height < %d\n", DL_INIT, dialogWindowHeight);
 		return;
 	}
 	if (HRP::Setting::ExternalEnabled() && !HRP::Setting::VersionIsValid) {
-		dlogr("Skipping expanded barter screen patch. Incompatible version of High-Resolution Patch (f2_res.dll) found.", DL_INIT);
+		dlogr("Skipping expanded barter screen patch. Incompatible version of Hi-Res Patch found.", DL_INIT);
 		return;
 	}
 	if (!barterTallFrm.ArtExists() || !tradeTallFrm.ArtExists()) {
@@ -1313,7 +1313,7 @@ static void ExpandedBarterPatch() {
 
 // Expands inventory/loot/item select windows vertically with 8 vertical slots instead of 6
 static void ExpandedInventoryPatch() {
-	if (IniReader::GetConfigInt("Interface", "ExpandedInventory", 0) == 0) return;
+	if (IniReader::GetConfigInt("Interface", "ExpandInventory", 0) == 0) return;
 
 	for (size_t i = 0; i < inventoryTallFrms.size(); i++) {
 		if (!inventoryTallFrms[i].ArtExists()) {

@@ -415,7 +415,7 @@ scroll:
 		mov  ebx, [eax + 8 + 0];                  // ebx = _i_wid.rect.x
 		mov  ecx, [eax + 8 + 4];                  // ecx = _i_wid.rect.y
 		mov  eax, 48;
-		mul  ds:[FO_VAR_inven_cur_disp];
+		imul dword ptr ds:[FO_VAR_inven_cur_disp];
 		add  ecx, 37;
 		mov  edx, ecx;                            // y_start
 		add  ecx, eax;                            // y_end
@@ -459,7 +459,7 @@ scroll:
 		mov  ebx, ebp;                            // ebx = _i_wid.rect.x
 		mov  ecx, edi;                            // ecx = _i_wid.rect.y
 		mov  eax, 48;
-		mul  ds:[FO_VAR_inven_cur_disp];
+		imul dword ptr ds:[FO_VAR_inven_cur_disp];
 		add  ecx, 35;
 		mov  edx, ecx;                            // y_start
 		add  ecx, eax;                            // y_end
@@ -479,7 +479,7 @@ notTargetScroll:
 		mov  ebx, ebp;
 		mov  ecx, edi;
 		mov  eax, 48;
-		mul  ds:[FO_VAR_inven_cur_disp];
+		imul dword ptr ds:[FO_VAR_inven_cur_disp];
 		add  ecx, 20;
 		mov  edx, ecx;                            // y_start
 		add  ecx, eax;                            // y_end
@@ -499,7 +499,7 @@ notTargetBarter:
 		mov  ebx, ebp;
 		mov  ecx, edi;
 		mov  eax, 48;
-		mul  ds:[FO_VAR_inven_cur_disp];
+		imul dword ptr ds:[FO_VAR_inven_cur_disp];
 		add  ecx, 20;
 		mov  edx, ecx;                            // y_start
 		add  ecx, eax;                            // y_end
