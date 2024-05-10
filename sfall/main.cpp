@@ -40,6 +40,7 @@
 #include "Modules\Elevators.h"
 #include "Modules\EngineTweaks.h"
 #include "Modules\Explosions.h"
+#include "Modules\ExtraArt.h"
 #include "Modules\ExtraSaveSlots.h"
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
@@ -121,6 +122,7 @@ static void InitModules() {
 	manager.add<LoadOrder>();
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
+	manager.add<ExtraArt>();
 
 	manager.add<EngineTweaks>();
 	manager.add<Books>();

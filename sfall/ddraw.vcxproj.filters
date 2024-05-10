@@ -368,6 +368,9 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="ModuleManager.h" />
+    <ClInclude Include="Modules\ExtraArt.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -669,6 +672,9 @@
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClCompile>
     <ClCompile Include="ModuleManager.cpp" />
+    <ClCompile Include="Modules\ExtraArt.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

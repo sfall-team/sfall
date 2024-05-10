@@ -34,6 +34,7 @@
 #include "Criticals.h"
 #include "DebugEditor.h"
 #include "Explosions.h"
+#include "ExtraArt.h"
 #include "ExtraSaveSlots.h"
 #include "FileSystem.h"
 #include "Graphics.h"
@@ -309,6 +310,7 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 		}
 		FileSystem::OnGameReset();
 		LoadOrder::OnGameReset();
+		ExtraArt::OnGameReset();
 		Animations::OnGameReset();
 		BarBoxes::OnGameReset();
 		Explosions::OnGameReset();

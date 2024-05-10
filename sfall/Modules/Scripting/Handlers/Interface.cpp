@@ -21,6 +21,7 @@
 
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
+#include "..\..\ExtraArt.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Interface.h"
@@ -502,68 +503,27 @@ struct FrameData {
 	}
 
 	// Data from PCX file.
-	FrameData(BYTE* data, long w, long h) {
-		pixelData = data;
-		width = (short)w;
-		height = (short)h;
+	FrameData(PcxFile pcx) {
+		pixelData = pcx.pixelData;
+		width = (short)pcx.width;
+		height = (short)pcx.height;
 	}
 };
-
-static FrameData LoadPCXFile(const char* file) {
-	long w, h;
-	BYTE* pixelData = fo::func::loadPCX(file, &w, &h, fo::ptr::pal);
-	if (pixelData == nullptr) return FrameData();
-
-	fo::func::datafileConvertData(pixelData, fo::ptr::pal, w, h);
-	return FrameData(pixelData, w, h);
-}
 
 static bool IsPCXFile(const char* file) {
 	const char* pos = strrchr(file, '.');
 	return pos && _stricmp(++pos, "PCX") == 0;
 }
 
-typedef std::unordered_map<std::string, fo::FrmFile*> TFRMCache;
-typedef std::unordered_map<std::string, FrameData> TPCXCache;
-
-static TFRMCache frmFileCache;
-static TPCXCache pcxFileCache;
-
 //static fo::FrmFile* LoadArtFileCached(const char* file, long frame, long direction, fo::FrmFrameData* &framePtr, bool checkPCX) {
 static FrameData LoadFrameDataCached(const char* file, long frame, long direction) {
 	if (IsPCXFile(file)) {
-		TPCXCache::iterator cacheHit = pcxFileCache.find(file);
-		if (cacheHit != pcxFileCache.end()) {
-			return cacheHit->second;
-		}
-		return pcxFileCache.insert(std::make_pair(file, LoadPCXFile(file))).first->second;
+		return LoadPcxFileCached(file);
 	}
-
-	fo::FrmFile* frmPtr = nullptr;
-	TFRMCache::iterator cacheHit = frmFileCache.find(file);
-	if (cacheHit != frmFileCache.end()) {
-		frmPtr = cacheHit->second;
-	} else {
-		if (fo::func::load_frame(file, &frmPtr)) {
-			frmPtr = nullptr;
-		}
-		frmFileCache.insert(std::make_pair(file, frmPtr));
-	}
+	fo::FrmFile* frmPtr = LoadFrmFileCached(file);
 	return (frmPtr != nullptr)
 	       ? FrameData(frmPtr, direction, frame)
 	       : FrameData();
-}
-
-void ClearInterfaceArtCache() {
-	for (TPCXCache::iterator it = pcxFileCache.begin(); it != pcxFileCache.end(); ++it) {
-		fo::func::freePtr_invoke(it->second.pixelData);
-	}
-	pcxFileCache.clear();
-
-	for (TFRMCache::iterator it = frmFileCache.begin(); it != frmFileCache.end(); ++it) {
-		fo::func::mem_free(it->second);
-	}
-	frmFileCache.clear();
 }
 
 static long GetArtFIDFile(long fid, char* outFilePath) {
@@ -590,20 +550,7 @@ static long GetArtFIDFile(long fid, char* outFilePath) {
 	return direction;
 }
 
-struct ArtCacheLock {
-	DWORD entryPtr;
-	
-	ArtCacheLock() :entryPtr(0) {}
-	ArtCacheLock(DWORD _lock) : entryPtr(_lock) {}
-	~ArtCacheLock() {
-		if (entryPtr != 0) {
-			fo::func::art_ptr_unlock(entryPtr);
-			entryPtr = 0;
-		}
-	}
-};
-
-static FrameData LockFrameData(unsigned long fid, ArtCacheLock& lock, long direction, long frame) {
+static FrameData LockFrameData(unsigned long fid, fo::util::ArtCacheLock& lock, long direction, long frame) {
 	long objType = (fid >> 24) & 0xF;
 	if (direction < 0) {
 		// If direction is not specified, take it from FID.
@@ -623,7 +570,7 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 		return 0;
 	}
 	FrameData frm;
-	ArtCacheLock cacheLock;
+	fo::util::ArtCacheLock cacheLock;
 
 	bool isID = ctx.arg(0).isInt();
 	long frame = ctx.arg(1).rawValue();
@@ -740,7 +687,7 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 			if (size > 2) h = sArray->val[2].intVal;
 		}
 	}
-	ArtCacheLock cacheLock;
+	fo::util::ArtCacheLock cacheLock;
 	FrameData frm;
 	if (isID) { // art id
 		long fid = ctx.arg(1).rawValue();

@@ -276,6 +276,7 @@
     <ClInclude Include="Modules\Elevators.h" />
     <ClInclude Include="Modules\EngineTweaks.h" />
     <ClInclude Include="Modules\Explosions.h" />
+    <ClInclude Include="Modules\ExtraArt.h" />
     <ClInclude Include="Modules\ExtraSaveSlots.h" />
     <ClInclude Include="Modules\FileSystem.h" />
     <ClInclude Include="Modules\Graphics.h" />
@@ -392,6 +393,7 @@
     <ClCompile Include="Modules\Elevators.cpp" />
     <ClCompile Include="Modules\EngineTweaks.cpp" />
     <ClCompile Include="Modules\Explosions.cpp" />
+    <ClCompile Include="Modules\ExtraArt.cpp" />
     <ClCompile Include="Modules\ExtraSaveSlots.cpp" />
     <ClCompile Include="Modules\FileSystem.cpp" />
     <ClCompile Include="Modules\Graphics.cpp" />

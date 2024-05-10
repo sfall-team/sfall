@@ -388,7 +388,7 @@ fo::GameObject* __fastcall MultiHexMoveIsBlocking(fo::GameObject* source, long d
 
 // Returns the terrain type of the sub-tile at the specified coordinates on the world map
 long wmGetTerrainType(long xPos, long yPos) {
-	long* terrainId;
+	long* terrainId = nullptr;
 	__asm {
 		lea  ebx, terrainId;
 		mov  edx, yPos;
@@ -630,106 +630,6 @@ void RefreshGNW(bool skipOwner) {
 		fo::func::GNW_win_refresh(fo::ptr::window[i], fo::ptr::scr_size, 0);
 	}
 	fo::var::setInt(FO_VAR_doing_refresh_all) = 0;
-}
-
-//////////////////////////// UNLISTED FRM FUNCTIONS ////////////////////////////
-
-static bool LoadFrmHeader(fo::UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
-	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frmHeader->numFrames) == -1)
-		return false;
-	else if (fo::func::db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
-		return false;
-	else if (fo::func::db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
-		return false;
-	else if (fo::func::db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
-		return false;
-	else if (fo::func::db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
-		return false;
-
-	return true;
-}
-
-static bool LoadFrmFrame(fo::UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
-	//FRMframe *frameHeader = (FRMframe*)frameMEM;
-	//BYTE* frameBuff = frame + sizeof(FRMframe);
-
-	if (fo::func::db_freadShort(frmStream, &frame->width) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frame->height) == -1)
-		return false;
-	else if (fo::func::db_freadInt(frmStream, &frame->size) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frame->x) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frame->y) == -1)
-		return false;
-
-	frame->indexBuff = new BYTE[frame->size];
-	if (fo::func::db_fread(frame->indexBuff, 1, frame->size, frmStream) != frame->size)
-		return false;
-
-	return true;
-}
-
-fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
-
-	const char *artfolder = fo::ptr::art[folderRef].path; // address of art type name
-	char frmPath[MAX_PATH];
-
-	if (*fo::ptr::use_language) {
-		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\\%s", (const char*)fo::ptr::language, artfolder, frmName);
-	} else {
-		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
-	}
-
-	fo::UnlistedFrm *frm = new fo::UnlistedFrm;
-
-	fo::DbFile* frmStream = fo::func::db_fopen(frmPath, "rb");
-
-	if (!frmStream && *fo::ptr::use_language) {
-		sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
-		frmStream = fo::func::db_fopen(frmPath, "rb");
-	}
-
-	if (frmStream != nullptr) {
-		if (!LoadFrmHeader(frm, frmStream)) {
-			fo::func::db_fclose(frmStream);
-			delete frm;
-			return nullptr;
-		}
-
-		DWORD oriOffset_1st = frm->oriOffset[0];
-		DWORD oriOffset_new = 0;
-		frm->frames = new fo::UnlistedFrm::Frame[6 * frm->numFrames];
-		for (int ori = 0; ori < 6; ori++) {
-			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
-				frm->oriOffset[ori] = oriOffset_new;
-				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
-					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						fo::func::db_fclose(frmStream);
-						delete frm;
-						return nullptr;
-					}
-				}
-				oriOffset_new += frm->numFrames;
-			} else {
-				frm->oriOffset[ori] = 0;
-			}
-		}
-
-		fo::func::db_fclose(frmStream);
-	} else {
-		delete frm;
-		return nullptr;
-	}
-	return frm;
 }
 
 }

@@ -147,6 +147,7 @@
 #define FO_VAR_interfaceWindow            0x519024
 #define FO_VAR_intfaceEnabled             0x518F10
 #define FO_VAR_intotal                    0x43E95C
+#define FO_VAR_inven_cur_disp             0x519054
 #define FO_VAR_inven_dude                 0x519058
 #define FO_VAR_inven_pid                  0x51905C
 #define FO_VAR_inven_scroll_dn_bid        0x5190E8

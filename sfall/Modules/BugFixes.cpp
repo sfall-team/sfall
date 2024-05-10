@@ -851,7 +851,7 @@ next:
 		pop  eax;
 		jnz  found;
 		inc  edx;
-		cmp  edx, 6;
+		cmp  edx, ds:[FO_VAR_inven_cur_disp];
 		jb   next;
 end:
 		push 0x47125C;

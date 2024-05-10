@@ -33,6 +33,19 @@ namespace fo
 namespace util
 {
 
+struct ArtCacheLock {
+	DWORD entryPtr;
+
+	ArtCacheLock() :entryPtr(0) {}
+	ArtCacheLock(DWORD _lock) : entryPtr(_lock) {}
+	~ArtCacheLock() {
+		if (entryPtr != 0) {
+			fo::func::art_ptr_unlock(entryPtr);
+			entryPtr = 0;
+		}
+	}
+};
+
 // rect_free_ function for inline implementation
 __forceinline void rect_free(fo::RectList* rect) {
 	fo::RectList* front = *fo::ptr::rectList;
@@ -178,8 +191,6 @@ void RedrawObject(fo::GameObject* obj);
 
 // Redraws all windows
 void RefreshGNW(bool skipOwner = false);
-
-fo::UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 
 }
 }
