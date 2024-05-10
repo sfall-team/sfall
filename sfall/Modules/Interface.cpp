@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "..\Utils.h"
+#include "ExtraArt.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
 #include "Worldmap.h"
@@ -96,13 +97,39 @@ fo::Window* Interface::GetWindow(long winType) {
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
 }
 
+struct InterfaceCustomFrm {
+	fo::FrmFile* frm;
+	const char* frmName;
+	bool isLoaded;
+
+	InterfaceCustomFrm(const char* _frmName) : frm(nullptr), frmName(_frmName), isLoaded(false) {}
+	InterfaceCustomFrm(InterfaceCustomFrm &other) = delete;
+
+	bool ArtExists() const {
+		return UnlistedFrmExists(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
+	}
+
+	BYTE* LoadFrmData() {
+		if (!isLoaded) {
+			frm = LoadUnlistedFrmCached(frmName, fo::ArtType::OBJ_TYPE_INTRFACE);
+			isLoaded = true;
+		}
+		return frm != nullptr
+			? frm->frameData[0].data
+			: nullptr;
+	}
+
+	void Reset() {
+		frm = nullptr;
+		isLoaded = false;
+	}
+};
+
 static BYTE movePointBackground[16 * 9 * 5];
-static fo::UnlistedFrm* ifaceFrm = nullptr;
+static InterfaceCustomFrm ifaceFrm{ "IFACE_E.frm" };
 
 static void* LoadIfaceFrm() {
-	ifaceFrm = fo::util::LoadUnlistedFrm("IFACE_E.frm", fo::OBJ_TYPE_INTRFACE);
-	if (!ifaceFrm) return nullptr;
-	return ifaceFrm->frames[0].indexBuff;
+	return ifaceFrm.LoadFrmData();
 }
 
 static void __declspec(naked) intface_init_hook_lock() {
@@ -1104,6 +1131,246 @@ static void UIAnimationSpeedPatch() {
 	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
+static InterfaceCustomFrm barterTallFrm { "barter_e.frm" };
+static InterfaceCustomFrm tradeTallFrm { "trade_e.frm" };
+
+static std::array<InterfaceCustomFrm, fo::INVENTORY_WINDOW_TYPE_TRADE>  inventoryTallFrms { "invbox_e.frm", "use_e.frm", "loot_e.frm"};
+
+static DWORD findInventoryWindowTypeByFid(DWORD fid) {
+	fid &= 0xFFF;
+	for (int i = 0; i < fo::INVENTORY_WINDOW_TYPE_TRADE; ++i) {
+		if (fid == fo::var::iscr_data[i].artIndex)
+			return i;
+	}
+	return -1;
+}
+
+static BYTE* __fastcall inventory_get_art_data(DWORD fid) {
+	DWORD windowType = findInventoryWindowTypeByFid(fid);
+	if (windowType > fo::INVENTORY_WINDOW_TYPE_LOOT) return nullptr;
+
+	return inventoryTallFrms[windowType].LoadFrmData();
+}
+
+static BYTE* __fastcall gdialog_barter_get_art_data() {
+	return (fo::var::dialog_target_is_party ? tradeTallFrm : barterTallFrm).LoadFrmData();
+}
+
+static DWORD __fastcall gdialog_barter_get_art_height() {
+	fo::FrmFile* frm = fo::var::dialog_target_is_party
+		? tradeTallFrm.frm
+		: barterTallFrm.frm;
+
+	return frm != nullptr
+		? frm->frameData[0].height
+		: 0;
+}
+
+// replace art data for dialog barter window
+static void __declspec(naked) gdialog_barter_create_win__art_frame_data_hook() {
+	__asm {
+		pushadc;
+		call gdialog_barter_get_art_data;
+		test eax, eax;
+		jz skipCall;
+		pop ecx;
+		pop edx;
+		add esp, 4;
+		retn;
+skipCall:
+		popadc;
+		jmp fo::funcoffs::art_frame_data_;
+	}
+}
+
+// replace art height (length) for dialog barter window
+static void __declspec(naked) gdialog_barter_create_win__art_frame_length_hook() {
+	__asm {
+		pushadc;
+		call gdialog_barter_get_art_height;
+		test eax, eax;
+		jz skipCall;
+		pop ecx;
+		pop edx;
+		add esp, 4;
+		retn;
+skipCall:
+		popadc;
+		jmp fo::funcoffs::art_frame_length_;
+	}
+}
+
+// replace art data for dialog barter window when scrolling down
+static void __declspec(naked) gdialog_barter_destroy_win__art_ptr_lock_data_hook() {
+	__asm {
+		call fo::funcoffs::art_ptr_lock_data_;
+		pushadc;
+		call gdialog_barter_get_art_data;
+		test eax, eax;
+		jz skipCall;
+		pop ecx;
+		pop edx;
+		add esp, 4;
+		retn;
+skipCall:
+		popadc;
+		retn;
+	}
+}
+
+// Replace art data for 6-slot inventory windows
+static void __declspec(naked) inventory__art_ptr_lock_data_hook() {
+	__asm {
+		push eax;
+		call fo::funcoffs::art_ptr_lock_data_;
+		pushadc;
+		mov ecx, [esp + 12]; // FID
+		call inventory_get_art_data;
+		test eax, eax;
+		jz skipCall;
+		pop ecx;
+		pop edx;
+		add esp, 8;
+		retn;
+skipCall:
+		popadc;
+		add esp, 4;
+		retn;
+	}
+}
+
+constexpr int numExtraBarterSlots = 1;
+constexpr int extraBarterHeight = 48 * numExtraBarterSlots;
+
+// This call draws pixels from alltlk.frm onto the barter window prior to scroll animation.
+// Because we expanded barter window downwards beyond the background window, it will try to copy pixels beyond source FRM buffer.
+// To fix this, we reduce the height parameter passed to buf_to_buf.
+static void __declspec(naked) gdialog_barter_create__win_buf_to_buf_hook() {
+	__asm {
+		mov eax, [esp + 12]; // height to copy
+		sub eax, extraBarterHeight;
+		mov [esp + 12], eax;
+		jmp fo::funcoffs::buf_to_buf_;
+	}
+}
+// Same issue as above, this time we reduce height passed to gdialog_scroll_subwin to avoid reading beyond alltlk.frm height.
+static void __declspec(naked) gdialog_barter_destroy_win__gdialog_scroll_subwin_hook() {
+	__asm {
+		push eax;
+		mov eax, [esp + 12]; // height to copy
+		sub eax, extraBarterHeight;
+		mov [esp + 12], eax;
+		pop eax;
+		jmp fo::funcoffs::gdialog_scroll_subwin_;
+	}
+}
+
+// Expands barter/trade window vertically with 4 slots per table instead of 3.
+static void ExpandedBarterPatch() {
+	if (IniReader::GetConfigInt("Interface", "ExpandedBarter", 0) == 0) return;
+
+	const int dialogWindowHeight = 480 + extraBarterHeight;
+	if (Graphics::GetGameHeightRes() < dialogWindowHeight) {
+		dlog_f("Skipping expanded barter screen patch. Screen height = %d < %d\n", DL_INIT, Graphics::GetGameHeightRes(), dialogWindowHeight);
+		return;
+	}
+	if (HRP::Setting::ExternalEnabled() && !HRP::Setting::VersionIsValid) {
+		dlogr("Skipping expanded barter screen patch. Incompatible version of High-Resolution Patch (f2_res.dll) found.", DL_INIT);
+		return;
+	}
+	if (!barterTallFrm.ArtExists() || !tradeTallFrm.ArtExists()) {
+		dlog_f("Skipping expanded barter screen patch. Missing required FRM files: %s, %s.\n", DL_INIT,
+			barterTallFrm.frmName, tradeTallFrm.frmName);
+		return;
+	}
+
+	dlogr("Applying expanded barter screen patch.", DL_INIT);
+	SafeWrite32(0x46EDA4, 3 + numExtraBarterSlots);  // Trade window slot count 3 -> 4
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 180 + extraBarterHeight; // Trade sub-window height
+	SafeWriteBatch<DWORD>(180 + extraBarterHeight, { // Trade sub-window height
+		0x46EDAB, 0x46EE13, // setup_inventory
+	});
+	if (HRP::Setting::VersionIsValid) {
+		// HRP overrides window creation code setup_inventory, so need to write correct max Y value into HRP itself.
+		SafeWrite32(HRP::Setting::GetAddress(0x1001220C), 470 + extraBarterHeight);
+	} else {
+		SafeWrite32(0x46EDD4, 470 + extraBarterHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
+	}
+	SafeWriteBatch<DWORD>(dialogWindowHeight, { // Game dialog BG window height (for Y calculation only)
+		0x44831E, // gdialog_barter_create_win_
+		0x4485A7, // gdialog_barter_destroy_win_
+	});
+	// Transparent inventory windows create issues, see comment in ExpandedInventoryPatch()
+	//SafeWrite8(0x44831C, *(BYTE*)0x44831C | fo::WinFlags::Transparent); // add transparentcy flag to trade/barter window
+	//SafeWrite8(0x46EDA9, *(BYTE*)0x46EDA9 | fo::WinFlags::Transparent); // add transparent flag 0x20 to inventory (inner part) window
+
+	HookCall(0x4482EA, gdialog_barter_create_win__art_frame_data_hook);
+	HookCall(0x4482FF, gdialog_barter_create_win__art_frame_length_hook);
+	HookCall(0x448603, gdialog_barter_destroy_win__art_ptr_lock_data_hook);
+	HookCall(0x448374, gdialog_barter_create__win_buf_to_buf_hook);
+	HookCall(0x448628, gdialog_barter_destroy_win__gdialog_scroll_subwin_hook);
+}
+
+// Expands inventory/loot/item select windows vertically with 8 vertical slots instead of 6
+static void ExpandedInventoryPatch() {
+	if (IniReader::GetConfigInt("Interface", "ExpandedInventory", 0) == 0) return;
+
+	for (size_t i = 0; i < inventoryTallFrms.size(); i++) {
+		if (!inventoryTallFrms[i].ArtExists()) {
+			dlog_f("Skipping expanded inventory screen patch. Missing required FRM file: %s.\n", DL_INIT, inventoryTallFrms[i].frmName);
+			return;
+		}
+	}
+
+	dlogr("Applying expanded inventory screen patch.", DL_INIT);
+	const int numExtraSlots = 2;
+	const int slotHeight = 48;
+	const int extraHeight = slotHeight * numExtraSlots - 8; // shorten by a few pixels to reduce empty space below the last item slot
+	SafeWrite32(0x46EC9E, 6 + numExtraSlots); // All other inventory windows slot count 6 -> 8
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + extraHeight;
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + extraHeight;
+	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + extraHeight;
+
+	// Shift Done buttons down:
+	SafeWrite32(0x46F26C, 329 + extraHeight); // Normal
+	SafeWrite32(0x46F29C, 328 + extraHeight); // Use Item On
+	SafeWrite32(0x46F2CC, 331 + extraHeight); // Loot
+	
+	// Transparent inventory windows create issues:
+	// - Subtle flickering when dragging items
+	// - Crashes when opening action window at certain coordinates and screen resolutions (suspect relation with height of active area - above interface panel)
+	//SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) | fo::WinFlags::Transparent); //add transparency for all tall inventory windows
+
+	HookCalls(inventory__art_ptr_lock_data_hook, {
+		0x46ED56, // setup_inventory
+		0x46FE51, 0x46FF8E, 0x46FFF9, // display_inventory_
+		0x4703B5, // display_target_inventory_
+		0x470FE7, // inven_pickup
+		0x473479, // inven_action_cursor
+		0x474825, // move_inventory
+	});
+
+	// Shift event codes for main inventory buttons (armor, item1, item2) by number of extra slots to make room.
+	SafeWrite32(0x46EB89, 1008 + numExtraSlots); // upper range value in handle_inventory
+	SafeWriteBatch(1006 + numExtraSlots, { // Item2 slot
+		0x46F104, 0x46F10B, // setup_inventory
+		0x470E0B, // inven_pickup,
+		0x472B79, // inven_from_button
+	});
+	SafeWriteBatch(1007 + numExtraSlots, { // Item1 slot
+		0x46F14C, 0x46F153, // setup_inventory
+		0x470DF0, // inven_pickup
+		0x472B67, // inven_from_button
+	});
+	SafeWriteBatch(1008 + numExtraSlots, { // Armor slot
+		0x46F195, 0x46F19C, // setup_inventory
+		0x470DFA, // inven_pickup
+		0x472B70, // inven_from_button
+	});
+	SafeWrite32(0x46EF1A, 2005 + numExtraSlots); // loot target slots upper index range fix (setup_inventory)
+	SafeWrite32(0x46EF1F, 277 + numExtraSlots * slotHeight); // adjust starting Y for loot target slot positions
+}
+
 void Interface::init() {
 	InterfaceWindowPatch();
 	InventoryCharacterRotationSpeedPatch();
@@ -1139,10 +1406,22 @@ void Interface::init() {
 			ammoBarXPos -= 2;
 		}
 	}
+	LoadGameHook::OnGameInit() += []() {
+		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.
+		ExpandedBarterPatch();
+		ExpandedInventoryPatch();
+	};
+	LoadGameHook::OnGameReset() += []() {
+		ifaceFrm.Reset();
+		barterTallFrm.Reset();
+		tradeTallFrm.Reset();
+		for (size_t i = 0; i < inventoryTallFrms.size(); ++i) {
+			inventoryTallFrms[i].Reset();
+		}
+	};
 }
 
 void Interface::exit() {
-	if (ifaceFrm) delete ifaceFrm;
 	if (dotStyle) delete[] dotStyle;
 }
 

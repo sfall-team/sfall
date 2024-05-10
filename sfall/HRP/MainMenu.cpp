@@ -7,6 +7,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "..\Modules\ExtraArt.h"
 #include "..\Modules\LoadGameHook.h"
 #include "..\Modules\Graphics.h"
 #include "..\Modules\MainMenu.h"
@@ -31,8 +32,8 @@ bool MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU; // if the value is false and U
 long MainMenuScreen::MENU_BG_OFFSET_X = 30;
 long MainMenuScreen::MENU_BG_OFFSET_Y = 19;
 
-static fo::UnlistedFrm* mainBackgroundFrm;
-static fo::UnlistedFrm* btnBackgroundFrm;
+static fo::FrmFile* mainBackgroundFrm;
+static fo::FrmFile* btnBackgroundFrm;
 
 static long mainmenuWidth = 640;
 
@@ -49,9 +50,9 @@ static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long sw, long sh
 	dstW = w;
 
 	if (mainBackgroundFrm) {
-		src = mainBackgroundFrm->frames->indexBuff;
-		sh = mainBackgroundFrm->frames->height;
-		sw = mainBackgroundFrm->frames->width;
+		src = mainBackgroundFrm->frameData[0].data;
+		sh = mainBackgroundFrm->frameData[0].height;
+		sw = mainBackgroundFrm->frameData[0].width;
 	}
 
 	bool stretch = (MainMenuScreen::MAIN_MENU_SIZE == 1 || MainMenuScreen::MAIN_MENU_SIZE == 2);
@@ -81,13 +82,13 @@ static void __cdecl main_menu_create_hook_buf_to_buf(BYTE* src, long sw, long sh
 		if (y < 0) y = 0;
 		dst += (y * dstW) + x;
 
-		sh = btnBackgroundFrm->frames->height;
-		sw = btnBackgroundFrm->frames->width;
+		sh = btnBackgroundFrm->frameData[0].height;
+		sw = btnBackgroundFrm->frameData[0].width;
 
 		if (MainMenuScreen::SCALE_BUTTONS_AND_TEXT_MENU) {
-			fo::func::trans_cscale(btnBackgroundFrm->frames->indexBuff, sw, sh, sw, dst, (long)(sw * scaleFactor), (long)(sh * scaleFactor), dstW);
+			fo::func::trans_cscale(btnBackgroundFrm->frameData[0].data, sw, sh, sw, dst, (long)(sw * scaleFactor), (long)(sh * scaleFactor), dstW);
 		} else {
-			fo::func::trans_buf_to_buf(btnBackgroundFrm->frames->indexBuff, sw, sh, sw, dst, dstW); // direct copy
+			fo::func::trans_buf_to_buf(btnBackgroundFrm->frameData[0].data, sw, sh, sw, dst, dstW); // direct copy
 		}
 	}
 }
@@ -101,13 +102,13 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 	sf::Graphics::BackgroundClearColor(0);
 
 	if (MainMenuScreen::USE_HIRES_IMAGES) {
-		if (!mainBackgroundFrm) {
-			mainBackgroundFrm = fo::util::LoadUnlistedFrm("HR_MAINMENU.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
-			btnBackgroundFrm = fo::util::LoadUnlistedFrm("HR_MENU_BG.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
+		if (mainBackgroundFrm == nullptr) {
+			mainBackgroundFrm = sf::LoadUnlistedFrmCached("HR_MAINMENU.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
+			btnBackgroundFrm = sf::LoadUnlistedFrmCached("HR_MENU_BG.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
 		}
-		if (mainBackgroundFrm) {
-			sw = mainBackgroundFrm->frames->width;
-			sh = mainBackgroundFrm->frames->height;
+		if (mainBackgroundFrm != nullptr) {
+			sw = mainBackgroundFrm->frameData[0].width;
+			sh = mainBackgroundFrm->frameData[0].height;
 			w = sw;
 			h = sh;
 		}
@@ -274,14 +275,9 @@ static void __declspec(naked) main_menu_create_hook_register_button() {
 }
 
 static void FreeMainMenuImages() {
-	if (mainBackgroundFrm) {
-		delete mainBackgroundFrm;
-		mainBackgroundFrm = nullptr;
-	}
-	if (btnBackgroundFrm) {
-		delete btnBackgroundFrm;
-		btnBackgroundFrm = nullptr;
-	}
+	// Reset FRM pointers so they can be loaded again after Art cache is reset.
+	mainBackgroundFrm = nullptr;
+	btnBackgroundFrm = nullptr;
 	if (buttonImageData) {
 		delete[] buttonImageData;
 		buttonImageData = nullptr;

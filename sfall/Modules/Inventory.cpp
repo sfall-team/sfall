@@ -414,10 +414,13 @@ scroll:
 		push ebx;
 		mov  ebx, [eax + 8 + 0];                  // ebx = _i_wid.rect.x
 		mov  ecx, [eax + 8 + 4];                  // ecx = _i_wid.rect.y
+		mov  eax, 48;
+		mul  ds:[FO_VAR_inven_cur_disp];
+		add  ecx, 37;
+		mov  edx, ecx;                            // y_start
+		add  ecx, eax;                            // y_end
 		lea  eax, [ebx + 297];                    // x_start
 		add  ebx, 297 + 64;                       // x_end
-		lea  edx, [ecx + 37];                     // y_start
-		add  ecx, 37 + 6 * 48;                    // y_end
 		call fo::funcoffs::mouse_click_in_;
 		pop  ebx;
 		pop  ecx;
@@ -455,10 +458,13 @@ scroll:
 		mov  edi, [eax + 8 + 4];
 		mov  ebx, ebp;                            // ebx = _i_wid.rect.x
 		mov  ecx, edi;                            // ecx = _i_wid.rect.y
+		mov  eax, 48;
+		mul  ds:[FO_VAR_inven_cur_disp];
+		add  ecx, 35;
+		mov  edx, ecx;                            // y_start
+		add  ecx, eax;                            // y_end
 		lea  eax, [ebp + 395];                    // x_start
 		add  ebx, 395 + 64;                       // x_end
-		lea  edx, [edi + 35];                     // y_start
-		add  ecx, 35 + 3 * 48;                    // y_end
 		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   notTargetScroll;
@@ -472,10 +478,13 @@ targetDown:
 notTargetScroll:
 		mov  ebx, ebp;
 		mov  ecx, edi;
+		mov  eax, 48;
+		mul  ds:[FO_VAR_inven_cur_disp];
+		add  ecx, 20;
+		mov  edx, ecx;                            // y_start
+		add  ecx, eax;                            // y_end
 		lea  eax, [ebp + 250];                    // x_start
 		add  ebx, 250 + 64;                       // x_end
-		lea  edx, [edi + 20];                     // y_start
-		add  ecx, 20 + 3 * 48;                    // y_end
 		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   notTargetBarter;
@@ -489,10 +498,13 @@ barterTargetDown:
 notTargetBarter:
 		mov  ebx, ebp;
 		mov  ecx, edi;
+		mov  eax, 48;
+		mul  ds:[FO_VAR_inven_cur_disp];
+		add  ecx, 20;
+		mov  edx, ecx;                            // y_start
+		add  ecx, eax;                            // y_end
 		lea  eax, [ebp + 165];                    // x_start
 		add  ebx, 165 + 64;                       // x_end
-		lea  edx, [edi + 20];                     // y_start
-		add  ecx, 20 + 3 * 48;                    // y_end
 		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
 		jz   end;

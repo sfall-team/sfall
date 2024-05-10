@@ -29,8 +29,8 @@ namespace sfall
 struct Rectangle {
 	long x, y, width, height;
 
-	long right() { return x + (width - 1); }
-	long bottom() { return y + (height - 1); }
+	long right() const { return x + (width - 1); }
+	long bottom() const { return y + (height - 1); }
 };
 
 }
@@ -208,25 +208,25 @@ struct GameObject {
 			long rads;
 			long poison;
 
-			inline bool IsDead() {
+			inline bool IsDead() const {
 				return ((damageFlags & DamageFlag::DAM_DEAD) != 0);
 			}
-			inline bool IsNotDead() {
+			inline bool IsNotDead() const {
 				return ((damageFlags & DamageFlag::DAM_DEAD) == 0);
 			}
-			inline bool IsActive() {
+			inline bool IsActive() const {
 				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
 			}
-			inline bool IsNotActive() {
+			inline bool IsNotActive() const {
 				return ((damageFlags & (DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
-			inline bool IsActiveNotDead() {
+			inline bool IsActiveNotDead() const {
 				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) == 0);
 			}
-			inline bool IsNotActiveOrDead() {
+			inline bool IsNotActiveOrDead() const {
 				return ((damageFlags & (DamageFlag::DAM_DEAD | DamageFlag::DAM_KNOCKED_OUT | DamageFlag::DAM_LOSE_TURN)) != 0);
 			}
-			inline bool IsFleeing() {
+			inline bool IsFleeing() const {
 				return ((combatState & CombatStateFlag::InFlee) != 0);
 			}
 
@@ -255,23 +255,23 @@ struct GameObject {
 	GameObject* owner; // not saved
 	long scriptIndex;
 
-	inline char Type() {
+	inline char Type() const {
 		return (protoId >> 24);
 	}
-	inline char TypeFid() {
+	inline char TypeFid() const {
 		return ((artFid >> 24) & 0x0F);
 	}
 
-	inline bool IsCritter() {
+	inline bool IsCritter() const {
 		return (Type() == fo::ObjType::OBJ_TYPE_CRITTER);
 	}
-	inline bool IsNotCritter() {
+	inline bool IsNotCritter() const {
 		return (Type() != fo::ObjType::OBJ_TYPE_CRITTER);
 	}
-	inline bool IsItem() {
+	inline bool IsItem() const {
 		return (Type() == fo::ObjType::OBJ_TYPE_ITEM);
 	}
-	inline bool IsNotItem() {
+	inline bool IsNotItem() const {
 		return (Type() != fo::ObjType::OBJ_TYPE_ITEM);
 	}
 };
@@ -497,58 +497,6 @@ struct TileFrmFile : public FrmHeaderData {
 };
 
 static_assert(sizeof(TileFrmFile) == 2954, "Incorrect TileFrmFile definition.");
-
-// structures for loading unlisted frms
-struct UnlistedFrm {
-	DWORD version;
-	WORD FPS;
-	WORD actionFrame;
-	WORD numFrames;
-	WORD xCentreShift[6];
-	WORD yCentreShift[6];
-	DWORD oriOffset[6];
-	DWORD frameAreaSize;
-
-	struct Frame {
-		WORD width;
-		WORD height;
-		DWORD size;
-		WORD x;
-		WORD y;
-		BYTE *indexBuff;
-
-		Frame() {
-			width = 0;
-			height = 0;
-			size = 0;
-			x = 0;
-			y = 0;
-			indexBuff = nullptr;
-		}
-		~Frame() {
-			if (indexBuff != nullptr)
-				delete[] indexBuff;
-		}
-	} *frames;
-
-	UnlistedFrm() {
-		version = 0;
-		FPS = 0;
-		actionFrame = 0;
-		numFrames = 0;
-		for (int i = 0; i < 6; i++) {
-			xCentreShift[i] = 0;
-			yCentreShift[i] = 0;
-			oriOffset[i] = 0;
-		}
-		frameAreaSize = 0;
-		frames = nullptr;
-	}
-
-	~UnlistedFrm() {
-		if (frames != nullptr) delete[] frames;
-	}
-};
 
 //for holding a message
 struct MessageNode {

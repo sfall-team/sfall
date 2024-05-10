@@ -21,6 +21,7 @@
 #include "..\Translate.h"
 
 #include "Inventory.h"
+#include "ExtraArt.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
 #include "PartyControl.h"
@@ -585,10 +586,9 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
-	fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
-	if (frm) {
-		fo::util::DrawToSurface(frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].width, frm->frames[0].indexBuff, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
-		delete frm;
+	fo::FrmFile *frm = LoadUnlistedFrmCached((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
+	if (frm != nullptr) {
+		fo::util::DrawToSurface(frm->frameData[0].width, frm->frameData[0].height, 0, 0, frm->frameData[0].width, frm->frameData[0].data, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
 	}
 
 	int oldFont = GetFont(); // store current font
@@ -653,7 +653,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
-	fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	fo::FrmFile *frm = LoadUnlistedFrmCached("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -665,7 +665,6 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 
 	int winRef = fo::func::win_add(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
 	if (winRef == -1) {
-		delete frm;
 		return;
 	}
 
@@ -677,8 +676,7 @@ void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	BYTE *winSurface = fo::func::win_get_buf(winRef);
 	BYTE *mainSurface = new BYTE [484 * 230];
 
-	surface_draw(484, 230, 484, 0, 0, frm->frames[0].indexBuff, 484, 0, 0, mainSurface);
-	delete frm;
+	surface_draw(484, 230, 484, 0, 0, frm->frameData[0].data, 484, 0, 0, mainSurface);
 
 	DWORD MenuUObj, MenuDObj;
 	BYTE *MenuUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 299), 0, 0, &MenuUObj); // MENUUP Frm
@@ -1149,11 +1147,9 @@ static void __declspec(naked) FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		fo::UnlistedFrm *frm = fo::util::LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
-
+		fo::FrmFile *frm = LoadUnlistedFrmCached((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 		if (frm != nullptr) {
-			surface_draw(640, 480, 640, 0, 0, frm->frames[0].indexBuff, 640, 0, 0, charScrnBackSurface);
-			delete frm;
+			surface_draw(640, 480, 640, 0, 0, frm->frameData[0].data, 640, 0, 0, charScrnBackSurface);
 		} else {
 			BYTE* oldCharScrnBackSurface = fo::var::bckgnd; // char screen background frm surface
 
