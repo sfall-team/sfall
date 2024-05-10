@@ -115,8 +115,6 @@ void devlog_f(const char* fmt, int type, ...) {
 		va_end(args);
 	}
 }
-#else
-void devlog_f(...) {}
 #endif
 
 void LoggingInit() {

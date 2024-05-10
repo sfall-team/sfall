@@ -1060,6 +1060,7 @@ void Sound::init() {
 
 	if (IniReader::GetConfigInt("Sound", "AutoSearchSFX", 1)) {
 		HookCalls(sfxl_init_hook, {0x4A9999, 0x4A9B34});
+		SafeWrite8(0x4A9B3F, 0xA9); // jz 0x4A9BEC (skip error message)
 	}
 
 	if (IniReader::GetConfigString("Sound", "MainMenuMusic", "", mainMenuMusic, 9)) {

@@ -40,7 +40,7 @@ void dlog_f(const char* fmt, int type, ...);
 // Prints debug message to sfall log file for develop build
 void devlog_f(const char* fmt, int type, ...);
 #else
-void devlog_f(...);
+#define devlog_f(...) ((void)0)
 #endif
 
 void LoggingInit();
