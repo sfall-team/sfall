@@ -18,6 +18,7 @@
 
 #include <cmath>
 
+#include "..\..\..\Utils.h"
 #include "..\OpcodeContext.h"
 
 #include "Math.h"
@@ -96,12 +97,7 @@ void op_ceil(OpcodeContext& ctx) {
 }
 
 void op_round(OpcodeContext& ctx) {
-	float arg = ctx.arg(0).asFloat();
-
-	int argI = static_cast<int>(arg);
-	float mod = arg - static_cast<float>(argI);
-	if (abs(mod) >= 0.5) argI += (mod > 0 ? 1 : -1);
-	ctx.setReturn(argI);
+	ctx.setReturn(lroundf(ctx.arg(0).asFloat()));
 }
 
 void mf_floor2(OpcodeContext& ctx) {

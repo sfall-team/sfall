@@ -86,6 +86,14 @@ long StrToLong(const char* str, int base /* = 0 */) {
 	return strtol(str, &end, base); // see https://stackoverflow.com/a/6154614
 }
 
+// emulation of std::lroundf in C++11
+long lroundf(float num) {
+	float integer = ceilf(num);
+	if (num > 0)
+		return static_cast<long>(integer - num > 0.5f ? integer - 1.0f : integer);
+	return static_cast<long>(integer - num >= 0.5f ? integer - 1.0f : integer);
+}
+
 
 // max range 0-32767
 //long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use

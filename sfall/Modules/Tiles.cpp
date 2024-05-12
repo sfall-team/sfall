@@ -79,14 +79,6 @@ static DWORD origTileCount = 0;
 static DWORD tileMode;
 static BYTE* mask;
 
-// emulation of std::lroundf in C++11
-static long lroundf(float num) {
-	float integer = ceilf(num);
-	if (num > 0)
-		return static_cast<long>(integer - num > 0.5f ? integer - 1.0f : integer);
-	return static_cast<long>(integer - num >= 0.5f ? integer - 1.0f : integer);
-}
-
 static bool LoadMask() {
 	fo::DbFile* file = fo::func::db_fopen("art\\tiles\\gridmask.frm", "rb"); // same as grid000.frm from HRP
 	if (!file) {
