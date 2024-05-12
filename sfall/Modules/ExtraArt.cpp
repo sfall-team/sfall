@@ -40,15 +40,25 @@ static PcxFile LoadPcxFile(const char* file) {
 	return pcx;
 }
 
+static fo::FrmFile* LoadFrmFile(const char* file) {
+	fo::FrmFile* frmPtr = nullptr;
+	if (fo::func::load_frame(file, &frmPtr)) {
+		frmPtr = nullptr;
+	}
+	return frmPtr;
+}
+
+void UnloadFrmFile(fo::FrmFile* frm) {
+	fo::func::mem_free(frm);
+}
+
 fo::FrmFile* LoadFrmFileCached(const char* file) {
 	fo::FrmFile* frmPtr = nullptr;
 	TFrmCache::iterator cacheHit = frmFileCache.find(file);
 	if (cacheHit != frmFileCache.end()) {
 		frmPtr = cacheHit->second;
 	} else {
-		if (fo::func::load_frame(file, &frmPtr)) {
-			frmPtr = nullptr;
-		}
+		frmPtr = LoadFrmFile(file);
 		frmFileCache.insert(std::make_pair(file, frmPtr));
 	}
 	return frmPtr;
@@ -71,10 +81,9 @@ static void GetUnlistedFrmPath(const char* frmName, unsigned int folderRef, bool
 	}
 }
 
-bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
+static bool CheckUnlistedFrm(const char* frmName, unsigned int folderRef, char* frmPath) {
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char frmPath[MAX_PATH];
 	GetUnlistedFrmPath(frmName, folderRef, *fo::ptr::use_language != 0, frmPath);
 
 	bool exists = fo::func::db_access(frmPath);
@@ -85,18 +94,21 @@ bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
 	return exists;
 }
 
-fo::FrmFile* LoadUnlistedFrmCached(const char* frmName, unsigned int folderRef) {
-	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
-
+bool UnlistedFrmExists(const char* frmName, unsigned int folderRef) {
 	char frmPath[MAX_PATH];
-	GetUnlistedFrmPath(frmName, folderRef, *fo::ptr::use_language != 0, frmPath);
+	return CheckUnlistedFrm(frmName, folderRef, frmPath);
+}
 
-	fo::FrmFile* frm = LoadFrmFileCached(frmPath);
-	if (frm == nullptr && *fo::ptr::use_language) {
-		GetUnlistedFrmPath(frmName, folderRef, false, frmPath);
-		frm = LoadFrmFileCached(frmPath);
-	}
-	return frm;
+fo::FrmFile* LoadUnlistedFrm(const char* frmName, unsigned int folderRef) {
+	char frmPath[MAX_PATH];
+	if (!CheckUnlistedFrm(frmName, folderRef, frmPath)) return nullptr;
+	return LoadFrmFile(frmPath);
+}
+
+fo::FrmFile* LoadUnlistedFrmCached(const char* frmName, unsigned int folderRef) {
+	char frmPath[MAX_PATH];
+	if (!CheckUnlistedFrm(frmName, folderRef, frmPath)) return nullptr;
+	return LoadFrmFileCached(frmPath);
 }
 
 static void ClearInterfaceArtCache() {

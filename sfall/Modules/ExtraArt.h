@@ -39,10 +39,13 @@ public:
 	static void OnGameReset();
 };
 
+// TODO: more robust caching, similar to how art_ptr_lock works.
 fo::FrmFile* LoadFrmFileCached(const char* file);
 PcxFile LoadPcxFileCached(const char* file);
 
 bool UnlistedFrmExists(const char* frmName, unsigned int folderRef);
+fo::FrmFile* LoadUnlistedFrm(const char* frmName, unsigned int folderRef);
 fo::FrmFile* LoadUnlistedFrmCached(const char* file, unsigned int folderRef);
+void UnloadFrmFile(fo::FrmFile* frm);
 
 }
