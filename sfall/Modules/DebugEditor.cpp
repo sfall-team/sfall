@@ -437,6 +437,7 @@ static void __declspec(naked) op_debug_msg_hack() {
 
 static long debugWndFontOld;
 static long debugWndFont = 0;
+// Before something is printed in the window: remembers current font, replace it with debugWndFont.
 static void __declspec(naked) win_debug_text_height_hook() {
 	__asm {
 		pushadc;
@@ -450,6 +451,7 @@ static void __declspec(naked) win_debug_text_height_hook() {
 	}
 }
 
+// After something is printed in the window: restores current font.
 static void __declspec(naked) win_debug_win_draw_hook() {
 	__asm {
 		pushadc;
@@ -461,7 +463,7 @@ static void __declspec(naked) win_debug_win_draw_hook() {
 }
 
 
-static long debugWndWidth = 600;
+static long debugWndWidth;
 constexpr DWORD win_debug_pitch_calc_hack__back = 0x4DC542;
 static void __declspec(naked) win_debug_pitch_calc_hack() {
 	__asm {
@@ -513,9 +515,10 @@ static void DebugModePatch() {
 				HookCall(0x4DC649, win_debug_win_draw_hook);
 
 				debugWndFont = IniReader::GetIntDefaultConfig("Debugging", "DebugWindowFont", 0);
-				
-				long wdWidth = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowWidth", 300), 300, 1920);
-				if (wdWidth != 300) {
+
+				constexpr int defaultWidth = 300;
+				long wdWidth = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowWidth", defaultWidth), defaultWidth, 1920);
+				if (wdWidth != defaultWidth) {
 					SafeWriteBatch<DWORD>(wdWidth, {  // width/pitch, was 300
 						0x4DC357, 0x4DC3AB, 0x4DC408, 0x4DC476, 0x4DC49C, 0x4DC5A0, 0x4DC5AB
 					});
@@ -528,8 +531,9 @@ static void DebugModePatch() {
 					MakeJump(0x4DC52E, win_debug_pitch_calc_hack);
 				}
 
-				long wdHeight = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowHeight", 192), 192, 1080);
-				if (wdHeight != 192) {
+				constexpr int defaultHeight = 192;
+				long wdHeight = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowHeight", defaultHeight), defaultHeight, 1080);
+				if (wdHeight != defaultHeight) {
 					SafeWrite32(0x4DC348, wdHeight); // Wnd height, was 192
 					SafeWrite32(0x4DC42A, wdHeight - 57); // inner box fill height, was 135
 					SafeWrite32(0x4DC461, wdHeight - 47); // Inner box height, was 145
