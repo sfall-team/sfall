@@ -25,8 +25,6 @@ public:
 	static long display_width;
 	static char* display_string_buf;
 
-	static void SetExpandAPBar();
-
 	static void Hide();
 	static void Show();
 };

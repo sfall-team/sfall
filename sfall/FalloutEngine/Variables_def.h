@@ -102,6 +102,7 @@ VAR_(i_worn,                     fo::GameObject*)
 VAR_(idle_func,                  void*)
 VAR_(In_WorldMap,                DWORD) // moving on WorldMap
 VAR_(info_line,                  DWORD)
+VAR_(interfaceBuffer,            BYTE*)
 VARC(interfaceWindow,            DWORD)
 VAR_(intfaceEnabled,             DWORD)
 VAR_(intotal,                    DWORD)
