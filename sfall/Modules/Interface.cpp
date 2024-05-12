@@ -179,13 +179,8 @@ static void APBarRectPatch() {
 }
 
 static void ActionPointsBarPatch() {
-	dlog("Applying expanded action points bar patch.", DL_INIT);
+	dlogr("Applying expanded action points bar patch.", DL_INIT);
 	if (HRP::Setting::ExternalEnabled()) {
-		// check valid data
-		if (!HRP::Setting::VersionIsValid) {
-			dlogr(" Incorrect HRP version!", DL_INIT);
-			return;
-		}
 		LoadGameHook::OnAfterGameInit() += APBarRectPatch;
 	} else {
 		APBarRectPatch();
@@ -200,7 +195,6 @@ static void ActionPointsBarPatch() {
 	HookCall(0x45D962, intface_init_hook_unlock_iface_frm);
 	MakeCall(0x45E356, intface_init_hack);
 	MakeJump(0x45EE38, intface_update_move_points_hack, 1);
-	dlogr(" Done", DL_INIT);
 }
 
 static long costAP = -1;

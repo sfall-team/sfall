@@ -20,18 +20,13 @@
 
 #include "Module.h"
 
-namespace fo
-{
-	struct FrmFile;
-}
-
-namespace sfall 
+namespace sfall
 {
 
 struct PcxFile {
-	unsigned char* pixelData;
-	long width;
-	long height;
+	BYTE* pixelData;
+	long  width;
+	long  height;
 
 	PcxFile() : pixelData(nullptr), width(0), height(0) {}
 };

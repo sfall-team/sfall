@@ -18,7 +18,6 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\FalloutEngine\Structs.h"
 #include "LoadGameHook.h"
 
 #include "ExtraArt.h"
