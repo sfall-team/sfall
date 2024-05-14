@@ -22,6 +22,7 @@
 #include "..\ConsoleWindow.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "..\Utils.h"
 //#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
@@ -434,6 +435,45 @@ static void __declspec(naked) op_debug_msg_hack() {
 	}
 }
 
+static long debugWndFontOld;
+static long debugWndFont = 0;
+// Before something is printed in the window: remembers current font, replace it with debugWndFont.
+static void __declspec(naked) win_debug_text_height_hook() {
+	__asm {
+		pushadc;
+		call fo::funcoffs::text_curr_;
+		mov debugWndFontOld, eax;
+		mov eax, debugWndFont;
+		call fo::funcoffs::text_font_;
+		popadc;
+		call dword ptr ds:[FO_VAR_text_height];
+		retn;
+	}
+}
+
+// After something is printed in the window: restores current font.
+static void __declspec(naked) win_debug_win_draw_hook() {
+	__asm {
+		pushadc;
+		mov eax, debugWndFontOld;
+		call fo::funcoffs::text_font_;
+		popadc;
+		jmp fo::funcoffs::win_draw_;
+	}
+}
+
+
+static long debugWndWidth;
+constexpr DWORD win_debug_pitch_calc_hack__back = 0x4DC542;
+static void __declspec(naked) win_debug_pitch_calc_hack() {
+	__asm {
+		mov eax, debugWndWidth;
+		mul esi;
+		mov ebp, eax;
+		jmp win_debug_pitch_calc_hack__back;
+	}
+}
+
 // Shifts the string one character to the right and inserts a newline control character at the beginning
 static void MoveDebugString(char* messageAddr) {
 	int i = 0;
@@ -471,6 +511,36 @@ static void DebugModePatch() {
 				SafeWrite8(0x4C6EF2, CodeType::JumpShort);
 				SafeWrite16(0x4C7033, 0x9090);
 				MakeCall(0x4DC319, win_debug_hook, 2);
+				MakeCall(0x4DC32C, win_debug_text_height_hook, 1);
+				HookCall(0x4DC649, win_debug_win_draw_hook);
+
+				debugWndFont = IniReader::GetIntDefaultConfig("Debugging", "DebugWindowFont", 0);
+
+				constexpr int defaultWidth = 300;
+				long wdWidth = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowWidth", defaultWidth), defaultWidth, 1920);
+				if (wdWidth != defaultWidth) {
+					SafeWriteBatch<DWORD>(wdWidth, {  // width/pitch, was 300
+						0x4DC357, 0x4DC3AB, 0x4DC408, 0x4DC476, 0x4DC49C, 0x4DC5A0, 0x4DC5AB
+					});
+					SafeWriteBatch<DWORD>(wdWidth - 16, { 0x4DC38A, 0x4DC4FE }); // header BG fill width, was 284
+					SafeWriteBatch<DWORD>(wdWidth - 18, { 0x4DC420, 0x4DC5B1, 0x4DC5C1 }); // Inner box fill width, was 282
+					SafeWriteBatch<DWORD>(wdWidth - 9, { 0x4DC40D, 0x4DC471, 0x4DC562 }); // Outer box fill width, was 291
+					SafeWrite32(0x4DC5A5, wdWidth * 26 + 9); // text shift buffer offset, was 7809
+
+					debugWndWidth = wdWidth;
+					MakeJump(0x4DC52E, win_debug_pitch_calc_hack);
+				}
+
+				constexpr int defaultHeight = 192;
+				long wdHeight = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowHeight", defaultHeight), defaultHeight, 1080);
+				if (wdHeight != defaultHeight) {
+					SafeWrite32(0x4DC348, wdHeight); // Wnd height, was 192
+					SafeWrite32(0x4DC42A, wdHeight - 57); // inner box fill height, was 135
+					SafeWrite32(0x4DC461, wdHeight - 47); // Inner box height, was 145
+					SafeWrite32(0x4DC4C0, wdHeight - 8); // Close button Y, was 184
+					SafeWrite32(0x4DC582, wdHeight - 32); // Text loop max Y, was 160
+					SafeWrite32(0x4DC528, wdHeight - 58); // Text shift height, was 134
+				}
 			}
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
