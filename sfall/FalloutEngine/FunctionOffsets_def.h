@@ -728,6 +728,7 @@ FUNC(talk_to_critter_reacts_,         0x447CA0)
 FUNC(talk_to_translucent_trans_buf_to_buf_,      0x44AC68)
 FUNC(text_curr_,                      0x4D58D4)
 FUNC(text_font_,                      0x4D58DC)
+FUNC(text_font_exists_,               0x4D595C)
 FUNC(text_object_create_,             0x4B036C)
 FUNC(tile_coord_,                     0x4B1674) // eax - tilenum, edx (int*) - x, ebx (int*) - y
 FUNC(tile_dir_,                       0x4B1ABC)
