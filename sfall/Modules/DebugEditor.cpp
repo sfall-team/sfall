@@ -440,12 +440,10 @@ static long debugWndFont = 0;
 // Before something is printed in the window: remembers current font, replace it with debugWndFont.
 static void __declspec(naked) win_debug_text_height_hook() {
 	__asm {
-		pushadc;
 		call fo::funcoffs::text_curr_;
-		mov debugWndFontOld, eax;
-		mov eax, debugWndFont;
+		mov  debugWndFontOld, eax;
+		mov  eax, debugWndFont;
 		call fo::funcoffs::text_font_;
-		popadc;
 		call dword ptr ds:[FO_VAR_text_height];
 		retn;
 	}
@@ -454,23 +452,22 @@ static void __declspec(naked) win_debug_text_height_hook() {
 // After something is printed in the window: restores current font.
 static void __declspec(naked) win_debug_win_draw_hook() {
 	__asm {
-		pushadc;
-		mov eax, debugWndFontOld;
+		push eax; // winID
+		mov  eax, debugWndFontOld;
 		call fo::funcoffs::text_font_;
-		popadc;
-		jmp fo::funcoffs::win_draw_;
+		pop  eax;
+		jmp  fo::funcoffs::win_draw_;
 	}
 }
 
-
 static long debugWndWidth;
-constexpr DWORD win_debug_pitch_calc_hack__back = 0x4DC542;
 static void __declspec(naked) win_debug_pitch_calc_hack() {
+	static const DWORD win_debug_pitch_calc_hack_back = 0x4DC542;
 	__asm {
-		mov eax, debugWndWidth;
-		mul esi;
-		mov ebp, eax;
-		jmp win_debug_pitch_calc_hack__back;
+		mov  eax, debugWndWidth;
+		imul esi;
+		mov  ebp, eax;
+		jmp  win_debug_pitch_calc_hack_back;
 	}
 }
 
@@ -514,7 +511,9 @@ static void DebugModePatch() {
 				MakeCall(0x4DC32C, win_debug_text_height_hook, 1);
 				HookCall(0x4DC649, win_debug_win_draw_hook);
 
-				debugWndFont = IniReader::GetIntDefaultConfig("Debugging", "DebugWindowFont", 0);
+				if (IniReader::GetIntDefaultConfig("Debugging", "DebugWindowFont", 0)) {
+					debugWndFont = 101;
+				}
 
 				constexpr int defaultWidth = 300;
 				long wdWidth = clamp(IniReader::GetIntDefaultConfig("Debugging", "DebugWindowWidth", defaultWidth), defaultWidth, 1920);
