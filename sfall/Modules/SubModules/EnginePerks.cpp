@@ -103,6 +103,7 @@ void ReadPerksBonuses(const char* perksFile) {
 	TryPatchSkillBonus8("LivingAnatomyDoctorBonus", 10, 0x496E66, perksFile);
 	TryPatchSkillBonus8("PyromaniacBonus", 5, 0x424AB6, perksFile);
 	TryPatchValue8("StonewallPercent", 50, 0, 100, 0x424B50, perksFile);
+	TryPatchValue8("CautiousNatureBonus", 3, -12, 20, 0x4C1756, perksFile); // -12 - nullify distance bonus
 	if (TryGetModifiedInt("DemolitionExpertBonus", DemolitionExpertBonus, value, perksFile) && value >= 0) {
 		DemolitionExpertBonus = min(value, 999);
 	}
