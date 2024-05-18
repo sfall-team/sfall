@@ -44,14 +44,12 @@ static void __declspec(naked) GetMenuHook() {
 
 static void __declspec(naked) CheckHotKeysHook() {
 	__asm {
-		cmp  eax, vanillaElevatorCount;
-		jge  skip; // skip hotkeys data
-		push ebx;
 		lea  ebx, elevatorType;
 		shl  eax, 2;
 		mov  eax, [ebx + eax];
+		cmp  eax, vanillaElevatorCount;
+		jge  skip; // skip hotkeys data (prevent array out of bounds error)
 		call fo::funcoffs::Check4Keys_;
-		pop  ebx;
 		retn;
 skip:
 		xor  eax, eax;
