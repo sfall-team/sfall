@@ -21,6 +21,6 @@ void Inject_RollCheckHook();
 
 long PerceptionRangeHook_Invoke(fo::GameObject* watcher, fo::GameObject* target, long type, long result);
 
-void BarterGetTableCosts(long* outPcTableCost, long* outNpcTableCost);
+void BarterPriceHook_GetLastCosts(long& outPcTableCost, long& outNpcTableCost);
 
 }

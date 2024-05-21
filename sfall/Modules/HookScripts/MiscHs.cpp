@@ -100,14 +100,14 @@ static void __declspec(naked) OverrideCost_BarterPriceHook() {
 	}
 }
 
-void BarterGetTableCosts(long* outPcTableCost, long* outNpcTableCost) {
+void BarterPriceHook_GetLastCosts(long& outPcTableCost, long& outNpcTableCost) {
 	if (!HookScripts::HookHasScript(HOOK_BARTERPRICE)) {
-		*outPcTableCost = fo::func::item_total_cost(fo::var::ptable);
-		*outNpcTableCost = fo::func::barter_compute_value(fo::var::obj_dude, fo::var::target_stack[0]);
+		outPcTableCost = fo::func::item_total_cost(fo::var::ptable);
+		outNpcTableCost = fo::func::barter_compute_value(fo::var::obj_dude, fo::var::target_stack[0]);
 		return;
 	}
-	*outPcTableCost = lastTableCostPC;
-	*outNpcTableCost = lastTableCostNPC;
+	outPcTableCost = lastTableCostPC;
+	outNpcTableCost = lastTableCostNPC;
 }
 
 static fo::GameObject* sourceSkillOn = nullptr;

@@ -620,31 +620,27 @@ end:
 }
 
 static long CalculateSuggestedMoveCount(fo::GameObject* item, long maxQuantity, bool fromPlayer, bool fromInventory) {
-    if (maxQuantity <= 1) {
-        return maxQuantity;
-    }
-    long suggestedValue = 1;
+	// This is an exact copy of logic from https://github.com/alexbatalov/fallout2-ce/pull/311
     if (item->protoId == fo::PID_BOTTLE_CAPS && !fo::var::dialog_target_is_party) {
         // Calculate change money automatically
         long totalCostPlayer;
         long totalCostNpc;
-		BarterGetTableCosts(&totalCostPlayer, &totalCostNpc);
+		BarterPriceHook_GetLastCosts(totalCostPlayer, totalCostNpc);
         // Actor's balance: negative - the actor must add money to balance the tables and vice versa
         long balance = fromPlayer ? totalCostPlayer - totalCostNpc : totalCostNpc - totalCostPlayer;
-
-        if ( (balance < 0 && fromInventory) || (balance > 0 && !fromInventory) ) {
-            suggestedValue = min(std::abs(balance), maxQuantity);
+        if ((balance < 0 && fromInventory) || (balance > 0 && !fromInventory)) {
+            return min(std::abs(balance), maxQuantity);
         }
     }
-    return suggestedValue;
+	return 1;
 }
 
 static bool itemCounterDefaultMax;
 static bool itemCounterAutoCaps;
-static long __fastcall CalculateDefaultMoveCount(fo::GameObject* item, DWORD retAddr, DWORD maxValue) {
+static long __fastcall CalculateDefaultMoveCount(DWORD maybeItem, DWORD retAddr, DWORD maxValue) {
 	maxValue = min(maxValue, 99999); // capped like in vanilla
 	if ((GetLoopFlags() & BARTER) != 0) {
-		if (itemCounterAutoCaps && maxValue > 0) {
+		if (itemCounterAutoCaps && maxValue > 1) {
 			bool fromPlayer;
 			bool fromInventory;
 			switch (retAddr) {
@@ -667,7 +663,8 @@ static long __fastcall CalculateDefaultMoveCount(fo::GameObject* item, DWORD ret
 			default:
 				return 1;
 			}
-			return CalculateSuggestedMoveCount(item, maxValue, fromPlayer, fromInventory);
+			// maybeItem may not contain object pointer in all cases, but it does in all 4 from above.
+			return CalculateSuggestedMoveCount((fo::GameObject*)maybeItem, maxValue, fromPlayer, fromInventory);
 		}
 		return 1;
 	}
@@ -676,13 +673,13 @@ static long __fastcall CalculateDefaultMoveCount(fo::GameObject* item, DWORD ret
 
 static void __declspec(naked) do_move_timer_hack() {
 	__asm {
-		pushadc;
+		push ecx;
 		push ebp; // max
-		mov edx, dword ptr[esp + 40]; // return address
-		mov ecx, dword ptr[esp + 28]; // item
+		mov edx, dword ptr[esp + 32]; // return address
+		mov ecx, dword ptr[esp + 20]; // item, potentially
 		call CalculateDefaultMoveCount;
 		mov  ebx, eax;
-		popadc;
+		pop ecx;
 		retn;
 	}
 }
