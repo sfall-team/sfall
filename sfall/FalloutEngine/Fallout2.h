@@ -23,6 +23,7 @@
  */
 
 #include "Enums.h"
+#include "GamePids.h"
 #include "FunctionOffsets.h"
 #include "Structs.h"
 #include "EngineUtils.h"
