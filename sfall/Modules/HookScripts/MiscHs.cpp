@@ -10,6 +10,9 @@
 namespace sfall
 {
 
+static DWORD lastTableCostPC; // keep last cost for pc
+static DWORD lastTableCostNPC;
+
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameObject* target, DWORD callAddr) {
 	bool barterIsParty = (*fo::ptr::dialog_target_is_party != 0);
@@ -22,12 +25,12 @@ static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameO
 	args[1] = (DWORD)target;
 	args[2] = !barterIsParty ? computeCost : 0;
 
-	fo::GameObject* bTable = (fo::GameObject*)*fo::ptr::btable;
+	fo::GameObject* bTable = *fo::ptr::btable;
 	args[3] = (DWORD)bTable;
 	args[4] = fo::func::item_caps_total(bTable);
 	args[5] = fo::func::item_total_cost(bTable);
 
-	fo::GameObject* pTable = (fo::GameObject*)*fo::ptr::ptable;
+	fo::GameObject* pTable = *fo::ptr::ptable;
 	args[6] = (DWORD)pTable;
 
 	long pcCost = 0;
@@ -66,11 +69,11 @@ static void __declspec(naked) BarterPriceHook() {
 		call BarterPriceHook_Script;  // edx - target
 		pop  ecx;
 		pop  edx;
+		mov  lastTableCostNPC, eax;
 		retn;
 	}
 }
 
-static DWORD offersGoodsCost; // keep last cost for pc
 static void __declspec(naked) PC_BarterPriceHook() {
 	__asm {
 		push edx;
@@ -82,16 +85,26 @@ static void __declspec(naked) PC_BarterPriceHook() {
 		call BarterPriceHook_Script;
 		pop  ecx;
 		pop  edx;
-		mov  offersGoodsCost, eax;
+		mov  lastTableCostPC, eax;
 		retn;
 	}
 }
 
 static void __declspec(naked) OverrideCost_BarterPriceHook() {
 	__asm {
-		mov eax, offersGoodsCost;
+		mov eax, lastTableCostPC;
 		retn;
 	}
+}
+
+void BarterPriceHook_GetLastCosts(long& outPcTableCost, long& outNpcTableCost) {
+	if (!HookScripts::HookHasScript(HOOK_BARTERPRICE)) {
+		outPcTableCost = fo::func::item_total_cost(*fo::ptr::ptable);
+		outNpcTableCost = fo::func::barter_compute_value(*fo::ptr::obj_dude, fo::ptr::target_stack[0]);
+		return;
+	}
+	outPcTableCost = lastTableCostPC;
+	outNpcTableCost = lastTableCostNPC;
 }
 
 static fo::GameObject* sourceSkillOn = nullptr;
@@ -735,7 +748,7 @@ void Inject_BarterPriceHook() {
 		0x475762  // display_table_inventories_
 	};
 	HookCalls(BarterPriceHook, barterPriceHkAddr);
-	const DWORD pcBarterPriceHkAddr[] = {0x4754F4, 0X47551A}; // display_table_inventories_
+	const DWORD pcBarterPriceHkAddr[] = {0x4754F4, 0x47551A}; // display_table_inventories_
 	HookCalls(PC_BarterPriceHook, pcBarterPriceHkAddr);
 	HookCall(0x474D3F, OverrideCost_BarterPriceHook); // barter_attempt_transaction_ (just overrides cost of offered goods)
 }

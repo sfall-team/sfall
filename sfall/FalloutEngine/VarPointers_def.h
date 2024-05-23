@@ -12,7 +12,7 @@ PTR_(bckgnd,                     BYTE*)
 PTR_(black_palette,              DWORD)
 PTR_(BlueColor,                  BYTE)
 PTR_(bottom_line,                DWORD)
-PTR_(btable,                     DWORD)
+PTR_(btable,                     fo::GameObject*)
 PTR_(btncnt,                     DWORD)
 PTR_(cap,                        fo::AIcap*) // dynamic array
 PTR_(carCurrentArea,             DWORD)
@@ -181,7 +181,7 @@ PTR_(procTableStrs,              const char*)  // table of procId (from define.h
 PTR_(proto_main_msg_file,        fo::MessageList)
 PTR_(proto_msg_files,            fo::MessageList)  // array of 6 elements
 PTR_(protoLists,                 fo::ProtoList) // array of 11 elements
-PTR_(ptable,                     DWORD)
+PTR_(ptable,                     fo::GameObject*)
 PTR_(pud,                        DWORD)
 PTR_(queue,                      fo::Queue*)
 PTR_(quick_done,                 DWORD)
@@ -203,7 +203,7 @@ PTR_(sound_music_path2,          char*)
 PTR_(speech_volume,              DWORD)
 PTR_(square,                     DWORD*) // array of 3 pointers, use (square && 0xFFF) to get ground fid, and ((square >> 16) && 0xFFF) to get roof
 PTR_(squares,                    DWORD*)
-PTR_(stack,                      DWORD) // array of 10 DWORD
+PTR_(stack,                      fo::GameObject*) // array of 10 GameObject*
 PTR_(stack_offset,               DWORD) // array of 10 DWORD
 PTR_(stat_data,                  fo::StatInfo) // array of size == STAT_real_max_stat
 PTR_(stat_flag,                  DWORD)
@@ -213,7 +213,7 @@ PTR_(Tag_,                       DWORD)
 PTR_(tag_skill,                  DWORD)
 PTR_(target_curr_stack,          DWORD)
 PTR_(target_pud,                 DWORD*)
-PTR_(target_stack,               DWORD) // array of 10 DWORD
+PTR_(target_stack,               fo::GameObject*) // array of 10 GameObject*
 PTR_(target_stack_offset,        DWORD) // array of 10 DWORD
 PTR_(target_str,                 DWORD)
 PTR_(target_xpos,                DWORD)

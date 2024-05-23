@@ -24,6 +24,7 @@
 #include "HeroAppearance.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
+#include "HookScripts\MiscHs.h"
 
 #include "..\Game\inventory.h"
 #include "..\Game\items.h"
@@ -618,12 +619,66 @@ end:
 	}
 }
 
+static long CalculateSuggestedMoveCount(fo::GameObject* item, long maxQuantity, bool fromPlayer, bool fromInventory) {
+	// This is an exact copy of logic from https://github.com/alexbatalov/fallout2-ce/pull/311
+	if (item->protoId == fo::PID_BOTTLE_CAPS && !*fo::ptr::dialog_target_is_party) {
+		// Calculate change money automatically
+		long totalCostPlayer, totalCostNpc;
+		BarterPriceHook_GetLastCosts(totalCostPlayer, totalCostNpc);
+		// Actor's balance: negative - the actor must add money to balance the tables and vice versa
+		long balance = fromPlayer ? totalCostPlayer - totalCostNpc : totalCostNpc - totalCostPlayer;
+		if ((balance < 0 && fromInventory) || (balance > 0 && !fromInventory)) {
+			return min(std::abs(balance), maxQuantity);
+		}
+	}
+	return 1;
+}
+
+static bool itemCounterDefaultMax;
+static bool itemCounterAutoCaps;
+static long __fastcall CalculateDefaultMoveCount(DWORD maybeItem, DWORD retAddr, DWORD maxValue) {
+	maxValue = min(maxValue, 99999); // capped like in vanilla
+	if ((GetLoopFlags() & BARTER) != 0) {
+		if (itemCounterAutoCaps && maxValue > 1) {
+			bool fromPlayer;
+			bool fromInventory;
+			switch (retAddr) {
+			case 0x474F96: // barter_move_inventory
+				fromPlayer = true;
+				fromInventory = true;
+				break;
+			case 0x475015: // barter_move_inventory
+				fromPlayer = false;
+				fromInventory = true;
+				break;
+			case 0x475261: // barter_move_from_table_inventory
+				fromPlayer = true;
+				fromInventory = false;
+				break;
+			case 0x4752DE: // barter_move_from_table_inventory
+				fromPlayer = false;
+				fromInventory = false;
+				break;
+			default:
+				return 1;
+			}
+			// maybeItem may not contain object pointer in all cases, but it does in all 4 from above.
+			return CalculateSuggestedMoveCount((fo::GameObject*)maybeItem, maxValue, fromPlayer, fromInventory);
+		}
+		return 1;
+	}
+	return itemCounterDefaultMax ? maxValue : 1;
+}
+
 static void __declspec(naked) do_move_timer_hack() {
 	__asm {
-		mov  ebx, 1;
-		call GetLoopFlags;
-		test eax, BARTER;
-		cmovz ebx, ebp; // set max when not in barter
+		push ecx;
+		push ebp; // max
+		mov  edx, dword ptr [esp + 32]; // return address
+		mov  ecx, dword ptr [esp + 20]; // item, potentially
+		call CalculateDefaultMoveCount;
+		mov  ebx, eax;
+		pop  ecx;
 		retn;
 	}
 }
@@ -753,7 +808,9 @@ void Inventory::init() {
 		skipFromContainer = IniReader::GetConfigInt("Input", "FastMoveFromContainer", 0);
 	}
 
-	if (IniReader::GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
+	itemCounterDefaultMax = (IniReader::GetConfigInt("Misc", "ItemCounterDefaultMax", 0) != 0);
+	itemCounterAutoCaps = (IniReader::GetConfigInt("Misc", "ItemCounterAutoCaps", 0) != 0);
+	if (itemCounterDefaultMax || itemCounterAutoCaps) {
 		MakeCall(0x4768A3, do_move_timer_hack);
 	}
 
