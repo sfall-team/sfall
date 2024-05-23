@@ -9,6 +9,9 @@
 
 namespace sfall
 {
+	
+static DWORD lastTableCostPC; // keep last cost for pc
+static DWORD lastTableCostNPC;
 
 // The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameObject* target, DWORD callAddr) {
@@ -22,12 +25,12 @@ static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameO
 	args[1] = (DWORD)target;
 	args[2] = !barterIsParty ? computeCost : 0;
 
-	fo::GameObject* bTable = (fo::GameObject*)fo::var::btable;
+	fo::GameObject* bTable = fo::var::btable;
 	args[3] = (DWORD)bTable;
 	args[4] = fo::func::item_caps_total(bTable);
 	args[5] = fo::func::item_total_cost(bTable);
 
-	fo::GameObject* pTable = (fo::GameObject*)fo::var::ptable;
+	fo::GameObject* pTable = fo::var::ptable;
 	args[6] = (DWORD)pTable;
 
 	long pcCost = 0;
@@ -52,6 +55,11 @@ static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameO
 			cost = rets[0];                   // new cost for npc
 		}
 	}
+	if (isPCHook) {
+		lastTableCostPC = cost;
+	} else {
+		lastTableCostNPC = cost;
+	}
 	EndHook();
 	return cost;
 }
@@ -70,7 +78,6 @@ static void __declspec(naked) BarterPriceHook() {
 	}
 }
 
-static DWORD offersGoodsCost; // keep last cost for pc
 static void __declspec(naked) PC_BarterPriceHook() {
 	__asm {
 		push edx;
@@ -82,16 +89,25 @@ static void __declspec(naked) PC_BarterPriceHook() {
 		call BarterPriceHook_Script;
 		pop  ecx;
 		pop  edx;
-		mov  offersGoodsCost, eax;
 		retn;
 	}
 }
 
 static void __declspec(naked) OverrideCost_BarterPriceHook() {
 	__asm {
-		mov eax, offersGoodsCost;
+		mov eax, lastTableCostPC;
 		retn;
 	}
+}
+
+void BarterPriceHook_GetLastCosts(long& outPcTableCost, long& outNpcTableCost) {
+	if (!HookScripts::HookHasScript(HOOK_BARTERPRICE)) {
+		outPcTableCost = fo::func::item_total_cost(fo::var::ptable);
+		outNpcTableCost = fo::func::barter_compute_value(fo::var::obj_dude, fo::var::target_stack[0]);
+		return;
+	}
+	outPcTableCost = lastTableCostPC;
+	outNpcTableCost = lastTableCostNPC;
 }
 
 static fo::GameObject* sourceSkillOn = nullptr;
