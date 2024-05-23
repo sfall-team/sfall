@@ -621,17 +621,16 @@ end:
 
 static long CalculateSuggestedMoveCount(fo::GameObject* item, long maxQuantity, bool fromPlayer, bool fromInventory) {
 	// This is an exact copy of logic from https://github.com/alexbatalov/fallout2-ce/pull/311
-    if (item->protoId == fo::PID_BOTTLE_CAPS && !fo::var::dialog_target_is_party) {
-        // Calculate change money automatically
-        long totalCostPlayer;
-        long totalCostNpc;
+	if (item->protoId == fo::PID_BOTTLE_CAPS && !fo::var::dialog_target_is_party) {
+		// Calculate change money automatically
+		long totalCostPlayer, totalCostNpc;
 		BarterPriceHook_GetLastCosts(totalCostPlayer, totalCostNpc);
-        // Actor's balance: negative - the actor must add money to balance the tables and vice versa
-        long balance = fromPlayer ? totalCostPlayer - totalCostNpc : totalCostNpc - totalCostPlayer;
-        if ((balance < 0 && fromInventory) || (balance > 0 && !fromInventory)) {
-            return min(std::abs(balance), maxQuantity);
-        }
-    }
+		// Actor's balance: negative - the actor must add money to balance the tables and vice versa
+		long balance = fromPlayer ? totalCostPlayer - totalCostNpc : totalCostNpc - totalCostPlayer;
+		if ((balance < 0 && fromInventory) || (balance > 0 && !fromInventory)) {
+			return min(std::abs(balance), maxQuantity);
+		}
+	}
 	return 1;
 }
 
@@ -675,11 +674,11 @@ static void __declspec(naked) do_move_timer_hack() {
 	__asm {
 		push ecx;
 		push ebp; // max
-		mov edx, dword ptr[esp + 32]; // return address
-		mov ecx, dword ptr[esp + 20]; // item, potentially
+		mov  edx, dword ptr [esp + 32]; // return address
+		mov  ecx, dword ptr [esp + 20]; // item, potentially
 		call CalculateDefaultMoveCount;
 		mov  ebx, eax;
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -811,8 +810,8 @@ void Inventory::init() {
 		skipFromContainer = IniReader::GetConfigInt("Input", "FastMoveFromContainer", 0);
 	}
 
-	itemCounterDefaultMax = IniReader::GetConfigInt("Misc", "ItemCounterDefaultMax", 0);
-	itemCounterAutoCaps = IniReader::GetConfigInt("Misc", "ItemCounterAutoCaps", 0);
+	itemCounterDefaultMax = (IniReader::GetConfigInt("Misc", "ItemCounterDefaultMax", 0) != 0);
+	itemCounterAutoCaps = (IniReader::GetConfigInt("Misc", "ItemCounterAutoCaps", 0) != 0);
 	if (itemCounterDefaultMax || itemCounterAutoCaps) {
 		MakeCall(0x4768A3, do_move_timer_hack);
 	}

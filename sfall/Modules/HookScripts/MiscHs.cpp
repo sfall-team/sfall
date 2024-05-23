@@ -9,7 +9,7 @@
 
 namespace sfall
 {
-	
+
 static DWORD lastTableCostPC; // keep last cost for pc
 static DWORD lastTableCostNPC;
 
@@ -55,11 +55,6 @@ static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameO
 			cost = rets[0];                   // new cost for npc
 		}
 	}
-	if (isPCHook) {
-		lastTableCostPC = cost;
-	} else {
-		lastTableCostNPC = cost;
-	}
 	EndHook();
 	return cost;
 }
@@ -74,6 +69,7 @@ static void __declspec(naked) BarterPriceHook() {
 		call BarterPriceHook_Script;  // edx - target
 		pop  ecx;
 		pop  edx;
+		mov  lastTableCostNPC, eax;
 		retn;
 	}
 }
@@ -89,6 +85,7 @@ static void __declspec(naked) PC_BarterPriceHook() {
 		call BarterPriceHook_Script;
 		pop  ecx;
 		pop  edx;
+		mov  lastTableCostPC, eax;
 		retn;
 	}
 }
