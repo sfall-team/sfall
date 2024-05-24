@@ -435,7 +435,7 @@ static void __fastcall ExistSavPrototype(long pid, char* path) {
 }
 
 static long __fastcall CheckProtoType(long pid, char* path) {
-	if (pid >> 24 != fo::OBJ_TYPE_CRITTER) return 0;
+	if ((pid >> 24) > fo::OBJ_TYPE_CRITTER) return 0;
 	return ChangePrototypeExt(path);
 }
 
@@ -501,7 +501,7 @@ static void __declspec(naked) proto_load_pid_hook() {
 		mov  edx, ecx;
 		shr  edx, 24;
 		cmp  edx, OBJ_TYPE_CRITTER;
-		jnz  end;
+		jg   end;
 		mov  edx, edi;          // path buffer
 		call ExistSavPrototype; // ecx - party pid
 		xor  eax, eax;
@@ -524,7 +524,7 @@ static void __declspec(naked) SlotMap2Game_hack_attr() {
 		cmp  eax, -1;
 		je   end;
 		cmp  ebx, OBJ_TYPE_CRITTER;
-		jne  end;
+		jg   end;
 		call ResetReadOnlyAttr;
 		or   eax, 1; // reset ZF
 end:
@@ -534,9 +534,11 @@ end:
 
 #define _F_SAV            (const char*)0x50A480
 #define _F_PROTO_CRITTERS (const char*)0x50A490
+#define _F_PROTO_ITEMS    (const char*)0x50A4A0
 
 static void RemoveSavFiles() {
 	fo::func::MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
+	fo::func::MapDirErase(_F_PROTO_ITEMS, _F_SAV);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
