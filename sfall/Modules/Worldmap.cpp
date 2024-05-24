@@ -61,6 +61,11 @@ static DWORD worldMapTicks;
 
 static DWORD WorldMapEncounterRate;
 
+constexpr int WorldMapHealingDefaultInterval = 6 * 60 * 60 * 10; // 6 hours;
+// Healing interval in game time
+static DWORD worldMapHealingInterval = WorldMapHealingDefaultInterval;
+static DWORD worldMapLastHealTime;
+
 static double tickFract = 0.0;
 static double mapMultiMod = 1.0;
 static float scriptMapMulti = 1.0f;
@@ -454,6 +459,42 @@ static void WorldmapFpsPatch() {
 	}
 }
 
+// Original function checks how many system Ticks (not game ticks) passed since last WM loop iteration and if more than 1000 ms,
+// applies one healing to the whole party according to their healing rate.
+// So we hijack it and return number bigger than 1000 to force the event, or 0 to skip it.
+static DWORD __fastcall wmWorldMap_HealingTimeElapsed(DWORD elapsedTocks) {
+	if (worldMapHealingInterval == 0) return elapsedTocks;
+	if (worldMapHealingInterval > 0 && (fo::var::fallout_game_time - worldMapLastHealTime > worldMapHealingInterval)) {
+		worldMapLastHealTime = fo::var::fallout_game_time;
+		return 10000; // force healing
+	}
+	return 0; // skip healing
+}
+
+static void __declspec(naked) wmWorldMap_elapsed_tocks_hook() {
+	__asm {
+		push ecx;
+		call fo::funcoffs::elapsed_tocks_;
+		mov ecx, eax;
+		call wmWorldMap_HealingTimeElapsed;
+		pop ecx;
+		retn;
+	}
+}
+
+static void WorldmapHealingRatePatch() {
+	if (IniReader::GetConfigInt("Misc", "WorldMapHealingRatePatch", 0)) {
+		dlogr("Applying world map healing rate patch.", DL_INIT);
+		HookCall(0x4C0085, wmWorldMap_elapsed_tocks_hook);
+		LoadGameHook::OnGameModeChange() += [](DWORD state) {
+			if (InWorldMap()) worldMapLastHealTime = fo::var::fallout_game_time;
+		};
+		LoadGameHook::OnGameReset() += []() {
+			worldMapHealingInterval = WorldMapHealingDefaultInterval;
+		};
+	}
+}
+
 static void PathfinderFixInit() {
 	//if (IniReader::GetConfigInt("Misc", "PathfinderFix", 0)) {
 		dlogr("Applying Pathfinder patch.", DL_INIT);
@@ -585,6 +626,12 @@ void Worldmap::SetRestHealTime(DWORD minutes) {
 	}
 }
 
+void Worldmap::SetWorldMapHealTime(long minutes) {
+	worldMapHealingInterval = minutes >= 0
+		? minutes * 60 * 10
+		: -1;
+}
+
 void Worldmap::SetRestMode(DWORD mode) {
 	RestRestore(); // restore default
 
@@ -601,8 +648,8 @@ void Worldmap::SetRestMode(DWORD mode) {
 		SafeWrite32(0x42E588, 0x94); // jmp  0x42E620
 	}
 	if (mode & 4) { // bit3 - disable healing during resting
-		SafeWrite16(0x499FD4, 0x9090);
-		SafeWrite16(0x499E93, 0x8FEB); // jmp  0x499E24
+		SafeWrite16(0x499FD4, 0x9090); // Check4Health_
+		SafeWrite16(0x499E93, 0x8FEB); // TimedRest_: jmp  0x499E24
 	}
 }
 
@@ -691,6 +738,7 @@ void Worldmap::init() {
 	MapLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
+	WorldmapHealingRatePatch();
 
 	// Add a flashing icon to the Horrigan encounter
 	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
