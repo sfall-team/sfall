@@ -77,7 +77,7 @@ static struct SpeedCfg {
 	float multiplier;
 } *speed = nullptr;
 
-static int modKey[2];
+static int modKey[2] = {0};
 static int toggleKey;
 
 static bool defaultDelay = true;
@@ -97,7 +97,7 @@ static void SetKeyboardDelay() {
 
 static DWORD __stdcall FakeGetTickCount() {
 	// Keyboard control
-	if (modKey[0] && (KeyDown(modKey[0]) || (modKey[1] && KeyDown(modKey[1])))) {
+	if (!modKey[0] || (modKey[0] && KeyDown(modKey[0])) || (modKey[1] && KeyDown(modKey[1]))) {
 		if (toggleKey && KeyDown(toggleKey)) {
 			if (!toggled) {
 				toggled = true;
@@ -176,8 +176,6 @@ void TimerInit() {
 	GetLocalTime(&time);
 	SystemTimeToFileTime(&time, (FILETIME*)&startTime);
 
-	if (!modKey[0]) return;
-
 	speed = new SpeedCfg[10];
 
 	char buf[2], spKey[10] = "SpeedKey#";
@@ -191,15 +189,11 @@ void TimerInit() {
 }
 
 void SpeedPatch::init() {
-	int init = IniReader::GetConfigInt("Speed", "SpeedMultiInitial", 100);
-
-	if (IniReader::GetConfigInt("Speed", "Enable", 0)) {
-		modKey[0] = IniReader::GetConfigInt("Input", "SpeedModKey", 0);
-		toggleKey = IniReader::GetConfigInt("Input", "SpeedToggleKey", 0);
-	}
-	if (init == 100 && !modKey[0]) return;
-
+	if (IniReader::GetConfigInt("Speed", "Enable", 0) == 0) return;
 	dlogr("Applying speed patch.", DL_INIT);
+
+	modKey[0] = IniReader::GetConfigInt("Input", "SpeedModKey", -1);
+	toggleKey = IniReader::GetConfigInt("Input", "SpeedToggleKey", 0);
 
 	switch (modKey[0]) {
 	case -1:
@@ -214,11 +208,9 @@ void SpeedPatch::init() {
 		modKey[0] = DIK_LSHIFT;
 		modKey[1] = DIK_RSHIFT;
 		break;
-	default:
-		modKey[1] = 0;
 	}
 
-	multi = init / 100.0f;
+	multi = IniReader::GetConfigInt("Speed", "SpeedMultiInitial", 100) / 100.0f;
 
 	getTickCountOffs = (DWORD)&FakeGetTickCount;
 	getLocalTimeOffs = (DWORD)&FakeGetLocalTime;
