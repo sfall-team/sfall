@@ -61,9 +61,9 @@ static DWORD worldMapTicks;
 
 static DWORD WorldMapEncounterRate;
 
-constexpr int WorldMapHealingDefaultInterval = 6 * 60 * 60 * 10; // 6 hours;
+static constexpr long WorldMapHealingDefaultInterval = -1;
 // Healing interval in game time
-static DWORD worldMapHealingInterval = WorldMapHealingDefaultInterval;
+static long worldMapHealingInterval = WorldMapHealingDefaultInterval;
 static DWORD worldMapLastHealTime;
 
 static double tickFract = 0.0;
@@ -464,7 +464,7 @@ static void WorldmapFpsPatch() {
 // So we hijack it and return number bigger than 1000 to force the event, or 0 to skip it.
 static DWORD __fastcall wmWorldMap_HealingTimeElapsed(DWORD elapsedTocks) {
 	if (worldMapHealingInterval == 0) return elapsedTocks;
-	if (worldMapHealingInterval > 0 && (fo::var::fallout_game_time - worldMapLastHealTime > worldMapHealingInterval)) {
+	if (worldMapHealingInterval > 0 && ((long)(fo::var::fallout_game_time - worldMapLastHealTime) > worldMapHealingInterval)) {
 		worldMapLastHealTime = fo::var::fallout_game_time;
 		return 10000; // force healing
 	}
@@ -483,16 +483,14 @@ static void __declspec(naked) wmWorldMap_elapsed_tocks_hook() {
 }
 
 static void WorldmapHealingRatePatch() {
-	if (IniReader::GetConfigInt("Misc", "WorldMapHealingRatePatch", 0)) {
-		dlogr("Applying world map healing rate patch.", DL_INIT);
-		HookCall(0x4C0085, wmWorldMap_elapsed_tocks_hook);
-		LoadGameHook::OnGameModeChange() += [](DWORD state) {
-			if (InWorldMap()) worldMapLastHealTime = fo::var::fallout_game_time;
-		};
-		LoadGameHook::OnGameReset() += []() {
-			worldMapHealingInterval = WorldMapHealingDefaultInterval;
-		};
-	}
+	dlogr("Applying world map healing rate patch.", DL_INIT);
+	HookCall(0x4C0085, wmWorldMap_elapsed_tocks_hook);
+	LoadGameHook::OnGameModeChange() += [](DWORD state) {
+		if (InWorldMap()) worldMapLastHealTime = fo::var::fallout_game_time;
+	};
+	LoadGameHook::OnGameReset() += []() {
+		worldMapHealingInterval = WorldMapHealingDefaultInterval;
+	};
 }
 
 static void PathfinderFixInit() {
@@ -630,6 +628,7 @@ void Worldmap::SetWorldMapHealTime(long minutes) {
 	worldMapHealingInterval = minutes >= 0
 		? minutes * 60 * 10
 		: -1;
+	worldMapLastHealTime = fo::var::fallout_game_time;
 }
 
 void Worldmap::SetRestMode(DWORD mode) {

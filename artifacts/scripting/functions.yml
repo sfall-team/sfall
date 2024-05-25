@@ -1427,11 +1427,10 @@
     detail: void set_rest_heal_time(int time)
     doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The interval will be reset each time the player reloads the game.'
     macro: sfall.h
-  - name: set_world_map_heal_time
-    detail: void set_world_map_heal_time(int time)
+  - name: set_worldmap_heal_time
+    detail: void set_worldmap_heal_time(int time)
     doc: |
-      Sets the time interval in minutes for healing during worldmap travel. The default is 180.
-      - requires WorldMapHealingRatePatch to be enabled
+      Sets the time interval in minutes for healing during worldmap travel.
       - passing 0 will revert to 1 second per real time (vanilla behavior)
       - passing -1 will disable healing during travel
       - the interval will be reset each time the player reloads the game

@@ -50,7 +50,7 @@ void mf_get_map_enter_position(OpcodeContext&);
 
 void mf_set_rest_heal_time(OpcodeContext&);
 
-void mf_set_world_map_heal_time(OpcodeContext&);
+void mf_set_worldmap_heal_time(OpcodeContext&);
 
 void mf_set_rest_mode(OpcodeContext&);
 
