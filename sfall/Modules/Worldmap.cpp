@@ -57,6 +57,11 @@ static DWORD worldMapTicks;
 
 static DWORD WorldMapEncounterRate;
 
+static const long WorldMapHealingDefaultInterval = 0;
+// Healing interval in game time
+static long worldMapHealingInterval = WorldMapHealingDefaultInterval;
+static DWORD worldMapLastHealTime;
+
 static double tickFract = 0.0;
 static double mapMultiMod = 1.0;
 static float scriptMapMulti = 1.0f;
@@ -448,6 +453,34 @@ static void WorldmapFpsPatch() {
 	}
 }
 
+// Original function checks how many system Ticks (not game ticks) passed since last WM loop iteration and if more than 1000 ms,
+// applies one healing to the whole party according to their healing rate.
+// So we hijack it and return number bigger than 1000 to force the event, or 0 to skip it.
+static DWORD __fastcall wmWorldMap_HealingTimeElapsed(DWORD elapsedTocks) {
+	if (worldMapHealingInterval == 0) return elapsedTocks;
+	if (worldMapHealingInterval > 0 && (*fo::ptr::fallout_game_time - worldMapLastHealTime > (DWORD)worldMapHealingInterval)) {
+		worldMapLastHealTime = *fo::ptr::fallout_game_time;
+		return 10000; // force healing
+	}
+	return 0; // skip healing
+}
+
+static void __declspec(naked) wmWorldMap_elapsed_tocks_hook() {
+	__asm {
+		push ecx;
+		call fo::funcoffs::elapsed_tocks_;
+		mov  ecx, eax;
+		call wmWorldMap_HealingTimeElapsed;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void WorldmapHealingRatePatch() {
+	dlogr("Applying world map healing rate patch.", DL_INIT);
+	HookCall(0x4C0085, wmWorldMap_elapsed_tocks_hook);
+}
+
 static void PathfinderFixInit() {
 	//if (IniReader::GetConfigInt("Misc", "PathfinderFix", 0)) {
 		dlogr("Applying Pathfinder patch.", DL_INIT);
@@ -572,11 +605,18 @@ void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
 	SafeWrite32(0x4C2D9B, artIndex);
 }
 
-void Worldmap::SetRestHealTime(DWORD minutes) {
+void Worldmap::SetRestHealTime(long minutes) {
 	if (minutes > 0) {
 		SafeWrite32(0x499FDE, minutes);
 		restTime = (minutes != 180);
 	}
+}
+
+void Worldmap::SetWorldMapHealTime(long minutes) {
+	worldMapHealingInterval = (minutes >= 0)
+	                        ? minutes * 60 * 10
+	                        : -1;
+	worldMapLastHealTime = *fo::ptr::fallout_game_time;
 }
 
 void Worldmap::SetRestMode(DWORD mode) {
@@ -595,8 +635,8 @@ void Worldmap::SetRestMode(DWORD mode) {
 		SafeWrite32(0x42E588, 0x94); // jmp  0x42E620
 	}
 	if (mode & 4) { // bit3 - disable healing during resting
-		SafeWrite16(0x499FD4, 0x9090);
-		SafeWrite16(0x499E93, 0x8FEB); // jmp  0x499E24
+		SafeWrite16(0x499FD4, 0x9090); // Check4Health_
+		SafeWrite16(0x499E93, 0x8FEB); // TimedRest_: jmp  0x499E24
 	}
 }
 
@@ -678,6 +718,10 @@ const char* Worldmap::GetCustomAreaTitle(long areaID) {
 	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }
 
+void Worldmap::OnGameModeChange() {
+	if (InWorldMap()) worldMapLastHealTime = *fo::ptr::fallout_game_time;
+}
+
 void Worldmap::OnGameReset() {
 	SetCarInterfaceArt(433); // set index
 	if (restTime) SetRestHealTime(180);
@@ -685,6 +729,7 @@ void Worldmap::OnGameReset() {
 	mapRestInfo.clear();
 	wmTerrainTypeNames.clear();
 	wmAreaHotSpotTitle.clear();
+	worldMapHealingInterval = WorldMapHealingDefaultInterval;
 }
 
 void Worldmap::init() {
@@ -694,6 +739,7 @@ void Worldmap::init() {
 	MapLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
+	WorldmapHealingRatePatch();
 
 	// Add a flashing icon to the Horrigan encounter
 	HookCall(0x4C071C, wmRndEncounterOccurred_hook);

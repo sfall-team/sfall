@@ -123,6 +123,7 @@ void ClearLoopFlag(LoopFlag flag) {
 }
 
 static void __stdcall GameModeChange(DWORD state) { // OnGameModeChange
+	Worldmap::OnGameModeChange();
 	HookCommon::GameModeChangeHook(state);
 }
 
