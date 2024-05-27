@@ -93,8 +93,6 @@ static long __fastcall IntfaceWinCreate(long height, long yPos, long xPos, long 
 	xPosition = xPos;
 	yPosition = yPos;
 
-	flags |= fo::WinFlags::DontMoveTop;
-
 	if (IFaceBar::IFACE_BAR_MODE == 0 && IFaceBar::IFACE_BAR_SIDE_ART && Setting::ScreenWidth() > IFaceBar::IFACE_BAR_WIDTH) {
 		long leftID = fo::func::win_add(0, yPos, xPos, height, 0, flags);
 		long rightID = fo::func::win_add(xPos + width, yPos, Setting::ScreenWidth() - (xPos + width), height, 0, flags);
