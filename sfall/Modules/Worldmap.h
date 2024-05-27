@@ -35,7 +35,7 @@ public:
 	static bool LoadData(HANDLE);
 
 	static void SetCarInterfaceArt(DWORD artIndex);
-	static void SetRestHealTime(DWORD minutes);
+	static void SetRestHealTime(long minutes);
 	static void SetWorldMapHealTime(long minutes);
 	static void SetRestMode(DWORD mode);
 	static void SetRestMapLevel(int mapId, long elev, bool canRest);

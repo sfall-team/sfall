@@ -464,7 +464,7 @@ static void WorldmapFpsPatch() {
 // So we hijack it and return number bigger than 1000 to force the event, or 0 to skip it.
 static DWORD __fastcall wmWorldMap_HealingTimeElapsed(DWORD elapsedTocks) {
 	if (worldMapHealingInterval == 0) return elapsedTocks;
-	if (worldMapHealingInterval > 0 && ((long)(fo::var::fallout_game_time - worldMapLastHealTime) > worldMapHealingInterval)) {
+	if (worldMapHealingInterval > 0 && (fo::var::fallout_game_time - worldMapLastHealTime > (DWORD)worldMapHealingInterval)) {
 		worldMapLastHealTime = fo::var::fallout_game_time;
 		return 10000; // force healing
 	}
@@ -475,9 +475,9 @@ static void __declspec(naked) wmWorldMap_elapsed_tocks_hook() {
 	__asm {
 		push ecx;
 		call fo::funcoffs::elapsed_tocks_;
-		mov ecx, eax;
+		mov  ecx, eax;
 		call wmWorldMap_HealingTimeElapsed;
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -617,7 +617,7 @@ void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
 	SafeWrite32(0x4C2D9B, artIndex);
 }
 
-void Worldmap::SetRestHealTime(DWORD minutes) {
+void Worldmap::SetRestHealTime(long minutes) {
 	if (minutes > 0) {
 		SafeWrite32(0x499FDE, minutes);
 		restTime = (minutes != 180);
@@ -625,9 +625,9 @@ void Worldmap::SetRestHealTime(DWORD minutes) {
 }
 
 void Worldmap::SetWorldMapHealTime(long minutes) {
-	worldMapHealingInterval = minutes >= 0
-		? minutes * 60 * 10
-		: -1;
+	worldMapHealingInterval = (minutes >= 0)
+	                        ? minutes * 60 * 10
+	                        : -1;
 	worldMapLastHealTime = fo::var::fallout_game_time;
 }
 
