@@ -386,7 +386,7 @@ static void WorldmapViewportPatch() {
 	MakeCall(0x4C5325, wmRefreshTabs_hook);
 
 	HookCall(0x4C4BFF, wmTownMapRefresh_hook);
-	if (worldmapInterface == 1) {
+	if (worldmapInterface != 2) {
 		HookCall(0x4C4CD5, wmTownMapRefresh_hook_textpos);
 		HookCall(0x4C4B8F, wmTownMapInit_hook);
 	}
@@ -981,6 +981,9 @@ static void InterfaceWindowPatch() {
 	SafeWrite8(0x4B801B, (*(BYTE*)0x4B801B) ^ fo::WinFlags::OwnerFlag); // createWindow_
 	// Remove OwnerFlag and Transparent flags
 	SafeWrite8(0x42F869, (*(BYTE*)0x42F869) ^ (fo::WinFlags::Transparent | fo::WinFlags::OwnerFlag)); // addWindow_
+
+	// Set DontMoveTop flag
+	SafeWrite8(0x45D89C, (*(BYTE*)0x45D89C) | fo::WinFlags::DontMoveTop); // intface_init_ (for HRP)
 
 	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
 	HookCall(0x47093C, display_body_hook);
