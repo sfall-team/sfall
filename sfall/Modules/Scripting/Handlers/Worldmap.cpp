@@ -202,6 +202,10 @@ void mf_set_rest_heal_time(OpcodeContext& ctx) {
 	Worldmap::SetRestHealTime(ctx.arg(0).rawValue());
 }
 
+void mf_set_worldmap_heal_time(OpcodeContext& ctx) {
+	Worldmap::SetWorldMapHealTime(ctx.arg(0).rawValue());
+}
+
 void mf_set_rest_mode(OpcodeContext& ctx) {
 	Worldmap::SetRestMode(ctx.arg(0).rawValue());
 }
