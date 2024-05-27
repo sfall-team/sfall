@@ -66,7 +66,7 @@ int     arg2 - attack type (see ATKTYPE_* constants)
 int     arg3 - original result of engine function: 1 - can use, 0 - cannot use
 
 int     ret0 - overrides the result of engine function. Any non-zero value allows using the weapon
-</code></pre></div></div> <h2 id="cartravel"> <a href="#cartravel" class="anchor-heading" aria-labelledby="cartravel"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> CarTravel </h2> <p><code class="language-plaintext highlighter-rouge">HOOK_CARTRAVEL</code> (hs_cartravel.int)</p> <p>Runs continuously during worldmap travel on car.</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>int     arg0 - vanilla car speed (between 3 and 8 "steps")
+</code></pre></div></div> <h2 id="cartravel"> <a href="#cartravel" class="anchor-heading" aria-labelledby="cartravel"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> CarTravel </h2> <p><code class="language-plaintext highlighter-rouge">HOOK_CARTRAVEL</code> (hs_cartravel.int)</p> <p>Runs continuously during world map travel by car.</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>int     arg0 - vanilla car speed (between 3 and 8 "steps")
 int     arg1 - vanilla fuel consumption (100 and below)
 
 int     ret0 - car speed override (pass -1 if you just want to override fuel consumption)
