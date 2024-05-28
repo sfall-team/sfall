@@ -2038,7 +2038,7 @@ noRange:
 static void __declspec(naked) process_rads_hack() {
 	static const DWORD process_rads_Ret = 0x42D708;
 	__asm {
-		test ebp, ebp;
+		test ebp, ebp; // modifier: -1 - recovery, 1 - downgrade level
 		jl   fix;
 		test byte ptr [ecx + damageFlags], DAM_DEAD;
 		jnz  fix;
@@ -3925,10 +3925,10 @@ void BugFixes::init() {
 	// Display a pop-up message box about death from radiation
 	HookCall(0x42D733, process_rads_hook_msg);
 
-	//int drugUsePerfFix = IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	//int drugUsePerfFix = IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 1);
 	//if (drugUsePerfFix > 0) {
 	//	dlogr("Applying AI drug use preference fix.", DL_FIX);
-	//	if (drugUsePerfFix == 1) {
+	//	if (drugUsePerfFix != 2) {
 	//		// Fix for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
 	//		MakeCall(0x42869D, ai_check_drugs_hack_break);
 	//		MakeCall(0x4286AB, ai_check_drugs_hack_check, 1);

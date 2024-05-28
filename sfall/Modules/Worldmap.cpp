@@ -57,7 +57,7 @@ static DWORD worldMapTicks;
 
 static DWORD WorldMapEncounterRate;
 
-static const long WorldMapHealingDefaultInterval = 0;
+static const long WorldMapHealingDefaultInterval = 180 * 60 * 10; // 3 hrs
 // Healing interval in game time
 static long worldMapHealingInterval = WorldMapHealingDefaultInterval;
 static DWORD worldMapLastHealTime;
