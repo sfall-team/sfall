@@ -109,7 +109,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 						if (counter <= 2) break; // there is a match
 
 						// [FIX] for AI not taking chem_primary_desire in AI.txt as a preference list when using drugs in the inventory
-						if (drugUsePerfFixMode == 1) {
+						if (drugUsePerfFixMode != 2) {
 							counter = 0;
 							item = fo::func::inven_find_type(source, fo::ItemType::item_type_drug, &slot);
 							if (!item) {
@@ -202,7 +202,7 @@ void CombatAI::init() {
 	sf::SafeWrite8(0x429BE9, sf::CodeType::JumpNZ);    // jz > jnz
 	sf::SafeWrite8(0x429BF1, sf::CodeType::JumpShort); // jnz > jmp
 
-	drugUsePerfFixMode = sf::IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 0);
+	drugUsePerfFixMode = sf::IniReader::GetConfigInt("Misc", "AIDrugUsePerfFix", 1);
 	if (drugUsePerfFixMode > 0) sf::dlogr("Applying AI drug use preference fix.", DL_FIX);
 }
 
