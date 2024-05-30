@@ -95,6 +95,8 @@
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_EncounterMapID             0x672E4C
+#define FO_VAR_EncounterTableNum          0x672E50
+#define FO_VAR_EncounterNum               0x672E54
 #define FO_VAR_endgame_subtitle_done      0x570BD0
 #define FO_VAR_endgame_subtitle_characters 0x51866C
 #define FO_VAR_endgame_voiceover_loaded   0x570AB8
