@@ -435,7 +435,7 @@
   },"62": {
     "doc": "Hook types",
     "title": "Encounter",
-    "content": "HOOK_ENCOUNTER (hs_encounter.int) . Runs whenever a random encounter occurs (except the Horrigan meeting and scripted encounters), or when the player enters a local map from the world map. You can override the map for loading or the encounter. int arg0 - event type: 0 - when a random encounter occurs, 1 - when the player enters from the world map int arg1 - the map ID that the encounter will load (see MAPS.h or Maps.txt) int arg2 - 1 when the encounter occurs is a special encounter, 0 otherwise int ret0 - overrides the map ID, or pass -1 for event type 0 to cancel the encounter and continue traveling int ret1 - pass 1 to cancel the encounter and load the specified map from the ret0 (only for event type 0) . ",
+    "content": "HOOK_ENCOUNTER (hs_encounter.int) . Runs whenever a random encounter occurs (except the Horrigan meeting and scripted encounters), or when the player enters a local map from the world map. You can override the map for loading or the encounter. int arg0 - event type: 0 - when a random encounter occurs, 1 - when the player enters from the world map int arg1 - the map ID that the encounter will load (see MAPS.h or Maps.txt) int arg2 - 1 when the encounter occurs is a special encounter, 0 otherwise int arg3 - encounter table index or -1 if not an encounter int arg4 - encounter index in the table, or -1 if not an encounter int ret0 - overrides the map ID, or pass -1 for event type 0 to cancel the encounter and continue traveling int ret1 - pass 1 to cancel the encounter and load the specified map from the ret0 (only for event type 0) . ",
     "url": "/sfall/hook-types/#encounter",
     
     "relUrl": "/hook-types/#encounter"
