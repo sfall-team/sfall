@@ -592,11 +592,13 @@ end:
 // Hook does not work for scripted encounters and meeting Horrigan
 static long __fastcall EncounterHook_Script(long encounterMapID, long eventType, long encType) {
 	BeginHook();
-	argCount = 3;
+	argCount = 5;
 
 	args[0] = eventType; // 1 - enter local map from the world map
 	args[1] = encounterMapID;
 	args[2] = (encType == 3); // 1 - special random encounter
+	args[3] = fo::var::getInt(FO_VAR_EncounterTableNum);
+	args[4] = fo::var::getInt(FO_VAR_EncounterNum);
 
 	RunHookScript(HOOK_ENCOUNTER);
 
