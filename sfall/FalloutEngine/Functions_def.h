@@ -44,7 +44,7 @@ WRAP_WATCOM_FFUNC3(long, item_w_mp_cost, fo::GameObject*, source, long, hitMode,
 // Calculates path and returns it's length
 WRAP_WATCOM_FFUNC6(long, make_path_func, fo::GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, checkTileTo, void*, blockingFunc)
 WRAP_WATCOM_FFUNC7(long, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, arrayPtr, DWORD*, outObject, long, flags, void*, blockingFunc)
-WRAP_WATCOM_FFUNC3(long, message_find, DWORD*, msgFile, long, msgNumber, DWORD*, outBuf)
+WRAP_WATCOM_FFUNC3(long, message_find, fo::MessageList*, msgFile, long, msgNumber, DWORD*, outBuf)
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC4(long, mouse_in, long, x, long, y, long, x_offs, long, y_offs)
 WRAP_WATCOM_FFUNC3(fo::GameObject*, obj_blocking_at, fo::GameObject*, object, long, tile, long, elevation)
