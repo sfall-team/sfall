@@ -42,7 +42,6 @@ public:
 	static void OrderAttackPatch();
 };
 
-extern bool npcAutoLevelEnabled;
 extern bool npcEngineLevelUp;
 
 }

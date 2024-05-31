@@ -34,7 +34,6 @@
 namespace sfall
 {
 
-bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
 static bool isControllingNPC = false;
@@ -837,11 +836,12 @@ void PartyControl::OrderAttackPatch() {
 	orderAttackPatch = true;
 }
 
-static void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = IniReader::GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
-	if (npcAutoLevelEnabled) {
-		dlogr("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite8(0x495CFB, CodeType::JumpShort); // jmps 0x495D28 (skip random check)
+static void PartyMemberNoEarlyLevelUpPatch() {
+	if (IniReader::GetConfigInt("Misc", "PartyMemberNoEarlyLevelUp", 0) != 0) {
+		dlogr("Applying PartyMemberNoEarlyLevelUp patch.", DL_INIT);
+		// if (numLevels % level_up_every) != 0, skip random "early level up" roll and continue to the next party member instead
+		SafeWrite8(0x495CFD, CodeType::Jump); // JMP
+		SafeWrite32(0x495CFE, 0x14F); // jumps to 0x495E51
 	}
 }
 
@@ -864,7 +864,7 @@ void PartyControl::init() {
 		0x47136D  // right slot
 	});
 
-	NpcAutoLevelPatch();
+	PartyMemberNoEarlyLevelUpPatch();
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
