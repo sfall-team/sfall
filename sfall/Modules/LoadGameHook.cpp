@@ -569,6 +569,15 @@ static void __declspec(naked) HelpMenuHook() {
 	}
 }
 
+static void __declspec(naked) PauseWindowHook() {
+	__asm {
+		_InLoop(1, PAUSEWIN);
+		call fo::funcoffs::PauseWindow_;
+		_InLoop(0, PAUSEWIN);
+		retn;
+	}
+}
+
 static void __declspec(naked) CharacterHook() {
 	__asm {
 		push edx;
@@ -865,6 +874,8 @@ void LoadGameHook::init() {
 	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
 	HookCall(0x4457B1, gdialogUpdatePartyStatus_hook1); // set when a party member joins/leaves
 	HookCall(0x4457BC, gdialogUpdatePartyStatus_hook0); // unset
+
+	HookCall(0x443482, PauseWindowHook);
 }
 
 Delegate<>& LoadGameHook::OnBeforeGameInit() {

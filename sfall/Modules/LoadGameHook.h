@@ -101,6 +101,7 @@ enum LoopFlag : unsigned long {
 	HEROWIN     = 1 << 18,  // 0x40000 Hero Appearance mod
 	DIALOGVIEW  = 1 << 19,  // 0x80000
 	COUNTERWIN  = 1 << 20,  // 0x100000 Counter window for moving multiple items or setting a timer
+	PAUSEWIN    = 1 << 21,  // 0x200000 Ctrl+P pause window
 
 	SPECIAL     = 1UL << 31 // 0x80000000 Additional special flag for all modes
 };

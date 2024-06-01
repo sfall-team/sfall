@@ -23,6 +23,7 @@
 #define HEROWIN     (0x40000)
 #define DIALOGVIEW  (0x80000)
 #define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
+#define PAUSEWIN    (0x200000) // Ctrl+P pause window
 #define SPECIAL     (0x80000000)
 
 // Valid arguments to register_hook_proc
