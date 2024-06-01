@@ -29,7 +29,7 @@ namespace sfall
 namespace script
 {
 
-#define OP_MAX_ARGUMENTS	(8)
+#define OP_MAX_ARGUMENTS	(10)
 
 class OpcodeContext;
 
