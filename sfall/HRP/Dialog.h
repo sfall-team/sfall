@@ -15,6 +15,8 @@ public:
 
 	static bool DIALOG_SCRN_ART_FIX;
 	static bool DIALOG_SCRN_BACKGROUND;
+
+	static void SetDialogExpandedHeight(long height);
 };
 
 }

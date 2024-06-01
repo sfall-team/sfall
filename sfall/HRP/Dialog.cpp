@@ -30,19 +30,22 @@ bool Dialog::DIALOG_SCRN_BACKGROUND = false;
 
 static long xPosition;
 static long yPosition;
+static long dialogExpandedHeight = 0;
 
 static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long color, long flags) {
+	long fitRectW = fo::var::getInt(FO_VAR_buf_width_2);
+	long fitRectH = fo::var::getInt(FO_VAR_buf_length_2);
+
 	if (Dialog::DIALOG_SCRN_BACKGROUND) {
 		fo::func::win_hide(fo::var::getInt(FO_VAR_display_win));
 		IFaceBar::Hide();
-		yPos += 50;
+
+		fitRectH += fo::func::GNW_find(fo::var::interfaceWindow)->height;
 	}
 
-	long mapWinW = fo::var::getInt(FO_VAR_buf_width_2) / 2;
-	long mapWinH = fo::var::getInt(FO_VAR_buf_length_2) / 2;
-
-	xPos += mapWinW - (width / 2);  // xPos:0
-	yPos += mapWinH - (height / 2); // yPos:0 = 480 - art_frame_length
+	long expandedHeight = dialogExpandedHeight > 0 ? dialogExpandedHeight : height;
+	xPos += (fitRectW - width) / 2;  // xPos:0
+	yPos += (fitRectH - expandedHeight) / 2; // yPos:0 = 480 - art_frame_length
 	if (yPos < 0) yPos = 0;
 
 	yPosition = yPos;
@@ -272,6 +275,12 @@ void Dialog::init() {
 
 		sf::LoadGameHook::OnGameReset() += UnloadDialogArt;
 	}
+}
+
+void Dialog::SetDialogExpandedHeight(long height) {
+	assert(height >= 0);
+
+	dialogExpandedHeight = height;
 }
 
 }

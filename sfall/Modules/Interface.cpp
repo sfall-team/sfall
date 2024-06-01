@@ -27,6 +27,7 @@
 #include "LoadGameHook.h"
 #include "Worldmap.h"
 
+#include "..\HRP\Dialog.h"
 #include "..\HRP\InterfaceBar.h"
 #include "..\HRP\viewmap\EdgeClipping.h"
 
@@ -1291,7 +1292,12 @@ static void ExpandedBarterPatch() {
 	if (HRP::Setting::VersionIsValid) {
 		// HRP overrides window creation code setup_inventory, so need to write correct max Y value into HRP itself.
 		SafeWrite32(HRP::Setting::GetAddress(0x1001220C), 470 + extraBarterHeight);
+		// Vertical offset in DialogWinSetup() when main screen is disabled (DIALOG_SCRN_BACKGROUND = 1).
+		SafeWrite32(HRP::Setting::GetAddress(0x1001228F), dialogWindowHeight / 2);
+		// Window height for passing to AdjustWinPosToGame function that calculates x & y.
+		SafeWrite32(HRP::Setting::GetAddress(0x100122C3), dialogWindowHeight);
 	} else {
+		HRP::Dialog::SetDialogExpandedHeight(dialogWindowHeight);
 		SafeWrite32(0x46EDD4, 470 + extraBarterHeight); // Trade window max Y = Y pos + height = 290 + 180 = 470
 	}
 	SafeWriteBatch<DWORD>(dialogWindowHeight, { // Game dialog BG window height (for Y calculation only)
