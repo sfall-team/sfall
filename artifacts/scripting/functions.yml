@@ -1774,6 +1774,7 @@
     - name: get_window_under_mouse
       detail: int get_window_under_mouse()
       opcode: 0x821f
+      doc: "Returns internal ID of a top-most window under mouse cursor."
     - name: create_win
       detail: void create_win(string winName, int x, int y, int width, int height, int flags)
       doc: "`flags` argument is optional. Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window. `MoveOnTop` flag allows the created window to be placed on top of the game interface."
@@ -1788,6 +1789,7 @@
         - `attrType`: `0` - checks and returns a value of 1 if the specified interface window is created by the game (same as without the argument)
                       `1` - X position, `2` - Y position (relative to the top-left corner of the game screen)
                       `3` - interface width size, `4` - interface height size
+                      `5` - window ID (to compare with get_window_under_mouse)
                       `-1` - returns an associative array of keys (left, top, right, bottom) and values that define the position of the window rectangle
                       (use standard syntax to access array values, e.g. `winRect.top`, `winRect.bottom`)
         - returns -1 if the specified attribute cannot be obtained

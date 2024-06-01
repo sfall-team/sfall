@@ -320,6 +320,7 @@
 #define get_interface_y(winType)                                sfall_func2("get_window_attribute", winType, 2)
 #define get_interface_width(winType)                            sfall_func2("get_window_attribute", winType, 3)
 #define get_interface_height(winType)                           sfall_func2("get_window_attribute", winType, 4)
+#define get_interface_id(winType)                               sfall_func2("get_window_attribute", winType, 5)
 #define get_inven_ap_cost                                       sfall_func0("get_inven_ap_cost")
 #define get_map_enter_position                                  sfall_func0("get_map_enter_position")
 #define get_metarule_table                                      sfall_func0("get_metarule_table")
