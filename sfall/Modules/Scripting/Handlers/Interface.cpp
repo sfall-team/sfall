@@ -722,6 +722,11 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	int width  = (w >= 0) ? w : frm.width;
 	int height = (h >= 0) ? h : frm.height;
 
+	if (x + width > ifaceWin->width || y + height > ifaceWin->height) {
+		ctx.printOpcodeError("%s() - attempt to draw beyond window bounds (%d, %d)", ctx.getMetaruleName(), ifaceWin->width, ifaceWin->height);
+		return -1;
+	}
+
 	BYTE* surface = (ifaceWin->randY) ? WindowRender::GetOverlaySurface(ifaceWin) : ifaceWin->surface;
 
 	fo::func::trans_cscale(frm.pixelData, frm.width, frm.height, frm.width,
@@ -782,6 +787,9 @@ void mf_get_window_attribute(OpcodeContext& ctx) {
 		break;
 	case 4:
 		result = win->height;
+		break;
+	case 5:
+		result = win->wID;
 		break;
 	}
 	ctx.setReturn(result);
