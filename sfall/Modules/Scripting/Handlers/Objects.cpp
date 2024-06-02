@@ -54,10 +54,9 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 
 		SafeMemSet(0x495C77, CodeType::Nop, 6);   // Check that the player is high enough for the npc to consider this level
 		//SafeMemSet(0x495C8C, CodeType::Nop, 6); // Check that the npc isn't already at its maximum level
-		SafeMemSet(0x495CEC, CodeType::Nop, 6);   // Check that the npc hasn't already levelled up recently
-		if (!npcAutoLevelEnabled) {
-			SafeWrite8(0x495CFB, CodeType::JumpShort); // Disable random element
-		}
+		SafeMemSet(0x495CE3, CodeType::Nop, 5);   // Check if npc had "early" level up before the next scheduled one, resets the "early" flag
+		SafeMemSet(0x495CEC, CodeType::Nop, 6);   // Related to above
+		SafeWrite8(0x495CFB, CodeType::JumpShort); // Skip random roll for early level up
 		__asm mov dword ptr [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
 	} else {
 		if (!onceNpcLoop) {
@@ -78,16 +77,17 @@ void op_inc_npc_level(OpcodeContext& ctx) {
 	onceNpcLoop = false;
 
 	// restore code
+	SafeWrite32(0x495BF1 + 1, 0x031352); // restore debug_printf call
 	SafeWrite32(0x495C50, 0x01FB840F);
 	__int64 data = 0x01D48C0F;
 	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
 	//SafeWrite16(0x495C8C, 0x8D0F);
 	//SafeWrite32(0x495C8E, 0x000001BF);
-	data = 0x0130850F;
+	data = 0x0169E9;
+	SafeWriteBytes(0x495CE3, (BYTE*)&data, 5);
+	data = 0x015F850F;
 	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
-	if (!npcAutoLevelEnabled) {
-		SafeWrite8(0x495CFB, CodeType::JumpZ);
-	}
+	SafeWrite8(0x495CFB, CodeType::JumpZ);
 }
 
 void op_get_npc_level(OpcodeContext& ctx) {
