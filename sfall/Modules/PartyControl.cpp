@@ -837,11 +837,11 @@ void PartyControl::OrderAttackPatch() {
 }
 
 static void PartyMemberNoEarlyLevelUpPatch() {
-	if (IniReader::GetConfigInt("Misc", "PartyMemberNoEarlyLevelUp", 0) != 0) {
-		dlogr("Applying PartyMemberNoEarlyLevelUp patch.", DL_INIT);
+	if (IniReader::GetConfigInt("Misc", "PartyMemberNoEarlyLevelUp", 0)) {
+		dlogr("Applying no early level-up patch for party members.", DL_INIT);
 		// if (numLevels % level_up_every) != 0, skip random "early level up" roll and continue to the next party member instead
-		SafeWrite8(0x495CFD, CodeType::Jump); // JMP
-		SafeWrite32(0x495CFE, 0x14F); // jumps to 0x495E51
+		__int64 data = 0x014FE9; // jmp 0x495E51
+		SafeWriteBytes(0x495CFD, (BYTE*)&data, 5);
 	}
 }
 
