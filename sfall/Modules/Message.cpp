@@ -224,9 +224,11 @@ static void __declspec(naked) message_search__message_find_hook() {
 
 static void __declspec(naked) message_exit__mem_free_hook() {
 	__asm {
-		mov ecx, ebx; // message list
+		push eax;
+		mov  ecx, ebx; // message list
 		call MessageExitHook;
-		jmp fo::funcoffs::mem_free_;
+		pop  eax;
+		jmp  fo::funcoffs::mem_free_;
 	}
 }
 
