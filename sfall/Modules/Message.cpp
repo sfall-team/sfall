@@ -71,7 +71,7 @@ static long heroIsFemale = -1;
 
 // Searches the special character in the text and removes the text depending on the player's gender
 // example: <MaleText^FemaleText>
-static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFile) {
+static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, fo::MessageList* msgFile) {
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
 	if (heroIsFemale < 0) heroIsFemale = fo::util::HeroIsFemale();
 
@@ -118,7 +118,7 @@ static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFil
 	// set flag
 	unsigned long outValue;
 	fo::func::message_find(msgFile, msgData->number, &outValue);
-	((fo::MessageNode*)(msgFile[1] + (outValue * 16)))->flags |= MSG_GENDER_CHECK_FLG;
+	msgFile->nodes[outValue].flags |= MSG_GENDER_CHECK_FLG;
 
 	return 1;
 }
@@ -138,26 +138,94 @@ end:
 	}
 }
 
+struct MessageListInfo {
+	std::string FileName;
+	fo::MessageList* List;
+};
+
+std::unordered_map<fo::MessageList*, MessageListInfo> messageListMap;
+
+static bool messageLoadForceEnglish;
+
+static fo::DbFile* __fastcall MessageLoadHook(const char* fullPath, const char* mode, const char* msgFile, fo::MessageList* messageList) {
+	fo::DbFile* file = !messageLoadForceEnglish ? fo::func::db_fopen(fullPath, mode) : nullptr;
+	if (file == nullptr) {
+		messageLoadForceEnglish = false;
+		char buf[MAX_PATH];
+		sprintf(buf, "text\\english\\%s", msgFile);
+		return fo::func::db_fopen(buf, mode);
+	}
+
+	// Remember loaded message list name.
+	MessageListInfo listInfo = {msgFile, nullptr};
+	messageListMap.insert(std::make_pair(messageList, listInfo));
+	return file;
+}
+
+static long __fastcall MessageFindHook(fo::MessageList** list, long num, DWORD* outIndex) {
+	if (fo::func::message_find(*list, num, outIndex)) {
+		return true;
+	}
+	// If message not found in original list, try to find in fallback list.
+	std::unordered_map<fo::MessageList*, MessageListInfo>::iterator& listIt = messageListMap.find(*list);
+	if (listIt == messageListMap.end()) {
+		return false;
+	}
+	MessageListInfo& listInfo = listIt->second;
+	if (listInfo.List == nullptr) {
+		// Load fallback message list.
+		messageLoadForceEnglish = true;
+		listInfo.List = new fo::MessageList();
+		fo::func::message_load(listInfo.List, listInfo.FileName.c_str());
+		// TODO: some error message if fallback file wasn't loaded?
+	}
+	*list = listInfo.List;
+	return fo::func::message_find(*list, num, outIndex);
+}
+
+static void __fastcall MessageExitHook(fo::MessageList* list) {
+	// Delete fallback message file.
+	std::unordered_map<fo::MessageList*, MessageListInfo>::iterator& listIt = messageListMap.find(list);
+	if (listIt == messageListMap.end()) {
+		return;
+	}
+	MessageListInfo& listInfo = listIt->second;
+	if (listInfo.List != nullptr) {
+		fo::func::message_exit(listInfo.List);
+		delete listInfo.List;
+	}
+	messageListMap.erase(listIt);
+}
+
 // Loads the msg file from the 'english' folder if it does not exist in the current language directory
-static void __declspec(naked) message_load_hook() {
+static void __declspec(naked) message_load__db_fopen_hook() {
 	__asm {
-		mov  ebx, edx; // keep mode
-		mov  ecx, eax; // keep buf
-		call fo::funcoffs::db_fopen_;
-		test eax, eax;
-		jz   noFile;
+		push esi;      // message list
+		push ebp;      // relative path
+		mov  ecx, eax; // full path
+		call MessageLoadHook; // edx - mode
 		retn;
-noFile:
-		push ebp;      // file
-		push 0x500208; // "english"
-		push 0x50B7D0; // "text"
-		push 0x50B7D8; // "%s\%s\%s"
-		push ecx;      // buf
-		call fo::funcoffs::sprintf_;
-		add  esp, 20;
-		mov  edx, ebx;
-		mov  eax, ecx;
-		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
+static void __declspec(naked) message_search__message_find_hook() {
+	__asm {
+		push ecx; // save msg list
+		push ebx;            // out index
+		lea  ecx, [esp + 4]; // msg list **
+		call MessageFindHook; // edx - msg num
+		pop  ecx; // restore, possibly modified list ptr
+		retn;
+	}
+}
+
+static void __declspec(naked) message_exit__mem_free_hook() {
+	__asm {
+		push eax; // save msgList->nodes
+		mov  ecx, ebx; // message list
+		call MessageExitHook;
+		pop  eax; // restore
+		jmp  fo::funcoffs::mem_free_;
 	}
 }
 
@@ -235,7 +303,11 @@ void FallbackEnglishLoadMsgFiles() {
 	const char* lang;
 	if (fo::func::get_game_config_string(&lang, "system", "language")) {
 		strncpy_s(gameLanguage, lang, _TRUNCATE);
-		if (_stricmp(lang, "english") != 0) HookCall(0x484B18, message_load_hook);
+		if (_stricmp(lang, "english") != 0) {
+			HookCall(0x484B18, message_load__db_fopen_hook);
+			HookCall(0x484C4B, message_search__message_find_hook);
+			HookCall(0x4849B9, message_exit__mem_free_hook);
+		}
 	}
 }
 

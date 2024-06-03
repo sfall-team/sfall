@@ -319,7 +319,7 @@ void op_message_str_game(OpcodeContext& ctx) {
 		} else if (fileId >= 0x2000) { // Extra game message files.
 			ExtraGameMessageListsMap::iterator it = Message::gExtraGameMsgLists.find(fileId);
 			if (it != Message::gExtraGameMsgLists.end()) {
-				msg = fo::util::GetMsg(it->second, msgId, 2);
+				msg = fo::util::GetMessageStr(it->second, msgId);
 			}
 		}
 	}

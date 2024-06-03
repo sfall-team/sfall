@@ -691,9 +691,10 @@ void PartyControl::OrderAttackPatch() {
 	orderAttackPatch = true;
 }
 
-static void PartyMemberNoEarlyLevelUpPatch() {
-	if (IniReader::GetConfigInt("Misc", "PartyMemberNoEarlyLevelUp", 0)) {
-		dlogr("Applying no early level-up patch for party members.", DL_INIT);
+static void PartyMemberNonRandomLevelUpPatch() {
+	if (IniReader::GetConfigInt("Misc", "PartyMemberNonRandomLevelUp", 0)) {
+		dlogr("Applying non-random level-up patch for party members.", DL_INIT);
+		// if (numLevels % level_up_every) != 0, skip random "early level up" roll and continue to the next party member instead
 		__int64 data = 0x014FE9; // jmp 0x495E51
 		SafeWriteBytes(0x495CFD, (BYTE*)&data, 5);
 	}
@@ -724,7 +725,7 @@ void PartyControl::init() {
 	const DWORD switchHandAddr[] = {0x4712E3, 0x47136D}; // left slot, right slot
 	HookCalls(inven_pickup_hook, switchHandAddr); // will be overwritten if HOOK_INVENTORYMOVE is injected
 
-	PartyMemberNoEarlyLevelUpPatch();
+	PartyMemberNonRandomLevelUpPatch();
 
 	// Display party member's current level & AC & addict flag
 	if (IniReader::GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
