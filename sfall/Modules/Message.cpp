@@ -183,7 +183,6 @@ static long __fastcall MessageFindHook(fo::MessageList** list, long num, DWORD* 
 	return fo::func::message_find(*list, num, outIndex);
 }
 
-
 static void __fastcall MessageExitHook(fo::MessageList* list) {
 	// Delete fallback message file.
 	auto& listIt = messageListMap.find(list);
@@ -203,9 +202,8 @@ static void __declspec(naked) message_load__db_fopen_hook() {
 	__asm {
 		push esi;      // message list
 		push ebp;      // relative path
-				       // edx - mode
 		mov  ecx, eax; // full path
-		call MessageLoadHook;
+		call MessageLoadHook; // edx - mode
 		retn;
 	}
 }
@@ -213,10 +211,9 @@ static void __declspec(naked) message_load__db_fopen_hook() {
 static void __declspec(naked) message_search__message_find_hook() {
 	__asm {
 		push ecx; // save msg list
-		push ebx;      // out index
-				       // edx - msg num
+		push ebx;            // out index
 		lea  ecx, [esp + 4]; // msg list **
-		call MessageFindHook;
+		call MessageFindHook; // edx - msg num
 		pop  ecx; // restore, possibly modified list ptr
 		retn;
 	}
@@ -224,10 +221,10 @@ static void __declspec(naked) message_search__message_find_hook() {
 
 static void __declspec(naked) message_exit__mem_free_hook() {
 	__asm {
-		push eax;
+		push eax; // save msgList->nodes
 		mov  ecx, ebx; // message list
 		call MessageExitHook;
-		pop  eax;
+		pop  eax; // restore
 		jmp  fo::funcoffs::mem_free_;
 	}
 }

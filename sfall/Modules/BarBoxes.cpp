@@ -263,7 +263,7 @@ static void __declspec(naked) refresh_box_bar_win_hack() {
 
 void BarBoxes::init() {
 	initCount += IniReader::GetConfigInt("Misc", "BoxBarCount", 5);
-	if (initCount < 5)  initCount = 5; // exclude the influence of negative values from the config
+	if (initCount < 6)   initCount = 6; // minimum of one extra box
 	if (initCount > 100) initCount = 100;
 
 	actualBoxCount = initCount - 5;
