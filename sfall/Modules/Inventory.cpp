@@ -700,6 +700,7 @@ static void __declspec(naked) move_inventory_hack() {
 		jmp  MoveInventory_BackNormal;
 
 skip_drag:
+		mov  dword ptr ds:[FO_VAR_im_value], -1; // prevents item "look at"
 		mov  eax, 0x509EA0; // "iputdown"
 		call fo::funcoffs::gsound_play_sfx_file_;
 		mov  eax, dword ptr[esp + 60]; // isPlanting flag
@@ -728,6 +729,7 @@ static void __declspec(naked) barter_move_inventory_hack_common() {
 		jmp  BarterMoveInventory_BackNormal;
 
 skip_drag:
+		mov  dword ptr ds:[FO_VAR_im_value], -1; // prevents item "look at"
 		mov  eax, 0x509EA0; // "iputdown"
 		call fo::funcoffs::gsound_play_sfx_file_;
 		mov  eax, dword ptr[esp + 68]; // fromDude flag

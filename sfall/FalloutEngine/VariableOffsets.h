@@ -166,6 +166,7 @@
 #define FO_VAR_i_worn                     0x59E954
 #define FO_VAR_idle_func                  0x51E234
 #define FO_VAR_In_WorldMap                0x672E1C
+#define FO_VAR_im_value                   0x59E93C
 #define FO_VAR_info_line                  0x5707D0
 #define FO_VAR_interfaceBuffer            0x59D3F4
 #define FO_VAR_interfaceWindow            0x519024
@@ -187,6 +188,7 @@
 #define FO_VAR_last_buttons               0x51E2AC
 #define FO_VAR_last_button_winID          0x51E404
 #define FO_VAR_last_level                 0x5707B4
+#define FO_VAR_last_target                0x519110
 #define FO_VAR_lastMovieH                 0x638E64
 #define FO_VAR_lastMovieW                 0x638E68
 #define FO_VAR_lastMovieX                 0x638E6C
