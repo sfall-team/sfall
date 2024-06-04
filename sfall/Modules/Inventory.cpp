@@ -685,7 +685,7 @@ static void __declspec(naked) do_move_timer_hack() {
 }
 
 static void _fastcall DragSkipPrepare() {
-	fo::var::setInt(FO_VAR_im_value) = -1;
+	fo::var::setInt(FO_VAR_im_value) = -1; // this prevents triggering "look at" at current item after skip
 	fo::func::gsound_play_sfx_file("iputdown");
 }
 
@@ -719,7 +719,7 @@ static DWORD BarterMoveInventory_BackNormal;
 static DWORD BarterMoveInventory_SkipPlacing;
 static DWORD BarterMoveInventory_SkipTaking;
 
-static void __declspec(naked) barter_move_inventory_hack_common() {
+static void __declspec(naked) barter_move_inventory_skip_drag_hack_common() {
 	__asm {
 		pushadc;
 	}
@@ -742,21 +742,21 @@ static void __declspec(naked) barter_move_inventory_hack_common() {
 	}
 }
 
-static void __declspec(naked) barter_move_inventory_hack() {
+static void __declspec(naked) barter_move_inventory_skip_drag_hack() {
 	BarterMoveInventory_BackNormal = 0x474DC1; // sub eax, ebx
 	BarterMoveInventory_SkipPlacing = 0x474F83; // cmp esi, 1
 	BarterMoveInventory_SkipTaking = 0x475002; // cmp esi, 1
 	__asm {
-		jmp barter_move_inventory_hack_common;
+		jmp barter_move_inventory_skip_drag_hack_common;
 	}
 }
 
-static void __declspec(naked) barter_move_from_table_inventory_hack() {
+static void __declspec(naked) barter_move_from_table_inventory_skip_drag_hack() {
 	BarterMoveInventory_BackNormal = 0x475085; // sub eax, ebx
 	BarterMoveInventory_SkipPlacing = 0x47524E; // cmp esi, 1
 	BarterMoveInventory_SkipTaking = 0x4752CB; // cmp esi, 1
 	__asm {
-		jmp barter_move_inventory_hack_common;
+		jmp barter_move_inventory_skip_drag_hack_common;
 	}
 }
 
@@ -927,7 +927,7 @@ void Inventory::init() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 
-	itemFastMoveKey = IniReader::GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
+	itemFastMoveKey = IniReader::GetConfigInt("Input", "ItemFastMoveKey", 0);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
 		// Do not call the 'Move Items' window when taking items from containers or corpses
@@ -940,11 +940,11 @@ void Inventory::init() {
 		MakeCall(0x4768A3, do_move_timer_hack);
 	}
 
-	itemSkipDragKey = IniReader::GetConfigInt("Input", "ItemMoveSkipDragKey", DIK_LCONTROL);
+	itemSkipDragKey = IniReader::GetConfigInt("Input", "ItemMoveSkipDragKey", 0);
 	if (itemSkipDragKey > 0) {
 		MakeJump(0x4747DD, move_inventory_hack);
-		MakeJump(0x474DBA, barter_move_inventory_hack);
-		MakeJump(0x47507E, barter_move_from_table_inventory_hack);
+		MakeJump(0x474DBA, barter_move_inventory_skip_drag_hack);
+		MakeJump(0x47507E, barter_move_from_table_inventory_skip_drag_hack);
 		MakeJump(0x470EB7, inven_pickup_skip_drag_hack);
 	}
 
