@@ -759,6 +759,71 @@ static void __declspec(naked) barter_move_from_table_inventory_hack() {
 	}
 }
 
+static long _fastcall InvenPickupGetSkipSlot(fo::GameObject* item, long itemIndex) {
+	if (!KeyDown(itemSkipDragKey)) return 0; // don't skip
+	long result;
+	if (itemIndex < 0) {
+		// From slots to inventory.
+		result = 1;
+	} else {
+		// From inventory to slots
+		if (fo::func::item_get_type(item) == fo::item_type_armor)
+			result = 4; // armor slot, potentially replacing
+		else if (fo::var::inven_dude == fo::var::obj_dude && fo::func::intface_is_item_right_hand())
+			result = 3; // right hand
+		else
+			result = 2; // left hand;
+	}
+	fo::var::setInt(FO_VAR_im_value) = -1;
+	fo::func::gsound_play_sfx_file("iputdown");
+	return result;
+}
+
+static void __declspec(naked) inven_pickup_skip_drag_hack() {
+	static const DWORD InvenPickup_Back1 = 0x470EBC; // mov eax, [esp+64]
+	static const DWORD InvenPickup_Back2 = 0x470EEA; // mov eax, ds:_i_wid
+	
+	static const DWORD InvenPickup_SkipInven = 0x4711E8;  // mov eax, [esp+20]
+	static const DWORD InvenPickup_SkipHandL = 0x47127D;  // mov edx, ds:_i_lhand
+	static const DWORD InvenPickup_SkipHandR = 0x47130A;  // mov ebx, ds:_i_rhand
+	static const DWORD InvenPickup_SkipArmor = 0x4713A9;  // mov ecx, ds:_i_worn
+	__asm {
+		pushadc;
+		mov ecx, [esp + 36]; // item
+		mov edx, esi; // item index
+		call InvenPickupGetSkipSlot;
+		test eax, eax;
+		jnz  skip_drag;
+		popadc;
+		cmp  esi, 0xFFFFFFFF; // restore stomped code
+		jz   back_2;
+		jmp  InvenPickup_Back1;
+	back_2:
+		jmp  InvenPickup_Back2;
+
+	skip_drag:
+		pop  ecx;
+		pop  edx;
+		add  esp, 4;
+		cmp  eax, 1;
+		jnz  not_inven;
+		jmp  InvenPickup_SkipInven;
+
+	not_inven:
+		cmp  eax, 2;
+		jnz  not_left_hand;
+		jmp  InvenPickup_SkipHandL;
+
+	not_left_hand:
+		cmp  eax, 3;
+		jnz  not_right_hand;
+		jmp  InvenPickup_SkipHandR;
+
+	not_right_hand:
+		jmp  InvenPickup_SkipArmor;
+	}
+}
+
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 
@@ -897,6 +962,7 @@ void Inventory::init() {
 		MakeJump(0x4747DD, move_inventory_hack);
 		MakeJump(0x474DBA, barter_move_inventory_hack);
 		MakeJump(0x47507E, barter_move_from_table_inventory_hack);
+		MakeJump(0x470EB7, inven_pickup_skip_drag_hack);
 	}
 
 	// Move items from bag/backpack to the main inventory list by dragging them on the character portrait (similar to Fallout 1 behavior)
