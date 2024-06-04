@@ -684,6 +684,11 @@ static void __declspec(naked) do_move_timer_hack() {
 	}
 }
 
+static void _fastcall DragSkipPrepare() {
+	fo::var::setInt(FO_VAR_im_value) = -1;
+	fo::func::gsound_play_sfx_file("iputdown");
+}
+
 static void __declspec(naked) move_inventory_hack() {
 	static const DWORD MoveInventory_BackNormal = 0x4747E2; // jz loc_47488B
 	static const DWORD MoveInventory_SkipPlanting = 0x474966; // cmp esi, 1
@@ -699,15 +704,13 @@ static void __declspec(naked) move_inventory_hack() {
 		cmp  dword ptr[esp + 64], 0; // restore stomped code
 		jmp  MoveInventory_BackNormal;
 
-skip_drag:
-		mov  dword ptr ds:[FO_VAR_im_value], -1; // prevents item "look at"
-		mov  eax, 0x509EA0; // "iputdown"
-		call fo::funcoffs::gsound_play_sfx_file_;
+	skip_drag:
+		call DragSkipPrepare;
 		mov  eax, dword ptr[esp + 60]; // isPlanting flag
 		test eax, eax;
 		jz   jmp_taking;
 		jmp  MoveInventory_SkipPlanting;
-jmp_taking:
+	jmp_taking:
 		jmp  MoveInventory_SkipTaking;
 	}
 }
@@ -728,15 +731,13 @@ static void __declspec(naked) barter_move_inventory_hack_common() {
 		lea  eax, ds:0[ebx * 4]; // restore stomped code
 		jmp  BarterMoveInventory_BackNormal;
 
-skip_drag:
-		mov  dword ptr ds:[FO_VAR_im_value], -1; // prevents item "look at"
-		mov  eax, 0x509EA0; // "iputdown"
-		call fo::funcoffs::gsound_play_sfx_file_;
+	skip_drag:
+		call DragSkipPrepare;
 		mov  eax, dword ptr[esp + 68]; // fromDude flag
 		test eax, eax;
 		jz   jmp_taking;
 		jmp  BarterMoveInventory_SkipPlacing;
-jmp_taking:
+	jmp_taking:
 		jmp  BarterMoveInventory_SkipTaking;
 	}
 }
@@ -759,39 +760,36 @@ static void __declspec(naked) barter_move_from_table_inventory_hack() {
 	}
 }
 
-static long _fastcall InvenPickupGetSkipSlot(fo::GameObject* item, long itemIndex) {
+static DWORD _fastcall InvenPickupGetSkipAddr(fo::GameObject* item, long itemIndex) {
+	static const DWORD InvenPickup_SkipInven = 0x4711E8;  // mov eax, [esp+20]
+	static const DWORD InvenPickup_SkipHandL = 0x47127D;  // mov edx, ds:_i_lhand
+	static const DWORD InvenPickup_SkipHandR = 0x47130A;  // mov ebx, ds:_i_rhand
+	static const DWORD InvenPickup_SkipArmor = 0x4713A9;  // mov ecx, ds:_i_worn
+
 	if (!KeyDown(itemSkipDragKey)) return 0; // don't skip
-	long result;
+	
+	DragSkipPrepare();
 	if (itemIndex < 0) {
 		// From slots to inventory.
-		result = 1;
-	} else {
-		// From inventory to slots
-		if (fo::func::item_get_type(item) == fo::item_type_armor)
-			result = 4; // armor slot, potentially replacing
-		else if (fo::var::inven_dude == fo::var::obj_dude && fo::func::intface_is_item_right_hand())
-			result = 3; // right hand
-		else
-			result = 2; // left hand;
+		return InvenPickup_SkipInven;
 	}
-	fo::var::setInt(FO_VAR_im_value) = -1;
-	fo::func::gsound_play_sfx_file("iputdown");
-	return result;
+	// From inventory to slots
+	if (fo::func::item_get_type(item) == fo::item_type_armor)
+		return InvenPickup_SkipArmor; // armor slot, potentially replacing
+	else if (fo::var::inven_dude == fo::var::obj_dude && fo::func::intface_is_item_right_hand())
+		return InvenPickup_SkipHandR; // right hand
+
+	return InvenPickup_SkipHandL; // left hand;
 }
 
 static void __declspec(naked) inven_pickup_skip_drag_hack() {
 	static const DWORD InvenPickup_Back1 = 0x470EBC; // mov eax, [esp+64]
 	static const DWORD InvenPickup_Back2 = 0x470EEA; // mov eax, ds:_i_wid
-	
-	static const DWORD InvenPickup_SkipInven = 0x4711E8;  // mov eax, [esp+20]
-	static const DWORD InvenPickup_SkipHandL = 0x47127D;  // mov edx, ds:_i_lhand
-	static const DWORD InvenPickup_SkipHandR = 0x47130A;  // mov ebx, ds:_i_rhand
-	static const DWORD InvenPickup_SkipArmor = 0x4713A9;  // mov ecx, ds:_i_worn
 	__asm {
 		pushadc;
 		mov ecx, [esp + 36]; // item
 		mov edx, esi; // item index
-		call InvenPickupGetSkipSlot;
+		call InvenPickupGetSkipAddr;
 		test eax, eax;
 		jnz  skip_drag;
 		popadc;
@@ -805,22 +803,7 @@ static void __declspec(naked) inven_pickup_skip_drag_hack() {
 		pop  ecx;
 		pop  edx;
 		add  esp, 4;
-		cmp  eax, 1;
-		jnz  not_inven;
-		jmp  InvenPickup_SkipInven;
-
-	not_inven:
-		cmp  eax, 2;
-		jnz  not_left_hand;
-		jmp  InvenPickup_SkipHandL;
-
-	not_left_hand:
-		cmp  eax, 3;
-		jnz  not_right_hand;
-		jmp  InvenPickup_SkipHandR;
-
-	not_right_hand:
-		jmp  InvenPickup_SkipArmor;
+		jmp  eax;
 	}
 }
 
