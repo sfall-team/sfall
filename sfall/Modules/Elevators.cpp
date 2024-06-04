@@ -33,7 +33,7 @@ static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; //
 static fo::ElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
 static DWORD elevatorsBtnCount[elevatorCount] = {0};                          // _btncount
 
-static void __declspec(naked) GetMenuHook() {
+static __declspec(naked) void GetMenuHook() {
 	__asm {
 		lea  edx, elevatorType;
 		shl  eax, 2;
@@ -42,7 +42,7 @@ static void __declspec(naked) GetMenuHook() {
 	}
 }
 
-static void __declspec(naked) CheckHotKeysHook() {
+static __declspec(naked) void CheckHotKeysHook() {
 	__asm {
 		lea  ebx, elevatorType;
 		shl  eax, 2;
@@ -58,7 +58,7 @@ skip:
 }
 
 /*
-static void __declspec(naked) UnknownHook2() {
+static __declspec(naked) void UnknownHook2() {
 	__asm {
 		lea  edx, elevatorType;
 		shl  eax, 2;
@@ -68,7 +68,7 @@ static void __declspec(naked) UnknownHook2() {
 }
 */
 
-static void __declspec(naked) GetNumButtonsHook1() {
+static __declspec(naked) void GetNumButtonsHook1() {
 	__asm {
 		lea  esi, elevatorType;
 		mov  eax, [esi + edi * 4];
@@ -77,7 +77,7 @@ static void __declspec(naked) GetNumButtonsHook1() {
 	}
 }
 
-static void __declspec(naked) GetNumButtonsHook2() {
+static __declspec(naked) void GetNumButtonsHook2() {
 	__asm {
 		lea  edx, elevatorType;
 		mov  eax, [edx + edi * 4];
@@ -86,7 +86,7 @@ static void __declspec(naked) GetNumButtonsHook2() {
 	}
 }
 
-static void __declspec(naked) GetNumButtonsHook3() {
+static __declspec(naked) void GetNumButtonsHook3() {
 	__asm {
 		lea  eax, elevatorType;
 		mov  eax, [eax + edi * 4];

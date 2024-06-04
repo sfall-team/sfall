@@ -28,29 +28,29 @@ namespace script
 // Kill counters
 void SetExtraKillCounter(bool value);
 
-void __declspec() op_get_kill_counter();
+void op_get_kill_counter();
 
-void __declspec() op_mod_kill_counter();
+void op_mod_kill_counter();
 
 void op_set_object_knockback(OpcodeContext&);
 
 void op_remove_object_knockback(OpcodeContext&);
 
-void __declspec() op_get_bodypart_hit_modifier();
+void op_get_bodypart_hit_modifier();
 
-void __declspec() op_set_bodypart_hit_modifier();
+void op_set_bodypart_hit_modifier();
 
 void op_get_attack_type(OpcodeContext&);
 
-void __declspec() op_force_aimed_shots();
+void op_force_aimed_shots();
 
-void __declspec() op_disable_aimed_shots();
+void op_disable_aimed_shots();
 
-void __declspec() op_get_last_attacker();
+void op_get_last_attacker();
 
-void __declspec() op_get_last_target();
+void op_get_last_target();
 
-void __declspec() op_block_combat();
+void op_block_combat();
 
 void mf_attack_is_aimed(OpcodeContext&);
 

@@ -21,7 +21,7 @@ static void __cdecl credits_hook_buf_to_buf_art(BYTE* src, long w, long h, long 
 	fo::func::buf_to_buf(src, w, h, srcW, dst, Setting::ScreenWidth());
 }
 
-static void __declspec(naked) credits_hack() {
+static __declspec(naked) void credits_hack() {
 	__asm { // edx: H
 		call Setting::ScreenWidth;
 		imul eax, edx; // ScreenWidth * H

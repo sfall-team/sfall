@@ -50,7 +50,7 @@ const char* __stdcall ObjectName::GetName(fo::GameObject* object) {
 	return nullptr;
 }
 
-static void __declspec(naked) critter_name_hack() {
+static __declspec(naked) void critter_name_hack() {
 	static DWORD critter_name_hack_ret = 0x42D125;
 	using namespace fo::Fields;
 	__asm {
@@ -66,7 +66,7 @@ override:
 	}
 }
 
-static void __declspec(naked) critter_name_hack_check() {
+static __declspec(naked) void critter_name_hack_check() {
 	static DWORD critter_name_hack_ret = 0x42D12F;
 	using namespace fo::Fields;
 	__asm {
@@ -94,7 +94,7 @@ end:
 	}
 }
 
-static void __declspec(naked) critter_name_hack_end() {
+static __declspec(naked) void critter_name_hack_end() {
 	using namespace fo::Fields;
 	__asm {
 		mov  edx, [ebx + scriptIndex];
@@ -105,7 +105,7 @@ static void __declspec(naked) critter_name_hack_end() {
 	}
 }
 
-static void __declspec(naked) item_name_hook() {
+static __declspec(naked) void item_name_hook() {
 	__asm {
 		cmp  eax, lastItemPid;
 		je   getLast;

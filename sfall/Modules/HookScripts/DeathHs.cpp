@@ -53,7 +53,7 @@ static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, fo::GameObject* t
 	return animDeath;
 }
 
-static void __declspec(naked) CalcDeathAnimHook() {
+static __declspec(naked) void CalcDeathAnimHook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -68,7 +68,7 @@ static void __declspec(naked) CalcDeathAnimHook() {
 	}
 }
 
-static void __declspec(naked) CalcDeathAnim2Hook() {
+static __declspec(naked) void CalcDeathAnim2Hook() {
 	__asm {
 		call fo::funcoffs::check_death_; // call original function
 		mov  ebx, eax;
@@ -94,7 +94,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	}
 }
 
-static void __declspec(naked) OnDeathHook() {
+static __declspec(naked) void OnDeathHook() {
 	using namespace fo::Fields;
 	__asm {
 		push edx;
@@ -115,7 +115,7 @@ static void __declspec(naked) OnDeathHook() {
 	}
 }
 
-static void __declspec(naked) OnDeathHook2() {
+static __declspec(naked) void OnDeathHook2() {
 	__asm {
 		call fo::funcoffs::partyMemberRemove_;
 		HookBegin;

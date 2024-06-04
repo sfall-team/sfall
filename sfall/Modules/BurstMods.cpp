@@ -63,7 +63,7 @@ static long __fastcall ComputeSpray(DWORD* roundsLeftOut, DWORD* roundsRightOut,
 	return (result % compute_spray_target_div) ? ++roundsMainTarget : roundsMainTarget; // if remainder then round up
 }
 
-static void __declspec(naked) compute_spray_rounds_distribution() {
+static __declspec(naked) void compute_spray_rounds_distribution() {
 	static const DWORD compute_spray_rounds_back = 0x42353A;
 	__asm {
 		push ecx;

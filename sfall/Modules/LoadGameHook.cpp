@@ -212,7 +212,7 @@ static DWORD __stdcall CombatSaveTest() {
 	return 1;
 }
 
-static void __declspec(naked) SaveGame_hook() {
+static __declspec(naked) void SaveGame_hook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -307,7 +307,7 @@ static void __stdcall LoadGame_After() {
 	logTimeInterval("Game loaded", timeBeforeGameStart);
 }
 
-static void __declspec(naked) LoadGame_hook() {
+static __declspec(naked) void LoadGame_hook() {
 	__asm {
 		_InLoop(1, LOADGAME);
 		call fo::funcoffs::LoadGame_;
@@ -326,7 +326,7 @@ end:
 	}
 }
 
-static void __declspec(naked) EndLoadHook() {
+static __declspec(naked) void EndLoadHook() {
 	__asm {
 		call fo::funcoffs::EndLoad_;
 		pushadc;
@@ -348,7 +348,7 @@ static void __stdcall NewGame_After() {
 	logTimeInterval("New Game started", timeBeforeGameStart);
 }
 
-static void __declspec(naked) main_load_new_hook() {
+static __declspec(naked) void main_load_new_hook() {
 	__asm {
 		push eax;
 		call NewGame_Before;
@@ -391,7 +391,7 @@ static void __stdcall MapLoadHook() {
 	onBeforeMapLoad.invoke();
 }
 
-static void __declspec(naked) main_init_system_hook() {
+static __declspec(naked) void main_init_system_hook() {
 	__asm {
 		pushadc;
 		call GameInitialization;
@@ -405,7 +405,7 @@ static void __declspec(naked) main_init_system_hook() {
 	}
 }
 
-static void __declspec(naked) game_reset_hook() {
+static __declspec(naked) void game_reset_hook() {
 	__asm {
 		pushadc;
 		push 0;
@@ -415,7 +415,7 @@ static void __declspec(naked) game_reset_hook() {
 	}
 }
 
-static void __declspec(naked) game_reset_on_load_hook() {
+static __declspec(naked) void game_reset_on_load_hook() {
 	__asm {
 		pushadc;
 		push 1;
@@ -432,7 +432,7 @@ errorLoad:
 	}
 }
 
-static void __declspec(naked) before_game_exit_hook() {
+static __declspec(naked) void before_game_exit_hook() {
 	__asm {
 		pushadc;
 		push 1;
@@ -442,7 +442,7 @@ static void __declspec(naked) before_game_exit_hook() {
 	}
 }
 
-static void __declspec(naked) after_game_exit_hook() {
+static __declspec(naked) void after_game_exit_hook() {
 	__asm {
 		pushadc;
 		call GameExit;
@@ -451,7 +451,7 @@ static void __declspec(naked) after_game_exit_hook() {
 	}
 }
 
-static void __declspec(naked) game_close_hook() {
+static __declspec(naked) void game_close_hook() {
 	__asm {
 		pushadc;
 		call GameClose;
@@ -461,7 +461,7 @@ static void __declspec(naked) game_close_hook() {
 }
 
 
-static void __declspec(naked) map_load_hook() {
+static __declspec(naked) void map_load_hook() {
 	__asm {
 		mov  esi, ebx;
 		lea  edi, LoadGameHook::mapLoadingName;
@@ -479,7 +479,7 @@ static void __declspec(naked) map_load_hook() {
 	}
 }
 
-static void __declspec(naked) WorldMapHook_Start() {
+static __declspec(naked) void WorldMapHook_Start() {
 	__asm {
 		call fo::funcoffs::wmInterfaceInit_;
 		test eax, eax;
@@ -492,7 +492,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) WorldMapHook_End() {
+static __declspec(naked) void WorldMapHook_End() {
 	__asm {
 		push eax;
 		_InLoop2(0, WORLDMAP);
@@ -512,7 +512,7 @@ static void __fastcall CombatInternal(fo::CombatGcsd* gcsd) {
 	SetInLoop(0, COMBAT);
 }
 
-static void __declspec(naked) CombatHook() {
+static __declspec(naked) void CombatHook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -524,7 +524,7 @@ static void __declspec(naked) CombatHook() {
 	}
 }
 
-static void __declspec(naked) PlayerCombatHook() {
+static __declspec(naked) void PlayerCombatHook() {
 	__asm {
 		_InLoop(1, PCOMBAT);
 		call fo::funcoffs::combat_input_;
@@ -533,7 +533,7 @@ static void __declspec(naked) PlayerCombatHook() {
 	}
 }
 
-static void __declspec(naked) EscMenuHook() {
+static __declspec(naked) void EscMenuHook() {
 	__asm {
 		_InLoop(1, ESCMENU);
 		call fo::funcoffs::do_optionsFunc_;
@@ -542,7 +542,7 @@ static void __declspec(naked) EscMenuHook() {
 	}
 }
 
-static void __declspec(naked) EscMenuHook2() {
+static __declspec(naked) void EscMenuHook2() {
 	__asm {
 		_InLoop(1, ESCMENU);
 		call fo::funcoffs::do_options_;
@@ -551,7 +551,7 @@ static void __declspec(naked) EscMenuHook2() {
 	}
 }
 
-static void __declspec(naked) OptionsMenuHook() {
+static __declspec(naked) void OptionsMenuHook() {
 	__asm {
 		_InLoop(1, OPTIONS);
 		call fo::funcoffs::do_prefscreen_;
@@ -560,7 +560,7 @@ static void __declspec(naked) OptionsMenuHook() {
 	}
 }
 
-static void __declspec(naked) HelpMenuHook() {
+static __declspec(naked) void HelpMenuHook() {
 	__asm {
 		_InLoop(1, HELP);
 		call fo::funcoffs::game_help_;
@@ -569,7 +569,7 @@ static void __declspec(naked) HelpMenuHook() {
 	}
 }
 
-static void __declspec(naked) PauseWindowHook() {
+static __declspec(naked) void PauseWindowHook() {
 	__asm {
 		_InLoop(1, PAUSEWIN);
 		call fo::funcoffs::PauseWindow_;
@@ -578,7 +578,7 @@ static void __declspec(naked) PauseWindowHook() {
 	}
 }
 
-static void __declspec(naked) CharacterHook() {
+static __declspec(naked) void CharacterHook() {
 	__asm {
 		push edx;
 		_InLoop2(1, CHARSCREEN);
@@ -599,7 +599,7 @@ end:
 	}
 }
 
-static void __declspec(naked) DialogHook_Start() {
+static __declspec(naked) void DialogHook_Start() {
 	__asm {
 		_InLoop2(1, DIALOG);
 		mov ebx, 1;
@@ -607,7 +607,7 @@ static void __declspec(naked) DialogHook_Start() {
 	}
 }
 
-static void __declspec(naked) DialogHook_End() {
+static __declspec(naked) void DialogHook_End() {
 	__asm {
 		and inLoop, ~DIALOG;  // unset flag
 		_InLoop2(1, SPECIAL); // set the flag before animating the panel when exiting the dialog
@@ -617,7 +617,7 @@ static void __declspec(naked) DialogHook_End() {
 	}
 }
 
-static void __declspec(naked) PipboyHook_Start() {
+static __declspec(naked) void PipboyHook_Start() {
 	__asm {
 		push eax;
 		_InLoop2(1, PIPBOY);
@@ -626,7 +626,7 @@ static void __declspec(naked) PipboyHook_Start() {
 	}
 }
 
-static void __declspec(naked) PipboyHook_End() {
+static __declspec(naked) void PipboyHook_End() {
 	__asm {
 		push eax;
 		_InLoop2(0, PIPBOY);
@@ -635,7 +635,7 @@ static void __declspec(naked) PipboyHook_End() {
 	}
 }
 
-static void __declspec(naked) SkilldexHook() {
+static __declspec(naked) void SkilldexHook() {
 	__asm {
 		_InLoop(1, SKILLDEX);
 		call fo::funcoffs::skilldex_select_;
@@ -644,7 +644,7 @@ static void __declspec(naked) SkilldexHook() {
 	}
 }
 
-static void __declspec(naked) HandleInventoryHook_Start() {
+static __declspec(naked) void HandleInventoryHook_Start() {
 	__asm {
 		_InLoop2(1, INVENTORY);
 		xor eax, eax;
@@ -652,7 +652,7 @@ static void __declspec(naked) HandleInventoryHook_Start() {
 	}
 }
 
-static void __declspec(naked) HandleInventoryHook_End() {
+static __declspec(naked) void HandleInventoryHook_End() {
 	__asm {
 		_InLoop2(0, INVENTORY);
 		mov eax, esi;
@@ -660,7 +660,7 @@ static void __declspec(naked) HandleInventoryHook_End() {
 	}
 }
 
-static void __declspec(naked) UseInventoryOnHook_Start() {
+static __declspec(naked) void UseInventoryOnHook_Start() {
 	__asm {
 		_InLoop2(1, INTFACEUSE);
 		xor eax, eax;
@@ -668,7 +668,7 @@ static void __declspec(naked) UseInventoryOnHook_Start() {
 	}
 }
 
-static void __declspec(naked) UseInventoryOnHook_End() {
+static __declspec(naked) void UseInventoryOnHook_End() {
 	__asm {
 		_InLoop2(0, INTFACEUSE);
 		mov eax, edi;
@@ -676,7 +676,7 @@ static void __declspec(naked) UseInventoryOnHook_End() {
 	}
 }
 
-static void __declspec(naked) LootContainerHook_Start() {
+static __declspec(naked) void LootContainerHook_Start() {
 	__asm {
 		_InLoop2(1, INTFACELOOT);
 		xor eax, eax;
@@ -684,7 +684,7 @@ static void __declspec(naked) LootContainerHook_Start() {
 	}
 }
 
-static void __declspec(naked) LootContainerHook_End() {
+static __declspec(naked) void LootContainerHook_End() {
 	__asm {
 		cmp  dword ptr [esp + 0x150 - 0x58 + 4], 0; // JESSE_CONTAINER
 		jz   skip; // container is not created
@@ -696,7 +696,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) BarterInventoryHook() {
+static __declspec(naked) void BarterInventoryHook() {
 	__asm {
 		and inLoop, ~SPECIAL; // unset flag after animating the dialog panel
 		_InLoop(1, BARTER);
@@ -708,7 +708,7 @@ static void __declspec(naked) BarterInventoryHook() {
 	}
 }
 
-static void __declspec(naked) AutomapHook_Start() {
+static __declspec(naked) void AutomapHook_Start() {
 	__asm {
 		call fo::funcoffs::gmouse_set_cursor_;
 		test edx, edx;
@@ -720,7 +720,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) AutomapHook_End() {
+static __declspec(naked) void AutomapHook_End() {
 	__asm {
 		_InLoop(0, AUTOMAP);
 		mov LoadGameHook::interfaceWID, -1
@@ -728,7 +728,7 @@ static void __declspec(naked) AutomapHook_End() {
 	}
 }
 
-static void __declspec(naked) DialogReviewInitHook() {
+static __declspec(naked) void DialogReviewInitHook() {
 	__asm {
 		call fo::funcoffs::gdReviewInit_;
 		test eax, eax;
@@ -742,7 +742,7 @@ error:
 	}
 }
 
-static void __declspec(naked) DialogReviewExitHook() {
+static __declspec(naked) void DialogReviewExitHook() {
 	__asm {
 		push ecx;
 		push eax;
@@ -753,14 +753,14 @@ static void __declspec(naked) DialogReviewExitHook() {
 	}
 }
 
-static void __declspec(naked) setup_move_timer_win_Hook() {
+static __declspec(naked) void setup_move_timer_win_Hook() {
 	__asm {
 		_InLoop2(1, COUNTERWIN);
 		jmp fo::funcoffs::text_curr_;
 	}
 }
 
-static void __declspec(naked) exit_move_timer_win_Hook() {
+static __declspec(naked) void exit_move_timer_win_Hook() {
 	__asm {
 		push eax;
 		_InLoop2(0, COUNTERWIN);
@@ -769,14 +769,14 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 	}
 }
 
-static void __declspec(naked) gdialog_bk_hook() {
+static __declspec(naked) void gdialog_bk_hook() {
 	__asm {
 		_InLoop2(1, SPECIAL); // set the flag before switching from dialog mode to barter
 		jmp fo::funcoffs::gdialog_window_destroy_;
 	}
 }
 
-static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
+static __declspec(naked) void gdialogUpdatePartyStatus_hook1() {
 	__asm {
 		push edx;
 		_InLoop2(1, SPECIAL); // set the flag before animating the dialog panel when a party member joins/leaves
@@ -785,7 +785,7 @@ static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
 	}
 }
 
-static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
+static __declspec(naked) void gdialogUpdatePartyStatus_hook0() {
 	__asm {
 		call fo::funcoffs::gdialog_window_create_;
 		_InLoop2(0, SPECIAL); // unset the flag when entering the party member control panel

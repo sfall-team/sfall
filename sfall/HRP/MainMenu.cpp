@@ -175,7 +175,7 @@ static long __fastcall GetHeightOffset(long &y) {
 }
 
 // credit text print
-static void __declspec(naked) main_menu_create_hook_win_print() {
+static __declspec(naked) void main_menu_create_hook_win_print() {
 	__asm {
 		mov  ebx, ecx;       // x offset
 		lea  ecx, [esp + 4]; // y offset
@@ -198,7 +198,7 @@ static void __fastcall TextScale(long xPos, const char* text, long yPos, long co
 }
 
 // buttons text print
-static void __declspec(naked) main_menu_create_hook_text_to_buf() {
+static __declspec(naked) void main_menu_create_hook_text_to_buf() {
 	__asm { // eax:xOffset (0), ebp:yPos, edx:text, ebx:txtWidth (640-txtWidth)-1
 		cmp  scaleFactor, 0x3F800000; // 1.0f
 		jne  scale;
@@ -253,7 +253,7 @@ static long __fastcall ButtonPosition(long &width, long xPos, BYTE* &upImageData
 	return (xPos >= mainmenuWidth) ? mainmenuWidth - width : xPos;
 }
 
-static void __declspec(naked) main_menu_create_hook_register_button() {
+static __declspec(naked) void main_menu_create_hook_register_button() {
 	__asm { // eax:_main_window, edx:Xpos (30), ebx:Ypos (+19), ecx:Width (26)
 		push ecx;                  // width
 		mov  ecx, esp;             // width ref

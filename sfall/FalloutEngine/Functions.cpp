@@ -28,7 +28,7 @@ namespace func
 
 // Prints debug message to game debug.log file for develop build
 #ifndef NDEBUG
-void __declspec(naked) dev_printf(const char* fmt, ...) {
+__declspec(naked) void dev_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
 }
 #else
@@ -117,7 +117,7 @@ void dev_printf(...) {}
 
 
 // prints message to debug.log file
-void __declspec(naked) debug_printf(const char* fmt, ...) {
+__declspec(naked) void debug_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
 }
 
@@ -158,7 +158,7 @@ isNotStr:
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
-void __declspec(naked) interpretError(const char* fmt, ...) {
+__declspec(naked) void interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_;
 }
 

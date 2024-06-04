@@ -29,11 +29,11 @@ namespace script
 
 void op_typeof(OpcodeContext&);
 
-void __declspec() op_set_global_script_repeat();
+void op_set_global_script_repeat();
 
-void __declspec() op_set_global_script_type();
+void op_set_global_script_type();
 
-void __declspec() op_available_global_script_types();
+void op_available_global_script_types();
 
 void op_set_sfall_global(OpcodeContext&);
 
@@ -51,11 +51,11 @@ void op_set_sfall_arg(OpcodeContext&);
 
 void op_set_sfall_return(OpcodeContext&);
 
-void __declspec() op_game_loaded();
+void op_game_loaded();
 
-void __declspec() op_init_hook();
+void op_init_hook();
 
-void __declspec() op_set_self();
+void op_set_self();
 
 // used for both register_hook and register_hook_proc
 void op_register_hook(OpcodeContext&);
@@ -64,11 +64,11 @@ void mf_add_g_timer_event(OpcodeContext&);
 
 void mf_remove_timer_event(OpcodeContext&);
 
-void __declspec() op_sfall_ver_major();
+void op_sfall_ver_major();
 
-void __declspec() op_sfall_ver_minor();
+void op_sfall_ver_minor();
 
-void __declspec() op_sfall_ver_build();
+void op_sfall_ver_build();
 
 }
 }

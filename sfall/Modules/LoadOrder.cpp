@@ -71,7 +71,7 @@ static void CheckPlayerGender() {
 
 static const DWORD scr_get_dialog_msg_file_Back = 0x4A6BD2;
 
-static void __declspec(naked) scr_get_dialog_msg_file_hack1() {
+static __declspec(naked) void scr_get_dialog_msg_file_hack1() {
 	__asm {
 		cmp  isFemale, 1;
 		jnz  default;
@@ -85,7 +85,7 @@ default:
 	}
 }
 
-static void __declspec(naked) scr_get_dialog_msg_file_hack2() {
+static __declspec(naked) void scr_get_dialog_msg_file_hack2() {
 	__asm {
 		cmp  eax, 1;          // checking existence of msg file
 		mov  eax, 0x4A6C0E;
@@ -103,7 +103,7 @@ exist:
 	}
 }
 
-static void __declspec(naked) gnw_main_hack() {
+static __declspec(naked) void gnw_main_hack() {
 	__asm {
 		push eax;
 		call CheckPlayerGender;
@@ -172,7 +172,7 @@ static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 }
 
 // Remove master_patches from the chain
-static void __declspec(naked) game_init_databases_hack1() {
+static __declspec(naked) void game_init_databases_hack1() {
 	__asm {
 		cmp  eax, -1;
 		je   skip;
@@ -185,7 +185,7 @@ skip:
 }
 
 // Remove critter_patches from the chain
-static void __declspec(naked) game_init_databases_hack2() {
+static __declspec(naked) void game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1;
 		je   end;
@@ -440,7 +440,7 @@ static long __fastcall CheckProtoType(long pid, char* path) {
 }
 
 // saves prototypes (all party members) before saving game or exiting the map
-static void __declspec(naked) proto_save_pid_hook() {
+static __declspec(naked) void proto_save_pid_hook() {
 	__asm {
 		push ecx;
 		call fo::funcoffs::proto_list_str_;
@@ -461,7 +461,7 @@ end:
 
 #define _F_PATHFILE 0x6143F4
 
-static void __declspec(naked) GameMap2Slot_hack() { // save party pids
+static __declspec(naked) void GameMap2Slot_hack() { // save party pids
 	__asm {
 		push ecx;
 		mov  edx, _F_PATHFILE; // path buffer
@@ -472,7 +472,7 @@ static void __declspec(naked) GameMap2Slot_hack() { // save party pids
 	}
 }
 
-static void __declspec(naked) SlotMap2Game_hack() { // load party pids
+static __declspec(naked) void SlotMap2Game_hack() { // load party pids
 	__asm {
 		push edx;
 		mov  ecx, edi;         // party pid
@@ -489,7 +489,7 @@ end:
 	}
 }
 
-static void __declspec(naked) proto_load_pid_hook() {
+static __declspec(naked) void proto_load_pid_hook() {
 	using namespace fo;
 	__asm { // eax - party pid
 		push ecx;
@@ -518,7 +518,7 @@ static void ResetReadOnlyAttr() {
 	}
 }
 
-static void __declspec(naked) SlotMap2Game_hack_attr() {
+static __declspec(naked) void SlotMap2Game_hack_attr() {
 	using namespace fo;
 	__asm {
 		cmp  eax, -1;
@@ -545,7 +545,7 @@ static void RemoveSavFiles() {
 
 static DWORD aliasFID = -1;
 
-static void __declspec(naked) art_alias_fid_hook() {
+static __declspec(naked) void art_alias_fid_hook() {
 	__asm {
 		call fo::funcoffs::art_alias_fid_;
 		cmp  eax, -1;
@@ -561,7 +561,7 @@ skip:
 	}
 }
 
-void __declspec(naked) LoadOrder::art_get_name_hack() {
+__declspec(naked) void LoadOrder::art_get_name_hack() {
 	static const DWORD art_get_name_Alias = 0x41944A;
 	__asm {
 		mov  eax, FO_VAR_art_name;
@@ -593,7 +593,7 @@ static fo::DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	return nullptr;
 }
 
-static void __declspec(naked) load_font_hook() {
+static __declspec(naked) void load_font_hook() {
 	__asm {
 		mov  ebp, edx;
 		mov  ebx, eax;

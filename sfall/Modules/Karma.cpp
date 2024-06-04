@@ -51,7 +51,7 @@ static DWORD __stdcall DrawCard() {
 	return karmaFrms.end()->frm;
 }
 
-static void __declspec(naked) DrawInfoWin_hook() {
+static __declspec(naked) void DrawInfoWin_hook() {
 	__asm {
 		cmp  ds:[FO_VAR_info_line], 10;
 		jne  skip;

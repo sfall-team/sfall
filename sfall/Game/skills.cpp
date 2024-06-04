@@ -37,7 +37,7 @@ int __stdcall Skills::trait_adjust_skill(DWORD skillID) {
 	return result;
 }
 
-static void __declspec(naked) trait_adjust_skill_replacement() {
+static __declspec(naked) void trait_adjust_skill_replacement() {
 	__asm {
 		push edx;
 		push ecx;

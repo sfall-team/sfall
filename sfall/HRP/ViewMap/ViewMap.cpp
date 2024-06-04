@@ -148,7 +148,7 @@ static long __fastcall tile_set_center(long tile, long modeFlags) {
 	return 0;
 }
 
-static void __declspec(naked) tile_set_center_hack_replacement() {
+static __declspec(naked) void tile_set_center_hack_replacement() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;
@@ -158,7 +158,7 @@ static void __declspec(naked) tile_set_center_hack_replacement() {
 	}
 }
 
-static void __declspec(naked) tile_scroll_to_hack_replacement() {
+static __declspec(naked) void tile_scroll_to_hack_replacement() {
 	__asm {
 		mov  edx, 3; // modeFlags
 		jmp  tile_set_center_hack_replacement;
@@ -176,7 +176,7 @@ static long __fastcall square_rect_render_floor(long y, long id, long x) {
 	return id;
 }
 
-static void __declspec(naked) square_render_floor_hook_art_id() {
+static __declspec(naked) void square_render_floor_hook_art_id() {
 	__asm {
 		mov  ecx, [esp + 0x24 + 4];
 		push esi;
@@ -207,7 +207,7 @@ static long __fastcall square_rect_render_roof(long y, long id, long x) {
 	return id;
 }
 
-static void __declspec(naked) square_render_roof_hook_art_id() {
+static __declspec(naked) void square_render_roof_hook_art_id() {
 	using namespace fo;
 	__asm {
 		mov  ecx, [esp + 0x20 + 4];
@@ -226,7 +226,7 @@ skipDraw:
 	}
 }
 
-static void __declspec(naked) square_roof_intersect_hook_art_id() {
+static __declspec(naked) void square_roof_intersect_hook_art_id() {
 	using namespace fo;
 	__asm {
 		mov  ecx, [esp + 0x8 + 4];
@@ -292,7 +292,7 @@ static void __fastcall square_obj_render(fo::BoundRect* rect, long tag) {
 	} while (++Y < y3); // y < bottom
 }
 
-static void __declspec(naked) obj_render_pre_roof_hack_0() {
+static __declspec(naked) void obj_render_pre_roof_hack_0() {
 	__asm {
 		mov  edx, 0;
 		lea  ecx, [esp + 4];
@@ -303,7 +303,7 @@ static void __declspec(naked) obj_render_pre_roof_hack_0() {
 	}
 }
 
-static void __declspec(naked) obj_render_pre_roof_hack_1() {
+static __declspec(naked) void obj_render_pre_roof_hack_1() {
 	__asm {
 		mov  edx, 1;
 		lea  ecx, [esp + 4];
@@ -317,7 +317,7 @@ static void __declspec(naked) obj_render_pre_roof_hack_1() {
 }
 
 // An odd solution to the problem from HRP 3.06 (4.1.8 uses a different solution)
-static void __declspec(naked) obj_render_pre_roof_hack() {
+static __declspec(naked) void obj_render_pre_roof_hack() {
 	__asm {
 		mov  ebx, [eax];
 		lea  eax, [edx + ebx]; // edx - tilenum
@@ -335,7 +335,7 @@ tileMin:
 	}
 }
 
-static void __declspec(naked) obj_create_intersect_list_hack() {
+static __declspec(naked) void obj_create_intersect_list_hack() {
 	__asm {
 		mov  ecx, [ebx + eax];
 		lea  eax, [edx + ecx]; // edx - tilenum
@@ -412,7 +412,7 @@ static long __fastcall tile_num_HRP(long x, long y) {
 	return (grid_width * yTile) + (grid_width - 1 - xTile);
 }
 
-static void __declspec(naked) obj_render_pre_roof_hack_tile_num() {
+static __declspec(naked) void obj_render_pre_roof_hack_tile_num() {
 	__asm {
 		push ecx;
 		call tile_num_HRP;
@@ -421,7 +421,7 @@ static void __declspec(naked) obj_render_pre_roof_hack_tile_num() {
 	}
 }
 
-static void __declspec(naked) obj_create_intersect_list_hack_tile_num() {
+static __declspec(naked) void obj_create_intersect_list_hack_tile_num() {
 	__asm {
 		mov  ecx, eax;
 		jmp  tile_num_HRP;
@@ -466,7 +466,7 @@ void ViewMap::init() {
 	//BlockCall(0x4B11A3); // tile_init_
 }
 
-static void __declspec(naked) obj_move_to_tile_hook_redraw() {
+static __declspec(naked) void obj_move_to_tile_hook_redraw() {
 	__asm {
 		mov  sf::MainLoopHook::displayWinUpdateState, 1;
 		call fo::funcoffs::tile_set_center_;
@@ -475,7 +475,7 @@ static void __declspec(naked) obj_move_to_tile_hook_redraw() {
 	}
 }
 
-static void __declspec(naked) map_check_state_hook_redraw() {
+static __declspec(naked) void map_check_state_hook_redraw() {
 	__asm {
 		cmp  sf::MainLoopHook::displayWinUpdateState, 0;
 		je   obj_move_to_tile_hook_redraw;

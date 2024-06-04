@@ -160,7 +160,7 @@ MMRESULT __stdcall fTimeKillEvent(UINT id) {
 	return timeKillEvent(id);
 }*/
 
-static void __declspec(naked) scripts_check_state_hook() {
+static __declspec(naked) void scripts_check_state_hook() {
 	__asm {
 		inc  slideShow;
 		call fo::funcoffs::endgame_slideshow_;

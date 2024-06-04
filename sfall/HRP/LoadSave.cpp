@@ -32,7 +32,7 @@ static long __fastcall LoadSaveWinAdd(long height, long yPos, long xPos, long wi
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) LSGameStart_hook_win_add() {
+static __declspec(naked) void LSGameStart_hook_win_add() {
 	__asm {
 		xchg ebx, [esp]; // width
 		push eax;        // xPos
@@ -41,7 +41,7 @@ static void __declspec(naked) LSGameStart_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) GetComment_hook_win_add() {
+static __declspec(naked) void GetComment_hook_win_add() {
 	__asm {
 		add  edx, yPosition;
 		add  eax, xPosition;
@@ -49,7 +49,7 @@ static void __declspec(naked) GetComment_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) LoadSaveMouseGetPositionHook() {
+static __declspec(naked) void LoadSaveMouseGetPositionHook() {
 	__asm {
 		push eax;
 		push edx;
@@ -64,7 +64,7 @@ static void __declspec(naked) LoadSaveMouseGetPositionHook() {
 	}
 }
 
-static void __declspec(naked) QuickSnapShotHook() {
+static __declspec(naked) void QuickSnapShotHook() {
 	__asm {
 		mov  ebx, ds:[FO_VAR_buf_length_2];
 		mov  ecx, ds:[FO_VAR_buf_width_2];

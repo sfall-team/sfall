@@ -97,7 +97,7 @@ DWORD __stdcall Inventory::adjust_fid() {
 	return fo::var::i_fid;
 }
 
-static void __declspec(naked) adjust_fid_replacement() {
+static __declspec(naked) void adjust_fid_replacement() {
 	__asm {
 		push ecx;
 		push edx;

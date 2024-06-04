@@ -44,7 +44,7 @@ static long __fastcall FindDrugVar(DWORD pid) {
 	return -1;
 }
 
-static void __declspec(naked) pid_to_gvar_hack() {
+static __declspec(naked) void pid_to_gvar_hack() {
 	__asm {
 		push ecx;
 		push edx;
@@ -82,7 +82,7 @@ static long __fastcall AllowUseDrug(fo::GameObject* critter, DWORD pid) {
 	return -1; // not found
 }
 
-static void __declspec(naked) drug_effect_allowed_hack() {
+static __declspec(naked) void drug_effect_allowed_hack() {
 	__asm {
 		push ecx;
 		call AllowUseDrug; // ecx - critter, edx - drug pid
@@ -111,7 +111,7 @@ static long __stdcall FindDrugTime(DWORD pid) {
 	return 10080; // default time (7 days)
 }
 
-static void __declspec(naked) perform_withdrawal_start_hack() {
+static __declspec(naked) void perform_withdrawal_start_hack() {
 	__asm {
 		push ecx;
 		push edi; // drug pid
@@ -171,7 +171,7 @@ static long __fastcall PrintAddictionList(long isSeparator) {
 	return isSelect;
 }
 
-static void __declspec(naked) list_karma_hack() {
+static __declspec(naked) void list_karma_hack() {
 	static const DWORD list_karma_Ret = 0x43C1A3;
 	__asm {
 		mov  ecx, [esp + 0x168 - 0x1C + 4];

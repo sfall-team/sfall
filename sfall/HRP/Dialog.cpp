@@ -61,7 +61,7 @@ static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long c
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) gdCreateHeadWindow_hook_win_add() {
+static __declspec(naked) void gdCreateHeadWindow_hook_win_add() {
 	__asm {
 		pop	 ebx; // ret addr
 		push eax; // xPos
@@ -76,14 +76,14 @@ static void ShowMapWindow() {
 	IFaceBar::Show();
 }
 
-static void __declspec(naked) gdDestroyHeadWindow_hook_win_delete() {
+static __declspec(naked) void gdDestroyHeadWindow_hook_win_delete() {
 	__asm {
 		call fo::funcoffs::win_delete_;
 		jmp  ShowMapWindow;
 	}
 }
 
-static void __declspec(naked) GeneralDialogWinAdd() {
+static __declspec(naked) void GeneralDialogWinAdd() {
 	__asm {
 		add  eax, xPosition;
 		add  edx, yPosition;
@@ -92,7 +92,7 @@ static void __declspec(naked) GeneralDialogWinAdd() {
 	}
 }
 
-static void __declspec(naked) gdProcess_hook_win_add() {
+static __declspec(naked) void gdProcess_hook_win_add() {
 	__asm {
 		add  edx, yPosition;
 		add  eax, xPosition;
@@ -100,7 +100,7 @@ static void __declspec(naked) gdProcess_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) setup_inventory_hook_win_add() {
+static __declspec(naked) void setup_inventory_hook_win_add() {
 	__asm {
 		add  eax, xPosition;
 		add  edx, yPosition;
@@ -108,7 +108,7 @@ static void __declspec(naked) setup_inventory_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) setup_inventory_hack() {
+static __declspec(naked) void setup_inventory_hack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_i_wid], eax;
 		add  ebx, xPosition;
@@ -117,7 +117,7 @@ static void __declspec(naked) setup_inventory_hack() {
 	}
 }
 
-static void __declspec(naked) barter_move_hook_mouse_click_in() {
+static __declspec(naked) void barter_move_hook_mouse_click_in() {
 	__asm {
 		add  eax, xPosition; // left
 		add  ebx, xPosition; // right
@@ -127,7 +127,7 @@ static void __declspec(naked) barter_move_hook_mouse_click_in() {
 	}
 }
 
-static void __declspec(naked) hook_buf_to_buf() {
+static __declspec(naked) void hook_buf_to_buf() {
 	__asm {
 		imul eax, yPosition, 640;
 		add  [esp + 4], eax;

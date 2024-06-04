@@ -38,7 +38,7 @@ namespace sfall
 namespace script
 {
 
-void __declspec(naked) op_input_funcs_available() {
+__declspec(naked) void op_input_funcs_available() {
 	__asm {
 		mov  edx, 1; // They're always available from 2.9 on
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -75,7 +75,7 @@ void op_key_pressed(OpcodeContext& ctx) {
 	ctx.setReturn(KeyDown(ctx.arg(0).rawValue()));
 }
 
-void __declspec(naked) op_tap_key() {
+__declspec(naked) void op_tap_key() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -91,7 +91,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_mouse_x() {
+__declspec(naked) void op_get_mouse_x() {
 	__asm {
 		mov  edx, ds:[FO_VAR_mouse_x_];
 		add  edx, ds:[FO_VAR_mouse_hotx];
@@ -99,7 +99,7 @@ void __declspec(naked) op_get_mouse_x() {
 	}
 }
 
-void __declspec(naked) op_get_mouse_y() {
+__declspec(naked) void op_get_mouse_y() {
 	__asm {
 		mov  edx, ds:[FO_VAR_mouse_y_];
 		add  edx, ds:[FO_VAR_mouse_hoty];
@@ -117,14 +117,14 @@ void op_get_mouse_buttons(OpcodeContext& ctx) {
 	ctx.setReturn(button);
 }
 
-void __declspec(naked) op_get_window_under_mouse() {
+__declspec(naked) void op_get_window_under_mouse() {
 	__asm {
 		mov  edx, ds:[FO_VAR_last_button_winID];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_get_screen_width() {
+__declspec(naked) void op_get_screen_width() {
 	__asm {
 		mov  edx, ds:[FO_VAR_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
@@ -133,7 +133,7 @@ void __declspec(naked) op_get_screen_width() {
 	}
 }
 
-void __declspec(naked) op_get_screen_height() {
+__declspec(naked) void op_get_screen_height() {
 	__asm {
 		mov  edx, ds:[FO_VAR_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
@@ -197,21 +197,21 @@ void mf_message_box(OpcodeContext &ctx) {
 	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_get_viewport_x() {
+__declspec(naked) void op_get_viewport_x() {
 	__asm {
 		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_get_viewport_y() {
+__declspec(naked) void op_get_viewport_y() {
 	__asm {
 		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_set_viewport_x() {
+__declspec(naked) void op_set_viewport_x() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
@@ -220,7 +220,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_viewport_y() {
+__declspec(naked) void op_set_viewport_y() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetY], eax;

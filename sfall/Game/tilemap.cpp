@@ -58,7 +58,7 @@ static fo::GameObject* __fastcall obj_path_blocking_at(fo::GameObject* source, l
 	return nullptr;
 }
 
-void __declspec(naked) Tilemap::obj_path_blocking_at_() {
+__declspec(naked) void Tilemap::obj_path_blocking_at_() {
 	__asm {
 		push ecx;
 		push ebx;
@@ -177,7 +177,7 @@ long __fastcall Tilemap::tile_num_beyond(long sourceTile, long targetTile, long 
 	}
 }
 
-static void __declspec(naked) tile_num_beyond_replacement() {
+static __declspec(naked) void tile_num_beyond_replacement() {
 	__asm { // push ecx;
 		push ebx;
 		mov  ecx, eax;
@@ -378,7 +378,7 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 	return pathLen;
 }
 
-static void __declspec(naked) make_path_func_hack_replacement() {
+static __declspec(naked) void make_path_func_hack_replacement() {
 	__asm {
 		xchg [esp], ecx;   // ret addr <> array
 		push maxPathNodes; // (sfall addition)

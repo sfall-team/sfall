@@ -39,7 +39,7 @@ long MainMenu::mTextOffset; // sum: x + (y * w)
 
 static long OverrideColour, OverrideColour2;
 
-static void __declspec(naked) MainMenuHookButtonYOffset() {
+static __declspec(naked) void MainMenuHookButtonYOffset() {
 	static const DWORD MainMenuButtonYHookRet = 0x48184A;
 	__asm {
 		xor edi, edi;
@@ -49,7 +49,7 @@ static void __declspec(naked) MainMenuHookButtonYOffset() {
 	}
 }
 
-static void __declspec(naked) MainMenuHookTextYOffset() {
+static __declspec(naked) void MainMenuHookTextYOffset() {
 	__asm {
 		add eax, MainMenu::mTextOffset;
 		jmp dword ptr ds:[FO_VAR_text_to_buf];

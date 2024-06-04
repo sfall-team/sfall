@@ -110,7 +110,7 @@ static fo::DbFile* __fastcall ReadRIX(fo::DbFile* file, fo::PALETTE* palette) {
 	return file;
 }
 
-static void __declspec(naked) game_splash_screen_hook() {
+static __declspec(naked) void game_splash_screen_hook() {
 	__asm {
 		mov  ecx, eax; // file
 		mov  edx, ebp; // .rix palette
@@ -128,7 +128,7 @@ static void SplashScreenTime() {
 	}
 }
 
-static void __declspec(naked) game_init_hook_init_options_menu() {
+static __declspec(naked) void game_init_hook_init_options_menu() {
 	__asm {
 		call SplashScreenTime;
 		jmp  fo::funcoffs::init_options_menu_;

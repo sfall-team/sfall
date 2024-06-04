@@ -172,7 +172,7 @@ void __stdcall CombatAI::ai_check_drugs(fo::GameObject* source) {
 	}
 }
 
-static void __declspec(naked) ai_check_drugs_replacement() {
+static __declspec(naked) void ai_check_drugs_replacement() {
 	__asm {
 		push ecx;
 		push eax; // source
@@ -183,7 +183,7 @@ static void __declspec(naked) ai_check_drugs_replacement() {
 	}
 }
 
-static void __declspec(naked) ai_can_use_drug_hack() {
+static __declspec(naked) void ai_can_use_drug_hack() {
 	__asm {
 		push ecx; // item
 		call Items::IsHealingItem;

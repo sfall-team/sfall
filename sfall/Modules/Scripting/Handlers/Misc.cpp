@@ -44,13 +44,13 @@ namespace script
 
 static const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
-void __declspec(naked) op_stop_game() {
+__declspec(naked) void op_stop_game() {
 	__asm {
 		jmp fo::funcoffs::map_disable_bk_processes_;
 	}
 }
 
-void __declspec(naked) op_resume_game() {
+__declspec(naked) void op_resume_game() {
 	__asm {
 		jmp fo::funcoffs::map_enable_bk_processes_;
 	}
@@ -96,14 +96,14 @@ void op_get_year(OpcodeContext& ctx) {
 	ctx.setReturn(year);
 }
 
-void __declspec(naked) op_eax_available() {
+__declspec(naked) void op_eax_available() {
 	__asm {
 		xor  edx, edx; // EAX support has been removed since 2.1a
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_set_eax_environment() {
+__declspec(naked) void op_set_eax_environment() {
 	__asm {
 		_GET_ARG_INT(end);
 		xor  eax, eax; // EAX support has been removed since 2.1a
@@ -112,7 +112,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_uptime() {
+__declspec(naked) void op_get_uptime() {
 	__asm {
 		mov  esi, ecx;
 		call GetTickCount;
@@ -124,7 +124,7 @@ void __declspec(naked) op_get_uptime() {
 	}
 }
 
-void __declspec(naked) op_set_car_current_town() {
+__declspec(naked) void op_set_car_current_town() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_carCurrentArea], eax;
@@ -185,14 +185,14 @@ void op_set_palette(OpcodeContext& ctx) {
 }
 
 //numbers subgame functions
-void __declspec(naked) op_nb_create_char() {
+__declspec(naked) void op_nb_create_char() {
 	__asm {
 		xor  edx, edx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
+__declspec(naked) void op_hero_select_win() { // for opening the appearance selection window
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(fail);
@@ -204,7 +204,7 @@ fail:
 	}
 }
 
-void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
+__declspec(naked) void op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(fail);
@@ -216,7 +216,7 @@ fail:
 	}
 }
 
-void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
+__declspec(naked) void op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(fail);
@@ -228,14 +228,14 @@ fail:
 	}
 }
 
-void __declspec(naked) op_get_light_level() {
+__declspec(naked) void op_get_light_level() {
 	__asm {
 		mov  edx, ds:[FO_VAR_ambient_light];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_refresh_pc_art() {
+__declspec(naked) void op_refresh_pc_art() {
 	__asm {
 		mov  esi, ecx;
 		call RefreshPCArt;
@@ -251,7 +251,7 @@ void op_play_sfall_sound(OpcodeContext& ctx) {
 	ctx.setReturn(soundID);
 }
 
-void __declspec(naked) op_stop_sfall_sound() {
+__declspec(naked) void op_stop_sfall_sound() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -294,7 +294,7 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_mark_movie_played() {
+__declspec(naked) void op_mark_movie_played() {
 	__asm {
 		_GET_ARG_INT(end);
 		test eax, eax;
@@ -307,7 +307,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_tile_under_cursor() {
+__declspec(naked) void op_tile_under_cursor() {
 	__asm {
 		mov  esi, ebx;
 		sub  esp, 8;
@@ -324,7 +324,7 @@ void __declspec(naked) op_tile_under_cursor() {
 	}
 }
 
-void __declspec(naked) op_gdialog_get_barter_mod() {
+__declspec(naked) void op_gdialog_get_barter_mod() {
 	__asm {
 		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);

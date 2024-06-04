@@ -127,7 +127,7 @@ static long __fastcall rect_inside_bound_clip(RECT* srcRect, RECT* inRect, RECT*
 	return 0;
 }
 
-static void __declspec(naked) refresh_game_hook_rect_inside_bound() {
+static __declspec(naked) void refresh_game_hook_rect_inside_bound() {
 	__asm {
 		push ecx;
 		push ebx; // outRect
@@ -150,7 +150,7 @@ static long __fastcall rect_inside_bound_scroll_clip(RECT* srcRect, RECT* inRect
 	return rect_inside_bound_clip(srcRect, inRect, outRect);
 }
 
-static void __declspec(naked) map_scroll_refresh_game_hook_rect_inside_bound() {
+static __declspec(naked) void map_scroll_refresh_game_hook_rect_inside_bound() {
 	__asm {
 		push ecx;
 		push ebx; // outRect
@@ -171,7 +171,7 @@ static long __fastcall MouseCheckArea(long x, long y) {
 	return 0;
 }
 
-static void __declspec(naked) gmouse_check_scrolling_hack() {
+static __declspec(naked) void gmouse_check_scrolling_hack() {
 	__asm {
 		jl   skip;
 		or   cl, 8;
@@ -210,7 +210,7 @@ static long __fastcall post_roof_rect_inside_bound(RECT* srcRect, RECT* inRect, 
 	return rect_inside_bound(outRect, &visible, outRect);
 }
 
-static void __declspec(naked) obj_render_post_roof_hook_rect_inside_bound() {
+static __declspec(naked) void obj_render_post_roof_hook_rect_inside_bound() {
 	__asm {
 		push ebx; // outRect
 		mov  ecx, eax;
@@ -244,7 +244,7 @@ static long __fastcall gmouse_scr_offy_map_limit() {
 	return bottom;
 }
 
-static void __declspec(naked) gmouse_scr_offx_map_limit() {
+static __declspec(naked) void gmouse_scr_offx_map_limit() {
 	__asm {
 		mov  eax, ds:[FO_VAR_scr_size + 8]; // scr_size.offx
 		cmp  eax, mapVisibleArea.right;

@@ -160,7 +160,7 @@ static DWORD __stdcall LevelUp() {
 	return level;
 }
 
-static void __declspec(naked) LevelUpHack() {
+static __declspec(naked) void LevelUpHack() {
 	__asm {
 		push ecx;
 		call LevelUp;
@@ -170,7 +170,7 @@ static void __declspec(naked) LevelUpHack() {
 	}
 }
 
-static void __declspec(naked) GetPerkBoxTitleHook() {
+static __declspec(naked) void GetPerkBoxTitleHook() {
 	__asm {
 		lea  eax, PerkBoxTitle;
 		retn;
@@ -343,7 +343,7 @@ static FakePerk* __fastcall GetFakeSelectPerk(int id) {
 	return &fakeSelectablePerks[id - startFakeID];
 }
 
-static void __declspec(naked) CheckTraitHack() {
+static __declspec(naked) void CheckTraitHack() {
 	__asm {
 		mov  edx, ds:[FO_VAR_temp_trait];
 		cmp  edx, -1;
@@ -384,7 +384,7 @@ static DWORD __fastcall HaveFakeTraits(int &isSelectPtr) {
 	return (fakeTraits.empty()) ? PlayerHasPerk(isSelectPtr) : 0x43425B; // print traits
 }
 
-static void __declspec(naked) PlayerHasPerkHack() {
+static __declspec(naked) void PlayerHasPerkHack() {
 	__asm {
 		push ecx;            // isSelect
 		mov  ecx, esp;       // ptr to isSelect
@@ -394,7 +394,7 @@ static void __declspec(naked) PlayerHasPerkHack() {
 	}
 }
 
-static void __declspec(naked) PlayerHasTraitHook() {
+static __declspec(naked) void PlayerHasTraitHook() {
 	__asm {
 		push ecx;            // isSelect
 		mov  ecx, esp;       // ptr to isSelect
@@ -404,7 +404,7 @@ static void __declspec(naked) PlayerHasTraitHook() {
 	}
 }
 
-static void __declspec(naked) GetPerkLevelHook() {
+static __declspec(naked) void GetPerkLevelHook() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
@@ -419,7 +419,7 @@ fake:
 	}
 }
 
-static void __declspec(naked) GetPerkImageHook() {
+static __declspec(naked) void GetPerkImageHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -434,7 +434,7 @@ fake:
 	}
 }
 
-static void __declspec(naked) GetPerkNameHook() {
+static __declspec(naked) void GetPerkNameHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -450,7 +450,7 @@ fake:
 	}
 }
 
-static void __declspec(naked) GetPerkDescHook() {
+static __declspec(naked) void GetPerkDescHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -467,7 +467,7 @@ fake:
 }
 
 // Search all available perks for the player to display them in the character screen
-static void __declspec(naked) EndPerkLoopHack() {
+static __declspec(naked) void EndPerkLoopHack() {
 	static const DWORD EndPerkLoopExit = 0x434446;
 	static const DWORD EndPerkLoopCont = 0x4343A5;
 	using namespace fo;
@@ -506,7 +506,7 @@ static DWORD __stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) 
 	return available; // total number of perks available for selection
 }
 
-static void __declspec(naked) GetAvailablePerksHook() {
+static __declspec(naked) void GetAvailablePerksHook() {
 	__asm {
 		push ecx;
 		push edx; // arg data
@@ -524,7 +524,7 @@ next:
 	}
 }
 
-static void __declspec(naked) GetPerkSLevelHook() {
+static __declspec(naked) void GetPerkSLevelHook() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
@@ -539,7 +539,7 @@ fake:
 	}
 }
 
-static void __declspec(naked) GetPerkSImageHook() {
+static __declspec(naked) void GetPerkSImageHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -556,7 +556,7 @@ fake:
 	}
 }
 
-static void __declspec(naked) GetPerkSNameHook() {
+static __declspec(naked) void GetPerkSNameHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -574,7 +574,7 @@ fake:
 	}
 }
 
-static void __declspec(naked) GetPerkSDescHook() {
+static __declspec(naked) void GetPerkSDescHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -692,7 +692,7 @@ static long __stdcall AddFakePerk(DWORD perkID) {
 }
 
 // Adds perk from selection window to player
-static void __declspec(naked) AddPerkHook() {
+static __declspec(naked) void AddPerkHook() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
@@ -737,7 +737,7 @@ static fo::PerkInfo* __fastcall CanAddPerk(DWORD perkID) {
 	return 0;
 }
 
-static void __declspec(naked) perk_can_add_hack() {
+static __declspec(naked) void perk_can_add_hack() {
 	static const DWORD perk_can_add_exit = 0x496A03;
 	static const DWORD perk_can_add_check = 0x496872;
 	__asm {
@@ -765,7 +765,7 @@ static fo::PerkInfo* __fastcall PerkData(DWORD perkID, fo::GameObject* critter, 
 	return 0;
 }
 
-static void __declspec(naked) perk_add_effect_hook() {
+static __declspec(naked) void perk_add_effect_hook() {
 	static const DWORD perk_add_effect_exit = 0x496CD9;
 	static const DWORD perk_add_effect_continue = 0x496C4A;
 	__asm {
@@ -785,7 +785,7 @@ end:
 	}
 }
 
-static void __declspec(naked) perk_remove_effect_hook() {
+static __declspec(naked) void perk_remove_effect_hook() {
 	static const DWORD perk_remove_effect_exit = 0x496D99;
 	static const DWORD perk_remove_effect_continue = 0x496D2E;
 	__asm {
@@ -805,7 +805,7 @@ end:
 	}
 }
 
-static void __declspec(naked) HeaveHoHook() {
+static __declspec(naked) void HeaveHoHook() {
 	using namespace fo;
 	__asm {
 		xor  edx, edx;
@@ -1018,7 +1018,7 @@ DWORD Perks::GetTraitSkillBonus(int skillID, int traitIndex) {
 	return traitSkillBonuses[skillID * fo::Trait::TRAIT_count + fo::var::pc_trait[traitIndex]];
 }
 
-static void __declspec(naked) BlockedTrait() {
+static __declspec(naked) void BlockedTrait() {
 	__asm {
 		xor  eax, eax;
 		retn;
@@ -1121,7 +1121,7 @@ static __declspec(naked) void game_init_hook() {
 	}
 }
 
-static void __declspec(naked) perks_dialog_hook() {
+static __declspec(naked) void perks_dialog_hook() {
 	static const DWORD perks_dialog_Ret = 0x43C92F;
 	__asm {
 		call fo::funcoffs::ListDPerks_;
@@ -1134,7 +1134,7 @@ dlgExit:
 	}
 }
 /*
-static void __declspec(naked) item_w_mp_cost_hook() {
+static __declspec(naked) void item_w_mp_cost_hook() {
 	__asm {
 		call fo::funcoffs::item_w_range_;
 		cmp  eax, 2;
@@ -1150,7 +1150,7 @@ checkType:
 }
 */
 // Haenlomal's tweak
-static void __declspec(naked) item_w_called_shot_hack() {
+static __declspec(naked) void item_w_called_shot_hack() {
 	static const DWORD FastShotTraitFix_End = 0x478E7F;
 	using namespace fo;
 	__asm {

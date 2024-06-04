@@ -28,7 +28,7 @@ static long textLine;
 static long bottomPos;
 static long panDesert;
 
-static void __declspec(naked) endgame_display_image_hook_art_frame_data() {
+static __declspec(naked) void endgame_display_image_hook_art_frame_data() {
 	__asm {
 		mov  panDesert, 0;
 		mov  color, -1;
@@ -74,7 +74,7 @@ static void __cdecl endgame_display_image_hook_buf_to_buf(BYTE* src, long w, lon
 	}
 }
 
-static void __declspec(naked) endgame_display_image_hook_buf_to_buf_loop() {
+static __declspec(naked) void endgame_display_image_hook_buf_to_buf_loop() {
 	static long tmp;
 	__asm {
 		pop  ebp; // ret addr
@@ -110,7 +110,7 @@ static long __fastcall DarkRectangle(long tH, long tW, short totalLines) {
 	return x + ((y + (tH * textLine++)) * Setting::ScreenWidth()); // text print offset
 }
 
-static void __declspec(naked) endgame_show_subtitles_hook_buf_fill() {
+static __declspec(naked) void endgame_show_subtitles_hook_buf_fill() {
 	__asm {
 		push [esp + 0xBC - 0x20 + 8]; // count lines
 		mov  ecx, ebx;

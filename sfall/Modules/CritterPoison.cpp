@@ -51,7 +51,7 @@ void __fastcall sf_critter_adjust_poison(fo::GameObject* critter, long amount) {
 	}
 }
 
-static void __declspec(naked) critter_adjust_poison_hack() {
+static __declspec(naked) void critter_adjust_poison_hack() {
 	__asm {
 		mov  edx, esi;
 		mov  ecx, edi;
@@ -59,7 +59,7 @@ static void __declspec(naked) critter_adjust_poison_hack() {
 	}
 }
 
-void __declspec(naked) critter_check_poison_hack() {
+__declspec(naked) void critter_check_poison_hack() {
 	__asm {
 		mov  eax, CritterPoison::adjustPoisonHP_Default;
 		mov  edx, CritterPoison::adjustPoisonHP;
@@ -78,7 +78,7 @@ void __fastcall critter_check_poison_fix() {
 	}
 }
 
-static void __declspec(naked) critter_check_poison_hack_fix() {
+static __declspec(naked) void critter_check_poison_hack_fix() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -93,7 +93,7 @@ notDude:
 	}
 }
 
-void __declspec(naked) critter_adjust_poison_hack_fix() { // can also be called from HOOK_ADJUSTPOISON
+__declspec(naked) void critter_adjust_poison_hack_fix() { // can also be called from HOOK_ADJUSTPOISON
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -104,7 +104,7 @@ void __declspec(naked) critter_adjust_poison_hack_fix() { // can also be called 
 	}
 }
 
-static void __declspec(naked) critter_check_rads_hack() {
+static __declspec(naked) void critter_check_rads_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {

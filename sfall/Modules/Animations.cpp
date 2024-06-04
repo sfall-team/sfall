@@ -225,7 +225,7 @@ static long __fastcall CopyRegistry(long checkSlot) {
 	return lastAnim;
 }
 
-static void __declspec(naked) check_registry_hack() {
+static __declspec(naked) void check_registry_hack() {
 	__asm {
 		mov  eax, animSet;
 		cmp  [eax][edx][0x10], 0x0B; // animSet[].anim[].animType == Must_Call
@@ -262,7 +262,7 @@ static long __fastcall anim_cleanup_sub(long currAnims) {
 	return (currAnims <= 0) ? -1 : 0;
 }
 
-static void __declspec(naked) anim_cleanup_hack() {
+static __declspec(naked) void anim_cleanup_hack() {
 	__asm {
 		call anim_cleanup_sub;
 		mov  ecx, eax; // ecx - anims slot index
@@ -312,7 +312,7 @@ static void __fastcall CheckAppendReg(long, long totalAnims) {
 	set->totalAnimCount = totalAnims;
 }
 
-static void __declspec(naked) register_end_hack_begin() {
+static __declspec(naked) void register_end_hack_begin() {
 	__asm {
 		mov  edx, ds:[FO_VAR_curr_anim_counter];
 		mov  esi, animSet;
@@ -356,7 +356,7 @@ static long __fastcall UnlockAnimSlot() {
 	return 0;
 }
 
-static void __declspec(naked) register_end_hack_end() {
+static __declspec(naked) void register_end_hack_end() {
 	__asm {
 //		mov  eax, animSet;
 //		test word ptr [eax][esi][0xC], e_Append; // slot with added animation?
@@ -371,7 +371,7 @@ static void __declspec(naked) register_end_hack_end() {
 	}
 }
 
-static void __declspec(naked) register_clear_hook() {
+static __declspec(naked) void register_clear_hook() {
 	__asm {
 		mov  ecx, eax;
 		call LockAnimSlot;
@@ -379,7 +379,7 @@ static void __declspec(naked) register_clear_hook() {
 	}
 }
 
-static void __declspec(naked) anim_free_slot_hack() {
+static __declspec(naked) void anim_free_slot_hack() {
 	static const DWORD anim_free_slot_next = 0x413BD5;
 	using namespace fo;
 	__asm {
@@ -400,7 +400,7 @@ static void ClearAllLock() {
 	std::fill(lockAnimSet.begin(), lockAnimSet.end(), 0);
 }
 
-static void __declspec(naked) anim_stop_hack() {
+static __declspec(naked) void anim_stop_hack() {
 	__asm {
 		call ClearAllLock;
 		mov  edx, 1;
@@ -415,7 +415,7 @@ static void __fastcall ClearDataAnimations(long slot) {
 }
 #endif
 
-static void __declspec(naked) anim_set_end_hack() {
+static __declspec(naked) void anim_set_end_hack() {
 	__asm {
 		test dl, e_InCombat; // is combat flag set?
 		jz   skip;
@@ -441,7 +441,7 @@ static bool __fastcall CheckSetSad(BYTE openFlag, DWORD slot) {
 	return false;
 }
 
-static void __declspec(naked) object_move_hack() {
+static __declspec(naked) void object_move_hack() {
 	static const DWORD object_move_back0 = 0x417611;
 	static const DWORD object_move_back1 = 0x417616;
 	__asm {
@@ -456,7 +456,7 @@ end:
 	}
 }
 
-static void __declspec(naked) action_climb_ladder_hook() {
+static __declspec(naked) void action_climb_ladder_hook() {
 	using namespace fo;
 	__asm {
 		cmp  word ptr [edi + 0x40], 0xFFFF; // DestTile
@@ -475,7 +475,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) art_alias_fid_hack() {
+static __declspec(naked) void art_alias_fid_hack() {
 	static const DWORD art_alias_fid_Ret = 0x419A6D;
 	using namespace fo;
 	__asm {
@@ -492,7 +492,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) obj_use_container_hook() {
+static __declspec(naked) void obj_use_container_hook() {
 	static const DWORD obj_use_container_Ret = 0x49D012;
 	static const DWORD obj_use_container_ExitRet = 0x49D069;
 	using namespace fo::Fields;

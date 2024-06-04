@@ -488,7 +488,7 @@ static void __fastcall ReleaseSound(sDSSound* sound) {
 	FreeSound(sound);
 }
 
-static void __declspec(naked) soundLoad_hook_A() {
+static __declspec(naked) void soundLoad_hook_A() {
 	static const DWORD SoundLoadHackEnd = 0x4AD4CC;
 	__asm {
 		cmp  dword ptr [esp + 16 + 4 + 0x11C + 4], 0x45145F + 5; // called from gsound_load_sound_volume_
@@ -528,7 +528,7 @@ playSfallSound:
 	}
 }
 
-static void __declspec(naked) gsound_background_play_hook() {
+static __declspec(naked) void gsound_background_play_hook() {
 	__asm {
 		mov  esi, eax;         // store
 		mov  ecx, ebp;         // file
@@ -538,7 +538,7 @@ static void __declspec(naked) gsound_background_play_hook() {
 	}
 }
 
-static void __declspec(naked) main_death_scene_hook() {
+static __declspec(naked) void main_death_scene_hook() {
 	__asm {
 		mov  deathSceneSpeech, 1;
 		call fo::funcoffs::gsound_speech_play_;
@@ -552,7 +552,7 @@ playSfall:
 	}
 }
 
-static void __declspec(naked) soundLoad_hook_B() {
+static __declspec(naked) void soundLoad_hook_B() {
 	__asm {
 		xor  ebp, ebp;
 		cmp  dword ptr [esp + 16 + 4], 0x46620D + 5; // called from soundStartInterpret_ (op_soundplay_)
@@ -587,7 +587,7 @@ static fo::AudioDecode* __fastcall SoundFormatChange(fo::AudioDecode* decode/*, 
 	return decode;
 }
 
-static void __declspec(naked) audioOpen_hook() {
+static __declspec(naked) void audioOpen_hook() {
 	static DWORD audioOpen_AddrRet;
 	__asm {
 		cmp  acmSoundData, 0;
@@ -607,7 +607,7 @@ skip:
 
 //////////////////////// SLIDES SPEECH SOUND CONTROL //////////////////////////
 
-static void __declspec(naked) endgame_load_voiceover_hack() {
+static __declspec(naked) void endgame_load_voiceover_hack() {
 	__asm {
 		cmp  speechSound, 0;
 		jnz  skip;
@@ -625,7 +625,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) endgame_pan_desert_hack() {
+static __declspec(naked) void endgame_pan_desert_hack() {
 	__asm {
 		mov  ecx, speechSound;
 		test ecx, ecx;
@@ -636,7 +636,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) endgame_pan_desert_hook() {
+static __declspec(naked) void endgame_pan_desert_hook() {
 	__asm {
 		cmp  speechSound, 0;
 		jnz  GetSpeechDurationTime;
@@ -644,7 +644,7 @@ static void __declspec(naked) endgame_pan_desert_hook() {
 	}
 }
 
-static void __declspec(naked) endgame_display_image_hack() {
+static __declspec(naked) void endgame_display_image_hack() {
 	__asm {
 		mov  ecx, speechSound;
 		call ResumeSfallSound;
@@ -653,7 +653,7 @@ static void __declspec(naked) endgame_display_image_hack() {
 	}
 }
 
-static void __declspec(naked) endgame_pan_desert_hack_play() {
+static __declspec(naked) void endgame_pan_desert_hack_play() {
 	__asm {
 		mov  ecx, speechSound;
 		call ResumeSfallSound;
@@ -665,7 +665,7 @@ static void __declspec(naked) endgame_pan_desert_hack_play() {
 
 //////////////////////// LIPS SPEECH SOUND CONTROL ////////////////////////////
 
-static void __declspec(naked) lips_play_speech_hook() {
+static __declspec(naked) void lips_play_speech_hook() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jnz  skip;
@@ -676,7 +676,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gdialog_bk_hook() {
+static __declspec(naked) void gdialog_bk_hook() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jnz  skip;
@@ -687,7 +687,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) lips_bkg_proc_hook() {
+static __declspec(naked) void lips_bkg_proc_hook() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jnz  skip;
@@ -697,7 +697,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gdialogFreeSpeech_hack() {
+static __declspec(naked) void gdialogFreeSpeech_hack() {
 	__asm {
 		cmp  lipsPlaying, 0;
 		jz   skip;
@@ -717,7 +717,7 @@ skip:
 
 //////////////////// VOLUME AND PLAYBACK SOUND CONTROL ////////////////////////
 
-static void __declspec(naked) gsound_speech_stop_hack() {
+static __declspec(naked) void gsound_speech_stop_hack() {
 	__asm {
 		mov  ecx, speechSound;
 		test ecx, ecx;
@@ -732,7 +732,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gmovie_play_hook_stop() {
+static __declspec(naked) void gmovie_play_hook_stop() {
 	__asm {
 		mov  eax, backgroundMusic;
 		test eax, eax;
@@ -752,7 +752,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gmovie_play_hook_pause() {
+static __declspec(naked) void gmovie_play_hook_pause() {
 	__asm {
 		push ecx;
 		push edx;
@@ -767,7 +767,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gmovie_play_hook_unpause() {
+static __declspec(naked) void gmovie_play_hook_unpause() {
 	__asm {
 		push ecx;
 		push edx;
@@ -782,7 +782,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gsound_background_volume_set_hack() {
+static __declspec(naked) void gsound_background_volume_set_hack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_background_volume], eax;
 		push ecx;
@@ -803,7 +803,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gsound_master_volume_set_hack() {
+static __declspec(naked) void gsound_master_volume_set_hack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_master_volume], edx;
 		push eax;
@@ -821,7 +821,7 @@ static void __declspec(naked) gsound_master_volume_set_hack() {
 	}
 }
 
-static void __declspec(naked) gsound_set_sfx_volume_hack() {
+static __declspec(naked) void gsound_set_sfx_volume_hack() {
 	__asm {
 		push ecx;
 		push edx;
@@ -852,7 +852,7 @@ void Sound::SoundLostFocus(long isActive) {
 static char attackerSnd[9] = {0};
 static char targetSnd[9] = {0};
 
-static void __declspec(naked) combatai_msg_hook() {
+static __declspec(naked) void combatai_msg_hook() {
 	__asm {
 		mov  edi, [esp + 0xC]; // lip file from msg
 		push eax;
@@ -875,7 +875,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) ai_print_msg_hook() {
+static __declspec(naked) void ai_print_msg_hook() {
 	__asm {
 		push eax;
 		cmp  edx, FO_VAR_target_str;
@@ -897,7 +897,7 @@ end:
 	}
 }
 
-static void __declspec(naked) soundStartInterpret_hook() {
+static __declspec(naked) void soundStartInterpret_hook() {
 	__asm {
 		mov  ebp, eax; // keep sound data
 		call fo::funcoffs::soundSetCallback_;
@@ -932,7 +932,7 @@ rawFile:
 
 static fo::GameObject* relativeObject;
 
-static void __declspec(naked) gsound_compute_relative_volume_hook() {
+static __declspec(naked) void gsound_compute_relative_volume_hook() {
 	__asm {
 		mov relativeObject, ecx;
 		jmp fo::funcoffs::win_get_rect_;
@@ -955,7 +955,7 @@ static long __fastcall SetVolumeAndPan(long volume, fo::ACMSoundData* sound) {
 	return volume;
 }
 
-static void __declspec(naked) gsound_load_sound_volume_hack() {
+static __declspec(naked) void gsound_load_sound_volume_hack() {
 	__asm {
 		cmp  relativeObject, 0;
 		je   skip;
@@ -968,7 +968,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) sfxl_init_hook() {
+static __declspec(naked) void sfxl_init_hook() {
 	__asm {
 		xor  eax, eax;
 		retn;

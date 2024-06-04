@@ -158,7 +158,7 @@ static void WorldMapFPS() {
 	worldMapTicks = prevTicks;
 }
 
-static void __declspec(naked) wmWorldMap_hook_patch1() {
+static __declspec(naked) void wmWorldMap_hook_patch1() {
 	__asm {
 		push dword ptr ds:[FO_VAR_last_buttons];
 		push dword ptr ds:[FO_VAR_mouse_buttons];
@@ -169,7 +169,7 @@ static void __declspec(naked) wmWorldMap_hook_patch1() {
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hook_patch2() {
+static __declspec(naked) void wmWorldMap_hook_patch2() {
 	__asm {
 		call WorldMapFPS;
 		jmp  fo::funcoffs::get_input_;
@@ -177,7 +177,7 @@ static void __declspec(naked) wmWorldMap_hook_patch2() {
 }
 
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
-static void __declspec(naked) wmWorldMap_hook() {
+static __declspec(naked) void wmWorldMap_hook() {
 	__asm {
 		call ds:[SpeedPatch::getTickCountOffs]; // current ticks
 		cmp  eax, worldMapTicks;
@@ -189,14 +189,14 @@ skipHook:
 	}
 }
 
-static void __declspec(naked) wmWorldMapFunc_hook() {
+static __declspec(naked) void wmWorldMapFunc_hook() {
 	__asm {
 		inc  dword ptr ds:[FO_VAR_wmLastRndTime];
 		jmp  fo::funcoffs::wmPartyWalkingStep_;
 	}
 }
 
-static void __declspec(naked) wmRndEncounterOccurred_hack() {
+static __declspec(naked) void wmRndEncounterOccurred_hack() {
 	__asm { // edx - _wmLastRndTime
 		xor  ecx, ecx;
 		cmp  edx, WorldMapEncounterRate;
@@ -204,7 +204,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	}
 }
 
-static void __declspec(naked) ViewportHook() {
+static __declspec(naked) void ViewportHook() {
 	__asm {
 		call fo::funcoffs::wmWorldMapLoadTempData_;
 		mov  eax, ViewportX;
@@ -248,7 +248,7 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
-static void __declspec(naked) critter_can_obj_dude_rest_hook() {
+static __declspec(naked) void critter_can_obj_dude_rest_hook() {
 	using namespace fo;
 	__asm {
 		push eax;
@@ -268,7 +268,7 @@ skip:
 
 static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
 
-static void __declspec(naked) wmMapInit_hack() {
+static __declspec(naked) void wmMapInit_hack() {
 	__asm {
 		mov  esi, [esp + 0xA0 - 0x20 + 4];       // curent map number
 		cmp  esi, AUTOMAP_MAX;
@@ -300,7 +300,7 @@ end:
 	}
 }
 
-static void __declspec(naked) wmRndEncounterOccurred_hook() {
+static __declspec(naked) void wmRndEncounterOccurred_hook() {
 	__asm {
 		push eax;
 		mov  edx, 1;
@@ -324,7 +324,7 @@ jLoop:
 
 // Fallout 1 behavior: No radius for uncovered locations on the world map
 // for the mark_area_known script function when the mark_state argument of the function is set to 3
-long __declspec(naked) Worldmap::AreaMarkStateIsNoRadius() {
+__declspec(naked) long Worldmap::AreaMarkStateIsNoRadius() {
 	__asm {
 		xor  eax, eax;
 		cmp  esi, 3; // esi - mark_state value
@@ -338,7 +338,7 @@ skip:
 
 static bool customPosition = false;
 
-static void __declspec(naked) main_load_new_hook() {
+static __declspec(naked) void main_load_new_hook() {
 	__asm {
 		call fo::funcoffs::map_load_;
 		push edx;
@@ -471,7 +471,7 @@ static DWORD __fastcall wmWorldMap_HealingTimeElapsed(DWORD elapsedTocks) {
 	return 0; // skip healing
 }
 
-static void __declspec(naked) wmWorldMap_elapsed_tocks_hook() {
+static __declspec(naked) void wmWorldMap_elapsed_tocks_hook() {
 	__asm {
 		push ecx;
 		call fo::funcoffs::elapsed_tocks_;

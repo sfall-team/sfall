@@ -144,7 +144,7 @@ static void DrawExtendedApBar() {
 	fo::func::buf_to_buf((BYTE*)srcFrame.data, srcFrame.width, srcFrame.height, srcFrame.width, dest, win->width);
 }
 
-static void __declspec(naked) intface_init_hook_unlock_iface_frm() {
+static __declspec(naked) void intface_init_hook_unlock_iface_frm() {
 	__asm {
 		pushadc;
 		call DrawExtendedApBar;
@@ -153,7 +153,7 @@ static void __declspec(naked) intface_init_hook_unlock_iface_frm() {
 	}
 }
 
-static void __declspec(naked) intface_init_hack() {
+static __declspec(naked) void intface_init_hack() {
 	__asm {
 		add  eax, 9276 - (54 / 2); // x offset
 		mov  edx, 144 - 90;        // width
@@ -163,7 +163,7 @@ static void __declspec(naked) intface_init_hack() {
 	}
 }
 
-static void __declspec(naked) intface_update_move_points_hack() {
+static __declspec(naked) void intface_update_move_points_hack() {
 	static const DWORD intface_update_move_points_ret = 0x45EE3E;
 	__asm {
 		mov  eax, 16 * 9
@@ -199,7 +199,7 @@ static void ActionPointsBarPatch() {
 }
 
 static long costAP = -1;
-static void __declspec(naked) intface_redraw_items_hack0() {
+static __declspec(naked) void intface_redraw_items_hack0() {
 	__asm {
 		sub  eax, esi;
 		shl  eax, 4;
@@ -225,7 +225,7 @@ noShift:
 	}
 }
 
-static void __declspec(naked) intface_redraw_items_hack1() {
+static __declspec(naked) void intface_redraw_items_hack1() {
 	__asm {
 		mov  edx, 10;
 		cmp  costAP, edx;
@@ -268,7 +268,7 @@ run:
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_text_font_hook() {
+static __declspec(naked) void wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 101; // normal text font
 		jmp  fo::funcoffs::text_font_;
@@ -328,7 +328,7 @@ static const DWORD wmViewportEndBottom[] = {
 	0x4C44BE,                                                   // wmCursorIsVisible_
 };
 /*
-static void __declspec(naked) wmInterfaceInit_hack() {
+static __declspec(naked) void wmInterfaceInit_hack() {
 	static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
 	__asm {
 		push eax;
@@ -338,7 +338,7 @@ static void __declspec(naked) wmInterfaceInit_hack() {
 	}
 }
 */
-static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
+static __declspec(naked) void wmInterfaceDrawSubTileList_hack() {
 	__asm {
 		mov  edx, [esp + 0x10 - 0x10 + 4];
 		imul edx, WMAP_WIN_WIDTH;
@@ -347,7 +347,7 @@ static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceDrawCircleOverlay_hack() {
+static __declspec(naked) void wmInterfaceDrawCircleOverlay_hack() {
 	__asm {
 		mov  eax, ecx;
 		imul eax, WMAP_WIN_WIDTH;
@@ -355,7 +355,7 @@ static void __declspec(naked) wmInterfaceDrawCircleOverlay_hack() {
 	}
 }
 
-static void __declspec(naked) wmDrawCursorStopped_hack0() {
+static __declspec(naked) void wmDrawCursorStopped_hack0() {
 	__asm {
 		mov  ebx, ecx;
 		imul ebx, WMAP_WIN_WIDTH;
@@ -363,7 +363,7 @@ static void __declspec(naked) wmDrawCursorStopped_hack0() {
 	}
 }
 
-static void __declspec(naked) wmDrawCursorStopped_hack1() {
+static __declspec(naked) void wmDrawCursorStopped_hack1() {
 	__asm {
 		mov  ebx, eax;
 		imul ebx, WMAP_WIN_WIDTH;
@@ -371,7 +371,7 @@ static void __declspec(naked) wmDrawCursorStopped_hack1() {
 	}
 }
 
-static void __declspec(naked) wmRefreshTabs_hook() {
+static __declspec(naked) void wmRefreshTabs_hook() {
 	__asm {
 		mov  eax, edx;
 		imul eax, WMAP_WIN_WIDTH;
@@ -380,7 +380,7 @@ static void __declspec(naked) wmRefreshTabs_hook() {
 	}
 }
 
-static void __declspec(naked) wmTownMapRefresh_hook() {
+static __declspec(naked) void wmTownMapRefresh_hook() {
 	__asm {
 		cmp  edx, 700; //_wmTownWidth
 		jl   scale;
@@ -399,7 +399,7 @@ scale:
 	}
 }
 
-static void __declspec(naked) wmTownMapRefresh_hook_textpos() {
+static __declspec(naked) void wmTownMapRefresh_hook_textpos() {
 	__asm {
 		push eax;
 		push ebx;
@@ -425,7 +425,7 @@ skipY:
 	}
 }
 
-static void __declspec(naked) wmTownMapInit_hook() {
+static __declspec(naked) void wmTownMapInit_hook() {
 	__asm {
 		push eax;
 		mov  eax, edx; // xpos
@@ -450,7 +450,7 @@ static long __stdcall CheckMouseInWorldRect(long left, long top, long right, lon
 	);
 }
 
-static void __declspec(naked) wmWorldMap_hook_mouse_click_in() {
+static __declspec(naked) void wmWorldMap_hook_mouse_click_in() {
 	__asm {
 		push ecx; // bottom
 		push ebx; // right
@@ -649,7 +649,7 @@ static void AddNewDot() {
 	dots.emplace_back(dot_xpos, dot_ypos);
 }
 
-static void __declspec(naked) DrawingDots() noexcept {
+static __declspec(naked) void DrawingDots() noexcept {
 	long x_offset, y_offset;
 	__asm {
 		mov ebp, esp; // prolog
@@ -721,7 +721,7 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 	return true;
 }
 
-static void __declspec(naked) wmInterfaceRefresh_hook() {
+static __declspec(naked) void wmInterfaceRefresh_hook() {
 	if (colorDot && fo::var::target_xpos != -1) {
 		if (fo::var::In_WorldMap) {
 			DrawingDots();
@@ -779,7 +779,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hack() {
+static __declspec(naked) void wmWorldMap_hack() {
 	__asm {
 		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
@@ -811,7 +811,7 @@ isScroll:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
+static __declspec(naked) void wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
 		mov byte ptr [eax - 1], 13;
 		mov byte ptr [eax + 1], 13;
@@ -825,7 +825,7 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
+static __declspec(naked) void wmInterfaceRefreshCarFuel_hack() {
 	__asm {
 		mov byte ptr [eax - 1], 196;
 		mov byte ptr [eax + 1], 196;
@@ -836,7 +836,7 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_hook() {
+static __declspec(naked) void wmInterfaceInit_hook() {
 	static DWORD retAddr;
 	__asm {
 		pop  retAddr;
@@ -850,7 +850,7 @@ static void __declspec(naked) wmInterfaceInit_hook() {
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hook() {
+static __declspec(naked) void wmWorldMap_hook() {
 	__asm {
 		push eax;
 		mov  eax, 0x503E14; // 'ib1p1xx1'
@@ -860,7 +860,7 @@ static void __declspec(naked) wmWorldMap_hook() {
 	}
 }
 
-static void __declspec(naked) wmDrawCursorStopped_hack_hotspot() {
+static __declspec(naked) void wmDrawCursorStopped_hack_hotspot() {
 	__asm {
 		mov  eax, 0x503E34; // 'ib2p1xx1'
 		call fo::funcoffs::gsound_play_sfx_file_;
@@ -869,7 +869,7 @@ static void __declspec(naked) wmDrawCursorStopped_hack_hotspot() {
 	}
 }
 
-static void __declspec(naked) wmTownMapInit_hack() {
+static __declspec(naked) void wmTownMapInit_hack() {
 	__asm {
 		mov  dword ptr ds:[edi + 0x672DD8], eax; // _wmTownMapButtonId
 		push eax;
@@ -970,7 +970,7 @@ static void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C5289, 12);
 }
 
-static void __declspec(naked) intface_rotate_numbers_hack() {
+static __declspec(naked) void intface_rotate_numbers_hack() {
 	__asm {
 		push edi;
 		push ebp;
@@ -1033,7 +1033,7 @@ static long gmouse_handle_event_hook() {
 	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
-static void __declspec(naked) gmouse_bk_process_hook() {
+static __declspec(naked) void gmouse_bk_process_hook() {
 	__asm {
 		push 1; // bypass Transparent
 		mov  ecx, eax;
@@ -1045,7 +1045,7 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 
 static long ammoBarXPos = 461; // move ammo bar away from rivets (was 463)
 
-static void __declspec(naked) intface_update_ammo_lights_hack() {
+static __declspec(naked) void intface_update_ammo_lights_hack() {
 	__asm {
 		mov  eax, 70; // 70 - full ammo bar
 		cmp  edx, eax;
@@ -1055,7 +1055,7 @@ static void __declspec(naked) intface_update_ammo_lights_hack() {
 	}
 }
 
-static void __declspec(naked) display_body_hook() {
+static __declspec(naked) void display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
 		cmp  ebx, 1; // check mode 0 or 1
@@ -1166,7 +1166,7 @@ static DWORD __fastcall gdialog_barter_get_art_height() {
 }
 
 // replace art data for dialog barter window
-static void __declspec(naked) gdialog_barter_create_win__art_frame_data_hook() {
+static __declspec(naked) void gdialog_barter_create_win_hook_art_frame_data() {
 	__asm {
 		pushadc;
 		call gdialog_barter_get_art_data;
@@ -1183,7 +1183,7 @@ skipCall:
 }
 
 // replace art height (length) for dialog barter window
-static void __declspec(naked) gdialog_barter_create_win__art_frame_length_hook() {
+static __declspec(naked) void gdialog_barter_create_win_hook_art_frame_length() {
 	__asm {
 		pushadc;
 		call gdialog_barter_get_art_height;
@@ -1200,7 +1200,7 @@ skipCall:
 }
 
 // replace art data for dialog barter window when scrolling down
-static void __declspec(naked) gdialog_barter_destroy_win__art_ptr_lock_data_hook() {
+static __declspec(naked) void gdialog_barter_destroy_win_hook_art_ptr_lock_data() {
 	__asm {
 		call fo::funcoffs::art_ptr_lock_data_;
 		pushadc;
@@ -1218,7 +1218,7 @@ skipCall:
 }
 
 // Replace art data for 6-slot inventory windows
-static void __declspec(naked) inventory__art_ptr_lock_data_hook() {
+static __declspec(naked) void inventory_hook_art_ptr_lock_data() {
 	__asm {
 		push eax;
 		call fo::funcoffs::art_ptr_lock_data_;
@@ -1244,7 +1244,7 @@ constexpr int extraBarterHeight = 48 * numExtraBarterSlots;
 // This call draws pixels from alltlk.frm onto the barter window prior to scroll animation.
 // Because we expanded barter window downwards beyond the background window, it will try to copy pixels beyond source FRM buffer.
 // To fix this, we reduce the height parameter passed to buf_to_buf.
-static void __declspec(naked) gdialog_barter_create__win_buf_to_buf_hook() {
+static __declspec(naked) void gdialog_barter_create_win_hook_buf_to_buf() {
 	__asm {
 		mov  eax, [esp + 12]; // height to copy
 		sub  eax, extraBarterHeight;
@@ -1253,7 +1253,7 @@ static void __declspec(naked) gdialog_barter_create__win_buf_to_buf_hook() {
 	}
 }
 // Same issue as above, this time we reduce height passed to gdialog_scroll_subwin to avoid reading beyond alltlk.frm height.
-static void __declspec(naked) gdialog_barter_destroy_win__gdialog_scroll_subwin_hook() {
+static __declspec(naked) void gdialog_barter_destroy_win_hook_gdialog_scroll_subwin() {
 	__asm {
 		push eax;
 		mov  eax, [esp + 12]; // height to copy
@@ -1308,11 +1308,11 @@ static void ExpandedBarterPatch() {
 	//SafeWrite8(0x44831C, *(BYTE*)0x44831C | fo::WinFlags::Transparent); // add transparentcy flag to trade/barter window
 	//SafeWrite8(0x46EDA9, *(BYTE*)0x46EDA9 | fo::WinFlags::Transparent); // add transparent flag 0x20 to inventory (inner part) window
 
-	HookCall(0x4482EA, gdialog_barter_create_win__art_frame_data_hook);
-	HookCall(0x4482FF, gdialog_barter_create_win__art_frame_length_hook);
-	HookCall(0x448603, gdialog_barter_destroy_win__art_ptr_lock_data_hook);
-	HookCall(0x448374, gdialog_barter_create__win_buf_to_buf_hook);
-	HookCall(0x448628, gdialog_barter_destroy_win__gdialog_scroll_subwin_hook);
+	HookCall(0x4482EA, gdialog_barter_create_win_hook_art_frame_data);
+	HookCall(0x4482FF, gdialog_barter_create_win_hook_art_frame_length);
+	HookCall(0x448603, gdialog_barter_destroy_win_hook_art_ptr_lock_data);
+	HookCall(0x448374, gdialog_barter_create_win_hook_buf_to_buf);
+	HookCall(0x448628, gdialog_barter_destroy_win_hook_gdialog_scroll_subwin);
 }
 
 // Expands inventory/loot/item select windows vertically with 8 vertical slots instead of 6
@@ -1345,7 +1345,7 @@ static void ExpandedInventoryPatch() {
 	// - Crashes when opening action window at certain coordinates and screen resolutions (suspect relation with height of active area - above interface panel)
 	//SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) | fo::WinFlags::Transparent); //add transparency for all tall inventory windows
 
-	HookCalls(inventory__art_ptr_lock_data_hook, {
+	HookCalls(inventory_hook_art_ptr_lock_data, {
 		0x46ED56, // setup_inventory
 		0x46FE51, 0x46FF8E, 0x46FFF9, // display_inventory_
 		0x4703B5, // display_target_inventory_

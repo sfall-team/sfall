@@ -32,7 +32,7 @@ static long __fastcall CharacterWinAdd(long height, long yPos, long xPos, long w
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) CharacterWinAddHook() {
+static __declspec(naked) void CharacterWinAddHook() {
 	__asm {
 		xchg ebx, [esp]; // width
 		push eax;        // xPos
@@ -41,7 +41,7 @@ static void __declspec(naked) CharacterWinAddHook() {
 	}
 }
 
-static void __declspec(naked) CharacterInputWinAddHook() {
+static __declspec(naked) void CharacterInputWinAddHook() {
 	__asm {
 		add  edx, yPosition;
 		add  eax, xPosition;
@@ -50,7 +50,7 @@ static void __declspec(naked) CharacterInputWinAddHook() {
 }
 
 // Implementation from HRP by Mash
-static void __declspec(naked) CharacterSubmenuHook() {
+static __declspec(naked) void CharacterSubmenuHook() {
 	__asm {
 		mov  eax, ds:[FO_VAR_edit_win];
 		call fo::funcoffs::GNW_find_;
@@ -74,7 +74,7 @@ static long __fastcall DialogBoxWinAdd(long height, long yPos, long xPos, long w
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) dialog_out_hook_win_add() {
+static __declspec(naked) void dialog_out_hook_win_add() {
 	__asm {
 		xchg ebx, [esp]; // width
 		push eax;        // xPos
@@ -83,7 +83,7 @@ static void __declspec(naked) dialog_out_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) CharacterMouseGetPositionHook() {
+static __declspec(naked) void CharacterMouseGetPositionHook() {
 	__asm {
 		push eax;
 		push edx;

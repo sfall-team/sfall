@@ -107,7 +107,7 @@ int __stdcall Stats::trait_adjust_stat(DWORD statID) {
 	return result;
 }
 
-static void __declspec(naked) trait_adjust_stat_replacement() {
+static __declspec(naked) void trait_adjust_stat_replacement() {
 	__asm {
 		push edx;
 		push ecx;

@@ -24,31 +24,31 @@ namespace script
 {
 
 // graphics_functions
-void __declspec() op_graphics_funcs_available();
+void op_graphics_funcs_available();
 
-void __declspec() op_load_shader();
+void op_load_shader();
 
-void __declspec() op_free_shader();
+void op_free_shader();
 
-void __declspec() op_activate_shader();
+void op_activate_shader();
 
-void __declspec() op_deactivate_shader();
+void op_deactivate_shader();
 
-void __declspec() op_get_shader_texture();
+void op_get_shader_texture();
 
-void __declspec() op_set_shader_int();
+void op_set_shader_int();
 
-void __declspec() op_set_shader_texture();
+void op_set_shader_texture();
 
-void __declspec() op_set_shader_float();
+void op_set_shader_float();
 
-void __declspec() op_set_shader_vector();
+void op_set_shader_vector();
 
-void __declspec() op_get_shader_version();
+void op_get_shader_version();
 
-void __declspec() op_set_shader_mode();
+void op_set_shader_mode();
 
-void __declspec() op_force_graphics_refresh();
+void op_force_graphics_refresh();
 
 }
 }

@@ -228,7 +228,7 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 }
 
 // insert hero art path in front of main path structure when loading art
-static void __declspec(naked) LoadNewHeroArt() {
+static __declspec(naked) void LoadNewHeroArt() {
 	__asm {
 		cmp byte ptr ds:[esi], 'r';
 		jne isNotReading;
@@ -242,7 +242,7 @@ isNotReading:
 	}
 }
 
-static void __declspec(naked) CheckHeroExist() {
+static __declspec(naked) void CheckHeroExist() {
 	__asm {
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jg   checkArt;
@@ -263,7 +263,7 @@ notExists: // if file not found load regular critter art instead
 }
 
 // adjust base hero art if num below hero art range
-static void __declspec(naked) AdjustHeroBaseArt() {
+static __declspec(naked) void AdjustHeroBaseArt() {
 	__asm {
 		add eax, critterListSize;
 		mov dword ptr ds:[FO_VAR_art_vault_guy_num], eax;
@@ -298,7 +298,7 @@ static void __stdcall SetHeroArt(bool newArtFlag) {
 }
 
 // return hero art val to normal before saving
-static void __declspec(naked) SavCritNumFix() {
+static __declspec(naked) void SavCritNumFix() {
 	__asm {
 		push ecx;
 		push edx;
@@ -317,7 +317,7 @@ static void __declspec(naked) SavCritNumFix() {
 	}
 }
 
-static void __declspec(naked) DoubleArt() {
+static __declspec(naked) void DoubleArt() {
 	__asm {
 		cmp dword ptr ss:[esp + 0xCC], 0x510774; // check if loading critter lst. 0x510774 = addr of critter list size val
 		jne endFunc;
@@ -460,7 +460,7 @@ void __stdcall SetHeroRace(int newRaceVal) {
 }
 
 // Reset Appearance when selecting "Create Character" from the New Char screen
-static void __declspec(naked) CreateCharReset() {
+static __declspec(naked) void CreateCharReset() {
 	__asm {
 		cmp  currentStyleVal, 0;
 		jnz  reset;
@@ -1011,7 +1011,7 @@ static int __stdcall CheckCharButtons() {
 	return button;
 }
 
-static void __declspec(naked) CheckCharScrnButtons() {
+static __declspec(naked) void CheckCharScrnButtons() {
 	__asm {
 		call CheckCharButtons;
 		cmp  eax, 0x500;
@@ -1052,7 +1052,7 @@ static void __fastcall HeroGenderChange(long gender) {
 	}
 }
 
-static void __declspec(naked) SexScrnEnd() {
+static __declspec(naked) void SexScrnEnd() {
 	using namespace fo;
 	__asm {
 		push edx;
@@ -1076,7 +1076,7 @@ NoVaultSuit:
 }
 
 // Create race and style selection buttons when creating a character (hero)
-static void __declspec(naked) AddCharScrnButtons() {
+static __declspec(naked) void AddCharScrnButtons() {
 	__asm {
 		pushad; // prolog
 		mov  ebp, esp;
@@ -1133,7 +1133,7 @@ static void __declspec(naked) AddCharScrnButtons() {
 }
 
 // Loading or creating a background image for the character creation/editing interface
-static void __declspec(naked) FixCharScrnBack() {
+static __declspec(naked) void FixCharScrnBack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_bckgnd], eax; // surface ptr for char scrn back
 		test eax, eax;                          // check if frm loaded ok
@@ -1262,7 +1262,7 @@ static void DeleteCharSurfaces() {
 	charScrnBackSurface = nullptr;
 }
 
-static void __declspec(naked) CharScrnEnd() {
+static __declspec(naked) void CharScrnEnd() {
 	__asm {
 		push eax;
 		call DeleteCharSurfaces;
@@ -1275,7 +1275,7 @@ static void __declspec(naked) CharScrnEnd() {
 //////////////////////////////// FIX FUNCTIONS /////////////////////////////////
 
 // Adjust PC SFX acm name. Skip Underscore char at the start of PC frm file name
-static void __declspec(naked) FixPcSFX() {
+static __declspec(naked) void FixPcSFX() {
 	__asm {
 		cmp byte ptr ds:[ebx], '_';  // check if Name begins with an 0x5F character
 		jne endFunc;
@@ -1290,7 +1290,7 @@ endFunc:
 
 /*
 // Set path to normal before printing or saving character details
-static void __declspec(naked) FixCharScrnSaveNPrint() {
+static __declspec(naked) void FixCharScrnSaveNPrint() {
 	__asm {
 		push TempPathPtr //store current path
 		mov  eax, _paths
@@ -1306,7 +1306,7 @@ static void __declspec(naked) FixCharScrnSaveNPrint() {
 }
 */
 
-static void __declspec(naked) FixPcCriticalHitMsg() {
+static __declspec(naked) void FixPcCriticalHitMsg() {
 	__asm {
 		cmp eax, critterListSize; // check if critter art in PC range
 		jle endFunc;
@@ -1316,7 +1316,7 @@ endFunc:
 	}
 }
 
-static void __declspec(naked) op_obj_art_fid_hack() {
+static __declspec(naked) void op_obj_art_fid_hack() {
 	static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 	using namespace fo;
 	using namespace Fields;
@@ -1335,7 +1335,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) op_metarule3_hook() {
+static __declspec(naked) void op_metarule3_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {

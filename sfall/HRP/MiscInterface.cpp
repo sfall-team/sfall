@@ -29,14 +29,14 @@ static long __fastcall CommonWinAdd(long height, long width, long color, long fl
 	return fo::func::win_add(xPosition, yPosition, width, height, color, flags);
 }
 
-static void __declspec(naked) CommonWinAddHook() {
+static __declspec(naked) void CommonWinAddHook() {
 	__asm {
 		mov  edx, ebx; // width
 		jmp  CommonWinAdd;
 	}
 }
 
-static void __declspec(naked) MouseGetPositionHook() {
+static __declspec(naked) void MouseGetPositionHook() {
 	__asm {
 		push eax; // outX ref
 		push edx; // outY ref

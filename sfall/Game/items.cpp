@@ -183,7 +183,7 @@ endReload:
 	return sf::CalcApCostHook_Invoke(source, hitMode, isCalled, cost, weapon); // return cost
 }
 
-static void __declspec(naked) ai_search_inven_weap_hook() {
+static __declspec(naked) void ai_search_inven_weap_hook() {
 	using namespace fo;
 	__asm {
 		push 0;        // no called
@@ -233,7 +233,7 @@ long __fastcall Items::item_w_mp_cost(fo::GameObject* source, fo::AttackType hit
 	);
 }
 
-static void __declspec(naked) item_w_mp_cost_replacement() {
+static __declspec(naked) void item_w_mp_cost_replacement() {
 	__asm {
 		push ebx;      // isCalled
 		mov  ecx, eax; // source
@@ -250,7 +250,7 @@ long __fastcall Items::item_w_curr_ammo(fo::GameObject* item) {
 	return 0;
 }
 
-static void __declspec(naked) item_w_curr_ammo_replacement() {
+static __declspec(naked) void item_w_curr_ammo_replacement() {
 	__asm {
 		push ecx;
 		push edx;

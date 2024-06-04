@@ -37,7 +37,7 @@ static bool extraKillCounter;
 
 void SetExtraKillCounter(bool value) { extraKillCounter = value; }
 
-void __declspec(naked) op_get_kill_counter() {
+__declspec(naked) void op_get_kill_counter() {
 	__asm {
 		_GET_ARG_INT(fail); // get kill type value
 		cmp  extraKillCounter, 1;
@@ -60,7 +60,7 @@ fail:
 	}
 }
 
-void __declspec(naked) op_mod_kill_counter() {
+__declspec(naked) void op_mod_kill_counter() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get mod value
@@ -123,7 +123,7 @@ void op_remove_object_knockback(OpcodeContext& ctx) {
 	KnockbackRemoveMod(ctx.arg(0).object(), mode);
 }
 
-void __declspec(naked) op_get_bodypart_hit_modifier() {
+__declspec(naked) void op_get_bodypart_hit_modifier() {
 	__asm {
 		_GET_ARG_INT(fail); // get body value
 		cmp  eax, 8; // Body_Head - Body_Uncalled
@@ -138,7 +138,7 @@ fail:
 	}
 }
 
-void __declspec(naked) op_set_bodypart_hit_modifier() {
+__declspec(naked) void op_set_bodypart_hit_modifier() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get body value
@@ -159,7 +159,7 @@ void op_get_attack_type(OpcodeContext& ctx) {
 	ctx.setReturn(fo::util::GetCurrentAttackMode());
 }
 
-void __declspec(naked) op_force_aimed_shots() {
+__declspec(naked) void op_force_aimed_shots() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -171,7 +171,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_disable_aimed_shots() {
+__declspec(naked) void op_disable_aimed_shots() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -183,7 +183,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_last_attacker() {
+__declspec(naked) void op_get_last_attacker() {
 	__asm {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
@@ -200,7 +200,7 @@ fail:
 	}
 }
 
-void __declspec(naked) op_get_last_target() {
+__declspec(naked) void op_get_last_target() {
 	__asm {
 		_GET_ARG_INT(fail);
 		mov  esi, ecx;
@@ -217,7 +217,7 @@ fail:
 	}
 }
 
-void __declspec(naked) op_block_combat() {
+__declspec(naked) void op_block_combat() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);

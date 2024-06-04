@@ -116,7 +116,7 @@ static void __fastcall DisplayPrint(const char* message, bool lineBreak) {
 	__asm call fo::funcoffs::display_redraw_;
 }
 
-static void __declspec(naked) display_print_hack_replacemet() {
+static __declspec(naked) void display_print_hack_replacemet() {
 	__asm {
 		push ecx;
 		push edx;
@@ -129,7 +129,7 @@ static void __declspec(naked) display_print_hack_replacemet() {
 	}
 }
 
-static void __declspec(naked) display_print_line_break() {
+static __declspec(naked) void display_print_line_break() {
 	__asm {
 		push ecx;
 		mov  dl, 1;    // with line break
@@ -163,7 +163,7 @@ static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
 	}
 }
 
-static void __declspec(naked) inven_display_msg_line_break() {
+static __declspec(naked) void inven_display_msg_line_break() {
 	__asm {
 		push ecx;
 		push fo::funcoffs::inven_display_msg_;
@@ -174,7 +174,7 @@ static void __declspec(naked) inven_display_msg_line_break() {
 	}
 }
 
-static void __declspec(naked) display_print_line_break_extHRP() {
+static __declspec(naked) void display_print_line_break_extHRP() {
 	__asm {
 		push ecx;
 		push fo::funcoffs::display_print_; // func replaced by Mash's HRP

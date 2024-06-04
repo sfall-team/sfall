@@ -33,7 +33,7 @@ namespace script
 bool unsafeEnabled = false;
 bool checkValidMemAddr = true;
 
-void __declspec(naked) op_read_byte() {
+__declspec(naked) void op_read_byte() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -49,7 +49,7 @@ error:
 	}
 }
 
-void __declspec(naked) op_read_short() {
+__declspec(naked) void op_read_short() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -65,7 +65,7 @@ error:
 	}
 }
 
-void __declspec(naked) op_read_int() {
+__declspec(naked) void op_read_int() {
 	__asm {
 		_GET_ARG_INT(error);
 		test eax, eax;
@@ -81,7 +81,7 @@ error:
 	}
 }
 
-void __declspec(naked) op_read_string() {
+__declspec(naked) void op_read_string() {
 	static const char* emptyStr = "";
 	__asm {
 		_GET_ARG_INT(error);
@@ -101,7 +101,7 @@ error:
 	}
 }
 
-void __declspec(naked) op_write_byte() {
+__declspec(naked) void op_write_byte() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -129,7 +129,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_write_short() {
+__declspec(naked) void op_write_short() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -157,7 +157,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_write_int() {
+__declspec(naked) void op_write_int() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // write value
@@ -193,7 +193,7 @@ static void __fastcall WriteStringInternal(char* addr, long type, long strID, fo
 	*addr = 0;
 }
 
-void __declspec(naked) op_write_string() {
+__declspec(naked) void op_write_string() {
 	__asm {
 		push ecx;
 		_GET_ARG(esi, ecx); // str value
@@ -259,7 +259,7 @@ static void __fastcall CallOffsetInternal(fo::Program* script, DWORD func) {
 	}
 }
 
-void __declspec(naked) op_call_offset() {
+__declspec(naked) void op_call_offset() {
 	__asm {
 		mov  esi, ecx;
 		mov  ecx, eax;

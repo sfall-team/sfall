@@ -32,7 +32,7 @@ static long __fastcall WorldmapWinAdd(long height, long yPos, long xPos, long wi
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) wmInterfaceInit_hook_win_add() {
+static __declspec(naked) void wmInterfaceInit_hook_win_add() {
 	__asm {
 		xchg ebx, [esp]; // width
 		push eax;        // xPos
@@ -41,7 +41,7 @@ static void __declspec(naked) wmInterfaceInit_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_hook_win_delete() {
+static __declspec(naked) void wmInterfaceInit_hook_win_delete() {
 	__asm {
 		call fo::funcoffs::win_delete_;
 		mov  ebx, ecx;
@@ -52,7 +52,7 @@ static void __declspec(naked) wmInterfaceInit_hook_win_delete() {
 	}
 }
 
-static void __declspec(naked) WorldMapMouseGetPositionHook() {
+static __declspec(naked) void WorldMapMouseGetPositionHook() {
 	__asm {
 		push eax; // outX ref
 		push edx; // outY ref
@@ -67,7 +67,7 @@ static void __declspec(naked) WorldMapMouseGetPositionHook() {
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hook_mouse_click_in() {
+static __declspec(naked) void wmWorldMap_hook_mouse_click_in() {
 	__asm {
 		add  eax, xPosition; // left
 		add  ebx, xPosition; // right

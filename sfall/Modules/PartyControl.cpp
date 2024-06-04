@@ -369,7 +369,7 @@ static long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
 	return fo::func::trait_level(trait);
 }
 
-static void __declspec(naked) inven_pickup_hook() {
+static __declspec(naked) void inven_pickup_hook() {
 	__asm {
 		pushadc;
 		mov  ecx, eax; // item
@@ -383,7 +383,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) stat_pc_add_experience_hook() {
+static __declspec(naked) void stat_pc_add_experience_hook() {
 	__asm {
 		cmp  isControllingNPC, 0;
 		jne  skip;
@@ -396,7 +396,7 @@ skip:
 }
 
 // prevents using sneak when controlling NPCs
-//static void __declspec(naked) pc_flag_toggle_hook() {
+//static __declspec(naked) void pc_flag_toggle_hook() {
 //	__asm {
 //		cmp  isControllingNPC, 0;
 //		jne  near DisplayCantDoThat;
@@ -405,7 +405,7 @@ skip:
 //}
 
 // removes the saved sneak state for the controlled NPC
-static void __declspec(naked) pc_flag_off_hook() {
+static __declspec(naked) void pc_flag_off_hook() {
 	__asm {
 		mov  ecx, eax;
 		call fo::funcoffs::queue_remove_this_;
@@ -416,7 +416,7 @@ static void __declspec(naked) pc_flag_off_hook() {
 }
 
 // prevents equipping a weapon when the current appearance has no animation for it
-static void __declspec(naked) intface_toggle_items_hack() {
+static __declspec(naked) void intface_toggle_items_hack() {
 	__asm {
 //		cmp  isControllingNPC, 0;
 //		jne  checkArt;
@@ -448,7 +448,7 @@ noArt:
 	}
 }
 
-static void __declspec(naked) proto_name_hook() {
+static __declspec(naked) void proto_name_hook() {
 	__asm {
 		cmp  isControllingNPC, 0;
 		jne  pcName;
@@ -632,7 +632,7 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	}
 }
 
-static void __declspec(naked) gdControlUpdateInfo_hook() {
+static __declspec(naked) void gdControlUpdateInfo_hook() {
 	__asm {
 		mov  edi, eax; // keep fontnum
 		mov  ecx, ebp;
@@ -677,7 +677,7 @@ static void SetMemberTarget(fo::GameObject* member, fo::GameObject* target) {
 }
 
 // disables the display of the hit chance value when picking a target
-static void __declspec(naked) gmouse_bk_process_hack() {
+static __declspec(naked) void gmouse_bk_process_hack() {
 	__asm {
 		mov  edx, -1; // mode
 		mov  eax, ds:[FO_VAR_gmouse_3d_current_mode];
@@ -768,7 +768,7 @@ static void __fastcall action_attack_to(long unused, fo::GameObject* partyMember
 	fo::func::gmouse_3d_set_mode(1);
 }
 
-static void __declspec(naked) gmouse_handle_event_hook() {
+static __declspec(naked) void gmouse_handle_event_hook() {
 	__asm {
 		test ds:[FO_VAR_combat_state], 1;
 		jnz  action_attack_to;
@@ -776,7 +776,7 @@ static void __declspec(naked) gmouse_handle_event_hook() {
 	}
 }
 
-static void __declspec(naked) gmouse_handle_event_hack() {
+static __declspec(naked) void gmouse_handle_event_hack() {
 	__asm {
 		test ds:[FO_VAR_combat_state], 1;
 		jnz  pick;
@@ -796,7 +796,7 @@ end:
 	}
 }
 
-static void __declspec(naked) gmouse_handle_event_hook_restore() {
+static __declspec(naked) void gmouse_handle_event_hook_restore() {
 	__asm {
 		mov word ptr ds:[FO_VAR_gmouse_3d_action_nums][5*2], 263; // index in INTRFACE.LST (TALKN.FRM)
 		jmp fo::funcoffs::map_enable_bk_processes_;
@@ -809,7 +809,7 @@ static void __fastcall SetOrderTarget(fo::GameObject* attacker) {
 	if (target) attacker->critter.whoHitMe = target;
 }
 
-static void __declspec(naked) combat_ai_hook_target() {
+static __declspec(naked) void combat_ai_hook_target() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;

@@ -184,7 +184,7 @@ static long __fastcall FindOverride(fo::Program* program, fo::ScriptInstance** s
 static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
 static const DWORD scr_find_sid_from_program_back = fo::funcoffs::scr_find_sid_from_program_ + 5;
 
-static void __declspec(naked) scr_find_sid_from_program_hack() {
+static __declspec(naked) void scr_find_sid_from_program_hack() {
 	__asm {
 		pushadc;
 		mov  ecx, eax;     // program
@@ -206,7 +206,7 @@ normal:
 	}
 }
 
-static void __declspec(naked) scr_ptr_hack() {
+static __declspec(naked) void scr_ptr_hack() {
 	__asm {
 		cmp  eax, -2; // value from FindOverride
 		jne  skip;
@@ -230,7 +230,7 @@ override: // for scr_find_obj_from_program_
 	}
 }
 
-static void __declspec(naked) ExecMapScriptsHack() {
+static __declspec(naked) void ExecMapScriptsHack() {
 	static const DWORD ExecMapScriptsRet = 0x4A67F5;
 	__asm {
 		push edi;
@@ -268,7 +268,7 @@ static void __fastcall CreateGlobalExportedVar(fo::Program* script, const char* 
 
 	with this you can still use variables exported from global scripts even between map changes (per global scripts logic)
 */
-static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
+static __declspec(naked) void Export_FetchOrStore_FindVar_Hook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -286,7 +286,7 @@ proceedNormal:
 	}
 }
 
-static void __declspec(naked) exportExportVariable_hook() {
+static __declspec(naked) void exportExportVariable_hook() {
 	static const DWORD exportExportVariable_BackRet = 0x4414AE;
 	__asm {
 		cmp  isGlobalScriptLoading, 0;
@@ -311,7 +311,7 @@ static void __stdcall FreeProgram(fo::Program* progPtr) {
 	}
 }
 
-static void __declspec(naked) FreeProgramHook() {
+static __declspec(naked) void FreeProgramHook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -323,7 +323,7 @@ static void __declspec(naked) FreeProgramHook() {
 	}
 }
 
-static void __declspec(naked) CombatBeginHook() {
+static __declspec(naked) void CombatBeginHook() {
 	using namespace fo::Scripts;
 	__asm {
 		push eax;
@@ -334,7 +334,7 @@ static void __declspec(naked) CombatBeginHook() {
 	}
 }
 
-static void __declspec(naked) CombatOverHook() {
+static __declspec(naked) void CombatOverHook() {
 	using namespace fo::Scripts;
 	__asm {
 		push eax;
@@ -867,7 +867,7 @@ void SetGlobals(GlobalVar* globals) {
 	}
 }
 
-static void __declspec(naked) map_save_in_game_hook() {
+static __declspec(naked) void map_save_in_game_hook() {
 	__asm {
 		test cl, 1;
 		jz   skip;

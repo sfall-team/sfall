@@ -61,7 +61,7 @@ static void __fastcall SetMovieSize() {
 	}
 }
 
-static void __declspec(naked) nfConfig_hack() {
+static __declspec(naked) void nfConfig_hack() {
 	__asm {
 		call SetMovieSize;
 		xor  eax, eax;
@@ -135,7 +135,7 @@ static long __fastcall SubtitleAdjustPosition(long yTop, long yBottom) {
 	return (y < yMax) ? y : yMax;
 }
 
-static void __declspec(naked) doSubtitle_hook() {
+static __declspec(naked) void doSubtitle_hook() {
 	__asm {
 		mov  ecx, esi;
 		call SubtitleAdjustPosition;
@@ -144,7 +144,7 @@ static void __declspec(naked) doSubtitle_hook() {
 	}
 }
 
-static void __declspec(naked) gmovie_play_hack_begin() {
+static __declspec(naked) void gmovie_play_hack_begin() {
 	__asm {
 		cmp  ds:[FO_VAR_wmInterfaceWasInitialized], 1;
 		jne  skip;
@@ -156,7 +156,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) gmovie_play_hack_end() {
+static __declspec(naked) void gmovie_play_hack_end() {
 	__asm {
 		cmp  ds:[FO_VAR_wmInterfaceWasInitialized], 1;
 		jne  skip;

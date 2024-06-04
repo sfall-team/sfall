@@ -265,7 +265,7 @@ fix:
 	}
 }
 
-static void __declspec(naked) DisplayBonusRangedDmg_hook() {
+static __declspec(naked) void DisplayBonusRangedDmg_hook() {
 	using namespace fo;
 	__asm {
 		mov  edx, PERK_bonus_ranged_damage;
@@ -278,7 +278,7 @@ static void __declspec(naked) DisplayBonusRangedDmg_hook() {
 	}
 }
 
-static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
+static __declspec(naked) void DisplayBonusHtHDmg1_hook() {
 	using namespace fo;
 	__asm {
 		mov  edx, PERK_bonus_hth_damage;
@@ -312,7 +312,7 @@ static const char* __fastcall GetHtHName(long handOffset) {
 	return Unarmed::GetName(hit);
 }
 
-static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
+static __declspec(naked) void DisplayBonusHtHDmg2_hack() {
 	static const DWORD DisplayBonusHtHDmg2Exit = 0x47254F;
 	static const DWORD DisplayBonusHtHDmg2Exit2 = 0x472556;
 	__asm {

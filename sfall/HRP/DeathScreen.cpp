@@ -79,7 +79,7 @@ static BYTE* __fastcall DarkRectangle(long totalLines, long w) { // w:564
 	return winSurface + x + yOffset; // text print offset
 }
 
-static void __declspec(naked) main_death_scene_hook_buf_fill() {
+static __declspec(naked) void main_death_scene_hook_buf_fill() {
 	__asm {
 		mov  ecx, [esp + 0x2B4 - 0x1C + 4]; // totalLines
 		call DarkRectangle;

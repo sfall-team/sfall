@@ -102,7 +102,7 @@ static long __fastcall IntfaceWinCreate(long height, long yPos, long xPos, long 
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) intface_init_hook_win_add() {
+static __declspec(naked) void intface_init_hook_win_add() {
 	__asm {
 		xchg ebx, [esp]; // width
 		push eax;        // xPos
@@ -116,7 +116,7 @@ static void __fastcall InterfaceShow(long winID) {
 	if (panels) panels->Show();
 }
 
-static void __declspec(naked) intface_show_hook_win_show() {
+static __declspec(naked) void intface_show_hook_win_show() {
 	__asm {
 		push ecx;
 		push edx;
@@ -133,7 +133,7 @@ static void __fastcall InterfaceHide(long winID) {
 	if (panels) panels->Hide();
 }
 
-static void __declspec(naked) intface_win_hide() {
+static __declspec(naked) void intface_win_hide() {
 	__asm {
 		push ecx;
 		push edx;
@@ -145,7 +145,7 @@ static void __declspec(naked) intface_win_hide() {
 	}
 }
 
-static void __declspec(naked) refresh_box_bar_win_hook_win_add() {
+static __declspec(naked) void refresh_box_bar_win_hook_win_add() {
 	__asm {
 		lea  edx, [edx - 358 - 21];
 		add  eax, xPosition;
@@ -154,7 +154,7 @@ static void __declspec(naked) refresh_box_bar_win_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) skilldex_start_hook_win_add() {
+static __declspec(naked) void skilldex_start_hook_win_add() {
 	__asm {
 		lea  eax, [eax - 640];
 		add  eax, xPosition;
@@ -225,7 +225,7 @@ static long __cdecl InterfaceArt(BYTE* scr, long w, long h, long srcWidth, BYTE*
 	return -1;
 }
 
-static void __declspec(naked) intface_init_hook_buf_to_buf_ART() {
+static __declspec(naked) void intface_init_hook_buf_to_buf_ART() {
 	__asm {
 		pop  ebx;
 		call InterfaceArt;
@@ -238,7 +238,7 @@ default:
 	}
 }
 
-static void __declspec(naked) intface_init_hook_buf_to_buf() {
+static __declspec(naked) void intface_init_hook_buf_to_buf() {
 	__asm {
 		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
 		mov  [esp + 0xC + 4], eax; // from width
@@ -248,7 +248,7 @@ static void __declspec(naked) intface_init_hook_buf_to_buf() {
 	}
 }
 
-static void __declspec(naked) intface_update_move_points_hook_buf_to_buf() {
+static __declspec(naked) void intface_update_move_points_hook_buf_to_buf() {
 	__asm {
 		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
 		mov  [esp + 0x14 + 4], eax; // to width
@@ -258,7 +258,7 @@ static void __declspec(naked) intface_update_move_points_hook_buf_to_buf() {
 	}
 }
 
-static void __declspec(naked) combat_buttons_buf_to_buf() {
+static __declspec(naked) void combat_buttons_buf_to_buf() {
 	__asm {
 		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
 		mov  [esp + 0x14 + 4], eax; // to width
@@ -268,7 +268,7 @@ static void __declspec(naked) combat_buttons_buf_to_buf() {
 	}
 }
 
-static void __declspec(naked) combat_buttons_trans_buf_to_buf() {
+static __declspec(naked) void combat_buttons_trans_buf_to_buf() {
 	__asm {
 		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
 		mov  [esp + 0x14 + 4], eax; // to width
@@ -278,7 +278,7 @@ static void __declspec(naked) combat_buttons_trans_buf_to_buf() {
 	}
 }
 
-static void __declspec(naked) intface_win_register_button() {
+static __declspec(naked) void intface_win_register_button() {
 	__asm {
 		add  edx, xOffset;
 		jmp  fo::funcoffs::win_register_button_;
@@ -287,7 +287,7 @@ static void __declspec(naked) intface_win_register_button() {
 
 //////////////////// Message Display Hacks ////////////////////
 
-static void __declspec(naked) display_init_hack() {
+static __declspec(naked) void display_init_hack() {
 	__asm {
 		mov  eax, IFaceBar::display_width;
 		imul eax, 60; // height
@@ -305,14 +305,14 @@ static void __cdecl display_init_hook_buf_to_buf(BYTE* scr, long w, long h, long
 	fo::func::buf_to_buf(ifaceWin->surface + 23 + (24 * IFaceBar::IFACE_BAR_WIDTH), IFaceBar::display_width, h, IFaceBar::IFACE_BAR_WIDTH, dispBuff, IFaceBar::display_width);
 }
 
-static void __declspec(naked) display_init_hook_win_register_button() {
+static __declspec(naked) void display_init_hook_win_register_button() {
 	__asm {
 		mov  ecx, IFaceBar::display_width;
 		jmp  fo::funcoffs::win_register_button_;
 	}
 }
 
-static void __declspec(naked) display_redraw_hack() {
+static __declspec(naked) void display_redraw_hack() {
 	__asm {
 		idiv ebx;
 		imul edx, 256; // was 80
@@ -320,7 +320,7 @@ static void __declspec(naked) display_redraw_hack() {
 	}
 }
 
-static void __declspec(naked) DisplayReset() {
+static __declspec(naked) void DisplayReset() {
 	__asm { // ebx: 100, ecx: 0
 		mov  eax, IFaceBar::display_string_buf;
 jloop:
@@ -332,7 +332,7 @@ jloop:
 	}
 }
 
-static void __declspec(naked) intface_rotate_numbers_hack() {
+static __declspec(naked) void intface_rotate_numbers_hack() {
 	__asm {
 		imul edx, IFaceBar::IFACE_BAR_WIDTH; // y * width
 		mov  eax, xOffset;
@@ -342,7 +342,7 @@ static void __declspec(naked) intface_rotate_numbers_hack() {
 	}
 }
 
-static void __declspec(naked) intface_rotate_numbers_hook_buf_to_buf() {
+static __declspec(naked) void intface_rotate_numbers_hook_buf_to_buf() {
 	__asm {
 		mov  eax, IFaceBar::IFACE_BAR_WIDTH;
 		mov  [esp + 0x14 + 4], eax; // to width
@@ -350,7 +350,7 @@ static void __declspec(naked) intface_rotate_numbers_hook_buf_to_buf() {
 	}
 }
 
-static void __declspec(naked) intface_draw_ammo_lights_hack() {
+static __declspec(naked) void intface_draw_ammo_lights_hack() {
 	__asm {
 		add  eax, xOffset;
 		mov  esi, eax;
@@ -451,7 +451,7 @@ static void __fastcall DrawAlternateAmmoMetre(long x, long y) {
 	fo::func::win_draw_rect(fo::var::interfaceWindow, (RECT*)&rect);
 }
 
-static void __declspec(naked) intface_update_ammo_lights_hook() {
+static __declspec(naked) void intface_update_ammo_lights_hook() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;

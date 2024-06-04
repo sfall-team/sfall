@@ -35,7 +35,7 @@ void op_typeof(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
 }
 
-void __declspec(naked) op_set_global_script_repeat() {
+__declspec(naked) void op_set_global_script_repeat() {
 	__asm {
 		mov  esi, ecx;
 		mov  ecx, eax;
@@ -48,7 +48,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_global_script_type() {
+__declspec(naked) void op_set_global_script_type() {
 	__asm {
 		mov  esi, ecx;
 		mov  ecx, eax;
@@ -61,7 +61,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_available_global_script_types() {
+__declspec(naked) void op_available_global_script_types() {
 	__asm {
 		mov  edx, availableGlobalScriptTypes;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -136,7 +136,7 @@ void op_set_sfall_return(OpcodeContext& ctx) {
 	HookCommon::SetHSReturn(ctx.arg(0));
 }
 
-void __declspec(naked) op_game_loaded() {
+__declspec(naked) void op_game_loaded() {
 	__asm {
 		mov  esi, ecx;
 		push eax; // script
@@ -149,14 +149,14 @@ void __declspec(naked) op_game_loaded() {
 	}
 }
 
-void __declspec(naked) op_init_hook() {
+__declspec(naked) void op_init_hook() {
 	__asm {
 		mov  edx, HookScripts::initingHookScripts;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_set_self() {
+__declspec(naked) void op_set_self() {
 	__asm {
 		mov  esi, ecx;
 		mov  ecx, eax;
@@ -198,21 +198,21 @@ void mf_remove_timer_event(OpcodeContext& ctx) {
 	}
 }
 
-void __declspec(naked) op_sfall_ver_major() {
+__declspec(naked) void op_sfall_ver_major() {
 	__asm {
 		mov  edx, VERSION_MAJOR;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_sfall_ver_minor() {
+__declspec(naked) void op_sfall_ver_minor() {
 	__asm {
 		mov  edx, VERSION_MINOR;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_sfall_ver_build() {
+__declspec(naked) void op_sfall_ver_build() {
 	__asm {
 		mov  edx, VERSION_BUILD;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);

@@ -67,7 +67,7 @@ static long __stdcall xfclose(sFile* file) {
 	return 0;
 }
 
-static void __declspec(naked) asm_xfclose(sFile* file) {
+static __declspec(naked) void asm_xfclose(sFile* file) {
 	__asm {
 		cmp  byte ptr [eax], 3; // byte
 		jnz  end;
@@ -462,7 +462,7 @@ static void FileSystemLoad() {
 	}
 }
 
-static void __declspec(naked) FSLoadHook() {
+static __declspec(naked) void FSLoadHook() {
 	static const DWORD LoadHookRetAddr = 0x47CCEE;
 	__asm {
 		pushadc;
@@ -711,7 +711,7 @@ static void __stdcall OpenWarning() {
 	               "It is recommended to restart the game to avoid critical errors.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 }
 
-static void __declspec(naked) sopen_hook_warning() {
+static __declspec(naked) void sopen_hook_warning() {
 	static const DWORD __NTAtMaxFiles_ = 0x4EB190;
 	__asm {
 		cmp  dword ptr ds:[FO_VAR_topFileID], 15;
@@ -727,7 +727,7 @@ static void __stdcall OpenFail() {
 	MessageBoxA(0, "Failed to open file.\nToo many open files.", 0, MB_TASKMODAL | MB_ICONERROR);
 }
 
-static void __declspec(naked) sopen_hook_error() {
+static __declspec(naked) void sopen_hook_error() {
 	static const DWORD __set_errno_ = 0x4E11F5;
 	__asm {
 		call __set_errno_;
@@ -746,7 +746,7 @@ static void __stdcall CloseLog(long id) {
 	dlog_f("<< Close id:%d [%d]\n", 0, id, openfiles--);
 }
 
-static void __declspec(naked) OpenFileLog() {
+static __declspec(naked) void OpenFileLog() {
 	__asm {
 		pushadc;
 		push eax;
@@ -758,7 +758,7 @@ static void __declspec(naked) OpenFileLog() {
 	}
 }
 
-static void __declspec(naked) CloseFileLog() {
+static __declspec(naked) void CloseFileLog() {
 	__asm {
 		pushadc;
 		push eax;

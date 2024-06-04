@@ -35,7 +35,7 @@ void __stdcall SetRemoveObjectType(long rmType) {
 	rmObjType = rmType;
 }
 
-static void __declspec(naked) RemoveObjHook() {
+static __declspec(naked) void RemoveObjHook() {
 	static const DWORD RemoveObjHookRet = 0x477497;
 	__asm {
 		mov  ecx, [esp + 8]; // call addr
@@ -72,7 +72,7 @@ skipHook:
 	}
 }
 
-static void __declspec(naked) MoveCostHook() {
+static __declspec(naked) void MoveCostHook() {
 	__asm {
 		HookBegin;
 		mov  args[0], eax;
@@ -126,7 +126,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	This hook is called every time an item is placed into either hand slot via inventory screen drag&drop
 	If switch_hand_ function is not called, item is not placed anywhere (it remains in main inventory)
 */
-static void __declspec(naked) SwitchHandHook() {
+static __declspec(naked) void SwitchHandHook() {
 	__asm {
 		pushadc;
 		mov  ecx, eax;           // item being moved
@@ -161,7 +161,7 @@ static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, in
 }
 
 // This hack is called when an armor is dropped into the armor slot at inventory screen
-static void __declspec(naked) UseArmorHack() {
+static __declspec(naked) void UseArmorHack() {
 	static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
 	static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 	__asm {
@@ -179,7 +179,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) MoveInventoryHook() {
+static __declspec(naked) void MoveInventoryHook() {
 	__asm {
 		pushadc;
 		xor eax, eax;
@@ -208,7 +208,7 @@ skip:
 static DWORD nextHookDropSkip = 0;
 static int dropResult = -1;
 static const DWORD InvenActionObjDropRet = 0x473874;
-static void __declspec(naked) InvenActionCursorObjDropHook() {
+static __declspec(naked) void InvenActionCursorObjDropHook() {
 	if (nextHookDropSkip) {
 		nextHookDropSkip = 0;
 		goto skipHook;
@@ -254,7 +254,7 @@ capsMultiDrop:
 	__asm jmp InvenActionObjDropRet; // no caps drop
 }
 
-static void __declspec(naked) InvenActionExplosiveDropHack() {
+static __declspec(naked) void InvenActionExplosiveDropHack() {
 	__asm {
 		pushadc;
 		xor  ecx, ecx;                 // no itemReplace
@@ -282,7 +282,7 @@ static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCal
 	return InventoryMoveHook_Script(ptrCont, item, type);
 }
 
-static void __declspec(naked) DropIntoContainerHack() {
+static __declspec(naked) void DropIntoContainerHack() {
 	static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
 	static const DWORD DropIntoContainer_skip = 0x476503; // exit drop_into_container_
 	__asm {
@@ -303,7 +303,7 @@ skipDrop:
 	}
 }
 
-static void __declspec(naked) DropIntoContainerHandSlotHack() {
+static __declspec(naked) void DropIntoContainerHandSlotHack() {
 	static const DWORD DropIntoContainerRet = 0x471481;
 	__asm {
 		call fo::funcoffs::drop_into_container_;
@@ -311,7 +311,7 @@ static void __declspec(naked) DropIntoContainerHandSlotHack() {
 	}
 }
 
-static void __declspec(naked) DropAmmoIntoWeaponHook() {
+static __declspec(naked) void DropAmmoIntoWeaponHook() {
 	static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
 	__asm {
 		pushadc;
@@ -330,7 +330,7 @@ donothing:
 	}
 }
 
-static void __declspec(naked) PickupObjectHack() {
+static __declspec(naked) void PickupObjectHack() {
 	__asm {
 		cmp  edi, ds:[FO_VAR_obj_dude];
 		je   runHook;
@@ -351,7 +351,7 @@ runHook:
 	}
 }
 
-static void __declspec(naked) InvenPickupHook() {
+static __declspec(naked) void InvenPickupHook() {
 	__asm {
 		call fo::funcoffs::mouse_click_in_;
 		test eax, eax;
@@ -414,7 +414,7 @@ static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long is
 	return result; // true - use engine handler
 }
 
-static void __declspec(naked) InvenWieldFuncHook() {
+static __declspec(naked) void InvenWieldFuncHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax; // critter
@@ -441,7 +441,7 @@ skip:
 }
 
 // called when unwielding weapons
-static void __declspec(naked) InvenUnwieldFuncHook() {
+static __declspec(naked) void InvenUnwieldFuncHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax; // critter
@@ -470,7 +470,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) CorrectFidForRemovedItemHook() {
+static __declspec(naked) void CorrectFidForRemovedItemHook() {
 	using namespace fo::ObjectFlag;
 	__asm {
 		HookBegin;
@@ -510,7 +510,7 @@ long InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long f
 	return InvenWieldHook_Script(critter, item, slot, 0, 0);
 }
 
-static void __declspec(naked) item_drop_all_hack() {
+static __declspec(naked) void item_drop_all_hack() {
 	using namespace fo::ObjectFlag;
 	__asm {
 		mov  ecx, 1;
@@ -537,7 +537,7 @@ skip:
 static bool hookInvenWieldIsInject = false;
 
 // called from bugfixes for obj_drop_
-void __declspec(naked) InvenUnwield_HookDrop() { // ecx - critter, edx - item
+__declspec(naked) void InvenUnwield_HookDrop() { // ecx - critter, edx - item
 	using namespace fo;
 	using namespace Fields;
 	using namespace ObjectFlag;
@@ -564,7 +564,7 @@ isLeft:
 }
 
 // called from bugfixes for op_move_obj_inven_to_obj_
-void __declspec(naked) InvenUnwield_HookMove() { // eax - item, edx - critter
+__declspec(naked) void InvenUnwield_HookMove() { // eax - item, edx - critter
 	__asm {
 		cmp hookInvenWieldIsInject, 1;
 		je  runHook;
@@ -585,7 +585,7 @@ runHook:
 }
 
 // called when unwelding dude weapon and armor
-static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
+static __declspec(naked) void op_move_obj_inven_to_obj_hook() {
 	using namespace fo;
 	using namespace ObjectFlag;
 	__asm {

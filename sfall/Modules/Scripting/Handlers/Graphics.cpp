@@ -32,7 +32,7 @@ namespace sfall
 namespace script
 {
 
-void __declspec(naked) op_graphics_funcs_available() {
+__declspec(naked) void op_graphics_funcs_available() {
 	__asm {
 		cmp  Graphics::mode, 3;
 		seta dl;
@@ -42,7 +42,7 @@ void __declspec(naked) op_graphics_funcs_available() {
 	}
 }
 
-void __declspec(naked) op_load_shader() {
+__declspec(naked) void op_load_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -81,7 +81,7 @@ result:
 	}
 }
 
-void __declspec(naked) op_free_shader() {
+__declspec(naked) void op_free_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -93,7 +93,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_activate_shader() {
+__declspec(naked) void op_activate_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -105,7 +105,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_deactivate_shader() {
+__declspec(naked) void op_deactivate_shader() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -117,7 +117,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_shader_texture() {
+__declspec(naked) void op_get_shader_texture() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -169,7 +169,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_shader_int() {
+__declspec(naked) void op_set_shader_int() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -226,7 +226,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_shader_texture() {
+__declspec(naked) void op_set_shader_texture() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -283,7 +283,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_shader_float() {
+__declspec(naked) void op_set_shader_float() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -345,7 +345,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_shader_vector() {
+__declspec(naked) void op_set_shader_vector() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -403,7 +403,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_shader_version() {
+__declspec(naked) void op_get_shader_version() {
 	__asm {
 		mov  esi, ecx;
 		call Graphics::GetShaderVersion;
@@ -415,7 +415,7 @@ void __declspec(naked) op_get_shader_version() {
 	}
 }
 
-void __declspec(naked) op_set_shader_mode() {
+__declspec(naked) void op_set_shader_mode() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -450,7 +450,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_force_graphics_refresh() {
+__declspec(naked) void op_force_graphics_refresh() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);

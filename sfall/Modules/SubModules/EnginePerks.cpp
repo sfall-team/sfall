@@ -57,7 +57,7 @@ static void TryPatchSkillBonus32(const char* key, int defaultValue, DWORD addr, 
 	TryPatchValue32(key, defaultValue, 0, 125, addr, perksFile);
 }
 
-static void __declspec(naked) perk_adjust_skill_hack_salesman() {
+static __declspec(naked) void perk_adjust_skill_hack_salesman() {
 	__asm {
 		imul eax, [SalesmanBonus];
 		add  ecx, eax; // barter_skill + (perkLevel * SalesmanBonus)
@@ -66,7 +66,7 @@ static void __declspec(naked) perk_adjust_skill_hack_salesman() {
 	}
 }
 
-static void __declspec(naked) queue_explode_exit_hack_demolition_expert() {
+static __declspec(naked) void queue_explode_exit_hack_demolition_expert() {
 	__asm {
 		imul eax, [DemolitionExpertBonus];
 		add  ecx, eax; // maxBaseDmg + (perkLevel * DemolitionExpertBonus)

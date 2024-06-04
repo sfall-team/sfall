@@ -203,7 +203,7 @@ loadFail:
 	Graphics::SetDefaultTechnique();
 }
 
-static void __declspec(naked) gdDisplayFrame_hack() {
+static __declspec(naked) void gdDisplayFrame_hack() {
 	static const DWORD gdDisplayFrameRet = 0x44AD06;
 	__asm {
 		push edx;
@@ -218,7 +218,7 @@ static void __declspec(naked) gdDisplayFrame_hack() {
 	}
 }
 
-void __declspec(naked) gdDestroyHeadWindow_hack() {
+__declspec(naked) void gdDestroyHeadWindow_hack() {
 	__asm {
 		call Graphics::SetDefaultTechnique;
 		mov  showHighlights, 0;
@@ -232,7 +232,7 @@ void __declspec(naked) gdDestroyHeadWindow_hack() {
 	}
 }
 
-static void __declspec(naked) TransTalkHook() {
+static __declspec(naked) void TransTalkHook() {
 	__asm {
 		test showHighlights, 0xFF;
 		jnz  skip;
@@ -242,14 +242,14 @@ skip:
 	}
 }
 
-static void __declspec(naked) gdPlayTransition_hook() {
+static __declspec(naked) void gdPlayTransition_hook() {
 	__asm {
 		mov reactionID, ebx;
 		jmp fo::funcoffs::art_id_;
 	}
 }
 
-static void __declspec(naked) gdialogInitFromScript_hook() {
+static __declspec(naked) void gdialogInitFromScript_hook() {
 	__asm {
 		cmp dword ptr ds:[FO_VAR_dialogue_head], -1;
 		jnz noScroll;

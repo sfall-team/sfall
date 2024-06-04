@@ -27,14 +27,14 @@ namespace sfall
 
 static bool usingExtraKillTypes = false;
 
-static DWORD __declspec(naked) ReadKillCounter() {
+static __declspec(naked) DWORD ReadKillCounter() {
 	__asm {
 		movzx eax, word ptr ds:[FO_VAR_pc_kill_counts][eax * 2];
 		retn;
 	}
 }
 
-static void __declspec(naked) IncKillCounter() {
+static __declspec(naked) void IncKillCounter() {
 	__asm {
 		inc  bx;
 		mov  word ptr ds:[FO_VAR_pc_kill_counts][edx], bx;

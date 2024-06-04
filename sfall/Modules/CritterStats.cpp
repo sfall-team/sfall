@@ -251,7 +251,7 @@ static void SetStatToAllProtos(long offset, long pid, long amount) {
 
 // Changes the bonus value of a stat (for example, with the adjust_ac_ or perform_drug_effect_ functions when using drugs)
 // in the saved individual critter prototype
-static void __declspec(naked) stat_set_bonus_hack() {
+static __declspec(naked) void stat_set_bonus_hack() {
 	__asm {
 		pushadc;
 		mov  eax, [esp + 16];   // buf proto
@@ -268,7 +268,7 @@ static void __declspec(naked) stat_set_bonus_hack() {
 }
 
 // Changes the base stat value with the set_critter_stat script function in the saved individual critter prototype
-static void __declspec(naked) stat_set_base_hack() {
+static __declspec(naked) void stat_set_base_hack() {
 	__asm {
 		pushadc;
 		mov  eax, [esp + 16];   // buf proto
@@ -286,7 +286,7 @@ static void __declspec(naked) stat_set_base_hack() {
 }
 
 // Gets critter stat value from the base or individual critter prototype when using any engine method (for example, the get_critter_stat script function)
-static void __declspec(naked) stat_get_proto() {
+static __declspec(naked) void stat_get_proto() {
 	using namespace fo::Fields;
 	__asm {
 		push eax;
@@ -308,7 +308,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) stat_recalc_derived_hook() {
+static __declspec(naked) void stat_recalc_derived_hook() {
 	__asm {
 		pushadc;
 		mov  ecx, ebx;
@@ -402,7 +402,7 @@ static void FlushAllProtos() {
 }
 
 // Removes all the inherited prototypes on leaving the map
-static void __declspec(naked) map_save_in_game_hook() {
+static __declspec(naked) void map_save_in_game_hook() {
 	__asm {
 		call FlushAllProtos;
 		jmp  fo::funcoffs::proto_remove_all_;

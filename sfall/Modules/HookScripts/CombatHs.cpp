@@ -10,7 +10,7 @@
 namespace sfall
 {
 
-static void __declspec(naked) ToHitHook() {
+static __declspec(naked) void ToHitHook() {
 	__asm {
 		HookBegin;
 		mov  args[4], eax;    // attacker
@@ -71,7 +71,7 @@ static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DW
 	return hit;
 }
 
-static void __declspec(naked) AfterHitRollHook() {
+static __declspec(naked) void AfterHitRollHook() {
 	using namespace fo;
 	__asm {
 		mov  ecx, esi;              // ctd
@@ -109,7 +109,7 @@ long CalcApCostHook_Invoke(fo::GameObject* source, long hitMode, long isCalled, 
 	       : cost;
 }
 /*
-static void __declspec(naked) CalcApCostHook() {
+static __declspec(naked) void CalcApCostHook() {
 	__asm {
 		HookBegin;
 		mov  args[0], eax;
@@ -137,7 +137,7 @@ static void __declspec(naked) CalcApCostHook() {
 }
 */
 // this is for using non-weapon items, always 2 AP in vanilla
-static void __declspec(naked) CalcApCostHook2() {
+static __declspec(naked) void CalcApCostHook2() {
 	__asm {
 		HookBegin;
 		mov args[0], ecx; // critter
@@ -203,7 +203,7 @@ static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DW
 	EndHook();
 }
 
-static void __declspec(naked) ComputeDamageHook() {
+static __declspec(naked) void ComputeDamageHook() {
 	__asm {
 		push ecx;
 		push ebx;         // store dmg multiplier  args[8]
@@ -252,7 +252,7 @@ static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd,
 	EndHook();
 }
 
-static void __declspec(naked) SubComputeDamageHook() {
+static __declspec(naked) void SubComputeDamageHook() {
 	__asm {
 		mov  ecx, dword ptr [esp + 0x20];      // Difficulty
 		push ecx;
@@ -296,7 +296,7 @@ void FindTargetHook_Invoke(fo::GameObject* targets[], fo::GameObject* attacker) 
 	if (HookScripts::HookHasScript(HOOK_FINDTARGET)) FindTargetHook_Script((DWORD*)targets, attacker);
 }
 */
-static void __declspec(naked) FindTargetHook() {
+static __declspec(naked) void FindTargetHook() {
 	__asm {
 		push eax;
 		call fo::funcoffs::qsort_;
@@ -306,7 +306,7 @@ static void __declspec(naked) FindTargetHook() {
 	}
 }
 
-static void __declspec(naked) ItemDamageHook() {
+static __declspec(naked) void ItemDamageHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax;  // min
@@ -367,7 +367,7 @@ failed:
 	return result;
 }
 
-static void __declspec(naked) AmmoCostHook() {
+static __declspec(naked) void AmmoCostHook() {
 	using namespace fo;
 	__asm {
 		xor  ecx, ecx;             // type of hook (0)
@@ -418,7 +418,7 @@ endHook:
 	return combatTurnResult;
 }
 
-static void __declspec(naked) CombatTurnHook() {
+static __declspec(naked) void CombatTurnHook() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;
@@ -428,7 +428,7 @@ static void __declspec(naked) CombatTurnHook() {
 	}
 }
 
-static void __declspec(naked) CombatTurnHook_End() {
+static __declspec(naked) void CombatTurnHook_End() {
 	if (combatTurnResult >= 0) {
 		BeginHook();
 		argCount = 3;
@@ -445,7 +445,7 @@ static void __declspec(naked) CombatTurnHook_End() {
 
 // hack to exit from combat_add_noncoms function without crashing when you load game during PM/NPC turn
 static long countCombat = 0;
-static void __declspec(naked) CombatTurnHook_AddNoncoms() {
+static __declspec(naked) void CombatTurnHook_AddNoncoms() {
 	__asm {
 		push ecx;
 		mov  ecx, eax;
@@ -469,7 +469,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) combat_hook_fix_load() {
+static __declspec(naked) void combat_hook_fix_load() {
 	static const DWORD combat_hook_end_combat = 0x422E91;
 	__asm {
 		call fo::funcoffs::combat_sequence_;
@@ -507,7 +507,7 @@ fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* o
 	return result;
 }
 
-static void __declspec(naked) ComputeExplosionOnExtrasHook() {
+static __declspec(naked) void ComputeExplosionOnExtrasHook() {
 	__asm {
 		cmp  dword ptr [esp + 0x34 + 4], 0x429533;  // skip hook when AI assesses the situation in choosing the best weapon
 		jz   end;
@@ -564,7 +564,7 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 	return object; // null or object
 }
 
-static void __declspec(naked) gmouse_bk_process_hook() {
+static __declspec(naked) void gmouse_bk_process_hook() {
 	__asm {
 		push 0;        // type
 		mov  ecx, eax; // 1 - valid(object) or 0 - invalid
@@ -575,7 +575,7 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
-static void __declspec(naked) gmouse_handle_event_hook() {
+static __declspec(naked) void gmouse_handle_event_hook() {
 	__asm {
 		push 1;        // type
 		mov  ecx, eax; // 1 - valid(object) or 0 - invalid
@@ -612,7 +612,7 @@ static fo::GameObject* __stdcall BestWeaponHook_Script(fo::GameObject* bestWeapo
 	return bestWeapon;
 }
 
-static void __declspec(naked) ai_search_inven_weap_hook() {
+static __declspec(naked) void ai_search_inven_weap_hook() {
 	__asm {
 		push ecx; // target
 		push ebx; // weapon2 (secondary)
@@ -648,7 +648,7 @@ static bool __stdcall CanUseWeaponHook_Script(bool result, fo::GameObject* sourc
 	return result; // only 0 and 1
 }
 
-static void __declspec(naked) AICanUseWeaponHook() {
+static __declspec(naked) void AICanUseWeaponHook() {
 	__asm {
 		push ecx;
 		push ebx; // hitMode
@@ -663,7 +663,7 @@ static void __declspec(naked) AICanUseWeaponHook() {
 	}
 }
 
-static void __declspec(naked) CanUseWeaponHook() {
+static __declspec(naked) void CanUseWeaponHook() {
 	__asm {
 		push ecx;
 		push edx;

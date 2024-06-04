@@ -40,7 +40,7 @@ static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) ai_try_attack_hook_FleeFix() {
+static __declspec(naked) void ai_try_attack_hook_FleeFix() {
 	using namespace fo;
 	__asm {
 		or   byte ptr [esi + combatState], ReTarget; // set CombatStateFlag flag
@@ -48,7 +48,7 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	}
 }
 
-static void __declspec(naked) combat_ai_hook_FleeFix() {
+static __declspec(naked) void combat_ai_hook_FleeFix() {
 	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
 	using namespace fo;
 	__asm {
@@ -64,7 +64,7 @@ reTarget:
 	}
 }
 
-static void __declspec(naked) ai_try_attack_hook_runFix() {
+static __declspec(naked) void ai_try_attack_hook_runFix() {
 	__asm {
 		mov  ecx, [esi + combatState]; // save combat flags before ai_run_away
 		call fo::funcoffs::ai_run_away_;
@@ -73,7 +73,7 @@ static void __declspec(naked) ai_try_attack_hook_runFix() {
 	}
 }
 
-static void __declspec(naked) combat_ai_hack() {
+static __declspec(naked) void combat_ai_hack() {
 	static const DWORD combat_ai_hack_Ret = 0x42B204;
 	__asm {
 		mov  edx, [ebx + 0x10];              // cap.min_hp
@@ -93,7 +93,7 @@ tryHeal:
 	}
 }
 
-/*static void __declspec(naked) ai_check_drugs_hook() {
+/*static __declspec(naked) void ai_check_drugs_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;              // current hp
 		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
@@ -104,7 +104,7 @@ tryHeal:
 	}
 }
 
-static void __declspec(naked) ai_check_drugs_hook_healing() {
+static __declspec(naked) void ai_check_drugs_hook_healing() {
 	using namespace fo;
 	__asm {
 		call fo::funcoffs::ai_retrieve_object_;
@@ -152,7 +152,7 @@ static bool __fastcall TargetExistInList(fo::GameObject* target, fo::GameObject*
 	return false;
 }
 
-static void __declspec(naked) ai_find_attackers_hack_target2() {
+static __declspec(naked) void ai_find_attackers_hack_target2() {
 	__asm {
 		mov  edi, [esp + 0x24 - 0x24 + 4] // critter (target)
 		pushadc;
@@ -169,7 +169,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) ai_find_attackers_hack_target3() {
+static __declspec(naked) void ai_find_attackers_hack_target3() {
 	__asm {
 		mov  edi, [esp + 0x24 - 0x20 + 4] // critter (target)
 		push eax;
@@ -195,7 +195,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) ai_find_attackers_hack_target4() {
+static __declspec(naked) void ai_find_attackers_hack_target4() {
 	__asm {
 		mov  eax, [ecx + eax]; // critter (target)
 		pushadc;
@@ -214,7 +214,7 @@ skip:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) ai_danger_source_hack_pm_newFind() {
+static __declspec(naked) void ai_danger_source_hack_pm_newFind() {
 	using namespace fo;
 	__asm {
 		mov  ecx, [ebp + 0x18]; // source combat_data.who_hit_me
@@ -267,7 +267,7 @@ static long __fastcall ai_try_attack_switch_fix(fo::GameObject* target, long &hi
 	return -1; // exit, NPC has a weapon in hand slot, so we don't look for another weapon on the map
 }
 
-static void __declspec(naked) ai_try_attack_hook_switch_fix() {
+static __declspec(naked) void ai_try_attack_hook_switch_fix() {
 	__asm {
 		push edx;
 		push [ebx]; // weapon
@@ -288,7 +288,7 @@ noSwitch:
 
 static long RetryCombatMinAP;
 
-static void __declspec(naked) RetryCombatHook() {
+static __declspec(naked) void RetryCombatHook() {
 	static DWORD RetryCombatLastAP = 0;
 	using namespace fo;
 	__asm {
@@ -355,7 +355,7 @@ static long __fastcall ai_weapon_reload_fix(fo::GameObject* weapon, fo::GameObje
 	return result;
 }
 
-static void __declspec(naked) item_w_reload_hook() {
+static __declspec(naked) void item_w_reload_hook() {
 	using namespace fo;
 	__asm {
 		cmp  dword ptr [eax + protoId], PID_SOLAR_SCORCHER;
@@ -382,7 +382,7 @@ static long __fastcall item_weapon_reload_cost_fix(fo::GameObject* source, fo::G
 	return fo::func::ai_have_ammo(source, weapon, outAmmo); // 0 - no ammo
 }
 
-static void __declspec(naked) ai_try_attack_hook_cost_reload() {
+static __declspec(naked) void ai_try_attack_hook_cost_reload() {
 	static const DWORD ai_try_attack_hook_goNext_Ret = 0x42A9F2;
 	__asm {
 		push ebx;      // ammoObj ref
@@ -398,7 +398,7 @@ static void __declspec(naked) ai_try_attack_hook_cost_reload() {
 	}
 }
 
-static void __declspec(naked) ai_try_attack_hook_cost1() {
+static __declspec(naked) void ai_try_attack_hook_cost1() {
 	__asm {
 		xor  ebx, ebx;
 		sub  edx, aiReloadCost; // curr.mp - reload cost
@@ -407,7 +407,7 @@ static void __declspec(naked) ai_try_attack_hook_cost1() {
 	}
 }
 
-static void __declspec(naked) ai_try_attack_hook_cost2() {
+static __declspec(naked) void ai_try_attack_hook_cost2() {
 	__asm {
 		xor  ecx, ecx;
 		sub  ebx, aiReloadCost; // curr.mp - reload cost
@@ -426,7 +426,7 @@ static long __fastcall CheckWeaponRangeAndApCost(fo::GameObject* source, fo::Gam
 	return (source->critter.movePoints >= game::Items::item_w_mp_cost(source, fo::ATKTYPE_RWEAPON_SECONDARY, 0)); // 1 - allow secondary mode
 }
 
-static void __declspec(naked) ai_pick_hit_mode_hook() {
+static __declspec(naked) void ai_pick_hit_mode_hook() {
 	__asm {
 		call fo::funcoffs::caiHasWeapPrefType_;
 		test eax, eax;
@@ -439,7 +439,7 @@ evaluation:
 	}
 }
 
-static void __declspec(naked) ai_danger_source_hook() {
+static __declspec(naked) void ai_danger_source_hook() {
 	__asm {
 		call fo::funcoffs::combat_check_bad_shot_;
 		cmp  dword ptr [esp + 56], 0x42B235 + 5; // called from combat_ai_
@@ -452,7 +452,7 @@ fix:	// check result
 	}
 }
 
-static void __declspec(naked) cai_perform_distance_prefs_hack() {
+static __declspec(naked) void cai_perform_distance_prefs_hack() {
 	using namespace fo;
 	__asm {
 		mov  ecx, eax; // current distance to target
@@ -483,7 +483,7 @@ skipMove:
 	}
 }
 
-static void __declspec(naked) ai_move_away_hook() {
+static __declspec(naked) void ai_move_away_hook() {
 	static const DWORD ai_move_away_hook_Ret = 0x4289DA;
 	__asm {
 		test ebx, ebx;
@@ -509,7 +509,7 @@ static bool __fastcall RollFriendlyFire(fo::GameObject* target, fo::GameObject* 
 	return false;
 }
 
-static void __declspec(naked) combat_safety_invalidate_weapon_func_hook_check() {
+static __declspec(naked) void combat_safety_invalidate_weapon_func_hook_check() {
 	static const DWORD safety_invalidate_weapon_burst_friendly = 0x4216C9;
 	__asm {
 		pushadc;
@@ -532,7 +532,7 @@ static long __fastcall CheckFireBurst(fo::GameObject* attacker, fo::GameObject* 
 	return 1; // allow
 }
 
-static void __declspec(naked) ai_pick_hit_mode_hack() {
+static __declspec(naked) void ai_pick_hit_mode_hack() {
 	__asm {
 		cmp  eax, 1;
 		je   isAllowed;
@@ -552,7 +552,7 @@ skip:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) ai_try_attack_hack_check_safe_weapon() {
+static __declspec(naked) void ai_try_attack_hack_check_safe_weapon() {
 	__asm {
 		mov  ebx, [esp + 0x364 - 0x38 + 4]; // hit mode
 		retn;
@@ -566,7 +566,7 @@ static void __fastcall CombatAttackHook(fo::GameObject* source, fo::GameObject* 
 	targets[source] = target; // who was attacked by the 'source' from the last time
 }
 
-static void __declspec(naked) combat_attack_hook() {
+static __declspec(naked) void combat_attack_hook() {
 	__asm {
 		push eax;
 		push ecx;

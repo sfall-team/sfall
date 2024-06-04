@@ -59,7 +59,7 @@ static DWORD __fastcall BarterPriceHook_Script(fo::GameObject* source, fo::GameO
 	return cost;
 }
 
-static void __declspec(naked) BarterPriceHook() {
+static __declspec(naked) void BarterPriceHook() {
 	__asm {
 		push edx;
 		push ecx;
@@ -74,7 +74,7 @@ static void __declspec(naked) BarterPriceHook() {
 	}
 }
 
-static void __declspec(naked) PC_BarterPriceHook() {
+static __declspec(naked) void PC_BarterPriceHook() {
 	__asm {
 		push edx;
 		push ecx;
@@ -90,7 +90,7 @@ static void __declspec(naked) PC_BarterPriceHook() {
 	}
 }
 
-static void __declspec(naked) OverrideCost_BarterPriceHook() {
+static __declspec(naked) void OverrideCost_BarterPriceHook() {
 	__asm {
 		mov eax, lastTableCostPC;
 		retn;
@@ -142,7 +142,7 @@ static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, DWORD s
 	EndHook();
 }
 
-static void __declspec(naked) UseSkillOnHook() {
+static __declspec(naked) void UseSkillOnHook() {
 	__asm {
 		push eax;
 		push ecx;
@@ -161,7 +161,7 @@ handler:
 	}
 }
 
-static void __declspec(naked) UseSkillOnHack() {
+static __declspec(naked) void UseSkillOnHack() {
 	__asm {
 		cmp bakupCombatState, -1;
 		jz  skip;
@@ -179,7 +179,7 @@ default:
 	}
 }
 
-static void __declspec(naked) skill_use_hack() {
+static __declspec(naked) void skill_use_hack() {
 	__asm {
 		cmp   ebp, dword ptr ds:[FO_VAR_obj_dude];
 		setnz al;
@@ -187,7 +187,7 @@ static void __declspec(naked) skill_use_hack() {
 	}
 }
 
-static void __declspec(naked) UseSkillHook() {
+static __declspec(naked) void UseSkillHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax;  // user
@@ -217,7 +217,7 @@ defaultHandler:
 
 static long stealExpOverride;
 
-static void __declspec(naked) StealHook_ExpOverrideHack() {
+static __declspec(naked) void StealHook_ExpOverrideHack() {
 	__asm {
 		mov ecx, [esp + 0x150 - 0x18 + 4]; // total exp
 		cmp stealExpOverride, -1;
@@ -236,7 +236,7 @@ end:
 	}
 }
 
-static void __declspec(naked) StealCheckHook() {
+static __declspec(naked) void StealCheckHook() {
 	static const DWORD StealSkipRet = 0x474B18;
 	__asm {
 		HookBegin;
@@ -280,7 +280,7 @@ defaultHandler:
 	}
 }
 
-static void __declspec(naked) SneakCheckHook() {
+static __declspec(naked) void SneakCheckHook() {
 	__asm {
 		HookBegin;
 		mov esi, ds:[FO_VAR_sneak_working];
@@ -332,7 +332,7 @@ static long __fastcall PerceptionRange_Hook(fo::GameObject* watcher, fo::GameObj
 	return PerceptionRangeHook_Script(watcher, target, type, fo::func::is_within_perception(watcher, target));
 }
 
-static void __declspec(naked) PerceptionRangeHook() {
+static __declspec(naked) void PerceptionRangeHook() {
 	__asm {
 		push ecx;
 		push 0;
@@ -343,7 +343,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 	}
 }
 
-static void __declspec(naked) PerceptionRangeSeeHook() {
+static __declspec(naked) void PerceptionRangeSeeHook() {
 	__asm {
 		push ecx;
 		push 1;
@@ -360,7 +360,7 @@ nevermind:
 	}
 }
 
-static void __declspec(naked) PerceptionRangeHearHook() {
+static __declspec(naked) void PerceptionRangeHearHook() {
 	__asm {
 		push ecx;
 		push 2;
@@ -371,7 +371,7 @@ static void __declspec(naked) PerceptionRangeHearHook() {
 	}
 }
 
-static void __declspec(naked) PerceptionSearchTargetHook() {
+static __declspec(naked) void PerceptionSearchTargetHook() {
 	__asm {
 		push ecx;
 		push 3;
@@ -429,7 +429,7 @@ static void CarTravelHook_Script() {
 	EndHook();
 }
 
-static void __declspec(naked) CarTravelHack() {
+static __declspec(naked) void CarTravelHack() {
 	static const DWORD CarTravelHack_back = 0x4BFF43;
 	__asm {
 		pushad;
@@ -459,7 +459,7 @@ static long __fastcall GlobalVarHook_Script(DWORD number, int value) {
 	return value;
 }
 
-static void __declspec(naked) SetGlobalVarHook() {
+static __declspec(naked) void SetGlobalVarHook() {
 	__asm {
 		push eax;
 		push ecx;
@@ -505,7 +505,7 @@ static long __fastcall RestTimerHook_Script(DWORD hours, DWORD minutes, DWORD ga
 	return result;
 }
 
-static void __declspec(naked) RestTimerLoopHook() {
+static __declspec(naked) void RestTimerLoopHook() {
 	__asm {
 		pushadc;
 		mov  edx, [esp + 16 + 0x44]; // minutes_
@@ -522,7 +522,7 @@ static void __declspec(naked) RestTimerLoopHook() {
 	}
 }
 
-static void __declspec(naked) RestTimerEscapeHook() {
+static __declspec(naked) void RestTimerEscapeHook() {
 	__asm {
 		mov  edi, 1;    // engine code
 		cmp  eax, 0x1B; // ESC ASCII code
@@ -567,7 +567,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD &type, DWORD item, DWORD t
 	return time;
 }
 
-static void __declspec(naked) ExplosiveTimerHook() {
+static __declspec(naked) void ExplosiveTimerHook() {
 	__asm {
 		push eax; // time in ticks for queue_add_
 		push edx;
@@ -618,7 +618,7 @@ static long __fastcall EncounterHook_Script(long encounterMapID, long eventType,
 	return encounterMapID;
 }
 
-static void __declspec(naked) wmWorldMap_hook() {
+static __declspec(naked) void wmWorldMap_hook() {
 	__asm {
 		mov  ebx, eax; // keep map id
 		mov  edx, 1;
@@ -631,7 +631,7 @@ static void __declspec(naked) wmWorldMap_hook() {
 	}
 }
 
-static void __declspec(naked) wmRndEncounterOccurred_hook() {
+static __declspec(naked) void wmRndEncounterOccurred_hook() {
 	static long hkEncounterMapID = -1;
 	__asm {
 		cmp  hkEncounterMapID, -1;
@@ -728,7 +728,7 @@ static long __stdcall RollCheckHook_Script(long roll, long chance, long bonus, l
 	return roll;
 }
 
-static void __declspec(naked) roll_check_hook() {
+static __declspec(naked) void roll_check_hook() {
 	__asm {
 		push ecx;
 		push [esp + 0xC + 8]; // calledFrom

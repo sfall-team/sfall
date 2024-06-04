@@ -45,7 +45,7 @@ static long __fastcall CreateWin(long height, long yPos, long xPos, long width, 
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }
 
-static void __declspec(naked) setup_inventory_hook_win_add() {
+static __declspec(naked) void setup_inventory_hook_win_add() {
 	__asm {
 		pop	 ebp; // ret addr
 		push edi; // mode
@@ -56,7 +56,7 @@ static void __declspec(naked) setup_inventory_hook_win_add() {
 	}
 }
 
-static void __declspec(naked) inventory_hook_mouse_click_in() {
+static __declspec(naked) void inventory_hook_mouse_click_in() {
 	__asm {
 		add  eax, xPosition; // left
 		add  ebx, xPosition; // right

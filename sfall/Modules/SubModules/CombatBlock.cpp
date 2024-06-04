@@ -31,7 +31,7 @@ static void __stdcall CombatBlocked() {
 	fo::func::display_print(Translate::CombatBlockMessage().c_str());
 }
 
-static void __declspec(naked) intface_use_item_hook() {
+static __declspec(naked) void intface_use_item_hook() {
 	static const DWORD BlockCombatHook1Ret1 = 0x45F6AF;
 	static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
 	__asm {
@@ -44,7 +44,7 @@ block:
 	}
 }
 
-static void __declspec(naked) game_handle_input_hook() {
+static __declspec(naked) void game_handle_input_hook() {
 	__asm {
 		mov  eax, dword ptr ds:[FO_VAR_intfaceEnabled];
 		test eax, eax;
@@ -60,7 +60,7 @@ end:
 	}
 }
 
-static void __declspec(naked) ai_can_use_weapon_hack() {
+static __declspec(naked) void ai_can_use_weapon_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -75,7 +75,7 @@ cantUse:
 	}
 }
 
-static void __declspec(naked) can_use_weapon_hook() {
+static __declspec(naked) void can_use_weapon_hook() {
 	static const DWORD cant_use_weapon_Ret = 0x477F9F;
 	using namespace fo;
 	using namespace Fields;
@@ -95,7 +95,7 @@ cantUse:
 }
 
 // Note: in ai_try_attack_, the attacker will not be able to change unusable weapon, as it happens with crippled arms
-static void __declspec(naked) combat_check_bad_shot_hack() {
+static __declspec(naked) void combat_check_bad_shot_hack() {
 	static const DWORD combat_check_bad_shot_Ret = 0x42673A;
 	using namespace fo;
 	using namespace Fields;

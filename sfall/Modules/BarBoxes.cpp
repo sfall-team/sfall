@@ -57,7 +57,7 @@ static struct tBox {
 
 static bool setCustomBoxText;
 
-static void __declspec(naked) DisplayBoxesHack() {
+static __declspec(naked) void DisplayBoxesHack() {
 	static const DWORD DisplayBoxesRet1 = 0x4615A8;
 	static const DWORD DisplayBoxesRet2 = 0x4615BE;
 	__asm {
@@ -84,7 +84,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) BarBoxesTextHack() {
+static __declspec(naked) void BarBoxesTextHack() {
 	__asm {
 		push ecx;                           // ecx = BoxIndex
 		sub  ecx, 5;                        // subtract vanilla boxes
@@ -111,7 +111,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) BarBoxesIndexHack() {
+static __declspec(naked) void BarBoxesIndexHack() {
 	static const DWORD SetIndexBoxRet = 0x4612E8;
 	__asm {
 		mov eax, ds:[0x4612E2]; // fontnum
@@ -121,7 +121,7 @@ static void __declspec(naked) BarBoxesIndexHack() {
 	}
 }
 
-static void __declspec(naked) BarBoxesSizeHack() {
+static __declspec(naked) void BarBoxesSizeHack() {
 	static const DWORD SizeLoopBoxRet = 0x461477;
 	static const DWORD ExitLoopBoxRet = 0x461498;
 	__asm {
@@ -250,7 +250,7 @@ static long __fastcall GetOffsetX(int width) {
 	return x_offset;
 }
 
-static void __declspec(naked) refresh_box_bar_win_hack() {
+static __declspec(naked) void refresh_box_bar_win_hack() {
 	__asm {
 		push ecx;
 		mov  ecx, ebx;   // _barWindow width

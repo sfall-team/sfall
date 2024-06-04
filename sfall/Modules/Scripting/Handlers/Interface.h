@@ -30,7 +30,7 @@ class OpcodeContext;
 void ClearInterfaceArtCache();
 
 // input_functions
-void __declspec() op_input_funcs_available();
+void op_input_funcs_available();
 
 void op_set_pipboy_available(OpcodeContext&);
 
@@ -38,38 +38,38 @@ void PipboyAvailableRestore();
 
 void op_key_pressed(OpcodeContext&);
 
-void __declspec() op_tap_key();
+void op_tap_key();
 
 //// *** From helios *** ////
-void __declspec() op_get_mouse_x();
+void op_get_mouse_x();
 
 //Return mouse y position
-void __declspec() op_get_mouse_y();
+void op_get_mouse_y();
 
 //Return pressed mouse button (1=left, 2=right, 3=left+right, 4=middle)
 void op_get_mouse_buttons(OpcodeContext&);
 
 //Return the window number under the mous
-void __declspec() op_get_window_under_mouse();
+void op_get_window_under_mouse();
 
 //Return screen width
-void __declspec() op_get_screen_width();
+void op_get_screen_width();
 
 //Return screen height
-void __declspec() op_get_screen_height();
+void op_get_screen_height();
 
 //Create a message window with given string
 void op_create_message_window(OpcodeContext&);
 
 void mf_message_box(OpcodeContext&);
 
-void __declspec() op_get_viewport_x();
+void op_get_viewport_x();
 
-void __declspec() op_get_viewport_y();
+void op_get_viewport_y();
 
-void __declspec() op_set_viewport_x();
+void op_set_viewport_x();
 
-void __declspec() op_set_viewport_y();
+void op_set_viewport_y();
 
 void mf_add_iface_tag(OpcodeContext&);
 

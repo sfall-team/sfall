@@ -40,7 +40,7 @@ static void __fastcall ConsoleFilePrint(const char* msg) {
 	}
 }
 
-static void __declspec(naked) display_print_hack() {
+static __declspec(naked) void display_print_hack() {
 	static const DWORD display_print_Ret = 0x431871;
 	__asm {
 		push ebx;

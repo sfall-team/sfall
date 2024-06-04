@@ -124,7 +124,7 @@ static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, fo::MessageLi
 	return 1;
 }
 
-static void __declspec(naked) scr_get_msg_str_speech_hook() {
+static __declspec(naked) void scr_get_msg_str_speech_hook() {
 	__asm {
 		call fo::funcoffs::message_search_;
 		cmp  eax, 1;
@@ -198,7 +198,7 @@ static void __fastcall MessageExitHook(fo::MessageList* list) {
 }
 
 // Loads the msg file from the 'english' folder if it does not exist in the current language directory
-static void __declspec(naked) message_load__db_fopen_hook() {
+static __declspec(naked) void message_load_hook_db_fopen() {
 	__asm {
 		push esi;      // message list
 		push ebp;      // relative path
@@ -208,7 +208,7 @@ static void __declspec(naked) message_load__db_fopen_hook() {
 	}
 }
 
-static void __declspec(naked) message_search__message_find_hook() {
+static __declspec(naked) void message_search_hook_message_find() {
 	__asm {
 		push ecx; // save msg list
 		push ebx;            // out index
@@ -219,7 +219,7 @@ static void __declspec(naked) message_search__message_find_hook() {
 	}
 }
 
-static void __declspec(naked) message_exit__mem_free_hook() {
+static __declspec(naked) void message_exit_hook_mem_free() {
 	__asm {
 		push eax; // save msgList->nodes
 		mov  ecx, ebx; // message list
@@ -303,9 +303,9 @@ static void FallbackEnglishLoadMsgFiles() {
 	if (fo::func::get_game_config_string(&lang, "system", "language")) {
 		strncpy_s(gameLanguage, lang, _TRUNCATE);
 		if (_stricmp(lang, "english") != 0) {
-			HookCall(0x484B18, message_load__db_fopen_hook);
-			HookCall(0x484C4B, message_search__message_find_hook);
-			HookCall(0x4849B9, message_exit__mem_free_hook);
+			HookCall(0x484B18, message_load_hook_db_fopen);
+			HookCall(0x484C4B, message_search_hook_message_find);
+			HookCall(0x4849B9, message_exit_hook_mem_free);
 		}
 	}
 }
