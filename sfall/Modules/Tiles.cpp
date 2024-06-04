@@ -223,7 +223,7 @@ static int __stdcall ArtInitHook() {
 	return 0;
 }
 
-static void __declspec(naked) iso_init_hook() {
+static __declspec(naked) void iso_init_hook() {
 	__asm {
 		mov  ebx, dword ptr ds:[FO_VAR_read_callback];
 		xor  eax, eax;
@@ -256,7 +256,7 @@ static long __fastcall SquareLoadCheck(TilesData* data) {
 	return 0; // don't delete
 }
 
-static void __declspec(naked) square_load_hook() {
+static __declspec(naked) void square_load_hook() {
 	__asm {
 		mov  ecx, edx;
 		call fo::funcoffs::db_freadIntCount_;
@@ -268,7 +268,7 @@ end:
 	}
 }
 
-static void __declspec(naked) art_id_hack() {
+static __declspec(naked) void art_id_hack() {
 	using namespace fo;
 	__asm {
 		cmp  esi, (OBJ_TYPE_TILE << 24); // 0x4000000
@@ -281,7 +281,7 @@ end:
 	}
 }
 
-static void __declspec(naked) art_get_name_hack() {
+static __declspec(naked) void art_get_name_hack() {
 	using namespace fo;
 	__asm {
 		sar  eax, 24;

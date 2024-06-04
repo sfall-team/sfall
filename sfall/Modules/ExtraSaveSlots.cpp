@@ -72,7 +72,7 @@ static void LoadPageOffsets() {
 	}
 }
 
-static void __declspec(naked) load_page_offsets(void) {
+static __declspec(naked) void load_page_offsets(void) {
 	__asm {
 		call LoadPageOffsets;
 		mov  edx, 0x50A480; // ASCII "SAV" (restore original code)
@@ -229,7 +229,7 @@ static long __fastcall CheckPage(long button) {
 	return 0;
 }
 
-static void __declspec(naked) check_page_buttons(void) {
+static __declspec(naked) void check_page_buttons(void) {
 	__asm {
 		push eax;
 		push ecx;
@@ -320,7 +320,7 @@ static void DrawPageText() {
 	SaveLoadWin = nullptr;
 }
 
-static void __declspec(naked) draw_page_text(void) {
+static __declspec(naked) void draw_page_text(void) {
 	__asm {
 		push eax;
 		call DrawPageText;
@@ -331,7 +331,7 @@ static void __declspec(naked) draw_page_text(void) {
 }
 
 // add page num offset when reading and writing various save data files
-static void __declspec(naked) add_page_offset_hack1(void) {
+static __declspec(naked) void add_page_offset_hack1(void) {
 	__asm {
 		mov  eax, dword ptr ds:[FO_VAR_slot_cursor]; // list position 0-9
 		add  eax, LSPageOffset;                      // add page num offset
@@ -340,7 +340,7 @@ static void __declspec(naked) add_page_offset_hack1(void) {
 }
 
 // getting info for the 10 currently displayed save slots from save.dats
-static void __declspec(naked) add_page_offset_hack2(void) {
+static __declspec(naked) void add_page_offset_hack2(void) {
 	__asm {
 		push 0x50A514;          // ASCII "SAVE.DAT"
 		lea  eax, [ebx + 1];
@@ -351,7 +351,7 @@ static void __declspec(naked) add_page_offset_hack2(void) {
 }
 
 // printing current 10 slot numbers
-static void __declspec(naked) add_page_offset_hack3(void) {
+static __declspec(naked) void add_page_offset_hack3(void) {
 	__asm {
 		inc  eax;
 		add  eax, LSPageOffset;            // add page num offset
@@ -486,7 +486,7 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 	return 0x47B9A4; // normal return
 }
 
-static void __declspec(naked) SaveGame_hack0() {
+static __declspec(naked) void SaveGame_hack0() {
 	__asm {
 		mov  ds:[FO_VAR_flptr], eax;
 		push ecx;
@@ -498,7 +498,7 @@ static void __declspec(naked) SaveGame_hack0() {
 	}
 }
 
-static void __declspec(naked) SaveGame_hack1() {
+static __declspec(naked) void SaveGame_hack1() {
 	__asm {
 		mov  eax, quickSavePage;
 		test eax, eax;

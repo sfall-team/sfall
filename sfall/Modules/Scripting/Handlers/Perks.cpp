@@ -30,7 +30,7 @@ namespace sfall
 namespace script
 {
 
-void __declspec(naked) op_get_perk_owed() {
+__declspec(naked) void op_get_perk_owed() {
 	__asm {
 		movzx edx, byte ptr ds:[FO_VAR_free_perk];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -38,7 +38,7 @@ void __declspec(naked) op_get_perk_owed() {
 	}
 }
 
-void __declspec(naked) op_set_perk_owed() {
+__declspec(naked) void op_set_perk_owed() {
 	__asm {
 		_GET_ARG_INT(end);
 		and  eax, 0xFF;
@@ -50,7 +50,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_perk_freq() {
+__declspec(naked) void op_set_perk_freq() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -78,7 +78,7 @@ void op_set_perk_desc(OpcodeContext& ctx) {
 	Perks::SetPerkDesc(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
-void __declspec(naked) op_set_perk_value() {
+__declspec(naked) void op_set_perk_value() {
 	__asm { // edx - opcode
 		push edi;
 		push ecx;
@@ -112,7 +112,7 @@ void op_set_fake_trait(OpcodeContext& ctx) {
 	Perks::SetFakeTrait(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).strValue());
 }
 
-void __declspec(naked) op_set_perkbox_title() {
+__declspec(naked) void op_set_perkbox_title() {
 	__asm {
 		mov  esi, ecx;
 		push ebx;
@@ -134,7 +134,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_hide_real_perks() {
+__declspec(naked) void op_hide_real_perks() {
 	__asm {
 		mov  esi, ecx;
 		call IgnoreDefaultPerks;
@@ -143,7 +143,7 @@ void __declspec(naked) op_hide_real_perks() {
 	}
 }
 
-void __declspec(naked) op_show_real_perks() {
+__declspec(naked) void op_show_real_perks() {
 	__asm {
 		mov  esi, ecx;
 		call RestoreDefaultPerks;
@@ -152,7 +152,7 @@ void __declspec(naked) op_show_real_perks() {
 	}
 }
 
-void __declspec(naked) op_clear_selectable_perks() {
+__declspec(naked) void op_clear_selectable_perks() {
 	__asm {
 		mov  esi, ecx;
 		call ClearSelectablePerks;
@@ -169,7 +169,7 @@ void op_has_fake_trait(OpcodeContext& ctx) {
 	ctx.setReturn(Perks::HasFakeTrait(ctx.arg(0).strValue()));
 }
 
-void __declspec(naked) op_perk_add_mode() {
+__declspec(naked) void op_perk_add_mode() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -181,7 +181,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_remove_trait() {
+__declspec(naked) void op_remove_trait() {
 	__asm {
 		_GET_ARG_INT(end);
 		test eax, eax;
@@ -202,7 +202,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_pyromaniac_mod() {
+__declspec(naked) void op_set_pyromaniac_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -215,7 +215,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_apply_heaveho_fix() {
+__declspec(naked) void op_apply_heaveho_fix() {
 	__asm {
 		mov  esi, ecx;
 		call Perks::ApplyHeaveHoFix;
@@ -224,7 +224,7 @@ void __declspec(naked) op_apply_heaveho_fix() {
 	}
 }
 
-void __declspec(naked) op_set_swiftlearner_mod() {
+__declspec(naked) void op_set_swiftlearner_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -237,7 +237,7 @@ end:
 	}
 }
 
-static void __declspec(naked) perk_can_add_hook() {
+static __declspec(naked) void perk_can_add_hook() {
 	__asm {
 		call fo::funcoffs::stat_pc_get_;
 		add  eax, Perks::PerkLevelMod;
@@ -259,7 +259,7 @@ static void __fastcall SetPerkLevelMod(long mod) {
 	HookCall(0x49687F, perk_can_add_hook);
 }
 
-void __declspec(naked) op_set_perk_level_mod() {
+__declspec(naked) void op_set_perk_level_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);

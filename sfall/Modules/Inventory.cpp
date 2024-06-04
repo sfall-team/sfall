@@ -291,7 +291,7 @@ static __declspec(naked) void inven_obj_examine_func_hook() {
 	}
 }
 
-static void __declspec(naked) gdControlUpdateInfo_hack() {
+static __declspec(naked) void gdControlUpdateInfo_hack() {
 	static const DWORD ControlUpdateInfoRet = 0x44912A;
 	using namespace fo;
 	__asm {
@@ -325,7 +325,7 @@ static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target)
 	return -1;
 }
 
-static void __declspec(naked) protinst_use_item_on_hack() {
+static __declspec(naked) void protinst_use_item_on_hack() {
 	static const DWORD protinst_use_item_on_Ret = 0x49C5F4;
 	__asm {
 		push ecx;
@@ -342,7 +342,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetDefaultAmmo() {
+static __declspec(naked) void SetDefaultAmmo() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -368,7 +368,7 @@ end:
 	}
 }
 
-static void __declspec(naked) inven_action_cursor_hack() {
+static __declspec(naked) void inven_action_cursor_hack() {
 	__asm {
 		mov  edx, [esp + 0x6C - 0x50 + 4];         // source_item
 		call SetDefaultAmmo;
@@ -377,7 +377,7 @@ static void __declspec(naked) inven_action_cursor_hack() {
 	}
 }
 
-static void __declspec(naked) item_add_mult_hook() {
+static __declspec(naked) void item_add_mult_hook() {
 	__asm {
 		push edx;
 		call SetDefaultAmmo;
@@ -387,7 +387,7 @@ static void __declspec(naked) item_add_mult_hook() {
 	}
 }
 
-static void __declspec(naked) inven_pickup_hack() {
+static __declspec(naked) void inven_pickup_hack() {
 	__asm {
 		mov  eax, ds:[FO_VAR_i_wid];
 		call fo::funcoffs::GNW_find_;
@@ -401,7 +401,7 @@ static void __declspec(naked) inven_pickup_hack() {
 	}
 }
 
-static void __declspec(naked) loot_container_hack_scroll() {
+static __declspec(naked) void loot_container_hack_scroll() {
 	__asm {
 		cmp  esi, 0x150;                          // source_down
 		je   scroll;
@@ -440,7 +440,7 @@ end:
 	}
 }
 
-static void __declspec(naked) barter_inventory_hack_scroll() {
+static __declspec(naked) void barter_inventory_hack_scroll() {
 	__asm {
 		mov  esi, eax;
 		cmp  esi, 0x150;                          // source_down
@@ -528,7 +528,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) op_inven_unwield_hook() {
+static __declspec(naked) void op_inven_unwield_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -556,7 +556,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) op_wield_obj_critter_hook() {
+static __declspec(naked) void op_wield_obj_critter_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -572,7 +572,7 @@ skip:
 // Allow passing non-weapon/armor items to invenWieldFunc_ engine function without error
 // It used to treat all non-armor items as "weapon" and try to check if critter had weapon animation,
 // which isn't valid for other item subtypes.
-static void __declspec(naked) invenWieldFunc_hack() {
+static __declspec(naked) void invenWieldFunc_hack() {
 	static const DWORD invenWieldFunc_hack_back = 0x47285D;
 	static const DWORD invenWieldFunc_hack_skip = 0x4728A7;
 	using namespace fo;
@@ -591,7 +591,7 @@ isWeapon: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) do_move_timer_hook() {
+static __declspec(naked) void do_move_timer_hook() {
 	static const DWORD DoMoveTimer_Ret = 0x476920;
 	__asm {
 		cmp eax, 4;
@@ -670,7 +670,7 @@ static long __fastcall CalculateDefaultMoveCount(DWORD maybeItem, DWORD retAddr,
 	return itemCounterDefaultMax ? maxValue : 1;
 }
 
-static void __declspec(naked) do_move_timer_hack() {
+static __declspec(naked) void do_move_timer_hack() {
 	__asm {
 		push ecx;
 		push ebp; // max
@@ -686,7 +686,7 @@ static void __declspec(naked) do_move_timer_hack() {
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 
-static void __declspec(naked) inven_ap_cost_hack() {
+static __declspec(naked) void inven_ap_cost_hack() {
 	static const DWORD inven_ap_cost_Ret = 0x46E812;
 	__asm {
 		mul byte ptr invenApQPReduction;

@@ -32,7 +32,7 @@ long UseObjOnHook_Invoke(fo::GameObject* source, fo::GameObject* item, fo::GameO
 	return UseObjOnHook_Script(source, item, target);
 }
 
-static void __declspec(naked) UseObjOnHook() {
+static __declspec(naked) void UseObjOnHook() {
 	__asm {
 		HookBegin;
 		mov args[0], edx; // target
@@ -59,7 +59,7 @@ defaultHandler:
 	}
 }
 
-static void __declspec(naked) Drug_UseObjOnHook() {
+static __declspec(naked) void Drug_UseObjOnHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax; // target
@@ -86,7 +86,7 @@ defaultHandler:
 	}
 }
 
-static void __declspec(naked) UseObjHook() {
+static __declspec(naked) void UseObjHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax; // user
@@ -131,7 +131,7 @@ static DWORD __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, 
 }
 
 // Before animation of using map object
-static void __declspec(naked) UseAnimateObjHook() {
+static __declspec(naked) void UseAnimateObjHook() {
 	__asm {
 		cmp  dword ptr [esp], 0x412292 + 5;
 		push eax;
@@ -173,7 +173,7 @@ static DWORD __fastcall DescriptionObjHook_Script(DWORD object) {
 	return textPtr;
 }
 
-static void __declspec(naked) DescriptionObjHook() {
+static __declspec(naked) void DescriptionObjHook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -215,7 +215,7 @@ static bool __fastcall SetLightingHook_Script(DWORD &intensity, DWORD &radius, D
 	return result;
 }
 
-static void __declspec(naked) SetObjectLightHook() {
+static __declspec(naked) void SetObjectLightHook() {
 	__asm {
 		pushadc;
 		push ebp;
@@ -237,7 +237,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetMapLightHook() {
+static __declspec(naked) void SetMapLightHook() {
 	__asm {
 		push ecx;
 		push ebx;
@@ -282,7 +282,7 @@ static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInsta
 	return procTable;
 }
 
-static void __declspec(naked) ScriptStdProcedureHook() {
+static __declspec(naked) void ScriptStdProcedureHook() {
 	using namespace fo::Scripts;
 	__asm {
 		mov  eax, [eax + 0x54]; // Script.procedure_table
@@ -308,7 +308,7 @@ end:
 	}
 }
 
-static void __declspec(naked) After_ScriptStdProcedureHook() {
+static __declspec(naked) void After_ScriptStdProcedureHook() {
 	using namespace fo::Scripts;
 	__asm {
 		call fo::funcoffs::executeProcedure_;

@@ -69,7 +69,7 @@ static void ForceEncounterEffects() {
 	fo::var::setInt(FO_VAR_wmEncounterIconShow) = 0;
 }
 
-static void __declspec(naked) wmRndEncounterOccurred_hack() {
+static __declspec(naked) void wmRndEncounterOccurred_hack() {
 	__asm {
 		test ForceEncounterFlags, 0x1; // _NoCar flag
 		jnz  noCar;
@@ -110,7 +110,7 @@ void op_force_encounter(OpcodeContext& cxt) {
 }
 
 // world_map_functions
-void __declspec(naked) op_in_world_map() {
+__declspec(naked) void op_in_world_map() {
 	__asm {
 		mov  esi, ecx;
 		call InWorldMap;
@@ -122,7 +122,7 @@ void __declspec(naked) op_in_world_map() {
 	}
 }
 
-void __declspec(naked) op_get_game_mode() {
+__declspec(naked) void op_get_game_mode() {
 	__asm {
 		mov  esi, ecx;
 		call GetLoopFlags;
@@ -134,7 +134,7 @@ void __declspec(naked) op_get_game_mode() {
 	}
 }
 
-void __declspec(naked) op_get_world_map_x_pos() {
+__declspec(naked) void op_get_world_map_x_pos() {
 	__asm {
 		mov  edx, ds:[FO_VAR_world_xpos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -142,7 +142,7 @@ void __declspec(naked) op_get_world_map_x_pos() {
 	}
 }
 
-void __declspec(naked) op_get_world_map_y_pos() {
+__declspec(naked) void op_get_world_map_y_pos() {
 	__asm {
 		mov  edx, ds:[FO_VAR_world_ypos];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
@@ -150,7 +150,7 @@ void __declspec(naked) op_get_world_map_y_pos() {
 	}
 }
 
-void __declspec(naked) op_set_world_map_pos() {
+__declspec(naked) void op_set_world_map_pos() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi); // get y value

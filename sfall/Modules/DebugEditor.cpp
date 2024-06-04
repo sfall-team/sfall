@@ -297,7 +297,7 @@ void RunDebugEditor() {
 	WSACleanup();
 }
 
-static void __declspec(naked) dbg_error_hack() {
+static __declspec(naked) void dbg_error_hack() {
 	static const DWORD dbg_error_ret = 0x453FD8;
 	__asm {
 		cmp  ebx, 1;
@@ -311,7 +311,7 @@ hide:
 	}
 }
 
-static void __declspec(naked) art_data_size_hook() {
+static __declspec(naked) void art_data_size_hook() {
 	static const char* artDbgMsg = "\nERROR: Art file not found: %s\n";
 	__asm {
 		test edi, edi; // 1 - isExistsArt
@@ -327,7 +327,7 @@ artNotExist:
 	}
 }
 
-static void __declspec(naked) art_data_size_hook_check() {
+static __declspec(naked) void art_data_size_hook_check() {
 	using namespace fo;
 	__asm {
 		xor  esi, esi;
@@ -339,7 +339,7 @@ static void __declspec(naked) art_data_size_hook_check() {
 	}
 }
 
-static void __declspec(naked) proto_load_pid_hack() {
+static __declspec(naked) void proto_load_pid_hack() {
 	static const char* proDbgMsg = "\nERROR: Reading prototype file: %s\n";
 	__asm {
 		mov  dword ptr [esp + 0x120 - 0x1C + 4], -1;
@@ -353,7 +353,7 @@ static void __declspec(naked) proto_load_pid_hack() {
 	}
 }
 
-static void __declspec(naked) win_debug_hook() {
+static __declspec(naked) void win_debug_hook() {
 	__asm {
 		call fo::funcoffs::debug_log_;
 		xor  eax, eax;
@@ -362,7 +362,7 @@ static void __declspec(naked) win_debug_hook() {
 	}
 }
 
-static void __declspec(naked) debug_log_hack() {
+static __declspec(naked) void debug_log_hack() {
 	__asm {
 		push eax;      // text
 		push 0x5016EC; // fmt '%s'
@@ -373,7 +373,7 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
-static void __declspec(naked) debugMsg() {
+static __declspec(naked) void debugMsg() {
 	static const char* scrNameFmt = "\nScript: %s ";
 	__asm {
 		mov  edx, ds:[FO_VAR_currentProgram];
@@ -385,7 +385,7 @@ static void __declspec(naked) debugMsg() {
 	}
 }
 
-static void __declspec(naked) combat_load_hack() {
+static __declspec(naked) void combat_load_hack() {
 	static const char* msgCombat = "LOADSAVE: Object ID not found while loading the combat data.\n";
 	__asm {
 		push msgCombat;
@@ -403,7 +403,7 @@ static void __fastcall DuplicateLogToConsole(const char* a, unsigned long displa
 	console.write(a, source);
 }
 
-static void __declspec(naked) op_display_debug_msg_hack() {
+static __declspec(naked) void op_display_debug_msg_hack() {
 	__asm {
 		mov  eax, 0x505224; // "\n"
 		call ds:[FO_VAR_debug_func];
@@ -421,14 +421,14 @@ static void __declspec(naked) op_display_debug_msg_hack() {
 	}
 }
 
-static void __declspec(naked) op_display_msg_hack() {
+static __declspec(naked) void op_display_msg_hack() {
 	__asm {
 		push 1; // displayMsg = true
 		jmp  op_display_debug_msg_hack;
 	}
 }
 
-static void __declspec(naked) op_debug_msg_hack() {
+static __declspec(naked) void op_debug_msg_hack() {
 	__asm {
 		push 0; // displayMsg = false
 		jmp  op_display_debug_msg_hack;
@@ -438,7 +438,7 @@ static void __declspec(naked) op_debug_msg_hack() {
 static long debugWndFontOld;
 static long debugWndFont = 0;
 // Before something is printed in the window: remembers current font, replace it with debugWndFont.
-static void __declspec(naked) win_debug_text_height_hook() {
+static __declspec(naked) void win_debug_text_height_hook() {
 	__asm {
 		call fo::funcoffs::text_curr_;
 		mov  debugWndFontOld, eax;
@@ -450,7 +450,7 @@ static void __declspec(naked) win_debug_text_height_hook() {
 }
 
 // After something is printed in the window: restores current font.
-static void __declspec(naked) win_debug_win_draw_hook() {
+static __declspec(naked) void win_debug_win_draw_hook() {
 	__asm {
 		push eax; // winID
 		mov  eax, debugWndFontOld;
@@ -461,7 +461,7 @@ static void __declspec(naked) win_debug_win_draw_hook() {
 }
 
 static long debugWndWidth;
-static void __declspec(naked) win_debug_pitch_calc_hack() {
+static __declspec(naked) void win_debug_pitch_calc_hack() {
 	static const DWORD win_debug_pitch_calc_hack_back = 0x4DC542;
 	__asm {
 		mov  eax, debugWndWidth;

@@ -96,7 +96,7 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 	return result;
 }
 
-static void __declspec(naked) op_metarule3_hack() {
+static __declspec(naked) void op_metarule3_hack() {
 	static const DWORD op_metarule3_hack_Ret = 0x45732C;
 	__asm {
 		cmp  ecx, 111;

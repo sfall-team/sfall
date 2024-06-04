@@ -91,7 +91,7 @@ void __stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
-static void __declspec(naked) LevelUpHack() {
+static __declspec(naked) void LevelUpHack() {
 	using namespace fo;
 	__asm {
 		push ecx;
@@ -125,7 +125,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkBoxTitleHook() {
+static __declspec(naked) void GetPerkBoxTitleHook() {
 	__asm {
 		lea  eax, PerkBoxTitle;
 		retn;
@@ -247,7 +247,7 @@ static DWORD __stdcall HaveFakeTraits2() {
 	return fakeTraits.size();
 }
 
-static void __declspec(naked) HaveFakeTraits() {
+static __declspec(naked) void HaveFakeTraits() {
 	__asm {
 		push ecx;
 		push edx;
@@ -262,7 +262,7 @@ static DWORD __stdcall HaveFakePerks2() {
 	return fakePerks.size();
 }
 
-static void __declspec(naked) HaveFakePerks() {
+static __declspec(naked) void HaveFakePerks() {
 	__asm {
 		push ecx;
 		push edx;
@@ -277,7 +277,7 @@ static FakePerk* __stdcall GetFakePerk2(int id) {
 	return &fakePerks[id - fo::Perk::PERK_count];
 }
 
-static void __declspec(naked) GetFakePerk() {
+static __declspec(naked) void GetFakePerk() {
 	__asm {
 		mov  eax, [esp + 4];
 		push ecx;
@@ -294,7 +294,7 @@ static FakePerk* __stdcall GetFakeSPerk2(int id) {
 	return &fakeSelectablePerks[id - fo::Perk::PERK_count];
 }
 
-static void __declspec(naked) GetFakeSPerk() {
+static __declspec(naked) void GetFakeSPerk() {
 	__asm {
 		mov  eax, [esp + 4];
 		push ecx;
@@ -315,7 +315,7 @@ static DWORD __stdcall GetFakeSPerkLevel2(int id) {
 	return 0;
 }
 
-static void __declspec(naked) GetFakeSPerkLevel() {
+static __declspec(naked) void GetFakeSPerkLevel() {
 	__asm {
 		mov  eax, [esp + 4];
 		push ecx;
@@ -328,7 +328,7 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 	}
 }
 
-static void __declspec(naked) CheckTraitHack() {
+static __declspec(naked) void CheckTraitHack() {
 	__asm {
 		mov  edx, ds:[FO_VAR_temp_trait];
 		cmp  edx, -1;
@@ -353,7 +353,7 @@ static DWORD __stdcall HandleFakeTraits(int isSelect) {
 	return isSelect;
 }
 
-static void __declspec(naked) PlayerHasPerkHack() {
+static __declspec(naked) void PlayerHasPerkHack() {
 	using namespace fo;
 	__asm {
 		push ecx;
@@ -380,7 +380,7 @@ win:
 	}
 }
 
-static void __declspec(naked) PlayerHasTraitHook() {
+static __declspec(naked) void PlayerHasTraitHook() {
 	__asm {
 		call HaveFakeTraits;
 		test eax, eax;
@@ -392,7 +392,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkLevelHook() {
+static __declspec(naked) void GetPerkLevelHook() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
@@ -406,7 +406,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkImageHook() {
+static __declspec(naked) void GetPerkImageHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -420,7 +420,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkNameHook() {
+static __declspec(naked) void GetPerkNameHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -434,7 +434,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkDescHook() {
+static __declspec(naked) void GetPerkDescHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -449,7 +449,7 @@ end:
 }
 
 // Search all available perks for the player to display them in the character screen
-static void __declspec(naked) EndPerkLoopHack() {
+static __declspec(naked) void EndPerkLoopHack() {
 	static const DWORD EndPerkLoopExit = 0x434446;
 	static const DWORD EndPerkLoopCont = 0x4343A5;
 	using namespace fo;
@@ -474,7 +474,7 @@ static DWORD __stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) 
 	return available; // total number of perks available for selection
 }
 
-static void __declspec(naked) GetAvailablePerksHook() {
+static __declspec(naked) void GetAvailablePerksHook() {
 	__asm {
 		push ecx;
 		push edx; // arg data
@@ -492,7 +492,7 @@ next:
 	}
 }
 
-static void __declspec(naked) GetPerkSLevelHook() {
+static __declspec(naked) void GetPerkSLevelHook() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
@@ -505,7 +505,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkSImageHook() {
+static __declspec(naked) void GetPerkSImageHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -519,7 +519,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkSNameHook() {
+static __declspec(naked) void GetPerkSNameHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -533,7 +533,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkSDescHook() {
+static __declspec(naked) void GetPerkSDescHook() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PERK_count;
@@ -589,7 +589,7 @@ static long __stdcall AddFakePerk(DWORD perkID) {
 }
 
 // Adds perk from selection window to player
-static void __declspec(naked) AddPerkHook() {
+static __declspec(naked) void AddPerkHook() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PERK_count;
@@ -616,7 +616,7 @@ end:
 	}
 }
 
-static void __declspec(naked) HeaveHoHook() {
+static __declspec(naked) void HeaveHoHook() {
 	using namespace fo;
 	__asm {
 		xor  edx, edx;
@@ -778,7 +778,7 @@ DWORD Perks::GetTraitSkillBonus(int skillID, int traitIndex) {
 	return traitSkillBonuses[skillID * fo::Trait::TRAIT_count + fo::ptr::pc_trait[traitIndex]];
 }
 
-static void __declspec(naked) BlockedTrait() {
+static __declspec(naked) void BlockedTrait() {
 	__asm {
 		xor  eax, eax;
 		retn;
@@ -883,7 +883,7 @@ static __declspec(naked) void game_init_hook() {
 	}
 }
 
-static void __declspec(naked) perks_dialog_hook() {
+static __declspec(naked) void perks_dialog_hook() {
 	static const DWORD perks_dialog_Ret = 0x43C92F;
 	__asm {
 		call fo::funcoffs::ListDPerks_;
@@ -896,7 +896,7 @@ dlgExit:
 	}
 }
 /*
-static void __declspec(naked) item_w_mp_cost_hook() {
+static __declspec(naked) void item_w_mp_cost_hook() {
 	__asm {
 		call fo::funcoffs::item_w_range_;
 		cmp  eax, 2;
@@ -912,7 +912,7 @@ checkType:
 }
 */
 // Haenlomal's tweak
-static void __declspec(naked) item_w_called_shot_hack() {
+static __declspec(naked) void item_w_called_shot_hack() {
 	static const DWORD FastShotTraitFix_End = 0x478E7F;
 	using namespace fo;
 	__asm {

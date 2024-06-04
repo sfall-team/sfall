@@ -47,7 +47,7 @@ static void __stdcall AfterCombatAttack() { // OnAfterCombatAttack
 	ResetComputeSpraySettings(); // after each combat attack, reset ComputeSpray settings
 }
 
-static void __declspec(naked) MainGameLoopHook() {
+static __declspec(naked) void MainGameLoopHook() {
 	__asm {
 		push ecx;
 		call fo::funcoffs::get_input_;
@@ -61,7 +61,7 @@ static void __declspec(naked) MainGameLoopHook() {
 	}
 }
 
-static void __declspec(naked) CombatLoopHook() {
+static __declspec(naked) void CombatLoopHook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -75,7 +75,7 @@ static void __declspec(naked) CombatLoopHook() {
 	}
 }
 
-static void __declspec(naked) AfterCombatAttackHook() {
+static __declspec(naked) void AfterCombatAttackHook() {
 	__asm {
 		push ecx;
 		push edx;

@@ -114,7 +114,7 @@ static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackTy
 }
 
 // adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
-static void __declspec(naked) combat_check_bad_shot_hook() {
+static __declspec(naked) void combat_check_bad_shot_hook() {
 	__asm {
 		push edx;
 		push ecx;      // weapon
@@ -127,7 +127,7 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 }
 
 // check if there is enough ammo to shoot
-static void __declspec(naked) ai_search_inven_weap_hook() {
+static __declspec(naked) void ai_search_inven_weap_hook() {
 	using namespace fo;
 	__asm {
 		push ecx;
@@ -140,7 +140,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 }
 
 // switch weapon mode from secondary to primary if there is not enough ammo to shoot
-static void __declspec(naked) ai_try_attack_hook() {
+static __declspec(naked) void ai_try_attack_hook() {
 	static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
 	static const DWORD ai_try_attack_continue = 0x42A929;
 	using namespace fo;
@@ -178,7 +178,7 @@ static long __fastcall divide_burst_rounds_by_ammo_cost(long currAmmo, fo::GameO
 	return max(1, (cost / roundsCost));   // divide back to get proper number of rounds for damage calculations (minimum is 1)
 }
 
-static void __declspec(naked) compute_spray_hack() {
+static __declspec(naked) void compute_spray_hack() {
 	__asm { // ebp = current ammo
 //		push edx;      // weapon
 //		push ecx;      // current ammo in weapon
@@ -219,7 +219,7 @@ static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, fo::GameObj
 	return (DWORD)floor(result);
 }
 
-static void __declspec(naked) compute_damage_hack() {
+static __declspec(naked) void compute_damage_hack() {
 	__asm {
 		mov  eax, [esp + 0x14 + 4];
 		push eax;               // Target
@@ -232,7 +232,7 @@ static void __declspec(naked) compute_damage_hack() {
 	}
 }
 
-static void __declspec(naked) compute_dmg_damage_hack() {
+static __declspec(naked) void compute_dmg_damage_hack() {
 	static const DWORD KnockbackRetAddr = 0x4136E1;
 	__asm {
 		push ecx
@@ -258,7 +258,7 @@ static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
 	return min(base + baseHitChance.mod, baseHitChance.maximum);
 }
 
-static void __declspec(naked) determine_to_hit_func_hack() {
+static __declspec(naked) void determine_to_hit_func_hack() {
 	__asm {
 		mov  edx, edi;          // critter
 		mov  ecx, esi;          // base (calculated hit chance)
@@ -270,7 +270,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 	}
 }
 
-static void __declspec(naked) determine_to_hit_func_hook_min() {
+static __declspec(naked) void determine_to_hit_func_hook_min() {
 	__asm {
 		mov  esi, -99; // min
 		jmp  fo::funcoffs::debug_printf_;
@@ -294,7 +294,7 @@ static long __fastcall CheckDisableBurst(fo::GameObject* critter, fo::GameObject
 	return (long)cap->area_attack_mode; // default engine code
 }
 
-static void __declspec(naked) ai_pick_hit_mode_hack_noBurst() {
+static __declspec(naked) void ai_pick_hit_mode_hack_noBurst() {
 	__asm {
 		push eax;
 		push ecx;
@@ -409,7 +409,7 @@ static int __fastcall AimedShotTest(DWORD pid) {
 	return 0;
 }
 
-static void __declspec(naked) item_w_called_shot_hook() {
+static __declspec(naked) void item_w_called_shot_hook() {
 	static const DWORD aimedShotRet1 = 0x478EE4;
 	static const DWORD aimedShotRet2 = 0x478EEA;
 	__asm {
@@ -483,7 +483,7 @@ static void BodypartHitReadConfig() {
 	bodyPartHit.Uncalled  = static_cast<long>(IniReader::GetConfigInt("Misc", "BodyHit_Torso_Uncalled",  0));
 }
 
-static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
+static __declspec(naked) void  ai_pick_hit_mode_hook_bodypart() {
 	using fo::Uncalled;
 	__asm {
 		mov  ebx, Uncalled; // replace Body_Torso with Body_Uncalled
@@ -493,7 +493,7 @@ static void __declspec(naked)  ai_pick_hit_mode_hook_bodypart() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) apply_damage_hack_main() {
+static __declspec(naked) void apply_damage_hack_main() {
 	using namespace fo::Fields;
 	__asm {
 		mov  edx, [eax + teamNum]; // ctd.target.team_num
@@ -517,7 +517,7 @@ skipSetHitTarget:
 	}
 }
 
-static void __declspec(naked) apply_damage_hook_extra() {
+static __declspec(naked) void apply_damage_hook_extra() {
 	using namespace fo::Fields;
 	__asm { // eax - target1-6
 		// does the target belong to the player's team?
@@ -536,7 +536,7 @@ dudeTeam: // check who the attacker was attacking
 ////////////////////////////////////////////////////////////////////////////////
 
 // Ray's combat_p_proc patch
-static void __declspec(naked) apply_damage_hack() {
+static __declspec(naked) void apply_damage_hack() {
 	using namespace fo::Fields;
 	__asm {
 		xor  edx, edx;

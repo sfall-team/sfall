@@ -60,7 +60,7 @@ static fo::DbFile* __fastcall PremadeBIO(const char* premadePath, const char* mo
 	return (premadePath) ? fo::func::db_fopen(premadePath, mode) : nullptr;
 }
 
-static void __declspec(naked) select_display_bio_hook() {
+static __declspec(naked) void select_display_bio_hook() {
 	__asm {
 		push eax;
 		push edx;
@@ -77,7 +77,7 @@ default:
 	}
 }
 
-static void __declspec(naked) select_update_display_hook() {
+static __declspec(naked) void select_update_display_hook() {
 	__asm {
 		mov  ecx, eax; // premade path
 		call PremadeGCD;
@@ -85,7 +85,7 @@ static void __declspec(naked) select_update_display_hook() {
 	}
 }
 
-static void __declspec(naked) select_display_stats_hook() {
+static __declspec(naked) void select_display_stats_hook() {
 	__asm {
 		call fo::funcoffs::trait_name_;
 		test eax, eax;

@@ -63,7 +63,7 @@ static ChanceModifier basePickpocket;
 
 static int skillNegPoints; // skill raw points (w/o limit)
 
-static void __declspec(naked) item_w_skill_hook() {
+static __declspec(naked) void item_w_skill_hook() {
 	__asm {
 		mov  edx, [esp + 4]; // item proto
 		test byte ptr [edx + 0x19], 4; // weapon.flags_ext
@@ -85,7 +85,7 @@ static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	return min(base + basePickpocket.mod, basePickpocket.maximum);
 }
 
-static void __declspec(naked) skill_check_stealing_hack() {
+static __declspec(naked) void skill_check_stealing_hack() {
 	__asm {
 		push edx;
 		push ecx;
@@ -119,7 +119,7 @@ static int __fastcall SkillNegative(fo::GameObject* critter, int base, int skill
 	return CheckSkillMax(critter, base);
 }
 
-static void __declspec(naked) skill_level_hack() {
+static __declspec(naked) void skill_level_hack() {
 	__asm {
 		push ebx;           // skill
 		mov  edx, esi;      // level skill (base)
@@ -129,7 +129,7 @@ static void __declspec(naked) skill_level_hack() {
 	}
 }
 
-static void __declspec(naked) skill_level_hook() {
+static __declspec(naked) void skill_level_hook() {
 	__asm {
 		mov  skillNegPoints, 0;   // reset value
 		call fo::funcoffs::skill_points_;
@@ -142,7 +142,7 @@ notNeg:
 	}
 }
 
-static void __declspec(naked) skill_dec_point_hack_limit() {
+static __declspec(naked) void skill_dec_point_hack_limit() {
 	static const DWORD skill_dec_point_limit_Ret = 0x4AAA91;
 	__asm {
 		cmp edi, SKILL_MIN_LIMIT;
@@ -155,7 +155,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) skill_inc_point_force_hack() {
+static __declspec(naked) void skill_inc_point_force_hack() {
 	__asm {
 		push ecx;
 		push eax;
@@ -168,7 +168,7 @@ static void __declspec(naked) skill_inc_point_force_hack() {
 	}
 }
 
-static void __declspec(naked) skill_inc_point_hack() {
+static __declspec(naked) void skill_inc_point_hack() {
 	__asm {
 		push ecx;
 		push eax;
@@ -195,7 +195,7 @@ static int __fastcall GetStatBonus(fo::GameObject* critter, const fo::SkillInfo*
 
 //On input, ebx/edx contains the skill id, ecx contains the critter, edi contains a SkillInfo*, ebp contains the number of skill points
 //On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints * multiplier
-static void __declspec(naked) skill_level_hack_bonus() {
+static __declspec(naked) void skill_level_hack_bonus() {
 	static const DWORD StatBonusHookRet = 0x4AA5D6;
 	__asm {
 		push ecx;
@@ -209,7 +209,7 @@ static void __declspec(naked) skill_level_hack_bonus() {
 	}
 }
 
-static void __declspec(naked) skill_inc_point_hack_cost() {
+static __declspec(naked) void skill_inc_point_hack_cost() {
 	static const DWORD SkillIncCostRet = 0x4AA7C1;
 	__asm { // eax - current skill level, ebx - current skill, ecx - num free skill points
 		cmp  basedOnPoints, 0;
@@ -229,7 +229,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) skill_dec_point_hack_cost() {
+static __declspec(naked) void skill_dec_point_hack_cost() {
 	static const DWORD SkillDecCostRet = 0x4AA98D;
 	__asm { // ecx - current skill level, ebx - current skill, esi - num free skill points
 		cmp  basedOnPoints, 0;
@@ -250,7 +250,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) skill_dec_point_hook_cost() {
+static __declspec(naked) void skill_dec_point_hook_cost() {
 	__asm {
 		mov  edx, ebx;
 		shl  edx, 9;

@@ -28,23 +28,23 @@ extern bool checkValidMemAddr;
 
  // memory_reading_funcs
 
-void __declspec() op_read_byte();
+void op_read_byte();
 
-void __declspec() op_read_short();
+void op_read_short();
 
-void __declspec() op_read_int();
+void op_read_int();
 
-void __declspec() op_read_string();
+void op_read_string();
 
-void __declspec() op_write_byte();
+void op_write_byte();
 
-void __declspec() op_write_short();
+void op_write_short();
 
-void __declspec() op_write_int();
+void op_write_int();
 
-void __declspec() op_write_string();
+void op_write_string();
 
-void __declspec() op_call_offset();
+void op_call_offset();
 
 }
 }

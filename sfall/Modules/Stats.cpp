@@ -50,7 +50,7 @@ static struct StatFormula {
 
 static fo::GameObject* cCritter;
 
-static void __declspec(naked) stat_level_hack() {
+static __declspec(naked) void stat_level_hack() {
 	static const DWORD StatLevelHack_Ret = 0x4AEF52;
 	__asm {
 		mov cCritter, eax;
@@ -76,7 +76,7 @@ static int __fastcall check_stat_level(int value, DWORD stat) {
 	return value;
 }
 
-static void __declspec(naked) stat_level_hack_check() {
+static __declspec(naked) void stat_level_hack_check() {
 	__asm {
 		mov  edx, esi;         // stat
 		push 0x4AF3D7;         // return address
@@ -84,7 +84,7 @@ static void __declspec(naked) stat_level_hack_check() {
 	}
 }
 
-static void __declspec(naked) stat_set_base_hack_check() {
+static __declspec(naked) void stat_set_base_hack_check() {
 	static const DWORD StatSetBaseHack_RetMin = 0x4AF57E;
 	static const DWORD StatSetBaseHack_RetMax = 0x4AF591;
 	static const DWORD StatSetBaseHack_Ret    = 0x4AF59C;
@@ -109,7 +109,7 @@ failMax:
 	}
 }
 
-static void __declspec(naked) GetLevelXPHook() {
+static __declspec(naked) void GetLevelXPHook() {
 	__asm {
 		cmp eax, PC_LEVEL_MAX;
 		jge lvlMax;
@@ -122,14 +122,14 @@ lvlMax:
 	}
 }
 
-static void __declspec(naked) GetNextLevelXPHook() {
+static __declspec(naked) void GetNextLevelXPHook() {
 	__asm {
 		mov eax, ds:[FO_VAR_Level_pc];
 		jmp GetLevelXPHook;
 	}
 }
 
-static void __declspec(naked) CalcApToAcBonus() {
+static __declspec(naked) void CalcApToAcBonus() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -181,7 +181,7 @@ static void __stdcall StatRecalcDerived(fo::GameObject* critter) {
 	}
 }
 
-static void __declspec(naked) stat_recalc_derived_hack() {
+static __declspec(naked) void stat_recalc_derived_hack() {
 	__asm {
 		push edx;
 		push ecx;
@@ -226,7 +226,7 @@ void Stats::UpdateHPStat(fo::GameObject* critter) {
 	}
 }
 
-static void __declspec(naked) stat_set_base_hack_allow() {
+static __declspec(naked) void stat_set_base_hack_allow() {
 	static const DWORD StatSetBaseRet = 0x4AF559;
 	using namespace fo;
 	__asm {
@@ -245,7 +245,7 @@ notAllow:
 	}
 }
 
-static void __declspec(naked) op_set_critter_stat_hack() {
+static __declspec(naked) void op_set_critter_stat_hack() {
 	static const DWORD SetCritterStatRet = 0x455D8A;
 	using namespace fo;
 	__asm {
@@ -271,7 +271,7 @@ void __fastcall critter_check_poison_fix() {
 	}
 }
 
-static void __declspec(naked) critter_check_poison_hack_fix() {
+static __declspec(naked) void critter_check_poison_hack_fix() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -286,7 +286,7 @@ notDude:
 	}
 }
 
-void __declspec(naked) critter_adjust_poison_hack_fix() {
+__declspec(naked) void critter_adjust_poison_hack_fix() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -297,7 +297,7 @@ void __declspec(naked) critter_adjust_poison_hack_fix() {
 	}
 }
 
-static void __declspec(naked) critter_check_rads_hack() {
+static __declspec(naked) void critter_check_rads_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -309,7 +309,7 @@ static void __declspec(naked) critter_check_rads_hack() {
 }
 
 // reduced code from 4.x HOOK_ADJUSTRADS
-void __declspec(naked) critter_adjust_rads_hack() {
+__declspec(naked) void critter_adjust_rads_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {

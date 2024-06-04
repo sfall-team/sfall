@@ -336,7 +336,7 @@ static DWORD __fastcall PlayMovieLoop(long kCode) {
 	return (!isPlayEnd); // 0 - for breaking play
 }
 
-static void __declspec(naked) gmovie_play_hook() {
+static __declspec(naked) void gmovie_play_hook() {
 	__asm {
 		push ecx;
 		call fo::funcoffs::get_input_; // also windows message pump
@@ -347,7 +347,7 @@ static void __declspec(naked) gmovie_play_hook() {
 	}
 }
 
-static void __declspec(naked) gmovie_play_hook_input() {
+static __declspec(naked) void gmovie_play_hook_input() {
 	__asm {
 		xor eax, eax;
 		dec eax;
@@ -369,7 +369,7 @@ static void __stdcall PreparePlayMovie() {
 	}
 }
 
-static void __declspec(naked) gmovie_play_hook_run() {
+static __declspec(naked) void gmovie_play_hook_run() {
 	__asm {
 		call fo::funcoffs::movieRun_;
 		mov  ebx, ecx;
@@ -444,7 +444,7 @@ static void __stdcall PlayMovieRestore() {
 	FreeMovie(&movieInterface);
 }
 
-static void __declspec(naked) gmovie_play_hack() {
+static __declspec(naked) void gmovie_play_hack() {
 	static const DWORD gmovie_play_addr = 0x44E695;
 	__asm {
 		cmp  eax, MaxMovies;
@@ -476,7 +476,7 @@ return:
 	}
 }
 
-static void __declspec(naked) gmovie_play_hook_stop() {
+static __declspec(naked) void gmovie_play_hook_stop() {
 	__asm {
 		cmp  aviPlayState, Playing;
 		jne  skip;
@@ -495,7 +495,7 @@ skip:
 char MoviePaths[MaxMovies * 65];
 static DWORD Artimer1DaysCheckTimer;
 
-static void __declspec(naked) Artimer1DaysCheckHack() {
+static __declspec(naked) void Artimer1DaysCheckHack() {
 	static const DWORD Artimer1DaysCheckJmp = 0x4A3790;
 	static const DWORD Artimer1DaysCheckJmpLess = 0x4A37A9;
 	__asm {
@@ -507,7 +507,7 @@ less:
 	}
 }
 
-static void __declspec(naked) gmovie_play_hack_subpal() {
+static __declspec(naked) void gmovie_play_hack_subpal() {
 	__asm {
 		xor eax, eax;
 		lea edx, [ebp * 4];
@@ -517,7 +517,7 @@ static void __declspec(naked) gmovie_play_hack_subpal() {
 	}
 }
 
-static void __declspec(naked) op_play_gmovie_hack() {
+static __declspec(naked) void op_play_gmovie_hack() {
 	__asm {
 		mov edx, 0xB; // default play mode flags
 		cmp ecx, DEFAULT_MOVIES;

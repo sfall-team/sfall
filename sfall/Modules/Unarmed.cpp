@@ -270,7 +270,7 @@ static void __fastcall check_unarmed_left_slot(long skillLevel) {
 	fo::ptr::itemButtonItems[fo::HandSlot::Left].secondaryAttack = GetPunchingHit(false);
 }
 
-static void __declspec(naked) intface_update_items_hack_punch() {
+static __declspec(naked) void intface_update_items_hack_punch() {
 	__asm {
 		push 0x45F1D7;
 		jmp  check_unarmed_left_slot;
@@ -291,7 +291,7 @@ static void check_unarmed_right_slot() {
 	fo::ptr::itemButtonItems[fo::HandSlot::Right].secondaryAttack = GetKickingHit(false);
 }
 
-static void __declspec(naked) intface_update_items_hack_kick() {
+static __declspec(naked) void intface_update_items_hack_kick() {
 	__asm {
 		push 0x45F380;
 		jmp  check_unarmed_right_slot;
@@ -305,7 +305,7 @@ static long __fastcall get_unarmed_crit_chance(long &chanceOut, fo::AttackType h
 	       : 0x423A0D; // skip random roll
 }
 
-static void __declspec(naked) compute_attack_hack() {
+static __declspec(naked) void compute_attack_hack() {
 	__asm {
 		sub  esp, 4;
 		mov  ecx, esp;                // chanceOut ref
@@ -321,7 +321,7 @@ static long __fastcall get_unarmed_damage(fo::GameObject* source, fo::AttackType
 	return unarmed.Hit(hit).bonusDamage;
 }
 
-static void __declspec(naked) item_w_damage_hack() {
+static __declspec(naked) void item_w_damage_hack() {
 	static DWORD item_w_damage_hack_ret = 0x478553;
 	__asm {
 		lea  eax, [esp + 4]; // min_DMG
@@ -408,7 +408,7 @@ fo::AttackType Unarmed::GetStoredHitMode(fo::HandSlot slot) {
 	return hit;
 }
 
-static void __declspec(naked) handle_inventory_hook() {
+static __declspec(naked) void handle_inventory_hook() {
 	__asm {
 		call SlotsStoreCurrentHitMode;
 		jmp  fo::funcoffs::display_stats_;
@@ -417,7 +417,7 @@ static void __declspec(naked) handle_inventory_hook() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) statPCAddExperienceCheckPMs_hook() {
+static __declspec(naked) void statPCAddExperienceCheckPMs_hook() {
 	__asm {
 		call fo::funcoffs::intface_update_hit_points_;
 		sub  esp, 8;

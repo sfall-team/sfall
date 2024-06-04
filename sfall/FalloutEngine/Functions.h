@@ -42,13 +42,13 @@ void dev_printf(...);
 */
 
 // prints message to debug.log file
-void __declspec() debug_printf(const char* fmt, ...);
+void debug_printf(const char* fmt, ...);
 
 void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
-void __declspec() interpretError(const char* fmt, ...);
+void interpretError(const char* fmt, ...);
 
 long __stdcall db_init(const char* path_dat, const char* path_patches);
 

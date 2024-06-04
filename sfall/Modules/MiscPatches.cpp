@@ -41,7 +41,7 @@ static void __stdcall Sleep2(DWORD dwMilliseconds) {
 	Sleep(dwMilliseconds);
 }
 
-static void __declspec(naked) GNW95_process_message_hack() {
+static __declspec(naked) void GNW95_process_message_hack() {
 	__asm {
 		push idle;
 		call Sleep2;
@@ -50,7 +50,7 @@ static void __declspec(naked) GNW95_process_message_hack() {
 	}
 }
 
-static void __declspec(naked) WeaponAnimHook() {
+static __declspec(naked) void WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
 		je  c11;
@@ -66,7 +66,7 @@ c15:
 	}
 }
 
-static void __declspec(naked) register_object_take_out_hack() {
+static __declspec(naked) void register_object_take_out_hack() {
 	using namespace fo::Fields;
 	__asm {
 		push ecx;
@@ -92,7 +92,7 @@ static void __declspec(naked) register_object_take_out_hack() {
 	}
 }
 
-static void __declspec(naked) gdAddOptionStr_hack() {
+static __declspec(naked) void gdAddOptionStr_hack() {
 	static const DWORD gdAddOptionStr_hack_Ret = 0x4458FA;
 	__asm {
 		mov  ecx, ds:[FO_VAR_gdNumOptions];
@@ -102,7 +102,7 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 	}
 }
 
-static void __declspec(naked) action_use_skill_on_hook_science() {
+static __declspec(naked) void action_use_skill_on_hook_science() {
 	using namespace fo;
 	__asm {
 		cmp esi, ds:[FO_VAR_obj_dude];
@@ -114,7 +114,7 @@ end:
 	}
 }
 
-static void __declspec(naked) intface_item_reload_hook() {
+static __declspec(naked) void intface_item_reload_hook() {
 	__asm {
 		push eax;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
@@ -134,7 +134,7 @@ static void __declspec(naked) intface_item_reload_hook() {
 	}
 }
 
-static void __declspec(naked) automap_hack() {
+static __declspec(naked) void automap_hack() {
 	static const DWORD ScannerHookRet  = 0x41BC1D;
 	static const DWORD ScannerHookFail = 0x41BC65;
 	using fo::PID_MOTION_SENSOR;
@@ -160,7 +160,7 @@ static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target
 	return (dir == 0); // is directly in front
 }
 
-static void __declspec(naked) op_obj_can_see_obj_hook() {
+static __declspec(naked) void op_obj_can_see_obj_hook() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -226,7 +226,7 @@ static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	return mode;
 }
 
-static void __declspec(naked) display_stats_hook() {
+static __declspec(naked) void display_stats_hook() {
 	__asm {
 		push eax;
 		push ecx;
@@ -274,7 +274,7 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSl
 	}
 }
 
-static void __declspec(naked) switch_hand_hack() {
+static __declspec(naked) void switch_hand_hack() {
 	__asm {
 		pushfd;
 		test ebx, ebx;
@@ -327,7 +327,7 @@ static void intface_update_restore() {
 	modeR = -2;
 }
 
-static void __declspec(naked) intface_update_items_hack_end() {
+static __declspec(naked) void intface_update_items_hack_end() {
 	__asm {
 		call intface_update_restore;
 		cmp  dword ptr [esp + 0x1C - 0x18 + 4], 0; // animate
@@ -335,7 +335,7 @@ static void __declspec(naked) intface_update_items_hack_end() {
 	}
 }
 
-static void __declspec(naked) action_use_skill_on_hook() {
+static __declspec(naked) void action_use_skill_on_hook() {
 	__asm { // eax = dude_obj, edx = target, ebp = party_member
 		cmp  eax, edx;
 		jnz  end;                     // jump if target != dude_obj
@@ -353,7 +353,7 @@ end:
 	}
 }
 
-static void __declspec(naked) endgame_movie_hook() {
+static __declspec(naked) void endgame_movie_hook() {
 	__asm {
 		cmp  dword ptr [esp + 16], 0x45C563; // call from op_endgame_movie_
 		je   playWalkMovie;
@@ -380,7 +380,7 @@ static long __fastcall GetRadHighlightColor(bool selected) {
 	return 0;
 }
 
-static void __declspec(naked) ListDrvdStats_hook() {
+static __declspec(naked) void ListDrvdStats_hook() {
 	__asm {
 		cmp  dword ptr [esp], 0x4354BE + 5; // from called
 		sete cl;
@@ -396,7 +396,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) obj_render_outline_hack() {
+static __declspec(naked) void obj_render_outline_hack() {
 	__asm {
 		test eax, 0xFF00;
 		jnz  palColor;
@@ -419,7 +419,7 @@ static void __fastcall RemoveAllFloatTextObjects() {
 	}
 }
 
-static void __declspec(naked) obj_move_to_tile_hook() {
+static __declspec(naked) void obj_move_to_tile_hook() {
 	__asm {
 		push eax;
 		push edx;
@@ -430,7 +430,7 @@ static void __declspec(naked) obj_move_to_tile_hook() {
 	}
 }
 
-static void __declspec(naked) map_check_state_hook() {
+static __declspec(naked) void map_check_state_hook() {
 	__asm {
 		push eax;
 		call RemoveAllFloatTextObjects;
@@ -477,7 +477,7 @@ static void __fastcall RemoveFloatTextObject(fo::GameObject* source) {
 	fo::func::tile_refresh_rect(&rect, *fo::ptr::map_elevation);
 }
 
-static void __declspec(naked) text_object_create_hack() {
+static __declspec(naked) void text_object_create_hack() {
 	__asm {
 		mov  ecx, eax;
 		push 0x4B03A6; // ret addr
@@ -485,7 +485,7 @@ static void __declspec(naked) text_object_create_hack() {
 	}
 }
 
-static void __declspec(naked) obj_move_to_tile_hook_redraw() {
+static __declspec(naked) void obj_move_to_tile_hook_redraw() {
 	__asm {
 		mov  MainLoopHook::displayWinUpdateState, 1;
 		call fo::funcoffs::tile_set_center_;
@@ -494,7 +494,7 @@ static void __declspec(naked) obj_move_to_tile_hook_redraw() {
 	}
 }
 
-static void __declspec(naked) map_check_state_hook_redraw() {
+static __declspec(naked) void map_check_state_hook_redraw() {
 	__asm {
 		cmp  MainLoopHook::displayWinUpdateState, 0;
 		je   obj_move_to_tile_hook_redraw;
@@ -621,7 +621,7 @@ static void MotionScannerFlagsPatch() {
 	}
 }
 
-static void __declspec(naked) ResizeEncounterMessagesTable() {
+static __declspec(naked) void ResizeEncounterMessagesTable() {
 	__asm {
 		add  eax, eax; // double the increment
 		add  eax, 3000;
@@ -782,7 +782,7 @@ static void F1EngineBehaviorPatch() {
 
 static long cMusicArea = -1;
 
-static void __declspec(naked) wmMapMusicStart_hook() {
+static __declspec(naked) void wmMapMusicStart_hook() {
 	__asm {
 		push edx;
 		push eax;
@@ -807,7 +807,7 @@ continuePlay:
 	}
 }
 
-static void __declspec(naked) map_load_file_hook() {
+static __declspec(naked) void map_load_file_hook() {
 	__asm {
 		push eax;
 		call InWorldMap;
@@ -836,7 +836,7 @@ default:
 	}
 }
 
-static void __declspec(naked) wmSetMapMusic_hook() {
+static __declspec(naked) void wmSetMapMusic_hook() {
 	__asm {
 		mov  ds:[FO_VAR_background_fname_requested], 0;
 		jmp  fo::funcoffs::wmMapMusicStart_;
@@ -851,7 +851,7 @@ static void PlayingMusicPatch() {
 	HookCall(0x4C5999, wmSetMapMusic_hook); // related fix
 }
 
-static void __declspec(naked) main_death_scene_hook() {
+static __declspec(naked) void main_death_scene_hook() {
 	__asm {
 		mov  eax, 101;
 		call fo::funcoffs::text_font_;
@@ -882,7 +882,7 @@ static void __stdcall SplitPrintMessage(char* message, void* printFunc) {
 	}
 }
 
-static void __declspec(naked) sf_inven_display_msg() {
+static __declspec(naked) void sf_inven_display_msg() {
 	__asm {
 		push ecx;
 		push fo::funcoffs::inven_display_msg_;
@@ -893,7 +893,7 @@ static void __declspec(naked) sf_inven_display_msg() {
 	}
 }
 
-static void __declspec(naked) sf_display_print_alt() {
+static __declspec(naked) void sf_display_print_alt() {
 	__asm {
 		push ecx;
 		push fo::funcoffs::display_print_; // func replaced by HRP
@@ -904,7 +904,7 @@ static void __declspec(naked) sf_display_print_alt() {
 	}
 }
 
-static void __declspec(naked) op_display_msg_hook() {
+static __declspec(naked) void op_display_msg_hook() {
 	__asm {
 		cmp  dword ptr ds:[FO_VAR_debug_func], 0;
 		jne  debug;

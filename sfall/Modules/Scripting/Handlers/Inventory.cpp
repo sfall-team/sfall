@@ -30,21 +30,21 @@ namespace sfall
 namespace script
 {
 
-void __declspec(naked) op_active_hand() {
+__declspec(naked) void op_active_hand() {
 	__asm {
 		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_toggle_active_hand() {
+__declspec(naked) void op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
 		jmp fo::funcoffs::intface_toggle_items_;
 	}
 }
 
-void __declspec(naked) op_set_inven_ap_cost() {
+__declspec(naked) void op_set_inven_ap_cost() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);

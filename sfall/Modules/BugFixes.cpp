@@ -117,7 +117,7 @@ static void combat_ai_reset() {
 	std::memcpy(caps, &aiCapsBackup[0], num_caps * sizeof(fo::AIcap));
 }
 
-static void __declspec(naked) GNW95_init_window_hack() {
+static __declspec(naked) void GNW95_init_window_hack() {
 	__asm {
 		pop  eax;
 		push 0x50FA0C; // "GNW95 Class"
@@ -126,7 +126,7 @@ static void __declspec(naked) GNW95_init_window_hack() {
 	}
 }
 
-static void __declspec(naked) GNW95_init_window_hack_HRP() {
+static __declspec(naked) void GNW95_init_window_hack_HRP() {
 	__asm {
 		pop  eax;
 		push 0x50FA0C; // "GNW95 Class"
@@ -136,7 +136,7 @@ static void __declspec(naked) GNW95_init_window_hack_HRP() {
 }
 
 // fix for vanilla negate operator not working on floats
-static void __declspec(naked) NegateFixHack() {
+static __declspec(naked) void NegateFixHack() {
 	static const DWORD NegateFixHack_Back = 0x46AB77;
 	__asm {
 		mov  eax, [ecx + 0x1C];
@@ -157,7 +157,7 @@ isFloat:
 	}
 }
 /*
-static void __declspec(naked) compute_attack_hack() {
+static __declspec(naked) void compute_attack_hack() {
 	static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
 	__asm {
 		mov  ecx, 5;                        // 5% chance of critical hit
@@ -194,7 +194,7 @@ end:
 	}
 }
 */
-static void __declspec(naked) SharpShooterFix() {
+static __declspec(naked) void SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_;           // Perception
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
@@ -210,7 +210,7 @@ end:
 	}
 }
 
-static void __declspec(naked) pipboy_hack() {
+static __declspec(naked) void pipboy_hack() {
 	__asm {
 		cmp  ebx, 0x210;                          // Back button?
 		je   end;
@@ -223,7 +223,7 @@ end:
 	}
 }
 
-static void __declspec(naked) PipAlarm_hack() {
+static __declspec(naked) void PipAlarm_hack() {
 	__asm {
 		mov  ds:[FO_VAR_crnt_func], eax;
 		mov  eax, 0x400;
@@ -233,7 +233,7 @@ static void __declspec(naked) PipAlarm_hack() {
 	}
 }
 
-static void __declspec(naked) PipStatus_hook() {
+static __declspec(naked) void PipStatus_hook() {
 	__asm {
 		call fo::funcoffs::ListHoloDiskTitles_;
 		mov  dword ptr ds:[FO_VAR_holodisk], ebx;
@@ -242,7 +242,7 @@ static void __declspec(naked) PipStatus_hook() {
 }
 
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
-static void __declspec(naked) scr_write_ScriptNode_hook() {
+static __declspec(naked) void scr_write_ScriptNode_hook() {
 	__asm {
 		mov  ecx, 16;                             // maximum number of scripts in block
 		cmp  dword ptr [esp + 0xEC + 4], ecx;     // number_of_scripts (total scripts)
@@ -264,7 +264,7 @@ writeBlock:
 	}
 }
 
-static void __declspec(naked) protinst_default_use_item_hack() {
+static __declspec(naked) void protinst_default_use_item_hack() {
 	__asm {
 		mov  eax, dword ptr [edx + protoId];      // eax = target pid
 		cmp  eax, PID_DRIVABLE_CAR;
@@ -289,7 +289,7 @@ end:
 	}
 }
 
-static void __declspec(naked) obj_use_power_on_car_hack() {
+static __declspec(naked) void obj_use_power_on_car_hack() {
 	__asm {
 		xor  eax, eax;
 		cmp  ebx, 596;                            // "The car is already full of power."?
@@ -300,7 +300,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) item_wd_process_hack() {
+static __declspec(naked) void item_wd_process_hack() {
 	__asm {
 		cmp  esi, PERK_add_jet; // esi - queue_addict.perk
 		je   jetAddict;
@@ -319,7 +319,7 @@ jetAddict:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hook() {
+static __declspec(naked) void item_d_take_drug_hook() {
 	__asm {
 		push edx;
 		push ecx;
@@ -332,7 +332,7 @@ static void __declspec(naked) item_d_take_drug_hook() {
 	}
 }
 
-static void __declspec(naked) RemoveJetAddictFunc() {
+static __declspec(naked) void RemoveJetAddictFunc() {
 	__asm {
 		cmp  eax, dword ptr ds:[FO_VAR_wd_obj];
 		jne  end;
@@ -344,7 +344,7 @@ end:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hack() {
+static __declspec(naked) void item_d_take_drug_hack() {
 	__asm {
 		cmp  dword ptr [eax], 0;                  // queue_addict.wait (queue returned from item_d_take_drug_hook)
 		jne  skip;                                // Addiction is not active yet
@@ -358,7 +358,7 @@ skip:	// remove event from queue
 	}
 }
 
-static void __declspec(naked) item_d_load_subfix() {
+static __declspec(naked) void item_d_load_subfix() {
 	__asm {
 		sub  esp, 4;                              // proto buf
 //		mov  [ebp], edi;                          // edi->queue_drug
@@ -407,7 +407,7 @@ end:
 }
 
 // take the drug pid from the list after loading sfallgv.sav
-static void __declspec(naked) item_d_load_hack() {
+static __declspec(naked) void item_d_load_hack() {
 	__asm {
 		mov  [ebp], edi;                          // edi->queue_drug
 		call DrugPidPop;
@@ -422,7 +422,7 @@ skip:
 }
 
 // add drug pid to the list to save to sfallgv.sav
-static void __declspec(naked) item_d_save_hack() {
+static __declspec(naked) void item_d_save_hack() {
 	__asm {
 		pushadc;
 		mov  ecx, [edx];                          // drug pid
@@ -433,14 +433,14 @@ static void __declspec(naked) item_d_save_hack() {
 	}
 }
 
-static void __declspec(naked) queue_clear_type_mem_free_hook() {
+static __declspec(naked) void queue_clear_type_mem_free_hook() {
 	__asm {
 		mov  ebx, [esi];
 		jmp  fo::funcoffs::mem_free_;
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_hack() {
+static __declspec(naked) void partyMemberCopyLevelInfo_hack() {
 	__asm {
 		mov  eax, esi; // source
 		xor  ecx, ecx; // animation
@@ -449,7 +449,7 @@ static void __declspec(naked) partyMemberCopyLevelInfo_hack() {
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_hook_stat_level() {
+static __declspec(naked) void partyMemberCopyLevelInfo_hook_stat_level() {
 	__asm {
 nextArmor:
 		mov  eax, esi;
@@ -464,7 +464,7 @@ noArmor:
 	}
 }
 
-static void __declspec(naked) correctFidForRemovedItem_hook_adjust_ac() {
+static __declspec(naked) void correctFidForRemovedItem_hook_adjust_ac() {
 	__asm {
 		call fo::funcoffs::adjust_ac_;
 nextArmor:
@@ -479,7 +479,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
+static __declspec(naked) void op_move_obj_inven_to_obj_hook() {
 	__asm {
 		jz   skip;                     // source == dude
 		mov  eax, edx;
@@ -519,7 +519,7 @@ equipped:
 	}
 }
 
-static void __declspec(naked) obj_drop_hook() {
+static __declspec(naked) void obj_drop_hook() {
 	__asm {
 		test byte ptr [edx][flags + 3], (Worn | Right_Hand | Left_Hand) >> 24;
 		jz   skipHook;
@@ -555,7 +555,7 @@ static void __fastcall CheckAddiction(fo::GameObject* critter) {
 	}
 }
 
-static void __declspec(naked) partyMemberIncLevels_hook() {
+static __declspec(naked) void partyMemberIncLevels_hook() {
 	__asm {
 		mov  ebx, eax; // party member pointer
 		call fo::funcoffs::partyMemberCopyLevelInfo_;
@@ -569,7 +569,7 @@ end:
 	}
 }
 
-static void __declspec(naked) gdProcessUpdate_hack() {
+static __declspec(naked) void gdProcessUpdate_hack() {
 	__asm {
 		lea  edx, [eax - 2];
 		cmp  edx, dword ptr ds:[FO_VAR_optionRect + 0xC]; // _optionRect.offy
@@ -580,7 +580,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
+static __declspec(naked) void invenWieldFunc_item_get_type_hook() {
 	__asm {
 		mov  edx, esi;
 		xor  ebx, ebx;
@@ -620,7 +620,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) is_supper_bonus_hack() {
+static __declspec(naked) void is_supper_bonus_hack() {
 	__asm {
 		add  eax, ecx;
 		test eax, eax;
@@ -639,7 +639,7 @@ end:
 	}
 }
 
-static void __declspec(naked) PrintBasicStat_hack() {
+static __declspec(naked) void PrintBasicStat_hack() {
 	__asm {
 		test eax, eax;
 		jle  skip;
@@ -655,7 +655,7 @@ end:
 	}
 }
 
-static void __declspec(naked) StatButtonUp_hook() {
+static __declspec(naked) void StatButtonUp_hook() {
 	__asm {
 		call fo::funcoffs::inc_stat_;
 		test eax, eax;
@@ -670,7 +670,7 @@ end:
 	}
 }
 
-static void __declspec(naked) StatButtonDown_hook() {
+static __declspec(naked) void StatButtonDown_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;
 		cmp  eax, 1;
@@ -686,7 +686,7 @@ end:
 }
 
 // Calculate weight & size of equipped items
-static void __declspec(naked) loot_container_hack() {
+static __declspec(naked) void loot_container_hack() {
 	__asm {
 		mov  critterBody, ebp;                    // target
 		push esi;
@@ -734,7 +734,7 @@ noArmor:
 	}
 }
 
-static void __declspec(naked) barter_inventory_hook() {
+static __declspec(naked) void barter_inventory_hook() {
 	__asm {
 		mov  critterBody, eax;                         // target
 		call fo::funcoffs::item_move_all_hidden_;
@@ -779,7 +779,7 @@ skip:
 }
 
 // Add weightOnBody to item_total_weight_ function
-static void __declspec(naked) item_total_weight_hack() {
+static __declspec(naked) void item_total_weight_hack() {
 	__asm {
 		xor edx, edx;
 		mov ebx, [edi];                          // Inventory.inv_size
@@ -795,7 +795,7 @@ skip:
 }
 
 // Add sizeOnBody to item_c_curr_size_ function
-static void __declspec(naked) item_c_curr_size_hack() {
+static __declspec(naked) void item_c_curr_size_hack() {
 	__asm {
 		xor esi, esi;
 		mov edx, [ecx];                          // Inventory.inv_size
@@ -810,7 +810,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) inven_pickup_hack() {
+static __declspec(naked) void inven_pickup_hack() {
 	__asm {
 		mov  edx, ds:[FO_VAR_pud];
 		mov  edx, [edx];                          // itemsCount
@@ -821,7 +821,7 @@ static void __declspec(naked) inven_pickup_hack() {
 	}
 }
 
-static void __declspec(naked) inven_pickup_hack2() {
+static __declspec(naked) void inven_pickup_hack2() {
 	__asm {
 		test eax, eax;
 		jz   end;
@@ -874,7 +874,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) drop_ammo_into_weapon_hook() {
+static __declspec(naked) void drop_ammo_into_weapon_hook() {
 	__asm {
 		dec  esi;
 		test esi, esi;                            // One box of ammo?
@@ -920,7 +920,7 @@ end:
 	}
 }
 
-static void __declspec(naked) PipStatus_AddHotLines_hook() {
+static __declspec(naked) void PipStatus_AddHotLines_hook() {
 	__asm {
 		call fo::funcoffs::AddHotLines_;
 		xor  eax, eax;
@@ -929,7 +929,7 @@ static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	}
 }
 
-static void __declspec(naked) perform_withdrawal_start_display_print_hook() {
+static __declspec(naked) void perform_withdrawal_start_display_print_hook() {
 	__asm {
 		test eax, eax;
 		jz   end;
@@ -939,7 +939,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
+static __declspec(naked) void op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
 		call fo::funcoffs::adjust_ac_;
 		xor  eax, eax;                      // not animated
@@ -947,7 +947,7 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-static void __declspec(naked) NPCStage6Fix1() {
+static __declspec(naked) void NPCStage6Fix1() {
 	static const DWORD partyMember_init_End = 0x493D16;
 	__asm {
 		imul eax, edx, 204;                 // multiply record size 204 bytes by number of NPC records in party.txt
@@ -957,7 +957,7 @@ static void __declspec(naked) NPCStage6Fix1() {
 	}
 }
 
-static void __declspec(naked) NPCStage6Fix2() {
+static __declspec(naked) void NPCStage6Fix2() {
 	static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 	__asm {
 		imul edx, 204;                      // multiply record size 204 bytes by NPC number as listed in party.txt
@@ -966,7 +966,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 	}
 }
 
-static void __declspec(naked) make_path_func_hook() {
+static __declspec(naked) void make_path_func_hook() {
 	__asm {
 		mov  ebx, [edx + tile];            // object tile
 		cmp  ebx, [esp + 0x5C - 0x1C + 4]; // target tile
@@ -980,7 +980,7 @@ fix:	// replace the target tile (where the multihex object is located) with the 
 }
 
 // Haenlomal: Check path to critter for attack
-//static void __declspec(naked) MultiHexFix() {
+//static __declspec(naked) void MultiHexFix() {
 //	__asm {
 //		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
 //		test [ebx + flags + 1], 0x08;       // is target multihex?
@@ -992,7 +992,7 @@ fix:	// replace the target tile (where the multihex object is located) with the 
 //	}
 //}
 
-static void __declspec(naked) MultiHexRetargetTileFix() {
+static __declspec(naked) void MultiHexRetargetTileFix() {
 	__asm {
 		push edx;                     // retargeted tile
 		call fo::funcoffs::obj_blocking_at_;
@@ -1013,7 +1013,7 @@ isMultiHex:
 	}
 }
 
-static void __declspec(naked) MultiHexCombatMoveFix() {
+static __declspec(naked) void MultiHexCombatMoveFix() {
 	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
@@ -1032,7 +1032,7 @@ moveToObject:
 	}
 }
 
-static void __declspec(naked) MultiHexCombatRunFix() {
+static __declspec(naked) void MultiHexCombatRunFix() {
 	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
@@ -1052,7 +1052,7 @@ runToObject:
 }
 
 // checks if an attacked object is a critter before attempting dodge animation
-static void __declspec(naked) action_melee_hack() {
+static __declspec(naked) void action_melee_hack() {
 	__asm {
 		mov  eax, [ebp + ctdTarget];
 		mov  ebx, [eax + artFid];         // objStruct->FID
@@ -1065,7 +1065,7 @@ end:
 	}
 }
 
-static void __declspec(naked) action_ranged_hack() {
+static __declspec(naked) void action_ranged_hack() {
 	__asm {
 		mov  eax, [eax + ctdTarget];
 		mov  ebx, [eax + artFid];         // objStruct->FID
@@ -1080,7 +1080,7 @@ end:
 
 ////////// "NPC turns into a container" bug and knockout/down issues ///////////
 
-static void __declspec(naked) set_new_results_hack() {
+static __declspec(naked) void set_new_results_hack() {
 	__asm {
 		call fo::funcoffs::stat_level_;
 		push eax;
@@ -1093,7 +1093,7 @@ static void __declspec(naked) set_new_results_hack() {
 	}
 }
 
-static void __declspec(naked) op_critter_state_hack() {
+static __declspec(naked) void op_critter_state_hack() {
 	__asm {
 		mov  ebx, 2;
 		test eax, DAM_KNOCKOUT_WOKEN;
@@ -1105,7 +1105,7 @@ static void __declspec(naked) op_critter_state_hack() {
 
 // if the combat ends before the turn passes to the critter, the DAM_KNOCKOUT_WOKEN flag will remain set
 // therefore the flag for the critter is removed before the combat_turn_ execution, as well as when the combat ends in combat_over_
-static void __declspec(naked) critter_wake_up_hack() {
+static __declspec(naked) void critter_wake_up_hack() {
 	using fo::InCombat;
 	__asm {
 		or   byte ptr [eax], InCombat; // combat_data.combat_state
@@ -1128,7 +1128,7 @@ static void __fastcall sf_critter_wake_clear(fo::GameObject* critter) {
 	}
 }
 
-static void __declspec(naked) critter_wake_up_hook() {
+static __declspec(naked) void critter_wake_up_hook() {
 	__asm {
 		mov  ecx, eax;
 		test ScriptExtender::OnMapLeave, 1;
@@ -1138,7 +1138,7 @@ static void __declspec(naked) critter_wake_up_hook() {
 }
 
 // called when leaving the map if the critter has a "knockout_event" event in the queue
-static void __declspec(naked) critter_wake_clear_hack() {
+static __declspec(naked) void critter_wake_clear_hack() {
 	__asm {
 		jne  end;                                 // This is not a critter
 		mov  dl, [esi + damageFlags];
@@ -1158,7 +1158,7 @@ end:
 }
 
 // when loading the map
-static void __declspec(naked) obj_load_func_hack() {
+static __declspec(naked) void obj_load_func_hack() {
 	static const DWORD obj_load_func_Ret = 0x488F14;
 	using fo::InCombat;
 	__asm {
@@ -1190,7 +1190,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
+static __declspec(naked) void partyMemberPrepLoadInstance_hook() {
 	__asm {
 		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN); // clear DAM_LOSE_TURN for "NPC turns into a container" bug
 		jmp  fo::funcoffs::dude_stand_;
@@ -1198,7 +1198,7 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 }
 
 // after combat_is_over_p_proc
-static void __declspec(naked) combat_over_hack() {
+static __declspec(naked) void combat_over_hack() {
 	__asm {
 		mov  eax, esi; // critter
 		mov  esi, ds:[FO_VAR_list_total];
@@ -1224,7 +1224,7 @@ delay:
 	}
 }
 
-static void __declspec(naked) dude_standup_hook() {
+static __declspec(naked) void dude_standup_hook() {
 	__asm {
 		mov  edx, [ecx + artFid];
 		and  edx, 0xFF0000;
@@ -1243,7 +1243,7 @@ skip:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) combat_over_hook() {
+static __declspec(naked) void combat_over_hook() {
 	__asm {
 		test byte ptr [eax + damageFlags], DAM_DEAD;
 		jnz  fix;
@@ -1253,7 +1253,7 @@ fix:
 	}
 }
 
-static void __declspec(naked) combat_ctd_init_hack() {
+static __declspec(naked) void combat_ctd_init_hack() {
 	static const DWORD combat_ctd_init_Ret = 0x422F11;
 	__asm {
 		mov  [esi + 0x24], eax;                   // ctd.targetTile
@@ -1266,7 +1266,7 @@ end:
 	}
 }
 
-static void __declspec(naked) obj_save_hack() {
+static __declspec(naked) void obj_save_hack() {
 	__asm { // edx - combat_data
 		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
 		jnz  inCombat;                             // Yes
@@ -1283,7 +1283,7 @@ inCombat:
 	}
 }
 
-static void __declspec(naked) action_explode_hack() {
+static __declspec(naked) void action_explode_hack() {
 	using namespace fo::Scripts;
 	__asm {
 		mov  edx, destroy_p_proc;
@@ -1295,7 +1295,7 @@ static void __declspec(naked) action_explode_hack() {
 	}
 }
 
-static void __declspec(naked) action_explode_hack1() {
+static __declspec(naked) void action_explode_hack1() {
 	__asm {
 		push esi;
 		mov  esi, [esi + 0x40];                   // ctd.target#
@@ -1305,7 +1305,7 @@ static void __declspec(naked) action_explode_hack1() {
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hook_weight() {
+static __declspec(naked) void barter_attempt_transaction_hook_weight() {
 	__asm {
 		call fo::funcoffs::item_total_weight_;
 		test eax, eax;
@@ -1316,7 +1316,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hack() {
+static __declspec(naked) void barter_attempt_transaction_hack() {
 	__asm {
 		mov  edx, [eax + protoId];
 		cmp  edx, PID_ACTIVE_GEIGER_COUNTER;
@@ -1331,14 +1331,14 @@ found:
 	}
 }
 
-static void __declspec(naked) item_m_turn_off_hook() {
+static __declspec(naked) void item_m_turn_off_hook() {
 	__asm {
 		and  byte ptr [eax + 0x25], ~0x20;        // Unset flag of used items
 		jmp  fo::funcoffs::queue_remove_this_;
 	}
 }
 
-static void __declspec(naked) combat_hack() {
+static __declspec(naked) void combat_hack() {
 	__asm {
 		mov  eax, [ecx + eax];                     // eax = source combat turn
 		push eax;
@@ -1368,7 +1368,7 @@ end:
 	}
 }
 
-static void __declspec(naked) db_get_file_list_hack() {
+static __declspec(naked) void db_get_file_list_hack() {
 	__asm {
 		push edi;
 		push edx;
@@ -1418,7 +1418,7 @@ end:
 	}
 }
 
-static void __declspec(naked) gdActivateBarter_hook() {
+static __declspec(naked) void gdActivateBarter_hook() {
 	__asm {
 		call fo::funcoffs::gdialog_barter_pressed_;
 		cmp  ds:[FO_VAR_dialogue_state], ecx;
@@ -1437,7 +1437,7 @@ end:
 	}
 }
 
-static void __declspec(naked) switch_hand_hack() {
+static __declspec(naked) void switch_hand_hack() {
 	__asm {
 		mov  eax, ds:[FO_VAR_inven_dude];
 		push eax;
@@ -1467,7 +1467,7 @@ end:
 	}
 }
 
-static void __declspec(naked) inven_item_wearing() {
+static __declspec(naked) void inven_item_wearing() {
 	__asm {
 		mov  esi, ds:[FO_VAR_inven_dude];
 		xchg ebx, eax;                            // ebx = source
@@ -1499,7 +1499,7 @@ end:
 	}
 }
 
-static void __declspec(naked) inven_action_cursor_hack() {
+static __declspec(naked) void inven_action_cursor_hack() {
 	__asm {
 		cmp  dword ptr [esp + 0x44 + 4], item_type_container;
 		jne  end;
@@ -1511,7 +1511,7 @@ end:
 	}
 }
 
-static void __declspec(naked) use_inventory_on_hack() {
+static __declspec(naked) void use_inventory_on_hack() {
 	__asm {
 		inc  ecx;
 		mov  edx, [eax];                          // Inventory.inv_size
@@ -1523,7 +1523,7 @@ end:
 	}
 }
 
-static void __declspec(naked) Save_as_ASCII_hack() {
+static __declspec(naked) void Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
 		mov  ebx, 626; // line index in EDITOR.MSG
@@ -1531,7 +1531,7 @@ static void __declspec(naked) Save_as_ASCII_hack() {
 	}
 }
 
-static void __declspec(naked) combat_load_hook_critter() {
+static __declspec(naked) void combat_load_hook_critter() {
 	__asm {
 		push ecx;
 		mov  edx, OBJ_TYPE_CRITTER;
@@ -1542,7 +1542,7 @@ static void __declspec(naked) combat_load_hook_critter() {
 	}
 }
 
-static void __declspec(naked) combat_load_hook_item() {
+static __declspec(naked) void combat_load_hook_item() {
 	__asm {
 		push ecx;
 		mov  edx, OBJ_TYPE_ITEM;
@@ -1555,7 +1555,7 @@ static void __declspec(naked) combat_load_hook_item() {
 
 static DWORD combatFreeMoveTmp = 0xFFFFFFFF;
 
-static void __declspec(naked) combat_load_hook() {
+static __declspec(naked) void combat_load_hook() {
 	__asm {
 		call fo::funcoffs::db_freadInt_;
 		test eax, eax;                            // Successful?
@@ -1574,7 +1574,7 @@ end:
 	}
 }
 
-static void __declspec(naked) combat_turn_hack() {
+static __declspec(naked) void combat_turn_hack() {
 	__asm {
 		mov  edx, combatFreeMoveTmp;
 		cmp  edx, 0xFFFFFFFF;                     // Is there a real value?
@@ -1587,7 +1587,7 @@ end:
 	}
 }
 
-static void __declspec(naked) combat_display_hack() {
+static __declspec(naked) void combat_display_hack() {
 	__asm {
 		test [esi + flags], Flat;                 // ctd.mainTarget
 		jnz  end;                                 // Main target is flat (engine jump)
@@ -1603,7 +1603,7 @@ end:
 	}
 }
 
-static void __declspec(naked) apply_damage_hack() {
+static __declspec(naked) void apply_damage_hack() {
 	__asm {
 		xchg edx, eax;
 		test [esi + 0x15], dl;                    // ctd.flags2Source & DAM_HIT_?
@@ -1614,7 +1614,7 @@ end:
 	}
 }
 
-static void __declspec(naked) compute_attack_hook() {
+static __declspec(naked) void compute_attack_hook() {
 	__asm {
 		call fo::funcoffs::attack_crit_success_;
 		test [esi + 0x15], 2;                     // ctd.flags2Source & DAM_CRITICAL_?
@@ -1627,7 +1627,7 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberGetCurLevel_hack() {
+static __declspec(naked) void partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
 		mov  edi, dword ptr ds:[FO_VAR_partyMemberMaxCount];
@@ -1635,7 +1635,7 @@ static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	}
 }
 
-static void __declspec(naked) ResetPlayer_hook() {
+static __declspec(naked) void ResetPlayer_hook() {
 	__asm {
 		mov  edx, eax;
 		call fo::funcoffs::stat_set_defaults_;
@@ -1644,7 +1644,7 @@ static void __declspec(naked) ResetPlayer_hook() {
 	}
 }
 
-static void __declspec(naked) obj_move_to_tile_hack() {
+static __declspec(naked) void obj_move_to_tile_hack() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
 		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after loading a saved game if the player died
@@ -1660,7 +1660,7 @@ mapLeave:
 	}
 }
 
-static void __declspec(naked) obj_move_to_tile_hack_seen() {
+static __declspec(naked) void obj_move_to_tile_hack_seen() {
 	__asm {
 		cmp  ds:[FO_VAR_loadingGame], 0;         // loading saved game
 		jnz  end; // fix
@@ -1676,7 +1676,7 @@ end:
 	}
 }
 
-static void __declspec(naked) ai_combat_turn_run_hook() {
+static __declspec(naked) void ai_combat_turn_run_hook() {
 	__asm {
 		call fo::funcoffs::combat_turn_run_;
 		mov  edx, [esi + damageFlags]; // combat_data.results
@@ -1695,7 +1695,7 @@ static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
 	}
 }
 
-static void __declspec(naked) compute_damage_hack() {
+static __declspec(naked) void compute_damage_hack() {
 	static const DWORD ComputeDamageRet = 0x424BA7;
 	__asm {
 		mov  ecx, esi; // ctd
@@ -1740,7 +1740,7 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 	}
 }
 
-static void __declspec(naked) obj_examine_func_hack_ammo0() {
+static __declspec(naked) void obj_examine_func_hack_ammo0() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
@@ -1753,7 +1753,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) obj_examine_func_hack_ammo1() {
+static __declspec(naked) void obj_examine_func_hack_ammo1() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
@@ -1768,7 +1768,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) obj_examine_func_hack_weapon() {
+static __declspec(naked) void obj_examine_func_hack_weapon() {
 	static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
@@ -1788,7 +1788,7 @@ skip:
 
 static DWORD expSwiftLearner; // experience points for print
 
-static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+static __declspec(naked) void statPCAddExperienceCheckPMs_hack() {
 	__asm {
 		mov  expSwiftLearner, edi;
 		cmp  dword ptr [esp + 0x24 + 4], 0x496CAA + 5; // called from perk_add_effect_ (PERK_here_and_now)
@@ -1800,7 +1800,7 @@ notHereAndNow:
 	}
 }
 
-static void __declspec(naked) combat_give_exps_hook() {
+static __declspec(naked) void combat_give_exps_hook() {
 	__asm {
 		call fo::funcoffs::stat_pc_add_experience_;
 		mov  ebx, expSwiftLearner;
@@ -1808,7 +1808,7 @@ static void __declspec(naked) combat_give_exps_hook() {
 	}
 }
 
-static void __declspec(naked) loot_container_exp_hack() {
+static __declspec(naked) void loot_container_exp_hack() {
 	static const DWORD LootContainerExp_Ret = 0x4745E3;
 	__asm {
 		mov  edx, [esp + 0x150 - 0x18];  // experience
@@ -1832,7 +1832,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) wmRndEncounterOccurred_hook() {
+static __declspec(naked) void wmRndEncounterOccurred_hook() {
 	__asm {
 		call fo::funcoffs::stat_pc_add_experience_;
 		cmp  ecx, 110;
@@ -1852,7 +1852,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) op_obj_can_see_obj_hack() {
+static __declspec(naked) void op_obj_can_see_obj_hack() {
 	__asm {
 		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
 		mov  ecx, [eax + tile];             // source.tile
@@ -1868,7 +1868,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_obj_can_hear_obj_hack() {
+static __declspec(naked) void op_obj_can_hear_obj_hack() {
 	__asm {
 		mov  eax, [esp + 0x28 - 0x28 + 4];  // target
 		mov  edx, [esp + 0x28 - 0x24 + 4];  // source
@@ -1877,7 +1877,7 @@ static void __declspec(naked) op_obj_can_hear_obj_hack() {
 }
 
 // correct signed division by 4
-static void __declspec(naked) ai_best_weapon_hack() {
+static __declspec(naked) void ai_best_weapon_hack() {
 	__asm {
 		add  edx, 3;
 		test eax, eax;
@@ -1887,14 +1887,14 @@ static void __declspec(naked) ai_best_weapon_hack() {
 	}
 }
 
-static void __declspec(naked) ai_best_weapon_hook() {
+static __declspec(naked) void ai_best_weapon_hook() {
 	__asm {
 		mov  eax, [esp + 0xF4 - 0x10 + 4];  // prev.item
 		jmp  fo::funcoffs::item_w_perk_;
 	}
 }
 
-static void __declspec(naked) ai_search_inven_armor_hook() {
+static __declspec(naked) void ai_search_inven_armor_hook() {
 	__asm {
 		call fo::funcoffs::item_ar_dt_;
 		cmp  ebx, DMG_electrical;
@@ -1905,7 +1905,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) wmSetupRandomEncounter_hook() {
+static __declspec(naked) void wmSetupRandomEncounter_hook() {
 	__asm {
 		push eax;                  // text 2
 		push edi;                  // text 1
@@ -1919,7 +1919,7 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 	}
 }
 
-static void __declspec(naked) inven_obj_examine_func_hack() {
+static __declspec(naked) void inven_obj_examine_func_hack() {
 	__asm {
 		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
 		cmp edx, 2; // >2
@@ -1940,7 +1940,7 @@ limit:
 }
 
 int tagSkill4LevelBase = -1;
-static void __declspec(naked) SliderBtn_hook_down() {
+static __declspec(naked) void SliderBtn_hook_down() {
 	__asm {
 		call fo::funcoffs::skill_level_;
 		cmp  tagSkill4LevelBase, -1;
@@ -1957,7 +1957,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) Add4thTagSkill_hook() {
+static __declspec(naked) void Add4thTagSkill_hook() {
 	__asm {
 		mov  edi, eax;
 		call fo::funcoffs::skill_set_tags_;
@@ -1970,7 +1970,7 @@ static void __declspec(naked) Add4thTagSkill_hook() {
 }
 
 static BYTE retrievePtr = 0;
-static void __declspec(naked) ai_retrieve_object_hook() {
+static __declspec(naked) void ai_retrieve_object_hook() {
 	__asm {
 		mov  retrievePtr, 1;
 		mov  edx, ebx;                          // object ptr
@@ -1986,7 +1986,7 @@ tryFindId:
 	}
 }
 
-static void __declspec(naked) inven_find_id_hack() {
+static __declspec(naked) void inven_find_id_hack() {
 	__asm {
 		mov  ebx, [edi + ebx];                 // inv.item
 		test retrievePtr, 0xFF;
@@ -1999,7 +1999,7 @@ fix:
 	}
 }
 
-static void __declspec(naked) op_start_gdialog_hack() {
+static __declspec(naked) void op_start_gdialog_hack() {
 	static const DWORD op_start_gdialog_ret = 0x456F4B;
 	__asm {
 		cmp  eax, -1;                                 // check mood arg
@@ -2012,7 +2012,7 @@ useMood:
 	}
 }
 
-static void __declspec(naked) item_w_range_hook() {
+static __declspec(naked) void item_w_range_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;  // get ST
 		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
@@ -2024,7 +2024,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) determine_to_hit_func_hook() {
+static __declspec(naked) void determine_to_hit_func_hook() {
 	__asm {
 		test [esp + 0x38 + 0x8 + 4], 1; // isRange
 		jz   noRange;
@@ -2035,7 +2035,7 @@ noRange:
 	}
 }
 
-static void __declspec(naked) process_rads_hack() {
+static __declspec(naked) void process_rads_hack() {
 	static const DWORD process_rads_Ret = 0x42D708;
 	__asm {
 		test ebp, ebp; // modifier: -1 - recovery, 1 - downgrade level
@@ -2051,7 +2051,7 @@ fix:
 
 static long radEffectsMsgNum = 3003; // "You feel better" for removing effects
 
-static void __declspec(naked) process_rads_hook() {
+static __declspec(naked) void process_rads_hook() {
 	__asm {
 		test ebp, ebp;
 		jg   skip;
@@ -2062,7 +2062,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) process_rads_hook_msg() {
+static __declspec(naked) void process_rads_hook_msg() {
 	__asm {
 		push eax; // death message for DialogOut
 		call fo::funcoffs::display_print_;
@@ -2083,7 +2083,7 @@ skip:
 /*static DWORD firstItemDrug = -1;
 
 // when there are no more items in the inventory
-static void __declspec(naked) ai_check_drugs_hack_break() {
+static __declspec(naked) void ai_check_drugs_hack_break() {
 	static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 	__asm {
 		mov  eax, -1;
@@ -2100,7 +2100,7 @@ useDrugs: // use the first found item
 	}
 }
 
-static void __declspec(naked) ai_check_drugs_hack_check() {
+static __declspec(naked) void ai_check_drugs_hack_check() {
 	__asm {
 		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem != 0
 		jnz  skip;                         // there are no more drugs in inventory
@@ -2115,7 +2115,7 @@ checkDrugs:
 	}
 }
 
-static void __declspec(naked) ai_check_drugs_hack_use() {
+static __declspec(naked) void ai_check_drugs_hack_use() {
 	static const DWORD ai_check_drugs_hack_Loop = 0x428675;
 	__asm {
 		cmp  eax, 3;                       // counter
@@ -2131,7 +2131,7 @@ skip:
 	}
 }*/
 
-static void __declspec(naked) cai_cap_save_hook() {
+static __declspec(naked) void cai_cap_save_hook() {
 	__asm {
 		add  esi, 4;
 		mov  edx, [edx];
@@ -2139,7 +2139,7 @@ static void __declspec(naked) cai_cap_save_hook() {
 	}
 }
 
-static void __declspec(naked) config_get_values_hack() {
+static __declspec(naked) void config_get_values_hack() {
 	static const DWORD config_get_values_hack_Get = 0x42C13F;
 	static const DWORD config_get_values_hack_OK = 0x42C14D;
 	static const DWORD config_get_values_hack_Fail = 0x42C131;
@@ -2164,7 +2164,7 @@ getFail:
 	}
 }
 
-static void __declspec(naked) db_freadInt_hook() {
+static __declspec(naked) void db_freadInt_hook() {
 	__asm {
 		call fo::funcoffs::xfread_;
 		test eax, eax;
@@ -2175,7 +2175,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) op_attack_hook() {
+static __declspec(naked) void op_attack_hook() {
 	__asm {
 		mov  esi, dword ptr [esp + 0x3C + 4]; // free_move
 		mov  ebx, dword ptr [esp + 0x40 + 4]; // add amount damage to target
@@ -2183,7 +2183,7 @@ static void __declspec(naked) op_attack_hook() {
 	}
 }
 
-static void __declspec(naked) op_attack_hook_flags() {
+static __declspec(naked) void op_attack_hook_flags() {
 	__asm {
 		and  eax, 0xFF;
 		shl  al, 1; // shift to bit 2
@@ -2242,14 +2242,14 @@ static void __stdcall combat_attack_gcsd() {
 	}
 }
 
-static void __declspec(naked) combat_attack_hack() {
+static __declspec(naked) void combat_attack_hack() {
 	__asm {
 		push 0x423039; // return addr
 		jmp  combat_attack_gcsd;
 	}
 }
 
-static void __declspec(naked) op_use_obj_on_obj_hack() {
+static __declspec(naked) void op_use_obj_on_obj_hack() {
 	__asm {
 		test eax, eax; // source
 		jz   fail;
@@ -2267,7 +2267,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_use_obj_hack() {
+static __declspec(naked) void op_use_obj_hack() {
 	__asm {
 		test eax, eax; // source
 		jz   fail;
@@ -2281,7 +2281,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) combat_hack_load() {
+static __declspec(naked) void combat_hack_load() {
 	static const DWORD combat_End = 0x422E45;
 	static const DWORD combat_Load = 0x422E91;
 	__asm {
@@ -2298,14 +2298,14 @@ isLoad:
 	}
 }
 
-static void __declspec(naked) JesseContainerFid() {
+static __declspec(naked) void JesseContainerFid() {
 	__asm {
 		dec  edx; // set fid to -1
 		jmp  fo::funcoffs::obj_new_;
 	}
 }
 
-static void __declspec(naked) ai_search_inven_weap_hook0() {
+static __declspec(naked) void ai_search_inven_weap_hook0() {
 	__asm {
 		call fo::funcoffs::item_w_subtype_;
 		cmp  eax, THROWING;
@@ -2322,7 +2322,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) ai_search_inven_weap_hook1() {
+static __declspec(naked) void ai_search_inven_weap_hook1() {
 	static const DWORD ai_search_inven_weap_next = 0x4299E3;
 	__asm {
 		call fo::funcoffs::inven_find_type_;
@@ -2344,7 +2344,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) map_age_dead_critters_hack() {
+static __declspec(naked) void map_age_dead_critters_hack() {
 	__asm {
 		test ecx, ecx; // dead_bodies_age
 		jz   skip;     // if (dead_bodies_age == No) exit func
@@ -2354,7 +2354,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) partyFixMultipleMembers_hack() {
+static __declspec(naked) void partyFixMultipleMembers_hack() {
 	__asm {
 		cmp  esi, edx;
 		je   skip;
@@ -2369,7 +2369,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) PrintAutoMapList() {
+static __declspec(naked) void PrintAutoMapList() {
 	__asm {
 		mov  eax, ds:[FO_VAR_wmMaxMapNum];
 		cmp  eax, AUTOMAP_MAX;
@@ -2380,7 +2380,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) automap_pip_save_hook() {
+static __declspec(naked) void automap_pip_save_hook() {
 	__asm {
 		mov  eax, ds:[FO_VAR_map_number];
 		cmp  eax, AUTOMAP_MAX;
@@ -2391,7 +2391,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) map_load_file_hook() {
+static __declspec(naked) void map_load_file_hook() {
 	__asm {
 		mov  eax, 0x04004650; // dude script ID
 		call fo::funcoffs::scr_remove_;
@@ -2401,7 +2401,7 @@ static void __declspec(naked) map_load_file_hook() {
 
 static DWORD dudeScriptID; // usually equal to 0x04004650
 
-static void __declspec(naked) obj_load_dude_hook0() {
+static __declspec(naked) void obj_load_dude_hook0() {
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  eax, [eax + scriptId];
@@ -2410,7 +2410,7 @@ static void __declspec(naked) obj_load_dude_hook0() {
 	}
 }
 
-static void __declspec(naked) obj_load_dude_hook1() {
+static __declspec(naked) void obj_load_dude_hook1() {
 	__asm {
 		call fo::funcoffs::scr_clear_dude_script_;
 		mov  ebx, ds:[FO_VAR_obj_dude];
@@ -2420,7 +2420,7 @@ static void __declspec(naked) obj_load_dude_hook1() {
 	}
 }
 
-static void __declspec(naked) PrintAMList_hook() {
+static __declspec(naked) void PrintAMList_hook() {
 	__asm {
 		cmp  ebp, 20; // max line count
 		jle  skip;
@@ -2430,7 +2430,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) exec_script_proc_hack() {
+static __declspec(naked) void exec_script_proc_hack() {
 	__asm {
 		test edi, edi; // loading?
 		jnz  end;
@@ -2443,7 +2443,7 @@ end:
 	}
 }
 
-static void __declspec(naked) exec_script_proc_hack1() {
+static __declspec(naked) void exec_script_proc_hack1() {
 	__asm {
 		mov  esi, [edi + 0x58]; // script.procedure_table.start
 		test esi, esi;
@@ -2454,7 +2454,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_dialogue_reaction_hook() {
+static __declspec(naked) void op_dialogue_reaction_hook() {
 	__asm {
 		cmp  eax, 4; // neutral fidget
 		mov  eax, 1;
@@ -2470,7 +2470,7 @@ bad:
 	}
 }
 
-static void __declspec(naked) obj_pickup_hook() {
+static __declspec(naked) void obj_pickup_hook() {
 	__asm {
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
 		je   dude;
@@ -2489,7 +2489,7 @@ static const char* __fastcall GetPickupMessage(const char* name) {
 	return messageBuffer;
 }
 
-static void __declspec(naked) obj_pickup_hook_message() {
+static __declspec(naked) void obj_pickup_hook_message() {
 	__asm {
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
 		je   dude;
@@ -2506,7 +2506,7 @@ dude:
 }
 
 static long blockingTileObj = 0;
-static void __declspec(naked) anim_move_to_tile_hook() {
+static __declspec(naked) void anim_move_to_tile_hook() {
 	static const DWORD anim_move_to_tile_jmp = 0x416D91;
 	__asm {
 		call fo::funcoffs::obj_blocking_at_;
@@ -2532,7 +2532,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) anim_move_to_tile_hook_tile() {
+static __declspec(naked) void anim_move_to_tile_hook_tile() {
 	__asm {
 		cmp  blockingTileObj, 0;
 		jne  getTile;
@@ -2542,7 +2542,7 @@ getTile:
 	}
 }
 
-static void __declspec(naked) action_use_an_item_on_object_hack() {
+static __declspec(naked) void action_use_an_item_on_object_hack() {
 	__asm {
 		add  ebx, ds:[FO_VAR_combat_free_move];
 		mov  eax, 2; // RB_RESERVED
@@ -2550,7 +2550,7 @@ static void __declspec(naked) action_use_an_item_on_object_hack() {
 	}
 }
 
-static void __declspec(naked) action_climb_ladder_hack() {
+static __declspec(naked) void action_climb_ladder_hack() {
 	__asm {
 		add  ecx, ds:[FO_VAR_combat_free_move];
 		mov  eax, 2; // RB_RESERVED
@@ -2558,7 +2558,7 @@ static void __declspec(naked) action_climb_ladder_hack() {
 	}
 }
 
-static void __declspec(naked) wmTeleportToArea_hack() {
+static __declspec(naked) void wmTeleportToArea_hack() {
 	static const DWORD wmTeleportToArea_Ret = 0x4C5A77;
 	__asm {
 		xor  ecx, ecx;
@@ -2594,7 +2594,7 @@ end:
 	}
 }
 
-static void __declspec(naked) wmAreaMarkVisitedState_hack() {
+static __declspec(naked) void wmAreaMarkVisitedState_hack() {
 	static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
 	static long isNoRadius;
@@ -2662,7 +2662,7 @@ fixRadius:
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hack() {
+static __declspec(naked) void wmWorldMap_hack() {
 	__asm {
 		cmp  dword ptr [ebx + 0x34], 1; // wmAreaInfoList.size
 		mov  ebx, 0;
@@ -2684,7 +2684,7 @@ largeLoc:
 	}
 }
 
-static void __declspec(naked) wmTownMapFunc_hack() {
+static __declspec(naked) void wmTownMapFunc_hack() {
 	__asm {
 		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
 		je   end;
@@ -2718,7 +2718,7 @@ static bool __fastcall combat_should_end_check_fix(long dudeTeam, fo::GameObject
 	return true; // check next critter
 }
 
-static void __declspec(naked) combat_should_end_hack() {
+static __declspec(naked) void combat_should_end_hack() {
 	static const DWORD combat_should_end_break = 0x422D00;
 	__asm { // ecx = dude.team_num; ebp = critter->who_hit_me
 		push eax;
@@ -2737,7 +2737,7 @@ break:
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_hack() {
+static __declspec(naked) void wmInterfaceInit_hack() {
 	__asm {
 		mov  eax, GVAR_CAR_PLACED_TILE;
 		cmp  eax, dword ptr ds:[FO_VAR_num_game_global_vars];
@@ -2763,7 +2763,7 @@ static long __fastcall GetFreeTilePlacement(long elev, long tile) {
 	return checkTile; // free tile
 }
 
-static void __declspec(naked) map_check_state_hook() {
+static __declspec(naked) void map_check_state_hook() {
 	__asm {
 		mov  ecx, esi; // elev
 		call GetFreeTilePlacement; // edx - tile
@@ -2813,7 +2813,7 @@ static long __fastcall MultiHexPlacement(fo::GameObject* source) {
 	return 0; // default placement
 }
 
-static void __declspec(naked) partyMemberSyncPosition_hack() {
+static __declspec(naked) void partyMemberSyncPosition_hack() {
 	__asm {
 		and  eax, 0x0F000000;
 		cmp  eax, OBJ_TYPE_CRITTER << 24;
@@ -2831,7 +2831,7 @@ isMultiHex:
 	}
 }
 
-static void __declspec(naked) op_critter_rm_trait_hook() {
+static __declspec(naked) void op_critter_rm_trait_hook() {
 	__asm {
 		mov  ebx, [esp + 0x34 - 0x34 + 4]; // amount
 		test ebx, ebx;
@@ -2849,7 +2849,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_critter_add_trait_hook() {
+static __declspec(naked) void op_critter_add_trait_hook() {
 	__asm {
 		mov  edi, edx; // perk id
 		mov  ebp, eax; // source
@@ -2869,7 +2869,7 @@ end:
 }
 
 static const DWORD CorpseShotBlockFix_continue_loop[] = {0x48B99B, 0x48BA0B};
-static void __declspec(naked) obj_shoot_blocking_at_hack0() {
+static __declspec(naked) void obj_shoot_blocking_at_hack0() {
 	__asm {
 		mov  edx, eax;
 		mov  eax, [eax];
@@ -2889,7 +2889,7 @@ endLoop:
 }
 
 // same logic as above, for different loop
-static void __declspec(naked) obj_shoot_blocking_at_hack1() {
+static __declspec(naked) void obj_shoot_blocking_at_hack1() {
 	__asm {
 		mov  eax, [edx];
 		call fo::funcoffs::critter_is_dead_;
@@ -2906,7 +2906,7 @@ endLoop:
 	}
 }
 
-static void __declspec(naked) main_death_scene_hook() {
+static __declspec(naked) void main_death_scene_hook() {
 	__asm {
 		mov  eax, 100;
 		call fo::funcoffs::block_for_tocks_;
@@ -2914,7 +2914,7 @@ static void __declspec(naked) main_death_scene_hook() {
 	}
 }
 
-static void __declspec(naked) action_loot_container_hack() {
+static __declspec(naked) void action_loot_container_hack() {
 	__asm {
 		cmp dword ptr [esp + 0x10 + 4], 0x44C1D9 + 5;
 		je  fix;
@@ -2944,7 +2944,7 @@ static void FixCreateBarterButton() {
 	*(BYTE**)FO_VAR_dialog_red_button_down_buf = fo::func::art_ptr_lock_data(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
 }
 
-static void __declspec(naked) gdialog_window_create_hook() {
+static __declspec(naked) void gdialog_window_create_hook() {
 	__asm {
 		call fo::funcoffs::art_ptr_unlock_;
 		cmp  dword ptr ds:[FO_VAR_dialog_red_button_down_buf], 0;
@@ -2953,7 +2953,7 @@ static void __declspec(naked) gdialog_window_create_hook() {
 	}
 }
 
-static void __declspec(naked) gdialog_bk_hook() {
+static __declspec(naked) void gdialog_bk_hook() {
 	__asm {
 		xor  ebp, ebp;
 		mov  eax, ds:[FO_VAR_curr_font_num];
@@ -2998,7 +2998,7 @@ skip1:
 	}
 }
 
-static void __declspec(naked) gdReviewDisplay_hack() {
+static __declspec(naked) void gdReviewDisplay_hack() {
 	__asm {
 		mov  ebx, eax;
 		mov  eax, -3;
@@ -3009,7 +3009,7 @@ static void __declspec(naked) gdReviewDisplay_hack() {
 	}
 }
 
-static void __declspec(naked) combat_hook() {
+static __declspec(naked) void combat_hook() {
 	__asm {
 		call fo::funcoffs::combat_should_end_;
 		test eax, eax;
@@ -3026,7 +3026,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) wmSubTileMarkRadiusVisited_hack() {
+static __declspec(naked) void wmSubTileMarkRadiusVisited_hack() {
 	static const DWORD wmSubTileMarkRadiusVisited_Ret = 0x4C3730;
 	__asm {
 		call fo::funcoffs::wmMarkSubTileOffsetVisitedFunc_;
@@ -3054,7 +3054,7 @@ checkTiles:
 	}
 }
 
-static void __declspec(naked) doBkProcesses_hook() {
+static __declspec(naked) void doBkProcesses_hook() {
 	__asm {
 		call fo::funcoffs::gdialogActive_;
 		test eax, eax;
@@ -3067,7 +3067,7 @@ skip:
 
 static bool dudeIsAnimDeath = false;
 
-static void __declspec(naked) show_damage_to_object_hack() {
+static __declspec(naked) void show_damage_to_object_hack() {
 	static const DWORD show_damage_to_object_Ret = 0x410B90;
 	__asm {
 		jnz  isDeath;
@@ -3080,7 +3080,7 @@ isDeath:
 	}
 }
 
-static void __declspec(naked) obj_move_to_tile_hack_ondeath() {
+static __declspec(naked) void obj_move_to_tile_hack_ondeath() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A759;
 	__asm {
 		jz   skip;
@@ -3093,7 +3093,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) action_knockback_hack() {
+static __declspec(naked) void action_knockback_hack() {
 	__asm {
 		mov  ecx, 20; // cap knockback distance
 		cmp  ebp, ecx;
@@ -3103,7 +3103,7 @@ static void __declspec(naked) action_knockback_hack() {
 	}
 }
 
-static void __declspec(naked) check_door_state_hack_close() {
+static __declspec(naked) void check_door_state_hack_close() {
 	__asm {
 		mov  eax, esi;
 		call fo::funcoffs::obj_is_a_portal_;
@@ -3115,7 +3115,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) check_door_state_hack_open() {
+static __declspec(naked) void check_door_state_hack_open() {
 	__asm {
 		mov  eax, esi;
 		call fo::funcoffs::obj_is_a_portal_;
@@ -3129,7 +3129,7 @@ skip:
 
 static BYTE fixRegion = 0;
 
-static void __declspec(naked) checkAllRegions_hack() {
+static __declspec(naked) void checkAllRegions_hack() {
 	static const DWORD checkAllRegions_BackRet = 0x4B6C40;
 	static const DWORD checkAllRegions_FixRet = 0x4B6AAB;
 	__asm {
@@ -3147,7 +3147,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) checkAllRegions_hook() {
+static __declspec(naked) void checkAllRegions_hook() {
 	__asm {
 		test byte ptr fixRegion, 1;
 		jnz  skip; // == 1
@@ -3159,7 +3159,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) win_show_hack() {
+static __declspec(naked) void win_show_hack() {
 	__asm {
 		xor  ebx, ebx;
 		lea  edx, [esi + 0x8]; // window.rect
@@ -3175,7 +3175,7 @@ static void __declspec(naked) win_show_hack() {
 
 static bool createObjectSidStartFix = false;
 
-static void __declspec(naked) op_create_object_sid_hack() {
+static __declspec(naked) void op_create_object_sid_hack() {
 	static const char* proDbgMsg = "\nError: attempt to create object with PID of %d: %s!";
 	using fo::Scripts::start;
 	__asm {
@@ -3222,7 +3222,7 @@ noObject:
 	}
 }
 
-static void __declspec(naked) op_create_object_sid_hack1() {
+static __declspec(naked) void op_create_object_sid_hack1() {
 	static const DWORD create_object_sid_Ret = 0x4551C0;
 	__asm {
 		cmp  dword ptr [esp + 0x50 - 0x40 + 4], 0; // scriptIndex
@@ -3246,7 +3246,7 @@ static long __fastcall CheckBarterAndBodyType(fo::GameObject* critter) {
 	        !(proto->critter.critterFlags & fo::CritterFlags::Barter) && proto->critter.bodyType);
 }
 
-static void __declspec(naked) item_add_mult_hook() {
+static __declspec(naked) void item_add_mult_hook() {
 	__asm {
 		push edx;
 		push ecx;
@@ -3264,7 +3264,7 @@ static long __fastcall TargetIsActiveForPush(fo::GameObject* source, fo::GameObj
 	return (target->critter.IsDead()) ? 0 : 1;
 }
 
-static void __declspec(naked) action_can_be_pushed_hook() {
+static __declspec(naked) void action_can_be_pushed_hook() {
 	__asm {
 		push ecx;
 		call TargetIsActiveForPush; // ecx - source, edx - target
@@ -3274,7 +3274,7 @@ static void __declspec(naked) action_can_be_pushed_hook() {
 	}
 }
 
-static void __declspec(naked) op_float_msg_hack() {
+static __declspec(naked) void op_float_msg_hack() {
 	__asm {
 		cmp  eax, 7; // 3 - black, 7 - purple, 12 - grey
 		je   purple;
@@ -3292,7 +3292,7 @@ black:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) item_add_force_hack0() {
+static __declspec(naked) void item_add_force_hack0() {
 	__asm { // eax - invenTable, edx - index
 		cmp  dword ptr [eax + edx + 4], 0; // invenItem.count
 		jg   end;
@@ -3303,7 +3303,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) item_add_force_hack1() {
+static __declspec(naked) void item_add_force_hack1() {
 	__asm { // eax - invenTable, ebx - index
 		cmp  dword ptr [eax + ebx * 8 + 4], 0; // invenItem.count
 		jg   end;
@@ -3315,7 +3315,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) item_remove_mult_hack0() {
+static __declspec(naked) void item_remove_mult_hack0() {
 	__asm { // eax - invenItem
 		cmp  dword ptr [eax + 4], 0; // invenItem.count
 		jg   end;
@@ -3327,7 +3327,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) item_remove_mult_hack1() {
+static __declspec(naked) void item_remove_mult_hack1() {
 	__asm { // eax - invenTable, ecx - index
 		sub  [ecx + eax + 4], ebx;         // calculate new item count
 		cmp  dword ptr [ecx + eax + 4], 0; // invenItem.count
@@ -3339,7 +3339,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) item_count_hack() {
+static __declspec(naked) void item_count_hack() {
 	static const DWORD item_count_Ret = 0x4780DB;
 	__asm { // eax - invenItem
 		cmp  dword ptr [eax + 4], 0; // invenItem.count
@@ -3352,7 +3352,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) item_caps_adjust_hack() {
+static __declspec(naked) void item_caps_adjust_hack() {
 	__asm {
 		test edi, edi;     // new caps count
 		jg   end;
@@ -3364,7 +3364,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) item_caps_total_hack() {
+static __declspec(naked) void item_caps_total_hack() {
 	static const DWORD item_caps_total_Ret = 0x47A6E5;
 	__asm { // edi - invenItem (caps)
 		cmp  dword ptr [edi + 4], 0; // invenItem.count
@@ -3376,7 +3376,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) inven_pid_quantity_carried_hack() {
+static __declspec(naked) void inven_pid_quantity_carried_hack() {
 	__asm {
 		mov  eax, [esp + 0x18 - 0x18 + 4]; // invenItem
 		cmp  dword ptr [eax + 4], 0;       // invenItem.count
@@ -3388,7 +3388,7 @@ end: // overwritten engine code
 	}
 }
 
-static void __declspec(naked) display_inventory_hack_info() {
+static __declspec(naked) void display_inventory_hack_info() {
 	__asm { // eax - invenItem
 		cmp  dword ptr [eax + 4], 0; // invenItem.count
 		jg   end;
@@ -3404,7 +3404,7 @@ end: // overwritten engine code
 
 static bool useInvenOn = false;
 
-static void __declspec(naked) gmouse_handle_event_hack_use_inv() {
+static __declspec(naked) void gmouse_handle_event_hack_use_inv() {
 	__asm {
 		cmp  useInvenOn, 0;
 		je   end;
@@ -3417,7 +3417,7 @@ end:
 	}
 }
 
-static void __declspec(naked) gmouse_handle_event_hook_use_inv() {
+static __declspec(naked) void gmouse_handle_event_hook_use_inv() {
 	__asm {
 		mov  useInvenOn, 1;
 		jmp  fo::funcoffs::use_inventory_on_;

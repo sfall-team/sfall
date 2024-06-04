@@ -47,7 +47,7 @@ static sBook* __fastcall FindBook(DWORD pid) {
 	return 0;
 }
 
-static void __declspec(naked) obj_use_book_hook() {
+static __declspec(naked) void obj_use_book_hook() {
 	static const DWORD obj_use_book_hook_back = 0x49BA5A;
 	__asm {
 		mov  edi, -1;

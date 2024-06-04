@@ -32,10 +32,10 @@ namespace script
 class OpcodeContext;
 
 //Stop game, the same effect as open charsscreen or inventory
-void __declspec() op_stop_game();
+void op_stop_game();
 
 //Resume the game when it is stopped
-void __declspec() op_resume_game();
+void op_resume_game();
 
 void op_set_dm_model(OpcodeContext&);
 
@@ -45,13 +45,13 @@ void op_set_movie_path(OpcodeContext&);
 
 void op_get_year(OpcodeContext&);
 
-void __declspec() op_eax_available();
+void op_eax_available();
 
-void __declspec() op_set_eax_environment();
+void op_set_eax_environment();
 
-void __declspec() op_get_uptime();
+void op_get_uptime();
 
-void __declspec() op_set_car_current_town();
+void op_set_car_current_town();
 
 void op_set_critical_table(OpcodeContext&);
 
@@ -62,29 +62,29 @@ void op_reset_critical_table(OpcodeContext&);
 void op_set_palette(OpcodeContext&);
 
 //numbers subgame functions
-void __declspec() op_nb_create_char();
+void op_nb_create_char();
 
-void __declspec() op_hero_select_win();
+void op_hero_select_win();
 
-void __declspec() op_set_hero_style();
+void op_set_hero_style();
 
-void __declspec() op_set_hero_race();
+void op_set_hero_race();
 
-void __declspec() op_get_light_level();
+void op_get_light_level();
 
-void __declspec() op_refresh_pc_art();
+void op_refresh_pc_art();
 
 void op_play_sfall_sound(OpcodeContext&);
 
-void __declspec() op_stop_sfall_sound();
+void op_stop_sfall_sound();
 
 void op_get_tile_fid(OpcodeContext&);
 
-void __declspec() op_mark_movie_played();
+void op_mark_movie_played();
 
-void __declspec() op_tile_under_cursor();
+void op_tile_under_cursor();
 
-void __declspec() op_gdialog_get_barter_mod();
+void op_gdialog_get_barter_mod();
 
 void op_sneak_success(OpcodeContext&);
 

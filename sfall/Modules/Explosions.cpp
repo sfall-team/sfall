@@ -48,7 +48,7 @@ static bool explosionsDamageReset = false;
 static bool explosionMaxTargetReset = false;
 
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
-static void __declspec(naked) ranged_attack_lighting_fix() {
+static __declspec(naked) void ranged_attack_lighting_fix() {
 	static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 	__asm {
 		mov  eax, [esp + 40];             // source projectile ptr - 1st arg
@@ -67,7 +67,7 @@ skip:
 
 static DWORD explosion_effect_starting_dir = 0;
 
-static void __declspec(naked) explosion_effect_hook() {
+static __declspec(naked) void explosion_effect_hook() {
 	static const DWORD explosion_effect_hook_back = 0x411AB9;
 	__asm {
 		mov  bl, lightingEnabled;
@@ -94,7 +94,7 @@ skiplight:
 }
 
 // enable lighting for central explosion object (action_explode)
-static void __declspec(naked) explosion_lighting_fix2() {
+static __declspec(naked) void explosion_lighting_fix2() {
 	static const DWORD explosion_lighting_fix2_back = 0x412FC7;
 	__asm {
 		mov  eax, [esp + 24];
@@ -120,7 +120,7 @@ static void __declspec(naked) explosion_lighting_fix2() {
 //	return value1;
 //}
 
-static void __declspec(naked) anim_set_check_light_fix() {
+static __declspec(naked) void anim_set_check_light_fix() {
 	static const DWORD anim_set_check_light_back = 0x415A4C;
 	__asm {
 		mov  eax, [esi + 4];   // object
@@ -142,7 +142,7 @@ end:
 }
 
 // enable lighting for burning poor guy
-static void __declspec(naked) fire_dance_lighting_fix1() {
+static __declspec(naked) void fire_dance_lighting_fix1() {
 	static const DWORD fire_dance_lighting_back = 0x410A4F;
 	__asm {
 		push edx;
@@ -203,7 +203,7 @@ static DWORD __fastcall SetQueueExplosionDamage(DWORD pid) {
 	return result;
 }
 
-static void __declspec(naked) obj_use_explosive_hack() {
+static __declspec(naked) void obj_use_explosive_hack() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PID_PLASTIC_EXPLOSIVES;
@@ -222,7 +222,7 @@ end:
 	}
 }
 
-static void __declspec(naked) obj_use_explosive_active_hack() {
+static __declspec(naked) void obj_use_explosive_active_hack() {
 	using namespace fo;
 	__asm {
 		cmp  eax, PID_PLASTIC_EXPLOSIVES;
@@ -240,7 +240,7 @@ end:
 	}
 }
 
-static void __declspec(naked) queue_do_explosion_hack() {
+static __declspec(naked) void queue_do_explosion_hack() {
 	using namespace fo;
 	__asm {
 		cmp  edx, PID_ACTIVE_DYNAMITE;
@@ -263,7 +263,7 @@ dynamite:
 	}
 }
 
-static void __declspec(naked) inven_action_cursor_drop_hack() {
+static __declspec(naked) void inven_action_cursor_drop_hack() {
 	using namespace fo;
 	__asm {
 		cmp  ebx, PID_ACTIVE_PLASTIC_EXPLOSIVE;
@@ -279,7 +279,7 @@ end:
 	}
 }
 
-static void __declspec(naked) protinstTestDroppedExplosive_hack() {
+static __declspec(naked) void protinstTestDroppedExplosive_hack() {
 	__asm {
 		jz   end;
 		mov  ecx, edx;

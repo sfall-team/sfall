@@ -90,7 +90,7 @@ fo::Window* Interface::GetWindow(long winType) {
 }
 
 static long costAP = -1;
-static void __declspec(naked) intface_redraw_items_hack0() {
+static __declspec(naked) void intface_redraw_items_hack0() {
 	__asm {
 		sub  eax, esi;
 		shl  eax, 4;
@@ -116,7 +116,7 @@ noShift:
 	}
 }
 
-static void __declspec(naked) intface_redraw_items_hack1() {
+static __declspec(naked) void intface_redraw_items_hack1() {
 	__asm {
 		mov  edx, 10;
 		cmp  costAP, edx;
@@ -159,7 +159,7 @@ run:
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_text_font_hook() {
+static __declspec(naked) void wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 101; // normal text font
 		jmp  fo::funcoffs::text_font_;
@@ -219,7 +219,7 @@ static const DWORD wmViewportEndBottom[] = {
 	0x4C44BE,                                                   // wmCursorIsVisible_
 };
 /*
-static void __declspec(naked) wmInterfaceInit_hack() {
+static __declspec(naked) void wmInterfaceInit_hack() {
 	static const DWORD wmInterfaceInit_Ret = 0x4C23A7;
 	__asm {
 		push eax;
@@ -229,7 +229,7 @@ static void __declspec(naked) wmInterfaceInit_hack() {
 	}
 }
 */
-static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
+static __declspec(naked) void wmInterfaceDrawSubTileList_hack() {
 	__asm {
 		mov  edx, [esp + 0x10 - 0x10 + 4];
 		imul edx, WMAP_WIN_WIDTH;
@@ -238,7 +238,7 @@ static void __declspec(naked) wmInterfaceDrawSubTileList_hack() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceDrawCircleOverlay_hack() {
+static __declspec(naked) void wmInterfaceDrawCircleOverlay_hack() {
 	__asm {
 		mov  eax, ecx;
 		imul eax, WMAP_WIN_WIDTH;
@@ -246,7 +246,7 @@ static void __declspec(naked) wmInterfaceDrawCircleOverlay_hack() {
 	}
 }
 
-static void __declspec(naked) wmDrawCursorStopped_hack0() {
+static __declspec(naked) void wmDrawCursorStopped_hack0() {
 	__asm {
 		mov  ebx, ecx;
 		imul ebx, WMAP_WIN_WIDTH;
@@ -254,7 +254,7 @@ static void __declspec(naked) wmDrawCursorStopped_hack0() {
 	}
 }
 
-static void __declspec(naked) wmDrawCursorStopped_hack1() {
+static __declspec(naked) void wmDrawCursorStopped_hack1() {
 	__asm {
 		mov  ebx, eax;
 		imul ebx, WMAP_WIN_WIDTH;
@@ -262,7 +262,7 @@ static void __declspec(naked) wmDrawCursorStopped_hack1() {
 	}
 }
 
-static void __declspec(naked) wmRefreshTabs_hook() {
+static __declspec(naked) void wmRefreshTabs_hook() {
 	__asm {
 		mov  eax, edx;
 		imul eax, WMAP_WIN_WIDTH;
@@ -271,7 +271,7 @@ static void __declspec(naked) wmRefreshTabs_hook() {
 	}
 }
 
-static void __declspec(naked) wmTownMapRefresh_hook() {
+static __declspec(naked) void wmTownMapRefresh_hook() {
 	__asm {
 		cmp  edx, 700; //_wmTownWidth
 		jl   scale;
@@ -290,7 +290,7 @@ scale:
 	}
 }
 
-static void __declspec(naked) wmTownMapRefresh_hook_textpos() {
+static __declspec(naked) void wmTownMapRefresh_hook_textpos() {
 	__asm {
 		push eax;
 		push ebx;
@@ -316,7 +316,7 @@ skipY:
 	}
 }
 
-static void __declspec(naked) wmTownMapInit_hook() {
+static __declspec(naked) void wmTownMapInit_hook() {
 	__asm {
 		push eax;
 		mov  eax, edx; // xpos
@@ -341,7 +341,7 @@ static long __stdcall CheckMouseInWorldRect(long left, long top, long right, lon
 	);
 }
 
-static void __declspec(naked) wmWorldMap_hook_mouse_click_in() {
+static __declspec(naked) void wmWorldMap_hook_mouse_click_in() {
 	__asm {
 		push ecx; // bottom
 		push ebx; // right
@@ -545,7 +545,7 @@ static void AddNewDot() {
 	dots.push_back(dot);
 }
 
-static void __declspec(naked) DrawingDots() {
+static __declspec(naked) void DrawingDots() {
 	long x_offset, y_offset;
 	__asm {
 		mov ebp, esp; // prolog
@@ -618,7 +618,7 @@ static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
 	return true;
 }
 
-static void __declspec(naked) wmInterfaceRefresh_hook() {
+static __declspec(naked) void wmInterfaceRefresh_hook() {
 	if (colorDot && *fo::ptr::target_xpos != -1) {
 		if (*fo::ptr::In_WorldMap) {
 			DrawingDots();
@@ -676,7 +676,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hack() {
+static __declspec(naked) void wmWorldMap_hack() {
 	__asm {
 		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
@@ -708,7 +708,7 @@ isScroll:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
+static __declspec(naked) void wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
 		mov byte ptr [eax - 1], 13;
 		mov byte ptr [eax + 1], 13;
@@ -722,7 +722,7 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
+static __declspec(naked) void wmInterfaceRefreshCarFuel_hack() {
 	__asm {
 		mov byte ptr [eax - 1], 196;
 		mov byte ptr [eax + 1], 196;
@@ -733,7 +733,7 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_hook() {
+static __declspec(naked) void wmInterfaceInit_hook() {
 	static DWORD retAddr;
 	__asm {
 		pop  retAddr;
@@ -747,7 +747,7 @@ static void __declspec(naked) wmInterfaceInit_hook() {
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hook() {
+static __declspec(naked) void wmWorldMap_hook() {
 	__asm {
 		push eax;
 		mov  eax, 0x503E14; // 'ib1p1xx1'
@@ -757,7 +757,7 @@ static void __declspec(naked) wmWorldMap_hook() {
 	}
 }
 
-static void __declspec(naked) wmDrawCursorStopped_hack_hotspot() {
+static __declspec(naked) void wmDrawCursorStopped_hack_hotspot() {
 	__asm {
 		mov  eax, 0x503E34; // 'ib2p1xx1'
 		call fo::funcoffs::gsound_play_sfx_file_;
@@ -766,7 +766,7 @@ static void __declspec(naked) wmDrawCursorStopped_hack_hotspot() {
 	}
 }
 
-static void __declspec(naked) wmTownMapInit_hack() {
+static __declspec(naked) void wmTownMapInit_hack() {
 	__asm {
 		mov  dword ptr ds:[edi + 0x672DD8], eax; // _wmTownMapButtonId
 		push eax;
@@ -865,7 +865,7 @@ static void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C5289, 12);
 }
 
-static void __declspec(naked) intface_rotate_numbers_hack() {
+static __declspec(naked) void intface_rotate_numbers_hack() {
 	__asm {
 		push edi;
 		push ebp;
@@ -927,7 +927,7 @@ static long gmouse_handle_event_hook() {
 	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
-static void __declspec(naked) gmouse_bk_process_hook() {
+static __declspec(naked) void gmouse_bk_process_hook() {
 	__asm {
 		push 1; // bypass Transparent
 		mov  ecx, eax;
@@ -939,7 +939,7 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 
 static long ammoBarXPos = 461; // move ammo bar away from rivets (was 463)
 
-static void __declspec(naked) intface_update_ammo_lights_hack() {
+static __declspec(naked) void intface_update_ammo_lights_hack() {
 	__asm {
 		mov  eax, 70; // 70 - full ammo bar
 		cmp  edx, eax;
@@ -949,7 +949,7 @@ static void __declspec(naked) intface_update_ammo_lights_hack() {
 	}
 }
 
-static void __declspec(naked) display_body_hook() {
+static __declspec(naked) void display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
 		cmp  ebx, 1; // check mode 0 or 1

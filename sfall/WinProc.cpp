@@ -36,7 +36,7 @@ static long windowData;
 static long reqGameQuit = 0;
 static bool isClosing = false;
 
-static void __declspec(naked) WindowProc_hack() {
+static __declspec(naked) void WindowProc_hack() {
 	static const DWORD WindowProc_hack_Ret = 0x4DEAA5;
 	static const DWORD WindowProc_hack_End = 0x4DEAFA;
 	__asm {

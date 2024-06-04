@@ -25,11 +25,11 @@ namespace sfall
 namespace script
 {
 
-void __declspec() op_active_hand();
+void op_active_hand();
 
-void __declspec() op_toggle_active_hand();
+void op_toggle_active_hand();
 
-void __declspec() op_set_inven_ap_cost();
+void op_set_inven_ap_cost();
 
 void mf_get_inven_ap_cost(OpcodeContext&);
 

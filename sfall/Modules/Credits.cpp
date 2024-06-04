@@ -105,7 +105,7 @@ static DWORD __fastcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 }
 
 // Additional lines will be at the top of CREDITS.TXT contents
-static void __declspec(naked) CreditsNextLineHook_Top() {
+static __declspec(naked) void CreditsNextLineHook_Top() {
 	__asm {
 		pushadc;
 		push ebx;
@@ -123,7 +123,7 @@ fail:
 }
 
 // Additional lines will be at the bottom of CREDITS.TXT contents
-static void __declspec(naked) CreditsNextLineHook_Bottom() {
+static __declspec(naked) void CreditsNextLineHook_Bottom() {
 	__asm {
 		push eax;
 		push edx;
@@ -159,7 +159,7 @@ static void __stdcall SetCreditsPosition(DWORD addr) {
 	HookCall(0x42CB49, func);
 }
 
-static void __declspec(naked) ShowCreditsHook() {
+static __declspec(naked) void ShowCreditsHook() {
 	__asm {
 		push eax;
 		push edx;
@@ -178,7 +178,7 @@ static void __declspec(naked) ShowCreditsHook() {
 }
 
 // Loads the credits from the 'english' folder if it does not exist in the current language directory
-static void __declspec(naked) CreditsFileHook() {
+static __declspec(naked) void CreditsFileHook() {
 	__asm {
 		mov  ebx, edx; // keep mode
 		call fo::funcoffs::db_fopen_;

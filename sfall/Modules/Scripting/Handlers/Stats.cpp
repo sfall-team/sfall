@@ -36,7 +36,7 @@ namespace script
 static const char* invalidStat = "%s() - stat number out of range.";
 static const char* objNotCritter = "%s() - the object is not a critter.";
 
-void __declspec(naked) op_set_hp_per_level_mod() {
+__declspec(naked) void op_set_hp_per_level_mod() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -197,7 +197,7 @@ void op_get_critter_skill_points(OpcodeContext& ctx) {
 	}
 }
 
-void __declspec(naked) op_set_available_skill_points() {
+__declspec(naked) void op_set_available_skill_points() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -210,14 +210,14 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_available_skill_points() {
+__declspec(naked) void op_get_available_skill_points() {
 	__asm {
 		mov  edx, dword ptr ds:[FO_VAR_curr_pc_stat];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_mod_skill_points_per_level() {
+__declspec(naked) void op_mod_skill_points_per_level() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -237,7 +237,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_unspent_ap_bonus() {
+__declspec(naked) void op_set_unspent_ap_bonus() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  Stats::standardApAcBonus, eax;
@@ -246,14 +246,14 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_unspent_ap_bonus() {
+__declspec(naked) void op_get_unspent_ap_bonus() {
 	__asm {
 		mov  edx, Stats::standardApAcBonus;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_set_unspent_ap_perk_bonus() {
+__declspec(naked) void op_set_unspent_ap_perk_bonus() {
 	__asm {
 		_GET_ARG_INT(end);
 		mov  Stats::extraApAcBonus, eax;
@@ -262,14 +262,14 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_unspent_ap_perk_bonus() {
+__declspec(naked) void op_get_unspent_ap_perk_bonus() {
 	__asm {
 		mov  edx, Stats::extraApAcBonus;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }
 
-void __declspec(naked) op_get_critter_current_ap() {
+__declspec(naked) void op_get_critter_current_ap() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -303,7 +303,7 @@ void op_set_critter_current_ap(OpcodeContext& ctx) {
 	}
 }
 
-void __declspec(naked) op_set_pickpocket_max() {
+__declspec(naked) void op_set_pickpocket_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -323,7 +323,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_hit_chance_max() {
+__declspec(naked) void op_set_hit_chance_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -352,7 +352,7 @@ void op_set_critter_hit_chance_mod(OpcodeContext& ctx) {
 	}
 }
 
-void __declspec(naked) op_set_base_hit_chance_mod() {
+__declspec(naked) void op_set_base_hit_chance_mod() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -379,7 +379,7 @@ void op_set_critter_pickpocket_mod(OpcodeContext& ctx) {
 	}
 }
 
-void __declspec(naked) op_set_base_pickpocket_mod() {
+__declspec(naked) void op_set_base_pickpocket_mod() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -406,7 +406,7 @@ void op_set_critter_skill_mod(OpcodeContext& ctx) {
 	}
 }
 
-void __declspec(naked) op_set_base_skill_mod() { // same as set_skill_max
+__declspec(naked) void op_set_base_skill_mod() { // same as set_skill_max
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -419,7 +419,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_skill_max() {
+__declspec(naked) void op_set_skill_max() {
 	__asm {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
@@ -435,7 +435,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_stat_max() {
+__declspec(naked) void op_set_stat_max() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -455,7 +455,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_stat_min() {
+__declspec(naked) void op_set_stat_min() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -475,7 +475,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_pc_stat_max() {
+__declspec(naked) void op_set_pc_stat_max() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -492,7 +492,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_pc_stat_min() {
+__declspec(naked) void op_set_pc_stat_min() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -509,7 +509,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_npc_stat_max() {
+__declspec(naked) void op_set_npc_stat_max() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -526,7 +526,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_npc_stat_min() {
+__declspec(naked) void op_set_npc_stat_min() {
 	__asm {
 		push ecx;
 		_GET_ARG(ecx, esi);
@@ -557,7 +557,7 @@ void mf_get_stat_min(OpcodeContext& ctx) {
 	);
 }
 
-static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+static __declspec(naked) void statPCAddExperienceCheckPMs_hack() {
 	static DWORD xpTemp;
 	__asm {
 		mov  ebp, [esp];  // return addr

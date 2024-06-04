@@ -23,11 +23,11 @@ namespace sfall
 namespace script
 {
 
-void __declspec() op_get_perk_owed();
+void op_get_perk_owed();
 
-void __declspec() op_set_perk_owed();
+void op_set_perk_owed();
 
-void __declspec() op_set_perk_freq();
+void op_set_perk_freq();
 
 void op_get_perk_available(OpcodeContext&);
 
@@ -35,7 +35,7 @@ void op_set_perk_name(OpcodeContext&);
 
 void op_set_perk_desc(OpcodeContext&);
 
-void __declspec() op_set_perk_value();
+void op_set_perk_value();
 
 void op_set_selectable_perk(OpcodeContext&);
 
@@ -43,29 +43,29 @@ void op_set_fake_perk(OpcodeContext&);
 
 void op_set_fake_trait(OpcodeContext&);
 
-void __declspec() op_set_perkbox_title();
+void op_set_perkbox_title();
 
-void __declspec() op_hide_real_perks();
+void op_hide_real_perks();
 
-void __declspec() op_show_real_perks();
+void op_show_real_perks();
 
-void __declspec() op_clear_selectable_perks();
+void op_clear_selectable_perks();
 
 void op_has_fake_perk(OpcodeContext&);
 
 void op_has_fake_trait(OpcodeContext&);
 
-void __declspec() op_perk_add_mode();
+void op_perk_add_mode();
 
-void __declspec() op_remove_trait();
+void op_remove_trait();
 
-void __declspec() op_set_pyromaniac_mod();
+void op_set_pyromaniac_mod();
 
-void __declspec() op_apply_heaveho_fix();
+void op_apply_heaveho_fix();
 
-void __declspec() op_set_swiftlearner_mod();
+void op_set_swiftlearner_mod();
 
-void __declspec() op_set_perk_level_mod();
+void op_set_perk_level_mod();
 
 void mf_add_trait(OpcodeContext&);
 

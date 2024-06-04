@@ -53,7 +53,7 @@ static DWORD last_quest_page = INT_MAX;
 static std::vector<int> pageQuest;
 
 // Fix crash when the quest list is too long
-static void __declspec(naked) PipStatus_hook_printfix() {
+static __declspec(naked) void PipStatus_hook_printfix() {
 	__asm {
 		test outRangeFlag, 0xFF;
 		jnz  force;
@@ -82,7 +82,7 @@ force:
 
 // Add an unused bit for an additional text offset 60 pixels to the right
 // it might be needed outside of the function to display quest list pages
-static void __declspec(naked) pip_print_hack() {
+static __declspec(naked) void pip_print_hack() {
 	__asm {
 		test bh, 1;
 		jz   skip;
@@ -109,7 +109,7 @@ static void ResetPageValues() {
 }
 
 // Event of entering the quest list and up/down keystrokes
-static void __declspec(naked) pipboy_hack_press0() {
+static __declspec(naked) void pipboy_hack_press0() {
 	__asm {
 		// fixed vanilla bug, preventing displaying the quest list of other locations when clicking on the pipboy screen
 		test InQuestsList, 0xFF;
@@ -129,7 +129,7 @@ skip:
 }
 
 // Pipboy keystroke event
-static void __declspec(naked) pipboy_hack_press1() {
+static __declspec(naked) void pipboy_hack_press1() {
 	__asm {
 		mov  InQuestsList, 0;
 		mov  calledflag, 0;
@@ -150,7 +150,7 @@ skip:
 }
 
 // Press back button
-static void __declspec(naked) pipboy_hack_back() {
+static __declspec(naked) void pipboy_hack_back() {
 	__asm {
 		mov  InQuestsList, 0;
 		mov  calledflag, 0;
@@ -217,7 +217,7 @@ static long __fastcall QuestsPrint(BYTE* count, int width, DWORD* buf, const cha
 	return ExitCode::Normal;
 }
 
-static void __declspec(naked) PipStatus_hack_print() {
+static __declspec(naked) void PipStatus_hack_print() {
 	static const DWORD PipStatus_NormalRet = 0x49818B;
 	static const DWORD PipStatus_NextRet   = 0x498237;
 	static const DWORD PipStatus_BreakRet  = 0x4982A4;
@@ -244,7 +244,7 @@ jbreak:
 static char bufPage[16];
 static const char* format = "%s %d %s %d";
 
-static void __declspec(naked) PrintPages() {
+static __declspec(naked) void PrintPages() {
 	__asm {
 		// total pages
 		mov  eax, total_quests_pages;
@@ -282,7 +282,7 @@ static void __declspec(naked) PrintPages() {
 	}
 }
 
-static void __declspec(naked) PipStatus_hook_end() {
+static __declspec(naked) void PipStatus_hook_end() {
 	__asm {
 		call fo::funcoffs::pip_back_;
 		test total_quests_pages, 0xFF;
@@ -324,7 +324,7 @@ static DWORD __fastcall ActionButtons(DWORD key) {
 	return -1;
 }
 
-static void __declspec(naked) pipboy_hack_action() {
+static __declspec(naked) void pipboy_hack_action() {
 	__asm {
 		test calledflag, 0xFF;
 		jz   skip;
@@ -358,7 +358,7 @@ static void LoadArtButton(DWORD buttonKey, DWORD buttonMem, DWORD indexArt) { //
 }
 
 // Create buttons
-static void __declspec(naked) StartPipboy_hack() {
+static __declspec(naked) void StartPipboy_hack() {
 	__asm {
 		push edi;
 		mov  ebp, esp; // prolog
@@ -426,7 +426,7 @@ static void __declspec(naked) StartPipboy_hack() {
 }
 
 // Reset states when closing pipboy
-static void __declspec(naked) pipboy_hook() {
+static __declspec(naked) void pipboy_hook() {
 	__asm {
 		call fo::funcoffs::EndPipboy_;
 		test closeFlag, 0xFF;
@@ -474,7 +474,7 @@ static void __fastcall QuestListSort(fo::QuestData* questList, size_t numElement
 	delete[] tmpList;
 }
 
-static void __declspec(naked) quest_init_hook() {
+static __declspec(naked) void quest_init_hook() {
 	__asm {
 		mov  ecx, eax;      // questList (base)
 		jmp  QuestListSort; // edx - numElements
@@ -533,7 +533,7 @@ static BYTE __fastcall CheckQuestFailureState(fo::QuestData* quest, BYTE complet
 	return (index != -1 && (*fo::ptr::game_global_vars)[quest->gvarIndex] >= questFailures[index].failureVal) ? failureColor : completeColor;
 }
 
-static void __declspec(naked) PipStatus_hack() {
+static __declspec(naked) void PipStatus_hack() {
 	__asm {
 		push eax;
 		push ecx;

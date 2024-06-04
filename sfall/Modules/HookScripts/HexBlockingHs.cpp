@@ -8,7 +8,7 @@
 namespace sfall
 {
 
-static void __declspec(naked) HexMoveBlockingHook() {
+static __declspec(naked) void HexMoveBlockingHook() {
 	static const DWORD _obj_blocking_at = 0x48B84E;
 	__asm {
 		HookBegin;
@@ -43,7 +43,7 @@ return:
 	}
 }
 
-static void __declspec(naked) HexAIBlockingHook() {
+static __declspec(naked) void HexAIBlockingHook() {
 	__asm {
 		HookBegin;
 		mov  args[0], eax;
@@ -68,7 +68,7 @@ static void __declspec(naked) HexAIBlockingHook() {
 	}
 }
 
-static void __declspec(naked) HexShootBlockingHook() {
+static __declspec(naked) void HexShootBlockingHook() {
 	__asm {
 		HookBegin;
 		mov  args[0], eax;
@@ -93,7 +93,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 	}
 }
 
-static void __declspec(naked) HexSightBlockingHook() {
+static __declspec(naked) void HexSightBlockingHook() {
 	__asm {
 		HookBegin;
 		mov  args[0], eax;

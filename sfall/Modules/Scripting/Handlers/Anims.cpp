@@ -118,7 +118,7 @@ void op_reg_anim_turn_towards(OpcodeContext& ctx) {
 	}
 }
 
-static void __declspec(naked) ExecuteCallback() {
+static __declspec(naked) void ExecuteCallback() {
 	__asm {
 		call fo::funcoffs::executeProcedure_;
 		jmp  ScriptExtender::GetResetScriptReturnValue; // return callback result from scr_return script function: -1 - break registered sequence

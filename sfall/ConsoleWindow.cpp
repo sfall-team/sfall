@@ -116,7 +116,7 @@ static void __fastcall WriteGameLog(const char* a) {
 	ConsoleWindow::instance().write(a, ConsoleWindow::Source::GAME);
 }
 
-static void __declspec(naked) debug_printf_hook() {
+static __declspec(naked) void debug_printf_hook() {
 	__asm {
 		call fo::funcoffs::vsprintf_;
 		pushadc;

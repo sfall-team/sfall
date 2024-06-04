@@ -72,7 +72,7 @@ void Objects::SetNewEngineID(fo::GameObject* obj) {
 	SetScriptObjectID(obj);
 }
 
-static void __declspec(naked) item_identical_hack() {
+static __declspec(naked) void item_identical_hack() {
 	using namespace fo::Fields;
 	__asm {
 		mov  ecx, [edi]; // item id
@@ -85,7 +85,7 @@ notIdentical:
 	}
 }
 
-static void __declspec(naked) new_obj_id_hook() {
+static __declspec(naked) void new_obj_id_hook() {
 	__asm {
 		mov  eax, 83535;
 		cmp  dword ptr ds:[FO_VAR_cur_id], eax;
@@ -114,14 +114,14 @@ static void map_fix_critter_id() {
 	}
 }
 
-static void __declspec(naked) map_load_file_hook() {
+static __declspec(naked) void map_load_file_hook() {
 	__asm {
 		call map_fix_critter_id;
 		jmp  fo::funcoffs::map_fix_critter_combat_data_;
 	}
 }
 
-static void __declspec(naked) queue_add_hack() {
+static __declspec(naked) void queue_add_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
@@ -188,7 +188,7 @@ static void RestoreObjUnjamAllLocks() {
 	}
 }
 
-static void __declspec(naked) proto_ptr_hack() {
+static __declspec(naked) void proto_ptr_hack() {
 	__asm {
 		mov  ecx, maxCountLoadProto;
 		cmp  ecx, 4096;
@@ -209,7 +209,7 @@ void Objects::LoadProtoAutoMaxLimit() {
 }
 
 // Places the PID_CORPSE_BLOOD object on the lower layer of objects on the tile
-static void __declspec(naked) obj_insert_hack() {
+static __declspec(naked) void obj_insert_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {

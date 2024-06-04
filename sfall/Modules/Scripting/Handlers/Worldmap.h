@@ -30,15 +30,15 @@ void op_force_encounter(OpcodeContext&);
 DWORD ForceEncounterRestore();
 
 // world_map_functions
-void __declspec() op_in_world_map();
+void op_in_world_map();
 
-void __declspec() op_get_game_mode();
+void op_get_game_mode();
 
-void __declspec() op_get_world_map_x_pos();
+void op_get_world_map_x_pos();
 
-void __declspec() op_get_world_map_y_pos();
+void op_get_world_map_y_pos();
 
-void __declspec() op_set_world_map_pos();
+void op_set_world_map_pos();
 
 void op_set_map_time_multi(OpcodeContext&);
 
