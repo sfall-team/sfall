@@ -689,7 +689,7 @@ static void _fastcall DragSkipPrepare() {
 	fo::func::gsound_play_sfx_file("iputdown");
 }
 
-static void __declspec(naked) move_inventory_hack() {
+static __declspec(naked) void move_inventory_hack() {
 	static const DWORD MoveInventory_BackNormal = 0x4747E2; // jz loc_47488B
 	static const DWORD MoveInventory_SkipPlanting = 0x474966; // cmp esi, 1
 	static const DWORD MoveInventory_SkipTaking = 0x474A30; // cmp esi, 1
@@ -719,7 +719,7 @@ static DWORD BarterMoveInventory_BackNormal;
 static DWORD BarterMoveInventory_SkipPlacing;
 static DWORD BarterMoveInventory_SkipTaking;
 
-static void __declspec(naked) barter_move_inventory_skip_drag_hack_common() {
+static __declspec(naked) void barter_move_inventory_skip_drag_hack_common() {
 	__asm {
 		pushadc;
 	}
@@ -742,7 +742,7 @@ static void __declspec(naked) barter_move_inventory_skip_drag_hack_common() {
 	}
 }
 
-static void __declspec(naked) barter_move_inventory_skip_drag_hack() {
+static __declspec(naked) void barter_move_inventory_skip_drag_hack() {
 	BarterMoveInventory_BackNormal = 0x474DC1; // sub eax, ebx
 	BarterMoveInventory_SkipPlacing = 0x474F83; // cmp esi, 1
 	BarterMoveInventory_SkipTaking = 0x475002; // cmp esi, 1
@@ -751,7 +751,7 @@ static void __declspec(naked) barter_move_inventory_skip_drag_hack() {
 	}
 }
 
-static void __declspec(naked) barter_move_from_table_inventory_skip_drag_hack() {
+static __declspec(naked) void barter_move_from_table_inventory_skip_drag_hack() {
 	BarterMoveInventory_BackNormal = 0x475085; // sub eax, ebx
 	BarterMoveInventory_SkipPlacing = 0x47524E; // cmp esi, 1
 	BarterMoveInventory_SkipTaking = 0x4752CB; // cmp esi, 1
@@ -782,7 +782,7 @@ static DWORD _fastcall InvenPickupGetSkipAddr(fo::GameObject* item, long itemInd
 	return InvenPickup_SkipHandL; // left hand;
 }
 
-static void __declspec(naked) inven_pickup_skip_drag_hack() {
+static __declspec(naked) void inven_pickup_skip_drag_hack() {
 	static const DWORD InvenPickup_Back1 = 0x470EBC; // mov eax, [esp+64]
 	static const DWORD InvenPickup_Back2 = 0x470EEA; // mov eax, ds:_i_wid
 	__asm {
