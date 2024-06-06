@@ -442,15 +442,11 @@ static __declspec(naked) void gmovie_play_hack() {
 	__asm {
 		cmp  eax, MaxMovies;
 		jge  failPlayAvi;
-		push ecx;
-		push edx;
-		push eax;
+		pushadc;
 		mov  ecx, eax;
 		call PrepareLoadMovie;
 		test eax,eax;
-		pop  eax;
-		pop  edx;
-		pop  ecx;
+		popadc;
 		jz   failPlayAvi;
 		push offset return; // return to here "return" label
 failPlayAvi:

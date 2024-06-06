@@ -703,7 +703,7 @@ static __declspec(naked) void gdialogFreeSpeech_hack() {
 		jz   skip;
 		push ecx;
 		push edx;
-		mov  ecx,speechSound;
+		mov  ecx, speechSound;
 		call ReleaseSound;
 		mov  speechSound, 0;
 		mov  lipsPlaying, 0;

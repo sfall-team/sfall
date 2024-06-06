@@ -136,13 +136,9 @@ static __declspec(naked) void pipboy_hack_press1() {
 		mov  calledflag, 0;
 		test pageFlag, 0xFF;
 		jz   skip;
-		push eax;
-		push edx;
-		push ecx;
+		pushadc;
 		call ResetPageValues;
-		pop  ecx;
-		pop  edx;
-		pop  eax;
+		popadc;
 skip:
 		// engine
 		sub ebx, 0x1F4;
@@ -157,13 +153,9 @@ static __declspec(naked) void pipboy_hack_back() {
 		mov  calledflag, 0;
 		test pageFlag, 0xFF;
 		jz   skip;
-		push eax;
-		push edx;
-		push ecx;
+		pushadc;
 		call ResetPageValues;
-		pop  ecx;
-		pop  edx;
-		pop  eax;
+		popadc;
 skip:
 		// engine
 		mov eax, 0x401;
