@@ -40,6 +40,7 @@ static DWORD invSizeMaxLimit;
 static DWORD reloadWeaponKey;
 static DWORD itemFastMoveKey;
 static DWORD skipFromContainer = 0;
+static DWORD itemSkipDragKey;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsGameLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
@@ -683,6 +684,129 @@ static __declspec(naked) void do_move_timer_hack() {
 	}
 }
 
+static void _fastcall DragSkipPrepare() {
+	fo::var::setInt(FO_VAR_im_value) = -1; // this prevents triggering "look at" at current item after skip
+	fo::func::gsound_play_sfx_file("iputdown");
+}
+
+static __declspec(naked) void move_inventory_hack() {
+	static const DWORD MoveInventory_BackNormal = 0x4747E2; // jz loc_47488B
+	static const DWORD MoveInventory_SkipPlanting = 0x474966; // cmp esi, 1
+	static const DWORD MoveInventory_SkipTaking = 0x474A30; // cmp esi, 1
+	__asm {
+		pushadc;
+	}
+	KeyDown(itemSkipDragKey); // check pressed
+	__asm {
+		test eax, eax;
+		popadc;
+		jnz  skip_drag;
+		cmp  dword ptr[esp + 64], 0; // restore stomped code
+		jmp  MoveInventory_BackNormal;
+
+	skip_drag:
+		call DragSkipPrepare;
+		mov  eax, dword ptr[esp + 60]; // isPlanting flag
+		test eax, eax;
+		jz   jmp_taking;
+		jmp  MoveInventory_SkipPlanting;
+	jmp_taking:
+		jmp  MoveInventory_SkipTaking;
+	}
+}
+
+static DWORD BarterMoveInventory_BackNormal;
+static DWORD BarterMoveInventory_SkipPlacing;
+static DWORD BarterMoveInventory_SkipTaking;
+
+static __declspec(naked) void barter_move_inventory_skip_drag_hack_common() {
+	__asm {
+		pushadc;
+	}
+	KeyDown(itemSkipDragKey); // check pressed
+	__asm {
+		test eax, eax;
+		popadc;
+		jnz  skip_drag;
+		lea  eax, ds:0[ebx * 4]; // restore stomped code
+		jmp  BarterMoveInventory_BackNormal;
+
+	skip_drag:
+		call DragSkipPrepare;
+		mov  eax, dword ptr[esp + 68]; // fromDude flag
+		test eax, eax;
+		jz   jmp_taking;
+		jmp  BarterMoveInventory_SkipPlacing;
+	jmp_taking:
+		jmp  BarterMoveInventory_SkipTaking;
+	}
+}
+
+static __declspec(naked) void barter_move_inventory_skip_drag_hack() {
+	BarterMoveInventory_BackNormal = 0x474DC1; // sub eax, ebx
+	BarterMoveInventory_SkipPlacing = 0x474F83; // cmp esi, 1
+	BarterMoveInventory_SkipTaking = 0x475002; // cmp esi, 1
+	__asm {
+		jmp barter_move_inventory_skip_drag_hack_common;
+	}
+}
+
+static __declspec(naked) void barter_move_from_table_inventory_skip_drag_hack() {
+	BarterMoveInventory_BackNormal = 0x475085; // sub eax, ebx
+	BarterMoveInventory_SkipPlacing = 0x47524E; // cmp esi, 1
+	BarterMoveInventory_SkipTaking = 0x4752CB; // cmp esi, 1
+	__asm {
+		jmp barter_move_inventory_skip_drag_hack_common;
+	}
+}
+
+static DWORD _fastcall InvenPickupGetSkipAddr(fo::GameObject* item, long itemIndex) {
+	static const DWORD InvenPickup_SkipInven = 0x4711E8;  // mov eax, [esp+20]
+	static const DWORD InvenPickup_SkipHandL = 0x47127D;  // mov edx, ds:_i_lhand
+	static const DWORD InvenPickup_SkipHandR = 0x47130A;  // mov ebx, ds:_i_rhand
+	static const DWORD InvenPickup_SkipArmor = 0x4713A9;  // mov ecx, ds:_i_worn
+
+	if (!KeyDown(itemSkipDragKey)) return 0; // don't skip
+	
+	DragSkipPrepare();
+	if (itemIndex < 0) {
+		// From slots to inventory.
+		return InvenPickup_SkipInven;
+	}
+	// From inventory to slots
+	if (fo::func::item_get_type(item) == fo::item_type_armor)
+		return InvenPickup_SkipArmor; // armor slot, potentially replacing
+	else if (fo::var::inven_dude == fo::var::obj_dude && fo::func::intface_is_item_right_hand())
+		return InvenPickup_SkipHandR; // right hand
+
+	return InvenPickup_SkipHandL; // left hand;
+}
+
+static __declspec(naked) void inven_pickup_skip_drag_hack() {
+	static const DWORD InvenPickup_Back1 = 0x470EBC; // mov eax, [esp+64]
+	static const DWORD InvenPickup_Back2 = 0x470EEA; // mov eax, ds:_i_wid
+	__asm {
+		pushadc;
+		mov ecx, [esp + 36]; // item
+		mov edx, esi; // item index
+		call InvenPickupGetSkipAddr;
+		test eax, eax;
+		jnz  skip_drag;
+		popadc;
+		cmp  esi, 0xFFFFFFFF; // restore stomped code
+		jz   back_2;
+		jmp  InvenPickup_Back1;
+	back_2:
+		jmp  InvenPickup_Back2;
+
+	skip_drag:
+		pop  ecx;
+		pop  edx;
+		add  esp, 4;
+		jmp  eax;
+	}
+}
+
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 
@@ -803,7 +927,7 @@ void Inventory::init() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 
-	itemFastMoveKey = IniReader::GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
+	itemFastMoveKey = IniReader::GetConfigInt("Input", "ItemFastMoveKey", 0);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
 		// Do not call the 'Move Items' window when taking items from containers or corpses
@@ -814,6 +938,14 @@ void Inventory::init() {
 	itemCounterAutoCaps = (IniReader::GetConfigInt("Misc", "ItemCounterAutoCaps", 0) != 0);
 	if (itemCounterDefaultMax || itemCounterAutoCaps) {
 		MakeCall(0x4768A3, do_move_timer_hack);
+	}
+
+	itemSkipDragKey = IniReader::GetConfigInt("Input", "ItemMoveSkipDragKey", 0);
+	if (itemSkipDragKey > 0) {
+		MakeJump(0x4747DD, move_inventory_hack);
+		MakeJump(0x474DBA, barter_move_inventory_skip_drag_hack);
+		MakeJump(0x47507E, barter_move_from_table_inventory_skip_drag_hack);
+		MakeJump(0x470EB7, inven_pickup_skip_drag_hack);
 	}
 
 	// Move items from bag/backpack to the main inventory list by dragging them on the character portrait (similar to Fallout 1 behavior)
