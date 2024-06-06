@@ -606,14 +606,10 @@ static void __fastcall CombatAttackHook(fo::GameObject* source, fo::GameObject* 
 
 static __declspec(naked) void combat_attack_hook() {
 	__asm {
-		push eax;
-		push ecx;
-		push edx;
+		pushadc;
 		mov  ecx, eax;         // source
 		call CombatAttackHook; // edx - target
-		pop  edx;
-		pop  ecx;
-		pop  eax;
+		popadc;
 		jmp  fo::funcoffs::combat_attack_;
 	}
 }
