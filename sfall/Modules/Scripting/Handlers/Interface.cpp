@@ -237,7 +237,7 @@ void mf_add_iface_tag(OpcodeContext &ctx) {
 
 void op_show_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).rawValue();
-	if (tag == 3 || tag == 4) {
+	if (tag == 0 || tag == 3 || tag == 4) {
 		__asm mov  eax, tag;
 		__asm call fo::funcoffs::pc_flag_on_;
 	} else {
@@ -247,7 +247,7 @@ void op_show_iface_tag(OpcodeContext &ctx) {
 
 void op_hide_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).rawValue();
-	if (tag == 3 || tag == 4) {
+	if (tag == 0 || tag == 3 || tag == 4) {
 		__asm mov  eax, tag;
 		__asm call fo::funcoffs::pc_flag_off_;
 	} else {
