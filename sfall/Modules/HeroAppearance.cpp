@@ -300,7 +300,9 @@ static void __stdcall SetHeroArt(bool newArtFlag) {
 // return hero art val to normal before saving
 static __declspec(naked) void SavCritNumFix() {
 	__asm {
-		pushadc;
+		push ecx;
+		push edx;
+		push eax;
 		push 0;                            // set hero FrmID LST index to normal range before saving
 		call SetHeroArt;
 		pop  eax;
@@ -308,7 +310,9 @@ static __declspec(naked) void SavCritNumFix() {
 		push eax;
 		push 1;                            // return hero FrmID LST index back to hero art range after saving hero state structure
 		call SetHeroArt;
-		popadc;
+		pop  eax;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
