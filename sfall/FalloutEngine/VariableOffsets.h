@@ -9,6 +9,7 @@
 #define FO_VAR_aiInfoList                 0x510948
 #define FO_VAR_ambient_light              0x51923C
 #define FO_VAR_anim_set                   0x54CC14
+#define FO_VAR_anim_in_anim_stop          0x510724
 #define FO_VAR_anon_alias                 0x56CAEC
 #define FO_VAR_art                        0x510738
 #define FO_VAR_art_name                   0x56C9E4
@@ -61,6 +62,7 @@
 #define FO_VAR_curr_anim_counter          0x56C7DC
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
+#define FO_VAR_curr_sad                   0x510718
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_current_palette            0x6639D0
 #define FO_VAR_currentProgram             0x59E78C
