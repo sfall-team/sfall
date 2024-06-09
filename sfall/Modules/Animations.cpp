@@ -507,6 +507,27 @@ notDude:
 	}
 }
 
+
+static void __fastcall StopAnimationAtCombatStart() {
+	*fo::ptr::anim_in_anim_stop = true;
+	*fo::ptr::curr_anim_set = -1;
+
+	for (int i = 0; i < animationLimit; i++) {
+		const fo::AnimationSet& set = animSet[i];
+		if (set.currentAnim >= 1 && set.animations[set.currentAnim - 1].animType == fo::ANIM_TYPE_ANIMATE_FOREVER) continue;
+		fo::func::anim_set_end(i);
+	}
+
+	*fo::ptr::anim_in_anim_stop = false;
+	fo::func::object_anim_compact();
+}
+
+static __declspec(naked) void combat_begin_anim_stop_hook() {
+	__asm {
+		jmp StopAnimationAtCombatStart;
+	}
+}
+
 static void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//allocate memory to store larger animation struct arrays
 	sf_anim_set.resize(aniMax + 1); // include a dummy
@@ -618,6 +639,9 @@ void Animations::init() {
 		HookCall(0x49CFAC, obj_use_container_hook);
 		SafeWrite16(0x4122D9, 0x9090); // action_get_an_object_
 	}
+
+	// Prevent the "forever" type of animation on objects from stopping when entering combat
+	HookCall(0x421A48, combat_begin_anim_stop_hook);
 }
 
 //void Animations::exit() {

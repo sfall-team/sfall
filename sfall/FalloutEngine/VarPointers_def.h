@@ -3,6 +3,7 @@
 
 PTR_(aiInfoList,                 DWORD)
 PTR_(ambient_light,              DWORD)
+PTR_(anim_in_anim_stop,          DWORD)
 PTR_(art,                        fo::Art) // array of 11 Art
 PTR_(art_name,                   DWORD)
 PTR_(art_vault_guy_num,          DWORD)
@@ -36,6 +37,7 @@ PTR_(curr_anim_set,              DWORD)
 PTR_(curr_anim_counter,          DWORD)
 PTR_(curr_font_num,              DWORD)
 PTR_(curr_pc_stat,               long) // array of size == PCSTAT_max_pc_stat
+PTR_(curr_sad,                   DWORD)
 PTR_(curr_stack,                 DWORD)
 PTR_(currentProgram,             fo::Program*)
 PTR_(cursor_line,                DWORD)
