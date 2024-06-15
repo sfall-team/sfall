@@ -511,8 +511,8 @@ notDude:
 	}
 }
 
-
-static void __fastcall StopAnimationAtCombatStart() {
+// replace vanilla anim_stop_ function in combat_begin_
+static void __stdcall combat_begin_anim_stop_hook() {
 	fo::var::anim_in_anim_stop = true;
 	fo::var::curr_anim_set = -1;
 
@@ -524,12 +524,6 @@ static void __fastcall StopAnimationAtCombatStart() {
 
 	fo::var::anim_in_anim_stop = false;
 	fo::func::object_anim_compact();
-}
-
-static __declspec(naked) void combat_begin_anim_stop_hook() {
-	__asm {
-		jmp StopAnimationAtCombatStart;
-	}
 }
 
 static void ApplyAnimationsAtOncePatches(signed char aniMax) {
