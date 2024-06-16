@@ -8,9 +8,7 @@ author:      '@wipe2238'
 #
 # - name: Build sfall
 #   id:   sfall
-#   uses: phobos2077/sfall@develop
-#   with:
-#    release-xp: true
+#   uses: sfall-team/sfall@master
 #
 # - name: Copy sfall to mod directory
 #   run:  copy "${{ steps.sfall.outputs.release-xp }}" "my/mod/directory/ddraw.dll"
@@ -22,11 +20,13 @@ inputs:
 
  release-xp:
   description: 'Set to true to enable building with ReleaseXP configuration'
-  required:    true
+  required:    false
+  default:     true
 
  dev-xp:
   description: 'Set to true to enable building with DevXP configuration'
-  required:    true
+  required:    false
+  default:     false
 
 # Outputs are always using Windows directory separator (`\`)
 outputs:
@@ -49,7 +49,7 @@ runs:
  # Quick check for things which should never happen
  - name:  Sanity checks
    run:   |
-          if   [[ "${{ runner.os }}" != "Windows" ]]; then
+          if   [[ "$RUNNER_OS" != "Windows" ]]; then
                echo "[ERROR] This action can only be used on Windows"
                exit 1
           elif [[ "${{ inputs.release-xp }}" != "true" ]] && [[ "${{ inputs.dev-xp }}" != "true" ]]; then
@@ -68,7 +68,7 @@ runs:
 
  # DXSDK directory must be prepared only once, in case action is used N times
  # Using `.lib` suffix to make sure directory is ignored by git in exotic scenarios
- # Using `::set-output` to make sure workflow environment remains unchanged
+ # Using $GITHUB_OUTPUT to make sure workflow environment remains unchanged
  - name:  Prepare DXSDK directory
    id:    dxsdk
    run:   |
@@ -86,7 +86,7 @@ runs:
    shell: bash
 
  # MSBuild is not in PATH on Windows machines
- # Using `::set-output` to make sure workflow environment remains unchanged
+ # Using $GITHUB_OUTPUT to make sure workflow environment remains unchanged
  - name:  Prepare MSBuild
    id:    msbuild
    run:   |
@@ -98,7 +98,6 @@ runs:
           echo "::endgroup::"
    shell: bash
 
- # Creating empty `PostBuild.cmd` to avoid false-positive build error
  - name:  Build ReleaseXP
    id:    build-release-xp
    run:   |
@@ -106,7 +105,6 @@ runs:
              echo ::group::Build ReleaseXP
 
              #
-             # echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
              "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=ReleaseXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
              #
              echo "ddraw-dll=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/ReleaseXP/ddraw.dll")" >> $GITHUB_OUTPUT
@@ -117,7 +115,6 @@ runs:
     DXSDK_DIR: ${{ steps.dxsdk.outputs.dir }}
    shell: bash
 
- # Creating empty `PostBuild.cmd` to avoid false-positive build error
  - name: Build DevXP
    id:   build-dev-xp
    run:   |
@@ -126,7 +123,6 @@ runs:
              echo "::group::Build DevXP"
 
              #
-             # echo "@echo off" > "$GITHUB_ACTION_PATH/sfall/PostBuild.cmd"
              "${{ steps.msbuild.outputs.exe }}" "$GITHUB_ACTION_PATH/sfall/ddraw.sln" -p:Configuration=DevXP -p:Platform=Win32 -p:PlatformToolset=v140_xp
              #
              echo "ddraw-dll=$(cygpath --windows "$GITHUB_ACTION_PATH/sfall/DevXP/ddraw.dll")" >> $GITHUB_OUTPUT
