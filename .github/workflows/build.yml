@@ -10,6 +10,14 @@ on:
   - '.github/workflows/build.yml'
   - 'action.yml'
   - 'sfall/**'
+ pull_request:
+  branches:
+  - 'master'
+  - 'develop'
+  paths:
+  - '.github/workflows/build.yml'
+  - 'action.yml'
+  - 'sfall/**'
 
 jobs:
  Build:
@@ -28,13 +36,15 @@ jobs:
     uses: ./
     with:
      release-xp: true
+     dev-xp:     false
 
   - name: DevXP build
     uses: ./
     with:
-     dev-xp: true
+     release-xp: false
+     dev-xp:     true
 
-  - name:  Prepare artifact
+  - name:  Prepare artifacts
     run:   |
            :
            mkdir -p sfall-build
