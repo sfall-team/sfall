@@ -294,7 +294,7 @@ Syntax which requires sfall for compiled scripts to be interpreted is marked by 
   ```
   __NOTE:__ When using incremental operators like `+=`, `*=`, `++`, `--` compiler will use additional temp variable to get an array at penultimate level in order to avoid making the same chain of `get_array` calls twice.
 
-- (*) `foreach` loops: A shorthand method of looping over all elements in an array. Syntax is `foreach (<symbol> in <expression>)`.
+- (*) `foreach` loops: A shorthand method of looping over all elements in an array. Syntax is `foreach (<symbol> in <expression>)`. You can declare variables in place by adding the `variable` keyword before the symbol name.
   - new:
     ```
     procedure bingle begin
