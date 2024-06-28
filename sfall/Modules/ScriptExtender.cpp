@@ -53,6 +53,8 @@ static DWORD highlightContainers;
 static DWORD highlightCorpses;
 static DWORD motionScanner;
 static int outlineColor;
+static int outlineColorContainers;
+static int outlineColorCorpses;
 static char highlightFail1[128];
 static char highlightFail2[128];
 
@@ -441,20 +443,33 @@ static __declspec(naked) void obj_outline_all_items_on() {
 		pushadc;
 		mov  eax, ds:[FO_VAR_map_elevation];
 		call fo::funcoffs::obj_find_first_at_;
-loopObject:
+		jmp  checkObject;
+nextObject:
+		call fo::funcoffs::obj_find_next_at_;
+checkObject:
 		test eax, eax;
 		jz   end;
 		cmp  eax, ds:[FO_VAR_outlined_object];
 		je   nextObject;
-		xchg ecx, eax;
-		mov  eax, [ecx + artFid];
-		and  eax, 0xF000000;
-		sar  eax, 0x18;
-		test eax, eax;                            // Is this an item?
-		jz   skip;                                // Yes
-		dec  eax;                                 // Is this a critter?
-		jnz  nextObject;                          // No
-		cmp  highlightCorpses, eax;               // Highlight corpses?
+		cmp  dword ptr [eax + owner], 0;          // Owned by someone?
+		jne  nextObject;                          // Yes
+		cmp  dword ptr [eax + outline], 0;        // Already outlined?
+		jne  nextObject;                          // Yes
+		mov  ecx, [eax + artFid];
+		and  ecx, 0xF000000;
+		sar  ecx, 0x18;
+		cmp  ecx, OBJ_TYPE_CRITTER;               // Is this a critter?
+		mov  ecx, eax;
+		je   isCritter;                           // Yes
+		ja   nextObject;                          // Neither an item nor a critter
+		test byte ptr [eax + flags + 1], 0x10;    // Is NoHighlight_ flag set?
+		jz   normalItem;                          // No
+		call fo::funcoffs::item_get_type_;
+		cmp  eax, item_type_container;            // Is this item a container?
+		je   isContainer;                         // Yes
+		jmp  nextObject;
+isCritter:
+		cmp  highlightCorpses, 0;                 // Highlight corpses?
 		je   nextObject;                          // No
 		test byte ptr [ecx + damageFlags], DAM_DEAD; // source.results & DAM_DEAD?
 		jz   nextObject;                          // No
@@ -463,25 +478,21 @@ loopObject:
 		call fo::funcoffs::critter_flag_check_;
 		test eax, eax;                            // Can't be stolen from?
 		jnz  nextObject;                          // Yes
-skip:
-		cmp  [ecx + owner], eax;                  // Owned by someone?
-		jnz  nextObject;                          // Yes
-		test [ecx + outline], eax;                // Already outlined?
-		jnz  nextObject;                          // Yes
-		test byte ptr [ecx + flags + 1], 0x10;    // Is NoHighlight_ flag set (is this a container)?
-		jz   NoHighlight;                         // No
-		cmp  highlightContainers, eax;            // Highlight containers?
-		je   nextObject;                          // No
-NoHighlight:
-		mov  edx, outlineColor;
-		mov  [ecx + outline], edx;
-nextObject:
-		call fo::funcoffs::obj_find_next_at_;
-		jmp  loopObject;
+		mov  eax, outlineColorCorpses;            // Set outline color for corpses
+		jmp  setOutline;
+isContainer:
+		cmp  highlightContainers, 0;              // Highlight containers?
+		je   nextObject;
+		mov  eax, outlineColorContainers;         // Set outline color for containers
+		jmp  setOutline;
+normalItem:
+		mov  eax, outlineColor;                   // Set outline color for items
+setOutline:
+		mov  [ecx + outline], eax;
+		jmp  nextObject;
 end:
-		call fo::funcoffs::tile_refresh_display_;
 		popadc;
-		retn;
+		jmp  fo::funcoffs::tile_refresh_display_;
 	}
 }
 
@@ -492,32 +503,31 @@ static __declspec(naked) void obj_outline_all_items_off() {
 		pushadc;
 		mov  eax, ds:[FO_VAR_map_elevation];
 		call fo::funcoffs::obj_find_first_at_;
-loopObject:
+		jmp  checkObject;
+nextObject:
+		call fo::funcoffs::obj_find_next_at_;
+checkObject:
 		test eax, eax;
 		jz   end;
 		cmp  eax, ds:[FO_VAR_outlined_object];
 		je   nextObject;
-		xchg ecx, eax;
-		mov  eax, [ecx + artFid];
-		and  eax, 0xF000000;
-		sar  eax, 0x18;
-		test eax, eax;                            // Is this an item?
-		jz   skip;                                // Yes
-		dec  eax;                                 // Is this a critter?
+		mov  ecx, [eax + artFid];
+		and  ecx, 0xF000000;
+		sar  ecx, 0x18;
+		test ecx, ecx;                            // Is this an item?
+		jz   isItem;                              // Yes
+		dec  ecx;                                 // Is this a critter?
 		jnz  nextObject;                          // No
-		test byte ptr [ecx + damageFlags], DAM_DEAD; // source.results & DAM_DEAD?
+		test byte ptr [eax + damageFlags], DAM_DEAD; // source.results & DAM_DEAD?
 		jz   nextObject;                          // No
-skip:
-		cmp  [ecx + owner], eax;                  // Owned by someone?
-		jnz  nextObject;                          // Yes
-		mov  [ecx + outline], eax;
-nextObject:
-		call fo::funcoffs::obj_find_next_at_;
-		jmp  loopObject;
+isItem:
+		cmp  [eax + owner], ecx;                  // Owned by someone? (ecx = 0)
+		jne  nextObject;                          // Yes
+		mov  [eax + outline], ecx;                // Remove outline
+		jmp  nextObject;
 end:
-		call fo::funcoffs::tile_refresh_display_;
 		popadc;
-		retn;
+		jmp  fo::funcoffs::tile_refresh_display_;
 	}
 }
 
@@ -1058,8 +1068,12 @@ void ScriptExtender::init() {
 	if (toggleHighlightsKey) {
 		highlightContainers = IniReader::GetConfigInt("Input", "HighlightContainers", 0);
 		highlightCorpses = IniReader::GetConfigInt("Input", "HighlightCorpses", 0);
-		outlineColor = IniReader::GetConfigInt("Input", "OutlineColor", 0x10);
-		if (outlineColor < 1) outlineColor = 0x40;
+		outlineColor = IniReader::GetConfigInt("Input", "OutlineColor", 16);
+		if (outlineColor < 1) outlineColor = 64;
+		outlineColorContainers = IniReader::GetConfigInt("Input", "OutlineColorContainers", 16);
+		if (outlineColorContainers < 1) outlineColorContainers = 64;
+		outlineColorCorpses = IniReader::GetConfigInt("Input", "OutlineColorCorpses", 16);
+		if (outlineColorCorpses < 1) outlineColorCorpses = 64;
 		motionScanner = IniReader::GetConfigInt("Misc", "MotionScannerFlags", 1);
 		Translate::Get("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
 		Translate::Get("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
