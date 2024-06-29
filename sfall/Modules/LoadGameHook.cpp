@@ -287,15 +287,14 @@ errorLoad:
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
 static bool __stdcall GameReset(DWORD isGameLoad) {
-	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
-		onGameReset.invoke();
-		if (isDebug) {
-			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
-		}
-	}
+	onGameReset.invoke();
 	inLoop = 0;
 	gameLoaded = false;
+
+	if (isDebug) {
+		char* str = (isGameLoad) ? "on Load" : "on Exit";
+		fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
+	}
 
 	return (isGameLoad) ? LoadGame_Before() : false;
 }
