@@ -301,43 +301,42 @@ errorLoad:
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
 static bool __stdcall GameReset(DWORD isGameLoad) {
-	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
-		// OnGameReset
-		IniReader::OnGameReset();
-		BugFixes::OnGameReset();
-		if (Graphics::mode >= 4) {
-			Graphics::ForceGraphicsRefresh(0); // disable refresh
-			ScriptShaders::OnGameReset();
-		}
-		FileSystem::OnGameReset();
-		LoadOrder::OnGameReset();
-		ExtraArt::OnGameReset();
-		Animations::OnGameReset();
-		BarBoxes::OnGameReset();
-		Explosions::OnGameReset();
-		ClearScriptAddedExtraGameMsg();
-		Interface::OnGameReset();
-		Worldmap::OnGameReset();
-		Sound::OnGameReset();
-		MiscPatches::OnGameReset();
-		Inventory::OnGameReset();
-		Objects::OnGameReset();
-		Stats::OnGameReset();
-		Perks::OnGameReset();
-		Skills::OnGameReset();
-		PartyControl::OnGameReset();
-		Combat::OnGameReset();
-		QuestList::OnGameReset();
-		Console::OnGameReset();
-		MetaruleExtender::OnGameReset();
-		ScriptExtender::OnGameReset();
-		if (isDebug) {
-			char* str = (isGameLoad) ? "on Load" : "on Exit";
-			fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
-		}
+	// OnGameReset
+	IniReader::OnGameReset();
+	BugFixes::OnGameReset();
+	if (Graphics::mode >= 4) {
+		Graphics::ForceGraphicsRefresh(0); // disable refresh
+		ScriptShaders::OnGameReset();
 	}
+	FileSystem::OnGameReset();
+	LoadOrder::OnGameReset();
+	ExtraArt::OnGameReset();
+	Animations::OnGameReset();
+	BarBoxes::OnGameReset();
+	Explosions::OnGameReset();
+	ClearScriptAddedExtraGameMsg();
+	Interface::OnGameReset();
+	Worldmap::OnGameReset();
+	Sound::OnGameReset();
+	MiscPatches::OnGameReset();
+	Inventory::OnGameReset();
+	Objects::OnGameReset();
+	Stats::OnGameReset();
+	Perks::OnGameReset();
+	Skills::OnGameReset();
+	PartyControl::OnGameReset();
+	Combat::OnGameReset();
+	QuestList::OnGameReset();
+	Console::OnGameReset();
+	MetaruleExtender::OnGameReset();
+	ScriptExtender::OnGameReset();
 	inLoop = 0;
 	gameLoaded = false;
+
+	if (isDebug) {
+		char* str = (isGameLoad) ? "on Load" : "on Exit";
+		fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
+	}
 
 	return (isGameLoad) ? LoadGame_Before() : false;
 }
