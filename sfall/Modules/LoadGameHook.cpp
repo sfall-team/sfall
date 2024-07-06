@@ -122,7 +122,8 @@ void ClearLoopFlag(LoopFlag flag) {
 	inLoop &= ~flag;
 }
 
-static void __stdcall GameModeChange(DWORD state) { // OnGameModeChange
+static void __stdcall GameModeChange(DWORD state) {
+	// OnGameModeChange
 	Worldmap::OnGameModeChange();
 	HookCommon::GameModeChangeHook(state);
 }
@@ -330,13 +331,12 @@ static bool __stdcall GameReset(DWORD isGameLoad) {
 	Console::OnGameReset();
 	MetaruleExtender::OnGameReset();
 	ScriptExtender::OnGameReset();
-	inLoop = 0;
-	gameLoaded = false;
-
 	if (isDebug) {
 		char* str = (isGameLoad) ? "on Load" : "on Exit";
 		fo::func::debug_printf("\nSFALL: [State reset %s]\n", str);
 	}
+	inLoop = 0;
+	gameLoaded = false;
 
 	return (isGameLoad) ? LoadGame_Before() : false;
 }
@@ -401,22 +401,25 @@ static __declspec(naked) void main_load_new_hook() {
 	}
 }
 
-static void __stdcall GameInitialization() { // OnBeforeGameInit
+static void __stdcall GameInitialization() {
+	// OnBeforeGameInit
 	BugFixes::OnBeforeGameInit();
 }
 
-static void __stdcall game_init_hook() { // OnGameInit
+static void __stdcall game_init_hook() {
+	// OnGameInit
 	FallbackEnglishLoadMsgFiles();
 	FallbackEnglishCredits();
 }
 
-static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
+static void __stdcall GameInitialized(int initResult) {
 	#ifdef NDEBUG
 	if (!initResult) {
 		MessageBoxA(0, "Game initialization failed!", 0, MB_TASKMODAL | MB_ICONERROR);
 		return;
 	}
 	#endif
+	// OnAfterGameInit
 	BugFixes::OnAfterGameInit();
 	LoadOrder::OnAfterGameInit();
 	BarBoxes::OnAfterGameInit();
@@ -427,18 +430,21 @@ static void __stdcall GameInitialized(int initResult) { // OnAfterGameInit
 	DebugEditor::OnAfterGameInit();
 }
 
-static void __stdcall GameExit() { // OnGameExit
+static void __stdcall GameExit() {
+	// OnGameExit
 	if (femaleMsgs > 1) PlayerGenderCutsRestore();
 }
 
-static void __stdcall GameClose() { // OnBeforeGameClose
+static void __stdcall GameClose() {
+	// OnBeforeGameClose
 	ConsoleWindow::OnBeforeGameClose();
 	Graphics::OnBeforeGameClose();
 	ClearReadExtraGameMsgFiles();
 	Sound::OnBeforeGameClose();
 }
 
-static void __stdcall MapLoadHook() { // OnBeforeMapLoad
+static void __stdcall MapLoadHook() {
+	// OnBeforeMapLoad
 	ObjectName::OnBeforeMapLoad();
 }
 

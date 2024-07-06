@@ -248,10 +248,14 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 		if (!conversion) {
 			// Start conversion.
 			if (c == '%') conversion = true;
-		} else {
+		} else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '%') {
+			int partLen;
 			if (c == '%') {
-				conversion = false; // escaped % sign, just skip
-			} else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+				// escaped % sign, just copy newFmt up to (and including) the leading % sign
+				newFmt[j] = '\0';
+				strncpy_s(outBuf, bufCount, newFmt, j);
+				partLen = j;
+			} else {
 				// ignore size prefixes
 				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'w' || c == 'L' || c == 'I') continue;
 				// Type specifier, perform conversion.
@@ -269,18 +273,18 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 				}
 				newFmt[j++] = c;
 				newFmt[j] = '\0';
-				int partLen = arg.isFloat()
-				            ? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
-				            : _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
-				outBuf += partLen;
-				bufCount -= partLen;
-				conversion = false;
-				j = 0;
-				if (bufCount <= 0) {
-					break;
-				}
-				continue;
+				partLen = arg.isFloat()
+				        ? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
+				        : _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
 			}
+			outBuf += partLen;
+			bufCount -= partLen;
+			conversion = false;
+			j = 0;
+			if (bufCount <= 0) {
+				break;
+			}
+			continue;
 		}
 		newFmt[j++] = c;
 	}
