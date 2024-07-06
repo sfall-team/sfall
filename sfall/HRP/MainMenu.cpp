@@ -103,8 +103,8 @@ static long __fastcall main_menu_create_hook_add_win(long h, long y, long color,
 
 	if (MainMenuScreen::USE_HIRES_IMAGES) {
 		if (mainBackgroundFrm == nullptr) {
-			mainBackgroundFrm = sf::LoadUnlistedFrmCached("HR_MAINMENU.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
-			btnBackgroundFrm = sf::LoadUnlistedFrmCached("HR_MENU_BG.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
+			mainBackgroundFrm = sf::LoadUnlistedFrm("HR_MAINMENU.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
+			btnBackgroundFrm = sf::LoadUnlistedFrm("HR_MENU_BG.frm", fo::ArtType::OBJ_TYPE_INTRFACE);
 		}
 		if (mainBackgroundFrm != nullptr) {
 			sw = mainBackgroundFrm->frameData[0].width;
@@ -276,8 +276,14 @@ static __declspec(naked) void main_menu_create_hook_register_button() {
 
 static void FreeMainMenuImages() {
 	// Reset FRM pointers so they can be loaded again after Art cache is reset.
-	mainBackgroundFrm = nullptr;
-	btnBackgroundFrm = nullptr;
+	if (mainBackgroundFrm != nullptr) {
+		sf::UnloadFrmFile(mainBackgroundFrm);
+		mainBackgroundFrm = nullptr;
+	}
+	if (btnBackgroundFrm != nullptr) {
+		sf::UnloadFrmFile(btnBackgroundFrm);
+		btnBackgroundFrm = nullptr;
+	}
 	if (buttonImageData) {
 		delete[] buttonImageData;
 		buttonImageData = nullptr;
