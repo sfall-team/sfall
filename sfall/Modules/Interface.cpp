@@ -141,7 +141,7 @@ static void DrawExtendedApBar() {
 	constexpr int destOffsetTop = 10;
 	const fo::FrmFrameData& srcFrame = frmHandle.Frm().frameData[0];
 	BYTE* dest = fo::var::interfaceBuffer + (win->width * (destOffsetTop + 1)) - destOffsetRight;
-	fo::func::buf_to_buf((BYTE*)srcFrame.data, srcFrame.width, srcFrame.height, srcFrame.width, dest, win->width);
+	fo::func::buf_to_buf(srcFrame.dataPtr(), srcFrame.width, srcFrame.height, srcFrame.width, dest, win->width);
 }
 
 static __declspec(naked) void intface_init_hook_unlock_iface_frm() {

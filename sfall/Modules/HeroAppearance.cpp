@@ -586,9 +586,12 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
-	fo::FrmFile *frm = LoadUnlistedFrmCached((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
-	if (frm != nullptr) {
-		fo::util::DrawToSurface(frm->frameData[0].width, frm->frameData[0].height, 0, 0, frm->frameData[0].width, frm->frameData[0].data, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
+	{
+		TempFrmHandle frmHandle{ LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::ArtType::OBJ_TYPE_SKILLDEX) };
+		if (frmHandle.IsValid()) {
+			const fo::FrmFile& frm = frmHandle.Frm();
+			fo::util::DrawToSurface(frm.frameData[0].width, frm.frameData[0].height, 0, 0, frm.frameData[0].width, frm.frameData[0].dataPtr(), 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
+		}
 	}
 
 	int oldFont = GetFont(); // store current font

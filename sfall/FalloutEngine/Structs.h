@@ -461,6 +461,8 @@ struct FrmFrameHeader { // sizeof 12 byte
 // structures for holding frms loaded with fallout2 functions
 struct FrmFrameData : FrmFrameHeader { // sizeof 12 + 1 byte
 	BYTE data[1]; // begin frame image data
+
+	BYTE* dataPtr() const { return (BYTE*)data; }
 };
 
 // for one frame
