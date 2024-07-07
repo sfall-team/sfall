@@ -518,7 +518,7 @@ static void surface_draw(long width, long height, long fromWidth, long fromX, lo
 static void DrawBody(long critNum, BYTE* surface, long x, long y, long toWidth) {
 	DWORD critFrmLock;
 
-	fo::FrmFile *critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
+	fo::FrmFile* critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
 	DWORD critWidth = fo::func::art_frame_width(critFrm, 0, charRotOri);
 	DWORD critHeight = fo::func::art_frame_length(critFrm, 0, charRotOri);
 	BYTE* critSurface = fo::func::art_frame_data(critFrm, 0, charRotOri);
@@ -586,9 +586,10 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
-	fo::FrmFile *frm = LoadUnlistedFrmCached((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
+	fo::FrmFile* frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
 	if (frm != nullptr) {
-		fo::util::DrawToSurface(frm->frameData[0].width, frm->frameData[0].height, 0, 0, frm->frameData[0].width, frm->frameData[0].data, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
+		fo::util::DrawToSurface(frm->frameData[0].width, frm->frameData[0].height, 0, 0, frm->frameData[0].width, frm->frameData[0].dataPtr(), 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
+		UnloadFrmFile(frm);
 	}
 
 	int oldFont = GetFont(); // store current font
@@ -653,7 +654,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
-	fo::FrmFile *frm = LoadUnlistedFrmCached("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	fo::FrmFile* frm = LoadUnlistedFrmCached("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -1147,7 +1148,7 @@ static __declspec(naked) void FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		fo::FrmFile *frm = LoadUnlistedFrmCached((*fo::ptr::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
+		fo::FrmFile* frm = LoadUnlistedFrmCached((*fo::ptr::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 		if (frm != nullptr) {
 			surface_draw(640, 480, 640, 0, 0, frm->frameData[0].data, 640, 0, 0, charScrnBackSurface);
 		} else {
