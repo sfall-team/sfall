@@ -267,15 +267,15 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 					c = 's'; // don't allow wide strings
 				}
 				if (c == 's' && !arg.isString() || // don't allow treating non-string values as string pointers
-					c == 'n') // don't allow "n" specifier
+				    c == 'n') // don't allow "n" specifier
 				{
 					c = 'd';
 				}
 				newFmt[j++] = c;
 				newFmt[j] = '\0';
 				partLen = arg.isFloat()
-					? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
-					: _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
+				        ? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
+				        : _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
 			}
 			outBuf += partLen;
 			bufCount -= partLen;

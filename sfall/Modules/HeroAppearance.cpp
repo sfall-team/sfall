@@ -518,7 +518,7 @@ static void surface_draw(long width, long height, long fromWidth, long fromX, lo
 static void DrawBody(long critNum, BYTE* surface, long x, long y, long toWidth) {
 	DWORD critFrmLock;
 
-	fo::FrmFile *critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
+	fo::FrmFile* critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
 	DWORD critWidth = fo::func::art_frame_width(critFrm, 0, charRotOri);
 	DWORD critHeight = fo::func::art_frame_length(critFrm, 0, charRotOri);
 	BYTE* critSurface = fo::func::art_frame_data(critFrm, 0, charRotOri);
@@ -656,7 +656,7 @@ static void __stdcall DrawCharNoteNewChar(bool type) {
 void __stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
-	fo::FrmFile *frm = LoadUnlistedFrmCached("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	fo::FrmFile* frm = LoadUnlistedFrmCached("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -1150,7 +1150,7 @@ static __declspec(naked) void FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		fo::FrmFile *frm = LoadUnlistedFrmCached((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
+		fo::FrmFile* frm = LoadUnlistedFrmCached((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 		if (frm != nullptr) {
 			surface_draw(640, 480, 640, 0, 0, frm->frameData[0].data, 640, 0, 0, charScrnBackSurface);
 		} else {
