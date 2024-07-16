@@ -210,6 +210,7 @@ WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, fo::GameObject*, object) // Checks/u
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, fo::GameObject*, object)
 WRAP_WATCOM_FUNC0(void, object_anim_compact)
 WRAP_WATCOM_FUNC1(long, partyMemberGetCurLevel, fo::GameObject*, obj)
+WRAP_WATCOM_FUNC1(void, pc_flag_off, long, flag)
 WRAP_WATCOM_FUNC1(void, pc_flag_on, long, flag)
 WRAP_WATCOM_FUNC2(void, perk_add_effect,  fo::GameObject*, critter, long, perkId)
 WRAP_WATCOM_FUNC2(long, perk_can_add, fo::GameObject*, critter, long, perkId)

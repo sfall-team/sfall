@@ -356,13 +356,13 @@ bool BarBoxes::GetBox(int i) {
 }
 
 void BarBoxes::AddBox(int i) {
-	if (i < 5 || i > BarBoxes::MaxBox()) return;
+	if (i < 5 || i > BarBoxes::MaxBox() || boxText[i - 5].isActive) return;
 	boxText[i - 5].isActive = true;
 	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
 void BarBoxes::RemoveBox(int i) {
-	if (i < 5 || i > BarBoxes::MaxBox()) return;
+	if (i < 5 || i > BarBoxes::MaxBox() || !boxText[i - 5].isActive) return;
 	boxText[i - 5].isActive = false;
 	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
