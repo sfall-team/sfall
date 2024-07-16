@@ -238,8 +238,7 @@ void mf_add_iface_tag(OpcodeContext &ctx) {
 void op_show_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).rawValue();
 	if (tag == 0 || tag == 3 || tag == 4) {
-		__asm mov  eax, tag;
-		__asm call fo::funcoffs::pc_flag_on_;
+		if (!fo::func::is_pc_flag(tag)) fo::func::pc_flag_on(tag);
 	} else {
 		BarBoxes::AddBox(tag);
 	}
@@ -248,8 +247,7 @@ void op_show_iface_tag(OpcodeContext &ctx) {
 void op_hide_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).rawValue();
 	if (tag == 0 || tag == 3 || tag == 4) {
-		__asm mov  eax, tag;
-		__asm call fo::funcoffs::pc_flag_off_;
+		if (fo::func::is_pc_flag(tag)) fo::func::pc_flag_off(tag);
 	} else {
 		BarBoxes::RemoveBox(tag);
 	}
