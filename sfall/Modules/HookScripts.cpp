@@ -31,6 +31,7 @@
 #include "HookScripts\InventoryHs.h"
 #include "HookScripts\ObjectHs.h"
 #include "HookScripts\MiscHs.h"
+#include "HookScripts\SoundHs.h"
 
 #include "HookScripts.h"
 
@@ -110,6 +111,15 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_ROLLCHECK,        Inject_RollCheckHook,        0},
 	{HOOK_BESTWEAPON,       Inject_BestWeaponHook,       0},
 	{HOOK_CANUSEWEAPON,     Inject_CanUseWeaponHook,     0},
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{HOOK_BUILDSFXNAME,     Inject_BuildSfxNameHook,     0},
 };
 
 void HookScripts::InjectingHook(int hookId) {
@@ -216,6 +226,7 @@ void HookScripts::LoadHookScripts() {
 		InitInventoryHookScripts();
 		InitObjectHookScripts();
 		InitMiscHookScripts();
+		InitSoundHookScripts();
 
 		HookScripts::LoadHookScript("hs_keypress", HOOK_KEYPRESS);
 		HookScripts::LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
