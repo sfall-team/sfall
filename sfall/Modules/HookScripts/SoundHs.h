@@ -5,6 +5,6 @@ namespace sfall
 
 void InitSoundHookScripts();
 
-void Inject_BuildSfxNameHook();
+void Inject_BuildSfxWeaponHook();
 
 }

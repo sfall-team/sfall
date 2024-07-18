@@ -113,13 +113,17 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_CANUSEWEAPON,     Inject_CanUseWeaponHook,     0},
 	{-1}, // RESERVED
 	{-1}, // RESERVED
+	{-1}, // HOOK_MOUSEWHEEL
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // HOOK_COMBATATTACK
 	{-1}, // RESERVED
 	{-1}, // RESERVED
 	{-1}, // RESERVED
 	{-1}, // RESERVED
 	{-1}, // RESERVED
-	{-1}, // RESERVED
-	{HOOK_BUILDSFXNAME,     Inject_BuildSfxNameHook,     0},
+	{HOOK_BUILDSFXWEAPON,     Inject_BuildSfxWeaponHook,     0},
 };
 
 void HookScripts::InjectingHook(int hookId) {

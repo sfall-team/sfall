@@ -14,15 +14,14 @@ namespace sfall
 static DWORD __fastcall BuildSfxNameHook_Script(long effectType, fo::GameObject* weapon, long hitMode, fo::GameObject* target) {
 	BeginHook();
 	allowNonIntReturn = true;
-	argCount = 5;
+	argCount = 4;
 
-	args[0] = 1; // weapon_sfx
-	args[1] = effectType;
-	args[2] = (DWORD)weapon;
-	args[3] = (DWORD)hitMode;
-	args[4] = (DWORD)target;
+	args[0] = effectType;
+	args[1] = (DWORD)weapon;
+	args[2] = (DWORD)hitMode;
+	args[3] = (DWORD)target;
 
-	RunHookScript(HOOK_BUILDSFXNAME);
+	RunHookScript(HOOK_BUILDSFXWEAPON);
 
 	DWORD textPtr = cRet > 0 && retTypes[0] == DataType::STR
 		? rets[0]
@@ -55,7 +54,7 @@ skip:
 }
 
 
-void Inject_BuildSfxNameHook() {
+void Inject_BuildSfxWeaponHook() {
 	HookCalls(gsnd_build_weapon_sfx_name_hook, {
 		0x410DB3, // show_damage_to_object
 		0x411397, 0x411538, // action_melee
@@ -70,7 +69,7 @@ void Inject_BuildSfxNameHook() {
 }
 
 void InitSoundHookScripts() {
-	HookScripts::LoadHookScript("hs_buildsfxname", HOOK_BUILDSFXNAME);
+	HookScripts::LoadHookScript("hs_buildsfxweapon", HOOK_BUILDSFXWEAPON);
 }
 
 }
