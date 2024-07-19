@@ -460,7 +460,9 @@
     <ClInclude Include="Modules\ExtraArt.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\HookScripts\SoundHs.h" />
+    <ClInclude Include="Modules\HookScripts\SoundHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -841,7 +843,9 @@
     <ClCompile Include="Modules\ExtraArt.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\HookScripts\SoundHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\SoundHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
