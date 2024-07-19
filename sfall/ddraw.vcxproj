@@ -402,6 +402,7 @@
     <ClInclude Include="Modules\CritterStats.h" />
     <ClInclude Include="Modules\EngineTweaks.h" />
     <ClInclude Include="Modules\ExtraArt.h" />
+    <ClInclude Include="Modules\HookScripts\SoundHs.h" />
     <ClInclude Include="Modules\Interface.h" />
     <ClInclude Include="Modules\Drugs.h" />
     <ClInclude Include="Modules\HookScripts\CombatHs.h" />
@@ -544,6 +545,7 @@
     <ClCompile Include="Modules\CritterStats.cpp" />
     <ClCompile Include="Modules\EngineTweaks.cpp" />
     <ClCompile Include="Modules\ExtraArt.cpp" />
+    <ClCompile Include="Modules\HookScripts\SoundHs.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
     <ClCompile Include="Modules\Drugs.cpp" />
     <ClCompile Include="Modules\HookScripts\CombatHs.cpp" />
