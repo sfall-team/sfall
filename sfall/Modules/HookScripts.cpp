@@ -30,6 +30,7 @@
 #include "HookScripts\InventoryHs.h"
 #include "HookScripts\ObjectHs.h"
 #include "HookScripts\MiscHs.h"
+#include "HookScripts\SoundHs.h"
 
 #include "HookScripts.h"
 
@@ -99,18 +100,31 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
 	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
-	{-1,                    nullptr,                     false}, // dummy
+	{-1}, // unimplemented
 	{HOOK_SETLIGHTING,      Inject_SetLightingHook,      false},
 	{HOOK_SNEAK,            Inject_SneakCheckHook,       false},
 	{HOOK_STDPROCEDURE,     Inject_ScriptProcedureHook,  false},
 	{HOOK_STDPROCEDURE_END, Inject_ScriptProcedureHook2, false},
 	{HOOK_TARGETOBJECT,     Inject_TargetObjectHook,     false},
 	{HOOK_ENCOUNTER,        Inject_EncounterHook,        false},
-	{-1,                    nullptr,                     false}, // dummy
-	{-1,                    nullptr,                     false}, // dummy
+	{-1}, // unimplemented
+	{-1}, // unimplemented
 	{HOOK_ROLLCHECK,        Inject_RollCheckHook,        false},
 	{HOOK_BESTWEAPON,       Inject_BestWeaponHook,       false},
 	{HOOK_CANUSEWEAPON,     Inject_CanUseWeaponHook,     false},
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // HOOK_MOUSEWHEEL
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // HOOK_COMBATATTACK
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{-1}, // RESERVED
+	{HOOK_BUILDSFXWEAPON,   Inject_BuildSfxWeaponHook,   false},
 };
 
 void HookScripts::InjectingHook(int hookId) {
@@ -217,6 +231,7 @@ void HookScripts::LoadHookScripts() {
 		InitInventoryHookScripts();
 		InitObjectHookScripts();
 		InitMiscHookScripts();
+		InitSoundHookScripts();
 
 		HookScripts::LoadHookScript("hs_keypress", HOOK_KEYPRESS);
 		HookScripts::LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);

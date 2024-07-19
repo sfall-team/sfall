@@ -289,6 +289,7 @@
     <ClInclude Include="Modules\HookScripts\InventoryHs.h" />
     <ClInclude Include="Modules\HookScripts\MiscHs.h" />
     <ClInclude Include="Modules\HookScripts\ObjectHs.h" />
+    <ClInclude Include="Modules\HookScripts\SoundHs.h" />
     <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="Modules\Interface.h" />
     <ClInclude Include="Modules\Inventory.h" />
@@ -406,6 +407,7 @@
     <ClCompile Include="Modules\HookScripts\InventoryHs.cpp" />
     <ClCompile Include="Modules\HookScripts\MiscHs.cpp" />
     <ClCompile Include="Modules\HookScripts\ObjectHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\SoundHs.cpp" />
     <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="Modules\Interface.cpp" />
     <ClCompile Include="Modules\Inventory.cpp" />

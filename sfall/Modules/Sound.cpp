@@ -1069,6 +1069,7 @@ void Sound::init() {
 		const DWORD sfxlInitAddr[] = {0x4A9999, 0x4A9B34};
 		HookCalls(sfxl_init_hook, sfxlInitAddr);
 		SafeWrite8(0x4A9B3F, 0xA9); // jz 0x4A9BEC (skip error message)
+		SafeWrite8(0x4AA060, 127);  // fix crash when ACM file has name longer than 12 characters
 	}
 
 	if (IniReader::GetConfigString("Sound", "MainMenuMusic", "", mainMenuMusic, 9)) {
