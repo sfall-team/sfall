@@ -3424,6 +3424,19 @@ static __declspec(naked) void gmouse_handle_event_hook_use_inv() {
 	}
 }
 
+static __declspec(naked) void op_using_skill_hack() {
+	static const DWORD op_using_skill_Ret = 0x4546C4;
+	__asm {
+		mov  dword ptr [esp + 0x28 - 0x1C + 4], 0; // initialize the value
+		cmp  dword ptr [esp + 0x28 - 0x28 + 4], SKILL_SNEAK; // overwritten engine code
+		jne  skip;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  op_using_skill_Ret;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4268,6 +4281,9 @@ void BugFixes::init() {
 	// Fix for clickability issue of the "Use Inventory Item On" action when the selected item overlaps an object
 	MakeCall(0x44BFB9, gmouse_handle_event_hack_use_inv, 2);
 	HookCall(0x44C6FB, gmouse_handle_event_hook_use_inv);
+
+	// Fix for using_skill function returning garbage values when the arguments are not the player and SKILL_SNEAK
+	MakeCall(0x4546A5, op_using_skill_hack, 1);
 }
 
 }
