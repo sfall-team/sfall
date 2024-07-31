@@ -771,7 +771,7 @@
   },"110": {
     "doc": "Lists",
     "title": "Functions",
-    "content": ". | list_as_array | list_begin | list_end | list_next | party_member_list | . list_as_array . array list_as_array(int type) . list_begin . int list_begin(int type) . list_end . void list_end(int listid) . list_next . int list_next(int listid) . party_member_list . array party_member_list(int includeHidden) . Returns an array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.) . ",
+    "content": ". | list_as_array | list_begin | list_end | list_next | party_member_list | . list_as_array . array list_as_array(int type) . list_begin . int list_begin(int type) . list_end . void list_end(int listid) . list_next . int list_next(int listid) . party_member_list . array party_member_list(int includeHidden) . Returns an array of all current party members (0 - only critters that are alive and visible will be returned, 1 - all objects, including the car trunk, etc.) . ",
     "url": "/sfall/lists/#functions",
     
     "relUrl": "/lists/#functions"
