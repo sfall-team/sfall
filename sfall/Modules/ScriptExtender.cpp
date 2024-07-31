@@ -867,16 +867,33 @@ void SetGlobals(GlobalVar* globals) {
 	}
 }
 
+static DWORD pcFlagSneak;
+
 static __declspec(naked) void map_save_in_game_hook() {
 	__asm {
 		test cl, 1;
 		jz   skip;
 		mov  ScriptExtender::OnMapLeave, 1;
 		call fo::funcoffs::scr_exec_map_exit_scripts_;
+		xor  eax, eax;
+		call fo::funcoffs::is_pc_flag_;
+		mov  pcFlagSneak, eax; // save sneak state
 		mov  ScriptExtender::OnMapLeave, 0;
 		retn;
 skip:
 		jmp  fo::funcoffs::partyMemberSaveProtos_;
+	}
+}
+
+static __declspec(naked) void map_load_file_hook() {
+	__asm {
+		cmp  pcFlagSneak, 0;
+		jz   skip;
+		xor  eax, eax;
+		mov  pcFlagSneak, eax;
+		call fo::funcoffs::pc_flag_on_;
+skip:
+		jmp  fo::funcoffs::scr_exec_map_enter_scripts_;
 	}
 }
 
@@ -985,6 +1002,8 @@ void ScriptExtender::init() {
 	HookCall(0x483CC3, (void*)fo::funcoffs::partyMemberSaveProtos_);
 	HookCall(0x483CC8, (void*)fo::funcoffs::partyMemberPrepLoad_);
 	HookCall(0x483CCD, (void*)fo::funcoffs::partyMemberPrepItemSaveAll_);
+	// Tweak for restoring the sneak state when switching between maps
+	HookCall(0x4830B6, map_load_file_hook);
 
 	// Set the DAM_BACKWASH flag for the attacker before calling compute_damage_
 	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_
