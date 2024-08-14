@@ -4273,6 +4273,10 @@ void BugFixes::init() {
 
 	// Fix for using_skill function returning garbage values when the arguments are not the player and SKILL_SNEAK
 	MakeCall(0x4546A5, op_using_skill_hack, 1);
+
+	// Fix for object_fix_weapon_ammo_ engine function not checking "misc" type items
+	SafeWrite8(0x48916B, 0x41); // jnz 0x4891AD
+	SafeWrite8(0x4891C8, CodeType::JumpShort); // jmp 0x4891E9 (skip proto data correction)
 }
 
 }
