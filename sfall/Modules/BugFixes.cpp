@@ -3437,6 +3437,45 @@ skip:
 	}
 }
 
+static bool pickedTag = false;
+static bool pickedMutate = false;
+
+static __declspec(naked) void perks_dialog_hook_tag() {
+	static const DWORD perks_dialog_tag_Ret = 0x43C9C5;
+	__asm {
+		cmp  pickedTag, 0;
+		jne  skip;
+		call fo::funcoffs::Add4thTagSkill_;
+		mov  pickedTag, al;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  perks_dialog_tag_Ret;
+	}
+}
+
+static __declspec(naked) void perks_dialog_hook_mutate() {
+	static const DWORD perks_dialog_mutate_Ret = 0x43CA04;
+	__asm {
+		cmp  pickedMutate, 0;
+		jne  skip;
+		call fo::funcoffs::GetMutateTrait_;
+		mov  pickedMutate, al;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  perks_dialog_mutate_Ret;
+	}
+}
+
+static __declspec(naked) void editor_design_hook() {
+	__asm { // eax = 0
+		mov  pickedTag, al;
+		mov  pickedMutate, al;
+		jmp  fo::funcoffs::intface_update_hit_points_;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4288,6 +4327,11 @@ void BugFixes::init() {
 	// Fix for object_fix_weapon_ammo_ engine function not checking "misc" type items
 	SafeWrite8(0x48916B, 0x41); // jnz 0x4891AD
 	SafeWrite8(0x4891C8, CodeType::JumpShort); // jmp 0x4891E9 (skip proto data correction)
+
+	// Fix to prevent the windows of Tag! and Mutate! perks from reappearing when there are still unused perks
+	HookCall(0x43C9A0, perks_dialog_hook_tag);
+	HookCall(0x43C9E2, perks_dialog_hook_mutate);
+	HookCall(0x4329D1, editor_design_hook); // reset flags on exiting the character screen
 }
 
 }

@@ -1,5 +1,6 @@
 // X-Macro for function offsets
 
+FUNC(Add4thTagSkill_,                 0x43D6F8)
 FUNC(AddHotLines_,                    0x4998C0)
 FUNC(Check4Keys_,                     0x43F73C)
 FUNC(Create_AudioDecoder_,            0x4D50A8)
@@ -20,6 +21,7 @@ FUNC(GNW_button_refresh_,             0x4D9A58)
 FUNC(GNW_do_bk_process_,              0x4C8D1C)
 FUNC(GNW_find_,                       0x4D7888)
 FUNC(GNW_win_refresh_,                0x4D6FD8)
+FUNC(GetMutateTrait_,                 0x43D38C)
 FUNC(GetSlotList_,                    0x47E5D0)
 FUNC(ListDPerks_,                     0x43D0BC)
 FUNC(ListDrvdStats_,                  0x43527C)
