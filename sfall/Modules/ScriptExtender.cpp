@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include <unordered_set>
+#include <unordered_set>
 #include <unordered_map>
 #include <map>
 #include <stack>
@@ -64,10 +64,9 @@ struct GlobalScript {
 	int count;
 	int repeat;
 	int mode;      // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
-	int isLoading; // used for the return value of the game_loaded function
 
 	//GlobalScript() {}
-	GlobalScript(ScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0), isLoading(1) {}
+	GlobalScript(ScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0) {}
 };
 
 struct ExportedVar {
@@ -108,6 +107,7 @@ static std::vector<std::string> globalScriptPathList;
 static std::map<std::string, std::string> globalScriptFilesList;
 
 static std::vector<GlobalScript> globalScripts;
+static std::unordered_set<fo::Program*> checkedScripts;
 
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
 typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
@@ -565,6 +565,7 @@ static void PrepareGlobalScriptsListByMask() {
 		fo::func::db_free_file_list(&filenames, 0);
 	}
 	globalScripts.reserve(globalScriptFilesList.size());
+	checkedScripts.reserve(globalScriptFilesList.size());
 }
 
 // this runs before the game was loaded/started
@@ -588,20 +589,11 @@ static struct {
 } lastProgram;
 
 int __stdcall ScriptExtender::ScriptHasLoaded(fo::Program* script) {
-	if (lastProgram.script == script) { // fast check
-		return globalScripts[lastProgram.index].isLoading;
-	}
-	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (globalScripts[i].prog.ptr == script) {
-			int loaded = globalScripts[i].isLoading;
-			if (loaded) globalScripts[i].isLoading = 0;
 
-			lastProgram.script = script;
-			lastProgram.index = i;
-			return loaded;
-		}
+	if (checkedScripts.find(script) != checkedScripts.end()) {
+		return 0; // has already been called from the script
 	}
-	// error: global script not found
+	checkedScripts.insert(script);
 	return 1;
 }
 
@@ -609,9 +601,9 @@ int __stdcall ScriptExtender::ScriptHasLoaded(fo::Program* script) {
 static void ClearGlobalScripts() {
 	devlog_f("\nReset global scripts.", DL_MAIN);
 	isGameReset = true;
-	lastProgram.script = nullptr;
 	sfallProgsMap.clear();
 	globalScripts.clear();
+	checkedScripts.clear();
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	timerEventScripts.clear();

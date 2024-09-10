@@ -9,9 +9,11 @@
 #include <initializer_list>
 #include <memory>
 #include <vector>
+#include <unordered_set>
 #include <unordered_map>
 #include <map>
 #include <string>
+#include <cmath>
 
 //#define WIN32_LEAN_AND_MEAN
 #define NOCRYPT
