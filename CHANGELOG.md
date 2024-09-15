@@ -1,6 +1,21 @@
 # Changelog
 
-## v3.8.44
+## 3.8.45
+* Fixed a bug introduced in 3.8.29 that caused `game_loaded` script function to always return 1 when called from normal scripts
+* Fixed a bug introduced in 3.8.44 that caused the information card for the **hero appearance mod** not to refresh properly
+* Fixed a crash bug in **AutoSearchSFX** when an **ACM** file has a name longer than 12 characters
+* Fixed an issue with sfall not resetting data properly after attempting to load a corrupted saved game
+* Fixed the inconsistent behavior of the escaped percent sign `%` in `sprintf` and `string_format` script functions
+* Fixed `show/hide_iface_tag` script functions to prevent unnecessary toggling of tags
+* Fixed `using_skill` script function returning garbage values when the arguments are not the player and Sneak skill
+* Added a fix for the engine not checking **'misc'** type items when correcting data for items on maps
+* Added a fix to prevent the windows of **Tag!** and **Mutate!** perks from reappearing when there are still unused perks
+* Added a tweak to restore the player's sneak state when switching between maps
+* Added options to separately set the color of outlines for highlighted containers and corpses
+* Updated **item highlighting mod** in the **modders pack** to match the feature set of the 4.x version
+* New hook script: `hs_buildsfxweapon`
+
+## 3.8.44
 * Fixed a bug in **NPCsTryToSpendExtraAP** that caused NPCs to still be able to move in their combat turn after they killed themselves
 * Fixed a bug in **PlayIdleAnimOnReload** that could cause critters to lose highlights after reloading weapons in combat
 * Fixed a crash bug in `interface_art_draw` script function when drawing beyond window bounds
@@ -154,7 +169,7 @@
 * Added missing sounds for the markers on the world map interface (similar to Fallout 1, from Ghosthack)
 
 ## 3.8.34
-* Minor fixes to **LocalMapXLimit/LocalMapYLimit** options and the built-in **item highlighting mod**
+* Minor fixes to **LocalMapXLimit/LocalMapYLimit** options and the built-in **item highlighting**
 * Removed **FadeBackgroundMusic** option because the fix in 3.8.33 doesn't work reliably in all cases
 * Added a fix for being unable to plant items on non-biped critters with the **'Barter'** flag set (e.g. Skynet and Goris)
 * Updated the ammo ini loader mod in the **modders pack**
@@ -219,7 +234,7 @@
 * Added a config file to change some engine parameters for the game mechanics
 * Added the ability to continuously play the music when moving to another map that uses the same music
 * Added the ability to set custom names for unarmed attacks in the inventory to **TranslationsINI**
-* Added support for using the newline control character `'\n'` in the object description in `pro_*.msg` files
+* Added support for using the newline control character `\n` in the object description in `pro_*.msg` files
 * Added support for the new **'Healing Item'** flag to item protos. Now AI will also use items with this flag for healing in combat
 * Added support for the new **'Cannot Use'** flag to the misc flags of item objects. This flag makes a weapon object unusable in combat
 * Added missing sounds for the buttons on the world map interface (similar to Fallout 1 behavior)
@@ -275,7 +290,7 @@
 * Added a tweak to remove the unspent skill points limit
 * Added an option to disable the special handling of city areas 45 and 46 in the engine when visiting Area 45
 * Added an option to load alternative dialog msg and subtitle files for female PC (translation friendly)
-* Added an option to allow using the caret character `'^'` in dialog msg files to specify alternative text in dialogue based on the player's gender
+* Added an option to allow using the caret character `^` in dialog msg files to specify alternative text in dialogue based on the player's gender
 * Added a new value to **AIDrugUsePerfFix** to allow NPCs to use only the drugs listed in `chem_primary_desire` and healing drugs
 * Added support for loading premade character **GCD/BIO** files from the `premade\<language>\` directory for non-English languages
 * Added support for loading fonts from the `fonts\<language>\` directory for non-English languages
@@ -451,7 +466,7 @@
 * Fixed the timing of setting `WORLDMAP`, `DIALOG`, `PIPBOY`, `INVENTORY`, `INTFACEUSE`, and `INTFACELOOT` game mode flags
 * Fixed the execution of the timer event in global scripts
 * Fixed the palette and the movie playback in **DX9** mode
-* Improved the functionality of `create_message_window` script function to support the newline control character `'\n'`
+* Improved the functionality of `create_message_window` script function to support the newline control character `\n`
 * Removed **TownMapHotkeysFix** and **DisplaySecondWeaponRange** from `ddraw.ini` because there is little reason to turn them off
 * Added a fix for duplicate critters being added to the list of potential targets for AI
 * Added a fix for the playback of the speech sound file for the death screen being ended abruptly in some cases
@@ -475,7 +490,7 @@
 * Changed the debug message about a missing critter art file to also be displayed in the game
 * Code refactoring for various script functions
 * Added a fix to prevent the player from moving when clicking on a script-created window and prevent the mouse cursor from being toggled when hovering over a **'hidden'** window
-* Added a fix to prevent crashes when **DebugMode** is enabled and there is a `'%'` character in the printed message
+* Added a fix to prevent crashes when **DebugMode** is enabled and there is a `%` character in the printed message
 * Added an option to load a global shader file at game startup and added an example global shader file to the **modders pack**
 * Added an option to highlight lootable corpses as well as items
 * Added support for executing the `timed_event_p_proc` procedure in global scripts
@@ -932,4 +947,4 @@ Original engine bug fixes and various features based on the work by Crafty:
 * Added an option to allow 9 options (lines of text) to be displayed correctly in the dialog window
 * Added an option to display additional points of damage from **Bonus HtH/Ranged Damage** perks in the inventory
 
-__For changelogs prior to 3.7, please read the `sfall-readme.txt` in the [release files](https://github.com/sfall-team/sfall/releases).__
+__For changelogs prior to version 3.7, please refer to the `sfall-readme.txt` in the [release files](https://github.com/sfall-team/sfall/releases).__
