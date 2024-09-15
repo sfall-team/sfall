@@ -589,7 +589,6 @@ static struct {
 } lastProgram;
 
 int __stdcall ScriptExtender::ScriptHasLoaded(fo::Program* script) {
-
 	if (checkedScripts.find(script) != checkedScripts.end()) {
 		return 0; // has already been called from the script
 	}

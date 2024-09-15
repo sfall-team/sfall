@@ -1,6 +1,20 @@
 # Changelog
 
-## v4.4.4
+## 4.4.5
+* Fixed a bug introduced in 4.2.9 that caused `game_loaded` script function to always return 1 when called from normal scripts
+* Fixed a bug introduced in 4.4.4 that caused the information card for the **hero appearance mod** not to refresh properly
+* Fixed a crash bug in **AutoSearchSFX** when an **ACM** file has a name longer than 12 characters
+* Fixed an issue with sfall not resetting data properly after attempting to load a corrupted saved game
+* Fixed the inconsistent behavior of the escaped percent sign `%` in `sprintf` and `string_format` script functions
+* Fixed `show/hide_iface_tag` script functions to prevent unnecessary toggling of tags
+* Fixed `using_skill` script function returning garbage values when the arguments are not the player and Sneak skill
+* Added a fix for the engine not checking **'misc'** type items when correcting data for items on maps
+* Added a fix to prevent the windows of **Tag!** and **Mutate!** perks from reappearing when there are still unused perks
+* Added a tweak to restore the player's sneak state when switching between maps
+* Added options to **item highlighting mod** to separately set the color of outlines for highlighted containers and corpses
+* New hook script: `hs_buildsfxweapon`
+
+## 4.4.4
 * Fixed a bug in **NPCsTryToSpendExtraAP** that caused NPCs to still be able to move in their combat turn after they killed themselves
 * Fixed a bug in **PlayIdleAnimOnReload** that could cause critters to lose highlights after reloading weapons in combat
 * Fixed a crash bug in `interface_art_draw` script function when drawing beyond window bounds
@@ -225,7 +239,7 @@
 * Added a config file to change some engine parameters for the game mechanics
 * Added the ability to continuously play the music when moving to another map that uses the same music
 * Added the ability to set custom names for unarmed attacks in the inventory to **TranslationsINI**
-* Added support for using the newline control character `'\n'` in the object description in `pro_*.msg` files
+* Added support for using the newline control character `\n` in the object description in `pro_*.msg` files
 * Added support for the new **'Healing Item'** flag to item protos. Now AI will also use items with this flag for healing in combat
 * Added support for the new **'Cannot Use'** flag to the misc flags of item objects. This flag makes a weapon object unusable in combat
 * Added missing sounds for the buttons on the world map interface (similar to Fallout 1 behavior)
@@ -450,14 +464,14 @@
 * Fixed the timing of setting `WORLDMAP`, `DIALOG`, `PIPBOY`, `INVENTORY`, `INTFACEUSE`, and `INTFACELOOT` game mode flags
 * Fixed the execution of the timer event in global scripts
 * Fixed the palette and the movie playback in **DX9** mode
-* Improved the functionality of `create_message_window` script function to support the newline control character `'\n'`
+* Improved the functionality of `create_message_window` script function to support the newline control character `\n`
 * Removed **TownMapHotkeysFix** and **DisplaySecondWeaponRange** from `ddraw.ini` because there is little reason to turn them off
 * Added a fix for duplicate critters being added to the list of potential targets for AI
 * Added a fix for the playback of the speech sound file for the death screen being ended abruptly in some cases
 * Added a fix for the barter button on the dialog window not animating until after leaving the barter screen
 * Added a fix for the division operator treating negative integers as unsigned
 * Added a fix for trying to loot corpses with the **'NoSteal'** flag set
-* Added an option to allow using the caret character `'^'` in dialog msg files to specify alternative text in dialogue based on the player's gender
+* Added an option to allow using the caret character `^` in dialog msg files to specify alternative text in dialogue based on the player's gender
 * Added options to draw a dotted line while traveling on the world map (similar to Fallout 1, from Ghosthack)
 * Added an option to display terrain types when hovering the cursor over the player's marker on the world map (from Ghosthack)
 * Added a flashing icon to the Horrigan encounter and scripted force encounters by default
@@ -1035,4 +1049,4 @@ Original engine bug fixes and various features based on the work by Crafty:
 * Added an option to allow 9 options (lines of text) to be displayed correctly in the dialog window
 * Added an option to display additional points of damage from **Bonus HtH/Ranged Damage** perks in the inventory
 
-__For changelogs prior to 3.7, please read the `sfall-readme.txt` in the [release files](https://github.com/sfall-team/sfall/releases).__
+__For changelogs prior to version 3.7, please refer to the `sfall-readme.txt` in the [release files](https://github.com/sfall-team/sfall/releases).__
