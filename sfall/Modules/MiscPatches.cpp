@@ -958,7 +958,12 @@ void MiscPatches::init() {
 
 	BlockCall(0x4425E6); // Patch out ereg call
 
-	SafeWrite8(0x4810AB, CodeType::JumpShort); // Disable selfrun
+	SafeWrite8(0x4810AB, CodeType::JumpShort); // Disable selfrun autoplay
+	// Disable selfrun file creation
+	BlockCall(0x4A8DB5); // block selfrun_save_data_ (selfrun_prep_recording_)
+	SafeWrite32(0x4A8DBA, 0x9090C031); // xor eax, eax
+	BlockCall(0x4A8E10); // block vcr_record_ (selfrun_recording_loop_)
+	BlockCall(0x4A8E15); // just nop code
 
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
