@@ -110,10 +110,11 @@ failMax:
 	}
 }
 
+// Returns experience to reach a given level
 static __declspec(naked) void GetLevelXPHook() {
 	__asm {
 		cmp eax, PC_LEVEL_MAX;
-		jge lvlMax;
+		jg  lvlMax;
 		dec eax;
 		mov eax, [xpTable + eax * 4];
 		retn;
@@ -123,9 +124,11 @@ lvlMax:
 	}
 }
 
+// Returns experience to reach the next level
 static __declspec(naked) void GetNextLevelXPHook() {
 	__asm {
 		mov eax, ds:[FO_VAR_Level_pc];
+		inc eax;
 		jmp GetLevelXPHook;
 	}
 }
@@ -299,13 +302,13 @@ void Stats::init() {
 	size_t numLevels = xpTableList.size();
 	if (numLevels > 0) {
 		if (numLevels >= PC_LEVEL_MAX) numLevels = PC_LEVEL_MAX - 1;
-		HookCalls(GetNextLevelXPHook, {0x434AA7, 0x439642, 0x4AFB22});
-		HookCalls(GetLevelXPHook, {0x496C8D, 0x4AFC53});
+		HookCalls(GetNextLevelXPHook, {0x434AA7, 0x439642, 0x4AFB22}); // replace stat_pc_min_exp_
+		HookCalls(GetLevelXPHook, {0x496C8D, 0x4AFC53}); // replace statPcMinExpForLevel_
 
-		for (size_t i = 0; i < PC_LEVEL_MAX; i++) {
-			xpTable[i] = (i < numLevels)
-			           ? atoi(xpTableList[i].c_str())
-			           : -1;
+		for (size_t i = 0; i < PC_LEVEL_MAX - 1; i++) {
+			xpTable[i + 1] = (i < numLevels)
+			               ? atoi(xpTableList[i].c_str())
+			               : -1;
 		}
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
