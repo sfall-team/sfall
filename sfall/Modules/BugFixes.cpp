@@ -4295,7 +4295,7 @@ void BugFixes::init() {
 	SafeWrite8(0x440C8E, 7); // jnz 0x440C96
 
 	// Fix for gaining two levels at once when leveling up from level 97
-	SafeWrite8(0x4AF9AF, 0x7F); // jge > jg (stat_pc_min_exp_)
+	SafeWrite8(0x4AF9AF, 0x7F); // jge > jg (statPcMinExpForLevel_)
 
 	// Fix to prevent integer overflow for the number of items in a stack in the inventory
 	// If the number of items in a stack is less than 1, it is considered an integer overflow
