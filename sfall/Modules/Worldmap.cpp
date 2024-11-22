@@ -22,6 +22,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\Utils.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "SpeedPatch.h"
@@ -429,8 +430,7 @@ static void WorldmapFpsPatch() {
 	if (IniReader::GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
 		if (fpsPatchOK) {
-			int delay = IniReader::GetConfigInt("Misc", "WorldMapDelay2", 66);
-			worldMapDelay = max(1, delay);
+			worldMapDelay = clamp(IniReader::GetConfigInt("Misc", "WorldMapDelay2", 66), 1, 150);
 			dlogr(" Done", DL_INIT);
 		} else {
 			dlogr(" Failed", DL_INIT);
