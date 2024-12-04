@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.45.1
+* Fixed a bug in **XPTable** that caused leveling issues with **Here and Now** perk
+* Disabled unnecessary selfrun file creation in the recording mode (autoplay has been disabled in 3.8.30)
+
 ## 3.8.45
 * Fixed a bug introduced in 3.8.29 that caused `game_loaded` script function to always return 1 when called from normal scripts
 * Fixed a bug introduced in 3.8.44 that caused the information card for the **hero appearance mod** not to refresh properly
