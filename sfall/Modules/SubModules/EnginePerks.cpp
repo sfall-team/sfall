@@ -29,6 +29,7 @@ namespace perk
 
 static long SalesmanBonus = 20;
 static long DemolitionExpertBonus = 10;
+static long NightVisionBonus = 13107; // 20% of max light
 
 static bool TryGetModifiedInt(const char* key, int defaultValue, int& outValue, const char* perksFile) {
 	outValue = IniReader::GetInt("PerksTweak", key, defaultValue, perksFile);
@@ -75,10 +76,21 @@ static __declspec(naked) void queue_explode_exit_hack_demolition_expert() {
 	}
 }
 
+static __declspec(naked) void light_set_ambient_hack_night_vision() {
+	__asm {
+		imul eax, [NightVisionBonus];
+		pop  edx;
+		add  edx, 16; // skip code (to 0x47A932)
+		jmp  edx;
+	}
+}
+
 void EnginePerkBonusInit() {
 	// Allows the current perk level to affect the calculation of its bonus value
 	MakeCall(0x496F5E, perk_adjust_skill_hack_salesman);
 	MakeCall(0x4A289C, queue_explode_exit_hack_demolition_expert, 1);
+	// Allows customizable light level bonus
+	MakeCall(0x47A91D, light_set_ambient_hack_night_vision);
 }
 
 void ReadPerksBonuses(const char* perksFile) {
@@ -95,6 +107,10 @@ void ReadPerksBonuses(const char* perksFile) {
 	if (TryGetModifiedInt("MasterTraderBonus", 25, value, perksFile) && value >= 0) {
 		float floatValue = static_cast<float>(value);
 		SafeWrite32(0x474BB3, *(DWORD*)&floatValue); // write float data
+	}
+	if (TryGetModifiedInt("NightVisionBonus", 20, value, perksFile) && value >= 0) {
+		if (value > 100) value = 100;
+		NightVisionBonus = (65536 * value) / 100;
 	}
 	if (TryGetModifiedInt("SalesmanBonus", SalesmanBonus, value, perksFile) && value >= 0) {
 		SalesmanBonus = min(value, 999);
