@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2024  The sfall team
+ *    Copyright (C) 2008-2025  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -1729,6 +1729,14 @@ static bool showItemDescription = false;
 
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
+//		std::string descMsg = desc;
+//		size_t pos = 0;
+
+//		while ((pos = descMsg.find("\\n", pos)) != std::string::npos) {
+//			descMsg.replace(pos, 2, " ");
+//		}
+
+//		strncpy_s(messageBuffer, descMsg.c_str(), 161);
 		if (desc == nullptr) {
 			desc = fo::util::MessageSearch(&fo::var::proto_main_msg_file, 493);
 		}

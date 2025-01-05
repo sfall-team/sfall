@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2024  The sfall team
+ *    Copyright (C) 2008-2025  The sfall team
  *
  */
 

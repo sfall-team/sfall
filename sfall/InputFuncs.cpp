@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2024  The sfall team
+ *    Copyright (C) 2008-2025  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -340,6 +340,13 @@ public:
 	HRESULT __stdcall SetCooperativeLevel(HWND a, DWORD b) {
 		if (DeviceType == kDeviceType_KEYBOARD && backgroundKeyboard) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 		if (DeviceType == kDeviceType_MOUSE && backgroundMouse) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+		/*if (DeviceType == kDeviceType_MOUSE) {
+			if (backgroundMouse) {
+				b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+			} else if (Graphics::IsWindowedMode) {
+				//b = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE; // for fullscreen windowed mode, use DISCL_FOREGROUND + DISCL_EXCLUSIVE
+			}
+		}*/
 		return RealDevice->SetCooperativeLevel(a, b);
 	}
 
