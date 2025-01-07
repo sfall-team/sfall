@@ -30,6 +30,7 @@ namespace perk
 static long SalesmanBonus = 20;
 static long DemolitionExpertBonus = 10;
 static long NightVisionBonus = 13107; // 20% of max light
+static long ComprehensionBonus = 150; // +50% of earned skill points
 
 static bool TryGetModifiedInt(const char* key, int defaultValue, int& outValue, const char* perksFile) {
 	outValue = IniReader::GetInt("PerksTweak", key, defaultValue, perksFile);
@@ -85,12 +86,23 @@ static __declspec(naked) void light_set_ambient_hack_night_vision() {
 	}
 }
 
+static __declspec(naked) void obj_use_book_hack_comprehension() {
+	__asm {
+		imul esi, [ComprehensionBonus];
+		mov  edx, esi;
+		pop  ebx;
+		add  ebx, 11; // skip code (to 0x49BADD)
+		jmp  ebx;
+	}
+}
+
 void EnginePerkBonusInit() {
-	// Allows the current perk level to affect the calculation of its bonus value
+	// Allow the current perk level to affect the calculation of its bonus value
 	MakeCall(0x496F5E, perk_adjust_skill_hack_salesman);
 	MakeCall(0x4A289C, queue_explode_exit_hack_demolition_expert, 1);
-	// Allows customizable light level bonus
+	// Allow configurable bonuses
 	MakeCall(0x47A91D, light_set_ambient_hack_night_vision);
+	MakeCall(0x49BACD, obj_use_book_hack_comprehension);
 }
 
 void ReadPerksBonuses(const char* perksFile) {
@@ -120,6 +132,9 @@ void ReadPerksBonuses(const char* perksFile) {
 	TryPatchSkillBonus8("PyromaniacBonus", 5, 0x424AB6, perksFile);
 	TryPatchValue8("StonewallPercent", 50, 0, 100, 0x424B50, perksFile);
 	TryPatchValue8("CautiousNatureBonus", 3, -12, 20, 0x4C1756, perksFile); // -12 - force distance to 0
+	if (TryGetModifiedInt("ComprehensionBonus", 50, value, perksFile) && value >= 0) {
+		ComprehensionBonus = value + 100;
+	}
 	if (TryGetModifiedInt("DemolitionExpertBonus", DemolitionExpertBonus, value, perksFile) && value >= 0) {
 		DemolitionExpertBonus = min(value, 999);
 	}
