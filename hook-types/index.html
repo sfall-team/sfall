@@ -101,7 +101,7 @@ int     ret1 - The damage to the attacker
 int     ret2 - The special effect flags for the target
 int     ret3 - The special effect flags for the attacker
 int     ret4 - The amount of knockback to the target
-</code></pre></div></div> <h2 id="combatturn"> <a href="#combatturn" class="anchor-heading" aria-labelledby="combatturn"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> CombatTurn </h2> <p><code class="language-plaintext highlighter-rouge">HOOK_COMBATURN</code> (hs_combatturn.int)</p> <p>Runs before and after each turn in combat (for both PC and NPC).</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>int     arg0 - event type:
+</code></pre></div></div> <h2 id="combatturn"> <a href="#combatturn" class="anchor-heading" aria-labelledby="combatturn"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> CombatTurn </h2> <p><code class="language-plaintext highlighter-rouge">HOOK_COMBATTURN</code> (hs_combatturn.int)</p> <p>Runs before and after each turn in combat (for both PC and NPC).</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>int     arg0 - event type:
                1 - start of turn
                0 - normal end of turn
               -1 - combat ends abruptly (by script or by pressing Enter during PC turn)
