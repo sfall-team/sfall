@@ -649,6 +649,8 @@ void InitGlobalScripts() {
 
 	HookScripts::InitHookScripts();
 	LoadGlobalScriptsList();
+	// Fix map lighting from Night Vision perk when loading a saved game
+	fo::func::light_set_ambient(*fo::ptr::ambient_light, 1); // refresh map lighting
 
 	isGlobalScriptLoading = 0;
 }

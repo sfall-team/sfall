@@ -159,6 +159,7 @@ WRAP_WATCOM_FUNC1(long, item_w_secondary_mp_cost, fo::GameObject*, item)
 WRAP_WATCOM_FUNC2(long, item_w_subtype, fo::GameObject*, item, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_weight, fo::GameObject*, item)
 WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum) // Returns light level at given tile
+WRAP_WATCOM_FUNC2(void, light_set_ambient, long, intensity, long, isRefresh)
 WRAP_WATCOM_FUNC2(long, load_frame, const char*, fileName, fo::FrmFile**, frmPtr)
 WRAP_WATCOM_FUNC4(BYTE*, loadPCX, const char*, fileName, long*, width, long*, height, BYTE*, palette)
 WRAP_WATCOM_FUNC1(fo::Program*, loadProgram, const char*, fileName)
