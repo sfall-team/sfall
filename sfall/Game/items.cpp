@@ -246,7 +246,10 @@ static __declspec(naked) void item_w_mp_cost_replacement() {
 
 // Simplified implementation of item_w_curr_ammo_ engine function
 long __fastcall Items::item_w_curr_ammo(fo::GameObject* item) {
-	if (item) return item->item.charges;
+	if (item) {
+		if (item->item.charges < 0) item->item.charges = 0; // fix negative ammo
+		return item->item.charges;
+	}
 	return 0;
 }
 

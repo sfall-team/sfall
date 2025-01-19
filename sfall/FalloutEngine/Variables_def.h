@@ -136,6 +136,7 @@ VAR_(main_ctd,                   fo::ComputeAttackResult)
 VAR_(main_death_voiceover_done,  DWORD)
 VAR_(main_window,                DWORD)
 VAR_(map_elevation,              DWORD)
+VAR_(map_flags,                  DWORD)
 VAR_(map_global_vars,            long*)  // array
 VAR_(map_number,                 DWORD)
 VAR_(master_db_handle,           fo::PathNode*)
