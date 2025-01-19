@@ -183,6 +183,7 @@
 #define FO_VAR_main_death_voiceover_done  0x614838
 #define FO_VAR_main_window                0x5194F0
 #define FO_VAR_map_elevation              0x519578
+#define FO_VAR_map_flags                  0x631D7C
 #define FO_VAR_map_global_vars            0x51956C
 #define FO_VAR_map_name                   0x631D58
 #define FO_VAR_map_number                 0x631D88

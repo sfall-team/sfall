@@ -4332,6 +4332,10 @@ void BugFixes::init() {
 	HookCall(0x43C9A0, perks_dialog_hook_tag);
 	HookCall(0x43C9E2, perks_dialog_hook_mutate);
 	HookCall(0x4329D1, editor_design_hook); // reset flags on exiting the character screen
+
+	// Fix to prevent the game from hanging when reloading a weapon overloaded with ammo via the interface bar
+	SafeWrite8(0x4787A2, 0x8D); // jz > jge (item_w_try_reload_)
+	SafeWrite8(0x45F5BD, 0x7E); // jz > jle (intface_toggle_item_state_)
 }
 
 }

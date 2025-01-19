@@ -944,6 +944,8 @@ static __declspec(naked) void intface_update_ammo_lights_hack() {
 		mov  eax, 70; // 70 - full ammo bar
 		cmp  edx, eax;
 		cmovg edx, eax;
+		cmp  edx, ebx; // ebx = 0 (empty ammo bar)
+		cmovl edx, ebx;
 		mov  eax, ammoBarXPos; // overwritten engine code
 		retn;
 	}

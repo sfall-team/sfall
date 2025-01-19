@@ -121,6 +121,7 @@ PTR_(main_ctd,                   fo::ComputeAttackResult)
 PTR_(main_death_voiceover_done,  DWORD)
 PTR_(main_window,                DWORD)
 PTR_(map_elevation,              DWORD)
+PTR_(map_flags,                  DWORD)
 PTR_(map_global_vars,            long*)  // array
 PTR_(map_number,                 DWORD)
 PTR_(master_db_handle,           fo::PathNode*)
