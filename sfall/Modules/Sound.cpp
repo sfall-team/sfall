@@ -166,7 +166,7 @@ static void CreateSndWnd() {
 	wcx.hInstance = GetModuleHandleA(0);
 	wcx.lpszClassName = "sfallSndWnd";
 
-	RegisterClassEx(&wcx);
+	RegisterClassExA(&wcx);
 	soundwindow = CreateWindowA("sfallSndWnd", "SndWnd", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, wcx.hInstance, 0);
 	dlogr(" Done", DL_INIT);
 }

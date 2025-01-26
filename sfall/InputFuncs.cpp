@@ -111,7 +111,7 @@ DWORD __stdcall KeyDown(DWORD key) {
 	// combined use of DINPUT states + confirmation from GetAsyncKeyState()
 	if (key < MAX_KEYS) {
 		if (keysDown[key]) { // confirm pressed state
-			DWORD keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
+			DWORD keyVK = MapVirtualKeyExA(key, MAPVK_VSC_TO_VK, keyboardLayout);
 			if (keyVK) keysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
 		}
 		return (keysDown[key] > 0);
@@ -293,7 +293,7 @@ public:
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
 
-				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				HookCommon::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyExA(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 
 				if ((signed)dxKey > 0 && dxKey != buf[i].dwOfs) {
 					keysDown[buf[i].dwOfs] = oldState;

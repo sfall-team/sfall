@@ -817,7 +817,7 @@ static void PerkAndTraitSetup() {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
-			while (stat&&mod) {
+			while (stat && mod) {
 				int _stat = atoi(stat), _mod = atoi(mod);
 				if (_stat >= 0 && _stat <= fo::STAT_max_derived) traitStatBonuses[_stat * fo::Trait::TRAIT_count + i] = _mod;
 				stat = strtok(0, "|");
@@ -829,7 +829,7 @@ static void PerkAndTraitSetup() {
 			char *stat, *mod;
 			stat = strtok(buf, "|");
 			mod = strtok(0, "|");
-			while (stat&&mod) {
+			while (stat && mod) {
 				int _stat = atoi(stat), _mod = atoi(mod);
 				if (_stat >= 0 && _stat < 18) traitSkillBonuses[_stat * fo::Trait::TRAIT_count + i] = _mod;
 				stat = strtok(0, "|");
