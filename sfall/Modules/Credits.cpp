@@ -203,7 +203,7 @@ noFile:
 
 static void FallbackEnglishCredits() {
 	const char* lang;
-	if (fo::func::get_game_config_string(&lang, "system", "language") && stricmp(lang, "english") != 0) {
+	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
 		HookCall(0x42C900, CreditsFileHook);
 	}
 }

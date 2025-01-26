@@ -182,18 +182,26 @@ static void InitModules() {
 
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
-	char buf[MAX_PATH];
+	char buf[MAX_PATH] = {0};
 	DWORD size = MAX_PATH;
 	DWORD type;
-	if (!(type = RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra | STANDARD_RIGHTS_READ | KEY_QUERY_VALUE, &key))) {
-		if (!RegQueryValueEx(key, filepath, 0, &type, (BYTE*)buf, &size)) {
+	if (!RegOpenKeyExA(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra | STANDARD_RIGHTS_READ | KEY_QUERY_VALUE, &key)) {
+		if (!RegQueryValueExA(key, filepath, 0, &type, (BYTE*)buf, &size)) {
+			if (size >= MAX_PATH) {
+				size = MAX_PATH - 1; // prevent overflow
+			}
+			buf[size] = '\0'; // null-terminate the buffer
+
 			if (size && (type == REG_EXPAND_SZ || type == REG_MULTI_SZ || type == REG_SZ)) {
-				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN")) {
+				char* pos = strstr(buf, "DISABLEDXMAXIMIZEDWINDOWEDMODE"); // "Disable fullscreen optimizations" in Win10
+				if (pos) std::memmove(pos, pos + 30, strlen(pos + 30) + 1); // remove the substring
+
+				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN") || strstr(buf, "NT4") || strstr(buf, "VISTA")) {
 					RegCloseKey(key);
 
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
 					               "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
-					               "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
+					               "Run this program in compatibility mode for..., run in 256 colors, and run in 640x480 resolution.\n"
 					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", 0, MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
@@ -240,7 +248,7 @@ static HMODULE SfallInit() {
 	if (IniReader::GetIntDefaultConfig("Debugging", "SkipCompatModeCheck", 0) == 0) {
 		int is64bit;
 		typedef int (__stdcall *chk64bitproc)(HANDLE, int*);
-		HMODULE h = LoadLibrary("Kernel32.dll");
+		HMODULE h = LoadLibraryA("Kernel32.dll");
 		chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
 		if (proc)
 			proc(GetCurrentProcess(), &is64bit);
