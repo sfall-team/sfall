@@ -265,6 +265,8 @@ writeBlock:
 }
 
 static __declspec(naked) void protinst_default_use_item_hack() {
+	static const DWORD protinst_default_use_item_Ret = 0x49C38B;
+	static const DWORD protinst_default_use_item_End = 0x49C3C5;
 	__asm {
 		mov  eax, dword ptr [edx + protoId];      // eax = target pid
 		cmp  eax, PID_DRIVABLE_CAR;
@@ -277,15 +279,13 @@ isCar:
 		cmp  eax, -1;
 		jne  skip;
 notCar:
-		push 0x49C38B;
-		retn;                                     // "That does nothing."
+		jmp  protinst_default_use_item_Ret;       // "That does nothing."
 skip:
 		test eax, eax;
 		jnz  end;
 		dec  eax;
 end:
-		push 0x49C3C5;
-		retn;
+		jmp  protinst_default_use_item_End;
 	}
 }
 
@@ -640,14 +640,14 @@ end:
 }
 
 static __declspec(naked) void PrintBasicStat_hack() {
+	static const DWORD PrintBasicStat_Ret = 0x434C21;
 	__asm {
 		test eax, eax;
 		jle  skip;
 		cmp  eax, 10;
 		jg   end;
 		add  esp, 4;                              // Destroy the return address
-		push 0x434C21;
-		retn;
+		jmp  PrintBasicStat_Ret;
 skip:
 		xor  eax, eax;
 end:
@@ -671,17 +671,18 @@ end:
 }
 
 static __declspec(naked) void StatButtonDown_hook() {
+	static const DWORD StatButtonDown_Ret = 0x437B41;
 	__asm {
 		call fo::funcoffs::stat_level_;
 		cmp  eax, 1;
-		jg   end;
+		jle  skip;
+		retn;
+skip:
 		add  esp, 4;                              // Destroy the return address
 		xor  eax, eax;
 		inc  eax;
 		mov  [esp + 0xC], eax;
-		push 0x437B41;
-end:
-		retn;
+		jmp  StatButtonDown_Ret;
 	}
 }
 
@@ -822,6 +823,9 @@ static __declspec(naked) void inven_pickup_hack() {
 }
 
 static __declspec(naked) void inven_pickup_hack2() {
+	static const DWORD inven_pickup_End = 0x47125C;
+	static const DWORD inven_pickup_Ret1 = 0x471181;
+	static const DWORD inven_pickup_Ret2 = 0x4711DF;
 	__asm {
 		test eax, eax;
 		jz   end;
@@ -852,12 +856,10 @@ next:
 		jnz  found;
 		inc  edx;
 		cmp  edx, ds:[FO_VAR_inven_cur_disp];
-		jb   next;
+		jl   next;
 end:
-		push 0x47125C;
-		retn;
+		jmp  inven_pickup_End;
 found:
-		mov  ebx, 0x4711DF;
 		add  edx, [esp + 0x40];                   // inventory_offset
 		mov  eax, ds:[FO_VAR_pud];
 		mov  ecx, [eax];                          // itemsCount
@@ -865,12 +867,12 @@ found:
 		jz   skip;
 		dec  ecx;
 		cmp  edx, ecx;
-		ja   skip;
+		jg   skip;
 		sub  ecx, edx;
 		mov  edx, ecx;
-		mov  ebx, 0x471181;
+		jmp  inven_pickup_Ret1;
 skip:
-		jmp  ebx;
+		jmp  inven_pickup_Ret2;
 	}
 }
 
@@ -1225,6 +1227,7 @@ delay:
 }
 
 static __declspec(naked) void dude_standup_hook() {
+	static const DWORD dude_standup_Ret = 0x4185AD;
 	__asm {
 		mov  edx, [ecx + artFid];
 		and  edx, 0xFF0000;
@@ -1236,8 +1239,7 @@ standup:
 		jmp  fo::funcoffs::register_begin_;
 skip:
 		add  esp, 4;
-		mov  edx, 0x4185AD;
-		jmp  edx;
+		jmp  dude_standup_Ret;
 	}
 }
 
@@ -1317,14 +1319,14 @@ skip:
 }
 
 static __declspec(naked) void barter_attempt_transaction_hack() {
+	static const DWORD barter_attempt_transaction_Ret = 0x474D34;
 	__asm {
 		mov  edx, [eax + protoId];
 		cmp  edx, PID_ACTIVE_GEIGER_COUNTER;
 		je   found;
 		cmp  edx, PID_ACTIVE_STEALTH_BOY;
 		je   found;
-		mov  eax, 0x474D34;                       // Can't sell
-		jmp  eax;
+		jmp  barter_attempt_transaction_Ret;      // Can't sell
 found:
 		push 0x474D17;                            // Is there any other activated items among the ones being sold?
 		jmp  fo::funcoffs::item_m_turn_off_;
@@ -1419,21 +1421,21 @@ end:
 }
 
 static __declspec(naked) void gdActivateBarter_hook() {
+	static const DWORD gdActivateBarter_Ret = 0x44A5CC;
 	__asm {
 		call fo::funcoffs::gdialog_barter_pressed_;
 		cmp  ds:[FO_VAR_dialogue_state], ecx;
 		jne  skip;
 		cmp  ds:[FO_VAR_dialogue_switch_mode], esi;
-		je   end;
+		jne  skip;
+		retn;
 skip:
 		push ecx;
 		push esi;
 		push edi;
 		push ebp;
 		sub  esp, 0x18;
-		push 0x44A5CC;
-end:
-		retn;
+		jmp  gdActivateBarter_Ret;
 	}
 }
 
@@ -2250,6 +2252,7 @@ static __declspec(naked) void combat_attack_hack() {
 }
 
 static __declspec(naked) void op_use_obj_on_obj_hack() {
+	static const DWORD op_use_obj_on_obj_Ret = 0x45C3A3;
 	__asm {
 		test eax, eax; // source
 		jz   fail;
@@ -2262,12 +2265,12 @@ skip:
 		retn;
 fail:
 		add  esp, 4;
-		mov  edx, 0x45C3A3; // exit func
-		jmp  edx;
+		jmp  op_use_obj_on_obj_Ret; // exit func
 	}
 }
 
 static __declspec(naked) void op_use_obj_hack() {
+	static const DWORD op_use_obj_Ret = 0x456ABA;
 	__asm {
 		test eax, eax; // source
 		jz   fail;
@@ -2276,8 +2279,7 @@ static __declspec(naked) void op_use_obj_hack() {
 		retn;
 fail:
 		add  esp, 4;
-		mov  edx, 0x456ABA; // exit func
-		jmp  edx;
+		jmp  op_use_obj_Ret; // exit func
 	}
 }
 
@@ -2685,6 +2687,7 @@ largeLoc:
 }
 
 static __declspec(naked) void wmTownMapFunc_hack() {
+	static const DWORD wmTownMapFunc_Ret = 0x4C4976;
 	__asm {
 		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
 		je   end;
@@ -2698,8 +2701,7 @@ static __declspec(naked) void wmTownMapFunc_hack() {
 		retn;
 end:
 		add  esp, 4; // destroy the return address
-		mov  eax, 0x4C4976;
-		jmp  eax;
+		jmp  wmTownMapFunc_Ret;
 	}
 }
 

@@ -85,9 +85,10 @@ default:
 }
 
 static __declspec(naked) void scr_get_dialog_msg_file_hack2() {
+	static const DWORD scr_get_dialog_msg_file_Ret = 0x4A6C0E;
+	static const DWORD scr_get_dialog_msg_file_Error = 0x4A6BFA;
 	__asm {
 		cmp  eax, 1;          // checking existence of msg file
-		mov  eax, 0x4A6C0E;
 		jz   exist;
 		cmp  femaleCheck, 1;
 		jnz  error;           // no exist default msg file
@@ -96,9 +97,9 @@ static __declspec(naked) void scr_get_dialog_msg_file_hack2() {
 		mov  femaleCheck, 0;               // reset flag
 		jmp  scr_get_dialog_msg_file_Back; // check default msg file
 error:
-		mov  eax, 0x4A6BFA;   // jump to Error
+		jmp  scr_get_dialog_msg_file_Error;
 exist:
-		jmp  eax;
+		jmp  scr_get_dialog_msg_file_Ret;
 	}
 }
 

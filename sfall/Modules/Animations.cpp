@@ -309,6 +309,7 @@ static void __fastcall CheckAppendReg(long, long totalAnims) {
 }
 
 static __declspec(naked) void register_end_hack_begin() {
+	static const DWORD register_end_begin_Ret = 0x413D14;
 	__asm {
 		mov  edx, ds:[FO_VAR_curr_anim_counter];
 		mov  esi, animSet;
@@ -320,10 +321,9 @@ isAppend:
 		mov  esi, eax; // keep offset to anim_set slot
 		call CheckAppendReg;
 		xor  ecx, ecx;
-		add  esp, 4;
-		mov  edx, 0x413D14;
 		mov  eax, esi;
-		jmp  edx;
+		add  esp, 4;
+		jmp  register_end_begin_Ret;
 	}
 }
 
