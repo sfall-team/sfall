@@ -121,12 +121,12 @@ static int __fastcall SkillNegative(fo::GameObject* critter, int base, int skill
 }
 
 static __declspec(naked) void skill_level_hack() {
+	static const DWORD skill_level_Ret = 0x4AA64B;
 	__asm {
 		push ebx;           // skill
 		mov  edx, esi;      // level skill (base)
 		call SkillNegative; // ecx - critter
-		mov  edx, 0x4AA64B;
-		jmp  edx;
+		jmp  skill_level_Ret;
 	}
 }
 

@@ -243,6 +243,7 @@ isNotReading:
 }
 
 static __declspec(naked) void CheckHeroExist() {
+	static const DWORD CheckHeroExist_Back = 0x4194E2;
 	__asm {
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jg   checkArt;
@@ -257,8 +258,7 @@ checkArt:
 notExists: // if file not found load regular critter art instead
 		sub  esi, critterArraySize;
 		add  esp, 4;                      // drop func ret address
-		mov  eax, 0x4194E2;
-		jmp  eax;
+		jmp  CheckHeroExist_Back;
 	}
 }
 
@@ -1015,14 +1015,15 @@ static int __stdcall CheckCharButtons() {
 }
 
 static __declspec(naked) void CheckCharScrnButtons() {
+	static const DWORD CheckCharScrnButtons_Back = 0x431E8A;
 	__asm {
 		call CheckCharButtons;
 		cmp  eax, 0x500;
 		jl   endFunc;
 		cmp  eax, 0x515;
 		jg   endFunc;
-		add  esp, 4;   // ditch old ret addr
-		push 0x431E8A; // recheck buttons if app mod button
+		add  esp, 4;                    // ditch old ret addr
+		jmp  CheckCharScrnButtons_Back; // recheck buttons if app mod button
 endFunc:
 		retn;
 	}

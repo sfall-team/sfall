@@ -632,6 +632,7 @@ static __declspec(naked) void wmWorldMap_hook() {
 }
 
 static __declspec(naked) void wmRndEncounterOccurred_hook() {
+	static const DWORD wmRndEncounterOccurred_Ret = 0x4C0BC7;
 	static long hkEncounterMapID = -1;
 	__asm {
 		cmp  hkEncounterMapID, -1;
@@ -678,8 +679,7 @@ cancelEnc:
 		inc  eax; // 0 - continue movement, 1 - interrupt
 		mov  dword ptr ds:[FO_VAR_wmEncounterIconShow], 0;
 		add  esp, 4;
-		mov  ebx, 0x4C0BC7;
-		jmp  ebx;
+		jmp  wmRndEncounterOccurred_Ret;
 	}
 }
 

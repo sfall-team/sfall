@@ -342,10 +342,10 @@ static __declspec(naked) void add_page_offset_hack1(void) {
 // getting info for the 10 currently displayed save slots from save.dats
 static __declspec(naked) void add_page_offset_hack2(void) {
 	__asm {
+		pop  edx;               // ret addr
 		push 0x50A514;          // ASCII "SAVE.DAT"
 		lea  eax, [ebx + 1];
 		add  eax, LSPageOffset; // add page num offset
-		mov  edx, 0x47E5E9;     // ret addr
 		jmp  edx;
 	}
 }
@@ -389,7 +389,7 @@ static void EnableSuperSaving() {
 		0x480767, 0x4807E6, 0x480839, 0x4808D3  // EraseSave_
 	});
 
-	MakeJump(0x47E5E1, add_page_offset_hack2); // GetSlotList_
+	MakeCall(0x47E5E1, add_page_offset_hack2, 3); // GetSlotList_
 
 	MakeCall(0x47E756, add_page_offset_hack3); // ShowSlotList_
 }

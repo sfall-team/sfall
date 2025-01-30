@@ -70,7 +70,6 @@ skip:
 static DWORD explosion_effect_starting_dir = 0;
 
 static __declspec(naked) void explosion_effect_hook() {
-	static const DWORD explosion_effect_hook_back = 0x411AB9;
 	__asm {
 		mov  bl, lightingEnabled;
 		test bl, bl;
@@ -85,13 +84,13 @@ next:
 		mov  al, lightingEnabled;
 		test al, al;
 		jz   skiplight;
-		mov  eax, [esp + 40]; // projectile ptr - 1st arg
-		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check_light_fix)
+		mov  eax, [esp + 40 + 4]; // projectile ptr - 1st arg
+		mov  edx, 0xFFFF0008;     // maximum radius + intensity (see anim_set_check_light_fix)
 		xor  ebx, ebx;
 		call fo::funcoffs::register_object_light_;
 skiplight:
 		mov  edi, explosion_effect_starting_dir; // starting direction
-		jmp  explosion_effect_hook_back;         // jump back
+		retn;
 	}
 }
 
@@ -144,8 +143,7 @@ end:
 }
 
 // enable lighting for burning poor guy
-static __declspec(naked) void fire_dance_lighting_fix1() {
-	static const DWORD fire_dance_lighting_back = 0x410A4F;
+static __declspec(naked) void fire_dance_lighting_fix() {
 	__asm {
 		push edx;
 		push ebx;
@@ -160,8 +158,7 @@ static __declspec(naked) void fire_dance_lighting_fix1() {
 		mov  eax, esi;                               // projectile ptr - 1st arg
 		mov  edx, 0x00010000;                        // maximum radius + intensity (see anim_set_check_light_fix)
 		mov  ebx, -1;
-		call fo::funcoffs::register_object_light_;
-		jmp  fire_dance_lighting_back; // jump back
+		jmp  fo::funcoffs::register_object_light_;
 	}
 }
 
@@ -479,14 +476,14 @@ static void ResetExplosionDamage() {
 }
 
 void Explosions::init() {
-	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
+	HookCall(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
 	lightingEnabled = IniReader::GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
 	if (lightingEnabled) {
 		dlogr("Applying Explosion changes.", DL_INIT);
-		MakeJump(0x4118E1, ranged_attack_lighting_fix);
-		MakeJump(0x410A4A, fire_dance_lighting_fix1);
-		MakeJump(0x415A3F, anim_set_check_light_fix); // this allows to change light intensity
+		MakeJump(0x4118E1, ranged_attack_lighting_fix, 1);
+		HookCall(0x410A4A, fire_dance_lighting_fix);
+		MakeJump(0x415A3F, anim_set_check_light_fix, 2); // this allows to change light intensity
 	}
 
 	// initialize explosives

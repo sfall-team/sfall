@@ -805,7 +805,7 @@ end:
 	}
 }
 
-static __declspec(naked) void HeaveHoHook() {
+static __declspec(naked) void HeaveHoHack() {
 	using namespace fo;
 	__asm {
 		xor  edx, edx;
@@ -831,7 +831,7 @@ static __declspec(naked) void HeaveHoHook() {
 bool Perks::perkHeaveHoModTweak = false;
 
 void __stdcall Perks::ApplyHeaveHoFix() { // not really a fix
-	MakeJump(0x478AC4, HeaveHoHook);
+	MakeJump(0x478AC4, HeaveHoHack);
 	perks[fo::Perk::PERK_heave_ho].strengthMin = 0;
 	perkHeaveHoModTweak = true;
 }
