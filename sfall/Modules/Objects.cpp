@@ -75,9 +75,13 @@ void Objects::SetNewEngineID(fo::GameObject* obj) {
 static __declspec(naked) void item_identical_hack() {
 	using namespace fo::Fields;
 	__asm {
-		mov  ecx, [edi]; // item id
+		mov  ecx, [edi]; // place_item id
 		cmp  ecx, Start; // start unique ID
 		jg   notIdentical;
+		mov  ecx, [esi]; // inv_item id
+		cmp  ecx, Start; // start unique ID
+		jg   notIdentical;
+		// engine code
 		mov  eax, [esi + scriptId];
 		cmp  eax, ebx;
 notIdentical:
