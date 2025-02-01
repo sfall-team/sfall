@@ -4275,7 +4275,9 @@ void BugFixes::init() {
 	MakeCall(0x4550C8, op_create_object_sid_hack1);
 
 	// Fix to prevent the main menu music from stopping when entering the load game screen
-	BlockCall(0x480B25);
+	BlockCall(0x480B25); // block gsound_background_stop_ (gnw_main_)
+	// Fix for the main menu music not stopping when replaying the intro
+	SafeWrite8(0x480A58, 4); // "stop music" flag (gnw_main_)
 
 	// Fix incorrect value of the limit number of floating messages
 	SafeWrite8(0x4B039F, 20); // text_object_create_ (was 19)
