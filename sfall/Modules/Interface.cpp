@@ -937,7 +937,7 @@ static __declspec(naked) void gmouse_bk_process_hook() {
 	}
 }
 
-static long ammoBarXPos = 461; // move ammo bar away from rivets (was 463)
+static long ammoBarXPos = 463; // default position
 
 static __declspec(naked) void intface_update_ammo_lights_hack() {
 	__asm {
@@ -1066,9 +1066,9 @@ void Interface::init() {
 	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
 	// Tweak for ammo bar position with HRP by Mash
 	if (hrpIsEnabled) {
-		ammoBarXPos = 465;
-		if (IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, ".\\f2_res.ini")) {
-			ammoBarXPos -= 2;
+		//ammoBarXPos = 467;
+		if (!IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, ".\\f2_res.ini")) {
+			ammoBarXPos += 4;
 		}
 	}
 }
