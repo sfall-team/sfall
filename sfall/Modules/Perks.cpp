@@ -112,14 +112,14 @@ static DWORD IgnoringDefaultPerks = 0;
 
 static DWORD PerkFreqOverride = 0;
 
-static const DWORD GainStatPerks[7][2] = {
-	{0x4AF122, 0xC9}, // Strength     // mov  ecx, ecx
-	{0x4AF184, 0xC9}, // Perception
-	{0x4AF19F, 0x90}, // Endurance    // nop
-	{0x4AF1C0, 0xC9}, // Charisma
-	{0x4AF217, 0xC9}, // Intelligance
-	{0x4AF232, 0x90}, // Agility
-	{0x4AF24D, 0x90}, // Luck
+static const DWORD GainStatPerks[] = {
+	0x4AF112, // Strength
+	0x4AF174, // Perception
+	0x4AF190, // Endurance
+	0x4AF1AE, // Charisma
+	0x4AF207, // Intelligance
+	0x4AF223, // Agility
+	0x4AF23E, // Luck
 };
 
 // Returns the index for the found ID
@@ -713,7 +713,7 @@ normalPerk:
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
 		jg   end;
-		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
+		inc  dword ptr ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
 end:
 		retn;
 	}
@@ -805,33 +805,33 @@ end:
 	}
 }
 
-static __declspec(naked) void HeaveHoHack() {
+static __declspec(naked) void item_w_range_hack_heave_ho() {
+	static const DWORD item_w_range_heave_ho_Ret = 0x478AFC;
 	using namespace fo;
 	__asm {
 		xor  edx, edx;
 		mov  eax, ecx;
 		call fo::funcoffs::stat_level_;
-		lea  ebx, [0 + eax * 4];
+		lea  ebx, [eax * 4];
 		sub  ebx, eax;      // ST * 3
-		cmp  ebx, esi;      // ebx = dist (3*ST), esi = max dist weapon
+		cmp  ebx, esi;      // ebx = dist (3*ST), esi = weapon max dist
 		cmovg ebx, esi;     // if dist > max then dist = max
 		mov  eax, ecx;
 		mov  edx, PERK_heave_ho;
 		call fo::funcoffs::perk_level_;
-		lea  ecx, [0 + eax * 8];
+		lea  ecx, [eax * 8];
 		sub  ecx, eax;
 		sub  ecx, eax;
 		mov  eax, ecx;
 		add  eax, ebx;      // distance = dist + (PERK_heave_ho * 6)
-		push 0x478AFC;
-		retn;
+		jmp  item_w_range_heave_ho_Ret;
 	}
 }
 
 bool Perks::perkHeaveHoModTweak = false;
 
 void __stdcall Perks::ApplyHeaveHoFix() { // not really a fix
-	MakeJump(0x478AC4, HeaveHoHack);
+	MakeJump(0x478AC4, item_w_range_hack_heave_ho);
 	perks[fo::Perk::PERK_heave_ho].strengthMin = 0;
 	perkHeaveHoModTweak = true;
 }
@@ -1410,9 +1410,7 @@ void Perks::init() {
 	HookCall(0x43C80B, perks_dialog_hook);
 
 	// Disable gain perks for bonus stats
-	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
-		SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
-	}
+	SafeWriteBatch<DWORD>(-1, GainStatPerks); // NoPERK
 
 	PerkEngineInit();
 	// Perk and Trait init
