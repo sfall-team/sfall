@@ -77,14 +77,14 @@ static DWORD IgnoringDefaultPerks = 0;
 
 static DWORD PerkFreqOverride = 0;
 
-static const DWORD GainStatPerks[7][2] = {
-	{0x4AF122, 0xC9}, // Strength     // mov  ecx, ecx
-	{0x4AF184, 0xC9}, // Perception
-	{0x4AF19F, 0x90}, // Endurance    // nop
-	{0x4AF1C0, 0xC9}, // Charisma
-	{0x4AF217, 0xC9}, // Intelligance
-	{0x4AF232, 0x90}, // Agility
-	{0x4AF24D, 0x90}, // Luck
+static const DWORD GainStatPerks[] = {
+	0x4AF112, // Strength
+	0x4AF174, // Perception
+	0x4AF190, // Endurance
+	0x4AF1AE, // Charisma
+	0x4AF207, // Intelligance
+	0x4AF223, // Agility
+	0x4AF23E, // Luck
 };
 
 void __stdcall SetPerkFreq(int i) {
@@ -610,7 +610,7 @@ normalPerk:
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
 		jg   end;
-		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
+		inc  dword ptr ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
 end:
 		retn;
 	}
@@ -1138,9 +1138,7 @@ void Perks::init() {
 	HookCall(0x43C80B, perks_dialog_hook);
 
 	// Disable gain perks for bonus stats
-	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
-		SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
-	}
+	SafeWriteBatch<DWORD>(-1, GainStatPerks); // NoPERK
 
 	PerkEngineInit();
 	// Perk and Trait init
