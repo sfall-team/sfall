@@ -596,6 +596,15 @@ skip:
 	}
 }
 
+static __declspec(naked) void gdProcessUpdate_hook() {
+	__asm {
+		pop  edi; // ret addr
+		call fo::funcoffs::text_to_rect_func_; // return _optionRect.y
+		mov  [ebp + 0x39C], eax; // dialogOptionEntry->bottom = _optionRect.y
+		jmp  edi;
+	}
+}
+
 static __declspec(naked) void invenWieldFunc_item_get_type_hook() {
 	__asm {
 		mov  edx, esi;
@@ -3608,6 +3617,9 @@ void BugFixes::init() {
 		dlogr("Applying 9 dialog options patch.", DL_FIX);
 		MakeCall(0x447021, gdProcessUpdate_hack, 1);
 	//}
+
+	// Fix for display issues when highlighting a multiline dialogue option
+	HookCall(0x447071, gdProcessUpdate_hook);
 
 	// Fix for "Unlimited Ammo" exploit
 	dlogr("Applying fix for Unlimited Ammo exploit.", DL_FIX);
