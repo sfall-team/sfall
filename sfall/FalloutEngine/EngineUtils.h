@@ -36,7 +36,7 @@ namespace util
 struct ArtCacheLock {
 	DWORD entryPtr;
 
-	ArtCacheLock() :entryPtr(0) {}
+	ArtCacheLock() : entryPtr(0) {}
 	ArtCacheLock(DWORD _lock) : entryPtr(_lock) {}
 	~ArtCacheLock() {
 		if (entryPtr != 0) {

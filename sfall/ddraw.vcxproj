@@ -243,7 +243,6 @@
     <ClInclude Include="FalloutEngine\GamePids.h" />
     <ClInclude Include="FalloutEngine\Structs.h" />
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />
-    <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h" />
     <ClInclude Include="FalloutEngine\VarPointers.h" />
     <ClInclude Include="FalloutEngine\VarPointers_def.h" />
     <ClInclude Include="Game\combatAI.h" />

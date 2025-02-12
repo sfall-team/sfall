@@ -363,3 +363,6 @@
 #define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_WhiteColor                 0x6AB8CF
 #define FO_VAR_YellowColor                0x6AB8BB // Light
+
+// HRP offsets
+#define HRP_VAR_VERSION_STR               0x10039940 // 4.1.8

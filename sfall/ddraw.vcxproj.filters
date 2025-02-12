@@ -295,9 +295,6 @@
     <ClInclude Include="FalloutEngine\VariableOffsets.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
-    <ClInclude Include="FalloutEngine\VariableOffsets_HRP.h">
-      <Filter>FalloutEngine</Filter>
-    </ClInclude>
     <ClInclude Include="FalloutEngine\VarPointers.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
