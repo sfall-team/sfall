@@ -4341,6 +4341,9 @@ void BugFixes::init() {
 	// Fix to prevent the game from hanging when reloading a weapon overloaded with ammo via the interface bar
 	SafeWrite8(0x4787A2, 0x8D); // jz > jge (item_w_try_reload_)
 	SafeWrite8(0x45F5BD, 0x7E); // jz > jle (intface_toggle_item_state_)
+
+	// Fix for the incorrect message when attempting to repair dead robots
+	SafeWrite32(0x4AB1BE, 601); // skill_use_ (was 1101 in skill.msg)
 }
 
 }
