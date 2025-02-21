@@ -3567,6 +3567,8 @@ void BugFixes::init() {
 	HookCall(0x497E9F, PipStatus_hook);
 	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
 	SafeWrite32(0x497E8E, 0x90909090);
+	// Fix for double click sound when selecting a location in the Status section
+	BlockCall(0x497F52); // block gsound_play_sfx_file_ (PipStatus_)
 
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
@@ -4342,7 +4344,7 @@ void BugFixes::init() {
 	SafeWrite8(0x4787A2, 0x8D); // jz > jge (item_w_try_reload_)
 	SafeWrite8(0x45F5BD, 0x7E); // jz > jle (intface_toggle_item_state_)
 
-	// Fix for the incorrect message when attempting to repair dead robots
+	// Fix for the incorrect message being displayed when attempting to repair a dead robot
 	SafeWrite32(0x4AB1BE, 601); // skill_use_ (was 1101 in skill.msg)
 }
 
