@@ -156,6 +156,7 @@
 #define FO_VAR_hereAndNowExps             0x51C124
 #define FO_VAR_hit_location_penalty       0x510954
 #define FO_VAR_holo_flag                  0x664529
+#define FO_VAR_holocount                  0x66444C
 #define FO_VAR_holodisk                   0x6644F4
 #define FO_VAR_holopages                  0x66445C
 #define FO_VAR_hot_line_count             0x6644F8
@@ -327,6 +328,7 @@
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_statcount                  0x664418
 #define FO_VAR_subtitleH                  0x638EA0
 #define FO_VAR_subtitleList               0x638E74
 #define FO_VAR_subtitles                  0x663974

@@ -949,6 +949,11 @@ end:
 
 static __declspec(naked) void PipStatus_AddHotLines_hook() {
 	__asm {
+		// Fix extra hidden buttons appearing below the location list in the Status section (partially)
+		mov  edx, dword ptr ds:[FO_VAR_statcount];
+		mov  ecx, dword ptr ds:[FO_VAR_holocount];
+		cmp  edx, ecx;
+		cmovl edx, ecx; // count = (statcount < holocount) ? holocount : statcount
 		call fo::funcoffs::AddHotLines_;
 		xor  eax, eax;
 		mov  dword ptr ds:[FO_VAR_hot_line_count], eax;
