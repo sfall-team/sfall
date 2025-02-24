@@ -230,7 +230,7 @@ void op_list_next(OpcodeContext& ctx) {
 	DWORD id = ctx.arg(0).rawValue();
 	if (id != 0) {
 		sList* list = nullptr;
-		for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end =  mList.cend(); it != it_end; ++it) {
+		for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end = mList.cend(); it != it_end; ++it) {
 			if (it->id == id) {
 				list = it->list;
 				break;
