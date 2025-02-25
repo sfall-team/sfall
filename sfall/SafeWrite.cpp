@@ -14,9 +14,9 @@ static void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 
 static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, size_t len) {
 	DWORD oldProtect,
-		protectLen = len + 5,
-		addrMem = addr + 5,
-		data = (DWORD)func - addrMem;
+	      protectLen = len + 5,
+	      addrMem = addr + 5,
+	      data = (DWORD)func - addrMem;
 
 	VirtualProtect((void*)addr, protectLen, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((BYTE*)addr) = code;

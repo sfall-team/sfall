@@ -204,6 +204,7 @@
 #define FO_VAR_mouse_hotx                 0x6AC7D0
 #define FO_VAR_mouse_hoty                 0x6AC7CC
 #define FO_VAR_mouse_is_hidden            0x6AC790
+#define FO_VAR_mouse_x                    0x664454
 #define FO_VAR_mouse_x_                   0x6AC7A8
 #define FO_VAR_mouse_y                    0x664450
 #define FO_VAR_mouse_y_                   0x6AC7A4
