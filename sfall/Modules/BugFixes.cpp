@@ -242,6 +242,19 @@ static __declspec(naked) void PipStatus_hook() {
 	}
 }
 
+static __declspec(naked) void PipStatus_hack() {
+	static const DWORD PipStatus_Ret = 0x497DD6;
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_statcount], eax; // eax - "result" argument
+		jl   skip;
+		cmp  dword ptr ds:[FO_VAR_mouse_x], 429; // overwritten engine code
+		retn;
+skip:
+		add  esp, 4;
+		jmp  PipStatus_Ret;
+	}
+}
+
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static __declspec(naked) void scr_write_ScriptNode_hook() {
 	__asm {
@@ -949,11 +962,6 @@ end:
 
 static __declspec(naked) void PipStatus_AddHotLines_hook() {
 	__asm {
-		// Fix extra hidden buttons appearing below the location list in the Status section (partially)
-		mov  edx, dword ptr ds:[FO_VAR_statcount];
-		mov  ecx, dword ptr ds:[FO_VAR_holocount];
-		cmp  edx, ecx;
-		cmovl edx, ecx; // count = (statcount < holocount) ? holocount : statcount
 		call fo::funcoffs::AddHotLines_;
 		xor  eax, eax;
 		mov  dword ptr ds:[FO_VAR_hot_line_count], eax;
@@ -3572,6 +3580,8 @@ void BugFixes::init() {
 	HookCall(0x497E9F, PipStatus_hook);
 	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
 	SafeWrite32(0x497E8E, 0x90909090);
+	// Fix for extra hidden buttons below the location list in the Status section
+	MakeCall(0x497D52, PipStatus_hack, 5);
 	// Fix for double click sound when selecting a location in the Status section
 	BlockCall(0x497F52); // block gsound_play_sfx_file_ (PipStatus_)
 
