@@ -2393,24 +2393,49 @@ skip:
 	}
 }
 
-static __declspec(naked) void PrintAutoMapList() {
+static __declspec(naked) void automap_pip_save_hook() {
 	__asm {
-		mov  eax, ds:[FO_VAR_wmMaxMapNum];
+		mov  eax, ds:[FO_VAR_map_number];
 		cmp  eax, AUTOMAP_MAX;
-		jb   skip;
-		mov  eax, AUTOMAP_MAX;
+		jl   skip;
+		xor  eax, eax;
 skip:
 		retn;
 	}
 }
 
-static __declspec(naked) void automap_pip_save_hook() {
+static __declspec(naked) void PrintAMList_hook() {
 	__asm {
-		mov  eax, ds:[FO_VAR_map_number];
+		cmp  ebp, 20; // max line count for location list
+		jge  skip;
+		// replace wmMapMaxCount_ function call
+		mov  eax, ds:[FO_VAR_wmMaxMapNum];
 		cmp  eax, AUTOMAP_MAX;
-		jb   skip;
-		xor  eax, eax;
+		jle  end;
+		mov  eax, AUTOMAP_MAX;
+end:
+		retn;
 skip:
+		mov  ebp, 20;
+		xor  eax, eax; // exit loop
+		retn;
+	}
+}
+
+static __declspec(naked) void PrintAMelevList_hook() {
+	__asm {
+		cmp  ebp, 18; // max line count for elevation list
+		jge  skip;
+		// replace wmMapMaxCount_ function call
+		mov  eax, ds:[FO_VAR_wmMaxMapNum];
+		cmp  eax, AUTOMAP_MAX;
+		jle  end;
+		mov  eax, AUTOMAP_MAX;
+end:
+		retn;
+skip:
+		mov  ebp, 18;
+		xor  eax, eax; // exit loop
 		retn;
 	}
 }
@@ -2441,16 +2466,6 @@ static __declspec(naked) void obj_load_dude_hook1() {
 		mov  eax, dudeScriptID;
 		mov  [ebx + scriptId], eax;
 		retn;
-	}
-}
-
-static __declspec(naked) void PrintAMList_hook() {
-	__asm {
-		cmp  ebp, 20; // max line count
-		jle  skip;
-		mov  ebp, 20;
-skip:
-		jmp  fo::funcoffs::qsort_;
 	}
 }
 
@@ -4110,15 +4125,10 @@ void BugFixes::init() {
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
 
 	// Fix for the overflow of the automap tables when the number of maps in maps.txt is more than 160
+	// also fix "out of bounds" bug when printing the automap list
 	HookCall(0x41C0FC, automap_pip_save_hook);
-	const DWORD printAutoMapAddr[] = {
-		0x499212, // PrintAMList_
-		0x499013  // PrintAMelevList_
-	};
-	HookCalls(PrintAutoMapList, printAutoMapAddr);
-
-	// Fix "out of bounds" bug when printing the automap list
-	HookCall(0x499240, PrintAMList_hook);
+	HookCall(0x499212, PrintAMList_hook);
+	HookCall(0x499013, PrintAMelevList_hook);
 
 	// Fix for a duplicate obj_dude script being created when loading a saved game
 	HookCall(0x48306E, map_load_file_hook); // removes the redundant saved dude script data from the scripts block
