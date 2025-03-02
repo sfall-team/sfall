@@ -677,12 +677,9 @@ static void MusicInDialoguePatch() {
 static void PipboyAvailableAtStartPatch() {
 	switch (IniReader::GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
-		LoadGameHook::OnBeforeGameStart() += []() {
-			fo::var::gmovie_played_list[3] = true; // PipBoy aquiring video
-		};
-		break;
+		SafeWrite16(0x49F9AF, 0x9090); // skip the vault suit movie check (proto_dude_update_gender_)
 	case 2:
-		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
+		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check (pipboy_)
 		break;
 	}
 }

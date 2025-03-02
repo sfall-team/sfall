@@ -413,7 +413,7 @@ void Skills::init() {
 		if (tagBonus != 20 && tagBonus >=0 && tagBonus <= 100) SafeWrite8(0x4AA61E, static_cast<BYTE>(tagBonus)); // skill_level_
 
 		int tagMode = IniReader::GetInt("Skills", "TagSkillMode", 0, file);
-		if (tagMode & 1) SafeWrite8(0x4AA612, 0xEB);    // 4th tag skill can have initial skill bonus. skill_level_ (jz > jmp)
+		if (tagMode & 1) SafeWrite8(0x4AA612, CodeType::JumpShort); // 4th tag skill can have initial skill bonus. skill_level_ (jz > jmp)
 		if (tagMode & 2) SafeWrite16(0x4AA60E, 0x9090); // disables double skill points bonus for tag skills. skill_level_
 	}
 }

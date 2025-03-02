@@ -15,7 +15,6 @@ To use a global script, the script must have a name which begins with `gl` and c
 
 Global scripts have multiple modes, which can be set using the `set_global_script_type` function.
 - In the default mode (i.e. mode 0) their execution is linked to the local map game loop, so the script will not run in dialogs or on the world map.
-  _[Using mode 1 requires the input wrapper to be enabled. Use `available_global_script_types` to check what is available.]_ - **Obsolete**.
 - In mode 1 their execution is linked to the player input, and so they will run whenever the mouse cursor is visible on screen, including the world map, character dialogs etc.
 - In mode 2, execution is linked to the world map loop, so the script will only be executed on the world map and not on the local map or in any dialog windows.
 - Mode 3 is a combination of modes 0 and 2, so scripts will be executed on both local maps and the world map, but not in dialog windows.
