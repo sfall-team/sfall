@@ -32,4 +32,6 @@ public:
 	static void OnGameReset();
 };
 
+extern bool disableHorrigan;
+
 }

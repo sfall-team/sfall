@@ -45,28 +45,32 @@ __declspec(naked) void op_input_funcs_available() {
 	}
 }
 
-static BYTE pipboyMovieCheck = 0;
+static WORD pipboyMovieCheck = 0;
+static WORD defAppMovieCheck = 0;
 
 void PipboyAvailableRestore() {
 	if (pipboyMovieCheck) {
-		SafeWrite8(0x497011, pipboyMovieCheck);
+		SafeWrite16(0x497011, pipboyMovieCheck);
 		pipboyMovieCheck = 0;
+		if (defAppMovieCheck) {
+			SafeWrite16(0x49F9AF, defAppMovieCheck);
+			defAppMovieCheck = 0;
+		}
 	}
 }
 
 void op_set_pipboy_available(OpcodeContext& ctx) {
-	if (!pipboyMovieCheck) pipboyMovieCheck = *(BYTE*)0x497011; // should be either jnz or jmp(short)
+	if (!pipboyMovieCheck) pipboyMovieCheck = *(WORD*)0x497011; // should be either jnz or jmp(short)
 
 	switch (ctx.arg(0).rawValue()) {
 	case 0:
-		fo::ptr::gmovie_played_list[3] = false;
-		SafeWrite8(0x497011, CodeType::JumpNZ); // restore the vault suit movie check
+		SafeWrite16(0x497011, 0x9090); // disable the pipboy
 		break;
 	case 1:
-		fo::ptr::gmovie_played_list[3] = true;
-		break;
+		if (!defAppMovieCheck) defAppMovieCheck = *(WORD*)0x49F9AF; // should be either jz or nop
+		SafeWrite16(0x49F9AF, 0x9090); // skip the vault suit movie check (proto_dude_update_gender_)
 	case 2:
-		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
+		SafeWrite16(0x497011, 0x37EB); // skip the vault suit movie check (pipboy_)
 		break;
 	}
 }

@@ -37,6 +37,8 @@ static char versionString[65] = {};
 
 static int* scriptDialog = nullptr;
 
+bool disableHorrigan = false;
+
 static void __stdcall Sleep2(DWORD dwMilliseconds) {
 	Sleep(dwMilliseconds);
 }
@@ -701,6 +703,22 @@ static void MusicInDialoguePatch() {
 	}
 }
 
+static void PipboyAvailableAtStartPatch() {
+	switch (IniReader::GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
+	case 1:
+		SafeWrite16(0x49F9AF, 0x9090); // skip the vault suit movie check (proto_dude_update_gender_)
+	case 2:
+		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check (pipboy_)
+		break;
+	}
+}
+
+static void DisableHorriganPatch() {
+	if (IniReader::GetConfigInt("Misc", "DisableHorrigan", 0)) {
+		disableHorrigan = true;
+	}
+}
+
 static void DisplaySecondWeaponRangePatch() {
 	// Display the range of the secondary attack mode in the inventory when you switch weapon modes in active item slots
 	//if (IniReader::GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
@@ -1101,6 +1119,8 @@ void MiscPatches::init() {
 
 	InstantWeaponEquipPatch();
 	NumbersInDialoguePatch();
+	PipboyAvailableAtStartPatch();
+	DisableHorriganPatch();
 
 	DisplaySecondWeaponRangePatch();
 	KeepSelectModePatch();

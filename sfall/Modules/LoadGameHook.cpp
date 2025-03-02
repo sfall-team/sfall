@@ -80,8 +80,6 @@ namespace sfall
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
-static bool disableHorrigan = false;
-static bool pipBoyAvailableAtGameStart = false;
 static bool gameLoaded = false;
 static bool onLoadingMap = false;
 
@@ -141,7 +139,6 @@ void __stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 static void __stdcall RunOnBeforeGameStart() {
 	Criticals::ApplyCritTable();
 	ReadExtraGameMsgFiles();
-	if (pipBoyAvailableAtGameStart) fo::ptr::gmovie_played_list[3] = true; // PipBoy aquiring video
 	Combat::OnBeforeGameStart();
 	LoadGlobalScripts(); // loading sfall scripts
 }
@@ -856,19 +853,6 @@ static __declspec(naked) void gdialogUpdatePartyStatus_hook0() {
 void LoadGameHook::init() {
 	saveInCombatFix = IniReader::GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-
-	switch (IniReader::GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
-	case 1:
-		pipBoyAvailableAtGameStart = true;
-		break;
-	case 2:
-		SafeWrite8(0x497011, CodeType::JumpShort); // skip the vault suit movie check
-		break;
-	}
-
-	if (IniReader::GetConfigInt("Misc", "DisableHorrigan", 0)) {
-		disableHorrigan = true;
-	}
 
 	HookCall(0x482AEC, map_load_hook);
 	HookCall(0x4809BA, main_init_system_hook);
