@@ -518,7 +518,13 @@ static void __stdcall combat_begin_anim_stop_hook() {
 
 	for (int i = 0; i < animationLimit; i++) {
 		const fo::AnimationSet& set = animSet[i];
-		if (set.currentAnim >= 1 && set.animations[set.currentAnim - 1].animType == fo::ANIM_TYPE_ANIMATE_FOREVER) continue;
+		if (set.currentAnim >= 1 &&
+		    (set.animations[set.currentAnim - 1].animType == fo::ANIM_TYPE_ANIMATE_FOREVER ||
+		     (set.animations[set.currentAnim - 1].source->IsCritter() &&
+		      set.animations[set.currentAnim - 1].source->critter.damageFlags & fo::DAM_DEAD)))
+		{
+			continue;
+		}
 		fo::func::anim_set_end(i);
 	}
 
@@ -637,6 +643,7 @@ void Animations::init() {
 	}
 
 	// Prevent the "forever" type of animation on objects from stopping when entering combat
+	// also allow death animations to finish
 	HookCall(0x421A48, combat_begin_anim_stop_hook);
 }
 
