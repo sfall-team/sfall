@@ -88,7 +88,7 @@ static __declspec(naked) void critter_check_poison_hack_fix() {
 		retn;
 notDude:
 		call critter_check_poison_fix;
-		or   al, 1; // unset ZF (exit from func)
+		or   eax, 1; // unset ZF (exit from func)
 		retn;
 	}
 }

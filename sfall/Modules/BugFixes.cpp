@@ -543,7 +543,7 @@ dudeFix:
 		jnz  equipped;
 		xor  eax, eax;
 equipped:
-		or   cl, 1;                    // reset ZF
+		or   ecx, 1;                   // reset ZF
 		retn;
 	}
 }
