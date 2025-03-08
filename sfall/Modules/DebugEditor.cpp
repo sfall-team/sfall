@@ -329,12 +329,12 @@ artNotExist:
 
 static __declspec(naked) void art_data_size_hook_check() {
 	using namespace fo;
-	__asm {
-		xor  esi, esi;
-		mov  eax, ebx; // ebx - FID
-		shr  eax, 16;  // al - animation code (ID2)
-		cmp  al, ANIM_walk;
-		cmove ecx, esi;
+	__asm { // ecx = -1
+		xor  eax, eax;
+		mov  edx, ebx; // ebx - FID
+		shr  edx, 16;  // dl - animation code (ID2)
+		cmp  dl, ANIM_walk;
+		cmove eax, ecx; // -1 - skip critter art debug message
 		retn;
 	}
 }
@@ -623,7 +623,6 @@ void DebugEditor::init() {
 	HookCall(0x419B65, art_data_size_hook);
 	// Checks the animation code, if ANIM_walk then skip printing the debug message
 	HookCall(0x419AA0, art_data_size_hook_check);
-	SafeWrite8(0x419B61, CodeType::JumpNZ); // jz > jnz
 
 	// Notifies and prints a debug message about a corrupted proto file to debug.log
 	MakeCall(0x4A1D73, proto_load_pid_hack, 6);
