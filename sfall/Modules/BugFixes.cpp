@@ -2402,7 +2402,7 @@ static __declspec(naked) void partyFixMultipleMembers_hack() {
 		sar  eax, 24;
 		cmp  eax, OBJ_TYPE_CRITTER;
 		jne  skip;
-		test [esi + damageFlags], DAM_DEAD;
+		test byte ptr [esi + damageFlags], DAM_DEAD;
 		cmovnz edx, esi;
 skip:
 		retn;
@@ -4104,9 +4104,9 @@ void BugFixes::init() {
 	HookCall(0x429A2B, ai_search_inven_weap_hook0); // for melee/unarmed weapons
 	HookCall(0x4299EC, ai_search_inven_weap_hook1); // for the solar scorcher
 
-	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
+	// Fix for critters not being healed over time when entering a map with 'dead_bodies_age=No' set in maps.txt
 	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
-	dlogr("Applying fix for the self-healing of critters when entering the map.", DL_FIX);
+	dlogr("Applying fix for the self-healing of critters when entering a map.", DL_FIX);
 	MakeCall(0x483356, map_age_dead_critters_hack);
 	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
 	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
