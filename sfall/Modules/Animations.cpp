@@ -528,6 +528,37 @@ static void __stdcall combat_begin_anim_stop_hook() {
 	fo::func::object_anim_compact();
 }
 
+static __declspec(naked) void obj_read_obj_hack() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		shr  eax, 24;
+		test eax, eax; // OBJ_TYPE_ITEM
+		jz   skip;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		jne  skip;
+		mov  edx, [esi + artFid];
+		mov  ebx, edx;
+		and  ebx, 0xFF0000;
+		shr  ebx, 16;
+		cmp  ebx, ANIM_fall_back;
+		jl   skip;
+		cmp  ebx, ANIM_fall_front_blood;
+		jg   skip;
+		mov  ecx, ANIM_burned_to_nothing;
+		cmp  ebx, ANIM_fire_dance;
+		cmove ebx, ecx;
+		add  ebx, 28;         // single-frame death animations
+		shl  ebx, 16;
+		and  edx, 0x0F00FFFF; // clear rotaion and anim code
+		or   edx, ebx;        // set new anim code (also unset ZF)
+		mov  [esi + artFid], edx;
+		mov  dword ptr [esi + currFrame], 0; // for single frame
+skip:
+		retn;
+	}
+}
+
 static void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//allocate memory to store larger animation struct arrays
 	sf_anim_set.resize(aniMax + 1); // include a dummy
@@ -643,6 +674,10 @@ void Animations::init() {
 	// Prevent the "forever" type of animation on objects from stopping when entering combat
 	// also allow death animations to finish
 	HookCall(0x421A48, combat_begin_anim_stop_hook);
+
+	// Replace death animations on critters with single-frame variants on map load
+	// also fix critters stuck in the middle of death animations after returning to the map
+	MakeCall(0x488CBA, obj_read_obj_hack);
 }
 
 //void Animations::exit() {
