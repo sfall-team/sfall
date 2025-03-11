@@ -521,7 +521,7 @@ static void __stdcall combat_begin_anim_stop_hook() {
 		if (set.currentAnim >= 1 &&
 		    (set.animations[set.currentAnim - 1].animType == fo::ANIM_TYPE_ANIMATE_FOREVER ||
 		     (set.animations[set.currentAnim - 1].source->IsCritter() &&
-		      set.animations[set.currentAnim - 1].source->critter.damageFlags & fo::DAM_DEAD)))
+		      set.animations[set.currentAnim - 1].source->critter.IsDead())))
 		{
 			continue;
 		}
