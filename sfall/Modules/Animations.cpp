@@ -516,8 +516,8 @@ static void __stdcall combat_begin_anim_stop_hook() {
 		const fo::AnimationSet& set = animSet[i];
 		if (set.currentAnim >= 1 &&
 		    (set.animations[set.currentAnim - 1].animType == fo::ANIM_TYPE_ANIMATE_FOREVER ||
-		     (set.animations[set.currentAnim - 1].source->IsCritter() &&
-		      set.animations[set.currentAnim - 1].source->critter.IsDead())))
+		     ((set.animations[set.currentAnim - 1].source->artFid & 0xFF0000) >> 16 >= fo::ANIM_fall_back &&
+		      (set.animations[set.currentAnim - 1].source->artFid & 0xFF0000) >> 16 <= fo::ANIM_fall_front_blood)))
 		{
 			continue;
 		}
