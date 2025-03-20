@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.8.46
+* Fixed a bug introduced in 3.8.31 that broke the debug message about a missing critter art file
+* Fixed an issue where an item with a unique ID in the inventory had its ID reset by a non-unique item
+* Restored the position of the ammo bar when **ALTERNATE_AMMO_METRE=0** in `f2_res.ini`
+* Improved the fix for the display issue in the pipboy when the automap list is too long
+* Improved the compatibility mode check for newer Windows
+* Changed **PipBoyAvailableAtGameStart** option and `set_pipboy_available` script function to no longer modify the vault suit movie state
+* Added a fix for the main menu music not stopping when replaying the intro
+* Added a fix for display issues when highlighting a multiline dialogue option
+* Added a fix for the incorrect message being displayed when attempting to repair a dead robot
+* Added a fix for the double click sound when selecting a location in the Status section of the pipboy
+* Added a fix for extra hidden buttons below the location list in the Status section of the pipboy
+* Added a fix for map lighting from **Night Vision** perk not updating when loading a saved game
+* Added a fix for an animation glitch when death animations and combat start simultaneously
+* Added a fix to prevent the game from hanging when reloading a weapon overloaded with ammo via the interface bar
+* Added a few fixes for issues related to weapons with negative ammo
+* Added a tweak to replace death animations on critters with single-frame variants on map load
+* Added more options for tweaking some engine perks to the **perks ini file**
+* Reduced the green tone of the message window on the interface bar for text clarity
+
 ## 3.8.45.1
 * Fixed a bug in **XPTable** that caused leveling issues with **Here and Now** perk
 * Disabled unnecessary selfrun file creation in the recording mode (autoplay has been disabled in 3.8.30)
@@ -8,7 +28,7 @@
 * Fixed a bug introduced in 3.8.29 that caused `game_loaded` script function to always return 1 when called from normal scripts
 * Fixed a bug introduced in 3.8.44 that caused the information card for the **hero appearance mod** not to refresh properly
 * Fixed a crash bug in **AutoSearchSFX** when an **ACM** file has a name longer than 12 characters
-* Fixed an issue with sfall not resetting data properly after attempting to load a corrupted saved game
+* Fixed an issue where sfall did not reset data properly after attempting to load a corrupted saved game
 * Fixed the inconsistent behavior of the escaped percent sign `%` in `sprintf` and `string_format` script functions
 * Fixed `show/hide_iface_tag` script functions to prevent unnecessary toggling of tags
 * Fixed `using_skill` script function returning garbage values when the arguments are not the player and Sneak skill
@@ -282,7 +302,7 @@
 * Added a fix to prevent the player name from being displayed at the bottom of the dialog review window when the text is longer than one screen
 * Added a fix for the in-game quest list not being in the same order as in `quests.txt`
 * Added a fix for multihex critters hitting themselves when they miss an attack with ranged weapons
-* Added a fix to the placement of multihex critters in the player's party when entering a map or elevation
+* Added a fix for the placement of multihex critters in the player's party when entering a map or elevation
 * Added a fix to the starting position of the player's marker on the world map when starting a new game
 * Added a fix for AI not checking the safety of weapons based on the selected attack mode
 * Added a fix for the incorrect check and AP cost when AI reloads a weapon
@@ -380,7 +400,7 @@
 * Fixed the default values for **Movie1 - Movie17** options
 * Fixed the playback of additional movies defined in **Movie18 - Movie32** options
 * Fixed **OverrideMusicDir=2** not overriding the music path properly
-* Fixed incorrect Melee Damage stat value being displayed when setting **BonusHtHDamageFix=1** and **DisplayBonusDamage=0**
+* Fixed incorrect Melee Damage stat value being displayed when **BonusHtHDamageFix=1** and **DisplayBonusDamage=0**
 * Fixed `attack_complex script` function not setting result flags correctly for the attacker and the target
 * Fixed and improved **SFX** and speech playback for alternative sound files
 * Fixed and improved the behavior of nested timer events in global scripts
@@ -653,7 +673,7 @@
 * Added a fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
 * Added a fix for the active effects of drugs not being saved properly
 * Added a fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
-* Added a fix for critters not being healed over time when entering the map if **'dead_bodies_age=No'** is set in `maps.txt`
+* Added a fix for critters not being healed over time when entering a map with **'dead_bodies_age=No'** set in `maps.txt`
 * Added a fix for corpses being removed early after returning to the map
 * Added a fix for the removal of party member's corpse. Now items in party member's inventory are not removed along with the corpse
 * Added an option to change the timer for deleting corpses on a map after you leave
@@ -753,7 +773,7 @@ Various bug fixes and features based on the work by Mr.Stalin:
 
 ## 3.8.11
 Various bug fixes based on the work by Mr.Stalin:
-* Fixed an issue with file IDs of additional game msg files being shifted when a file in **ExtraGameMsgFileList** is missing
+* Fixed an issue where the file IDs of additional game msg files were shifted when a file in **ExtraGameMsgFileList** was missing
 * Fixed `obj_can_see_obj` script function not checking if source and target objects are on the same elevation before calling `HOOK_WITHINPERCEPTION` hook script
 * Added a fix for the display issue in the pipboy when a quest list is too long with **UseScrollingQuestsList** diabled
 * Added a fix for the clickability issue of the holodisk list in the pipboy
@@ -794,7 +814,7 @@ Original engine bug fixes and various features based on the work by Mr.Stalin:
 * Fixed a crash bug in **NPC combat control** when trying to control a temporary party member that has no data in `party.txt`
 
 ## 3.8.5
-* Fixed an issue with the game being rendered before the **hero appearance mod** is loaded
+* Fixed an issue where the game was rendered before the **hero appearance mod** was loaded
 * Included Chinese and Russian translations
 
 Original engine bug fixes and various features based on the work by Crafty:
