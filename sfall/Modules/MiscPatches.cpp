@@ -957,16 +957,12 @@ static void EngineOptimizationPatches() {
 	SafeWrite8(0x4D6310, 0x90);
 	BlockCall(0x4D6319);
 
-	// Reduce excessive delays in the save/load game screens
+	// Reduce delays in the save/load game screens
 	const DWORD lsGameDelayAddr[] = {
 		0x47D00D, // LoadGame_
 		0x47C1FD  // SaveGame_
 	};
-	SafeWriteBatch<BYTE>(16, lsGameDelayAddr); // 41 to 16 ms
-	// LoadGame_
-	SafeWrite8(0x47CF0D, 195 + 10); // jz 0x47CFDE
-	// SaveGame_
-	SafeWrite8(0x47C135, 140 + 10); // jz 0x47C1CF
+	SafeWriteBatch<BYTE>(33, lsGameDelayAddr); // 41 to 33 ms
 }
 
 void MiscPatches::OnGameReset() {
