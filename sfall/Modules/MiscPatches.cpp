@@ -882,15 +882,11 @@ static void EngineOptimizationPatches() {
 	SafeWrite8(0x4D6310, 0x90);
 	BlockCall(0x4D6319);
 
-	// Reduce excessive delays in the save/load game screens
-	SafeWriteBatch<BYTE>(16, { // 41 to 16 ms
+	// Reduce delays in the save/load game screens
+	SafeWriteBatch<BYTE>(33, { // 41 to 33 ms
 		0x47D00D, // LoadGame_
 		0x47C1FD  // SaveGame_
 	});
-	// LoadGame_
-	SafeWrite8(0x47CF0D, 195 + 10); // jz 0x47CFDE
-	// SaveGame_
-	SafeWrite8(0x47C135, 140 + 10); // jz 0x47C1CF
 }
 
 void MiscPatches::SetIdle(int value) {
