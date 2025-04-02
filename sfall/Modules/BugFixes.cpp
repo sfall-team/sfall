@@ -4372,6 +4372,9 @@ void BugFixes::init() {
 
 	// Fix for the incorrect message being displayed when attempting to repair a dead robot
 	SafeWrite32(0x4AB1BE, 601); // skill_use_ (was 1101 in skill.msg)
+
+	// Fix to prevent out-of-bounds selection in the file list when loading a character file
+	SafeWriteBatch<BYTE>(0x7C, {0x41E690, 0x41E69C}); // jle > jl (file_dialog_)
 }
 
 }
