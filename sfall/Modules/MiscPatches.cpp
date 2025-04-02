@@ -962,7 +962,11 @@ static void EngineOptimizationPatches() {
 		0x47D00D, // LoadGame_
 		0x47C1FD  // SaveGame_
 	};
-	SafeWriteBatch<BYTE>(33, lsGameDelayAddr); // 41 to 33 ms
+	SafeWriteBatch<BYTE>(25, lsGameDelayAddr); // 41 to 25 ms
+	// LoadGame_
+	SafeWrite8(0x47CF0D, 195 + 10); // jz 0x47CFDE
+	// SaveGame_
+	SafeWrite8(0x47C135, 140 + 10); // jz 0x47C1CF
 }
 
 void MiscPatches::OnGameReset() {
