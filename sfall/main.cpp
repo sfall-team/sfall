@@ -193,21 +193,16 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	DWORD type;
 	if (!RegOpenKeyExA(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra | STANDARD_RIGHTS_READ | KEY_QUERY_VALUE, &key)) {
 		if (!RegQueryValueExA(key, filepath, 0, &type, (BYTE*)buf, &size)) {
-			if (size >= MAX_PATH) {
-				size = MAX_PATH - 1; // prevent overflow
-			}
+			if (size >= MAX_PATH) size = MAX_PATH - 1; // prevent overflow
 			buf[size] = '\0'; // null-terminate the buffer
 
 			if (size && (type == REG_EXPAND_SZ || type == REG_MULTI_SZ || type == REG_SZ)) {
-				char* pos = strstr(buf, "DISABLEDXMAXIMIZEDWINDOWEDMODE"); // "Disable fullscreen optimizations" in Win10
-				if (pos) std::memmove(pos, pos + 30, strlen(pos + 30) + 1); // remove the substring
-
-				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN") || strstr(buf, "NT4") || strstr(buf, "VISTA")) {
+				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN9") || strstr(buf, "NT4")) {
 					RegCloseKey(key);
 
-					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
-					               "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
-					               "Run this program in compatibility mode for..., run in 256 colors, and run in 640x480 resolution.\n"
+					MessageBoxA(0, "Fallout appears to be running in unsupported compatibility mode.\n" //, and sfall was not able to disable it.\n"
+					               "Please check the compatibility tab of fallout2.exe and ensure the following settings are not selected:\n"
+					               "Run this program in compatibility mode for Win9x/NT4, run in 256 colors, and run in 640x480 resolution.\n"
 					               "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", 0, MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
