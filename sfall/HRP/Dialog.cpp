@@ -63,7 +63,7 @@ static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long c
 
 static __declspec(naked) void gdCreateHeadWindow_hook_win_add() {
 	__asm {
-		pop	 ebx; // ret addr
+		pop  ebx; // ret addr
 		push eax; // xPos
 		push ebx;
 		jmp  CreateWinDialog;

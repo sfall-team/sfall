@@ -155,15 +155,7 @@ static __declspec(naked) void gmouse_bk_process() {
 		jmp  fo::funcoffs::gmouse_bk_process_;
 	}
 }
-/*
-static __declspec(naked) void GNW95_process_message_hack() {
-	__asm {
-		call sfall::WinProc::WaitMessageWindow;
-		xor  eax, eax;
-		retn
-	}
-}
-*/
+
 void Setting::init(const char* exeFileName, std::string &cmdline) {
 	ViewMap::RedrawFix();
 
@@ -306,8 +298,7 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 		});
 	}
 
-	if (sf::IniReader::GetInt("OTHER_SETTINGS", "CPU_USAGE_FIX", 1, f2ResIni) != 0) {
-		//sf::MakeCall(0x4C9DA9, GNW95_process_message_hack, 11); // implementation by Mash
+	if (sf::IniReader::GetInt("OTHER_SETTINGS", "CPU_USAGE_FIX", 1, f2ResIni)) {
 		sf::MiscPatches::SetIdle(1);
 	}
 

@@ -39,6 +39,7 @@ static bool isClosing = false;
 static bool cCursorShow = true;
 static bool bkgndErased = false;
 
+// Implementation from HRP by Mash
 void __stdcall WinProc::MessageWindow() {
 	MSG msg;
 	while (PeekMessageA(&msg, 0, 0, 0, 0)) {
@@ -49,6 +50,7 @@ void __stdcall WinProc::MessageWindow() {
 	}
 }
 
+// Implementation from HRP by Mash
 void __stdcall WinProc::WaitMessageWindow() {
 	MsgWaitForMultipleObjectsEx(0, 0, 1, 0xFF, 0);
 	MessageWindow();
