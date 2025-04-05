@@ -29,8 +29,6 @@
 namespace sfall
 {
 
-static int idle = -1;
-
 static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
@@ -39,16 +37,23 @@ static int* scriptDialog = nullptr;
 
 bool disableHorrigan = false;
 
-static void __stdcall Sleep2(DWORD dwMilliseconds) {
-	Sleep(dwMilliseconds);
+// Implementation from HRP by Mash
+static void __stdcall CheckMessages() {
+	MSG msg;
+	MsgWaitForMultipleObjectsEx(0, 0, 1, 0xFF, 0);
+	while (PeekMessageA(&msg, 0, 0, 0, 0)) {
+		if (GetMessageA(&msg, 0, 0, 0)) {
+			TranslateMessage(&msg);
+			DispatchMessageA(&msg);
+		}
+	}
 }
 
 static __declspec(naked) void GNW95_process_message_hack() {
+	static const DWORD GNW95_process_message_Ret = 0x4C9DE6;
 	__asm {
-		push idle;
-		call Sleep2;
-		cmp  dword ptr ds:[FO_VAR_GNW95_isActive], 0;
-		retn;
+		call CheckMessages;
+		jmp  GNW95_process_message_Ret;
 	}
 }
 
@@ -1025,9 +1030,9 @@ void MiscPatches::init() {
 	*fo::ptr::idle_func = reinterpret_cast<void*>(Sleep);
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
 
-	int ms = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (ms > idle) idle = (ms > 50) ? 50 : ms;
-	if (idle >= 0) MakeCall(0x4C9CF8, GNW95_process_message_hack, 2);
+	if (IniReader::GetConfigInt("Misc", "ProcessorIdle", -1) > 0) {
+		MakeJump(0x4C9DA9, GNW95_process_message_hack, 3); // replace hack function from HRP by Mash
+	}
 
 	BlockCall(0x4425E6); // Patch out ereg call
 
