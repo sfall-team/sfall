@@ -50,10 +50,15 @@ static void __stdcall CheckMessages() {
 }
 
 static __declspec(naked) void GNW95_process_message_hack() {
-	static const DWORD GNW95_process_message_Ret = 0x4C9DE6;
 	__asm {
 		call CheckMessages;
-		jmp  GNW95_process_message_Ret;
+		add  esp, 0x20;
+		pop  edi;
+		pop  esi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
+		retn;
 	}
 }
 
