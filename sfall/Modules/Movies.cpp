@@ -492,13 +492,13 @@ char MoviePaths[MaxMovies * 65];
 static DWORD Artimer1DaysCheckTimer;
 
 static __declspec(naked) void Artimer1DaysCheckHack() {
-	static const DWORD Artimer1DaysCheckJmp = 0x4A3790;
 	static const DWORD Artimer1DaysCheckJmpLess = 0x4A37A9;
 	__asm {
 		cmp edx, Artimer1DaysCheckTimer;
 		jl  less;
-		jmp Artimer1DaysCheckJmp;
+		retn;
 less:
+		add esp, 4;
 		jmp Artimer1DaysCheckJmpLess;
 	}
 }
@@ -535,9 +535,9 @@ static __declspec(naked) void LostFocus() {
 	long isActive; // _GNW95_isActive
 	__asm { // prolog
 		pushad;
-		mov  ebp, esp;
-		sub  esp, __LOCAL_SIZE;
-		mov  isActive, eax;
+		mov ebp, esp;
+		sub esp, __LOCAL_SIZE;
+		mov isActive, eax;
 	}
 
 	Sound::SoundLostFocus(isActive);
@@ -609,7 +609,7 @@ void Movies::init() {
 		char s[255];
 		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d.", Artimer1DaysCheckTimer);
 		dlogr(s, DL_INIT);
-		MakeJump(0x4A378B, Artimer1DaysCheckHack);
+		MakeCall(0x4A378B, Artimer1DaysCheckHack);
 	}
 
 	SkipOpeningMoviesPatch();
