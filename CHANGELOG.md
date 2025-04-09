@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.4.6.1
+* The compatibility mode check now targets only unsupported Windows versions
+* Changed the way **ProcessorIdle** works to prevent conflicts with **CPU_USAGE_FIX** option in `f2_res.ini`
+* Added a fix to prevent out-of-bounds selection in the file list when loading a character file
+
 ## 4.4.6
 * Fixed a bug introduced in 4.3.1 that broke the debug message about a missing critter art file
 * Fixed an issue where an item with a unique ID in the inventory had its ID reset by a non-unique item
