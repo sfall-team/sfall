@@ -246,10 +246,11 @@
     <ClInclude Include="FalloutEngine\VarPointers.h" />
     <ClInclude Include="FalloutEngine\VarPointers_def.h" />
     <ClInclude Include="Game\combatAI.h" />
+    <ClInclude Include="Game\GUI\render.h" />
+    <ClInclude Include="Game\GUI\Text.h" />
     <ClInclude Include="Game\inventory.h" />
     <ClInclude Include="Game\items.h" />
     <ClInclude Include="Game\objects.h" />
-    <ClInclude Include="Game\render.h" />
     <ClInclude Include="Game\skills.h" />
     <ClInclude Include="Game\stats.h" />
     <ClInclude Include="Game\tilemap.h" />
@@ -366,10 +367,11 @@
     <ClCompile Include="FalloutEngine\Functions.cpp" />
     <ClCompile Include="FalloutEngine\VarPointers.cpp" />
     <ClCompile Include="Game\combatAI.cpp" />
+    <ClCompile Include="Game\GUI\render.cpp" />
+    <ClCompile Include="Game\GUI\Text.cpp" />
     <ClCompile Include="Game\inventory.cpp" />
     <ClCompile Include="Game\items.cpp" />
     <ClCompile Include="Game\objects.cpp" />
-    <ClCompile Include="Game\render.cpp" />
     <ClCompile Include="Game\skills.cpp" />
     <ClCompile Include="Game\stats.cpp" />
     <ClCompile Include="Game\tilemap.cpp" />

@@ -27,7 +27,7 @@
 #include "..\..\Interface.h"
 #include "..\Arrays.h"
 
-#include "..\..\..\Game\render.h"
+#include "..\..\..\Game\GUI\render.h"
 
 #include "..\..\SubModules\WindowRender.h"
 
@@ -293,7 +293,7 @@ void mf_intface_redraw(OpcodeContext& ctx) {
 			fo::util::RefreshGNW(true);
 		} else {
 			fo::Window* win = Interface::GetWindow(winType);
-			if (win && (int)win != -1) game::Render::GNW_win_refresh(win, &win->wRect, 0);
+			if (win && (int)win != -1) game::gui::Render::GNW_win_refresh(win, &win->wRect, 0);
 		}
 	}
 }
@@ -736,7 +736,7 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	);
 
 	if (!(ctx.arg(0).rawValue() & 0x1000000)) { // is set to "Don't redraw"
-		game::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
+		game::gui::Render::GNW_win_refresh(ifaceWin, &ifaceWin->wRect, 0);
 	}
 	return 1;
 }
@@ -843,7 +843,7 @@ void mf_interface_print(OpcodeContext& ctx) { // same as vanilla PrintRect
 	if (win->randY) win->surface = surface;
 
 	// no redraw (textdirect)
-	if (!(color & 0x1000000)) game::Render::GNW_win_refresh(win, &win->wRect, 0);
+	if (!(color & 0x1000000)) game::gui::Render::GNW_win_refresh(win, &win->wRect, 0);
 }
 
 void mf_win_fill_color(OpcodeContext& ctx) {

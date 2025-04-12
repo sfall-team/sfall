@@ -4,15 +4,17 @@
  *
  */
 
-#include "..\main.h"
-#include "..\FalloutEngine\Fallout2.h"
+#include "..\..\main.h"
+#include "..\..\FalloutEngine\Fallout2.h"
 
-#include "..\Modules\Graphics.h"
-#include "..\Modules\SubModules\WindowRender.h"
+#include "..\..\Modules\Graphics.h"
+#include "..\..\Modules\SubModules\WindowRender.h"
 
 #include "render.h"
 
 namespace game
+{
+namespace gui
 {
 
 namespace sf = sfall;
@@ -189,4 +191,5 @@ void Render::init() {
 	sf::SafeWriteBatch<DWORD>(FO_VAR_screen_buffer, scrdumpBufAddr);
 }
 
+}
 }

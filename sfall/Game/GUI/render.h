@@ -6,9 +6,11 @@
 
 #pragma once
 
-#include "..\FalloutEngine\Fallout2.h"
+#include "..\..\FalloutEngine\Fallout2.h"
 
 namespace game
+{
+namespace gui
 {
 
 class Render {
@@ -18,4 +20,5 @@ public:
 	static void __fastcall GNW_win_refresh(fo::Window* win, RECT* updateRect, BYTE* toBuffer);
 };
 
+}
 }
