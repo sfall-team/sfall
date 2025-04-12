@@ -1732,7 +1732,7 @@ static __declspec(naked) void compute_damage_hack() {
 	}
 }
 
-static int currDescLen = 0;
+static size_t currDescLen = 0;
 static bool showItemDescription = false;
 
 static void __stdcall AppendText(const char* text, const char* desc) {
@@ -1741,7 +1741,7 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 			desc = fo::util::MessageSearch(fo::ptr::proto_main_msg_file, 493);
 		}
 		strncpy_s(messageBuffer, desc, 161);
-		int len = strlen(messageBuffer);
+		size_t len = strlen(messageBuffer);
 		if (len > 160) {
 			len = 158;
 			messageBuffer[len++] = '.';
@@ -1749,10 +1749,10 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 			messageBuffer[len++] = '.';
 		}
 		messageBuffer[len++] = ' ';
-		messageBuffer[len] = 0;
+		messageBuffer[len] = '\0';
 		currDescLen = len;
 	} else if (currDescLen == 0) {
-		messageBuffer[0] = 0;
+		messageBuffer[0] = '\0';
 	}
 
 	strncat(messageBuffer, text, 64);
@@ -1760,7 +1760,7 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 	if (currDescLen < 300) {
 		messageBuffer[currDescLen++] = '.';
 		messageBuffer[currDescLen++] = ' ';
-		messageBuffer[currDescLen] = 0;
+		messageBuffer[currDescLen] = '\0';
 	}
 }
 
@@ -1786,7 +1786,6 @@ static __declspec(naked) void obj_examine_func_hack_ammo1() {
 		call AppendText;
 		mov  currDescLen, 0;
 		lea  eax, messageBuffer;
-		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
 	}

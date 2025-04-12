@@ -4,6 +4,7 @@
 * The compatibility mode check now targets only unsupported Windows versions
 * Changed the way **ProcessorIdle** works to prevent conflicts with **CPU_USAGE_FIX** option in `f2_res.ini`
 * Added a fix to prevent out-of-bounds selection in the file list when loading a character file
+* Added a fix to remove visible newline control characters `\n` when examining items in the barter screen
 
 ## 3.8.46
 * Fixed a bug introduced in 3.8.31 that broke the debug message about a missing critter art file
