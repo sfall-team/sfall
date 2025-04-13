@@ -1809,6 +1809,35 @@ skip:
 	}
 }
 
+static void __fastcall StripNewlines(char* desc) {
+	size_t i = 0, j = 0;
+	while (desc[i] && j < sizeof(messageBuffer) - 1) {
+		if (desc[i] == '\\' && desc[i + 1] == 'n') {
+			messageBuffer[j++] = ' ';
+			i += 2;
+		} else {
+			messageBuffer[j++] = desc[i++];
+		}
+	}
+	messageBuffer[j] = '\0'; // null-terminate the modified string
+}
+
+static __declspec(naked) void obj_examine_func_hack_objdesc() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jne  skip;
+		push ecx;
+		mov  ecx, eax;
+		call StripNewlines;
+		pop  ecx;
+		lea  eax, messageBuffer;
+		mov  esi, eax;
+skip:
+		mov  edx, ds:[FO_VAR_proto_none_str]; // overwritten engine code
+		retn;
+	}
+}
+
 static DWORD expSwiftLearner; // experience points for print
 
 static __declspec(naked) void statPCAddExperienceCheckPMs_hack() {
@@ -3927,6 +3956,9 @@ void BugFixes::init() {
 		dlogr("Applying full item description in barter patch.", DL_FIX);
 		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
 	}
+	// Remove visible newline control characters when examining items in the barter screen
+	// Supplementary fix for hacks in Game\GUI\Text.cpp
+	MakeCall(0x49AE33, obj_examine_func_hack_objdesc, 1);
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
 	//if (IniReader::GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
