@@ -951,6 +951,24 @@ static __declspec(naked) void intface_update_ammo_lights_hack() {
 	}
 }
 
+static __declspec(naked) void gdCustomSelect_hack_done() {
+	__asm {
+		mov  eax, 0x503E14; // 'ib1p1xx1'
+		call fo::funcoffs::gsound_play_sfx_file_;
+		mov  ecx, 1; // overwritten engine code
+		retn;
+	}
+}
+
+static __declspec(naked) void gdCustomSelect_hack_cancel() {
+	__asm {
+		mov  eax, 0x503E14; // 'ib1p1xx1'
+		call fo::funcoffs::gsound_play_sfx_file_;
+		mov  dword ptr [esp + 0x84 - 0x20 + 4], 1; // overwritten engine code
+		retn;
+	}
+}
+
 static __declspec(naked) void display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -1071,6 +1089,10 @@ void Interface::init() {
 			ammoBarXPos += 4;
 		}
 	}
+
+	// Add a click sound to the buttons in component menus under the 'Custom' disposition in the combat control panel
+	MakeCall(0x44A47D, gdCustomSelect_hack_done);
+	MakeCall(0x44A495, gdCustomSelect_hack_cancel, 3);
 }
 
 void Interface::exit() {
