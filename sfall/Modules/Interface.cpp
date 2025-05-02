@@ -887,7 +887,7 @@ static void WorldMapInterfacePatch() {
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 	}
 
-	// Add missing sounds for the buttons on the world map interface (wmInterfaceInit_)
+	// Add missing sounds to the buttons on the world map interface (wmInterfaceInit_)
 	HookCalls(wmInterfaceInit_hook, {
 		0x4C2BF4, // location labels
 		0x4C2BB5, // town/world
@@ -1057,20 +1057,29 @@ static __declspec(naked) void intface_update_ammo_lights_hack() {
 	}
 }
 
-static __declspec(naked) void gdCustomSelect_hack_done() {
+static __declspec(naked) void gdCustomSelect_hack_buttons() {
 	__asm {
-		mov  eax, 0x503E14; // 'ib1p1xx1'
-		call fo::funcoffs::gsound_play_sfx_file_;
-		mov  ecx, 1; // overwritten engine code
+		cmp  eax, -1;
+		jnz  button;
 		retn;
+button:
+		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
+		mov  edx, fo::funcoffs::gsound_red_butt_press_;
+		call fo::funcoffs::win_register_button_sound_func_;
+		pop  ecx;
+		add  ecx, 24; // offset to next section (0x44A11D, 0x44A16E)
+		jmp  ecx;
 	}
 }
 
-static __declspec(naked) void gdCustomSelect_hack_cancel() {
+static __declspec(naked) void gdCustomSelect_hack_keyretn() {
 	__asm {
+		cmp  dword ptr ds:[FO_VAR_mouse_buttons], 0; // mouse clicked?
+		jne  skip;
 		mov  eax, 0x503E14; // 'ib1p1xx1'
 		call fo::funcoffs::gsound_play_sfx_file_;
-		mov  dword ptr [esp + 0x84 - 0x20 + 4], 1; // overwritten engine code
+skip:
+		mov  ecx, 1; // overwritten engine code
 		retn;
 	}
 }
@@ -1431,9 +1440,9 @@ void Interface::init() {
 		}
 	}
 
-	// Add a click sound to the buttons in component menus under the 'Custom' disposition in the combat control panel
-	MakeCall(0x44A47D, gdCustomSelect_hack_done);
-	MakeCall(0x44A495, gdCustomSelect_hack_cancel, 3);
+	// Add missing sounds to the 'Done' and 'Cancel' buttons in the 'Custom' disposition of the combat control panel
+	MakeCalls(gdCustomSelect_hack_buttons, {0x44A100, 0x44A151});
+	MakeCall(0x44A47D, gdCustomSelect_hack_keyretn);
 
 	LoadGameHook::OnGameInit() += []() {
 		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.
