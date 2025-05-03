@@ -841,21 +841,21 @@ static __declspec(naked) void wmInterfaceInit_hook() {
 	__asm {
 		pop  retAddr;
 		call fo::funcoffs::win_register_button_;
-		push eax;
+		mov  ecx, eax; // save button ID
 		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
 		mov  edx, fo::funcoffs::gsound_red_butt_press_;
 		call fo::funcoffs::win_register_button_sound_func_;
-		pop  eax;
+		mov  eax, ecx; // restore
 		jmp  retAddr;
 	}
 }
 
 static __declspec(naked) void wmWorldMap_hook() {
 	__asm {
-		push eax;
+		mov  ecx, eax; // save xpos
 		mov  eax, 0x503E14; // 'ib1p1xx1'
 		call fo::funcoffs::gsound_play_sfx_file_;
-		pop  eax;
+		mov  eax, ecx; // restore
 		jmp  fo::funcoffs::wmPartyInitWalking_;
 	}
 }
@@ -872,11 +872,11 @@ static __declspec(naked) void wmDrawCursorStopped_hack_hotspot() {
 static __declspec(naked) void wmTownMapInit_hack() {
 	__asm {
 		mov  dword ptr ds:[edi + 0x672DD8], eax; // _wmTownMapButtonId
-		push eax;
+		mov  ecx, eax; // save button ID
 		mov  edx, fo::funcoffs::gsound_med_butt_press_;
 		xor  ebx, ebx; // no button release sfx
 		call fo::funcoffs::win_register_button_sound_func_;
-		pop  eax;
+		mov  eax, ecx; // restore
 		retn;
 	}
 }
