@@ -3543,6 +3543,32 @@ static __declspec(naked) void editor_design_hook() {
 	}
 }
 
+static __declspec(naked) void do_move_timer_hook() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_mouse_buttons], 0; // mouse clicked?
+		jne  skip;
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
+skip:
+		retn;
+	}
+}
+
+// Add a null pointer check to item_w_can_reload_ engine function
+static __declspec(naked) void item_w_can_reload_hack() {
+	static const DWORD item_w_can_reload_Ret = 0x47890F;
+	__asm {
+		test eax, eax; // weapon
+		jz   skip;
+		// overwritten engine code
+		mov  ecx, edx;
+		mov  edx, [eax + protoId];
+		retn;
+skip:
+		add  esp, 4;
+		jmp  item_w_can_reload_Ret;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -3616,7 +3642,7 @@ void BugFixes::init() {
 	SafeWrite32(0x497E8E, 0x90909090);
 	// Fix for extra hidden buttons below the location list in the Status section
 	MakeCall(0x497D52, PipStatus_hack, 5);
-	// Fix for double click sound when selecting a location in the Status section
+	// Fix for the duplicate click sound when selecting a location in the Status section
 	BlockCall(0x497F52); // block gsound_play_sfx_file_ (PipStatus_)
 
 	// Fix for "Too Many Items" bug
@@ -4417,6 +4443,12 @@ void BugFixes::init() {
 	// Fix to prevent out-of-bounds selection in the file list when loading a character file
 	const DWORD fileDialogArrDnAddr[] = {0x41E690, 0x41E69C};
 	SafeWriteBatch<BYTE>(0x7C, fileDialogArrDnAddr); // jle > jl (file_dialog_)
+
+	// Fix for the duplicate click sound for the "Done" button in the "Move Items" and "Set Timer" windows
+	HookCall(0x476914, do_move_timer_hook);
+
+	// Fix crash when a critter with a powered melee/unarmed weapon runs out of ammo and there is ammo nearby
+	MakeCall(0x47887B, item_w_can_reload_hack);
 }
 
 }
