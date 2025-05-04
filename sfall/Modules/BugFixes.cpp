@@ -1756,7 +1756,9 @@ static void __stdcall AppendText(const char* text, const char* desc) {
 		if (desc == nullptr) {
 			desc = fo::util::MessageSearch(&fo::var::proto_main_msg_file, 493);
 		}
-		strncpy_s(messageBuffer, desc, 161);
+		if (desc != messageBuffer) { // safeguard
+			strncpy_s(messageBuffer, desc, 161);
+		}
 		size_t len = strlen(messageBuffer);
 		if (len > 160) {
 			len = 158;
