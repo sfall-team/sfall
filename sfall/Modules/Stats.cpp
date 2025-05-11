@@ -52,12 +52,13 @@ static struct StatFormula {
 static fo::GameObject* cCritter;
 
 static __declspec(naked) void stat_level_hack() {
-	static const DWORD StatLevelHack_Ret = 0x4AEF52;
+	using namespace fo;
 	__asm {
-		mov cCritter, eax;
-		sub esp, 8;
-		mov ebx, eax;
-		jmp StatLevelHack_Ret;
+		mov  cCritter, eax;
+		// overwritten engine code
+		mov  esi, edx;
+		cmp  edx, STAT_current_hp;
+		retn;
 	}
 }
 
@@ -288,7 +289,7 @@ void Stats::init() {
 		SafeWrite8(0x43C27A, 5);
 	};
 
-	MakeJump(0x4AEF4D, stat_level_hack);
+	MakeCall(0x4AEF52, stat_level_hack);
 	MakeJump(0x4AF3AF, stat_level_hack_check, 2);
 	MakeJump(0x4AF571, stat_set_base_hack_check);
 
