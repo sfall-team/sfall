@@ -1054,7 +1054,7 @@ isMultiHex:
 }
 
 static __declspec(naked) void MultiHexCombatMoveFix() {
-	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
+	static const DWORD ai_move_steps_closer_move_object_Ret = 0x42A192;
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
@@ -1068,12 +1068,12 @@ multiHex:
 		retn;                         // tilenums are not equal, always move to tile
 moveToObject:
 		add  esp, 4;
-		jmp  ai_move_steps_closer_move_object_ret; // move to object
+		jmp  ai_move_steps_closer_move_object_Ret; // move to object
 	}
 }
 
 static __declspec(naked) void MultiHexCombatRunFix() {
-	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
+	static const DWORD ai_move_steps_closer_run_object_Ret = 0x42A169;
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
@@ -1087,7 +1087,7 @@ multiHex:
 		retn;                         // tilenums are not equal, always run to tile
 runToObject:
 		add  esp, 4;
-		jmp  ai_move_steps_closer_run_object_ret; // run to object
+		jmp  ai_move_steps_closer_run_object_Ret; // run to object
 	}
 }
 
@@ -2070,7 +2070,7 @@ fix:
 }
 
 static __declspec(naked) void op_start_gdialog_hack() {
-	static const DWORD op_start_gdialog_ret = 0x456F4B;
+	static const DWORD op_start_gdialog_Ret = 0x456F4B;
 	__asm {
 		cmp  eax, -1;                                 // check mood arg
 		jnz  useMood;
@@ -2078,7 +2078,7 @@ static __declspec(naked) void op_start_gdialog_hack() {
 		retn;
 useMood:
 		add  esp, 4;                                  // Destroy the return address
-		jmp  op_start_gdialog_ret;
+		jmp  op_start_gdialog_Ret;
 	}
 }
 

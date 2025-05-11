@@ -164,13 +164,13 @@ static __declspec(naked) void intface_init_hack() {
 }
 
 static __declspec(naked) void intface_update_move_points_hack() {
-	static const DWORD intface_update_move_points_ret = 0x45EE3E;
+	static const DWORD intface_update_move_points_Ret = 0x45EE3E;
 	__asm {
 		mov  eax, 16 * 9
 		push eax;
 		push 5;
 		push eax;
-		jmp  intface_update_move_points_ret;
+		jmp  intface_update_move_points_Ret;
 	}
 }
 
