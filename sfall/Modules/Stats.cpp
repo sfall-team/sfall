@@ -51,13 +51,22 @@ static struct StatFormula {
 static fo::GameObject* cCritter;
 
 static __declspec(naked) void stat_level_hack() {
+	static const DWORD stat_level_Ret = 0x4AEF93;
 	using namespace fo;
+	using namespace Fields;
 	__asm {
+		mov  esi, [eax + protoId];
+		shr  esi, 24;
+		cmp  esi, OBJ_TYPE_CRITTER;
+		jne  skip; // only critters have stats
 		mov  cCritter, eax;
 		// overwritten engine code
 		mov  esi, edx;
 		cmp  edx, STAT_current_hp;
 		retn;
+skip:
+		add  esp, 4;
+		jmp  stat_level_Ret;
 	}
 }
 

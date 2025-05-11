@@ -298,12 +298,12 @@ void RunDebugEditor() {
 }
 
 static __declspec(naked) void dbg_error_hack() {
-	static const DWORD dbg_error_ret = 0x453FD8;
+	static const DWORD dbg_error_Ret = 0x453FD8;
 	__asm {
 		cmp  ebx, 1;
 		je   hide;
 		sub  esp, 0x104;
-		jmp  dbg_error_ret;
+		jmp  dbg_error_Ret;
 hide:
 		pop  esi;
 		pop  ecx;
