@@ -407,7 +407,7 @@ palColor:
 	}
 }
 
-static void __fastcall RemoveAllFloatTextObjects() {
+static void __stdcall RemoveAllFloatTextObjects() {
 	long textCount = fo::var::text_object_index;
 	if (textCount > 0) {
 		for (long i = 0; i < textCount; i++) {
@@ -429,12 +429,19 @@ static __declspec(naked) void obj_move_to_tile_hook() {
 	}
 }
 
-static __declspec(naked) void map_check_state_hook() {
+static __declspec(naked) void map_check_state_hook0() {
 	__asm {
 		push eax;
 		call RemoveAllFloatTextObjects;
 		pop  eax;
 		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
+static __declspec(naked) void map_check_state_hook1() {
+	__asm {
+		call fo::funcoffs::anim_stop_;
+		jmp  RemoveAllFloatTextObjects;
 	}
 }
 
@@ -994,8 +1001,9 @@ void MiscPatches::init() {
 	MakeCall(0x48EE00, obj_render_outline_hack);
 
 	// Remove floating text messages after moving to another map or elevation
-	HookCall(0x48A94B, obj_move_to_tile_hook);
-	HookCall(0x4836BB, map_check_state_hook);
+	HookCall(0x48A94B, obj_move_to_tile_hook); // to another elevation
+	HookCall(0x4836BB, map_check_state_hook0); // to another map
+	HookCalls(map_check_state_hook1, {0x483631, 0x483663}); // to the world map
 
 	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
 	HookCall(0x4B03A1, text_object_create_hack); // jge hack
