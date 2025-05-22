@@ -592,11 +592,24 @@ isWeapon: // overwritten engine code
 	}
 }
 
-static __declspec(naked) void do_move_timer_hook() {
-	static const DWORD DoMoveTimer_Ret = 0x476920;
+static __declspec(naked) void loot_container_hack_takeall() {
+	static const DWORD loot_container_Ret = 0x4740DB;
 	__asm {
-		cmp eax, 4;
-		jnz end;
+		je   takeAll; // key == 'A'
+		cmp  esi, 'a';
+		je   takeAll;
+		retn;
+takeAll:
+		add  esp, 4;
+		jmp  loot_container_Ret;
+	}
+}
+
+static __declspec(naked) void do_move_timer_hook() {
+	static const DWORD do_move_timer_Ret = 0x476920;
+	__asm {
+		cmp  eax, 4;
+		jnz  end;
 		pushadc;
 	}
 
@@ -614,7 +627,7 @@ noSkip:
 		popadc;
 		jz   end;
 		add  esp, 4;    // destroy ret
-		jmp  DoMoveTimer_Ret;
+		jmp  do_move_timer_Ret;
 end:
 		jmp  fo::funcoffs::setup_move_timer_win_;
 	}
@@ -965,6 +978,9 @@ void Inventory::init() {
 
 	// Fix for invenWieldFunc_ (used by wield_obj_critter) to be able to put non-weapon/armor items into active slot
 	MakeJump(0x472858, invenWieldFunc_hack);
+
+	// Add lowercase 'a' as a hotkey for the 'Take All' button (previously only uppercase 'A')
+	MakeCall(0x473EF6, loot_container_hack_takeall, 1);
 }
 
 }
