@@ -255,6 +255,23 @@ skip:
 	}
 }
 
+static __declspec(naked) void StartPipboy_hack() {
+	__asm { // esi - button index (0-4), edi - y offset
+		cmp  esi, 3;
+		jl   end;
+		je   archives;
+		jg   close; // esi == 4
+archives:
+		add  edi, 3;
+close:
+		dec  edi;
+end: // overwritten engine code
+		add  edi, 27;
+		cmp  esi, 5;
+		retn;
+	}
+}
+
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static __declspec(naked) void scr_write_ScriptNode_hook() {
 	__asm {
@@ -3643,7 +3660,7 @@ void BugFixes::init() {
 		SafeWrite8(0x424527, CodeType::JumpShort); // in detemine_to_hit_func_()
 	//}
 
-	// Fixes for clickability issue in Pip-Boy and exploit that allows resting in places where you shouldn't be able to
+	// Fixes for clickability issue in the pipboy and exploit that allows resting in restricted areas
 	dlogr("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_FIX);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
@@ -3655,6 +3672,10 @@ void BugFixes::init() {
 	MakeCall(0x497D52, PipStatus_hack, 5);
 	// Fix for the duplicate click sound when selecting a location in the Status section
 	BlockCall(0x497F52); // block gsound_play_sfx_file_ (PipStatus_)
+
+	// Fix for slightly misaligned buttons in the pipboy
+	SafeWrite32(0x4974E0, 340); // initial y offset (was 341)
+	MakeCall(0x49753C, StartPipboy_hack, 1);
 
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
