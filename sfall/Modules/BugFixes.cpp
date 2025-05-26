@@ -3668,6 +3668,11 @@ void BugFixes::init() {
 	SafeWrite32(0x4974E0, 340); // initial y offset (was 341)
 	MakeCall(0x49753C, StartPipboy_hack, 1);
 
+	// Fix for slightly misaligned buttons in the character screen
+	SafeWrite32(0x4339BE, 344); // options/print button (was 343)
+	SafeWrite32(0x433A16, 553); // cancel button (was 552)
+	SafeWrite32(0x433A61, 456); // done button (was 455)
+
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
 	//if (IniReader::GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
