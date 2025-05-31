@@ -192,6 +192,7 @@ end:
 		xor  ebx, ebx;
 		lea  eax, sfallRes;
 		call fo::funcoffs::db_init_; // init sfall resource file
+		mov  eax, ds:[FO_VAR_critter_db_handle];  // restore pointer for checking
 		retn;
 	}
 }
@@ -640,6 +641,12 @@ void LoadOrder::init() {
 	//} else /*if (!patchFiles.empty())*/ {
 	//	HookCall(0x44436D, game_init_databases_hook1);
 	//}
+
+	// Skip unnecessary directory creation for missing .dat files/folders
+	SafeWrite8(0x4DFA4E, 0x57); // jnz 0x4DFAA6 (xaddpath_)
+	// Trim error messages about missing master and critter datafiles
+	const DWORD datafileMsgsAddr[] = {0x50228F, 0x50234C};
+	SafeWriteBatch<BYTE>(0, datafileMsgsAddr);
 
 	femaleMsgs = IniReader::GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
