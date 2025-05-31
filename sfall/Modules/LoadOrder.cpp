@@ -200,6 +200,7 @@ static __declspec(naked) void game_init_databases_hack2() {
 end:
 		mov  ds:[FO_VAR_critter_db_handle], eax;  // the pointer of critter_patches node will be saved here
 		call InitSystemPatches;
+		mov  eax, ds:[FO_VAR_critter_db_handle];  // restore pointer for checking
 		retn;
 	}
 }
@@ -647,6 +648,11 @@ void LoadOrder::init() {
 	//} else /*if (!patchFiles.empty())*/ {
 	//	HookCall(0x44436D, game_init_databases_hook1);
 	//}
+
+	// Skip unnecessary directory creation for missing .dat files/folders
+	SafeWrite8(0x4DFA4E, 0x57); // jnz 0x4DFAA6 (xaddpath_)
+	// Trim error messages about missing master and critter datafiles
+	SafeWriteBatch<BYTE>(0, {0x50228F, 0x50234C});
 
 	femaleMsgs = IniReader::GetConfigInt("Misc", "FemaleDialogMsgs", 0);
 	if (femaleMsgs) {
