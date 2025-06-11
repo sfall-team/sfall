@@ -3682,6 +3682,10 @@ void BugFixes::init() {
 	SafeWrite32(0x433A16, 553); // cancel button (was 552)
 	SafeWrite32(0x433A61, 456); // done button (was 455)
 
+	// Fix for slightly misaligned buttons in the barter screens
+	SafeWrite32(0x4483B7, 40);  // offer button (was 41)
+	SafeWrite32(0x448420, 583); // talk button (was 584)
+
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
 	//if (IniReader::GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
