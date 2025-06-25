@@ -1,8 +1,8 @@
 # sfall
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Dev Build](https://github.com/phobos2077/sfall/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/phobos2077/sfall/actions/workflows/build.yml)
-[![GitHub Pages](https://github.com/phobos2077/sfall/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/phobos2077/sfall/actions/workflows/gh-pages.yml)
+[![Dev Build](https://github.com/sfall-team/sfall/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/phobos2077/sfall/actions/workflows/build.yml)
+[![GitHub Pages](https://github.com/sfall-team/sfall/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/phobos2077/sfall/actions/workflows/gh-pages.yml)
 
 A set of engine modifications for the classic game Fallout 2 in the form of a DLL, which modifies executable in memory without changing anything in EXE file itself.
 
@@ -46,7 +46,7 @@ You need to set DLL overrides for `ddraw.dll` to __"native, builtin"__ in `winec
 
 ### Prerequisites:
 
-* Visual Studio 2015 with **Windows XP support for C++** component. If you're using Visual Studio 2017/2019/2022, make sure to install **VS 2015 C++ build tools (v140)**.
+* Visual Studio 2015 with **"Windows XP support for C++"** component. If you're using Visual Studio 2017/2019/2022, make sure to install **"VC++ 2015.3 v14.00 (v140) toolset for desktop"** component as well.
 * [DirectX SDK (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=6812). You will also need `ddraw.lib` from DXSDK February 2010 and `dinput.lib` from DXSDK August 2007. Both files can be found in the [DirectX SDK Collection repo](https://github.com/NovaRain/DXSDK_Collection).
 * [DirectX Runtime (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8109). You can also install it from DirectX SDK installer.
 
@@ -55,6 +55,19 @@ You need to set DLL overrides for `ddraw.dll` to __"native, builtin"__ in `winec
 1. Set up a `postbuild.cmd` using the template from the repo.
 2. Open the solution file and build with the **ReleaseXP** configuration (this is the one used for sfall releases).
 3. If everything is set up correctly, you should have a new sfall `ddraw.dll` in your Fallout 2 directory.
+
+### Minimalist Setup:
+
+If you don't need a full-fledged IDE, you can use Visual Studio Build Tools instead. Taking [Visual Studio 2017 Build Tools](https://aka.ms/vs/15/release/vs_buildtools.exe) for example:
+1. Install using the command line:
+   ```
+   vs_BuildTools.exe --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.WinXP --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.WinXP --passive
+   ```
+2. Set up a `postbuild.cmd` using the template from the repo.
+3. Use MSBuild in **x86 Native Tools Command Prompt** to build sfall:
+   ```
+   MSBuild.exe ddraw.sln /t:Clean;Build /p:Configuration=ReleaseXP /p:Platform=Win32
+   ```
 
 ## Additional info
 
