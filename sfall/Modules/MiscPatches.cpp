@@ -934,7 +934,6 @@ void MiscPatches::init() {
 			dlogr("Applying single core patch.", DL_INIT);
 			HANDLE process = GetCurrentProcess();
 			SetProcessAffinityMask(process, 2); // use only CPU 1
-			CloseHandle(process);
 		}
 	}
 
