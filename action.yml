@@ -85,6 +85,17 @@ runs:
           echo "dir=$(cygpath --windows "$DXSDK_DIR/DXSDK_Jun2010/")" >> $GITHUB_OUTPUT
    shell: bash
 
+ # Install VS 2015 C++ build tools and WinXP Support components via Chocolatey
+ - name:  Prepare VS 2015 C++ build tools
+   id:    vs2015_tools
+   run:   |
+          echo "::group::Prepare VS 2015 C++ build tools"
+
+          choco install visualstudio2017buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.WinXP --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.WinXP --passive"
+
+          echo "::endgroup::"
+   shell: bash
+
  # MSBuild is not in PATH on Windows machines
  # Using $GITHUB_OUTPUT to make sure workflow environment remains unchanged
  - name:  Prepare MSBuild
