@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.8.47
+* Fixed potential undefined behavior in **FullItemDescInBarter**
+* Fixed the behavior of `break` statement in script compiler and decompiler (`compile.exe` and `int2ssl.exe` in the **modders pack**)
+* Improved the fix for removing floating text messages on the map when moving to another map or elevation
+* Improved the error handling for missing main **.dat** files
+* Removed glass glare from the **'Use Inventory Item On'** window to match other game interfaces
+* Added a fix for a crash when a critter with a powered melee/unarmed weapon ran out of ammo and there was ammo nearby
+* Added a fix to prevent a potential crash when using skills on non-critter objects
+* Added a fix for the duplicate click sound for the 'Done' button in the **'Move Items'** and **'Set Timer'** windows
+* Added a few fixes for slightly misaligned buttons in the pipboy, character screen, and barter screen
+* Added missing sounds to the 'Done' and 'Cancel' buttons in the 'Custom' disposition of the combat control panel
+* Added lowercase `a` as a hotkey for the 'Take All' button (previously only uppercase `A`)
+
 ## 3.8.46.1
 * The compatibility mode check now targets only unsupported Windows versions
 * Changed the way **ProcessorIdle** works to prevent conflicts with **CPU_USAGE_FIX** option in `f2_res.ini`
@@ -16,7 +29,7 @@
 * Added a fix for the main menu music not stopping when replaying the intro
 * Added a fix for display issues when highlighting a multiline dialogue option
 * Added a fix for the incorrect message being displayed when attempting to repair a dead robot
-* Added a fix for the double click sound when selecting a location in the Status section of the pipboy
+* Added a fix for the duplicate click sound when selecting a location in the Status section of the pipboy
 * Added a fix for extra hidden buttons below the location list in the Status section of the pipboy
 * Added a fix for map lighting from **Night Vision** perk not updating when loading a saved game
 * Added a fix for an animation glitch when death animations and combat start simultaneously
@@ -196,7 +209,7 @@
 * Removed **ComputeSprayMod** from `ddraw.ini`. Now **ComputeSpray_\*** options no longer require a master switch
 * Added a fix for a crash when the player equips a weapon overloaded with ammo
 * Added a fix for being able to use the **'Push'** action on members of the player's team in combat when they are knocked down
-* Added missing sounds for the markers on the world map interface (similar to Fallout 1, from Ghosthack)
+* Added missing sounds to the markers on the world map interface (similar to Fallout 1, from Ghosthack)
 
 ## 3.8.34
 * Minor fixes to **LocalMapXLimit/LocalMapYLimit** options and the built-in **item highlighting**
@@ -267,7 +280,7 @@
 * Added support for using the newline control character `\n` in the object description in `pro_*.msg` files
 * Added support for the new **'Healing Item'** flag to item protos. Now AI will also use items with this flag for healing in combat
 * Added support for the new **'Cannot Use'** flag to the misc flags of item objects. This flag makes a weapon object unusable in combat
-* Added missing sounds for the buttons on the world map interface (similar to Fallout 1 behavior)
+* Added missing sounds to the buttons on the world map interface (similar to Fallout 1 behavior)
 * Added 5 `metarule3` macros for controlling the save slot with scripts to `sfall.h` in the **modders pack**
 * Added a `sfall.dat` resource file, which contains the required files for various features. The localized `sfall_xx.dat` is also supported
 * New script functions: `set_scr_name`, `obj_is_openable`
@@ -852,7 +865,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 
 Original engine bug fixes and various features based on the work by Crafty:
 * Added a fix for a crash when clicking on empty space in the inventory list opened by **'Use Inventory Item On'** (backpack) action icon
-* Added a fix for negative SPECIAL values in character creation
+* Added a fix for negative SPECIAL values in the character creation
 * Added a fix for the game hanging in an endless loop in combat mode when calling `anim` script functions inside `damage_p_proc`
 * Added 3 new arguments to `HOOK_BARTERPRICE` hook script
 
@@ -963,7 +976,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 * Added a fix for the original engine issue that caused party members to have incorrect stats when they level up while on drugs
 * Added a fix for the unlimited ammo exploit
 * Added a fix for negative values in Skilldex window
-* Added a fix for the clickability issue in the pipboy and an exploit that allows resting in places where you shouldn't be able to
+* Added a fix for the clickability issue in the pipboy and an exploit that allows resting in restricted areas
 * Added a fix to prevent **'Too Many Items'** bug from corrupting save files
 * Added a fix for the exploit that you can gain stats from more than two doses of a specific chem after save/load
 * Added a fix for the original engine issues with reverse order of items in memory relative to visual order in the inventory list
