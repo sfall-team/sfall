@@ -2411,6 +2411,7 @@ code.language-mermaid { padding: 0; background-color: inherit; border: 0; }
   .px-xl-10 { padding-right: 4rem !important; padding-left: 4rem !important; }
   .py-xl-10 { padding-top: 4rem !important; padding-bottom: 4rem !important; } }
 @media print { .site-footer, .site-button, #edit-this-page, #back-to-top, .site-nav, .main-header { display: none !important; }
+  hr { margin-top: 1rem; margin-bottom: 1rem; }
   .side-bar { width: 100%; height: auto; border-right: 0 !important; }
   .site-header { border-bottom: 1px solid #44434d; }
   .site-title { font-size: 1rem !important; font-weight: 700 !important; }
