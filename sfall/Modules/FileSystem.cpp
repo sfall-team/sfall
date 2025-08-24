@@ -706,6 +706,20 @@ bool FileSystem::IsEmpty() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static __declspec(naked) void dfile_fseek_hook() {
+	static const DWORD dfile_fseek_Ret = 0x4E5BCD;
+	__asm {
+		mov  ecx, [esi + 4];        // stream->entry
+		test byte ptr [ecx + 4], 1; // stream->entry->compressed
+		jz   skip;
+		jmp  fo::funcoffs::inflateEnd_;
+skip:
+		xor  eax, eax;
+		add  esp, 4;
+		jmp  dfile_fseek_Ret;
+	}
+}
+
 static void __stdcall OpenWarning() {
 	MessageBoxA(0, "The open file limit is about to be reached.\n"
 	               "It is recommended to restart the game to avoid critical errors.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
@@ -782,6 +796,9 @@ void FileSystem::init() {
 	// xfopen_ - remove sprintf_ function calls that do nothing (probably just checking the filename for the '%' formatting char?)
 	BlockCall(0x4DEF12);
 	BlockCall(0x4DEF84);
+
+	// Fix file seeking in uncompressed database files
+	HookCall(0x4E5B52, dfile_fseek_hook);
 
 	// Warning message when there are more than 16 open files (max 20)
 	HookCall(0x4EE0DE, sopen_hook_warning);
