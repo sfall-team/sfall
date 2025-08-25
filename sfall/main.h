@@ -85,6 +85,8 @@ extern bool versionCHI;
 
 extern bool extWrapper;
 
+extern bool nonEngLang;
+
 __inline long GetIntHRPValue(DWORD addr) {
 	return *reinterpret_cast<DWORD*>(HRP::Setting::GetAddress(addr));
 }

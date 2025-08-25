@@ -39,7 +39,7 @@ static const char* __fastcall GetLangPremadePath(const char* premadePath) {
 			isDefault = true;
 			return nullptr;
 		}
-		isDefault = (_stricmp(Message::GameLanguage(), "english") == 0);
+		isDefault = !nonEngLang;
 		if (isDefault) return nullptr;
 
 		std::strncpy(premadeLangPath, premadePath, 8);

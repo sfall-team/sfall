@@ -102,6 +102,8 @@ bool versionCHI = false;
 
 bool extWrapper = false;
 
+bool nonEngLang = false;
+
 static char falloutConfigName[65];
 
 static void InitModules() {

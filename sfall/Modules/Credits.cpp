@@ -178,7 +178,7 @@ static __declspec(naked) void ShowCreditsHook() {
 	}
 }
 
-// Loads the credits from the 'english' folder if it does not exist in the current language directory
+// Loads the credits from the 'english' folder if not found in the current language directory
 static __declspec(naked) void CreditsFileHook() {
 	__asm {
 		mov  ebx, edx; // keep mode
@@ -202,8 +202,7 @@ noFile:
 }
 
 static void FallbackEnglishCredits() {
-	const char* lang;
-	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
+	if (nonEngLang) {
 		HookCall(0x42C900, CreditsFileHook);
 	}
 }

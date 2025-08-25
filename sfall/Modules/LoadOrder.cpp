@@ -585,10 +585,44 @@ artNotExist:
 	}
 }
 
+static __declspec(naked) void game_splash_screen_hack() {
+	__asm {
+		mov  nonEngLang, 1;
+		// overwritten engine code
+		mov  ecx, [esp + 0xA4 - 0x24 + 4]; 
+		retn;
+	}
+}
+
+static __declspec(naked) void game_splash_screen_hook() {
+	__asm {
+		call fo::funcoffs::db_fopen_;
+		cmp  nonEngLang, 0;
+		jne  checkFile;
+		retn;
+checkFile:
+		test eax, eax;
+		jz   noFile;
+		retn;
+noFile:
+		mov  eax, dword ptr [esp + 0xA4 - 0x20 + 4]; // splash value
+		push eax;
+		push 0x5023E8; // "art\splash\"
+		push 0x502404; // "%ssplash%d.rix"
+		lea  ebx, [esp + 0xA4 - 0x64 + 16]; // fullname
+		push ebx;
+		call fo::funcoffs::sprintf_;
+		add  esp, 16;
+		mov  edx, edi; // mode
+		mov  eax, ebx; // fullname
+		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
 static fo::DbFile* __fastcall LoadFont(const char* font, const char* mode) {
 	char file[128];
 	const char* lang;
-	if (fo::func::get_game_config_string(&lang, "system", "language") && _stricmp(lang, "english") != 0) {
+	if (fo::func::get_game_config_string(&lang, "system", "language") && nonEngLang) {
 		std::sprintf(file, "fonts\\%s\\%s", lang, font);
 		return fo::func::db_fopen(file, mode);
 	}
@@ -681,6 +715,11 @@ void LoadOrder::init() {
 	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
+
+	// Set sfall global boolean if the game language is not English
+	MakeCall(0x4443F2, game_splash_screen_hack, 2);
+	// Load splash screens from the default path if not found in the art\<language>\splash\ directory
+	HookCall(0x44444E, game_splash_screen_hook);
 
 	// Load fonts based on the game language
 	HookCalls(load_font_hook, {
