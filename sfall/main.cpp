@@ -100,6 +100,8 @@ bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
 bool extWrapper = false;
 
+bool nonEngLang = false;
+
 static DWORD hrpDLLBaseAddr = 0; // 0x10000000
 
 DWORD HRPAddress(DWORD addr) {

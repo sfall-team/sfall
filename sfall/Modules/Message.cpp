@@ -303,7 +303,7 @@ void FallbackEnglishLoadMsgFiles() {
 	const char* lang;
 	if (fo::func::get_game_config_string(&lang, "system", "language")) {
 		strncpy_s(gameLanguage, lang, _TRUNCATE);
-		if (_stricmp(lang, "english") != 0) {
+		if (nonEngLang) {
 			HookCall(0x484B18, message_load_hook_db_fopen);
 			HookCall(0x484C4B, message_search_hook_message_find);
 			HookCall(0x4849B9, message_exit_hook_mem_free);

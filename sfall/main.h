@@ -83,6 +83,8 @@ extern bool hrpVersionValid;
 
 extern bool extWrapper;
 
+extern bool nonEngLang;
+
 DWORD HRPAddress(DWORD addr);
 
 __inline long GetIntHRPValue(DWORD addr) {
