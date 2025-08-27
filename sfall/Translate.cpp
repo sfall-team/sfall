@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "IniReader.h"
+#include "main.h"
 
 #include "Translate.h"
 
@@ -56,6 +56,8 @@ static void MakeLangTranslationPath(const char* config) {
 
 	IniReader::GetString("system", "language", "english", language, 32, fileConfig);
 	IniReader::GetString("system", "master_patches", "data", patches, 65, fileConfig);
+
+	nonEngLang = (_stricmp(language, "english") != 0); // check if the game language is non-English
 
 	const char* iniDef = translationIni.def;
 	while (*iniDef == '\\' || *iniDef == '/' || *iniDef == '.') iniDef++; // skip first characters
