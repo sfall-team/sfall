@@ -305,25 +305,24 @@ void Setting::init(const char* exeFileName, std::string &cmdline) {
 	sf::SafeWrite32(0x482E30, FO_VAR_mapEntranceTileNum); // map_load_file_ (_tile_center_tile to _mapEntranceTileNum)
 
 	if (SCR_WIDTH != 640 || SCR_HEIGHT != 480) {
-		// Set the resolution for GNW95_init_mode_ex_
-		sf::SafeWrite32(0x4CAD6B, SCR_WIDTH);  // 640
-		sf::SafeWrite32(0x4CAD66, SCR_HEIGHT); // 480
+		// Set the resolution
+		sf::SafeWriteBatch<DWORD>(SCR_WIDTH, {
+			0x4CAD6B, // GNW95_init_mode_ex_
+			// for the overlapping temporary black window when loading/starting the game
+			0x480D84, // main_load_new_
+			0x480B04, // gnw_main_
+			0x47C6E5, 0x47C703 // LoadGame_
+		});
+		sf::SafeWriteBatch<DWORD>(SCR_HEIGHT, {
+			0x4CAD66, // GNW95_init_mode_ex_
+			// for the overlapping temporary black window when loading/starting the game
+			0x480D6C, // main_load_new_
+			0x480AFA, // gnw_main_
+			0x47C6E0, 0x47C70D // LoadGame_
+		});
 		// initWindow_ "Error initializing video mode ..."
 		sf::SafeWrite32(0x4B9245, (DWORD)&SCR_WIDTH);
 		sf::SafeWrite32(0x4B923F, (DWORD)&SCR_HEIGHT);
-
-		// Set the resolution for the overlapping temporary black window when loading/starting the game
-		// main_load_new_
-		sf::SafeWrite32(0x480D6C, SCR_HEIGHT);
-		sf::SafeWrite32(0x480D84, SCR_WIDTH);
-		// gnw_main_
-		sf::SafeWrite32(0x480AFA, SCR_HEIGHT);
-		sf::SafeWrite32(0x480B04, SCR_WIDTH);
-		// LoadGame_
-		sf::SafeWrite32(0x47C6E0, SCR_HEIGHT);
-		sf::SafeWrite32(0x47C6E5, SCR_WIDTH);
-		sf::SafeWrite32(0x47C703, SCR_WIDTH);
-		sf::SafeWrite32(0x47C70D, SCR_HEIGHT);
 	}
 	if (sf::isDebug) sf::SafeWrite8(0x480AF6, fo::WinFlags::Hidden); // gnw_main_
 

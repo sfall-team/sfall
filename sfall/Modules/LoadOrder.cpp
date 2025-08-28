@@ -585,6 +585,8 @@ artNotExist:
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 static __declspec(naked) void game_splash_screen_hook() {
 	__asm {
 		call fo::funcoffs::db_fopen_;
@@ -607,6 +609,58 @@ noFile:
 		mov  edx, edi; // mode
 		mov  eax, ebx; // fullname
 		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
+static DWORD hrpLoadRIX_func;
+static DWORD hrpLoadBMP_func;
+
+static __declspec(naked) void game_splash_screen_hook_rix_HRP() {
+	static DWORD retAddr;
+	__asm {
+		pop  retAddr;
+		call hrpLoadRIX_func;
+		test al, al
+		jnz  end;
+		add  esp, 24;
+		mov  eax, [esp + 0x114 - 0x108]; // splash value
+		push eax;
+		push 0x5023E8; // "art\splash\"
+		push 0x502404; // "%ssplash%d.rix"
+		lea  edx, [esp + 0x120 - 0x80]; // fullname
+		push edx;
+		call fo::funcoffs::sprintf_;
+		lea  eax, [esp + 0x124 - 0x80];
+		push eax;
+		push esi; // IMAGE8 data
+		call hrpLoadRIX_func;
+end:
+		jmp  retAddr;
+	}
+}
+
+static __declspec(naked) void game_splash_screen_hook_bmp_HRP() {
+	static const char* splashFmt = "%ssplash%d.bmp";
+	static DWORD retAddr;
+	__asm {
+		pop  retAddr;
+		call hrpLoadBMP_func;
+		test al, al
+		jnz  end;
+		add  esp, 24;
+		mov  eax, [esp + 0x114 - 0x108]; // splash value
+		push eax;
+		push 0x5023E8; // "art\splash\"
+		push splashFmt;
+		lea  edx, [esp + 0x120 - 0x80]; // fullname
+		push edx;
+		call fo::funcoffs::sprintf_;
+		lea  eax, [esp + 0x124 - 0x80];
+		push eax;
+		push esi; // IMAGE8 data
+		call hrpLoadBMP_func;
+end:
+		jmp  retAddr;
 	}
 }
 
@@ -711,6 +765,12 @@ void LoadOrder::init() {
 
 	// Load splash screens from the default path if not found in the art\<language>\splash\ directory
 	HookCall(0x44444E, game_splash_screen_hook);
+	if (HRP::Setting::VersionIsValid) { // for HRP 4.1.8
+		hrpLoadRIX_func = HRP::Setting::GetAddress(0x1001A530);
+		hrpLoadBMP_func = HRP::Setting::GetAddress(0x1001A610);
+		HookCall(HRP::Setting::GetAddress(0x1001B0F6), game_splash_screen_hook_rix_HRP);
+		HookCall(HRP::Setting::GetAddress(0x1001B0C5), game_splash_screen_hook_bmp_HRP);
+	}
 
 	// Load fonts based on the game language
 	HookCalls(load_font_hook, {
