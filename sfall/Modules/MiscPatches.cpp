@@ -671,7 +671,7 @@ static void EncounterTableSizePatch() {
 
 static void DisablePipboyAlarmPatch() {
 	if (IniReader::GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
-		dlogr("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
+		dlogr("Applying disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, CodeType::Ret);
 		SafeWrite8(0x443601, 0);
 	}
@@ -1015,13 +1015,20 @@ void MiscPatches::init() {
 	if (IniReader::GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
 		dlogr("Applying disable special maps handling patch.", DL_INIT);
 		const DWORD specialMapIdsAddr[] = {0x4836D6, 0x4836DB};
-		SafeWriteBatch<BYTE>(0, specialMapIdsAddr);
+		SafeWriteBatch<BYTE>(-1, specialMapIdsAddr);
 	}
 
 	// Remove hardcoding for city areas 45 and 46 (AREA_FAKE_VAULT_13)
 	if (IniReader::GetConfigInt("Misc", "DisableSpecialAreas", 0)) {
 		dlogr("Applying disable special areas handling patch.", DL_INIT);
 		SafeWrite8(0x4C0576, CodeType::JumpShort);
+	}
+
+	// Remove processing of events related to Arroyo (areas 0 and 22)
+	if (IniReader::GetConfigInt("Misc", "DisableArroyoEvents", 0)) {
+		dlogr("Applying disable Arroyo-related events patch.", DL_INIT);
+		SafeWrite8(0x4A36BF, CodeType::Jump);
+		SafeWrite32(0x4A36C0, 336); // jmp 0x4A3814 (scriptsCheckGameEvents_)
 	}
 
 	// Set the normal font for death screen subtitles
