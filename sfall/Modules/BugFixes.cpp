@@ -4488,6 +4488,10 @@ void BugFixes::init() {
 
 	// Fix crash when an encounter between two groups fighting each other fails to spawn one group
 	MakeCall(0x4C119A, wmSetupRandomEncounter_hack, 1);
+
+	// Fix incorrect upper limit in mouse_set_sensitivity_ engine function
+	SafeWrite8(0x4CAC54, 0x77); // jae > ja
+	SafeWrite8(0x50FA0A, 0x04); // 2.5 (was 2.0)
 }
 
 }
