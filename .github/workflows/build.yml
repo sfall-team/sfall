@@ -59,4 +59,4 @@ jobs:
     with:
      name:           sfall-build
      path:           sfall-build
-     retention-days: 14
+     retention-days: 30

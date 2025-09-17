@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt -y -qq install bundler python3-pip
+          sudo apt update && sudo apt -y -qq install bundler python3-pip
           pip3 install ruamel.yaml --user
 
       - name: Build
