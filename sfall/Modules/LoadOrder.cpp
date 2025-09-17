@@ -606,11 +606,11 @@ noFile:
 
 static DWORD hrpLoadRIX_func;
 static DWORD hrpLoadBMP_func;
+static DWORD hrpSplashScrnRet;
 
 static __declspec(naked) void game_splash_screen_hook_rix_HRP() {
-	static DWORD retAddr;
 	__asm {
-		pop  retAddr;
+		pop  hrpSplashScrnRet;
 		call hrpLoadRIX_func;
 		test al, al
 		jnz  end;
@@ -627,15 +627,14 @@ static __declspec(naked) void game_splash_screen_hook_rix_HRP() {
 		push esi; // IMAGE8 data
 		call hrpLoadRIX_func;
 end:
-		jmp  retAddr;
+		jmp  hrpSplashScrnRet;
 	}
 }
 
 static __declspec(naked) void game_splash_screen_hook_bmp_HRP() {
 	static const char* splashFmt = "%ssplash%d.bmp";
-	static DWORD retAddr;
 	__asm {
-		pop  retAddr;
+		pop  hrpSplashScrnRet;
 		call hrpLoadBMP_func;
 		test al, al
 		jnz  end;
@@ -652,7 +651,7 @@ static __declspec(naked) void game_splash_screen_hook_bmp_HRP() {
 		push esi; // IMAGE8 data
 		call hrpLoadBMP_func;
 end:
-		jmp  retAddr;
+		jmp  hrpSplashScrnRet;
 	}
 }
 
