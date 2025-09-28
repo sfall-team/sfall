@@ -28,7 +28,7 @@ long Image::GetDarkColor(fo::PALETTE* palette) {
 	return index;
 }
 
-long Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH) {
+void Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH) {
 	float sWf = (float)sW;
 	float sHf = (float)sH;
 
@@ -38,17 +38,17 @@ long Image::GetAspectSize(long sW, long sH, long* x, long* y, long &dW, long &dH
 	float aspectS = sWf / sHf;
 
 	if (aspectD < aspectS) {
-		dH = (long)((sHf / sWf) * dW); // set new height
+		dH = (long)((dW / sWf) * sHf); // set new height
 		long cy = (height - dH) / 2;   // shift y-offset center
 		if (y) *y = cy;
-		return cy * width;
+		//return cy * width;
 	} else if (aspectD > aspectS) {
 		dW = (long)((dH / sHf) * sWf); // set new width
 		long cx = (width - dW) / 2;    // shift x-offset center
 		if (x) *x = cx;
-		return cx;
+		//return cx;
 	}
-	return 0;
+	//return 0;
 }
 
 // Resizes src image to dWidth/dHeight size

@@ -55,8 +55,8 @@ static class Panels {
 		BYTE* scr = frm->frameData[0].data;
 
 		// set the position to the right side
-		if (!IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left <= 0) scr += (frm->frameData[0].width - win->width);
-		if (IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left > xPosition) scr += (frm->frameData[0].width - win->width);
+		if (!IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left <= 0) scr += (frm->frameData[0].width - width);
+		if (IFaceBar::IFACE_BAR_SIDES_ORI && win->wRect.left > xPosition) scr += (frm->frameData[0].width - width);
 
 		fo::func::cscale(scr, width, frm->frameData[0].height, frm->frameData[0].width, win->surface, win->width, win->height, win->width);
 	}
