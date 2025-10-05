@@ -91,7 +91,8 @@ static void Clear(fo::PALETTE* palette) {
 }
 
 static fo::DbFile* __fastcall ReadRIX(fo::DbFile* file, fo::PALETTE* palette) {
-	fo::func::db_fseek(file, 4, SEEK_SET);
+	fo::func::db_fseek(file, 0, SEEK_SET); // rewind (for uncompressed .dat)
+	fo::func::db_fseek(file, 4, SEEK_SET); // "RIX3"
 	fo::func::db_freadShort(file, &rixWidth);
 	fo::func::db_freadShort(file, &rixHeight);
 
