@@ -26,7 +26,7 @@ jobs:
   steps:
 
   - name: Clone sfall
-    uses: actions/checkout@v5
+    uses: actions/checkout@v6
 
   # Action is used twice for self-testing only
   # DevXP build results are intentionally *not* included in artifact
