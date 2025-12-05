@@ -555,9 +555,16 @@ static __declspec(naked) void obj_read_obj_hack() {
 		add  ebx, 28;         // single-frame death animations
 		shl  ebx, 16;
 		and  edx, 0x0F00FFFF; // clear rotaion and anim code
-		or   edx, ebx;        // set new anim code (also unset ZF)
+		or   edx, ebx;        // set new anim code
+		mov  eax, edx;
+		call fo::funcoffs::art_exists_;
+		test eax, eax;
+		jz   noArt;
 		mov  [esi + artFid], edx;
 		mov  dword ptr [esi + currFrame], 0; // for single frame
+		retn;
+noArt:
+		or   eax, 1; // unset ZF (exit from func)
 skip:
 		retn;
 	}
