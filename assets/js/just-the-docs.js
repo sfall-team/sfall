@@ -527,6 +527,16 @@ jtd.onReady(function(){
   initSearch();
 });
 
+// Accessibility: set tabindex=0 on each code highlight block, so screenreaders
+// can focus over (particularly important if there's horizontal scroll)
+// see: https://dequeuniversity.com/rules/axe/4.9/scrollable-region-focusable?application=axeAPI
+
+jtd.onReady(() => {
+  document
+    .querySelectorAll("div.highlight")
+    .forEach(codeBlock => codeBlock.setAttribute("tabindex", "0"));
+});
+
 // Copy button on code
 
 jtd.onReady(function(){
