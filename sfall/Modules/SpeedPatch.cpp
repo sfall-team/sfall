@@ -162,9 +162,43 @@ MMRESULT __stdcall fTimeKillEvent(UINT id) {
 
 static __declspec(naked) void scripts_check_state_hook() {
 	__asm {
-		inc  slideShow;
+		mov  slideShow, 1;
 		call fo::funcoffs::endgame_slideshow_;
-		dec  slideShow;
+		mov  slideShow, 0;
+		retn;
+	}
+}
+
+// same as elapsed_time_ engine function, but bypasses the speed tweak
+static DWORD __fastcall elapsed_time_simple(DWORD start) {
+	DWORD end = GetTickCount();
+	if (end >= start) {
+		return (end - start);
+	} else {
+		return INT_MAX;
+	}
+}
+
+static __declspec(naked) void map_scroll_hook_elapsed_time() {
+	__asm {
+		push ecx;
+		push edx;
+		mov  ecx, eax;
+		call elapsed_time_simple;
+		pop  edx;
+		pop  ecx;
+		retn;
+	}
+}
+
+// get_time_ engine function is only a wrapper of GetTickCount
+static __declspec(naked) void map_scrall_hook_get_time() {
+	__asm {
+		push ecx;
+		push edx;
+		call GetTickCount; // bypass speed tweak
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -220,6 +254,8 @@ void SpeedPatch::init() {
 	}
 	SafeWrite32(0x4FDF58, (DWORD)&getLocalTimeOffs);
 	HookCall(0x4A433E, scripts_check_state_hook);
+	HookCall(0x4826CF, map_scroll_hook_elapsed_time);
+	HookCall(0x4826EB, map_scrall_hook_get_time);
 
 	TimerInit();
 }
