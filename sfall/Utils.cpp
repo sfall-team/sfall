@@ -94,7 +94,6 @@ long lroundf(float num) {
 	return static_cast<long>(integer - num >= 0.5f ? integer - 1.0f : integer);
 }
 
-
 // max range 0-32767
 //long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use
 //	return (min + (std::rand() % (max - (min - 1))));
