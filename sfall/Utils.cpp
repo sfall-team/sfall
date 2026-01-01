@@ -86,7 +86,6 @@ long StrToLong(const char* str, int base /* = 0 */) {
 	return strtol(str, &end, base); // see https://stackoverflow.com/a/6154614
 }
 
-
 // max range 0-32767
 //long GetRandom(long min, long max) { // uncomment the srand() in main.cpp before use
 //	return (min + (std::rand() % (max - (min - 1))));
