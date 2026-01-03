@@ -130,7 +130,6 @@ static void InitModules() {
 	manager.add<Books>();
 	manager.add<Criticals>();
 	manager.add<Elevators>();
-	manager.add<Unarmed>();
 
 	manager.add<Animations>();
 	manager.add<BarBoxes>();
@@ -144,6 +143,7 @@ static void InitModules() {
 	manager.add<MiscPatches>();
 
 	manager.add<AI>();
+	manager.add<Unarmed>();
 	manager.add<DamageMod>();
 	manager.add<BurstMods>();
 
