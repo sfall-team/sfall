@@ -196,7 +196,7 @@ static DWORD __stdcall GetTickCount2() {
 }
 
 // get_time_ engine function is only a wrapper of GetTickCount
-static __declspec(naked) void map_scrall_hook_get_time() {
+static __declspec(naked) void map_scroll_hook_get_time() {
 	__asm {
 		push ecx;
 		push edx;
@@ -259,7 +259,11 @@ void SpeedPatch::init() {
 	SafeWrite32(0x4FDF58, (DWORD)&getLocalTimeOffs);
 	HookCall(0x4A433E, scripts_check_state_hook);
 	HookCall(0x4826CF, map_scroll_hook_elapsed_time);
-	HookCall(0x4826EB, map_scrall_hook_get_time);
+	const DWORD mapScrollGetTimeAddr[] = {
+		0x4826EB,          // map_scroll_
+		0x4C33C0, 0x4C33CF // wmMouseBkProc_ (replace get_bk_time_)
+	};
+	HookCalls(map_scroll_hook_get_time, mapScrollGetTimeAddr);
 
 	TimerInit();
 }
