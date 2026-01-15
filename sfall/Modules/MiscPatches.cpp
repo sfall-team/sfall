@@ -40,7 +40,7 @@ bool disableHorrigan = false;
 // Implementation from HRP by Mash
 static void __stdcall CheckMessages() {
 	MSG msg;
-	MsgWaitForMultipleObjectsEx(0, 0, 1, 0xFF, 0);
+	MsgWaitForMultipleObjectsEx(0, 0, 1, 0x4FF, 0); // QS_ALLINPUT for newer Windows
 	while (PeekMessageA(&msg, 0, 0, 0, 0)) {
 		if (GetMessageA(&msg, 0, 0, 0)) {
 			TranslateMessage(&msg);
@@ -997,7 +997,7 @@ void MiscPatches::init() {
 	*fo::ptr::idle_func = reinterpret_cast<void*>(Sleep);
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
 
-	if (IniReader::GetConfigInt("Misc", "ProcessorIdle", -1) > 0) {
+	if (IniReader::GetConfigInt("Misc", "ProcessorIdle", 1) > 0) {
 		MakeJump(0x4C9DA9, GNW95_process_message_hack, 3); // replace hack function from HRP by Mash
 	}
 
