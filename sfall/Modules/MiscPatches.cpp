@@ -961,7 +961,7 @@ void MiscPatches::init() {
 	fo::var::idle_func = reinterpret_cast<void*>(Sleep);
 	SafeWrite16(0x4C9F12, 0x7D6A); // push 125 (ms)
 
-	if (idle <= 0) idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", -1);
+	if (idle <= 0) idle = IniReader::GetConfigInt("Misc", "ProcessorIdle", 1);
 	if (idle > 0) MakeJump(0x4C9DA9, GNW95_process_message_hack, 3); // replace hack function from HRP by Mash
 
 	BlockCall(0x4425E6); // Patch out ereg call

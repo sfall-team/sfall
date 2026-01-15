@@ -52,7 +52,7 @@ void __stdcall WinProc::MessageWindow() {
 
 // Implementation from HRP by Mash
 void __stdcall WinProc::WaitMessageWindow() {
-	MsgWaitForMultipleObjectsEx(0, 0, 1, 0xFF, 0);
+	MsgWaitForMultipleObjectsEx(0, 0, 1, QS_ALLINPUT, 0);
 	MessageWindow();
 }
 

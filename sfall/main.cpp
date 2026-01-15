@@ -124,7 +124,6 @@ static void InitModules() {
 
 	manager.add<EngineTweaks>();
 	manager.add<Books>();
-	manager.add<Criticals>();
 	manager.add<Elevators>();
 
 	manager.add<Animations>();
@@ -142,6 +141,8 @@ static void InitModules() {
 	manager.add<Unarmed>();
 	manager.add<DamageMod>();
 	manager.add<BurstMods>();
+	manager.add<Combat>();
+	manager.add<Criticals>();
 
 	manager.add<Inventory>();
 	manager.add<Objects>();
@@ -152,7 +153,6 @@ static void InitModules() {
 	manager.add<Skills>();
 	manager.add<Drugs>();       // should be loaded before PartyControl
 	manager.add<PartyControl>();
-	manager.add<Combat>();
 
 	manager.add<PlayerModel>();
 	manager.add<Karma>();
