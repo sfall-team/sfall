@@ -928,13 +928,21 @@ void MiscPatches::init() {
 		SafeWrite32(0x444323, (DWORD)&patchName);
 	}
 
-	if (IniReader::GetConfigInt("Misc", "SingleCore", 1)) {
+	if (IniReader::GetConfigInt("Misc", "SingleCore", 0)) {
 		SYSTEM_INFO sysInfo;
 		GetSystemInfo(&sysInfo);
 		if (sysInfo.dwNumberOfProcessors > 1) {
-			dlogr("Applying single core patch.", DL_INIT);
 			HANDLE process = GetCurrentProcess();
-			SetProcessAffinityMask(process, 2); // use only CPU 1
+			DWORD_PTR procAffinity, sysAffinity;
+			if (GetProcessAffinityMask(process, &procAffinity, &sysAffinity)) {
+				DWORD_PTR newMask = procAffinity & ~static_cast<DWORD_PTR>(1); // exclude CPU 0
+				if (newMask == 0) newMask = procAffinity;   // fall back if no other cores
+				newMask &= -static_cast<LONG_PTR>(newMask); // pick the first available core
+				if (newMask != 0 && newMask != procAffinity) {
+					dlogr("Applying single core patch.", DL_INIT);
+					SetProcessAffinityMask(process, newMask);
+				}
+			}
 		}
 	}
 
