@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.4.9
+* Fixed the edge-scrolling speed when using the game speed tweak
+* Fixed incorrect unarmed damage being displayed in the inventory under specific conditions
+* Fixed a crash bug in the tweak that replaces death animations on critters with single-frame variants on map load
+* Improved the functionality of **Fallout1Behavior** to set the correct initial in-game time
+* Changed **ProcessorIdle** to be enabled by default
+* Changed **SingleCore** to be disabled by default as its usage is questionable on newer systems
+* Added a fix for script execution issues when calling `critter_mod_skill` in a loop
+* Added options to the **tweaks ini file** to override the PID of the mirrored shades and the stat they affect when equipped
+
 ## 4.4.8
 * HRP: Fixed a crash and a visual glitch in the interface bar at ultrawide resolutions
 * HRP: Fixed splash screen display when the file is packed in an uncompressed **.dat** file
@@ -268,7 +278,7 @@
 
 ## 4.3.1
 * Fixed the Jet addiction not being removed when using the antidote in some cases
-* Fixed the key repeat delay and rate when enabling the game speed tweak
+* Fixed the key repeat delay and rate when using the game speed tweak
 * Fixed a possible crash at the end of the playback of alternative sound files
 * Fixed a rounding error in Glovz's damage formula
 * Fixed and improved **NPC combat control mod** and the behavior of **SpeedInterfaceCounterAnims=3**
