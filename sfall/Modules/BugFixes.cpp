@@ -4174,6 +4174,9 @@ void BugFixes::init() {
 	// Fix for critter_mod_skill taking a negative amount value as a positive
 	dlogr("Applying critter_mod_skill fix.", DL_FIX);
 	SafeWrite8(0x45B910, 0x7E); // jbe > jle
+	// Fix for script execution issues when calling critter_mod_skill in a loop
+	BlockCall(0x45B9A7); // remove the unused return value
+	BlockCall(0x45B9B3);
 
 	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
 	// also change the behavior of use_obj_on_obj function
