@@ -125,5 +125,19 @@ void mf_win_fill_color(OpcodeContext&);
 
 void mf_interface_overlay(OpcodeContext&);
 
+void mf_bridge_action(OpcodeContext&);
+
+void mf_bridge_inv_reset(OpcodeContext&);
+
+void mf_bridge_inv_nav(OpcodeContext&);
+
+void mf_bridge_inv_state(OpcodeContext&);
+
+void mf_bridge_inv_set_loot_owner(OpcodeContext&);
+
+void mf_bridge_mouse_set(OpcodeContext&);
+
+void mf_bridge_mouse_sim(OpcodeContext&);
+
 }
 }

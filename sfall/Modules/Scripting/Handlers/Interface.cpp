@@ -113,6 +113,200 @@ __declspec(naked) void op_get_mouse_y() {
 
 enum { MOUSE_MIDDLE_BTN = 4 };
 
+enum BridgeActionId : long {
+	BRIDGE_ACTION_USE_SELECTED  = 1,
+	BRIDGE_ACTION_LOOT_OPEN     = 2,
+	BRIDGE_ACTION_LOOT_TAKE_ALL = 3,
+	BRIDGE_ACTION_CLOSE_LOOT    = 4,
+	BRIDGE_ACTION_TALK          = 5,
+	BRIDGE_ACTION_SKILL_ON      = 6,
+	BRIDGE_ACTION_USE_ITEM_ON   = 7,
+};
+
+enum BridgeActionStatus : long {
+	BRIDGE_STATUS_OK              = 0,
+	BRIDGE_STATUS_UNKNOWN_ACTION  = -1,
+	BRIDGE_STATUS_BLOCKED_MODE    = -2,
+	BRIDGE_STATUS_INVALID_TARGET  = -3,
+	BRIDGE_STATUS_INVALID_ARG     = -4,
+	BRIDGE_STATUS_MISSING_ITEM    = -5,
+};
+
+enum BridgeInventoryMode : long {
+	BRIDGE_INV_MODE_NONE      = 0,
+	BRIDGE_INV_MODE_INVENTORY = 1,
+	BRIDGE_INV_MODE_LOOT      = 2,
+	BRIDGE_INV_MODE_BARTER    = 3,
+};
+
+struct BridgeInventoryCursorState {
+	long mode;
+	long pane;
+	long row;
+	fo::GameObject* lootOwner;
+};
+
+static BridgeInventoryCursorState bridgeInvCursor = {BRIDGE_INV_MODE_NONE, 0, 0, nullptr};
+
+static long BridgeClampLong(long value, long minValue, long maxValue) {
+	if (value < minValue) return minValue;
+	if (value > maxValue) return maxValue;
+	return value;
+}
+
+static long BridgeDetectInventoryMode() {
+	DWORD flags = GetLoopFlags();
+	if (flags & BARTER) return BRIDGE_INV_MODE_BARTER;
+	if (flags & INTFACELOOT) return BRIDGE_INV_MODE_LOOT;
+	if (flags & INVENTORY) return BRIDGE_INV_MODE_INVENTORY;
+	return BRIDGE_INV_MODE_NONE;
+}
+
+static long BridgeInventoryPaneCount(long mode) {
+	switch (mode) {
+	case BRIDGE_INV_MODE_INVENTORY:
+		return 1;
+	case BRIDGE_INV_MODE_LOOT:
+		return 2;
+	case BRIDGE_INV_MODE_BARTER:
+		return 4;
+	default:
+		return 0;
+	}
+}
+
+static long BridgeInventoryCount(fo::GameObject* owner) {
+	if (!owner || !owner->invenTable || owner->invenSize <= 0) return 0;
+	return owner->invenSize;
+}
+
+static fo::GameObject* BridgeInventoryItemAtRow(fo::GameObject* owner, long row) {
+	const long count = BridgeInventoryCount(owner);
+	if (count <= 0) return nullptr;
+
+	if (row < 0) row = 0;
+	if (row >= count) row = count - 1;
+
+	const long index = (count - 1) - row;
+	return owner->invenTable[index].object;
+}
+
+static fo::GameObject* BridgeTargetStackObject() {
+	long idx = fo::var::target_curr_stack;
+	if (idx >= 0 && idx < 10) {
+		fo::GameObject* obj = fo::var::target_stack[idx];
+		if (obj) return obj;
+	}
+	for (long i = 0; i < 10; i++) {
+		if (fo::var::target_stack[i]) return fo::var::target_stack[i];
+	}
+	return nullptr;
+}
+
+static fo::GameObject* BridgeResolveLootOwner() {
+	fo::GameObject* targetObj = BridgeTargetStackObject();
+	if (targetObj && targetObj->owner) return targetObj->owner;
+	return bridgeInvCursor.lootOwner;
+}
+
+static fo::GameObject* BridgeResolveBarterNpcOwner() {
+	if (fo::var::dialog_target) return fo::var::dialog_target;
+
+	fo::GameObject* targetObj = BridgeTargetStackObject();
+	if (targetObj && targetObj->owner) return targetObj->owner;
+
+	return nullptr;
+}
+
+static void BridgeInventoryPaneData(long mode, fo::GameObject** owners, long* counts) {
+	for (long i = 0; i < 4; i++) {
+		owners[i] = nullptr;
+		counts[i] = 0;
+	}
+
+	switch (mode) {
+	case BRIDGE_INV_MODE_INVENTORY:
+		owners[0] = fo::var::inven_dude;
+		break;
+	case BRIDGE_INV_MODE_LOOT:
+		owners[0] = fo::var::inven_dude;
+		owners[1] = BridgeResolveLootOwner();
+		break;
+	case BRIDGE_INV_MODE_BARTER:
+		owners[0] = fo::var::inven_dude;
+		owners[1] = fo::var::ptable;
+		owners[2] = fo::var::btable;
+		owners[3] = BridgeResolveBarterNpcOwner();
+		break;
+	default:
+		break;
+	}
+
+	for (long i = 0; i < 4; i++) {
+		counts[i] = BridgeInventoryCount(owners[i]);
+	}
+}
+
+static long BridgeInventorySyncMode() {
+	const long mode = BridgeDetectInventoryMode();
+	if (bridgeInvCursor.mode != mode) {
+		bridgeInvCursor.mode = mode;
+		bridgeInvCursor.pane = 0;
+		bridgeInvCursor.row = 0;
+	}
+	return bridgeInvCursor.mode;
+}
+
+static void BridgeInventoryClampCursor(long mode, fo::GameObject** owners, long* counts, long &paneCount, long &rowCount, fo::GameObject* &item) {
+	paneCount = BridgeInventoryPaneCount(mode);
+	rowCount = 0;
+	item = nullptr;
+
+	if (paneCount <= 0) {
+		bridgeInvCursor.pane = 0;
+		bridgeInvCursor.row = 0;
+		return;
+	}
+
+	bridgeInvCursor.pane = BridgeClampLong(bridgeInvCursor.pane, 0, paneCount - 1);
+	rowCount = counts[bridgeInvCursor.pane];
+
+	if (rowCount <= 0) {
+		bridgeInvCursor.row = 0;
+		return;
+	}
+
+	bridgeInvCursor.row = BridgeClampLong(bridgeInvCursor.row, 0, rowCount - 1);
+	item = BridgeInventoryItemAtRow(owners[bridgeInvCursor.pane], bridgeInvCursor.row);
+}
+
+static bool BridgeIsMapObject(fo::GameObject* obj) {
+	if (!obj) return false;
+	if (obj == fo::var::obj_dude) return true;
+
+	fo::GameObject* iter = fo::func::obj_find_first();
+	while (iter) {
+		if (iter == obj) return true;
+		iter = fo::func::obj_find_next();
+	}
+	return false;
+}
+
+static bool BridgeValidateTarget(fo::GameObject* target, bool allowItem, bool allowScenery, bool allowCritter) {
+	if (!BridgeIsMapObject(target)) return false;
+
+	switch (target->Type()) {
+	case fo::ObjType::OBJ_TYPE_ITEM:
+		return allowItem;
+	case fo::ObjType::OBJ_TYPE_SCENERY:
+		return allowScenery;
+	case fo::ObjType::OBJ_TYPE_CRITTER:
+		return allowCritter;
+	default:
+		return false;
+	}
+}
+
 void op_get_mouse_buttons(OpcodeContext& ctx) {
 	DWORD button = fo::var::last_buttons;
 	if (button == 0 && middleMouseDown) {
@@ -318,6 +512,184 @@ void mf_get_cursor_mode(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::gmouse_3d_current_mode);
 }
 
+void mf_bridge_action(OpcodeContext& ctx) {
+	const long actionId = ctx.arg(0).rawValue();
+	fo::GameObject* target = reinterpret_cast<fo::GameObject*>(ctx.arg(1).rawValue());
+	const long arg0 = ctx.arg(2).rawValue();
+	const long arg1 = ctx.arg(3).rawValue();
+	(void)arg1;
+
+	long result = BRIDGE_STATUS_OK;
+
+	switch (actionId) {
+	case BRIDGE_ACTION_USE_SELECTED:
+		if (!BridgeValidateTarget(target, true, true, true)) {
+			result = BRIDGE_STATUS_INVALID_TARGET;
+			break;
+		}
+		result = fo::func::action_use_an_object(fo::var::obj_dude, target);
+		break;
+	case BRIDGE_ACTION_LOOT_OPEN:
+		if (!BridgeValidateTarget(target, true, true, true)) {
+			result = BRIDGE_STATUS_INVALID_TARGET;
+			break;
+		}
+		if (target->IsNotCritter() && fo::util::ObjIsOpenable(target) == 0) {
+			result = BRIDGE_STATUS_INVALID_TARGET;
+			break;
+		}
+		result = fo::func::action_loot_container(fo::var::obj_dude, target);
+		break;
+	case BRIDGE_ACTION_LOOT_TAKE_ALL:
+		if ((GetLoopFlags() & INTFACELOOT) == 0) {
+			result = BRIDGE_STATUS_BLOCKED_MODE;
+			break;
+		}
+		TapKey(DIK_CAPITAL);
+		TapKey(DIK_A);
+		TapKey(DIK_CAPITAL);
+		result = BRIDGE_STATUS_OK;
+		break;
+	case BRIDGE_ACTION_CLOSE_LOOT:
+		if ((GetLoopFlags() & (INTFACELOOT | DIALOG | DIALOGVIEW | BARTER)) == 0) {
+			result = BRIDGE_STATUS_BLOCKED_MODE;
+			break;
+		}
+		TapKey(DIK_ESCAPE);
+		result = BRIDGE_STATUS_OK;
+		break;
+	case BRIDGE_ACTION_TALK:
+		if (!BridgeValidateTarget(target, false, false, true)) {
+			result = BRIDGE_STATUS_INVALID_TARGET;
+			break;
+		}
+		result = fo::func::action_talk_to(fo::var::obj_dude, target);
+		break;
+	case BRIDGE_ACTION_SKILL_ON:
+		if (!BridgeValidateTarget(target, true, true, true)) {
+			result = BRIDGE_STATUS_INVALID_TARGET;
+			break;
+		}
+		if (arg0 < 0 || arg0 >= fo::Skill::SKILL_count) {
+			result = BRIDGE_STATUS_INVALID_ARG;
+			break;
+		}
+		result = fo::func::action_use_skill_on(fo::var::obj_dude, target, arg0);
+		break;
+	case BRIDGE_ACTION_USE_ITEM_ON: {
+		if (!BridgeValidateTarget(target, true, true, true)) {
+			result = BRIDGE_STATUS_INVALID_TARGET;
+			break;
+		}
+		fo::GameObject* right = fo::func::inven_right_hand(fo::var::obj_dude);
+		fo::GameObject* left = fo::func::inven_left_hand(fo::var::obj_dude);
+		fo::GameObject* requested = reinterpret_cast<fo::GameObject*>(arg0);
+		fo::GameObject* useItem = nullptr;
+
+		if (requested && (requested == right || requested == left)) {
+			useItem = requested;
+		} else {
+			useItem = (fo::func::intface_is_item_right_hand())
+			        ? right
+			        : left;
+			if (!useItem) useItem = (right) ? right : left;
+		}
+
+		if (!useItem) {
+			result = BRIDGE_STATUS_MISSING_ITEM;
+			break;
+		}
+
+		result = fo::func::action_use_an_item_on_object(fo::var::obj_dude, target, useItem);
+		break;
+	}
+	default:
+		result = BRIDGE_STATUS_UNKNOWN_ACTION;
+		break;
+	}
+
+	ctx.setReturn(result);
+}
+
+void mf_bridge_inv_reset(OpcodeContext& ctx) {
+	if (BridgeInventorySyncMode() == BRIDGE_INV_MODE_NONE) {
+		ctx.setReturn(-1);
+		return;
+	}
+
+	bridgeInvCursor.pane = 0;
+	bridgeInvCursor.row = 0;
+	ctx.setReturn(0);
+}
+
+void mf_bridge_inv_nav(OpcodeContext& ctx) {
+	if (BridgeInventorySyncMode() == BRIDGE_INV_MODE_NONE) {
+		ctx.setReturn(-1);
+		return;
+	}
+
+	bridgeInvCursor.pane += ctx.arg(0).rawValue();
+	bridgeInvCursor.row += ctx.arg(1).rawValue();
+
+	fo::GameObject* owners[4];
+	long counts[4];
+	long paneCount;
+	long rowCount;
+	fo::GameObject* item;
+
+	BridgeInventoryPaneData(bridgeInvCursor.mode, owners, counts);
+	BridgeInventoryClampCursor(bridgeInvCursor.mode, owners, counts, paneCount, rowCount, item);
+
+	ctx.setReturn(0);
+}
+
+void mf_bridge_inv_state(OpcodeContext& ctx) {
+	BridgeInventorySyncMode();
+
+	fo::GameObject* owners[4];
+	long counts[4];
+	long paneCount;
+	long rowCount;
+	fo::GameObject* item;
+
+	BridgeInventoryPaneData(bridgeInvCursor.mode, owners, counts);
+	BridgeInventoryClampCursor(bridgeInvCursor.mode, owners, counts, paneCount, rowCount, item);
+
+	DWORD result = CreateTempArray(-1, 0); // associative
+	SetArray(result, ScriptValue("mode"), ScriptValue(bridgeInvCursor.mode), false);
+	SetArray(result, ScriptValue("pane"), ScriptValue(bridgeInvCursor.pane), false);
+	SetArray(result, ScriptValue("pane_count"), ScriptValue(paneCount), false);
+	SetArray(result, ScriptValue("row"), ScriptValue(bridgeInvCursor.row), false);
+	SetArray(result, ScriptValue("row_count"), ScriptValue(rowCount), false);
+	SetArray(result, ScriptValue("item"), ScriptValue(reinterpret_cast<long>(item)), false);
+
+	SetArray(result, ScriptValue("pane0_owner"), ScriptValue(reinterpret_cast<long>(owners[0])), false);
+	SetArray(result, ScriptValue("pane1_owner"), ScriptValue(reinterpret_cast<long>(owners[1])), false);
+	SetArray(result, ScriptValue("pane2_owner"), ScriptValue(reinterpret_cast<long>(owners[2])), false);
+	SetArray(result, ScriptValue("pane3_owner"), ScriptValue(reinterpret_cast<long>(owners[3])), false);
+	SetArray(result, ScriptValue("pane0_count"), ScriptValue(counts[0]), false);
+	SetArray(result, ScriptValue("pane1_count"), ScriptValue(counts[1]), false);
+	SetArray(result, ScriptValue("pane2_count"), ScriptValue(counts[2]), false);
+	SetArray(result, ScriptValue("pane3_count"), ScriptValue(counts[3]), false);
+
+	ctx.setReturn(result);
+}
+
+void mf_bridge_inv_set_loot_owner(OpcodeContext& ctx) {
+	bridgeInvCursor.lootOwner = reinterpret_cast<fo::GameObject*>(ctx.arg(0).rawValue());
+	ctx.setReturn(0);
+}
+
+void mf_bridge_mouse_set(OpcodeContext& ctx) {
+	fo::func::mouse_set_position(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	ctx.setReturn(BRIDGE_STATUS_OK);
+}
+
+void mf_bridge_mouse_sim(OpcodeContext& ctx) {
+	fo::func::mouse_simulate_input(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	ctx.setReturn(BRIDGE_STATUS_OK);
+}
+
 void mf_set_cursor_mode(OpcodeContext& ctx) {
 	fo::func::gmouse_3d_set_mode(ctx.arg(0).rawValue());
 }
@@ -387,6 +759,14 @@ void mf_inventory_redraw(OpcodeContext& ctx) {
 		fo::func::display_target_inventory(0, -1, fo::var::target_pud, mode);
 		fo::func::win_draw(fo::var::i_wid);
 	}
+	// This crashes the game.
+	/*
+	if (mode == 3) {
+		// Barter has extra filter/table UI state; refresh its native table view too.
+		__asm call fo::funcoffs::display_table_inventories_;
+		fo::func::win_draw(fo::var::i_wid);
+	}
+	*/
 }
 
 void mf_dialog_message(OpcodeContext& ctx) {

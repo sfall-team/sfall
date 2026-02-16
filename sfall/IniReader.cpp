@@ -101,6 +101,14 @@ void IniReader::clearCache() {
 	_iniCache.clear();
 }
 
+void IniReader::clearCache(const char* iniFile) {
+	if (!iniFile || iniFile[0] == '\0') {
+		clearCache();
+		return;
+	}
+	_iniCache.erase(iniFile);
+}
+
 void IniReader::init() {
 	_modifiedIni = IniReader::GetConfigInt("Main", "ModifiedIni", 0);
 

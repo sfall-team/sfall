@@ -68,6 +68,7 @@ public:
 
 	void init();
 	void clearCache();
+	void clearCache(const char* iniFile);
 
 	DWORD modifiedIni() const { return _modifiedIni; }
 

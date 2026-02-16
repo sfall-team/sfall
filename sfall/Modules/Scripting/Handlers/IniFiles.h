@@ -39,6 +39,8 @@ void mf_get_ini_section(OpcodeContext&);
 
 void mf_get_ini_config(OpcodeContext&);
 
+void mf_bridge_ini_cache_clear(OpcodeContext&);
+
 void ResetIniCache();
 
 }

@@ -179,6 +179,21 @@ static std::string GetIniFilePathFromArg(const ScriptValue& arg) {
 	return std::move(fileName);
 }
 
+void mf_bridge_ini_cache_clear(OpcodeContext& ctx) {
+	if (ctx.numArgs() == 0 || ctx.arg(0).strValue()[0] == '\0') {
+		IniReader::instance().clearCache();
+		ResetIniCache();
+		ctx.setReturn(1);
+		return;
+	}
+
+	std::string filePath = GetIniFilePathFromArg(ctx.arg(0));
+	IniReader::instance().clearCache(filePath.c_str());
+	ConfigArrayCache.erase(filePath);
+	ConfigArrayCacheDat.erase(filePath);
+	ctx.setReturn(1);
+}
+
 void mf_get_ini_sections(OpcodeContext& ctx) {
 	Config* config = IniReader::instance().getIniConfig(GetIniFilePathFromArg(ctx.arg(0)).c_str());
 	if (config == nullptr) {
