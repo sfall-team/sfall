@@ -209,7 +209,7 @@ struct GameObject {
 		struct {
 			MiscFlags sceneryFlags; // unused for scenery? (aka updated_flags)
 			MiscFlags doorFlags;    // used for doors states open/locked/jammed (aka cur_open_flags)
-			long unused[9];             // offset 0x40 (not saved)
+			long unused[9];         // offset 0x40 (not saved)
 		} scenery;
 	};
 
