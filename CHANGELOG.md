@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.8.49.1
+* Fixed a crash bug introduced in 3.8.46 when the player is hit and combat starts at the same time
+
 ## 3.8.49
 * Fixed the edge-scrolling speed when using the game speed tweak
 * Fixed incorrect unarmed damage being displayed in the inventory under specific conditions
@@ -51,7 +54,7 @@
 * Added a fix for the duplicate click sound when selecting a location in the Status section of the pipboy
 * Added a fix for extra hidden buttons below the location list in the Status section of the pipboy
 * Added a fix for map lighting from **Night Vision** perk not updating when loading a saved game
-* Added a fix for an animation glitch when death animations and combat start simultaneously
+* Added a fix for an animation glitch when death animations and combat start at the same time
 * Added a fix to prevent the game from hanging when reloading a weapon overloaded with ammo via the interface bar
 * Added a few fixes for issues related to weapons with negative ammo
 * Added a tweak to replace death animations on critters with single-frame variants on map load
@@ -313,14 +316,14 @@
 
 ## 3.8.30.1
 * Merged Windows 2000 support into the standard version of sfall. Using **DX9** graphics modes now requires `d3dx9_42.dll` and `d3dcompiler_42.dll`
-* Fixed a crash bug introduced in 3.8.30 with the fix for animation registration
+* Fixed a crash bug introduced in 3.8.30 by the fix for animation registration
 * Fixed a bug in **AIDrugUsePerfFix** that could cause a hang in combat
 * Fixed the extra check for friendly fire not working if the `area_attack_mode` parameter in the AI packet is not set or set to `no_pref`
 * Added a fix for `chem_primary_desire` values in party member AI packets not being saved and reset correctly
 
 ## 3.8.30
 * Fixed the original engine issues with being unable to register animations in certain situations in the game
-* Fixed a crash bug introduced in 3.8.29 with the fix for the **'Leave'** event procedure in `AddRegionProc` function
+* Fixed a crash bug introduced in 3.8.29 by the fix for the **'Leave'** event procedure in `AddRegionProc` function
 * Fixed a bug in **ObjCanSeeObj_ShootThru_Fix** that could cause a hang in some cases
 * Fixed the check of the ammo cost for a shot in **CheckWeaponAmmoCost**
 * Fixed `set_critter_burst_disable` script function, which now applies only to weapons with the burst attack as the secondary mode
@@ -560,7 +563,7 @@
 * New script functions: `add_g_timer_event`, `remove_timer_event`, `reg_anim_callback`, `get_sfall_arg_at`, `hide/show_window`, `set_window_flag`, `get_text_width`, `string_compare`, `string_format`, `objects_in_radius`, `tile_by_position`
 
 ## 3.8.21.1
-* Fixed a crash bug introduced in 3.8.21 with the fix for corpses blocking line of fire
+* Fixed a crash bug introduced in 3.8.21 by the fix for corpses blocking line of fire
 
 ## 3.8.21
 * Fixed a bug in `save_array` script function that could corrupt `sfallgv.sav` when saving a new array under the same key
