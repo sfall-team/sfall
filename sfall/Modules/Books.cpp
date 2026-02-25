@@ -47,8 +47,8 @@ static sBook* __fastcall FindBook(DWORD pid) {
 	return 0;
 }
 
-static __declspec(naked) void obj_use_book_hook() {
-	static const DWORD obj_use_book_hook_back = 0x49BA5A;
+static __declspec(naked) void obj_use_book_hack() {
+	static const DWORD obj_use_book_Ret = 0x49BA5A;
 	__asm {
 		mov  edi, -1;
 		mov  ecx, eax;
@@ -58,7 +58,7 @@ static __declspec(naked) void obj_use_book_hook() {
 		mov  edi, [eax + 4]; // msgID
 		mov  ecx, [eax + 8]; // skill
 skip:
-		jmp  obj_use_book_hook_back;
+		jmp  obj_use_book_Ret;
 	}
 }
 
@@ -116,7 +116,7 @@ void Books::init() {
 			}
 			BooksCount--; // set to last index
 
-			MakeJump(0x49B9FB, obj_use_book_hook);
+			MakeJump(0x49B9FB, obj_use_book_hack);
 		}
 		dlog_f(" (%d/%d books)\n", DL_INIT, n, count);
 	}

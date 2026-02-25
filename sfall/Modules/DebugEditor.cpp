@@ -462,12 +462,12 @@ static __declspec(naked) void win_debug_win_draw_hook() {
 
 static long debugWndWidth;
 static __declspec(naked) void win_debug_pitch_calc_hack() {
-	static const DWORD win_debug_pitch_calc_hack_back = 0x4DC542;
+	static const DWORD win_debug_pitch_calc_Ret = 0x4DC542;
 	__asm {
 		mov  eax, debugWndWidth;
 		imul esi;
 		mov  ebp, eax;
-		jmp  win_debug_pitch_calc_hack_back;
+		jmp  win_debug_pitch_calc_Ret;
 	}
 }
 

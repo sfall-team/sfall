@@ -98,7 +98,7 @@ static long __fastcall op_metarule3_ext(long metafunc, long* args) {
 }
 
 static __declspec(naked) void op_metarule3_hack() {
-	static const DWORD op_metarule3_hack_Ret = 0x45732C;
+	static const DWORD op_metarule3_Ret = 0x45732C;
 	__asm {
 		cmp  ecx, 111;
 		jnz  extended;
@@ -112,7 +112,7 @@ extended:
 		//
 		call op_metarule3_ext; // ecx - metafunc arg
 		add  esp, 4;
-		jmp  op_metarule3_hack_Ret;
+		jmp  op_metarule3_Ret;
 	}
 }
 

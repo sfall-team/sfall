@@ -309,7 +309,7 @@ static long __fastcall get_unarmed_damage(fo::GameObject* source, fo::AttackType
 }
 
 static __declspec(naked) void item_w_damage_hack() {
-	static DWORD item_w_damage_hack_Ret = 0x478553;
+	static DWORD item_w_damage_Ret = 0x478553;
 	__asm {
 		lea  eax, [esp + 4]; // min_DMG
 		lea  edx, [esp + 0]; // max_DMG
@@ -320,7 +320,7 @@ static __declspec(naked) void item_w_damage_hack() {
 		call get_unarmed_damage;
 		mov  ebx, eax; // bonus
 		pop  ecx;
-		jmp  item_w_damage_hack_Ret;
+		jmp  item_w_damage_Ret;
 	}
 }
 
