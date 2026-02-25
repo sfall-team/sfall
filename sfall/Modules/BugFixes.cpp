@@ -2155,13 +2155,13 @@ skip:
 
 // when there are no more items in the inventory
 static __declspec(naked) void ai_check_drugs_hack_break() {
-	static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
+	static const DWORD ai_check_drugs_break_Ret = 0x42878B;
 	__asm {
 		mov  eax, -1;
 		cmp  firstItemDrug, eax;
 		jne  useDrugs;                     // pid != -1
 		add  esp, 4;
-		jmp  ai_check_drugs_hack_Ret;      // break loop
+		jmp  ai_check_drugs_break_Ret;     // break loop
 useDrugs: // use the first found item
 		mov  dword ptr [esp + 4], eax;     // slot set -1
 		mov  edi, firstItemDrug;
@@ -2187,7 +2187,7 @@ checkDrugs:
 }
 
 static __declspec(naked) void ai_check_drugs_hack_use() {
-	static const DWORD ai_check_drugs_hack_Loop = 0x428675;
+	static const DWORD ai_check_drugs_use_Loop = 0x428675;
 	__asm {
 		cmp  eax, 3;                       // counter
 		jge  beginLoop;
@@ -2198,7 +2198,7 @@ beginLoop:
 		mov  firstItemDrug, edi;           // keep first found drug item
 skip:
 		add  esp, 4;
-		jmp  ai_check_drugs_hack_Loop;     // goto begin loop, search next item
+		jmp  ai_check_drugs_use_Loop;      // goto begin loop, search next item
 	}
 }*/
 

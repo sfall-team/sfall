@@ -87,7 +87,7 @@ static __declspec(naked) void ai_try_attack_hook_FleeFix() {
 }
 
 static __declspec(naked) void combat_ai_hook_FleeFix() {
-	static const DWORD combat_ai_hook_flee_Ret = 0x42B206;
+	static const DWORD combat_ai_flee_Ret = 0x42B206;
 	using namespace fo;
 	__asm {
 		test byte ptr [ebp], ReTarget; // CombatStateFlag flag (critter.combat_state)
@@ -98,7 +98,7 @@ reTarget:
 		xor  edi, edi;
 		mov  dword ptr [esi + whoHitMe], edi;
 		add  esp, 4;
-		jmp  combat_ai_hook_flee_Ret;
+		jmp  combat_ai_flee_Ret;
 	}
 }
 
@@ -112,14 +112,14 @@ static __declspec(naked) void ai_try_attack_hook_runFix() {
 }
 
 static __declspec(naked) void combat_ai_hack() {
-	static const DWORD combat_ai_hack_Ret = 0x42B204;
+	static const DWORD combat_ai_Ret = 0x42B204;
 	__asm {
 		mov  edx, [ebx + 0x10];              // cap.min_hp
 		cmp  eax, edx;
 		jl   tryHeal;                        // curr_hp < min_hp
 end:
 		add  esp, 4;
-		jmp  combat_ai_hack_Ret;             // jump to call ai_check_drugs_
+		jmp  combat_ai_Ret;                  // jump to call ai_check_drugs_
 tryHeal:
 		push ecx;
 		push esi;                            // mov  eax, esi;
@@ -421,7 +421,7 @@ static long __fastcall item_weapon_reload_cost_fix(fo::GameObject* source, fo::G
 }
 
 static __declspec(naked) void ai_try_attack_hook_cost_reload() {
-	static const DWORD ai_try_attack_hook_goNext_Ret = 0x42A9F2;
+	static const DWORD ai_try_attack_goNext_Ret = 0x42A9F2;
 	__asm {
 		push ebx;      // ammoObj ref
 		mov  ecx, eax; // source
@@ -432,7 +432,7 @@ static __declspec(naked) void ai_try_attack_hook_cost_reload() {
 //noAPs:  // not enough action points
 //		add  esp, 4; // destroy ret
 //		mov  edi, 10;
-//		jmp  ai_try_attack_hook_goNext_Ret; // end ai_try_attack_
+//		jmp  ai_try_attack_goNext_Ret; // end ai_try_attack_
 	}
 }
 
@@ -522,7 +522,7 @@ skipMove:
 }
 
 static __declspec(naked) void ai_move_away_hook() {
-	static const DWORD ai_move_away_hook_Ret = 0x4289DA;
+	static const DWORD ai_move_away_Ret = 0x4289DA;
 	__asm {
 		test ebx, ebx;
 		jl   fix; // distance arg < 0
@@ -533,7 +533,7 @@ fix:
 		cmp  ebx, eax;
 		cmovg ebx, eax; // if (distance > ap) dist = ap
 		add  esp, 4;
-		jmp  ai_move_away_hook_Ret;
+		jmp  ai_move_away_Ret;
 	}
 }
 

@@ -49,7 +49,7 @@ const char* __stdcall ObjectName::GetName(fo::GameObject* object) {
 }
 
 static __declspec(naked) void critter_name_hack() {
-	static DWORD critter_name_hack_Ret = 0x42D125;
+	static DWORD critter_name_Ret = 0x42D125;
 	using namespace fo::Fields;
 	__asm {
 		push ebx; // object
@@ -60,12 +60,12 @@ static __declspec(naked) void critter_name_hack() {
 		retn;
 override:
 		add  esp, 4;
-		jmp  critter_name_hack_Ret;
+		jmp  critter_name_Ret;
 	}
 }
 
 static __declspec(naked) void critter_name_hack_check() {
-	static DWORD critter_name_hack_Ret = 0x42D12F;
+	static DWORD critter_name_check_Ret = 0x42D12F;
 	using namespace fo::Fields;
 	__asm {
 		mov  ecx, [ebx + scriptId];
@@ -75,7 +75,7 @@ static __declspec(naked) void critter_name_hack_check() {
 		jne  default;
 		add  esp, 4;
 		mov  eax, ds:[FO_VAR_name_critter];
-		jmp  critter_name_hack_Ret;
+		jmp  critter_name_check_Ret;
 checkScrIdx:
 		mov  ecx, [ebx + scriptIndex];
 		cmp  ecx, -1; // no inherited script index
@@ -84,7 +84,7 @@ checkScrIdx:
 		jne  end;
 		add  esp, 4;
 		mov  eax, ds:[FO_VAR_name_critter];
-		jmp  critter_name_hack_Ret;
+		jmp  critter_name_check_Ret;
 default:
 		mov  ecx, [ebx + scriptIndex];
 end:
