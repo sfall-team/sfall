@@ -195,7 +195,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x254, "save_array",                 op_save_array,                2, false,  0, {ARG_ANY, ARG_OBJECT}},
 	{0x255, "load_array",                 op_load_array,                1, true,  -1, {ARG_INTSTR}},
 	{0x256, "array_key",                  op_get_array_key,             2, true,   0, {ARG_INT, ARG_INT}},
-	{0x257, "arrayexpr",                  op_stack_array,               2, true},
+	{0x257, "arrayexpr",                  op_arrayexpr,                 2, true},
 	// 0x258 // RESERVED for arrays
 	// 0x259 // RESERVED for arrays
 	{0x25a, "reg_anim_destroy",           op_reg_anim_destroy,          1, false,  0, {ARG_OBJECT}},
