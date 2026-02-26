@@ -45,7 +45,9 @@ ArrayKeysMap savedArrays;
 // auto-incremented ID
 DWORD nextArrayID = 1;
 // special array ID for array expressions, contains the ID number of the currently created array
-DWORD stackArrayId;
+DWORD expressionArrayId;
+// special stack for array expressions, contains ID numbers of the currently created arrays
+std::vector<DWORD> arrayExpressionStack;
 
 static char get_all_arrays_special_key[] = "...all_arrays...";
 
@@ -429,7 +431,19 @@ DWORD CreateArray(int len, DWORD flags) {
 	//	var.key = sArrayElement(nextArrayID, DataType::INT);
 	//	savedArrays[var.key] = nextArrayID;
 	//}
-	stackArrayId = nextArrayID;
+	if ((flags & ARRAYFLAG_EXPR_PUSH) != 0) {
+		// When creating array for sub-expression, make sure to add array for base expression to stack
+		// This is messy, but required to support older scripts:
+		// - We must always assign expressionArrayId for one-layer expressions from older scripts to work like they did before
+		// - We can't directly push first arrayID into stack b/c no way to distinguish between start of an expression and normal temp_array call
+		// - Compiler will only add this flag for temp_array call generated from a sub-expression
+		// - So only on this second call we know we are in expression and expressionArrayId definitely contains arrayId of the first layer
+		if (arrayExpressionStack.empty() && expressionArrayId != 0) {
+			arrayExpressionStack.push_back(expressionArrayId);
+		}
+		arrayExpressionStack.push_back(nextArrayID);
+	}
+	expressionArrayId = nextArrayID;
 	arrays[nextArrayID] = var;
 	return nextArrayID++;
 }
@@ -757,16 +771,31 @@ void SaveArray(const ScriptValue& key, DWORD id) {
 
 	Should always return 0!
 */
-long StackArray(const ScriptValue& key, const ScriptValue& val) {
-	if (stackArrayId == 0 || !ArrayExists(stackArrayId)) return 0;
+void SetArrayFromExpression(const ScriptValue& key, const ScriptValue& val) {
+	DWORD arrayId = !arrayExpressionStack.empty()
+		? arrayExpressionStack.back()
+		: expressionArrayId;
 
-	if (!arrays[stackArrayId].isAssoc()) { // automatically resize array to fit one new element
-		size_t size = arrays[stackArrayId].val.size();
-		if (size >= ARRAY_MAX_SIZE) return 0;
-		if (key.rawValue() >= size) arrays[stackArrayId].val.resize(size + 1);
+	if (arrayId == 0 || !ArrayExists(arrayId)) return;
+
+	if (!arrays[arrayId].isAssoc()) { // automatically resize array to fit one new element
+		size_t size = arrays[arrayId].val.size();
+		if (size >= ARRAY_MAX_SIZE) return;
+		if (key.rawValue() >= size) arrays[arrayId].val.resize(size + 1);
 	}
-	SetArray(stackArrayId, key, val, false);
-	return 0;
+	SetArray(arrayId, key, val, false);
+}
+
+void PopExpressionArray() {
+	if (arrayExpressionStack.empty()) return;
+
+	arrayExpressionStack.pop_back();
+
+	// Reversing the hack from CreateArray
+	if (arrayExpressionStack.size() == 1) {
+		expressionArrayId = arrayExpressionStack.back();
+		arrayExpressionStack.pop_back();
+	}
 }
 
 sArrayVar* GetRawArray(DWORD id) {

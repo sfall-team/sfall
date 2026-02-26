@@ -109,6 +109,8 @@ struct sArrayVarOld
 #define ARRAYFLAG_ASSOC		(1) // is map
 #define ARRAYFLAG_CONSTVAL	(2) // don't update value of key if the key exists in map
 #define ARRAYFLAG_RESERVED	(4)
+#define ARRAYFLAG_EXPR_PUSH (32) // is created as part of array sub-expression
+#define ARRAYFLAG_EXPR_POP  (64) // is used to indicate end of array sub-expression, not used in actual array
 
 typedef std::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sArrayElement_EqualFunc> ArrayKeysMap;
 
@@ -224,8 +226,11 @@ DWORD LoadArray(const ScriptValue& key);
 // make array saved into the savegame with associated key
 void SaveArray(const ScriptValue& key, DWORD id);
 
-// special function that powers array expressions
-long StackArray(const ScriptValue& key, const ScriptValue& val);
+// sets array element from array expression
+void SetArrayFromExpression(const ScriptValue& key, const ScriptValue& val);
+
+// used to indicate the end of array sub-expression
+void PopExpressionArray();
 
 sArrayVar* GetRawArray(DWORD id);
 

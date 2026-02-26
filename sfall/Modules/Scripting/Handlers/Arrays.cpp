@@ -90,7 +90,15 @@ void op_resize_array(OpcodeContext& ctx) {
 }
 
 void op_temp_array(OpcodeContext& ctx) {
-	auto arrayId = CreateTempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	const auto& flags = ctx.arg(1);
+
+	// Special case for array sub-expressions.
+	if ((flags.rawValue() & ARRAYFLAG_EXPR_POP) != 0) {
+		PopExpressionArray();
+		ctx.setReturn(0);
+		return;
+	}
+	auto arrayId = CreateTempArray(ctx.arg(0).rawValue(), flags.rawValue());
 	ctx.setReturn(arrayId);
 }
 
@@ -120,10 +128,9 @@ void op_get_array_key(OpcodeContext& ctx) {
 	);
 }
 
-void op_stack_array(OpcodeContext& ctx) {
-	ctx.setReturn(
-		StackArray(ctx.arg(0), ctx.arg(1))
-	);
+void op_arrayexpr(OpcodeContext& ctx) {
+	SetArrayFromExpression(ctx.arg(0), ctx.arg(1));
+	ctx.setReturn(0);
 }
 
 // object LISTS

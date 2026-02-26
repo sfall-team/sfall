@@ -757,7 +757,7 @@ end
 procedure debug_array_str_deep(variable arr, variable levels, variable prefix := false) begin
 #define _newline if (levels > 1) then s += "\n";
 #define _indent ii := 0; while (ii < levels - 1) do begin s += "   "; ii++; end
-#define _value(v) (v if (levels <= 1 or not array_exists(v)) else debug_array_str_deep(v, levels - 1))
+#define _value(v) (v if (levels <= 1 or typeof(v) != VALTYPE_INT or not array_exists(v)) else debug_array_str_deep(v, levels - 1))
    variable i := 0, ii, k, v, s, len;
    len := len_array(arr);
    if (array_is_map(arr)) then begin  // print assoc array
@@ -776,7 +776,6 @@ procedure debug_array_str_deep(variable arr, variable levels, variable prefix :=
       s += "}";
    end else begin  // print list
       s := ("List("+len+"): [") if prefix else "[";
-      _newline
       while i < len do begin
          _newline
          v := get_array(arr, i);
