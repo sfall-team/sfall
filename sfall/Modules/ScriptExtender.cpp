@@ -538,10 +538,8 @@ static void InitGlobalScripts() {
 
 static void PrepareGlobalScriptsListByMask() {
 	globalScriptFilesList.clear();
-	bool hereBefore = false;
 	for (const std::string fileMask : globalScriptPathList) {
 		char const** filenames;
-		auto w = filenames[1];
 		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
 		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
 
