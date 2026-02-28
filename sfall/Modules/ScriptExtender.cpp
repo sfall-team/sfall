@@ -538,13 +538,16 @@ static void InitGlobalScripts() {
 
 static void PrepareGlobalScriptsListByMask() {
 	globalScriptFilesList.clear();
-	for (auto& fileMask : globalScriptPathList) {
-		char** filenames;
+	bool hereBefore = false;
+	for (const std::string fileMask : globalScriptPathList) {
+		char const** filenames;
+		auto w = filenames[1];
 		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
 		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
 
 		for (int i = 0; i < count; i++) {
-			char* name = _strlwr(filenames[i]); // name of the script in lower case
+			std::string name(filenames[i]);
+			ToLowerCase(name);
 			if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
 			std::string baseName(name);
@@ -553,7 +556,7 @@ static void PrepareGlobalScriptsListByMask() {
 
 			baseName = baseName.substr(0, lastDot); // script name without extension
 			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
-				dlog_f("Found global script: %s\n", DL_SCRIPT, name);
+				dlog_f("Found global script: %s\n", DL_SCRIPT, name.c_str());
 				std::string fullPath(basePath);
 				fullPath += name;
 				// prevent loading global scripts with the same name from different directories

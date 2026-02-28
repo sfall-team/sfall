@@ -307,7 +307,7 @@ WRAP_WATCOM_FUNC2(fo::DbFile*, db_fopen, const char*, path, const char*, mode)
 WRAP_WATCOM_FUNC3(char*, db_fgets, char*, buf, long, max_count, fo::DbFile*, file)
 WRAP_WATCOM_FFUNC4(long, db_fread, void*, buf, long, elsize, long, count, fo::DbFile*, file)
 WRAP_WATCOM_FFUNC3(long, db_fseek, fo::DbFile*, file, long, pos, long, origin)
-WRAP_WATCOM_FUNC2(void, db_free_file_list, char***, fileList, DWORD, arg2) // Destroys filelist array created by db_get_file_list
+WRAP_WATCOM_FUNC2(void, db_free_file_list, char const***, fileList, DWORD, arg2) // Destroys filelist array created by db_get_file_list
 WRAP_WATCOM_FUNC2(long, db_freadByte, fo::DbFile*, file, BYTE*, _out)
 WRAP_WATCOM_FUNC2(long, db_freadShort, fo::DbFile*, file, WORD*, _out)
 WRAP_WATCOM_FUNC2(long, db_freadInt, fo::DbFile*, file, DWORD*, _out)
@@ -322,7 +322,7 @@ WRAP_WATCOM_FFUNC3(long, db_fwriteByteCount, fo::DbFile*, file, const BYTE*, cpt
 WRAP_WATCOM_FUNC2(long, db_dir_entry, const char*, fileName, DWORD*, sizeOut) // Check fallout file and get file size (result 0 - file exists)
 // Searches files in DB by given path/filename mask and stores result in fileList
 // fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
-WRAP_WATCOM_FUNC2(long, db_get_file_list, const char*, searchMask, char***, fileList) // Returns number of elements in *fileList
+WRAP_WATCOM_FUNC2(long, db_get_file_list, const char*, searchMask, char const***, fileList) // Returns number of elements in *fileList
 WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
 WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 
