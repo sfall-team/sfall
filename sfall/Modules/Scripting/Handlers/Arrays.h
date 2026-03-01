@@ -51,7 +51,7 @@ void op_load_array(OpcodeContext&);
 
 void op_get_array_key(OpcodeContext&);
 
-void op_stack_array(OpcodeContext&);
+void op_arrayexpr(OpcodeContext&);
 
 void op_list_begin(OpcodeContext&);
 
