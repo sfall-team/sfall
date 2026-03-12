@@ -25,8 +25,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
-#include "..\Version.h"
 #include "..\Utils.h"
+#include "..\version.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
@@ -505,7 +505,7 @@ static void LoadGlobalScriptsList() {
 	dlogr("Running global scripts...", DL_SCRIPT);
 
 	ScriptProgram prog;
-	for (auto& item : globalScriptFilesList) {
+	for (const auto& item : globalScriptFilesList) {
 		auto &scriptFile = item.second;
 		dlog("> " + scriptFile, DL_SCRIPT);
 		InitScriptProgram(prog, scriptFile.c_str(), true);
@@ -538,14 +538,13 @@ static void InitGlobalScripts() {
 
 static void PrepareGlobalScriptsListByMask() {
 	globalScriptFilesList.clear();
-	for (const std::string fileMask : globalScriptPathList) {
-		char const** filenames;
+	for (const auto& fileMask : globalScriptPathList) {
+		char** filenames;
 		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
 		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
 
 		for (int i = 0; i < count; i++) {
-			std::string name(filenames[i]);
-			ToLowerCase(name);
+			char* name = _strlwr(filenames[i]); // name of the script in lower case
 			if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
 			std::string baseName(name);
@@ -554,7 +553,7 @@ static void PrepareGlobalScriptsListByMask() {
 
 			baseName = baseName.substr(0, lastDot); // script name without extension
 			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
-				dlog_f("Found global script: %s\n", DL_SCRIPT, name.c_str());
+				dlog_f("Found global script: %s\n", DL_SCRIPT, name);
 				std::string fullPath(basePath);
 				fullPath += name;
 				// prevent loading global scripts with the same name from different directories
