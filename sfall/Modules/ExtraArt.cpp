@@ -118,7 +118,7 @@ static void ClearInterfaceArtCache() {
 	pcxFileCache.clear();
 
 	for (TFrmCache::iterator it = frmFileCache.begin(); it != frmFileCache.end(); ++it) {
-		fo::func::mem_free(it->second);
+		UnloadFrmFile(it->second);
 	}
 	frmFileCache.clear();
 }

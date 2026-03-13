@@ -194,6 +194,7 @@ PTR_(RedColor,                   BYTE)
 PTR_(retvals,                    fo::ElevatorExit) // array: 24 elevators, 4 exits each
 PTR_(rotation,                   DWORD)
 PTR_(sampleRate,                 DWORD)
+PTR_(script_path_base,           const char*)
 PTR_(scr_size,                   fo::BoundRect)
 PTR_(scriptListInfo,             fo::ScriptListInfoItem*)  // dynamic array
 PTR_(skill_data,                 fo::SkillInfo) // array of size == SKILL_count

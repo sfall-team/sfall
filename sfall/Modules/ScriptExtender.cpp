@@ -18,6 +18,7 @@
 
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <stack>
 
 #include "..\main.h"
@@ -25,6 +26,7 @@
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
 #include "..\Translate.h"
+#include "..\Utils.h"
 #include "..\version.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
@@ -111,7 +113,8 @@ static long executeTimedEventDepth = 0;
 static std::stack<TimedEvent*> executeTimedEvents;
 static std::list<TimedEvent> timerEventScripts;
 
-static std::vector<std::string> globalScriptFilesList;
+static std::vector<std::string> globalScriptPathList;
+static std::map<std::string, std::string> globalScriptFilesList;
 
 static std::vector<GlobalScript> globalScripts;
 static std::unordered_set<fo::Program*> checkedScripts;
@@ -548,9 +551,11 @@ end:
 ////////////////////////////////////////////////////////////////////////////////
 
 // loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
-void InitScriptProgram(ScriptProgram &prog, const char* fileName) {
+void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
 	prog.initialized = false;
-	fo::Program* scriptPtr = fo::func::loadProgram(fileName);
+	fo::Program* scriptPtr = (fullPath)
+	                       ? fo::func::allocateProgram(fileName)
+	                       : fo::func::loadProgram(fileName);
 
 	if (scriptPtr) {
 		prog.ptr = scriptPtr;
@@ -624,10 +629,10 @@ static void LoadGlobalScriptsList() {
 	dlogr("Running global scripts...", DL_SCRIPT);
 
 	ScriptProgram prog;
-	for (std::vector<std::string>::const_iterator it = globalScriptFilesList.begin(); it != globalScriptFilesList.end(); ++it) {
+	for (std::map<std::string, std::string>::const_iterator it = globalScriptFilesList.begin(); it != globalScriptFilesList.end(); ++it) {
 		dlog("> ", DL_SCRIPT);
-		dlog(it->c_str(), DL_SCRIPT);
-		InitScriptProgram(prog, it->c_str());
+		dlog(it->second.c_str(), DL_SCRIPT);
+		InitScriptProgram(prog, it->second.c_str(), true);
 		if (prog.ptr) {
 			GlobalScript gscript = GlobalScript(prog);
 			gscript.startProc = prog.procLookup[fo::Scripts::ScriptProc::start]; // get 'start' procedure position
@@ -655,30 +660,39 @@ void InitGlobalScripts() {
 	isGlobalScriptLoading = 0;
 }
 
-static void PrepareGlobalScriptsList() {
+static void PrepareGlobalScriptsListByMask() {
 	globalScriptFilesList.clear();
+	for (std::vector<std::string>::const_iterator it = globalScriptPathList.begin(); it != globalScriptPathList.end(); ++it) {
+		const std::string& fileMask = *it;
+		char** filenames;
+		std::string basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
+		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
 
-	char** filenames;
-	int count = fo::func::db_get_file_list("scripts\\gl*.int", &filenames);
+		for (int i = 0; i < count; i++) {
+			char* name = _strlwr(filenames[i]); // name of the script in lower case
+			if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
-	for (int i = 0; i < count; i++) {
-		char* name = _strlwr(filenames[i]); // name of the script in lower case
-		if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
+			std::string baseName(name);
+			int lastDot = baseName.find_last_of('.');
+			if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
 
-		std::string baseName(name);
-		int lastDot = baseName.find_last_of('.');
-		if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
-
-		baseName = baseName.substr(0, lastDot); // script name without extension
-		if (!IsGameScript(baseName.c_str())) {
-			dlog_f("Found global script: %s\n", DL_SCRIPT, name);
-			globalScriptFilesList.push_back(std::move(baseName));
+			baseName = baseName.substr(0, lastDot); // script name without extension
+			if (basePath != *fo::ptr::script_path_base || !IsGameScript(baseName.c_str())) {
+				dlog_f("Found global script: %s\n", DL_SCRIPT, name);
+				std::string fullPath(basePath);
+				fullPath += name;
+				// prevent loading global scripts with the same name from different directories
+				if (globalScriptFilesList.find(baseName) != globalScriptFilesList.end()) {
+					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
+					continue;
+				}
+				globalScriptFilesList.insert(std::make_pair(std::move(baseName), std::move(fullPath))); // script files should be sorted in alphabetical order
+			}
 		}
+		fo::func::db_free_file_list(&filenames, 0);
 	}
-	fo::func::db_free_file_list(&filenames, 0);
 	globalScripts.reserve(globalScriptFilesList.size());
-	float bCount = globalScriptFilesList.size() / checkedScripts.max_load_factor();
-	checkedScripts.rehash(static_cast<size_t>(bCount) + (bCount > static_cast<size_t>(bCount) ? 1 : 0)); // ceil
+	checkedScripts.rehash(static_cast<size_t>(globalScriptFilesList.size() / checkedScripts.max_load_factor()) + 1); // reserve
 }
 
 // this runs before the game was loaded/started
@@ -689,8 +703,9 @@ void LoadGlobalScripts() {
 
 	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once
-		PrepareGlobalScriptsList();
+		PrepareGlobalScriptsListByMask();
 		listIsPrepared = !alwaysFindScripts;
+		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
@@ -1093,6 +1108,11 @@ void ScriptExtender::init() {
 			0x44E559  // gmouse_remove_item_outline_
 		};
 		HookCalls(obj_remove_outline_hook, objRemoveOutlineAddr);
+	}
+
+	globalScriptPathList = IniReader::GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int");
+	for (size_t i = 0; i < globalScriptPathList.size(); i++) {
+		ToLowerCase(globalScriptPathList[i]);
 	}
 
 	size_t len = IniReader::GetConfigString("Scripts", "IniConfigFolder", "", iniConfigFolder, 64);

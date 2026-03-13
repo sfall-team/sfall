@@ -52,6 +52,10 @@ void interpretError(const char* fmt, ...);
 
 long __stdcall db_init(const char* path_dat, const char* path_patches);
 
+// Searches files in DB by given path/filename mask and stores result in fileList
+// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
+long __stdcall db_get_file_list(const char* searchMask, char*** fileList); // Returns number of elements in *fileList
+
 long __stdcall tile_num(long x, long y);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
