@@ -549,12 +549,23 @@ static __declspec(naked) void EscMenuHook2() {
 	}
 }
 
-static __declspec(naked) void OptionsMenuHook() {
+static __declspec(naked) void OptionsMenuHook_Start() {
 	__asm {
-		_InLoop(1, OPTIONS);
-		call fo::funcoffs::do_prefscreen_;
-		_InLoop(0, OPTIONS);
-		retn;
+		push eax;
+		_InLoop2(1, OPTIONS);
+		pop  eax;
+		jmp  fo::funcoffs::win_draw_;
+	}
+}
+
+static __declspec(naked) void OptionsMenuHook_End() {
+	__asm {
+		push ecx;
+		push eax;
+		_InLoop2(0, OPTIONS);
+		pop  eax;
+		pop  ecx;
+		jmp  fo::funcoffs::win_delete_;
 	}
 }
 
@@ -751,14 +762,14 @@ static __declspec(naked) void DialogReviewExitHook() {
 	}
 }
 
-static __declspec(naked) void setup_move_timer_win_Hook() {
+static __declspec(naked) void setup_move_timer_win_hook() {
 	__asm {
 		_InLoop2(1, COUNTERWIN);
 		jmp fo::funcoffs::text_curr_;
 	}
 }
 
-static __declspec(naked) void exit_move_timer_win_Hook() {
+static __declspec(naked) void exit_move_timer_win_hook() {
 	__asm {
 		push eax;
 		_InLoop2(0, COUNTERWIN);
@@ -836,8 +847,12 @@ void LoadGameHook::init() {
 
 	HookCall(0x480C16, EscMenuHook);   // gnw_main_
 	HookCall(0x4433BE, EscMenuHook2);  // game_handle_input_
-	HookCalls(OptionsMenuHook, {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3});
+
+	HookCall(0x490E47, OptionsMenuHook_Start); // PrefStart_
+	HookCall(0x492897, OptionsMenuHook_End);   // PrefEnd_
+
 	HookCall(0x443A50, HelpMenuHook);  // game_handle_input_
+
 	HookCall(0x443320, CharacterHook); // 0x4A73EB, 0x4A740A for character creation
 
 	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_ (old 0x445748)
@@ -865,8 +880,8 @@ void LoadGameHook::init() {
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);
 
-	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
-	HookCall(0x477067, exit_move_timer_win_Hook);
+	HookCall(0x476AC6, setup_move_timer_win_hook); // before init win
+	HookCall(0x477067, exit_move_timer_win_hook);
 
 	// Set and unset the Special flag of game mode when animating the dialog interface panel
 	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
