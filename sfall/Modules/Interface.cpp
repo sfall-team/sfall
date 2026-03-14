@@ -678,7 +678,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 
 static __declspec(naked) void wmWorldMap_hack() {
 	__asm {
-		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
+		cmp  dword ptr ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
 		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
 		retn;
@@ -978,6 +978,39 @@ skip:
 	}
 }
 
+static __declspec(naked) void IncDecGamma_hack0() {
+	__asm {
+		call GetLoopFlags;
+		test eax, OPTIONS;
+		jnz  inPref;
+		mov  ebx, 0x3FF00000; // overwritten engine code
+		retn;
+inPref:
+		pop  ebx;
+		add  ebx, 39; // offset to next section (0x492916, 0x4929FA)
+		jmp  ebx;
+	}
+}
+
+static __declspec(naked) void IncDecGamma_hack1() {
+	__asm {
+		call GetLoopFlags;
+		test eax, OPTIONS;
+		jnz  inPref;
+		mov  eax, ds:[0x6638D4]; // overwritten engine code
+		retn;
+inPref:
+		mov  eax, 17; // Brightness slider
+		call fo::funcoffs::UpdateThing_;
+		mov  eax, ds:[FO_VAR_prfwin];
+		call fo::funcoffs::win_draw_; // redraw the Preferences screen
+		mov  dword ptr ds:[FO_VAR_changed], 1;
+		pop  edx;
+		add  edx, 52; // offset to next section (0x4929BE, 0x492A9E)
+		jmp  edx;
+	}
+}
+
 static __declspec(naked) void display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -1103,6 +1136,12 @@ void Interface::init() {
 	const DWORD gdCustomSelBtnsAddr[] = {0x44A100, 0x44A151};
 	MakeCalls(gdCustomSelect_hack_buttons, gdCustomSelBtnsAddr);
 	MakeCall(0x44A47D, gdCustomSelect_hack_keyretn);
+
+	// Fix the +/- keys not updating the brightness slider when used on the Preferences screen
+	const DWORD gammaValueGetAddr[] = {0x4928EA, 0x4929CE};
+	MakeCalls(IncDecGamma_hack0, gammaValueGetAddr);
+	const DWORD gammaValueSetAddr[] = {0x492985, 0x492A65};
+	MakeCalls(IncDecGamma_hack1, gammaValueSetAddr);
 }
 
 void Interface::exit() {
