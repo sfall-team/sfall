@@ -35,8 +35,11 @@ procedure array_keys(variable array);
 // list of array values (useful for maps)
 procedure array_values(variable array);
 
+// fix_array for multi-dimensional arrays
+procedure fix_array_deep(variable array, variable levels := 1);
+
 // makes given array permanent and returns it
-procedure array_fixed(variable array);
+procedure array_fixed(variable array, variable levels := 1);
 
 // returns temp array containing a subarray starting from $index with $count elements
 // negative $index means index from the end of array
@@ -246,11 +249,26 @@ end
 /**
  * Sets given array as permanent and returns it.
  * @arg {array} array
+ * @arg {int} levels - Number of depth levels for a multi-dimensional array
  * @ret {array}
  */
-procedure array_fixed(variable array) begin
-   fix_array(array);
+procedure array_fixed(variable array, variable levels) begin
+   call fix_array_deep(array, levels);
    return array;
+end
+
+/**
+ * Makes a multi-dimensional temp array permenant.
+ * @arg {array} array
+ * @arg {int} levels - Number of depth levels for a multi-dimensional array
+ */
+procedure fix_array_deep(variable array, variable levels) begin
+   fix_array(array);
+   if (levels > 1) then begin
+      foreach (variable subArray in array) begin
+         call fix_array_deep(subArray, levels - 1);
+      end
+   end
 end
 
 /**
