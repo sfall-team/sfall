@@ -773,8 +773,8 @@ void SaveArray(const ScriptValue& key, DWORD id) {
 */
 void SetArrayFromExpression(const ScriptValue& key, const ScriptValue& val) {
 	DWORD arrayId = !arrayExpressionStack.empty()
-		? arrayExpressionStack.back()
-		: expressionArrayId;
+	              ? arrayExpressionStack.back()
+	              : expressionArrayId;
 
 	if (arrayId == 0 || !ArrayExists(arrayId)) return;
 
