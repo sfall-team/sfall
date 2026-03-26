@@ -254,13 +254,8 @@ void ReadExtraGameMsgFiles() {
 	}
 }
 
-long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
-	if (msgNumber) {
-		if (msgNumber < 0x2000 || msgNumber > 0x2FFF) return -1;
-		if (Message::gExtraGameMsgLists.find(msgNumber) != Message::gExtraGameMsgLists.cend()) {
-			return 0; // file has already been added
-		}
-	} else if (msgNumCounter > 0x3FFF) return -3;
+long Message::AddExtraMsgFile(const char* msgName) {
+	if (msgNumCounter > 0x3FFF) return -3;
 
 	std::string path("game\\");
 	path += msgName;
@@ -278,7 +273,7 @@ long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 			return -2;
 		//}
 	}
-	if (msgNumber == 0) msgNumber = msgNumCounter++;
+	long msgNumber = msgNumCounter++;
 	Message::gExtraGameMsgLists.insert(std::make_pair(msgNumber, list));
 	addedExtraMsgFiles.insert(std::make_pair(path, msgNumber));
 	return msgNumber;

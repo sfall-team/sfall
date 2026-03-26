@@ -332,16 +332,20 @@ void op_message_str_game(OpcodeContext& ctx) {
 }
 
 void mf_add_extra_msg_file(OpcodeContext& ctx) {
-	long result = Message::AddExtraMsgFile(ctx.arg(0).strValue(), (ctx.numArgs() == 2) ? ctx.arg(1).rawValue() : 0);
+	if (ctx.numArgs() == 2) {
+		ctx.printOpcodeError("%s() - Warning: 2-arg form is deprecated; the 2nd argument is ignored.", ctx.getMetaruleName());
+	}
+	long result = Message::AddExtraMsgFile(ctx.arg(0).strValue());
 	switch (result) {
-	case -1 :
-		ctx.printOpcodeError("%s() - cannot add message file with the specified number.", ctx.getMetaruleName());
-		break;
+	//case -1 :
+	//	ctx.printOpcodeError("%s() - cannot add message file with the specified number.", ctx.getMetaruleName());
+	//	break;
 	case -2 :
 		ctx.printOpcodeError("%s() - error loading message file.", ctx.getMetaruleName());
 		break;
 	case -3 :
 		ctx.printOpcodeError("%s() - the limit of adding message files has been exceeded.", ctx.getMetaruleName());
+		break;
 	}
 	ctx.setReturn(result);
 }
