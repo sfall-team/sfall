@@ -2,7 +2,7 @@
 
 // Hook scripts related to critter Death
 
-namespace sfall 
+namespace sfall
 {
 
 void InitDeathHookScripts();

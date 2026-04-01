@@ -20,7 +20,7 @@
 
 #include "Module.h"
 
-namespace sfall 
+namespace sfall
 {
 
 class Books : public Module {
