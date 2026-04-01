@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sfall 
+namespace sfall
 {
 
 template <typename T>
