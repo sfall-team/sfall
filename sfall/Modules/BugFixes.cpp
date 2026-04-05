@@ -3630,6 +3630,19 @@ skip:
 	}
 }
 
+static __declspec(naked) void op_proto_data_hook() {
+	static const DWORD op_proto_data_Ret = 0x458DEE;
+	__asm {
+		call fo::funcoffs::proto_data_member_;
+		cmp  dword ptr [esp + 0x28 - 0x20 + 4], 0; // value pointer
+		je   skip; // unimplemented data member
+		retn;
+skip:
+		add  esp, 4;
+		jmp  op_proto_data_Ret;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4537,6 +4550,9 @@ void BugFixes::init() {
 	// Fix for getting stuck on an empty map when the encounter table has no available entries
 	MakeCall(0x4C0DF3, wmRndEncounterPick_hack);
 	HookCall(0x4C080A, wmRndEncounterOccurred_hook_pick);
+
+	// Fix crash when calling proto_data with an invalid data member value
+	HookCall(0x458DBA, op_proto_data_hook);
 }
 
 }
