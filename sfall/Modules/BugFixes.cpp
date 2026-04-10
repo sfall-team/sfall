@@ -1004,20 +1004,20 @@ static __declspec(naked) void op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-static __declspec(naked) void NPCStage6Fix1() {
+static __declspec(naked) void NPCStage16Fix1() {
 	static const DWORD partyMember_init_End = 0x493D16;
 	__asm {
-		imul eax, edx, 204;                 // multiply record size 204 bytes by number of NPC records in party.txt
+		imul eax, edx, 244;                 // multiply record size 244 bytes by number of NPC records in party.txt
 		mov  ebx, eax;                      // copy total record size for later memset
 		call fo::funcoffs::mem_malloc_;     // malloc the necessary memory
 		jmp  partyMember_init_End;          // call memset to set all malloc'ed memory to 0
 	}
 }
 
-static __declspec(naked) void NPCStage6Fix2() {
+static __declspec(naked) void NPCStage16Fix2() {
 	static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 	__asm {
-		imul edx, 204;                      // multiply record size 204 bytes by NPC number as listed in party.txt
+		imul edx, 244;                      // multiply record size 244 bytes by NPC number as listed in party.txt
 		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
 		jmp  partyMemberGetAIOptions_End;   // eax + edx = offset of specific NPC record
 	}
@@ -3796,13 +3796,13 @@ void BugFixes::init() {
 		HookCall(0x476598, drop_ammo_into_weapon_hook);
 	//}
 
-	// Enable party members with level 6 protos to reach level 6
+	// Enable party members with up to level 16 protos to reach up to level 16
 	//if (IniReader::GetConfigInt("Misc", "NPCStage6Fix", 1)) {
-		dlogr("Applying NPC Stage 6 Fix.", DL_FIX);
-		MakeJump(0x493CE9, NPCStage6Fix1); // partyMember_init_
-		MakeJump(0x494224, NPCStage6Fix2); // partyMemberGetAIOptions_
-		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage (partyMember_init_)
-		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
+		dlogr("Applying NPC Stage 16 Fix.", DL_FIX);
+		MakeJump(0x493CE9, NPCStage16Fix1); // partyMember_init_
+		MakeJump(0x494224, NPCStage16Fix2); // partyMemberGetAIOptions_
+		SafeWrite8(0x494063, 16);   // loop should look for up to a potential 16th stage (partyMember_init_)
+		SafeWrite8(0x4940BB, 244); // move pointer by 244 bytes instead of 200
 	//}
 
 	//if (IniReader::GetConfigInt("Misc", "NPCLevelFix", 1)) {
