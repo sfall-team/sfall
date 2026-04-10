@@ -97,9 +97,8 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
 // loads script from .int file into a ScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure
-// fileName - the script file name without extension (if fullPath is false) or a full file path (if fullPath is true)
-// fullPath - controls how fileName is used (see above)
-void InitScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath = false);
+// fileName - the script file name without extension
+void InitScriptProgram(ScriptProgram &prog, const char* fileName);
 
 // init program after load, needs to be called once
 void RunScriptProgram(ScriptProgram &prog);
