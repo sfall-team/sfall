@@ -21,7 +21,7 @@
 #include <functional>
 #include <vector>
 
-namespace sfall 
+namespace sfall
 {
 
 // Simple multi-cast Delegate implementation.

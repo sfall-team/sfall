@@ -2,7 +2,7 @@
 
 #include "ModuleManager.h"
 
-namespace sfall 
+namespace sfall
 {
 
 ModuleManager::ModuleManager() {

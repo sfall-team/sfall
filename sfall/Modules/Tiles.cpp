@@ -21,7 +21,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "..\Utils.h"
+//#include "..\Utils.h"
 //#include "FileSystem.h"
 
 #include "Tiles.h"
@@ -29,7 +29,7 @@
 namespace sfall
 {
 
-typedef int (__stdcall *functype)();
+//typedef int (__stdcall *functype)();
 
 static const DWORD Tiles_0E[] = {
 	0x484255, 0x48429D, // square_reset_
@@ -57,7 +57,7 @@ static const DWORD Tiles_C0[] = {
 	0x48424E, 0x484296, 0x484372, 0x48A88D, 0x48A892, 0x4B222C, 0x4B236F,
 	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
-
+/*
 #pragma pack(push, 1)
 struct TilesData {
 	short tile[2];
@@ -267,7 +267,7 @@ end:
 		retn;
 	}
 }
-
+*/
 static __declspec(naked) void art_id_hack() {
 	using namespace fo;
 	__asm {
@@ -299,11 +299,11 @@ end:
 }
 
 void Tiles::init() {
-	if (tileMode = IniReader::GetConfigInt("Misc", "AllowLargeTiles", 0)) {
-		dlogr("Applying allow large tiles patch.", DL_INIT);
-		HookCall(0x481D72, iso_init_hook);
-		HookCall(0x48434C, square_load_hook);
-	}
+//	if (tileMode = IniReader::GetConfigInt("Misc", "AllowLargeTiles", 0)) {
+//		dlogr("Applying allow large tiles patch.", DL_INIT);
+//		HookCall(0x481D72, iso_init_hook);
+//		HookCall(0x48434C, square_load_hook);
+//	}
 
 	//if (IniReader::GetConfigInt("Misc", "MoreTiles", 1)) {
 		dlogr("Applying tile FRM limit patch.", DL_INIT);
@@ -320,11 +320,11 @@ void Tiles::init() {
 	//}
 }
 
-void Tiles::exit() {
-	if (overrides) {
-		for (size_t i = 0; i < origTileCount; i++) delete overrides[i]; // free OverrideEntry
-		delete[] overrides;
-	}
-}
+//void Tiles::exit() {
+//	if (overrides) {
+//		for (size_t i = 0; i < origTileCount; i++) delete overrides[i]; // free OverrideEntry
+//		delete[] overrides;
+//	}
+//}
 
 }

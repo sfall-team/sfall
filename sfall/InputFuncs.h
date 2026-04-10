@@ -22,7 +22,7 @@
 
 #include "Delegate.h"
 
-namespace sfall 
+namespace sfall
 {
 
 extern bool useScrollWheel;

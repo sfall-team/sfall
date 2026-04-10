@@ -54,6 +54,10 @@ void interpretError(const char* fmt, ...);
 
 long __fastcall db_init(const char* path_dat, const char* path_patches);
 
+// Searches files in DB by given path/filename mask and stores result in fileList
+// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
+long __fastcall db_get_file_list(const char* searchMask, char*** fileList); // Returns number of elements in *fileList
+
 long __fastcall tile_num(long x, long y);
 
 void __fastcall square_xy(long x, long y, long* outSX, long* outSY);

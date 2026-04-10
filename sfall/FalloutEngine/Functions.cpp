@@ -167,6 +167,13 @@ long __fastcall db_init(const char* path_dat, const char* path_patches) {
 	WRAP_WATCOM_FCALL2(db_init_, path_dat, path_patches);
 }
 
+// Searches files in DB by given path/filename mask and stores result in fileList
+// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
+long __fastcall db_get_file_list(const char* searchMask, char*** fileList) {
+	__asm xor ebx, ebx; // don't delete (bug in db_get_file_list_)
+	WRAP_WATCOM_FCALL2(db_get_file_list_, searchMask, fileList);
+}
+
 long __fastcall tile_num(long x, long y) {
 	__asm xor ebx, ebx; // don't delete (bug in tile_num_)
 	WRAP_WATCOM_FCALL2(tile_num_, x, y);

@@ -3619,6 +3619,46 @@ skip:
 	}
 }
 
+static __declspec(naked) void wmRndEncounterPick_hack() {
+	static const DWORD wmRndEncounterPick_Ret = 0x4C0F86;
+	__asm {
+		cmp  dword ptr [esp + 0xD0 - 0x20 + 4], 0; // candidatesLength
+		jle  skip;
+		mov  edx, STAT_lu; // overwritten engine code
+		retn;
+skip:
+		mov  eax, -1; // error (no candidate)
+		add  esp, 4;
+		jmp  wmRndEncounterPick_Ret; // exit from func
+	}
+}
+
+static __declspec(naked) void wmRndEncounterOccurred_hook_pick() {
+	static const DWORD wmRndEncounterOccurred_Ret = 0x4C0BD4;
+	__asm {
+		call fo::funcoffs::wmRndEncounterPick_;
+		test eax, eax;
+		js   skip; // -1 - no encounter candidate
+		retn;
+skip:
+		add  esp, 4;
+		jmp  wmRndEncounterOccurred_Ret; // continue movement
+	}
+}
+
+static __declspec(naked) void op_proto_data_hook() {
+	static const DWORD op_proto_data_Ret = 0x458DEE;
+	__asm {
+		call fo::funcoffs::proto_data_member_;
+		cmp  dword ptr [esp + 0x28 - 0x20 + 4], 0; // value pointer
+		je   skip; // unimplemented data member
+		retn;
+skip:
+		add  esp, 4;
+		jmp  op_proto_data_Ret;
+	}
+}
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -4495,6 +4535,13 @@ void BugFixes::init() {
 	// Fix incorrect upper limit in mouse_set_sensitivity_ engine function
 	SafeWrite8(0x4CAC54, 0x77); // jae > ja
 	SafeWrite8(0x50FA0A, 0x04); // 2.5 (was 2.0)
+
+	// Fix for getting stuck on an empty map when the encounter table has no available entries
+	MakeCall(0x4C0DF3, wmRndEncounterPick_hack);
+	HookCall(0x4C080A, wmRndEncounterOccurred_hook_pick);
+
+	// Fix crash when calling proto_data with an invalid data member value
+	HookCall(0x458DBA, op_proto_data_hook);
 }
 
 }

@@ -781,7 +781,7 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 
 static __declspec(naked) void wmWorldMap_hack() {
 	__asm {
-		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
+		cmp  dword ptr ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
 		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
 		retn;
@@ -1081,6 +1081,39 @@ static __declspec(naked) void gdCustomSelect_hack_keyretn() {
 skip:
 		mov  ecx, 1; // overwritten engine code
 		retn;
+	}
+}
+
+static __declspec(naked) void IncDecGamma_hack0() {
+	__asm {
+		call GetLoopFlags;
+		test eax, OPTIONS;
+		jnz  inPref;
+		mov  ebx, 0x3FF00000; // overwritten engine code
+		retn;
+inPref:
+		pop  ebx;
+		add  ebx, 39; // offset to next section (0x492916, 0x4929FA)
+		jmp  ebx;
+	}
+}
+
+static __declspec(naked) void IncDecGamma_hack1() {
+	__asm {
+		call GetLoopFlags;
+		test eax, OPTIONS;
+		jnz  inPref;
+		mov  eax, ds:[0x6638D4]; // overwritten engine code
+		retn;
+inPref:
+		mov  eax, 17; // Brightness slider
+		call fo::funcoffs::UpdateThing_;
+		mov  eax, ds:[FO_VAR_prfwin];
+		call fo::funcoffs::win_draw_; // redraw the Preferences screen
+		mov  dword ptr ds:[FO_VAR_changed], 1;
+		pop  edx;
+		add  edx, 52; // offset to next section (0x4929BE, 0x492A9E)
+		jmp  edx;
 	}
 }
 
@@ -1443,6 +1476,10 @@ void Interface::init() {
 	// Add missing sounds to the 'Done' and 'Cancel' buttons in the 'Custom' disposition of the combat control panel
 	MakeCalls(gdCustomSelect_hack_buttons, {0x44A100, 0x44A151});
 	MakeCall(0x44A47D, gdCustomSelect_hack_keyretn);
+
+	// Fix the +/- keys not updating the brightness slider when used on the Preferences screen
+	MakeCalls(IncDecGamma_hack0, {0x4928EA, 0x4929CE});
+	MakeCalls(IncDecGamma_hack1, {0x492985, 0x492A65});
 
 	LoadGameHook::OnGameInit() += []() {
 		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.
