@@ -201,8 +201,7 @@ void HookScripts::LoadHookScript(const char* name, int id) {
 
 static void InitHookScriptFile(const char* name, int id) {
 	ScriptProgram prog;
-	dlog("> ", DL_HOOK);
-	dlog(name, DL_HOOK);
+	dlog_f("> %s", DL_HOOK, name);
 	InitScriptProgram(prog, name);
 	if (prog.ptr) {
 		HookScript hook;
