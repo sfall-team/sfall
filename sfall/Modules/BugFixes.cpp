@@ -2061,7 +2061,7 @@ static __declspec(naked) void ai_retrieve_object_hook() {
 	__asm {
 		mov  retrievePtr, 1;
 		mov  edx, ebx;                          // object ptr
-		call fo::funcoffs::inven_find_id_;      // check prt (fix behavior)
+		call fo::funcoffs::inven_find_id_;      // check ptr (fix behavior)
 		mov  retrievePtr, 0;
 		test eax, eax;
 		jz   tryFindId;
@@ -4542,6 +4542,9 @@ void BugFixes::init() {
 
 	// Fix crash when calling proto_data with an invalid data member value
 	HookCall(0x458DBA, op_proto_data_hook);
+
+	// Fix for minor visual glitch when selecting perks that modify SPECIAL stats
+	SafeWriteBatch<BYTE>(65, {0x434C76, 0x434D2A, 0x434E00, 0x434EB5}); // PrintBasicStat_ (was 40)
 }
 
 }
