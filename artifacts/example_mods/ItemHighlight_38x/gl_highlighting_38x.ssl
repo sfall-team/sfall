@@ -1,8 +1,8 @@
 /**
 
-   Item Highlighting mod (Lite version)
+   Item Highlighting mod (sfall 3.8.x version)
 
-   A cut-down version of the mod included in sfall 4.x, offering more features than the built-in function.
+   A script-based alternative to the built-in function, with more features and flexibility.
    Features:
    - highlights items, containers (optional) and lootable corpses (optional) on the ground
    - highlights critters using the same rules as combat mode highlighting (optional)
@@ -20,6 +20,8 @@
    version 1.3
 
 **/
+
+#pragma sce
 
 #include "main.h"
 //#include "..\..\..\!SRC\headers\define.h"

@@ -1,7 +1,7 @@
-Item Highlighting mod (Lite version) for sfall 3.8.x
-----------------------------------------------------
+Item Highlighting mod for sfall 3.8.x
+-------------------------------------
 
-A cut-down version of the mod included in sfall 4.x, offers more features than the built-in function.
+A script-based alternative to the built-in function, with more features and flexibility.
 Features:
 - highlights items, containers (optional) and lootable corpses (optional) on the ground
 - configurable hotkey is used to trigger highlight
@@ -12,10 +12,10 @@ Features:
 
 Requires sfall 3.8.12 or higher.
 
-To use, copy gl_highlighting_lite.int to your scripts folder and sfall-mods.ini to the mods folder in the same directory as sfall.
-Create the mods folder if it does not exist. Also, you should disable the built-in function in ddraw.ini (ToggleItemHighlightsKey=0).
+To use, copy gl_highlighting_38x.int to your scripts folder and sfall-mods.ini to the "mods" folder in the same directory as sfall.
+Create the "mods" folder if it does not exist. Also, you should disable the built-in function in ddraw.ini (ToggleItemHighlightsKey=0).
 
-Note that due to the lack of newer game hooks in sfall 3.8.x, there are some minor visual glitches in the lite version:
+Note that due to the lack of some game hooks in earlier sfall 3.8.x, there are some minor visual glitches in the mod:
 - items will be kept highlighted when entering combat while holding the highlight key (fixed in 3.8.40+).
 - when you pick up items while holding the highlight key, they will be kept highlighted if you drop them on the ground (fixed in 3.8.18+).
 Both glitches can bo solved by pressing and releasing the highlight key again.

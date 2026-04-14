@@ -1,8 +1,8 @@
 /*
 
-   NPC Combat Control (Lite version)
+   NPC Combat Control (sfall 3.8.x version)
 
-   A script-based mod of the removed built-in ControlCombat option, offering more features and improvements.
+   A script-based mod of the removed built-in ControlCombat option, with more features and improvements.
    Features:
    - allows you to take control of your party members or other NPCs during combat
      (unlike in newer 4.x versions, controlled critters cannot use Sneak skill in combat)
@@ -18,6 +18,8 @@
    version 1.4
 
 */
+
+#pragma sce
 
 #include "..\headers\global.h"
 #include "..\headers\critrpid.h"

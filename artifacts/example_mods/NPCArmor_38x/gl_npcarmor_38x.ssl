@@ -1,8 +1,8 @@
 /*
 
-   NPC Armor Appearance mod (Lite version)
+   NPC Armor Appearance mod (sfall 3.8.x version)
 
-   A cut-down version of the mod included in sfall 4.x modders pack. Used to replace the scripted part of B-Team mod.
+   Basically the same as the mod included in sfall 4.x modders pack. Used to replace the scripted part of B-Team mod.
    Appropriate graphics are required for this mod to work.
    Can be adopted to any mod by adjusting armor PIDs, allowed weapon anim codes, NPC PIDs and NPC FIDs in INI file.
 
@@ -14,6 +14,8 @@
    version 1.4
 
 */
+
+#pragma sce
 
 #include "main.h"
 
