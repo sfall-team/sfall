@@ -522,11 +522,20 @@ static __declspec(naked) void op_play_gmovie_hack() {
 	}
 }
 
+static __declspec(naked) void gnw_main_hook() {
+	__asm {
+		mov  eax, FO_VAR_black_palette;
+		call fo::funcoffs::palette_set_to_;
+		jmp  fo::funcoffs::main_menu_create_;
+	}
+}
+
 void SkipOpeningMoviesPatch() {
 	int skipOpening = IniReader::GetConfigInt("Misc", "SkipOpeningMovies", 0);
 	if (skipOpening) {
 		dlogr("Skipping opening movies.", DL_INIT);
-		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
+		SafeWrite16(0x4809C7, 0x1CEB); // jmp 0x4809E5
+		HookCall(0x4809E5, gnw_main_hook); // fade out to black before the main menu
 		if (skipOpening == 2) BlockCall(0x4426A1); // game_splash_screen_
 	}
 }
