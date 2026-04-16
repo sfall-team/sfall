@@ -648,6 +648,8 @@ void InitGlobalScripts() {
 
 	HookScripts::InitHookScripts();
 	LoadGlobalScriptsList();
+	// Display the correct AP cost from the HOOK_CALCAPCOST hook for the current active item
+	fo::func::intface_redraw_items();
 	// Fix map lighting from Night Vision perk when loading a saved game
 	fo::func::light_set_ambient(*fo::ptr::ambient_light, 1); // refresh map lighting
 

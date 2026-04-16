@@ -16,8 +16,8 @@
 
 /*
 	The functions in this section were originally using fastcall wrappers (WRAP_WATCOM_FFUNCX) as in 4.x
-	Because fastcall wrappers tend to cause VS2010 to generate unexpected glitches, all functions here are now
-	changed to stdcall wrappers instead for stability
+	Because fastcall wrappers tend to cause VS2010 to generate unexpected glitches in loops,
+	all functions here are now changed to stdcall wrappers instead for stability
 */
 WRAP_WATCOM_FUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FUNC3(bool, ai_can_use_weapon, fo::GameObject*, critter, fo::GameObject*, item, DWORD, hitMode)
@@ -125,6 +125,7 @@ WRAP_WATCOM_FUNC2(long, intface_get_attack, DWORD*, hitMode, DWORD*, isSecondary
 WRAP_WATCOM_FUNC0(long, intface_is_item_right_hand)
 WRAP_WATCOM_FUNC0(long, intface_is_hidden)
 WRAP_WATCOM_FUNC0(void, intface_redraw) // Redraws the main game interface windows (useful after changing some data like active hand, etc.)
+WRAP_WATCOM_FUNC0(void, intface_redraw_items) // Redraws only the active item button and ammo bar
 WRAP_WATCOM_FUNC0(void, intface_toggle_item_state)
 WRAP_WATCOM_FUNC1(void, intface_update_ac, long, animate)
 WRAP_WATCOM_FUNC2(void, intface_update_move_points, long, ap, long, freeAP)
