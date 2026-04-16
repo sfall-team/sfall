@@ -139,6 +139,7 @@ WRAP_WATCOM_FUNC2(long, intface_get_attack, DWORD*, hitMode, DWORD*, isSecondary
 WRAP_WATCOM_FUNC0(long, intface_is_item_right_hand)
 WRAP_WATCOM_FUNC0(long, intface_is_hidden)
 WRAP_WATCOM_FUNC0(void, intface_redraw) // Redraws the main game interface windows (useful after changing some data like active hand, etc.)
+WRAP_WATCOM_FUNC0(void, intface_redraw_items) // Redraws only the active item button and ammo bar
 WRAP_WATCOM_FUNC0(void, intface_toggle_item_state)
 WRAP_WATCOM_FUNC1(void, intface_update_ac, long, animate)
 WRAP_WATCOM_FUNC2(void, intface_update_move_points, long, ap, long, freeAP)
