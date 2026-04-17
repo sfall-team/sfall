@@ -95,32 +95,11 @@ static __declspec(naked) void CalcDeathAnim2Hook() {
 }
 
 static __declspec(naked) void OnDeathHook() {
-	using namespace fo::Fields;
-	__asm {
-		push edx;
-		call BeginHook;
-		mov  args[0], esi;
-	}
-
-	argCount = 1;
-	RunHookScript(HOOK_ONDEATH);
-	EndHook();
-
-	__asm {
-		pop edx;
-		// engine code
-		mov eax, [esi + protoId];
-		mov ebp, ebx;
-		retn;
-	}
-}
-
-static __declspec(naked) void OnDeathHook2() {
 	__asm {
 		call fo::funcoffs::partyMemberRemove_;
-		HookBegin;
-		mov  args[0], esi;
 		pushadc;
+		call BeginHook;
+		mov  args[0], esi;
 	}
 
 	argCount = 1;
@@ -152,8 +131,11 @@ void Inject_DeathAnim2Hook() {
 }
 
 void Inject_OnDeathHook() {
-	MakeCall(0x42DA6D, OnDeathHook);  // critter_kill_
-	HookCall(0x425161, OnDeathHook2); // damage_object_
+	const DWORD onDeathHkAddr[] = {
+		0x42DA8A, // critter_kill_
+		0x425161  // damage_object_
+	};
+	HookCalls(OnDeathHook, onDeathHkAddr);
 }
 
 void InitDeathHookScripts() {
