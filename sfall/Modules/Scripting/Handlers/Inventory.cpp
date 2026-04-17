@@ -104,7 +104,13 @@ void mf_critter_inven_obj2(OpcodeContext& ctx) {
 }
 
 void mf_item_weight(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::item_weight(ctx.arg(0).object()));
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->IsNotItem()) {
+		ctx.printOpcodeError("%s() - the object is not an item.", ctx.getMetaruleName());
+		ctx.setReturn(0);
+		return;
+	}
+	ctx.setReturn(fo::func::item_weight(obj));
 }
 
 void mf_get_current_inven_size(OpcodeContext& ctx) {

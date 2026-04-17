@@ -556,12 +556,12 @@ sfall_funcX metarule functions
 ----
 #### item_weight
 `int sfall_func1("item_weight", object obj)`
-- Gets the current weight of an object
+- Returns the weight of an item object
 
 ----
 #### get_outline
 `int sfall_func1("get_outline", object obj)`
-- Gets the current outline color for an object
+- Returns the current outline color of an object
 
 ----
 #### set_outline
@@ -574,7 +574,7 @@ sfall_funcX metarule functions
 ----
 #### get_flags
 `int sfall_func1("get_flags", object obj)`
-- Gets the current value of object flags (see **define_extra.h** for available flags)
+- Returns the current value of object flags (see **define_extra.h** for available flags)
 
 -----
 #### set_flags
@@ -723,7 +723,7 @@ sfall_funcX metarule functions
 `void sfall_func4("item_make_explosive", int pid, int activePid, int min, int max)`
 - Makes the specified item (pid) an explosive item like Dynamite or Plastic Explosives
 - `activePid` is for an item with an active timer, can be the same as the `pid` argument
-- The item proto must be the **Misc Item** type and have the **Use** action flag
+- The item proto must be of the **Misc Item** type and have the **Use** action flag
 - `min` and `max` are the minimum and maximum explosion damage
 - Using the function on an item that is already set as an explosive will override its previous settings
 - __NOTE:__ this function does not work for pid's of Dynamite and Plastic Explosives
@@ -899,7 +899,7 @@ sfall_funcX metarule functions
 ----
 #### get_sfall_arg_at
 `mixed sfall_func1("get_sfall_arg_at", int argNum)`
-- Gets the value of hook argument with the specified argument number (*first argument of hook starts from 0*)
+- Returns the value of hook argument with the specified argument number (*first argument of hook starts from 0*)
 
 ----
 #### hide_window
