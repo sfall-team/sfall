@@ -274,7 +274,7 @@ void mf_set_combat_free_move(OpcodeContext& ctx) {
 	if (value < 0) value = 0;
 
 	*fo::ptr::combat_free_move = value;
-	if ((*fo::ptr::main_ctd).attacker == *fo::ptr::obj_dude) {
+	if (*fo::ptr::combat_state & fo::CombatStateFlag::InCombat && (*fo::ptr::main_ctd).attacker == *fo::ptr::obj_dude) {
 		fo::func::intface_update_move_points((*fo::ptr::obj_dude)->critter.movePoints, *fo::ptr::combat_free_move);
 	}
 }

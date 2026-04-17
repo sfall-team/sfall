@@ -297,7 +297,9 @@ void op_set_critter_current_ap(OpcodeContext& ctx) {
 		if (ap < 0) ap = 0;
 		obj->critter.movePoints = ap;
 
-		if (obj == *fo::ptr::obj_dude) fo::func::intface_update_move_points(ap, *fo::ptr::combat_free_move);
+		if (obj == *fo::ptr::obj_dude && *fo::ptr::combat_state & fo::CombatStateFlag::InCombat) {
+			fo::func::intface_update_move_points(ap, *fo::ptr::combat_free_move);
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
