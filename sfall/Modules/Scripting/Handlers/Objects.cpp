@@ -52,10 +52,10 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 
 		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
 
-		SafeMemSet(0x495C77, CodeType::Nop, 6);   // Check that the player is high enough for the npc to consider this level
-		//SafeMemSet(0x495C8C, CodeType::Nop, 6); // Check that the npc isn't already at its maximum level
-		SafeMemSet(0x495CE3, CodeType::Nop, 5);   // Check if npc had "early" level up before the next scheduled one, resets the "early" flag
-		SafeMemSet(0x495CEC, CodeType::Nop, 6);   // Related to above
+		BlockCall(0x495C77, 6);   // Check that the player is high enough for the npc to consider this level
+		//BlockCall(0x495C8C, 6); // Check that the npc isn't already at its maximum level
+		BlockCall(0x495CE3);      // Check if npc had "early" level up before the next scheduled one, resets the "early" flag
+		BlockCall(0x495CEC, 6);   // Related to above
 		SafeWrite8(0x495CFB, CodeType::JumpShort); // Skip random roll for early level up
 		__asm mov dword ptr [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
 	} else {

@@ -52,6 +52,8 @@ void MakeCall(DWORD addr, void* func, size_t len);
 void MakeJump(DWORD addr, void* func);
 void MakeJump(DWORD addr, void* func, size_t len);
 void BlockCall(DWORD addr);
+// Should be used for patching out 6+ bytes (use single-byte NOPs for 1-4 bytes)
+void BlockCall(DWORD addr, size_t len);
 
 // emulation of 4.x HookCalls/MakeCalls/MakeJumps
 

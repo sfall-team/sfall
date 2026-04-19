@@ -101,8 +101,30 @@ void BlockCall(DWORD addr) {
 	DWORD oldProtect;
 
 	VirtualProtect((void*)addr, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
-	*((DWORD*)addr) = 0x00441F0F; // long NOP (0F1F4400-XX)
+	*((DWORD*)addr) = 0x00441F0F; // 5-byte long NOP (0F1F4400-XX)
 	VirtualProtect((void*)addr, 4, oldProtect, &oldProtect);
+}
+
+static __declspec(noinline) void __stdcall SafeWriteNops(DWORD addr, size_t len) {
+	DWORD oldProtect;
+
+	VirtualProtect((void*)addr, len, PAGE_EXECUTE_READWRITE, &oldProtect);
+	DWORD cur = addr, remaining = len;
+	while (remaining >= 5) {
+		*((DWORD*)cur) = 0x00441F0F; // 5-byte long NOP (0F1F4400-XX)
+		cur += 5;
+		remaining -= 5;
+	}
+	// Fill the remaining bytes (1-4 bytes) with single-byte NOPs
+	while (remaining > 0) {
+		*((BYTE*)cur++) = CodeType::Nop;
+		remaining--;
+	}
+	VirtualProtect((void*)addr, len, oldProtect, &oldProtect);
+}
+
+void BlockCall(DWORD addr, size_t len) {
+	SafeWriteNops(addr, len);
 }
 
 }
