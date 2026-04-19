@@ -78,8 +78,8 @@ void Inventory::init() {
 	});
 
 	// setup_inventory_
-	sf::SafeMemSet(0x46ED23, sf::CodeType::Nop, 6);
-	sf::SafeMemSet(0x46ED31, sf::CodeType::Nop, 6);
+	sf::BlockCall(0x46ED23, 6);
+	sf::BlockCall(0x46ED31, 6);
 }
 
 }
