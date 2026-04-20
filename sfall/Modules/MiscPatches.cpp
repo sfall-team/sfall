@@ -521,6 +521,18 @@ static __declspec(naked) void map_check_state_hook_redraw() {
 	}
 }
 
+static __declspec(naked) void critter_kill_hack() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  eax, [esi + elevation]; // overwritten engine code
+//		lea  edi, [esi + inventory]; // redundant as the original HP/flag code has been removed
+		mov  dword ptr [esi + health], 0;            // critter->critter.health = 0
+		or   byte ptr [esi + damageFlags], DAM_DEAD; // critter->critter.damageFlags |= DAM_DEAD
+		retn;
+	}
+}
+
 static void AdditionalWeaponAnimsPatch() {
 	//if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 1)) {
 		dlogr("Applying additional weapon animations patch.", DL_INIT);
@@ -1067,6 +1079,10 @@ void MiscPatches::init() {
 	// https://github.com/phobos2077/sfall/issues/282
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
+
+	// Small code patch for HOOK_ONDEATH (move HP/flag setting code earlier)
+	MakeCall(0x42DA7E, critter_kill_hack, 1);
+	BlockCall(0x42DC44, 16); // original code
 
 	// Increase the maximum value of the combat speed slider from 50 to 100
 	const DWORD combatSpeedMaxAddr[] = {
