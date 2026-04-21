@@ -72,6 +72,54 @@ skipHook:
 	}
 }
 
+static __declspec(naked) void inven_action_cursor_hack_drug() {
+	__asm {
+		push ebx; // item slot
+		call BeginHook;
+		mov  eax, [esp + 0x6C - 0x5C + 8];
+		mov  args[0], eax;       // source
+		mov  edx, [esp + 0x6C - 0x50 + 8];
+		mov  args[4], edx;       // item
+		mov  args[8], 1;         // count
+		mov  args[12], 0x473594; // RMOBJ_CONSUME_DRUG
+		mov  args[16], 0;        // target
+	}
+
+	argCount = 5;
+	RunHookScript(HOOK_REMOVEINVENOBJ);
+	EndHook();
+
+	__asm {
+		pop  ebx;
+		mov  dword ptr [ebx], 0; // overwritten engine code
+		retn;
+	}
+}
+
+static __declspec(naked) void inven_action_cursor_hack_misc() {
+	__asm {
+		push edx; // item slot
+		call BeginHook;
+		mov  eax, [esp + 0x6C - 0x5C + 8];
+		mov  args[0], eax;       // source
+		mov  edx, [esp + 0x6C - 0x50 + 8];
+		mov  args[4], edx;       // item
+		mov  args[8], 1;         // count
+		mov  args[12], 0x4735F1; // RMOBJ_USE_OBJ
+		mov  args[16], 0;        // target
+	}
+
+	argCount = 5;
+	RunHookScript(HOOK_REMOVEINVENOBJ);
+	EndHook();
+
+	__asm {
+		pop  edx;
+		mov  dword ptr [edx], 0; // overwritten engine code
+		retn;
+	}
+}
+
 static __declspec(naked) void MoveCostHook() {
 	__asm {
 		HookBegin;
@@ -650,7 +698,11 @@ void AdjustFidHook(DWORD vanillaFid) {
 }
 
 void Inject_RemoveInvenObjHook() {
-	MakeJump(0x477492, RemoveObjHook); // old 0x477490
+	MakeJump(0x477492, RemoveObjHook); // item_remove_mult_ (old 0x477490)
+	// Special case: use a drug/misc item from active item slots while in the inventory screen
+	// Item removal does not go through item_remove_mult_ engine function
+	MakeCall(0x473596, inven_action_cursor_hack_drug, 1);
+	MakeCall(0x473631, inven_action_cursor_hack_misc, 1);
 }
 
 void Inject_MoveCostHook() {
