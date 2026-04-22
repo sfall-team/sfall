@@ -151,6 +151,7 @@
 #define FO_VAR_In_WorldMap                0x672E1C
 #define FO_VAR_im_value                   0x59E93C
 #define FO_VAR_info_line                  0x5707D0
+#define FO_VAR_interfaceBuffer            0x59D3F4
 #define FO_VAR_interfaceWindow            0x519024
 #define FO_VAR_intfaceEnabled             0x518F10
 #define FO_VAR_intotal                    0x43E95C
@@ -209,6 +210,7 @@
 #define FO_VAR_mouse_x_                   0x6AC7A8
 #define FO_VAR_mouse_y                    0x664450
 #define FO_VAR_mouse_y_                   0x6AC7A4
+#define FO_VAR_movePointRect              0x518FD4
 #define FO_VAR_movie_list                 0x518DA0
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744

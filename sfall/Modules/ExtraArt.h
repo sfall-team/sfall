@@ -31,6 +31,22 @@ struct PcxFile {
 	PcxFile() : pixelData(nullptr), width(0), height(0) {}
 };
 
+class TempFrmHandle {
+public:
+	TempFrmHandle(fo::FrmFile* frm);
+	TempFrmHandle(TempFrmHandle&&);
+	~TempFrmHandle();
+
+	bool IsValid();
+	const fo::FrmFile& Frm() const;
+private:
+	// disallow copy constructor and copy assignment
+	TempFrmHandle(const TempFrmHandle&);
+	TempFrmHandle& operator=(TempFrmHandle);
+
+	fo::FrmFile* _frm;
+};
+
 class ExtraArt : public Module {
 public:
 	const char* name() { return "ExtraArt"; }

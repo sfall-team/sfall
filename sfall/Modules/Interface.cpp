@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "..\Utils.h"
+#include "ExtraArt.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
 #include "Worldmap.h"
@@ -87,6 +88,82 @@ fo::Window* Interface::GetWindow(long winType) {
 		return (fo::Window*)(-1); // unsupported type
 	}
 	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
+}
+
+static BYTE movePointBackground[16 * 9 * 5];
+static bool hrpAPBarRectSetup = false;
+
+static void DrawExtendedApBar() {
+	const char* const ifaceApBarFrm = "iface_apbar_e.frm"; // 183x13 at 266,10 (x = width - 374)
+	TempFrmHandle frmHandle( LoadUnlistedFrm(ifaceApBarFrm, fo::ArtType::OBJ_TYPE_INTRFACE) );
+	if (!frmHandle.IsValid()) return;
+
+	DWORD ifaceWin = *fo::ptr::interfaceWindow;
+	fo::Window* win = fo::func::GNW_find(ifaceWin);
+	if (win == nullptr) return;
+
+	const int destOffsetRight = 374;
+	const int destOffsetTop = 10;
+	const fo::FrmFrameData& srcFrame = frmHandle.Frm().frameData[0];
+	BYTE* dest = *fo::ptr::interfaceBuffer + (win->width * (destOffsetTop + 1)) - destOffsetRight;
+	fo::func::buf_to_buf(srcFrame.dataPtr(), srcFrame.width, srcFrame.height, srcFrame.width, dest, win->width);
+}
+
+static __declspec(naked) void intface_init_hook_unlock_iface_frm() {
+	__asm {
+		pushadc;
+		call DrawExtendedApBar;
+		popadc;
+		jmp  fo::funcoffs::art_ptr_unlock_;
+	}
+}
+
+static __declspec(naked) void intface_init_hack() {
+	__asm {
+		add  eax, 9276 - (54 / 2); // x offset
+		mov  edx, 144 - 90;        // width
+		add  [esp + 4], edx;
+		add  [esp + 0x10 + 4], edx;
+		retn;
+	}
+}
+
+static __declspec(naked) void intface_update_move_points_hack() {
+	static const DWORD intface_update_move_points_Ret = 0x45EE3E;
+	__asm {
+		mov  eax, 16 * 9
+		push eax;
+		push 5;
+		push eax;
+		jmp  intface_update_move_points_Ret;
+	}
+}
+
+static void APBarRectPatch() {
+	fo::ptr::movePointRect->x -= (54 / 2); // 54 = 144(new width) - 90(old width)
+	fo::ptr::movePointRect->offx += (54 / 2);
+}
+
+static void ActionPointsBarPatch() {
+	dlogr("Applying expanded action points bar patch.", DL_INIT);
+	if (hrpIsEnabled) {
+		hrpAPBarRectSetup = true;
+	} else {
+		APBarRectPatch();
+	}
+
+	// intface_init_
+	const DWORD movePointBgAddr[] = {0x45E343, 0x45EE3F};
+	SafeWriteBatch<DWORD>((DWORD)&movePointBackground, movePointBgAddr);
+	// intface_update_move_points_
+	const DWORD movePointMaxAddr[] = {0x45EE55, 0x45EE7B, 0x45EE82, 0x45EE9C, 0x45EEA0};
+	SafeWriteBatch<BYTE>(16, movePointMaxAddr);
+	const DWORD ifaceBufDestAddr[] = {0x45EE33, 0x45EEC8, 0x45EF16};
+	SafeWriteBatch<DWORD>(9276 - (54 / 2), ifaceBufDestAddr);
+
+	HookCall(0x45D962, intface_init_hook_unlock_iface_frm);
+	MakeCall(0x45E356, intface_init_hack);
+	MakeJump(0x45EE38, intface_update_move_points_hack, 1);
 }
 
 static long costAP = -1;
@@ -391,7 +468,7 @@ static void WorldmapViewportPatch() {
 		HookCall(0x4C4B8F, wmTownMapInit_hook);
 	}
 	// up/down buttons of the location list (wmInterfaceInit_)
-	const DWORD wmIfaceUpDnBtnXAddr[] = {0x4C2D3C, 0x4C2D7A}; // offset by X (480)
+	const DWORD wmIfaceUpDnBtnXAddr[] = {0x4C2D3C, 0x4C2D7A};
 	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH - (640 - 480), wmIfaceUpDnBtnXAddr); // offset by X (480)
 
 	// town/world button (wmInterfaceInit_)
@@ -1089,6 +1166,9 @@ static void UIAnimationSpeedPatch() {
 }
 
 void Interface::OnAfterGameInit() {
+	if (hrpAPBarRectSetup) {
+		APBarRectPatch();
+	}
 	if (worldmapInterface) {
 		WorldmapViewportPatch(); // Note: must be applied after WorldMapSlots patch
 	}
@@ -1109,6 +1189,9 @@ void Interface::init() {
 		SafeWriteBatch<BYTE>(CodeType::JumpShort, windowRoundingAddr);
 	//}
 
+	if (IniReader::GetConfigInt("Interface", "ActionPointsBar", 0)) {
+		ActionPointsBarPatch();
+	}
 	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();

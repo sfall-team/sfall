@@ -123,6 +123,28 @@ static void ClearInterfaceArtCache() {
 	frmFileCache.clear();
 }
 
+TempFrmHandle::TempFrmHandle(fo::FrmFile* frm) : _frm(frm) {
+}
+
+TempFrmHandle::TempFrmHandle(TempFrmHandle&& other) : _frm(other._frm) {
+	other._frm = nullptr;
+}
+
+TempFrmHandle::~TempFrmHandle() {
+	if (_frm == nullptr) return;
+	UnloadFrmFile(_frm);
+	_frm = nullptr;
+}
+
+bool TempFrmHandle::IsValid() {
+	return _frm != nullptr;
+}
+
+const fo::FrmFile& TempFrmHandle::Frm() const {
+	assert(_frm != nullptr);
+	return *_frm;
+}
+
 void ExtraArt::OnGameReset() {
 	ClearInterfaceArtCache();
 }
