@@ -129,9 +129,10 @@ void op_get_npc_level(OpcodeContext& ctx) {
 
 void op_remove_script(OpcodeContext& ctx) {
 	fo::GameObject* object = ctx.arg(0).object();
-	if (object->scriptId != 0xFFFFFFFF) {
+	if (object->scriptId != -1) {
 		fo::func::scr_remove(object->scriptId);
-		object->scriptId = 0xFFFFFFFF;
+		object->scriptId = -1;
+		object->scriptIndex = -1;
 	}
 }
 
@@ -150,22 +151,29 @@ void op_set_script(OpcodeContext& ctx) {
 	unsigned long valArg = ctx.arg(1).rawValue();
 
 	long scriptIndex = valArg & ~0xF0000000;
-	if (scriptIndex == 0 || valArg > 0x8FFFFFFF) { // negative values are not allowed
-		ctx.printOpcodeError("%s() - invalid script index number.", ctx.getOpcodeName());
+	if (scriptIndex == 0 || scriptIndex > *fo::ptr::maxScriptNum) { // negative values are not allowed
+		ctx.printOpcodeError("%s() - invalid script index number: %d", ctx.getOpcodeName(), scriptIndex);
 		return;
 	}
 	scriptIndex--;
 
-	if (object->scriptId != 0xFFFFFFFF) {
+	if (object->scriptId != -1) {
 		fo::func::scr_remove(object->scriptId);
-		object->scriptId = 0xFFFFFFFF;
+		object->scriptId = -1;
+		object->scriptIndex = -1;
 	}
 	if (object->IsCritter()) {
 		scriptType = fo::Scripts::ScriptTypes::SCRIPT_CRITTER;
 	} else {
 		scriptType = fo::Scripts::ScriptTypes::SCRIPT_ITEM;
 	}
-	fo::func::obj_new_sid_inst(object, scriptType, scriptIndex);
+	if (fo::func::obj_new_sid_inst(object, scriptType, scriptIndex) == -1) {
+		// if sid assignment failed, revert to the "removed" state
+		object->scriptId = -1;
+		object->scriptIndex = -1;
+		return;
+	}
+	object->scriptIndex = scriptIndex;
 
 	long scriptId = object->scriptId;
 	exec_script_proc(scriptId, start);
@@ -567,7 +575,7 @@ void mf_set_unique_id(OpcodeContext& ctx) {
 
 void mf_objects_in_radius(OpcodeContext& ctx) {
 	long radius = ctx.arg(1).rawValue();
-	if (radius <= 0) radius = 1; else if (radius > 50) radius = 50;
+	if (radius < 0) radius = 0; else if (radius > 50) radius = 50;
 	long elev = ctx.arg(2).rawValue();
 	if (elev < 0) elev = 0; else if (elev > 2) elev = 2;
 	long type = (ctx.numArgs() > 3) ? ctx.arg(3).rawValue() : -1;
