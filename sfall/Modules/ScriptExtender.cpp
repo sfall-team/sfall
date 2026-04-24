@@ -998,6 +998,21 @@ void SetGlobals(GlobalVar* globals) {
 	}
 }
 
+static __declspec(naked) void allocateProgram_hook() {
+	static const DWORD allocateProgram_Error = 0x467752;
+	__asm {
+		call fo::funcoffs::db_filelength_;
+		cmp  eax, 118; // minimum size in bytes
+		jl   error;
+		retn;
+error:
+		mov  eax, ebp; // file
+		call fo::funcoffs::db_fclose_;
+		add  esp, 4;
+		jmp  allocateProgram_Error;
+	}
+}
+
 static DWORD pcFlagSneak;
 
 static __declspec(naked) void map_save_in_game_hook() {
@@ -1138,6 +1153,9 @@ void ScriptExtender::init() {
 	// combat_is_starting_p_proc / combat_is_over_p_proc
 	HookCall(0x421B72, CombatBeginHook);
 	HookCall(0x421FC1, CombatOverHook);
+
+	// Add a basic file size check for scripts
+	HookCall(0x467777, allocateProgram_hook);
 
 	// Reorder the execution of functions before exiting the map
 	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
