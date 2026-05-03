@@ -688,8 +688,8 @@ static __declspec(naked) void do_move_timer_hack() {
 	__asm {
 		push ecx;
 		push ebp; // max
-		mov  edx, dword ptr [esp + 32]; // return address
-		mov  ecx, dword ptr [esp + 20]; // item, potentially
+		mov  edx, [esp + 32]; // return address
+		mov  ecx, [esp + 20]; // item, potentially
 		call CalculateDefaultMoveCount;
 		mov  ebx, eax;
 		pop  ecx;
@@ -719,7 +719,7 @@ static __declspec(naked) void move_inventory_hack() {
 		retn;
 skipDrag:
 		call DragSkipPrepare;
-		mov  eax, dword ptr [esp + 0x54 - 0x18 + 4]; // isPlanting flag
+		mov  eax, [esp + 0x54 - 0x18 + 4]; // isPlanting flag
 		add  esp, 4;
 		test eax, eax;
 		jz   jmpTaking;
@@ -747,7 +747,7 @@ static __declspec(naked) void barter_move_inventory_skip_drag_hack_common() {
 		retn;
 skipDrag:
 		call DragSkipPrepare;
-		mov  eax, dword ptr [esp + 0x38 + 0xC + 4]; // fromDude flag
+		mov  eax, [esp + 0x38 + 0xC + 4]; // fromDude flag
 		add  esp, 4;
 		test eax, eax;
 		jz   jmpTaking;

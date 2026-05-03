@@ -70,7 +70,7 @@ __declspec(naked) void op_read_int() {
 		_GET_ARG_INT(error);
 		test eax, eax;
 		jz   error;
-		mov  edx, dword ptr ds:[eax]; // read memory
+		mov  edx, ds:[eax]; // read memory
 result:
 		mov  eax, ebx;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);

@@ -358,7 +358,7 @@ __declspec(naked) void op_set_shader_vector() {
 argloopstart:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopShort_;
-		mov word ptr [esp + ecx * 2 + 0x16], ax;
+		mov [esp + ecx * 2 + 0x16], ax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
 		mov [esp + ecx * 4 - 0x4], eax;
@@ -386,7 +386,7 @@ next:
 		mov eax, ebp;
 		mov ebx, [esp + 4];
 		xor edx, edx;
-		mov dx, word ptr [esp + 0x1a];
+		mov dx, [esp + 0x1a];
 		call fo::funcoffs::interpretGetString_;
 		mov [esp + 4], eax;
 		call SetShaderVector;

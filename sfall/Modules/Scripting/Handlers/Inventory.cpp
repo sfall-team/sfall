@@ -32,7 +32,7 @@ namespace script
 
 __declspec(naked) void op_active_hand() {
 	__asm {
-		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
+		mov  edx, ds:[FO_VAR_itemCurrentItem];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

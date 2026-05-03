@@ -231,7 +231,7 @@ static __declspec(naked) void obj_use_explosive_active_hack() {
 		call CheckExplosives;
 		test eax, eax;
 		jz   skipSet;
-		mov  dword ptr [esi + protoId], eax; // change item pid to active;
+		mov  [esi + protoId], eax; // change item pid to active;
 skipSet:
 		mov  dword ptr [esp], 0x49BD62;
 end:

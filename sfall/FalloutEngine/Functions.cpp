@@ -222,7 +222,7 @@ void __stdcall DialogOut(const char* text) {
 		xor  edx, edx;
 		push edx;
 		push edx;
-		mov  dl, byte ptr ds:[0x6AB718];
+		mov  dl, ds:[0x6AB718];
 		push edx;        // ColorMsg
 		mov  ecx, 192;   // x
 		push 116;        // y
@@ -239,7 +239,7 @@ long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, l
 		push flags;
 		test ebx, ebx;
 		jnz  cColor;
-		mov  al, byte ptr ds:[0x6AB718];
+		mov  al, ds:[0x6AB718];
 		mov  bl, al;
 		jmp  skip;
 cColor:

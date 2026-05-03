@@ -630,7 +630,7 @@ static __declspec(naked) void endgame_pan_desert_hack() {
 		mov  ecx, speechSound;
 		test ecx, ecx;
 		jnz  skip;
-		mov  ecx, dword ptr ds:[FO_VAR_endgame_voiceover_loaded];
+		mov  ecx, ds:[FO_VAR_endgame_voiceover_loaded];
 skip:
 		retn;
 	}
@@ -648,7 +648,7 @@ static __declspec(naked) void endgame_display_image_hack() {
 	__asm {
 		mov  ecx, speechSound;
 		call ResumeSfallSound;
-		mov  edx, dword ptr ds:[FO_VAR_endgame_voiceover_loaded];
+		mov  edx, ds:[FO_VAR_endgame_voiceover_loaded];
 		retn;
 	}
 }
@@ -657,7 +657,7 @@ static __declspec(naked) void endgame_pan_desert_hack_play() {
 	__asm {
 		mov  ecx, speechSound;
 		call ResumeSfallSound;
-		mov  eax, dword ptr ds:[FO_VAR_endgame_voiceover_loaded];
+		mov  eax, ds:[FO_VAR_endgame_voiceover_loaded];
 		xor  ecx, ecx;
 		retn;
 	}
@@ -727,7 +727,7 @@ static __declspec(naked) void gsound_speech_stop_hack() {
 		mov  speechSound, 0;
 		pop  edx;
 skip:
-		mov  ecx, dword ptr ds:[FO_VAR_gsound_speech_tag];
+		mov  ecx, ds:[FO_VAR_gsound_speech_tag];
 		retn;
 	}
 }
@@ -784,7 +784,7 @@ skip:
 
 static __declspec(naked) void gsound_background_volume_set_hack() {
 	__asm {
-		mov  dword ptr ds:[FO_VAR_background_volume], eax;
+		mov  ds:[FO_VAR_background_volume], eax;
 		push ecx;
 		mov  ecx, backgroundMusic;
 		test ecx, ecx;
@@ -805,11 +805,11 @@ skip:
 
 static __declspec(naked) void gsound_master_volume_set_hack() {
 	__asm {
-		mov  dword ptr ds:[FO_VAR_master_volume], edx;
+		mov  ds:[FO_VAR_master_volume], edx;
 		push eax;
 		push ecx;
 		push edx;
-		push dword ptr ds:[FO_VAR_background_volume];
+		push ds:[FO_VAR_background_volume];
 		push 3; // SoundType::game_master
 		push 0; // set volume for all sounds
 		call SetSoundVolume;
@@ -825,7 +825,7 @@ static __declspec(naked) void gsound_set_sfx_volume_hack() {
 	__asm {
 		push ecx;
 		push edx;
-		mov  dword ptr ds:[FO_VAR_sndfx_volume], eax;
+		mov  ds:[FO_VAR_sndfx_volume], eax;
 		push eax;
 		push 2; // SoundType::game_sfx
 		push 0; // set volume for all sounds

@@ -47,7 +47,7 @@ static long __fastcall CreateWin(long height, long yPos, long xPos, long width, 
 
 static __declspec(naked) void setup_inventory_hook_win_add() {
 	__asm {
-		pop	 ebp; // ret addr
+		pop  ebp; // ret addr
 		push edi; // mode
 		push ebx; // width
 		push eax; // xPos

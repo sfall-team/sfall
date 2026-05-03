@@ -65,7 +65,7 @@ static __declspec(naked) void DisplayBoxesHack() {
 		xor  ebx, ebx;
 start:
 		imul eax, ebx, tSize;
-		mov  al, byte ptr [edx + 3][eax];   // tBox.isActive
+		mov  al, [edx + 3][eax];            // tBox.isActive
 		test al, al;
 		jz   next;
 		lea  eax, [ebx + 5];                // index box

@@ -110,7 +110,7 @@ static __declspec(naked) void setup_inventory_hook_win_add() {
 
 static __declspec(naked) void setup_inventory_hack() {
 	__asm {
-		mov  dword ptr ds:[FO_VAR_i_wid], eax;
+		mov  ds:[FO_VAR_i_wid], eax;
 		add  ebx, xPosition;
 		add  ecx, yPosition;
 		retn;

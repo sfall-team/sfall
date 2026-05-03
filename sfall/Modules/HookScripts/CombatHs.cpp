@@ -254,20 +254,20 @@ static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd,
 
 static __declspec(naked) void SubComputeDamageHook() {
 	__asm {
-		mov  ecx, dword ptr [esp + 0x20];      // Difficulty
+		mov  ecx, [esp + 0x20];           // Difficulty
 		push ecx;
-		mov  eax, dword ptr [esp + 0x24 + 4];  // MultiplyDamage
+		mov  eax, [esp + 0x24 + 4];       // MultiplyDamage
 		push eax;
-		mov  ecx, dword ptr [esp + 0x1C + 8];  // Rounds
+		mov  ecx, [esp + 0x1C + 8];       // Rounds
 		push ecx;
-		mov  eax, dword ptr [esp + 0x18 + 12]; // BonusRangedDamage
+		mov  eax, [esp + 0x18 + 12];      // BonusRangedDamage
 		push eax;
-		mov  ecx, dword ptr [esp + 0x28 + 16]; // ResistDT
+		mov  ecx, [esp + 0x28 + 16];      // ResistDT
 		push ecx;
-		push edi;                              // AccumulatedDamage
-		mov  ecx, esi;                         // cdt
-		push 0x424A63;                         // return to address
-		jmp  SubComputeDamageHook_Script;      // edx - ResistDR
+		push edi;                         // AccumulatedDamage
+		mov  ecx, esi;                    // cdt
+		push 0x424A63;                    // return address
+		jmp  SubComputeDamageHook_Script; // edx - ResistDR
 	}
 }
 

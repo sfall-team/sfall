@@ -56,10 +56,10 @@ static __declspec(naked) void CharacterSubmenuHook() {
 		call fo::funcoffs::GNW_find_;
 		test eax, eax;
 		jz   noCharWin;
-		mov  ecx, [eax + 0x8];               // charWin->rect.left
-		add  dword ptr ss:[ebp + 0x10], ecx; // subWin xPos
-		mov  ecx, [eax + 0xC];               // charWin->rect.top
-		add  dword ptr ss:[ebp + 0x14], ecx; // subWin yPos
+		mov  ecx, [eax + 0x8];     // charWin->rect.left
+		add  ss:[ebp + 0x10], ecx; // subWin xPos
+		mov  ecx, [eax + 0xC];     // charWin->rect.top
+		add  ss:[ebp + 0x14], ecx; // subWin yPos
 noCharWin:
 		jmp  fo::funcoffs::text_curr_;
 	}

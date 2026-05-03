@@ -413,13 +413,13 @@ skipX:
 		add  ecx, eax; // xpos * 1.5
 		add  ecx, ebx;
 		pop  ebx;
-		mov  eax, dword ptr [esp + 8]; // ypos
+		mov  eax, [esp + 8]; // ypos
 		sar  eax, 1;
 		test eax, eax;
 		jz   skipY;
 		sub  eax, 5;   // y adjust
 skipY:
-		add  dword ptr [esp + 8], eax; // ypos * 1.5
+		add  [esp + 8], eax; // ypos * 1.5
 		pop  eax;
 		jmp  fo::funcoffs::win_print_;
 	}
@@ -783,7 +783,7 @@ static __declspec(naked) void wmWorldMap_hack() {
 	__asm {
 		cmp  dword ptr ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
-		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
+		mov  eax, ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
 		retn;
 checkHover:
 		cmp  esi, 328;
@@ -799,12 +799,12 @@ checkHover:
 		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
 		call wmDetectHotspotHover;
 		pop  ecx;
-		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
+		mov  eax, ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 isScroll:
 		mov  isHoveringHotspot, 0;
 		mov  backImageIsCopy, 0;
-		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
+		mov  eax, ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 	}
 }
@@ -864,14 +864,14 @@ static __declspec(naked) void wmDrawCursorStopped_hack_hotspot() {
 	__asm {
 		mov  eax, 0x503E34; // 'ib2p1xx1'
 		call fo::funcoffs::gsound_play_sfx_file_;
-		mov  eax, dword ptr ds:[0x672E90]; // hotspot2_pic
+		mov  eax, ds:[0x672E90]; // hotspot2_pic
 		retn;
 	}
 }
 
 static __declspec(naked) void wmTownMapInit_hack() {
 	__asm {
-		mov  dword ptr ds:[edi + 0x672DD8], eax; // _wmTownMapButtonId
+		mov  ds:[edi + 0x672DD8], eax; // _wmTownMapButtonId
 		mov  ecx, eax; // save button ID
 		mov  edx, fo::funcoffs::gsound_med_butt_press_;
 		xor  ebx, ebx; // no button release sfx

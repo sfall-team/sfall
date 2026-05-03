@@ -198,7 +198,7 @@ end:
 static __declspec(naked) void SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_;           // Perception
-		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		cmp  edi, ds:[FO_VAR_obj_dude];
 		jne  end;
 		xchg ecx, eax;
 		mov  eax, edi;                            // _obj_dude
@@ -237,7 +237,7 @@ static __declspec(naked) void PipAlarm_hack() {
 static __declspec(naked) void PipStatus_hook() {
 	__asm {
 		call fo::funcoffs::ListHoloDiskTitles_;
-		mov  dword ptr ds:[FO_VAR_holodisk], ebx;
+		mov  ds:[FO_VAR_holodisk], ebx;
 		retn;
 	}
 }
@@ -245,7 +245,7 @@ static __declspec(naked) void PipStatus_hook() {
 static __declspec(naked) void PipStatus_hack() {
 	static const DWORD PipStatus_Ret = 0x497DD6;
 	__asm {
-		cmp  dword ptr ds:[FO_VAR_statcount], eax; // eax - "result" argument
+		cmp  ds:[FO_VAR_statcount], eax; // eax - "result" argument
 		jl   skip;
 		cmp  dword ptr ds:[FO_VAR_mouse_x], 429; // overwritten engine code
 		retn;
@@ -276,21 +276,21 @@ end: // overwritten engine code
 static __declspec(naked) void scr_write_ScriptNode_hook() {
 	__asm {
 		mov  ecx, 16;                             // maximum number of scripts in block
-		cmp  dword ptr [esp + 0xEC + 4], ecx;     // number_of_scripts (total scripts)
+		cmp  [esp + 0xEC + 4], ecx;               // number_of_scripts (total scripts)
 		jg   writeBlock;
-		mov  ecx, dword ptr [esp + 0xEC + 4];
+		mov  ecx, [esp + 0xEC + 4];
 		test ecx, ecx;
 		jg   writeBlock; // > 0
 		xor  eax, eax;
 		retn;                                     // don't save the current ScriptBlock
 writeBlock:
-		sub  dword ptr [esp + 0xEC + 4], ecx;     // number_of_scripts (reduce number [e.g. 24-16=8] or set it to 0)
-		xchg dword ptr [ebp + 0xE00], ecx;        // ScriptBlocks.num (keep and set correct value: 16 or previous value of number_of_scripts)
+		sub  [esp + 0xEC + 4], ecx;               // number_of_scripts (reduce number [e.g. 24-16=8] or set it to 0)
+		xchg [ebp + 0xE00], ecx;                  // ScriptBlocks.num (keep and set correct value: 16 or previous value of number_of_scripts)
 		xor  esi, esi;
-		xchg dword ptr [ebp + 0xE04], esi;        // ScriptBlocks.NextBlock (keep pointer and set it to 0)
+		xchg [ebp + 0xE04], esi;                  // ScriptBlocks.NextBlock (keep pointer and set it to 0)
 		call fo::funcoffs::scr_write_ScriptNode_;
-		mov  dword ptr [ebp + 0xE04], esi;        // restore ScriptBlocks.NextBlock
-		mov  dword ptr [ebp + 0xE00], ecx;        // restore ScriptBlocks.num
+		mov  [ebp + 0xE04], esi;                  // restore ScriptBlocks.NextBlock
+		mov  [ebp + 0xE00], ecx;                  // restore ScriptBlocks.num
 		retn;
 	}
 }
@@ -299,7 +299,7 @@ static __declspec(naked) void protinst_default_use_item_hack() {
 	static const DWORD protinst_default_use_item_Ret = 0x49C38B;
 	static const DWORD protinst_default_use_item_End = 0x49C3C5;
 	__asm {
-		mov  eax, dword ptr [edx + protoId];      // eax = target pid
+		mov  eax, [edx + protoId];                // eax = target pid
 		cmp  eax, PID_DRIVABLE_CAR;
 		je   isCar;
 		cmp  eax, PID_CAR_TRUNK;
@@ -368,7 +368,7 @@ static __declspec(naked) void item_d_take_drug_hook() {
 
 static __declspec(naked) void RemoveJetAddictFunc() {
 	__asm {
-		cmp  eax, dword ptr ds:[FO_VAR_wd_obj];
+		cmp  eax, ds:[FO_VAR_wd_obj];
 		jne  end;
 		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
@@ -385,7 +385,7 @@ static __declspec(naked) void item_d_take_drug_hack() {
 		mov  eax, esi;
 		call fo::funcoffs::perform_withdrawal_end_;
 skip:	// remove event from queue
-		mov  dword ptr ds:[FO_VAR_wd_obj], esi;
+		mov  ds:[FO_VAR_wd_obj], esi;
 		mov  eax, addict_event;                   // type = addiction
 		mov  edx, offset RemoveJetAddictFunc;
 		jmp  fo::funcoffs::queue_clear_type_;
@@ -618,7 +618,7 @@ end:
 static __declspec(naked) void gdProcessUpdate_hack() {
 	__asm {
 		lea  edx, [eax - 2];
-		cmp  edx, dword ptr ds:[FO_VAR_optionRect + 0xC]; // _optionRect.offy
+		cmp  edx, ds:[FO_VAR_optionRect + 0xC]; // _optionRect.offy
 		jl   skip;
 		mov  eax, edx;
 skip:
@@ -641,7 +641,7 @@ static __declspec(naked) void invenWieldFunc_item_get_type_hook() {
 		xor  ebx, ebx;
 		inc  ebx;
 		push ebx;
-		mov  cl, byte ptr [edi + 0x27];
+		mov  cl, [edi + 0x27];
 		and  cl, 0x3;
 		xchg edx, eax;                            // eax = who, edx = item
 		push eax;
@@ -662,7 +662,7 @@ removeFlag:
 		jz   noWeapon;
 		and  byte ptr [eax + 0x27], 0xFC;         // Unset flag of a weapon in hand
 noWeapon:
-		or   byte ptr [edi + 0x27], cl;           // Set flag of a weapon in hand
+		or   [edi + 0x27], cl;                    // Set flag of a weapon in hand
 		inc  ebx;
 		pop  ebx;
 		jz   skip;
@@ -841,7 +841,7 @@ static __declspec(naked) void item_total_weight_hack() {
 		mov ebx, [edi];                          // Inventory.inv_size
 		xor esi, esi;
 		//------
-		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
+		cmp eax, ds:[FO_VAR_obj_dude];           // eax - source
 		jz  skip;
 		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
 		cmovz esi, weightOnBody;                 // take the weight of target's equipped items into account
@@ -857,7 +857,7 @@ static __declspec(naked) void item_c_curr_size_hack() {
 		mov edx, [ecx];                          // Inventory.inv_size
 		xor edi, edi;
 		//------
-		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
+		cmp eax, ds:[FO_VAR_obj_dude];           // eax - source
 		jz  skip;
 		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
 		cmovz edi, sizeOnBody;                   // take the size of target's equipped items into account
@@ -981,7 +981,7 @@ static __declspec(naked) void PipStatus_AddHotLines_hook() {
 	__asm {
 		call fo::funcoffs::AddHotLines_;
 		xor  eax, eax;
-		mov  dword ptr ds:[FO_VAR_hot_line_count], eax;
+		mov  ds:[FO_VAR_hot_line_count], eax;
 		retn;
 	}
 }
@@ -1018,7 +1018,7 @@ static __declspec(naked) void NPCStage6Fix2() {
 	static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 	__asm {
 		imul edx, 220;                      // multiply record size 220 bytes by NPC number as listed in party.txt
-		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
+		mov  eax, ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
 		jmp  partyMemberGetAIOptions_End;   // eax + edx = offset of specific NPC record
 	}
 }
@@ -1619,7 +1619,7 @@ static __declspec(naked) void combat_load_hook() {
 		jnz  end;                                 // No
 		push PERK_bonus_move;
 		pop  edx;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::perk_level_;
 		test eax, eax;                            // Have the perk?
 		jz   end;                                 // No
@@ -1687,7 +1687,7 @@ end:
 static __declspec(naked) void partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
-		mov  edi, dword ptr ds:[FO_VAR_partyMemberMaxCount];
+		mov  edi, ds:[FO_VAR_partyMemberMaxCount];
 		retn;
 	}
 }
@@ -1727,7 +1727,7 @@ static __declspec(naked) void obj_move_to_tile_hack_seen() {
 		cmp  dword ptr ds:[FO_VAR_mapEntranceTileNum], -1;
 		jne  end; // fix
 skip:
-		or   byte ptr ds:[FO_VAR_obj_seen][eax], dl;
+		or   ds:[FO_VAR_obj_seen][eax], dl;
 end:
 		retn;
 	}
@@ -1880,9 +1880,9 @@ static __declspec(naked) void statPCAddExperienceCheckPMs_hack() {
 		mov  expSwiftLearner, edi;
 		cmp  dword ptr [esp + 0x24 + 4], 0x496CAA + 5; // called from perk_add_effect_ (PERK_here_and_now)
 		jne  notHereAndNow;
-		mov  dword ptr ds:[FO_VAR_hereAndNowExps], edi;
+		mov  ds:[FO_VAR_hereAndNowExps], edi;
 notHereAndNow:
-		mov  eax, dword ptr ds:[FO_VAR_Experience_pc];
+		mov  eax, ds:[FO_VAR_Experience_pc];
 		retn;
 	}
 }
@@ -2008,7 +2008,7 @@ static __declspec(naked) void wmSetupRandomEncounter_hook() {
 
 static __declspec(naked) void inven_obj_examine_func_hack() {
 	__asm {
-		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
+		mov edx, ds:[0x519064]; // inven_display_msg_line
 		cmp edx, 2; // >2
 		ja  fix;
 		retn;
@@ -2049,7 +2049,7 @@ static __declspec(naked) void Add4thTagSkill_hook() {
 		mov  edi, eax;
 		call fo::funcoffs::skill_set_tags_;
 		mov  eax, ds:[FO_VAR_obj_dude];
-		mov  edx, dword ptr ds:[edi + 3 * 4];    // _temp_tag_skill4
+		mov  edx, ds:[edi + 3 * 4];              // _temp_tag_skill4
 		call fo::funcoffs::skill_level_;
 		mov  tagSkill4LevelBase, eax;            // x2
 		retn;
@@ -2091,7 +2091,7 @@ static __declspec(naked) void op_start_gdialog_hack() {
 	__asm {
 		cmp  eax, -1;                                 // check mood arg
 		jnz  useMood;
-		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
+		mov  eax, [esp + 0x3C - 0x30 + 4];            // fix dialog_target (overwritten engine code)
 		retn;
 useMood:
 		add  esp, 4;                                  // Destroy the return address
@@ -2159,10 +2159,10 @@ static __declspec(naked) void process_rads_hook_msg() {
 		mov  eax, 1;
 		call fo::funcoffs::gmouse_set_cursor_;
 skip:
-		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
+		mov  ebx, ds:[FO_VAR_game_user_wants_to_quit];
 		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
 		call fo::func::DialogOut;
-		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], ebx;
+		mov  ds:[FO_VAR_game_user_wants_to_quit], ebx;
 		retn;
 	}
 }
@@ -2179,7 +2179,7 @@ static __declspec(naked) void ai_check_drugs_hack_break() {
 		add  esp, 4;
 		jmp  ai_check_drugs_break_Ret;     // break loop
 useDrugs: // use the first found item
-		mov  dword ptr [esp + 4], eax;     // slot set -1
+		mov  [esp + 4], eax;               // slot set -1
 		mov  edi, firstItemDrug;
 		mov  ebx, edi;
 		mov  firstItemDrug, eax;           // set -1
@@ -2238,7 +2238,7 @@ static __declspec(naked) void config_get_values_hack() {
 		mov eax, [esp + 0x100];
 		cmp byte ptr [eax], 0;             // check char
 		jz  getFail;
-		mov eax, dword ptr [esp + 0x114];  // total num of values
+		mov eax, [esp + 0x114];            // total num of values
 		sub eax, ebp;
 		cmp eax, 1;
 		ja  getFail;
@@ -2264,8 +2264,8 @@ skip:
 
 static __declspec(naked) void op_attack_hook() {
 	__asm {
-		mov  esi, dword ptr [esp + 0x3C + 4]; // free_move
-		mov  ebx, dword ptr [esp + 0x40 + 4]; // add amount damage to target
+		mov  esi, [esp + 0x3C + 4]; // free_move
+		mov  ebx, [esp + 0x40 + 4]; // add amount damage to target
 		jmp  fo::funcoffs::gdialogActive_;
 	}
 }
@@ -2343,7 +2343,7 @@ static __declspec(naked) void op_use_obj_on_obj_hack() {
 		jz   fail;
 		mov  edx, [eax + protoId];
 		shr  edx, 24;
-		cmp  dword ptr [esp + 4], eax; // target != source
+		cmp  [esp + 4], eax; // target != source
 		jne  skip;
 		xor  edx, edx; // for calling obj_use_item_on_ instead of action_use_an_item_on_object_
 skip:
@@ -2574,7 +2574,7 @@ bad:
 
 static __declspec(naked) void obj_pickup_hook() {
 	__asm {
-		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		cmp  edi, ds:[FO_VAR_obj_dude];
 		je   dude;
 		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
 		jz   dude;
@@ -2593,7 +2593,7 @@ static const char* __fastcall GetPickupMessage(const char* name) {
 
 static __declspec(naked) void obj_pickup_hook_message() {
 	__asm {
-		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		cmp  edi, ds:[FO_VAR_obj_dude];
 		je   dude;
 		mov  eax, edi;
 		call fo::funcoffs::critter_name_;
@@ -2619,7 +2619,7 @@ static __declspec(naked) void anim_move_to_tile_hook() {
 isDude:
 		test eax, eax;
 		jnz  skip; // tile is blocked
-		mov  ebx, dword ptr [esp + 0x18 - 0x10 + 4]; // distance
+		mov  ebx, [esp + 0x18 - 0x10 + 4]; // distance
 		test ebx, ebx;
 		jl   skip; // dist < 0
 		sub  ebx, ds:[FO_VAR_combat_free_move];
@@ -2842,7 +2842,7 @@ break:
 static __declspec(naked) void wmInterfaceInit_hack() {
 	__asm {
 		mov  eax, GVAR_CAR_PLACED_TILE;
-		cmp  eax, dword ptr ds:[FO_VAR_num_game_global_vars];
+		cmp  eax, ds:[FO_VAR_num_game_global_vars];
 		jge  skip;
 		mov  edx, ds:[FO_VAR_game_global_vars];
 		lea  edx, [edx + eax * 4];

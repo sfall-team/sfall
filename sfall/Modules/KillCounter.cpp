@@ -37,7 +37,7 @@ static __declspec(naked) DWORD ReadKillCounter() {
 static __declspec(naked) void IncKillCounter() {
 	__asm {
 		inc  bx;
-		mov  word ptr ds:[FO_VAR_pc_kill_counts][edx], bx;
+		mov  ds:[FO_VAR_pc_kill_counts][edx], bx;
 		retn;
 	}
 }

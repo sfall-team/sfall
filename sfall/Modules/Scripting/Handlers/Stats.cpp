@@ -199,7 +199,7 @@ end:
 
 __declspec(naked) void op_get_available_skill_points() {
 	__asm {
-		mov  edx, dword ptr ds:[FO_VAR_curr_pc_stat];
+		mov  edx, ds:[FO_VAR_curr_pc_stat];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

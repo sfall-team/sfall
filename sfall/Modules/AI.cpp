@@ -58,7 +58,7 @@ static __declspec(naked) void combat_ai_hook_FleeFix() {
 reTarget:
 		and  byte ptr [ebp], ~(InFlee | ReTarget); // unset CombatStateFlag flags
 		xor  edi, edi;
-		mov  dword ptr [esi + whoHitMe], edi;
+		mov  [esi + whoHitMe], edi;
 		add  esp, 4;
 		jmp  combat_ai_flee_Ret;
 	}
@@ -96,7 +96,7 @@ tryHeal:
 /*static __declspec(naked) void ai_check_drugs_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;              // current hp
-		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
+		mov  edx, [esp + 0x34 - 0x1C + 4];           // ai cap
 		mov  edx, [edx + 0x10];                      // min_hp
 		cmp  eax, edx;                               // curr_hp < cap.min_hp
 		cmovl edi, edx;                              // min_hp <- cap.min_hp
