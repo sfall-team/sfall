@@ -56,7 +56,7 @@ static void __declspec(naked) get_input_str2_hack() {
 		pop  getInputStrRet;
 		push edx;
 		mov  dl, xltKey;
-		test byte ptr ds:[FO_VAR_kb_lock_flags], dl;
+		test ds:[FO_VAR_kb_lock_flags], dl;
 		jz   end;
 		and  eax, 0xFF;
 		cmp  eax, 32; // skip the space char

@@ -79,9 +79,9 @@ static __declspec(naked) void PC_BarterPriceHook() {
 		push edx;
 		push ecx;
 		//-------
-		push -1;                                       // address on call stack
-		mov  ecx, dword ptr ds:[FO_VAR_obj_dude];      // source
-		mov  edx, dword ptr ds:[FO_VAR_target_stack];  // target
+		push -1;                             // address on call stack
+		mov  ecx, ds:[FO_VAR_obj_dude];      // source
+		mov  edx, ds:[FO_VAR_target_stack];  // target
 		call BarterPriceHook_Script;
 		pop  ecx;
 		pop  edx;
@@ -166,7 +166,7 @@ static __declspec(naked) void UseSkillOnHack() {
 		cmp bakupCombatState, -1;
 		jz  skip;
 		mov ebp, bakupCombatState;
-		mov dword ptr ds:[FO_VAR_combat_state], ebp;
+		mov ds:[FO_VAR_combat_state], ebp;
 skip:
 		cmp resultSkillOn, 0;
 		jz  default;
@@ -174,14 +174,14 @@ skip:
 		retn;  // flag ZF = 0
 default:
 		// engine code
-		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
+		cmp eax, ds:[FO_VAR_obj_dude];
 		retn;
 	}
 }
 
 static __declspec(naked) void skill_use_hack() {
 	__asm {
-		cmp   ebp, dword ptr ds:[FO_VAR_obj_dude];
+		cmp   ebp, ds:[FO_VAR_obj_dude];
 		setnz al;
 		retn;
 	}
@@ -353,7 +353,7 @@ static __declspec(naked) void PerceptionRangeSeeHook() {
 		cmp  eax, 2;
 		jne  nevermind; // normal return
 		dec  eax;
-		mov  dword ptr [esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
+		mov  [esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
 		dec  eax;
 nevermind:
 		retn;
@@ -645,11 +645,11 @@ hookRun: /////////////////////////////////
 		push ecx;
 		push ecx; // encType
 		xor  edx, edx;
-		mov  ecx, dword ptr ds:[FO_VAR_EncounterMapID];
+		mov  ecx, ds:[FO_VAR_EncounterMapID];
 		call EncounterHook_Script;
 		pop  ecx;
 		pop  edx;
-		mov  dword ptr ds:[FO_VAR_EncounterMapID], eax;
+		mov  ds:[FO_VAR_EncounterMapID], eax;
 		cmp  eax, -1;
 		je   cancelEnc;
 		jl   clearEnc;

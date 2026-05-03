@@ -129,18 +129,18 @@ end:
 static __declspec(naked) void intface_item_reload_hook() {
 	__asm {
 		push eax;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::register_clear_;
 		xor  edx, edx;       // ANIM_stand
 		xor  ebx, ebx;       // delay (unused)
 		lea  eax, [edx + 1]; // RB_UNRESERVED
 		call fo::funcoffs::register_begin_;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::register_object_animate_;
-		mov  ecx, dword ptr ds:[FO_VAR_combat_highlight]; // backup setting
-		mov  dword ptr ds:[FO_VAR_combat_highlight], eax; // prevent calling combat_outline_off_ (eax is never 2)
+		mov  ecx, ds:[FO_VAR_combat_highlight]; // backup setting
+		mov  ds:[FO_VAR_combat_highlight], eax; // prevent calling combat_outline_off_ (eax is never 2)
 		call fo::funcoffs::register_end_;
-		mov  dword ptr ds:[FO_VAR_combat_highlight], ecx; // restore setting
+		mov  ds:[FO_VAR_combat_highlight], ecx; // restore setting
 		pop  eax;
 		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}

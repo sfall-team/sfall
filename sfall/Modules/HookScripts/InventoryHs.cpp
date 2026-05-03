@@ -311,7 +311,7 @@ static __declspec(naked) void InvenActionExplosiveDropHack() {
 		cmp  eax, -1;                  // ret value
 		popadc;
 		jnz  noDrop;
-		mov  dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
+		mov  ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
 		mov  nextHookDropSkip, ebp;
 		retn;
 noDrop:

@@ -108,9 +108,9 @@ static void TimerReset() {
 static __declspec(naked) void script_chk_timed_events_hack() {
 	using namespace fo;
 	__asm {
-		mov  eax, dword ptr ds:[FO_VAR_fallout_game_time];
+		mov  eax, ds:[FO_VAR_fallout_game_time];
 		inc  eax;
-		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
+		mov  ds:[FO_VAR_fallout_game_time], eax;
 		cmp  eax, ONE_GAME_YEAR * 13;
 		jae  reset;
 		retn;
@@ -122,7 +122,7 @@ reset:
 static __declspec(naked) void set_game_time_hack() {
 	using namespace fo;
 	__asm {
-		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
+		mov  ds:[FO_VAR_fallout_game_time], eax;
 		mov  edx, eax;
 		call IsGameLoaded;
 		test al, al;
@@ -250,7 +250,7 @@ static __declspec(naked) void critter_can_obj_dude_rest_hook() {
 	__asm {
 		push eax;
 		mov  ecx, eax;  // elevation
-		mov  edx, dword ptr ds:[FO_VAR_map_number];
+		mov  edx, ds:[FO_VAR_map_number];
 		call Worldmap::GetRestMapLevel;
 		xor  edx, edx;
 		cmp  eax, edx;
@@ -341,7 +341,7 @@ static __declspec(naked) void main_load_new_hook() {
 		push edx;
 		sub  esp, 4; // buff outAreaID
 		mov  edx, esp;
-		mov  eax, dword ptr ds:[FO_VAR_map_number];
+		mov  eax, ds:[FO_VAR_map_number];
 		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 		pop  eax; // area ID
 		cmp  customPosition, 0;
@@ -353,9 +353,9 @@ skip:
 		pop  edx;
 		test eax, eax;
 		js   end;
-		cmp  eax, dword ptr ds:[FO_VAR_wmMaxAreaNum];
+		cmp  eax, ds:[FO_VAR_wmMaxAreaNum];
 		jge  end;
-		mov  dword ptr ds:[FO_VAR_WorldMapCurrArea], eax;
+		mov  ds:[FO_VAR_WorldMapCurrArea], eax;
 end:
 		retn;
 	}

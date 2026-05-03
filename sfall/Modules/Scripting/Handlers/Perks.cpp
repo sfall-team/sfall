@@ -44,7 +44,7 @@ __declspec(naked) void op_set_perk_owed() {
 		and  eax, 0xFF;
 		cmp  eax, 250;
 		jg   end;
-		mov  byte ptr ds:[FO_VAR_free_perk], al;
+		mov  ds:[FO_VAR_free_perk], al;
 end:
 		retn;
 	}

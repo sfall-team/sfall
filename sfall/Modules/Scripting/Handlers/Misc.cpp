@@ -330,7 +330,7 @@ __declspec(naked) void op_tile_under_cursor() {
 
 __declspec(naked) void op_gdialog_get_barter_mod() {
 	__asm {
-		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
+		mov  edx, ds:[FO_VAR_gdBarterMod];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
 }

@@ -72,7 +72,7 @@ static void LoadPageOffsets() {
 	}
 }
 
-static __declspec(naked) void load_page_offsets(void) {
+static __declspec(naked) void load_page_offsets() {
 	__asm {
 		call LoadPageOffsets;
 		mov  edx, 0x50A480; // ASCII "SAV" (restore original code)
@@ -229,7 +229,7 @@ static long __fastcall CheckPage(long button) {
 	return 0;
 }
 
-static __declspec(naked) void check_page_buttons(void) {
+static __declspec(naked) void check_page_buttons() {
 	__asm {
 		push eax;
 		push ecx;
@@ -320,7 +320,7 @@ static void DrawPageText() {
 	SaveLoadWin = nullptr;
 }
 
-static __declspec(naked) void draw_page_text(void) {
+static __declspec(naked) void draw_page_text() {
 	__asm {
 		push eax;
 		call DrawPageText;
@@ -331,16 +331,16 @@ static __declspec(naked) void draw_page_text(void) {
 }
 
 // add page num offset when reading and writing various save data files
-static __declspec(naked) void add_page_offset_hack1(void) {
+static __declspec(naked) void add_page_offset_hack1() {
 	__asm {
-		mov  eax, dword ptr ds:[FO_VAR_slot_cursor]; // list position 0-9
-		add  eax, LSPageOffset;                      // add page num offset
+		mov  eax, ds:[FO_VAR_slot_cursor]; // list position 0-9
+		add  eax, LSPageOffset;            // add page num offset
 		retn;
 	}
 }
 
 // getting info for the 10 currently displayed save slots from save.dats
-static __declspec(naked) void add_page_offset_hack2(void) {
+static __declspec(naked) void add_page_offset_hack2() {
 	__asm {
 		pop  edx;               // ret addr
 		push 0x50A514;          // ASCII "SAVE.DAT"
@@ -351,11 +351,11 @@ static __declspec(naked) void add_page_offset_hack2(void) {
 }
 
 // printing current 10 slot numbers
-static __declspec(naked) void add_page_offset_hack3(void) {
+static __declspec(naked) void add_page_offset_hack3() {
 	__asm {
 		inc  eax;
-		add  eax, LSPageOffset;            // add page num offset
-		mov  bl, byte ptr ss:[esp + 0x10]; // add 4 bytes - func ret addr
+		add  eax, LSPageOffset;   // add page num offset
+		mov  bl, ss:[esp + 0x10]; // add 4 bytes - func ret addr
 		retn;
 	}
 }

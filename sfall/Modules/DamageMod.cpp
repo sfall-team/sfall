@@ -389,7 +389,7 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 static __declspec(naked) void HtHDamageFix1a_hack() {
 	using namespace fo;
 	__asm {
-		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
+		cmp  ecx, ds:[FO_VAR_obj_dude];                // Is the critter == PC?
 		je   fix;                                      // Skip if no
 		mov  edx, 1;                                   // Min_Damage = 1
 		retn;
@@ -407,7 +407,7 @@ static __declspec(naked) void HtHDamageFix1b_hook() {
 	using namespace fo;
 	__asm {
 		call fo::funcoffs::stat_level_;                // Get Total_Melee_Damage
-		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
+		cmp  ecx, ds:[FO_VAR_obj_dude];                // Is the critter == PC?
 		je   fix;                                      // Skip to exit if no
 		retn;
 fix:
@@ -416,7 +416,7 @@ fix:
 		mov  eax, ecx;                                 // pointer to PC
 		call fo::funcoffs::perk_level_;                // Return Rank_of_Bonus_HtH_Damage_perk
 		shl  eax, 1;                                   // Rank_of_Bonus_HtH_Damage_perk *= 2
-		add  dword ptr [esp + 0x24 - 0x20 + 8], eax;   // Min_Damage += Rank_of_Bonus_HtH_Damage_perk
+		add  [esp + 0x24 - 0x20 + 8], eax;             // Min_Damage += Rank_of_Bonus_HtH_Damage_perk
 		pop  eax;
 		retn;
 	}
@@ -426,11 +426,11 @@ static __declspec(naked) void DisplayBonusRangedDmg_hook() {
 	using namespace fo;
 	__asm {
 		mov  edx, PERK_bonus_ranged_damage;
-		mov  eax, dword ptr ds:[FO_VAR_stack];
+		mov  eax, ds:[FO_VAR_stack];
 		call fo::funcoffs::perk_level_;
 		shl  eax, 1;                                   // Multiply by 2
-		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus
-		add  dword ptr [esp + 4 * 5], eax;             // max_dmg + perk bonus
+		add  [esp + 4 * 4], eax;                       // min_dmg + perk bonus
+		add  [esp + 4 * 5], eax;                       // max_dmg + perk bonus
 		jmp  fo::funcoffs::sprintf_;
 	}
 }
@@ -439,10 +439,10 @@ static __declspec(naked) void DisplayBonusHtHDmg1_hook() {
 	using namespace fo;
 	__asm {
 		mov  edx, PERK_bonus_hth_damage;
-		mov  eax, dword ptr ds:[FO_VAR_stack];
+		mov  eax, ds:[FO_VAR_stack];
 		call fo::funcoffs::perk_level_;
 		shl  eax, 1;                                   // Multiply by 2
-		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus
+		add  [esp + 4 * 4], eax;                       // min_dmg + perk bonus
 		jmp  fo::funcoffs::sprintf_;
 	}
 }

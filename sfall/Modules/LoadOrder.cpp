@@ -590,7 +590,7 @@ checkFile:
 		jz   noFile;
 		retn;
 noFile:
-		mov  eax, dword ptr [esp + 0xA4 - 0x20 + 4]; // splash value
+		mov  eax, [esp + 0xA4 - 0x20 + 4]; // splash value
 		push eax;
 		push 0x5023E8; // "art\splash\"
 		push 0x502404; // "%ssplash%d.rix"

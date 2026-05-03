@@ -404,8 +404,8 @@ long wmGetCurrentTerrainType() {
 	if (terrainId == nullptr) {
 		__asm {
 			lea  ebx, terrainId;
-			mov  edx, dword ptr ds:[FO_VAR_world_ypos];
-			mov  eax, dword ptr ds:[FO_VAR_world_xpos];
+			mov  edx, ds:[FO_VAR_world_ypos];
+			mov  eax, ds:[FO_VAR_world_xpos];
 			call fo::funcoffs::wmFindCurSubTileFromPos_;
 		}
 	}

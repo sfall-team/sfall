@@ -230,14 +230,14 @@ static __declspec(noinline) int __stdcall LoadHeroDat(unsigned int race, unsigne
 // insert hero art path in front of main path structure when loading art
 static __declspec(naked) void LoadNewHeroArt() {
 	__asm {
-		cmp byte ptr ds:[esi], 'r';
-		jne isNotReading;
-		mov ecx, heroAppPaths;
-		mov ecx, dword ptr ds:[ecx]; // set app path
+		cmp  byte ptr ds:[esi], 'r';
+		jne  isNotReading;
+		mov  ecx, heroAppPaths;
+		mov  ecx, ds:[ecx]; // set app path
 		retn;
 isNotReading:
-		mov ecx, FO_VAR_paths;
-		mov ecx, dword ptr ds:[ecx];
+		mov  ecx, FO_VAR_paths;
+		mov  ecx, ds:[ecx];
 		retn;
 	}
 }
@@ -265,8 +265,8 @@ notExists: // if file not found load regular critter art instead
 // adjust base hero art if num below hero art range
 static __declspec(naked) void AdjustHeroBaseArt() {
 	__asm {
-		add eax, critterListSize;
-		mov dword ptr ds:[FO_VAR_art_vault_guy_num], eax;
+		add  eax, critterListSize;
+		mov  ds:[FO_VAR_art_vault_guy_num], eax;
 		retn;
 	}
 }
@@ -1061,7 +1061,7 @@ static __declspec(naked) void SexScrnEnd() {
 	__asm {
 		push edx;
 		mov  edx, STAT_gender;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::stat_level_; // get PC stat current gender
 		mov  ecx, eax;                  // gender
 		call fo::funcoffs::SexWindow_;  // call gender selection window
@@ -1071,7 +1071,7 @@ static __declspec(naked) void SexScrnEnd() {
 		jne NoVaultSuit
 		mov ebx, 0x8
 NoVaultSuit:
-		mov  eax, dword ptr ds:[ebx + FO_VAR_art_vault_person_nums]; // base male model
+		mov  eax, ds:[ebx + FO_VAR_art_vault_person_nums];   // base male model
 */
 		call HeroGenderChange;
 		pop  edx;
@@ -1139,8 +1139,8 @@ static __declspec(naked) void AddCharScrnButtons() {
 // Loading or creating a background image for the character creation/editing interface
 static __declspec(naked) void FixCharScrnBack() {
 	__asm {
-		mov  dword ptr ds:[FO_VAR_bckgnd], eax; // surface ptr for char scrn back
-		test eax, eax;                          // check if frm loaded ok
+		mov  ds:[FO_VAR_bckgnd], eax; // surface ptr for char scrn back
+		test eax, eax;                // check if frm loaded ok
 		je   endFunc;
 		// prolog
 		pushad;
@@ -1271,7 +1271,7 @@ static __declspec(naked) void CharScrnEnd() {
 		push eax;
 		call DeleteCharSurfaces;
 		pop  eax;
-		mov  ebp, dword ptr ds:[FO_VAR_info_line];
+		mov  ebp, ds:[FO_VAR_info_line];
 		retn;
 	}
 }

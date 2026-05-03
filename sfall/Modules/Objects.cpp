@@ -92,7 +92,7 @@ notIdentical:
 static __declspec(naked) void new_obj_id_hook() {
 	__asm {
 		mov  eax, 83535;
-		cmp  dword ptr ds:[FO_VAR_cur_id], eax;
+		cmp  ds:[FO_VAR_cur_id], eax;
 		jle  pickNewID;
 		retn;
 pickNewID: // skip PM range (18000 - 83535)

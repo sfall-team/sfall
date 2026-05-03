@@ -461,7 +461,7 @@ static __declspec(naked) void action_climb_ladder_hook() {
 		je   reset;
 		push edx;
 		mov  edx, ds:[FO_VAR_map_number];
-		cmp  dword ptr [edi + 0x3C], edx;
+		cmp  [edi + 0x3C], edx;
 		pop  edx;
 		jne  skip;
 reset:

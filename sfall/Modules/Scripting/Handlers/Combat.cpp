@@ -78,7 +78,7 @@ __declspec(naked) void op_mod_kill_counter() {
 skip:
 		cmp  eax, 38;
 		jae  end;
-		add  word ptr ds:[FO_VAR_pc_kill_counts][eax * 2], cx;
+		add  ds:[FO_VAR_pc_kill_counts][eax * 2], cx;
 end:
 		pop  ecx;
 		retn;

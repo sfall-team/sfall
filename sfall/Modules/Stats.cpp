@@ -99,7 +99,7 @@ static __declspec(naked) void stat_set_base_hack_check() {
 	static const DWORD StatSetBaseHack_RetMax = 0x4AF591;
 	static const DWORD StatSetBaseHack_Ret    = 0x4AF59C;
 	__asm {
-		cmp esi, dword ptr ds:[FO_VAR_obj_dude];
+		cmp esi, ds:[FO_VAR_obj_dude];
 		jz  pc;
 		cmp ebx, statMinimumsNPC[eax];
 		jl  failMin;
@@ -153,7 +153,7 @@ static __declspec(naked) void CalcApToAcBonus() {
 		cmp  dword ptr [esp + 0x1C - 0x18 + 4], 2; // has HtH Evade perk (2 - vanilla bonus)
 		jb   standard;
 		mov  edx, PERK_hth_evade_perk;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::perk_level_;
 		imul eax, Stats::extraApAcBonus;    // bonus = perkLvl * extraApBonus
 		imul eax, edi;                      // perkBonus = bonus * curAP
