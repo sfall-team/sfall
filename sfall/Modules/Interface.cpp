@@ -1117,6 +1117,31 @@ inPref:
 	}
 }
 
+// Player's inventory, "use item on", and loot windows
+static __declspec(naked) void setup_inventory_hack0() {
+	__asm {
+		lea  edx, [edi + edi * 4]; // edi - inventory mode
+		mov  eax, ds:[FO_VAR_iscr_data + edx * 4 + 12]; // iscr_data[mode].x
+		mov  ebp, eax;                                  // add to i_wid_max_x later
+		// Set move items window position relative to the active inventory window
+		lea  edx, [eax + 60];
+		mov  ds:[FO_VAR_iscr_data + 20 * 4 + 12], edx;          // iscr_data[TYPE_MOVE_ITEMS].x
+		mov  dword ptr ds:[FO_VAR_iscr_data + 20 * 4 + 16], 80; // iscr_data[TYPE_MOVE_ITEMS].y
+		retn;
+	}
+}
+
+// barter/trade window
+static __declspec(naked) void setup_inventory_hack1() {
+	__asm {
+		mov  eax, 80; // overwritten engine code
+		// Set move items window position to the screen center
+		mov  dword ptr ds:[FO_VAR_iscr_data + 20 * 4 + 12], 190; // iscr_data[TYPE_MOVE_ITEMS].x
+		mov  dword ptr ds:[FO_VAR_iscr_data + 20 * 4 + 16], 115; // iscr_data[TYPE_MOVE_ITEMS].y
+		retn;
+	}
+}
+
 static __declspec(naked) void display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -1195,11 +1220,11 @@ static void UIAnimationSpeedPatch() {
 static InterfaceCustomFrm barterTallFrm { "barter_e.frm" };
 static InterfaceCustomFrm tradeTallFrm { "trade_e.frm" };
 
-static std::array<InterfaceCustomFrm, fo::INVENTORY_WINDOW_TYPE_TRADE> inventoryTallFrms { "invbox_e.frm", "use_e.frm", "loot_e.frm" };
+static std::array<InterfaceCustomFrm, fo::INV_WIN_TYPE_TRADE> inventoryTallFrms { "invbox_e.frm", "use_e.frm", "loot_e.frm" };
 
 static DWORD findInventoryWindowTypeByFid(DWORD fid) {
 	fid &= 0xFFF;
-	for (int i = 0; i < fo::INVENTORY_WINDOW_TYPE_TRADE; ++i) {
+	for (int i = 0; i < fo::INV_WIN_TYPE_TRADE; ++i) {
 		if (fid == fo::var::iscr_data[i].artIndex)
 			return i;
 	}
@@ -1208,7 +1233,7 @@ static DWORD findInventoryWindowTypeByFid(DWORD fid) {
 
 static BYTE* __fastcall inventory_get_art_data(DWORD fid) {
 	DWORD windowType = findInventoryWindowTypeByFid(fid);
-	if (windowType > fo::INVENTORY_WINDOW_TYPE_LOOT) return nullptr;
+	if (windowType > fo::INV_WIN_TYPE_LOOT) return nullptr;
 
 	return inventoryTallFrms[windowType].LoadFrmData();
 }
@@ -1347,7 +1372,7 @@ static void ExpandedBarterPatch() {
 
 	dlogr("Applying expanded barter screen patch.", DL_INIT);
 	SafeWrite32(0x46EDA4, 3 + numExtraBarterSlots);  // Trade window slot count 3 -> 4
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_TRADE].height = 180 + extraBarterHeight; // Trade sub-window height
+	fo::var::iscr_data[fo::INV_WIN_TYPE_TRADE].height = 180 + extraBarterHeight; // Trade sub-window height
 	SafeWriteBatch<DWORD>(180 + extraBarterHeight, { // Trade sub-window height
 		0x46EDAB, 0x46EE13, // setup_inventory
 	});
@@ -1393,9 +1418,9 @@ static void ExpandedInventoryPatch() {
 	const int slotHeight = 48;
 	const int extraHeight = slotHeight * numExtraSlots - 8; // shorten by a few pixels to reduce empty space below the last item slot
 	SafeWrite32(0x46EC9E, 6 + numExtraSlots); // All other inventory windows slot count 6 -> 8
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_NORMAL].height = 377 + extraHeight;
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_USE_ITEM_ON].height = 376 + extraHeight;
-	fo::var::iscr_data[fo::INVENTORY_WINDOW_TYPE_LOOT].height = 376 + extraHeight;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_NORMAL].height = 377 + extraHeight;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_USE_ITEM_ON].height = 376 + extraHeight;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_LOOT].height = 376 + extraHeight;
 
 	// Shift Done buttons down:
 	SafeWrite32(0x46F26C, 329 + extraHeight); // Normal
@@ -1480,6 +1505,22 @@ void Interface::init() {
 	// Fix the +/- keys not updating the brightness slider when used on the Preferences screen
 	MakeCalls(IncDecGamma_hack0, {0x4928EA, 0x4929CE});
 	MakeCalls(IncDecGamma_hack1, {0x492985, 0x492A65});
+
+	// Center inventory windows horizontally when not using HRP (vanilla 640x480 screen)
+	if (!HRP::Setting::IsEnabled() && !HRP::Setting::ExternalEnabled()) {
+		MakeCall(0x46ECF1, setup_inventory_hack0);
+		MakeCall(0x46EDB4, setup_inventory_hack1);
+		long idata = 0x90EA01;
+		SafeWriteBytes(0x46ED1E, (BYTE*)&idata, 3); // add edx, 80 > add edx, ebp (add to i_wid_max_x)
+
+		// Horizontal alignment (all were 80)
+		fo::var::iscr_data[fo::INV_WIN_TYPE_NORMAL].x = 70;       // (640 - 499) / 2
+		fo::var::iscr_data[fo::INV_WIN_TYPE_USE_ITEM_ON].x = 174; // (640 - 292) / 2
+		fo::var::iscr_data[fo::INV_WIN_TYPE_LOOT].x = 51;         // (640 - 537) / 2
+		// Set timer window position to the screen center
+		fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].x = 190;   // (640 - 259) / 2
+		fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].y = 159;   // (480 - 162) / 2
+	}
 
 	LoadGameHook::OnGameInit() += []() {
 		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.

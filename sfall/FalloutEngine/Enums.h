@@ -958,28 +958,28 @@ enum DialogOutFlags : long
 enum InventoryWindowType : unsigned long
 {
 	// Normal inventory window with quick character sheet.
-	INVENTORY_WINDOW_TYPE_NORMAL,
+	INV_WIN_TYPE_NORMAL,
 
 	// Narrow inventory window with just an item scroller that's shown when
 	// a "Use item on" is selected from context menu.
-	INVENTORY_WINDOW_TYPE_USE_ITEM_ON,
+	INV_WIN_TYPE_USE_ITEM_ON,
 
-	// Looting/strealing interface.
-	INVENTORY_WINDOW_TYPE_LOOT,
+	// Looting/stealing interface.
+	INV_WIN_TYPE_LOOT,
 
 	// Barter interface.
-	INVENTORY_WINDOW_TYPE_TRADE,
+	INV_WIN_TYPE_TRADE,
 
 	// Supplementary "Move items" window. Used to set quantity of items when
 	// moving items between inventories.
-	INVENTORY_WINDOW_TYPE_MOVE_ITEMS,
+	INV_WIN_TYPE_MOVE_ITEMS,
 
 	// Supplementary "Set timer" window. Internally it's implemented as "Move
 	// items" window but with timer overlay and slightly different adjustment
 	// mechanics.
-	INVENTORY_WINDOW_TYPE_SET_TIMER,
+	INV_WIN_TYPE_SET_TIMER,
 
-	INVENTORY_WINDOW_TYPE_COUNT,
+	INV_WIN_TYPE_COUNT,
 };
 
 }

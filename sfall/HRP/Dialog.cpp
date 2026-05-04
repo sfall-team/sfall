@@ -51,12 +51,12 @@ static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long c
 	yPosition = yPos;
 	xPosition = xPos;
 
-	// item move window
-	fo::var::iscr_data[4].x = xPos + 185;
-	fo::var::iscr_data[4].y = yPos + 115;
-	// about window
-	fo::var::iscr_data[3].x = xPos + 80;
-	fo::var::iscr_data[3].y = yPos + 290;
+	// move items window
+	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].x = xPos + 190;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].y = yPos + 115;
+	// barter window
+	fo::var::iscr_data[fo::INV_WIN_TYPE_TRADE].x = xPos + 80;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_TRADE].y = yPos + 290;
 
 	return fo::func::win_add(xPos, yPos, width, height, color, flags);
 }

@@ -29,9 +29,9 @@ static long __fastcall CreateWin(long height, long yPos, long xPos, long width, 
 		fo::var::iscr_data[mode].x = x;
 		fo::var::iscr_data[mode].y = y;
 	}
-	// item move window
-	fo::var::iscr_data[4].x = fo::var::iscr_data[mode].x + 60;
-	fo::var::iscr_data[4].y = fo::var::iscr_data[mode].y + 80;
+	// set move items window position relative to the active inventory window
+	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].x = fo::var::iscr_data[mode].x + 60;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].y = fo::var::iscr_data[mode].y + 80;
 
 	xPos -= 80;
 	xPos += fo::var::iscr_data[mode].x;
@@ -67,9 +67,9 @@ static __declspec(naked) void inventory_hook_mouse_click_in() {
 }
 
 void Inventory::init() {
-	// set timer window position to center screen
-	fo::var::iscr_data[5].x = (Setting::ScreenWidth() - fo::var::iscr_data[5].width) / 2;
-	fo::var::iscr_data[5].y = (Setting::ScreenHeight() - fo::var::iscr_data[5].height) / 2;
+	// set timer window position to the screen center
+	fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].x = (Setting::ScreenWidth() - fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].width) / 2;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].y = (Setting::ScreenHeight() - fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].height) / 2;
 
 	sf::HookCall(0x46ED0E, setup_inventory_hook_win_add);
 	sf::HookCalls(inventory_hook_mouse_click_in, {
