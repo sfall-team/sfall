@@ -113,6 +113,14 @@ struct AnimationSad {
 
 static_assert(sizeof(AnimationSad) == 3240, "Incorrect AnimationSad definition.");
 
+struct InventScrData {
+	long artIndex;
+	long width;
+	long height;
+	long x;
+	long y;
+};
+
 // Bounding rectangle, used by tile_refresh_rect and related functions.
 struct BoundRect {
 	long x;

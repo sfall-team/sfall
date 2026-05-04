@@ -1088,6 +1088,31 @@ inPref:
 	}
 }
 
+// Player's inventory, "use item on", and loot windows
+static __declspec(naked) void setup_inventory_hack0() {
+	__asm {
+		lea  edx, [edi + edi * 4]; // edi - inventory mode
+		mov  eax, ds:[FO_VAR_iscr_data + edx * 4 + 12]; // iscr_data[mode].x
+		mov  ebp, eax;                                  // add to i_wid_max_x later
+		// Set move items window position relative to the active inventory window
+		lea  edx, [eax + 60];
+		mov  ds:[FO_VAR_iscr_data + 20 * 4 + 12], edx;          // iscr_data[TYPE_MOVE_ITEMS].x
+		mov  dword ptr ds:[FO_VAR_iscr_data + 20 * 4 + 16], 80; // iscr_data[TYPE_MOVE_ITEMS].y
+		retn;
+	}
+}
+
+// barter/trade window
+static __declspec(naked) void setup_inventory_hack1() {
+	__asm {
+		mov  eax, 80; // overwritten engine code
+		// Set move items window position to the screen center
+		mov  dword ptr ds:[FO_VAR_iscr_data + 20 * 4 + 12], 190; // iscr_data[TYPE_MOVE_ITEMS].x
+		mov  dword ptr ds:[FO_VAR_iscr_data + 20 * 4 + 16], 115; // iscr_data[TYPE_MOVE_ITEMS].y
+		retn;
+	}
+}
+
 static __declspec(naked) void display_body_hook() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
@@ -1225,6 +1250,22 @@ void Interface::init() {
 	MakeCalls(IncDecGamma_hack0, gammaValueGetAddr);
 	const DWORD gammaValueSetAddr[] = {0x492985, 0x492A65};
 	MakeCalls(IncDecGamma_hack1, gammaValueSetAddr);
+
+	// Center inventory windows horizontally when not using HRP (vanilla 640x480 screen)
+	if (!hrpIsEnabled) {
+		MakeCall(0x46ECF1, setup_inventory_hack0);
+		MakeCall(0x46EDB4, setup_inventory_hack1);
+		long idata = 0x90EA01;
+		SafeWriteBytes(0x46ED1E, (BYTE*)&idata, 3); // add edx, 80 > add edx, ebp (add to i_wid_max_x)
+
+		// Horizontal alignment (all were 80)
+		fo::ptr::iscr_data[fo::INV_WIN_TYPE_NORMAL].x = 70;       // (640 - 499) / 2
+		fo::ptr::iscr_data[fo::INV_WIN_TYPE_USE_ITEM_ON].x = 174; // (640 - 292) / 2
+		fo::ptr::iscr_data[fo::INV_WIN_TYPE_LOOT].x = 51;         // (640 - 537) / 2
+		// Set timer window position to the screen center
+		fo::ptr::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].x = 190;   // (640 - 259) / 2
+		fo::ptr::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].y = 159;   // (480 - 162) / 2
+	}
 }
 
 void Interface::exit() {

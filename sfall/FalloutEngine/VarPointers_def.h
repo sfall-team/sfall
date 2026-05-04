@@ -101,6 +101,7 @@ PTR_(inven_pid,                  DWORD)
 PTR_(inven_scroll_dn_bid,        DWORD)
 PTR_(inven_scroll_up_bid,        DWORD)
 PTR_(inventry_message_file,      fo::MessageList)
+PTR_(iscr_data,                  fo::InventScrData) // array of 6 InventScrData
 PTR_(itemButtonItems,            fo::ItemButtonItem) // array of 2 ItemButtonItem, 0 - left, 1 - right
 PTR_(itemCurrentItem,            long)  // 0 - left, 1 - right
 PTR_(kb_lock_flags,              DWORD)

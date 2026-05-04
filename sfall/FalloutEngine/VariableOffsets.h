@@ -161,6 +161,7 @@
 #define FO_VAR_inven_scroll_dn_bid        0x5190E8
 #define FO_VAR_inven_scroll_up_bid        0x5190E4
 #define FO_VAR_inventry_message_file      0x59E814
+#define FO_VAR_iscr_data                  0x519068
 #define FO_VAR_itemButtonItems            0x5970F8
 #define FO_VAR_itemCurrentItem            0x518F78
 #define FO_VAR_kb_lock_flags              0x51E2EA
