@@ -771,6 +771,10 @@ void FileSystem::init() {
 	// Fix file seeking in uncompressed database files
 	HookCall(0x4E5B52, dfile_fseek_hook);
 
+	// Increase decompression buffer size for reading compressed database files
+	const DWORD dfileBufSizeAddr[] = {0x4E5EE0, 0x4E60D9, 0x4E60E0};
+	SafeWriteBatch<DWORD>(4096, dfileBufSizeAddr); // was 1024
+
 	// Warning message when there are more than 16 open files (max 20)
 	HookCall(0x4EE0DE, sopen_hook_warning);
 	// Error message "Failed to open file"
