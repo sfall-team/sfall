@@ -53,7 +53,7 @@ static long __fastcall CreateWinDialog(long height, long yPos, long xPos, long c
 
 	// move items window
 	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].x = xPos + 190;
-	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].y = yPos + 115;
+	fo::var::iscr_data[fo::INV_WIN_TYPE_MOVE_ITEMS].y = yPos + 109;
 	// barter window
 	fo::var::iscr_data[fo::INV_WIN_TYPE_TRADE].x = xPos + 80;
 	fo::var::iscr_data[fo::INV_WIN_TYPE_TRADE].y = yPos + 290;
