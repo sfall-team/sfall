@@ -823,17 +823,16 @@ static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 
 static __declspec(naked) void inven_ap_cost_hack() {
-	static const DWORD inven_ap_cost_Ret = 0x46E812;
 	__asm {
-		mul byte ptr invenApQPReduction;
-		mov edx, invenApCost;
-		jmp inven_ap_cost_Ret;
+		mul  byte ptr invenApQPReduction;
+		mov  edx, invenApCost;
+		retn;
 	}
 }
 
 static bool onlyOnceAP = false;
 inline static void ApplyInvenApCostPatch() {
-	MakeJump(0x46E80B, inven_ap_cost_hack);
+	MakeCall(0x46E80B, inven_ap_cost_hack, 2);
 	onlyOnceAP = true;
 }
 
