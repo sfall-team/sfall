@@ -820,7 +820,7 @@ skipDrag:
 }
 
 static int invenApCost, invenApCostDef;
-static char invenApQPReduction;
+static signed char invenApQPReduction;
 
 static __declspec(naked) void inven_ap_cost_hack() {
 	__asm {
@@ -837,13 +837,13 @@ inline static void ApplyInvenApCostPatch() {
 }
 
 void __fastcall Inventory::SetInvenApCost(int cost) {
-	invenApCost = cost;
+	invenApCost = (cost < 0) ? 0 : cost;
 	if (!onlyOnceAP) ApplyInvenApCostPatch();
 }
 
 long Inventory::GetInvenApCost() {
 	long perkLevel = fo::func::perk_level(fo::var::obj_dude, fo::PERK_quick_pockets);
-	return invenApCost - (invenApQPReduction * perkLevel);
+	return max(0, invenApCost - (invenApQPReduction * perkLevel));
 }
 
 void InventoryReset() {
