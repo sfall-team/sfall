@@ -4545,6 +4545,13 @@ void BugFixes::init() {
 
 	// Fix for minor visual glitch when selecting perks that modify SPECIAL stats
 	SafeWriteBatch<BYTE>(65, {0x434C76, 0x434D2A, 0x434E00, 0x434EB5}); // PrintBasicStat_ (was 40)
+
+	// Fix potential index out of bounds error in wmMapIdxToName_ engine function
+	SafeWrite8(0x4BF97A, 0x7E); // jz > jle
+	SafeWrite8(0x4BF982, 0x7C); // jle > jl
+
+	// Fix for the morning starting at 6:01 instead of 6:00 while traveling on the world map
+	SafeWrite8(0x4C0765, 0x7C); // jle > jl (wmRndEncounterOccurred_)
 }
 
 }
