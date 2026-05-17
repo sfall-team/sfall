@@ -548,7 +548,7 @@ static void DrawPCConsole() {
 		fo::Window *WinInfo = fo::func::GNW_find(WinRef);
 
 		//DWORD critNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmId
-		DWORD critNum = fo::var::obj_dude->artFid;    // pointer to current armored hero critter FrmId
+		DWORD critNum = fo::var::obj_dude->artFid & 0xFF00FFFF; // current armored hero critter FrmId (in ANIM_stand)
 
 		surface_draw(70, 102, 640, 338, 78, charScrnBackSurface, WinInfo->width, 338, 78, WinInfo->surface); // restore background image
 		DrawBody(critNum, WinInfo->surface, 338, 78, WinInfo->width);
