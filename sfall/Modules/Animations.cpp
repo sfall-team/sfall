@@ -475,6 +475,13 @@ skip:
 	}
 }
 
+static __declspec(naked) void action_use_an_item_on_object_hook() {
+	__asm {
+		dec  ebx; // set delay to -1
+		jmp  fo::funcoffs::register_object_animate_;
+	}
+}
+
 static __declspec(naked) void art_alias_fid_hack() {
 	static const DWORD art_alias_fid_Ret = 0x419A6D;
 	using namespace fo;
@@ -665,11 +672,15 @@ void Animations::init() {
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
 
-	// Allow playing the "magic hands" animation when using an item on an object
-	SafeWrite16(0x4120B8, 0x9090); // action_use_an_item_on_object_
-
 	// Fix for the player stuck at "climbing" frame after ladder climbing animation
 	HookCall(0x411E1F, action_climb_ladder_hook);
+
+	// Allow playing the "magic hands" animation when using an item on an object
+	SafeWrite16(0x4120B8, 0x9090); // action_use_an_item_on_object_
+	// Change the animation sequence to be in line with action_get_an_object_
+	// ANIM_put_away animation only plays for "stairs" type scenery (SFX only for all other cases)
+	HookCall(0x41206D, action_use_an_item_on_object_hook);
+	SafeWrite32(0x4120BB, 0); // delay for "magic hands" animation
 
 	// Add ANIM_charred_body/ANIM_charred_body_sf animations to art aliases
 	MakeCall(0x419A17, art_alias_fid_hack);

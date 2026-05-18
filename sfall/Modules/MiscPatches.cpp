@@ -577,19 +577,31 @@ static void InstantWeaponEquipPatch() {
 	const DWORD PutAwayWeapon[] = {
 		0x411EA2, // action_climb_ladder_
 		0x412046, // action_use_an_item_on_object_
-		0x41224A, // action_get_an_object_
+		0x41224A  // action_get_an_object_
+	};
+	const DWORD PutAwayWeaponExtra[] = {
 		0x4606A5, // intface_change_fid_animate_
-		0x472996, // invenWieldFunc_
+		0x472996  // invenWieldFunc_
 	};
 
-	if (IniReader::GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
-		//Skip weapon equip/unequip animations
+	int skipAnims = IniReader::GetConfigInt("Misc", "InstantWeaponEquip", 0);
+	if (skipAnims) {
+		// Skip weapon equip/unequip animations
 		dlogr("Applying instant weapon equip patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon); // jmps
-		BlockCall(0x472AD5); //
-		BlockCall(0x472AE0); // invenUnwieldFunc_
-		BlockCall(0x472AF0); //
-		MakeJump(0x415238, register_object_take_out_hack);
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon);
+		if (skipAnims == 1) {
+			SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeaponExtra);
+			BlockCall(0x472AD5); //
+			BlockCall(0x472AE0); // invenUnwieldFunc_
+			BlockCall(0x472AF0); //
+			MakeJump(0x415238, register_object_take_out_hack);
+		} else {
+			HookCalls(register_object_take_out_hack, {
+				0x411F18, // action_climb_ladder_
+				0x412102, // action_use_an_item_on_object_
+				0x4122FA  // action_get_an_object_
+			});
+		}
 	}
 }
 
