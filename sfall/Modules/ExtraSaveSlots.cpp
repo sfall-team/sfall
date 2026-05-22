@@ -37,7 +37,7 @@ long ExtraSaveSlots::GetSaveSlot() {
 }
 
 void ExtraSaveSlots::SetSaveSlot(long page, long slot) {
-	if (page >= 0 && page <= 9990) LSPageOffset = page - (page % 10);
+	if (page >= 0 && page <= 990) LSPageOffset = page - (page % 10);
 	if (slot >= 0 && slot < 10) fo::var::slot_cursor = slot;
 }
 
@@ -67,7 +67,7 @@ static void LoadPageOffsets() {
 		fo::var::slot_cursor = 0;
 	}
 	LSPageOffset = IniReader::GetInt("POSITION", "PageOffset", 0, LoadPath);
-	if (LSPageOffset > 9990) {
+	if (LSPageOffset > 990) {
 		LSPageOffset = 0;
 	}
 }
@@ -116,7 +116,7 @@ static void SetPageNum() {
 
 	DWORD NewTick = 0, OldTick = 0;
 	int button = 0, exitFlag = 0, numpos = 0;
-	char Number[4], blip = '_';
+	char Number[3], blip = '_';
 
 	DWORD tempPageOffset = -1;
 
@@ -161,7 +161,7 @@ static void SetPageNum() {
 
 		button = fo::func::get_input();
 		if (button >= '0' && button <= '9') {
-			if (numpos < 3) {
+			if (numpos < 2) {
 				Number[numpos] = button;
 				Number[numpos + 1] = '\0';
 				numpos++;
@@ -172,7 +172,7 @@ static void SetPageNum() {
 					tempPageOffset = (atoi(Number)) * 10;
 				}
 			}
-			//else exitFlag=-1;
+			//else exitFlag = -1;
 		} else if (button == 0x08 && numpos) {
 			numpos--;
 			Number[numpos] = '\0';
@@ -188,7 +188,7 @@ static void SetPageNum() {
 		}
 	}
 
-	if (tempPageOffset != -1 && tempPageOffset <= 9990) {
+	if (tempPageOffset != -1 && tempPageOffset <= 990) {
 		LSPageOffset = tempPageOffset;
 	}
 
@@ -199,22 +199,22 @@ static long __fastcall CheckPage(long button) {
 	switch (button) {
 	case 0x14B: // left button
 		LSPageOffset -= 10;
-		if (LSPageOffset < 0) LSPageOffset += 10000; // to the last page
+		if (LSPageOffset < 0) LSPageOffset += 1000; // to the last page
 		__asm call fo::funcoffs::gsound_red_butt_press_;
 		break;
 	case 0x149: // fast left PGUP button
 		LSPageOffset -= 100;
-		if (LSPageOffset < 0) LSPageOffset += 10000;
+		if (LSPageOffset < 0) LSPageOffset += 1000;
 		__asm call fo::funcoffs::gsound_red_butt_press_;
 		break;
 	case 0x14D: // right button
 		LSPageOffset += 10;
-		if (LSPageOffset >= 10000) LSPageOffset -= 10000; // to the first page
+		if (LSPageOffset >= 1000) LSPageOffset -= 1000; // to the first page
 		__asm call fo::funcoffs::gsound_red_butt_press_;
 		break;
 	case 0x151: // fast right PGDN button
 		LSPageOffset += 100;
-		if (LSPageOffset >= 10000) LSPageOffset -= 10000;
+		if (LSPageOffset >= 1000) LSPageOffset -= 1000;
 		__asm call fo::funcoffs::gsound_red_butt_press_;
 		break;
 	case 'p': // p/P button pressed - start SetPageNum func
@@ -468,7 +468,7 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 				if (++currentPageCount >= quickSavePageCount) {
 					currentPageCount = 0;
 					quickSavePage = quickSavePageInit;
-				} else if (quickSavePage <= 9980) {
+				} else if (quickSavePage <= 980) {
 					quickSavePage += 10;
 				}
 			}
@@ -524,7 +524,7 @@ long ExtraSaveSlots::GetQuickSaveSlot() {
 void ExtraSaveSlots::SetQuickSaveSlot(long page, long slot, long check) {
 	if (page < 0) {
 		quickSavePage = -1;
-	} else if (page <= 9990) {
+	} else if (page <= 990) {
 		quickSavePage = page - (page % 10);
 	}
 	if (slot >= 0 && slot < 10) quickSaveSlot = slot;
@@ -532,11 +532,11 @@ void ExtraSaveSlots::SetQuickSaveSlot(long page, long slot, long check) {
 }
 
 void ExtraSaveSlots::init() {
-	bool extraSaveSlots = (IniReader::GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
-	if (extraSaveSlots) {
+	//bool extraSaveSlots = (IniReader::GetConfigInt("Misc", "ExtraSaveSlots", 1) != 0);
+	//if (extraSaveSlots) {
 		dlogr("Applying extra save slots patch.", DL_INIT);
 		EnableSuperSaving();
-	}
+	//}
 
 	quickSavePageCount = IniReader::GetConfigInt("Misc", "AutoQuickSave", 0);
 	if (quickSavePageCount > 0) {
@@ -544,9 +544,9 @@ void ExtraSaveSlots::init() {
 		if (quickSavePageCount > 10) quickSavePageCount = 10;
 
 		quickSavePage = IniReader::GetConfigInt("Misc", "AutoQuickSavePage", 1);
-		if (quickSavePage > 999) quickSavePage = 999;
+		if (quickSavePage > 99) quickSavePage = 99;
 
-		if (extraSaveSlots && quickSavePage >= 0) {
+		if (/*extraSaveSlots &&*/ quickSavePage >= 0) {
 			quickSavePage *= 10;
 			quickSavePageInit = quickSavePage;
 		}
