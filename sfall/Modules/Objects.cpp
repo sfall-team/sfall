@@ -35,7 +35,7 @@ bool Objects::IsUniqueID(long id) {
 	return (id > UniqueID::Start || (id >= fo::PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
 }
 
-static void SetScriptObjectID(fo::GameObject* obj) {
+void Objects::SetScriptObjectID(fo::GameObject* obj) {
 	fo::ScriptInstance* script;
 	if (fo::func::scr_ptr(obj->scriptId, &script) != -1) {
 		script->ownerObjectId = obj->id;
@@ -74,8 +74,11 @@ void Objects::SetNewEngineID(fo::GameObject* obj) {
 }
 
 static __declspec(naked) void item_identical_hack() {
+	static const DWORD item_identical_End = 0x477AD5;
 	using namespace fo::Fields;
 	__asm {
+		cmp  esi, edi;   // inv_item == place_item? (safeguard)
+		je   identical;
 		mov  ecx, [edi]; // place_item id
 		cmp  ecx, Start; // start unique ID
 		jg   notIdentical;
@@ -87,6 +90,9 @@ static __declspec(naked) void item_identical_hack() {
 		cmp  eax, ebx;
 notIdentical:
 		retn; // if ZF == 0 then item is not identical
+identical:
+		add  esp, 4;
+		jmp  item_identical_End;
 	}
 }
 
@@ -111,7 +117,7 @@ static void map_fix_critter_id() {
 		if (obj->IsCritter()) {
 			if (obj->id < fo::PLAYER_ID) {
 				obj->id = npcStartID++;
-				SetScriptObjectID(obj);
+				Objects::SetScriptObjectID(obj);
 			}
 			Stats::UpdateHPStat(obj);
 		}

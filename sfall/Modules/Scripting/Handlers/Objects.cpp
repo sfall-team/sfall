@@ -584,14 +584,16 @@ void mf_set_drugs_data(OpcodeContext& ctx) {
 
 void mf_set_unique_id(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).object();
-	long id;
-	if (ctx.arg(1).rawValue() == -1) {
-		id = fo::func::new_obj_id();
-		obj->id = id;
-	} else {
-		id = Objects::SetObjectUniqueID(obj);
+	if (ctx.numArgs() > 1 && ctx.arg(1).rawValue() == -1) {
+		// unassign unique ID only if the object currently has one
+		if (obj->id > UniqueID::Start) {
+			obj->id = fo::func::new_obj_id();
+			Objects::SetScriptObjectID(obj);
+		}
+		ctx.setReturn(obj->id);
+		return;
 	}
-	ctx.setReturn(id);
+	ctx.setReturn(Objects::SetObjectUniqueID(obj));
 }
 
 void mf_objects_in_radius(OpcodeContext& ctx) {
