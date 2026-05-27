@@ -32,7 +32,7 @@ static int maxCountLoadProto = 512;
 long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
 bool Objects::IsUniqueID(long id) {
-	return (id > UniqueID::Start || (id >= fo::PLAYER_ID && id < 83536)); // 65535 maximum possible number of prototypes
+	return (id > UniqueID::Start || (id >= fo::PLAYER_ID && id < 16795216)); // party member ID = (pid & 0xFFFFFF) + PLAYER_ID
 }
 
 void Objects::SetScriptObjectID(fo::GameObject* obj) {
@@ -98,11 +98,11 @@ identical:
 
 static __declspec(naked) void new_obj_id_hook() {
 	__asm {
-		mov  eax, 83535;
+		mov  eax, 16795215;
 		cmp  ds:[FO_VAR_cur_id], eax;
 		jle  pickNewID;
 		retn;
-pickNewID: // skip PM range (18000 - 83535)
+pickNewID: // skip PM range (18000 - 16795215)
 		mov  ds:[FO_VAR_cur_id], eax;
 		jmp  fo::funcoffs::new_obj_id_;
 	}
