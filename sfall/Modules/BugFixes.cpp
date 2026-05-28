@@ -4552,6 +4552,9 @@ void BugFixes::init() {
 
 	// Fix for the morning starting at 6:01 instead of 6:00 while traveling on the world map
 	SafeWrite8(0x4C0765, 0x7C); // jle > jl (wmRndEncounterOccurred_)
+
+	// Fix typo in debug output from gsound_load_sound_ engine function
+	SafeWrite16(0x503CB1, 0x7972); // was "tyring %s"
 }
 
 }
