@@ -551,8 +551,7 @@ static void DebugModePatch() {
 
 		// Fix to prevent crashes when there is a '%' character in the printed message
 		if (dbgMode > 1) {
-			MakeCall(0x4C703F, debug_log_hack);
-			BlockCall(0x4C7044); // just nop code
+			MakeCall(0x4C703F, debug_log_hack, 5);
 		}
 		// replace calling debug_printf_ with _debug_func, to avoid buffer overflow with messages longer than 260 bytes
 		MakeCall(0x45540F, op_display_msg_hack);

@@ -24,9 +24,16 @@ static __declspec(noinline) void __stdcall SafeWriteFunc(BYTE code, DWORD addr, 
 	*((BYTE*)addr) = code;
 	*((DWORD*)(addr + 1)) = data;
 
-	do {
+	while (len >= 5) {
+		*((DWORD*)addrMem) = 0x00441F0F; // 5-byte long NOP (0F1F4400-XX)
+		addrMem += 5;
+		len -= 5;
+	}
+	// Fill the remaining bytes (1-4 bytes) with single-byte NOPs
+	while (len > 0) {
 		*((BYTE*)addrMem++) = CodeType::Nop;
-	} while (--len);
+		len--;
+	}
 	VirtualProtect((void*)addr, protectLen, oldProtect, &oldProtect);
 
 	CheckConflict(addr, protectLen);
