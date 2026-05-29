@@ -50,322 +50,11 @@ static __declspec(naked) void GNW95_process_message_hack() {
 	}
 }
 
-static __declspec(naked) void WeaponAnimHook() {
+static __declspec(naked) void main_death_scene_hook() {
 	__asm {
-		cmp edx, 11;
-		je  c11;
-		cmp edx, 15;
-		je  c15;
-		jmp fo::funcoffs::art_get_code_;
-c11:
-		mov edx, 16;
-		jmp fo::funcoffs::art_get_code_;
-c15:
-		mov edx, 17;
-		jmp fo::funcoffs::art_get_code_;
-	}
-}
-
-static __declspec(naked) void register_object_take_out_hack() {
-	using namespace fo::Fields;
-	__asm {
-		push ecx;
-		push eax;
-		mov  ecx, edx;                            // ID1
-		mov  edx, [eax + rotation];               // cur_rot
-		inc  edx;
-		push edx;                                 // ID3
-		xor  ebx, ebx;                            // ID2
-		mov  edx, [eax + artFid];                 // fid
-		and  edx, 0xFFF;                          // Index
-		xor  eax, eax;
-		inc  eax;                                 // Obj_Type CRITTER
-		call fo::funcoffs::art_id_;
-		mov  edx, eax;
-		xor  ebx, ebx;
-		dec  ebx;                                 // delay -1
-		pop  eax;                                 // critter
-		call fo::funcoffs::register_object_change_fid_;
-		pop  ecx;
-		xor  eax, eax;
-		retn;
-	}
-}
-
-static __declspec(naked) void gdAddOptionStr_hack() {
-	static const DWORD gdAddOptionStr_Ret = 0x4458FA;
-	__asm {
-		mov  ecx, ds:[FO_VAR_gdNumOptions];
-		add  ecx, '1';
-		push ecx;
-		jmp  gdAddOptionStr_Ret;
-	}
-}
-
-static __declspec(naked) void action_use_skill_on_hook_science() {
-	using namespace fo;
-	__asm {
-		cmp esi, ds:[FO_VAR_obj_dude];
-		jne end;
-		mov eax, KILL_TYPE_robot;
-		retn;
-end:
-		jmp fo::funcoffs::critter_kill_count_type_;
-	}
-}
-
-static __declspec(naked) void intface_item_reload_hook() {
-	__asm {
-		push eax;
-		mov  eax, ds:[FO_VAR_obj_dude];
-		call fo::funcoffs::register_clear_;
-		xor  edx, edx;       // ANIM_stand
-		xor  ebx, ebx;       // delay (unused)
-		lea  eax, [edx + 1]; // RB_UNRESERVED
-		call fo::funcoffs::register_begin_;
-		mov  eax, ds:[FO_VAR_obj_dude];
-		call fo::funcoffs::register_object_animate_;
-		mov  ecx, ds:[FO_VAR_combat_highlight]; // backup setting
-		mov  ds:[FO_VAR_combat_highlight], eax; // prevent calling combat_outline_off_ (eax is never 2)
-		call fo::funcoffs::register_end_;
-		mov  ds:[FO_VAR_combat_highlight], ecx; // restore setting
-		pop  eax;
-		jmp  fo::funcoffs::gsound_play_sfx_file_;
-	}
-}
-
-static __declspec(naked) void automap_hack() {
-	static const DWORD ScannerHookRet  = 0x41BC1D;
-	static const DWORD ScannerHookFail = 0x41BC65;
-	using fo::PID_MOTION_SENSOR;
-	__asm {
-		mov  eax, ds:[FO_VAR_obj_dude];
-		mov  edx, PID_MOTION_SENSOR;
-		call fo::funcoffs::inven_pid_is_carried_ptr_;
-		test eax, eax;
-		jz   fail;
-		mov  edx, eax;
-		jmp  ScannerHookRet;
-fail:
-		jmp  ScannerHookFail;
-	}
-}
-
-static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target) {
-	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
-	if (dir < 0) dir = -dir;
-	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
-		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, fo::STAT_pe) * 3));
-	}
-	return (dir == 0); // is directly in front
-}
-
-static __declspec(naked) void op_obj_can_see_obj_hook() {
-	using namespace fo;
-	using namespace Fields;
-	__asm {
-		mov  edi, [esp + 4]; // buf **outObject
-		test ebp, ebp; // check only once
-		jz   checkSee;
-		xor  ebp, ebp; // for only once
-		push edx;
-		push eax;
-		mov  edx, [edi - 8]; // target
-		mov  ecx, eax;       // source
-		call SeeIsFront;
-		xor  ecx, ecx;
-		test al, al;
-		pop  eax;
-		pop  edx;
-		jnz  checkSee; // can see
-		// vanilla behavior
-		push 0x10;
-		push edi;
-		call fo::funcoffs::make_straight_path_;
-		retn 8;
-checkSee:
-		push eax;                                  // keep source
-		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
-		push 0x20;                                 // flags, 0x20 = check ShootThru
-		push edi;
-		call fo::funcoffs::make_straight_path_func_; // overlapping if len(eax) == 0
-		pop  ecx;            // source
-		mov  edx, [edi - 8]; // target
-		mov  ebx, [edi];     // blocking object
-		test ebx, ebx;
-		jz   isSee;          // no blocking object
-		cmp  ebx, edx;
-		jne  checkObj;       // object is not equal to target
-		retn 8;
-isSee:
-		mov  [edi], edx;     // fix for target with ShootThru flag
-		retn 8;
-checkObj:
-		mov  eax, [ebx + protoId];
-		shr  eax, 24;
-		cmp  eax, OBJ_TYPE_CRITTER;
-		je   continue; // see through critter
-		retn 8;
-continue:
-		mov  [edi], ecx;                // outObject - ignore source (for cases of overlapping tiles from multihex critters)
-		mov  [edi - 4], ebx;            // replace source with blocking object
-		mov  dword ptr [esp], 0x456BAB; // repeat from the blocking object
-		retn 8;
-	}
-}
-
-static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
-	int slot = (mode > 0) ? 1 : 0;
-	fo::ItemButtonItem* itemButton = &fo::var::itemButtonItems[slot];
-	if ((DWORD)itemButton->item == itemPtr) {
-		int slotMode = itemButton->mode;
-		if (slotMode == 3 || slotMode == 4) {
-			mode++;
-		}
-	}
-	return mode;
-}
-
-static __declspec(naked) void display_stats_hook() {
-	__asm {
-		push eax;
-		push ecx;
-		mov  ecx, ds:[esp + edi + 0xA8 + 0xC]; // get itemPtr
-		call GetWeaponSlotMode;                // ecx - itemPtr, edx - mode;
-		mov  edx, eax;
-		pop  ecx;
-		pop  eax;
-		jmp  fo::funcoffs::item_w_range_;
-	}
-}
-
-static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
-	if (toSlot && fo::util::GetItemType(item) != fo::item_type_weapon && fo::util::GetItemType(toSlot) != fo::item_type_weapon) {
-		return;
-	}
-	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[fo::HandSlot::Left];
-	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[fo::HandSlot::Right];
-
-	if (toSlot == nullptr) { // copy to empty slot
-		fo::ItemButtonItem* dstSlot;
-		fo::ItemButtonItem item;
-		if ((int)&toSlot == FO_VAR_i_lhand) {
-			std::memcpy(&item, rightSlot, 0x14);
-			item.primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-			item.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
-			dstSlot = leftSlot; // Rslot > Lslot
-		} else {
-			std::memcpy(&item, leftSlot, 0x14);
-			item.primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-			item.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-			dstSlot = rightSlot; // Lslot > Rslot;
-		}
-		std::memcpy(dstSlot, &item, 0x14);
-	} else { // swap slots
-		auto& hands = fo::var::itemButtonItems;
-		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		hands[fo::HandSlot::Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
-
-		std::memcpy(leftSlot,  &hands[fo::HandSlot::Right], 0x14); // Rslot > Lslot
-		std::memcpy(rightSlot, &hands[fo::HandSlot::Left],  0x14); // Lslot > Rslot
-	}
-}
-
-static __declspec(naked) void switch_hand_hack() {
-	__asm {
-		pushfd;
-		test ebx, ebx;
-		jz   skip;
-		cmp  ebx, edx;
-		jz   skip;
-		push ecx;
-		mov  ecx, eax;
-		call SwapHandSlots;
-		pop  ecx;
-skip:
-		popfd;
-		jz   end;
-		retn;
-end:
-		mov  dword ptr [esp], 0x4715B7;
-		retn;
-	}
-}
-
-static long pHitL, sHitL, modeL = -2;
-static long pHitR, sHitR, modeR = -2;
-
-static long intface_update_items_hack_begin() {
-	if (!fo::var::itemButtonItems[fo::HandSlot::Left].item && !fo::func::inven_left_hand(fo::var::obj_dude)) {
-		modeL = fo::var::itemButtonItems[fo::HandSlot::Left].mode;
-		pHitL = fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack;
-		sHitL = fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack;
-	}
-	if (!fo::var::itemButtonItems[fo::HandSlot::Right].item && !fo::func::inven_right_hand(fo::var::obj_dude)) {
-		modeR = fo::var::itemButtonItems[fo::HandSlot::Right].mode;
-		pHitR = fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack;
-		sHitR = fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack;
-	}
-	return fo::var::itemCurrentItem;
-}
-
-static void intface_update_restore() {
-	if (modeL != -2 && pHitL == fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack &&
-	    sHitL == fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack)
-	{
-		fo::var::itemButtonItems[fo::HandSlot::Left].mode = modeL;
-	}
-	if (modeR != -2 && pHitR == fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack &&
-	    sHitR == fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack)
-	{
-		fo::var::itemButtonItems[fo::HandSlot::Right].mode = modeR;
-	}
-	modeL = -2;
-	modeR = -2;
-}
-
-static __declspec(naked) void intface_update_items_hack_end() {
-	__asm {
-		call intface_update_restore;
-		cmp  dword ptr [esp + 0x1C - 0x18 + 4], 0; // animate
-		retn;
-	}
-}
-
-static __declspec(naked) void action_use_skill_on_hook() {
-	__asm { // eax = dude_obj, edx = target, ebp = party_member
-		cmp  eax, edx;
-		jnz  end;                     // jump if target != dude_obj
-		mov  edx, ebp;
-		call fo::funcoffs::obj_dist_; // check distance between dude_obj and party_member
-		cmp  eax, 1;                  // if the distance is greater than 1, then reset the register
-		jg   skip;
-		inc  eax;
-		retn;
-skip:
-		xor  eax, eax;
-		retn;
-end:
-		jmp  fo::funcoffs::obj_dist_;
-	}
-}
-
-static __declspec(naked) void endgame_movie_hook() {
-	__asm {
-		cmp  dword ptr [esp + 16], 0x45C563; // call from op_endgame_movie_
-		je   playWalkMovie;
-		retn;
-playWalkMovie:
-		call fo::funcoffs::stat_level_;
-		xor  edx, edx;
-		add  eax, 10;
-		mov  ecx, eax;
-		mov  eax, 1500;
-		call fo::funcoffs::pause_for_tocks_;
-		mov  eax, ecx;
-		jmp  fo::funcoffs::gmovie_play_;
+		mov  eax, 101;
+		call fo::funcoffs::text_font_;
+		jmp  fo::funcoffs::debug_printf_;
 	}
 }
 
@@ -503,6 +192,58 @@ static __declspec(naked) void critter_kill_hack() {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static __declspec(naked) void endgame_movie_hook() {
+	__asm {
+		cmp  dword ptr [esp + 16], 0x45C563; // call from op_endgame_movie_
+		je   playWalkMovie;
+		retn;
+playWalkMovie:
+		call fo::funcoffs::stat_level_;
+		xor  edx, edx;
+		add  eax, 10;
+		mov  ecx, eax;
+		mov  eax, 1500;
+		call fo::funcoffs::pause_for_tocks_;
+		mov  eax, ecx;
+		jmp  fo::funcoffs::gmovie_play_;
+	}
+}
+
+static void F1EngineBehaviorPatch() {
+	if (IniReader::GetConfigInt("Misc", "Fallout1Behavior", 0)) {
+		dlogr("Applying Fallout 1 engine behavior patch.", DL_INIT);
+		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
+		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight of power armor items
+		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
+		SafeWrite32(0x4A5201, 264600); // set the initial in-game time to 7:21
+	}
+}
+
+static void DialogueFix() {
+	if (IniReader::GetConfigInt("Misc", "DialogueFix", 1)) {
+		dlogr("Applying dialogue patch.", DL_INIT);
+		SafeWrite8(0x446848, 0x31);
+	}
+}
+
+static __declspec(naked) void WeaponAnimHook() {
+	__asm {
+		cmp edx, 11;
+		je  c11;
+		cmp edx, 15;
+		je  c15;
+		jmp fo::funcoffs::art_get_code_;
+c11:
+		mov edx, 16;
+		jmp fo::funcoffs::art_get_code_;
+c15:
+		mov edx, 17;
+		jmp fo::funcoffs::art_get_code_;
+	}
+}
+
 static void AdditionalWeaponAnimsPatch() {
 	//if (IniReader::GetConfigInt("Misc", "AdditionalWeaponAnims", 1)) {
 		dlogr("Applying additional weapon animations patch.", DL_INIT);
@@ -512,6 +253,40 @@ static void AdditionalWeaponAnimsPatch() {
 			0x4194CC            // art_get_name_
 		});
 	//}
+}
+
+static void AlwaysReloadMsgs() {
+	if (IniReader::GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
+		dlogr("Applying always reload messages patch.", DL_INIT);
+		SafeWrite8(0x4A6B8D, 0); // jnz $+6
+	}
+}
+
+static __declspec(naked) void intface_item_reload_hook() {
+	__asm {
+		push eax;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::register_clear_;
+		xor  edx, edx;       // ANIM_stand
+		xor  ebx, ebx;       // delay (unused)
+		lea  eax, [edx + 1]; // RB_UNRESERVED
+		call fo::funcoffs::register_begin_;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::register_object_animate_;
+		mov  ecx, ds:[FO_VAR_combat_highlight]; // backup setting
+		mov  ds:[FO_VAR_combat_highlight], eax; // prevent calling combat_outline_off_ (eax is never 2)
+		call fo::funcoffs::register_end_;
+		mov  ds:[FO_VAR_combat_highlight], ecx; // restore setting
+		pop  eax;
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
+	}
+}
+
+static void PlayIdleAnimOnReloadPatch() {
+	if (IniReader::GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
+		dlogr("Applying idle anim on reload patch.", DL_INIT);
+		HookCall(0x460B8C, intface_item_reload_hook);
+	}
 }
 
 static void SkilldexImagesPatch() {
@@ -532,6 +307,18 @@ static void SkilldexImagesPatch() {
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 }
 
+static __declspec(naked) void action_use_skill_on_hook_science() {
+	using namespace fo;
+	__asm {
+		cmp esi, ds:[FO_VAR_obj_dude];
+		jne end;
+		mov eax, KILL_TYPE_robot;
+		retn;
+end:
+		jmp fo::funcoffs::critter_kill_count_type_;
+	}
+}
+
 static void ScienceOnCrittersPatch() {
 	switch (IniReader::GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
@@ -540,6 +327,18 @@ static void ScienceOnCrittersPatch() {
 	case 2:
 		SafeWrite8(0x41276A, CodeType::JumpShort);
 		break;
+	}
+}
+
+static void OverrideMusicDirPatch() {
+	static const char* musicOverridePath = "data\\sound\\music\\";
+
+	if (long overrideMode = IniReader::GetConfigInt("Sound", "OverrideMusicDir", 0)) {
+		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
+		if (overrideMode == 2) {
+			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
+			SafeWrite16(0x44FCF3, 0x40EB); // jmp 0x44FD35 (skip paths initialization)
+		}
 	}
 }
 
@@ -559,63 +358,20 @@ static void BoostScriptDialogLimitPatch() {
 	}
 }
 
-static void NumbersInDialoguePatch() {
-	if (IniReader::GetConfigInt("Misc", "NumbersInDialogue", 0)) {
-		dlogr("Applying numbers in dialogue patch.", DL_INIT);
-		SafeWrite32(0x502C32, 0x2000202E);        // '%c ' > '%c. '
-		SafeWrite8(0x446F3B, 0x35);
-		SafeWrite32(0x5029E2, 0x7325202E);        // '%c %s' > '%c. %s'
-		SafeWrite32(0x446F03, 0x2424448B);        // mov  eax, [esp+0x24]
-		SafeWrite8(0x446F07, 0x50);               // push eax
-		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
-		SafeWrite8(0x446FE4, 0x50);               // push eax
-		MakeJump(0x4458F5, gdAddOptionStr_hack);
-	}
-}
-
-static void InstantWeaponEquipPatch() {
-	const DWORD PutAwayWeapon[] = {
-		0x411EA2, // action_climb_ladder_
-		0x412046, // action_use_an_item_on_object_
-		0x41224A  // action_get_an_object_
-	};
-	const DWORD PutAwayWeaponExtra[] = {
-		0x4606A5, // intface_change_fid_animate_
-		0x472996  // invenWieldFunc_
-	};
-
-	int skipAnims = IniReader::GetConfigInt("Misc", "InstantWeaponEquip", 0);
-	if (skipAnims) {
-		// Skip weapon equip/unequip animations
-		dlogr("Applying instant weapon equip patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon);
-		if (skipAnims == 1) {
-			SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeaponExtra);
-			BlockCall(0x472AD5); //
-			BlockCall(0x472AE0); // invenUnwieldFunc_
-			BlockCall(0x472AF0); //
-			MakeJump(0x415238, register_object_take_out_hack);
-		} else {
-			HookCalls(register_object_take_out_hack, {
-				0x411F18, // action_climb_ladder_
-				0x412102, // action_use_an_item_on_object_
-				0x4122FA  // action_get_an_object_
-			});
-		}
-	}
-}
-
-static void DontTurnOffSneakIfYouRunPatch() {
-	if (IniReader::GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
-		dlogr("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
-		SafeWrite8(0x418135, CodeType::JumpShort);
-	}
-}
-
-static void PlayIdleAnimOnReloadPatch() {
-	if (IniReader::GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
-		dlogr("Applying idle anim on reload patch.", DL_INIT);
-		HookCall(0x460B8C, intface_item_reload_hook);
+static __declspec(naked) void automap_hack() {
+	static const DWORD ScannerHookRet  = 0x41BC1D;
+	static const DWORD ScannerHookFail = 0x41BC65;
+	using fo::PID_MOTION_SENSOR;
+	__asm {
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  edx, PID_MOTION_SENSOR;
+		call fo::funcoffs::inven_pid_is_carried_ptr_;
+		test eax, eax;
+		jz   fail;
+		mov  edx, eax;
+		jmp  ScannerHookRet;
+fail:
+		jmp  ScannerHookFail;
 	}
 }
 
@@ -669,36 +425,73 @@ static void DisablePipboyAlarmPatch() {
 	}
 }
 
+static bool __fastcall SeeIsFront(fo::GameObject* source, fo::GameObject* target) {
+	long dir = source->rotation - fo::func::tile_dir(source->tile, target->tile);
+	if (dir < 0) dir = -dir;
+	if (dir == 1 || dir == 5) { // peripheral/side vision, reduce the range for seeing through (3x instead of 5x)
+		return (fo::func::obj_dist(source, target) <= (fo::func::stat_level(source, fo::STAT_pe) * 3));
+	}
+	return (dir == 0); // is directly in front
+}
+
+static __declspec(naked) void op_obj_can_see_obj_hook() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  edi, [esp + 4]; // buf **outObject
+		test ebp, ebp; // check only once
+		jz   checkSee;
+		xor  ebp, ebp; // for only once
+		push edx;
+		push eax;
+		mov  edx, [edi - 8]; // target
+		mov  ecx, eax;       // source
+		call SeeIsFront;
+		xor  ecx, ecx;
+		test al, al;
+		pop  eax;
+		pop  edx;
+		jnz  checkSee; // can see
+		// vanilla behavior
+		push 0x10;
+		push edi;
+		call fo::funcoffs::make_straight_path_;
+		retn 8;
+checkSee:
+		push eax;                                  // keep source
+		push fo::funcoffs::obj_shoot_blocking_at_; // check hex objects func pointer
+		push 0x20;                                 // flags, 0x20 = check ShootThru
+		push edi;
+		call fo::funcoffs::make_straight_path_func_; // overlapping if len(eax) == 0
+		pop  ecx;            // source
+		mov  edx, [edi - 8]; // target
+		mov  ebx, [edi];     // blocking object
+		test ebx, ebx;
+		jz   isSee;          // no blocking object
+		cmp  ebx, edx;
+		jne  checkObj;       // object is not equal to target
+		retn 8;
+isSee:
+		mov  [edi], edx;     // fix for target with ShootThru flag
+		retn 8;
+checkObj:
+		mov  eax, [ebx + protoId];
+		shr  eax, 24;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		je   continue; // see through critter
+		retn 8;
+continue:
+		mov  [edi], ecx;                // outObject - ignore source (for cases of overlapping tiles from multihex critters)
+		mov  [edi - 4], ebx;            // replace source with blocking object
+		mov  dword ptr [esp], 0x456BAB; // repeat from the blocking object
+		retn 8;
+	}
+}
+
 static void ObjCanSeeShootThroughPatch() {
 	if (IniReader::GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlogr("Applying obj_can_see_obj fix for seeing through critters and ShootThru objects.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
-	}
-}
-
-static void OverrideMusicDirPatch() {
-	static const char* musicOverridePath = "data\\sound\\music\\";
-
-	if (long overrideMode = IniReader::GetConfigInt("Sound", "OverrideMusicDir", 0)) {
-		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB}); // set paths if not present in the cfg
-		if (overrideMode == 2) {
-			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
-			SafeWrite16(0x44FCF3, 0x40EB); // jmp 0x44FD35 (skip paths initialization)
-		}
-	}
-}
-
-static void DialogueFix() {
-	if (IniReader::GetConfigInt("Misc", "DialogueFix", 1)) {
-		dlogr("Applying dialogue patch.", DL_INIT);
-		SafeWrite8(0x446848, 0x31);
-	}
-}
-
-static void AlwaysReloadMsgs() {
-	if (IniReader::GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
-		dlogr("Applying always reload messages patch.", DL_INIT);
-		SafeWrite8(0x4A6B8D, 0); // jnz $+6
 	}
 }
 
@@ -707,6 +500,95 @@ static void MusicInDialoguePatch() {
 		dlogr("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite16(0x44525A, 0x9090);
 		//BlockCall(0x450627);
+	}
+}
+
+static void DontTurnOffSneakIfYouRunPatch() {
+	if (IniReader::GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
+		dlogr("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
+		SafeWrite8(0x418135, CodeType::JumpShort);
+	}
+}
+
+static __declspec(naked) void register_object_take_out_hack() {
+	using namespace fo::Fields;
+	__asm {
+		push ecx;
+		push eax;
+		mov  ecx, edx;                            // ID1
+		mov  edx, [eax + rotation];               // cur_rot
+		inc  edx;
+		push edx;                                 // ID3
+		xor  ebx, ebx;                            // ID2
+		mov  edx, [eax + artFid];                 // fid
+		and  edx, 0xFFF;                          // Index
+		xor  eax, eax;
+		inc  eax;                                 // Obj_Type CRITTER
+		call fo::funcoffs::art_id_;
+		mov  edx, eax;
+		xor  ebx, ebx;
+		dec  ebx;                                 // delay -1
+		pop  eax;                                 // critter
+		call fo::funcoffs::register_object_change_fid_;
+		pop  ecx;
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void InstantWeaponEquipPatch() {
+	const DWORD PutAwayWeapon[] = {
+		0x411EA2, // action_climb_ladder_
+		0x412046, // action_use_an_item_on_object_
+		0x41224A  // action_get_an_object_
+	};
+	const DWORD PutAwayWeaponExtra[] = {
+		0x4606A5, // intface_change_fid_animate_
+		0x472996  // invenWieldFunc_
+	};
+
+	int skipAnims = IniReader::GetConfigInt("Misc", "InstantWeaponEquip", 0);
+	if (skipAnims) {
+		// Skip weapon equip/unequip animations
+		dlogr("Applying instant weapon equip patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeapon);
+		if (skipAnims == 1) {
+			SafeWriteBatch<BYTE>(CodeType::JumpShort, PutAwayWeaponExtra);
+			BlockCall(0x472AD5); //
+			BlockCall(0x472AE0); // invenUnwieldFunc_
+			BlockCall(0x472AF0); //
+			MakeJump(0x415238, register_object_take_out_hack);
+		} else {
+			HookCalls(register_object_take_out_hack, {
+				0x411F18, // action_climb_ladder_
+				0x412102, // action_use_an_item_on_object_
+				0x4122FA  // action_get_an_object_
+			});
+		}
+	}
+}
+
+static __declspec(naked) void gdAddOptionStr_hack() {
+	static const DWORD gdAddOptionStr_Ret = 0x4458FA;
+	__asm {
+		mov  ecx, ds:[FO_VAR_gdNumOptions];
+		add  ecx, '1';
+		push ecx;
+		jmp  gdAddOptionStr_Ret;
+	}
+}
+
+static void NumbersInDialoguePatch() {
+	if (IniReader::GetConfigInt("Misc", "NumbersInDialogue", 0)) {
+		dlogr("Applying numbers in dialogue patch.", DL_INIT);
+		SafeWrite32(0x502C32, 0x2000202E);        // '%c ' > '%c. '
+		SafeWrite8(0x446F3B, 0x35);
+		SafeWrite32(0x5029E2, 0x7325202E);        // '%c %s' > '%c. %s'
+		SafeWrite32(0x446F03, 0x2424448B);        // mov  eax, [esp+0x24]
+		SafeWrite8(0x446F07, 0x50);               // push eax
+		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
+		SafeWrite8(0x446FE4, 0x50);               // push eax
+		MakeJump(0x4458F5, gdAddOptionStr_hack);
 	}
 }
 
@@ -728,12 +610,132 @@ static void DisableHorriganPatch() {
 	}
 }
 
+static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
+	int slot = (mode > 0) ? 1 : 0;
+	fo::ItemButtonItem* itemButton = &fo::var::itemButtonItems[slot];
+	if ((DWORD)itemButton->item == itemPtr) {
+		int slotMode = itemButton->mode;
+		if (slotMode == 3 || slotMode == 4) {
+			mode++;
+		}
+	}
+	return mode;
+}
+
+static __declspec(naked) void display_stats_hook() {
+	__asm {
+		push eax;
+		push ecx;
+		mov  ecx, ds:[esp + edi + 0xA8 + 0xC]; // get itemPtr
+		call GetWeaponSlotMode;                // ecx - itemPtr, edx - mode;
+		mov  edx, eax;
+		pop  ecx;
+		pop  eax;
+		jmp  fo::funcoffs::item_w_range_;
+	}
+}
+
 static void DisplaySecondWeaponRangePatch() {
 	// Display the range of the secondary attack mode in the inventory when you switch weapon modes in active item slots
 	//if (IniReader::GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlogr("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
 	//}
+}
+
+static void __fastcall SwapHandSlots(fo::GameObject* item, fo::GameObject* &toSlot) {
+	if (toSlot && fo::util::GetItemType(item) != fo::item_type_weapon && fo::util::GetItemType(toSlot) != fo::item_type_weapon) {
+		return;
+	}
+	fo::ItemButtonItem* leftSlot  = &fo::var::itemButtonItems[fo::HandSlot::Left];
+	fo::ItemButtonItem* rightSlot = &fo::var::itemButtonItems[fo::HandSlot::Right];
+
+	if (toSlot == nullptr) { // copy to empty slot
+		fo::ItemButtonItem* dstSlot;
+		fo::ItemButtonItem item;
+		if ((int)&toSlot == FO_VAR_i_lhand) {
+			std::memcpy(&item, rightSlot, 0x14);
+			item.primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			item.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+			dstSlot = leftSlot; // Rslot > Lslot
+		} else {
+			std::memcpy(&item, leftSlot, 0x14);
+			item.primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			item.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+			dstSlot = rightSlot; // Lslot > Rslot;
+		}
+		std::memcpy(dstSlot, &item, 0x14);
+	} else { // swap slots
+		auto& hands = fo::var::itemButtonItems;
+		hands[fo::HandSlot::Left].primaryAttack    = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		hands[fo::HandSlot::Left].secondaryAttack  = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		hands[fo::HandSlot::Right].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		hands[fo::HandSlot::Right].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+
+		std::memcpy(leftSlot,  &hands[fo::HandSlot::Right], 0x14); // Rslot > Lslot
+		std::memcpy(rightSlot, &hands[fo::HandSlot::Left],  0x14); // Lslot > Rslot
+	}
+}
+
+static __declspec(naked) void switch_hand_hack() {
+	__asm {
+		pushfd;
+		test ebx, ebx;
+		jz   skip;
+		cmp  ebx, edx;
+		jz   skip;
+		push ecx;
+		mov  ecx, eax;
+		call SwapHandSlots;
+		pop  ecx;
+skip:
+		popfd;
+		jz   end;
+		retn;
+end:
+		mov  dword ptr [esp], 0x4715B7;
+		retn;
+	}
+}
+
+static long pHitL, sHitL, modeL = -2;
+static long pHitR, sHitR, modeR = -2;
+
+static long intface_update_items_hack_begin() {
+	if (!fo::var::itemButtonItems[fo::HandSlot::Left].item && !fo::func::inven_left_hand(fo::var::obj_dude)) {
+		modeL = fo::var::itemButtonItems[fo::HandSlot::Left].mode;
+		pHitL = fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack;
+		sHitL = fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack;
+	}
+	if (!fo::var::itemButtonItems[fo::HandSlot::Right].item && !fo::func::inven_right_hand(fo::var::obj_dude)) {
+		modeR = fo::var::itemButtonItems[fo::HandSlot::Right].mode;
+		pHitR = fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack;
+		sHitR = fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack;
+	}
+	return fo::var::itemCurrentItem;
+}
+
+static void intface_update_restore() {
+	if (modeL != -2 && pHitL == fo::var::itemButtonItems[fo::HandSlot::Left].primaryAttack &&
+	    sHitL == fo::var::itemButtonItems[fo::HandSlot::Left].secondaryAttack)
+	{
+		fo::var::itemButtonItems[fo::HandSlot::Left].mode = modeL;
+	}
+	if (modeR != -2 && pHitR == fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack &&
+	    sHitR == fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack)
+	{
+		fo::var::itemButtonItems[fo::HandSlot::Right].mode = modeR;
+	}
+	modeL = -2;
+	modeR = -2;
+}
+
+static __declspec(naked) void intface_update_items_hack_end() {
+	__asm {
+		call intface_update_restore;
+		cmp  dword ptr [esp + 0x1C - 0x18 + 4], 0; // animate
+		retn;
+	}
 }
 
 static void KeepSelectModePatch() {
@@ -744,6 +746,24 @@ static void KeepSelectModePatch() {
 		MakeCall(0x45F019, intface_update_items_hack_begin);
 		MakeCall(0x45F380, intface_update_items_hack_end);
 	//}
+}
+
+static __declspec(naked) void action_use_skill_on_hook() {
+	__asm { // eax = dude_obj, edx = target, ebp = party_member
+		cmp  eax, edx;
+		jnz  end;                     // jump if target != dude_obj
+		mov  edx, ebp;
+		call fo::funcoffs::obj_dist_; // check distance between dude_obj and party_member
+		cmp  eax, 1;                  // if the distance is greater than 1, then reset the register
+		jg   skip;
+		inc  eax;
+		retn;
+skip:
+		xor  eax, eax;
+		retn;
+end:
+		jmp  fo::funcoffs::obj_dist_;
+	}
 }
 
 static void PartyMemberSkillPatch() {
@@ -788,16 +808,6 @@ static void UseWalkDistancePatch() {
 	if (distance > 1 && distance < 5) {
 		dlogr("Applying walk distance for using objects patch.", DL_INIT);
 		SafeWriteBatch<BYTE>(distance, {0x411E41, 0x411FF0, 0x4121C4, 0x412475, 0x412906}); // default is 5
-	}
-}
-
-static void F1EngineBehaviorPatch() {
-	if (IniReader::GetConfigInt("Misc", "Fallout1Behavior", 0)) {
-		dlogr("Applying Fallout 1 engine behavior patch.", DL_INIT);
-		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
-		SafeWrite8(0x477C71, CodeType::JumpShort); // disable halving the weight of power armor items
-		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
-		SafeWrite32(0x4A5201, 264600); // set the initial in-game time to 7:21
 	}
 }
 
@@ -874,14 +884,6 @@ static void PlayingMusicPatch() {
 	LoadGameHook::OnGameReset() += []() {
 		cMusicArea = -1;
 	};
-}
-
-static __declspec(naked) void main_death_scene_hook() {
-	__asm {
-		mov  eax, 101;
-		call fo::funcoffs::text_font_;
-		jmp  fo::funcoffs::debug_printf_;
-	}
 }
 
 static __declspec(naked) void op_display_msg_hook() {
