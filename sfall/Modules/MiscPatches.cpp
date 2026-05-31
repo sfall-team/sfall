@@ -842,13 +842,52 @@ static void SkipLoadingGameSettingsPatch() {
 	}
 }
 
+static int useWalkDist = 5;
+
+static __declspec(naked) void UseWalkDist_hook() {
+	using namespace fo::Fields;
+	__asm {
+		push eax; // source
+		push edx; // target
+		call fo::funcoffs::obj_dist_;
+		cmp  eax, useWalkDist;
+		jge  skip; // path will never be shorter than tile distance
+		cmp  eax, 1;
+		jle  skip; // next to target, no need for pathfinding
+		pop  edx;
+		pop  eax;
+		push ebx;
+		push ecx;
+		push 0;                 // checkTileTo
+		xor  ecx, ecx;          // pathDataBuffer
+		mov  ebx, [edx + tile]; // tileTo (target)
+		mov  edx, [eax + tile]; // tileFrom (source)
+		call fo::funcoffs::make_path_;
+		pop  ecx;
+		pop  ebx;
+		retn;
+skip:
+		add  esp, 8; // stack cleanup
+		retn;
+	}
+}
+
 static void UseWalkDistancePatch() {
-	int distance = IniReader::GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
-	if (distance > 1 && distance < 5) {
+	useWalkDist = IniReader::GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (useWalkDist > 1 && useWalkDist < 5) {
 		dlogr("Applying walk distance for using objects patch.", DL_INIT);
 		const DWORD walkDistanceAddr[] = {0x411E41, 0x411FF0, 0x4121C4, 0x412475, 0x412906};
-		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
+		SafeWriteBatch<BYTE>(useWalkDist, walkDistanceAddr); // default is 5
 	}
+	// Use path length instead of tile distance to determine whether to walk or run
+	const DWORD useWalkObjDistAddr[] = {
+		0x411E3A, // action_climb_ladder_
+		0x411FE9, // action_use_an_item_on_object_
+		0x4121BD, // action_get_an_object_
+		0x41246E, // action_loot_container_
+		0x4128FF  // action_use_skill_on_
+	};
+	HookCalls(UseWalkDist_hook, useWalkObjDistAddr);
 }
 
 static long cMusicArea = -1;
