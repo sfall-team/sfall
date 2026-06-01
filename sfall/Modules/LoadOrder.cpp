@@ -395,11 +395,11 @@ static void GetExtraPatches() {
 }
 
 static void MultiPatchesPatch() {
-	//if (IniReader::GetConfigInt("Misc", "MultiPatches", 0)) {
-		dlogr("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
-		SafeWrite8(0x44435C, 0xC4);          // Disable check
-	//}
+	dlogr("Applying load multiple patches patch.", DL_INIT);
+	SafeWrite8(0x444354, CodeType::Nop); // Change step from 2 to 1
+	SafeWrite8(0x44435C, 0xC4);          // Disable check
+	// New loop count
+	SafeWrite32(0x444357, clamp(IniReader::GetConfigInt("Misc", "NumberPatchLoop", 100), 1, 1000));
 }
 
 ///////////////////////// SAVE PARTY MEMBER PROTOTYPES /////////////////////////
