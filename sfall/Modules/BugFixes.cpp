@@ -2007,21 +2007,21 @@ static __declspec(naked) void wmSetupRandomEncounter_hook() {
 }
 
 static __declspec(naked) void inven_obj_examine_func_hack() {
-	__asm {
-		mov edx, ds:[0x519064]; // inven_display_msg_line
-		cmp edx, 2; // >2
-		ja  fix;
+	__asm { // eax - text height
+		mov  edx, ds:[0x519064]; // inven_display_msg_line
+		cmp  edx, 2; // >2
+		jg   fix;
 		retn;
 fix:
-		cmp edx, 5; // 4 lines
-		ja  limit;
-		dec edx;
-		sub eax, 3;
-		mul edx;
-		add eax, 3;
+		cmp  edx, 5; // 4 lines
+		jg   limit;
+		dec  edx;
+		sub  eax, 3;
+		imul edx;
+		add  eax, 3;
 		retn;
 limit:
-		mov eax, 30;
+		mov  eax, 30;
 		retn;
 	}
 }
@@ -4095,6 +4095,8 @@ void BugFixes::init() {
 		SafeWrite8(0x4583D8, 0x3B);            // jz 0x458414
 		SafeWrite8(0x4583DE, CodeType::JumpZ); // jz 0x458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
+	} else {
+		SafeWrite32(0x4583D3, 0x90903FEB); // jmp 0x458414 (prevent crash from null object)
 	}
 
 	if (IniReader::GetConfigInt("Misc", "AIBestWeaponFix", 1)) {
