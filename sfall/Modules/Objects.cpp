@@ -109,8 +109,9 @@ pickNewID: // skip PM range (18000 - 16795215)
 }
 
 // Reassigns object IDs to all critters upon first loading a map and updates their HP stats
+// also fixes their combat_data.who_hit_me values (same as map_fix_critter_combat_data_)
 // TODO: for items?
-static void map_fix_critter_id() {
+static void __stdcall map_fix_critter_id_combat_data() {
 	long npcStartID = 4096; // 0x1000
 	fo::GameObject* obj = fo::func::obj_find_first();
 	while (obj) {
@@ -119,16 +120,12 @@ static void map_fix_critter_id() {
 				obj->id = npcStartID++;
 				Objects::SetScriptObjectID(obj);
 			}
+			if (obj->critter.whoHitMe == (fo::GameObject*)-1) {
+				obj->critter.whoHitMe = nullptr;
+			}
 			Stats::UpdateHPStat(obj);
 		}
 		obj = fo::func::obj_find_next();
-	}
-}
-
-static __declspec(naked) void map_load_file_hook() {
-	__asm {
-		call map_fix_critter_id;
-		jmp  fo::funcoffs::map_fix_critter_combat_data_;
 	}
 }
 
@@ -270,7 +267,7 @@ void Objects::init() {
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 
 	// Fix mapper bug by reassigning object IDs to critters (for unvisited maps)
-	HookCall(0x482DE2, map_load_file_hook);
+	HookCall(0x482DE2, map_fix_critter_id_combat_data); // replace map_fix_critter_combat_data_
 	// Additionally fix object IDs for queued events
 	MakeCall(0x4A25BA, queue_add_hack);
 
