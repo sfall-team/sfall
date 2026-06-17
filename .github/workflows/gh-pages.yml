@@ -17,15 +17,9 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: docs
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
+          sudo apt update && sudo apt -y -qq install bundler python3-pip
           pip3 install ruamel.yaml --user
 
       - name: Build
