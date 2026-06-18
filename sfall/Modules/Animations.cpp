@@ -516,6 +516,8 @@ notDude:
 
 // replace vanilla anim_stop_ function in combat_begin_
 static void __stdcall combat_begin_anim_stop_hook() {
+	ClearAllLock(); // same as in anim_stop_hack
+
 	*fo::ptr::anim_in_anim_stop = true;
 	*fo::ptr::curr_anim_set = -1;
 
