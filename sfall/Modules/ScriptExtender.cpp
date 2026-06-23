@@ -54,7 +54,9 @@ static DWORD highlightCorpses;
 static DWORD motionScanner;
 static int outlineColor;
 static int outlineColorContainers;
+static int outlineColorContainersEmpty;
 static int outlineColorCorpses;
+static int outlineColorCorpsesEmpty;
 static char highlightFail1[128];
 static char highlightFail2[128];
 
@@ -479,11 +481,15 @@ isCritter:
 		test eax, eax;                            // Can't be stolen from?
 		jnz  nextObject;                          // Yes
 		mov  eax, outlineColorCorpses;            // Set outline color for corpses
+		cmp  dword ptr [ecx + inventory], 0;      // Is source inventory empty?
+		cmove eax, outlineColorCorpsesEmpty;      // Set outline color for empty corpses
 		jmp  setOutline;
 isContainer:
 		cmp  highlightContainers, 0;              // Highlight containers?
 		je   nextObject;
 		mov  eax, outlineColorContainers;         // Set outline color for containers
+		cmp  dword ptr [ecx + inventory], 0;      // Is source inventory empty?
+		cmove eax, outlineColorContainersEmpty;   // Set outline color for empty containers
 		jmp  setOutline;
 normalItem:
 		mov  eax, outlineColor;                   // Set outline color for items
@@ -1094,13 +1100,20 @@ void ScriptExtender::init() {
 	if (toggleHighlightsKey) {
 		highlightContainers = IniReader::GetConfigInt("Input", "HighlightContainers", 0);
 		highlightCorpses = IniReader::GetConfigInt("Input", "HighlightCorpses", 0);
+
 		outlineColor = IniReader::GetConfigInt("Input", "OutlineColor", 16);
 		if (outlineColor < 1) outlineColor = 64;
-		outlineColorContainers = IniReader::GetConfigInt("Input", "OutlineColorContainers", 16);
+		outlineColorContainers = IniReader::GetConfigInt("Input", "OutlineColorContainers", 32);
 		if (outlineColorContainers < 1) outlineColorContainers = 64;
-		outlineColorCorpses = IniReader::GetConfigInt("Input", "OutlineColorCorpses", 16);
+		outlineColorContainersEmpty = IniReader::GetConfigInt("Input", "OutlineColorContainersEmpty", 4);
+		if (outlineColorContainersEmpty < 0) outlineColorContainersEmpty = 64; // allow 0
+		outlineColorCorpses = IniReader::GetConfigInt("Input", "OutlineColorCorpses", 32);
 		if (outlineColorCorpses < 1) outlineColorCorpses = 64;
+		outlineColorCorpsesEmpty = IniReader::GetConfigInt("Input", "OutlineColorCorpsesEmpty", 4);
+		if (outlineColorCorpsesEmpty < 0) outlineColorCorpsesEmpty = 64; // allow 0
+
 		motionScanner = IniReader::GetConfigInt("Misc", "MotionScannerFlags", 1);
+
 		Translate::Get("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", highlightFail1);
 		Translate::Get("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", highlightFail2);
 		const DWORD objRemoveOutlineAddr[] = {
