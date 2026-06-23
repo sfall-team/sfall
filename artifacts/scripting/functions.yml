@@ -1472,7 +1472,7 @@
 
   - name: get_current_inven_size
     detail: get_current_inven_size(ObjectPtr object)
-    doc: Returns the current inventory size of the container or the critter.
+    doc: Returns the total size of items in a container or a critter's inventory.
     macro: sfall.h
 
   - name: get_object_ai_data
