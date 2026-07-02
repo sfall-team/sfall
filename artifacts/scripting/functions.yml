@@ -293,7 +293,7 @@
     opcode: 0x8185
   - name: set_perk_int
     detail: void set_perk_int(int perkID, int value)
-    opcode: 0x8196
+    opcode: 0x8186
   - name: set_perk_agl
     detail: void set_perk_agl(int perkID, int value)
     opcode: 0x8187

@@ -51,7 +51,7 @@ end
 
 procedure DudeCanSee(variable obj) begin
    variable block := obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT);
-   return not block or block == obj;
+   return not block or block == obj or tile_num(block) == tile_num(obj);
 end
 
 procedure DudeCanHear(variable obj) begin
