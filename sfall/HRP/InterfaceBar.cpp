@@ -496,7 +496,7 @@ void IFaceBar::init() {
 		// intface_end_buttons_enable_, intface_end_buttons_disable_
 		sf::HookCalls(combat_buttons_trans_buf_to_buf, {0x45FC72, 0x45FD06});
 
-		// display_init_  hacks
+		// display_init_ hacks
 		sf::MakeCall(0x43166F, display_init_hack);
 		sf::HookCall(0x431704, display_init_hook_buf_to_buf);
 		sf::SafeWrite32(0x43172A, display_width);
@@ -528,12 +528,12 @@ void IFaceBar::init() {
 			0x460FA0, 0x460FDD, 0x461010, 0x461060, 0x461085, 0x4610AB, 0x4610EC
 		});
 
-		if (ALTERNATE_AMMO_METRE == 0) {
-			// intface_draw_ammo_lights_ hacks
-			sf::MakeCall(0x460AA6, intface_draw_ammo_lights_hack);
-			sf::SafeWriteBatch<DWORD>(IFACE_BAR_WIDTH, {0x460AC8, 0x460AD8, 0x460AE3});
-			sf::SafeWrite32(0x460AB4, 26 * IFACE_BAR_WIDTH); // y position
-		}
+		//if (ALTERNATE_AMMO_METRE == 0) {
+		//	// intface_draw_ammo_lights_ hacks
+		//	sf::MakeCall(0x460AA6, intface_draw_ammo_lights_hack);
+		//	sf::SafeWriteBatch<DWORD>(IFACE_BAR_WIDTH, {0x460AC8, 0x460AD8, 0x460AE3});
+		//	sf::SafeWrite32(0x460AB4, 26 * IFACE_BAR_WIDTH); // y position
+		//}
 	} else {
 		IFACE_BAR_WIDTH = 640;
 	}

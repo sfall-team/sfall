@@ -771,8 +771,8 @@ static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		}
 		// redraw rectangle on worldmap interface
 		RECT rect;
-		rect.top = y;
 		rect.left = x_offset;
+		rect.top = y;
 		rect.right = x + TerrainHoverImage::width;
 		rect.bottom = y + TerrainHoverImage::height;
 		fo::func::win_draw_rect(fo::var::wmBkWin, &rect);
@@ -1043,8 +1043,6 @@ static __declspec(naked) void gmouse_bk_process_hook() {
 	}
 }
 
-static long ammoBarXPos = 463; // default position
-
 static __declspec(naked) void intface_update_ammo_lights_hack() {
 	__asm {
 		mov  eax, 70; // 70 - full ammo bar
@@ -1052,7 +1050,55 @@ static __declspec(naked) void intface_update_ammo_lights_hack() {
 		cmovg edx, eax;
 		cmp  edx, ebx; // ebx = 0 (empty ammo bar)
 		cmovl edx, ebx;
-		mov  eax, ammoBarXPos; // overwritten engine code
+		mov  eax, 463; // overwritten engine code
+		retn;
+	}
+}
+
+// Implementation from HRP by Mash
+static void __fastcall DrawAmmoBar(long barX, long barFillHeight) {
+	fo::Window* win = fo::func::GNW_find(fo::var::interfaceWindow);
+	if (win == nullptr) return;
+
+	barX += win->width - 640;
+
+	long barFillHeightMax = 70;
+
+	if (barFillHeight & 1) barFillHeight--;
+	BYTE* buff = win->surface;
+	buff += (26 * win->width) + barX;
+
+	while (barFillHeightMax > barFillHeight) {
+		buff[0] = 14;
+		buff[1] = 14;
+		buff += win->width;
+		barFillHeightMax--;
+	}
+
+	while (barFillHeight > 0) {
+		buff[0] = 196;
+		buff[1] = 196;
+		buff += win->width;
+		buff[0] = 14;
+		buff[1] = 14;
+		buff += win->width;
+		barFillHeight -= 2;
+	}
+
+	RECT rect;
+	rect.left = barX;
+	rect.top = 26;
+	rect.right = barX + 2;
+	rect.bottom = 26 + 70;
+	fo::func::win_draw_rect(fo::var::interfaceWindow, &rect);
+}
+
+static __declspec(naked) void intface_update_ammo_lights_hook() {
+	__asm {
+		push ecx;
+		mov  ecx, eax;
+		call DrawAmmoBar;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1475,12 +1521,11 @@ void Interface::init() {
 
 	// Fix crash when the player equips a weapon overloaded with ammo (ammo bar overflow)
 	MakeCall(0x45F94F, intface_update_ammo_lights_hack);
-	// Tweak for ammo bar position with HRP by Mash
-	if (HRP::Setting::ExternalEnabled()) {
-		//ammoBarXPos = 467;
-		if (!IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, ".\\f2_res.ini")) {
-			ammoBarXPos += 4;
-		}
+	// Ammo bar graphics patch (when not using ALTERNATE_AMMO_METRE from HRP)
+	if ((HRP::Setting::ExternalEnabled() && IniReader::GetInt("IFACE", "ALTERNATE_AMMO_METRE", 0, ".\\f2_res.ini") == 0) ||
+	    (!HRP::Setting::ExternalEnabled() && HRP::IFaceBar::ALTERNATE_AMMO_METRE == 0))
+	{
+		HookCall(0x45F954, intface_update_ammo_lights_hook); // replace intface_draw_ammo_lights_
 	}
 
 	// Add missing sounds to the 'Done' and 'Cancel' buttons in the 'Custom' disposition of the combat control panel
