@@ -348,11 +348,11 @@ static __declspec(naked) void item_identical_hack() {
 	static const DWORD item_identical_End = 0x477AD5;
 	using namespace fo;
 	__asm { // edx - inv_item.inventory, edi - place_item.inventory
-		pop  ebx; // ret addr
 		cmp  dword ptr [eax + 0x20], item_type_weapon;
 		je   isWeapon;
 		cmp  dword ptr [eax + 0x20], item_type_ammo; // overwritten engine code
 		jne  skip;
+		add  esp, 4;
 		jmp  item_identical_Ret;
 isWeapon:
 		mov  ecx, [edx + 0xC]; // inv_item.miscFlags
@@ -362,9 +362,10 @@ isWeapon:
 		jg   skip;
 		cmp  dword ptr [edi + 0x10], 0; // place_item.charges
 		jg   skip;
+		add  esp, 4;
 		jmp  item_identical_End; // return true
 skip:
-		jmp  ebx; // check caps pid
+		retn; // check caps pid
 	}
 }
 
