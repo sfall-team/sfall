@@ -343,48 +343,28 @@ end:
 	}
 }
 
-static __declspec(naked) void SetDefaultAmmo() {
+static __declspec(naked) void item_identical_hack() {
+	static const DWORD item_identical_Ret = 0x477A8E;
+	static const DWORD item_identical_End = 0x477AD5;
 	using namespace fo;
-	using namespace Fields;
-	__asm {
-		push ecx;
-		mov  ecx, edx;                     // ecx = item
-		mov  eax, edx;
-		call fo::funcoffs::item_get_type_;
-		cmp  eax, item_type_weapon;        // is it item_type_weapon?
-		jne  end;                          // no
-		cmp  dword ptr [ecx + charges], 0; // is there any ammo in the weapon?
-		jne  end;                          // yes
-		sub  esp, 4;
-		mov  edx, esp;
-		mov  eax, [ecx + protoId];         // eax = weapon pid
-		call fo::funcoffs::proto_ptr_;
-		mov  edx, [esp];
-		mov  eax, [edx + 0x5C];            // eax = default ammo pid
-		mov  [ecx + ammoPid], eax;         // set current ammo pid
-		add  esp, 4;
-end:
-		pop  ecx;
-		retn;
-	}
-}
-
-static __declspec(naked) void inven_action_cursor_hack() {
-	__asm {
-		mov  edx, [esp + 0x6C - 0x50 + 4];         // source_item
-		call SetDefaultAmmo;
-		cmp  dword ptr [esp + 0x6C - 0x54 + 4], 0; // overwritten engine code
-		retn;
-	}
-}
-
-static __declspec(naked) void item_add_mult_hook() {
-	__asm {
-		push edx;
-		call SetDefaultAmmo;
-		pop  edx;
-		mov  eax, ecx;    // restore
-		jmp  fo::funcoffs::item_add_force_;
+	__asm { // edx - inv_item.inventory, edi - place_item.inventory
+		pop  ebx; // ret addr
+		cmp  dword ptr [eax + 0x20], item_type_weapon;
+		je   isWeapon;
+		cmp  dword ptr [eax + 0x20], item_type_ammo; // overwritten engine code
+		jne  skip;
+		jmp  item_identical_Ret;
+isWeapon:
+		mov  ecx, [edx + 0xC]; // inv_item.miscFlags
+		cmp  ecx, [edi + 0xC]; // place_item.miscFlags
+		jne  skip;
+		cmp  dword ptr [edx + 0x10], 0; // inv_item.charges
+		jg   skip;
+		cmp  dword ptr [edi + 0x10], 0; // place_item.charges
+		jg   skip;
+		jmp  item_identical_End; // return true
+skip:
+		jmp  ebx; // check caps pid
 	}
 }
 
@@ -923,10 +903,9 @@ void Inventory::init() {
 		ApplyInvenApCostPatch();
 	}
 
-	// Set default ammo pid for unloaded weapons to make them stack regardless of previously loaded ammo
+	// Stack empty weapons regardless of their previous ammo type
 	//if (IniReader::GetConfigInt("Misc", "StackEmptyWeapons", 1)) {
-		MakeCall(0x4736C6, inven_action_cursor_hack);
-		HookCall(0x4772AA, item_add_mult_hook);
+		MakeCall(0x477A82, item_identical_hack, 1);
 	//}
 
 	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
