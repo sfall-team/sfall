@@ -66,7 +66,7 @@ private:
 	HitsData hit[Hits::count];
 
 	long skillLevel; // SKILL_UNARMED_COMBAT
-	long psStat[fo::Stat::STAT_base_count];
+	long pcStat[fo::Stat::STAT_base_count];
 
 public:
 	class Types{
@@ -218,12 +218,12 @@ public:
 	void GetDudeStats(long sLevel) {
 		skillLevel = sLevel;
 		for (size_t stat = 0; stat < fo::Stat::STAT_base_count; stat++) {
-			psStat[stat] = fo::func::stat_level(fo::var::obj_dude, stat);
+			pcStat[stat] = fo::func::stat_level(fo::var::obj_dude, stat);
 		}
 	}
 
 	long SkillLevel() { return skillLevel; }
-	long DudeStat(long stat) { return psStat[stat]; }
+	long DudeStat(long stat) { return pcStat[stat]; }
 };
 
 Hits unarmed;
@@ -260,6 +260,7 @@ static void __fastcall check_unarmed_left_slot(long skillLevel) {
 static __declspec(naked) void intface_update_items_hack_punch() {
 	__asm {
 		push 0x45F1D7;
+		mov  ecx, eax; // unarmed skill level
 		jmp  check_unarmed_left_slot;
 	}
 }
@@ -273,7 +274,9 @@ static fo::AttackType GetKickingHit(bool isPrimary) {
 }
 
 // Kick hits
-static void check_unarmed_right_slot() {
+static void __fastcall check_unarmed_right_slot(long skillLevel) {
+	unarmed.GetDudeStats(skillLevel);
+
 	fo::var::itemButtonItems[fo::HandSlot::Right].primaryAttack = GetKickingHit(true);
 	fo::var::itemButtonItems[fo::HandSlot::Right].secondaryAttack = GetKickingHit(false);
 }
@@ -281,6 +284,7 @@ static void check_unarmed_right_slot() {
 static __declspec(naked) void intface_update_items_hack_kick() {
 	__asm {
 		push 0x45F380;
+		mov  ecx, eax; // unarmed skill level
 		jmp  check_unarmed_right_slot;
 	}
 }
@@ -352,16 +356,6 @@ const char* Unarmed::GetName(fo::AttackType hit) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static fo::AttackType GetPunchingHit() {
-	unarmed.GetDudeStats(fo::func::skill_level(fo::var::obj_dude, fo::Skill::SKILL_UNARMED_COMBAT));
-	return GetPunchingHit(true);
-}
-
-static fo::AttackType GetKickingHit() {
-	//unarmed.GetDudeStats(fo::func::skill_level(fo::var::obj_dude, fo::Skill::SKILL_UNARMED_COMBAT));
-	return GetKickingHit(true);
-}
-
 static void SlotsStoreCurrentHitMode() {
 	slotHitData[fo::HandSlot::Left].primaryHit   = fo::util::GetHandSlotPrimaryAttack(fo::HandSlot::Left);
 	slotHitData[fo::HandSlot::Left].secondaryHit = fo::util::GetHandSlotSecondaryAttack(fo::HandSlot::Left);
@@ -387,7 +381,8 @@ fo::AttackType Unarmed::GetStoredHitMode(fo::HandSlot slot) {
 	}
 
 	if (hit < fo::AttackType::ATKTYPE_STRONGPUNCH && hit != fo::AttackType::ATKTYPE_PUNCH && hit != fo::AttackType::ATKTYPE_KICK) {
-		hit = (slot == fo::HandSlot::Left) ? GetPunchingHit() : GetKickingHit(); // get Primary
+		unarmed.GetDudeStats(fo::func::skill_level(fo::var::obj_dude, fo::Skill::SKILL_UNARMED_COMBAT));
+		hit = (slot == fo::HandSlot::Left) ? GetPunchingHit(true) : GetKickingHit(true); // get Primary
 
 		slotHitData[slot].primaryHit = hit;
 		slotHitData[slot].mode = fo::HandSlotMode::Primary;
@@ -470,8 +465,8 @@ void Unarmed::init() {
 			}
 
 			// Only if a custom file is used, otherwise use the engine function code
-			MakeJump(0x45F0DF, intface_update_items_hack_punch);
-			MakeJump(0x45F278, intface_update_items_hack_kick);
+			MakeJump(0x45F0D8, intface_update_items_hack_punch);
+			MakeJump(0x45F27D, intface_update_items_hack_kick);
 		}
 	}
 	unarmed.Sort();
