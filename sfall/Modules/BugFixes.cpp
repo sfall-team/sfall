@@ -1873,6 +1873,22 @@ skip:
 	}
 }
 
+static __declspec(naked) void obj_examine_func_hack_checkhp() {
+	static const DWORD ObjExamineFuncCheckHP_Ret = 0x49AF26;
+	__asm { // eax - maximum hp, ecx - current hp
+		test eax, eax;
+		jle  dead;
+		// overwritten engine code
+		mov  edx, eax;
+		test ecx, ecx;
+		jle  dead;
+		retn;
+dead:
+		add  esp, 4;
+		jmp  ObjExamineFuncCheckHP_Ret;
+	}
+}
+
 static DWORD expSwiftLearner; // experience points for print
 
 static __declspec(naked) void statPCAddExperienceCheckPMs_hack() {
@@ -4073,6 +4089,9 @@ void BugFixes::init() {
 	// Remove visible newline control characters when examining items in the barter screen
 	// Supplementary fix for hacks in Game\GUI\Text.cpp
 	MakeCall(0x49AE33, obj_examine_func_hack_objdesc, 1);
+
+	// Fix division by zero error in obj_examine_func_ engine function (when a critter's max HP <= 0 for any reason)
+	MakeCall(0x49AF15, obj_examine_func_hack_checkhp, 1);
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
 	//if (IniReader::GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
