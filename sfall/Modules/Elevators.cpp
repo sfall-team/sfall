@@ -136,12 +136,12 @@ static void ElevatorsInit() {
 static long __fastcall Check4EscKey(long type, long map) {
 	fo::ElevatorExit* exits = (Inited) ? elevatorExits[type] : fo::var::retvals[type];
 	long elev = fo::var::map_elevation;
-	long i = 0;
-	do {
-		if (exits[i].id == map && exits[i].elevation == elev) break;
-	} while (++i < exitsPerElevator);
-
-	return i; // exit index
+	for (long i = 0; i < exitsPerElevator; i++) {
+		if (exits[i].id == map && exits[i].elevation == elev) {
+			return i; // exit index
+		}
+	}
+	return 0;
 }
 
 static __declspec(naked) void elevator_select_hack() {
