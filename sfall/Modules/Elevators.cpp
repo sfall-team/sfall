@@ -33,20 +33,18 @@ static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; //
 static fo::ElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
 static DWORD elevatorsBtnCount[elevatorCount] = {0};                          // _btncount
 
+static bool Inited = false;
+
 static __declspec(naked) void GetMenuHook() {
 	__asm {
-		lea  edx, elevatorType;
-		shl  eax, 2;
-		mov  eax, [edx + eax];
+		mov  eax, elevatorType[eax * 4];
 		jmp  fo::funcoffs::elevator_start_;
 	}
 }
 
 static __declspec(naked) void CheckHotKeysHook() {
 	__asm {
-		lea  ebx, elevatorType;
-		shl  eax, 2;
-		mov  eax, [ebx + eax];
+		mov  eax, elevatorType[eax * 4];
 		cmp  eax, vanillaElevatorCount;
 		jge  skip; // skip hotkeys data (prevent array out of bounds error)
 		call fo::funcoffs::Check4Keys_;
@@ -60,37 +58,16 @@ skip:
 /*
 static __declspec(naked) void UnknownHook2() {
 	__asm {
-		lea  edx, elevatorType;
-		shl  eax, 2;
-		mov  eax, [edx + eax];
+		mov  eax, elevatorType[eax * 4];
 		jmp  fo::funcoffs::elevator_end_;
 	}
 }
 */
 
-static __declspec(naked) void GetNumButtonsHook1() {
+static __declspec(naked) void GetNumButtonsHack() {
 	__asm {
-		lea  esi, elevatorType;
-		mov  eax, [esi + edi * 4];
-		mov  eax, [elevatorsBtnCount + eax * 4];
-		retn;
-	}
-}
-
-static __declspec(naked) void GetNumButtonsHook2() {
-	__asm {
-		lea  edx, elevatorType;
-		mov  eax, [edx + edi * 4];
-		mov  eax, [elevatorsBtnCount + eax * 4];
-		retn;
-	}
-}
-
-static __declspec(naked) void GetNumButtonsHook3() {
-	__asm {
-		lea  eax, elevatorType;
-		mov  eax, [eax + edi * 4];
-		mov  eax, [elevatorsBtnCount + eax * 4];
+		mov  eax, elevatorType[edi * 4];
+		mov  eax, elevatorsBtnCount[eax * 4];
 		retn;
 	}
 }
@@ -152,12 +129,46 @@ static void ElevatorsInit() {
 	// _btncnt
 	const DWORD elevsBtnCountAddr[] = {0x43F65E, 0x43F6BB};
 	SafeWriteBatch<DWORD>((DWORD)elevatorsBtnCount, elevsBtnCountAddr);
-	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
-	MakeCall(0x43F184, GetNumButtonsHook2, 2);
-	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
+	MakeCall(0x43F05D, GetNumButtonsHack, 2);
+	MakeCall(0x43F184, GetNumButtonsHack, 2);
+	MakeCall(0x43F1E4, GetNumButtonsHack, 2);
+
+	Inited = true;
+}
+
+static long __fastcall Check4EscKey(long type, long map) {
+	fo::ElevatorExit* exits = (Inited) ? elevatorExits[type] : (fo::ptr::retvals + (type * exitsPerElevator));
+	long elev = *fo::ptr::map_elevation;
+	long i = 0;
+	do {
+		if (exits[i].id == map && exits[i].elevation == elev) break;
+	} while (++i < exitsPerElevator);
+
+	return i; // exit index
+}
+
+static __declspec(naked) void elevator_select_hack() {
+	static const DWORD elevator_select_Ret = 0x43F2CC;
+	__asm {
+		cmp  eax, VK_ESCAPE;
+		je   escKey;
+		retn;
+escKey:
+//		push ecx;
+		mov  edx, [ebp]; // map number
+		mov  ecx, edi;   // elevator type
+		call Check4EscKey;
+//		pop  ecx;
+		mov  [esp + 0x30 - 0x14 + 4], eax;
+		add  esp, 4;
+		jmp  elevator_select_Ret;
+	}
 }
 
 void Elevators::init() {
+	// Allow pressing the Esc key to close the elevator panel
+	MakeCall(0x43F113, elevator_select_hack, 2);
+
 	std::string elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "");
 	if (!elevPath.empty()) {
 		const char* elevFile = elevPath.insert(0, ".\\").c_str();
