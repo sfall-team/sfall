@@ -144,7 +144,7 @@ static long __fastcall Check4EscKey(long type, long map) {
 			return i; // exit index
 		}
 	}
-	return 0;
+	return -1; // fail-safe
 }
 
 static __declspec(naked) void elevator_select_hack() {
@@ -165,9 +165,26 @@ escKey:
 	}
 }
 
+static __declspec(naked) void scripts_check_state_hook() {
+	__asm {
+		call fo::funcoffs::elevator_select_;
+		cmp  eax, -1;
+		je   end;
+		cmp  dword ptr [esp + 0x30 - 0x20 + 4], -1; // tile (-1 - invalid)
+		jne  end;
+		mov  eax, -1; // force error
+end:
+		retn;
+	}
+}
+
 void Elevators::init() {
-	// Allow pressing the Esc key to close the elevator panel
+	// Allow pressing the Esc key to cancel the elevator selection
 	MakeCall(0x43F113, elevator_select_hack, 2);
+	// Additional error handling
+	SafeWrite32(0x43F2D7, 0x78DB8590); // cmp ebx, 27; jz > test ebx, ebx; js
+	const DWORD elevatorSelectAddr[] = {0x4A40C9, 0x4A43EA};
+	HookCalls(scripts_check_state_hook, elevatorSelectAddr);
 
 	std::string elevPath = IniReader::GetConfigString("Misc", "ElevatorsFile", "");
 	if (!elevPath.empty()) {
