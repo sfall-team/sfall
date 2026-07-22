@@ -434,5 +434,15 @@ void Opcodes::InitNew() {
 	}
 }
 
+bool Opcodes::OpcodeExists(int opcode) {
+	constexpr int opcodeStart = 0x8000;
+
+	if (opcode < opcodeStart || opcode >= opcodeStart + opcodeCount) return false;
+	opcode -= opcodeStart;
+
+	if (opcodes[opcode] != defaultOpcodeHandler) return true; // raw handlers
+	return (opcodeInfoTable[opcode - sfallOpcodeStart] != nullptr);
+}
+
 }
 }

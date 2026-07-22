@@ -130,6 +130,7 @@ static const SfallMetarule metarules[] = {
 	{"obj_is_openable",           mf_obj_is_openable,           1, 1,  0, {ARG_OBJECT}},
 	{"obj_under_cursor",          mf_obj_under_cursor,          2, 2,  0, {ARG_INT, ARG_INT}},
 	{"objects_in_radius",         mf_objects_in_radius,         3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"opcode_exists",             mf_opcode_exists,             1, 1,  0, {ARG_INT}},
 	{"outlined_object",           mf_outlined_object,           0, 0},
 	{"real_dude_obj",             mf_real_dude_obj,             0, 0},
 	{"reg_anim_animate_and_move", mf_reg_anim_animate_and_move, 4, 4, -1, {ARG_OBJECT, ARG_INT, ARG_INT, ARG_INT}},

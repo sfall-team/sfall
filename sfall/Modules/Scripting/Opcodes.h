@@ -28,6 +28,8 @@ namespace script
 class Opcodes {
 public:
 	static void InitNew();
+
+	static bool OpcodeExists(int opcode);
 };
 
 }
