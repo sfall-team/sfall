@@ -29,6 +29,8 @@ class Opcodes {
 public:
 	static void InitNew();
 	static void OnGameReset();
+
+	static bool OpcodeExists(int opcode);
 };
 
 }

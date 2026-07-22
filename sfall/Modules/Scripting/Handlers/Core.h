@@ -64,6 +64,8 @@ void mf_add_g_timer_event(OpcodeContext&);
 
 void mf_remove_timer_event(OpcodeContext&);
 
+void mf_opcode_exists(OpcodeContext&);
+
 void op_sfall_ver_major();
 
 void op_sfall_ver_minor();

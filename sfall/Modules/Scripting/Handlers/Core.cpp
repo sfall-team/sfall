@@ -23,6 +23,7 @@
 #include "..\..\HookScripts\Common.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
+#include "..\Opcodes.h"
 
 #include "Core.h"
 
@@ -196,6 +197,10 @@ void mf_remove_timer_event(OpcodeContext& ctx) {
 	} else {
 		ScriptExtender::RemoveTimerEventScripts(ctx.program()); // remove all
 	}
+}
+
+void mf_opcode_exists(OpcodeContext& ctx) {
+	ctx.setReturn(Opcodes::OpcodeExists(ctx.arg(0).intValue()));
 }
 
 __declspec(naked) void op_sfall_ver_major() {

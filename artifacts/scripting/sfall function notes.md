@@ -505,6 +505,12 @@ sfall_funcX metarule functions
 - Returns True if the specified name of `sfall_funcX` metarule function exists in the current version of sfall
 
 ----
+#### opcode_exists
+`bool sfall_func1("opcode_exists", int opcodeNum)`
+- Returns True if an opcode with the specified number exists in the current version of sfall
+- `opcodeNum` starts at `0x8000`
+
+----
 #### spatial_radius
 `int sfall_func1("spatial_radius", object obj)`
 - Returns radius of spatial script, associated with the given dummy object (returned by `create_spatial`)
@@ -834,7 +840,7 @@ sfall_funcX metarule functions
 - `artFile/artId`: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
 
 **Optional arguments:**
-- `frame`: frame number, the first frame starts from zero
+- `frame`: frame number, the first frame starts at zero
 - `x/y`: offset relative to the top-left corner of the window
 - `width/height`: the new width/height to scale the image to. Pass -1 to either width or height to keep the aspect ratio when scaling
 - `noTransparent`: pass True to display an image without transparent background
@@ -884,7 +890,7 @@ sfall_funcX metarule functions
 ----
 #### get_sfall_arg_at
 `mixed sfall_func1("get_sfall_arg_at", int argNum)`
-- Returns the value of hook argument with the specified argument number (*first argument of hook starts from 0*)
+- Returns the value of hook argument with the specified argument number (*first argument of hook starts at 0*)
 
 ----
 #### hide_window
@@ -1011,7 +1017,7 @@ sfall_funcX metarule functions
 - `x/y`: offset relative to the top-left corner of the window
 
 **Optional arguments:**
-- `frame`: frame number, the first frame starts from zero
+- `frame`: frame number, the first frame starts at zero
 - `param`: an array which specifies additional parameters, where:\
     index 0 - sprite direction for multi-directional FRM\
     index 1/index 2 - the new width/height to scale the image to. Pass -1 to use the original width/height
@@ -1139,7 +1145,7 @@ sfall_funcX metarule functions
 - `artFile/artId`: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
 
 **Optional arguments:**
-- `frame`: frame number, the first frame starts from zero
+- `frame`: frame number, the first frame starts at zero
 - `rotation`: rotation to get the frame for, useful when reading FRM files by path
 
 ----
