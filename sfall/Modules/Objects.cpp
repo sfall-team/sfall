@@ -28,6 +28,8 @@ namespace sfall
 static int unjamTimeState;
 static int maxCountLoadProto = 512;
 
+static fo::GameObject* outlinedObjs[500];
+
 long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
 bool Objects::IsUniqueID(long id) {
@@ -250,6 +252,18 @@ skip:
 	}
 }
 
+static __declspec(naked) void obj_render_pre_roof_hack() {
+	__asm {
+		cmp  eax, 500;
+		jge  jbreak;
+		retn;
+jbreak:
+		pop  edx;
+		add  edx, 13; // offset to next section (0x4896E8, 0x4897C7)
+		jmp  edx;
+	}
+}
+
 void Objects::OnGameReset() {
 	RestoreObjUnjamAllLocks();
 	//*fo::ptr::cur_id = 4;
@@ -272,6 +286,17 @@ void Objects::init() {
 
 	// Place some objects on the lower z-layer of the tile
 	MakeCall(0x48D918, obj_insert_hack, 1);
+
+	// Increase the maximum number of objects that can be outlined simultaneously (when w/o HRP 4.x by Mash)
+	if (*(DWORD*)0x48981D == 0x639C00) {
+		// replace _outlinedObjects array (was 100 objects)
+		const DWORD outlinedObjectsAddr[] = {0x4896DF, 0x4897BE}; // obj_render_pre_roof_
+		SafeWriteBatch<DWORD>((DWORD)outlinedObjs - 4, outlinedObjectsAddr);
+		SafeWrite32(0x48981D, (DWORD)outlinedObjs); // obj_render_post_roof_
+		// change the maximum limit to 500
+		const DWORD outlineCountMaxAddr[] = {0x4896D6, 0x4897B5};
+		MakeCalls(obj_render_pre_roof_hack, outlineCountMaxAddr);
+	}
 }
 
 }
