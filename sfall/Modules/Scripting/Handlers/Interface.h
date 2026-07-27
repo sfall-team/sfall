@@ -27,8 +27,6 @@ namespace script
 
 class OpcodeContext;
 
-void ClearInterfaceArtCache();
-
 // input_functions
 void op_input_funcs_available();
 

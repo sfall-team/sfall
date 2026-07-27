@@ -615,7 +615,7 @@ void mf_objects_in_radius(OpcodeContext& ctx) {
 }
 
 void mf_npc_engine_level_up(OpcodeContext& ctx) {
-	if (ctx.arg(0).asBool()) {
+	if (ctx.arg(0).rawValue()) {
 		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
 		npcEngineLevelUp = true;
 	} else {

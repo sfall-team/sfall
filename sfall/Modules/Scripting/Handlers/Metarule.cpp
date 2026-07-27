@@ -126,7 +126,7 @@ static const SfallMetarule metarules[] = {
 	{"loot_obj",                  mf_get_loot_object,           0, 0},
 	{"message_box",               mf_message_box,               1, 4, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT}},
 	{"metarule_exist",            mf_metarule_exist,            1, 1}, // no arg check
-	{"npc_engine_level_up",       mf_npc_engine_level_up,       1, 1},
+	{"npc_engine_level_up",       mf_npc_engine_level_up,       1, 1, -1, {ARG_INT}},
 	{"obj_is_openable",           mf_obj_is_openable,           1, 1,  0, {ARG_OBJECT}},
 	{"obj_under_cursor",          mf_obj_under_cursor,          2, 2,  0, {ARG_INT, ARG_INT}},
 	{"objects_in_radius",         mf_objects_in_radius,         3, 4,  0, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
