@@ -597,6 +597,8 @@ void Movies::init() {
 	SafeWriteBatch<DWORD>((DWORD)MoviePtrs, {0x44E6AE, 0x44E721, 0x44E75E, 0x44E78A}); // gmovie_play_
 	MakeCall(0x44E896, gmovie_play_hack_subpal, 2);
 	MakeCall(0x45A1C9, op_play_gmovie_hack);
+	// prevent potential crashes
+	SafeWrite16(0x44EB7B, 0xF883); // gmovie_subtitle_func_ (cmp byte ptr [eax], 0 > cmp eax, 0)
 
 	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);

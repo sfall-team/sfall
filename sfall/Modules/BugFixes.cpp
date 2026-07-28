@@ -3675,6 +3675,36 @@ skip:
 	}
 }
 
+static __declspec(naked) void partyMemberLoad_hack() {
+	__asm {
+		pop  edx; // return addr
+		push eax; // save result
+		mov  eax, [esp + 0x1C - 0x1C];
+		call fo::funcoffs::mem_free_;
+		pop  eax; // restore
+		// overwritten engine code
+		add  esp, 4;
+		pop  ebp;
+		pop  edi;
+		jmp  edx;
+	}
+}
+
+static __declspec(naked) void partyMemberRecoverLoadInstance_hack() {
+	__asm {
+		pop  edx; // return addr
+		cmp  dword ptr [ebx + 8], 0; // list->localVarData
+		je   end;
+		mov  eax, [ebx + 8];
+		call fo::funcoffs::mem_free_;
+		mov  dword ptr [ebx + 8], 0;
+end: // overwritten engine code
+		xor  eax, eax;
+		add  esp, 8;
+		jmp  edx;
+	}
+}
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -4576,6 +4606,10 @@ void BugFixes::init() {
 
 	// Fix typo in debug output from gsound_load_sound_ engine function
 	SafeWrite16(0x503CB1, 0x7972); // was "tyring %s"
+
+	// Fix memory leaks related to party members during map transitions
+	MakeCall(0x494D70, partyMemberLoad_hack);
+	MakeCall(0x494BB0, partyMemberRecoverLoadInstance_hack);
 }
 
 }
