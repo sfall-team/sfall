@@ -191,10 +191,8 @@ static long __fastcall FindOverride(fo::Program* program, fo::ScriptInstance** s
 	return result;
 }
 
-static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program_back = fo::funcoffs::scr_find_sid_from_program_ + 5;
-
 static __declspec(naked) void scr_find_sid_from_program_hack() {
+	static const DWORD scr_find_sid_from_program_back = 0x4A3911;
 	__asm {
 		pushadc;
 		mov  ecx, eax;     // program
@@ -217,6 +215,7 @@ normal:
 }
 
 static __declspec(naked) void scr_ptr_hack() {
+	static const DWORD scr_ptr_back = 0x4A5E39;
 	__asm {
 		cmp  eax, -2; // value from FindOverride
 		jne  skip;

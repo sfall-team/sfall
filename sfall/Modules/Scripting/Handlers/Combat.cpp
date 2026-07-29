@@ -18,6 +18,7 @@
 
 #include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\SafeWrite.h"
 #include "..\..\AI.h"
 #include "..\..\BurstMods.h"
 #include "..\..\Combat.h"
@@ -276,6 +277,20 @@ void mf_set_combat_free_move(OpcodeContext& ctx) {
 	*fo::ptr::combat_free_move = value;
 	if (*fo::ptr::combat_state & fo::CombatStateFlag::InCombat && (*fo::ptr::main_ctd).attacker == *fo::ptr::obj_dude) {
 		fo::func::intface_update_move_points((*fo::ptr::obj_dude)->critter.movePoints, *fo::ptr::combat_free_move);
+	}
+}
+
+void ToHitPlayerPenaltyRestore() {
+	if (*(BYTE*)0x4244ED != 0x75) {
+		SafeWrite8(0x4244ED, 0x75);
+	}
+}
+
+void mf_set_fo1_hit_chance(OpcodeContext& ctx) {
+	if (ctx.arg(0).rawValue()) {
+		SafeWrite8(0x4244ED, 0xEB); // skip (PE - 2) distance penalty for the player
+	} else {
+		SafeWrite8(0x4244ED, 0x75); // engine default (jne)
 	}
 }
 
