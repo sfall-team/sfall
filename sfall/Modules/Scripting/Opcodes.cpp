@@ -291,7 +291,9 @@ void Opcodes::InitNew() {
 
 	LoadGameHook::OnGameReset() += []() {
 		PipboyAvailableRestore();
+		ToHitPlayerPenaltyRestore();
 		ForceEncounterRestore(); // restore if the encounter did not happen
+		DrawTownNamesRestore();
 		ResetIniCache();
 	};
 

@@ -18,7 +18,6 @@
 
 #include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
-
 #include "..\..\..\SafeWrite.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
@@ -276,6 +275,20 @@ void mf_get_terrain_name(OpcodeContext& ctx) {
 
 void mf_set_town_title(OpcodeContext& ctx) {
 	Worldmap::SetCustomAreaTitle(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
+}
+
+void DrawTownNamesRestore() {
+	if (*(WORD*)0x4C3FFE != 0x8D0F) {
+		SafeWrite16(0x4C3FFE, 0x8D0F);
+	}
+}
+
+void mf_remove_wm_town_names(OpcodeContext& ctx) {
+	if (ctx.arg(0).rawValue()) {
+		SafeWrite16(0x4C3FFE, 0xE990); // skip drawing town names under green circles on the world map
+	} else {
+		SafeWrite16(0x4C3FFE, 0x8D0F); // engine default (jge)
+	}
 }
 
 }

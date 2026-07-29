@@ -256,9 +256,9 @@ skip:
 static __declspec(naked) void obj_render_pre_roof_hack() {
 	__asm {
 		cmp  eax, 500;
-		jge  jbreak;
+		jge  skip;
 		retn;
-jbreak:
+skip:
 		pop  edx;
 		add  edx, 13; // offset to next section (0x4896E8, 0x4897C7)
 		jmp  edx;
