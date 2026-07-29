@@ -6,6 +6,7 @@
 
 // PLEASE USE THOSE IN ASM BLOCKS!
 #define FO_VAR_aDialogS_msg               0x50DBE8
+#define FO_VAR_ai_message_file            0x56D510
 #define FO_VAR_aiInfoList                 0x510948
 #define FO_VAR_ambient_light              0x51923C
 #define FO_VAR_anim_set                   0x54CC14
@@ -49,6 +50,7 @@
 #define FO_VAR_combat_free_move           0x56D39C
 #define FO_VAR_combat_highlight           0x56D38C
 #define FO_VAR_combat_list                0x56D390
+#define FO_VAR_combat_message_file        0x56D368
 #define FO_VAR_combat_obj                 0x51805C
 #define FO_VAR_combat_state               0x510944
 #define FO_VAR_combat_turn_obj            0x56D388
@@ -56,6 +58,7 @@
 #define FO_VAR_combatNumTurns             0x510940
 #define FO_VAR_crit_succ_eff              0x510978
 #define FO_VAR_critter_db_handle          0x58E94C
+#define FO_VAR_critter_scrmsg_file        0x56D754
 #define FO_VAR_critterClearObj            0x518438
 #define FO_VAR_crnt_func                  0x664508
 #define FO_VAR_cur_id                     0x51C7D4
@@ -69,6 +72,7 @@
 #define FO_VAR_currentProgram             0x59E78C
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
+#define FO_VAR_custom_msg_file            0x58EA98
 #define FO_VAR_debug_func                 0x51DF04
 #define FO_VAR_deviceInit                 0x668164 // sound
 #define FO_VAR_dialog_red_button_down_buf 0x58F4A4
@@ -184,6 +188,7 @@
 #define FO_VAR_inven_scroll_up_bid        0x5190E4
 #define FO_VAR_inventry_message_file      0x59E814
 #define FO_VAR_iscr_data                  0x519068
+#define FO_VAR_item_message_file          0x59E980
 #define FO_VAR_itemButtonItems            0x5970F8
 #define FO_VAR_itemButtonRect             0x518F7C
 #define FO_VAR_itemCurrentItem            0x518F78
@@ -207,6 +212,7 @@
 #define FO_VAR_list_total                 0x56D37C
 #define FO_VAR_loadingGame                0x5194C4
 #define FO_VAR_LSData                     0x613D30
+#define FO_VAR_lsgame_msgfl               0x613D28
 #define FO_VAR_lsgwin                     0x6142C4
 #define FO_VAR_main_ctd                   0x56D2B0
 #define FO_VAR_main_death_voiceover_done  0x614838
@@ -215,6 +221,7 @@
 #define FO_VAR_map_elevation              0x519578
 #define FO_VAR_map_flags                  0x631D7C
 #define FO_VAR_map_global_vars            0x51956C
+#define FO_VAR_map_msg_file               0x631D48
 #define FO_VAR_map_name                   0x631D58
 #define FO_VAR_map_number                 0x631D88
 #define FO_VAR_map_scroll_refresh         0x519540
@@ -228,6 +235,7 @@
 #define FO_VAR_max_disp                   0x56FB40
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
+#define FO_VAR_misc_message_file          0x58E940
 #define FO_VAR_Move_on_Car                0x672E64
 #define FO_VAR_mouse_buttons              0x6AC7B0
 #define FO_VAR_mouse_hotx                 0x6AC7D0
@@ -266,6 +274,7 @@
 #define FO_VAR_optionsButtonUp            0x59D3FC
 #define FO_VAR_optionsButtonUp1           0x570514
 #define FO_VAR_optionsButtonUpKey         0x518F28
+#define FO_VAR_optn_msgfl                 0x6637E8
 #define FO_VAR_optnwin                    0x663900
 #define FO_VAR_outlined_object            0x518D94
 #define FO_VAR_pal                        0x56D7E0
@@ -284,6 +293,7 @@
 #define FO_VAR_pc_trait                   0x66BE40
 #define FO_VAR_pc_trait2                  0x66BE44
 #define FO_VAR_perk_data                  0x519DCC
+#define FO_VAR_perk_message_file          0x6642D4
 #define FO_VAR_perkLevelDataList          0x51C120
 #define FO_VAR_pip_win                    0x6644C4
 #define FO_VAR_pipboy_message_file        0x664348
@@ -298,6 +308,7 @@
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C
+#define FO_VAR_quest_message_file         0x664410
 #define FO_VAR_quests                     0x51C128
 #define FO_VAR_queue                      0x6648C0
 #define FO_VAR_quick_done                 0x5193BC
@@ -313,11 +324,14 @@
 #define FO_VAR_scr_size                   0x6AC9F0
 #define FO_VAR_screen_buffer              0x51E3FC
 #define FO_VAR_script_engine_running      0x51C714
+#define FO_VAR_script_message_file        0x667724
 #define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_scroll_blocking_on         0x51D954
 #define FO_VAR_scroll_limiting_on         0x51D958
 #define FO_VAR_skill_data                 0x51D118
+#define FO_VAR_skill_message_file         0x668080
+#define FO_VAR_skldxmsg                   0x6680F8
 #define FO_VAR_skldxwin                   0x668140
 #define FO_VAR_slot_cursor                0x5193B8
 #define FO_VAR_sndfx_volume               0x518E90
@@ -332,6 +346,7 @@
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_stat_message_file          0x66817C
 #define FO_VAR_statcount                  0x664418
 #define FO_VAR_subtitleH                  0x638EA0
 #define FO_VAR_subtitleList               0x638E74
@@ -369,6 +384,7 @@
 #define FO_VAR_title_font                 0x56D748
 #define FO_VAR_topFileID                  0x6B2780
 #define FO_VAR_trait_data                 0x51DB84
+#define FO_VAR_trait_message_file         0x66BE38
 #define FO_VAR_use_language               0x510898  // aka _darn_foreigners
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
