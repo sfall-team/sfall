@@ -3689,6 +3689,13 @@ end: // overwritten engine code
 	}
 }
 
+static __declspec(naked) void game_reset_hook() {
+	__asm {
+		call fo::funcoffs::game_unload_info_;
+		jmp  fo::funcoffs::game_load_info_;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4622,6 +4629,9 @@ void BugFixes::init() {
 	// Fix memory leaks related to party members during map transitions
 	MakeCall(0x494D70, partyMemberLoad_hack);
 	MakeCall(0x494BB0, partyMemberRecoverLoadInstance_hack);
+
+	// Fix memory leak involving global variables on game load
+	HookCall(0x442BF3, game_reset_hook);
 }
 
 }
