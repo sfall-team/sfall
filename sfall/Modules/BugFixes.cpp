@@ -3392,6 +3392,15 @@ black:
 	}
 }
 
+static __declspec(naked) void perk_add_effect_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_get_;
+		test edx, edx;  // xp for next level, -1 if max level reached
+		cmovs edx, eax; // set to current xp
+		retn;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static __declspec(naked) void item_add_force_hack0() {
@@ -4544,6 +4553,9 @@ void BugFixes::init() {
 
 	// Fix for gaining two levels at once when leveling up from level 97
 	SafeWrite8(0x4AF9AF, 0x7F); // jge > jg (statPcMinExpForLevel_)
+
+	// Fix for xp being reset to 0 when selecting Here and Now perk at the maximum player level
+	HookCall(0x496C99, perk_add_effect_hook);
 
 	// Fix to prevent integer overflow for the number of items in a stack in the inventory
 	// If the number of items in a stack is less than 1, it is considered an integer overflow
