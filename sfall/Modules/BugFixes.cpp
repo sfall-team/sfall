@@ -3668,6 +3668,16 @@ skip:
 	}
 }
 
+static __declspec(naked) void editor_design_hook_stat_button() {
+	__asm {
+		call fo::funcoffs::StatButton_;
+		xor  ebx, ebx;
+		xor  edx, edx;
+		mov  eax, STAT_base_count;
+		jmp  fo::funcoffs::PrintBasicStat_;
+	}
+}
+
 static __declspec(naked) void partyMemberLoad_hack() {
 	__asm {
 		pop  edx; // return addr
@@ -4627,6 +4637,13 @@ void BugFixes::init() {
 	// Fix for minor visual glitch when selecting perks that modify SPECIAL stats
 	const DWORD printStatBufWidthAddr[] = {0x434C76, 0x434D2A, 0x434E00, 0x434EB5};
 	SafeWriteBatch<BYTE>(65, printStatBufWidthAddr); // PrintBasicStat_ (was 40)
+
+	// Fix for minor visual glitch when adjusting SPECIAL stats during character creation
+	HookCall(0x432317, editor_design_hook_stat_button);
+
+	// Fix missing sounds for the SPECIAL stat +/- buttons in the character creation screen
+	const DWORD charEditRegBtnSndAddr[] = {0x433901, 0x433966};
+	SafeWriteBatch<WORD>(0x9090, charEditRegBtnSndAddr); // remove incorrect button ID assignment (CharEditStart_)
 
 	// Fix potential index out of bounds error in wmMapIdxToName_ engine function
 	SafeWrite8(0x4BF97A, 0x7E); // jz > jle
