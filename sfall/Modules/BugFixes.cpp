@@ -3731,6 +3731,19 @@ static __declspec(naked) void game_reset_hook() {
 	}
 }
 
+static __declspec(naked) void map_load_file_hook_get_cursor() {
+	__asm {
+		call fo::funcoffs::gmouse_get_cursor_;
+		cmp  eax, 4;  // cursorType: scroll northwest
+		jl   end;
+		cmp  eax, 19; // cursorType: invalid scroll west
+		jg   end;
+		mov  eax, 1;  // cursorType: standard arrow
+end:
+		retn;
+	}
+}
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -4648,6 +4661,9 @@ void BugFixes::init() {
 
 	// Fix memory leak involving global variables on game load
 	HookCall(0x442BF3, game_reset_hook);
+
+	// Fix for the cursor getting stuck in view scrolling mode when entering an encounter
+	HookCall(0x482BB4, map_load_file_hook_get_cursor);
 }
 
 }
