@@ -64,7 +64,5 @@ void mf_set_combat_free_move(OpcodeContext&);
 
 void mf_set_fo1_hit_chance(OpcodeContext&);
 
-void ToHitPlayerPenaltyRestore();
-
 }
 }

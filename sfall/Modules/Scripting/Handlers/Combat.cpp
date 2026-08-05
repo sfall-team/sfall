@@ -280,17 +280,13 @@ void mf_set_combat_free_move(OpcodeContext& ctx) {
 	}
 }
 
-void ToHitPlayerPenaltyRestore() {
-	if (*(BYTE*)0x4244ED != 0x75) {
-		SafeWrite8(0x4244ED, 0x75);
-	}
-}
-
 void mf_set_fo1_hit_chance(OpcodeContext& ctx) {
 	if (ctx.arg(0).rawValue()) {
-		SafeWrite8(0x4244ED, 0xEB); // skip (PE - 2) distance penalty for the player
+		if (!fo1HitChanceCalc) SafeWrite8(0x4244ED, 0xEB); // skip (PE - 2) distance penalty for the player
+		fo1HitChanceCalc = true;
 	} else {
-		SafeWrite8(0x4244ED, 0x75); // engine default (jne)
+		if (fo1HitChanceCalc) SafeWrite8(0x4244ED, 0x75); // engine default (jne)
+		fo1HitChanceCalc = false;
 	}
 }
 

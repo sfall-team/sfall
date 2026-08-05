@@ -34,6 +34,8 @@
 namespace sfall
 {
 
+bool wmDrawTownNames = true;
+
 static Delegate<> onWorldmapLoop;
 
 static DWORD AutomapPipboyList[AUTOMAP_MAX];
@@ -749,6 +751,10 @@ void Worldmap::init() {
 		mapRestInfo.clear();
 		wmTerrainTypeNames.clear();
 		wmAreaHotSpotTitle.clear();
+		if (!wmDrawTownNames) {
+			wmDrawTownNames = true;
+			SafeWrite16(0x4C3FFE, 0x8D0F);
+		}
 	};
 }
 
