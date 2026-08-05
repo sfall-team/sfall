@@ -73,6 +73,8 @@ struct KnockbackModifier {
 
 long Combat::determineHitChance; // the value of hit chance w/o any cap
 
+bool fo1HitChanceCalc = false;
+
 static std::vector<long> noBursts; // critter id
 
 static std::vector<KnockbackModifier> mTargets;
@@ -85,8 +87,6 @@ static ChanceModifier baseHitChance;
 static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
-
-//static bool checkWeaponAmmoCost;
 
 // Compares the cost (required count of rounds) for one shot with the current amount of ammo to make an attack or other checks
 static long __fastcall check_item_ammo_cost(fo::GameObject* weapon, fo::AttackType hitMode) {
@@ -568,6 +568,10 @@ void Combat::OnGameReset() {
 	noBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
+	if (fo1HitChanceCalc) {
+		fo1HitChanceCalc = false;
+		SafeWrite8(0x4244ED, 0x75);
+	}
 }
 
 void Combat::init() {

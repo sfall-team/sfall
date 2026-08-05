@@ -275,9 +275,7 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 
 void Opcodes::OnGameReset() {
 	PipboyAvailableRestore();
-	ToHitPlayerPenaltyRestore();
 	ForceEncounterRestore(); // restore if the encounter did not happen
-	DrawTownNamesRestore();
 	ResetIniCache();
 }
 

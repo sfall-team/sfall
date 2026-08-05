@@ -63,4 +63,6 @@ void __stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
 void __stdcall DisableAimedShots(DWORD pid);
 void __stdcall ForceAimedShots(DWORD pid);
 
+extern bool fo1HitChanceCalc;
+
 }

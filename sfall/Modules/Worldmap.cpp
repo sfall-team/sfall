@@ -32,6 +32,8 @@
 namespace sfall
 {
 
+bool wmDrawTownNames = true;
+
 static DWORD AutomapPipboyList[AUTOMAP_MAX];
 
 static DWORD ViewportX;
@@ -730,6 +732,10 @@ void Worldmap::OnGameReset() {
 	wmTerrainTypeNames.clear();
 	wmAreaHotSpotTitle.clear();
 	worldMapHealingInterval = WorldMapHealingDefaultInterval;
+	if (!wmDrawTownNames) {
+		wmDrawTownNames = true;
+		SafeWrite16(0x4C3FFE, 0x8D0F);
+	}
 }
 
 void Worldmap::init() {

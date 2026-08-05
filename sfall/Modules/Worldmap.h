@@ -56,4 +56,6 @@ public:
 	static void SetMapMulti(float value);
 };
 
+extern bool wmDrawTownNames;
+
 }
