@@ -46,6 +46,7 @@ PTR_(DarkGreenGreyColor,         BYTE)
 PTR_(DarkGreyColor,              BYTE)
 PTR_(DarkRedColor,               BYTE)
 PTR_(DarkYellowColor,            BYTE)
+PTR_(days_in_month,              long) // array of 12 long
 PTR_(dialog_target,              fo::GameObject*)
 PTR_(dialog_target_is_party,     DWORD)
 PTRC(dialogueBackWindow,         DWORD)
