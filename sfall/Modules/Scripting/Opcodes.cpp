@@ -292,6 +292,7 @@ void Opcodes::InitNew() {
 	LoadGameHook::OnGameReset() += []() {
 		PipboyAvailableRestore();
 		ForceEncounterRestore(); // restore if the encounter did not happen
+		NPCReactionRestore();
 		ResetIniCache();
 	};
 

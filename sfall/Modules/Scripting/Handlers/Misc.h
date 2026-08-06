@@ -98,5 +98,9 @@ void mf_set_scr_name(OpcodeContext&);
 
 void mf_signal_close_game(OpcodeContext&);
 
+void mf_set_reaction_thresholds(OpcodeContext&);
+
+void NPCReactionRestore();
+
 }
 }

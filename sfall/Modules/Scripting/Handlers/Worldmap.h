@@ -68,5 +68,7 @@ void mf_set_town_title(OpcodeContext&);
 
 void mf_remove_wm_town_names(OpcodeContext&);
 
+void mf_encounter_detection(OpcodeContext&);
+
 }
 }

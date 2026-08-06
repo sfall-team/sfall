@@ -363,5 +363,22 @@ void mf_signal_close_game(OpcodeContext& ctx) {
 	fo::var::game_user_wants_to_quit = 2; // return to the main menu
 }
 
+void NPCReactionRestore() {
+	if (*(BYTE*)0x4A2A05 != 0xF6) {
+		SafeWrite8(0x4A2A05, 0xF6); // -10
+		SafeWrite16(0x4A29EB, 0x067F); // jg 0x4A29F3
+	}
+	if (*(BYTE*)0x4A2A0D != 0x0A) SafeWrite8(0x4A2A0D, 0x0A); // 10
+}
+
+void mf_set_reaction_thresholds(OpcodeContext& ctx) {
+	int neutral = clamp(static_cast<int>(ctx.arg(0).rawValue()), -125, 125),
+	    good = clamp(static_cast<int>(ctx.arg(1).rawValue()), neutral, 125);
+
+	SafeWrite8(0x4A2A05, neutral);
+	SafeWrite16(0x4A29EB, 0x16EB); // skip redundant code
+	SafeWrite8(0x4A2A0D, good);
+}
+
 }
 }
