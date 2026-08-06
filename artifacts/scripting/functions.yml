@@ -766,7 +766,7 @@
 
   - name: set_explosion_max_targets
     detail: void set_explosion_max_targets(x)
-    doc: Sets the maximum number of additional targets for an explosion. Valid range: 1..6 (default: 6).
+    doc: "Sets the maximum number of additional targets for an explosion. Valid range: 1..6 (default: 6)."
     macro: sfall.h
 
   - name: item_make_explosive
