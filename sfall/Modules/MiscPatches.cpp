@@ -216,7 +216,6 @@ static void F1EngineBehaviorPatch() {
 		dlogr("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
-		SafeWrite32(0x4A5201, 264600); // set the initial in-game time to 7:21
 	}
 }
 

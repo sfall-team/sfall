@@ -240,13 +240,20 @@ static void StartingStatePatches() {
 	}
 	date = IniReader::GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
-		if (month == 1 && date > 28) { // for February
-			date = 28; // set 29th day
-		} else if (date > 30) {
-			date = 30; // set 31st day
-		}
+		if (month < 0) month = 6; // default month (July)
+		if (date >= fo::var::days_in_month[month]) date = fo::var::days_in_month[month] - 1;
 		dlogr("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, static_cast<BYTE>(date));
+	}
+	date = StrToLong(IniReader::GetConfigString("Misc", "StartTime", "-1").c_str(), 10); // for leading zero
+	if (date >= 0) {
+		date %= 10000;
+		month = date / 100; // hours
+		date %= 100; // minutes
+		if (month > 23) month = 23;
+		if (date > 59) date = 59;
+		dlogr("Applying starting time patch.", DL_INIT);
+		SafeWrite32(0x4A5201, (month * 36000) + (date * 600)); // in ticks
 	}
 
 	long xPos = IniReader::GetConfigInt("Misc", "StartXPos", -1);

@@ -73,6 +73,7 @@
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
 #define FO_VAR_custom_msg_file            0x58EA98
+#define FO_VAR_days_in_month              0x51C724
 #define FO_VAR_debug_func                 0x51DF04
 #define FO_VAR_deviceInit                 0x668164 // sound
 #define FO_VAR_dialog_red_button_down_buf 0x58F4A4
