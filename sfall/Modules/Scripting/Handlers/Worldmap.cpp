@@ -287,5 +287,15 @@ void mf_remove_wm_town_names(OpcodeContext& ctx) {
 	}
 }
 
+void mf_encounter_detection(OpcodeContext& ctx) {
+	if (ctx.arg(0).rawValue()) {
+		if (!wmEncDetection) SafeWrite16(0x4C09A4, 0x107F); // engine default (jg 0x4C09B6)
+		wmEncDetection = true;
+	} else {
+		if (wmEncDetection) SafeWrite16(0x4C09A4, 0x0BEB);  // skip encounter detection and dialog box
+		wmEncDetection = false;
+	}
+}
+
 }
 }

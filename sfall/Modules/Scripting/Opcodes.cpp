@@ -276,6 +276,7 @@ static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOf
 void Opcodes::OnGameReset() {
 	PipboyAvailableRestore();
 	ForceEncounterRestore(); // restore if the encounter did not happen
+	NPCReactionRestore();
 	ResetIniCache();
 }
 

@@ -57,5 +57,6 @@ public:
 };
 
 extern bool wmDrawTownNames;
+extern bool wmEncDetection;
 
 }

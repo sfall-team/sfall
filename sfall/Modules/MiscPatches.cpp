@@ -977,6 +977,7 @@ static void EngineOptimizationPatches() {
 	BlockCall(0x45EBBF); // intface_redraw_
 	BlockCall(0x4A4859); // exec_script_proc_
 	BlockCall(0x455189, 11); // op_create_object_sid_
+	SafeWrite8(0x4A2A0F, 0x13); // reaction_to_level_
 
 	// Improve performance of the data conversion of script interpreter
 	// mov eax, [edx+eax]; bswap eax; ret;

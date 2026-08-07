@@ -33,6 +33,7 @@ namespace sfall
 {
 
 bool wmDrawTownNames = true;
+bool wmEncDetection = true;
 
 static DWORD AutomapPipboyList[AUTOMAP_MAX];
 
@@ -742,6 +743,10 @@ void Worldmap::OnGameReset() {
 	if (!wmDrawTownNames) {
 		wmDrawTownNames = true;
 		SafeWrite16(0x4C3FFE, 0x8D0F);
+	}
+	if (!wmEncDetection) {
+		wmEncDetection = true;
+		SafeWrite16(0x4C09A4, 0x107F);
 	}
 }
 
