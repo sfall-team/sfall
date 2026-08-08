@@ -3709,7 +3709,7 @@ static __declspec(naked) void partyMemberLoad_hack() {
 	}
 }
 
-static __declspec(naked) void partyMemberRecoverLoadInstance_hack() {
+static __declspec(naked) void partyMemberRecoverLoad_hack() {
 	__asm {
 		pop  edx; // return addr
 		cmp  dword ptr [ebx + 8], 0; // list->localVarData
@@ -4657,12 +4657,15 @@ void BugFixes::init() {
 
 	// Fix memory leaks related to party members during map transitions
 	MakeCall(0x494D70, partyMemberLoad_hack);
-	MakeCall(0x494BB0, partyMemberRecoverLoadInstance_hack);
+	MakeCalls(partyMemberRecoverLoad_hack, {
+		0x494BB0, // partyMemberRecoverLoadInstance_
+		0x495484  // partyMemberItemRecover_
+	});
 
 	// Fix memory leak involving global variables on game load
 	HookCall(0x442BF3, game_reset_hook);
 
-	// Fix for the cursor getting stuck in view scrolling mode when entering an encounter
+	// Fix for the cursor getting stuck in view scrolling mode upon entering an encounter
 	HookCall(0x482BB4, map_load_file_hook_get_cursor);
 }
 
