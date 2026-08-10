@@ -485,7 +485,7 @@ static __declspec(naked) void map_check_state_hook_redraw() {
 
 void ViewMap::RedrawFix() {
 	// Redraw the screen to update black edges of the map (HRP bug)
-	// https://github.com/phobos2077/sfall/issues/282
+	// https://github.com/sfall-team/sfall/issues/282
 	sf::HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	sf::HookCall(0x483726, map_check_state_hook_redraw);
 }
