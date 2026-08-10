@@ -200,6 +200,7 @@
 #define FO_VAR_map_msg_file               0x631D48
 #define FO_VAR_map_name                   0x631D58
 #define FO_VAR_map_number                 0x631D88
+#define FO_VAR_map_script_id              0x519564
 #define FO_VAR_map_scroll_refresh         0x519540
 #define FO_VAR_map_state                  0x631D28
 #define FO_VAR_mapEntranceElevation       0x519558

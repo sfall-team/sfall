@@ -192,6 +192,28 @@ static __declspec(naked) void text_object_create_hack() {
 	}
 }
 
+static long prevMapNum;
+
+static __declspec(naked) void map_load_file_hack0() {
+	__asm {
+		mov  ds:[FO_VAR_map_script_id], ecx; // overwritten engine code
+		mov  edx, ds:[FO_VAR_map_number];
+		mov  prevMapNum, edx;
+		retn;
+	}
+}
+
+static __declspec(naked) void map_load_file_hack1() {
+	__asm {
+		mov  ds:[FO_VAR_map_number], eax; // overwritten engine code
+		cmp  prevMapNum, eax;
+		je   skip;
+		call fo::funcoffs::art_flush_;
+skip:
+		retn;
+	}
+}
+
 static __declspec(naked) void obj_move_to_tile_hook_redraw() {
 	__asm {
 		mov  MainLoopHook::displayWinUpdateState, 1;
@@ -1128,8 +1150,12 @@ void MiscPatches::init() {
 	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
 	HookCall(0x4B03A1, text_object_create_hack); // jge hack
 
+	// Flush the art cache when loading a new map to reduce heap warnings
+	MakeCall(0x482C30, map_load_file_hack0);
+	MakeCall(0x482E60, map_load_file_hack1);
+
 	// Redraw the screen to update black edges of the map (HRP bug)
-	// https://github.com/phobos2077/sfall/issues/282
+	// https://github.com/sfall-team/sfall/issues/282
 	HookCall(0x48A954, obj_move_to_tile_hook_redraw);
 	HookCall(0x483726, map_check_state_hook_redraw);
 
