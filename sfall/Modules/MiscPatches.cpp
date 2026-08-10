@@ -180,25 +180,10 @@ static __declspec(naked) void text_object_create_hack() {
 	}
 }
 
-static long prevMapNum;
-
-static __declspec(naked) void map_load_file_hack0() {
+static __declspec(naked) void game_reset_hook_art_flush() {
 	__asm {
-		mov  ds:[FO_VAR_map_script_id], ecx; // overwritten engine code
-		mov  edx, ds:[FO_VAR_map_number];
-		mov  prevMapNum, edx;
-		retn;
-	}
-}
-
-static __declspec(naked) void map_load_file_hack1() {
-	__asm {
-		mov  ds:[FO_VAR_map_number], eax; // overwritten engine code
-		cmp  prevMapNum, eax;
-		je   skip;
-		call fo::funcoffs::art_flush_;
-skip:
-		retn;
+		call fo::funcoffs::gsound_reset_;
+		jmp  fo::funcoffs::art_flush_;
 	}
 }
 
@@ -1108,9 +1093,8 @@ void MiscPatches::init() {
 	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
 	HookCall(0x4B03A1, text_object_create_hack); // jge hack
 
-	// Flush the art cache when loading a new map to reduce heap warnings
-	MakeCall(0x482C30, map_load_file_hack0);
-	MakeCall(0x482E60, map_load_file_hack1);
+	// Flush the art cache on game reset to reduce heap warnings
+	HookCall(0x442BCB, game_reset_hook_art_flush);
 
 	// Small code patch for HOOK_ONDEATH (move HP/flag setting code earlier)
 	MakeCall(0x42DA7E, critter_kill_hack, 1);
