@@ -29,13 +29,35 @@
 namespace sfall
 {
 
+bool disableHorrigan = false;
+
 static char mapName[16]       = {};
 static char patchName[65]     = {};
 static char versionString[65] = {};
 
 static int* scriptDialog = nullptr;
 
-bool disableHorrigan = false;
+static __declspec(naked) void art_init_hook() {
+	__asm {
+		call fo::funcoffs::config_get_value_;
+		mov  edx, 16; // default from the original installer for 32 MB RAM
+		mov  eax, [esp + 0xF8 - 0x2C + 4]; // art_cache_size value
+		cmp  eax, edx;
+		cmovl eax, edx;
+		mov  [esp + 0xF8 - 0x2C + 4], eax;
+		retn;
+	}
+}
+
+static __declspec(naked) void iso_reset_hook_art_reset() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_loadingGame], 0;
+		jne  flush;
+		retn;
+flush:
+		jmp  fo::funcoffs::art_flush_;
+	}
+}
 
 // Implementation from HRP by Mash
 static void __stdcall CheckMessages() {
@@ -189,13 +211,6 @@ static __declspec(naked) void text_object_create_hack() {
 		mov  ecx, eax;
 		push 0x4B03A6; // ret addr
 		jmp  RemoveFloatTextObject;
-	}
-}
-
-static __declspec(naked) void game_reset_hook_art_flush() {
-	__asm {
-		call fo::funcoffs::gsound_reset_;
-		jmp  fo::funcoffs::art_flush_;
 	}
 }
 
@@ -1057,21 +1072,14 @@ void MiscPatches::init() {
 	if (IniReader::GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlogr("Applying override art cache size patch.", DL_INIT);
 		SafeWrite32(0x418867, 0x90909090);
-		SafeWrite32(0x418872, 261); // default for 512 MB system memory from offical installer
+		SafeWrite32(0x418872, 261); // default from the original installer for 512 MB RAM
+	} else {
+		HookCall(0x418862, art_init_hook); // set the minimum cache size
 	}
+	SafeWrite32(0x444664, 16); // default if art_cache_size does not exist in cfg (was 8)
 
-	int time = IniReader::GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
-	if (time != 6) {
-		dlogr("Applying corpse deletion time patch.", DL_INIT);
-		if (time <= 0) {
-			time = 12; // hours
-		} else if (time > 13) {
-			time = 13 * 24;
-		} else {
-			time *= 24;
-		}
-		SafeWrite32(0x483348, time);
-	}
+	// Flush the art cache on game load to reduce heap warnings
+	HookCall(0x481F16, iso_reset_hook_art_reset); // replace empty art_reset_
 
 	// Set idle function
 	*fo::ptr::idle_func = reinterpret_cast<void*>(Sleep);
@@ -1089,6 +1097,19 @@ void MiscPatches::init() {
 	SafeWrite32(0x4A8DBA, 0x9090C031); // xor eax, eax
 	BlockCall(0x4A8E10); // block vcr_record_ (selfrun_recording_loop_)
 	BlockCall(0x4A8E15); // just nop code
+
+	int time = IniReader::GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
+		dlogr("Applying corpse deletion time patch.", DL_INIT);
+		if (time <= 0) {
+			time = 12; // hours
+		} else if (time > 13) {
+			time = 13 * 24;
+		} else {
+			time *= 24;
+		}
+		SafeWrite32(0x483348, time);
+	}
 
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
@@ -1134,9 +1155,6 @@ void MiscPatches::init() {
 
 	// Remove an old floating message when creating a new one if the maximum number of floating messages has been reached
 	HookCall(0x4B03A1, text_object_create_hack); // jge hack
-
-	// Flush the art cache on game reset to reduce heap warnings
-	HookCall(0x442BCB, game_reset_hook_art_flush);
 
 	// Redraw the screen to update black edges of the map (HRP bug)
 	// https://github.com/sfall-team/sfall/issues/282
