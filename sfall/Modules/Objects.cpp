@@ -139,8 +139,8 @@ static __declspec(naked) void queue_add_hack() {
 		mov  [edx + 8], edi; // queue.object
 		mov  [edx], esi;     // queue.time
 		//---
-		cmp  ds:[FO_VAR_loadingGame], 1; // don't change the object ID when loading a saved game (e.g. fix: NPC turns into a container)
-		je   skip;
+		cmp  dword ptr ds:[FO_VAR_loadingGame], 0; // don't change the object ID when loading a saved game (e.g. fix: NPC turns into a container)
+		jne  skip;
 		test edi, edi;
 		jnz  fix;
 skip:

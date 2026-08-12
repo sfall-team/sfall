@@ -1704,8 +1704,8 @@ static __declspec(naked) void ResetPlayer_hook() {
 static __declspec(naked) void obj_move_to_tile_hack() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
-		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after loading a saved game if the player died
-		jnz  skip;                       // on the world map from radiation (or in some cases on another map)
+		cmp  dword ptr ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after loading a saved game if the player died
+		jne  skip;                                 // on the world map from radiation (or in some cases on another map)
 		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jz   mapLeave;
 skip:
@@ -1719,8 +1719,8 @@ mapLeave:
 
 static __declspec(naked) void obj_move_to_tile_hack_seen() {
 	__asm {
-		cmp  ds:[FO_VAR_loadingGame], 0;         // loading saved game
-		jnz  end; // fix
+		cmp  dword ptr ds:[FO_VAR_loadingGame], 0; // loading saved game
+		jne  end; // fix
 		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
 		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jle  skip;
