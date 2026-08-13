@@ -3909,6 +3909,10 @@ void BugFixes::init() {
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
 
+	// Fix for minor visual glitch when examining items in the inventory (display_stats_, inven_obj_examine_func_)
+	SafeWriteBatch<DWORD>(154, {0x471E20, 0x472F24}); // was 152
+	SafeWriteBatch<DWORD>(190, {0x471E1B, 0x472F1F}); // was 188
+
 	//if (IniReader::GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
 		dlogr("Applying inventory reverse order issues fix.", DL_FIX);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
