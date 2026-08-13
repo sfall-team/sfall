@@ -884,10 +884,14 @@ void Inventory::init() {
 	}
 
 	// Adjust the maximum text width of the total weight display on the inventory screen
-	SafeWrite32(0x472632, widthWeight);
+	SafeWrite32(0x472632, widthWeight); // was 120
 
 	// Adjust the maximum text width of the unarmed attack display on the inventory screen
-	SafeWrite8(0x472576, 150);
+	SafeWrite8(0x472576, 150); // was 120
+
+	// Adjust the length of separator lines on the inventory screen
+	const DWORD invenDrawLineEndAddr[] = {0x471E95, 0x4720EB, 0x472145, 0x472F87};
+	SafeWriteBatch<DWORD>(443, invenDrawLineEndAddr); // was 440 (line length 143)
 
 	if (IniReader::GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		Translate::Get("sfall", "SuperStimExploitMsg", "You cannot use this item on someone who is not injured!", superStimMsg);
