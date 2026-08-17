@@ -524,6 +524,19 @@ jLoop:
 	}
 }
 
+static __declspec(naked) void wmSetupRandomEncounter_hook_getmsg() {
+	static const DWORD wmSetupRandomEncounter_Ret = 0x4C1047;
+	__asm {
+		call fo::funcoffs::getmsg_;
+		cmp  byte ptr [eax], 0; // check empty string
+		je   skip;
+		retn;
+skip:
+		add  esp, 4;
+		jmp  wmSetupRandomEncounter_Ret;
+	}
+}
+
 // Fallout 1 behavior: No radius for uncovered locations on the world map
 // for the mark_area_known script function when the mark_state argument of the function is set to 3
 __declspec(naked) long Worldmap::AreaMarkStateIsNoRadius() {
@@ -761,6 +774,9 @@ void Worldmap::init() {
 
 	// Add a flashing icon to the Horrigan encounter
 	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
+
+	// Skip encounter messages if the prefix (number 2998 in worldmap.msg) is empty
+	HookCall(0x4C100C, wmSetupRandomEncounter_hook_getmsg);
 }
 
 }

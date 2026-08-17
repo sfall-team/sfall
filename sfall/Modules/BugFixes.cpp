@@ -41,7 +41,7 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
-static char messageBuffer[355];
+static char messageBuffer[512];
 
 /*
 	Saving a list of PIDs for saved drug effects
@@ -1828,7 +1828,7 @@ skip:
 	}
 }
 
-static void __fastcall StripNewlines(char* desc) {
+static void __fastcall StripNewlines(const char* desc) {
 	size_t i = 0, j = 0;
 	while (desc[i] && j < sizeof(messageBuffer) - 1) {
 		if (desc[i] == '\\' && desc[i + 1] == 'n') {
