@@ -1014,8 +1014,12 @@ static __declspec(naked) void make_path_func_hook() {
 		je   fix;
 		jmp  fo::funcoffs::anim_can_use_door_;
 fix:	// replace the target tile (where the multihex object is located) with the current tile
-		mov  ebx, [esp + 0x5C - 0x14 + 4]; // current tile
-		mov  [esp + 0x5C - 0x1C + 4], ebx; // target tile
+		mov  eax, [esp + 0x5C - 0x14 + 4]; // current tile
+		mov  [esp + 0x5C - 0x1C + 4], eax; // target tile
+		lea  ebx, [esp + 0x5C - 0x40 + 4]; // target y
+		lea  edx, [esp + 0x5C - 0x3C + 4]; // target x
+		call fo::funcoffs::tile_coord_;    // update target coordinates
+		or   eax, 1; // continue pathfinding
 		retn;
 	}
 }
@@ -3987,7 +3991,7 @@ void BugFixes::init() {
 
 	//if (IniReader::GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlogr("Applying MultiHex Pathing Fix.", DL_FIX);
-		HookCall(0x416144, make_path_func_hook); // Fix for building the path to the central hex of a multihex object
+		HookCall(0x416144, make_path_func_hook); // Fix for building a path to the central hex of a multihex object
 		//const DWORD multiHexPathAddr[] = {0x42901F, 0x429170};
 		//MakeCalls(MultiHexFix, multiHexPathAddr); // obsolete fix
 
