@@ -99,10 +99,18 @@ skip:
 }
 
 void Premade::init() {
+	// Add language path for premade GCD/BIO files
+	HookCall(0x4A8B44, select_display_bio_hook);
+	HookCall(0x4A7D91, select_update_display_hook);
+
+	// Allow premade characters to have less than two traits
+	const DWORD selDisplayTraitAddr[] = {0x4A89FD, 0x4A8A66};
+	HookCalls(select_display_stats_hook, selDisplayTraitAddr);
+
 	std::vector<std::string> premadePaths = IniReader::GetConfigList("misc", "PremadePaths", "");
 	std::vector<std::string> premadeFids = IniReader::GetConfigList("misc", "PremadeFIDs", "");
 	if (!premadePaths.empty() && !premadeFids.empty()) {
-		dlogr("Applying premade characters patch.", DL_INIT);
+		dlog("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());
 		premade = new fo::PremadeChar[count];
 		for (int i = 0; i < count; i++) {
@@ -120,15 +128,8 @@ void Premade::init() {
 		SafeWrite32(0x4A8B1E, (DWORD)premade);         // select_display_bio_
 		SafeWrite32(0x4A7E2C, (DWORD)&premade[0].fid); // select_display_portrait_
 		std::strcpy((char*)0x50AF68, premade[0].path); // for selfrun
+		dlogr(" Done", DL_INIT);
 	}
-
-	// Add language path for premade GCD/BIO files
-	HookCall(0x4A8B44, select_display_bio_hook);
-	HookCall(0x4A7D91, select_update_display_hook);
-
-	// Allow premade characters to have less than two traits
-	const DWORD selDisplayTraitAddr[] = {0x4A89FD, 0x4A8A66};
-	HookCalls(select_display_stats_hook, selDisplayTraitAddr);
 }
 
 }

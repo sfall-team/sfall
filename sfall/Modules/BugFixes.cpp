@@ -4472,7 +4472,7 @@ void BugFixes::init() {
 		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 	}
 
-	// Fix for the "car outta gas" location being inaccessible when on top of a city
+	// Fix for the "car outta gas" location being inaccessible when it is inside a town circle
 	MakeCall(0x4C3F14, wmMatchWorldPosToArea_hack0, 1); // check the car area before other normal areas
 	MakeCall(0x4C3F3F, wmMatchWorldPosToArea_hack1); // skip the car area to avoid duplication
 

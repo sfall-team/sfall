@@ -218,7 +218,7 @@ PTR_(stat_flag,                  DWORD)
 PTR_(subtitleList,               fo::SubTitleList*)
 PTR_(sWindows,                   fo::sWindow) // array of 16 sWindow
 PTR_(Tag_,                       DWORD)
-PTR_(tag_skill,                  DWORD)
+PTR_(tag_skill,                  long) // array of 4 long
 PTR_(target_curr_stack,          DWORD)
 PTR_(target_pud,                 DWORD*)
 PTR_(target_stack,               fo::GameObject*) // array of 10 GameObject*
