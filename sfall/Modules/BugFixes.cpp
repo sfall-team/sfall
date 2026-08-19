@@ -2809,6 +2809,52 @@ end:
 	}
 }
 
+static __declspec(naked) void wmMatchWorldPosToArea_hack0() {
+	static const DWORD wmMatchWorldPosToArea_End = 0x4C3F9D;
+	__asm { // esi - world_xpos, edi - world_ypos
+		cmp  dword ptr ds:[FO_VAR_wmMaxAreaNum], AREA_CAR_OUTTA_GAS;
+		jle  skip; // no "car outta gas" area (less then 22 areas)
+		mov  eax, ds:[FO_VAR_wmAreaInfoList];
+		add  eax, 360 * AREA_CAR_OUTTA_GAS; // get car area info
+		cmp  dword ptr [eax + 0x38], 0;     // wmAreaInfoList.start_state
+		je   skip;                          // state unknown (hidden location)
+		cmp  esi, [eax + 0x2C];             // wmAreaInfoList.world_posx
+		jl   skip;
+		cmp  edi, [eax + 0x30];             // wmAreaInfoList.world_posy
+		jl   skip;
+		imul ecx, [eax + 0x34], 20;         // wmAreaInfoList.size
+		add  ecx, FO_VAR_wmSphereData;      // get car area sphere data (wm circle)
+		mov  ebx, [eax + 0x2C];
+		add  ebx, [ecx + 0x4];              // wmSphereData.width
+		cmp  esi, ebx;
+		jg   skip;
+		mov  ebx, [eax + 0x30];
+		add  ebx, [ecx + 0x8];              // wmSphereData.length
+		cmp  edi, ebx;
+		jg   skip;
+		mov  eax, [esp + 0x18 - 0x18 + 4];
+		mov  dword ptr [eax], AREA_CAR_OUTTA_GAS; // set current area
+		add  esp, 4;
+		jmp  wmMatchWorldPosToArea_End;
+skip:
+		mov  edx, ds:[FO_VAR_wmMaxAreaNum]; // overwritten engine code
+		retn;
+	}
+}
+
+static __declspec(naked) void wmMatchWorldPosToArea_hack1() {
+	static const DWORD wmMatchWorldPosToArea_Ret = 0x4C3F76;
+	__asm {
+		cmp  ebp, AREA_CAR_OUTTA_GAS; // ebp - area ID
+		je   skip;
+		mov  eax, ds:[FO_VAR_wmAreaInfoList]; // overwritten engine code
+		retn;
+skip:
+		add  esp, 4;
+		jmp  wmMatchWorldPosToArea_Ret;
+	}
+}
+
 static bool __fastcall combat_should_end_check_fix(long dudeTeam, fo::GameObject* critter, fo::GameObject* target) {
 	// target: the current target of the critter (does not need to be checked for null)
 
@@ -4425,6 +4471,10 @@ void BugFixes::init() {
 		dlogr("Applying town map hotkeys patch.", DL_FIX);
 		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 	}
+
+	// Fix for the "car outta gas" location being inaccessible when on top of a city
+	MakeCall(0x4C3F14, wmMatchWorldPosToArea_hack0, 1); // check the car area before other normal areas
+	MakeCall(0x4C3F3F, wmMatchWorldPosToArea_hack1); // skip the car area to avoid duplication
 
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
