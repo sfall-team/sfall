@@ -736,6 +736,11 @@ enum TicksTime : unsigned long
 	ONE_GAME_YEAR         = 315360000
 };
 
+enum Areas : long
+{
+	AREA_CAR_OUTTA_GAS    = 21
+};
+
 enum HandSlot : unsigned long
 {
 	Left                  = 0,
