@@ -306,6 +306,7 @@ long __fastcall Tilemap::make_path_func(fo::GameObject* srcObject, long sourceTi
 							if (!fo::func::anim_can_use_door(srcObject, objBlock)) continue; // block - next rotation
 						} else {
 							targetTile = tile; // replace the target tile (where the multihex object is located) with the current tile
+							fo::func::tile_coord(targetTile, &targetX, &targetY); // update target coordinates
 						}
 					}
 				}
