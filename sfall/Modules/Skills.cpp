@@ -131,7 +131,16 @@ static __declspec(naked) void skill_level_hack() {
 }
 
 static __declspec(naked) void skill_level_hook() {
+	static const DWORD skill_level_Ret = 0x4AA64B;
+	using namespace fo;
+	using namespace Fields;
 	__asm {
+		test eax, eax;
+		jz   skip;
+		mov  esi, [eax + protoId];
+		shr  esi, 24;
+		cmp  esi, OBJ_TYPE_CRITTER;
+		jne  skip; // only critters have skills
 		mov  skillNegPoints, 0;   // reset value
 		call fo::funcoffs::skill_points_;
 		test eax, eax;
@@ -140,6 +149,10 @@ static __declspec(naked) void skill_level_hook() {
 		xor  eax, eax;            // set skill points to 0
 notNeg:
 		retn;
+skip:
+		xor  eax, eax;
+		add  esp, 4;
+		jmp  skill_level_Ret;
 	}
 }
 
