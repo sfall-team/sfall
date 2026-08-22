@@ -55,6 +55,8 @@ static __declspec(naked) void stat_level_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
+		test eax, eax;
+		jz   skip;
 		mov  esi, [eax + protoId];
 		shr  esi, 24;
 		cmp  esi, OBJ_TYPE_CRITTER;
