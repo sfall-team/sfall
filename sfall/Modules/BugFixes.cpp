@@ -3765,6 +3765,17 @@ static __declspec(naked) void game_reset_hook() {
 	}
 }
 
+static __declspec(naked) void sfxl_init_mem_free_hook() {
+	__asm {
+		call fo::funcoffs::mem_free_;
+		xor  ecx, ecx;
+		mov  ds:[FO_VAR_sfxl_effect_path], ecx;
+		mov  ds:[FO_VAR_sfxl_effect_path_len], ecx;
+		mov  ds:[FO_VAR_sfxl_files_total], ecx;
+		retn;
+	}
+}
+
 static __declspec(naked) void map_load_file_hook_get_cursor() {
 	__asm {
 		call fo::funcoffs::gmouse_get_cursor_;
@@ -4738,6 +4749,10 @@ void BugFixes::init() {
 
 	// Fix memory leak involving global variables on game load
 	HookCall(0x442BF3, game_reset_hook);
+
+	// Prevent potential issues when SFX list initialization fails
+	const DWORD sfxlInitMemFreeAddr[] = {0x4A9AB1, 0x4A9AD8};
+	HookCalls(sfxl_init_mem_free_hook, sfxlInitMemFreeAddr);
 
 	// Fix for the cursor getting stuck in view scrolling mode upon entering an encounter
 	HookCall(0x482BB4, map_load_file_hook_get_cursor);
