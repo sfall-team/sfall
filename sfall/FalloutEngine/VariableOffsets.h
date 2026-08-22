@@ -331,6 +331,9 @@
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_scroll_blocking_on         0x51D954
 #define FO_VAR_scroll_limiting_on         0x51D958
+#define FO_VAR_sfxl_effect_path           0x51C900
+#define FO_VAR_sfxl_effect_path_len       0x51C904
+#define FO_VAR_sfxl_files_total           0x51C90C
 #define FO_VAR_skill_data                 0x51D118
 #define FO_VAR_skill_message_file         0x668080
 #define FO_VAR_skldxmsg                   0x6680F8
