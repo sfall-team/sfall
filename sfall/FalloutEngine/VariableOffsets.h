@@ -209,6 +209,7 @@
 #define FO_VAR_Lifegiver                  0x570854
 #define FO_VAR_lips_draw_head             0x519248
 #define FO_VAR_lipsFID                    0x518704
+#define FO_VAR_lipsFp                     0x51870C
 #define FO_VAR_list_com                   0x56D394
 #define FO_VAR_list_total                 0x56D37C
 #define FO_VAR_loadingGame                0x5194C4

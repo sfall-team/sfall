@@ -259,6 +259,17 @@ noScroll:
 	}
 }
 
+static __declspec(naked) void gdSetupFidget_hack() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_lipsFp], 0;
+		jne  skip;
+		mov  dword ptr ds:[FO_VAR_lipsFID], 0; // force reload lipsync frames
+skip:
+		mov  ebp, ds:[FO_VAR_lipsFID]; // overwritten engine code
+		retn;
+	}
+}
+
 static void TalkingHeadsInit() {
 	if (!Graphics::GPUBlt) return;
 
@@ -288,8 +299,11 @@ static void TalkingHeadsInit() {
 }
 
 void TalkingHeads::init() {
-	// Disable centering the screen if NPC has talking head
+	// Disable screen centering if NPC has a talking head
 	HookCall(0x445224, gdialogInitFromScript_hook);
+
+	// Fix for missing lipsync when switching from a talking head without lipsync FRMs to one with them
+	MakeCall(0x4473C8, gdSetupFidget_hack, 1);
 
 	if (Graphics::mode >= 4 && IniReader::GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
 		LoadGameHook::OnAfterGameInit() += TalkingHeadsInit;
