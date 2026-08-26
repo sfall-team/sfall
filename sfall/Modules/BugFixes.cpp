@@ -2903,6 +2903,13 @@ skip:
 	}
 }
 
+static __declspec(naked) void wmWorldMap_hook_set_car_area() {
+	__asm {
+		mov  dword ptr ds:[FO_VAR_Move_on_Car], 0;
+		jmp  fo::funcoffs::wmMatchAreaContainingMapIdx_;
+	}
+}
+
 static long __fastcall GetFreeTilePlacement(long elev, long tile) {
 	long count = 0, dist = 1;
 	long checkTile = tile;
@@ -4495,8 +4502,10 @@ void BugFixes::init() {
 	// (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to the world map)
 	if (IniReader::GetConfigInt("Misc", "CarPlacedTileFix", 1)) {
 		dlogr("Applying car placed tile fix.", DL_FIX);
-		MakeCall(0x4C2367,  wmInterfaceInit_hack);
+		MakeCall(0x4C2367, wmInterfaceInit_hack);
 	}
+	// Fix for the "Move_on_Car" engine variable not being reset when entering a location via the Town/World button
+	HookCall(0x4C0532, wmWorldMap_hook_set_car_area);
 
 	// Place the player on a nearby empty tile if the entrance tile is blocked by another object when entering a map
 	HookCall(0x4836F8, map_check_state_hook);
