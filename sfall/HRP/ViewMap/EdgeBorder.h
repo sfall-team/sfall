@@ -26,6 +26,7 @@ public:
 			Edge* edge = this->nextEdgeData;
 			while (edge) {
 				Edge* edgeNext = edge->nextEdgeData;
+				edge->nextEdgeData = nullptr;
 				delete edge;
 				edge = edgeNext;
 			};
