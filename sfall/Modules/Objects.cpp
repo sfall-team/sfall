@@ -253,6 +253,116 @@ skip:
 	}
 }
 
+// Finds a possible itemObj behind scenery, wall, and misc types of pointedObj
+static __declspec(naked) void gmouse_bk_process_hack() {
+	static const DWORD gmouse_bk_process_Ret = 0x44BA37;
+	using namespace fo;
+	using namespace Fields;
+	using namespace ObjectFlag;
+	__asm { // edi - pointedObj, eax - objType, ebp - mouse menu primary action
+		je   searchItem; // objType == OBJ_TYPE_WALL
+		cmp  eax, OBJ_TYPE_SCENERY;
+		je   searchItem;
+		cmp  eax, OBJ_TYPE_MISC;
+		je   searchItem;
+		// overwritten engine code
+		cmp  eax, OBJ_TYPE_WALL;
+		ja   jbreak;
+		retn; // switch case - OBJ_TYPE_ITEM and OBJ_TYPE_CRITTER
+jbreak:
+		add  esp, 4;
+		jmp  gmouse_bk_process_Ret;
+searchItem:
+		mov  ecx, eax; // save objType
+		mov  eax, OBJ_TYPE_ITEM;
+		mov  edx, 1;
+		mov  ebx, ds:[FO_VAR_map_elevation];
+		call fo::funcoffs::object_under_mouse_;
+		test eax, eax;
+		jnz  chkOutline;
+		cmp  ecx, OBJ_TYPE_MISC;
+		je   jbreak;
+chkOutline:
+		mov  ebx, eax; // save itemObj
+		test ebx, ebx;
+		jz   notOutlined;
+		mov  edx, [ebx + outline];
+		test edx, OUTLINE_TYPE_MAX;
+		jz   notOutlined;
+		test edx, OUTLINE_DISABLED;
+		jnz  notOutlined;
+itemRet:
+		mov  edi, ebx; // set itemObj as new pointedObj
+		mov  [esp + 0xB4 - 0x1C + 4], ebx; // for obj_look_at_ later
+		mov  eax, OBJ_TYPE_ITEM; // jump to OBJ_TYPE_ITEM case for outlining
+		retn;
+notOutlined: // filter out non-outlined itemObj behind usable scenery
+		cmp  ecx, OBJ_TYPE_SCENERY;
+		jne  cantUse;
+		mov  eax, edi;
+		call fo::funcoffs::obj_action_can_use_;
+		test eax, eax;
+		jz   cantUse;
+		mov  ebp, 6; // GAME_MOUSE_ACTION_MENU_ITEM_USE
+		jmp  jbreak;
+cantUse: // filter out null or non-outlined itemObj behind blocking walls
+		test ebx, ebx;
+		jz   lookWall;
+		cmp  ecx, OBJ_TYPE_WALL;
+		jne  itemRet;
+		mov  edx, [edi + flags];
+		test edx, LightThru or ShootThru;
+		jnz  itemRet;
+lookWall:
+		mov  ebp, 3; // GAME_MOUSE_ACTION_MENU_ITEM_LOOK
+		jmp  jbreak;
+	}
+}
+
+// Allows picking up an outlined itemObj behind scenery, wall, and misc types of targetObj
+static __declspec(naked) void gmouse_handle_event_hack() {
+	static const DWORD gmouse_handle_event_Ret = 0x44C835;
+	using namespace fo;
+	using namespace Fields;
+	__asm { // ebx - targetObj, eax - objType
+		je   searchItem; // objType == OBJ_TYPE_WALL
+		cmp  eax, OBJ_TYPE_SCENERY;
+		je   searchItem;
+		cmp  eax, OBJ_TYPE_MISC;
+		je   searchItem;
+		// overwritten engine code
+		cmp  eax, OBJ_TYPE_WALL;
+		ja   jbreak;
+		retn; // switch case - OBJ_TYPE_ITEM and OBJ_TYPE_CRITTER
+jbreak:
+		add  esp, 4;
+		jmp  gmouse_handle_event_Ret;
+searchItem:
+		push ebx; // save targetObj
+		mov  ecx, eax; // save objType
+		mov  eax, OBJ_TYPE_ITEM;
+		mov  edx, 1;
+		mov  ebx, ds:[FO_VAR_map_elevation];
+		call fo::funcoffs::object_under_mouse_;
+		pop  ebx; // restore
+		test eax, eax;
+		jz   skip;
+		mov  edx, [eax + outline];
+		test edx, OUTLINE_TYPE_MAX;
+		jz   skip;
+		test edx, OUTLINE_DISABLED;
+		jnz  skip;
+		mov  ebx, eax; // set itemObj as new targetObj
+		mov  eax, OBJ_TYPE_ITEM; // jump to OBJ_TYPE_ITEM case for picking up
+		retn;
+skip: // no outlined itemObj
+		cmp  ecx, OBJ_TYPE_WALL;
+		ja   jbreak;
+		mov  eax, ecx; // restore
+		retn; // switch case - OBJ_TYPE_SCENERY and OBJ_TYPE_WALL
+	}
+}
+
 static __declspec(naked) void obj_render_pre_roof_hack() {
 	__asm {
 		cmp  eax, 500;
@@ -288,10 +398,14 @@ void Objects::init() {
 	// Place some objects on the lower z-layer of the tile
 	MakeCall(0x48D918, obj_insert_hack, 1);
 
+	// Allow outlining and picking up items behind scenery, walls, and misc objects
+	MakeCall(0x44B98D, gmouse_bk_process_hack, 1);   // outlining (walls are limited to non-blocking ones)
+	MakeCall(0x44C11B, gmouse_handle_event_hack, 1); // pickup
+
 	// Increase the maximum number of objects that can be outlined simultaneously (when w/o HRP 4.x by Mash)
 	if (*(DWORD*)0x48981D == 0x639C00) {
 		// replace _outlinedObjects array (was 100 objects)
-		SafeWriteBatch<DWORD>((DWORD)outlinedObjs - 4, {0x4896DF, 0x4897BE}); // obj_render_pre_roof_
+		SafeWriteBatch<DWORD>((DWORD)(outlinedObjs - 1), {0x4896DF, 0x4897BE}); // obj_render_pre_roof_
 		SafeWrite32(0x48981D, (DWORD)outlinedObjs); // obj_render_post_roof_
 		// change the maximum limit to 500
 		MakeCalls(obj_render_pre_roof_hack, {0x4896D6, 0x4897B5});
