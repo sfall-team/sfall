@@ -1584,6 +1584,53 @@ end:
 	}
 }
 
+static __declspec(naked) void BarterClampTableOffsets() {
+	__asm {
+		xor  ecx, ecx;
+		cmp  ds:[FO_VAR_ptable_pud], ecx;
+		je   bTable;
+		mov  ebx, ds:[FO_VAR_ptable_pud];
+		mov  ebx, [ebx];                          // Inventory.inv_size
+		sub  ebx, ds:[FO_VAR_inven_cur_disp];     // ebx - max offset
+		cmovl ebx, ecx;
+		mov  edx, ds:[FO_VAR_ptable_offset];
+		cmp  edx, ebx;
+		cmovg edx, ebx;
+		test edx, edx;
+		cmovs edx, ecx;
+		mov  ds:[FO_VAR_ptable_offset], edx;
+bTable:
+		cmp  ds:[FO_VAR_btable_pud], ecx;
+		je   end;
+		mov  ebx, ds:[FO_VAR_btable_pud];
+		mov  ebx, [ebx];                          // Inventory.inv_size
+		sub  ebx, ds:[FO_VAR_inven_cur_disp];     // ebx - max offset
+		cmovl ebx, ecx;
+		mov  edx, ds:[FO_VAR_btable_offset];
+		cmp  edx, ebx;
+		cmovg edx, ebx;
+		test edx, edx;
+		cmovs edx, ecx;
+		mov  ds:[FO_VAR_btable_offset], edx;
+end:
+		retn;
+	}
+}
+
+static __declspec(naked) void display_table_inventories_hack() {
+	__asm {
+		mov  eax, ds:[FO_VAR_i_wid];
+		jmp  BarterClampTableOffsets;
+	}
+}
+
+static __declspec(naked) void barter_inventory_get_input_hook() {
+	__asm {
+		call fo::funcoffs::get_input_;
+		jmp  BarterClampTableOffsets;
+	}
+}
+
 static __declspec(naked) void Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
@@ -4158,6 +4205,10 @@ void BugFixes::init() {
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
 	MakeCall(0x471A94, use_inventory_on_hack);
+
+	// Fix crash when clicking on empty space on the barter table after unloading multiple weapons
+	MakeCall(0x475359, display_table_inventories_hack);
+	HookCall(0x4759EC, barter_inventory_get_input_hook);
 
 	// Fix item_count_ function returning incorrect value when there is a container-item inside
 	//SafeWrite8(0x4780B1, 0x29); // jmp 0x4780DB
