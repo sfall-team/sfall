@@ -29,6 +29,8 @@
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
+#define FO_VAR_btable_offset              0x59E89C
+#define FO_VAR_btable_pud                 0x59E94C
 #define FO_VAR_btncnt                     0x43EA1C
 #define FO_VAR_cap                        0x518064
 #define FO_VAR_carCurrentArea             0x672E68
@@ -280,6 +282,8 @@
 #define FO_VAR_proto_none_str             0x664824
 #define FO_VAR_protoLists                 0x51C290
 #define FO_VAR_ptable                     0x59E934
+#define FO_VAR_ptable_offset              0x59E8A0
+#define FO_VAR_ptable_pud                 0x59E8A4
 #define FO_VAR_pud                        0x59E960
 #define FO_VAR_quest_count                0x51C12C
 #define FO_VAR_quest_message_file         0x664410
