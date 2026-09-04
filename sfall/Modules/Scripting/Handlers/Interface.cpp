@@ -165,7 +165,7 @@ void op_create_message_window(OpcodeContext &ctx) {
 	if (dialogShow) return;
 
 	const char* str = ctx.arg(0).strValue();
-	if (!str || str[0] == 0) return;
+	if (!str || str[0] == '\0') return;
 
 	long lines = 0;
 	const char* str_ptr[4];

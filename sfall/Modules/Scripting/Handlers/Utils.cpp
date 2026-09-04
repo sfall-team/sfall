@@ -225,7 +225,7 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 		return format;
 	}
 	if (fmtLen > 1024) {
-		ctx.printOpcodeError("%s() - format string exceeds maximum length of 1024 characters.", opcodeName);
+		ctx.printOpcodeError("%s() - format string exceeds 1024 characters.", opcodeName);
 		return "Error";
 	}
 	int newFmtLen = fmtLen;

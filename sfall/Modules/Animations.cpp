@@ -672,7 +672,7 @@ void Animations::init() {
 	SafeWrite8(0x415DEB, CodeType::JumpShort); // jz > jmp
 
 	// Fix crash when the critter goes through a door with animation trigger
-	MakeJump(0x41755E, object_move_hack);
+	HookCall(0x41755E, object_move_hack); // it's a jump
 
 	// Fix for the player stuck at "climbing" frame after ladder climbing animation
 	HookCall(0x411E1F, action_climb_ladder_hook);
