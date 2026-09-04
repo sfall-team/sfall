@@ -42,7 +42,7 @@ namespace sfall
 namespace script
 {
 
-static const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
+static const char* stringTooLong = "%s() - the string exceeds 64 characters.";
 
 __declspec(naked) void op_stop_game() {
 	__asm {

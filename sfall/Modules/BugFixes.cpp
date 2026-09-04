@@ -1880,16 +1880,17 @@ skip:
 }
 
 static void __fastcall StripNewlines(const char* desc) {
-	size_t i = 0, j = 0;
-	while (desc[i] && j < sizeof(messageBuffer) - 1) {
-		if (desc[i] == '\\' && desc[i + 1] == 'n') {
-			messageBuffer[j++] = ' ';
-			i += 2;
+	char* dst = messageBuffer;
+	const char* const end = messageBuffer + sizeof(messageBuffer) - 1;
+	while (*desc && dst < end) {
+		if (*desc == '\\' && *(desc + 1) == 'n') {
+			*dst++ = ' ';
+			desc += 2;
 		} else {
-			messageBuffer[j++] = desc[i++];
+			*dst++ = *desc++;
 		}
 	}
-	messageBuffer[j] = '\0'; // null-terminate the modified string
+	*dst = '\0'; // null-terminate the modified string
 }
 
 static __declspec(naked) void obj_examine_func_hack_objdesc() {
@@ -4277,7 +4278,7 @@ void BugFixes::init() {
 	showItemDescription = (IniReader::GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
 	if (showItemDescription) {
 		dlogr("Applying full item description in barter patch.", DL_FIX);
-		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
+		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's a jump
 	}
 	// Remove visible newline control characters when examining items in the barter screen
 	// Supplementary fix for hacks in Game\GUI\Text.cpp
