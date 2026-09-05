@@ -3839,10 +3839,10 @@ static __declspec(naked) void game_reset_hook() {
 static __declspec(naked) void sfxl_init_mem_free_hook() {
 	__asm {
 		call fo::funcoffs::mem_free_;
-		xor  ecx, ecx;
-		mov  ds:[FO_VAR_sfxl_effect_path], ecx;
-		mov  ds:[FO_VAR_sfxl_effect_path_len], ecx;
-		mov  ds:[FO_VAR_sfxl_files_total], ecx;
+		xor  eax, eax;
+		mov  ds:[FO_VAR_sfxl_effect_path], eax;
+		mov  ds:[FO_VAR_sfxl_effect_path_len], eax;
+		mov  ds:[FO_VAR_sfxl_files_total], eax;
 		retn;
 	}
 }
@@ -3856,6 +3856,40 @@ static __declspec(naked) void map_load_file_hook_get_cursor() {
 		jg   end;
 		mov  eax, 1;  // cursorType: standard arrow
 end:
+		retn;
+	}
+}
+
+static __declspec(naked) void scripts_tile_is_visible_hack() {
+	static RECT tileRect;
+	__asm {
+		lea  ebx, [tileRect + 4];  // y
+		lea  edx, [tileRect];      // x
+		call fo::funcoffs::tile_coord_; // eax - tile
+		cmp  eax, -1;
+		je   invalid;
+		mov  eax, [tileRect];
+		add  eax, 31;
+		mov  [tileRect + 8], eax;  // offx
+		mov  eax, [tileRect + 4];
+		add  eax, 15
+		mov  [tileRect + 12], eax; // offy
+		lea  ebx, tileRect;        // outRect
+		mov  edx, FO_VAR_scr_size; // inRect
+		lea  eax, tileRect;        // srcRect
+		call fo::funcoffs::rect_inside_bound_;
+		neg  eax;
+		sbb  eax, eax;
+		inc  eax;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
+		retn;
+invalid:
+		xor  eax, eax;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -4800,6 +4834,10 @@ void BugFixes::init() {
 
 	// Fix for the cursor getting stuck in view scrolling mode upon entering an encounter
 	HookCall(0x482BB4, map_load_file_hook_get_cursor);
+
+	// Fix for tile_is_visible function not checking tile visibilty correctly
+	// The original code forms a broad cross-shaped region spanning the whole map width
+	MakeJump(0x45404F, scripts_tile_is_visible_hack, 1);
 }
 
 }
