@@ -254,23 +254,6 @@ skip:
 	}
 }
 
-static __declspec(naked) void StartPipboy_hack() {
-	__asm { // esi - button index (0-4), edi - y offset
-		cmp  esi, 3;
-		jl   end;
-		je   archives;
-		jg   close; // esi == 4
-archives:
-		add  edi, 3;
-close:
-		dec  edi;
-end: // overwritten engine code
-		add  edi, 27;
-		cmp  esi, 5;
-		retn;
-	}
-}
-
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static __declspec(naked) void scr_write_ScriptNode_hook() {
 	__asm {
@@ -3773,16 +3756,6 @@ skip:
 	}
 }
 
-static __declspec(naked) void editor_design_hook_stat_button() {
-	__asm {
-		call fo::funcoffs::StatButton_;
-		xor  ebx, ebx;
-		xor  edx, edx;
-		mov  eax, STAT_base_count;
-		jmp  fo::funcoffs::PrintBasicStat_;
-	}
-}
-
 static __declspec(naked) void partyMemberLoad_hack() {
 	__asm {
 		pop  edx; // return addr
@@ -3954,19 +3927,6 @@ void BugFixes::init() {
 	// Fix for the duplicate click sound when selecting a location in the Status section
 	BlockCall(0x497F52); // block gsound_play_sfx_file_ (PipStatus_)
 
-	// Fix for slightly misaligned buttons in the pipboy
-	SafeWrite32(0x4974E0, 340); // initial y offset (was 341)
-	MakeCall(0x49753C, StartPipboy_hack, 1);
-
-	// Fix for slightly misaligned buttons in the character screen
-	SafeWrite32(0x4339BE, 344); // options/print button (was 343)
-	SafeWrite32(0x433A16, 553); // cancel button (was 552)
-	SafeWrite32(0x433A61, 456); // done button (was 455)
-
-	// Fix for slightly misaligned buttons in the barter screens
-	SafeWrite32(0x4483B7, 40);  // offer button (was 41)
-	SafeWrite32(0x448420, 583); // talk button (was 584)
-
 	// Fix for "Too Many Items" bug
 	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
 	//if (IniReader::GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
@@ -4044,19 +4004,6 @@ void BugFixes::init() {
 		MakeCall(0x477EAB, item_total_weight_hack, 1);
 		MakeCall(0x479A2F, item_c_curr_size_hack, 1);
 	//}
-
-	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
-	const DWORD displayTableInvAddr[] = {0x475541, 0x475789};
-	SafeWriteBatch<BYTE>(64, displayTableInvAddr);
-
-	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
-	SafeWrite32(0x471E48, 140);
-
-	// Fix for minor visual glitch when examining items in the inventory (display_stats_, inven_obj_examine_func_)
-	const DWORD invenDispWidthAddr[] = {0x471E20, 0x472F24};
-	SafeWriteBatch<DWORD>(154, invenDispWidthAddr); // was 152
-	const DWORD invenDispHeightAddr[] = {0x471E1B, 0x472F1F};
-	SafeWriteBatch<DWORD>(190, invenDispHeightAddr); // was 188
 
 	//if (IniReader::GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
 		dlogr("Applying inventory reverse order issues fix.", DL_FIX);
@@ -4812,17 +4759,6 @@ void BugFixes::init() {
 
 	// Fix crash when calling proto_data with an invalid data member value
 	HookCall(0x458DBA, op_proto_data_hook);
-
-	// Fix for minor visual glitch when selecting perks that modify SPECIAL stats
-	const DWORD printStatBufWidthAddr[] = {0x434C76, 0x434D2A, 0x434E00, 0x434EB5};
-	SafeWriteBatch<BYTE>(65, printStatBufWidthAddr); // PrintBasicStat_ (was 40)
-
-	// Fix for minor visual glitch when adjusting SPECIAL stats during character creation
-	HookCall(0x432317, editor_design_hook_stat_button);
-
-	// Fix missing sounds for the SPECIAL stat +/- buttons in the character creation screen
-	const DWORD charEditRegBtnSndAddr[] = {0x433901, 0x433966};
-	SafeWriteBatch<WORD>(0x9090, charEditRegBtnSndAddr); // remove incorrect button ID assignment (CharEditStart_)
 
 	// Fix potential index out of bounds error in wmMapIdxToName_ engine function
 	SafeWrite8(0x4BF97A, 0x7E); // jz > jle
