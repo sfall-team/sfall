@@ -1191,6 +1191,34 @@ fix:
 	}
 }
 
+static __declspec(naked) void StartPipboy_hack() {
+	__asm { // esi - button index (0-4), edi - y offset
+		cmp  esi, 3;
+		jl   end;
+		je   archives;
+		jg   close; // esi == 4
+archives:
+		add  edi, 3;
+close:
+		dec  edi;
+end: // overwritten engine code
+		add  edi, 27;
+		cmp  esi, 5;
+		retn;
+	}
+}
+
+static __declspec(naked) void editor_design_hook_stat_button() {
+	using namespace fo;
+	__asm {
+		call fo::funcoffs::StatButton_;
+		xor  ebx, ebx;
+		xor  edx, edx;
+		mov  eax, STAT_base_count;
+		jmp  fo::funcoffs::PrintBasicStat_;
+	}
+}
+
 static void InterfaceWindowPatch() {
 	// Remove MoveOnTop flag for interfaces
 	SafeWrite8(0x46ECE9, (*(BYTE*)0x46ECE9) ^ fo::WinFlags::MoveOnTop); // Player Inventory/Loot/UseOn
@@ -1218,6 +1246,38 @@ static void InterfaceWindowPatch() {
 		0x53, 0x90              // push ebx (frame width)
 	};
 	SafeWriteBytes(0x470971, code, 11); // calculates the offset in the pixel array for x/y coordinates
+
+	// Fix for slightly misaligned buttons in the pipboy
+	SafeWrite32(0x4974E0, 340); // initial y offset (was 341)
+	MakeCall(0x49753C, StartPipboy_hack, 1);
+
+	// Fix for slightly misaligned buttons in the character screen
+	SafeWrite32(0x4339BE, 344); // options/print button (was 343)
+	SafeWrite32(0x433A16, 553); // cancel button (was 552)
+	SafeWrite32(0x433A61, 456); // done button (was 455)
+
+	// Fix for slightly misaligned buttons in the barter screens
+	SafeWrite32(0x4483B7, 40);  // offer button (was 41)
+	SafeWrite32(0x448420, 583); // talk button (was 584)
+
+	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
+	SafeWriteBatch<BYTE>(64, {0x475541, 0x475789});
+
+	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
+	SafeWrite32(0x471E48, 140);
+
+	// Fix for minor visual glitch when examining items in the inventory (display_stats_, inven_obj_examine_func_)
+	SafeWriteBatch<DWORD>(154, {0x471E20, 0x472F24}); // was 152
+	SafeWriteBatch<DWORD>(190, {0x471E1B, 0x472F1F}); // was 188
+
+	// Fix for minor visual glitch when selecting perks that modify SPECIAL stats
+	SafeWriteBatch<BYTE>(65, {0x434C76, 0x434D2A, 0x434E00, 0x434EB5}); // PrintBasicStat_ (was 40)
+
+	// Fix for minor visual glitch when adjusting SPECIAL stats during character creation
+	HookCall(0x432317, editor_design_hook_stat_button);
+
+	// Fix missing sounds for the SPECIAL stat +/- buttons in the character creation screen
+	SafeWriteBatch<WORD>(0x9090, {0x433901, 0x433966}); // remove incorrect button ID assignment (CharEditStart_)
 
 	// Increase the max text width of the player name on the character screen
 	SafeWriteBatch<BYTE>(127, {0x435160, 0x435189}); // 100 (PrintBigname_)
