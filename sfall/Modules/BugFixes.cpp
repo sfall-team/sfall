@@ -3867,6 +3867,19 @@ invalid:
 	}
 }
 
+static __declspec(naked) void tile_dist_hack() {
+	static const DWORD tile_dist_Ret = 0x4B18BC;
+	__asm {
+		je   end;
+		cmp  edi, 9999; // max distance
+		jge  end;
+		add  esp, 4;
+		jmp  tile_dist_Ret;
+end:
+		retn;
+	}
+}
+
 void BugFixes::init() {
 	#ifndef NDEBUG
 	LoadGameHook::OnBeforeGameClose() += PrintAddrList;
@@ -4776,9 +4789,13 @@ void BugFixes::init() {
 	// Fix for the cursor getting stuck in view scrolling mode upon entering an encounter
 	HookCall(0x482BB4, map_load_file_hook_get_cursor);
 
-	// Fix for tile_is_visible function not checking tile visibilty correctly
-	// The original code forms a broad cross-shaped region spanning the whole map width
+	// Fix the visibility check in tile_is_visible function
+	// The original code forms a broad cross-shaped visibility region spanning the entire map width
 	MakeJump(0x45404F, scripts_tile_is_visible_hack, 1);
+
+	// Fix to prevent overflow when the AI calculates distance for its actions
+	MakeCall(0x4B1982, tile_dist_hack, 1);
+	SafeWrite32(0x42A382, 9999); // was 99999 (cai_retargetTileFromFriendlyFire_)
 }
 
 }
