@@ -4807,7 +4807,6 @@ void BugFixes::init() {
 
 	// Fix to prevent overflow when the AI calculates distance for its actions
 	MakeCall(0x4B1982, tile_dist_hack, 1);
-	SafeWrite32(0x42A382, 9999); // was 99999 (cai_retargetTileFromFriendlyFire_)
 }
 
 }
