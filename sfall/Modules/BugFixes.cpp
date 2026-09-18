@@ -2428,7 +2428,7 @@ static __declspec(naked) void combat_hack_load() {
 		retn;
 skip:
 		add  esp, 4; // destroy addr
-		cmp  ds:[FO_VAR_combat_end_due_to_load], 0;
+		cmp  dword ptr ds:[FO_VAR_combat_end_due_to_load], 0;
 		jnz  isLoad;
 		jmp  combat_End;
 isLoad:
@@ -3220,9 +3220,9 @@ static __declspec(naked) void combat_hook() {
 		call fo::funcoffs::combat_should_end_;
 		test eax, eax;
 		jnz  skip;
-		cmp  ds:[FO_VAR_game_user_wants_to_quit], 2;
+		cmp  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 2;
 		je   skip;
-		//cmp  ds:[FO_VAR_script_engine_running], 1;
+		//cmp  dword ptr ds:[FO_VAR_script_engine_running], 1;
 		//jne  skip;
 		call fo::funcoffs::GNW_do_bk_process_;
 		call fo::funcoffs::combat_turn_run_;
@@ -4795,6 +4795,9 @@ void BugFixes::init() {
 
 	// Fix to prevent overflow when the AI calculates distance for its actions
 	MakeCall(0x4B1982, tile_dist_hack, 1);
+
+	// Fix missing combat xp and NPCs not reloading weapons when ending combat via elevation change with 0 AP left
+	SafeWriteBatch<WORD>(0x7F01, {0x421F0B, 0x4220C9}); // cmp ds:_game_user_wants_to_quit, 1; jg (combat_over_)
 }
 
 }
