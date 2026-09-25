@@ -583,14 +583,14 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 
 	fo::Window *winInfo = fo::func::GNW_find(winRef);
 
-	BYTE *PadSurface = new BYTE [280 * 168];
-	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
+	BYTE *PadSurface = new BYTE [287 * 175];
+	surface_draw(287, 175, widthBG, xPosBG, yPosBG, BGSurface, 287, 0, 0, PadSurface);
 
 	{
 		TempFrmHandle frmHandle{ LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::ArtType::OBJ_TYPE_SKILLDEX) };
 		if (frmHandle.IsValid()) {
 			const fo::FrmFile& frm = frmHandle.Frm();
-			fo::util::DrawToSurface(frm.frameData[0].width, frm.frameData[0].height, 0, 0, frm.frameData[0].width, frm.frameData[0].dataPtr(), 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
+			fo::util::DrawToSurface(frm.frameData[0].width, frm.frameData[0].height, 0, 0, frm.frameData[0].width, frm.frameData[0].dataPtr(), 136, 37, 287, 175, PadSurface, 0); // cover buttons pics bottom
 		}
 	}
 
@@ -602,10 +602,10 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 
 	if (TitleMsg != nullptr) {
 		textHeight = fo::util::GetTextHeight();
-		fo::util::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
+		fo::util::PrintText(TitleMsg, colour, 0, 0, 265, 287, PadSurface);
 		// draw line
-		std::memset(PadSurface + 280 * textHeight, colour, 265);
-		std::memset(PadSurface + 280 * (textHeight + 1), colour, 265);
+		std::memset(PadSurface + 287 * textHeight, colour, 265);
+		std::memset(PadSurface + 287 * (textHeight + 1), colour, 265);
 	}
 
 	DWORD lineNum = 0;
@@ -620,7 +620,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 			int lineHeight = 43;
 
 			if (lineNum == 1) {
-				fo::util::PrintText(InfoMsg, colour, 0, lineHeight, 280, 280, PadSurface);
+				fo::util::PrintText(InfoMsg, colour, 0, lineHeight, 287, 287, PadSurface);
 			} else {
 				if (lineNum > 11) lineNum = 11;
 				CurrentLine = StartLine;
@@ -629,7 +629,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 					NextLine = CurrentLine->next;
 					char TempChar = InfoMsg[NextLine->offset]; //[line+1]];
 					InfoMsg[NextLine->offset] = '\0';
-					fo::util::PrintText(InfoMsg + CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
+					fo::util::PrintText(InfoMsg + CurrentLine->offset, colour, 0, lineHeight, 287, 287, PadSurface);
 					InfoMsg[NextLine->offset] = TempChar;
 					lineHeight += textHeight + 1;
 					CurrentLine = NextLine;
@@ -637,7 +637,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 			}
 		}
 	}
-	surface_draw(280, 168, 280, 0, 0, PadSurface, winInfo->width, xPosWin, yPosWin, winInfo->surface);
+	surface_draw(287, 175, 287, 0, 0, PadSurface, winInfo->width, xPosWin, yPosWin, winInfo->surface);
 
 	SetFont(oldFont); // restore previous font
 	fo::func::message_exit(&MsgList);

@@ -1273,6 +1273,10 @@ static void InterfaceWindowPatch() {
 	// Fix for minor visual glitch when selecting perks that modify SPECIAL stats
 	SafeWriteBatch<BYTE>(65, {0x434C76, 0x434D2A, 0x434E00, 0x434EB5}); // PrintBasicStat_ (was 40)
 
+	// Fix for minor visual glitch when cycling through information cards (DrawInfoWin_, folder_scroll_)
+	SafeWriteBatch<DWORD>(290, {0x4365EF, 0x43E1CC}); // was 277
+	SafeWriteBatch<DWORD>(180, {0x4365E5, 0x43E1C2}); // was 170
+
 	// Fix for minor visual glitch when adjusting SPECIAL stats during character creation
 	HookCall(0x432317, editor_design_hook_stat_button);
 
