@@ -1248,6 +1248,12 @@ static void InterfaceWindowPatch() {
 	const DWORD printStatBufWidthAddr[] = {0x434C76, 0x434D2A, 0x434E00, 0x434EB5};
 	SafeWriteBatch<BYTE>(65, printStatBufWidthAddr); // PrintBasicStat_ (was 40)
 
+	// Fix for minor visual glitch when cycling through information cards (DrawInfoWin_, folder_scroll_)
+	const DWORD infoBufWidthAddr[] = {0x4365EF, 0x43E1CC};
+	SafeWriteBatch<DWORD>(290, infoBufWidthAddr); // was 277
+	const DWORD infoBufHeightAddr[] = {0x4365E5, 0x43E1C2};
+	SafeWriteBatch<DWORD>(180, infoBufHeightAddr); // was 170
+
 	// Fix for minor visual glitch when adjusting SPECIAL stats during character creation
 	HookCall(0x432317, editor_design_hook_stat_button);
 
