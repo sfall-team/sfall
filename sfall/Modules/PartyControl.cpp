@@ -48,7 +48,7 @@ struct WeaponStateSlot {
 	fo::ItemButtonItem leftSlot;
 	fo::ItemButtonItem rightSlot;
 };
-std::vector<WeaponStateSlot> weaponState;
+static std::vector<WeaponStateSlot> weaponState;
 
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;

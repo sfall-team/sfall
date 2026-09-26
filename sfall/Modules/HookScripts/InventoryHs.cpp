@@ -29,19 +29,15 @@ void RemoveInvenObjHook_Invoke(fo::GameObject* source, fo::GameObject* item, lon
 }
 */
 
-static long rmObjType = -1;
-
-void __stdcall SetRemoveObjectType(long rmType) {
-	rmObjType = rmType;
-}
+long rmObjHookType = -1;
 
 static __declspec(naked) void RemoveObjHook() {
 	static const DWORD RemoveObjHookRet = 0x477497;
 	__asm {
 		mov  ecx, [esp + 8]; // call addr
-		cmp  rmObjType, -1;
-		cmovne ecx, rmObjType;
-		mov  rmObjType, -1;
+		cmp  rmObjHookType, -1;
+		cmovne ecx, rmObjHookType;
+		mov  rmObjHookType, -1;
 		cmp  ecx, -2;
 		je   skipHook;
 		HookBegin;
@@ -290,10 +286,7 @@ capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
 		__asm {
-			push eax;
-			push 0x47379F;
-			call SetRemoveObjectType; // call addr for HOOK_REMOVEINVENOBJ
-			pop  eax;
+			mov  rmObjHookType, 0x47379F; // call addr for HOOK_REMOVEINVENOBJ
 			call fo::funcoffs::item_remove_mult_;
 			retn;
 		}

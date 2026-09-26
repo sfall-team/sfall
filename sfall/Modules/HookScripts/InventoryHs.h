@@ -17,6 +17,6 @@ long InvenWieldHook_Invoke(fo::GameObject* critter, fo::GameObject* item, long f
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();
 
-void __stdcall SetRemoveObjectType(long rmType);
+extern long rmObjHookType;
 
 }

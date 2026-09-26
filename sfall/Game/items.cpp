@@ -71,7 +71,7 @@ long Items::item_d_take_drug(fo::GameObject* source, fo::GameObject* item) {
 }
 
 long Items::item_remove_mult(fo::GameObject* source, fo::GameObject* item, long count, long rmType) {
-	sf::SetRemoveObjectType(rmType);
+	sf::rmObjHookType = rmType;
 	return fo::func::item_remove_mult(source, item, count);
 }
 
