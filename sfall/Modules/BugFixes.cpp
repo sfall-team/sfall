@@ -611,10 +611,7 @@ static __declspec(naked) void invenWieldFunc_item_get_type_hook() {
 		mov  cl, [edi + 0x27];
 		and  cl, 0x3;
 		xchg edx, eax;                            // eax = who, edx = item
-		push eax;
-		push -2;
-		call SetRemoveObjectType;                 // call addr for HOOK_REMOVEINVENOBJ
-		pop  eax;
+		mov  rmObjHookType, -2;                   // call addr for HOOK_REMOVEINVENOBJ
 		call fo::funcoffs::item_remove_mult_;
 		xchg ebx, eax;
 		mov  eax, esi;
@@ -931,10 +928,7 @@ foundItem:
 		inc  esi;                                 // No, need to change from_slot
 skip:
 		mov  edx, ebp;
-		push eax;
-		push 0x47659D;
-		call SetRemoveObjectType;                 // call addr for HOOK_REMOVEINVENOBJ
-		pop  eax;
+		mov  rmObjHookType, 0x47659D;             // call addr for HOOK_REMOVEINVENOBJ
 		call fo::funcoffs::item_remove_mult_;
 		test eax, eax;                            // Have weapon been deleted from inventory?
 		jnz  end;                                 // No
@@ -1475,10 +1469,7 @@ static __declspec(naked) void switch_hand_hack() {
 		xor  ebx, ebx;
 		inc  ebx;
 		mov  edx, ebp;
-		push eax;
-		push 0x4715F3;
-		call SetRemoveObjectType;                 // call addr for HOOK_REMOVEINVENOBJ
-		pop  eax;
+		mov  rmObjHookType, 0x4715F3;             // call addr for HOOK_REMOVEINVENOBJ
 		call fo::funcoffs::item_remove_mult_;
 skip:
 		pop  edx;                                 // _inven_dude
@@ -3864,6 +3855,61 @@ end:
 	}
 }
 
+static fo::GameObject* flareHolder;
+static bool flareFromStack;
+
+static __declspec(naked) void obj_use_flare_hack() {
+	__asm {
+		mov  edi, eax; // save critter (for the next hook)
+		mov  ecx, [esi + owner]; // esi - flare obj
+		test ecx, ecx;
+		cmovz ecx, eax; // use critter if flare owner is null
+		mov  flareHolder, ecx;
+		mov  flareFromStack, 0; // init
+		test ecx, ecx;
+		jz   end; // holder is null
+		mov  eax, ecx;
+		call fo::funcoffs::item_count_; // edx - flare obj
+		cmp  eax, 1;
+		jle  end; // single flare
+		mov  rmObjHookType, 0x4735F1; // call addr for HOOK_REMOVEINVENOBJ
+		mov  ebx, 1;
+		mov  edx, esi;
+		mov  eax, ecx;
+		call fo::funcoffs::item_remove_mult_;
+		test eax, eax;
+		setz flareFromStack;
+end:
+		cmp  edi, ds:[FO_VAR_obj_dude]; // overwritten engine code (was eax)
+		retn;
+	}
+}
+
+static __declspec(naked) void obj_use_flare_hook() {
+	__asm {
+		call fo::funcoffs::queue_add_;
+		cmp  flareFromStack, 0;
+		je   end;
+		mov  ebx, 1;
+		mov  edx, esi; // esi - flare obj
+		mov  eax, flareHolder;
+		call fo::funcoffs::item_add_mult_;
+		test eax, eax;
+		jz   end;
+		// cannot add back the lit flare, drop it on the ground
+		mov  eax, edi; // edi - critter (from the previous hack)
+		test eax, eax;
+		cmovz eax, flareHolder; // use holder if critter is null
+		xor  ecx, ecx;
+		mov  ebx, [eax + tile];
+		mov  edx, [eax + elevation];
+		mov  eax, esi;
+		call fo::funcoffs::obj_connect_;
+end:
+		retn;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4811,6 +4857,10 @@ void BugFixes::init() {
 	// Fix missing combat xp and NPCs not reloading weapons when ending combat via elevation change with 0 AP left
 	const DWORD combatOverQuitChkAddr[] = {0x421F0B, 0x4220C9};
 	SafeWriteBatch<WORD>(0x7F01, combatOverQuitChkAddr); // cmp ds:_game_user_wants_to_quit, 1; jg (combat_over_)
+
+	// Fix for the entire stack of flares being lit instead of just one when using the stack on scenery or a critter
+	MakeCall(0x49BBF1, obj_use_flare_hack, 1); // remove a flare from the stack for lighting up
+	HookCall(0x49BC43, obj_use_flare_hook);    // add the lit flare back to the holder
 }
 
 }

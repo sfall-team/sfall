@@ -44,7 +44,7 @@ struct WeaponStateSlot {
 
 	WeaponStateSlot() : leftIsCopy(false), rightIsCopy(false) {}
 };
-std::vector<WeaponStateSlot> weaponState;
+static std::vector<WeaponStateSlot> weaponState;
 
 static struct DudeState {
 	fo::GameObject* obj_dude;
