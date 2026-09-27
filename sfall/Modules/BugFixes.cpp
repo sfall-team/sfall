@@ -3893,7 +3893,7 @@ static __declspec(naked) void obj_use_flare_hook() {
 		mov  ebx, 1;
 		mov  edx, esi; // esi - flare obj
 		mov  eax, flareHolder;
-		call fo::funcoffs::item_add_mult_;
+		call fo::funcoffs::item_add_force_;
 		test eax, eax;
 		jz   end;
 		// cannot add back the lit flare, drop it on the ground
