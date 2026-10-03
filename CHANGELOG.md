@@ -1,5 +1,42 @@
 # Changelog
 
+## 3.8.51
+* Fixed a bug introduced in 3.8.40 that caused incorrect animation order during explosion attacks in certain cases
+* Fixed the player's kick attack not updating properly on game load when using an **unarmed ini file**
+* Fixed the visibility check in `tile_is_visible` script function
+* Fixed item highlighting mod being unable to highlight some containers on maps when **CheckLOS=1** (in the **modders pack**)
+* Fixed the preprocessor in script compiler to handle deeply nested macros (`compile.exe` in the **modders pack**)
+* Improved the fix for finding a path to the central hex of a multihex object
+* Improved the critter object ID fix to avoid looping through the entire map twice
+* Improved the behavior of the tweak that stacks empty weapons regardless of their previous ammo type
+* Removed unnecessary tweaks from **Fallout1Behavior** option
+* Added a fix for a crash when examining a critter with a corrupted maximum HP stat
+* Added a fix for xp being reset to 0 when selecting **Here and Now** perk at the maximum player level
+* Added a fix for a visual glitch on the character creation screen when adjusting SPECIAL stats
+* Added a fix for missing sounds for the SPECIAL stat +/- buttons in the character creation screen
+* Added a fix for the cursor getting stuck in view scrolling mode upon entering an encounter
+* Added a few fixes for memory leaks during map transitions and on game load
+* Added a fix for a visual glitch on the inventory screen when examining items
+* Added a fix for a visual glitch on the character screen when cycling through information cards
+* Added a fix for the **'car outta gas'** location being inaccessible when it is inside a town circle
+* Added a fix to prevent a potential crash when calling `obj_can_see_obj` on non-critter objects
+* Added a fix for missing lipsync when switching from a talking head without lipsync FRMs to one with them
+* Added a fix for the **'travel by car'** state not being reset when entering a location via the Town/World button
+* Added a fix for a crash when clicking on empty space on the barter table after unloading multiple weapons
+* Added a fix to prevent the game from hanging in combat when AI calculates distance for its actions
+* Added a fix for missing combat xp and NPCs not reloading weapons when ending combat via elevation change with 0 AP left
+* Added a fix for the entire stack of flares being lit instead of just one when using the stack on scenery or a critter
+* Added a tweak to allow pressing the `Esc` key to cancel the elevator selection
+* Added a tweak to allow picking up outlined items behind scenery, walls, and misc objects
+* Added a tweak to skip encounter messages if the prefix text (number 2998 in `worldmap.msg`) is empty
+* Added a tweak to flush the art cache on game load to reduce heap warnings
+* Added an option to change the starting in-game time
+* Added options to set different outline colors for empty containers and corpses
+* Increased the maximum number of objects that can be outlined simultaneously from 100 to **500**
+* Increased the default art cache size from 8 to **16**. Values below 16 in `fallout2.cfg` will be ignored
+* Slightly increased the width of the ammo bar when **ALTERNATE_AMMO_METRE=0** in `f2_res.ini`
+* New script functions: `opcode_exists`, `set_fo1_hit_chance`, `remove_wm_town_names`, `encounter_detection`, `set_reaction_thresholds`
+
 ## 3.8.50
 * Fixed garbled colors during the fade to the main menu on startup when **SkipOpeningMovies** is enabled
 * Fixed the AP cost display not updating on game load when using `HOOK_CALCAPCOST` hook script
@@ -15,7 +52,7 @@
 * Changed the character portrait on the character screen (from the **hero appearance mod**) to always show the standing pose
 * Re-added **NumberPatchLoop** option from older versions to `ddraw.ini`
 * Removed **AllowLargeTiles** option because its functionality is impractical and has never been used
-* Removed **ExtraSaveSlots** option from `ddraw.ini`. Now additional pages of save slots are always available, up to a maximum of **1000** slots
+* Removed **ExtraSaveSlots** option from `ddraw.ini`. Now additional pages of save slots are always available, up to **1000** slots in total
 * Added a fix for the `+/-` keys not updating the brightness slider when used on the preferences screen
 * Added a fix for getting stuck on an empty map when the encounter table has no available entries
 * Added a fix for a visual glitch on the character screen when selecting perks that modify SPECIAL stats
@@ -28,7 +65,7 @@
 * Added object type validation to `item_weight` script function to prevent potential issues
 * Added a file size check for scripts to filter out clearly defective ones
 * Added support for nested array expressions (`compile.exe` in the **modders pack** is also updated)
-* Increased the maximum party member level from 6 to 10
+* Increased the maximum party member level from 6 to **10**
 
 ## 3.8.49.1
 * Fixed a crash bug introduced in 3.8.46 when a critter is hit and combat starts at the same time
@@ -106,7 +143,7 @@
 * Added a fix for the engine not checking **'misc'** type items when correcting data for items on maps
 * Added a fix to prevent the windows of **Tag!** and **Mutate!** perks from reappearing when there are still unused perks
 * Added a tweak to restore the player's sneak state when switching between maps
-* Added options to separately set the color of outlines for highlighted containers and corpses
+* Added options to separately set the outline colors for highlighted containers and corpses
 * Updated **item highlighting mod** in the **modders pack** to match the feature set of the 4.x version
 * New hook script: `hs_buildsfxweapon`
 
@@ -135,7 +172,7 @@
 * Added `PAUSEWIN` flag to the game mode functions (when pausing the game using `Ctrl+P`)
 * Added 2 new arguments to `HOOK_ENCOUNTER` hook script
 * Added a healing skills example script to the example mods in the **modders pack**
-* New script function: `signal_close_game`, `art_frame_data`, `set_worldmap_heal_time`
+* New script functions: `signal_close_game`, `art_frame_data`, `set_worldmap_heal_time`
 
 ## 3.8.43.1
 * Fixed a possible hang or crash introduced in 3.8.41 when running certain script sequences
@@ -221,7 +258,7 @@
 * Fixed `create_object_sid` script function not setting the script index number upon object creation
 * Fixed the broken `read_string` script function
 * Changed the way disabled unsafe script functions work. Now they don't cause scripts to end abruptly
-* Removed **StackEmptyWeapons** from `ddraw.ini`. Now unloaded weapons will always stack, no matter what type of ammo was loaded previously
+* Removed **StackEmptyWeapons** from `ddraw.ini`. Now unloaded weapons will always stack regardless of their previous ammo type
 * Removed **CreditsAtBottom** from `ddraw.ini`. Now sfall built-in credits are shown at the beginning when from the main menu and at the end during the ending
 * Added a fix for the player's traits not being displayed on the character screen in certain cases
 * Added a fix for incorrect death endings being shown under certain conditions
@@ -240,9 +277,9 @@
 * Fixed `REMOVEINVENOBJ` hook to match the values of `RMOBJ_*` constants correctly
 * Expanded `set_pipboy_available` script function to match **PipBoyAvailableAtGameStart** option
 * Expanded `message_str_game` script function to support `editor.msg` file
-* Increased the default number of sound buffers available for sound effects from 4 to 8
+* Increased the default number of sound buffers available for sound effects from 4 to **8**
 * Changed the way **AllowDShowSound** works. Now mode 2 is combined with mode 1
-* Removed **MoreTiles** from `ddraw.ini`. Now the maximum number of tile FRMs is always 16383
+* Removed **MoreTiles** from `ddraw.ini`. Now the maximum number of tile FRMs is always **16383**
 * Backported script function from 4.1: `dialog_message`
 
 ## 3.8.36
@@ -379,7 +416,7 @@
 * Added a fix for the incorrect check and AP cost when AI reloads a weapon
 * Added a fix to AI behavior to prevent the use of healing drugs when not necessary
 * Added a fix for the incorrect object type search when loading a game saved in combat mode
-* Added a few fixes for issues with knocked out/down critters. Now the combat doesn't automatically end if the target is only knocked out
+* Added a few fixes for issues with knocked out/down critters. Now the combat doesn't automatically end after party members' turns with all targets knocked out
 * Added a tweak to prevent NPC aggression when non-hostile NPCs accidentally hit the player or members of the player's team
 * Added a tweak to play the **'magic hands'** animation when using an item on an object. This also prevents a few issues with scripted animations not playing
 * Added a tweak to remove the unspent skill points limit
@@ -425,7 +462,7 @@
 * Backported 4 new modes for `metarule2_explosions` function from 4.1
 * Backported hook scripts from 4.2: `hs_adjustfid`, `hs_gamemodechange`
 * Backported `SPECIAL` game mode flag from 4.2 (when switching from dialog mode to barter mode, or a party member joins/leaves in the dialog screen)
-* New script functions: `interface_overlay`
+* New script function: `interface_overlay`
 
 ## 3.8.28.1
 * Fixed a few minor bugs introduced in 3.8.28
@@ -447,7 +484,7 @@
 * Expanded `get_window_attribute` script function to support the automap interface window
 * Removed the check for valid objects from `get/set_object_data` script functions to make them work with other structured data
 * Removed **InterfaceDontMoveOnTop** from `ddraw.ini` because there is little reason to turn it off
-* Added a fix for the engine building the path to the central hex of a multihex object
+* Added a fix for the engine building a path to the central hex of a multihex object
 * Added a fix for the flags of critters in the line of fire not being taken into account when calculating the hit chance penalty of ranged attacks
 * Added a fix to the check for ranged weapons in the **Fast Shot** trait and **FastShotFix**
 * Added a fix for the background image of the character portrait on the player's inventory screen
@@ -900,7 +937,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 ## 3.8.4
 * Fixed a crash introduced in 3.8.3 when calling `destroy_object` or `destroy_mult_objs`
 * Fixed a **hero appearance mod** issue that caused the race and style not to be loaded properly from savegames
-* Added an option to set the color of outlines for highlighted items and containers
+* Added an option to set the outline color for highlighted items and containers
 
 ## 3.8.3
 * Fixed a crash when pressing **reload weapon key** while in the main menu
@@ -917,7 +954,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 
 Original engine bug fixes and various features based on the work by Crafty:
 * Added a fix for a crash when clicking on empty space in the inventory list opened by **'Use Inventory Item On'** (backpack) action icon
-* Added a fix for negative SPECIAL values in the character creation
+* Added a fix for negative SPECIAL values in the character creation screen
 * Added a fix for the game hanging in an endless loop in combat mode when calling `anim` script functions inside `damage_p_proc`
 * Added 3 new arguments to `HOOK_BARTERPRICE` hook script
 
@@ -1037,7 +1074,7 @@ Original engine bug fixes and various features based on the work by Crafty:
 * Added a fix for the maximum text width of the item weight (Wt.) in party member trading window
 * Added a fix for the original engine issue that caused NPCs to become unresponsive and act like walking containers if you move to another map while they are under **'lost next turn'** critical miss effect
 * Added a fix for the original engine issues with being able to charge the car by using cells on other scenery/critters, and cells getting consumed even when the car is already fully charged
-* Added an option to stack empty identical weapons, no matter what type of ammo was loaded previously
+* Added an option to stack empty weapons regardless of their previous ammo type
 * Added an option to highlight containers as well as items
 * Added an option to allow 9 options (lines of text) to be displayed correctly in the dialog window
 * Added an option to display additional points of damage from **Bonus HtH/Ranged Damage** perks in the inventory
