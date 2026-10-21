@@ -1071,6 +1071,8 @@ void MiscPatches::init() {
 		}
 		SafeWrite32(0x483348, time);
 	}
+	// Prevent failed corpse deletion from blocking saved map loading
+	BlockCall(0x4831FD); // skip error return (map_load_in_game_)
 
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
