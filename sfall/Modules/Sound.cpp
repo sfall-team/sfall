@@ -1010,7 +1010,12 @@ void Sound::init() {
 	if (IniReader::GetConfigInt("Sound", "AllowDShowSound", 0)) {
 		soundLoad_func = soundLoad_hook_A; // main hook
 
-		HookCalls(gmovie_play_hook_stop, {0x44E80A, 0x445280}); // only play looping music
+		HookCalls(gmovie_play_hook_stop, { // only play looping music
+			0x44E80A, // gmovie_play_
+			0x445280, // gdialogInitFromScript_
+			0x43F9B1, // endgame_init_ (before the slideshow)
+			0x43F813, 0x43F886, 0x43F89C // endgame_movie_ (before and after the credits)
+		});
 		HookCall(0x450851, gsound_background_play_hook);
 
 		HookCall(0x4813EE, main_death_scene_hook);
