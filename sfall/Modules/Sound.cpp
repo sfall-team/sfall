@@ -55,6 +55,10 @@ enum SoundFlags : DWORD {
 	engine  = 0x80000000
 };
 
+enum BackgroundLoopMode : long { // background_loop_requested values set by gsound_background_play_
+	play_once = 15
+};
+
 struct sDSSound {
 	DWORD id;     // should be first
 	IGraphBuilder *pGraph;
@@ -157,8 +161,13 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 		}
 		if (shouldFree) FreeSound(sound);
 		// same as gsound_internal_background_callback_ for ACM music (e.g. starts the music after the endgame credits song)
-		if (musicEnded && fo::var::gsound_background_callback_fp) {
-			reinterpret_cast<void (*)()>(fo::var::gsound_background_callback_fp)();
+		if (musicEnded) {
+			__asm {
+				cmp  dword ptr ds:[FO_VAR_gsound_background_callback_fp], 0;
+				je   noCallback;
+				call ds:[FO_VAR_gsound_background_callback_fp];
+noCallback:
+			}
 		}
 		return 0;
 	}
@@ -375,9 +384,9 @@ static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFil
 	if (!hasFile) return false;
 
 	if (playType == PlayType::music) {
-		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music loop
+		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music, loops unless played once
 		if (!backgroundMusic) return false;
-		backgroundMusicNoLoop = (fo::var::background_loop_requested == 15); // set by gsound_background_play_, 15 - play once
+		backgroundMusicNoLoop = (fo::var::background_loop_requested == BackgroundLoopMode::play_once);
 	} else {
 		if (!PlayingSound(file, ((playType >= PlayType::lips) ? SoundMode::speech_play : SoundMode::single_play), 0, (playType == PlayType::slides))) {
 			return false;
@@ -1021,7 +1030,7 @@ void Sound::init() {
 	if (IniReader::GetConfigInt("Sound", "AllowDShowSound", 0)) {
 		soundLoad_func = soundLoad_hook_A; // main hook
 
-		HookCalls(gmovie_play_hook_stop, { // only play looping music
+		HookCalls(gmovie_play_hook_stop, { // also stop sfall background music
 			0x44E80A, // gmovie_play_
 			0x445280, // gdialogInitFromScript_
 			0x43F9B1, // endgame_init_ (before the slideshow)
