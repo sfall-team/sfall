@@ -78,6 +78,7 @@ static HWND soundwindow = 0;
 
 static sDSSound* speechSound = nullptr;     // currently playing sfall speech sound
 static sDSSound* backgroundMusic = nullptr; // currently playing sfall background music
+static bool backgroundMusicNoLoop = false;  // the engine requested the background music to play once (e.g. endgame credits)
 
 static bool deathSceneSpeech = false;
 static bool lipsPlaying = false;
@@ -129,11 +130,16 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 		LONG e = 0;
 		LONG_PTR p1 = 0, p2 = 0;
 		bool shouldFree = false;
+		bool musicEnded = false;
 
 		while (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
 			sound->pEvent->FreeEventParams(e, p1, p2);
 			if (e == EC_COMPLETE) {
-				if (sound->id & SoundFlags::looping) {
+				if (sound == backgroundMusic && (sound->id & SoundFlags::engine) && backgroundMusicNoLoop) {
+					loopingSounds.erase(loopingSounds.cbegin() + i);
+					backgroundMusic = nullptr;
+					shouldFree = musicEnded = true;
+				} else if (sound->id & SoundFlags::looping) {
 					LONGLONG pos = 0;
 					sound->pSeek->SetPositions(&pos, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
 					sound->pControl->Run();
@@ -150,6 +156,10 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 			}
 		}
 		if (shouldFree) FreeSound(sound);
+		// same as gsound_internal_background_callback_ for ACM music (e.g. starts the music after the endgame credits song)
+		if (musicEnded && fo::var::gsound_background_callback_fp) {
+			reinterpret_cast<void (*)()>(fo::var::gsound_background_callback_fp)();
+		}
 		return 0;
 	}
 	return DefWindowProc(wnd, msg, w, l);
@@ -367,6 +377,7 @@ static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFil
 	if (playType == PlayType::music) {
 		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music loop
 		if (!backgroundMusic) return false;
+		backgroundMusicNoLoop = (fo::var::background_loop_requested == 15); // set by gsound_background_play_, 15 - play once
 	} else {
 		if (!PlayingSound(file, ((playType >= PlayType::lips) ? SoundMode::speech_play : SoundMode::single_play), 0, (playType == PlayType::slides))) {
 			return false;
