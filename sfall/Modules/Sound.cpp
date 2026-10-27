@@ -55,6 +55,10 @@ enum SoundFlags : DWORD {
 	engine  = 0x80000000
 };
 
+enum BackgroundLoopMode : long { // background_loop_requested values set by gsound_background_play_
+	play_once = 15
+};
+
 struct sDSSound {
 	DWORD id;     // should be first
 	IGraphBuilder *pGraph;
@@ -78,6 +82,7 @@ static HWND soundwindow = 0;
 
 static sDSSound* speechSound = nullptr;     // currently playing sfall speech sound
 static sDSSound* backgroundMusic = nullptr; // currently playing sfall background music
+static bool backgroundMusicNoLoop = false;  // the engine requested the background music to play once (e.g. endgame credits)
 
 static bool deathSceneSpeech = false;
 static bool lipsPlaying = false;
@@ -129,11 +134,16 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 		LONG e = 0;
 		LONG_PTR p1 = 0, p2 = 0;
 		bool shouldFree = false;
+		bool musicEnded = false;
 
 		while (!FAILED(sound->pEvent->GetEvent(&e, &p1, &p2, 0))) {
 			sound->pEvent->FreeEventParams(e, p1, p2);
 			if (e == EC_COMPLETE) {
-				if (sound->id & SoundFlags::looping) {
+				if (sound == backgroundMusic && (sound->id & SoundFlags::engine) && backgroundMusicNoLoop) {
+					loopingSounds.erase(loopingSounds.cbegin() + i);
+					backgroundMusic = nullptr;
+					shouldFree = musicEnded = true;
+				} else if (sound->id & SoundFlags::looping) {
 					LONGLONG pos = 0;
 					sound->pSeek->SetPositions(&pos, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
 					sound->pControl->Run();
@@ -150,6 +160,15 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 			}
 		}
 		if (shouldFree) FreeSound(sound);
+		// same as gsound_internal_background_callback_ for ACM music (e.g. starts the music after the endgame credits song)
+		if (musicEnded) {
+			__asm {
+				cmp  dword ptr ds:[FO_VAR_gsound_background_callback_fp], 0;
+				je   noCallback;
+				call ds:[FO_VAR_gsound_background_callback_fp];
+noCallback:
+			}
+		}
 		return 0;
 	}
 	return DefWindowProc(wnd, msg, w, l);
@@ -365,8 +384,9 @@ static bool PrePlaySoundFile(PlayType playType, const wchar_t* file, bool hasFil
 	if (!hasFile) return false;
 
 	if (playType == PlayType::music) {
-		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music loop
+		backgroundMusic = PlayingSound(file, SoundMode::engine_music_play); // background music, loops unless played once
 		if (!backgroundMusic) return false;
+		backgroundMusicNoLoop = (fo::var::background_loop_requested == BackgroundLoopMode::play_once);
 	} else {
 		if (!PlayingSound(file, ((playType >= PlayType::lips) ? SoundMode::speech_play : SoundMode::single_play), 0, (playType == PlayType::slides))) {
 			return false;
@@ -1010,7 +1030,12 @@ void Sound::init() {
 	if (IniReader::GetConfigInt("Sound", "AllowDShowSound", 0)) {
 		soundLoad_func = soundLoad_hook_A; // main hook
 
-		HookCalls(gmovie_play_hook_stop, {0x44E80A, 0x445280}); // only play looping music
+		HookCalls(gmovie_play_hook_stop, { // also stop sfall background music
+			0x44E80A, // gmovie_play_
+			0x445280, // gdialogInitFromScript_
+			0x43F9B1, // endgame_init_ (before the slideshow)
+			0x43F813, 0x43F886, 0x43F89C // endgame_movie_ (before and after the credits)
+		});
 		HookCall(0x450851, gsound_background_play_hook);
 
 		HookCall(0x4813EE, main_death_scene_hook);

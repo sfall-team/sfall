@@ -23,6 +23,7 @@
 #define FO_VAR_attack_str                 0x56D624
 #define FO_VAR_backgrndRects              0x518748
 #define FO_VAR_background_fname_requested 0x596FC2
+#define FO_VAR_background_loop_requested  0x518E70
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
@@ -158,6 +159,7 @@
 #define FO_VAR_GNW95_repeat_delay         0x51E240
 #define FO_VAR_GNW95_repeat_rate          0x51E23C
 #define FO_VAR_GNWWin                     0x5195B8
+#define FO_VAR_gsound_background_callback_fp 0x518E58
 #define FO_VAR_gsound_background_fade     0x518E40
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_gsound_speech_tag          0x518E54
