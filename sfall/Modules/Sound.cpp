@@ -82,6 +82,7 @@ static HWND soundwindow = 0;
 
 static sDSSound* speechSound = nullptr;     // currently playing sfall speech sound
 static sDSSound* backgroundMusic = nullptr; // currently playing sfall background music
+
 static bool backgroundMusicNoLoop = false;  // the engine requested the background music to play once (e.g. endgame credits)
 
 static bool deathSceneSpeech = false;
@@ -142,7 +143,8 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 				if (sound == backgroundMusic && (sound->id & SoundFlags::engine) && backgroundMusicNoLoop) {
 					loopingSounds.erase(loopingSounds.cbegin() + i);
 					backgroundMusic = nullptr;
-					shouldFree = musicEnded = true;
+					musicEnded = true;
+					shouldFree = true;
 				} else if (sound->id & SoundFlags::looping) {
 					LONGLONG pos = 0;
 					sound->pSeek->SetPositions(&pos, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
@@ -160,7 +162,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 			}
 		}
 		if (shouldFree) FreeSound(sound);
-		// same as gsound_internal_background_callback_ for ACM music (e.g. starts the music after the endgame credits song)
+		// same as gsound_internal_background_callback_ for ACM music (e.g. starts the music after the credits song)
 		if (musicEnded) {
 			__asm {
 				cmp  dword ptr ds:[FO_VAR_gsound_background_callback_fp], 0;
