@@ -8,6 +8,7 @@ PTR_(art,                        fo::Art) // array of 11 Art
 PTR_(art_name,                   DWORD)
 PTR_(art_vault_guy_num,          DWORD)
 PTR_(art_vault_person_nums,      DWORD)
+PTRC(background_loop_requested,  long)
 PTR_(background_volume,          DWORD)
 PTR_(bckgnd,                     BYTE*)
 PTR_(black_palette,              DWORD)
