@@ -4848,6 +4848,9 @@ void BugFixes::init() {
 	// Fix for the entire stack of flares being lit instead of just one when using the stack on scenery or a critter
 	MakeCall(0x49BBF1, obj_use_flare_hack, 1); // remove a flare from the stack for lighting up
 	HookCall(0x49BC43, obj_use_flare_hook);    // add the lit flare back to the holder
+
+	// Fix to prevent NPCs from unequipping powered melee/unarmed weapons when looking for ammo
+	SafeWrite8(0x42933D, 0xDF); // jz 0x42931D (skip inven_unwield_)
 }
 
 }
