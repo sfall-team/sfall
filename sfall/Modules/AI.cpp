@@ -81,8 +81,12 @@ bool AIHelpers::AttackInRange(fo::GameObject* source, fo::GameObject* weapon, fo
 static __declspec(naked) void ai_try_attack_hook_FleeFix() {
 	using namespace fo;
 	__asm {
+		call fo::funcoffs::ai_run_away_;
+		test byte ptr [esi + combatState], EnemyOutOfRange;
+		jnz  skip;
 		or   byte ptr [esi + combatState], ReTarget; // set CombatStateFlag flag
-		jmp  fo::funcoffs::ai_run_away_;
+skip:
+		retn;
 	}
 }
 
@@ -672,7 +676,7 @@ void AI::init() {
 	MakeCall(0x429074, ai_danger_source_hack_pm_newFind);
 	SafeWrite16(0x429074 + 5, 0x47EB); // jmp 0x4290C2
 
-	// Fix to allow fleeing NPC to use drugs
+	// Fix to allow fleeing NPCs to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
 	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
 	//HookCall(0x428579, ai_check_drugs_hook);
@@ -682,7 +686,7 @@ void AI::init() {
 	//SafeWrite8(0x4285A8, 2);    // set noInvenItem = 2
 	//SafeWrite8(0x4287A0, 0x8C); // jnz > jl (noInvenItem < 1)
 
-	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
+	// Fix for NPC stuck in fleeing mode when a target's hit chance was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
 	const DWORD aiTryAttackFleeAddr[] = {0x42ABA8, 0x42ACE5};
 	HookCalls(ai_try_attack_hook_FleeFix, aiTryAttackFleeAddr);
