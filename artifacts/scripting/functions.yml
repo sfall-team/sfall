@@ -127,12 +127,12 @@
     detail: int get_critter_extra_stat(CritterPtr, int StatID)
     opcode: 0x8161
   - name: get_stat_min
-    detail: get_stat_min(int stat, bool who = False)
+    detail: int get_stat_min(int stat, bool who = False)
     doc: |
       - Returns the minimum set value of the specified stat (see `set_stat_min` functions)
       - who: 0 (`False`) or omitting the argument - returns the value of the player, 1 (`True`) - returns the value set for other critters
   - name: get_stat_max
-    detail: get_stat_max(int stat, bool who = False)
+    detail: int get_stat_max(int stat, bool who = False)
     doc: |
       - Returns the maximum set value of the specified stat (see `set_stat_max` functions)
       - who: 0 (`False`) or omitting the argument - returns the value of the player, 1 (`True`) - returns the value set for other critters
@@ -541,7 +541,7 @@
       - the set rest value will be stored in `sfalldb.sav` file (in savegame)
     macro: sfall.h
   - name: get_can_rest_on_map
-    detail: get_can_rest_on_map(int mapNum, int elev)
+    detail: int get_can_rest_on_map(int mapNum, int elev)
     doc: |
       - returns the set rest value of the map after using the `set_can_rest_on_map` function
       - Returns -1 if the rest value of the map was not previously set (i.e. no data for the map in `sfalldb.sav`)
@@ -673,7 +673,7 @@
       - __NOTE:__ vanilla `floor` function works exactly the same as `ceil` for negative floats (i.e. basically `trunc` in C/C++).
     macro: sfall.h
   - name: div
-    detail: div(x, y)
+    detail: x div y
     doc: |
       Unsigned integer division. Use as a division operator, like `3 + (20 div 5)`.
       If both dividend and divisor are integers, they will be treated as unsigned integers.
@@ -1494,7 +1494,7 @@
     macro: sfall.h
 
   - name: get_current_inven_size
-    detail: get_current_inven_size(ObjectPtr object)
+    detail: int get_current_inven_size(ObjectPtr object)
     doc: Returns the total size of items in a container or a critter's inventory.
     macro: sfall.h
 
@@ -1536,7 +1536,7 @@
       - __Deprecation notice:__ Starting from sfall 4.5/3.8.50, the two-argument form is deprecated. The `fileNumber` argument is ignored, and the function behaves the same as the one-argument form.
     macro: sfall.h
 
-  - name: void sfall_func0("remove_timer_event")
+  - name: sfall_func0("remove_timer_event")
     detail: void sfall_func0("remove_timer_event")
     doc: Clears all set timer events for the current global script.
     macro: sfall.h
@@ -1550,7 +1550,7 @@
     doc: Hides currently active (selected) script window.
     macro: sfall.h
   - name: sfall_func1("hide_window", string winName)
-    detail: void sfall_func0("hide_window")
+    detail: void sfall_func1("hide_window", string winName)
     doc: |
       Hides the specified script window.
       - winName: the window name, assigned to the window by the `CreateWin/create_win` function
@@ -1876,9 +1876,9 @@
         Fills the rectangle area of the currently selected script window with the specified color, or clears the window with transparent (index 0) color (call the function without arguments).
         - `color`: the color index in the game palette (from 0 to 255)
     - name: interface_overlay
-      detail: sfall_func2("interface_overlay", int winType, int mode)
+      detail: void sfall_func2("interface_overlay", int winType, int mode)
       doc: |
-        Alternative form: `int sfall_func6("interface_overlay", int winType, 2, int x, int y, int width, int height)`.
+        Alternative form: `void sfall_func6("interface_overlay", int winType, 2, int x, int y, int width, int height)`.
 
         Creates an additional drawing surface above the graphic layer of the specified interface window. All subsequent calls of `interface_art_draw` and `interface_print` functions will draw on it.
         - `winType`: the type number of the interface window (see `WINTYPE_*` constants in **sfall.h**)
@@ -2072,7 +2072,7 @@
       - returns -1 on argument error.
 
   - name: obj_is_carrying_obj
-    detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
+    detail: int obj_is_carrying_obj(ObjectPtr invenObj, ObjectPtr itemObj)
     doc: Returns number of `itemObj` inside invenObj's inventory, note that both arguments are object pointers. useful when dealing with different stacks of same item (`obj_is_carrying_obj_pid` just returns total for all stacks of the same PID.)
     opcode: 0x8275
 
@@ -2097,11 +2097,11 @@
     macro: sfall.h
 
   - name: get_object_data
-    detail: get_object_data(ObjectPtr object, int offset)
+    detail: int get_object_data(ObjectPtr object, int offset)
     doc: Returns the data at the specified offset of an object (see `OBJ_DATA_*` constants in **define_extra.h** for offsets).
     macro: sfall.h
   - name: set_object_data
-    detail: set_object_data(ObjectPtr object, int offset, int data)
+    detail: void set_object_data(ObjectPtr object, int offset, int data)
     doc: Sets the data at the specified offset of an object.
     macro: sfall.h
 
