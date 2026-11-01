@@ -20,6 +20,7 @@
 #     doc: fuction documentation in markdown format           # OPTIONAL. Will be displayed in IDE.
 #     opcode: function opcode                                 # OPTIONAL
 #     unsafe: true/false                                      # OPTIONAL. Whether it requires AllowUnsafeScripting.
+#     deprecated: true or a message                           # OPTIONAL. The function should not be used; the message says why or what to use instead.
 #     macro: header file name                                 # OPTIONAL. What to include to use this.
 
 - name: Direct memory access # just parent page
@@ -1179,14 +1180,16 @@
   - name: eax_available
     type: int
     opcode: 0x81a3
-    doc: Obsolete since sfall 2.1a. Always returns 0.
+    deprecated: Obsolete since sfall 2.1a.
+    doc: Always returns 0.
   - name: set_eax_environment
     type: void
     args:
     - name: environment
       type: int
     opcode: 0x81a4
-    doc: Obsolete since sfall 2.1a. Has no effect.
+    deprecated: Obsolete since sfall 2.1a.
+    doc: Has no effect.
 
   - name: play_sfall_sound
     type: int
@@ -1774,7 +1777,8 @@
   - name: input_funcs_available
     type: int
     opcode: 0x816b
-    doc: (DEPRECATED) The input functions are only available if the user has the input hook turned on in `ddraw.ini`. Use `input_funcs_available` to check.
+    deprecated: true
+    doc: The input functions are only available if the user has the input hook turned on in `ddraw.ini`. Use `input_funcs_available` to check.
   - name: get_year
     type: int
     opcode: 0x8163
@@ -1934,7 +1938,8 @@
   - name: nb_create_char
     type: int
     opcode: 0x81f6
-    doc: (DEPRECATED) Reserved for the brotherhood tactical training mod, and should be avoided. Not implemented, always returns 0.
+    deprecated: true
+    doc: Reserved for the brotherhood tactical training mod, and should be avoided. Not implemented, always returns 0.
 
   - name: get_proto_data
     type: int
@@ -2191,8 +2196,9 @@
     args:
     - name: text
       type: string
+    deprecated: true
     doc: |
-      (DEPRECATED) Returns a pointer to a string variable or to a text
+      Returns a pointer to a string variable or to a text
       - __NOTE:__ this function is intended for use only in `HOOK_DESCRIPTIONOBJ`. Starting from sfall 4.4/3.8.40, you can return normal strings directly in the hook without calling the function
     macro: sfall.h
   - name: string_find

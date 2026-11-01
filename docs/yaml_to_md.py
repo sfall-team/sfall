@@ -129,8 +129,14 @@ with open(functions_yaml) as yf:
         # unsafe label
         if 'unsafe' in i and i['unsafe'] is True:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
+        # deprecated label: true, or a message
+        deprecated = i.get('deprecated')
+        if deprecated is not None and deprecated is not False:
+          text += '{: .d-inline-block }\nDEPRECATED\n{: .label .label-yellow }\n'
         # usage
         text += "```c++\n{}\n```\n".format(get_signature(i))
+        if isinstance(deprecated, str):
+          text += "__Deprecated:__ {}\n\n".format(deprecated)
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
