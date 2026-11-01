@@ -47,6 +47,35 @@ permalink: /hook-types/
 def get_slug(string):
   return string.lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-')
 
+def get_signature(item):
+  if 'detail' in item:
+    return item['detail']
+  args = []
+  for a in item.get('args', []):
+    arg = "{} {}".format(a['type'], a['name'])
+    if 'default' in a:
+      arg += " = {}".format(a['default'])
+    args.append(arg)
+  if 'metarule' in item:
+    return '{} sfall_func{}({})'.format(item['type'], len(args), ', '.join(['"{}"'.format(item['metarule'])] + args))
+  if 'args' not in item:
+    return "{} {}".format(item['type'], item['name'])
+  return "{} {}({})".format(item['type'], item['name'], ', '.join(args))
+
+def get_args_doc(item):
+  text = ""
+  for a in item.get('args', []):
+    optional = a.get('optional') is True
+    if 'doc' not in a and not optional:
+      continue
+    text += "- `{}`".format(a['name'])
+    if optional:
+      text += " (optional)"
+    if 'doc' in a:
+      text += ": " + a['doc'].rstrip('\n').replace('\n', '\n  ')
+    text += "\n"
+  return text
+
 # functions pages
 with open(functions_yaml) as yf:
   data = yaml.load(yf)
@@ -96,7 +125,10 @@ with open(functions_yaml) as yf:
         if 'unsafe' in i and i['unsafe'] is True:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
         # usage
-        text += "```c++\n{}\n```\n".format(i['detail'])
+        text += "```c++\n{}\n```\n".format(get_signature(i))
+        args_doc = get_args_doc(i)
+        if args_doc != "":
+          text += args_doc + "\n"
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
