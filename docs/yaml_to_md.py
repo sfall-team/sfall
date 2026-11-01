@@ -132,7 +132,7 @@ with open(functions_yaml) as yf:
         # deprecated label: true, or a message
         deprecated = i.get('deprecated')
         if deprecated is not None and deprecated is not False:
-          text += '{: .d-inline-block }\nDEPRECATED\n{: .label .label-yellow }\n'
+          text += '{: .d-inline-block }\nDEPRECATED\n{: .label .label-grey }\n'
         # usage
         text += "```c++\n{}\n```\n".format(get_signature(i))
         if isinstance(deprecated, str):
