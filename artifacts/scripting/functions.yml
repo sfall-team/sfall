@@ -9,12 +9,12 @@
 #   items:
 #   - name: function_name                                     # REQUIRED
 #     type: void                                              # REQUIRED. Return type.
-#     metarule: funcName                                      # OPTIONAL. Called as sfall_funcN("funcName", args...); N is the number of args.
+#     metarule: funcName                                      # OPTIONAL. Called as sfall_funcN("funcName", args...); N is the number of args passed.
 #     args:                                                   # OPTIONAL. Omit for a function called without parentheses.
 #     - name: obj                                             # REQUIRED
 #       type: ObjectPtr                                       # REQUIRED
 #       doc: argument documentation in markdown format        # OPTIONAL. Will be displayed in IDE.
-#       optional: true                                        # OPTIONAL. The argument can be omitted.
+#       optional: true                                        # OPTIONAL. Only with metarule: the argument can be omitted, along with every argument after it.
 #       default: "0"                                          # OPTIONAL. Value used when the argument is omitted.
 #     detail: x div y                                         # Only for what is not a function call (operators, variadic functions); replaces type and args. SINGLE line.
 #     doc: fuction documentation in markdown format           # OPTIONAL. Will be displayed in IDE.
@@ -1086,10 +1086,8 @@
     args:
     - name: x
       type: int
-      optional: true
     - name: y
       type: int
-      optional: true
     doc: Returns the terrain type name for the sub-tile on the world map by the specified coordinates, or by the player's current position if called without arguments.
     macro: sfall.h
   - name: set_town_title
@@ -1522,10 +1520,10 @@
       doc: the minimum explosion damage
     - name: maxDamage
       type: int
-      optional: true
       doc: the maximum explosion damage
     doc: |
       - makes the specified item (pid) an explosive item like Dynamite or Plastic Explosives
+      - `maxDamage` is optional
       - the item proto must be of the **Misc Item** type and have the **Use** action flag
       - using the function on an item that is already set as an explosive will override its previous settings
       - NOTE: this function does not work for pids of Dynamite and Plastic Explosives
@@ -2936,7 +2934,6 @@
       type: int
     - name: type
       type: int
-      optional: true
       doc: passing -1 or _not specifying it_ will return all objects within the radius
     doc: |
       - returns an array of objects of a type (see `OBJ_TYPE_*` constants in **define_extra.h**) within the specified radius from the given tile
@@ -3251,14 +3248,13 @@
         doc: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
       - name: frame
         type: int
-        optional: true
         doc: frame number, the first frame starts at zero
       - name: rotation
         type: int
-        optional: true
         doc: rotation to get the frame for, useful when reading FRM files by path
       doc: |
         - returns the dimensions of a given PCX or FRM frame as a temp array in the form **[width, height]**
+        - optional arguments: `frame`, `rotation`
       macro: sfall.h
 
     - name: interface_art_draw
@@ -3291,11 +3287,6 @@
           index 0 - sprite direction for multi-directional FRM
           index 1/index 2 - the new width/height to scale the image to. Pass -1 to use the original width/height
       doc: |
-        ```c++
-        int sfall_func4("interface_art_draw", int winType, string artFile/int artID, int x, int y)
-        int sfall_func5("interface_art_draw", int winType, string artFile/int artID, int x, int y, int frame)
-        int sfall_func6("interface_art_draw", int winType, string artFile/int artID, int x, int y, int frame, array param)
-        ```
         - draws the specified PCX or FRM image in the game interface window, returns -1 on any error
 
     - name: interface_print
@@ -3328,10 +3319,6 @@
         optional: true
         doc: the maximum width of the text. The text will be wrapped to fit within the specified width
       doc: |
-        ```c++
-        int sfall_func5("interface_print", string text, int winType, int x, int y, int color)
-        int sfall_func6("interface_print", string text, int winType, int x, int y, int color, int width)
-        ```
         - displays the text in the specified interface window with the current font. Use vanilla `SetFont` function to set the font
         - returns the count of lines printed, or -1 on any error
 
@@ -3343,22 +3330,19 @@
         doc: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
       - name: frame
         type: int
-        optional: true
         doc: frame number, the first frame starts at zero
       - name: x
         type: int
-        optional: true
         doc: horizontal offset relative to the top-left corner of the window
       - name: y
         type: int
-        optional: true
         doc: vertical offset relative to the top-left corner of the window
       - name: noTransparent
         type: bool
-        optional: true
         doc: pass True to display an image without transparent background
       doc: |
         - displays the specified PCX or FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
+        - optional arguments: `frame`, `x`, `y`, `noTransparent`
         - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
       macro: sfall.h
 
@@ -3370,26 +3354,22 @@
         doc: path to the PCX/FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. `0x7000026`, see specification of the FID format)
       - name: frame
         type: int
-        optional: true
         doc: frame number, the first frame starts from zero
       - name: x
         type: int
-        optional: true
         doc: horizontal offset relative to the top-left corner of the window
       - name: y
         type: int
-        optional: true
         doc: vertical offset relative to the top-left corner of the window
       - name: width
         type: int
-        optional: true
         doc: the new width to scale the image to. Pass -1 to either width or height to keep the aspect ratio when scaling
       - name: height
         type: int
-        optional: true
         doc: the new height to scale the image to. Pass -1 to either width or height to keep the aspect ratio when scaling
       doc: |
         - displays the specified PCX or FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
+        - optional arguments: `frame`, `x`, `y`, `width`, `height`
         - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
         - if called without `x/y/width/height` arguments, the image will be scaled to fit the window without transparent background
       macro: sfall.h
@@ -3413,8 +3393,7 @@
         type: int
       - name: flags
         type: int
-        optional: true
-      doc: "Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window. `MoveOnTop` flag allows the created window to be placed on top of the game interface."
+      doc: "`flags` argument is optional. Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window. `MoveOnTop` flag allows the created window to be placed on top of the game interface."
       macro: sfall.h
 
     - name: get_window_attribute
@@ -3480,19 +3459,14 @@
       args:
       - name: x
         type: int
-        optional: true
       - name: y
         type: int
-        optional: true
       - name: width
         type: int
-        optional: true
       - name: height
         type: int
-        optional: true
       - name: color
         type: int
-        optional: true
         doc: the color index in the game palette (from 0 to 255)
       doc: |
         Fills the rectangle area of the currently selected script window with the specified color, or clears the window with transparent (index 0) color (call the function without arguments).
@@ -3509,18 +3483,6 @@
           1 - creates a new overlay surface
           2 - clears the overlay area or the specified rectangle defined by the `x`, `y`, `width`, `height` arguments
           0 - destroys the created overlay surface (frees up the memory allocated to the surface)
-      - name: x
-        type: int
-        optional: true
-      - name: y
-        type: int
-        optional: true
-      - name: width
-        type: int
-        optional: true
-      - name: height
-        type: int
-        optional: true
       doc: |
         Alternative form: `void sfall_func6("interface_overlay", int winType, 2, int x, int y, int width, int height)`.
 
@@ -3565,7 +3527,6 @@
     args:
     - name: winType
       type: int
-      optional: true
       doc: the type number of the interface window (see `WINTYPE_*` constants in **sfall.h**). Pass `-1` to redraw all interface windows.
     macro: sfall.h
     doc: |
@@ -3594,7 +3555,6 @@
     args:
     - name: invSide
       type: int
-      optional: true
       doc: 'specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens), -1 - both sides (same as without argument).'
     doc: Redraws inventory items list in the inventory/loot/barter screens.
     macro: sfall.h
@@ -3868,10 +3828,9 @@
       type: ObjectPtr
     - name: flag
       type: int
-      optional: true
       doc: pass -1 to assign a new ID number generated by the engine to the object (i.e. unassign a unique ID)
     doc: |
-      Assigns a unique ID number to the object and returns it. If a unique ID number has already been assigned to an object, then ID number is returned without reassignment.
+      Assigns a unique ID number to the object and returns it. If a unique ID number has already been assigned to an object, then ID number is returned without reassignment. `flag` is optional.
       - items with unique IDs will not stack with other items of the same type in the inventory
       - to just get the current ID number of an object, use `get_object_data(object, OBJ_DATA_ID)`
       - unique ID numbers are saved in your savegame, and have a range from 0x10000000 to 0x7FFFFFFF
@@ -3883,7 +3842,6 @@
     args:
     - name: name
       type: string
-      optional: true
       doc: passing an empty string ("") or omitting it will allow the game to get the name for the object from pro_*.msg files
     doc: |
       Overrides the name of the script object that was set from `scrname.msg`.
