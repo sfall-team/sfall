@@ -358,7 +358,7 @@
     type: void
     args:
     - name: critter
-      type: int
+      type: ObjectPtr
     - name: skill
       type: int
     - name: value
@@ -369,7 +369,7 @@
     type: int
     args:
     - name: critter
-      type: int
+      type: ObjectPtr
     - name: skill
       type: int
     opcode: 0x8243
@@ -805,7 +805,7 @@
     type: int
     args:
     - name: name
-      type: string
+      type: string/int
     opcode: 0x81c1
     doc: Returns the number of levels the player has of the perks with the given name or ID of extra perk.
   - name: has_fake_trait
@@ -1419,6 +1419,8 @@
   - name: metarule2_explosions
     type: int
     args:
+    - name: mode
+      type: int
     - name: arg1
       type: int
     - name: arg2
@@ -1877,7 +1879,7 @@
     type: int
     args:
     - name: npc
-      type: string
+      type: int/string
     opcode: 0x8241
   - name: get_viewport_x
     type: int
@@ -3142,7 +3144,7 @@
     type: void
     args:
     - name: critter
-      type: int
+      type: ObjectPtr
     - name: disable
       type: int
     opcode: 0x8216
