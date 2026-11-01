@@ -126,12 +126,13 @@ with open(functions_yaml) as yf:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
         # usage
         text += "```c++\n{}\n```\n".format(get_signature(i))
-        args_doc = get_args_doc(i)
-        if args_doc != "":
-          text += args_doc + "\n"
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
+        # the label paragraph keeps the list apart from a list that ends the doc
+        args_doc = get_args_doc(i)
+        if args_doc != "":
+          text += "\n__Arguments:__\n\n" + args_doc
 
     md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
