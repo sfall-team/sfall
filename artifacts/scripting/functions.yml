@@ -14,8 +14,7 @@
 #     - name: obj                                             # REQUIRED
 #       type: ObjectPtr                                       # REQUIRED
 #       doc: argument documentation in markdown format        # OPTIONAL. Will be displayed in IDE.
-#       optional: true                                        # OPTIONAL. Only with metarule: the argument can be omitted, along with every argument after it.
-#       default: "0"                                          # REQUIRED with optional: true, else OPTIONAL. Value used when the argument is omitted.
+#       default: "0"                                          # OPTIONAL. The argument can be omitted, along with every argument after it; this value is used then.
 #     detail: x div y                                         # Only for what is not a function call (operators, variadic functions); replaces type and args. SINGLE line.
 #     doc: fuction documentation in markdown format           # OPTIONAL. Will be displayed in IDE.
 #     opcode: function opcode                                 # OPTIONAL
@@ -3283,12 +3282,10 @@
         doc: vertical offset relative to the top-left corner of the window
       - name: frame
         type: int
-        optional: true
         default: "0"
         doc: frame number, the first frame starts at zero
       - name: param
         type: array
-        optional: true
         default: "0"
         doc: |-
           an array which specifies additional parameters, where:
@@ -3324,7 +3321,6 @@
           - `0x2000000` - fills the background of the text with black color, the `textnofill` compiler constant (works the other way around)
       - name: width
         type: int
-        optional: true
         default: "0"
         doc: the maximum width of the text. The text will be wrapped to fit within the specified width
       doc: |
@@ -3414,7 +3410,6 @@
         doc: the type number of the interface window (see `WINTYPE_*` constants in **sfall.h**)
       - name: attrType
         type: int
-        optional: true
         default: "0"
         doc: |-
           `0` - checks and returns a value of 1 if the specified interface window is created by the game (same as without the argument)
@@ -3436,17 +3431,14 @@
           the text in the dialog box. Use the `\n` control character to move text to a new line (example: "Hello\nWorld!")
       - name: flags
         type: int
-        optional: true
         default: "-1"
         doc: mode flags (see `MSGBOX_*` constants in define_extra.h). Pass -1 to skip setting the flags (default flags are NORMAL and YESNO)
       - name: color1
         type: int
-        optional: true
         default: "145"
         doc: the color index in the game palette for the text of the first line (default color is 145)
       - name: color2
         type: int
-        optional: true
         default: "145"
         doc: the color index in the game palette for all subsequent lines of text (default color is 145)
       doc: |
