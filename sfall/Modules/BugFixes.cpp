@@ -3910,6 +3910,19 @@ end:
 	}
 }
 
+static void __stdcall RecalcDudeWeaponAnimCode() {
+	long dudeFid = (*fo::ptr::obj_dude)->artFid;
+	long weaponCode = fo::util::AnimCodeByWeapon(fo::util::GetActiveItem());
+	(*fo::ptr::obj_dude)->artFid = (dudeFid & 0xFFFF0FFF) | ((weaponCode << 12) & 0xF000);
+}
+
+static __declspec(naked) void intface_load_hook() {
+	__asm {
+		call fo::funcoffs::intface_update_items_;
+		jmp  RecalcDudeWeaponAnimCode;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4864,6 +4877,9 @@ void BugFixes::init() {
 
 	// Fix to prevent NPCs from unequipping powered melee/unarmed weapons when looking for ammo
 	SafeWrite8(0x42933D, 0xDF); // jz 0x42931D (skip inven_unwield_)
+
+	// Fix for stale weapon animation code in the player's FID after loading a saved game
+	HookCall(0x45E932, intface_load_hook);
 }
 
 }
