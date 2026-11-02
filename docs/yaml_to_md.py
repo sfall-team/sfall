@@ -47,6 +47,40 @@ permalink: /hook-types/
 def get_slug(string):
   return string.lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-')
 
+def get_signature(item):
+  if 'detail' in item:
+    return item['detail']
+  args = []
+  for a in item.get('args', []):
+    arg = "{} {}".format(a['type'], a['name'])
+    if 'default' in a:
+      arg += " = {}".format(a['default'])
+    args.append(arg)
+  if 'metarule' in item:
+    # one line per valid argument count: optional arguments are omitted from the right
+    required = len([a for a in item.get('args', []) if a.get('optional') is not True])
+    lines = []
+    for n in range(required, len(args) + 1):
+      lines.append('{} sfall_func{}({})'.format(item['type'], n, ', '.join(['"{}"'.format(item['metarule'])] + args[:n])))
+    return '\n'.join(lines)
+  if 'args' not in item:
+    return "{} {}".format(item['type'], item['name'])
+  return "{} {}({})".format(item['type'], item['name'], ', '.join(args))
+
+def get_args_doc(item):
+  text = ""
+  for a in item.get('args', []):
+    optional = a.get('optional') is True or 'default' in a
+    if 'doc' not in a and not optional:
+      continue
+    text += "- `{}`".format(a['name'])
+    if optional:
+      text += " (optional)"
+    if 'doc' in a:
+      text += ": " + a['doc'].rstrip('\n').replace('\n', '\n  ')
+    text += "\n"
+  return text
+
 # functions pages
 with open(functions_yaml) as yf:
   data = yaml.load(yf)
@@ -95,11 +129,21 @@ with open(functions_yaml) as yf:
         # unsafe label
         if 'unsafe' in i and i['unsafe'] is True:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
+        # deprecated label: true, or a message
+        deprecated = i.get('deprecated')
+        if deprecated is not None and deprecated is not False:
+          text += '{: .d-inline-block }\nDEPRECATED\n{: .label .label-grey }\n'
         # usage
-        text += "```c++\n{}\n```\n".format(i['detail'])
+        text += "```c++\n{}\n```\n".format(get_signature(i))
+        if isinstance(deprecated, str):
+          text += "__Deprecated:__ {}\n\n".format(deprecated)
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
+        # the label paragraph keeps the list apart from a list that ends the doc
+        args_doc = get_args_doc(i)
+        if args_doc != "":
+          text += "\n__Arguments:__\n\n" + args_doc
 
     md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
