@@ -34,11 +34,11 @@ void trim(char* str) {
 	int len = strlen(str) - 1;
 
 	int i = len;
-	while (len >= 0 && isspace(str[len])) len--;
+	while (len >= 0 && isspace(static_cast<unsigned char>(str[len]))) len--;
 	if (i != len) str[len + 1] = '\0'; // delete all spaces on the right
 
 	i = 0;
-	while (i < len && isspace(str[i])) i++;
+	while (i < len && isspace(static_cast<unsigned char>(str[i]))) i++;
 	if (i > 0) {
 		int j = 0;
 		do {

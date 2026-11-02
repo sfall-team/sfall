@@ -346,7 +346,7 @@ int __fastcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::i_fid; //fo::var::obj_dude->artFid;
 		long weaponCode = fo::util::AnimCodeByWeapon(item);
-		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
+		fId = (fId & 0xFFFF0FFF) | ((weaponCode << 12) & 0xF000);
 		if (!fo::func::art_exists(fId)) {
 			DisplayCantDoThat();
 			return 1;
