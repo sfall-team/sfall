@@ -67,6 +67,13 @@ def get_signature(item):
     return "{} {}".format(item['type'], item['name'])
   return "{} {}({})".format(item['type'], item['name'], ', '.join(args))
 
+def check_args(item):
+  errors = []
+  for a in item.get('args', []):
+    if a.get('optional') is True and 'default' not in a:
+      errors.append("{}: argument '{}' is optional but has no default".format(item['name'], a['name']))
+  return errors
+
 def get_args_doc(item):
   text = ""
   for a in item.get('args', []):
@@ -84,6 +91,9 @@ def get_args_doc(item):
 # functions pages
 with open(functions_yaml) as yf:
   data = yaml.load(yf)
+  errors = [e for cat in data for i in cat.get('items', []) for e in check_args(i)]
+  if errors:
+    sys.exit(functions_yaml + ":\n" + "\n".join(errors))
   for cat in data: # list categories
     text = ""
 
