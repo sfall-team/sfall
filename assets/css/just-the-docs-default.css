@@ -228,6 +228,8 @@ Licensed under the BSD license, see LICENSE for details.
 
 .highlight .n { color: #dc322f !important; }
 
+.label-grey { background-color: #5c5962 !important; }
+
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
 /* Document ========================================================================== */
 /** 1. Correct the line height in all browsers. 2. Prevent adjustments of font size after orientation changes in iOS. */
