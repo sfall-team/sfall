@@ -57,8 +57,8 @@ def get_signature(item):
       arg += " = {}".format(a['default'])
     args.append(arg)
   if 'metarule' in item:
-    # one line per valid argument count: optional arguments are omitted from the right
-    required = len([a for a in item.get('args', []) if a.get('optional') is not True])
+    # one line per valid argument count: arguments with a default are omitted from the right
+    required = len([a for a in item.get('args', []) if 'default' not in a])
     lines = []
     for n in range(required, len(args) + 1):
       lines.append('{} sfall_func{}({})'.format(item['type'], n, ', '.join(['"{}"'.format(item['metarule'])] + args[:n])))
@@ -70,7 +70,7 @@ def get_signature(item):
 def get_args_doc(item):
   text = ""
   for a in item.get('args', []):
-    optional = a.get('optional') is True or 'default' in a
+    optional = 'default' in a
     if 'doc' not in a and not optional:
       continue
     text += "- `{}`".format(a['name'])
