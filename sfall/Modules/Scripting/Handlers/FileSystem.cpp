@@ -52,6 +52,10 @@ void op_fs_write_int(OpcodeContext& ctx) {
 	FSwrite_int(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
+void op_fs_write_float(OpcodeContext& ctx) {
+	FSwrite_int(ctx.arg(0).rawValue(), ScriptValue(ctx.arg(1).asFloat()).rawValue());
+}
+
 void op_fs_write_string(OpcodeContext& ctx) {
 	FSwrite_string(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }

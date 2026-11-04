@@ -88,7 +88,7 @@ noCar:
 void op_force_encounter(OpcodeContext& cxt) {
 	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
-	DWORD mapID = cxt.arg(0).rawValue();
+	long mapID = cxt.arg(0).rawValue();
 	if (mapID < 0) {
 		cxt.printOpcodeError("%s() - invalid map number.", cxt.getOpcodeName());
 		return;
