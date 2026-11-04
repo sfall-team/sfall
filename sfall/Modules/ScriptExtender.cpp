@@ -754,8 +754,9 @@ static DWORD script_chk_timed_events_hook() {
 	return (!fo::var::queue && timerEventScripts.empty());
 }
 
-void ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
-	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+bool ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
+	ScriptProgram* scriptProg = GetGlobalScriptProgram(script);
+	if (!scriptProg) return false; // not a global or hook script
 	TimedEvent timer;
 	timer.isActive = true;
 	timer.script = scriptProg;
@@ -763,17 +764,18 @@ void ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long p
 	timer.time = fo::var::fallout_game_time + time;
 	timerEventScripts.push_back(std::move(timer));
 	timerEventScripts.sort(TimedEvent());
+	return true;
 }
 
 void ScriptExtender::RemoveTimerEventScripts(fo::Program* script, long param) {
-	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	ScriptProgram* scriptProg = GetGlobalScriptProgram(script);
 	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
 		return timer.script == scriptProg && timer.fixed_param == param;
 	});
 }
 
 void ScriptExtender::RemoveTimerEventScripts(fo::Program* script) {
-	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	ScriptProgram* scriptProg = GetGlobalScriptProgram(script);
 	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
 		return timer.script == scriptProg;
 	});

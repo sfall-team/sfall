@@ -52,7 +52,7 @@ public:
 	static void AddProgramToMap(ScriptProgram &prog);
 	static ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
-	static void AddTimerEventScripts(fo::Program* script, long time, long param);
+	static bool AddTimerEventScripts(fo::Program* script, long time, long param);
 	static void RemoveTimerEventScripts(fo::Program* script, long param);
 	static void RemoveTimerEventScripts(fo::Program* script);
 
