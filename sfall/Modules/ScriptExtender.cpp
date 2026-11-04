@@ -769,14 +769,16 @@ bool ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long p
 
 void ScriptExtender::RemoveTimerEventScripts(fo::Program* script, long param) {
 	ScriptProgram* scriptProg = GetGlobalScriptProgram(script);
-	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
+	if (!scriptProg) return;
+	timerEventScripts.remove_if([scriptProg, param] (const TimedEvent& timer) {
 		return timer.script == scriptProg && timer.fixed_param == param;
 	});
 }
 
 void ScriptExtender::RemoveTimerEventScripts(fo::Program* script) {
 	ScriptProgram* scriptProg = GetGlobalScriptProgram(script);
-	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
+	if (!scriptProg) return;
+	timerEventScripts.remove_if([scriptProg] (const TimedEvent& timer) {
 		return timer.script == scriptProg;
 	});
 }
