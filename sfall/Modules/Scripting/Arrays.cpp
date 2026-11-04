@@ -480,6 +480,7 @@ ScriptValue GetArrayKey(DWORD id, int index) {
 		return ScriptValue(arrays[id].isAssoc());
 	}
 	if (arrays[id].isAssoc()) {
+		if (index == arrays[id].size()) return ScriptValue(0);
 		index *= 2;
 		// for associative array - return key at the specified index
 		switch(arrays[id].val[index].type) {

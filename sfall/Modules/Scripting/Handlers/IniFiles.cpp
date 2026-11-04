@@ -52,6 +52,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 	DWORD filelen = (DWORD)key - (DWORD)iniString;
 	if (ScriptExtender::iniConfigFolder[0] == '\0' && filelen >= 64) return -1;
+	if (2 + filelen >= 128) return -1; // the path must fit in file[128]
 	const char* fileEnd = key;
 
 	key = strstr(key + 1, "|");
@@ -65,6 +66,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 	if (ScriptExtender::iniConfigFolder[0] != '\0' && !IsSpecialIni(iniString, fileEnd)) {
 		size_t len = strlen(ScriptExtender::iniConfigFolder); // limit up to 62 characters
+		if (2 + len + filelen >= 128) return -1; // the same with the folder prefix
 		memcpy(&file[2], ScriptExtender::iniConfigFolder, len);
 		memcpy(&file[2 + len], iniString, filelen); // copy path and file
 		file[2 + len + filelen] = 0;

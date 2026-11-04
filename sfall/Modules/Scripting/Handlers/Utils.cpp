@@ -170,7 +170,7 @@ static char* SubString(const char* str, int startPos, int length) {
 	}
 	// check position
 	if (startPos >= len) return ""; // start position is out of string length, return empty string
-	if (length == 0 || length + startPos > len) {
+	if (length == 0 || length > len - startPos) {
 		length = len - startPos; // set the correct length, the length of characters goes beyond the end of the string
 	}
 
@@ -248,12 +248,14 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 		if (!conversion) {
 			// Start conversion.
 			if (c == '%') conversion = true;
+		} else if (c == '*') {
+			continue; // don't allow width/precision taken from arguments
 		} else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '%') {
 			int partLen;
 			if (c == '%') {
 				// escaped % sign, just copy newFmt up to (and including) the leading % sign
 				newFmt[j] = '\0';
-				strncpy_s(outBuf, bufCount, newFmt, j);
+				strncpy_s(outBuf, bufCount + 1, newFmt, _TRUNCATE); // bufCount excludes the terminator slot
 				partLen = j;
 			} else {
 				// ignore size prefixes
@@ -273,17 +275,20 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 				}
 				newFmt[j++] = c;
 				newFmt[j] = '\0';
-				partLen = arg.isFloat()
-				        ? _snprintf(outBuf, bufCount, newFmt, arg.floatValue())
+				bool isFloatConv = (c == 'f' || c == 'F' || c == 'e' || c == 'E' || c == 'g' || c == 'G' || c == 'a' || c == 'A');
+				partLen = (arg.isFloat() || isFloatConv) // float conversions read a double argument
+				        ? _snprintf(outBuf, bufCount, newFmt, arg.asFloat())
 				        : _snprintf(outBuf, bufCount, newFmt, arg.rawValue());
+			}
+			if (partLen < 0 || partLen >= bufCount) { // truncated (_snprintf returns -1), or filled without a terminator
+				outBuf[bufCount] = '\0';
+				bufCount = 0;
+				break;
 			}
 			outBuf += partLen;
 			bufCount -= partLen;
 			conversion = false;
 			j = 0;
-			if (bufCount <= 0) {
-				break;
-			}
 			continue;
 		}
 		newFmt[j++] = c;
@@ -291,7 +296,7 @@ static const char* sprintf_lite(OpcodeContext& ctx, const char* opcodeName) {
 	// Copy the remainder of the string.
 	if (bufCount > 0) {
 		newFmt[j] = '\0';
-		strcpy_s(outBuf, bufCount, newFmt);
+		strncpy_s(outBuf, bufCount + 1, newFmt, _TRUNCATE); // bufCount excludes the terminator slot
 	}
 
 	delete[] newFmt;
