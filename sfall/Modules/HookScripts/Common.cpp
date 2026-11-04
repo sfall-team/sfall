@@ -117,7 +117,9 @@ static void __stdcall RunSpecificHookScript(HookScript *hook) {
 	if (hook->callback != -1) {
 		fo::func::executeProcedure(hook->prog.ptr, hook->callback);
 	} else {
-		hook->callback = RunScriptStartProc(&hook->prog); // run start
+		// set before running start, which can unregister this hook and erase the entry
+		hook->callback = hook->prog.procLookup[fo::Scripts::ScriptProc::start];
+		RunScriptStartProc(&hook->prog); // run start
 	}
 }
 

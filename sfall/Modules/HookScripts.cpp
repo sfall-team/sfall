@@ -143,10 +143,19 @@ bool HookScripts::HookHasScript(int hookId) {
 }
 
 void HookScripts::RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
-	if (id >= numHooks || injectHooks[id].id < 0) return;
+	if (id < 0 || id >= numHooks || injectHooks[id].id < 0) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
-			if (procNum == 0) hooks[id].erase(it); // unregister
+			if (procNum == 0) { // unregister
+				// keep hsPosition pointing at the hs_* script
+				long index = it - hooks[id].begin();
+				if (index < hooksInfo[id].hsPosition) {
+					hooksInfo[id].hsPosition--;
+				} else if (index == hooksInfo[id].hsPosition) {
+					hooksInfo[id].hasHsScript = false; // the hs_* script unregistered itself
+				}
+				hooks[id].erase(it);
+			}
 			return;
 		}
 	}
