@@ -503,14 +503,26 @@ void TranslucentDarkFill(BYTE* surface, long x, long y, long width, long height,
 bool WinFillRect(long winID, long x, long y, long width, long height, BYTE indexColor) {
 	fo::Window* win = fo::func::GNW_find(winID);
 	bool result = false;
-	if ((x + width) > win->width) {
+	if (width <= 0 || height <= 0) return result;
+	if (x < 0) {
+		width += x;
+		x = 0;
+		result = true;
+	}
+	if (y < 0) {
+		height += y;
+		y = 0;
+		result = true;
+	}
+	if (width > win->width - x) {
 		width = win->width - x;
 		result = true;
 	}
-	if ((y + height) > win->height) {
+	if (height > win->height - y) {
 		height = win->height - y;
 		result = true;
 	}
+	if (width <= 0 || height <= 0) return result;
 	BYTE* surf = win->surface + (win->width * y) + x;
 	long pitch = win->width - width;
 	while (height--) {

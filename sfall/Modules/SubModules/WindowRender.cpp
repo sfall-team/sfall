@@ -63,7 +63,9 @@ public:
 
 	void ClearSurface(Rectangle &rect) {
 		if (surface != nullptr) {
-			if (rect.width > surfWidth || rect.height > (size / surfWidth)) return; // going beyond the surface size
+			if (rect.x < 0 || rect.y < 0 || rect.width > surfWidth - rect.x || rect.height > (size / surfWidth) - rect.y) {
+				return; // going beyond the surface size
+			}
 			BYTE* surf = surface + (surfWidth * rect.y) + rect.x;
 
 			size_t sizeD = rect.width >> 2;
