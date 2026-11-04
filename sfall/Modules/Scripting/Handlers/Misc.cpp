@@ -271,7 +271,7 @@ void op_get_tile_fid(OpcodeContext& ctx) {
 	     mode = tileAndElev >> 28;
 
 	if (tileNum >= 40000 || elevation > 2) {
-		ctx.printOpcodeError("%s() - invalid tile data argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid tile data argument.", ctx.getOpcodeName());
 		ctx.setReturn(0);
 		return;
 	}
