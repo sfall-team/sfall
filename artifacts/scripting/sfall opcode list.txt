@@ -316,8 +316,8 @@
 
 0x8240 - void mark_movie_played(int id)
 
-0x8248 - object get_last_target(object critter)
-0x8249 - object get_last_attacker(object critter)
+0x8248 - object get_last_attacker(object critter)
+0x8249 - object get_last_target(object critter)
 0x824A - void block_combat(int enable)
 
 0x824B - int  tile_under_cursor
