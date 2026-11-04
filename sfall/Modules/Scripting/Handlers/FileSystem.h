@@ -39,6 +39,8 @@ void op_fs_write_short(OpcodeContext&);
 
 void op_fs_write_int(OpcodeContext&);
 
+void op_fs_write_float(OpcodeContext&);
+
 void op_fs_write_string(OpcodeContext&);
 
 void op_fs_write_bstring(OpcodeContext&);

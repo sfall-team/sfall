@@ -135,7 +135,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1fa, "fs_write_byte",              op_fs_write_byte,             2, false,  0, {ARG_INT, ARG_INT}},
 	{0x1fb, "fs_write_short",             op_fs_write_short,            2, false,  0, {ARG_INT, ARG_INT}},
 	{0x1fc, "fs_write_int",               op_fs_write_int,              2, false,  0, {ARG_INT, ARG_INT}},
-	{0x1fd, "fs_write_int",               op_fs_write_int,              2, false,  0, {ARG_INT, ARG_INT}},
+	{0x1fd, "fs_write_float",             op_fs_write_float,            2, false,  0, {ARG_INT, ARG_NUMBER}},
 	{0x1fe, "fs_write_string",            op_fs_write_string,           2, false,  0, {ARG_INT, ARG_STRING}},
 	{0x1ff, "fs_delete",                  op_fs_delete,                 1, false,  0, {ARG_INT}},
 	{0x200, "fs_size",                    op_fs_size,                   1, true,   0, {ARG_INT}},

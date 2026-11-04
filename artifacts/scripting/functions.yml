@@ -890,7 +890,7 @@
     - name: id
       type: int
     - name: data
-      type: int
+      type: float
     opcode: 0x81fd
   - name: fs_write_string
     type: void
