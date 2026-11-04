@@ -188,7 +188,9 @@ void op_register_hook(OpcodeContext& ctx) {
 }
 
 void mf_add_g_timer_event(OpcodeContext& ctx) {
-	ScriptExtender::AddTimerEventScripts(ctx.program(), ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	if (!ScriptExtender::AddTimerEventScripts(ctx.program(), ctx.arg(0).rawValue(), ctx.arg(1).rawValue())) {
+		ctx.printOpcodeError("%s() - can only be used in global or hook scripts.", ctx.getMetaruleName());
+	}
 }
 
 void mf_remove_timer_event(OpcodeContext& ctx) {
