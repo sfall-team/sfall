@@ -48,7 +48,7 @@ static DWORD __stdcall DrawCard() {
 			return info.frm;
 		}
 	}
-	return karmaFrms.end()->frm;
+	return karmaFrms.back().frm;
 }
 
 static __declspec(naked) void DrawInfoWin_hook() {
