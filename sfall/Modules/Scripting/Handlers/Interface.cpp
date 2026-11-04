@@ -148,8 +148,9 @@ __declspec(naked) void op_get_screen_height() {
 
 // copy and split
 static void SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
+	const size_t maxLen = ScriptExtender::TextBufferSize() - 1;
 	size_t i = 0;
-	while (str[i]) {
+	while (i < maxLen && str[i]) {
 		if (str[i] == '\n' && lines < 4) {
 			ScriptExtender::gTextBuffer[i] = '\0';
 			str_ptr[lines++] = &ScriptExtender::gTextBuffer[++i];
@@ -496,6 +497,7 @@ struct FrameData {
 
 	// Data from FRM file.
 	FrameData(fo::FrmFile* frmPtr, long direction, long frame) {
+		if (direction < 0 || direction > 5) direction = 0; // same as GetFrameData
 		fo::FrmFrameData* frmData = frmPtr->GetFrameData(direction, frame);
 		pixelData = frmData->data;
 		width = frmData->width;
@@ -563,8 +565,18 @@ static FrameData LockFrameData(unsigned long fid, fo::util::ArtCacheLock& lock, 
 		// Apply direction to FID.
 		fid = (direction << 28) | (fid & (0xFFFFFFF));
 	}
-	return FrameData(fo::func::art_ptr_lock(fid, &lock.entryPtr), direction, frame);
+	fo::FrmFile* frmPtr = fo::func::art_ptr_lock(fid, &lock.entryPtr);
+	return (frmPtr != nullptr)
+	       ? FrameData(frmPtr, direction, frame)
+	       : FrameData();
 }
+
+// the engine draws to the script window buffer without clipping
+static bool IsInScriptWindow(long x, long y, long width, long height) {
+	return (x >= 0 && y >= 0 && width <= fo::func::windowWidth() - x && height <= fo::func::windowHeight() - y);
+}
+
+static const char* drawOutOfBounds = "%s() - attempt to draw beyond window bounds (%d, %d)";
 
 static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (!fo::func::selectWindowID(ctx.program()->currentScriptWin) || fo::var::getInt(FO_VAR_currentWindow) == -1) {
@@ -617,11 +629,19 @@ static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 			if (s_width <= 0 || s_height <= 0) {
 				return 0;
 			}
+			if (!IsInScriptWindow(x, y, s_width, s_height)) {
+				ctx.printOpcodeError(drawOutOfBounds, ctx.getMetaruleName(), fo::func::windowWidth(), fo::func::windowHeight());
+				return -1;
+			}
 
 			long w_width = fo::func::windowWidth();
 			long xy_pos = (y * w_width) + x;
 			fo::func::window_trans_cscale(frm.width, frm.height, s_width, s_height, xy_pos, w_width, frm.pixelData); // custom scaling
 		} else { // with x/y frame offsets
+			if (!IsInScriptWindow(x + frm.xOffset, y + frm.yOffset, frm.width, frm.height)) {
+				ctx.printOpcodeError(drawOutOfBounds, ctx.getMetaruleName(), fo::func::windowWidth(), fo::func::windowHeight());
+				return -1;
+			}
 			fo::func::windowDisplayBuf(x + frm.xOffset, frm.width, y + frm.yOffset, frm.height, frm.pixelData, ctx.arg(4).rawValue());
 		}
 	}
@@ -683,8 +703,8 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	if (ctx.numArgs() > 5) { // array params
 		sArrayVar* sArray = GetRawArray(ctx.arg(5).rawValue());
 		if (sArray) {
-			if (direction < 0) direction = sArray->val[0].intVal;
 			int size = sArray->size();
+			if (direction < 0 && size > 0) direction = sArray->val[0].intVal;
 			if (size > 1) w = sArray->val[1].intVal;
 			if (size > 2) h = sArray->val[2].intVal;
 		}
@@ -724,8 +744,8 @@ static long InterfaceDrawImage(OpcodeContext& ctx, fo::Window* ifaceWin) {
 	int width  = (w >= 0) ? w : frm.width;
 	int height = (h >= 0) ? h : frm.height;
 
-	if (x + width > ifaceWin->width || y + height > ifaceWin->height) {
-		ctx.printOpcodeError("%s() - attempt to draw beyond window bounds (%d, %d)", ctx.getMetaruleName(), ifaceWin->width, ifaceWin->height);
+	if (width > ifaceWin->width - x || height > ifaceWin->height - y) {
+		ctx.printOpcodeError(drawOutOfBounds, ctx.getMetaruleName(), ifaceWin->width, ifaceWin->height);
 		return -1;
 	}
 
