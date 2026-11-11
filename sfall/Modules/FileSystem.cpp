@@ -706,7 +706,7 @@ bool FileSystem::IsEmpty() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static __declspec(naked) void dfile_fseek_hook() {
+static __declspec(naked) void dfile_fseek_hook0() {
 	static const DWORD dfile_fseek_Ret = 0x4E5BCD;
 	__asm {
 		mov  ecx, [esi + 4];        // stream->entry
@@ -717,6 +717,17 @@ skip:
 		xor  eax, eax;
 		add  esp, 4;
 		jmp  dfile_fseek_Ret;
+	}
+}
+
+static __declspec(naked) void dfile_fseek_hook1() {
+	__asm {
+		call fo::funcoffs::fseek_;
+		test eax, eax;
+		jnz  skip;
+		mov  [esi + 0x24], ecx; // stream->position = offsetFromBeginning
+skip:
+		retn;
 	}
 }
 
@@ -798,7 +809,8 @@ void FileSystem::init() {
 	BlockCall(0x4DEF84);
 
 	// Fix file seeking in uncompressed database files
-	HookCall(0x4E5B52, dfile_fseek_hook);
+	HookCall(0x4E5B52, dfile_fseek_hook0);
+	HookCall(0x4E5C1C, dfile_fseek_hook1);
 
 	// Increase decompression buffer size for reading compressed database files
 	SafeWriteBatch<DWORD>(4096, {0x4E5EE0, 0x4E60D9, 0x4E60E0}); // was 1024
