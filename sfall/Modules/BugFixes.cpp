@@ -3923,6 +3923,19 @@ static __declspec(naked) void intface_load_hook() {
 	}
 }
 
+static __declspec(naked) void LoadSaveSlot_hack() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_quick_done], 0; // 1 if quick saving/loading
+		jne  skip;
+		mov  edx, FO_VAR_lsgmesg; // overwritten engine code
+		retn;
+skip:
+		pop  edx;
+		add  edx, 46; // offset to next section (0x47DC53, 0x47DEB7)
+		jmp  edx;
+	}
+}
+
 // Missing game initialization
 void BugFixes::OnBeforeGameInit() {
 	Initialization();
@@ -4880,6 +4893,13 @@ void BugFixes::init() {
 
 	// Fix for stale weapon animation code in the player's FID after loading a saved game
 	HookCall(0x45E932, intface_load_hook);
+
+	// Fix for msg list error message in the debug log when quick saving/loading
+	const DWORD loadSaveSlotMsgAddr[] = {
+		0x47DC20, // SaveSlot_
+		0x47DE84  // LoadSlot_
+	};
+	MakeCalls(LoadSaveSlot_hack, loadSaveSlotMsgAddr);
 }
 
 }

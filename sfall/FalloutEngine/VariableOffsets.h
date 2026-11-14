@@ -195,6 +195,7 @@
 #define FO_VAR_loadingGame                0x5194C4
 #define FO_VAR_LSData                     0x613D30
 #define FO_VAR_lsgame_msgfl               0x613D28
+#define FO_VAR_lsgmesg                    0x6142B0
 #define FO_VAR_lsgwin                     0x6142C4
 #define FO_VAR_main_ctd                   0x56D2B0
 #define FO_VAR_main_death_voiceover_done  0x614838
@@ -229,6 +230,7 @@
 #define FO_VAR_mouse_y_                   0x6AC7A4
 #define FO_VAR_movePointRect              0x518FD4
 #define FO_VAR_movie_list                 0x518DA0
+#define FO_VAR_msg_path                   0x5186C8
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_critter               0x51833C
