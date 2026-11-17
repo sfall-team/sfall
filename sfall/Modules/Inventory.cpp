@@ -586,6 +586,37 @@ takeAll:
 	}
 }
 
+static __declspec(naked) void display_body_hook() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		cmp  dword ptr [esp + 0x60 - 0x28 + 4], INV_WIN_TYPE_LOOT; // inventory type
+		jne  default;
+		mov  ebx, [esp + 0x60 - 0x44 + 4]; // fid
+		mov  edx, ebx;
+		and  ebx, 0x0F000000;
+		cmp  ebx, OBJ_TYPE_CRITTER << 24;
+		jne  default;
+		and  edx, 0xFF0000;
+		cmp  edx, ANIM_stand << 16;
+		jne  default;
+		mov  ebx, ds:[FO_VAR_target_curr_stack];
+		mov  ebx, ds:[FO_VAR_target_stack + ebx * 4]; // target object
+		test ebx, ebx;
+		jz   default;
+		mov  edx, [ebx + protoId];
+		and  edx, 0x0F000000;
+		cmp  edx, OBJ_TYPE_CRITTER << 24;
+		jne  default;
+		test byte ptr [ebx + damageFlags], (DAM_DEAD or DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN);
+		jnz  default;
+		mov  eax, 1; // set frame count (for the first frame)
+		retn;
+default:
+		jmp  fo::funcoffs::art_frame_max_frame_; // get the last frame
+	}
+}
+
 static __declspec(naked) void do_move_timer_hook() {
 	static const DWORD do_move_timer_Ret = 0x476920;
 	__asm {
@@ -740,7 +771,7 @@ jmpTaking:
 
 static __declspec(naked) void barter_move_inventory_skip_drag_hack() {
 	BarterMoveInventory_SkipPlacing = 0x474F83; // cmp esi, 1
-	BarterMoveInventory_SkipTaking = 0x475002; // cmp esi, 1
+	BarterMoveInventory_SkipTaking = 0x475002;  // cmp esi, 1
 	__asm {
 		jmp barter_move_inventory_skip_drag_hack_common;
 	}
@@ -748,17 +779,17 @@ static __declspec(naked) void barter_move_inventory_skip_drag_hack() {
 
 static __declspec(naked) void barter_move_from_table_inventory_skip_drag_hack() {
 	BarterMoveInventory_SkipPlacing = 0x47524E; // cmp esi, 1
-	BarterMoveInventory_SkipTaking = 0x4752CB; // cmp esi, 1
+	BarterMoveInventory_SkipTaking = 0x4752CB;  // cmp esi, 1
 	__asm {
 		jmp barter_move_inventory_skip_drag_hack_common;
 	}
 }
 
 static DWORD __fastcall InvenPickupGetSkipAddr(fo::GameObject* item, long itemIndex) {
-	static const DWORD InvenPickup_SkipInven = 0x4711E8;  // mov eax, [esp+20]
-	static const DWORD InvenPickup_SkipHandL = 0x47127D;  // mov edx, ds:_i_lhand
-	static const DWORD InvenPickup_SkipHandR = 0x47130A;  // mov ebx, ds:_i_rhand
-	static const DWORD InvenPickup_SkipArmor = 0x4713A9;  // mov ecx, ds:_i_worn
+	static const DWORD InvenPickup_SkipInven = 0x4711E8; // mov eax, [esp+20]
+	static const DWORD InvenPickup_SkipHandL = 0x47127D; // mov edx, ds:_i_lhand
+	static const DWORD InvenPickup_SkipHandR = 0x47130A; // mov ebx, ds:_i_rhand
+	static const DWORD InvenPickup_SkipArmor = 0x4713A9; // mov ecx, ds:_i_worn
 
 	if (!KeyDown(itemSkipDragKey)) return 0; // don't skip
 
@@ -965,6 +996,9 @@ void Inventory::init() {
 
 	// Add lowercase 'a' as a hotkey for the 'Take All' button (previously only uppercase 'A')
 	MakeCall(0x473EF6, loot_container_hack_takeall, 1);
+
+	// Use the first frame instead of the last one when displaying a standing critter on the loot screen
+	HookCall(0x4706F9, display_body_hook);
 }
 
 void Inventory::InvokeAdjustFid(long fid) {
