@@ -1173,7 +1173,38 @@ static __declspec(naked) void setup_inventory_hack() {
 	}
 }
 
-static __declspec(naked) void display_body_hook() {
+static __declspec(naked) void display_body_hook_target_frame() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		cmp  dword ptr [esp + 0x60 - 0x28 + 4], INV_WIN_TYPE_LOOT; // inventory type
+		jne  default;
+		mov  ebx, [esp + 0x60 - 0x44 + 4]; // fid
+		mov  edx, ebx;
+		and  ebx, 0x0F000000;
+		cmp  ebx, OBJ_TYPE_CRITTER << 24;
+		jne  default;
+		and  edx, 0xFF0000;
+		cmp  edx, ANIM_stand << 16;
+		jne  default;
+		mov  ebx, ds:[FO_VAR_target_curr_stack];
+		mov  ebx, ds:[FO_VAR_target_stack + ebx * 4]; // target object
+		test ebx, ebx;
+		jz   default;
+		mov  edx, [ebx + protoId];
+		and  edx, 0x0F000000;
+		cmp  edx, OBJ_TYPE_CRITTER << 24;
+		jne  default;
+		test byte ptr [ebx + damageFlags], (DAM_DEAD or DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN);
+		jnz  default;
+		mov  eax, 1; // set frame count (for the first frame)
+		retn;
+default:
+		jmp  fo::funcoffs::art_frame_max_frame_; // get the last frame
+	}
+}
+
+static __declspec(naked) void display_body_hook_pc_viewer() {
 	__asm {
 		mov  ebx, [esp + 0x60 - 0x28 + 8];
 		cmp  ebx, 1; // check mode 0 or 1
@@ -1238,7 +1269,7 @@ static void InterfaceWindowPatch() {
 	SafeWrite8(0x45D89C, (*(BYTE*)0x45D89C) | fo::WinFlags::DontMoveTop); // intface_init_ (for HRP)
 
 	// Cosmetic fix for the background image of the character portrait on the player's inventory screen
-	HookCall(0x47093C, display_body_hook);
+	HookCall(0x47093C, display_body_hook_pc_viewer);
 	BYTE code[11] = {
 		0x8B, 0xD3,             // mov  edx, ebx
 		0x66, 0x8B, 0x58, 0xF4, // mov  bx, [eax - 12] [sizeof(frame)]
@@ -1616,6 +1647,9 @@ void Interface::init() {
 		fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].x = 190;
 		fo::var::iscr_data[fo::INV_WIN_TYPE_SET_TIMER].y = 109;
 	}
+
+	// Use the first frame instead of the last one when displaying a standing critter on the loot screen
+	HookCall(0x4706F9, display_body_hook_target_frame);
 
 	LoadGameHook::OnGameInit() += []() {
 		// Needs to be invoked in OnGameInit when screen height is already known and db is initialized.

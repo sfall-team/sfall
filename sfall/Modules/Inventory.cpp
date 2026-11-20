@@ -586,37 +586,6 @@ takeAll:
 	}
 }
 
-static __declspec(naked) void display_body_hook() {
-	using namespace fo;
-	using namespace Fields;
-	__asm {
-		cmp  dword ptr [esp + 0x60 - 0x28 + 4], INV_WIN_TYPE_LOOT; // inventory type
-		jne  default;
-		mov  ebx, [esp + 0x60 - 0x44 + 4]; // fid
-		mov  edx, ebx;
-		and  ebx, 0x0F000000;
-		cmp  ebx, OBJ_TYPE_CRITTER << 24;
-		jne  default;
-		and  edx, 0xFF0000;
-		cmp  edx, ANIM_stand << 16;
-		jne  default;
-		mov  ebx, ds:[FO_VAR_target_curr_stack];
-		mov  ebx, ds:[FO_VAR_target_stack + ebx * 4]; // target object
-		test ebx, ebx;
-		jz   default;
-		mov  edx, [ebx + protoId];
-		and  edx, 0x0F000000;
-		cmp  edx, OBJ_TYPE_CRITTER << 24;
-		jne  default;
-		test byte ptr [ebx + damageFlags], (DAM_DEAD or DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN);
-		jnz  default;
-		mov  eax, 1; // set frame count (for the first frame)
-		retn;
-default:
-		jmp  fo::funcoffs::art_frame_max_frame_; // get the last frame
-	}
-}
-
 static __declspec(naked) void do_move_timer_hook() {
 	static const DWORD do_move_timer_Ret = 0x476920;
 	__asm {
@@ -996,9 +965,6 @@ void Inventory::init() {
 
 	// Add lowercase 'a' as a hotkey for the 'Take All' button (previously only uppercase 'A')
 	MakeCall(0x473EF6, loot_container_hack_takeall, 1);
-
-	// Use the first frame instead of the last one when displaying a standing critter on the loot screen
-	HookCall(0x4706F9, display_body_hook);
 }
 
 void Inventory::InvokeAdjustFid(long fid) {
