@@ -1,10 +1,25 @@
 # Changelog
 
+## 3.8.52
+* Fixed issues with endgame music playback when **AllowDShowSound** is enabled
+* Fixed NPCs getting stuck in combat when attempting to disengage from an out-of-range target
+* Fixed a crash bug in `draw_image`, `draw_image_scaled`, and `interface_art_draw` script functions when art cannot be loaded
+* Fixed a crash when calling `get_tile_fid` with invalid tile data
+* Fixed `fs_write_float` script function not accepting float arguments
+* Fixed potential out-of-bounds and overflow errors in various script functions
+* Fixed issues with `hs_*` scripts unregistering themselves
+* Improved the fix for file seeking in uncompressed **.dat** files
+* Added a fix to prevent NPCs from unequipping powered melee/unarmed weapons when looking for ammo
+* Added a fix for the player's weapon animation not matching the active item after loading a saved game
+* Added a fix for msg list error message in the debug log when quick saving/loading
+* Added a tweak to prevent failed corpse deletion from blocking saved map loading
+* Added a tweak to use the first frame instead of the last one when displaying a standing critter on the loot screen
+
 ## 3.8.51
 * Fixed a bug introduced in 3.8.40 that caused incorrect animation order during explosion attacks in certain cases
 * Fixed the player's kick attack not updating properly on game load when using an **unarmed ini file**
 * Fixed the visibility check in `tile_is_visible` script function
-* Fixed item highlighting mod being unable to highlight some containers on maps when **CheckLOS=1** (in the **modders pack**)
+* Fixed **item highlighting mod** being unable to highlight some containers on maps when **CheckLOS=1** (in the **modders pack**)
 * Fixed the preprocessor in script compiler to handle deeply nested macros (`compile.exe` in the **modders pack**)
 * Improved the fix for finding a path to the central hex of a multihex object
 * Improved the critter object ID fix to avoid looping through the entire map twice
@@ -95,7 +110,7 @@
 * Improved the fix for removing floating text messages on the map when moving to another map or elevation
 * Improved the error handling for missing main **.dat** files
 * Removed glass glare from the **'Use Inventory Item On'** window to match other game interfaces
-* Added a fix for a crash when a critter with a powered melee/unarmed weapon runs out of ammo and there was ammo nearby
+* Added a fix for a crash when a critter with a powered melee/unarmed weapon runs out of ammo and there is ammo nearby
 * Added a fix to prevent a potential crash when using skills on non-critter objects
 * Added a fix for the duplicate click sound for the 'Done' button in the **'Move Items'** and **'Set Timer'** windows
 * Added a few fixes for slightly misaligned buttons in the pipboy, character screen, and barter screen
@@ -736,11 +751,11 @@
 * Changed how `HOOK_FINDTARGET` hook script handles its return values. Now you don't have to specify all 4 targets to override normal sorting
 * Removed **DialogOptions9Lines** from `ddraw.ini` because there is little reason to turn it off
 * Removed **LoadProtoMaxLimit** from `ddraw.ini`. Now the proto limit is automatically increased when needed
-* Added a fix for party member's stats being reset to the base level when their base protos with the read-only attribute set are placed in the **proto\critters\\** directory
+* Added a fix for party member's stats being reset to the base level when their base protos with the read-only attribute set are placed in the `proto\critters\` directory
 * Added a fix for NPC stuck in a loop of picking up items in combat and the incorrect message being displayed when the NPC cannot pick up an item due to not enough space in the inventory
-* Added a fix to allow fleeing NPC to use drugs
+* Added a fix to allow fleeing NPCs to use drugs
 * Added a fix for AI not checking minimum HP properly for using stimpaks
-* Added a fix for NPC stuck in fleeing mode when the hit chance of a target was too low
+* Added a fix for NPC stuck in fleeing mode when a target's hit chance was too low
 * Added a missing option for testing **AllowSoundForFloats** to the **[Debugging]** section of `ddraw.ini`
 * Added a new return value to `HOOK_BARTERPRICE` hook script to modify the value of player's goods
 * Added a new argument to `HOOK_WITHINPERCEPTION` hook script
@@ -754,7 +769,7 @@
 * Fixed the argument numbering in error messages when validating arguments
 * Fixed a bug in **CheckWeaponAmmoCost** that caused NPCs not to switch to other weapons when there is not enough ammo to shoot
 * Fixed the position of the 32-bit talking heads when the game resolution is higher than 640x480
-* Changed `hero_select_win` function to require an `AppHeroWin.frm` file (included in the **modders pack**) in the **art\intrface\\** directory
+* Changed `hero_select_win` function to require an `AppHeroWin.frm` file (included in the **modders pack**) in the `art\intrface\` directory
 * Added a fix for unexplored areas being revealed on the automap when entering a map
 * Added a fix for the overflow of the automap tables when the number of maps in `maps.txt` is more than 160
 * Added a fix for a duplicate `obj_dude` script being created when loading a saved game
