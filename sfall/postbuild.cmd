@@ -9,11 +9,11 @@ SET target=%2
 
 SET pdb="%~dpn2.pdb"
 
-IF EXIST ducible.exe (
+IF EXIST Tools\ducible.exe (
     IF EXIST %pdb% (
-        ducible %target% %pdb%
+        Tools\ducible.exe %target% %pdb%
     ) ELSE (
-        ducible %target%
+        Tools\ducible.exe %target%
     )
 )
 

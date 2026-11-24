@@ -167,7 +167,9 @@ static __declspec(naked) void tile_scroll_to_hack_replacement() {
 
 // Implementation from HRP 3.0.6 by Mash
 static long __fastcall square_rect_render_floor(long y, long id, long x) {
-	if (x < 0 || x >= square_width || y < 0 || y >= square_length) return -1;
+	if (x < 0 || x >= square_width || y < 0 || y >= square_length) {
+		return -1;
+	}
 
 	auto edge = EdgeBorder::CurrentMapEdge();
 	if (EdgeBorder::EdgeVersion() && (x > edge->squareRect.left || x < edge->squareRect.right || y > edge->squareRect.bottom || y < edge->squareRect.top)) {
@@ -196,7 +198,9 @@ skipDraw:
 
 // Implementation from HRP 3.0.6 by Mash
 static long __fastcall square_rect_render_roof(long y, long id, long x) {
-	if (x < 0 || x >= square_width || y < 0 || y >= square_length) return -1;
+	if (x < 0 || x >= square_width || y < 0 || y >= square_length) {
+		return -1;
+	}
 
 	auto edge = EdgeBorder::CurrentMapEdge();
 	if (EdgeBorder::EdgeVersion() && (x > (edge->squareRect.left + 2) || x < (edge->squareRect.right + 2) ||

@@ -1,12 +1,27 @@
 # Changelog
 
+## 4.5.2
+* Fixed issues with endgame music playback when **AllowDShowSound** is enabled
+* Fixed NPCs getting stuck in combat when attempting to disengage from an out-of-range target
+* Fixed a crash bug in `draw_image`, `draw_image_scaled`, and `interface_art_draw` script functions when art cannot be loaded
+* Fixed a crash when calling `get_tile_fid` with invalid tile data
+* Fixed `fs_write_float` script function not accepting float arguments
+* Fixed potential out-of-bounds and overflow errors in various script functions
+* Fixed issues with `hs_*` scripts unregistering themselves
+* Improved the fix for file seeking in uncompressed **.dat** files
+* Added a fix to prevent NPCs from unequipping powered melee/unarmed weapons when looking for ammo
+* Added a fix for the player's weapon animation not matching the active item after loading a saved game
+* Added a fix for msg list error message in the debug log when quick saving/loading
+* Added a tweak to prevent failed corpse deletion from blocking saved map loading
+* Added a tweak to use the first frame instead of the last one when displaying a standing critter on the loot screen
+
 ## 4.5.1
 * HRP: Fixed a possible hang or crash when reloading a saved game in certain cases
 * HRP: Changed the window title to indicate whether an external **DirectDraw** wrapper is loaded
 * Fixed a bug introduced in 4.4.4 that caused incorrect animation order during explosion attacks in certain cases
 * Fixed the player's kick attack not updating properly on game load when using an **unarmed ini file**
 * Fixed the visibility check in `tile_is_visible` script function
-* Fixed item highlighting mod being unable to highlight some containers on maps when **CheckLOS=1**
+* Fixed **item highlighting mod** being unable to highlight some containers on maps when **CheckLOS=1**
 * Fixed the preprocessor in script compiler to handle deeply nested macros (`compile.exe` in the **modders pack**)
 * Improved the fix for finding a path to the central hex of a multihex object
 * Improved the critter object ID fix to avoid looping through the entire map twice
@@ -766,9 +781,9 @@
 * Removed **LoadProtoMaxLimit** from `ddraw.ini`. Now the proto limit is automatically increased when needed
 * Added a fix for party member's stats being reset to the base level when their base protos with the read-only attribute set are placed in the `proto\critters\` directory
 * Added a fix for NPC stuck in a loop of picking up items in combat and the incorrect message being displayed when the NPC cannot pick up an item due to not enough space in the inventory
-* Added a fix to allow fleeing NPC to use drugs
+* Added a fix to allow fleeing NPCs to use drugs
 * Added a fix for AI not checking minimum HP properly for using stimpaks
-* Added a fix for NPC stuck in fleeing mode when the hit chance of a target was too low
+* Added a fix for NPC stuck in fleeing mode when a target's hit chance was too low
 * Added a fix to prevent fake perks from being added to all controlled critters
 * Added a missing option for testing **AllowSoundForFloats** to the **[Debugging]** section of `ddraw.ini`
 * Added a new **'dropping item on the character portrait'** event to `HOOK_INVENTORYMOVE` hook script
