@@ -1669,6 +1669,18 @@ end:
 	}
 }
 
+static __declspec(naked) void combat_turn_hook() {
+	static const DWORD combat_turn_Ret = 0x422B52;
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_combat_end_due_to_load], 0;
+		jne  skip;
+		jmp  fo::funcoffs::game_ui_disable_;
+skip:
+		add  esp, 4;
+		jmp  combat_turn_Ret;
+	}
+}
+
 static __declspec(naked) void combat_display_hack() {
 	__asm {
 		test [esi + flags], Flat;                 // ctd.mainTarget
@@ -4296,6 +4308,9 @@ void BugFixes::init() {
 		HookCall(0x420E93, combat_load_hook);
 		MakeCall(0x422A06, combat_turn_hack);
 	//}
+
+	// Fix for the player's AP lights staying red after loading a non-combat saved game while in combat
+	HookCall(0x422B1C, combat_turn_hook);
 
 	// Fix for the displayed message when the attack randomly hits a target that is not a critter and has a script attached
 	// Tweak: if the main target has Flat flag set, display the "You missed" message instead of the message of hitting another object
